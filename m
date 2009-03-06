@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-change-to-discover-first-memory-bar.patch added to -mm tree
-Date: Fri, 06 Mar 2009 13:20:04 -0800
-Message-ID: <200903062120.n26LK4em032592@imap1.linux-foundation.org>
+Subject: + mtd-plat_nand-add-platform-probe-remove-callbacks.patch added to -mm tree
+Date: Fri, 06 Mar 2009 13:24:44 -0800
+Message-ID: <200903062124.n26LOisY000544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751345AbZCFVUQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 16:20:16 -0500
+	by vger.kernel.org with ESMTP id S1754459AbZCFV0P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 16:26:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com
+Cc: hsweeten@visionengravers.com, alex@digriz.org.uk, dwmw2@infradead.org
 
 
 The patch titled
-     cciss: change to discover first memory BAR
+     mtd: plat_nand: add platform probe/remove callbacks
 has been added to the -mm tree.  Its filename is
-     cciss-change-to-discover-first-memory-bar.patch
+     mtd-plat_nand-add-platform-probe-remove-callbacks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: change to discover first memory BAR
-From: Mike Miller <mike.miller@hp.com>
+Subject: mtd: plat_nand: add platform probe/remove callbacks
+From: H Hartley Sweeten <hsweeten@visionengravers.com>
 
-Add a method for discovering the first memory BAR.  All Smart Array
-controllers to date have always had the the memory BAR as the first BAR. 
-A new controller to be released later this year breaks that model.
+Add optional probe and remove callbacks to the plat_nand driver.
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Some platforms may require additional setup, such as configuring the
+memory controller, before the nand device can be accessed.  This patch
+provides an optional callback to handle this setup as well as a callback
+to teardown the setup.
+
+This patch was originally submitted to linux-mtd but it was suggested I
+post it here for a broader review.
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Tested-by: Alexander Clouter <alex@digriz.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ drivers/mtd/nand/plat_nand.c |   13 +++++++++++--
+ include/linux/mtd/nand.h     |    7 +++++++
+ 2 files changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-change-to-discover-first-memory-bar drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-change-to-discover-first-memory-bar
-+++ a/drivers/block/cciss.c
-@@ -3181,12 +3181,21 @@ static int __devinit cciss_pci_init(ctlr
-  */
- 	cciss_interrupt_mode(c, pdev, board_id);
+diff -puN drivers/mtd/nand/plat_nand.c~mtd-plat_nand-add-platform-probe-remove-callbacks drivers/mtd/nand/plat_nand.c
+--- a/drivers/mtd/nand/plat_nand.c~mtd-plat_nand-add-platform-probe-remove-callbacks
++++ a/drivers/mtd/nand/plat_nand.c
+@@ -70,6 +70,13 @@ static int __init plat_nand_probe(struct
  
--	/*
--	 * Memory base addr is first addr , the second points to the config
--	 *   table
--	 */
-+	/* find the memory BAR */
-+	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
-+		if (pci_resource_flags(pdev, i) & IORESOURCE_MEM)
-+			break;
-+	}
-+	if (i == DEVICE_COUNT_RESOURCE) {
-+		printk(KERN_WARNING "cciss: No memory BAR found\n");
-+		err = -ENODEV;
-+		goto err_out_free_res;
+ 	platform_set_drvdata(pdev, data);
+ 
++	/* Handle any platform specific setup */
++	if (pdata->ctrl.probe) {
++		res = pdata->ctrl.probe(pdev);
++		if (res)
++			goto out;
 +	}
 +
-+	c->paddr = pci_resource_start(pdev, i); /* addressing mode bits
-+						 * already removed
-+						 */
+ 	/* Scan to find existance of the device */
+ 	if (nand_scan(&data->mtd, 1)) {
+ 		res = -ENXIO;
+@@ -99,6 +106,8 @@ static int __init plat_nand_probe(struct
  
--	c->paddr = pci_resource_start(pdev, 0);	/* addressing mode bits already removed */
- #ifdef CCISS_DEBUG
- 	printk("address 0 = %lx\n", c->paddr);
- #endif				/* CCISS_DEBUG */
+ 	nand_release(&data->mtd);
+ out:
++	if (pdata->ctrl.remove)
++		pdata->ctrl.remove(pdev);
+ 	platform_set_drvdata(pdev, NULL);
+ 	iounmap(data->io_base);
+ 	kfree(data);
+@@ -111,15 +120,15 @@ out:
+ static int __devexit plat_nand_remove(struct platform_device *pdev)
+ {
+ 	struct plat_nand_data *data = platform_get_drvdata(pdev);
+-#ifdef CONFIG_MTD_PARTITIONS
+ 	struct platform_nand_data *pdata = pdev->dev.platform_data;
+-#endif
+ 
+ 	nand_release(&data->mtd);
+ #ifdef CONFIG_MTD_PARTITIONS
+ 	if (data->parts && data->parts != pdata->chip.partitions)
+ 		kfree(data->parts);
+ #endif
++	if (pdata->ctrl.remove)
++		pdata->ctrl.remove(pdev);
+ 	iounmap(data->io_base);
+ 	kfree(data);
+ 
+diff -puN include/linux/mtd/nand.h~mtd-plat_nand-add-platform-probe-remove-callbacks include/linux/mtd/nand.h
+--- a/include/linux/mtd/nand.h~mtd-plat_nand-add-platform-probe-remove-callbacks
++++ a/include/linux/mtd/nand.h
+@@ -577,8 +577,13 @@ struct platform_nand_chip {
+ 	void			*priv;
+ };
+ 
++/* Keep gcc happy */
++struct platform_device;
++
+ /**
+  * struct platform_nand_ctrl - controller level device structure
++ * @probe:		platform specific function to probe/setup hardware
++ * @remove:		platform specific function to remove/teardown hardware
+  * @hwcontrol:		platform specific hardware control structure
+  * @dev_ready:		platform specific function to read ready/busy pin
+  * @select_chip:	platform specific chip select function
+@@ -589,6 +594,8 @@ struct platform_nand_chip {
+  * All fields are optional and depend on the hardware driver requirements
+  */
+ struct platform_nand_ctrl {
++	int		(*probe)(struct platform_device *pdev);
++	void		(*remove)(struct platform_device *pdev);
+ 	void		(*hwcontrol)(struct mtd_info *mtd, int cmd);
+ 	int		(*dev_ready)(struct mtd_info *mtd);
+ 	void		(*select_chip)(struct mtd_info *mtd, int chip);
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from hsweeten@visionengravers.com are
 
-cciss-change-to-discover-first-memory-bar.patch
+linux-next.patch
+mtd-plat_nand-add-platform-probe-remove-callbacks.patch
+auxdisplay-remove-parport-dependency.patch
 
