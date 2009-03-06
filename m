@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-serial-driver-update-kgdb-uart-config-name.patch added to -mm tree
-Date: Fri, 06 Mar 2009 14:37:26 -0800
-Message-ID: <200903062237.n26MbQTt007057@imap1.linux-foundation.org>
+Subject: + blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled.patch added to -mm tree
+Date: Fri, 06 Mar 2009 14:37:28 -0800
+Message-ID: <200903062237.n26MbSMt007062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757905AbZCFWl6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:41:58 -0500
+	by vger.kernel.org with ESMTP id S1755433AbZCFWm7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:42:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: vapier.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org
 
 
 The patch titled
-     blackfin serial driver: update KGDB UART config name
+     blackfin serial driver: fix building when debug is enabled but serial console is disabled
 has been added to the -mm tree.  Its filename is
-     blackfin-serial-driver-update-kgdb-uart-config-name.patch
+     blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin serial driver: update KGDB UART config name
+Subject: blackfin serial driver: fix building when debug is enabled but serial console is disabled
 From: Mike Frysinger <vapier.adi@gmail.com>
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
@@ -42,21 +42,23 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/bfin_5xx.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/serial/Kconfig~blackfin-serial-driver-update-kgdb-uart-config-name drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~blackfin-serial-driver-update-kgdb-uart-config-name
-+++ a/drivers/serial/Kconfig
-@@ -700,7 +700,7 @@ choice
+diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled drivers/serial/bfin_5xx.c
+--- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled
++++ a/drivers/serial/bfin_5xx.c
+@@ -1256,8 +1256,10 @@ void bfin_serial_debug(const char *fmt, 
+ 	char buf[128];
+ 	va_list ap;
  
- config SERIAL_BFIN_DMA
- 	bool "DMA mode"
--	depends on !DMA_UNCACHED_NONE && !KGDB_UART
-+	depends on !DMA_UNCACHED_NONE && !KGDB_SERIAL_CONSOLE
- 	help
- 	  This driver works under DMA mode. If this option is selected, the
- 	  blackfin simple dma driver is also enabled.
++#ifdef CONFIG_SERIAL_BFIN_CONSOLE
+ 	if (bfin_serial_console.index < 0)
+ 		return;		/* Too early. */
++#endif
+ 
+ 	va_start(ap, fmt);
+ 	vsprintf(buf, fmt, ap);
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
