@@ -1,71 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] libata-fix-dma_unmap_sg-misuse.patch removed from -mm tree
-Date: Fri, 06 Mar 2009 11:28:21 -0800
-Message-ID: <200903061928.n26JSLpn022754@imap1.linux-foundation.org>
+Subject: [merged] libata-change-drive-ready-wait-after-hard-reset-to-5s.patch removed from -mm tree
+Date: Fri, 06 Mar 2009 11:28:18 -0800
+Message-ID: <200903061928.n26JSI28022676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755358AbZCFT3I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 14:29:08 -0500
+	by vger.kernel.org with ESMTP id S1756119AbZCFT3S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 14:29:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, bzolnier@gmail.com, jeff@garzik.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: stuart_hayes@dell.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: fix dma_unmap_sg misuse
+     libata: change drive ready wait after hard reset to 5s
 has been removed from the -mm tree.  Its filename was
-     libata-fix-dma_unmap_sg-misuse.patch
+     libata-change-drive-ready-wait-after-hard-reset-to-5s.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata: fix dma_unmap_sg misuse
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: libata: change drive ready wait after hard reset to 5s
+From: Stuart Hayes <stuart_hayes@dell.com>
 
-libata passes the returned value of dma_map_sg() to dma_unmap_sg(),which
-is the misuse of dma_unmap_sg().
+This fixes problems during resume with drives that take longer than 1s to
+be ready.  The ATA-6 spec appears to allow 5 seconds for a drive to be
+ready.
 
-DMA-mapping.txt says:
+On one affected system, this patch changes "PM: resume devices took..."
+message from 17 seconds to 4 seconds, and gets rid of a lot of ugly
+timeout/error messages.
 
-To unmap a scatterlist, just call:
+Without this patch, the libata code moves on after 1s, tries to send a
+soft reset (which the drive doesn't see because it isn't ready) which also
+times out, then an IDENTIFY command is sent to the drive which times out,
+and finally the error handler will try to send another hard reset which
+will finally get things working.
 
-	pci_unmap_sg(pdev, sglist, nents, direction);
-
-Again, make sure DMA activity has already finished.
-
-PLEASE NOTE:  The 'nents' argument to the pci_unmap_sg call must be
-              the _same_ one you passed into the pci_map_sg call,
-	      it should _NOT_ be the 'count' value _returned_ from the
-              pci_map_sg call.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Stuart Hayes <stuart_hayes@dell.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    4 ++--
- include/linux/libata.h    |    1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/libata.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-core.c~libata-fix-dma_unmap_sg-misuse drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-fix-dma_unmap_sg-misuse
-+++ a/drivers/ata/libata-core.c
-@@ -4612,7 +4612,7 @@ void ata_sg_clean(struct ata_queued_cmd 
- 	VPRINTK("unmapping %u sg elements\n", qc->n_elem);
+diff -puN include/linux/libata.h~libata-change-drive-ready-wait-after-hard-reset-to-5s include/linux/libata.h
+--- a/include/linux/libata.h~libata-change-drive-ready-wait-after-hard-reset-to-5s
++++ a/include/linux/libata.h
+@@ -275,7 +275,7 @@ enum {
+ 	 * advised to wait only for the following duration before
+ 	 * doing SRST.
+ 	 */
+-	ATA_TMOUT_PMP_SRST_WAIT	= 1000,
++	ATA_TMOUT_PMP_SRST_WAIT	= 5000,
  
- 	if (qc->n_elem)
--		dma_unmap_sg(ap->dev, sg, qc->n_elem, dir);
-+		dma_unmap_sg(ap->dev, sg, qc->orig_n_elem, dir);
- 
- 	qc->flags &= ~ATA_QCFLAG_DMAMAP;
- 	qc->sg = NULL;
-@@ -4727,7 +4727,7 @@ static int ata_sg_setup(struct ata_queue
- 		return -1;
- 
- 	DPRINTK("%d sg elements mapped\n", n_elem);
+ 	/* ATA bus states */
+ 	BUS_UNKNOWN		= 0,
+_
+
+Patches currently in -mm which might be from stuart_hayes@dell.com are
+
+linux-next.patch
+
