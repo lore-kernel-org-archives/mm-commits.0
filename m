@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags.patch added to -mm tree
-Date: Fri, 06 Mar 2009 14:37:20 -0800
-Message-ID: <200903062237.n26MbKHa007042@imap1.linux-foundation.org>
+Subject: + blackfin-serial-driver-update-kgdb-uart-config-name.patch added to -mm tree
+Date: Fri, 06 Mar 2009 14:37:26 -0800
+Message-ID: <200903062237.n26MbQTt007057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757941AbZCFWm2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:42:28 -0500
+	by vger.kernel.org with ESMTP id S1757905AbZCFWl6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:41:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: vapier.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org
 
 
 The patch titled
-     blackfin serial driver: irq funcs take an unsigned long for flags
+     blackfin serial driver: update KGDB UART config name
 has been added to the -mm tree.  Its filename is
-     blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags.patch
+     blackfin-serial-driver-update-kgdb-uart-config-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin serial driver: irq funcs take an unsigned long for flags
+Subject: blackfin serial driver: update KGDB UART config name
 From: Mike Frysinger <vapier.adi@gmail.com>
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
@@ -42,22 +42,21 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/bfin_5xx.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/serial/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags drivers/serial/bfin_5xx.c
---- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags
-+++ a/drivers/serial/bfin_5xx.c
-@@ -1251,7 +1251,8 @@ void bfin_serial_debug(const char *fmt, 
- {
- 	struct bfin_serial_port *uart = &bfin_serial_ports[0];
- 	unsigned short status, tmp;
--	int flags, i, count;
-+	unsigned long flags;
-+	int i, count;
- 	char buf[128];
- 	va_list ap;
+diff -puN drivers/serial/Kconfig~blackfin-serial-driver-update-kgdb-uart-config-name drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~blackfin-serial-driver-update-kgdb-uart-config-name
++++ a/drivers/serial/Kconfig
+@@ -700,7 +700,7 @@ choice
  
+ config SERIAL_BFIN_DMA
+ 	bool "DMA mode"
+-	depends on !DMA_UNCACHED_NONE && !KGDB_UART
++	depends on !DMA_UNCACHED_NONE && !KGDB_SERIAL_CONSOLE
+ 	help
+ 	  This driver works under DMA mode. If this option is selected, the
+ 	  blackfin simple dma driver is also enabled.
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
