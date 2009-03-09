@@ -1,89 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] loop-dont-increment-p-offset-with-size_t-einval.patch removed from -mm tree
-Date: Mon, 09 Mar 2009 11:27:40 -0700
-Message-ID: <200903091827.n29IReJB024850@imap1.linux-foundation.org>
+Subject: [merged] mmc_core-fix-data-timeout-for-send_ext_csd.patch removed from -mm tree
+Date: Mon, 09 Mar 2009 11:27:37 -0700
+Message-ID: <200903091827.n29IRb1L024847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751319AbZCIS2R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 14:28:17 -0400
+	by vger.kernel.org with ESMTP id S1752176AbZCIS21 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 14:28:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: ext-adrian.hunter@nokia.com, drzeus@drzeus.cx, matt@console-pimps.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     loop: don't increment p->offset with (size_t) -EINVAL
+     mmc_core: fix data timeout for SEND_EXT_CSD
 has been removed from the -mm tree.  Its filename was
-     loop-dont-increment-p-offset-with-size_t-einval.patch
+     mmc_core-fix-data-timeout-for-send_ext_csd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: don't increment p->offset with (size_t) -EINVAL
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: mmc_core: fix data timeout for SEND_EXT_CSD
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
 
-Upon a 'transfer error block' size is set to -EINVAL, but this becomes
-positive since size is unsigned: p->offset still gets incremented.
+Commit 0d3e0460f307e84904968aad6cff97bd688583d8 "MMC: CSD and CID timeout
+values" inadvertently broke the timeout for the MMC command SEND_EXT_CSD.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+This patch puts it back again.
+
+Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/mmc/core/mmc_ops.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/loop.c~loop-dont-increment-p-offset-with-size_t-einval drivers/block/loop.c
---- a/drivers/block/loop.c~loop-dont-increment-p-offset-with-size_t-einval
-+++ a/drivers/block/loop.c
-@@ -392,8 +392,7 @@ lo_splice_actor(struct pipe_inode_info *
- 	struct loop_device *lo = p->lo;
- 	struct page *page = buf->page;
- 	sector_t IV;
--	size_t size;
--	int ret;
-+	int size, ret;
+diff -puN drivers/mmc/core/mmc_ops.c~mmc_core-fix-data-timeout-for-send_ext_csd drivers/mmc/core/mmc_ops.c
+--- a/drivers/mmc/core/mmc_ops.c~mmc_core-fix-data-timeout-for-send_ext_csd
++++ a/drivers/mmc/core/mmc_ops.c
+@@ -248,12 +248,16 @@ mmc_send_cxd_data(struct mmc_card *card,
  
- 	ret = buf->ops->confirm(pipe, buf);
- 	if (unlikely(ret))
+ 	sg_init_one(&sg, data_buf, len);
+ 
+-	/*
+-	 * The spec states that CSR and CID accesses have a timeout
+-	 * of 64 clock cycles.
+-	 */
+-	data.timeout_ns = 0;
+-	data.timeout_clks = 64;
++	if (!mmc_host_is_spi(host) && opcode == MMC_SEND_EXT_CSD)
++		mmc_set_data_timeout(&data, card);
++	else {
++		/*
++		 * The spec states that CSR and CID accesses have a timeout
++		 * of 64 clock cycles (8 for SPI).
++		 */
++		data.timeout_ns = 0;
++		data.timeout_clks = 64;
++	}
+ 
+ 	mmc_wait_for_req(host, &mrq);
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from ext-adrian.hunter@nokia.com are
 
-origin.patch
-mm-get_nid_for_pfn-returns-int.patch
+fs-new-inode-i_state-corruption-fix.patch
 linux-next.patch
-acpi-get_throttling_state-cannot-be-larger-state_count.patch
-acpi-wmic-unsigned-cannot-be-less-than-0.patch
-powerpc-spufs-check-file-offset-before-calculating-write-size-in-fixed-sized-files.patch
-drm-fix-lock_test_with_return-macro.patch
-dvb-negative-internal-sub_range-wont-get-noticed.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-jffs2_acl_count-tests-0-on-unsigned.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-cfg80211-test-before-subtraction-on-unsigned.patch
-hugetlb-chg-cannot-become-less-than-0.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-fix-macros.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-wm8350-retries-will-reach-1.patch
-rtc-test-before-subtraction-on-unsigned.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-fbdev-newport-newport_wait-return-0-on-timeout.patch
-drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
-arkfb-fix-misplaced-parentheses.patch
-uvesafb-bitwise-or-has-higher-precedence-than.patch
-vesafb-bitwise-or-has-higher-precedence-than.patch
-viafb-returns-0-two-too-early.patch
-ufs-sector_t-cannot-be-negative.patch
-hppfs-hppfs_read_file-may-return-error.patch
-rio-addition-has-higher-precedence-than.patch
+mmc-add-extended-csd-register-to-debugfs.patch
+mtd-onenand-add-write-while-program-support.patch
 
