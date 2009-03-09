@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rcu-documentation-1q09-update.patch added to -mm tree
-Date: Mon, 09 Mar 2009 13:35:24 -0700
-Message-ID: <200903092035.n29KZOH8003999@imap1.linux-foundation.org>
+Subject: + uml-improve-error-messages.patch added to -mm tree
+Date: Mon, 09 Mar 2009 13:53:08 -0700
+Message-ID: <200903092053.n29Kr894005791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41123 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752251AbZCIUf7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 16:35:59 -0400
+	by vger.kernel.org with ESMTP id S1752371AbZCIUxn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 16:53:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com, mingo@elte.hu
+Cc: xiyou.wangcong@gmail.com, jdike@addtoit.com
 
 
 The patch titled
-     rcu: documentation 1Q09 update
+     uml: improve error messages
 has been added to the -mm tree.  Its filename is
-     rcu-documentation-1q09-update.patch
+     uml-improve-error-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: documentation 1Q09 update
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: uml: improve error messages
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Update the RCU documentation to call out the need for callers of
-primitives like call_rcu() and synchronize_rcu() to prevent subsequent RCU
-readers from hazard.
+These error messages are from check_sysemu(), not check_ptrace().
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/RCU/checklist.txt |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/um/os-Linux/start_up.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/RCU/checklist.txt~rcu-documentation-1q09-update Documentation/RCU/checklist.txt
---- a/Documentation/RCU/checklist.txt~rcu-documentation-1q09-update
-+++ a/Documentation/RCU/checklist.txt
-@@ -298,3 +298,15 @@ over a rather long period of time, but i
+diff -puN arch/um/os-Linux/start_up.c~uml-improve-error-messages arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-improve-error-messages
++++ a/arch/um/os-Linux/start_up.c
+@@ -244,7 +244,7 @@ static void __init check_sysemu(void)
  
- 	Note that, rcu_assign_pointer() and rcu_dereference() relate to
- 	SRCU just as they do to other forms of RCU.
-+
-+15.	The whole point of call_rcu(), synchronize_rcu(), and friends
-+	is to wait until all pre-existing readers have finished before
-+	carrying out some otherwise-destructive operation.  It is
-+	therefore critically important to -first- remove any path
-+	that readers can follow that could be affected by the
-+	destructive operation, and -only- -then- invoke call_rcu(),
-+	synchronize_rcu(), or friends.
-+
-+	Because these primitives only wait for pre-existing readers,
-+	it is the caller's responsibility to guarantee safety to
-+	any subsequent readers.
+ 	if ((ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
+ 		   (void *) PTRACE_O_TRACESYSGOOD) < 0))
+-		fatal_perror("check_ptrace: PTRACE_OLDSETOPTIONS failed");
++		fatal_perror("check_sysemu: PTRACE_OLDSETOPTIONS failed");
+ 
+ 	while (1) {
+ 		count++;
+@@ -252,12 +252,12 @@ static void __init check_sysemu(void)
+ 			goto fail;
+ 		CATCH_EINTR(n = waitpid(pid, &status, WUNTRACED));
+ 		if (n < 0)
+-			fatal_perror("check_ptrace : wait failed");
++			fatal_perror("check_sysemu: wait failed");
+ 
+ 		if (WIFSTOPPED(status) &&
+ 		    (WSTOPSIG(status) == (SIGTRAP|0x80))) {
+ 			if (!count) {
+-				non_fatal("check_ptrace : SYSEMU_SINGLESTEP "
++				non_fatal("check_sysemu: SYSEMU_SINGLESTEP "
+ 					  "doesn't singlestep");
+ 				goto fail;
+ 			}
+@@ -271,7 +271,7 @@ static void __init check_sysemu(void)
+ 		else if (WIFSTOPPED(status) && (WSTOPSIG(status) == SIGTRAP))
+ 			count++;
+ 		else {
+-			non_fatal("check_ptrace : expected SIGTRAP or "
++			non_fatal("check_sysemu: expected SIGTRAP or "
+ 				  "(SIGTRAP | 0x80), got status = %d\n",
+ 				  status);
+ 			goto fail;
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-origin.patch
-idr-make-idr_remove_all-do-removal-before-free_layer.patch
-rcu-documentation-1q09-update.patch
 linux-next.patch
+memdup_user-introduce.patch
+uml-dont-use-a-too-long-string-literal.patch
+uml-improve-error-messages.patch
 
