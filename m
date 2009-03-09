@@ -1,78 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc_core-fix-data-timeout-for-send_ext_csd.patch removed from -mm tree
-Date: Mon, 09 Mar 2009 11:27:37 -0700
-Message-ID: <200903091827.n29IRb1L024847@imap1.linux-foundation.org>
+Subject: + w1-coding-style-cleanups-in-w1_ioc.patch added to -mm tree
+Date: Mon, 09 Mar 2009 11:53:58 -0700
+Message-ID: <200903091853.n29Irwg3027187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50833 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752176AbZCIS21 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 14:28:27 -0400
+	by vger.kernel.org with ESMTP id S1752815AbZCISyu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 14:54:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-adrian.hunter@nokia.com, drzeus@drzeus.cx, matt@console-pimps.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: daniel@caiaq.de, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     mmc_core: fix data timeout for SEND_EXT_CSD
-has been removed from the -mm tree.  Its filename was
-     mmc_core-fix-data-timeout-for-send_ext_csd.patch
+     w1: coding style cleanups in w1_io.c
+has been added to the -mm tree.  Its filename is
+     w1-coding-style-cleanups-in-w1_ioc.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_core: fix data timeout for SEND_EXT_CSD
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: w1: coding style cleanups in w1_io.c
+From: Daniel Mack <daniel@caiaq.de>
 
-Commit 0d3e0460f307e84904968aad6cff97bd688583d8 "MMC: CSD and CID timeout
-values" inadvertently broke the timeout for the MMC command SEND_EXT_CSD.
+This fixes a number of coding style issues I stubled over.
 
-This patch puts it back again.
-
-Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Cc: <stable@kernel.org>		[2.6.28.x]
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc_ops.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/w1/w1_io.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mmc/core/mmc_ops.c~mmc_core-fix-data-timeout-for-send_ext_csd drivers/mmc/core/mmc_ops.c
---- a/drivers/mmc/core/mmc_ops.c~mmc_core-fix-data-timeout-for-send_ext_csd
-+++ a/drivers/mmc/core/mmc_ops.c
-@@ -248,12 +248,16 @@ mmc_send_cxd_data(struct mmc_card *card,
+diff -puN drivers/w1/w1_io.c~w1-coding-style-cleanups-in-w1_ioc drivers/w1/w1_io.c
+--- a/drivers/w1/w1_io.c~w1-coding-style-cleanups-in-w1_ioc
++++ a/drivers/w1/w1_io.c
+@@ -69,7 +69,7 @@ static u8 w1_touch_bit(struct w1_master 
+ 		return w1_read_bit(dev);
+ 	else {
+ 		w1_write_bit(dev, 0);
+-		return(0);
++		return 0;
+ 	}
+ }
  
- 	sg_init_one(&sg, data_buf, len);
+@@ -184,17 +184,17 @@ static u8 w1_read_bit(struct w1_master *
+  */
+ u8 w1_triplet(struct w1_master *dev, int bdir)
+ {
+-	if ( dev->bus_master->triplet )
+-		return(dev->bus_master->triplet(dev->bus_master->data, bdir));
++	if (dev->bus_master->triplet)
++		return dev->bus_master->triplet(dev->bus_master->data, bdir);
+ 	else {
+ 		u8 id_bit   = w1_touch_bit(dev, 1);
+ 		u8 comp_bit = w1_touch_bit(dev, 1);
+ 		u8 retval;
  
--	/*
--	 * The spec states that CSR and CID accesses have a timeout
--	 * of 64 clock cycles.
--	 */
--	data.timeout_ns = 0;
--	data.timeout_clks = 64;
-+	if (!mmc_host_is_spi(host) && opcode == MMC_SEND_EXT_CSD)
-+		mmc_set_data_timeout(&data, card);
-+	else {
-+		/*
-+		 * The spec states that CSR and CID accesses have a timeout
-+		 * of 64 clock cycles (8 for SPI).
-+		 */
-+		data.timeout_ns = 0;
-+		data.timeout_clks = 64;
-+	}
+-		if ( id_bit && comp_bit )
+-			return(0x03);  /* error */
++		if (id_bit && comp_bit)
++			return 0x03;  /* error */
  
- 	mmc_wait_for_req(host, &mrq);
+-		if ( !id_bit && !comp_bit ) {
++		if (!id_bit && !comp_bit) {
+ 			/* Both bits are valid, take the direction given */
+ 			retval = bdir ? 0x04 : 0;
+ 		} else {
+@@ -203,11 +203,11 @@ u8 w1_triplet(struct w1_master *dev, int
+ 			retval = id_bit ? 0x05 : 0x02;
+ 		}
+ 
+-		if ( dev->bus_master->touch_bit )
++		if (dev->bus_master->touch_bit)
+ 			w1_touch_bit(dev, bdir);
+ 		else
+ 			w1_write_bit(dev, bdir);
+-		return(retval);
++		return retval;
+ 	}
+ }
  
 _
 
-Patches currently in -mm which might be from ext-adrian.hunter@nokia.com are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
-fs-new-inode-i_state-corruption-fix.patch
 linux-next.patch
-mmc-add-extended-csd-register-to-debugfs.patch
-mtd-onenand-add-write-while-program-support.patch
+w1-coding-style-cleanups-in-w1_ioc.patch
 
