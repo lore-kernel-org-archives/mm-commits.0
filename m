@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + devpts-unroll-essentials-of-do_remount_sb-into-devpts.patch added to -mm tree
-Date: Mon, 09 Mar 2009 13:05:24 -0700
-Message-ID: <200903092005.n29K5PF1001090@imap1.linux-foundation.org>
+Subject: + devpts-move-common-mknod_ptmx-calls-into-caller.patch added to -mm tree
+Date: Mon, 09 Mar 2009 13:05:29 -0700
+Message-ID: <200903092005.n29K5TKc001096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751780AbZCIUGT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 16:06:19 -0400
+	by vger.kernel.org with ESMTP id S1751830AbZCIUGU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 16:06:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: sukadev@linux.vnet.ibm.com, alan@lxorguk.ukuu.org.uk, hch@lst.de, hpa@zytor.
 
 
 The patch titled
-     devpts: unroll essentials of do_remount_sb() into devpts
+     devpts: move common mknod_ptmx() calls into caller
 has been added to the -mm tree.  Its filename is
-     devpts-unroll-essentials-of-do_remount_sb-into-devpts.patch
+     devpts-move-common-mknod_ptmx-calls-into-caller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,19 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: unroll essentials of do_remount_sb() into devpts
+Subject: devpts: move common mknod_ptmx() calls into caller
 From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 
-On remount, devpts fs only needs to parse the mount options.  Users cannot
-directly create/dirty files in /dev/pts so the MS_RDONLY flag and
-shrinking the dcache does not really apply to devpts.
-
-So effectively on remount, devpts only parses the mount options and
-updates these options in its super block.  As such, we could replace
-do_remount_sb() call with a direct parse_mount_options().
-
-Doing so enables subsequent patches to avoid parsing the mount options
-twice and simplify the code.
+We create 'ptmx' node in both single-instance and multiple-instance
+mounts.  So devpts_get_sb() can call mknod_ptmx() once rather than have
+both modes calling mknod_ptmx() separately.
 
 Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
@@ -55,33 +48,71 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/devpts/inode.c |   36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-diff -puN fs/devpts/inode.c~devpts-unroll-essentials-of-do_remount_sb-into-devpts fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-unroll-essentials-of-do_remount_sb-into-devpts
+diff -puN fs/devpts/inode.c~devpts-move-common-mknod_ptmx-calls-into-caller fs/devpts/inode.c
+--- a/fs/devpts/inode.c~devpts-move-common-mknod_ptmx-calls-into-caller
 +++ a/fs/devpts/inode.c
-@@ -437,6 +437,8 @@ static int get_init_pts_sb(struct file_s
- 		void *data, struct vfsmount *mnt)
- {
- 	struct super_block *s;
-+	struct pts_mount_opts *opts;
-+	struct pts_fs_info *fsi;
- 	int error;
+@@ -338,17 +338,7 @@ static int new_pts_mount(struct file_sys
+ 	fsi = DEVPTS_SB(mnt->mnt_sb);
+ 	memcpy(&fsi->mount_opts, opts, sizeof(opts));
  
- 	s = sget(fs_type, compare_init_pts_sb, set_anon_super, NULL);
-@@ -453,7 +455,10 @@ static int get_init_pts_sb(struct file_s
- 		}
- 		s->s_flags |= MS_ACTIVE;
- 	}
--	do_remount_sb(s, flags, data, 0);
-+	fsi = DEVPTS_SB(s);
-+	opts = &fsi->mount_opts;
-+	parse_mount_options(data, PARSE_REMOUNT, opts);
-+
- 	simple_set_mnt(mnt, s);
+-	err = mknod_ptmx(mnt->mnt_sb);
+-	if (err)
+-		goto fail;
+-
  	return 0;
+-
+-fail:
+-	dput(mnt->mnt_sb->s_root);
+-	up_write(&mnt->mnt_sb->s_umount);
+-	deactivate_super(mnt->mnt_sb);
+-	return err;
  }
+ 
+ /*
+@@ -416,13 +406,6 @@ static int init_pts_mount(struct file_sy
+ 	if (err)
+ 		return err;
+ 
+-	err = mknod_ptmx(mnt->mnt_sb);
+-	if (err) {
+-		dput(mnt->mnt_sb->s_root);
+-		up_write(&mnt->mnt_sb->s_umount);
+-		deactivate_super(mnt->mnt_sb);
+-	}
+-
+ 	return err;
+ }
+ 
+@@ -440,9 +423,24 @@ static int devpts_get_sb(struct file_sys
+ 	}
+ 
+ 	if (opts.newinstance)
+-		return new_pts_mount(fs_type, flags, data, &opts, mnt);
++		error = new_pts_mount(fs_type, flags, data, &opts, mnt);
+ 	else
+-		return init_pts_mount(fs_type, flags, data, &opts, mnt);
++		error = init_pts_mount(fs_type, flags, data, &opts, mnt);
++
++	if (error)
++		return error;
++
++	error = mknod_ptmx(mnt->mnt_sb);
++	if (error)
++		goto out_dput;
++
++	return 0;
++
++out_dput:
++	dput(mnt->mnt_sb->s_root);
++	up_write(&mnt->mnt_sb->s_umount);
++	deactivate_super(mnt->mnt_sb);
++	return error;
+ }
+ 
+ #else
 _
 
 Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
