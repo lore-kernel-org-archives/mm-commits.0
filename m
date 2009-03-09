@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + devpts-move-common-mknod_ptmx-calls-into-caller.patch added to -mm tree
-Date: Mon, 09 Mar 2009 13:05:29 -0700
-Message-ID: <200903092005.n29K5TKc001096@imap1.linux-foundation.org>
+Subject: + devpts-parse-mount-options-just-once-and-copy-them-to-super-block.patch added to -mm tree
+Date: Mon, 09 Mar 2009 13:05:27 -0700
+Message-ID: <200903092005.n29K5RDR001093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751830AbZCIUGU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 16:06:20 -0400
+	by vger.kernel.org with ESMTP id S1751830AbZCIUGT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 16:06:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: sukadev@linux.vnet.ibm.com, alan@lxorguk.ukuu.org.uk, hch@lst.de, hpa@zytor.
 
 
 The patch titled
-     devpts: move common mknod_ptmx() calls into caller
+     devpts: parse mount options just once and copy them to super block
 has been added to the -mm tree.  Its filename is
-     devpts-move-common-mknod_ptmx-calls-into-caller.patch
+     devpts-parse-mount-options-just-once-and-copy-them-to-super-block.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,192 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: move common mknod_ptmx() calls into caller
+Subject: devpts: parse mount options just once and copy them to super block
 From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 
-We create 'ptmx' node in both single-instance and multiple-instance
-mounts.  So devpts_get_sb() can call mknod_ptmx() once rather than have
-both modes calling mknod_ptmx() separately.
+Since all the mount option parsing is done in devpts, we could do it just
+once and pass it around in devpts functions and eventually store it in the
+super block.
 
 Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |   36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ fs/devpts/inode.c |  100 +++++++++-----------------------------------
+ 1 file changed, 22 insertions(+), 78 deletions(-)
 
-diff -puN fs/devpts/inode.c~devpts-move-common-mknod_ptmx-calls-into-caller fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-move-common-mknod_ptmx-calls-into-caller
+diff -puN fs/devpts/inode.c~devpts-parse-mount-options-just-once-and-copy-them-to-super-block fs/devpts/inode.c
+--- a/fs/devpts/inode.c~devpts-parse-mount-options-just-once-and-copy-them-to-super-block
 +++ a/fs/devpts/inode.c
-@@ -338,17 +338,7 @@ static int new_pts_mount(struct file_sys
- 	fsi = DEVPTS_SB(mnt->mnt_sb);
- 	memcpy(&fsi->mount_opts, opts, sizeof(opts));
- 
--	err = mknod_ptmx(mnt->mnt_sb);
--	if (err)
--		goto fail;
--
- 	return 0;
--
--fail:
--	dput(mnt->mnt_sb->s_root);
--	up_write(&mnt->mnt_sb->s_umount);
--	deactivate_super(mnt->mnt_sb);
--	return err;
+@@ -322,60 +322,21 @@ static int compare_init_pts_sb(struct su
  }
  
  /*
-@@ -416,13 +406,6 @@ static int init_pts_mount(struct file_sy
+- * Safely parse the mount options in @data and update @opts.
+- *
+- * devpts ends up parsing options two times during mount, due to the
+- * two modes of operation it supports. The first parse occurs in
+- * devpts_get_sb() when determining the mode (single-instance or
+- * multi-instance mode). The second parse happens in devpts_remount()
+- * or new_pts_mount() depending on the mode.
+- *
+- * Parsing of options modifies the @data making subsequent parsing
+- * incorrect. So make a local copy of @data and parse it.
+- *
+- * Return: 0 On success, -errno on error
+- */
+-static int safe_parse_mount_options(void *data, struct pts_mount_opts *opts)
+-{
+-	int rc;
+-	void *datacp;
+-
+-	if (!data)
+-		return 0;
+-
+-	/* Use kstrdup() ?  */
+-	datacp = kmalloc(PAGE_SIZE, GFP_KERNEL);
+-	if (!datacp)
+-		return -ENOMEM;
+-
+-	memcpy(datacp, data, PAGE_SIZE);
+-	rc = parse_mount_options((char *)datacp, PARSE_MOUNT, opts);
+-	kfree(datacp);
+-
+-	return rc;
+-}
+-
+-/*
+  * Mount a new (private) instance of devpts.  PTYs created in this
+  * instance are independent of the PTYs in other devpts instances.
+  */
+ static int new_pts_mount(struct file_system_type *fs_type, int flags,
+-		void *data, struct vfsmount *mnt)
++		void *data, struct pts_mount_opts *opts, struct vfsmount *mnt)
+ {
+ 	int err;
+ 	struct pts_fs_info *fsi;
+-	struct pts_mount_opts *opts;
+ 
+ 	err = get_sb_nodev(fs_type, flags, data, devpts_fill_super, mnt);
  	if (err)
  		return err;
  
--	err = mknod_ptmx(mnt->mnt_sb);
--	if (err) {
--		dput(mnt->mnt_sb->s_root);
--		up_write(&mnt->mnt_sb->s_umount);
--		deactivate_super(mnt->mnt_sb);
--	}
+ 	fsi = DEVPTS_SB(mnt->mnt_sb);
+-	opts = &fsi->mount_opts;
 -
- 	return err;
+-	err = parse_mount_options(data, PARSE_MOUNT, opts);
+-	if (err)
+-		goto fail;
++	memcpy(&fsi->mount_opts, opts, sizeof(opts));
+ 
+ 	err = mknod_ptmx(mnt->mnt_sb);
+ 	if (err)
+@@ -391,28 +352,6 @@ fail:
  }
  
-@@ -440,9 +423,24 @@ static int devpts_get_sb(struct file_sys
+ /*
+- * Check if 'newinstance' mount option was specified in @data.
+- *
+- * Return: -errno  	on error (eg: invalid mount options specified)
+- * 	 : 1 		if 'newinstance' mount option was specified
+- * 	 : 0 		if 'newinstance' mount option was NOT specified
+- */
+-static int is_new_instance_mount(void *data)
+-{
+-	int rc;
+-	struct pts_mount_opts opts;
+-
+-	if (!data)
+-		return 0;
+-
+-	rc = safe_parse_mount_options(data, &opts);
+-	if (!rc)
+-		rc = opts.newinstance;
+-
+-	return rc;
+-}
+-
+-/*
+  * get_init_pts_sb()
+  *
+  *     This interface is needed to support multiple namespace semantics in
+@@ -434,10 +373,9 @@ static int is_new_instance_mount(void *d
+  *     presence of the private namespace (i.e 'newinstance') super-blocks.
+  */
+ static int get_init_pts_sb(struct file_system_type *fs_type, int flags,
+-		void *data, struct vfsmount *mnt)
++		void *data, struct pts_mount_opts *opts, struct vfsmount *mnt)
+ {
+ 	struct super_block *s;
+-	struct pts_mount_opts *opts;
+ 	struct pts_fs_info *fsi;
+ 	int error;
+ 
+@@ -455,11 +393,12 @@ static int get_init_pts_sb(struct file_s
+ 		}
+ 		s->s_flags |= MS_ACTIVE;
  	}
+-	fsi = DEVPTS_SB(s);
+-	opts = &fsi->mount_opts;
+-	parse_mount_options(data, PARSE_REMOUNT, opts);
  
- 	if (opts.newinstance)
--		return new_pts_mount(fs_type, flags, data, &opts, mnt);
-+		error = new_pts_mount(fs_type, flags, data, &opts, mnt);
- 	else
--		return init_pts_mount(fs_type, flags, data, &opts, mnt);
-+		error = init_pts_mount(fs_type, flags, data, &opts, mnt);
+ 	simple_set_mnt(mnt, s);
 +
-+	if (error)
-+		return error;
++	fsi = DEVPTS_SB(mnt->mnt_sb);
++	memcpy(&fsi->mount_opts, opts, sizeof(opts));
 +
-+	error = mknod_ptmx(mnt->mnt_sb);
-+	if (error)
-+		goto out_dput;
-+
-+	return 0;
-+
-+out_dput:
-+	dput(mnt->mnt_sb->s_root);
-+	up_write(&mnt->mnt_sb->s_umount);
-+	deactivate_super(mnt->mnt_sb);
-+	return error;
+ 	return 0;
  }
  
+@@ -469,11 +408,11 @@ static int get_init_pts_sb(struct file_s
+  * kernel still allows multiple-instances.
+  */
+ static int init_pts_mount(struct file_system_type *fs_type, int flags,
+-		void *data, struct vfsmount *mnt)
++		void *data, struct pts_mount_opts *opts, struct vfsmount *mnt)
+ {
+ 	int err;
+ 
+-	err = get_init_pts_sb(fs_type, flags, data, mnt);
++	err = get_init_pts_sb(fs_type, flags, data, opts, mnt);
+ 	if (err)
+ 		return err;
+ 
+@@ -490,17 +429,22 @@ static int init_pts_mount(struct file_sy
+ static int devpts_get_sb(struct file_system_type *fs_type,
+ 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
+ {
+-	int new;
+-
+-	new = is_new_instance_mount(data);
+-	if (new < 0)
+-		return new;
++	int error;
++	struct pts_mount_opts opts;
+ 
+-	if (new)
+-		return new_pts_mount(fs_type, flags, data, mnt);
++	memset(&opts, 0, sizeof(opts));
++	if (data) {
++		error = parse_mount_options(data, PARSE_MOUNT, &opts);
++		if (error)
++			return error;
++	}
+ 
+-	return init_pts_mount(fs_type, flags, data, mnt);
++	if (opts.newinstance)
++		return new_pts_mount(fs_type, flags, data, &opts, mnt);
++	else
++		return init_pts_mount(fs_type, flags, data, &opts, mnt);
+ }
++
  #else
+ /*
+  * This supports only the legacy single-instance semantics (no
 _
 
 Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
