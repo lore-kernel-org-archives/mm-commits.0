@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch added to -mm tree
-Date: Mon, 09 Mar 2009 16:39:05 -0700
-Message-ID: <200903092339.n29Nd5H5020805@imap1.linux-foundation.org>
+Subject: + wimax-fix-i2400m-printk-formats.patch added to -mm tree
+Date: Mon, 09 Mar 2009 16:40:17 -0700
+Message-ID: <200903092340.n29NeHSr020914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752046AbZCIXkP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 19:40:15 -0400
+	by vger.kernel.org with ESMTP id S1752073AbZCIXkw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 19:40:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, david-b@pacbell.net, dilinger@debian.org, jordan@cosmicpenguin.net, katzj@redhat.com, tiwai@suse.de
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     gpio: fix cs553x printk format
+     wimax: fix i2400m printk formats
 has been added to the -mm tree.  Its filename is
-     cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
+     wimax-fix-i2400m-printk-formats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: fix cs553x printk format
+Subject: wimax: fix i2400m printk formats
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix printk format warning:
+Fix printk format warnings:
 
-drivers/gpio/cs553x-gpio.c:193: warning: format '%x' expects type 'unsigned int', but argument 5 has type 'resource_size_t'
+drivers/net/wimax/i2400m/netdev.c:523: warning: format '%zu' expects type 'size_t', but argument 7 has type 'unsigned int'
+drivers/net/wimax/i2400m/netdev.c:548: warning: format '%zu' expects type 'size_t', but argument 7 has type 'unsigned int'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jeremy Katz <katzj@redhat.com>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
-Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/cs553x-gpio.c |    4 ++--
+ drivers/net/wimax/i2400m/netdev.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpio/cs553x-gpio.c~cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix drivers/gpio/cs553x-gpio.c
---- a/drivers/gpio/cs553x-gpio.c~cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix
-+++ a/drivers/gpio/cs553x-gpio.c
-@@ -190,8 +190,8 @@ static int __init cs553x_gpio_probe(stru
- 	cs553x_gpio_chip.pdev = pdev;
- 	spin_lock_init(&cs553x_gpio_chip.lock);
+diff -puN drivers/net/wimax/i2400m/netdev.c~wimax-fix-i2400m-printk-formats drivers/net/wimax/i2400m/netdev.c
+--- a/drivers/net/wimax/i2400m/netdev.c~wimax-fix-i2400m-printk-formats
++++ a/drivers/net/wimax/i2400m/netdev.c
+@@ -520,7 +520,7 @@ void i2400m_net_erx(struct i2400m *i2400
+ 	struct device *dev = i2400m_dev(i2400m);
+ 	int protocol;
  
--	dev_info(&pdev->dev, "allocated PCI BAR #%d: base 0x%x\n", GPIO_BAR,
--			cs553x_gpio_chip.base);
-+	dev_info(&pdev->dev, "allocated PCI BAR #%d: base 0x%llx\n", GPIO_BAR,
-+			(unsigned long long)cs553x_gpio_chip.base);
+-	d_fnstart(2, dev, "(i2400m %p skb %p [%zu] cs %d)\n",
++	d_fnstart(2, dev, "(i2400m %p skb %p [%u] cs %d)\n",
+ 		  i2400m, skb, skb->len, cs);
+ 	switch(cs) {
+ 	case I2400M_CS_IPV4_0:
+@@ -545,7 +545,7 @@ void i2400m_net_erx(struct i2400m *i2400
+ 	d_dump(4, dev, skb->data, skb->len);
+ 	netif_rx_ni(skb);	/* see notes in function header */
+ error:
+-	d_fnend(2, dev, "(i2400m %p skb %p [%zu] cs %d) = void\n",
++	d_fnend(2, dev, "(i2400m %p skb %p [%u] cs %d) = void\n",
+ 		i2400m, skb, skb->len, cs);
+ }
  
- 	/* finally, register with the generic GPIO API */
- 	err = gpiochip_add(&cs553x_gpio_chip.chip);
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -82,6 +85,7 @@ input-ad7879-touchscreen-driver.patch
 es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+wimax-fix-i2400m-printk-formats.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 esp-fix-section-mismatch-warning.patch
 qla2x-fix-printk-format-warnings.patch
