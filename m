@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + devpts-remove-get_init_pts_sb.patch added to -mm tree
-Date: Mon, 09 Mar 2009 13:05:31 -0700
-Message-ID: <200903092005.n29K5WH2001099@imap1.linux-foundation.org>
+Subject: + idr-make-idr_remove_all-do-removal-before-free_layer.patch added to -mm tree
+Date: Mon, 09 Mar 2009 13:26:43 -0700
+Message-ID: <200903092026.n29KQheb003140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751922AbZCIUGW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 16:06:22 -0400
+	by vger.kernel.org with ESMTP id S1752386AbZCIU1i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 16:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@linux.vnet.ibm.com, alan@lxorguk.ukuu.org.uk, hch@lst.de, hpa@zytor.com, serue@us.ibm.com
+Cc: paulmck@linux.vnet.ibm.com, manfred@colorfullife.com, miltonm@austin.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     devpts: remove get_init_pts_sb()
+     idr: make idr_remove_all() do removal -before- free_layer()
 has been added to the -mm tree.  Its filename is
-     devpts-remove-get_init_pts_sb.patch
+     idr-make-idr_remove_all-do-removal-before-free_layer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,94 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: remove get_init_pts_sb()
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Subject: idr: make idr_remove_all() do removal -before- free_layer()
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-With mknod_ptmx() moved to devpts_get_sb(), init_pts_mount() becomes a
-wrapper around get_init_pts_sb().  Remove get_init_pts_sb() and fold code
-into init_pts_mount().
+Fix a problem in the IDR system, where an idr_remove_all() hands a data
+element to call_rcu() (via free_layer()) before making that data element
+inaccessible to new readers.  This is very bad, and results in readers
+still having a reference to this data element at the end of the grace
+period.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Tests on large machines that concurrently map and unmap user-space memory
+within the same multithreaded process result in crashes within about five
+minutes.  Applying this patch increases the kernel's longevity to the
+three-to-eight-hour range.
+
+There appear to be other similar problems in idr_get_empty_slot() and
+sub_remove(), but I fixed the easy one in idr_remove_all() first.  It is
+therefore no surprise that failures still occur.
+
+Located-by: Milton Miller II <miltonm@austin.ibm.com>
+Tested-by: Milton Miller II <miltonm@austin.ibm.com>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |   25 ++++++-------------------
- 1 file changed, 6 insertions(+), 19 deletions(-)
+ lib/idr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/devpts/inode.c~devpts-remove-get_init_pts_sb fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-remove-get_init_pts_sb
-+++ a/fs/devpts/inode.c
-@@ -342,7 +342,11 @@ static int new_pts_mount(struct file_sys
- }
+diff -puN lib/idr.c~idr-make-idr_remove_all-do-removal-before-free_layer lib/idr.c
+--- a/lib/idr.c~idr-make-idr_remove_all-do-removal-before-free_layer
++++ a/lib/idr.c
+@@ -449,6 +449,7 @@ void idr_remove_all(struct idr *idp)
  
- /*
-- * get_init_pts_sb()
-+ * init_pts_mount()
-+ *
-+ *     Mount or remount the initial kernel mount of devpts. This type of
-+ *     mount maintains the legacy, single-instance semantics, while the
-+ *     kernel still allows multiple-instances.
-  *
-  *     This interface is needed to support multiple namespace semantics in
-  *     devpts while preserving backward compatibility of the current 'single-
-@@ -362,7 +366,7 @@ static int new_pts_mount(struct file_sys
-  *     consistently selects the 'single-namespace' superblock even in the
-  *     presence of the private namespace (i.e 'newinstance') super-blocks.
-  */
--static int get_init_pts_sb(struct file_system_type *fs_type, int flags,
-+static int init_pts_mount(struct file_system_type *fs_type, int flags,
- 		void *data, struct pts_mount_opts *opts, struct vfsmount *mnt)
- {
- 	struct super_block *s;
-@@ -392,23 +396,6 @@ static int get_init_pts_sb(struct file_s
- 	return 0;
- }
+ 	n = idp->layers * IDR_BITS;
+ 	p = idp->top;
++	rcu_assign_pointer(idp->top, NULL);
+ 	max = 1 << n;
  
--/*
-- * Mount or remount the initial kernel mount of devpts. This type of
-- * mount maintains the legacy, single-instance semantics, while the
-- * kernel still allows multiple-instances.
-- */
--static int init_pts_mount(struct file_system_type *fs_type, int flags,
--		void *data, struct pts_mount_opts *opts, struct vfsmount *mnt)
--{
--	int err;
--
--	err = get_init_pts_sb(fs_type, flags, data, opts, mnt);
--	if (err)
--		return err;
--
--	return err;
--}
--
- static int devpts_get_sb(struct file_system_type *fs_type,
- 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
- {
+ 	id = 0;
+@@ -467,7 +468,6 @@ void idr_remove_all(struct idr *idp)
+ 			p = *--paa;
+ 		}
+ 	}
+-	rcu_assign_pointer(idp->top, NULL);
+ 	idp->layers = 0;
+ }
+ EXPORT_SYMBOL(idr_remove_all);
 _
 
-Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
+origin.patch
+idr-make-idr_remove_all-do-removal-before-free_layer.patch
 linux-next.patch
-vfs-simple_set_mnt-should-return-void.patch
-signals-remove-handler-parameter-to-tracehook-functions.patch
-signals-protect-init-from-unwanted-signals-more.patch
-signals-add-from_ancestor_ns-parameter-to-send_signal.patch
-signals-protect-cinit-from-unblocked-sig_dfl-signals.patch
-signals-zap_pid_ns_process-should-use-force_sig.patch
-signals-protect-cinit-from-blocked-fatal-signals.patch
-signals-si_user-masquerade-si_pid-when-crossing-pid-ns-boundary.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
-devpts-unroll-essentials-of-do_remount_sb-into-devpts.patch
-devpts-parse-mount-options-just-once-and-copy-them-to-super-block.patch
-devpts-move-common-mknod_ptmx-calls-into-caller.patch
-devpts-remove-get_init_pts_sb.patch
-devpts-merge-code-for-single-and-multiple-instance-mounts.patch
 
