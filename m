@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 09 Mar 2009 14:51:08 -0700
-Message-ID: <200903092151.n29Lp8L2010976@imap1.linux-foundation.org>
+Subject: + mm-fix-proc_dointvec_userhz_jiffies-breakage.patch added to -mm tree
+Date: Mon, 09 Mar 2009 14:50:23 -0700
+Message-ID: <200903092150.n29LoNmZ010849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56721 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751760AbZCIVvl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 17:51:41 -0400
+	by vger.kernel.org with ESMTP id S1752539AbZCIV4W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 17:56:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com
+Cc: adobriyan@gmail.com, nickpiggin@yahoo.com.au, peterz@infradead.org
 
 
 The patch titled
-     mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes
+     mm: fix proc_dointvec_userhz_jiffies "breakage"
 has been added to the -mm tree.  Its filename is
-     mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
+     mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,157 +33,157 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: fix proc_dointvec_userhz_jiffies "breakage"
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-WARNING: line over 80 characters
-#100: FILE: mm/page-writeback.c:806:
-+		mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9838
 
-WARNING: line over 80 characters
-#109: FILE: mm/page-writeback.c:908:
-+	mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
+On i386, HZ=1000, jiffies_to_clock_t() converts time in a somewhat strange
+way from the user's point of view:
 
-total: 0 errors, 2 warnings, 66 lines checked
+	# echo 500 >/proc/sys/vm/dirty_writeback_centisecs
+	# cat /proc/sys/vm/dirty_writeback_centisecs
+	499
 
-./patches/mm-fix-proc_dointvec_userhz_jiffies-breakage.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+So, we have 5000 jiffies converted to only 499 clock ticks and reported
+back.
 
-Please run checkpatch prior to sending patches
+TICK_NSEC = 999848
+ACTHZ = 256039
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Keeping in-kernel variable in units passed from userspace will fix issue
+of course, but this probably won't be right for every sysctl.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/writeback.h |    4 ++--
+ kernel/sysctl.c           |    2 +-
+ mm/page-writeback.c       |   18 +++++++++---------
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes mm/page-writeback.c
---- a/mm/page-writeback.c~mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes
+diff -puN include/linux/writeback.h~mm-fix-proc_dointvec_userhz_jiffies-breakage include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-fix-proc_dointvec_userhz_jiffies-breakage
++++ a/include/linux/writeback.h
+@@ -109,8 +109,8 @@ extern int dirty_background_ratio;
+ extern unsigned long dirty_background_bytes;
+ extern int vm_dirty_ratio;
+ extern unsigned long vm_dirty_bytes;
+-extern int dirty_writeback_interval;
+-extern int dirty_expire_interval;
++extern unsigned int dirty_writeback_interval;
++extern unsigned int dirty_expire_interval;
+ extern int vm_highmem_is_dirtyable;
+ extern int block_dump;
+ extern int laptop_mode;
+diff -puN kernel/sysctl.c~mm-fix-proc_dointvec_userhz_jiffies-breakage kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-fix-proc_dointvec_userhz_jiffies-breakage
++++ a/kernel/sysctl.c
+@@ -1044,7 +1044,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &dirty_expire_interval,
+ 		.maxlen		= sizeof(dirty_expire_interval),
+ 		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec_userhz_jiffies,
++		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
+ 		.ctl_name	= VM_NR_PDFLUSH_THREADS,
+diff -puN mm/page-writeback.c~mm-fix-proc_dointvec_userhz_jiffies-breakage mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-fix-proc_dointvec_userhz_jiffies-breakage
 +++ a/mm/page-writeback.c
-@@ -803,7 +803,8 @@ int dirty_writeback_centisecs_handler(ct
+@@ -92,14 +92,14 @@ int vm_dirty_ratio = 10;
+ unsigned long vm_dirty_bytes;
+ 
+ /*
+- * The interval between `kupdate'-style writebacks, in jiffies
++ * The interval between `kupdate'-style writebacks
+  */
+-int dirty_writeback_interval = 5 * HZ;
++unsigned int dirty_writeback_interval = 5 * 100; /* sentiseconds */
+ 
+ /*
+- * The longest number of jiffies for which data is allowed to remain dirty
++ * The longest time for which data is allowed to remain dirty
+  */
+-int dirty_expire_interval = 30 * HZ;
++unsigned int dirty_expire_interval = 30 * 100; /* sentiseconds */
+ 
+ /*
+  * Flag that makes the machine dump writes/reads and block dirtyings.
+@@ -770,9 +770,9 @@ static void wb_kupdate(unsigned long arg
+ 
+ 	sync_supers();
+ 
+-	oldest_jif = jiffies - dirty_expire_interval;
++	oldest_jif = jiffies - msecs_to_jiffies(dirty_expire_interval);
+ 	start_jif = jiffies;
+-	next_jif = start_jif + dirty_writeback_interval;
++	next_jif = start_jif + msecs_to_jiffies(dirty_writeback_interval * 10);
+ 	nr_to_write = global_page_state(NR_FILE_DIRTY) +
+ 			global_page_state(NR_UNSTABLE_NFS) +
+ 			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
+@@ -801,9 +801,9 @@ static void wb_kupdate(unsigned long arg
+ int dirty_writeback_centisecs_handler(ctl_table *table, int write,
+ 	struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
  {
- 	proc_dointvec(table, write, file, buffer, length, ppos);
+-	proc_dointvec_userhz_jiffies(table, write, file, buffer, length, ppos);
++	proc_dointvec(table, write, file, buffer, length, ppos);
  	if (dirty_writeback_interval)
--		mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
-+		mod_timer(&wb_timer, jiffies +
-+			msecs_to_jiffies(dirty_writeback_interval * 10));
+-		mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
++		mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
  	else
  		del_timer(&wb_timer);
  	return 0;
-@@ -905,7 +906,8 @@ void __init page_writeback_init(void)
+@@ -905,7 +905,7 @@ void __init page_writeback_init(void)
  {
  	int shift;
  
--	mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
-+	mod_timer(&wb_timer,
-+		  jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
+-	mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
++	mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
  	writeback_set_ratelimit();
  	register_cpu_notifier(&ratelimit_nb);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-mtd_dataflash-fix-probing-of-at45db321c-chips-checkpatch-fixes.patch
-i2c-too-much-compiler-noise.patch
+xtensa-fix-compilation-somewhat.patch
+devpts-remove-graffiti.patch
 linux-next.patch
-next-remove-localversion.patch
-git-acpi-vs-git-cpufreq.patch
-i-need-old-gcc.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-arch-x86-mm-iomap_32c-fix-warning.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-sysfs-dont-block-indefinitely-for-unmapped-files.patch
-drivers-gpu-drm-drm_infoc-fix-warnings.patch
-drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-mmc-add-extended-csd-register-to-debugfs.patch
-mtd-rbtx4939-add-mtd-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-libfs-make-simple_read_from_buffer-conventional-fix.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-ubd-stop-defintining-major_nr-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-cirrusfb-fix-clock-doubling-fix.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
+proc-tty-add-struct-tty_operations-proc_fops.patch
+proc-tty-switch-cyclades-to-proc_fops.patch
+proc-tty-switch-ip2-to-proc_fops.patch
+proc-tty-switch-istallion-to-proc_fops.patch
+proc-tty-switch-synclink_cs-to-proc_fops.patch
+proc-tty-switch-stallion-to-proc_fops.patch
+proc-tty-switch-synclink-to-proc_fops.patch
+proc-tty-switch-synclink_gt-to-proc_fops.patch
+proc-tty-switch-synclinkmp-to-proc_fops.patch
+proc-tty-switch-sdio_uart-to-proc_fops.patch
+proc-tty-switch-serial_core-to-proc_fops.patch
+proc-tty-switch-usb-serial-to-proc_fops.patch
+proc-tty-switch-ircomm-to-proc_fops.patch
+proc-tty-switch-amiserial-to-proc_fops.patch
+proc-tty-switch-ia64-simserial-to-proc_fops.patch
+proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
+proc-tty-remove-struct-tty_operations-read_proc.patch
+memdup_user-introduce.patch
+mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
+namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
+namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
+namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
+namespaces-mqueue-namespace-adapt-sysctl.patch
+namespaces-mqueue-namespace-adapt-sysctl-update.patch
 namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
