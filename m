@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-fixpoint-divide-exception-in-acct_update_integrals.patch added to -mm tree
-Date: Mon, 09 Mar 2009 14:59:03 -0700
-Message-ID: <200903092159.n29Lx3OO011663@imap1.linux-foundation.org>
+Subject: + fix-fixpoint-divide-exception-in-acct_update_integrals-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 09 Mar 2009 14:59:34 -0700
+Message-ID: <200903092159.n29LxY2R011694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752270AbZCIWAe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 18:00:34 -0400
+	by vger.kernel.org with ESMTP id S1752415AbZCIWAs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 18:00:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, elendil@planet.nl, schwidefsky@de.ibm.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, heiko.carstens@de.ibm.com
 
 
 The patch titled
-     kernel/tsacct.c: fix fixpoint divide exception in acct_update_integrals
+     fix-fixpoint-divide-exception-in-acct_update_integrals-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fix-fixpoint-divide-exception-in-acct_update_integrals.patch
+     fix-fixpoint-divide-exception-in-acct_update_integrals-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,143 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/tsacct.c: fix fixpoint divide exception in acct_update_integrals
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: fix-fixpoint-divide-exception-in-acct_update_integrals-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Frans Pop reported the crash below when running an s390 kernel under
-Hercules:
+WARNING: labels should not be indented
+#91: FILE: kernel/tsacct.c:140:
++	out:
 
- 17180168.889947! Kernel BUG at 000738b4  verbose debug info unavailable!
- 17180168.890213! fixpoint divide exception: 0009  #1! SMP
- 17180168.890487! Modules linked in: nfs lockd nfs_acl sunrpc ctcm fsm tape_34xx
-    cu3088 tape ccwgroup tape_class ext3 jbd mbcache dm_mirror dm_log dm_snapshot
-    dm_mod dasd_eckd_mod dasd_mod
- 17180168.891891! CPU: 0 Not tainted 2.6.27.19 #13
- 17180168.892116! Process awk (pid: 2069, task: 0f9ed9b8, ksp: 0f4f7d18)
- 17180168.892371! Krnl PSW : 070c1000 800738b4 (acct_update_integrals+0x4c/0x118)
- 17180168.892830!            R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:0 CC:1 PM:0
- 17180168.893115! Krnl GPRS: 00000000 000007d0 7fffffff fffff830
- 17180168.893376!            00000000 ffffffff 00000002 0f9ed9b8
- 17180168.893621!            00000000 00008ca0 00000000 0f9ed9b8
- 17180168.893873!            0f9edda4 8007386e 0f4f7ec8 0f4f7e98
- 17180168.894881! Krnl Code: 800738aa: a71807d0         lhi     %r1,2000
- 17180168.895245!            800738ae: 8c200001         srdl    %r2,1
- 17180168.895563!            800738b2: 1d21             dr      %r2,%r1
- 17180168.895936!           >800738b4: 5810d10e         l       %r1,270(%r13)
- 17180168.896246!            800738b8: 1823             lr      %r2,%r3
- 17180168.896598!            800738ba: 4130f060         la      %r3,96(%r15)
- 17180168.896913!            800738be: 0de1             basr    %r14,%r1
- 17180168.897283!            800738c0: 5800f060         l       %r0,96(%r15)
- 17180168.897517! Call Trace:
- 17180168.897656! ( <000000000004fdea>! blocking_notifier_call_chain+0x1e/0x2c)
- 17180168.897987!   <0000000000038502>! do_exit+0x106/0x7c0
- 17180168.898275!   <0000000000038c36>! do_group_exit+0x7a/0xb4
- 17180168.898570!   <0000000000038c8e>! SyS_exit_group+0x1e/0x30
- 17180168.898869!   <0000000000021c28>! sysc_do_restart+0x12/0x16
- 17180168.899173!   <0000000077e7e924>! 0x77e7e924
+total: 0 errors, 1 warnings, 23 lines checked
 
-Reason for this is that cpu time accounting usually only happens from
-interrupt context, but acct_update_integrals gets also called from process
-context with interrupts enabled.
+./patches/fix-fixpoint-divide-exception-in-acct_update_integrals.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-So in acct_update_integrals we may end up with the following scenario:
+Please run checkpatch prior to sending patches
 
-Between reading tsk->stime/tsk->utime and tsk->acct_timexpd an interrupt
-happens which updates accouting values.  This causes acct_timexpd to be
-greater than the former stime + utime.  The subsequent calculation of
-
-dtime = cputime_sub(time, tsk->acct_timexpd);
-
-will be negative and the division performed by
-
-cputime_to_jiffies(dtime)
-
-will generate an exception since the result won't fit into a 32 bit
-register.
-
-In order to fix this just always disable interrupts while accessing any
-of the accounting values.
-
-Reported by: Frans Pop <elendil@planet.nl>
-Tested by: Frans Pop <elendil@planet.nl>
-Cc: <stable@kernel.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/tsacct.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ kernel/tsacct.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/tsacct.c~fix-fixpoint-divide-exception-in-acct_update_integrals kernel/tsacct.c
---- a/kernel/tsacct.c~fix-fixpoint-divide-exception-in-acct_update_integrals
+diff -puN kernel/tsacct.c~fix-fixpoint-divide-exception-in-acct_update_integrals-checkpatch-fixes kernel/tsacct.c
+--- a/kernel/tsacct.c~fix-fixpoint-divide-exception-in-acct_update_integrals-checkpatch-fixes
 +++ a/kernel/tsacct.c
-@@ -122,8 +122,10 @@ void acct_update_integrals(struct task_s
- 	if (likely(tsk->mm)) {
- 		cputime_t time, dtime;
- 		struct timeval value;
-+		unsigned long flags;
- 		u64 delta;
- 
-+		local_irq_save(flags);
- 		time = tsk->stime + tsk->utime;
- 		dtime = cputime_sub(time, tsk->acct_timexpd);
- 		jiffies_to_timeval(cputime_to_jiffies(dtime), &value);
-@@ -131,10 +133,12 @@ void acct_update_integrals(struct task_s
- 		delta = delta * USEC_PER_SEC + value.tv_usec;
- 
- 		if (delta == 0)
--			return;
-+			goto out;
+@@ -137,7 +137,7 @@ void acct_update_integrals(struct task_s
  		tsk->acct_timexpd = time;
  		tsk->acct_rss_mem1 += delta * get_mm_rss(tsk->mm);
  		tsk->acct_vm_mem1 += delta * tsk->mm->total_vm;
-+	out:
-+		local_irq_restore(flags);
+-	out:
++out:
+ 		local_irq_restore(flags);
  	}
  }
- 
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fix-fixpoint-divide-exception-in-acct_update_integrals.patch
+origin.patch
+mtd_dataflash-fix-probing-of-at45db321c-chips-checkpatch-fixes.patch
+fix-fixpoint-divide-exception-in-acct_update_integrals-checkpatch-fixes.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-s390-use-kzfree.patch
+next-remove-localversion.patch
+git-acpi-vs-git-cpufreq.patch
+i-need-old-gcc.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+sysfs-dont-block-indefinitely-for-unmapped-files.patch
+drivers-gpu-drm-drm_infoc-fix-warnings.patch
+drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mmc-add-extended-csd-register-to-debugfs.patch
+mtd-rbtx4939-add-mtd-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+ubd-stop-defintining-major_nr-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-fix-clock-doubling-fix.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
