@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-useless-comments.patch added to -mm tree
-Date: Mon, 09 Mar 2009 13:54:06 -0700
-Message-ID: <200903092054.n29Ks64q005862@imap1.linux-foundation.org>
+Subject: + nilfs2-support-nanosecond-timestamp.patch added to -mm tree
+Date: Mon, 09 Mar 2009 14:46:20 -0700
+Message-ID: <200903092146.n29LkK0s010586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754878AbZCIUyl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 16:54:41 -0400
+	by vger.kernel.org with ESMTP id S1751511AbZCIVqz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Mar 2009 17:46:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jdike@addtoit.com
+Cc: konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     uml: remove useless comments
+     nilfs2: support nanosecond timestamp
 has been added to the -mm tree.  Its filename is
-     uml-remove-useless-comments.patch
+     nilfs2-support-nanosecond-timestamp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,583 +33,193 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove useless comments
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: nilfs2: support nanosecond timestamp
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-These comments are useless now, remove them.
+After a review of user's feedback for finding out other compatibility
+issues, I found nilfs improperly initializes timestamps in inode;
+CURRENT_TIME was used there instead of CURRENT_TIME_SEC even though nilfs
+didn't have nanosecond timestamps on disk.  A few users gave us the report
+that the tar program sometimes failed to expand symbolic links on nilfs,
+and it turned out to be the cause.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Instead of applying the above displacement, I've decided to support
+nanosecond timestamps on this occation.  Fortunetaly, a needless 64-bit
+field was in the nilfs_inode struct, and I found it's available for this
+purpose without impact for the users.
+
+So, this will do the enhancement and resolve the tar problem.
+
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/pcap_user.h                |   10 ----------
- arch/um/drivers/port.h                     |   10 ----------
- arch/um/drivers/ssl.h                      |   10 ----------
- arch/um/drivers/stdio_console.h            |   10 ----------
- arch/um/drivers/xterm.h                    |   10 ----------
- arch/um/include/asm/irq_vectors.h          |   10 ----------
- arch/um/include/asm/mmu.h                  |   10 ----------
- arch/um/include/asm/pda.h                  |   10 ----------
- arch/um/include/asm/pgalloc.h              |   10 ----------
- arch/um/include/asm/pgtable-3level.h       |   10 ----------
- arch/um/include/shared/frame_kern.h        |   10 ----------
- arch/um/include/shared/initrd.h            |   10 ----------
- arch/um/include/shared/irq_kern.h          |   10 ----------
- arch/um/include/shared/mem_kern.h          |   10 ----------
- arch/um/include/shared/ubd_user.h          |   10 ----------
- arch/um/kernel/config.c.in                 |   10 ----------
- arch/um/sys-i386/asm/archparam.h           |   10 ----------
- arch/um/sys-i386/shared/sysdep/checksum.h  |   10 ----------
- arch/um/sys-ia64/sysdep/ptrace.h           |   10 ----------
- arch/um/sys-ia64/sysdep/sigcontext.h       |   10 ----------
- arch/um/sys-ia64/sysdep/syscalls.h         |   10 ----------
- arch/um/sys-ppc/miscthings.c               |   11 -----------
- arch/um/sys-ppc/ptrace.c                   |   10 ----------
- arch/um/sys-ppc/ptrace_user.c              |   10 ----------
- arch/um/sys-ppc/shared/sysdep/ptrace.h     |   10 ----------
- arch/um/sys-ppc/shared/sysdep/sigcontext.h |   10 ----------
- arch/um/sys-ppc/shared/sysdep/syscalls.h   |   10 ----------
- arch/um/sys-ppc/sigcontext.c               |   10 ----------
- arch/um/sys-x86_64/asm/archparam.h         |   10 ----------
- arch/um/sys-x86_64/asm/module.h            |   10 ----------
- arch/um/sys-x86_64/mem.c                   |    9 ---------
- 31 files changed, 310 deletions(-)
+ fs/nilfs2/gcinode.c       |    1 -
+ fs/nilfs2/inode.c         |   13 ++++++-------
+ fs/nilfs2/nilfs.h         |    1 -
+ fs/nilfs2/super.c         |    1 +
+ include/linux/nilfs2_fs.h |   10 ++++++----
+ 5 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/um/drivers/pcap_user.h~uml-remove-useless-comments arch/um/drivers/pcap_user.h
---- a/arch/um/drivers/pcap_user.h~uml-remove-useless-comments
-+++ a/arch/um/drivers/pcap_user.h
-@@ -19,13 +19,3 @@ extern const struct net_user_info pcap_u
+diff -puN fs/nilfs2/gcinode.c~nilfs2-support-nanosecond-timestamp fs/nilfs2/gcinode.c
+--- a/fs/nilfs2/gcinode.c~nilfs2-support-nanosecond-timestamp
++++ a/fs/nilfs2/gcinode.c
+@@ -226,7 +226,6 @@ static struct inode *alloc_gcinode(struc
+ 	ii->i_flags = 0;
+ 	ii->i_state = 1 << NILFS_I_GCINODE;
+ 	ii->i_bh = NULL;
+-	ii->i_dtime = 0;
+ 	nilfs_bmap_init_gc(ii->i_bmap);
  
- extern int pcap_user_read(int fd, void *buf, int len, struct pcap_data *pri);
+ 	return inode;
+diff -puN fs/nilfs2/inode.c~nilfs2-support-nanosecond-timestamp fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-support-nanosecond-timestamp
++++ a/fs/nilfs2/inode.c
+@@ -306,7 +306,6 @@ struct inode *nilfs_new_inode(struct ino
  
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/drivers/port.h~uml-remove-useless-comments arch/um/drivers/port.h
---- a/arch/um/drivers/port.h~uml-remove-useless-comments
-+++ a/arch/um/drivers/port.h
-@@ -18,13 +18,3 @@ extern void port_remove_dev(void *d);
+ 	/* ii->i_file_acl = 0; */
+ 	/* ii->i_dir_acl = 0; */
+-	ii->i_dtime = 0;
+ 	ii->i_dir_start_lookup = 0;
+ #ifdef CONFIG_NILFS_FS_POSIX_ACL
+ 	ii->i_acl = NULL;
+@@ -390,11 +389,10 @@ int nilfs_read_inode_common(struct inode
+ 	inode->i_atime.tv_sec = le64_to_cpu(raw_inode->i_mtime);
+ 	inode->i_ctime.tv_sec = le64_to_cpu(raw_inode->i_ctime);
+ 	inode->i_mtime.tv_sec = le64_to_cpu(raw_inode->i_mtime);
+-	inode->i_atime.tv_nsec = 0;
+-	inode->i_ctime.tv_nsec = 0;
+-	inode->i_mtime.tv_nsec = 0;
+-	ii->i_dtime = le64_to_cpu(raw_inode->i_dtime);
+-	if (inode->i_nlink == 0 && (inode->i_mode == 0 || ii->i_dtime))
++	inode->i_atime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
++	inode->i_ctime.tv_nsec = le32_to_cpu(raw_inode->i_ctime_nsec);
++	inode->i_mtime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
++	if (inode->i_nlink == 0 && inode->i_mode == 0)
+ 		return -EINVAL; /* this inode is deleted */
  
- #endif
+ 	inode->i_blocks = le64_to_cpu(raw_inode->i_blocks);
+@@ -505,9 +503,10 @@ void nilfs_write_inode_common(struct ino
+ 	raw_inode->i_size = cpu_to_le64(inode->i_size);
+ 	raw_inode->i_ctime = cpu_to_le64(inode->i_ctime.tv_sec);
+ 	raw_inode->i_mtime = cpu_to_le64(inode->i_mtime.tv_sec);
++	raw_inode->i_ctime_nsec = cpu_to_le32(inode->i_ctime.tv_nsec);
++	raw_inode->i_mtime_nsec = cpu_to_le32(inode->i_mtime.tv_nsec);
+ 	raw_inode->i_blocks = cpu_to_le64(inode->i_blocks);
  
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/drivers/ssl.h~uml-remove-useless-comments arch/um/drivers/ssl.h
---- a/arch/um/drivers/ssl.h~uml-remove-useless-comments
-+++ a/arch/um/drivers/ssl.h
-@@ -11,13 +11,3 @@ extern void ssl_receive_char(int line, c
+-	raw_inode->i_dtime = cpu_to_le64(ii->i_dtime);
+ 	raw_inode->i_flags = cpu_to_le32(ii->i_flags);
+ 	raw_inode->i_generation = cpu_to_le32(inode->i_generation);
  
- #endif
+diff -puN fs/nilfs2/nilfs.h~nilfs2-support-nanosecond-timestamp fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~nilfs2-support-nanosecond-timestamp
++++ a/fs/nilfs2/nilfs.h
+@@ -48,7 +48,6 @@ struct nilfs_inode_info {
+ 	struct nilfs_bmap *i_bmap;
+ 	union nilfs_bmap_union i_bmap_union;
+ 	__u64 i_xattr;	/* sector_t ??? */
+-	__u32 i_dtime;
+ 	__u32 i_dir_start_lookup;
+ 	__u64 i_cno;		/* check point number for GC inode */
+ 	struct address_space i_btnode_cache;
+diff -puN fs/nilfs2/super.c~nilfs2-support-nanosecond-timestamp fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-support-nanosecond-timestamp
++++ a/fs/nilfs2/super.c
+@@ -792,6 +792,7 @@ nilfs_fill_super(struct super_block *sb,
+ 	sb->s_op = &nilfs_sops;
+ 	sb->s_export_op = &nilfs_export_ops;
+ 	sb->s_root = NULL;
++	sb->s_time_gran = 1;
  
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/drivers/stdio_console.h~uml-remove-useless-comments arch/um/drivers/stdio_console.h
---- a/arch/um/drivers/stdio_console.h~uml-remove-useless-comments
-+++ a/arch/um/drivers/stdio_console.h
-@@ -9,13 +9,3 @@
- extern void save_console_flags(void);
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/drivers/xterm.h~uml-remove-useless-comments arch/um/drivers/xterm.h
---- a/arch/um/drivers/xterm.h~uml-remove-useless-comments
-+++ a/arch/um/drivers/xterm.h
-@@ -10,13 +10,3 @@ extern int xterm_fd(int socket, int *pid
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/asm/irq_vectors.h~uml-remove-useless-comments arch/um/include/asm/irq_vectors.h
---- a/arch/um/include/asm/irq_vectors.h~uml-remove-useless-comments
-+++ a/arch/um/include/asm/irq_vectors.h
-@@ -8,13 +8,3 @@
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/asm/mmu.h~uml-remove-useless-comments arch/um/include/asm/mmu.h
---- a/arch/um/include/asm/mmu.h~uml-remove-useless-comments
-+++ a/arch/um/include/asm/mmu.h
-@@ -10,13 +10,3 @@
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/asm/pda.h~uml-remove-useless-comments arch/um/include/asm/pda.h
---- a/arch/um/include/asm/pda.h~uml-remove-useless-comments
-+++ a/arch/um/include/asm/pda.h
-@@ -19,13 +19,3 @@ extern struct foo me;
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/asm/pgalloc.h~uml-remove-useless-comments arch/um/include/asm/pgalloc.h
---- a/arch/um/include/asm/pgalloc.h~uml-remove-useless-comments
-+++ a/arch/um/include/asm/pgalloc.h
-@@ -60,13 +60,3 @@ static inline void pmd_free(struct mm_st
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/asm/pgtable-3level.h~uml-remove-useless-comments arch/um/include/asm/pgtable-3level.h
---- a/arch/um/include/asm/pgtable-3level.h~uml-remove-useless-comments
-+++ a/arch/um/include/asm/pgtable-3level.h
-@@ -134,13 +134,3 @@ static inline pmd_t pfn_pmd(pfn_t page_n
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/shared/frame_kern.h~uml-remove-useless-comments arch/um/include/shared/frame_kern.h
---- a/arch/um/include/shared/frame_kern.h~uml-remove-useless-comments
-+++ a/arch/um/include/shared/frame_kern.h
-@@ -20,13 +20,3 @@ extern int setup_signal_stack_si(unsigne
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/shared/initrd.h~uml-remove-useless-comments arch/um/include/shared/initrd.h
---- a/arch/um/include/shared/initrd.h~uml-remove-useless-comments
-+++ a/arch/um/include/shared/initrd.h
-@@ -10,13 +10,3 @@ extern int load_initrd(char *filename, v
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/shared/irq_kern.h~uml-remove-useless-comments arch/um/include/shared/irq_kern.h
---- a/arch/um/include/shared/irq_kern.h~uml-remove-useless-comments
-+++ a/arch/um/include/shared/irq_kern.h
-@@ -16,13 +16,3 @@ extern int um_request_irq(unsigned int i
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/shared/mem_kern.h~uml-remove-useless-comments arch/um/include/shared/mem_kern.h
---- a/arch/um/include/shared/mem_kern.h~uml-remove-useless-comments
-+++ a/arch/um/include/shared/mem_kern.h
-@@ -18,13 +18,3 @@ extern void register_remapper(struct rem
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/shared/ubd_user.h~uml-remove-useless-comments arch/um/include/shared/ubd_user.h
---- a/arch/um/include/shared/ubd_user.h~uml-remove-useless-comments
-+++ a/arch/um/include/shared/ubd_user.h
-@@ -14,13 +14,3 @@ extern int kernel_fd;
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/kernel/config.c.in~uml-remove-useless-comments arch/um/kernel/config.c.in
---- a/arch/um/kernel/config.c.in~uml-remove-useless-comments
-+++ a/arch/um/kernel/config.c.in
-@@ -24,13 +24,3 @@ __uml_setup("--showconfig", print_config
- "    Prints the config file that this UML binary was generated from.\n\n"
- );
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-i386/asm/archparam.h~uml-remove-useless-comments arch/um/sys-i386/asm/archparam.h
---- a/arch/um/sys-i386/asm/archparam.h~uml-remove-useless-comments
-+++ a/arch/um/sys-i386/asm/archparam.h
-@@ -14,13 +14,3 @@
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-i386/shared/sysdep/checksum.h~uml-remove-useless-comments arch/um/sys-i386/shared/sysdep/checksum.h
---- a/arch/um/sys-i386/shared/sysdep/checksum.h~uml-remove-useless-comments
-+++ a/arch/um/sys-i386/shared/sysdep/checksum.h
-@@ -199,13 +199,3 @@ static __inline__ __wsum csum_and_copy_t
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ia64/sysdep/ptrace.h~uml-remove-useless-comments arch/um/sys-ia64/sysdep/ptrace.h
---- a/arch/um/sys-ia64/sysdep/ptrace.h~uml-remove-useless-comments
-+++ a/arch/um/sys-ia64/sysdep/ptrace.h
-@@ -14,13 +14,3 @@ struct sys_pt_regs {
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ia64/sysdep/sigcontext.h~uml-remove-useless-comments arch/um/sys-ia64/sysdep/sigcontext.h
---- a/arch/um/sys-ia64/sysdep/sigcontext.h~uml-remove-useless-comments
-+++ a/arch/um/sys-ia64/sysdep/sigcontext.h
-@@ -8,13 +8,3 @@
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ia64/sysdep/syscalls.h~uml-remove-useless-comments arch/um/sys-ia64/sysdep/syscalls.h
---- a/arch/um/sys-ia64/sysdep/syscalls.h~uml-remove-useless-comments
-+++ a/arch/um/sys-ia64/sysdep/syscalls.h
-@@ -8,13 +8,3 @@
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ppc/miscthings.c~uml-remove-useless-comments arch/um/sys-ppc/miscthings.c
---- a/arch/um/sys-ppc/miscthings.c~uml-remove-useless-comments
-+++ a/arch/um/sys-ppc/miscthings.c
-@@ -40,14 +40,3 @@ void shove_aux_table(unsigned long sp)
- }
- /* END stuff taken from arch/ppc/kernel/process.c */
- 
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ppc/ptrace.c~uml-remove-useless-comments arch/um/sys-ppc/ptrace.c
---- a/arch/um/sys-ppc/ptrace.c~uml-remove-useless-comments
-+++ a/arch/um/sys-ppc/ptrace.c
-@@ -56,13 +56,3 @@ int peek_user(struct task_struct *child,
- 	return put_user(tmp, (unsigned long *) data);
- }
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ppc/ptrace_user.c~uml-remove-useless-comments arch/um/sys-ppc/ptrace_user.c
---- a/arch/um/sys-ppc/ptrace_user.c~uml-remove-useless-comments
-+++ a/arch/um/sys-ppc/ptrace_user.c
-@@ -27,13 +27,3 @@ int ptrace_setregs(long pid, unsigned lo
-     }
-     return 0;
- }
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ppc/shared/sysdep/ptrace.h~uml-remove-useless-comments arch/um/sys-ppc/shared/sysdep/ptrace.h
---- a/arch/um/sys-ppc/shared/sysdep/ptrace.h~uml-remove-useless-comments
-+++ a/arch/um/sys-ppc/shared/sysdep/ptrace.h
-@@ -91,13 +91,3 @@ extern void shove_aux_table(unsigned lon
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ppc/shared/sysdep/sigcontext.h~uml-remove-useless-comments arch/um/sys-ppc/shared/sysdep/sigcontext.h
---- a/arch/um/sys-ppc/shared/sysdep/sigcontext.h~uml-remove-useless-comments
-+++ a/arch/um/sys-ppc/shared/sysdep/sigcontext.h
-@@ -50,13 +50,3 @@
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ppc/shared/sysdep/syscalls.h~uml-remove-useless-comments arch/um/sys-ppc/shared/sysdep/syscalls.h
---- a/arch/um/sys-ppc/shared/sysdep/syscalls.h~uml-remove-useless-comments
-+++ a/arch/um/sys-ppc/shared/sysdep/syscalls.h
-@@ -41,13 +41,3 @@ int old_mmap(unsigned long addr, unsigne
- 
- #define LAST_ARCH_SYSCALL __NR_fadvise64
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-ppc/sigcontext.c~uml-remove-useless-comments arch/um/sys-ppc/sigcontext.c
---- a/arch/um/sys-ppc/sigcontext.c~uml-remove-useless-comments
-+++ a/arch/um/sys-ppc/sigcontext.c
-@@ -2,13 +2,3 @@
- #include "asm/sigcontext.h"
- #include "sysdep/ptrace.h"
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-x86_64/asm/archparam.h~uml-remove-useless-comments arch/um/sys-x86_64/asm/archparam.h
---- a/arch/um/sys-x86_64/asm/archparam.h~uml-remove-useless-comments
-+++ a/arch/um/sys-x86_64/asm/archparam.h
-@@ -14,13 +14,3 @@
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-x86_64/asm/module.h~uml-remove-useless-comments arch/um/sys-x86_64/asm/module.h
---- a/arch/um/sys-x86_64/asm/module.h~uml-remove-useless-comments
-+++ a/arch/um/sys-x86_64/asm/module.h
-@@ -18,13 +18,3 @@ struct mod_arch_specific
- 
- #endif
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-x86_64/mem.c~uml-remove-useless-comments arch/um/sys-x86_64/mem.c
---- a/arch/um/sys-x86_64/mem.c~uml-remove-useless-comments
-+++ a/arch/um/sys-x86_64/mem.c
-@@ -14,12 +14,3 @@ unsigned long vm_data_default_flags = __
- unsigned long vm_data_default_flags32 = __VM_DATA_DEFAULT_FLAGS;
- unsigned long vm_force_exec32 = PROT_EXEC;
- 
--/* Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
+ 	if (!nilfs_loaded(nilfs)) {
+ 		err = load_nilfs(nilfs, sbi);
+diff -puN include/linux/nilfs2_fs.h~nilfs2-support-nanosecond-timestamp include/linux/nilfs2_fs.h
+--- a/include/linux/nilfs2_fs.h~nilfs2-support-nanosecond-timestamp
++++ a/include/linux/nilfs2_fs.h
+@@ -67,9 +67,10 @@
+  * struct nilfs_inode - structure of an inode on disk
+  * @i_blocks: blocks count
+  * @i_size: size in bytes
+- * @i_ctime: creation time
+- * @i_mtime: modification time
+- * @i_dtime: deletion time
++ * @i_ctime: creation time (seconds)
++ * @i_mtime: modification time (seconds)
++ * @i_ctime_nsec: creation time (nano seconds)
++ * @i_mtime_nsec: modification time (nano seconds)
+  * @i_uid: user id
+  * @i_gid: group id
+  * @i_mode: file mode
+@@ -85,7 +86,8 @@ struct nilfs_inode {
+ 	__le64	i_size;
+ 	__le64	i_ctime;
+ 	__le64	i_mtime;
+-	__le64	i_dtime;
++	__le32	i_ctime_nsec;
++	__le32	i_mtime_nsec;
+ 	__le32	i_uid;
+ 	__le32	i_gid;
+ 	__le16	i_mode;
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-linux-next.patch
-memdup_user-introduce.patch
-uml-dont-use-a-too-long-string-literal.patch
-uml-improve-error-messages.patch
-uml-remove-useless-comments.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-buffer-fix.patch
+nilfs2-segment-constructor.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+nilfs2-cleanup-nilfs_clear_inode.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+nilfs2-insert-explanations-in-gcinode-file.patch
+nilfs2-add-maintainer.patch
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
+nilfs2-clean-up-indirect-function-calling-conventions.patch
+nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch
+nilfs2-remove-timedwait-ioctl-command.patch
+nilfs2-use-fixed-sized-types-for-ioctl-structures.patch
+nilfs2-remove-compat-ioctl-code.patch
+nilfs2-use-unlocked_ioctl.patch
+nilfs2-extend-nilfs_sustat-ioctl-struct.patch
+nilfs2-replace-bug_on-and-bug-calls-triggerable-from-ioctl.patch
+nilfs2-super-block-operations-fix-endian-bug.patch
+nilfs2-clean-up-sketch-file.patch
+nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation.patch
+nilfs2-simplify-handling-of-active-state-of-segments.patch
+nilfs2-introduce-secondary-super-block.patch
+nilfs2-introduce-secondary-super-block-fix.patch
+nilfs2-support-nanosecond-timestamp.patch
 
