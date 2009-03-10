@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-on-uml-fixed-it-did-not-start.patch added to -mm tree
-Date: Tue, 10 Mar 2009 15:18:20 -0700
-Message-ID: <200903102218.n2AMILx5011678@imap1.linux-foundation.org>
+Subject: + generic-debug-pagealloc-cannot-depend-on-hibernation.patch added to -mm tree
+Date: Tue, 10 Mar 2009 15:27:47 -0700
+Message-ID: <200903102227.n2AMRl9F012569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34369 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754274AbZCJWUq (ORCPT
+	by vger.kernel.org with ESMTP id S1753465AbZCJW2b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Mar 2009 18:20:46 -0400
+	Tue, 10 Mar 2009 18:28:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: renzo@cs.unibo.it, jdike@addtoit.com, xiyou.wangcong@gmail.com
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     UML on UML fixed: it did not start
+     debug-pagealloc: cannot depend on hibernation
 has been added to the -mm tree.  Its filename is
-     uml-on-uml-fixed-it-did-not-start.patch
+     generic-debug-pagealloc-cannot-depend-on-hibernation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: UML on UML fixed: it did not start
-From: Renzo Davoli <renzo@cs.unibo.it>
+Subject: debug-pagealloc: cannot depend on hibernation
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-It is currently impossible to run a user-mode linux machine inside another
-user-mode linux (UML on UML).  It breaks after a few instructions.  When
-it tries to check whether SYSEMU is installed (the inner) UML receives an
-inconsistent result (from the outer UML).
+The generic debug-pagealloc generates wrong messages for the page
+corruption after hibernation.  Because the free pages are not saved to the
+suspend image.
 
-This is the output of a broken attempt:
-$ ./linux mem=256m ubd0=cow
-Locating the bottom of the address space ... 0x0
-Locating the top of the address space ... 0xc0000000
-Core dump limits :
-        soft - 0
-        hard - NONE
-Checking that ptrace can change system call numbers...OK
-Checking ptrace new tags for syscall emulation...unsupported
-Checking syscall emulation patch for ptrace...check_sysemu : expected SIGTRAP, got status = 256
-$
-
-The problem is the following:
-
-PTRACE_SYSCALL/SINGLESTEP is currently managed inside arch_ptrace for ARCH=um.
-
-PTRACE_SYSEMU/SUSEMU_SINGLESTEP is not captured in arch_ptrace's switch,
-therefore it is erroneously passed back to ptrace_request (in
-kernel/ptrace).
-
-This simple patch simply forces ptrace to return an error on
-PTRACE_SYSEMU/SUSEMU_SINGLESTEP as it is unsupported on ARCH=um, and fixes
-the problem.
-
-Signed-off-by: Renzo Davoli <renzo@cs.unibo.it>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/ptrace.c |    5 +++++
+ mm/Kconfig.debug |    5 +++++
  1 file changed, 5 insertions(+)
 
-diff -puN arch/um/kernel/ptrace.c~uml-on-uml-fixed-it-did-not-start arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~uml-on-uml-fixed-it-did-not-start
-+++ a/arch/um/kernel/ptrace.c
-@@ -64,6 +64,11 @@ long arch_ptrace(struct task_struct *chi
- 		ret = poke_user(child, addr, data);
- 		break;
- 
-+	case PTRACE_SYSEMU:
-+	case PTRACE_SYSEMU_SINGLESTEP:
-+		ret=-EIO;
-+		break;
+diff -puN mm/Kconfig.debug~generic-debug-pagealloc-cannot-depend-on-hibernation mm/Kconfig.debug
+--- a/mm/Kconfig.debug~generic-debug-pagealloc-cannot-depend-on-hibernation
++++ a/mm/Kconfig.debug
+@@ -4,9 +4,14 @@ config WANT_PAGE_DEBUG_FLAGS
+ config PAGE_POISONING
+ 	bool "Debug page memory allocations"
+ 	depends on DEBUG_KERNEL && !ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	depends on !HIBERNATION
+ 	select DEBUG_PAGEALLOC
+ 	select WANT_PAGE_DEBUG_FLAGS
+ 	help
+ 	   Fill the pages with poison patterns after free_pages() and verify
+ 	   the patterns before alloc_pages(). This results in a large slowdown,
+ 	   but helps to find certain types of memory corruptions.
 +
- 	/* continue and stop at next (return from) syscall */
- 	case PTRACE_SYSCALL:
- 	/* restart after signal. */
++	   This option cannot enalbe with hibernation. Otherwise, it will get
++	   wrong messages for memory corruption because the free pages are not
++	   saved to the suspend image.
 _
 
-Patches currently in -mm which might be from renzo@cs.unibo.it are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-uml-on-uml-fixed-it-did-not-start.patch
+generic-debug-pagealloc-v4.patch
+generic-debug-pagealloc-depend-on-config_debug_kernel.patch
+generic-debug-pagealloc-cannot-depend-on-hibernation.patch
+loop-add-ioctl-to-resize-a-loop-device.patch
 
