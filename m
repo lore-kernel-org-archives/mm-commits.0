@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-charge-swapcache-to-proper-memcg.patch added to -mm tree
-Date: Tue, 10 Mar 2009 13:59:33 -0700
-Message-ID: <200903102059.n2AKxXrd004327@imap1.linux-foundation.org>
+Subject: + memdup_user-introduce-fix.patch added to -mm tree
+Date: Tue, 10 Mar 2009 14:00:29 -0700
+Message-ID: <200903102100.n2AL0TQ9004409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753643AbZCJVBo (ORCPT
+	by vger.kernel.org with ESMTP id S1753816AbZCJVCT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Mar 2009 17:01:44 -0400
+	Tue, 10 Mar 2009 17:02:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com
+Cc: lizf@cn.fujitsu.com, adobriyan@gmail.com, kosaki.motohiro@jp.fujitsu.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     memcg: charge swapcache to proper memcg
+     memdup_user: introduce, fix
 has been added to the -mm tree.  Its filename is
-     memcg-charge-swapcache-to-proper-memcg.patch
+     memdup_user-introduce-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: charge swapcache to proper memcg
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: memdup_user: introduce, fix
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-memcg_test.txt says at 4.1:
+Always use GFP_KERNEL in kmalloc(), since copy_from_user() can sleep and
+cause pagefault, thus it's pointless to use GFP_NOFS or GFP_ATOMIC here.
 
-	This swap-in is one of the most complicated work. In do_swap_page(),
-	following events occur when pte is unchanged.
-
-	(1) the page (SwapCache) is looked up.
-	(2) lock_page()
-	(3) try_charge_swapin()
-	(4) reuse_swap_page() (may call delete_swap_cache())
-	(5) commit_charge_swapin()
-	(6) swap_free().
-
-	Considering following situation for example.
-
-	(A) The page has not been charged before (2) and reuse_swap_page()
-	    doesn't call delete_from_swap_cache().
-	(B) The page has not been charged before (2) and reuse_swap_page()
-	    calls delete_from_swap_cache().
-	(C) The page has been charged before (2) and reuse_swap_page() doesn't
-	    call delete_from_swap_cache().
-	(D) The page has been charged before (2) and reuse_swap_page() calls
-	    delete_from_swap_cache().
-
-	    memory.usage/memsw.usage changes to this page/swp_entry will be
-	 Case          (A)      (B)       (C)     (D)
-         Event
-       Before (2)     0/ 1     0/ 1      1/ 1    1/ 1
-          ===========================================
-          (3)        +1/+1    +1/+1     +1/+1   +1/+1
-          (4)          -       0/ 0       -     -1/ 0
-          (5)         0/-1     0/ 0     -1/-1    0/ 0
-          (6)          -       0/-1       -      0/-1
-          ===========================================
-       Result         1/ 1     1/ 1      1/ 1    1/ 1
-
-       In any cases, charges to this page should be 1/ 1.
-
-In case of (D), mem_cgroup_try_get_from_swapcache() returns NULL
-(because lookup_swap_cgroup() returns NULL), so "+1/+1" at (3) means
-charges to the memcg("foo") to which the "current" belongs.
-OTOH, "-1/0" at (4) and "0/-1" at (6) means uncharges from the memcg("baa")
-to which the page has been charged.
-
-So, if the "foo" and "baa" is different(for example because of task move),
-this charge will be moved from "baa" to "foo".
-
-I think this is an unexpected behavior.
-
-This patch fixes this by modifying mem_cgroup_try_get_from_swapcache()
-to return the memcg to which the swapcache has been charged if PCG_USED bit
-is set.
-IIUC, checking PCG_USED bit of swapcache is safe under page lock.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Americo Wang <xiyou.wangcong@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ include/linux/string.h |    2 +-
+ mm/util.c              |   10 +++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-charge-swapcache-to-proper-memcg mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-charge-swapcache-to-proper-memcg
-+++ a/mm/memcontrol.c
-@@ -994,13 +994,24 @@ nomem:
- static struct mem_cgroup *try_get_mem_cgroup_from_swapcache(struct page *page)
+diff -puN include/linux/string.h~memdup_user-introduce-fix include/linux/string.h
+--- a/include/linux/string.h~memdup_user-introduce-fix
++++ a/include/linux/string.h
+@@ -12,7 +12,7 @@
+ #include <linux/stddef.h>	/* for NULL */
+ 
+ extern char *strndup_user(const char __user *, long);
+-extern void *memdup_user(const void __user *, size_t, gfp_t);
++extern void *memdup_user(const void __user *, size_t);
+ 
+ /*
+  * Include machine specific inline routines
+diff -puN mm/util.c~memdup_user-introduce-fix mm/util.c
+--- a/mm/util.c~memdup_user-introduce-fix
++++ a/mm/util.c
+@@ -74,15 +74,19 @@ EXPORT_SYMBOL(kmemdup);
+  *
+  * @src: source address in user space
+  * @len: number of bytes to copy
+- * @gfp: GFP mask to use
+  *
+  * Returns an ERR_PTR() on failure.
+  */
+-void *memdup_user(const void __user *src, size_t len, gfp_t gfp)
++void *memdup_user(const void __user *src, size_t len)
  {
- 	struct mem_cgroup *mem;
-+	struct page_cgroup *pc;
- 	swp_entry_t ent;
+ 	void *p;
  
-+	VM_BUG_ON(!PageLocked(page));
-+
- 	if (!PageSwapCache(page))
- 		return NULL;
- 
--	ent.val = page_private(page);
--	mem = lookup_swap_cgroup(ent);
-+	pc = lookup_page_cgroup(page);
+-	p = kmalloc_track_caller(len, gfp);
 +	/*
-+	 * Used bit of swapcache is solid under page lock.
++	 * Always use GFP_KERNEL, since copy_from_user() can sleep and
++	 * cause pagefault, which makes it pointless to use GFP_NOFS
++	 * or GFP_ATOMIC.
 +	 */
-+	if (PageCgroupUsed(pc))
-+		mem = pc->mem_cgroup;
-+	else {
-+		ent.val = page_private(page);
-+		mem = lookup_swap_cgroup(ent);
-+	}
- 	if (!mem)
- 		return NULL;
- 	if (!css_tryget(&mem->css))
++	p = kmalloc_track_caller(len, GFP_KERNEL);
+ 	if (!p)
+ 		return ERR_PTR(-ENOMEM);
+ 
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
+linux-next.patch
+vfs-add-missing-unlock-in-sget.patch
+memdup_user-introduce.patch
+memdup_user-introduce-fix.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
 cgroup-css-id-support.patch
+cgroup-css-id-support-remove-rcu_read_lock-from-css_get_next.patch
 cgroup-fix-frequent-ebusy-at-rmdir.patch
+cgroups-more-documentation-for-remount-and-release_agent.patch
+cgroups-show-correct-file-mode.patch
+cgroups-show-correct-file-mode-fix.patch
+cgroups-dont-change-release_agent-when-remount-failed.patch
 memcg-use-css-id.patch
 memcg-hierarchical-stat.patch
 memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
@@ -150,4 +118,10 @@ memcg-show-memcg-information-during-oom-fix-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
 memcg-charge-swapcache-to-proper-memcg.patch
 use-css-id-in-swap_cgroup-for-saving-memory-v4.patch
+cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
+cgroups-add-data-field-to-struct-cgroup_scanner.patch
+cpuset-rewrite-update_tasks_nodemask.patch
+cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
+cpuset-remove-struct-cpuset_hotplug_scanner.patch
+cpusets-allow-cpusets-to-be-configured-built-on-non-smp-systems.patch
 
