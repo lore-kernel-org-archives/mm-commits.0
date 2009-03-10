@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + edac-amd8131-driver-kconfig-makefile.patch added to -mm tree
-Date: Tue, 10 Mar 2009 13:47:33 -0700
-Message-ID: <200903102047.n2AKlXbl003296@imap1.linux-foundation.org>
+Subject: + edac-amd8111-driver-kconfig-makefile.patch added to -mm tree
+Date: Tue, 10 Mar 2009 13:53:31 -0700
+Message-ID: <200903102053.n2AKrVgj003785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755465AbZCJUsg (ORCPT
+	by vger.kernel.org with ESMTP id S1752751AbZCJUy7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Mar 2009 16:48:36 -0400
+	Tue, 10 Mar 2009 16:54:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: qingtao.cao@windriver.com, norsk5@yahoo.com
 
 
 The patch titled
-     edac: AMD8131 driver Kconfig & Makefile
+     edac: AMD8111 driver Kconfig & Makefile
 has been added to the -mm tree.  Its filename is
-     edac-amd8131-driver-kconfig-makefile.patch
+     edac-amd8111-driver-kconfig-makefile.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: AMD8131 driver Kconfig & Makefile
+Subject: edac: AMD8111 driver Kconfig & Makefile
 From: Harry Ciao <qingtao.cao@windriver.com>
 
-Introduce Kconfig and Makefile options for AMD8131 EDAC driver.
+Introduce Kconfig and Makefile options for AMD8111 EDAC driver.
 
 Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
 Cc: Doug Thompson <norsk5@yahoo.com>
@@ -47,19 +47,19 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/edac/Kconfig |    7 +++++++
  1 file changed, 7 insertions(+)
 
-diff -puN drivers/edac/Kconfig~edac-amd8131-driver-kconfig-makefile drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-amd8131-driver-kconfig-makefile
+diff -puN drivers/edac/Kconfig~edac-amd8111-driver-kconfig-makefile drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~edac-amd8111-driver-kconfig-makefile
 +++ a/drivers/edac/Kconfig
-@@ -190,4 +190,11 @@ config EDAC_PPC4XX
- 	  PowerPC 4xx embedded processors such as the 405EX[r],
- 	  440SP, 440SPe, 460EX, 460GT and 460SX.
+@@ -197,4 +197,11 @@ config EDAC_AMD8131
+ 	  Support for error detection and correction on the
+ 	  AMD8131 HyperTransport PCI-X Tunnel chip.
  
-+config EDAC_AMD8131
-+	tristate "AMD8131 HyperTransport PCI-X Tunnel"
++config EDAC_AMD8111
++	tristate "AMD8111 HyperTransport I/O Hub"
 +	depends on EDAC_MM_EDAC && PCI
 +	help
 +	  Support for error detection and correction on the
-+	  AMD8131 HyperTransport PCI-X Tunnel chip.
++	  AMD8111 HyperTransport I/O Hub chip.
 +
  endif # EDAC
 _
