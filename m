@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpilo-reduce-frequency-of-io-operations.patch added to -mm tree
-Date: Tue, 10 Mar 2009 13:57:37 -0700
-Message-ID: <200903102057.n2AKvbMe004183@imap1.linux-foundation.org>
+Subject: + memcg-charge-swapcache-to-proper-memcg.patch added to -mm tree
+Date: Tue, 10 Mar 2009 13:59:33 -0700
+Message-ID: <200903102059.n2AKxXrd004327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752651AbZCJU6u (ORCPT
+	by vger.kernel.org with ESMTP id S1753643AbZCJVBo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Mar 2009 16:58:50 -0400
+	Tue, 10 Mar 2009 17:01:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david.altobelli@hp.com
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com
 
 
 The patch titled
-     hpilo: reduce frequency of IO operations
+     memcg: charge swapcache to proper memcg
 has been added to the -mm tree.  Its filename is
-     hpilo-reduce-frequency-of-io-operations.patch
+     memcg-charge-swapcache-to-proper-memcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpilo: reduce frequency of IO operations
-From: David Altobelli <david.altobelli@hp.com>
+Subject: memcg: charge swapcache to proper memcg
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Change hpilo open and close logic to spin for 10usec between checking device,
-rather than every usec.
+memcg_test.txt says at 4.1:
 
-Because the loop is coded to take up to 10ms, it seemed prudent to
-increase the interval between polling the device, to reduce the load on
-the system and allow more other work to happen.
+	This swap-in is one of the most complicated work. In do_swap_page(),
+	following events occur when pte is unchanged.
 
-Signed-off-by: David Altobelli <david.altobelli@hp.com>
+	(1) the page (SwapCache) is looked up.
+	(2) lock_page()
+	(3) try_charge_swapin()
+	(4) reuse_swap_page() (may call delete_swap_cache())
+	(5) commit_charge_swapin()
+	(6) swap_free().
+
+	Considering following situation for example.
+
+	(A) The page has not been charged before (2) and reuse_swap_page()
+	    doesn't call delete_from_swap_cache().
+	(B) The page has not been charged before (2) and reuse_swap_page()
+	    calls delete_from_swap_cache().
+	(C) The page has been charged before (2) and reuse_swap_page() doesn't
+	    call delete_from_swap_cache().
+	(D) The page has been charged before (2) and reuse_swap_page() calls
+	    delete_from_swap_cache().
+
+	    memory.usage/memsw.usage changes to this page/swp_entry will be
+	 Case          (A)      (B)       (C)     (D)
+         Event
+       Before (2)     0/ 1     0/ 1      1/ 1    1/ 1
+          ===========================================
+          (3)        +1/+1    +1/+1     +1/+1   +1/+1
+          (4)          -       0/ 0       -     -1/ 0
+          (5)         0/-1     0/ 0     -1/-1    0/ 0
+          (6)          -       0/-1       -      0/-1
+          ===========================================
+       Result         1/ 1     1/ 1      1/ 1    1/ 1
+
+       In any cases, charges to this page should be 1/ 1.
+
+In case of (D), mem_cgroup_try_get_from_swapcache() returns NULL
+(because lookup_swap_cgroup() returns NULL), so "+1/+1" at (3) means
+charges to the memcg("foo") to which the "current" belongs.
+OTOH, "-1/0" at (4) and "0/-1" at (6) means uncharges from the memcg("baa")
+to which the page has been charged.
+
+So, if the "foo" and "baa" is different(for example because of task move),
+this charge will be moved from "baa" to "foo".
+
+I think this is an unexpected behavior.
+
+This patch fixes this by modifying mem_cgroup_try_get_from_swapcache()
+to return the memcg to which the swapcache has been charged if PCG_USED bit
+is set.
+IIUC, checking PCG_USED bit of swapcache is safe under page lock.
+
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/hpilo.c |    6 +++---
- drivers/misc/hpilo.h |    6 +++++-
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/hpilo.c~hpilo-reduce-frequency-of-io-operations drivers/misc/hpilo.c
---- a/drivers/misc/hpilo.c~hpilo-reduce-frequency-of-io-operations
-+++ a/drivers/misc/hpilo.c
-@@ -209,7 +209,7 @@ static void ilo_ccb_close(struct pci_dev
- 	/* give iLO some time to process stop request */
- 	for (retries = MAX_WAIT; retries > 0; retries--) {
- 		doorbell_set(driver_ccb);
--		udelay(1);
-+		udelay(WAIT_TIME);
- 		if (!(ioread32(&device_ccb->send_ctrl) & (1 << CTRL_BITPOS_A))
- 		    &&
- 		    !(ioread32(&device_ccb->recv_ctrl) & (1 << CTRL_BITPOS_A)))
-@@ -312,7 +312,7 @@ static int ilo_ccb_open(struct ilo_hwinf
- 	for (i = MAX_WAIT; i > 0; i--) {
- 		if (ilo_pkt_dequeue(hw, driver_ccb, SENDQ, &pkt_id, NULL, NULL))
- 			break;
--		udelay(1);
-+		udelay(WAIT_TIME);
- 	}
+diff -puN mm/memcontrol.c~memcg-charge-swapcache-to-proper-memcg mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-charge-swapcache-to-proper-memcg
++++ a/mm/memcontrol.c
+@@ -994,13 +994,24 @@ nomem:
+ static struct mem_cgroup *try_get_mem_cgroup_from_swapcache(struct page *page)
+ {
+ 	struct mem_cgroup *mem;
++	struct page_cgroup *pc;
+ 	swp_entry_t ent;
  
- 	if (i) {
-@@ -759,7 +759,7 @@ static void __exit ilo_exit(void)
- 	class_destroy(ilo_class);
- }
++	VM_BUG_ON(!PageLocked(page));
++
+ 	if (!PageSwapCache(page))
+ 		return NULL;
  
--MODULE_VERSION("1.0");
-+MODULE_VERSION("1.1");
- MODULE_ALIAS(ILO_NAME);
- MODULE_DESCRIPTION(ILO_NAME);
- MODULE_AUTHOR("David Altobelli <david.altobelli@hp.com>");
-diff -puN drivers/misc/hpilo.h~hpilo-reduce-frequency-of-io-operations drivers/misc/hpilo.h
---- a/drivers/misc/hpilo.h~hpilo-reduce-frequency-of-io-operations
-+++ a/drivers/misc/hpilo.h
-@@ -19,8 +19,12 @@
- #define MAX_ILO_DEV	1
- /* max number of files */
- #define MAX_OPEN	(MAX_CCB * MAX_ILO_DEV)
-+/* total wait time in usec */
-+#define MAX_WAIT_TIME	10000
-+/* per spin wait time in usec */
-+#define WAIT_TIME	10
- /* spin counter for open/close delay */
--#define MAX_WAIT	10000
-+#define MAX_WAIT	(MAX_WAIT_TIME / WAIT_TIME)
- 
- /*
-  * Per device, used to track global memory allocations.
+-	ent.val = page_private(page);
+-	mem = lookup_swap_cgroup(ent);
++	pc = lookup_page_cgroup(page);
++	/*
++	 * Used bit of swapcache is solid under page lock.
++	 */
++	if (PageCgroupUsed(pc))
++		mem = pc->mem_cgroup;
++	else {
++		ent.val = page_private(page);
++		mem = lookup_swap_cgroup(ent);
++	}
+ 	if (!mem)
+ 		return NULL;
+ 	if (!css_tryget(&mem->css))
 _
 
-Patches currently in -mm which might be from david.altobelli@hp.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-hpilo-reduce-frequency-of-io-operations.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+memcg-charge-swapcache-to-proper-memcg.patch
+use-css-id-in-swap_cgroup-for-saving-memory-v4.patch
 
