@@ -1,104 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [merged] devpts-remove-graffiti.patch removed from -mm tree
-Date: Wed, 11 Mar 2009 11:09:33 -0700
-Message-ID: <200903111809.n2BI9Xq1019953@imap1.linux-foundation.org>
+Subject: + fs-avoid-i_new-inodes.patch added to -mm tree
+Date: Wed, 11 Mar 2009 13:17:36 -0700
+Message-ID: <200903112017.n2BKHaX8031958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45845 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751947AbZCKSTE (ORCPT
+	by vger.kernel.org with ESMTP id S1753142AbZCKUTb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Mar 2009 14:19:04 -0400
+	Wed, 11 Mar 2009 16:19:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: npiggin@suse.de, jack@suse.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     devpts: remove graffiti
-has been removed from the -mm tree.  Its filename was
-     devpts-remove-graffiti.patch
+     fs: avoid I_NEW inodes
+has been added to the -mm tree.  Its filename is
+     fs-avoid-i_new-inodes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: remove graffiti
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fs: avoid I_NEW inodes
+From: Nick Piggin <npiggin@suse.de>
 
-Very annoying when working with containters.
+To be on the safe side, it should be less fragile to exclude I_NEW inodes
+from inode list scans by default (unless there is an important reason to
+have them).
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Normally they will get excluded (eg.  by zero refcount or writecount etc),
+however it is a bit fragile for list walkers to know exactly what parts of
+the inode state is set up and valid to test when in I_NEW.  So along these
+lines, move I_NEW checks upward as well (sometimes taking I_FREEING etc
+checks with them too -- this shouldn't be a problem should it?)
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/drop_caches.c            |    2 +-
+ fs/inode.c                  |    2 ++
+ fs/notify/inotify/inotify.c |   16 ++++++++--------
+ fs/quota/dquot.c            |   10 ++++++++--
+ 4 files changed, 19 insertions(+), 11 deletions(-)
 
-diff -puN fs/devpts/inode.c~devpts-remove-graffiti fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-remove-graffiti
-+++ a/fs/devpts/inode.c
-@@ -198,9 +198,6 @@ static int mknod_ptmx(struct super_block
+diff -puN fs/drop_caches.c~fs-avoid-i_new-inodes fs/drop_caches.c
+--- a/fs/drop_caches.c~fs-avoid-i_new-inodes
++++ a/fs/drop_caches.c
+@@ -18,7 +18,7 @@ static void drop_pagecache_sb(struct sup
  
- 	fsi->ptmx_dentry = dentry;
- 	rc = 0;
--
--	printk(KERN_DEBUG "Created ptmx node in devpts ino %lu\n",
--			inode->i_ino);
- out:
- 	mutex_unlock(&root->d_inode->i_mutex);
- 	return rc;
-@@ -369,8 +366,6 @@ static int new_pts_mount(struct file_sys
- 	struct pts_fs_info *fsi;
- 	struct pts_mount_opts *opts;
+ 	spin_lock(&inode_lock);
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+-		if (inode->i_state & (I_FREEING|I_WILL_FREE))
++		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
+ 			continue;
+ 		if (inode->i_mapping->nrpages == 0)
+ 			continue;
+diff -puN fs/inode.c~fs-avoid-i_new-inodes fs/inode.c
+--- a/fs/inode.c~fs-avoid-i_new-inodes
++++ a/fs/inode.c
+@@ -366,6 +366,8 @@ static int invalidate_list(struct list_h
+ 		if (tmp == head)
+ 			break;
+ 		inode = list_entry(tmp, struct inode, i_sb_list);
++		if (inode->i_state & I_NEW)
++			continue;
+ 		invalidate_inode_buffers(inode);
+ 		if (!atomic_read(&inode->i_count)) {
+ 			list_move(&inode->i_list, dispose);
+diff -puN fs/notify/inotify/inotify.c~fs-avoid-i_new-inodes fs/notify/inotify/inotify.c
+--- a/fs/notify/inotify/inotify.c~fs-avoid-i_new-inodes
++++ a/fs/notify/inotify/inotify.c
+@@ -380,6 +380,14 @@ void inotify_unmount_inodes(struct list_
+ 		struct list_head *watches;
  
--	printk(KERN_NOTICE "devpts: newinstance mount\n");
+ 		/*
++		 * We cannot __iget() an inode in state I_CLEAR, I_FREEING,
++		 * I_WILL_FREE, or I_NEW which is fine because by that point
++		 * the inode cannot have any associated watches.
++		 */
++		if (inode->i_state & (I_CLEAR|I_FREEING|I_WILL_FREE|I_NEW))
++			continue;
++
++		/*
+ 		 * If i_count is zero, the inode cannot have any watches and
+ 		 * doing an __iget/iput with MS_ACTIVE clear would actually
+ 		 * evict all inodes with zero i_count from icache which is
+@@ -388,14 +396,6 @@ void inotify_unmount_inodes(struct list_
+ 		if (!atomic_read(&inode->i_count))
+ 			continue;
+ 
+-		/*
+-		 * We cannot __iget() an inode in state I_CLEAR, I_FREEING, or
+-		 * I_WILL_FREE which is fine because by that point the inode
+-		 * cannot have any associated watches.
+-		 */
+-		if (inode->i_state & (I_CLEAR | I_FREEING | I_WILL_FREE))
+-			continue;
 -
- 	err = get_sb_nodev(fs_type, flags, data, devpts_fill_super, mnt);
- 	if (err)
- 		return err;
+ 		need_iput_tmp = need_iput;
+ 		need_iput = NULL;
+ 		/* In case inotify_remove_watch_locked() drops a reference. */
+diff -puN fs/quota/dquot.c~fs-avoid-i_new-inodes fs/quota/dquot.c
+--- a/fs/quota/dquot.c~fs-avoid-i_new-inodes
++++ a/fs/quota/dquot.c
+@@ -823,12 +823,12 @@ static void add_dquot_ref(struct super_b
+ 
+ 	spin_lock(&inode_lock);
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
++		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
++			continue;
+ 		if (!atomic_read(&inode->i_writecount))
+ 			continue;
+ 		if (!dqinit_needed(inode, type))
+ 			continue;
+-		if (inode->i_state & (I_FREEING|I_WILL_FREE))
+-			continue;
+ 
+ 		__iget(inode);
+ 		spin_unlock(&inode_lock);
+@@ -915,6 +915,12 @@ static void remove_dquot_ref(struct supe
+ 
+ 	spin_lock(&inode_lock);
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
++		/*
++		 *  We have to scan also I_NEW inodes because they can already
++		 *  have quota pointer initialized. Luckily, we need to touch
++		 *  only quota pointers and these have separate locking
++		 *  (dqptr_sem).
++		 */
+ 		if (!IS_NOQUOTA(inode))
+ 			remove_inode_dquot_ref(inode, type, tofree_head);
+ 	}
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-origin.patch
-proc-fix-kflags-to-uflags-copying-in-proc-kpageflags.patch
+fs-new-inode-i_state-corruption-fix.patch
 linux-next.patch
-proc-tty-add-struct-tty_operations-proc_fops.patch
-proc-tty-switch-cyclades-to-proc_fops.patch
-proc-tty-switch-ip2-to-proc_fops.patch
-proc-tty-switch-istallion-to-proc_fops.patch
-proc-tty-switch-synclink_cs-to-proc_fops.patch
-proc-tty-switch-stallion-to-proc_fops.patch
-proc-tty-switch-synclink-to-proc_fops.patch
-proc-tty-switch-synclink_gt-to-proc_fops.patch
-proc-tty-switch-synclinkmp-to-proc_fops.patch
-proc-tty-switch-sdio_uart-to-proc_fops.patch
-proc-tty-switch-serial_core-to-proc_fops.patch
-proc-tty-switch-usb-serial-to-proc_fops.patch
-proc-tty-switch-ircomm-to-proc_fops.patch
-proc-tty-switch-amiserial-to-proc_fops.patch
-proc-tty-switch-ia64-simserial-to-proc_fops.patch
-proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
-proc-tty-remove-struct-tty_operations-read_proc.patch
-memdup_user-introduce.patch
-memdup_user-introduce-fix.patch
-mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
-mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
-namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-namespaces-mqueue-namespace-adapt-sysctl-update.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+slqb-use-correct-name-for-rcu-callback.patch
+slqb-cleanup-for-concatenating-kmlist.patch
+fs-avoid-i_new-inodes.patch
+vmap-remove-needless-lock-and-list-in-vmap.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+radix-tree-gang-set-if-tagged-operation.patch
+mm-dont-call-mark_page_accessed-in-do_swap_page.patch
+mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
