@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-w1-masters-w1-gpioc-fix-read_bit.patch added to -mm tree
-Date: Tue, 10 Mar 2009 18:18:28 -0700
-Message-ID: <200903110118.n2B1ISSR027971@imap1.linux-foundation.org>
+Subject: + proc-fix-kflags-to-uflags-copying-in-proc-kpageflags.patch added to -mm tree
+Date: Tue, 10 Mar 2009 18:43:09 -0700
+Message-ID: <200903110143.n2B1h94k030126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753935AbZCKBU1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753514AbZCKBqV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Mar 2009 21:20:27 -0400
+	Tue, 10 Mar 2009 21:46:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daniel@caiaq.de, david-b@pacbell.net, johnpol@2ka.mipt.ru, syrjala@sci.fi
+Cc: fengguang.wu@intel.com, adobriyan@gmail.com, kosaki.motohiro@jp.fujitsu.com, mpm@selenic.com, stable@kernel.org
 
 
 The patch titled
-     drivers/w1/masters/w1-gpio.c: fix read_bit()
+     proc: fix kflags to uflags copying in /proc/kpageflags
 has been added to the -mm tree.  Its filename is
-     drivers-w1-masters-w1-gpioc-fix-read_bit.patch
+     proc-fix-kflags-to-uflags-copying-in-proc-kpageflags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/w1/masters/w1-gpio.c: fix read_bit()
-From: Daniel Mack <daniel@caiaq.de>
+Subject: proc: fix kflags to uflags copying in /proc/kpageflags
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-W1 master implementations are expected to return 0 or 1 from their
-read_bit() function.  However, not all platforms do return these values
-from gpio_get_value() - namely PXAs won't.  Hence the w1 gpio-master needs
-to break the result down to 0 or 1 itself.
+Fix kpf_copy_bit(src,dst) to be kpf_copy_bit(dst,src) to match the actual
+call patterns, e.g.  kpf_copy_bit(kflags, KPF_LOCKED, PG_locked).
 
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Cc: Ville Syrjala <syrjala@sci.fi>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: David Brownell <david-b@pacbell.net>
+This misplacement of src/dst only affected reporting of PG_writeback,
+PG_reclaim and PG_buddy.  For others kflags==uflags so not affected.
+
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/w1-gpio.c |    2 +-
+ fs/proc/page.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/w1/masters/w1-gpio.c~drivers-w1-masters-w1-gpioc-fix-read_bit drivers/w1/masters/w1-gpio.c
---- a/drivers/w1/masters/w1-gpio.c~drivers-w1-masters-w1-gpioc-fix-read_bit
-+++ a/drivers/w1/masters/w1-gpio.c
-@@ -39,7 +39,7 @@ static u8 w1_gpio_read_bit(void *data)
- {
- 	struct w1_gpio_platform_data *pdata = data;
+diff -puN fs/proc/page.c~proc-fix-kflags-to-uflags-copying-in-proc-kpageflags fs/proc/page.c
+--- a/fs/proc/page.c~proc-fix-kflags-to-uflags-copying-in-proc-kpageflags
++++ a/fs/proc/page.c
+@@ -80,7 +80,7 @@ static const struct file_operations proc
+ #define KPF_RECLAIM    9
+ #define KPF_BUDDY     10
  
--	return gpio_get_value(pdata->pin);
-+	return gpio_get_value(pdata->pin) ? 1 : 0;
- }
+-#define kpf_copy_bit(flags, srcpos, dstpos) (((flags >> srcpos) & 1) << dstpos)
++#define kpf_copy_bit(flags, dstpos, srcpos) (((flags >> srcpos) & 1) << dstpos)
  
- static int __init w1_gpio_probe(struct platform_device *pdev)
+ static ssize_t kpageflags_read(struct file *file, char __user *buf,
+ 			     size_t count, loff_t *ppos)
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-drivers-w1-masters-w1-gpioc-fix-read_bit.patch
+proc-fix-kflags-to-uflags-copying-in-proc-kpageflags.patch
 linux-next.patch
-ds2760_batteryc-fix-division-by-zero.patch
-w1-coding-style-cleanups-in-w1_ioc.patch
 
