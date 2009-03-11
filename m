@@ -1,147 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] menu-fix-embedded-menu-snafu.patch removed from -mm tree
-Date: Wed, 11 Mar 2009 11:09:21 -0700
-Message-ID: <200903111809.n2BI9LbZ019930@imap1.linux-foundation.org>
+Subject: [merged] mm-get_nid_for_pfn-returns-int.patch removed from -mm tree
+Date: Wed, 11 Mar 2009 11:09:18 -0700
+Message-ID: <200903111809.n2BI9IFe019919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60752 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751874AbZCKSKg (ORCPT
+	by vger.kernel.org with ESMTP id S1751956AbZCKSKw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Mar 2009 14:10:36 -0400
+	Wed, 11 Mar 2009 14:10:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, garyhade@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     menu: fix embedded menu snafu
+     mm: get_nid_for_pfn() returns int
 has been removed from the -mm tree.  Its filename was
-     menu-fix-embedded-menu-snafu.patch
+     mm-get_nid_for_pfn-returns-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: menu: fix embedded menu snafu
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mm: get_nid_for_pfn() returns int
+From: Roel Kluin <roel.kluin@gmail.com>
 
-The COMPAT_BRK kconfig symbol does not depend on EMBEDDED, but it is in
-the midst of the EMBEDDED menu symbols, so it mucks up the EMBEDDED menu. 
-Fix by moving it to just after all of the EMBEDDED menu symbols.  Also,
-ANON_INODES has a similar problem, so move it to just above the EMBEDDED
-menu items since it is used in the EMBEDDED menu.
+get_nid_for_pfn() returns int
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Presumably the (nid < 0) case has never happened.
+
+We do know that it is happening on one system while creating a symlink for
+a memory section so it should also happen on the same system if
+unregister_mem_sect_under_nodes() were called to remove the same symlink.
+
+The test was actually added in response to a problem with an earlier
+version reported by Yasunori Goto where one or more of the leading pages
+of a memory section on the 2nd node of one of his systems was
+uninitialized because I believe they coincided with a memory hole.  The
+earlier version did not ignore uninitialized pages and determined the nid
+by considering only the 1st page of each memory section.  This caused the
+symlink to the 1st memory section on the 2nd node to be incorrectly
+created in /sys/devices/system/node/node0 instead of
+/sys/devices/system/node/node1.  The problem was fixed by adding the test
+to skip over uninitialized pages.
+
+I suspect we have not seen any reports of the non-removal
+of a symlink due to the incorrect declaration of the nid
+variable in unregister_mem_sect_under_nodes() because
+  - systems where a memory section could have an uninitialized
+    range of leading pages are probably rare.
+  - memory remove is probably not done very frequently on the
+    systems that are capable of demonstrating the problem.
+  - lingering symlink(s) that should have been removed may
+    have simply gone unnoticed.
+
+[garyhade@us.ibm.com: wrote changelog]
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Gary Hade <garyhade@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/base/node.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/Kconfig~menu-fix-embedded-menu-snafu init/Kconfig
---- a/init/Kconfig~menu-fix-embedded-menu-snafu
-+++ a/init/Kconfig
-@@ -675,6 +675,9 @@ config CC_OPTIMIZE_FOR_SIZE
- config SYSCTL
- 	bool
+diff -puN drivers/base/node.c~mm-get_nid_for_pfn-returns-int drivers/base/node.c
+--- a/drivers/base/node.c~mm-get_nid_for_pfn-returns-int
++++ a/drivers/base/node.c
+@@ -303,7 +303,7 @@ int unregister_mem_sect_under_nodes(stru
+ 	sect_start_pfn = section_nr_to_pfn(mem_blk->phys_index);
+ 	sect_end_pfn = sect_start_pfn + PAGES_PER_SECTION - 1;
+ 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
+-		unsigned int nid;
++		int nid;
  
-+config ANON_INODES
-+	bool
-+
- menuconfig EMBEDDED
- 	bool "Configure standard kernel features (for small systems)"
- 	help
-@@ -780,18 +783,6 @@ config PCSPKR_PLATFORM
-           This option allows to disable the internal PC-Speaker
-           support, saving some memory.
- 
--config COMPAT_BRK
--	bool "Disable heap randomization"
--	default y
--	help
--	  Randomizing heap placement makes heap exploits harder, but it
--	  also breaks ancient binaries (including anything libc5 based).
--	  This option changes the bootup default to heap randomization
--	  disabled, and can be overriden runtime by setting
--	  /proc/sys/kernel/randomize_va_space to 2.
--
--	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
--
- config BASE_FULL
- 	default y
- 	bool "Enable full-sized data structures for core" if EMBEDDED
-@@ -809,9 +800,6 @@ config FUTEX
- 	  support for "fast userspace mutexes".  The resulting kernel may not
- 	  run glibc-based applications correctly.
- 
--config ANON_INODES
--	bool
--
- config EPOLL
- 	bool "Enable eventpoll support" if EMBEDDED
- 	default y
-@@ -897,6 +885,18 @@ config SLUB_DEBUG
- 	  SLUB sysfs support. /sys/slab will not exist and there will be
- 	  no support for cache validation etc.
- 
-+config COMPAT_BRK
-+	bool "Disable heap randomization"
-+	default y
-+	help
-+	  Randomizing heap placement makes heap exploits harder, but it
-+	  also breaks ancient binaries (including anything libc5 based).
-+	  This option changes the bootup default to heap randomization
-+	  disabled, and can be overriden runtime by setting
-+	  /proc/sys/kernel/randomize_va_space to 2.
-+
-+	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
-+
- choice
- 	prompt "Choose SLAB allocator"
- 	default SLUB
+ 		nid = get_nid_for_pfn(pfn);
+ 		if (nid < 0)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-git-acpi-vs-git-cpufreq.patch
-x86-oqo-depends-on-input_polldev.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-wimax-fix-i2400m-printk-formats.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-qla2x-fix-printk-format-warnings.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-alpha-convert-u64-to-unsigned-long-long.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-99.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
-documentation-ignore-byproducts-from-latex.patch
-cpusets-replace-zone-allowed-functions-with-node-allowed.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-reiser4-export-remove_from_page_cache-fix.patch
+acpi-get_throttling_state-cannot-be-larger-state_count.patch
+acpi-wmic-unsigned-cannot-be-less-than-0.patch
+powerpc-spufs-check-file-offset-before-calculating-write-size-in-fixed-sized-files.patch
+drm-fix-lock_test_with_return-macro.patch
+dvb-negative-internal-sub_range-wont-get-noticed.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+jffs2_acl_count-tests-0-on-unsigned.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+hugetlb-chg-cannot-become-less-than-0.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-fix-macros.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-wm8350-retries-will-reach-1.patch
+rtc-test-before-subtraction-on-unsigned.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
+arkfb-fix-misplaced-parentheses.patch
+uvesafb-bitwise-or-has-higher-precedence-than.patch
+vesafb-bitwise-or-has-higher-precedence-than.patch
+viafb-returns-0-two-too-early.patch
+ufs-sector_t-cannot-be-negative.patch
+hppfs-hppfs_read_file-may-return-error.patch
+rio-addition-has-higher-precedence-than.patch
 
