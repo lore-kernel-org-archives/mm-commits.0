@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-avoid-i_new-inodes.patch added to -mm tree
-Date: Wed, 11 Mar 2009 13:17:36 -0700
-Message-ID: <200903112017.n2BKHaX8031958@imap1.linux-foundation.org>
+Subject: + regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos.patch added to -mm tree
+Date: Wed, 11 Mar 2009 13:36:54 -0700
+Message-ID: <200903112036.n2BKataR001268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44488 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753142AbZCKUTb (ORCPT
+	by vger.kernel.org with ESMTP id S1751095AbZCKUij (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Mar 2009 16:19:31 -0400
+	Wed, 11 Mar 2009 16:38:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, jack@suse.cz, viro@zeniv.linux.org.uk
+Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
 
 
 The patch titled
-     fs: avoid I_NEW inodes
+     regulator: implement list_voltage() for WM8400 DCDCs and LDOs
 has been added to the -mm tree.  Its filename is
-     fs-avoid-i_new-inodes.patch
+     regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,143 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: avoid I_NEW inodes
-From: Nick Piggin <npiggin@suse.de>
+Subject: regulator: implement list_voltage() for WM8400 DCDCs and LDOs
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-To be on the safe side, it should be less fragile to exclude I_NEW inodes
-from inode list scans by default (unless there is an important reason to
-have them).
+All DCDCs and LDOs are identical.
 
-Normally they will get excluded (eg.  by zero refcount or writecount etc),
-however it is a bit fragile for list walkers to know exactly what parts of
-the inode state is set up and valid to test when in I_NEW.  So along these
-lines, move I_NEW checks upward as well (sometimes taking I_FREEING etc
-checks with them too -- this shouldn't be a problem should it?)
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c            |    2 +-
- fs/inode.c                  |    2 ++
- fs/notify/inotify/inotify.c |   16 ++++++++--------
- fs/quota/dquot.c            |   10 ++++++++--
- 4 files changed, 19 insertions(+), 11 deletions(-)
+ drivers/regulator/wm8400-regulator.c |   34 ++++++++++++++++++++++---
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
-diff -puN fs/drop_caches.c~fs-avoid-i_new-inodes fs/drop_caches.c
---- a/fs/drop_caches.c~fs-avoid-i_new-inodes
-+++ a/fs/drop_caches.c
-@@ -18,7 +18,7 @@ static void drop_pagecache_sb(struct sup
+diff -puN drivers/regulator/wm8400-regulator.c~regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos drivers/regulator/wm8400-regulator.c
+--- a/drivers/regulator/wm8400-regulator.c~regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos
++++ a/drivers/regulator/wm8400-regulator.c
+@@ -43,6 +43,18 @@ static int wm8400_ldo_disable(struct reg
+ 			       WM8400_LDO1_ENA, 0);
+ }
  
- 	spin_lock(&inode_lock);
- 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
--		if (inode->i_state & (I_FREEING|I_WILL_FREE))
-+		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
- 			continue;
- 		if (inode->i_mapping->nrpages == 0)
- 			continue;
-diff -puN fs/inode.c~fs-avoid-i_new-inodes fs/inode.c
---- a/fs/inode.c~fs-avoid-i_new-inodes
-+++ a/fs/inode.c
-@@ -366,6 +366,8 @@ static int invalidate_list(struct list_h
- 		if (tmp == head)
- 			break;
- 		inode = list_entry(tmp, struct inode, i_sb_list);
-+		if (inode->i_state & I_NEW)
-+			continue;
- 		invalidate_inode_buffers(inode);
- 		if (!atomic_read(&inode->i_count)) {
- 			list_move(&inode->i_list, dispose);
-diff -puN fs/notify/inotify/inotify.c~fs-avoid-i_new-inodes fs/notify/inotify/inotify.c
---- a/fs/notify/inotify/inotify.c~fs-avoid-i_new-inodes
-+++ a/fs/notify/inotify/inotify.c
-@@ -380,6 +380,14 @@ void inotify_unmount_inodes(struct list_
- 		struct list_head *watches;
- 
- 		/*
-+		 * We cannot __iget() an inode in state I_CLEAR, I_FREEING,
-+		 * I_WILL_FREE, or I_NEW which is fine because by that point
-+		 * the inode cannot have any associated watches.
-+		 */
-+		if (inode->i_state & (I_CLEAR|I_FREEING|I_WILL_FREE|I_NEW))
-+			continue;
++static int wm8400_ldo_list_voltage(struct regulator_dev *dev,
++				   unsigned selector)
++{
++	if (selector > WM8400_LDO1_VSEL_MASK)
++		return -EINVAL;
 +
-+		/*
- 		 * If i_count is zero, the inode cannot have any watches and
- 		 * doing an __iget/iput with MS_ACTIVE clear would actually
- 		 * evict all inodes with zero i_count from icache which is
-@@ -388,14 +396,6 @@ void inotify_unmount_inodes(struct list_
- 		if (!atomic_read(&inode->i_count))
- 			continue;
++	if (selector < 15)
++		return 900000 + (selector * 50000);
++	else
++		return 1600000 + ((selector - 14) * 100000);
++}
++
+ static int wm8400_ldo_get_voltage(struct regulator_dev *dev)
+ {
+ 	struct wm8400 *wm8400 = rdev_get_drvdata(dev);
+@@ -51,10 +63,7 @@ static int wm8400_ldo_get_voltage(struct
+ 	val = wm8400_reg_read(wm8400, WM8400_LDO1_CONTROL + rdev_get_id(dev));
+ 	val &= WM8400_LDO1_VSEL_MASK;
  
--		/*
--		 * We cannot __iget() an inode in state I_CLEAR, I_FREEING, or
--		 * I_WILL_FREE which is fine because by that point the inode
--		 * cannot have any associated watches.
--		 */
--		if (inode->i_state & (I_CLEAR | I_FREEING | I_WILL_FREE))
--			continue;
--
- 		need_iput_tmp = need_iput;
- 		need_iput = NULL;
- 		/* In case inotify_remove_watch_locked() drops a reference. */
-diff -puN fs/quota/dquot.c~fs-avoid-i_new-inodes fs/quota/dquot.c
---- a/fs/quota/dquot.c~fs-avoid-i_new-inodes
-+++ a/fs/quota/dquot.c
-@@ -823,12 +823,12 @@ static void add_dquot_ref(struct super_b
+-	if (val < 15)
+-		return 900000 + (val * 50000);
+-	else
+-		return 1600000 + ((val - 14) * 100000);
++	return wm8400_ldo_list_voltage(dev, val);
+ }
  
- 	spin_lock(&inode_lock);
- 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-+		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
-+			continue;
- 		if (!atomic_read(&inode->i_writecount))
- 			continue;
- 		if (!dqinit_needed(inode, type))
- 			continue;
--		if (inode->i_state & (I_FREEING|I_WILL_FREE))
--			continue;
+ static int wm8400_ldo_set_voltage(struct regulator_dev *dev,
+@@ -92,6 +101,7 @@ static struct regulator_ops wm8400_ldo_o
+ 	.is_enabled = wm8400_ldo_is_enabled,
+ 	.enable = wm8400_ldo_enable,
+ 	.disable = wm8400_ldo_disable,
++	.list_voltage = wm8400_ldo_list_voltage,
+ 	.get_voltage = wm8400_ldo_get_voltage,
+ 	.set_voltage = wm8400_ldo_set_voltage,
+ };
+@@ -124,6 +134,15 @@ static int wm8400_dcdc_disable(struct re
+ 			       WM8400_DC1_ENA, 0);
+ }
  
- 		__iget(inode);
- 		spin_unlock(&inode_lock);
-@@ -915,6 +915,12 @@ static void remove_dquot_ref(struct supe
- 
- 	spin_lock(&inode_lock);
- 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-+		/*
-+		 *  We have to scan also I_NEW inodes because they can already
-+		 *  have quota pointer initialized. Luckily, we need to touch
-+		 *  only quota pointers and these have separate locking
-+		 *  (dqptr_sem).
-+		 */
- 		if (!IS_NOQUOTA(inode))
- 			remove_inode_dquot_ref(inode, type, tofree_head);
- 	}
++static int wm8400_dcdc_list_voltage(struct regulator_dev *dev,
++				    unsigned selector)
++{
++	if (selector > WM8400_DC1_VSEL_MASK)
++		return -EINVAL;
++
++	return 850000 + (selector * 25000);
++}
++
+ static int wm8400_dcdc_get_voltage(struct regulator_dev *dev)
+ {
+ 	struct wm8400 *wm8400 = rdev_get_drvdata(dev);
+@@ -237,6 +256,7 @@ static struct regulator_ops wm8400_dcdc_
+ 	.is_enabled = wm8400_dcdc_is_enabled,
+ 	.enable = wm8400_dcdc_enable,
+ 	.disable = wm8400_dcdc_disable,
++	.list_voltage = wm8400_dcdc_list_voltage,
+ 	.get_voltage = wm8400_dcdc_get_voltage,
+ 	.set_voltage = wm8400_dcdc_set_voltage,
+ 	.get_mode = wm8400_dcdc_get_mode,
+@@ -249,6 +269,7 @@ static struct regulator_desc regulators[
+ 		.name = "LDO1",
+ 		.id = WM8400_LDO1,
+ 		.ops = &wm8400_ldo_ops,
++		.n_voltages = WM8400_LDO1_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -256,6 +277,7 @@ static struct regulator_desc regulators[
+ 		.name = "LDO2",
+ 		.id = WM8400_LDO2,
+ 		.ops = &wm8400_ldo_ops,
++		.n_voltages = WM8400_LDO2_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -263,6 +285,7 @@ static struct regulator_desc regulators[
+ 		.name = "LDO3",
+ 		.id = WM8400_LDO3,
+ 		.ops = &wm8400_ldo_ops,
++		.n_voltages = WM8400_LDO3_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -270,6 +293,7 @@ static struct regulator_desc regulators[
+ 		.name = "LDO4",
+ 		.id = WM8400_LDO4,
+ 		.ops = &wm8400_ldo_ops,
++		.n_voltages = WM8400_LDO4_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -277,6 +301,7 @@ static struct regulator_desc regulators[
+ 		.name = "DCDC1",
+ 		.id = WM8400_DCDC1,
+ 		.ops = &wm8400_dcdc_ops,
++		.n_voltages = WM8400_DC1_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -284,6 +309,7 @@ static struct regulator_desc regulators[
+ 		.name = "DCDC2",
+ 		.id = WM8400_DCDC2,
+ 		.ops = &wm8400_dcdc_ops,
++		.n_voltages = WM8400_DC2_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-fs-new-inode-i_state-corruption-fix.patch
 linux-next.patch
-slqb-use-correct-name-for-rcu-callback.patch
-slqb-cleanup-for-concatenating-kmlist.patch
-fs-avoid-i_new-inodes.patch
-vmap-remove-needless-lock-and-list-in-vmap.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-radix-tree-gang-set-if-tagged-operation.patch
-mm-dont-call-mark_page_accessed-in-do_swap_page.patch
-mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
+mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc.patch
+regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos.patch
+regulator-dont-warn-on-omitted-voltage-constraints.patch
+mfd-add-support-for-wm8351-revision-b.patch
+rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
+rtc-wm8350-retries-will-reach-1.patch
 
