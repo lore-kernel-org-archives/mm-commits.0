@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos.patch added to -mm tree
-Date: Wed, 11 Mar 2009 13:36:54 -0700
-Message-ID: <200903112036.n2BKataR001268@imap1.linux-foundation.org>
+Subject: + maintainers-downgrade-support-for-man-pages.patch added to -mm tree
+Date: Wed, 11 Mar 2009 13:43:05 -0700
+Message-ID: <200903112043.n2BKh6ak001873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751095AbZCKUij (ORCPT
+	by vger.kernel.org with ESMTP id S1750897AbZCKUoD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Mar 2009 16:38:39 -0400
+	Wed, 11 Mar 2009 16:44:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
+Cc: mtk.manpages@googlemail.com
 
 
 The patch titled
-     regulator: implement list_voltage() for WM8400 DCDCs and LDOs
+     MAINTAINERS: downgrade support for man-pages
 has been added to the -mm tree.  Its filename is
-     regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos.patch
+     maintainers-downgrade-support-for-man-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,143 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: implement list_voltage() for WM8400 DCDCs and LDOs
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: MAINTAINERS: downgrade support for man-pages
+From: Michael Kerrisk <mtk.manpages@googlemail.com>
 
-All DCDCs and LDOs are identical.
+Unfortunately, Linux Foundation funding for my work on
+man-pages/testing/doc under the auspices of the LF documentation
+fellowship unfortunately ran out a short while ago (after earlier attempts
+to seek funding, only Google stepped forward with a bit of further funding
+for the position), so the patch below acknowledges something closer to
+reality.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+Unfortunately, there will (probably very) soon be a further downgrade from
+"Maintained" to "Odd Fixes" or "Orphan", unless some funding miracle
+occurs.  So, if anyone is looking to become man-pages maintainer, there
+may soon be an opening (okay, don't trample me in the rush ;-).)
+
+Signed-off-by: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/wm8400-regulator.c |   34 ++++++++++++++++++++++---
- 1 file changed, 30 insertions(+), 4 deletions(-)
+ MAINTAINERS |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/regulator/wm8400-regulator.c~regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos drivers/regulator/wm8400-regulator.c
---- a/drivers/regulator/wm8400-regulator.c~regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos
-+++ a/drivers/regulator/wm8400-regulator.c
-@@ -43,6 +43,18 @@ static int wm8400_ldo_disable(struct reg
- 			       WM8400_LDO1_ENA, 0);
- }
+diff -puN MAINTAINERS~maintainers-downgrade-support-for-man-pages MAINTAINERS
+--- a/MAINTAINERS~maintainers-downgrade-support-for-man-pages
++++ a/MAINTAINERS
+@@ -1477,8 +1477,6 @@ L:	linux-acpi@vger.kernel.org
+ S:	Supported
  
-+static int wm8400_ldo_list_voltage(struct regulator_dev *dev,
-+				   unsigned selector)
-+{
-+	if (selector > WM8400_LDO1_VSEL_MASK)
-+		return -EINVAL;
-+
-+	if (selector < 15)
-+		return 900000 + (selector * 50000);
-+	else
-+		return 1600000 + ((selector - 14) * 100000);
-+}
-+
- static int wm8400_ldo_get_voltage(struct regulator_dev *dev)
- {
- 	struct wm8400 *wm8400 = rdev_get_drvdata(dev);
-@@ -51,10 +63,7 @@ static int wm8400_ldo_get_voltage(struct
- 	val = wm8400_reg_read(wm8400, WM8400_LDO1_CONTROL + rdev_get_id(dev));
- 	val &= WM8400_LDO1_VSEL_MASK;
+ DOCUMENTATION (/Documentation directory)
+-P:	Michael Kerrisk
+-M:	mtk.manpages@gmail.com
+ P:	Randy Dunlap
+ M:	rdunlap@xenotime.net
+ L:	linux-doc@vger.kernel.org
+@@ -2912,7 +2910,7 @@ P:	Michael Kerrisk
+ M:	mtk.manpages@gmail.com
+ W:	http://www.kernel.org/doc/man-pages
+ L:	linux-man@vger.kernel.org
+-S:	Supported
++S:	Maintained
  
--	if (val < 15)
--		return 900000 + (val * 50000);
--	else
--		return 1600000 + ((val - 14) * 100000);
-+	return wm8400_ldo_list_voltage(dev, val);
- }
- 
- static int wm8400_ldo_set_voltage(struct regulator_dev *dev,
-@@ -92,6 +101,7 @@ static struct regulator_ops wm8400_ldo_o
- 	.is_enabled = wm8400_ldo_is_enabled,
- 	.enable = wm8400_ldo_enable,
- 	.disable = wm8400_ldo_disable,
-+	.list_voltage = wm8400_ldo_list_voltage,
- 	.get_voltage = wm8400_ldo_get_voltage,
- 	.set_voltage = wm8400_ldo_set_voltage,
- };
-@@ -124,6 +134,15 @@ static int wm8400_dcdc_disable(struct re
- 			       WM8400_DC1_ENA, 0);
- }
- 
-+static int wm8400_dcdc_list_voltage(struct regulator_dev *dev,
-+				    unsigned selector)
-+{
-+	if (selector > WM8400_DC1_VSEL_MASK)
-+		return -EINVAL;
-+
-+	return 850000 + (selector * 25000);
-+}
-+
- static int wm8400_dcdc_get_voltage(struct regulator_dev *dev)
- {
- 	struct wm8400 *wm8400 = rdev_get_drvdata(dev);
-@@ -237,6 +256,7 @@ static struct regulator_ops wm8400_dcdc_
- 	.is_enabled = wm8400_dcdc_is_enabled,
- 	.enable = wm8400_dcdc_enable,
- 	.disable = wm8400_dcdc_disable,
-+	.list_voltage = wm8400_dcdc_list_voltage,
- 	.get_voltage = wm8400_dcdc_get_voltage,
- 	.set_voltage = wm8400_dcdc_set_voltage,
- 	.get_mode = wm8400_dcdc_get_mode,
-@@ -249,6 +269,7 @@ static struct regulator_desc regulators[
- 		.name = "LDO1",
- 		.id = WM8400_LDO1,
- 		.ops = &wm8400_ldo_ops,
-+		.n_voltages = WM8400_LDO1_VSEL_MASK + 1,
- 		.type = REGULATOR_VOLTAGE,
- 		.owner = THIS_MODULE,
- 	},
-@@ -256,6 +277,7 @@ static struct regulator_desc regulators[
- 		.name = "LDO2",
- 		.id = WM8400_LDO2,
- 		.ops = &wm8400_ldo_ops,
-+		.n_voltages = WM8400_LDO2_VSEL_MASK + 1,
- 		.type = REGULATOR_VOLTAGE,
- 		.owner = THIS_MODULE,
- 	},
-@@ -263,6 +285,7 @@ static struct regulator_desc regulators[
- 		.name = "LDO3",
- 		.id = WM8400_LDO3,
- 		.ops = &wm8400_ldo_ops,
-+		.n_voltages = WM8400_LDO3_VSEL_MASK + 1,
- 		.type = REGULATOR_VOLTAGE,
- 		.owner = THIS_MODULE,
- 	},
-@@ -270,6 +293,7 @@ static struct regulator_desc regulators[
- 		.name = "LDO4",
- 		.id = WM8400_LDO4,
- 		.ops = &wm8400_ldo_ops,
-+		.n_voltages = WM8400_LDO4_VSEL_MASK + 1,
- 		.type = REGULATOR_VOLTAGE,
- 		.owner = THIS_MODULE,
- 	},
-@@ -277,6 +301,7 @@ static struct regulator_desc regulators[
- 		.name = "DCDC1",
- 		.id = WM8400_DCDC1,
- 		.ops = &wm8400_dcdc_ops,
-+		.n_voltages = WM8400_DC1_VSEL_MASK + 1,
- 		.type = REGULATOR_VOLTAGE,
- 		.owner = THIS_MODULE,
- 	},
-@@ -284,6 +309,7 @@ static struct regulator_desc regulators[
- 		.name = "DCDC2",
- 		.id = WM8400_DCDC2,
- 		.ops = &wm8400_dcdc_ops,
-+		.n_voltages = WM8400_DC2_VSEL_MASK + 1,
- 		.type = REGULATOR_VOLTAGE,
- 		.owner = THIS_MODULE,
- 	},
+ MARVELL LIBERTAS WIRELESS DRIVER
+ P:	Dan Williams
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from mtk.manpages@googlemail.com are
 
-linux-next.patch
-input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
-mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc.patch
-regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos.patch
-regulator-dont-warn-on-omitted-voltage-constraints.patch
-mfd-add-support-for-wm8351-revision-b.patch
-rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
-rtc-wm8350-retries-will-reach-1.patch
+maintainers-downgrade-support-for-man-pages.patch
+do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
 
