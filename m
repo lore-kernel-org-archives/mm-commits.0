@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uvesafb-fix-selecting-mode-with-the-vbemode-option.patch added to -mm tree
-Date: Tue, 10 Mar 2009 23:52:14 -0700
-Message-ID: <200903110652.n2B6qE5k023848@imap1.linux-foundation.org>
+Subject: + omapfb-fix-argument-of-blank-operation.patch added to -mm tree
+Date: Tue, 10 Mar 2009 23:56:14 -0700
+Message-ID: <200903110656.n2B6uEpd024198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751700AbZCKGxZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751627AbZCKG7g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Mar 2009 02:53:25 -0400
+	Wed, 11 Mar 2009 02:59:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: spock@gentoo.org, krzysztof.h1@poczta.fm
+Cc: felipe.contreras@nokia.com, imre.deak@solidboot.com, krzysztof.h1@poczta.fm, righi.andrea@gmail.com, rmk@arm.linux.org.uk, soni.trilok@gmail.com
 
 
 The patch titled
-     uvesafb: fix selecting mode with the vbemode option
+     omapfb: fix argument of blank operation
 has been added to the -mm tree.  Its filename is
-     uvesafb-fix-selecting-mode-with-the-vbemode-option.patch
+     omapfb-fix-argument-of-blank-operation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uvesafb: fix selecting mode with the vbemode option
-From: Michal Januszewski <spock@gentoo.org>
+Subject: omapfb: fix argument of blank operation
+From: Felipe Contreras <felipe.contreras@nokia.com>
 
-If the vbemode option is used, uvesafb calls fb_get_mode() without first
-setting the resolution in info->var.  This results in a division by zero
-in fb_get_mode(), as evidenced e.g.  in [1].  Fix this by ensuring the
-info->var structure is populated before fb_get_mode() is called.
+The blank operation should receive FB_BLANK_POWERDOWN, not VESA_POWERDOWN.
 
-[1] http://bugzilla.kernel.org/show_bug.cgi?id=11661#c37
-
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Andrea Righi <righi.andrea@gmail.com>
+Cc: Trilok Soni <soni.trilok@gmail.com>
+Cc: Imre Deak <imre.deak@solidboot.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/video/omap/omapfb_main.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-fix-selecting-mode-with-the-vbemode-option drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-fix-selecting-mode-with-the-vbemode-option
-+++ a/drivers/video/uvesafb.c
-@@ -850,14 +850,16 @@ static int __devinit uvesafb_vbe_init_mo
- 	if (vbemode) {
- 		for (i = 0; i < par->vbe_modes_cnt; i++) {
- 			if (par->vbe_modes[i].mode_id == vbemode) {
-+				modeid = i;
-+				uvesafb_setup_var(&info->var, info,
-+						&par->vbe_modes[modeid]);
- 				fb_get_mode(FB_VSYNCTIMINGS | FB_IGNOREMON, 60,
--							&info->var, info);
-+						&info->var, info);
- 				/*
- 				 * With pixclock set to 0, the default BIOS
- 				 * timings will be used in set_par().
- 				 */
- 				info->var.pixclock = 0;
--				modeid = i;
- 				goto gotmode;
- 			}
- 		}
-@@ -904,8 +906,11 @@ static int __devinit uvesafb_vbe_init_mo
- 			fb_videomode_to_var(&info->var, mode);
- 		} else {
- 			modeid = par->vbe_modes[0].mode_id;
-+			uvesafb_setup_var(&info->var, info,
-+					&par->vbe_modes[modeid]);
- 			fb_get_mode(FB_VSYNCTIMINGS | FB_IGNOREMON, 60,
--				    &info->var, info);
-+					&info->var, info);
-+
- 			goto gotmode;
- 		}
- 	}
-@@ -917,9 +922,9 @@ static int __devinit uvesafb_vbe_init_mo
- 	if (modeid == -1)
- 		return -EINVAL;
+diff -puN drivers/video/omap/omapfb_main.c~omapfb-fix-argument-of-blank-operation drivers/video/omap/omapfb_main.c
+--- a/drivers/video/omap/omapfb_main.c~omapfb-fix-argument-of-blank-operation
++++ a/drivers/video/omap/omapfb_main.c
+@@ -338,7 +338,7 @@ static int omapfb_blank(int blank, struc
  
--gotmode:
- 	uvesafb_setup_var(&info->var, info, &par->vbe_modes[modeid]);
+ 	omapfb_rqueue_lock(fbdev);
+ 	switch (blank) {
+-	case VESA_NO_BLANKING:
++	case FB_BLANK_UNBLANK:
+ 		if (fbdev->state == OMAPFB_SUSPENDED) {
+ 			if (fbdev->ctrl->resume)
+ 				fbdev->ctrl->resume();
+@@ -349,7 +349,7 @@ static int omapfb_blank(int blank, struc
+ 				do_update = 1;
+ 		}
+ 		break;
+-	case VESA_POWERDOWN:
++	case FB_BLANK_POWERDOWN:
+ 		if (fbdev->state == OMAPFB_ACTIVE) {
+ 			fbdev->panel->disable(fbdev->panel);
+ 			if (fbdev->ctrl->suspend)
+@@ -1818,7 +1818,7 @@ static int omapfb_suspend(struct platfor
+ {
+ 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
  
-+gotmode:
- 	/*
- 	 * If we are not VBE3.0+ compliant, we're done -- the BIOS will
- 	 * ignore our timings anyway.
+-	omapfb_blank(VESA_POWERDOWN, fbdev->fb_info[0]);
++	omapfb_blank(FB_BLANK_POWERDOWN, fbdev->fb_info[0]);
+ 
+ 	return 0;
+ }
+@@ -1828,7 +1828,7 @@ static int omapfb_resume(struct platform
+ {
+ 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
+ 
+-	omapfb_blank(VESA_NO_BLANKING, fbdev->fb_info[0]);
++	omapfb_blank(FB_BLANK_UNBLANK, fbdev->fb_info[0]);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from felipe.contreras@nokia.com are
 
-linux-next.patch
-uvesafb-fix-selecting-mode-with-the-vbemode-option.patch
+omapfb-fix-argument-of-blank-operation.patch
 
