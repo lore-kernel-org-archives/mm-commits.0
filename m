@@ -1,114 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-get_nid_for_pfn-returns-int.patch removed from -mm tree
-Date: Wed, 11 Mar 2009 11:09:18 -0700
-Message-ID: <200903111809.n2BI9IFe019919@imap1.linux-foundation.org>
+Subject: [merged] lm85-fix-the-version-check-that-broke-adt7468-probing.patch removed from -mm tree
+Date: Wed, 11 Mar 2009 11:09:22 -0700
+Message-ID: <200903111809.n2BI9M1m019933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751956AbZCKSKw (ORCPT
+	by vger.kernel.org with ESMTP id S1751960AbZCKSLK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Mar 2009 14:10:52 -0400
+	Wed, 11 Mar 2009 14:11:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, garyhade@us.ibm.com, mm-commits@vger.kernel.org
+To: djwong@us.ibm.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: get_nid_for_pfn() returns int
+     lm85: fix the version check that broke adt7468 probing
 has been removed from the -mm tree.  Its filename was
-     mm-get_nid_for_pfn-returns-int.patch
+     lm85-fix-the-version-check-that-broke-adt7468-probing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: get_nid_for_pfn() returns int
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: lm85: fix the version check that broke adt7468 probing
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-get_nid_for_pfn() returns int
+The verstep check in the lm85 driver fails because the upper nibble of the
+version register is 0x7, not 0x6, on the adt7468 chip.  Probing of all
+adt7468s was broken by 69fc1feba2d5856ff74dedb6ae9d8c490210825c, and this
+patch fixes that.  Also add in a missing i2c_device_id that accidentally
+got dropped from the original patch.
 
-Presumably the (nid < 0) case has never happened.
-
-We do know that it is happening on one system while creating a symlink for
-a memory section so it should also happen on the same system if
-unregister_mem_sect_under_nodes() were called to remove the same symlink.
-
-The test was actually added in response to a problem with an earlier
-version reported by Yasunori Goto where one or more of the leading pages
-of a memory section on the 2nd node of one of his systems was
-uninitialized because I believe they coincided with a memory hole.  The
-earlier version did not ignore uninitialized pages and determined the nid
-by considering only the 1st page of each memory section.  This caused the
-symlink to the 1st memory section on the 2nd node to be incorrectly
-created in /sys/devices/system/node/node0 instead of
-/sys/devices/system/node/node1.  The problem was fixed by adding the test
-to skip over uninitialized pages.
-
-I suspect we have not seen any reports of the non-removal
-of a symlink due to the incorrect declaration of the nid
-variable in unregister_mem_sect_under_nodes() because
-  - systems where a memory section could have an uninitialized
-    range of leading pages are probably rare.
-  - memory remove is probably not done very frequently on the
-    systems that are capable of demonstrating the problem.
-  - lingering symlink(s) that should have been removed may
-    have simply gone unnoticed.
-
-[garyhade@us.ibm.com: wrote changelog]
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Gary Hade <garyhade@us.ibm.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hwmon/lm85.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~mm-get_nid_for_pfn-returns-int drivers/base/node.c
---- a/drivers/base/node.c~mm-get_nid_for_pfn-returns-int
-+++ a/drivers/base/node.c
-@@ -303,7 +303,7 @@ int unregister_mem_sect_under_nodes(stru
- 	sect_start_pfn = section_nr_to_pfn(mem_blk->phys_index);
- 	sect_end_pfn = sect_start_pfn + PAGES_PER_SECTION - 1;
- 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
--		unsigned int nid;
-+		int nid;
+diff -puN drivers/hwmon/lm85.c~lm85-fix-the-version-check-that-broke-adt7468-probing drivers/hwmon/lm85.c
+--- a/drivers/hwmon/lm85.c~lm85-fix-the-version-check-that-broke-adt7468-probing
++++ a/drivers/hwmon/lm85.c
+@@ -72,6 +72,7 @@ I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm102
+ #define	LM85_COMPANY_SMSC		0x5c
+ #define	LM85_VERSTEP_VMASK              0xf0
+ #define	LM85_VERSTEP_GENERIC		0x60
++#define	LM85_VERSTEP_GENERIC2		0x70
+ #define	LM85_VERSTEP_LM85C		0x60
+ #define	LM85_VERSTEP_LM85B		0x62
+ #define	LM85_VERSTEP_ADM1027		0x60
+@@ -334,6 +335,7 @@ static struct lm85_data *lm85_update_dev
+ static const struct i2c_device_id lm85_id[] = {
+ 	{ "adm1027", adm1027 },
+ 	{ "adt7463", adt7463 },
++	{ "adt7468", adt7468 },
+ 	{ "lm85", any_chip },
+ 	{ "lm85b", lm85b },
+ 	{ "lm85c", lm85c },
+@@ -1153,7 +1155,8 @@ static int lm85_detect(struct i2c_client
+ 			address, company, verstep);
  
- 		nid = get_nid_for_pfn(pfn);
- 		if (nid < 0)
+ 		/* All supported chips have the version in common */
+-		if ((verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC) {
++		if ((verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC &&
++		    (verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC2) {
+ 			dev_dbg(&adapter->dev, "Autodetection failed: "
+ 				"unsupported version\n");
+ 			return -ENODEV;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
 origin.patch
 linux-next.patch
-acpi-get_throttling_state-cannot-be-larger-state_count.patch
-acpi-wmic-unsigned-cannot-be-less-than-0.patch
-powerpc-spufs-check-file-offset-before-calculating-write-size-in-fixed-sized-files.patch
-drm-fix-lock_test_with_return-macro.patch
-dvb-negative-internal-sub_range-wont-get-noticed.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-jffs2_acl_count-tests-0-on-unsigned.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-hugetlb-chg-cannot-become-less-than-0.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-fix-macros.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-wm8350-retries-will-reach-1.patch
-rtc-test-before-subtraction-on-unsigned.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-fbdev-newport-newport_wait-return-0-on-timeout.patch
-drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
-arkfb-fix-misplaced-parentheses.patch
-uvesafb-bitwise-or-has-higher-precedence-than.patch
-vesafb-bitwise-or-has-higher-precedence-than.patch
-viafb-returns-0-two-too-early.patch
-ufs-sector_t-cannot-be-negative.patch
-hppfs-hppfs_read_file-may-return-error.patch
-rio-addition-has-higher-precedence-than.patch
 
