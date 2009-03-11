@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omapfb-fix-argument-of-blank-operation.patch added to -mm tree
-Date: Tue, 10 Mar 2009 23:56:14 -0700
-Message-ID: <200903110656.n2B6uEpd024198@imap1.linux-foundation.org>
+Subject: + radeonfb-suspend-resume-for-ati-mobility-radeon-rv350.patch added to -mm tree
+Date: Wed, 11 Mar 2009 00:00:51 -0700
+Message-ID: <200903110700.n2B70qxT024609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36327 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751627AbZCKG7g (ORCPT
+	by vger.kernel.org with ESMTP id S1751638AbZCKHDc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Mar 2009 02:59:36 -0400
+	Wed, 11 Mar 2009 03:03:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: felipe.contreras@nokia.com, imre.deak@solidboot.com, krzysztof.h1@poczta.fm, righi.andrea@gmail.com, rmk@arm.linux.org.uk, soni.trilok@gmail.com
+Cc: lkml@azog.de, benh@kernel.crashing.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     omapfb: fix argument of blank operation
+     radeonfb: suspend/resume for ATI Mobility Radeon RV350
 has been added to the -mm tree.  Its filename is
-     omapfb-fix-argument-of-blank-operation.patch
+     radeonfb-suspend-resume-for-ati-mobility-radeon-rv350.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omapfb: fix argument of blank operation
-From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: radeonfb: suspend/resume for ATI Mobility Radeon RV350
+From: Wolfgang Kroener <lkml@azog.de>
 
-The blank operation should receive FB_BLANK_POWERDOWN, not VESA_POWERDOWN.
+Add suspend/resume for the Acer Travelmate 290D/292LMi with the following
+graphic-chip:
 
-Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+01:00.0 VGA compatible controller [0300]: ATI Technologies Inc RV350
+[Mobility Radeon 9600 M10] [1002:4e50] (prog-if 00 [VGA controller])
+	Subsystem: Acer Incorporated [ALI] TravelMate 290 [1025:005a]
+	Flags: bus master, 66MHz, medium devsel, latency 128, IRQ 10
+	Memory at a8000000 (32-bit, prefetchable) [size=128M]
+	I/O ports at c100 [size=256]
+	Memory at e0010000 (32-bit, non-prefetchable) [size=64K]
+	[virtual] Expansion ROM at a0000000 [disabled] [size=128K]
+	Capabilities: [58] AGP version 2.0
+	Capabilities: [50] Power Management version 2
+	Kernel driver in use: radeonfb
+	Kernel modules: radeonfb
+
+Signed-off-by: Wolfgang Kroener <lkml@azog.de>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Andrea Righi <righi.andrea@gmail.com>
-Cc: Trilok Soni <soni.trilok@gmail.com>
-Cc: Imre Deak <imre.deak@solidboot.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap/omapfb_main.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/aty/radeon_pm.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/video/omap/omapfb_main.c~omapfb-fix-argument-of-blank-operation drivers/video/omap/omapfb_main.c
---- a/drivers/video/omap/omapfb_main.c~omapfb-fix-argument-of-blank-operation
-+++ a/drivers/video/omap/omapfb_main.c
-@@ -338,7 +338,7 @@ static int omapfb_blank(int blank, struc
- 
- 	omapfb_rqueue_lock(fbdev);
- 	switch (blank) {
--	case VESA_NO_BLANKING:
-+	case FB_BLANK_UNBLANK:
- 		if (fbdev->state == OMAPFB_SUSPENDED) {
- 			if (fbdev->ctrl->resume)
- 				fbdev->ctrl->resume();
-@@ -349,7 +349,7 @@ static int omapfb_blank(int blank, struc
- 				do_update = 1;
- 		}
- 		break;
--	case VESA_POWERDOWN:
-+	case FB_BLANK_POWERDOWN:
- 		if (fbdev->state == OMAPFB_ACTIVE) {
- 			fbdev->panel->disable(fbdev->panel);
- 			if (fbdev->ctrl->suspend)
-@@ -1818,7 +1818,7 @@ static int omapfb_suspend(struct platfor
- {
- 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
- 
--	omapfb_blank(VESA_POWERDOWN, fbdev->fb_info[0]);
-+	omapfb_blank(FB_BLANK_POWERDOWN, fbdev->fb_info[0]);
- 
- 	return 0;
- }
-@@ -1828,7 +1828,7 @@ static int omapfb_resume(struct platform
- {
- 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
- 
--	omapfb_blank(VESA_NO_BLANKING, fbdev->fb_info[0]);
-+	omapfb_blank(FB_BLANK_UNBLANK, fbdev->fb_info[0]);
- 	return 0;
- }
+diff -puN drivers/video/aty/radeon_pm.c~radeonfb-suspend-resume-for-ati-mobility-radeon-rv350 drivers/video/aty/radeon_pm.c
+--- a/drivers/video/aty/radeon_pm.c~radeonfb-suspend-resume-for-ati-mobility-radeon-rv350
++++ a/drivers/video/aty/radeon_pm.c
+@@ -89,6 +89,9 @@ static struct radeon_device_id radeon_wo
+ 	BUGFIX("Acer Aspire 2010",
+ 	       PCI_VENDOR_ID_AI, 0x0061,
+ 	       radeon_pm_off, radeon_reinitialize_M10),
++	BUGFIX("Acer Travelmate 290D/292LMi",
++	       PCI_VENDOR_ID_AI, 0x005a,
++	       radeon_pm_off, radeon_reinitialize_M10),
+ 	{ .ident = NULL }
+ };
  
 _
 
-Patches currently in -mm which might be from felipe.contreras@nokia.com are
+Patches currently in -mm which might be from lkml@azog.de are
 
-omapfb-fix-argument-of-blank-operation.patch
+radeonfb-suspend-resume-for-ati-mobility-radeon-rv350.patch
 
