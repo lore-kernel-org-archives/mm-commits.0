@@ -1,67 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rcu-documentation-1q09-update.patch removed from -mm tree
-Date: Wed, 11 Mar 2009 11:09:47 -0700
-Message-ID: <200903111809.n2BI9lt0019997@imap1.linux-foundation.org>
+Subject: [merged] m68knommu-m5206e-build-fix.patch removed from -mm tree
+Date: Wed, 11 Mar 2009 11:09:49 -0700
+Message-ID: <200903111809.n2BI9nwu020002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752244AbZCKSLX (ORCPT
+	by vger.kernel.org with ESMTP id S1752314AbZCKSLd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Mar 2009 14:11:23 -0400
+	Wed, 11 Mar 2009 14:11:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: sfking@fdwdc.com, gerg@snapgear.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rcu: documentation 1Q09 update
+     m68knommu: m5206e build fix
 has been removed from the -mm tree.  Its filename was
-     rcu-documentation-1q09-update.patch
+     m68knommu-m5206e-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: documentation 1Q09 update
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: m68knommu: m5206e build fix
+From: Steven King <sfking@fdwdc.com>
 
-Update the RCU documentation to call out the need for callers of
-primitives like call_rcu() and synchronize_rcu() to prevent subsequent RCU
-readers from hazard.
-
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Steven King <sfking@fdwdc.com>
+Acked-by: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/RCU/checklist.txt |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/m68knommu/platform/5206e/config.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/RCU/checklist.txt~rcu-documentation-1q09-update Documentation/RCU/checklist.txt
---- a/Documentation/RCU/checklist.txt~rcu-documentation-1q09-update
-+++ a/Documentation/RCU/checklist.txt
-@@ -298,3 +298,15 @@ over a rather long period of time, but i
+diff -puN arch/m68knommu/platform/5206e/config.c~m68knommu-m5206e-build-fix arch/m68knommu/platform/5206e/config.c
+--- a/arch/m68knommu/platform/5206e/config.c~m68knommu-m5206e-build-fix
++++ a/arch/m68knommu/platform/5206e/config.c
+@@ -17,6 +17,7 @@
+ #include <asm/coldfire.h>
+ #include <asm/mcfsim.h>
+ #include <asm/mcfdma.h>
++#include <asm/mcfuart.h>
  
- 	Note that, rcu_assign_pointer() and rcu_dereference() relate to
- 	SRCU just as they do to other forms of RCU.
-+
-+15.	The whole point of call_rcu(), synchronize_rcu(), and friends
-+	is to wait until all pre-existing readers have finished before
-+	carrying out some otherwise-destructive operation.  It is
-+	therefore critically important to -first- remove any path
-+	that readers can follow that could be affected by the
-+	destructive operation, and -only- -then- invoke call_rcu(),
-+	synchronize_rcu(), or friends.
-+
-+	Because these primitives only wait for pre-existing readers,
-+	it is the caller's responsibility to guarantee safety to
-+	any subsequent readers.
+ /***************************************************************************/
+ 
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from sfking@fdwdc.com are
 
 origin.patch
-linux-next.patch
 
