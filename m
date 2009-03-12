@@ -1,337 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysfs-dont-block-indefinitely-for-unmapped-files.patch removed from -mm tree
-Date: Thu, 12 Mar 2009 13:16:42 -0700
-Message-ID: <200903122016.n2CKGgEo032566@imap1.linux-foundation.org>
+Subject: [merged] udf-fix-novrs-mount-option.patch removed from -mm tree
+Date: Thu, 12 Mar 2009 13:17:14 -0700
+Message-ID: <200903122017.n2CKHEmh032650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50428 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751230AbZCLUUS (ORCPT
+	by vger.kernel.org with ESMTP id S1751393AbZCLUU0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 16:20:18 -0400
+	Thu, 12 Mar 2009 16:20:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@aristanetworks.com, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: clemens@ladisch.de, jack@ucw.cz, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: don't block indefinitely for unmapped files.
+     udf: fix novrs mount option
 has been removed from the -mm tree.  Its filename was
-     sysfs-dont-block-indefinitely-for-unmapped-files.patch
+     udf-fix-novrs-mount-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: don't block indefinitely for unmapped files.
-From: Eric W. Biederman <ebiederm@aristanetworks.com>
+Subject: udf: fix novrs mount option
+From: Clemens Ladisch <clemens@ladisch.de>
 
-Modify sysfs bin files so that we can remove the bin file while they are
-still mapped.  When the kobject is removed we unmap the bin file and
-arrange for future accesses to the mapping to receive SIGBUS.
+The novrs mount option was broken due to a missing break.
 
-Implementing this prevents a nasty DOS when pci devices are hot plugged
-and unplugged.  Where if any of their resources were mmaped the kernel
-could not free up their pci resources or release their pci data
-structures.
-
-[akpm@linux-foundation.org: remove unused var]
-Signed-off-by: Eric W. Biederman <ebiederm@aristanetworks.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c   |  184 +++++++++++++++++++++++++++++++++++++++++----
- fs/sysfs/dir.c   |    1 
- fs/sysfs/sysfs.h |    2 
- 3 files changed, 174 insertions(+), 13 deletions(-)
+ fs/udf/super.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files
-+++ a/fs/sysfs/bin.c
-@@ -21,15 +21,28 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/mutex.h>
-+#include <linux/mm.h>
- 
- #include <asm/uaccess.h>
- 
- #include "sysfs.h"
- 
-+/*
-+ * There's one bin_buffer for each open file.
-+ *
-+ * filp->private_data points to bin_buffer and
-+ * sysfs_dirent->s_bin_attr.buffers points to a the bin_buffer s
-+ * sysfs_dirent->s_bin_attr.buffers is protected by sysfs_bin_lock
-+ */
-+static DEFINE_MUTEX(sysfs_bin_lock);
-+
- struct bin_buffer {
--	struct mutex	mutex;
--	void		*buffer;
--	int		mmapped;
-+	struct mutex			mutex;
-+	void				*buffer;
-+	int				mmapped;
-+	struct vm_operations_struct 	*vm_ops;
-+	struct file			*file;
-+	struct hlist_node		list;
- };
- 
- static int
-@@ -168,29 +181,148 @@ out_free:
- 	return count;
- }
- 
-+static void bin_vma_open(struct vm_area_struct *vma)
-+{
-+	struct file *file = vma->vm_file;
-+	struct bin_buffer *bb = file->private_data;
-+	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
-+
-+	if (!bb->vm_ops || !bb->vm_ops->open)
-+		return;
-+
-+	if (!sysfs_get_active_two(attr_sd))
-+		return;
-+
-+	bb->vm_ops->open(vma);
-+
-+	sysfs_put_active_two(attr_sd);
-+}
-+
-+static void bin_vma_close(struct vm_area_struct *vma)
-+{
-+	struct file *file = vma->vm_file;
-+	struct bin_buffer *bb = file->private_data;
-+	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
-+
-+	if (!bb->vm_ops || !bb->vm_ops->close)
-+		return;
-+
-+	if (!sysfs_get_active_two(attr_sd))
-+		return;
-+
-+	bb->vm_ops->close(vma);
-+
-+	sysfs_put_active_two(attr_sd);
-+}
-+
-+static int bin_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	struct file *file = vma->vm_file;
-+	struct bin_buffer *bb = file->private_data;
-+	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
-+	int ret;
-+
-+	if (!bb->vm_ops || !bb->vm_ops->fault)
-+		return VM_FAULT_SIGBUS;
-+
-+	if (!sysfs_get_active_two(attr_sd))
-+		return VM_FAULT_SIGBUS;
-+
-+	ret = bb->vm_ops->fault(vma, vmf);
-+
-+	sysfs_put_active_two(attr_sd);
-+	return ret;
-+}
-+
-+static int bin_page_mkwrite(struct vm_area_struct *vma, struct page *page)
-+{
-+	struct file *file = vma->vm_file;
-+	struct bin_buffer *bb = file->private_data;
-+	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
-+	int ret;
-+
-+	if (!bb->vm_ops || !bb->vm_ops->page_mkwrite)
-+		return -EINVAL;
-+
-+	if (!sysfs_get_active_two(attr_sd))
-+		return -EINVAL;
-+
-+	ret = bb->vm_ops->page_mkwrite(vma, page);
-+
-+	sysfs_put_active_two(attr_sd);
-+	return ret;
-+}
-+
-+static int bin_access(struct vm_area_struct *vma, unsigned long addr,
-+		  void *buf, int len, int write)
-+{
-+	struct file *file = vma->vm_file;
-+	struct bin_buffer *bb = file->private_data;
-+	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
-+	int ret;
-+
-+	if (!bb->vm_ops || !bb->vm_ops->access)
-+		return -EINVAL;
-+
-+	if (!sysfs_get_active_two(attr_sd))
-+		return -EINVAL;
-+
-+	ret = bb->vm_ops->access(vma, addr, buf, len, write);
-+
-+	sysfs_put_active_two(attr_sd);
-+	return ret;
-+}
-+
-+static struct vm_operations_struct bin_vm_ops = {
-+	.open		= bin_vma_open,
-+	.close		= bin_vma_close,
-+	.fault		= bin_fault,
-+	.page_mkwrite	= bin_page_mkwrite,
-+	.access		= bin_access,
-+};
-+
- static int mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct bin_buffer *bb = file->private_data;
- 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
- 	struct bin_attribute *attr = attr_sd->s_bin_attr.bin_attr;
- 	struct kobject *kobj = attr_sd->s_parent->s_dir.kobj;
-+	struct vm_operations_struct *vm_ops;
- 	int rc;
- 
- 	mutex_lock(&bb->mutex);
- 
- 	/* need attr_sd for attr, its parent for kobj */
-+	rc = -ENODEV;
- 	if (!sysfs_get_active_two(attr_sd))
--		return -ENODEV;
-+		goto out_unlock;
- 
- 	rc = -EINVAL;
--	if (attr->mmap)
--		rc = attr->mmap(kobj, attr, vma);
-+	if (!attr->mmap)
-+		goto out_put;
- 
--	if (rc == 0 && !bb->mmapped)
--		bb->mmapped = 1;
--	else
--		sysfs_put_active_two(attr_sd);
-+	rc = attr->mmap(kobj, attr, vma);
-+	vm_ops = vma->vm_ops;
-+	vma->vm_ops = &bin_vm_ops;
-+	if (rc)
-+		goto out_put;
- 
-+	rc = -EINVAL;
-+	if (bb->mmapped && bb->vm_ops != vma->vm_ops)
-+		goto out_put;
-+
-+#ifdef CONFIG_NUMA
-+	rc = -EINVAL;
-+	if (vm_ops && ((vm_ops->set_policy || vm_ops->get_policy || vm_ops->migrate)))
-+		goto out_put;
-+#endif
-+
-+	rc = 0;
-+	bb->mmapped = 1;
-+	bb->vm_ops = vm_ops;
-+out_put:
-+	sysfs_put_active_two(attr_sd);
-+out_unlock:
- 	mutex_unlock(&bb->mutex);
- 
- 	return rc;
-@@ -223,8 +355,13 @@ static int open(struct inode * inode, st
- 		goto err_out;
- 
- 	mutex_init(&bb->mutex);
-+	bb->file = file;
- 	file->private_data = bb;
- 
-+	mutex_lock(&sysfs_bin_lock);
-+	hlist_add_head(&bb->list, &attr_sd->s_bin_attr.buffers);
-+	mutex_unlock(&sysfs_bin_lock);
-+
- 	/* open succeeded, put active references */
- 	sysfs_put_active_two(attr_sd);
- 	return 0;
-@@ -237,11 +374,12 @@ static int open(struct inode * inode, st
- 
- static int release(struct inode * inode, struct file * file)
- {
--	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
- 	struct bin_buffer *bb = file->private_data;
- 
--	if (bb->mmapped)
--		sysfs_put_active_two(attr_sd);
-+	mutex_lock(&sysfs_bin_lock);
-+	hlist_del(&bb->list);
-+	mutex_unlock(&sysfs_bin_lock);
-+
- 	kfree(bb->buffer);
- 	kfree(bb);
- 	return 0;
-@@ -256,6 +394,26 @@ const struct file_operations bin_fops = 
- 	.release	= release,
- };
- 
-+
-+void unmap_bin_file(struct sysfs_dirent *attr_sd)
-+{
-+	struct bin_buffer *bb;
-+	struct hlist_node *tmp;
-+
-+	if (sysfs_type(attr_sd) != SYSFS_KOBJ_BIN_ATTR)
-+		return;
-+
-+	mutex_lock(&sysfs_bin_lock);
-+
-+	hlist_for_each_entry(bb, tmp, &attr_sd->s_bin_attr.buffers, list) {
-+		struct inode *inode = bb->file->f_path.dentry->d_inode;
-+
-+		unmap_mapping_range(inode->i_mapping, 0, 0, 1);
-+	}
-+
-+	mutex_unlock(&sysfs_bin_lock);
-+}
-+
- /**
-  *	sysfs_create_bin_file - create binary file for object.
-  *	@kobj:	object.
-diff -puN fs/sysfs/dir.c~sysfs-dont-block-indefinitely-for-unmapped-files fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~sysfs-dont-block-indefinitely-for-unmapped-files
-+++ a/fs/sysfs/dir.c
-@@ -609,6 +609,7 @@ void sysfs_addrm_finish(struct sysfs_add
- 
- 		sysfs_drop_dentry(sd);
- 		sysfs_deactivate(sd);
-+		unmap_bin_file(sd);
- 		sysfs_put(sd);
- 	}
- }
-diff -puN fs/sysfs/sysfs.h~sysfs-dont-block-indefinitely-for-unmapped-files fs/sysfs/sysfs.h
---- a/fs/sysfs/sysfs.h~sysfs-dont-block-indefinitely-for-unmapped-files
-+++ a/fs/sysfs/sysfs.h
-@@ -28,6 +28,7 @@ struct sysfs_elem_attr {
- 
- struct sysfs_elem_bin_attr {
- 	struct bin_attribute	*bin_attr;
-+	struct hlist_head	buffers;
- };
- 
- /*
-@@ -164,6 +165,7 @@ int sysfs_add_file_mode(struct sysfs_dir
-  * bin.c
-  */
- extern const struct file_operations bin_fops;
-+void unmap_bin_file(struct sysfs_dirent *attr_sd);
- 
- /*
-  * symlink.c
+diff -puN fs/udf/super.c~udf-fix-novrs-mount-option fs/udf/super.c
+--- a/fs/udf/super.c~udf-fix-novrs-mount-option
++++ a/fs/udf/super.c
+@@ -439,6 +439,7 @@ static int udf_parse_options(char *optio
+ 		switch (token) {
+ 		case Opt_novrs:
+ 			uopt->novrs = 1;
++			break;
+ 		case Opt_bs:
+ 			if (match_int(&args[0], &option))
+ 				return 0;
 _
 
-Patches currently in -mm which might be from ebiederm@aristanetworks.com are
+Patches currently in -mm which might be from clemens@ladisch.de are
 
-origin.patch
 linux-next.patch
 
