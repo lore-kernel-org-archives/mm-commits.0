@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-init-fixes.patch added to -mm tree
-Date: Thu, 12 Mar 2009 15:16:54 -0700
-Message-ID: <200903122216.n2CMGtNV011000@imap1.linux-foundation.org>
+Subject: + regulator-refcount-fixes.patch added to -mm tree
+Date: Thu, 12 Mar 2009 15:16:51 -0700
+Message-ID: <200903122216.n2CMGpuV010996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752352AbZCLWSE (ORCPT
+	by vger.kernel.org with ESMTP id S1753156AbZCLWSX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 18:18:04 -0400
+	Thu, 12 Mar 2009 18:18:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dbrownell@users.sourceforge.net, lrg@slimlogic.co.uk
 
 
 The patch titled
-     regulator: init fixes
+     regulator: refcount fixes
 has been added to the -mm tree.  Its filename is
-     regulator-init-fixes.patch
+     regulator-refcount-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: init fixes
+Subject: regulator: refcount fixes
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Make the regulator setup code cope more consistently with regulators
-undesirably left enabled by the bootloader.
+Fix some refcounting issues in the regulator framework, supporting
+regulator_disable() for regulators that were enabled at boot time via
+machine constraints:
 
-Building on the previous refcount patch:
+ - Update those regulators' usecounts after enabling, so they
+   can cleanly be disabled at that level.
 
-* Unless the "boot_on" or "always_on" machine constraints were set,
-  disable() the regulator.  This gives drivers a clean start state: enable
-  state matches usecount, regardless of boot_on/always_on flag state.
+ - Remove the problematic per-consumer usecount, so there's
+   only one level of enable/disable.
 
-* To help make some integration stages easier, add a new "devmode"
-  machine constraint where state the bootloader left isn't touched, but
-  enable state and usecount may not match.  (System boots but some drivers
-  act odd ...  debuggable.  System dies part way through booting ... 
-  often painful.)
+Buggy consumers could notice different bug symptoms.  The main
+example would be refcounting bugs; also, any (out-of-tree) users
+of the experimental regulator_set_optimum_mode() stuff which
+don't call it when they're done using a regulator.
 
-Consider a bootloader that leaves an MMC/SD regulator active when it loads
-Linux from an SD card.  It may take some time before the MMC/SD driver
-gets loaded, if ever ...  to save power, that (LDO) regulator should be
-disabled ASAP.  Then later when the MMC driver starts up, the Linux MMC
-stack will need to start from a "power off" state.  It can't just
-
-	if (regulator_is_enabled(r))
-		regulator_disable(r);
-
-unless enable state and usecount are matched ...  but without this patch,
-they *will* be mismatched whenever the bootloader happens to have left
-that regulator active!  Similar issues can crop up with almost any
-regulator.
+This is a net minor codeshrink.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: Liam Girdwood <lrg@slimlogic.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/core.c          |   47 ++++++++++++++++++++++------
- include/linux/regulator/machine.h |    3 +
- 2 files changed, 40 insertions(+), 10 deletions(-)
+ drivers/regulator/core.c |   30 ++++++++----------------------
+ 1 file changed, 8 insertions(+), 22 deletions(-)
 
-diff -puN drivers/regulator/core.c~regulator-init-fixes drivers/regulator/core.c
---- a/drivers/regulator/core.c~regulator-init-fixes
+diff -puN drivers/regulator/core.c~regulator-refcount-fixes drivers/regulator/core.c
+--- a/drivers/regulator/core.c~regulator-refcount-fixes
 +++ a/drivers/regulator/core.c
-@@ -803,18 +803,47 @@ static int set_machine_constraints(struc
+@@ -52,7 +52,6 @@ struct regulator {
+ 	int uA_load;
+ 	int min_uV;
+ 	int max_uV;
+-	int enabled; /* count of client enables */
+ 	char *supply_name;
+ 	struct device_attribute dev_attr;
+ 	struct regulator_dev *rdev;
+@@ -815,6 +814,7 @@ static int set_machine_constraints(struc
+ 			rdev->constraints = NULL;
+ 			goto out;
  		}
- 	}
- 
--	/* If the constraints say the regulator should be on at this point
--	 * and we have control then make sure it is enabled.
-+	/* During integration, developers may need time to sort out what
-+	 * to do with this regulator; leave the bootloader's setting alone.
-+	 * Regulator consumers won't get consistent behavior.
-+	 *
-+	 * Else the constraints say whether it should be on or off; we
-+	 * don't leave it in an unknown state.
- 	 */
--	if ((constraints->always_on || constraints->boot_on) && ops->enable) {
--		ret = ops->enable(rdev);
--		if (ret < 0) {
--			printk(KERN_ERR "%s: failed to enable %s\n",
--			       __func__, name);
--			rdev->constraints = NULL;
--			goto out;
-+	if (constraints->devmode) {
-+		char *label = "unknown";
-+
-+		if (ops->is_enabled) {
-+			ret = ops->is_enabled(rdev);
-+			if (ret == 0)
-+				label = "disabled";
-+			else if (ret > 0)
-+				label = "enabled";
-+			ret = 0;
-+		}
-+		pr_warning("%s: devmode regulator '%s' state is '%s'\n",
-+			       __func__, name, label);
-+	} else if (constraints->always_on || constraints->boot_on) {
-+		if (ops->enable) {
-+			ret = ops->enable(rdev);
-+			if (ret < 0) {
-+				pr_err("%s: failed enabling %s\n",
-+				       __func__, name);
-+				rdev->constraints = NULL;
-+				goto out;
-+			}
- 		}
- 		rdev->use_count = 1;
-+	} else {
-+		if (ops->disable) {
-+			ret = ops->disable(rdev);
-+			if (ret < 0) {
-+				pr_err("%s: failed disabling %s\n",
-+				       __func__, name);
-+				rdev->constraints = NULL;
-+				goto out;
-+			}
-+		}
++		rdev->use_count = 1;
  	}
  
  	print_constraints(rdev);
-diff -puN include/linux/regulator/machine.h~regulator-init-fixes include/linux/regulator/machine.h
---- a/include/linux/regulator/machine.h~regulator-init-fixes
-+++ a/include/linux/regulator/machine.h
-@@ -117,7 +117,8 @@ struct regulation_constraints {
- 	/* mode to set on startup */
- 	unsigned int initial_mode;
+@@ -1068,10 +1068,6 @@ void regulator_put(struct regulator *reg
+ 	mutex_lock(&regulator_list_mutex);
+ 	rdev = regulator->rdev;
  
--	/* constriant flags */
-+	/* constraint flags */
-+	unsigned devmode:1;	/* state after setup is indeterminate */
- 	unsigned always_on:1;	/* regulator never off when system is on */
- 	unsigned boot_on:1;	/* bootloader/firmware enabled regulator */
- 	unsigned apply_uV:1;	/* apply uV constraint iff min == max */
+-	if (WARN(regulator->enabled, "Releasing supply %s while enabled\n",
+-			       regulator->supply_name))
+-		_regulator_disable(rdev);
+-
+ 	/* remove any sysfs entries */
+ 	if (regulator->dev) {
+ 		sysfs_remove_link(&rdev->dev.kobj, regulator->supply_name);
+@@ -1146,12 +1142,7 @@ int regulator_enable(struct regulator *r
+ 	int ret = 0;
+ 
+ 	mutex_lock(&rdev->mutex);
+-	if (regulator->enabled == 0)
+-		ret = _regulator_enable(rdev);
+-	else if (regulator->enabled < 0)
+-		ret = -EIO;
+-	if (ret == 0)
+-		regulator->enabled++;
++	ret = _regulator_enable(rdev);
+ 	mutex_unlock(&rdev->mutex);
+ 	return ret;
+ }
+@@ -1162,6 +1153,11 @@ static int _regulator_disable(struct reg
+ {
+ 	int ret = 0;
+ 
++	if (WARN(rdev->use_count <= 0,
++			"unbalanced disables for %s\n",
++			rdev->desc->name))
++		return -EIO;
++
+ 	/* are we the last user and permitted to disable ? */
+ 	if (rdev->use_count == 1 && !rdev->constraints->always_on) {
+ 
+@@ -1210,16 +1206,7 @@ int regulator_disable(struct regulator *
+ 	int ret = 0;
+ 
+ 	mutex_lock(&rdev->mutex);
+-	if (regulator->enabled == 1) {
+-		ret = _regulator_disable(rdev);
+-		if (ret == 0)
+-			regulator->uA_load = 0;
+-	} else if (WARN(regulator->enabled <= 0,
+-			"unbalanced disables for supply %s\n",
+-			regulator->supply_name))
+-		ret = -EIO;
+-	if (ret == 0)
+-		regulator->enabled--;
++	ret = _regulator_disable(rdev);
+ 	mutex_unlock(&rdev->mutex);
+ 	return ret;
+ }
+@@ -1266,7 +1253,6 @@ int regulator_force_disable(struct regul
+ 	int ret;
+ 
+ 	mutex_lock(&regulator->rdev->mutex);
+-	regulator->enabled = 0;
+ 	regulator->uA_load = 0;
+ 	ret = _regulator_force_disable(regulator->rdev);
+ 	mutex_unlock(&regulator->rdev->mutex);
 _
 
 Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
