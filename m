@@ -1,68 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Thu, 12 Mar 2009 12:59:28 -0700
-Message-ID: <200903121959.n2CJxSCq030664@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 12 Mar 2009 13:00:25 -0700
+Message-ID: <200903122000.n2CK0Phk030765@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755829AbZCLUAU (ORCPT
+	by vger.kernel.org with ESMTP id S1751908AbZCLUBP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 16:00:20 -0400
+	Thu, 12 Mar 2009 16:01:15 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n2CJxSvI014289
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n2CK0QAW014461
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2009 12:59:49 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2009 13:00:44 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ init/Kconfig |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN fs/pipe.c~linux-next-rejects fs/pipe.c
---- a/fs/pipe.c~linux-next-rejects
-+++ a/fs/pipe.c
-@@ -700,11 +700,7 @@ pipe_rdwr_fasync(int fd, struct file *fi
- 			fasync_helper(-1, filp, 0, &pipe->fasync_readers);
- 	}
- 	mutex_unlock(&inode->i_mutex);
--
--	if (retval < 0)
--		return retval;
--
--	return 0;
-+	return retval;
- }
+diff -puN init/Kconfig~linux-next-git-rejects init/Kconfig
+--- a/init/Kconfig~linux-next-git-rejects
++++ a/init/Kconfig
+@@ -843,21 +843,6 @@ config PCSPKR_PLATFORM
+           This option allows to disable the internal PC-Speaker
+           support, saving some memory.
  
- 
+-<<<<<<< HEAD:init/Kconfig
+-=======
+-config COMPAT_BRK
+-	bool "Disable heap randomization"
+-	default y
+-	help
+-	  Randomizing heap placement makes heap exploits harder, but it
+-	  also breaks ancient binaries (including anything libc5 based).
+-	  This option changes the bootup default to heap randomization
+-	  disabled, and can be overridden at runtime by setting
+-	  /proc/sys/kernel/randomize_va_space to 2.
+-
+-	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
+-
+->>>>>>> FETCH_HEAD:init/Kconfig
+ config BASE_FULL
+ 	default y
+ 	bool "Enable full-sized data structures for core" if EMBEDDED
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
