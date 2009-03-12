@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-soft-limit-documentation-v5.patch added to -mm tree
-Date: Thu, 12 Mar 2009 16:34:35 -0700
-Message-ID: <200903122334.n2CNYaku017761@imap1.linux-foundation.org>
+Subject: + memory-controller-soft-limit-organize-cgroups-v5.patch added to -mm tree
+Date: Thu, 12 Mar 2009 16:34:41 -0700
+Message-ID: <200903122334.n2CNYfbt017771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35970 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752546AbZCLXkY (ORCPT
+	by vger.kernel.org with ESMTP id S1751757AbZCLXkT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 19:40:24 -0400
+	Thu, 12 Mar 2009 19:40:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@j
 
 
 The patch titled
-     Memory controller soft limit documentation
+     Memory controller soft limit organize cgroups
 has been added to the -mm tree.  Its filename is
-     memory-controller-soft-limit-documentation-v5.patch
+     memory-controller-soft-limit-organize-cgroups-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Memory controller soft limit documentation
+Subject: Memory controller soft limit organize cgroups
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Soft limits is a new feature for the memory resource controller, something
-similar has existed in the group scheduler in the form of shares.  The CPU
-controllers interpretation of shares is very different though.  
+Organize cgroups over soft limit in a RB-Tree
 
-Soft limits are the most useful feature to have for environments where the
-administrator wants to overcommit the system, such that only on memory
-contention do the limits become active.  The current soft limits
-implementation provides a soft_limit_in_bytes interface for the memory
-controller and not for memory+swap controller.  The implementation
-maintains an RB-Tree of groups that exceed their soft limit and starts
-reclaiming from the group that exceeds this limit by the maximum amount.
+Introduce an RB-Tree for storing memory cgroups that are over their soft
+limit.  The overall goal is to
 
-Kamezawa-San has another patchset for soft limits, but I don't like the
-reclaim logic of watermark based balancing of zones for global memory
-cgroup limits.  I also don't like the data structures, a list does not
-scale well.  Kamezawa's objection to this patch is the cost of sorting,
-which is really negligible, since the updates happen at a fixed interval
-(curently four times a second).  I however do like the priority feature in
-Kamezawa's patchset.  The feature can be easily adopted to this
-incrementally.
+1. Add a memory cgroup to the RB-Tree when the soft limit is exceeded.
+   We are careful about updates, updates take place only after a
+   particular time interval has passed
 
-TODOs
+2. We remove the node from the RB-Tree when the usage goes below the
+   soft limit
 
-1. The current implementation maintains the delta from the soft limit
-   and pushes back groups to their soft limits, a ratio of delta/soft_limit
-   might be more useful
-2. It would be nice to have more targetted reclaim (in terms of pages to
-   recalim) interface. So that groups are pushed back, close to their soft
-   limits.
-
-Tests
------
-
-I've run two memory intensive workloads with differing soft limits and
-seen that they are pushed back to their soft limit on contention.  Their
-usage was their soft limit plus additional memory that they were able to
-grab on the system.  Soft limit can take a while before we see the
-expected results.
-
-The other tests I've run are
-1. Deletion of groups while soft limit is in progress in the hierarchy
-2. Setting the soft limit to zero and running other groups with non-zero
-   soft limits.
-3. Setting the soft limit to zero and testing if the mem cgroup is able
-   to use available memory
-
-
-This patch:
-
-Add documentation for the new feature.
+The next set of patches will exploit the RB-Tree to get the group that is
+over its soft limit by the largest amount and reclaim from it, when we
+face memory contention.
 
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
@@ -98,50 +63,397 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   31 ++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
+ include/linux/res_counter.h |    6 -
+ kernel/res_counter.c        |   18 +++-
+ mm/memcontrol.c             |  141 +++++++++++++++++++++++++++++-----
+ 3 files changed, 143 insertions(+), 22 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memory-controller-soft-limit-documentation-v5 Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memory-controller-soft-limit-documentation-v5
-+++ a/Documentation/cgroups/memory.txt
-@@ -360,7 +360,36 @@ cgroups created below it.
+diff -puN include/linux/res_counter.h~memory-controller-soft-limit-organize-cgroups-v5 include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memory-controller-soft-limit-organize-cgroups-v5
++++ a/include/linux/res_counter.h
+@@ -112,7 +112,8 @@ void res_counter_init(struct res_counter
+ int __must_check res_counter_charge_locked(struct res_counter *counter,
+ 		unsigned long val);
+ int __must_check res_counter_charge(struct res_counter *counter,
+-		unsigned long val, struct res_counter **limit_fail_at);
++		unsigned long val, struct res_counter **limit_fail_at,
++		struct res_counter **soft_limit_at);
  
- NOTE2: This feature can be enabled/disabled per subtree.
+ /*
+  * uncharge - tell that some portion of the resource is released
+@@ -125,7 +126,8 @@ int __must_check res_counter_charge(stru
+  */
  
--7. TODO
-+7. Soft limits
-+
-+Soft limits allow for greater sharing of memory. The idea behind soft limits
-+is to allow control groups to use as much of the memory as needed, provided
-+
-+a. There is no memory contention
-+b. They do not exceed their hard limit
-+
-+When the system detects memory contention or low memory control groups
-+are pushed back to their soft limits. If the soft limit of each control
-+group is very high, they are pushed back as much as possible to make
-+sure that one control group does not starve the others of memory.
-+
-+7.1 Interface
-+
-+Soft limits can be setup by using the following commands (in this example we
-+assume a soft limit of 256 megabytes)
-+
-+# echo 256M > memory.soft_limit_in_bytes
-+
-+If we want to change this to 1G, we can at any time use
-+
-+# echo 1G > memory.soft_limit_in_bytes
-+
-+NOTE1: Soft limits take effect over a long period of time, since they involve
-+       reclaiming memory for balancing between memory cgroups
-+NOTE2: It is recommended to set the soft limit always below the hard limit,
-+       otherwise the hard limit will take precedence.
-+
-+8. TODO
+ void res_counter_uncharge_locked(struct res_counter *counter, unsigned long val);
+-void res_counter_uncharge(struct res_counter *counter, unsigned long val);
++void res_counter_uncharge(struct res_counter *counter, unsigned long val,
++				bool *was_soft_limit_excess);
  
- 1. Add support for accounting huge pages (as a separate controller)
- 2. Make per-cgroup scanner reclaim not-shared pages first
+ static inline bool res_counter_limit_check_locked(struct res_counter *cnt)
+ {
+diff -puN kernel/res_counter.c~memory-controller-soft-limit-organize-cgroups-v5 kernel/res_counter.c
+--- a/kernel/res_counter.c~memory-controller-soft-limit-organize-cgroups-v5
++++ a/kernel/res_counter.c
+@@ -37,17 +37,27 @@ int res_counter_charge_locked(struct res
+ }
+ 
+ int res_counter_charge(struct res_counter *counter, unsigned long val,
+-			struct res_counter **limit_fail_at)
++			struct res_counter **limit_fail_at,
++			struct res_counter **soft_limit_fail_at)
+ {
+ 	int ret;
+ 	unsigned long flags;
+ 	struct res_counter *c, *u;
+ 
+ 	*limit_fail_at = NULL;
++	if (soft_limit_fail_at)
++		*soft_limit_fail_at = NULL;
+ 	local_irq_save(flags);
+ 	for (c = counter; c != NULL; c = c->parent) {
+ 		spin_lock(&c->lock);
+ 		ret = res_counter_charge_locked(c, val);
++		/*
++		 * With soft limits, we return the highest ancestor
++		 * that exceeds its soft limit
++		 */
++		if (soft_limit_fail_at &&
++			!res_counter_soft_limit_check_locked(c))
++			*soft_limit_fail_at = c;
+ 		spin_unlock(&c->lock);
+ 		if (ret < 0) {
+ 			*limit_fail_at = c;
+@@ -75,7 +85,8 @@ void res_counter_uncharge_locked(struct 
+ 	counter->usage -= val;
+ }
+ 
+-void res_counter_uncharge(struct res_counter *counter, unsigned long val)
++void res_counter_uncharge(struct res_counter *counter, unsigned long val,
++				bool *was_soft_limit_excess)
+ {
+ 	unsigned long flags;
+ 	struct res_counter *c;
+@@ -83,6 +94,9 @@ void res_counter_uncharge(struct res_cou
+ 	local_irq_save(flags);
+ 	for (c = counter; c != NULL; c = c->parent) {
+ 		spin_lock(&c->lock);
++		if (c == counter && was_soft_limit_excess)
++			*was_soft_limit_excess =
++				!res_counter_soft_limit_check_locked(c);
+ 		res_counter_uncharge_locked(c, val);
+ 		spin_unlock(&c->lock);
+ 	}
+diff -puN mm/memcontrol.c~memory-controller-soft-limit-organize-cgroups-v5 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-soft-limit-organize-cgroups-v5
++++ a/mm/memcontrol.c
+@@ -29,6 +29,7 @@
+ #include <linux/rcupdate.h>
+ #include <linux/limits.h>
+ #include <linux/mutex.h>
++#include <linux/rbtree.h>
+ #include <linux/slab.h>
+ #include <linux/swap.h>
+ #include <linux/spinlock.h>
+@@ -129,6 +130,14 @@ struct mem_cgroup_lru_info {
+ };
+ 
+ /*
++ * Cgroups above their limits are maintained in a RB-Tree, independent of
++ * their hierarchy representation
++ */
++
++static struct rb_root mem_cgroup_soft_limit_tree;
++static DEFINE_SPINLOCK(memcg_soft_limit_tree_lock);
++
++/*
+  * The memory controller data structure. The memory controller controls both
+  * page cache and RSS per cgroup. We would eventually like to provide
+  * statistics based on the statistics developed by Rik Van Riel for clock-pro,
+@@ -176,12 +185,20 @@ struct mem_cgroup {
+ 
+ 	unsigned int	swappiness;
+ 
++	struct rb_node mem_cgroup_node;		/* RB tree node */
++	unsigned long long usage_in_excess;	/* Set to the value by which */
++						/* the soft limit is exceeded*/
++	unsigned long last_tree_update;		/* Last time the tree was */
++						/* updated in jiffies     */
++
+ 	/*
+ 	 * statistics. This must be placed at the end of memcg.
+ 	 */
+ 	struct mem_cgroup_stat stat;
+ };
+ 
++#define	MEM_CGROUP_TREE_UPDATE_INTERVAL		(HZ/4)
++
+ enum charge_type {
+ 	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
+ 	MEM_CGROUP_CHARGE_TYPE_MAPPED,
+@@ -214,6 +231,41 @@ static void mem_cgroup_get(struct mem_cg
+ static void mem_cgroup_put(struct mem_cgroup *mem);
+ static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem);
+ 
++static void mem_cgroup_insert_exceeded(struct mem_cgroup *mem)
++{
++	struct rb_node **p = &mem_cgroup_soft_limit_tree.rb_node;
++	struct rb_node *parent = NULL;
++	struct mem_cgroup *mem_node;
++	unsigned long flags;
++
++	spin_lock_irqsave(&memcg_soft_limit_tree_lock, flags);
++	while (*p) {
++		parent = *p;
++		mem_node = rb_entry(parent, struct mem_cgroup, mem_cgroup_node);
++		if (mem->usage_in_excess < mem_node->usage_in_excess)
++			p = &(*p)->rb_left;
++		/*
++		 * We can't avoid mem cgroups that are over their soft
++		 * limit by the same amount
++		 */
++		else if (mem->usage_in_excess >= mem_node->usage_in_excess)
++			p = &(*p)->rb_right;
++	}
++	rb_link_node(&mem->mem_cgroup_node, parent, p);
++	rb_insert_color(&mem->mem_cgroup_node,
++			&mem_cgroup_soft_limit_tree);
++	mem->last_tree_update = jiffies;
++	spin_unlock_irqrestore(&memcg_soft_limit_tree_lock, flags);
++}
++
++static void mem_cgroup_remove_exceeded(struct mem_cgroup *mem)
++{
++	unsigned long flags;
++	spin_lock_irqsave(&memcg_soft_limit_tree_lock, flags);
++	rb_erase(&mem->mem_cgroup_node, &mem_cgroup_soft_limit_tree);
++	spin_unlock_irqrestore(&memcg_soft_limit_tree_lock, flags);
++}
++
+ static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
+ 					 struct page_cgroup *pc,
+ 					 bool charge)
+@@ -897,6 +949,40 @@ static void record_last_oom(struct mem_c
+ 	mem_cgroup_walk_tree(mem, NULL, record_last_oom_cb);
+ }
+ 
++static void mem_cgroup_check_and_update_tree(struct mem_cgroup *mem,
++						bool time_check)
++{
++	unsigned long long prev_usage_in_excess, new_usage_in_excess;
++	bool updated_tree = false;
++	unsigned long next_update = 0;
++	unsigned long flags;
++
++	prev_usage_in_excess = mem->usage_in_excess;
++
++	if (time_check)
++		next_update = mem->last_tree_update +
++				MEM_CGROUP_TREE_UPDATE_INTERVAL;
++
++	if (!time_check || time_after(jiffies, next_update)) {
++		new_usage_in_excess = res_counter_soft_limit_excess(&mem->res);
++		if (prev_usage_in_excess) {
++			mem_cgroup_remove_exceeded(mem);
++			updated_tree = true;
++		}
++		if (!new_usage_in_excess)
++			goto done;
++		mem_cgroup_insert_exceeded(mem);
++		updated_tree = true;
++	}
++
++done:
++	if (updated_tree) {
++		spin_lock_irqsave(&memcg_soft_limit_tree_lock, flags);
++		mem->last_tree_update = jiffies;
++		mem->usage_in_excess = new_usage_in_excess;
++		spin_unlock_irqrestore(&memcg_soft_limit_tree_lock, flags);
++	}
++}
+ 
+ /*
+  * Unlike exported interface, "oom" parameter is added. if oom==true,
+@@ -906,9 +992,9 @@ static int __mem_cgroup_try_charge(struc
+ 			gfp_t gfp_mask, struct mem_cgroup **memcg,
+ 			bool oom)
+ {
+-	struct mem_cgroup *mem, *mem_over_limit;
++	struct mem_cgroup *mem, *mem_over_limit, *mem_over_soft_limit;
+ 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+-	struct res_counter *fail_res;
++	struct res_counter *fail_res, *soft_fail_res = NULL;
+ 
+ 	if (unlikely(test_thread_flag(TIF_MEMDIE))) {
+ 		/* Don't account this! */
+@@ -938,16 +1024,17 @@ static int __mem_cgroup_try_charge(struc
+ 		int ret;
+ 		bool noswap = false;
+ 
+-		ret = res_counter_charge(&mem->res, PAGE_SIZE, &fail_res);
++		ret = res_counter_charge(&mem->res, PAGE_SIZE, &fail_res,
++						&soft_fail_res);
+ 		if (likely(!ret)) {
+ 			if (!do_swap_account)
+ 				break;
+ 			ret = res_counter_charge(&mem->memsw, PAGE_SIZE,
+-							&fail_res);
++							&fail_res, NULL);
+ 			if (likely(!ret))
+ 				break;
+ 			/* mem+swap counter fails */
+-			res_counter_uncharge(&mem->res, PAGE_SIZE);
++			res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
+ 			noswap = true;
+ 			mem_over_limit = mem_cgroup_from_res_counter(fail_res,
+ 									memsw);
+@@ -985,6 +1072,17 @@ static int __mem_cgroup_try_charge(struc
+ 			goto nomem;
+ 		}
+ 	}
++
++	/*
++	 * Insert just the ancestor, we should trickle down to the correct
++	 * cgroup for reclaim, since the other nodes will be below their
++	 * soft limit
++	 */
++	if (soft_fail_res) {
++		mem_over_soft_limit =
++			mem_cgroup_from_res_counter(soft_fail_res, res);
++		mem_cgroup_check_and_update_tree(mem_over_soft_limit, true);
++	}
+ 	return 0;
+ nomem:
+ 	css_put(&mem->css);
+@@ -1061,9 +1159,9 @@ static void __mem_cgroup_commit_charge(s
+ 	lock_page_cgroup(pc);
+ 	if (unlikely(PageCgroupUsed(pc))) {
+ 		unlock_page_cgroup(pc);
+-		res_counter_uncharge(&mem->res, PAGE_SIZE);
++		res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
+ 		if (do_swap_account)
+-			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++			res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
+ 		css_put(&mem->css);
+ 		return;
+ 	}
+@@ -1116,10 +1214,10 @@ static int mem_cgroup_move_account(struc
+ 	if (pc->mem_cgroup != from)
+ 		goto out;
+ 
+-	res_counter_uncharge(&from->res, PAGE_SIZE);
++	res_counter_uncharge(&from->res, PAGE_SIZE, NULL);
+ 	mem_cgroup_charge_statistics(from, pc, false);
+ 	if (do_swap_account)
+-		res_counter_uncharge(&from->memsw, PAGE_SIZE);
++		res_counter_uncharge(&from->memsw, PAGE_SIZE, NULL);
+ 	css_put(&from->css);
+ 
+ 	css_get(&to->css);
+@@ -1183,9 +1281,9 @@ uncharge:
+ 	/* drop extra refcnt by try_charge() */
+ 	css_put(&parent->css);
+ 	/* uncharge if move fails */
+-	res_counter_uncharge(&parent->res, PAGE_SIZE);
++	res_counter_uncharge(&parent->res, PAGE_SIZE, NULL);
+ 	if (do_swap_account)
+-		res_counter_uncharge(&parent->memsw, PAGE_SIZE);
++		res_counter_uncharge(&parent->memsw, PAGE_SIZE, NULL);
+ 	return ret;
+ }
+ 
+@@ -1314,7 +1412,7 @@ int mem_cgroup_cache_charge(struct page 
+ 			 * Recorded ID can be obsolete. We avoid calling
+ 			 * css_tryget()
+ 			 */
+-			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++			res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
+ 			mem_cgroup_put(mem);
+ 		}
+ 		rcu_read_unlock();
+@@ -1393,7 +1491,7 @@ void mem_cgroup_commit_charge_swapin(str
+ 			 * This recorded memcg can be obsolete one. So, avoid
+ 			 * calling css_tryget
+ 			 */
+-			res_counter_uncharge(&memcg->memsw, PAGE_SIZE);
++			res_counter_uncharge(&memcg->memsw, PAGE_SIZE, NULL);
+ 			mem_cgroup_put(memcg);
+ 		}
+ 		rcu_read_unlock();
+@@ -1408,9 +1506,9 @@ void mem_cgroup_cancel_charge_swapin(str
+ 		return;
+ 	if (!mem)
+ 		return;
+-	res_counter_uncharge(&mem->res, PAGE_SIZE);
++	res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
+ 	if (do_swap_account)
+-		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++		res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
+ 	css_put(&mem->css);
+ }
+ 
+@@ -1424,6 +1522,7 @@ __mem_cgroup_uncharge_common(struct page
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem = NULL;
+ 	struct mem_cgroup_per_zone *mz;
++	bool soft_limit_excess = false;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -1461,9 +1560,9 @@ __mem_cgroup_uncharge_common(struct page
+ 		break;
+ 	}
+ 
+-	res_counter_uncharge(&mem->res, PAGE_SIZE);
++	res_counter_uncharge(&mem->res, PAGE_SIZE, &soft_limit_excess);
+ 	if (do_swap_account && (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
+-		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++		res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
+ 	mem_cgroup_charge_statistics(mem, pc, false);
+ 
+ 	ClearPageCgroupUsed(pc);
+@@ -1477,6 +1576,8 @@ __mem_cgroup_uncharge_common(struct page
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	unlock_page_cgroup(pc);
+ 
++	if (soft_limit_excess)
++		mem_cgroup_check_and_update_tree(mem, true);
+ 	/* at swapout, this memcg will be accessed to record to swap */
+ 	if (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
+ 		css_put(&mem->css);
+@@ -1545,7 +1646,7 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 		 * We uncharge this because swap is freed.
+ 		 * This memcg can be obsolete one. We avoid calling css_tryget
+ 		 */
+-		res_counter_uncharge(&memcg->memsw, PAGE_SIZE);
++		res_counter_uncharge(&memcg->memsw, PAGE_SIZE, NULL);
+ 		mem_cgroup_put(memcg);
+ 	}
+ 	rcu_read_unlock();
+@@ -2409,6 +2510,7 @@ static void __mem_cgroup_free(struct mem
+ {
+ 	int node;
+ 
++	mem_cgroup_check_and_update_tree(mem, false);
+ 	free_css_id(&mem_cgroup_subsys, &mem->css);
+ 
+ 	for_each_node_state(node, N_POSSIBLE)
+@@ -2475,6 +2577,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	if (cont->parent == NULL) {
+ 		enable_swap_cgroup();
+ 		parent = NULL;
++		mem_cgroup_soft_limit_tree = RB_ROOT;
+ 	} else {
+ 		parent = mem_cgroup_from_cont(cont->parent);
+ 		mem->use_hierarchy = parent->use_hierarchy;
+@@ -2495,6 +2598,8 @@ mem_cgroup_create(struct cgroup_subsys *
+ 		res_counter_init(&mem->memsw, NULL);
+ 	}
+ 	mem->last_scanned_child = 0;
++	mem->usage_in_excess = 0;
++	mem->last_tree_update = 0;	/* Yes, time begins at 0 here */
+ 	spin_lock_init(&mem->reclaim_param_lock);
+ 
+ 	if (parent)
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
