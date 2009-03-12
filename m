@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + debug-cgroup-remove-unneeded-cgroup_lock.patch added to -mm tree
-Date: Thu, 12 Mar 2009 17:06:42 -0700
-Message-ID: <200903130006.n2D06gQt020675@imap1.linux-foundation.org>
+Subject: + memory-controller-soft-limit-reclaim-on-contention-v5-fix.patch added to -mm tree
+Date: Thu, 12 Mar 2009 16:55:15 -0700
+Message-ID: <200903130013.n2D0D62j021212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751826AbZCMAIj (ORCPT
+	by vger.kernel.org with ESMTP id S1752683AbZCMASu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 20:08:39 -0400
+	Thu, 12 Mar 2009 20:18:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, menage@google.com
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, riel@redhat.com, yamamoto@valinux.co.jp
 
 
 The patch titled
-     debug cgroup: remove unneeded cgroup_lock
+     memory-controller-soft-limit-reclaim-on-contention-v5-fix
 has been added to the -mm tree.  Its filename is
-     debug-cgroup-remove-unneeded-cgroup_lock.patch
+     memory-controller-soft-limit-reclaim-on-contention-v5-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,141 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: debug cgroup: remove unneeded cgroup_lock
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: memory-controller-soft-limit-reclaim-on-contention-v5-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Since we are in cgroup write handler, so the cgrp is valid, so we don't
-have to hold cgroup_mutex when calling cgroup_task_count().  One similar
-example is in cgroup_tasks_open().
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup_debug.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/memcontrol.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cgroup_debug.c~debug-cgroup-remove-unneeded-cgroup_lock kernel/cgroup_debug.c
---- a/kernel/cgroup_debug.c~debug-cgroup-remove-unneeded-cgroup_lock
-+++ a/kernel/cgroup_debug.c
-@@ -40,9 +40,7 @@ static u64 taskcount_read(struct cgroup 
+diff -puN include/linux/memcontrol.h~memory-controller-soft-limit-reclaim-on-contention-v5-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-soft-limit-reclaim-on-contention-v5-fix
++++ a/include/linux/memcontrol.h
+@@ -265,6 +265,7 @@ mem_cgroup_print_oom_info(struct mem_cgr
  {
- 	u64 count;
- 
--	cgroup_lock();
- 	count = cgroup_task_count(cont);
--	cgroup_unlock();
- 	return count;
  }
  
++static inline
+ unsigned long mem_cgroup_soft_limit_reclaim(struct zonelist *zl, gfp_t gfp_mask)
+ {
+ 	return 0;
+@@ -272,4 +273,3 @@ unsigned long mem_cgroup_soft_limit_recl
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+-
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vfs-add-missing-unlock-in-sget.patch
+origin.patch
+uml-on-uml-fixed-it-did-not-start.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-cls_cgroup-remove-unneeded-cgroup_lock.patch
-memdup_user-introduce.patch
-memdup_user-introduce-fix.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-cgroup-css-id-support.patch
-cgroup-css-id-support-remove-rcu_read_lock-from-css_get_next.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-cgroups-more-documentation-for-remount-and-release_agent.patch
-cgroups-show-correct-file-mode.patch
-cgroups-show-correct-file-mode-fix.patch
-cgroups-dont-change-release_agent-when-remount-failed.patch
-debug-cgroup-remove-unneeded-cgroup_lock.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+git-acpi-vs-git-cpufreq.patch
+i-need-old-gcc.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mtd-rbtx4939-add-mtd-support.patch
+flex-onenand-support-v2-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+ubd-stop-defintining-major_nr-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-fix-clock-doubling-fix.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
 memcg-fix-oom-killer-under-memcg-fix2.patch
 memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
 memcg-show-memcg-information-during-oom-fix2.patch
 memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-memcg-charge-swapcache-to-proper-memcg.patch
-cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
-memory-controller-soft-limit-documentation-v5.patch
-memory-controller-soft-limit-interface-v5.patch
-memory-controller-soft-limit-organize-cgroups-v5.patch
-memory-controller-soft-limit-reclaim-on-contention-v5.patch
-cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
-cgroups-add-data-field-to-struct-cgroup_scanner.patch
-cpuset-rewrite-update_tasks_nodemask.patch
-cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
-cpuset-remove-struct-cpuset_hotplug_scanner.patch
-cpusets-allow-cpusets-to-be-configured-built-on-non-smp-systems.patch
+memory-controller-soft-limit-reclaim-on-contention-v5-fix.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
