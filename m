@@ -1,171 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 12 Mar 2009 13:00:25 -0700
-Message-ID: <200903122000.n2CK0Phk030765@imap1.linux-foundation.org>
+Subject: [merged] regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos.patch removed from -mm tree
+Date: Thu, 12 Mar 2009 13:16:45 -0700
+Message-ID: <200903122016.n2CKGjnJ032570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751908AbZCLUBP (ORCPT
+	by vger.kernel.org with ESMTP id S1750766AbZCLUS3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 16:01:15 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n2CK0QAW014461
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2009 13:00:44 -0700
+	Thu, 12 Mar 2009 16:18:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     regulator: implement list_voltage() for WM8400 DCDCs and LDOs
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: regulator: implement list_voltage() for WM8400 DCDCs and LDOs
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
+All DCDCs and LDOs are identical.
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   15 ---------------
- 1 file changed, 15 deletions(-)
+ drivers/regulator/wm8400-regulator.c |   34 ++++++++++++++++++++++---
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
-diff -puN init/Kconfig~linux-next-git-rejects init/Kconfig
---- a/init/Kconfig~linux-next-git-rejects
-+++ a/init/Kconfig
-@@ -843,21 +843,6 @@ config PCSPKR_PLATFORM
-           This option allows to disable the internal PC-Speaker
-           support, saving some memory.
+diff -puN drivers/regulator/wm8400-regulator.c~regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos drivers/regulator/wm8400-regulator.c
+--- a/drivers/regulator/wm8400-regulator.c~regulator-implement-list_voltage-for-wm8400-dcdcs-and-ldos
++++ a/drivers/regulator/wm8400-regulator.c
+@@ -43,6 +43,18 @@ static int wm8400_ldo_disable(struct reg
+ 			       WM8400_LDO1_ENA, 0);
+ }
  
--<<<<<<< HEAD:init/Kconfig
--=======
--config COMPAT_BRK
--	bool "Disable heap randomization"
--	default y
--	help
--	  Randomizing heap placement makes heap exploits harder, but it
--	  also breaks ancient binaries (including anything libc5 based).
--	  This option changes the bootup default to heap randomization
--	  disabled, and can be overridden at runtime by setting
--	  /proc/sys/kernel/randomize_va_space to 2.
--
--	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
--
-->>>>>>> FETCH_HEAD:init/Kconfig
- config BASE_FULL
- 	default y
- 	bool "Enable full-sized data structures for core" if EMBEDDED
++static int wm8400_ldo_list_voltage(struct regulator_dev *dev,
++				   unsigned selector)
++{
++	if (selector > WM8400_LDO1_VSEL_MASK)
++		return -EINVAL;
++
++	if (selector < 15)
++		return 900000 + (selector * 50000);
++	else
++		return 1600000 + ((selector - 14) * 100000);
++}
++
+ static int wm8400_ldo_get_voltage(struct regulator_dev *dev)
+ {
+ 	struct wm8400 *wm8400 = rdev_get_drvdata(dev);
+@@ -51,10 +63,7 @@ static int wm8400_ldo_get_voltage(struct
+ 	val = wm8400_reg_read(wm8400, WM8400_LDO1_CONTROL + rdev_get_id(dev));
+ 	val &= WM8400_LDO1_VSEL_MASK;
+ 
+-	if (val < 15)
+-		return 900000 + (val * 50000);
+-	else
+-		return 1600000 + ((val - 14) * 100000);
++	return wm8400_ldo_list_voltage(dev, val);
+ }
+ 
+ static int wm8400_ldo_set_voltage(struct regulator_dev *dev,
+@@ -92,6 +101,7 @@ static struct regulator_ops wm8400_ldo_o
+ 	.is_enabled = wm8400_ldo_is_enabled,
+ 	.enable = wm8400_ldo_enable,
+ 	.disable = wm8400_ldo_disable,
++	.list_voltage = wm8400_ldo_list_voltage,
+ 	.get_voltage = wm8400_ldo_get_voltage,
+ 	.set_voltage = wm8400_ldo_set_voltage,
+ };
+@@ -124,6 +134,15 @@ static int wm8400_dcdc_disable(struct re
+ 			       WM8400_DC1_ENA, 0);
+ }
+ 
++static int wm8400_dcdc_list_voltage(struct regulator_dev *dev,
++				    unsigned selector)
++{
++	if (selector > WM8400_DC1_VSEL_MASK)
++		return -EINVAL;
++
++	return 850000 + (selector * 25000);
++}
++
+ static int wm8400_dcdc_get_voltage(struct regulator_dev *dev)
+ {
+ 	struct wm8400 *wm8400 = rdev_get_drvdata(dev);
+@@ -237,6 +256,7 @@ static struct regulator_ops wm8400_dcdc_
+ 	.is_enabled = wm8400_dcdc_is_enabled,
+ 	.enable = wm8400_dcdc_enable,
+ 	.disable = wm8400_dcdc_disable,
++	.list_voltage = wm8400_dcdc_list_voltage,
+ 	.get_voltage = wm8400_dcdc_get_voltage,
+ 	.set_voltage = wm8400_dcdc_set_voltage,
+ 	.get_mode = wm8400_dcdc_get_mode,
+@@ -249,6 +269,7 @@ static struct regulator_desc regulators[
+ 		.name = "LDO1",
+ 		.id = WM8400_LDO1,
+ 		.ops = &wm8400_ldo_ops,
++		.n_voltages = WM8400_LDO1_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -256,6 +277,7 @@ static struct regulator_desc regulators[
+ 		.name = "LDO2",
+ 		.id = WM8400_LDO2,
+ 		.ops = &wm8400_ldo_ops,
++		.n_voltages = WM8400_LDO2_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -263,6 +285,7 @@ static struct regulator_desc regulators[
+ 		.name = "LDO3",
+ 		.id = WM8400_LDO3,
+ 		.ops = &wm8400_ldo_ops,
++		.n_voltages = WM8400_LDO3_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -270,6 +293,7 @@ static struct regulator_desc regulators[
+ 		.name = "LDO4",
+ 		.id = WM8400_LDO4,
+ 		.ops = &wm8400_ldo_ops,
++		.n_voltages = WM8400_LDO4_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -277,6 +301,7 @@ static struct regulator_desc regulators[
+ 		.name = "DCDC1",
+ 		.id = WM8400_DCDC1,
+ 		.ops = &wm8400_dcdc_ops,
++		.n_voltages = WM8400_DC1_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
+@@ -284,6 +309,7 @@ static struct regulator_desc regulators[
+ 		.name = "DCDC2",
+ 		.id = WM8400_DCDC2,
+ 		.ops = &wm8400_dcdc_ops,
++		.n_voltages = WM8400_DC2_VSEL_MASK + 1,
+ 		.type = REGULATOR_VOLTAGE,
+ 		.owner = THIS_MODULE,
+ 	},
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-origin.patch
-uml-on-uml-fixed-it-did-not-start-checkpatch-fixes.patch
-i2c-too-much-compiler-noise.patch
+mfd-add-support-for-wm8351-revision-b.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-git-acpi-vs-git-cpufreq.patch
-i-need-old-gcc.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-arch-x86-mm-iomap_32c-fix-warning.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-sysfs-dont-block-indefinitely-for-unmapped-files.patch
-drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-mtd-rbtx4939-add-mtd-support.patch
-flex-onenand-support-v2-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-libfs-make-simple_read_from_buffer-conventional-fix.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-ubd-stop-defintining-major_nr-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-cirrusfb-fix-clock-doubling-fix.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
+mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc.patch
+rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
+rtc-wm8350-retries-will-reach-1.patch
 
