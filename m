@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-soft-limit-interface-v5.patch added to -mm tree
-Date: Thu, 12 Mar 2009 16:34:38 -0700
-Message-ID: <200903122334.n2CNYcT3017768@imap1.linux-foundation.org>
+Subject: + memory-controller-soft-limit-documentation-v5.patch added to -mm tree
+Date: Thu, 12 Mar 2009 16:34:35 -0700
+Message-ID: <200903122334.n2CNYaku017761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58092 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752546AbZCLXkU (ORCPT
+	by vger.kernel.org with ESMTP id S1752546AbZCLXkY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 19:40:20 -0400
+	Thu, 12 Mar 2009 19:40:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@j
 
 
 The patch titled
-     Memory controller soft limit interface
+     Memory controller soft limit documentation
 has been added to the -mm tree.  Its filename is
-     memory-controller-soft-limit-interface-v5.patch
+     memory-controller-soft-limit-documentation-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Memory controller soft limit interface
+Subject: Memory controller soft limit documentation
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Add soft limits interface to resource counters
+Soft limits is a new feature for the memory resource controller, something
+similar has existed in the group scheduler in the form of shares.  The CPU
+controllers interpretation of shares is very different though.  
 
-Add an interface to allow get/set of soft limits.  Soft limits for memory
-plus swap controller (memsw) is currently not supported.  Resource
-counters have been enhanced to support soft limits and new type
-RES_SOFT_LIMIT has been added.  Unlike hard limits, soft limits can be
-directly set and do not need any reclaim or checks before setting them to
-a newer value.
+Soft limits are the most useful feature to have for environments where the
+administrator wants to overcommit the system, such that only on memory
+contention do the limits become active.  The current soft limits
+implementation provides a soft_limit_in_bytes interface for the memory
+controller and not for memory+swap controller.  The implementation
+maintains an RB-Tree of groups that exceed their soft limit and starts
+reclaiming from the group that exceeds this limit by the maximum amount.
 
-Kamezawa-San raised a question as to whether soft limit should belong to
-res_counter.  Since all resources understand the basic concepts of hard
-and soft limits, it is justified to add soft limits here.  Soft limits are
-a generic resource usage feature, even file system quotas support soft
-limits.
+Kamezawa-San has another patchset for soft limits, but I don't like the
+reclaim logic of watermark based balancing of zones for global memory
+cgroup limits.  I also don't like the data structures, a list does not
+scale well.  Kamezawa's objection to this patch is the cost of sorting,
+which is really negligible, since the updates happen at a fixed interval
+(curently four times a second).  I however do like the priority feature in
+Kamezawa's patchset.  The feature can be easily adopted to this
+incrementally.
+
+TODOs
+
+1. The current implementation maintains the delta from the soft limit
+   and pushes back groups to their soft limits, a ratio of delta/soft_limit
+   might be more useful
+2. It would be nice to have more targetted reclaim (in terms of pages to
+   recalim) interface. So that groups are pushed back, close to their soft
+   limits.
+
+Tests
+-----
+
+I've run two memory intensive workloads with differing soft limits and
+seen that they are pushed back to their soft limit on contention.  Their
+usage was their soft limit plus additional memory that they were able to
+grab on the system.  Soft limit can take a while before we see the
+expected results.
+
+The other tests I've run are
+1. Deletion of groups while soft limit is in progress in the hierarchy
+2. Setting the soft limit to zero and running other groups with non-zero
+   soft limits.
+3. Setting the soft limit to zero and testing if the mem cgroup is able
+   to use available memory
+
+
+This patch:
+
+Add documentation for the new feature.
 
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
@@ -62,162 +98,50 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |   58 ++++++++++++++++++++++++++++++++++
- kernel/res_counter.c        |    3 +
- mm/memcontrol.c             |   20 +++++++++++
- 3 files changed, 81 insertions(+)
+ Documentation/cgroups/memory.txt |   31 ++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/res_counter.h~memory-controller-soft-limit-interface-v5 include/linux/res_counter.h
---- a/include/linux/res_counter.h~memory-controller-soft-limit-interface-v5
-+++ a/include/linux/res_counter.h
-@@ -35,6 +35,10 @@ struct res_counter {
- 	 */
- 	unsigned long long limit;
- 	/*
-+	 * the limit that usage can be exceed
-+	 */
-+	unsigned long long soft_limit;
-+	/*
- 	 * the number of unsuccessful attempts to consume the resource
- 	 */
- 	unsigned long long failcnt;
-@@ -85,6 +89,7 @@ enum {
- 	RES_MAX_USAGE,
- 	RES_LIMIT,
- 	RES_FAILCNT,
-+	RES_SOFT_LIMIT,
- };
+diff -puN Documentation/cgroups/memory.txt~memory-controller-soft-limit-documentation-v5 Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memory-controller-soft-limit-documentation-v5
++++ a/Documentation/cgroups/memory.txt
+@@ -360,7 +360,36 @@ cgroups created below it.
  
- /*
-@@ -130,6 +135,36 @@ static inline bool res_counter_limit_che
- 	return false;
- }
+ NOTE2: This feature can be enabled/disabled per subtree.
  
-+static inline bool res_counter_soft_limit_check_locked(struct res_counter *cnt)
-+{
-+	if (cnt->usage < cnt->soft_limit)
-+		return true;
+-7. TODO
++7. Soft limits
 +
-+	return false;
-+}
++Soft limits allow for greater sharing of memory. The idea behind soft limits
++is to allow control groups to use as much of the memory as needed, provided
 +
-+/**
-+ * Get the difference between the usage and the soft limit
-+ * @cnt: The counter
-+ *
-+ * Returns 0 if usage is less than or equal to soft limit
-+ * The difference between usage and soft limit, otherwise.
-+ */
-+static inline unsigned long long
-+res_counter_soft_limit_excess(struct res_counter *cnt)
-+{
-+	unsigned long long excess;
-+	unsigned long flags;
++a. There is no memory contention
++b. They do not exceed their hard limit
 +
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	if (cnt->usage <= cnt->soft_limit)
-+		excess = 0;
-+	else
-+		excess = cnt->usage - cnt->soft_limit;
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return excess;
-+}
++When the system detects memory contention or low memory control groups
++are pushed back to their soft limits. If the soft limit of each control
++group is very high, they are pushed back as much as possible to make
++sure that one control group does not starve the others of memory.
 +
- /*
-  * Helper function to detect if the cgroup is within it's limit or
-  * not. It's currently called from cgroup_rss_prepare()
-@@ -145,6 +180,17 @@ static inline bool res_counter_check_und
- 	return ret;
- }
++7.1 Interface
++
++Soft limits can be setup by using the following commands (in this example we
++assume a soft limit of 256 megabytes)
++
++# echo 256M > memory.soft_limit_in_bytes
++
++If we want to change this to 1G, we can at any time use
++
++# echo 1G > memory.soft_limit_in_bytes
++
++NOTE1: Soft limits take effect over a long period of time, since they involve
++       reclaiming memory for balancing between memory cgroups
++NOTE2: It is recommended to set the soft limit always below the hard limit,
++       otherwise the hard limit will take precedence.
++
++8. TODO
  
-+static inline bool res_counter_check_under_soft_limit(struct res_counter *cnt)
-+{
-+	bool ret;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	ret = res_counter_soft_limit_check_locked(cnt);
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return ret;
-+}
-+
- static inline void res_counter_reset_max(struct res_counter *cnt)
- {
- 	unsigned long flags;
-@@ -178,4 +224,16 @@ static inline int res_counter_set_limit(
- 	return ret;
- }
- 
-+static inline int
-+res_counter_set_soft_limit(struct res_counter *cnt,
-+				unsigned long long soft_limit)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	cnt->soft_limit = soft_limit;
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return 0;
-+}
-+
- #endif
-diff -puN kernel/res_counter.c~memory-controller-soft-limit-interface-v5 kernel/res_counter.c
---- a/kernel/res_counter.c~memory-controller-soft-limit-interface-v5
-+++ a/kernel/res_counter.c
-@@ -19,6 +19,7 @@ void res_counter_init(struct res_counter
- {
- 	spin_lock_init(&counter->lock);
- 	counter->limit = (unsigned long long)LLONG_MAX;
-+	counter->soft_limit = (unsigned long long)LLONG_MAX;
- 	counter->parent = parent;
- }
- 
-@@ -101,6 +102,8 @@ res_counter_member(struct res_counter *c
- 		return &counter->limit;
- 	case RES_FAILCNT:
- 		return &counter->failcnt;
-+	case RES_SOFT_LIMIT:
-+		return &counter->soft_limit;
- 	};
- 
- 	BUG();
-diff -puN mm/memcontrol.c~memory-controller-soft-limit-interface-v5 mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-soft-limit-interface-v5
-+++ a/mm/memcontrol.c
-@@ -2002,6 +2002,20 @@ static int mem_cgroup_write(struct cgrou
- 		else
- 			ret = mem_cgroup_resize_memsw_limit(memcg, val);
- 		break;
-+	case RES_SOFT_LIMIT:
-+		ret = res_counter_memparse_write_strategy(buffer, &val);
-+		if (ret)
-+			break;
-+		/*
-+		 * For memsw, soft limits are hard to implement in terms
-+		 * of semantics, for now, we support soft limits for
-+		 * control without swap
-+		 */
-+		if (type == _MEM)
-+			ret = res_counter_set_soft_limit(&memcg->res, val);
-+		else
-+			ret = -EINVAL;
-+		break;
- 	default:
- 		ret = -EINVAL; /* should be BUG() ? */
- 		break;
-@@ -2251,6 +2265,12 @@ static struct cftype mem_cgroup_files[] 
- 		.read_u64 = mem_cgroup_read,
- 	},
- 	{
-+		.name = "soft_limit_in_bytes",
-+		.private = MEMFILE_PRIVATE(_MEM, RES_SOFT_LIMIT),
-+		.write_string = mem_cgroup_write,
-+		.read_u64 = mem_cgroup_read,
-+	},
-+	{
- 		.name = "failcnt",
- 		.private = MEMFILE_PRIVATE(_MEM, RES_FAILCNT),
- 		.trigger = mem_cgroup_reset,
+ 1. Add support for accounting huge pages (as a separate controller)
+ 2. Make per-cgroup scanner reclaim not-shared pages first
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
