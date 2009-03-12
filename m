@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-imx31-fix-panning-error-handling-clean-up.patch added to -mm tree
-Date: Thu, 12 Mar 2009 12:54:59 -0700
-Message-ID: <200903121954.n2CJsxxj030206@imap1.linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Thu, 12 Mar 2009 12:59:28 -0700
+Message-ID: <200903121959.n2CJxSCq030664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751147AbZCLT44 (ORCPT
+	by vger.kernel.org with ESMTP id S1755829AbZCLUAU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 15:56:56 -0400
+	Thu, 12 Mar 2009 16:00:20 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n2CJxSvI014289
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2009 12:59:49 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lg@denx.de, dan.j.williams@intel.com, krzysztof.h1@poczta.fm, s.hauer@pengutronix.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     fbdev: i.MX31: fix panning, error handling, clean up
+     linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     fbdev-imx31-fix-panning-error-handling-clean-up.patch
+     linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,193 +38,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: i.MX31: fix panning, error handling, clean up
-From: Guennadi Liakhovetski <lg@denx.de>
+Subject: linux-next-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-1. check for errors returned from clk_get()
-2. fix "Unbalanced enable for IRQ 160"
-3. fix transmit descriptor handling in panning
-4. clean frame buffer on blank - useful for OLED displays
-5. formatting clean up
-
-Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mx3fb.c |   56 ++++++++++++++++++++++------------------
- 1 file changed, 31 insertions(+), 25 deletions(-)
+ fs/pipe.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/video/mx3fb.c~fbdev-imx31-fix-panning-error-handling-clean-up drivers/video/mx3fb.c
---- a/drivers/video/mx3fb.c~fbdev-imx31-fix-panning-error-handling-clean-up
-+++ a/drivers/video/mx3fb.c
-@@ -400,12 +400,12 @@ static void sdc_disable_channel(struct m
- static int sdc_set_window_pos(struct mx3fb_data *mx3fb, enum ipu_channel channel,
-                              int16_t x_pos, int16_t y_pos)
- {
--       x_pos += mx3fb->h_start_width;
--       y_pos += mx3fb->v_start_width;
+diff -puN fs/pipe.c~linux-next-rejects fs/pipe.c
+--- a/fs/pipe.c~linux-next-rejects
++++ a/fs/pipe.c
+@@ -700,11 +700,7 @@ pipe_rdwr_fasync(int fd, struct file *fi
+ 			fasync_helper(-1, filp, 0, &pipe->fasync_readers);
+ 	}
+ 	mutex_unlock(&inode->i_mutex);
 -
-        if (channel != IDMAC_SDC_0)
-                return -EINVAL;
- 
-+	x_pos += mx3fb->h_start_width;
-+	y_pos += mx3fb->v_start_width;
-+
-        mx3fb_write_reg(mx3fb, (x_pos << 16) | y_pos, SDC_BG_POS);
-        return 0;
+-	if (retval < 0)
+-		return retval;
+-
+-	return 0;
++	return retval;
  }
-@@ -491,11 +491,13 @@ static int sdc_init_panel(struct mx3fb_d
-         * 24 to get fractional part, as long as we stay under ~250MHz and on
-         * i.MX31 it (HSP_CLK) is <= 178MHz. Currently 128.267MHz
-         */
--       dev_dbg(mx3fb->dev, "pixel clk = %d\n", pixel_clk);
--
-        ipu_clk = clk_get(mx3fb->dev, "ipu_clk");
--       div = clk_get_rate(ipu_clk) * 16 / pixel_clk;
--       clk_put(ipu_clk);
-+	if (!IS_ERR(ipu_clk)) {
-+		div = clk_get_rate(ipu_clk) * 16 / pixel_clk;
-+		clk_put(ipu_clk);
-+	} else {
-+		div = 0;
-+	}
  
-        if (div < 0x40) {       /* Divider less than 4 */
-                dev_dbg(mx3fb->dev,
-@@ -503,6 +505,9 @@ static int sdc_init_panel(struct mx3fb_d
-                div = 0x40;
-        }
  
-+	dev_dbg(mx3fb->dev, "pixel clk = %u, divider %u.%u\n",
-+		pixel_clk, div >> 4, (div & 7) * 125);
-+
-        spin_lock_irqsave(&mx3fb->lock, lock_flags);
- 
-        /*
-@@ -515,16 +520,16 @@ static int sdc_init_panel(struct mx3fb_d
-        /* DI settings */
-        old_conf = mx3fb_read_reg(mx3fb, DI_DISP_IF_CONF) & 0x78FFFFFF;
-        old_conf |= sig.datamask_en << DI_D3_DATAMSK_SHIFT |
--           sig.clksel_en << DI_D3_CLK_SEL_SHIFT |
--           sig.clkidle_en << DI_D3_CLK_IDLE_SHIFT;
-+		sig.clksel_en << DI_D3_CLK_SEL_SHIFT |
-+		sig.clkidle_en << DI_D3_CLK_IDLE_SHIFT;
-        mx3fb_write_reg(mx3fb, old_conf, DI_DISP_IF_CONF);
- 
-        old_conf = mx3fb_read_reg(mx3fb, DI_DISP_SIG_POL) & 0xE0FFFFFF;
-        old_conf |= sig.data_pol << DI_D3_DATA_POL_SHIFT |
--           sig.clk_pol << DI_D3_CLK_POL_SHIFT |
--           sig.enable_pol << DI_D3_DRDY_SHARP_POL_SHIFT |
--           sig.Hsync_pol << DI_D3_HSYNC_POL_SHIFT |
--           sig.Vsync_pol << DI_D3_VSYNC_POL_SHIFT;
-+		sig.clk_pol << DI_D3_CLK_POL_SHIFT |
-+		sig.enable_pol << DI_D3_DRDY_SHARP_POL_SHIFT |
-+		sig.Hsync_pol << DI_D3_HSYNC_POL_SHIFT |
-+		sig.Vsync_pol << DI_D3_VSYNC_POL_SHIFT;
-        mx3fb_write_reg(mx3fb, old_conf, DI_DISP_SIG_POL);
- 
-        switch (pixel_fmt) {
-@@ -721,7 +726,6 @@ static int mx3fb_set_par(struct fb_info 
-        struct idmac_channel *ichan = mx3_fbi->idmac_channel;
-        struct idmac_video_param *video = &ichan->params.video;
-        struct scatterlist *sg = mx3_fbi->sg;
--       size_t screen_size;
- 
-        dev_dbg(mx3fb->dev, "%s [%c]\n", __func__, list_empty(&ichan->queue) ? '-' : '+');
- 
-@@ -745,12 +749,10 @@ static int mx3fb_set_par(struct fb_info 
-                }
-        }
- 
--       screen_size = fbi->fix.line_length * fbi->var.yres;
--
-        sg_init_table(&sg[0], 1);
-        sg_init_table(&sg[1], 1);
- 
--       sg_dma_address(&sg[0])  = fbi->fix.smem_start;
-+	sg_dma_address(&sg[0]) = fbi->fix.smem_start;
-        sg_set_page(&sg[0], virt_to_page(fbi->screen_base),
-                    fbi->fix.smem_len,
-                    offset_in_page(fbi->screen_base));
-@@ -927,7 +929,7 @@ static int mx3fb_setcolreg(unsigned int 
-        u32 val;
-        int ret = 1;
- 
--       dev_dbg(fbi->device, "%s\n", __func__);
-+	dev_dbg(fbi->device, "%s, regno = %u\n", __func__, regno);
- 
-        mutex_lock(&mx3_fbi->mutex);
-        /*
-@@ -973,9 +975,8 @@ static int mx3fb_blank(int blank, struct
-        struct mx3fb_info *mx3_fbi = fbi->par;
-        struct mx3fb_data *mx3fb = mx3_fbi->mx3fb;
- 
--       dev_dbg(fbi->device, "%s\n", __func__);
--
--       dev_dbg(fbi->device, "blank = %d\n", blank);
-+	dev_dbg(fbi->device, "%s, blank = %d, base %p, len %u\n", __func__,
-+		blank, fbi->screen_base, fbi->fix.smem_len);
- 
-        if (mx3_fbi->blank == blank)
-                return 0;
-@@ -988,8 +989,11 @@ static int mx3fb_blank(int blank, struct
-        case FB_BLANK_VSYNC_SUSPEND:
-        case FB_BLANK_HSYNC_SUSPEND:
-        case FB_BLANK_NORMAL:
--               sdc_disable_channel(mx3_fbi);
-                sdc_set_brightness(mx3fb, 0);
-+		memset((char *)fbi->screen_base, 0, fbi->fix.smem_len);
-+		/* Give LCD time to update - enough for 50 and 60 Hz */
-+		msleep(25);
-+		sdc_disable_channel(mx3_fbi);
-                break;
-        case FB_BLANK_UNBLANK:
-                sdc_enable_channel(mx3_fbi);
-@@ -1063,6 +1067,7 @@ static int mx3fb_pan_display(struct fb_v
-                mutex_unlock(&mx3_fbi->mutex);
-                dev_info(fbi->device, "Panning failed due to %s\n", ret < 0 ?
-                         "user interrupt" : "timeout");
-+		disable_irq(mx3_fbi->idmac_channel->eof_irq);
-                return ret ? : -ETIMEDOUT;
-        }
- 
-@@ -1073,6 +1078,9 @@ static int mx3fb_pan_display(struct fb_v
-                    virt_to_page(fbi->screen_base + offset), fbi->fix.smem_len,
-                    offset_in_page(fbi->screen_base + offset));
- 
-+	if (mx3_fbi->txd)
-+		async_tx_ack(mx3_fbi->txd);
-+
-        txd = dma_chan->device->device_prep_slave_sg(dma_chan, sg +
-                mx3_fbi->cur_ipu_buf, 1, DMA_TO_DEVICE, DMA_PREP_INTERRUPT);
-        if (!txd) {
-@@ -1099,8 +1107,6 @@ static int mx3fb_pan_display(struct fb_v
-                return -EIO;
-        }
- 
--       if (mx3_fbi->txd)
--               async_tx_ack(mx3_fbi->txd);
-        mx3_fbi->txd = txd;
- 
-        fbi->var.xoffset = var->xoffset;
-@@ -1506,7 +1512,7 @@ static struct platform_driver mx3fb_driv
-  * example:
-  *     video=mx3fb:bpp=16
-  */
--static int mx3fb_setup(void)
-+static int __init mx3fb_setup(void)
- {
- #ifndef MODULE
-        char *opt, *options = NULL;
 _
 
-Patches currently in -mm which might be from lg@denx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-bitmap-fix-size-test-in-bitmap_find_free_region.patch
+uml-on-uml-fixed-it-did-not-start-checkpatch-fixes.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-fbdev-imx31-fix-panning-error-handling-clean-up.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+git-acpi-vs-git-cpufreq.patch
+i-need-old-gcc.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+sysfs-dont-block-indefinitely-for-unmapped-files.patch
+drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mtd-rbtx4939-add-mtd-support.patch
+flex-onenand-support-v2-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+ubd-stop-defintining-major_nr-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-fix-clock-doubling-fix.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
