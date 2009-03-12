@@ -1,93 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int.patch removed from -mm tree
-Date: Thu, 12 Mar 2009 13:17:07 -0700
-Message-ID: <200903122017.n2CKH7iF032641@imap1.linux-foundation.org>
+Subject: [merged] blackfin-serial-driver-use-barrier-instead-of-cpu_relax-for-blackfin-smp-like-patch.patch removed from -mm tree
+Date: Thu, 12 Mar 2009 13:16:58 -0700
+Message-ID: <200903122016.n2CKGwvx032613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45296 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751176AbZCLUUN (ORCPT
+	by vger.kernel.org with ESMTP id S1751158AbZCLUUH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 16:20:13 -0400
+	Thu, 12 Mar 2009 16:20:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org, mm-commits@vger.kernel.org
+To: graf.yang@analog.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin serial driver: use "unsigned long" for flags with irq functions rather than "int"
+     blackfin serial driver: use barrier instead of cpu_relax for Blackfin SMP like patch
 has been removed from the -mm tree.  Its filename was
-     blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int.patch
+     blackfin-serial-driver-use-barrier-instead-of-cpu_relax-for-blackfin-smp-like-patch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin serial driver: use "unsigned long" for flags with irq functions rather than "int"
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: blackfin serial driver: use barrier instead of cpu_relax for Blackfin SMP like patch
+From: Graf Yang <graf.yang@analog.com>
 
-Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+We are making a SMP like patch to blackfin, cpu_relax() is replaced by a
+data cache flush function which will count it to a per-cpu counter.  If
+this serial function is called too early, the per-cpu data area have not
+been initialized, this call will cause crash.  So we'd like to use
+barrier() instead of cpu_relax().
+
+Signed-off-by: Graf Yang <graf.yang@analog.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/bfin_5xx.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/serial/bfin_5xx.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int drivers/serial/bfin_5xx.c
---- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int
+diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-barrier-instead-of-cpu_relax-for-blackfin-smp-like-patch drivers/serial/bfin_5xx.c
+--- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-barrier-instead-of-cpu_relax-for-blackfin-smp-like-patch
 +++ a/drivers/serial/bfin_5xx.c
-@@ -403,7 +403,8 @@ static void bfin_serial_dma_rx_chars(str
+@@ -1129,7 +1129,8 @@ static __init void early_serial_putc(str
+ 	struct bfin_serial_port *uart = (struct bfin_serial_port *)port;
  
- void bfin_serial_rx_dma_timeout(struct bfin_serial_port *uart)
- {
--	int x_pos, pos, flags;
-+	int x_pos, pos;
-+	unsigned long flags;
+ 	while ((!(UART_GET_LSR(uart) & THRE)) && --timeout)
+-		cpu_relax();
++		barrier();
++
+ 	UART_PUT_CHAR(uart, ch);
+ }
  
- 	spin_lock_irqsave(&uart->port.lock, flags);
- 
-@@ -1151,7 +1152,7 @@ static void
- bfin_serial_console_write(struct console *co, const char *s, unsigned int count)
- {
- 	struct bfin_serial_port *uart = &bfin_serial_ports[co->index];
--	int flags = 0;
-+	unsigned long flags;
- 
- 	spin_lock_irqsave(&uart->port.lock, flags);
- 	uart_console_write(&uart->port, s, count, bfin_serial_console_putchar);
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from graf.yang@analog.com are
 
 origin.patch
 linux-next.patch
-blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch
-blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch
-blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch
-blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags.patch
-blackfin-serial-driver-update-kgdb-uart-config-name.patch
-blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled.patch
-blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n.patch
-blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences.patch
-blackfin-serial-driver-update-path-to-gpio-header.patch
-flat-fix-data-sections-alignment-update.patch
-blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
-blackfin-spi-driver-remove-useless-asm-cplbinith.patch
-blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
-blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
-blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
-blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
-blackfin-spi-driver-add-a-few-more-dma-debug-messages.patch
-blackfin-spi-driver-do-not-check-for-spi-errors-if-dma-itself-did-not-flag-any.patch
-blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
-blackfin-spi-driver-spi-slave-select-code-cleanup.patch
-blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
-blackfin-spi-driver-add-timeout-while-waiting-for-spif-in-dma-irq-handler.patch
-blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
-blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch
-blackfin-spi-driver-fix-null-pointer-crash.patch
-bin_elf_fdpic-check-the-return-value-of-clear_user.patch
+mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash.patch
+blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch
 
