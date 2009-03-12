@@ -1,30 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [folded] edac-amd8111-driver-source-file-v2.patch removed from -mm tree
-Date: Thu, 12 Mar 2009 15:24:19 -0700
-Message-ID: <200903122224.n2CMOKeM011617@imap1.linux-foundation.org>
+Subject: + edac-amd8111-driver-source-file-v3.patch added to -mm tree
+Date: Thu, 12 Mar 2009 15:25:16 -0700
+Message-ID: <200903122225.n2CMPGtG011690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47736 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751260AbZCLWZt (ORCPT
+	by vger.kernel.org with ESMTP id S1752995AbZCLW0k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 18:25:49 -0400
+	Thu, 12 Mar 2009 18:26:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qingtao.cao@windriver.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: qingtao.cao@windriver.com, norsk5@yahoo.com
 
 
 The patch titled
-     EDAC: AMD8111 driver source file v2
-has been removed from the -mm tree.  Its filename was
-     edac-amd8111-driver-source-file-v2.patch
+     edac: AMD8111 driver source file v3
+has been added to the -mm tree.  Its filename is
+     edac-amd8111-driver-source-file-v3.patch
 
-This patch was dropped because it was folded into edac-amd8111-driver-source-file.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: EDAC: AMD8111 driver source file v2
+Subject: edac: AMD8111 driver source file v3
 From: Harry Ciao <qingtao.cao@windriver.com>
 
 Introduce AMD8111 EDAC driver source file, which makes use of error
@@ -36,56 +46,24 @@ Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/amd8111_edac.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/edac/amd8111_edac.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/amd8111_edac.c~edac-amd8111-driver-source-file-v2 drivers/edac/amd8111_edac.c
---- a/drivers/edac/amd8111_edac.c~edac-amd8111-driver-source-file-v2
+diff -puN drivers/edac/amd8111_edac.c~edac-amd8111-driver-source-file-v3 drivers/edac/amd8111_edac.c
+--- a/drivers/edac/amd8111_edac.c~edac-amd8111-driver-source-file-v3
 +++ a/drivers/edac/amd8111_edac.c
-@@ -36,6 +36,7 @@
- #define AMD8111_EDAC_REVISION	" Ver: 1.0.0 " __DATE__
- #define AMD8111_EDAC_MOD_STR	"amd8111_edac"
+@@ -24,10 +24,10 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+-#include <linux/io.h>
+ #include <linux/bitops.h>
+ #include <linux/edac.h>
+ #include <linux/pci_ids.h>
++#include <asm/io.h>
  
-+#define PCI_DEVICE_ID_AMD_8111_PCI	0x7460
- static int edac_dev_idx;
- 
- enum amd8111_edac_devs {
-@@ -52,7 +53,7 @@ static int edac_pci_read_dword(struct pc
- 	int ret;
- 
- 	ret = pci_read_config_dword(dev, reg, val32);
--	if (ret > 0)
-+	if (ret != 0)
- 		printk(KERN_ERR AMD8111_EDAC_MOD_STR
- 			" PCI Access Read Error at 0x%x\n", reg);
- 
-@@ -64,7 +65,7 @@ static void edac_pci_read_byte(struct pc
- 	int ret;
- 
- 	ret = pci_read_config_byte(dev, reg, val8);
--	if (ret > 0)
-+	if (ret != 0)
- 		printk(KERN_ERR AMD8111_EDAC_MOD_STR
- 			" PCI Access Read Error at 0x%x\n", reg);
- }
-@@ -74,7 +75,7 @@ static void edac_pci_write_dword(struct 
- 	int ret;
- 
- 	ret = pci_write_config_dword(dev, reg, val32);
--	if (ret > 0)
-+	if (ret != 0)
- 		printk(KERN_ERR AMD8111_EDAC_MOD_STR
- 			" PCI Access Write Error at 0x%x\n", reg);
- }
-@@ -84,7 +85,7 @@ static void edac_pci_write_byte(struct p
- 	int ret;
- 
- 	ret = pci_write_config_byte(dev, reg, val8);
--	if (ret > 0)
-+	if (ret != 0)
- 		printk(KERN_ERR AMD8111_EDAC_MOD_STR
- 			" PCI Access Write Error at 0x%x\n", reg);
- }
+ #include "edac_core.h"
+ #include "edac_module.h"
 _
 
 Patches currently in -mm which might be from qingtao.cao@windriver.com are
@@ -93,7 +71,7 @@ Patches currently in -mm which might be from qingtao.cao@windriver.com are
 edac-amd8111-driver-header-file.patch
 edac-amd8111-driver-header-file-v3.patch
 edac-amd8111-driver-source-file.patch
-edac-amd8111-driver-source-file-v2.patch
+edac-amd8111-driver-source-file-v3.patch
 edac-add-edac_pci_alloc_index.patch
 pci-add-amd8111-pci-bridge-pci-device-id.patch
 edac-amd8131-driver-header-file.patch
