@@ -1,215 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fbdev-imx31-fix-panning-error-handling-clean-up.patch removed from -mm tree
-Date: Thu, 12 Mar 2009 13:17:20 -0700
-Message-ID: <200903122017.n2CKHK1n032664@imap1.linux-foundation.org>
+Subject: [merged] usb-serial-add-ftdi-usb-serial-converter-devices.patch removed from -mm tree
+Date: Thu, 12 Mar 2009 13:16:53 -0700
+Message-ID: <200903122016.n2CKGrOO032597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33287 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751106AbZCLUTz (ORCPT
+	by vger.kernel.org with ESMTP id S1751062AbZCLUUC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 16:19:55 -0400
+	Thu, 12 Mar 2009 16:20:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lg@denx.de, dan.j.williams@intel.com, krzysztof.h1@poczta.fm, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
+To: axel.wachtler@atmel.com, greg@kroah.com, robert.richter@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: i.MX31: fix panning, error handling, clean up
+     usb/serial: add FTDI USB/Serial converter devices
 has been removed from the -mm tree.  Its filename was
-     fbdev-imx31-fix-panning-error-handling-clean-up.patch
+     usb-serial-add-ftdi-usb-serial-converter-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: i.MX31: fix panning, error handling, clean up
-From: Guennadi Liakhovetski <lg@denx.de>
+Subject: usb/serial: add FTDI USB/Serial converter devices
+From: Axel Wachtler <axel.wachtler@atmel.com>
 
-1. check for errors returned from clk_get()
-2. fix "Unbalanced enable for IRQ 160"
-3. fix transmit descriptor handling in panning
-4. clean frame buffer on blank - useful for OLED displays
-5. formatting clean up
+Add the following devices to the USB FTDI SIO device table:
 
-Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+ Bus 001 Device 009: ID 03eb:2109 Atmel Corp.
+ http://www.atmel.com/dyn/products/tools_card.asp?tool_id=4187
+
+ Bus 001 Device 008: ID 1cf1:0001
+ http://www.dresden-elektronik.de/shop/prod75.html
+
+ Bus 001 Device 007: ID 1c1f:0004
+ http://www.dresden-elektronik.de/shop/prod64.html
+
+Signed-off-by: Axel Wachtler <axel.wachtler@atmel.com>
+Signed-off-by: Robert Richter <robert.richter@amd.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mx3fb.c |   56 ++++++++++++++++++++++------------------
- 1 file changed, 31 insertions(+), 25 deletions(-)
+ drivers/usb/serial/ftdi_sio.c |    3 +++
+ drivers/usb/serial/ftdi_sio.h |   13 +++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff -puN drivers/video/mx3fb.c~fbdev-imx31-fix-panning-error-handling-clean-up drivers/video/mx3fb.c
---- a/drivers/video/mx3fb.c~fbdev-imx31-fix-panning-error-handling-clean-up
-+++ a/drivers/video/mx3fb.c
-@@ -400,12 +400,12 @@ static void sdc_disable_channel(struct m
- static int sdc_set_window_pos(struct mx3fb_data *mx3fb, enum ipu_channel channel,
-                              int16_t x_pos, int16_t y_pos)
- {
--       x_pos += mx3fb->h_start_width;
--       y_pos += mx3fb->v_start_width;
--
-        if (channel != IDMAC_SDC_0)
-                return -EINVAL;
+diff -puN drivers/usb/serial/ftdi_sio.c~usb-serial-add-ftdi-usb-serial-converter-devices drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~usb-serial-add-ftdi-usb-serial-converter-devices
++++ a/drivers/usb/serial/ftdi_sio.c
+@@ -663,6 +663,9 @@ static struct usb_device_id id_table_com
+ 	{ USB_DEVICE(ALTI2_VID, ALTI2_N3_PID) },
+ 	{ USB_DEVICE(FTDI_VID, DIEBOLD_BCS_SE923_PID) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_NDI_HUC_PID) },
++	{ USB_DEVICE(ATMEL_VID, STK541_PID) },
++	{ USB_DEVICE(DE_VID, STB_PID) },
++	{ USB_DEVICE(DE_VID, WHT_PID) },
+ 	{ },					/* Optional parameter entry */
+ 	{ }					/* Terminating entry */
+ };
+diff -puN drivers/usb/serial/ftdi_sio.h~usb-serial-add-ftdi-usb-serial-converter-devices drivers/usb/serial/ftdi_sio.h
+--- a/drivers/usb/serial/ftdi_sio.h~usb-serial-add-ftdi-usb-serial-converter-devices
++++ a/drivers/usb/serial/ftdi_sio.h
+@@ -893,6 +893,19 @@
+ #define DIEBOLD_BCS_SE923_PID	0xfb99
  
-+	x_pos += mx3fb->h_start_width;
-+	y_pos += mx3fb->v_start_width;
+ /*
++ * Atmel STK541
++ */
++#define ATMEL_VID		0x03eb /* Vendor ID */
++#define STK541_PID		0x2109 /* Zigbee Controller */
 +
-        mx3fb_write_reg(mx3fb, (x_pos << 16) | y_pos, SDC_BG_POS);
-        return 0;
- }
-@@ -491,11 +491,13 @@ static int sdc_init_panel(struct mx3fb_d
-         * 24 to get fractional part, as long as we stay under ~250MHz and on
-         * i.MX31 it (HSP_CLK) is <= 178MHz. Currently 128.267MHz
-         */
--       dev_dbg(mx3fb->dev, "pixel clk = %d\n", pixel_clk);
--
-        ipu_clk = clk_get(mx3fb->dev, "ipu_clk");
--       div = clk_get_rate(ipu_clk) * 16 / pixel_clk;
--       clk_put(ipu_clk);
-+	if (!IS_ERR(ipu_clk)) {
-+		div = clk_get_rate(ipu_clk) * 16 / pixel_clk;
-+		clk_put(ipu_clk);
-+	} else {
-+		div = 0;
-+	}
- 
-        if (div < 0x40) {       /* Divider less than 4 */
-                dev_dbg(mx3fb->dev,
-@@ -503,6 +505,9 @@ static int sdc_init_panel(struct mx3fb_d
-                div = 0x40;
-        }
- 
-+	dev_dbg(mx3fb->dev, "pixel clk = %u, divider %u.%u\n",
-+		pixel_clk, div >> 4, (div & 7) * 125);
++/*
++ * Dresden Elektronic Sensor Terminal Board
++ */
++#define DE_VID			0x1cf1 /* Vendor ID */
++#define STB_PID			0x0001 /* Sensor Terminal Board */
++#define WHT_PID			0x0004 /* Wireless Handheld Terminal */
 +
-        spin_lock_irqsave(&mx3fb->lock, lock_flags);
- 
-        /*
-@@ -515,16 +520,16 @@ static int sdc_init_panel(struct mx3fb_d
-        /* DI settings */
-        old_conf = mx3fb_read_reg(mx3fb, DI_DISP_IF_CONF) & 0x78FFFFFF;
-        old_conf |= sig.datamask_en << DI_D3_DATAMSK_SHIFT |
--           sig.clksel_en << DI_D3_CLK_SEL_SHIFT |
--           sig.clkidle_en << DI_D3_CLK_IDLE_SHIFT;
-+		sig.clksel_en << DI_D3_CLK_SEL_SHIFT |
-+		sig.clkidle_en << DI_D3_CLK_IDLE_SHIFT;
-        mx3fb_write_reg(mx3fb, old_conf, DI_DISP_IF_CONF);
- 
-        old_conf = mx3fb_read_reg(mx3fb, DI_DISP_SIG_POL) & 0xE0FFFFFF;
-        old_conf |= sig.data_pol << DI_D3_DATA_POL_SHIFT |
--           sig.clk_pol << DI_D3_CLK_POL_SHIFT |
--           sig.enable_pol << DI_D3_DRDY_SHARP_POL_SHIFT |
--           sig.Hsync_pol << DI_D3_HSYNC_POL_SHIFT |
--           sig.Vsync_pol << DI_D3_VSYNC_POL_SHIFT;
-+		sig.clk_pol << DI_D3_CLK_POL_SHIFT |
-+		sig.enable_pol << DI_D3_DRDY_SHARP_POL_SHIFT |
-+		sig.Hsync_pol << DI_D3_HSYNC_POL_SHIFT |
-+		sig.Vsync_pol << DI_D3_VSYNC_POL_SHIFT;
-        mx3fb_write_reg(mx3fb, old_conf, DI_DISP_SIG_POL);
- 
-        switch (pixel_fmt) {
-@@ -721,7 +726,6 @@ static int mx3fb_set_par(struct fb_info 
-        struct idmac_channel *ichan = mx3_fbi->idmac_channel;
-        struct idmac_video_param *video = &ichan->params.video;
-        struct scatterlist *sg = mx3_fbi->sg;
--       size_t screen_size;
- 
-        dev_dbg(mx3fb->dev, "%s [%c]\n", __func__, list_empty(&ichan->queue) ? '-' : '+');
- 
-@@ -745,12 +749,10 @@ static int mx3fb_set_par(struct fb_info 
-                }
-        }
- 
--       screen_size = fbi->fix.line_length * fbi->var.yres;
--
-        sg_init_table(&sg[0], 1);
-        sg_init_table(&sg[1], 1);
- 
--       sg_dma_address(&sg[0])  = fbi->fix.smem_start;
-+	sg_dma_address(&sg[0]) = fbi->fix.smem_start;
-        sg_set_page(&sg[0], virt_to_page(fbi->screen_base),
-                    fbi->fix.smem_len,
-                    offset_in_page(fbi->screen_base));
-@@ -927,7 +929,7 @@ static int mx3fb_setcolreg(unsigned int 
-        u32 val;
-        int ret = 1;
- 
--       dev_dbg(fbi->device, "%s\n", __func__);
-+	dev_dbg(fbi->device, "%s, regno = %u\n", __func__, regno);
- 
-        mutex_lock(&mx3_fbi->mutex);
-        /*
-@@ -973,9 +975,8 @@ static int mx3fb_blank(int blank, struct
-        struct mx3fb_info *mx3_fbi = fbi->par;
-        struct mx3fb_data *mx3fb = mx3_fbi->mx3fb;
- 
--       dev_dbg(fbi->device, "%s\n", __func__);
--
--       dev_dbg(fbi->device, "blank = %d\n", blank);
-+	dev_dbg(fbi->device, "%s, blank = %d, base %p, len %u\n", __func__,
-+		blank, fbi->screen_base, fbi->fix.smem_len);
- 
-        if (mx3_fbi->blank == blank)
-                return 0;
-@@ -988,8 +989,11 @@ static int mx3fb_blank(int blank, struct
-        case FB_BLANK_VSYNC_SUSPEND:
-        case FB_BLANK_HSYNC_SUSPEND:
-        case FB_BLANK_NORMAL:
--               sdc_disable_channel(mx3_fbi);
-                sdc_set_brightness(mx3fb, 0);
-+		memset((char *)fbi->screen_base, 0, fbi->fix.smem_len);
-+		/* Give LCD time to update - enough for 50 and 60 Hz */
-+		msleep(25);
-+		sdc_disable_channel(mx3_fbi);
-                break;
-        case FB_BLANK_UNBLANK:
-                sdc_enable_channel(mx3_fbi);
-@@ -1063,6 +1067,7 @@ static int mx3fb_pan_display(struct fb_v
-                mutex_unlock(&mx3_fbi->mutex);
-                dev_info(fbi->device, "Panning failed due to %s\n", ret < 0 ?
-                         "user interrupt" : "timeout");
-+		disable_irq(mx3_fbi->idmac_channel->eof_irq);
-                return ret ? : -ETIMEDOUT;
-        }
- 
-@@ -1073,6 +1078,9 @@ static int mx3fb_pan_display(struct fb_v
-                    virt_to_page(fbi->screen_base + offset), fbi->fix.smem_len,
-                    offset_in_page(fbi->screen_base + offset));
- 
-+	if (mx3_fbi->txd)
-+		async_tx_ack(mx3_fbi->txd);
-+
-        txd = dma_chan->device->device_prep_slave_sg(dma_chan, sg +
-                mx3_fbi->cur_ipu_buf, 1, DMA_TO_DEVICE, DMA_PREP_INTERRUPT);
-        if (!txd) {
-@@ -1099,8 +1107,6 @@ static int mx3fb_pan_display(struct fb_v
-                return -EIO;
-        }
- 
--       if (mx3_fbi->txd)
--               async_tx_ack(mx3_fbi->txd);
-        mx3_fbi->txd = txd;
- 
-        fbi->var.xoffset = var->xoffset;
-@@ -1506,7 +1512,7 @@ static struct platform_driver mx3fb_driv
-  * example:
-  *     video=mx3fb:bpp=16
-  */
--static int mx3fb_setup(void)
-+static int __init mx3fb_setup(void)
- {
- #ifndef MODULE
-        char *opt, *options = NULL;
++/*
+  *   BmRequestType:  1100 0000b
+  *   bRequest:       FTDI_E2_READ
+  *   wValue:         0
 _
 
-Patches currently in -mm which might be from lg@denx.de are
+Patches currently in -mm which might be from axel.wachtler@atmel.com are
 
-origin.patch
-bitmap-fix-size-test-in-bitmap_find_free_region.patch
 linux-next.patch
 
