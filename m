@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-amd8111-driver-source-file-v3.patch added to -mm tree
-Date: Thu, 12 Mar 2009 15:25:16 -0700
-Message-ID: <200903122225.n2CMPGtG011690@imap1.linux-foundation.org>
+Subject: + acpi-pass-correct-parameter-to-acpi_processor_ffh_cstate_probe_cpu.patch added to -mm tree
+Date: Thu, 12 Mar 2009 15:29:01 -0700
+Message-ID: <200903122229.n2CMT1LD012012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60611 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752995AbZCLW0k (ORCPT
+	by vger.kernel.org with ESMTP id S1754207AbZCLWbe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 18:26:40 -0400
+	Thu, 12 Mar 2009 18:31:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qingtao.cao@windriver.com, norsk5@yahoo.com
+Cc: fengguang.wu@intel.com, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com
 
 
 The patch titled
-     edac: AMD8111 driver source file v3
+     acpi: pass correct parameter to acpi_processor_ffh_cstate_probe_cpu()
 has been added to the -mm tree.  Its filename is
-     edac-amd8111-driver-source-file-v3.patch
+     acpi-pass-correct-parameter-to-acpi_processor_ffh_cstate_probe_cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: AMD8111 driver source file v3
-From: Harry Ciao <qingtao.cao@windriver.com>
+Subject: acpi: pass correct parameter to acpi_processor_ffh_cstate_probe_cpu()
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Introduce AMD8111 EDAC driver source file, which makes use of error
-detections on the LPC Bridge Controller and PCI Bridge Controller on
-the AMD8111 HyperTransport I/O Hub.
+This fixes a NULL pointer dereference bug introduced by 6e911954cac ("use
+smp_call_function_single() in arch/x86/kernel/acpi/cstate.c").
 
-Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
-Cc: Doug Thompson <norsk5@yahoo.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/amd8111_edac.c |    2 +-
+ arch/x86/kernel/acpi/cstate.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/amd8111_edac.c~edac-amd8111-driver-source-file-v3 drivers/edac/amd8111_edac.c
---- a/drivers/edac/amd8111_edac.c~edac-amd8111-driver-source-file-v3
-+++ a/drivers/edac/amd8111_edac.c
-@@ -24,10 +24,10 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
--#include <linux/io.h>
- #include <linux/bitops.h>
- #include <linux/edac.h>
- #include <linux/pci_ids.h>
-+#include <asm/io.h>
+diff -puN arch/x86/kernel/acpi/cstate.c~acpi-pass-correct-parameter-to-acpi_processor_ffh_cstate_probe_cpu arch/x86/kernel/acpi/cstate.c
+--- a/arch/x86/kernel/acpi/cstate.c~acpi-pass-correct-parameter-to-acpi_processor_ffh_cstate_probe_cpu
++++ a/arch/x86/kernel/acpi/cstate.c
+@@ -137,7 +137,7 @@ int acpi_processor_ffh_cstate_probe(unsi
+ 	/* Run acpi_processor_ffh_cstate_probe_cpu() on the target CPU */
  
- #include "edac_core.h"
- #include "edac_module.h"
+ 	retval = smp_call_function_single(cpu,
+-				acpi_processor_ffh_cstate_probe_cpu, cx, 1);
++				acpi_processor_ffh_cstate_probe_cpu, &cxcc, 1);
+ 	if (retval == 0) {
+ 		retval = cxcc.retval;
+ 		if (retval == 0) {
 _
 
-Patches currently in -mm which might be from qingtao.cao@windriver.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-edac-amd8111-driver-header-file.patch
-edac-amd8111-driver-header-file-v3.patch
-edac-amd8111-driver-source-file.patch
-edac-amd8111-driver-source-file-v3.patch
-edac-add-edac_pci_alloc_index.patch
-pci-add-amd8111-pci-bridge-pci-device-id.patch
-edac-amd8131-driver-header-file.patch
-edac-amd8131-driver-source-file.patch
-edac-amd8131-driver-source-file-v2.patch
-edac-amd8131-driver-kconfig-makefile.patch
-edac-amd8111-driver-kconfig-makefile.patch
+origin.patch
+linux-next.patch
+acpi-pass-correct-parameter-to-acpi_processor_ffh_cstate_probe_cpu.patch
+ramfs-add-support-for-mode=-mount-option.patch
 
