@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded.patch added to -mm tree
-Date: Wed, 11 Mar 2009 17:12:58 -0700
-Message-ID: <200903120012.n2C0Cxul020931@imap1.linux-foundation.org>
+Subject: + memcg-use-correct-scan-number-at-reclaim.patch added to -mm tree
+Date: Thu, 12 Mar 2009 00:25:20 -0700
+Message-ID: <200903120725.n2C7PKDt026019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35553 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754475AbZCLAP0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751156AbZCLH1I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Mar 2009 20:15:26 -0400
+	Thu, 12 Mar 2009 03:27:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Enrik.Berkhan@ge.com, a.p.zijlstra@chello.nl, dhowells@redhat.com, hannes@cmpxchg.org, nickpiggin@yahoo.com.au
+Cc: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     nommu: ramfs: pages allocated to an inode's pagecache may get wrongly discarded
+     memcg: use correct scan number at reclaim
 has been added to the -mm tree.  Its filename is
-     nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded.patch
+     memcg-use-correct-scan-number-at-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: ramfs: pages allocated to an inode's pagecache may get wrongly discarded
-From: Enrik Berkhan <Enrik.Berkhan@ge.com>
+Subject: memcg: use correct scan number at reclaim
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-The pages attached to a ramfs inode's pagecache by truncation from nothing
-- as done by SYSV SHM for example - may get discarded under memory
-pressure.
+Even when page reclaim is under mem_cgroup, # of scan page is determined by
+status of global LRU. Fix that.
 
-The problem is that the pages are not marked dirty.  Anything that creates
-data in an MMU-based ramfs will cause the pages holding that data will
-cause the set_page_dirty() aop to be called.
-
-For the NOMMU-based mmap, set_page_dirty() may be called by write(), but
-it won't be called by page-writing faults on writable mmaps, and it isn't
-called by ramfs_nommu_expand_for_mapping() when a file is being truncated
-from nothing to allocate a contiguous run.
-
-The solution is to mark the pages dirty at the point of allocation by the
-truncation code.
-
-Signed-off-by: Enrik Berkhan <Enrik.Berkhan@ge.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-nommu.c~nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded
-+++ a/fs/ramfs/file-nommu.c
-@@ -113,6 +113,9 @@ int ramfs_nommu_expand_for_mapping(struc
- 		if (!pagevec_add(&lru_pvec, page))
- 			__pagevec_lru_add_file(&lru_pvec);
+diff -puN mm/vmscan.c~memcg-use-correct-scan-number-at-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~memcg-use-correct-scan-number-at-reclaim
++++ a/mm/vmscan.c
+@@ -1469,7 +1469,7 @@ static void shrink_zone(int priority, st
+ 		int file = is_file_lru(l);
+ 		int scan;
  
-+		/* prevent the page from being discarded on memory pressure */
-+		SetPageDirty(page);
-+
- 		unlock_page(page);
- 	}
- 
+-		scan = zone_page_state(zone, NR_LRU_BASE + l);
++		scan = zone_nr_pages(zone, sc, l);
+ 		if (priority) {
+ 			scan >>= priority;
+ 			scan = (scan * percent[file]) / 100;
 _
 
-Patches currently in -mm which might be from Enrik.Berkhan@ge.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-origin.patch
-nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded.patch
-nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix.patch
-nommu-ramfs-dont-leak-pages-when-adding-to-page-cache-fails.patch
+proc-fix-kflags-to-uflags-copying-in-proc-kpageflags.patch
+memcg-use-correct-scan-number-at-reclaim.patch
+linux-next.patch
+get_mm_hiwater_xxx-trivial-s-define-inline.patch
+vmscan-rename-scmay_swap-to-may_unmap.patch
+mm-introduce-for_each_populated_zone-macro.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-dont-call-mark_page_accessed-in-do_swap_page.patch
+mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
+mm-shrink_all_memory-use-scnr_reclaimed.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+vmscan-respect-higher-order-in-zone_reclaim.patch
+mm-remove-pagevec_swap_free.patch
+memdup_user-introduce.patch
+memdup_user-introduce-fix.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
