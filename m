@@ -1,62 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] s3cmci-fix-s3c2410_dma_config-arguments.patch removed from -mm tree
-Date: Fri, 13 Mar 2009 11:19:36 -0700
-Message-ID: <200903131819.n2DIJa5U008607@imap1.linux-foundation.org>
+Subject: [merged] uml-fix-warning-vmlinux-memcpy-exported-twice.patch removed from -mm tree
+Date: Fri, 13 Mar 2009 11:19:16 -0700
+Message-ID: <200903131819.n2DIJGXs008565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55950 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758674AbZCMSWO (ORCPT
+	by vger.kernel.org with ESMTP id S1759020AbZCMSWS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Mar 2009 14:22:14 -0400
+	Fri, 13 Mar 2009 14:22:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@simtec.co.uk, drzeus@drzeus.cx, mm-commits@vger.kernel.org
+To: bharrosh@panasas.com, jdike@addtoit.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: s3cmci: fix s3c2410_dma_config() arguments.
+     uml: fix WARNING: vmlinux: 'memcpy' exported twice
 has been removed from the -mm tree.  Its filename was
-     s3cmci-fix-s3c2410_dma_config-arguments.patch
+     uml-fix-warning-vmlinux-memcpy-exported-twice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: s3cmci: fix s3c2410_dma_config() arguments.
-From: Ben Dooks <ben@simtec.co.uk>
+Subject: uml: fix WARNING: vmlinux: 'memcpy' exported twice
 
-The s3cmci driver is calling s3c2410_dma_config with incorrect data for
-the DCON register.  The S3C2410_DCON_HWTRIG is implicit in the channel
-configuration and the device selection of S3C2410_DCON_CH0_SDI is
-incorrect as the DMA system may not select channel 0.
 
-Signed-off-by: Ben Dooks <ben@simtec.co.uk>
-Acked-by: Pierre Ossman <drzeus@drzeus.cx>
+Fix the following warning on x86_64:
+
+LD vmlinux.o
+MODPOST vmlinux.o
+WARNING: vmlinux: 'memcpy' exported twice. Previous export was in vmlinux
+
+For x86_64, this symbol is already exported from arch/um/sys-x86_64/ksyms.c.
+
+Reported-by: Boaz Harrosh <bharrosh@panasas.com>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Tested-by: Boaz Harrosh <bharrosh@panasas.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/s3cmci.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/um/os-Linux/user_syms.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/s3cmci.c~s3cmci-fix-s3c2410_dma_config-arguments drivers/mmc/host/s3cmci.c
---- a/drivers/mmc/host/s3cmci.c~s3cmci-fix-s3c2410_dma_config-arguments
-+++ a/drivers/mmc/host/s3cmci.c
-@@ -793,8 +793,7 @@ static void s3cmci_dma_setup(struct s3cm
- 			      host->mem->start + host->sdidata);
+diff -puN arch/um/os-Linux/user_syms.c~uml-fix-warning-vmlinux-memcpy-exported-twice arch/um/os-Linux/user_syms.c
+--- a/arch/um/os-Linux/user_syms.c~uml-fix-warning-vmlinux-memcpy-exported-twice
++++ a/arch/um/os-Linux/user_syms.c
+@@ -14,7 +14,6 @@
+ #undef memset
  
- 	if (!setup_ok) {
--		s3c2410_dma_config(host->dma, 4,
--			(S3C2410_DCON_HWTRIG | S3C2410_DCON_CH0_SDI));
-+		s3c2410_dma_config(host->dma, 4, 0);
- 		s3c2410_dma_set_buffdone_fn(host->dma,
- 					    s3cmci_dma_done_callback);
- 		s3c2410_dma_setflags(host->dma, S3C2410_DMAF_AUTOSTART);
+ extern size_t strlen(const char *);
+-extern void *memcpy(void *, const void *, size_t);
+ extern void *memmove(void *, const void *, size_t);
+ extern void *memset(void *, int, size_t);
+ extern int printf(const char *, ...);
+@@ -24,7 +23,11 @@ extern int printf(const char *, ...);
+ EXPORT_SYMBOL(strstr);
+ #endif
+ 
++#ifndef __x86_64__
++extern void *memcpy(void *, const void *, size_t);
+ EXPORT_SYMBOL(memcpy);
++#endif
++
+ EXPORT_SYMBOL(memmove);
+ EXPORT_SYMBOL(memset);
+ EXPORT_SYMBOL(printf);
 _
 
-Patches currently in -mm which might be from ben@simtec.co.uk are
+Patches currently in -mm which might be from bharrosh@panasas.com are
 
 origin.patch
 linux-next.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
 
