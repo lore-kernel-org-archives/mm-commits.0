@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kallsyms-tracing-output-more-proper-symbol-name.patch added to -mm tree
-Date: Fri, 13 Mar 2009 12:40:20 -0700
-Message-ID: <200903131940.n2DJeLXR017973@imap1.linux-foundation.org>
+Subject: + vmscan-pgmoved-should-be-cleared-after-updating-recent_rotated.patch added to -mm tree
+Date: Fri, 13 Mar 2009 12:46:27 -0700
+Message-ID: <200903131946.n2DJkRQ8018716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58338 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750921AbZCMTpZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750886AbZCMTuQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Mar 2009 15:45:25 -0400
+	Fri, 13 Mar 2009 15:50:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: laijs@cn.fujitsu.com, fweisbec@gmail.com, mingo@elte.hu, pmarques@grupopie.com, sam@ravnborg.org, srostedt@redhat.com
+Cc: nishimura@mxp.nes.nec.co.jp, Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     kallsyms, tracing: output more proper symbol name
+     vmscan: pgmoved should be cleared after updating recent_rotated
 has been added to the -mm tree.  Its filename is
-     kallsyms-tracing-output-more-proper-symbol-name.patch
+     vmscan-pgmoved-should-be-cleared-after-updating-recent_rotated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kallsyms, tracing: output more proper symbol name
+Subject: vmscan: pgmoved should be cleared after updating recent_rotated
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
+pgmoved should be cleared after updating recent_rotated.
 
-Impact: bugfix, output reliable result
-
-Debug tools(dump_stack(), ftrace...) are like to print out symbols.  But
-it is always print out the first aliased symbol.(Aliased symbols are
-symbols with the same address), and the first aliased symbol is sometime
-not proper.
-
-# echo function_graph > current_tracer
-# cat trace
-......
- 1)   1.923 us    |    select_nohz_load_balancer();
- 1) + 76.692 us   |  }
- 1)               |  default_idle() {
- 1)   ==========> |    __irqentry_text_start() {
- 1)   0.000 us    |      native_apic_mem_write();
- 1)               |      irq_enter() {
- 1)   0.000 us    |        idle_cpu();
- 1)               |        tick_check_idle() {
- 1)   0.000 us    |          tick_check_oneshot_broadcast();
- 1)               |          tick_nohz_stop_idle() {
-......
-
-It's very embarrassing, it outputs "__irqentry_text_start()", actually, it
-should output "smp_apic_timer_interrupt()".  (these two symbol are the
-same address, but "__irqentry_text_start" is deemed to the first aliased
-symbol by scripts/kallsyms)
-
-This patch puts symbols like "__irqentry_text_start" to the second aliased
-symbols.  And a more proper symbol name becomes the first.
-
-Aliased symbols mostly come from linker script.  The solution is guessing
-"is this symbol defined in linker script", the symbols defined in linker
-script will not become the first aliased symbol.
-
-And if symbols are found to be equal in this "linker script provided"
-criteria, symbols are sorted by the number of prefix underscores.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Paulo Marques <pmarques@grupopie.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Steven Rostedt <srostedt@redhat.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kallsyms.c |   57 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/kallsyms.c~kallsyms-tracing-output-more-proper-symbol-name scripts/kallsyms.c
---- a/scripts/kallsyms.c~kallsyms-tracing-output-more-proper-symbol-name
-+++ a/scripts/kallsyms.c
-@@ -500,6 +500,51 @@ static void optimize_token_table(void)
- 	optimize_result();
- }
+diff -puN mm/vmscan.c~vmscan-pgmoved-should-be-cleared-after-updating-recent_rotated mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-pgmoved-should-be-cleared-after-updating-recent_rotated
++++ a/mm/vmscan.c
+@@ -1262,7 +1262,6 @@ static void shrink_active_list(unsigned 
+ 	 * Move the pages to the [file or anon] inactive list.
+ 	 */
+ 	pagevec_init(&pvec, 1);
+-	pgmoved = 0;
+ 	lru = LRU_BASE + file * LRU_FILE;
  
-+/* guess for "linker script provide" symbol */
-+static int may_be_linker_script_provide_symbol(const struct sym_entry *se)
-+{
-+	const char *symbol = (char *)se->sym + 1;
-+	int len = se->len - 1;
-+
-+	if (len < 8)
-+		return 0;
-+
-+	if (symbol[0] != '_' || symbol[1] != '_')
-+		return 0;
-+
-+	/* __start_XXXXX */
-+	if (!memcmp(symbol + 2, "start_", 6))
-+		return 1;
-+
-+	/* __stop_XXXXX */
-+	if (!memcmp(symbol + 2, "stop_", 5))
-+		return 1;
-+
-+	/* __end_XXXXX */
-+	if (!memcmp(symbol + 2, "end_", 4))
-+		return 1;
-+
-+	/* __XXXXX_start */
-+	if (!memcmp(symbol + len - 6, "_start", 6))
-+		return 1;
-+
-+	/* __XXXXX_end */
-+	if (!memcmp(symbol + len - 4, "_end", 4))
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static int prefix_underscores_count(const char *str)
-+{
-+	const char *tail = str;
-+
-+	while (*tail == '_')
-+		tail++;
-+
-+	return tail - str;
-+}
-+
- static int compare_symbols(const void *a, const void *b)
- {
- 	const struct sym_entry *sa;
-@@ -521,6 +566,18 @@ static int compare_symbols(const void *a
- 	if (wa != wb)
- 		return wa - wb;
+ 	spin_lock_irq(&zone->lru_lock);
+@@ -1274,6 +1273,7 @@ static void shrink_active_list(unsigned 
+ 	 */
+ 	reclaim_stat->recent_rotated[!!file] += pgmoved;
  
-+	/* sort by "linker script provide" type */
-+	wa = may_be_linker_script_provide_symbol(sa);
-+	wb = may_be_linker_script_provide_symbol(sb);
-+	if (wa != wb)
-+		return wa - wb;
-+
-+	/* sort by the number of prefix underscores */
-+	wa = prefix_underscores_count((const char *)sa->sym + 1);
-+	wb = prefix_underscores_count((const char *)sb->sym + 1);
-+	if (wa != wb)
-+		return wa - wb;
-+
- 	/* sort by initial order, so that other symbols are left undisturbed */
- 	return sa->start_pos - sb->start_pos;
- }
++	pgmoved = 0;
+ 	while (!list_empty(&l_inactive)) {
+ 		page = lru_to_page(&l_inactive);
+ 		prefetchw_prev_lru_page(page, &l_inactive, flags);
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-linux-next.patch
-kallsyms-tracing-output-more-proper-symbol-name.patch
-slqb-use-correct-name-for-rcu-callback.patch
-slqb-cleanup-for-concatenating-kmlist.patch
-workqueue-avoid-recursion-in-run_workqueue.patch
-cpu-hotplug-remove-unused-cpuhotplug_mutex_lock.patch
+vmscan-pgmoved-should-be-cleared-after-updating-recent_rotated.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+memcg-charge-swapcache-to-proper-memcg.patch
+cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
 
