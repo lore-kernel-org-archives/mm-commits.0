@@ -1,72 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acer-wmi-fix-regression-in-backlight-detection.patch removed from -mm tree
-Date: Fri, 13 Mar 2009 11:19:38 -0700
-Message-ID: <200903131819.n2DIJcJ3008614@imap1.linux-foundation.org>
+Subject: + mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon.patch added to -mm tree
+Date: Fri, 13 Mar 2009 12:29:31 -0700
+Message-ID: <200903131929.n2DJTVVt016717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41024 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34733 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753319AbZCMS0V (ORCPT
+	by vger.kernel.org with ESMTP id S1752714AbZCMTan (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Mar 2009 14:26:21 -0400
+	Fri, 13 Mar 2009 15:30:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mspang@csclub.uwaterloo.ca, ak@linux.intel.com, carlos@strangeworlds.co.uk, len.brown@intel.com, rjw@sisk.pl, rui.zhang@intel.com, stable@kernel.org, trenn@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: broonie@opensource.wolfsonmicro.com
 
 
 The patch titled
-     acer-wmi: fix regression in backlight detection
-has been removed from the -mm tree.  Its filename was
-     acer-wmi-fix-regression-in-backlight-detection.patch
+     mfd: mark WM8350 mask revision as readable to match silicon
+has been added to the -mm tree.  Its filename is
+     mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acer-wmi: fix regression in backlight detection
-From: Michael Spang <mspang@csclub.uwaterloo.ca>
+Subject: mfd: mark WM8350 mask revision as readable to match silicon
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Currently we disable the Acer WMI backlight device if there is no ACPI
-backlight device.  As a result, we end up with no backlight device at all.
- We should instead disable it if there is an ACPI device, as the other
-laptop drivers do.  This regression was introduced in febf2d9 ("Acer-WMI:
-fingers off backlight if video.ko is serving this functionality").
+No impact unless someone has written additional kernel code.
 
-Each laptop driver with backlight support got a similar change around
-febf2d9.  The changes to the other drivers look correct; see e.g. 
-a598c82f for a similar but correct change.  The regression is also in
-2.6.28.
-
-Signed-off-by: Michael Spang <mspang@csclub.uwaterloo.ca>
-Acked-by: Thomas Renninger <trenn@suse.de>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Len Brown <len.brown@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: <stable@kernel.org>		[2.6.28.x]
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acer-wmi.c |    2 +-
+ drivers/mfd/wm8350-regmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acer-wmi.c~acer-wmi-fix-regression-in-backlight-detection drivers/platform/x86/acer-wmi.c
---- a/drivers/platform/x86/acer-wmi.c~acer-wmi-fix-regression-in-backlight-detection
-+++ a/drivers/platform/x86/acer-wmi.c
-@@ -1297,7 +1297,7 @@ static int __init acer_wmi_init(void)
- 
- 	set_quirks();
- 
--	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
-+	if (acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
- 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
- 		printk(ACER_INFO "Brightness must be controlled by "
- 		       "generic video driver\n");
+diff -puN drivers/mfd/wm8350-regmap.c~mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon drivers/mfd/wm8350-regmap.c
+--- a/drivers/mfd/wm8350-regmap.c~mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon
++++ a/drivers/mfd/wm8350-regmap.c
+@@ -3186,7 +3186,7 @@ const struct wm8350_reg_access wm8350_re
+ 	/*  read    write volatile */
+ 	{ 0xFFFF, 0xFFFF, 0xFFFF }, /* R0   - Reset/ID */
+ 	{ 0x7CFF, 0x0C00, 0x7FFF }, /* R1   - ID */
+-	{ 0x0000, 0x0000, 0x0000 }, /* R2 */
++	{ 0x007F, 0x0000, 0x0000 }, /* R2   - ROM Mask ID */
+ 	{ 0xBE3B, 0xBE3B, 0x8000 }, /* R3   - System Control 1 */
+ 	{ 0xFEF7, 0xFEF7, 0xF800 }, /* R4   - System Control 2 */
+ 	{ 0x80FF, 0x80FF, 0x8000 }, /* R5   - System Hibernate */
 _
 
-Patches currently in -mm which might be from mspang@csclub.uwaterloo.ca are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-origin.patch
+linux-next.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
+mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc.patch
+mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon.patch
+regulator-dont-warn-if-we-failed-to-get-a-regulator.patch
+rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
+rtc-wm8350-retries-will-reach-1.patch
 
