@@ -1,89 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uml-on-uml-fixed-it-did-not-start.patch removed from -mm tree
-Date: Fri, 13 Mar 2009 11:19:13 -0700
-Message-ID: <200903131819.n2DIJDkZ008560@imap1.linux-foundation.org>
+Subject: [merged] pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch removed from -mm tree
+Date: Fri, 13 Mar 2009 11:19:25 -0700
+Message-ID: <200903131819.n2DIJPvt008583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754141AbZCMSWm (ORCPT
+	by vger.kernel.org with ESMTP id S1759399AbZCMSXO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Mar 2009 14:22:42 -0400
+	Fri, 13 Mar 2009 14:23:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: renzo@cs.unibo.it, jdike@addtoit.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, andi@firstfloor.org, corbet@lwn.net, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     UML on UML fixed: it did not start
+     pipe_rdwr_fasync: fix the error handling to prevent the leak/crash
 has been removed from the -mm tree.  Its filename was
-     uml-on-uml-fixed-it-did-not-start.patch
+     pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: UML on UML fixed: it did not start
-From: Renzo Davoli <renzo@cs.unibo.it>
+Subject: pipe_rdwr_fasync: fix the error handling to prevent the leak/crash
+From: Oleg Nesterov <oleg@redhat.com>
 
-It is currently impossible to run a user-mode linux machine inside another
-user-mode linux (UML on UML).  It breaks after a few instructions.  When
-it tries to check whether SYSEMU is installed (the inner) UML receives an
-inconsistent result (from the outer UML).
+If the second fasync_helper() fails, pipe_rdwr_fasync() returns the error
+but leaves the file on ->fasync_readers.
 
-This is the output of a broken attempt:
-$ ./linux mem=256m ubd0=cow
-Locating the bottom of the address space ... 0x0
-Locating the top of the address space ... 0xc0000000
-Core dump limits :
-        soft - 0
-        hard - NONE
-Checking that ptrace can change system call numbers...OK
-Checking ptrace new tags for syscall emulation...unsupported
-Checking syscall emulation patch for ptrace...check_sysemu : expected SIGTRAP, got status = 256
-$
+This was always wrong, but since 233e70f4228e78eb2f80dc6650f65d3ae3dbf17c
+"saner FASYNC handling on file close" we have the new problem.  Because in
+this case setfl() doesn't set FASYNC bit, __fput() will not do
+->fasync(0), and we leak fasync_struct with ->fa_file pointing to the
+freed file.
 
-The problem is the following:
-
-PTRACE_SYSCALL/SINGLESTEP is currently managed inside arch_ptrace for ARCH=um.
-
-PTRACE_SYSEMU/SUSEMU_SINGLESTEP is not captured in arch_ptrace's switch,
-therefore it is erroneously passed back to ptrace_request (in
-kernel/ptrace).
-
-This simple patch simply forces ptrace to return an error on
-PTRACE_SYSEMU/SUSEMU_SINGLESTEP as it is unsupported on ARCH=um, and fixes
-the problem.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Renzo Davoli <renzo@cs.unibo.it>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/ptrace.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/pipe.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/um/kernel/ptrace.c~uml-on-uml-fixed-it-did-not-start arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~uml-on-uml-fixed-it-did-not-start
-+++ a/arch/um/kernel/ptrace.c
-@@ -64,6 +64,11 @@ long arch_ptrace(struct task_struct *chi
- 		ret = poke_user(child, addr, data);
- 		break;
+diff -puN fs/pipe.c~pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash fs/pipe.c
+--- a/fs/pipe.c~pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash
++++ a/fs/pipe.c
+@@ -699,12 +699,12 @@ pipe_rdwr_fasync(int fd, struct file *fi
+ 	int retval;
  
-+	case PTRACE_SYSEMU:
-+	case PTRACE_SYSEMU_SINGLESTEP:
-+		ret = -EIO;
-+		break;
-+
- 	/* continue and stop at next (return from) syscall */
- 	case PTRACE_SYSCALL:
- 	/* restart after signal. */
+ 	mutex_lock(&inode->i_mutex);
+-
+ 	retval = fasync_helper(fd, filp, on, &pipe->fasync_readers);
+-
+-	if (retval >= 0)
++	if (retval >= 0) {
+ 		retval = fasync_helper(fd, filp, on, &pipe->fasync_writers);
+-
++		if (retval < 0) /* this can happen only if on == T */
++			fasync_helper(-1, filp, 0, &pipe->fasync_readers);
++	}
+ 	mutex_unlock(&inode->i_mutex);
+ 
+ 	if (retval < 0)
 _
 
-Patches currently in -mm which might be from renzo@cs.unibo.it are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+linux-next.patch
+get_mm_hiwater_xxx-trivial-s-define-inline.patch
+getrusage-fill-ru_maxrss-value.patch
+do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
+signals-remove-handler-parameter-to-tracehook-functions.patch
+signals-protect-init-from-unwanted-signals-more.patch
+ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
+ptrace-simplify-ptrace_exit-ignoring_children-path.patch
+ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
+ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
+ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
+ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
+reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
+reparent_thread-fix-the-is-it-traced-check.patch
+reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
+forget_original_parent-split-out-the-un-ptrace-part.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+tracehook_notify_death-use-task_detached-helper.patch
+ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch
+ptrace_untrace-fix-the-signal_stop_stopped-check.patch
+workqueue-avoid-recursion-in-run_workqueue.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
+pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
+pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
 
