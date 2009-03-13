@@ -1,74 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pcie-aer-during-disable-check-subordinate-before-walking.patch removed from -mm tree
-Date: Fri, 13 Mar 2009 11:19:51 -0700
-Message-ID: <200903131819.n2DIJpd1008651@imap1.linux-foundation.org>
+Subject: [merged] drivers-w1-masters-w1-gpioc-fix-read_bit.patch removed from -mm tree
+Date: Fri, 13 Mar 2009 11:19:20 -0700
+Message-ID: <200903131819.n2DIJKbC008568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59780 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759036AbZCMSXa (ORCPT
+	by vger.kernel.org with ESMTP id S1759546AbZCMSXX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Mar 2009 14:23:30 -0400
+	Fri, 13 Mar 2009 14:23:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: achiang@hp.com, andrew.patterson@hp.com, matthew@wil.cx, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: daniel@caiaq.de, david-b@pacbell.net, johnpol@2ka.mipt.ru, syrjala@sci.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCIe: AER: during disable, check subordinate before walking
+     drivers/w1/masters/w1-gpio.c: fix read_bit()
 has been removed from the -mm tree.  Its filename was
-     pcie-aer-during-disable-check-subordinate-before-walking.patch
+     drivers-w1-masters-w1-gpioc-fix-read_bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCIe: AER: during disable, check subordinate before walking
-From: Alex Chiang <achiang@hp.com>
+Subject: drivers/w1/masters/w1-gpio.c: fix read_bit()
+From: Daniel Mack <daniel@caiaq.de>
 
-Commit 47a8b0cc (Enable PCIe AER only after checking firmware
-support) wants to walk the PCI bus in the remove path to disable
-AER, and calls pci_walk_bus for downstream bridges.
+W1 master implementations are expected to return 0 or 1 from their
+read_bit() function.  However, not all platforms do return these values
+from gpio_get_value() - namely PXAs won't.  Hence the w1 gpio-master needs
+to break the result down to 0 or 1 itself.
 
-Unfortunately, in the remove path, we remove devices and bridges in a
-depth-first manner, starting with the furthest downstream bridge and
-working our way backwards.
-
-The furthest downstream bridges will not have a dev->subordinate, and we
-hit a NULL deref in pci_walk_bus.
-
-Check for dev->subordinate first before attempting to walk the PCI
-hierarchy below us.
-
-Acked-by: Andrew Patterson <andrew.patterson@hp.com>
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Cc: Ville Syrjala <syrjala@sci.fi>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/aer/aerdrv_core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/w1/masters/w1-gpio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/pcie/aer/aerdrv_core.c~pcie-aer-during-disable-check-subordinate-before-walking drivers/pci/pcie/aer/aerdrv_core.c
---- a/drivers/pci/pcie/aer/aerdrv_core.c~pcie-aer-during-disable-check-subordinate-before-walking
-+++ a/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -133,6 +133,9 @@ static void set_downstream_devices_error
- 						   bool enable)
+diff -puN drivers/w1/masters/w1-gpio.c~drivers-w1-masters-w1-gpioc-fix-read_bit drivers/w1/masters/w1-gpio.c
+--- a/drivers/w1/masters/w1-gpio.c~drivers-w1-masters-w1-gpioc-fix-read_bit
++++ a/drivers/w1/masters/w1-gpio.c
+@@ -39,7 +39,7 @@ static u8 w1_gpio_read_bit(void *data)
  {
- 	set_device_error_reporting(dev, &enable);
-+
-+	if (!dev->subordinate)
-+		return;
- 	pci_walk_bus(dev->subordinate, set_device_error_reporting, &enable);
+ 	struct w1_gpio_platform_data *pdata = data;
+ 
+-	return gpio_get_value(pdata->pin);
++	return gpio_get_value(pdata->pin) ? 1 : 0;
  }
  
+ static int __init w1_gpio_probe(struct platform_device *pdev)
 _
 
-Patches currently in -mm which might be from achiang@hp.com are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
 origin.patch
 linux-next.patch
-pcie-portdrv-eliminate-double-kfree-in-remove-path.patch
+drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor.patch
+drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor-fix.patch
+w1-coding-style-cleanups-in-w1_ioc.patch
 
