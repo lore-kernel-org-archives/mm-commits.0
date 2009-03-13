@@ -1,103 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfs-add-missing-unlock-in-sget.patch removed from -mm tree
-Date: Fri, 13 Mar 2009 11:19:27 -0700
-Message-ID: <200903131819.n2DIJRCc008586@imap1.linux-foundation.org>
+Subject: [merged] uml-on-uml-fixed-it-did-not-start.patch removed from -mm tree
+Date: Fri, 13 Mar 2009 11:19:13 -0700
+Message-ID: <200903131819.n2DIJDkZ008560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60230 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754781AbZCMSW4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754141AbZCMSWm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Mar 2009 14:22:56 -0400
+	Fri, 13 Mar 2009 14:22:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, a.p.zijlstra@chello.nl, menage@google.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: renzo@cs.unibo.it, jdike@addtoit.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: add missing unlock in sget()
+     UML on UML fixed: it did not start
 has been removed from the -mm tree.  Its filename was
-     vfs-add-missing-unlock-in-sget.patch
+     uml-on-uml-fixed-it-did-not-start.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: add missing unlock in sget()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: UML on UML fixed: it did not start
+From: Renzo Davoli <renzo@cs.unibo.it>
 
-In sget(), destroy_super(s) is called with s->s_umount held, which makes
-lockdep unhappy.
+It is currently impossible to run a user-mode linux machine inside another
+user-mode linux (UML on UML).  It breaks after a few instructions.  When
+it tries to check whether SYSEMU is installed (the inner) UML receives an
+inconsistent result (from the outer UML).
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Paul Menage <menage@google.com>
+This is the output of a broken attempt:
+$ ./linux mem=256m ubd0=cow
+Locating the bottom of the address space ... 0x0
+Locating the top of the address space ... 0xc0000000
+Core dump limits :
+        soft - 0
+        hard - NONE
+Checking that ptrace can change system call numbers...OK
+Checking ptrace new tags for syscall emulation...unsupported
+Checking syscall emulation patch for ptrace...check_sysemu : expected SIGTRAP, got status = 256
+$
+
+The problem is the following:
+
+PTRACE_SYSCALL/SINGLESTEP is currently managed inside arch_ptrace for ARCH=um.
+
+PTRACE_SYSEMU/SUSEMU_SINGLESTEP is not captured in arch_ptrace's switch,
+therefore it is erroneously passed back to ptrace_request (in
+kernel/ptrace).
+
+This simple patch simply forces ptrace to return an error on
+PTRACE_SYSEMU/SUSEMU_SINGLESTEP as it is unsupported on ARCH=um, and fixes
+the problem.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Renzo Davoli <renzo@cs.unibo.it>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/um/kernel/ptrace.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/super.c~vfs-add-missing-unlock-in-sget fs/super.c
---- a/fs/super.c~vfs-add-missing-unlock-in-sget
-+++ a/fs/super.c
-@@ -371,8 +371,10 @@ retry:
- 				continue;
- 			if (!grab_super(old))
- 				goto retry;
--			if (s)
-+			if (s) {
-+				up_write(&s->s_umount);
- 				destroy_super(s);
-+			}
- 			return old;
- 		}
- 	}
-@@ -387,6 +389,7 @@ retry:
- 	err = set(s, data);
- 	if (err) {
- 		spin_unlock(&sb_lock);
-+		up_write(&s->s_umount);
- 		destroy_super(s);
- 		return ERR_PTR(err);
- 	}
+diff -puN arch/um/kernel/ptrace.c~uml-on-uml-fixed-it-did-not-start arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~uml-on-uml-fixed-it-did-not-start
++++ a/arch/um/kernel/ptrace.c
+@@ -64,6 +64,11 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = poke_user(child, addr, data);
+ 		break;
+ 
++	case PTRACE_SYSEMU:
++	case PTRACE_SYSEMU_SINGLESTEP:
++		ret = -EIO;
++		break;
++
+ 	/* continue and stop at next (return from) syscall */
+ 	case PTRACE_SYSCALL:
+ 	/* restart after signal. */
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from renzo@cs.unibo.it are
 
 origin.patch
-linux-next.patch
-cls_cgroup-remove-unneeded-cgroup_lock.patch
-memdup_user-introduce.patch
-memdup_user-introduce-fix.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-cgroup-css-id-support.patch
-cgroup-css-id-support-remove-rcu_read_lock-from-css_get_next.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-cgroups-more-documentation-for-remount-and-release_agent.patch
-cgroups-show-correct-file-mode.patch
-cgroups-show-correct-file-mode-fix.patch
-cgroups-dont-change-release_agent-when-remount-failed.patch
-debug-cgroup-remove-unneeded-cgroup_lock.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-memcg-charge-swapcache-to-proper-memcg.patch
-cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
-cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
-cgroups-add-data-field-to-struct-cgroup_scanner.patch
-cpuset-rewrite-update_tasks_nodemask.patch
-cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
-cpuset-remove-struct-cpuset_hotplug_scanner.patch
-cpusets-allow-cpusets-to-be-configured-built-on-non-smp-systems.patch
 
