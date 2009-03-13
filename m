@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-add-support-for-the-sst-39vf3201-flash-chip.patch added to -mm tree
-Date: Fri, 13 Mar 2009 12:33:24 -0700
-Message-ID: <200903131933.n2DJXOTj017180@imap1.linux-foundation.org>
+Subject: + ecryptfs-dont-encrypt-file-key-with-filename-key.patch added to -mm tree
+Date: Fri, 13 Mar 2009 12:36:36 -0700
+Message-ID: <200903131936.n2DJaa99017581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751798AbZCMTfS (ORCPT
+	by vger.kernel.org with ESMTP id S1752714AbZCMTjA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Mar 2009 15:35:18 -0400
+	Fri, 13 Mar 2009 15:39:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yegorslists@googlemail.com, dwmw2@infradead.org
+Cc: tyhicks@linux.vnet.ibm.com, kirkland@canonical.com, serue@us.ibm.com
 
 
 The patch titled
-     mtd: add support for the SST 39VF3201 flash chip
+     eCryptfs: don't encrypt file key with filename key
 has been added to the -mm tree.  Its filename is
-     mtd-add-support-for-the-sst-39vf3201-flash-chip.patch
+     ecryptfs-dont-encrypt-file-key-with-filename-key.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: add support for the SST 39VF3201 flash chip
-From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: eCryptfs: don't encrypt file key with filename key
+From: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+eCryptfs has file encryption keys (FEK), file encryption key encryption
+keys (FEKEK), and filename encryption keys (FNEK).  The per-file FEK is
+encrypted with one or more FEKEKs and stored in the header of the
+encrypted file.  I noticed that the FEK is also being encrypted by the
+FNEK.  This is a problem if a user wants to use a different FNEK than
+their FEKEK, as their file contents will still be accessible with the
+FNEK.
+
+This is a minimalistic patch which prevents the FNEKs signatures from
+being copied to the inode signatures list.  Ultimately, it keeps the FEK
+from being encrypted with a FNEK.
+
+Signed-off-by: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Acked-by: Dustin Kirkland <kirkland@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/jedec_probe.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ fs/ecryptfs/crypto.c          |    2 ++
+ fs/ecryptfs/ecryptfs_kernel.h |    3 ++-
+ fs/ecryptfs/keystore.c        |    3 ++-
+ fs/ecryptfs/main.c            |    5 +++--
+ 4 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mtd/chips/jedec_probe.c~mtd-add-support-for-the-sst-39vf3201-flash-chip drivers/mtd/chips/jedec_probe.c
---- a/drivers/mtd/chips/jedec_probe.c~mtd-add-support-for-the-sst-39vf3201-flash-chip
-+++ a/drivers/mtd/chips/jedec_probe.c
-@@ -159,6 +159,7 @@
- #define SST39LF800	0x2781
- #define SST39LF160	0x2782
- #define SST39VF1601	0x234b
-+#define SST39VF3201	0x235b
- #define SST39LF512	0x00D4
- #define SST39LF010	0x00D5
- #define SST39LF020	0x00D6
-@@ -1490,6 +1491,21 @@ static const struct amd_flash_info jedec
- 			ERASEINFO(0x1000,256)
- 		}
- 	}, {
-+		.mfr_id		= MANUFACTURER_SST,     /* should be CFI */
-+		.dev_id		= SST39VF3201,
-+		.name		= "SST 39VF3201",
-+		.devtypes	= CFI_DEVICETYPE_X16,
-+		.uaddr		= MTD_UADDR_0xAAAA_0x5555,
-+		.dev_size	= SIZE_4MiB,
-+		.cmd_set	= P_ID_AMD_STD,
-+		.nr_regions	= 4,
-+		.regions	= {
-+			ERASEINFO(0x1000,256),
-+			ERASEINFO(0x1000,256),
-+			ERASEINFO(0x1000,256),
-+			ERASEINFO(0x1000,256)
-+		}
-+	}, {
- 		.mfr_id		= MANUFACTURER_SST,
- 		.dev_id		= SST36VF3203,
- 		.name		= "SST 36VF3203",
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-dont-encrypt-file-key-with-filename-key fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-dont-encrypt-file-key-with-filename-key
++++ a/fs/ecryptfs/crypto.c
+@@ -946,6 +946,8 @@ static int ecryptfs_copy_mount_wide_sigs
+ 	list_for_each_entry(global_auth_tok,
+ 			    &mount_crypt_stat->global_auth_tok_list,
+ 			    mount_crypt_stat_list) {
++		if (global_auth_tok->flags & ECRYPTFS_AUTH_TOK_FNEK)
++			continue;
+ 		rc = ecryptfs_add_keysig(crypt_stat, global_auth_tok->sig);
+ 		if (rc) {
+ 			printk(KERN_ERR "Error adding keysig; rc = [%d]\n", rc);
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-dont-encrypt-file-key-with-filename-key fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-dont-encrypt-file-key-with-filename-key
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -328,6 +328,7 @@ struct ecryptfs_dentry_info {
+  */
+ struct ecryptfs_global_auth_tok {
+ #define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
++#define ECRYPTFS_AUTH_TOK_FNEK    0x00000002
+ 	u32 flags;
+ 	struct list_head mount_crypt_stat_list;
+ 	struct key *global_auth_tok_key;
+@@ -696,7 +697,7 @@ ecryptfs_write_header_metadata(char *vir
+ int ecryptfs_add_keysig(struct ecryptfs_crypt_stat *crypt_stat, char *sig);
+ int
+ ecryptfs_add_global_auth_tok(struct ecryptfs_mount_crypt_stat *mount_crypt_stat,
+-			   char *sig);
++			   char *sig, u32 global_auth_tok_flags);
+ int ecryptfs_get_global_auth_tok_for_sig(
+ 	struct ecryptfs_global_auth_tok **global_auth_tok,
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat, char *sig);
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-dont-encrypt-file-key-with-filename-key fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-dont-encrypt-file-key-with-filename-key
++++ a/fs/ecryptfs/keystore.c
+@@ -2375,7 +2375,7 @@ struct kmem_cache *ecryptfs_global_auth_
+ 
+ int
+ ecryptfs_add_global_auth_tok(struct ecryptfs_mount_crypt_stat *mount_crypt_stat,
+-			     char *sig)
++			     char *sig, u32 global_auth_tok_flags)
+ {
+ 	struct ecryptfs_global_auth_tok *new_auth_tok;
+ 	int rc = 0;
+@@ -2389,6 +2389,7 @@ ecryptfs_add_global_auth_tok(struct ecry
+ 		goto out;
+ 	}
+ 	memcpy(new_auth_tok->sig, sig, ECRYPTFS_SIG_SIZE_HEX);
++	new_auth_tok->flags = global_auth_tok_flags;
+ 	new_auth_tok->sig[ECRYPTFS_SIG_SIZE_HEX] = '\0';
+ 	mutex_lock(&mount_crypt_stat->global_auth_tok_list_mutex);
+ 	list_add(&new_auth_tok->mount_crypt_stat_list,
+diff -puN fs/ecryptfs/main.c~ecryptfs-dont-encrypt-file-key-with-filename-key fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-dont-encrypt-file-key-with-filename-key
++++ a/fs/ecryptfs/main.c
+@@ -319,7 +319,7 @@ static int ecryptfs_parse_options(struct
+ 		case ecryptfs_opt_ecryptfs_sig:
+ 			sig_src = args[0].from;
+ 			rc = ecryptfs_add_global_auth_tok(mount_crypt_stat,
+-							  sig_src);
++							  sig_src, 0);
+ 			if (rc) {
+ 				printk(KERN_ERR "Error attempting to register "
+ 				       "global sig; rc = [%d]\n", rc);
+@@ -370,7 +370,8 @@ static int ecryptfs_parse_options(struct
+ 				ECRYPTFS_SIG_SIZE_HEX] = '\0';
+ 			rc = ecryptfs_add_global_auth_tok(
+ 				mount_crypt_stat,
+-				mount_crypt_stat->global_default_fnek_sig);
++				mount_crypt_stat->global_default_fnek_sig,
++				ECRYPTFS_AUTH_TOK_FNEK);
+ 			if (rc) {
+ 				printk(KERN_ERR "Error attempting to register "
+ 				       "global fnek sig [%s]; rc = [%d]\n",
 _
 
-Patches currently in -mm which might be from yegorslists@googlemail.com are
+Patches currently in -mm which might be from tyhicks@linux.vnet.ibm.com are
 
-mtd-add-support-for-the-sst-39vf3201-flash-chip.patch
+ecryptfs-dont-encrypt-file-key-with-filename-key.patch
+ecryptfs-use-kzfree.patch
 
