@@ -1,159 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix.patch removed from -mm tree
-Date: Thu, 12 Mar 2009 18:31:10 -0700
-Message-ID: <200903130131.n2D1VAw4028021@imap1.linux-foundation.org>
+Subject: - memory-controller-soft-limit-documentation-v5.patch removed from -mm tree
+Date: Fri, 13 Mar 2009 00:07:42 -0700
+Message-ID: <200903130707.n2D77gQQ030208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47498 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751125AbZCMBfM (ORCPT
+	by vger.kernel.org with ESMTP id S1750842AbZCMHNf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Mar 2009 21:35:12 -0400
+	Fri, 13 Mar 2009 03:13:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Enrik.Berkhan@ge.com, a.p.zijlstra@chello.nl, dhowells@redhat.com, hannes@cmpxchg.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, riel@redhat.com, yamamoto@valinux.co.jp, mm-commits@
 
 
 The patch titled
-     nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix
+     Memory controller soft limit documentation
 has been removed from the -mm tree.  Its filename was
-     nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix.patch
+     memory-controller-soft-limit-documentation-v5.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it seems to need a bit more thought ;)
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Memory controller soft limit documentation
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Don't bypass the a_ops.
+Soft limits is a new feature for the memory resource controller, something
+similar has existed in the group scheduler in the form of shares.  The CPU
+controllers interpretation of shares is very different though.  
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Enrik Berkhan <Enrik.Berkhan@ge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Soft limits are the most useful feature to have for environments where the
+administrator wants to overcommit the system, such that only on memory
+contention do the limits become active.  The current soft limits
+implementation provides a soft_limit_in_bytes interface for the memory
+controller and not for memory+swap controller.  The implementation
+maintains an RB-Tree of groups that exceed their soft limit and starts
+reclaiming from the group that exceeds this limit by the maximum amount.
+
+Kamezawa-San has another patchset for soft limits, but I don't like the
+reclaim logic of watermark based balancing of zones for global memory
+cgroup limits.  I also don't like the data structures, a list does not
+scale well.  Kamezawa's objection to this patch is the cost of sorting,
+which is really negligible, since the updates happen at a fixed interval
+(curently four times a second).  I however do like the priority feature in
+Kamezawa's patchset.  The feature can be easily adopted to this
+incrementally.
+
+TODOs
+
+1. The current implementation maintains the delta from the soft limit
+   and pushes back groups to their soft limits, a ratio of delta/soft_limit
+   might be more useful
+2. It would be nice to have more targetted reclaim (in terms of pages to
+   recalim) interface. So that groups are pushed back, close to their soft
+   limits.
+
+Tests
+-----
+
+I've run two memory intensive workloads with differing soft limits and
+seen that they are pushed back to their soft limit on contention.  Their
+usage was their soft limit plus additional memory that they were able to
+grab on the system.  Soft limit can take a while before we see the
+expected results.
+
+The other tests I've run are
+1. Deletion of groups while soft limit is in progress in the hierarchy
+2. Setting the soft limit to zero and running other groups with non-zero
+   soft limits.
+3. Setting the soft limit to zero and testing if the mem cgroup is able
+   to use available memory
+
+
+This patch:
+
+Add documentation for the new feature.
+
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |   31 ++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-nommu.c~nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix
-+++ a/fs/ramfs/file-nommu.c
-@@ -114,7 +114,7 @@ int ramfs_nommu_expand_for_mapping(struc
- 			__pagevec_lru_add_file(&lru_pvec);
+diff -puN Documentation/cgroups/memory.txt~memory-controller-soft-limit-documentation-v5 Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memory-controller-soft-limit-documentation-v5
++++ a/Documentation/cgroups/memory.txt
+@@ -360,7 +360,36 @@ cgroups created below it.
  
- 		/* prevent the page from being discarded on memory pressure */
--		SetPageDirty(page);
-+		set_page_dirty(page);
+ NOTE2: This feature can be enabled/disabled per subtree.
  
- 		unlock_page(page);
- 	}
+-7. TODO
++7. Soft limits
++
++Soft limits allow for greater sharing of memory. The idea behind soft limits
++is to allow control groups to use as much of the memory as needed, provided
++
++a. There is no memory contention
++b. They do not exceed their hard limit
++
++When the system detects memory contention or low memory control groups
++are pushed back to their soft limits. If the soft limit of each control
++group is very high, they are pushed back as much as possible to make
++sure that one control group does not starve the others of memory.
++
++7.1 Interface
++
++Soft limits can be setup by using the following commands (in this example we
++assume a soft limit of 256 megabytes)
++
++# echo 256M > memory.soft_limit_in_bytes
++
++If we want to change this to 1G, we can at any time use
++
++# echo 1G > memory.soft_limit_in_bytes
++
++NOTE1: Soft limits take effect over a long period of time, since they involve
++       reclaiming memory for balancing between memory cgroups
++NOTE2: It is recommended to set the soft limit always below the hard limit,
++       otherwise the hard limit will take precedence.
++
++8. TODO
+ 
+ 1. Add support for accounting huge pages (as a separate controller)
+ 2. Make per-cgroup scanner reclaim not-shared pages first
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
-origin.patch
-uml-on-uml-fixed-it-did-not-start-checkpatch-fixes.patch
-nommu-ramfs-pages-allocated-to-an-inodes-pagecache-may-get-wrongly-discarded-fix.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-git-acpi-vs-git-cpufreq.patch
-i-need-old-gcc.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-arch-x86-mm-iomap_32c-fix-warning.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-mtd-rbtx4939-add-mtd-support.patch
-flex-onenand-support-v2-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-libfs-make-simple_read_from_buffer-conventional-fix.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-ubd-stop-defintining-major_nr-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-cirrusfb-fix-clock-doubling-fix.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
+cgroup-css-id-support-remove-rcu_read_lock-from-css_get_next.patch
+memcg-show-memcg-information-during-oom.patch
 memcg-show-memcg-information-during-oom-fix2.patch
 memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
+memcg-charge-swapcache-to-proper-memcg.patch
+memory-controller-soft-limit-documentation-v5.patch
+memory-controller-soft-limit-interface-v5.patch
+memory-controller-soft-limit-organize-cgroups-v5.patch
+memory-controller-soft-limit-reclaim-on-contention-v5.patch
+memory-controller-soft-limit-reclaim-on-contention-v5-fix.patch
 
