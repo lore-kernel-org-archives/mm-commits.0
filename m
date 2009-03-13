@@ -1,126 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ds2760_batteryc-fix-division-by-zero.patch removed from -mm tree
-Date: Fri, 13 Mar 2009 11:19:30 -0700
-Message-ID: <200903131819.n2DIJU5W008592@imap1.linux-foundation.org>
+Subject: [merged] fs-new-inode-i_state-corruption-fix.patch removed from -mm tree
+Date: Fri, 13 Mar 2009 11:19:47 -0700
+Message-ID: <200903131819.n2DIJloo008640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41365 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755790AbZCMSXr (ORCPT
+	by vger.kernel.org with ESMTP id S1752847AbZCMSZL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Mar 2009 14:23:47 -0400
+	Fri, 13 Mar 2009 14:25:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@caiaq.de, cbou@mail.ru, dwmw2@infradead.org, mreimer@vpop.net, szabolcs.gyurko@tlt.hu, mm-commits@vger.kernel.org
+To: npiggin@suse.de, ext-adrian.hunter@nokia.com, jack@suse.cz, jorge@dti2.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ds2760_battery.c: fix division by zero
+     fs: new inode i_state corruption fix
 has been removed from the -mm tree.  Its filename was
-     ds2760_batteryc-fix-division-by-zero.patch
+     fs-new-inode-i_state-corruption-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ds2760_battery.c: fix division by zero
-=46rom: Daniel Mack <daniel@caiaq.de>
+Subject: fs: new inode i_state corruption fix
+From: Nick Piggin <npiggin@suse.de>
 
-The 'battery remaining capacity' calculation in
-drivers/power/ds2760_battery.c lacks a parameter check to a division
-operation which causes the kernel to oops on my board.
+There was a report of a data corruption
+http://lkml.org/lkml/2008/11/14/121.  There is a script included to
+reproduce the problem.
 
-[   21.233750] Division by zero in kernel.
-[   21.237646] [<c002955c>] (__div0+0x0/0x20) from [<c012561c>] (Ldiv0+=
-0x8/0x10)
-[   21.244816] [<c01bef34>] (ds2760_battery_read_status+0x0/0x2a4) from=
- [<c01bf3a4>] (ds2760_battery_get_property+0x30/0xdc)
-[   21.255803]  r8:c03a22c0 r7:c7886100 r6:00000009 r5:c782fe7c r4:c788=
-6084
-[   21.262518] [<c01bf374>] (ds2760_battery_get_property+0x0/0xdc) from=
- [<c01bde98>] (power_supply_show_property+0x48/0x114)
-[   21.273480]  r6:c7996000 r5:00000009 r4:00000000
-[   21.278111] [<c01bde50>] (power_supply_show_property+0x0/0x114) from=
- [<c01be158>] (power_supply_uevent+0x188/0x280)
-[   21.288537]  r8:00000001 r7:c7886100 r6:c7996000 r5:000000b4 r4:0000=
-0000
-[   21.295222] [<c01bdfd0>] (power_supply_uevent+0x0/0x280) from [<c015=
-c664>] (dev_uevent+0xd4/0x10c)
-[   21.304199] [<c015c590>] (dev_uevent+0x0/0x10c) from [<c0128440>] (k=
-object_uevent_env+0x180/0x390)
-[   21.313170]  r5:00000000 r4:c78860ac
-[   21.316725] [<c01282c0>] (kobject_uevent_env+0x0/0x390) from [<c0128=
-664>] (kobject_uevent+0x14/0x18)
-[   21.325850] [<c0128650>] (kobject_uevent+0x0/0x18) from [<c01bdc34>]=
- (power_supply_changed_work+0x5c/0x70)
-[   21.335506] [<c01bdbd8>] (power_supply_changed_work+0x0/0x70) from [=
-<c004d290>] (run_workqueue+0xbc/0x144)
-[   21.345167]  r4:c7812040
-[   21.347716] [<c004d1d4>] (run_workqueue+0x0/0x144) from [<c004d94c>]=
- (worker_thread+0xa8/0xbc)
-[   21.356296]  r7:c7812040 r6:c7820b00 r5:c782ffa4 r4:c7812048
-[   21.361957] [<c004d8a4>] (worker_thread+0x0/0xbc) from [<c0051008>] =
-(kthread+0x5c/0x94)
-[   21.369971]  r7:00000000 r6:c004d8a4 r5:c7812040 r4:c782e000
-[   21.375612] [<c0050fac>] (kthread+0x0/0x94) from [<c00403d0>] (do_ex=
-it+0x0/0x688)
+During testing, I encountered a number of strange things with ext3, so I
+tried ext2 to attempt to reduce complexity of the problem.  I found that
+fsstress would quickly hang in wait_on_inode, waiting for I_LOCK to be
+cleared, even though instrumentation showed that unlock_new_inode had
+already been called for that inode.  This points to memory scribble, or
+synchronisation problme.
 
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Cc: Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
-Acked-by: Matt Reimer <mreimer@vpop.net>
-Acked-by: Anton Vorontsov <cbou@mail.ru>
-Cc: David Woodhouse <dwmw2@infradead.org>
+i_state of I_NEW inodes is not protected by inode_lock because other
+processes are not supposed to touch them until I_LOCK (and I_NEW) is
+cleared.  Adding WARN_ON(inode->i_state & I_NEW) to sites where we modify
+i_state revealed that generic_sync_sb_inodes is picking up new inodes from
+the inode lists and passing them to __writeback_single_inode without
+waiting for I_NEW.  Subsequently modifying i_state causes corruption.  In
+my case it would look like this:
+
+CPU0                            CPU1
+unlock_new_inode()              __sync_single_inode()
+ reg <- inode->i_state
+ reg -> reg & ~(I_LOCK|I_NEW)   reg <- inode->i_state
+ reg -> inode->i_state          reg -> reg | I_SYNC
+                                reg -> inode->i_state
+
+Non-atomic RMW on CPU1 overwrites CPU0 store and sets I_LOCK|I_NEW again.
+
+Fix for this is rather than wait for I_NEW inodes, just skip over them:
+inodes concurrently being created are not subject to data integrity
+operations, and should not significantly contribute to dirty memory
+either.
+
+After this change, I'm unable to reproduce any of the added warnings or
+hangs after ~1hour of running.  Previously, the new warnings would start
+immediately and hang would happen in under 5 minutes.
+
+I'm also testing on ext3 now, and so far no problems there either.  I
+don't know whether this fixes the problem reported above, but it fixes a
+real problem for me.
+
+Cc: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
+Reported-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: <stable@kernel.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/ds2760_battery.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ fs/fs-writeback.c |    9 ++++++++-
+ fs/inode.c        |    7 +++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN drivers/power/ds2760_battery.c~ds2760_batteryc-fix-division-b=
-y-zero drivers/power/ds2760_battery.c
---- a/drivers/power/ds2760_battery.c~ds2760_batteryc-fix-division-by-ze=
-ro
-+++ a/drivers/power/ds2760_battery.c
-@@ -180,10 +180,13 @@ static int ds2760_battery_read_status(st
- 	di->empty_uAh =3D battery_interpolate(scale, di->temp_C / 10);
- 	di->empty_uAh *=3D 1000; /* convert to =C2=B5Ah */
-=20
--	/* From Maxim Application Note 131: remaining capacity =3D
--	 * ((ICA - Empty Value) / (Full Value - Empty Value)) x 100% */
--	di->rem_capacity =3D ((di->accum_current_uAh - di->empty_uAh) * 100L)=
- /
--			    (di->full_active_uAh - di->empty_uAh);
-+	if (di->full_active_uAh =3D=3D di->empty_uAh)
-+		di->rem_capacity =3D 0;
-+	else
-+		/* From Maxim Application Note 131: remaining capacity =3D
-+		 * ((ICA - Empty Value) / (Full Value - Empty Value)) x 100% */
-+		di->rem_capacity =3D ((di->accum_current_uAh - di->empty_uAh) * 100L=
-) /
-+				    (di->full_active_uAh - di->empty_uAh);
-=20
- 	if (di->rem_capacity < 0)
- 		di->rem_capacity =3D 0;
+diff -puN fs/fs-writeback.c~fs-new-inode-i_state-corruption-fix fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-new-inode-i_state-corruption-fix
++++ a/fs/fs-writeback.c
+@@ -274,6 +274,7 @@ __sync_single_inode(struct inode *inode,
+ 	int ret;
+ 
+ 	BUG_ON(inode->i_state & I_SYNC);
++	WARN_ON(inode->i_state & I_NEW);
+ 
+ 	/* Set I_SYNC, reset I_DIRTY */
+ 	dirty = inode->i_state & I_DIRTY;
+@@ -298,6 +299,7 @@ __sync_single_inode(struct inode *inode,
+ 	}
+ 
+ 	spin_lock(&inode_lock);
++	WARN_ON(inode->i_state & I_NEW);
+ 	inode->i_state &= ~I_SYNC;
+ 	if (!(inode->i_state & I_FREEING)) {
+ 		if (!(inode->i_state & I_DIRTY) &&
+@@ -470,6 +472,11 @@ void generic_sync_sb_inodes(struct super
+ 			break;
+ 		}
+ 
++		if (inode->i_state & I_NEW) {
++			requeue_io(inode);
++			continue;
++		}
++
+ 		if (wbc->nonblocking && bdi_write_congested(bdi)) {
+ 			wbc->encountered_congestion = 1;
+ 			if (!sb_is_blkdev_sb(sb))
+@@ -531,7 +538,7 @@ void generic_sync_sb_inodes(struct super
+ 		list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+ 			struct address_space *mapping;
+ 
+-			if (inode->i_state & (I_FREEING|I_WILL_FREE))
++			if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
+ 				continue;
+ 			mapping = inode->i_mapping;
+ 			if (mapping->nrpages == 0)
+diff -puN fs/inode.c~fs-new-inode-i_state-corruption-fix fs/inode.c
+--- a/fs/inode.c~fs-new-inode-i_state-corruption-fix
++++ a/fs/inode.c
+@@ -359,6 +359,7 @@ static int invalidate_list(struct list_h
+ 		invalidate_inode_buffers(inode);
+ 		if (!atomic_read(&inode->i_count)) {
+ 			list_move(&inode->i_list, dispose);
++			WARN_ON(inode->i_state & I_NEW);
+ 			inode->i_state |= I_FREEING;
+ 			count++;
+ 			continue;
+@@ -460,6 +461,7 @@ static void prune_icache(int nr_to_scan)
+ 				continue;
+ 		}
+ 		list_move(&inode->i_list, &freeable);
++		WARN_ON(inode->i_state & I_NEW);
+ 		inode->i_state |= I_FREEING;
+ 		nr_pruned++;
+ 	}
+@@ -656,6 +658,7 @@ void unlock_new_inode(struct inode *inod
+ 	 * just created it (so there can be no old holders
+ 	 * that haven't tested I_LOCK).
+ 	 */
++	WARN_ON((inode->i_state & (I_LOCK|I_NEW)) != (I_LOCK|I_NEW));
+ 	inode->i_state &= ~(I_LOCK|I_NEW);
+ 	wake_up_inode(inode);
+ }
+@@ -1145,6 +1148,7 @@ void generic_delete_inode(struct inode *
+ 
+ 	list_del_init(&inode->i_list);
+ 	list_del_init(&inode->i_sb_list);
++	WARN_ON(inode->i_state & I_NEW);
+ 	inode->i_state |= I_FREEING;
+ 	inodes_stat.nr_inodes--;
+ 	spin_unlock(&inode_lock);
+@@ -1186,16 +1190,19 @@ static void generic_forget_inode(struct 
+ 			spin_unlock(&inode_lock);
+ 			return;
+ 		}
++		WARN_ON(inode->i_state & I_NEW);
+ 		inode->i_state |= I_WILL_FREE;
+ 		spin_unlock(&inode_lock);
+ 		write_inode_now(inode, 1);
+ 		spin_lock(&inode_lock);
++		WARN_ON(inode->i_state & I_NEW);
+ 		inode->i_state &= ~I_WILL_FREE;
+ 		inodes_stat.nr_unused--;
+ 		hlist_del_init(&inode->i_hash);
+ 	}
+ 	list_del_init(&inode->i_list);
+ 	list_del_init(&inode->i_sb_list);
++	WARN_ON(inode->i_state & I_NEW);
+ 	inode->i_state |= I_FREEING;
+ 	inodes_stat.nr_inodes--;
+ 	spin_unlock(&inode_lock);
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
 linux-next.patch
-drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor.pat=
-ch
-drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor-fix=
-=2Epatch
-w1-coding-style-cleanups-in-w1_ioc.patch
+slqb-use-correct-name-for-rcu-callback.patch
+slqb-cleanup-for-concatenating-kmlist.patch
+fs-avoid-i_new-inodes.patch
+vmap-remove-needless-lock-and-list-in-vmap.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+radix-tree-gang-set-if-tagged-operation.patch
+mm-dont-call-mark_page_accessed-in-do_swap_page.patch
+mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+mm-page_mkwrite-change-prototype-to-match-fault.patch
+fs-fix-page_mkwrite-error-cases-in-core-code-and-btrfs.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
