@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-add-accelerator-constant.patch added to -mm tree
-Date: Wed, 18 Mar 2009 16:49:15 -0700
-Message-ID: <200903182352.n2INqb5a031610@imap1.linux-foundation.org>
+Subject: + atyfb-speed-up-mach64-cursor.patch added to -mm tree
+Date: Wed, 18 Mar 2009 16:49:42 -0700
+Message-ID: <200903182353.n2INr4KM031697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55606 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755073AbZCRXxx (ORCPT
+	by vger.kernel.org with ESMTP id S1752945AbZCRXyY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Mar 2009 19:53:53 -0400
+	Wed, 18 Mar 2009 19:54:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     cirrusfb: add accelerator constant
+     atyfb: speed up Mach64 cursor
 has been added to the -mm tree.  Its filename is
-     cirrusfb-add-accelerator-constant.patch
+     atyfb-speed-up-mach64-cursor.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: add accelerator constant
+Subject: atyfb: speed up Mach64 cursor
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Add an accelerator constant so almost all Cirrus are recognized as
-accelerators by the fbset command.
+Save one fifo entry on cursor enabling and disabling.
+
+Save another fifo entry for FB_CUR_SETPOS operation by removing redundant one.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/video/aty/mach64_cursor.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-add-accelerator-constant drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-add-accelerator-constant
-+++ a/drivers/video/cirrusfb.c
-@@ -519,6 +519,7 @@ static int cirrusfb_check_var(struct fb_
- 	int yres;
- 	/* memory size in pixels */
- 	unsigned pixels = info->screen_size * 8 / var->bits_per_pixel;
-+	struct cirrusfb_info *cinfo = info->par;
+diff -puN drivers/video/aty/mach64_cursor.c~atyfb-speed-up-mach64-cursor drivers/video/aty/mach64_cursor.c
+--- a/drivers/video/aty/mach64_cursor.c~atyfb-speed-up-mach64-cursor
++++ a/drivers/video/aty/mach64_cursor.c
+@@ -77,9 +77,13 @@ static int atyfb_cursor(struct fb_info *
+ 	if (par->asleep)
+ 		return -EPERM;
  
- 	switch (var->bits_per_pixel) {
- 	case 1:
-@@ -627,6 +628,9 @@ static int cirrusfb_check_var(struct fb_
- 	if (cirrusfb_check_pixclock(var, info))
- 		return -EINVAL;
+-	/* Hide cursor */
+ 	wait_for_fifo(1, par);
+-	aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par) & ~HWCURSOR_ENABLE, par);
++	if (cursor->enable)
++		aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par)
++			    | HWCURSOR_ENABLE, par);
++	else
++		aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par)
++				& ~HWCURSOR_ENABLE, par);
  
-+	if (!is_laguna(cinfo))
-+		var->accel_flags = FB_ACCELF_TEXT;
-+
+ 	/* set position */
+ 	if (cursor->set & FB_CUR_SETPOS) {
+@@ -109,7 +113,7 @@ static int atyfb_cursor(struct fb_info *
+ 			y<<=1;
+ 			h<<=1;
+ 		}
+-		wait_for_fifo(4, par);
++		wait_for_fifo(3, par);
+ 		aty_st_le32(CUR_OFFSET, (info->fix.smem_len >> 3) + (yoff << 1), par);
+ 		aty_st_le32(CUR_HORZ_VERT_OFF,
+ 			    ((u32) (64 - h + yoff) << 16) | xoff, par);
+@@ -177,11 +181,6 @@ static int atyfb_cursor(struct fb_info *
+ 	    }
+ 	}
+ 
+-	if (cursor->enable) {
+-		wait_for_fifo(1, par);
+-		aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par)
+-			    | HWCURSOR_ENABLE, par);
+-	}
  	return 0;
  }
- 
-@@ -2029,8 +2033,12 @@ static int __devinit cirrusfb_set_fbinfo
- 		    | FBINFO_HWACCEL_FILLRECT
- 		    | FBINFO_HWACCEL_IMAGEBLIT
- 		    | FBINFO_HWACCEL_COPYAREA;
--	if (noaccel || is_laguna(cinfo))
-+	if (noaccel || is_laguna(cinfo)) {
- 		info->flags |= FBINFO_HWACCEL_DISABLED;
-+		info->fix.accel = FB_ACCEL_NONE;
-+	} else
-+		info->fix.accel = FB_ACCEL_CIRRUS_ALPINE;
-+
- 	info->fbops = &cirrusfb_ops;
- 
- 	if (cinfo->btype == BT_GD5480) {
-@@ -2056,7 +2064,6 @@ static int __devinit cirrusfb_set_fbinfo
- 
- 	/* FIXME: map region at 0xB8000 if available, fill in here */
- 	info->fix.mmio_len   = 0;
--	info->fix.accel = FB_ACCEL_NONE;
- 
- 	fb_alloc_cmap(&info->cmap, 256, 0);
  
 _
 
