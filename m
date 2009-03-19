@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-add-accelerator-constantpatch-compilation-fix.patch added to -mm tree
-Date: Thu, 19 Mar 2009 15:39:32 -0700
-Message-ID: <200903192243.n2JMh88E013299@imap1.linux-foundation.org>
+Subject: + cirrusfb-fix-threshold-register-mask-for-laguna-chips.patch added to -mm tree
+Date: Thu, 19 Mar 2009 15:43:27 -0700
+Message-ID: <200903192247.n2JMl2Vl014087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36578 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759954AbZCSWpF (ORCPT
+	by vger.kernel.org with ESMTP id S1753835AbZCSWsN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Mar 2009 18:45:05 -0400
+	Thu, 19 Mar 2009 18:48:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@poczta.fm, krzysztof.h1@wp.pl
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+     cirrusfb: fix threshold register mask for Laguna chips
 has been added to the -mm tree.  Its filename is
-     cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
+     cirrusfb-fix-threshold-register-mask-for-laguna-chips.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Subject: cirrusfb: fix threshold register mask for Laguna chips
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-
-Add a missing constant for the patch:
-cirrusfb: add accelerator constant
+Fix threshold register mask for Laguna chips otherwise some 8bpp modes are
+garbled after selecting a 24bpp mode.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
----
-
-I am sorry but the patch cirrusfb-add-accelerator-constant.patch
-was not posted in full scope.
-
-I spotted it after reviewing the patches accepted to the -mm tree.
-
-Krzysztof
-
-index 31527e1..fe7d0d7 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fb.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/cirrusfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/fb.h~cirrusfb-add-accelerator-constantpatch-compilation-fix include/linux/fb.h
---- a/include/linux/fb.h~cirrusfb-add-accelerator-constantpatch-compilation-fix
-+++ a/include/linux/fb.h
-@@ -123,6 +123,7 @@ struct dentry;
- #define FB_ACCEL_TRIDENT_3DIMAGE 51	/* Trident 3DImage		*/
- #define FB_ACCEL_TRIDENT_BLADE3D 52	/* Trident Blade3D		*/
- #define FB_ACCEL_TRIDENT_BLADEXP 53	/* Trident BladeXP		*/
-+#define FB_ACCEL_CIRRUS_ALPINE   53	/* Cirrus Logic 543x/544x/5480	*/
- #define FB_ACCEL_NEOMAGIC_NM2070 90	/* NeoMagic NM2070              */
- #define FB_ACCEL_NEOMAGIC_NM2090 91	/* NeoMagic NM2090              */
- #define FB_ACCEL_NEOMAGIC_NM2093 92	/* NeoMagic NM2093              */
+diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-threshold-register-mask-for-laguna-chips drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-fix-threshold-register-mask-for-laguna-chips
++++ a/drivers/video/cirrusfb.c
+@@ -875,7 +875,7 @@ static int cirrusfb_set_par_foo(struct f
+ 		threshold = fb_readw(cinfo->laguna_mmio + 0xea);
+ 		control &= ~0x6800;
+ 		format = 0;
+-		threshold &= 0xffe0 & 0x3fbf;
++		threshold &= 0xffc0 & 0x3fbf;
+ 	}
+ 	if (nom) {
+ 		tmp = den << 1;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@poczta.fm are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-cirrusfb-convert-printks-to-dev_foo.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+origin.patch
+linux-next.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
+cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
+cirrusfb-add-laguna-additional-overflow-register.patch
+cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
+cirrusfb-do-not-calculate-line-length-twice.patch
+cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
 cirrusfb-various-improvements.patch
+cirrusfb-laguna-chipset-8bpp-fix.patch
+cirrusfb-check_var-improvements.patch
+cirrusfb-various-laguna-fixes.patch
+cirrusfb-acceleration-improvements.patch
+cirrusfb-add-imageblit-function.patch
+cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
 cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
-fbdev-uninline-lock_fb_info.patch
-skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sunxvr500-fix-cmap-memory-leaks.patch
-tgafb-fix-cmap-memory-leak.patch
-fbdev-newport-newport_wait-return-0-on-timeout.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-arkfb-fix-misplaced-parentheses.patch
-uvesafb-bitwise-or-has-higher-precedence-than.patch
-vesafb-bitwise-or-has-higher-precedence-than.patch
-n411-add-missing-makefile-entry.patch
-fb-add-s3c-fb-driver-for-newer-samsung-soc-framebuffer-devices.patch
-uvesafb-fix-selecting-mode-with-the-vbemode-option.patch
-omapfb-fix-argument-of-blank-operation.patch
-radeonfb-suspend-resume-for-ati-mobility-radeon-rv350.patch
+cirrusfb-gd5446-fixes.patch
+cirrusfb-use-24bpp-instead-of-32bpp.patch
+cirrusfb-fix-clock-doubling.patch
+cirrusfb-fix-clock-doubling-fix.patch
+cirrusfb-add-accelerator-constant.patch
 cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
-fix-radeon-backlight-shutoff-flashes-momentarily.patch
-intelfb-support-i854.patch
+cirrusfb-set-mclk-in-one-place.patch
+cirrusfb-gd5434-aka-sd64-support-fixed.patch
+cirrusfb-fix-threshold-register-mask-for-laguna-chips.patch
+drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
+tdfxfb-fix-memory-leaks-in-removal-path.patch
+tridentfb-fix-memory-leaks-in-removal-path.patch
+vfb-fix-memory-leaks-in-removal-path.patch
+sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+68328fb-fix-cmap-memory-leaks.patch
+amba-clcd-fix-cmap-memory-leaks.patch
+amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+asiliantfb-fix-cmap-memory-leaks.patch
+asiliantfb-fix-cmap-memory-leaks-fix.patch
+remove-cyblafb-driver.patch
+nvidiafb-remove-open_lock-mutex.patch
+fb-hide-hardware-cursor-in-graphics-mode-mach64.patch
+atyfb-speed-up-mach64-cursor.patch
 
