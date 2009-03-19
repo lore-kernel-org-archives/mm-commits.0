@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-redundant-message-at-swapon.patch added to -mm tree
-Date: Wed, 18 Mar 2009 18:57:54 -0700
-Message-ID: <200903190201.n2J21HPZ021425@imap1.linux-foundation.org>
+Subject: + cirrusfb-add-accelerator-constantpatch-compilation-fix.patch added to -mm tree
+Date: Thu, 19 Mar 2009 15:39:32 -0700
+Message-ID: <200903192243.n2JMh88E013299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36578 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751071AbZCSCDp (ORCPT
+	by vger.kernel.org with ESMTP id S1759954AbZCSWpF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Mar 2009 22:03:45 -0400
+	Thu, 19 Mar 2009 18:45:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, hugh@veritas.com
+Cc: krzysztof.h1@poczta.fm, krzysztof.h1@wp.pl
 
 
 The patch titled
-     memcg: remove redundant message at swapon
+     From: Krzysztof Helt <krzysztof.h1@poczta.fm>
 has been added to the -mm tree.  Its filename is
-     memcg-remove-redundant-message-at-swapon.patch
+     cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove redundant message at swapon
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-It's pointed out that swap_cgroup's message at swapon() is nonsense.
-Because
 
-  * It can be calculated very easily if all necessary information is
-    written in Kconfig.
+Add a missing constant for the patch:
+cirrusfb: add accelerator constant
 
-  * It's not necessary to annoying people at every swapon().
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+---
 
-In other view, now, memory usage per swp_entry is reduced to 2bytes from
-8bytes(64bit) and I think it's reasonably small.
+I am sorry but the patch cirrusfb-add-accelerator-constant.patch
+was not posted in full scope.
 
-Reported-by: Hugh Dickins <hugh@veritas.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+I spotted it after reviewing the patches accepted to the -mm tree.
+
+Krzysztof
+
+index 31527e1..fe7d0d7 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig     |    2 ++
- mm/page_cgroup.c |    7 -------
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ include/linux/fb.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN init/Kconfig~memcg-remove-redundant-message-at-swapon init/Kconfig
---- a/init/Kconfig~memcg-remove-redundant-message-at-swapon
-+++ a/init/Kconfig
-@@ -597,6 +597,8 @@ config CGROUP_MEM_RES_CTLR_SWAP
- 	  is disabled by boot option, this will be automatically disabled and
- 	  there will be no overhead from this. Even when you set this config=y,
- 	  if boot option "noswapaccount" is set, swap will not be accounted.
-+	  Now, memory usage of swap_cgroup is 2 bytes per entry. If swap page
-+	  size is 4096bytes, 512k per 1Gbytes of swap.
- 
- endif # CGROUPS
- 
-diff -puN mm/page_cgroup.c~memcg-remove-redundant-message-at-swapon mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-remove-redundant-message-at-swapon
-+++ a/mm/page_cgroup.c
-@@ -426,13 +426,6 @@ int swap_cgroup_swapon(int type, unsigne
- 	}
- 	mutex_unlock(&swap_cgroup_mutex);
- 
--	printk(KERN_INFO
--		"swap_cgroup: uses %ld bytes of vmalloc for pointer array space"
--		" and %ld bytes to hold mem_cgroup information per swap ents\n",
--		array_size, length * PAGE_SIZE);
--	printk(KERN_INFO
--	"swap_cgroup can be disabled by noswapaccount boot option.\n");
--
- 	return 0;
- nomem:
- 	printk(KERN_INFO "couldn't allocate enough memory for swap_cgroup.\n");
+diff -puN include/linux/fb.h~cirrusfb-add-accelerator-constantpatch-compilation-fix include/linux/fb.h
+--- a/include/linux/fb.h~cirrusfb-add-accelerator-constantpatch-compilation-fix
++++ a/include/linux/fb.h
+@@ -123,6 +123,7 @@ struct dentry;
+ #define FB_ACCEL_TRIDENT_3DIMAGE 51	/* Trident 3DImage		*/
+ #define FB_ACCEL_TRIDENT_BLADE3D 52	/* Trident Blade3D		*/
+ #define FB_ACCEL_TRIDENT_BLADEXP 53	/* Trident BladeXP		*/
++#define FB_ACCEL_CIRRUS_ALPINE   53	/* Cirrus Logic 543x/544x/5480	*/
+ #define FB_ACCEL_NEOMAGIC_NM2070 90	/* NeoMagic NM2070              */
+ #define FB_ACCEL_NEOMAGIC_NM2090 91	/* NeoMagic NM2090              */
+ #define FB_ACCEL_NEOMAGIC_NM2093 92	/* NeoMagic NM2093              */
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from krzysztof.h1@poczta.fm are
 
-linux-next.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-vmscan-respect-higher-order-in-zone_reclaim.patch
-cgroup-css-id-support.patch
-cgroup-css-id-support-remove-rcu_read_lock-from-css_get_next.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-cgroups-more-documentation-for-remount-and-release_agent.patch
-cgroups-show-correct-file-mode.patch
-cgroups-show-correct-file-mode-fix.patch
-devcgroup-avoid-using-cgroup_lock.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
-memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
-memcg-charge-swapcache-to-proper-memcg.patch
-cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
-memcg-remove-redundant-message-at-swapon.patch
-cgroups-add-data-field-to-struct-cgroup_scanner.patch
-cpuset-rewrite-update_tasks_nodemask.patch
-cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
-cpuset-remove-struct-cpuset_hotplug_scanner.patch
+cirrusfb-convert-printks-to-dev_foo.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-various-improvements.patch
+cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
+fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
+fbdev-uninline-lock_fb_info.patch
+skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sunxvr500-fix-cmap-memory-leaks.patch
+tgafb-fix-cmap-memory-leak.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
+arkfb-fix-misplaced-parentheses.patch
+uvesafb-bitwise-or-has-higher-precedence-than.patch
+vesafb-bitwise-or-has-higher-precedence-than.patch
+n411-add-missing-makefile-entry.patch
+fb-add-s3c-fb-driver-for-newer-samsung-soc-framebuffer-devices.patch
+uvesafb-fix-selecting-mode-with-the-vbemode-option.patch
+omapfb-fix-argument-of-blank-operation.patch
+radeonfb-suspend-resume-for-ati-mobility-radeon-rv350.patch
+cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
+fix-radeon-backlight-shutoff-flashes-momentarily.patch
+intelfb-support-i854.patch
 
