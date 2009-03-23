@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-cleanup-expire-code-duplication.patch added to -mm tree
-Date: Sun, 22 Mar 2009 18:08:27 -0700
-Message-ID: <200903230112.n2N1Cj9Y003168@imap1.linux-foundation.org>
+Subject: + isicom-isicom-kref-leak-fix.patch added to -mm tree
+Date: Sun, 22 Mar 2009 18:17:01 -0700
+Message-ID: <200903230121.n2N1LJm8004858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54545 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40508 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753720AbZCWBOo (ORCPT
+	by vger.kernel.org with ESMTP id S1753553AbZCWBXR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Mar 2009 21:14:44 -0400
+	Sun, 22 Mar 2009 21:23:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: raven@themaw.net, jmoyer@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
 
 
 The patch titled
-     autofs4: cleanup expire code duplication
+     isicom: isicom kref leak fix
 has been added to the -mm tree.  Its filename is
-     autofs4-cleanup-expire-code-duplication.patch
+     isicom-isicom-kref-leak-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,132 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: cleanup expire code duplication
-From: Ian Kent <raven@themaw.net>
+Subject: isicom: isicom kref leak fix
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-A significant portion of the autofs_dev_ioctl_expire() and
-autofs4_expire_multi() functions is duplicated code.  This patch cleans that
-up.
+The isicom driver leaks a kref on the shutdown path. Drop the additional
+kref we took
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Acked-by: Jiri Slaby <jirislaby@gmail.com>
+Reported-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h  |    2 ++
- fs/autofs4/dev-ioctl.c |   29 +----------------------------
- fs/autofs4/expire.c    |   27 +++++++++++++++++----------
- 3 files changed, 20 insertions(+), 38 deletions(-)
+ drivers/char/isicom.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-cleanup-expire-code-duplication fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-cleanup-expire-code-duplication
-+++ a/fs/autofs4/autofs_i.h
-@@ -186,6 +186,8 @@ int autofs4_expire_wait(struct dentry *d
- int autofs4_expire_run(struct super_block *, struct vfsmount *,
- 			struct autofs_sb_info *,
- 			struct autofs_packet_expire __user *);
-+int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			    struct autofs_sb_info *sbi, int when);
- int autofs4_expire_multi(struct super_block *, struct vfsmount *,
- 			struct autofs_sb_info *, int __user *);
- struct dentry *autofs4_expire_direct(struct super_block *sb,
-diff -puN fs/autofs4/dev-ioctl.c~autofs4-cleanup-expire-code-duplication fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs4-cleanup-expire-code-duplication
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -525,40 +525,13 @@ static int autofs_dev_ioctl_expire(struc
- 				   struct autofs_sb_info *sbi,
- 				   struct autofs_dev_ioctl *param)
- {
--	struct dentry *dentry;
- 	struct vfsmount *mnt;
--	int err = -EAGAIN;
- 	int how;
- 
- 	how = param->expire.how;
- 	mnt = fp->f_path.mnt;
- 
--	if (autofs_type_trigger(sbi->type))
--		dentry = autofs4_expire_direct(sbi->sb, mnt, sbi, how);
--	else
--		dentry = autofs4_expire_indirect(sbi->sb, mnt, sbi, how);
--
--	if (dentry) {
--		struct autofs_info *ino = autofs4_dentry_ino(dentry);
--
--		/*
--		 * This is synchronous because it makes the daemon a
--		 * little easier
--		*/
--		err = autofs4_wait(sbi, dentry, NFY_EXPIRE);
--
--		spin_lock(&sbi->fs_lock);
--		if (ino->flags & AUTOFS_INF_MOUNTPOINT) {
--			ino->flags &= ~AUTOFS_INF_MOUNTPOINT;
--			sbi->sb->s_root->d_mounted++;
--		}
--		ino->flags &= ~AUTOFS_INF_EXPIRING;
--		complete_all(&ino->expire_complete);
--		spin_unlock(&sbi->fs_lock);
--		dput(dentry);
--	}
--
--	return err;
-+	return autofs4_do_expire_multi(sbi->sb, mnt, sbi, how);
+diff -puN drivers/char/isicom.c~isicom-isicom-kref-leak-fix drivers/char/isicom.c
+--- a/drivers/char/isicom.c~isicom-isicom-kref-leak-fix
++++ a/drivers/char/isicom.c
+@@ -925,6 +925,7 @@ static void isicom_shutdown_port(struct 
+ 		if (!card->count)
+ 			isicom_shutdown_board(card);
+ 	}
++	tty_kref_put(tty);
  }
  
- /* Check if autofs mount point is in use */
-diff -puN fs/autofs4/expire.c~autofs4-cleanup-expire-code-duplication fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs4-cleanup-expire-code-duplication
-+++ a/fs/autofs4/expire.c
-@@ -478,22 +478,16 @@ int autofs4_expire_run(struct super_bloc
- 	return ret;
- }
- 
--/* Call repeatedly until it returns -EAGAIN, meaning there's nothing
--   more to be done */
--int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
--			struct autofs_sb_info *sbi, int __user *arg)
-+int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			    struct autofs_sb_info *sbi, int when)
- {
- 	struct dentry *dentry;
- 	int ret = -EAGAIN;
--	int do_now = 0;
--
--	if (arg && get_user(do_now, arg))
--		return -EFAULT;
- 
- 	if (autofs_type_trigger(sbi->type))
--		dentry = autofs4_expire_direct(sb, mnt, sbi, do_now);
-+		dentry = autofs4_expire_direct(sb, mnt, sbi, when);
- 	else
--		dentry = autofs4_expire_indirect(sb, mnt, sbi, do_now);
-+		dentry = autofs4_expire_indirect(sb, mnt, sbi, when);
- 
- 	if (dentry) {
- 		struct autofs_info *ino = autofs4_dentry_ino(dentry);
-@@ -516,3 +510,16 @@ int autofs4_expire_multi(struct super_bl
- 	return ret;
- }
- 
-+/* Call repeatedly until it returns -EAGAIN, meaning there's nothing
-+   more to be done */
-+int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			struct autofs_sb_info *sbi, int __user *arg)
-+{
-+	int do_now = 0;
-+
-+	if (arg && get_user(do_now, arg))
-+		return -EFAULT;
-+
-+	return autofs4_do_expire_multi(sb, mnt, sbi, do_now);
-+}
-+
+ static void isicom_flush_buffer(struct tty_struct *tty)
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-autofs4-cleanup-expire-code-duplication.patch
-autofs4-fix-lookup-deadlock.patch
-autofs4-fix-kernel-includes.patch
+linux-next.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+mflash-initial-support.patch
+mflash-initial-support-v2.patch
+proc-tty-add-struct-tty_operations-proc_fops.patch
+proc-tty-switch-cyclades-to-proc_fops.patch
+proc-tty-switch-ip2-to-proc_fops.patch
+proc-tty-switch-istallion-to-proc_fops.patch
+proc-tty-switch-synclink_cs-to-proc_fops.patch
+proc-tty-switch-stallion-to-proc_fops.patch
+proc-tty-switch-synclink-to-proc_fops.patch
+proc-tty-switch-synclink_gt-to-proc_fops.patch
+proc-tty-switch-synclinkmp-to-proc_fops.patch
+proc-tty-switch-sdio_uart-to-proc_fops.patch
+proc-tty-switch-serial_core-to-proc_fops.patch
+proc-tty-switch-usb-serial-to-proc_fops.patch
+proc-tty-switch-ircomm-to-proc_fops.patch
+proc-tty-switch-amiserial-to-proc_fops.patch
+proc-tty-switch-ia64-simserial-to-proc_fops.patch
+proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
+proc-tty-remove-struct-tty_operations-read_proc.patch
+tty-pty-lookup-retval-fixup.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch
+blackfin-serial-driver-change-hardware-flowcontrol-from-poll-to-interrupt-driven.patch
+blackfin-serial-driver-fix-bug-serial-port-transfer-big-file-from-host-to-target-would-have-more-lines.patch
+blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags.patch
+blackfin-serial-driver-update-kgdb-uart-config-name.patch
+blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled.patch
+blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n.patch
+blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences.patch
+blackfin-serial-driver-fix-bug-enable-hardware-based-cts-and-rts-for-bf548.patch
+blackfin-serial-driver-update-path-to-gpio-header.patch
+max3100-spi-uart-driver.patch
+epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
+epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
+epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
+epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+serial-clean-up-rs485-on-cris-architecture.patch
+jsm-cleanup.patch
+serial-8250c-irq-handling-race-and-spurious-iir-read.patch
+moxa-fix-refcounting-in-moxa_poll_port.patch
+vt-add-ioctl-commands-to-dev-vcsan-to-get-put-the-current-palette-of-the-given-tty.patch
+isicom-isicom-kref-leak-fix.patch
+isicom-isicom-kref-leak-fix-fix.patch
+devpts-unroll-essentials-of-do_remount_sb-into-devpts.patch
+devpts-parse-mount-options-just-once-and-copy-them-to-super-block.patch
+devpts-move-common-mknod_ptmx-calls-into-caller.patch
+devpts-remove-get_init_pts_sb.patch
+devpts-merge-code-for-single-and-multiple-instance-mounts.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
 
