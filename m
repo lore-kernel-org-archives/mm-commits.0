@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tridentfb-delete-acceleration-kconfig-option.patch added to -mm tree
-Date: Sun, 22 Mar 2009 18:04:30 -0700
-Message-ID: <200903230108.n2N18mvU002379@imap1.linux-foundation.org>
+Subject: + autofs4-fix-lookup-deadlock.patch added to -mm tree
+Date: Sun, 22 Mar 2009 18:08:32 -0700
+Message-ID: <200903230112.n2N1CoPu003171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756065AbZCWBKU (ORCPT
+	by vger.kernel.org with ESMTP id S1753720AbZCWBOD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Mar 2009 21:10:20 -0400
+	Sun, 22 Mar 2009 21:14:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: raven@themaw.net
 
 
 The patch titled
-     tridentfb: delete acceleration Kconfig option
+     autofs4: fix lookup deadlock
 has been added to the -mm tree.  Its filename is
-     tridentfb-delete-acceleration-kconfig-option.patch
+     autofs4-fix-lookup-deadlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: delete acceleration Kconfig option
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: autofs4: fix lookup deadlock
+From: Ian Kent <raven@themaw.net>
 
-Remove Kconfig option for tridentfb acceleration.  The acceleration can be
-switched off with modules "noaccel" parameter.
+A deadlock can occur when user space uses a signal (autofs version 4 uses
+SIGCHLD for this) to effect expire completion.
 
-The acceleration for Trident chips was fixed in the 2.6.27 kernel.
+The order of events is:
 
-Also, add CyberXXX and CyberBlade names to Kconfig option's name.  It should
-make easier to find the tridentfb choice for cyblafb driver's users.  The
-cyblafb driver has been replaced by the tridentfb driver.
+Expire process completes, but before being able to send SIGCHLD to it's parent
+...
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Another process walks onto a different mount point and drops the directory
+inode semaphore prior to sending the request to the daemon as it must ...
+
+A third process does an lstat on on the expired mount point causing it to wait
+on expire completion (unfortunately) holding the directory semaphore.
+
+The mount request then arrives at the daemon which does an lstat and,
+deadlock.
+
+For some time I was concerned about releasing the directory semaphore around
+the expire wait in autofs4_lookup as well as for the mount call back.  I
+finally realized that the last round of changes in this function made the
+expiring dentry and the lookup dentry separate and distinct so the check and
+possible wait can be done anywhere prior to the mount call back.  This patch
+moves the check to just before the mount call back and inside the directory
+inode mutex release.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig     |    9 +--------
- drivers/video/tridentfb.c |   12 ------------
- 2 files changed, 1 insertion(+), 20 deletions(-)
+ fs/autofs4/root.c |   41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN drivers/video/Kconfig~tridentfb-delete-acceleration-kconfig-option drivers/video/Kconfig
---- a/drivers/video/Kconfig~tridentfb-delete-acceleration-kconfig-option
-+++ a/drivers/video/Kconfig
-@@ -1598,7 +1598,7 @@ config FB_VT8623
- 	  VIA VT8623 [Apollo CLE266] chipset.
+diff -puN fs/autofs4/root.c~autofs4-fix-lookup-deadlock fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-fix-lookup-deadlock
++++ a/fs/autofs4/root.c
+@@ -485,22 +485,6 @@ static struct dentry *autofs4_lookup(str
+ 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
+ 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
  
- config FB_TRIDENT
--	tristate "Trident support"
-+	tristate "Trident/CyberXXX/CyberBlade support"
- 	depends on FB && PCI
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
-@@ -1617,13 +1617,6 @@ config FB_TRIDENT
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tridentfb.
- 
--config FB_TRIDENT_ACCEL
--	bool "Trident Acceleration functions (EXPERIMENTAL)"
--	depends on FB_TRIDENT && EXPERIMENTAL
--	---help---
--	This will compile the Trident frame buffer device with
--	acceleration functions.
+-	expiring = autofs4_lookup_expiring(sbi, dentry->d_parent, &dentry->d_name);
+-	if (expiring) {
+-		/*
+-		 * If we are racing with expire the request might not
+-		 * be quite complete but the directory has been removed
+-		 * so it must have been successful, so just wait for it.
+-		 */
+-		ino = autofs4_dentry_ino(expiring);
+-		autofs4_expire_wait(expiring);
+-		spin_lock(&sbi->lookup_lock);
+-		if (!list_empty(&ino->expiring))
+-			list_del_init(&ino->expiring);
+-		spin_unlock(&sbi->lookup_lock);
+-		dput(expiring);
+-	}
 -
- config FB_ARK
- 	tristate "ARK 2000PV support"
- 	depends on FB && PCI
-diff -puN drivers/video/tridentfb.c~tridentfb-delete-acceleration-kconfig-option drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-delete-acceleration-kconfig-option
-+++ a/drivers/video/tridentfb.c
-@@ -490,7 +490,6 @@ static void tgui_copy_rect(struct triden
- /*
-  * Accel functions called by the upper layers
-  */
--#ifdef CONFIG_FB_TRIDENT_ACCEL
- static void tridentfb_fillrect(struct fb_info *info,
- 			       const struct fb_fillrect *fr)
- {
-@@ -565,11 +564,6 @@ static int tridentfb_sync(struct fb_info
- 		par->wait_engine(par);
- 	return 0;
- }
--#else
--#define tridentfb_fillrect cfb_fillrect
--#define tridentfb_copyarea cfb_copyarea
--#define tridentfb_imageblit cfb_imageblit
--#endif /* CONFIG_FB_TRIDENT_ACCEL */
+ 	unhashed = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
+ 	if (unhashed)
+ 		dentry = unhashed;
+@@ -538,14 +522,31 @@ static struct dentry *autofs4_lookup(str
+ 	}
  
- /*
-  * Hardware access functions
-@@ -1333,9 +1327,7 @@ static struct fb_ops tridentfb_ops = {
- 	.fb_fillrect = tridentfb_fillrect,
- 	.fb_copyarea = tridentfb_copyarea,
- 	.fb_imageblit = tridentfb_imageblit,
--#ifdef CONFIG_FB_TRIDENT_ACCEL
- 	.fb_sync = tridentfb_sync,
--#endif
- };
+ 	if (!oz_mode) {
++		mutex_unlock(&dir->i_mutex);
++		expiring = autofs4_lookup_expiring(sbi,
++						   dentry->d_parent,
++						   &dentry->d_name);
++		if (expiring) {
++			/*
++			 * If we are racing with expire the request might not
++			 * be quite complete but the directory has been removed
++			 * so it must have been successful, so just wait for it.
++			 */
++			ino = autofs4_dentry_ino(expiring);
++			autofs4_expire_wait(expiring);
++			spin_lock(&sbi->lookup_lock);
++			if (!list_empty(&ino->expiring))
++				list_del_init(&ino->expiring);
++			spin_unlock(&sbi->lookup_lock);
++			dput(expiring);
++		}
++
+ 		spin_lock(&dentry->d_lock);
+ 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
+ 		spin_unlock(&dentry->d_lock);
+-		if (dentry->d_op && dentry->d_op->d_revalidate) {
+-			mutex_unlock(&dir->i_mutex);
++		if (dentry->d_op && dentry->d_op->d_revalidate)
+ 			(dentry->d_op->d_revalidate)(dentry, nd);
+-			mutex_lock(&dir->i_mutex);
+-		}
++		mutex_lock(&dir->i_mutex);
+ 	}
  
- static int __devinit trident_pci_probe(struct pci_dev *dev,
-@@ -1359,10 +1351,6 @@ static int __devinit trident_pci_probe(s
- 
- 	chip_id = id->device;
- 
--#ifndef CONFIG_FB_TRIDENT_ACCEL
--	noaccel = 1;
--#endif
--
- 	/* If PCI id is 0x9660 then further detect chip type */
- 
- 	if (chip_id == TGUI9660) {
+ 	/*
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from raven@themaw.net are
 
-origin.patch
-linux-next.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
-cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
-cirrusfb-do-not-calculate-line-length-twice.patch
-cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
-cirrusfb-various-improvements.patch
-cirrusfb-laguna-chipset-8bpp-fix.patch
-cirrusfb-check_var-improvements.patch
-cirrusfb-various-laguna-fixes.patch
-cirrusfb-acceleration-improvements.patch
-cirrusfb-add-imageblit-function.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
-cirrusfb-gd5446-fixes.patch
-cirrusfb-use-24bpp-instead-of-32bpp.patch
-cirrusfb-fix-clock-doubling.patch
-cirrusfb-fix-clock-doubling-fix.patch
-cirrusfb-add-accelerator-constant.patch
-cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
-cirrusfb-set-mclk-in-one-place.patch
-cirrusfb-set-mclk-in-one-place-fix.patch
-cirrusfb-gd5434-aka-sd64-support-fixed.patch
-cirrusfb-fix-threshold-register-mask-for-laguna-chips.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-asiliantfb-fix-cmap-memory-leaks.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
-remove-cyblafb-driver.patch
-nvidiafb-remove-open_lock-mutex.patch
-fb-hide-hardware-cursor-in-graphics-mode-mach64.patch
-atyfb-speed-up-mach64-cursor.patch
-tridentfb-delete-acceleration-kconfig-option.patch
+autofs4-cleanup-expire-code-duplication.patch
+autofs4-fix-lookup-deadlock.patch
+autofs4-fix-kernel-includes.patch
 
