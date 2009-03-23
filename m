@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpqarray-enable-bus-mastering.patch added to -mm tree
-Date: Sun, 22 Mar 2009 18:00:59 -0700
-Message-ID: <200903230105.n2N15HRk001652@imap1.linux-foundation.org>
+Subject: + moxa-fix-refcounting-in-moxa_poll_port.patch added to -mm tree
+Date: Sun, 22 Mar 2009 18:02:48 -0700
+Message-ID: <200903230107.n2N176Ok002073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59566 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756817AbZCWBJH (ORCPT
+	by vger.kernel.org with ESMTP id S1753720AbZCWBKE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Mar 2009 21:09:07 -0400
+	Sun, 22 Mar 2009 21:10:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, jens.axboe@oracle.com, kyle@redhat.com, mike.miller@hp.com
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, kas@fi.muni.cz
 
 
 The patch titled
-     cpqarray: enable bus mastering
+     moxa: fix refcounting in moxa_poll_port
 has been added to the -mm tree.  Its filename is
-     cpqarray-enable-bus-mastering.patch
+     moxa-fix-refcounting-in-moxa_poll_port.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpqarray: enable bus mastering
-From: Dave Jones <davej@redhat.com>
+Subject: moxa: fix refcounting in moxa_poll_port
+From: Jiri Slaby <jirislaby@gmail.com>
 
-We've been carrying this patch for the last 3 years in Fedora, long past time
-we got it upstream...
+There is a missing tty_kref_put() on some paths in moxa_poll_port(), although
+the reference is always taken.  Fix it.
 
-Call pci_set_master to enable bus-mastering if the BIOS hasn't done it
-already.
-
-Signed-off-by: Kyle McMartin <kyle@redhat.com>
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Reported-by: Jan 'Yenya' Kasprzak <kas@fi.muni.cz>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cpqarray.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/moxa.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/cpqarray.c~cpqarray-enable-bus-mastering drivers/block/cpqarray.c
---- a/drivers/block/cpqarray.c~cpqarray-enable-bus-mastering
-+++ a/drivers/block/cpqarray.c
-@@ -617,6 +617,7 @@ static int cpqarray_pci_init(ctlr_info_t
- 	int i;
+diff -puN drivers/char/moxa.c~moxa-fix-refcounting-in-moxa_poll_port drivers/char/moxa.c
+--- a/drivers/char/moxa.c~moxa-fix-refcounting-in-moxa_poll_port
++++ a/drivers/char/moxa.c
+@@ -1486,11 +1486,11 @@ static int moxa_poll_port(struct moxa_po
+ 	}
  
- 	c->pci_dev = pdev;
-+	pci_set_master(pdev);
- 	if (pci_enable_device(pdev)) {
- 		printk(KERN_ERR "cpqarray: Unable to Enable PCI device\n");
- 		return -1;
+ 	if (!handle) /* nothing else to do */
+-		return 0;
++		goto put;
+ 
+ 	intr = readw(ip); /* port irq status */
+ 	if (intr == 0)
+-		return 0;
++		goto put;
+ 
+ 	writew(0, ip); /* ACK port */
+ 	ofsAddr = p->tableAddr;
+@@ -1499,16 +1499,17 @@ static int moxa_poll_port(struct moxa_po
+ 				ofsAddr + HostStat);
+ 
+ 	if (!inited)
+-		return 0;
++		goto put;
+ 
+ 	if (tty && (intr & IntrBreak) && !I_IGNBRK(tty)) { /* BREAK */
+ 		tty_insert_flip_char(tty, 0, TTY_BREAK);
+ 		tty_schedule_flip(tty);
+ 	}
+-	tty_kref_put(tty);
+ 
+ 	if (intr & IntrLine)
+ 		moxa_new_dcdstate(p, readb(ofsAddr + FlagStat) & DCD_state);
++put:
++	tty_kref_put(tty);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
 linux-next.patch
-cpqarray-enable-bus-mastering.patch
+tty-pty-lookup-retval-fixup.patch
+icom-converting-space-to-tabs.patch
+moxa-fix-refcounting-in-moxa_poll_port.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
