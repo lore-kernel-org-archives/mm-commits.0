@@ -1,160 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] regulator-init-fixes.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 11:44:15 -0700
-Message-ID: <200903301844.n2UIiFEB013090@imap1.linux-foundation.org>
+Subject: [merged] fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:05:49 -0700
+Message-ID: <200903301905.n2UJ5ntr018779@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751938AbZC3SrR (ORCPT
+	by vger.kernel.org with ESMTP id S1759297AbZC3TI5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 14:47:17 -0400
+	Mon, 30 Mar 2009 15:08:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, lrg@slimlogic.co.uk, mm-commits@vger.kernel.org
+To: yjwei@cn.fujitsu.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator: init fixes
+     fs/jffs2/malloc.c: kmem_cache_alloc/memset -> kmem_cache_zalloc
 has been removed from the -mm tree.  Its filename was
-     regulator-init-fixes.patch
+     fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: init fixes
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: fs/jffs2/malloc.c: kmem_cache_alloc/memset -> kmem_cache_zalloc
+From: Wei Yongjun <yjwei@cn.fujitsu.com>
 
-Make the regulator setup code cope more consistently with regulators
-undesirably left enabled by the bootloader.
+Used kmem_cache_zalloc instead of kmem_cache_alloc/memset.
 
-Building on the previous refcount patch:
-
-* Unless the "boot_on" or "always_on" machine constraints were set,
-  disable() the regulator.  This gives drivers a clean start state: enable
-  state matches usecount, regardless of boot_on/always_on flag state.
-
-* To help make some integration stages easier, add a new "devmode"
-  machine constraint where state the bootloader left isn't touched, but
-  enable state and usecount may not match.  (System boots but some drivers
-  act odd ...  debuggable.  System dies part way through booting ... 
-  often painful.)
-
-Consider a bootloader that leaves an MMC/SD regulator active when it loads
-Linux from an SD card.  It may take some time before the MMC/SD driver
-gets loaded, if ever ...  to save power, that (LDO) regulator should be
-disabled ASAP.  Then later when the MMC driver starts up, the Linux MMC
-stack will need to start from a "power off" state.  It can't just
-
-	if (regulator_is_enabled(r))
-		regulator_disable(r);
-
-unless enable state and usecount are matched ...  but without this patch,
-they *will* be mismatched whenever the bootloader happens to have left
-that regulator active!  Similar issues can crop up with almost any
-regulator.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+Signed-off-by: Wei Yongjun <yjwei@cn.fujitsu.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/core.c          |   47 ++++++++++++++++++++++------
- include/linux/regulator/machine.h |    3 +
- 2 files changed, 40 insertions(+), 10 deletions(-)
+ fs/jffs2/malloc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/regulator/core.c~regulator-init-fixes drivers/regulator/core.c
---- a/drivers/regulator/core.c~regulator-init-fixes
-+++ a/drivers/regulator/core.c
-@@ -803,18 +803,47 @@ static int set_machine_constraints(struc
- 		}
- 	}
+diff -puN fs/jffs2/malloc.c~fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc fs/jffs2/malloc.c
+--- a/fs/jffs2/malloc.c~fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc
++++ a/fs/jffs2/malloc.c
+@@ -284,10 +284,9 @@ void jffs2_free_inode_cache(struct jffs2
+ struct jffs2_xattr_datum *jffs2_alloc_xattr_datum(void)
+ {
+ 	struct jffs2_xattr_datum *xd;
+-	xd = kmem_cache_alloc(xattr_datum_cache, GFP_KERNEL);
++	xd = kmem_cache_zalloc(xattr_datum_cache, GFP_KERNEL);
+ 	dbg_memalloc("%p\n", xd);
  
--	/* If the constraints say the regulator should be on at this point
--	 * and we have control then make sure it is enabled.
-+	/* During integration, developers may need time to sort out what
-+	 * to do with this regulator; leave the bootloader's setting alone.
-+	 * Regulator consumers won't get consistent behavior.
-+	 *
-+	 * Else the constraints say whether it should be on or off; we
-+	 * don't leave it in an unknown state.
- 	 */
--	if ((constraints->always_on || constraints->boot_on) && ops->enable) {
--		ret = ops->enable(rdev);
--		if (ret < 0) {
--			printk(KERN_ERR "%s: failed to enable %s\n",
--			       __func__, name);
--			rdev->constraints = NULL;
--			goto out;
-+	if (constraints->devmode) {
-+		char *label = "unknown";
-+
-+		if (ops->is_enabled) {
-+			ret = ops->is_enabled(rdev);
-+			if (ret == 0)
-+				label = "disabled";
-+			else if (ret > 0)
-+				label = "enabled";
-+			ret = 0;
-+		}
-+		pr_warning("%s: devmode regulator '%s' state is '%s'\n",
-+			       __func__, name, label);
-+	} else if (constraints->always_on || constraints->boot_on) {
-+		if (ops->enable) {
-+			ret = ops->enable(rdev);
-+			if (ret < 0) {
-+				pr_err("%s: failed enabling %s\n",
-+				       __func__, name);
-+				rdev->constraints = NULL;
-+				goto out;
-+			}
- 		}
- 		rdev->use_count = 1;
-+	} else {
-+		if (ops->disable) {
-+			ret = ops->disable(rdev);
-+			if (ret < 0) {
-+				pr_err("%s: failed disabling %s\n",
-+				       __func__, name);
-+				rdev->constraints = NULL;
-+				goto out;
-+			}
-+		}
- 	}
+-	memset(xd, 0, sizeof(struct jffs2_xattr_datum));
+ 	xd->class = RAWNODE_CLASS_XATTR_DATUM;
+ 	xd->node = (void *)xd;
+ 	INIT_LIST_HEAD(&xd->xindex);
+@@ -303,10 +302,9 @@ void jffs2_free_xattr_datum(struct jffs2
+ struct jffs2_xattr_ref *jffs2_alloc_xattr_ref(void)
+ {
+ 	struct jffs2_xattr_ref *ref;
+-	ref = kmem_cache_alloc(xattr_ref_cache, GFP_KERNEL);
++	ref = kmem_cache_zalloc(xattr_ref_cache, GFP_KERNEL);
+ 	dbg_memalloc("%p\n", ref);
  
- 	print_constraints(rdev);
-diff -puN include/linux/regulator/machine.h~regulator-init-fixes include/linux/regulator/machine.h
---- a/include/linux/regulator/machine.h~regulator-init-fixes
-+++ a/include/linux/regulator/machine.h
-@@ -117,7 +117,8 @@ struct regulation_constraints {
- 	/* mode to set on startup */
- 	unsigned int initial_mode;
- 
--	/* constriant flags */
-+	/* constraint flags */
-+	unsigned devmode:1;	/* state after setup is indeterminate */
- 	unsigned always_on:1;	/* regulator never off when system is on */
- 	unsigned boot_on:1;	/* bootloader/firmware enabled regulator */
- 	unsigned apply_uV:1;	/* apply uV constraint iff min == max */
+-	memset(ref, 0, sizeof(struct jffs2_xattr_ref));
+ 	ref->class = RAWNODE_CLASS_XATTR_REF;
+ 	ref->node = (void *)ref;
+ 	return ref;
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from yjwei@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
-regulator-init-fixes.patch
-blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
-blackfin-spi-driver-remove-useless-asm-cplbinith.patch
-blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
-blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
-blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
-blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
-blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
-blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
-blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-ds1307-true-smbus-compatibility.patch
-gpio-gpio_requestfree-now-required-feature-removal.patch
+scsi-used-kmem_cache_zalloc-instead-of-kmem_cache_alloc-memset.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
 
