@@ -1,272 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfs-simple_set_mnt-should-return-void.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:06:34 -0700
-Message-ID: <200903301906.n2UJ6YrY019106@imap1.linux-foundation.org>
+Subject: [merged] git-acpi-vs-git-cpufreq.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:05:23 -0700
+Message-ID: <200903301905.n2UJ5N6G018665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34810 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758147AbZC3ThF (ORCPT
+	by vger.kernel.org with ESMTP id S1759653AbZC3Tht (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 15:37:05 -0400
+	Mon, 30 Mar 2009 15:37:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sukadev@linux.vnet.ibm.com, hch@lst.de, serue@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davej@codemonkey.org.uk, len.brown@intel.com, ming.m.lin@intel.com, randy.dunlap@oracle.com, robert.moore@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: simple_set_mnt() should return void
+     git-acpi vs git-cpufreq
 has been removed from the -mm tree.  Its filename was
-     vfs-simple_set_mnt-should-return-void.patch
+     git-acpi-vs-git-cpufreq.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: simple_set_mnt() should return void
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Subject: git-acpi vs git-cpufreq
+From: Andrew Morton <akpm@linux-foundation.org>
 
-simple_set_mnt() is defined as returning 'int' but always returns 0. 
-Callers assume simple_set_mnt() never fails and don't properly cleanup if
-it were to _ever_ fail.  For instance, get_sb_single() and get_sb_nodev()
-should:
+acpi_set_register() got renamed in the acpi tree.
 
-        up_write(sb->s_unmount);
-        deactivate_super(sb);
-
-if simple_set_mnt() fails.
-
-Since simple_set_mnt() never fails, would be cleaner if it did not
-return anything.
-
-[akpm@linux-foundation.org: fix build]
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Dave Jones <davej@codemonkey.org.uk>
+Randy Dunlap <randy.dunlap@oracle.com>
+Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdsuper.c |    7 +++++--
- fs/9p/vfs_super.c      |    5 +++--
- fs/cifs/cifsfs.c       |    3 ++-
- fs/devpts/inode.c      |    3 ++-
- fs/libfs.c             |    3 ++-
- fs/namespace.c         |    3 +--
- fs/proc/proc_net.c     |    3 ++-
- fs/proc/root.c         |    3 ++-
- fs/super.c             |    9 ++++++---
- fs/ubifs/super.c       |    3 ++-
- include/linux/fs.h     |    2 +-
- kernel/cgroup.c        |    3 ++-
- 12 files changed, 30 insertions(+), 17 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/longhaul.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mtd/mtdsuper.c~vfs-simple_set_mnt-should-return-void drivers/mtd/mtdsuper.c
---- a/drivers/mtd/mtdsuper.c~vfs-simple_set_mnt-should-return-void
-+++ a/drivers/mtd/mtdsuper.c
-@@ -81,13 +81,16 @@ static int get_sb_mtd_aux(struct file_sy
- 
- 	/* go */
- 	sb->s_flags |= MS_ACTIVE;
--	return simple_set_mnt(mnt, sb);
-+	simple_set_mnt(mnt, sb);
-+
-+	return 0;
- 
- 	/* new mountpoint for an already mounted superblock */
- already_mounted:
- 	DEBUG(1, "MTDSB: Device %d (\"%s\") is already mounted\n",
- 	      mtd->index, mtd->name);
--	ret = simple_set_mnt(mnt, sb);
-+	simple_set_mnt(mnt, sb);
-+	ret = 0;
- 	goto out_put;
- 
- out_error:
-diff -puN fs/9p/vfs_super.c~vfs-simple_set_mnt-should-return-void fs/9p/vfs_super.c
---- a/fs/9p/vfs_super.c~vfs-simple_set_mnt-should-return-void
-+++ a/fs/9p/vfs_super.c
-@@ -168,8 +168,9 @@ static int v9fs_get_sb(struct file_syste
- 	p9stat_free(st);
- 	kfree(st);
- 
--P9_DPRINTK(P9_DEBUG_VFS, " return simple set mount\n");
--	return simple_set_mnt(mnt, sb);
-+P9_DPRINTK(P9_DEBUG_VFS, " simple set mount, return 0\n");
-+	simple_set_mnt(mnt, sb);
-+	return 0;
- 
- release_sb:
- 	if (sb) {
-diff -puN fs/cifs/cifsfs.c~vfs-simple_set_mnt-should-return-void fs/cifs/cifsfs.c
---- a/fs/cifs/cifsfs.c~vfs-simple_set_mnt-should-return-void
-+++ a/fs/cifs/cifsfs.c
-@@ -606,7 +606,8 @@ cifs_get_sb(struct file_system_type *fs_
- 		return rc;
+diff -puN arch/x86/kernel/cpu/cpufreq/longhaul.c~git-acpi-vs-git-cpufreq arch/x86/kernel/cpu/cpufreq/longhaul.c
+--- a/arch/x86/kernel/cpu/cpufreq/longhaul.c~git-acpi-vs-git-cpufreq
++++ a/arch/x86/kernel/cpu/cpufreq/longhaul.c
+@@ -305,7 +305,7 @@ retry_loop:
+ 		outb(3, 0x22);
+ 	} else if ((pr != NULL) && pr->flags.bm_control) {
+ 		/* Disable bus master arbitration */
+-		acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1);
++		acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 1);
  	}
- 	sb->s_flags |= MS_ACTIVE;
--	return simple_set_mnt(mnt, sb);
-+	simple_set_mnt(mnt, sb);
-+	return 0;
- }
+ 	switch (longhaul_version) {
  
- static ssize_t cifs_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
-diff -puN fs/devpts/inode.c~vfs-simple_set_mnt-should-return-void fs/devpts/inode.c
---- a/fs/devpts/inode.c~vfs-simple_set_mnt-should-return-void
-+++ a/fs/devpts/inode.c
-@@ -459,7 +459,8 @@ static int get_init_pts_sb(struct file_s
- 		s->s_flags |= MS_ACTIVE;
+@@ -328,7 +328,7 @@ retry_loop:
+ 	case TYPE_POWERSAVER:
+ 		if (longhaul_flags & USE_ACPI_C3) {
+ 			/* Don't allow wakeup */
+-			acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
++			acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
+ 			do_powersaver(cx->address, mults_index, dir);
+ 		} else {
+ 			do_powersaver(0, mults_index, dir);
+@@ -341,7 +341,7 @@ retry_loop:
+ 		outb(0, 0x22);
+ 	} else if ((pr != NULL) && pr->flags.bm_control) {
+ 		/* Enable bus master arbitration */
+-		acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
++		acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 0);
  	}
- 	do_remount_sb(s, flags, data, 0);
--	return simple_set_mnt(mnt, s);
-+	simple_set_mnt(mnt, s);
-+	return 0;
- }
- 
- /*
-diff -puN fs/libfs.c~vfs-simple_set_mnt-should-return-void fs/libfs.c
---- a/fs/libfs.c~vfs-simple_set_mnt-should-return-void
-+++ a/fs/libfs.c
-@@ -242,7 +242,8 @@ int get_sb_pseudo(struct file_system_typ
- 	d_instantiate(dentry, root);
- 	s->s_root = dentry;
- 	s->s_flags |= MS_ACTIVE;
--	return simple_set_mnt(mnt, s);
-+	simple_set_mnt(mnt, s);
-+	return 0;
- 
- Enomem:
- 	up_write(&s->s_umount);
-diff -puN fs/namespace.c~vfs-simple_set_mnt-should-return-void fs/namespace.c
---- a/fs/namespace.c~vfs-simple_set_mnt-should-return-void
-+++ a/fs/namespace.c
-@@ -397,11 +397,10 @@ static void __mnt_unmake_readonly(struct
- 	spin_unlock(&vfsmount_lock);
- }
- 
--int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
-+void simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
- {
- 	mnt->mnt_sb = sb;
- 	mnt->mnt_root = dget(sb->s_root);
--	return 0;
- }
- 
- EXPORT_SYMBOL(simple_set_mnt);
-diff -puN fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void fs/proc/proc_net.c
---- a/fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void
-+++ a/fs/proc/proc_net.c
-@@ -293,7 +293,8 @@ static int proc_net_get_sb(struct file_s
- 		sb->s_flags |= MS_ACTIVE;
- 	}
- 
--	return simple_set_mnt(mnt, sb);
-+	simple_set_mnt(mnt, sb);
-+	return 0;
- }
- 
- static struct file_system_type proc_net_fs_type = {
-diff -puN fs/proc/root.c~vfs-simple_set_mnt-should-return-void fs/proc/root.c
---- a/fs/proc/root.c~vfs-simple_set_mnt-should-return-void
-+++ a/fs/proc/root.c
-@@ -83,7 +83,8 @@ static int proc_get_sb(struct file_syste
- 		ns->proc_mnt = mnt;
- 	}
- 
--	return simple_set_mnt(mnt, sb);
-+	simple_set_mnt(mnt, sb);
-+	return 0;
- }
- 
- static void proc_kill_sb(struct super_block *sb)
-diff -puN fs/super.c~vfs-simple_set_mnt-should-return-void fs/super.c
---- a/fs/super.c~vfs-simple_set_mnt-should-return-void
-+++ a/fs/super.c
-@@ -829,7 +829,8 @@ int get_sb_bdev(struct file_system_type 
- 		bdev->bd_super = s;
- 	}
- 
--	return simple_set_mnt(mnt, s);
-+	simple_set_mnt(mnt, s);
-+	return 0;
- 
- error_s:
- 	error = PTR_ERR(s);
-@@ -875,7 +876,8 @@ int get_sb_nodev(struct file_system_type
- 		return error;
- 	}
- 	s->s_flags |= MS_ACTIVE;
--	return simple_set_mnt(mnt, s);
-+	simple_set_mnt(mnt, s);
-+	return 0;
- }
- 
- EXPORT_SYMBOL(get_sb_nodev);
-@@ -907,7 +909,8 @@ int get_sb_single(struct file_system_typ
- 		s->s_flags |= MS_ACTIVE;
- 	}
- 	do_remount_sb(s, flags, data, 0);
--	return simple_set_mnt(mnt, s);
-+	simple_set_mnt(mnt, s);
-+	return 0;
- }
- 
- EXPORT_SYMBOL(get_sb_single);
-diff -puN fs/ubifs/super.c~vfs-simple_set_mnt-should-return-void fs/ubifs/super.c
---- a/fs/ubifs/super.c~vfs-simple_set_mnt-should-return-void
-+++ a/fs/ubifs/super.c
-@@ -2034,7 +2034,8 @@ static int ubifs_get_sb(struct file_syst
- 	/* 'fill_super()' opens ubi again so we must close it here */
- 	ubi_close_volume(ubi);
- 
--	return simple_set_mnt(mnt, sb);
-+	simple_set_mnt(mnt, sb);
-+	return 0;
- 
- out_deact:
- 	up_write(&sb->s_umount);
-diff -puN include/linux/fs.h~vfs-simple_set_mnt-should-return-void include/linux/fs.h
---- a/include/linux/fs.h~vfs-simple_set_mnt-should-return-void
-+++ a/include/linux/fs.h
-@@ -1724,7 +1724,7 @@ struct super_block *sget(struct file_sys
- extern int get_sb_pseudo(struct file_system_type *, char *,
- 	const struct super_operations *ops, unsigned long,
- 	struct vfsmount *mnt);
--extern int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb);
-+extern void simple_set_mnt(struct vfsmount *mnt, struct super_block *sb);
- int __put_super_and_need_restart(struct super_block *sb);
- 
- /* Alas, no aliases. Too much hassle with bringing module.h everywhere */
-diff -puN kernel/cgroup.c~vfs-simple_set_mnt-should-return-void kernel/cgroup.c
---- a/kernel/cgroup.c~vfs-simple_set_mnt-should-return-void
-+++ a/kernel/cgroup.c
-@@ -1071,7 +1071,8 @@ static int cgroup_get_sb(struct file_sys
- 		mutex_unlock(&cgroup_mutex);
- 	}
- 
--	return simple_set_mnt(mnt, sb);
-+	simple_set_mnt(mnt, sb);
-+	return 0;
- 
-  free_cg_links:
- 	free_cg_links(&tmp_cg_links);
+ 	outb(pic2_mask, 0xA1);	/* restore mask */
+ 	outb(pic1_mask, 0x21);
 _
 
-Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-signals-remove-handler-parameter-to-tracehook-functions.patch
-signals-protect-init-from-unwanted-signals-more.patch
-signals-add-from_ancestor_ns-parameter-to-send_signal.patch
-signals-protect-cinit-from-unblocked-sig_dfl-signals.patch
-signals-zap_pid_ns_process-should-use-force_sig.patch
-signals-protect-cinit-from-blocked-fatal-signals.patch
-signals-si_user-masquerade-si_pid-when-crossing-pid-ns-boundary.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+flex-onenand-support-v2-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+isicom-isicom-kref-leak-fix-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+ubd-stop-defintining-major_nr-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-fix-clock-doubling-fix.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
 pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
