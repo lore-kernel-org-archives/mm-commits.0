@@ -1,69 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ufs-ensure-fast-symlinks-are-nul-terminated.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:07:18 -0700
-Message-ID: <200903301907.n2UJ7IL1019322@imap1.linux-foundation.org>
+Subject: [merged] vfs-further-changes-from-macro-to-inline-function-in-fsh.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:06:32 -0700
+Message-ID: <200903301906.n2UJ6Whp019066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43987 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754403AbZC3TJL (ORCPT
+	by vger.kernel.org with ESMTP id S1759382AbZC3TKU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 15:09:11 -0400
+	Mon, 30 Mar 2009 15:10:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: duaneg@dghda.com, mm-commits@vger.kernel.org
+To: swhiteho@redhat.com, randy.dunlap@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs: ensure fast symlinks are NUL-terminated
+     vfs: further changes from macro to inline function in fs.h
 has been removed from the -mm tree.  Its filename was
-     ufs-ensure-fast-symlinks-are-nul-terminated.patch
+     vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: ensure fast symlinks are NUL-terminated
-From: Duane Griffin <duaneg@dghda.com>
+Subject: vfs: further changes from macro to inline function in fs.h
+From: Steven Whitehouse <swhiteho@redhat.com>
 
-Ensure fast symlink targets are NUL-terminated, even if corrupted
-on-disk.
+There is a second set of macros for when CONFIG_FILE_LOCKING is not set. 
+This patch updates those to become inline functions as well.
 
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Signed-off-by: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/inode.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/fs.h |   45 ++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 38 insertions(+), 7 deletions(-)
 
-diff -puN fs/ufs/inode.c~ufs-ensure-fast-symlinks-are-nul-terminated fs/ufs/inode.c
---- a/fs/ufs/inode.c~ufs-ensure-fast-symlinks-are-nul-terminated
-+++ a/fs/ufs/inode.c
-@@ -650,7 +650,8 @@ static int ufs1_read_inode(struct inode 
- 		       sizeof(ufs_inode->ui_u2.ui_addr));
- 	} else {
- 		memcpy(ufsi->i_u1.i_symlink, ufs_inode->ui_u2.ui_symlink,
--		       sizeof(ufs_inode->ui_u2.ui_symlink));
-+		       sizeof(ufs_inode->ui_u2.ui_symlink) - 1);
-+		ufsi->i_u1.i_symlink[sizeof(ufs_inode->ui_u2.ui_symlink) - 1] = 0;
- 	}
+diff -puN include/linux/fs.h~vfs-further-changes-from-macro-to-inline-function-in-fsh include/linux/fs.h
+--- a/include/linux/fs.h~vfs-further-changes-from-macro-to-inline-function-in-fsh
++++ a/include/linux/fs.h
+@@ -1805,13 +1805,44 @@ static inline int break_lease(struct ino
  	return 0;
  }
-@@ -698,7 +699,8 @@ static int ufs2_read_inode(struct inode 
- 		       sizeof(ufs2_inode->ui_u2.ui_addr));
- 	} else {
- 		memcpy(ufsi->i_u1.i_symlink, ufs2_inode->ui_u2.ui_symlink,
--		       sizeof(ufs2_inode->ui_u2.ui_symlink));
-+		       sizeof(ufs2_inode->ui_u2.ui_symlink) - 1);
-+		ufsi->i_u1.i_symlink[sizeof(ufs2_inode->ui_u2.ui_symlink) - 1] = 0;
- 	}
- 	return 0;
- }
+ #else /* !CONFIG_FILE_LOCKING */
+-#define locks_mandatory_locked(a) ({ 0; })
+-#define locks_mandatory_area(a, b, c, d, e) ({ 0; })
+-#define __mandatory_lock(a) ({ 0; })
+-#define mandatory_lock(a) ({ 0; })
+-#define locks_verify_locked(a) ({ 0; })
+-#define locks_verify_truncate(a, b, c) ({ 0; })
+-#define break_lease(a, b) ({ 0; })
++static inline int locks_mandatory_locked(struct inode *inode)
++{
++	return 0;
++}
++
++static inline int locks_mandatory_area(int rw, struct inode *inode,
++				       struct file *filp, loff_t offset,
++				       size_t count)
++{
++	return 0;
++}
++
++static inline int __mandatory_lock(struct inode *inode)
++{
++	return 0;
++}
++
++static inline int mandatory_lock(struct inode *inode)
++{
++	return 0;
++}
++
++static inline int locks_verify_locked(struct inode *inode)
++{
++	return 0;
++}
++
++static inline int locks_verify_truncate(struct inode *inode, struct file *filp,
++					size_t size)
++{
++	return 0;
++}
++
++static inline int break_lease(struct inode *inode, unsigned int mode)
++{
++	return 0;
++}
++
+ #endif /* CONFIG_FILE_LOCKING */
+ 
+ /* fs/open.c */
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from swhiteho@redhat.com are
 
 origin.patch
-linux-next.patch
+mm-page_mkwrite-change-prototype-to-match-fault.patch
 
