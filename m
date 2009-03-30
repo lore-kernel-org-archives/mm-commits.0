@@ -1,102 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hp-wmi-notify-of-a-potential-docking-state-change-on-resume.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:05:27 -0700
-Message-ID: <200903301905.n2UJ5R7T018668@imap1.linux-foundation.org>
+Subject: [merged] mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:06:13 -0700
+Message-ID: <200903301906.n2UJ6DpT019009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759342AbZC3TJk (ORCPT
+	by vger.kernel.org with ESMTP id S1755864AbZC3TLA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 15:09:40 -0400
+	Mon, 30 Mar 2009 15:11:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elendil@planet.nl, lenb@kernel.org, mjg59@srcf.ucam.org, mm-commits@vger.kernel.org
+To: graf.yang@analog.com, cooloney@kernel.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hp-wmi: notify of a potential docking state change on resume
+     mtd: CFI: fix bug - bonnie++ error on BF548 NOR flash
 has been removed from the -mm tree.  Its filename was
-     hp-wmi-notify-of-a-potential-docking-state-change-on-resume.patch
+     mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp-wmi: notify of a potential docking state change on resume
-From: Frans Pop <elendil@planet.nl>
+Subject: mtd: CFI: fix bug - bonnie++ error on BF548 NOR flash
+From: Graf Yang <graf.yang@analog.com>
 
-It is possible that the system gets docked or undocked while it's
-suspended. Generate an input event on resume to notify user space
-if there was a state change.
+The function inval_cache_and_wait_for_operation() is called both
+by write and erase operation. If erase call it and stayed there, then write
+call it and male-cleared chip->erase_suspended, the time out error may arise.
 
-As it is a switch, we can generate the event unconditionally; the
-input layer will only pass it on if there is an actual change.
-
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Graf Yang <graf.yang@analog.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/hp-wmi.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ drivers/mtd/chips/cfi_cmdset_0001.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/hp-wmi.c~hp-wmi-notify-of-a-potential-docking-state-change-on-resume drivers/platform/x86/hp-wmi.c
---- a/drivers/platform/x86/hp-wmi.c~hp-wmi-notify-of-a-potential-docking-state-change-on-resume
-+++ a/drivers/platform/x86/hp-wmi.c
-@@ -53,6 +53,7 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE9
- 
- static int __init hp_wmi_bios_setup(struct platform_device *device);
- static int __exit hp_wmi_bios_remove(struct platform_device *device);
-+static int hp_wmi_resume_handler(struct platform_device *device);
- 
- struct bios_args {
- 	u32 signature;
-@@ -101,6 +102,7 @@ static struct platform_driver hp_wmi_dri
- 	},
- 	.probe = hp_wmi_bios_setup,
- 	.remove = hp_wmi_bios_remove,
-+	.resume = hp_wmi_resume_handler,
- };
- 
- static int hp_wmi_perform_query(int query, int write, int value)
-@@ -487,6 +489,29 @@ static int __exit hp_wmi_bios_remove(str
- 	return 0;
- }
- 
-+static int hp_wmi_resume_handler(struct platform_device *device)
-+{
-+	struct key_entry *key;
-+
-+	/*
-+	 * Docking state may have changed while suspended, so trigger
-+	 * an input event for the current state. As this is a switch,
-+	 * the input layer will only actually pass it on if the state
-+	 * changed.
-+	 */
-+	for (key = hp_wmi_keymap; key->type != KE_END; key++) {
-+		switch (key->type) {
-+		case KE_SW:
-+			input_report_switch(hp_wmi_input_dev, key->keycode,
-+					    hp_wmi_dock_state());
-+			input_sync(hp_wmi_input_dev);
-+			break;
+diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash drivers/mtd/chips/cfi_cmdset_0001.c
+--- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash
++++ a/drivers/mtd/chips/cfi_cmdset_0001.c
+@@ -1236,10 +1236,14 @@ static int inval_cache_and_wait_for_oper
+ 			remove_wait_queue(&chip->wq, &wait);
+ 			spin_lock(chip->mutex);
+ 		}
+-		if (chip->erase_suspended || chip->write_suspended)  {
+-			/* Suspend has occured while sleep: reset timeout */
++		if (chip->erase_suspended && chip_state == FL_ERASING)  {
++			/* Erase suspend has occured while sleep: reset timeout */
+ 			timeo = reset_timeo;
+ 			chip->erase_suspended = 0;
 +		}
-+	}
-+
-+	return 0;
-+}
-+
- static int __init hp_wmi_init(void)
- {
- 	int err;
++		if (chip->write_suspended && chip_state == FL_WRITING)  {
++			/* Write suspend has occured while sleep: reset timeout */
++			timeo = reset_timeo;
+ 			chip->write_suspended = 0;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from elendil@planet.nl are
+Patches currently in -mm which might be from graf.yang@analog.com are
 
 origin.patch
 linux-next.patch
-drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch
+blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch
 
