@@ -1,172 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [merged] eventfd-remove-fput-call-from-possible-irq-context-3rd-rev.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 01:01:11 -0700
-Message-ID: <200903300801.n2U81Bvo017317@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 11:40:01 -0700
+Message-ID: <200903301840.n2UIe1Zm011996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752202AbZC3IHd (ORCPT
+	by vger.kernel.org with ESMTP id S1752824AbZC3Skf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 04:07:33 -0400
+	Mon, 30 Mar 2009 14:40:35 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n2UIe20L027751
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2009 11:40:33 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, bcrl@kvack.org, dada1@cosmosbay.com, jmoyer@redhat.com, stable@kernel.org, trond.myklebust@fys.uio.no, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eventfd: remove fput() call from possible IRQ context
+     linux-next-rejects
 has been removed from the -mm tree.  Its filename was
-     eventfd-remove-fput-call-from-possible-irq-context-3rd-rev.patch
+     linux-next-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eventfd: remove fput() call from possible IRQ context
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: linux-next-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove a source of fput() call from inside IRQ context.  Myself, like Eric,
-wasn't able to reproduce an fput() call from IRQ context, but Jeff said he was
-able to, with the attached test program.  Independently from this, the bug is
-conceptually there, so we might be better off fixing it.  This patch adds an
-optimization similar to the one we already do on ->ki_filp, on ->ki_eventfd. 
-Playing with ->f_count directly is not pretty in general, but the alternative
-here would be to add a brand new delayed fput() infrastructure, that I'm not
-sure is worth it.
-
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   37 +++++++++++++++++++++++++++----------
- 1 file changed, 27 insertions(+), 10 deletions(-)
+ drivers/staging/Kconfig  |    5 -----
+ drivers/staging/Makefile |    4 ----
+ 2 files changed, 9 deletions(-)
 
-diff -puN fs/aio.c~eventfd-remove-fput-call-from-possible-irq-context-3rd-rev fs/aio.c
---- a/fs/aio.c~eventfd-remove-fput-call-from-possible-irq-context-3rd-rev
-+++ a/fs/aio.c
-@@ -443,7 +443,7 @@ static struct kiocb *__aio_get_req(struc
- 	req->private = NULL;
- 	req->ki_iovec = NULL;
- 	INIT_LIST_HEAD(&req->ki_run_list);
--	req->ki_eventfd = ERR_PTR(-EINVAL);
-+	req->ki_eventfd = NULL;
+diff -puN drivers/staging/Kconfig~linux-next-rejects drivers/staging/Kconfig
+--- a/drivers/staging/Kconfig~linux-next-rejects
++++ a/drivers/staging/Kconfig
+@@ -73,13 +73,8 @@ source "drivers/staging/rt2860/Kconfig"
  
- 	/* Check if the completion queue has enough free space to
- 	 * accept an event from this io.
-@@ -485,8 +485,6 @@ static inline void really_put_req(struct
- {
- 	assert_spin_locked(&ctx->ctx_lock);
+ source "drivers/staging/rt2870/Kconfig"
  
--	if (!IS_ERR(req->ki_eventfd))
--		fput(req->ki_eventfd);
- 	if (req->ki_dtor)
- 		req->ki_dtor(req);
- 	if (req->ki_iovec != &req->ki_inline_vec)
-@@ -508,8 +506,11 @@ static void aio_fput_routine(struct work
- 		list_del(&req->ki_list);
- 		spin_unlock_irq(&fput_lock);
+-<<<<<<< HEAD:drivers/staging/Kconfig
+-=======
+ source "drivers/staging/rt3070/Kconfig"
  
--		/* Complete the fput */
--		__fput(req->ki_filp);
-+		/* Complete the fput(s) */
-+		if (req->ki_filp != NULL)
-+			__fput(req->ki_filp);
-+		if (req->ki_eventfd != NULL)
-+			__fput(req->ki_eventfd);
+-source "drivers/staging/benet/Kconfig"
+-
+->>>>>>> FETCH_HEAD:drivers/staging/Kconfig
+ source "drivers/staging/comedi/Kconfig"
  
- 		/* Link the iocb into the context's free list */
- 		spin_lock_irq(&ctx->ctx_lock);
-@@ -527,12 +528,14 @@ static void aio_fput_routine(struct work
-  */
- static int __aio_put_req(struct kioctx *ctx, struct kiocb *req)
- {
-+	int schedule_putreq = 0;
-+
- 	dprintk(KERN_DEBUG "aio_put(%p): f_count=%ld\n",
- 		req, atomic_long_read(&req->ki_filp->f_count));
- 
- 	assert_spin_locked(&ctx->ctx_lock);
- 
--	req->ki_users --;
-+	req->ki_users--;
- 	BUG_ON(req->ki_users < 0);
- 	if (likely(req->ki_users))
- 		return 0;
-@@ -540,10 +543,23 @@ static int __aio_put_req(struct kioctx *
- 	req->ki_cancel = NULL;
- 	req->ki_retry = NULL;
- 
--	/* Must be done under the lock to serialise against cancellation.
--	 * Call this aio_fput as it duplicates fput via the fput_work.
-+	/*
-+	 * Try to optimize the aio and eventfd file* puts, by avoiding to
-+	 * schedule work in case it is not __fput() time. In normal cases,
-+	 * we would not be holding the last reference to the file*, so
-+	 * this function will be executed w/out any aio kthread wakeup.
- 	 */
--	if (unlikely(atomic_long_dec_and_test(&req->ki_filp->f_count))) {
-+	if (unlikely(atomic_long_dec_and_test(&req->ki_filp->f_count)))
-+		schedule_putreq++;
-+	else
-+		req->ki_filp = NULL;
-+	if (req->ki_eventfd != NULL) {
-+		if (unlikely(atomic_long_dec_and_test(&req->ki_eventfd->f_count)))
-+			schedule_putreq++;
-+		else
-+			req->ki_eventfd = NULL;
-+	}
-+	if (unlikely(schedule_putreq)) {
- 		get_ioctx(ctx);
- 		spin_lock(&fput_lock);
- 		list_add(&req->ki_list, &fput_head);
-@@ -1009,7 +1025,7 @@ int aio_complete(struct kiocb *iocb, lon
- 	 * eventfd. The eventfd_signal() function is safe to be called
- 	 * from IRQ context.
- 	 */
--	if (!IS_ERR(iocb->ki_eventfd))
-+	if (iocb->ki_eventfd != NULL)
- 		eventfd_signal(iocb->ki_eventfd, 1);
- 
- put_rq:
-@@ -1608,6 +1624,7 @@ static int io_submit_one(struct kioctx *
- 		req->ki_eventfd = eventfd_fget((int) iocb->aio_resfd);
- 		if (IS_ERR(req->ki_eventfd)) {
- 			ret = PTR_ERR(req->ki_eventfd);
-+			req->ki_eventfd = NULL;
- 			goto out_put_req;
- 		}
- 	}
+ source "drivers/staging/asus_oled/Kconfig"
+diff -puN drivers/staging/Makefile~linux-next-rejects drivers/staging/Makefile
+--- a/drivers/staging/Makefile~linux-next-rejects
++++ a/drivers/staging/Makefile
+@@ -19,11 +19,7 @@ obj-$(CONFIG_AGNX)		+= agnx/
+ obj-$(CONFIG_OTUS)		+= otus/
+ obj-$(CONFIG_RT2860)		+= rt2860/
+ obj-$(CONFIG_RT2870)		+= rt2870/
+-<<<<<<< HEAD:drivers/staging/Makefile
+-=======
+ obj-$(CONFIG_RT3070)		+= rt3070/
+-obj-$(CONFIG_BENET)		+= benet/
+->>>>>>> FETCH_HEAD:drivers/staging/Makefile
+ obj-$(CONFIG_COMEDI)		+= comedi/
+ obj-$(CONFIG_ASUS_OLED)		+= asus_oled/
+ obj-$(CONFIG_PANEL)		+= panel/
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-epoll-fix-own-poll.patch
-epoll-fix-epolls-own-poll-update.patch
-epoll-remove-debugging-code.patch
-epoll-dont-use-current-in-irq-context.patch
-epoll-remember-the-event-if-epoll_wait-returns-efault.patch
-epoll-remove-unnecessary-xchg.patch
-epoll-clean-up-ep_modify.patch
-epoll-use-real-type-instead-of-void.patch
-eventfd-improve-support-for-semaphore-like-behavior.patch
-epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
-epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
-epoll-keyed-wakeups-v3-introduce-new-_poll-wakeup-macros.patch
-epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups-update.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+git-acpi-vs-git-cpufreq.patch
+i-need-old-gcc.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mtd-rbtx4939-add-mtd-support.patch
+flex-onenand-support-v2-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+isicom-isicom-kref-leak-fix-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+ubd-stop-defintining-major_nr-checkpatch-fixes.patch
 epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
+flat-fix-data-sections-alignment.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-fix-clock-doubling-fix.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
