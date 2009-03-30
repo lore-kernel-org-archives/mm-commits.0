@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + radio-mr800c-missing-mutex-include.patch added to -mm tree
-Date: Mon, 30 Mar 2009 13:44:48 -0700
-Message-ID: <200903302044.n2UKimut012362@imap1.linux-foundation.org>
+Subject: + hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch added to -mm tree
+Date: Mon, 30 Mar 2009 14:08:41 -0700
+Message-ID: <200903302108.n2UL8fMH018671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753175AbZC3Uq7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757121AbZC3VN5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 16:46:59 -0400
+	Mon, 30 Mar 2009 17:13:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: abogani@texware.it, mchehab@infradead.org
+Cc: y-goto@jp.fujitsu.com, Robert.Picco@hp.com, clemens@ladisch.de, mingo@elte.hu, paul.gortmaker@windriver.com, venkatesh.pallipadi@intel.com, vojtech@suse.cz
 
 
 The patch titled
-     radio-mr800.c: missing mutex include
+     hpet: fix the possibility of insane return value of hpet_calibrate() against SMI
 has been added to the -mm tree.  Its filename is
-     radio-mr800c-missing-mutex-include.patch
+     hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radio-mr800.c: missing mutex include
-From: Alessio Igor Bogani <abogani@texware.it>
+Subject: hpet: fix the possibility of insane return value of hpet_calibrate() against SMI
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-radio-mr800.c uses struct mutex, so while <linux/mutex.h> seems to be
-pulled in indirectly by one of the headers it already includes, the right
-thing is to include it directly.
+hpet_calibrate() has a possibility of miss-calibration due to SMI.  If SMI
+interrupts in the while loop of calibration, then return value will be
+big.  This change calibrates until stabilizing by the return value with a
+small value.
 
-Signed-off-by: Alessio Igor Bogani <abogani@texware.it>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Acked-by: Clemens Ladisch <clemens@ladisch.de>
+Acked-by: Vojtech Pavlik <vojtech@suse.cz>
+Cc: Robert Picco <Robert.Picco@hp.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/radio/radio-mr800.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/hpet.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/radio/radio-mr800.c~radio-mr800c-missing-mutex-include drivers/media/radio/radio-mr800.c
---- a/drivers/media/radio/radio-mr800.c~radio-mr800c-missing-mutex-include
-+++ a/drivers/media/radio/radio-mr800.c
-@@ -63,6 +63,7 @@
- #include <media/v4l2-ioctl.h>
- #include <linux/usb.h>
- #include <linux/version.h>	/* for KERNEL_VERSION MACRO */
-+#include <linux/mutex.h>
+diff -puN drivers/char/hpet.c~hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi
++++ a/drivers/char/hpet.c
+@@ -713,7 +713,7 @@ static struct ctl_table_header *sysctl_h
+  */
+ #define	TICK_CALIBRATE	(1000UL)
  
- /* driver and module definitions */
- #define DRIVER_AUTHOR "Alexey Klimov <klimov.linux@gmail.com>"
+-static unsigned long hpet_calibrate(struct hpets *hpetp)
++static unsigned long __hpet_calibrate(struct hpets *hpetp)
+ {
+ 	struct hpet_timer __iomem *timer = NULL;
+ 	unsigned long t, m, count, i, flags, start;
+@@ -750,6 +750,25 @@ static unsigned long hpet_calibrate(stru
+ 	return (m - start) / i;
+ }
+ 
++static unsigned long hpet_calibrate(struct hpets *hpetp)
++{
++	unsigned long ret = ~0UL, tmp;
++
++	/*
++	 * Try to calibrate until return value becomes stable small value.
++	 * If SMI interruption occurs in calibration loop, the return value
++	 * will be big. This avoids its impact.
++	 */
++	do {
++		tmp = __hpet_calibrate(hpetp);
++		if (ret <= tmp)
++			break;
++		ret = tmp;
++	} while (1);
++
++	return ret;
++}
++
+ int hpet_alloc(struct hpet_data *hdp)
+ {
+ 	u64 cap, mcfg;
 _
 
-Patches currently in -mm which might be from abogani@texware.it are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 linux-next.patch
-radio-mr800c-missing-mutex-include.patch
-nvidiafb-remove-open_lock-mutex.patch
+hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch
+hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
 
