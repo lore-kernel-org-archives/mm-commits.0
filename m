@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch added to -mm tree
-Date: Mon, 30 Mar 2009 15:26:38 -0700
-Message-ID: <200903302226.n2UMQdf0006805@imap1.linux-foundation.org>
+Subject: + cirrusfb-fix-interlaced-modes.patch added to -mm tree
+Date: Mon, 30 Mar 2009 15:42:34 -0700
+Message-ID: <200903302242.n2UMgY8g011194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57161 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755735AbZC3W3E (ORCPT
+	by vger.kernel.org with ESMTP id S1757232AbZC3Won (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 18:29:04 -0400
+	Mon, 30 Mar 2009 18:44:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@aristanetworks.com, a.p.zijlstra@chello.nl, adobriyan@gmail.com
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     sysctl: don't take the use count of multiple heads at a time.
+     cirrusfb: fix interlaced modes
 has been added to the -mm tree.  Its filename is
-     sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
+     cirrusfb-fix-interlaced-modes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: don't take the use count of multiple heads at a time.
-From: Eric Biederman <ebiederm@aristanetworks.com>
+Subject: cirrusfb: fix interlaced modes
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The problem: There is a class of deadlocks that we currently have in the
-kernel that lockdep does not recognize.  
+Fix calculations of timings for interlaced modes.
 
-In particular with the network stack we can have:
-
-rtnl_lock();                         use_table();
-unregister_netdevice();              rtnl_lock();
-unregister_sysctl_table();           ....
-wait_for_completion();               rtnl_lock();
-....                                 unuse_table()
-rtnl_unlock();                       complete();
-
-
-
-Where we never make it to the lines labled ....
-
-My patch following patches treats the sysctl use count as a read/writer
-lock for purposes of lockdep.
-
-The code works but I'm not certain I have plugged into lockdep quite
-correctly.
-
-
-This patch:
-
-The current code works fine, and is actually not buggy but it does prevent
-enabling the use of lockdep to check refcounting vs lock holding ordering
-problems.  So since we can ensure that we are only hold a single
-sysctl_head at a time.  Allowing lockdep to complain.
-
-Signed-off-by: Eric Biederman <ebiederm@aristanetworks.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ drivers/video/cirrusfb.c |   35 +++++++++++++++++++++--------------
+ 1 file changed, 21 insertions(+), 14 deletions(-)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time
-+++ a/fs/proc/proc_sysctl.c
-@@ -79,7 +79,6 @@ static struct dentry *proc_sys_lookup(st
- {
- 	struct ctl_table_header *head = grab_header(dir);
- 	struct ctl_table *table = PROC_I(dir)->sysctl_entry;
--	struct ctl_table_header *h = NULL;
- 	struct qstr *name = &dentry->d_name;
- 	struct ctl_table *p;
- 	struct inode *inode;
-@@ -97,10 +96,11 @@ static struct dentry *proc_sys_lookup(st
+diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-interlaced-modes drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-fix-interlaced-modes
++++ a/drivers/video/cirrusfb.c
+@@ -701,45 +701,52 @@ static int cirrusfb_set_par_foo(struct f
  
- 	p = find_in_table(table, name);
- 	if (!p) {
--		for (h = sysctl_head_next(NULL); h; h = sysctl_head_next(h)) {
--			if (h->attached_to != table)
-+		sysctl_head_finish(head);
-+		for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
-+			if (head->attached_to != table)
- 				continue;
--			p = find_in_table(h->attached_by, name);
-+			p = find_in_table(head->attached_by, name);
- 			if (p)
- 				break;
- 		}
-@@ -110,9 +110,7 @@ static struct dentry *proc_sys_lookup(st
- 		goto out;
+ 	hsyncstart = var->xres + var->right_margin;
+ 	hsyncend = hsyncstart + var->hsync_len;
+-	htotal = (hsyncend + var->left_margin) / 8 - 5;
+-	hdispend = var->xres / 8 - 1;
+-	hsyncstart = hsyncstart / 8 + 1;
+-	hsyncend = hsyncend / 8 + 1;
++	htotal = (hsyncend + var->left_margin) / 8;
++	hdispend = var->xres / 8;
++	hsyncstart = hsyncstart / 8;
++	hsyncend = hsyncend / 8;
  
- 	err = ERR_PTR(-ENOMEM);
--	inode = proc_sys_make_inode(dir->i_sb, h ? h : head, p);
--	if (h)
--		sysctl_head_finish(h);
-+	inode = proc_sys_make_inode(dir->i_sb, head, p);
+-	yres = var->yres;
+-	vsyncstart = yres + var->lower_margin;
++	vdispend = var->yres;
++	vsyncstart = vdispend + var->lower_margin;
+ 	vsyncend = vsyncstart + var->vsync_len;
+ 	vtotal = vsyncend + var->upper_margin;
+-	vdispend = yres - 1;
  
- 	if (!inode)
- 		goto out;
-@@ -243,7 +241,6 @@ static int proc_sys_readdir(struct file 
- 	struct inode *inode = dentry->d_inode;
- 	struct ctl_table_header *head = grab_header(inode);
- 	struct ctl_table *table = PROC_I(inode)->sysctl_entry;
--	struct ctl_table_header *h = NULL;
- 	unsigned long pos;
- 	int ret = -EINVAL;
- 
-@@ -277,14 +274,13 @@ static int proc_sys_readdir(struct file 
- 	if (ret)
- 		goto out;
- 
--	for (h = sysctl_head_next(NULL); h; h = sysctl_head_next(h)) {
--		if (h->attached_to != table)
-+	sysctl_head_finish(head);
-+	for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
-+		if (head->attached_to != table)
- 			continue;
--		ret = scan(h, h->attached_by, &pos, filp, dirent, filldir);
--		if (ret) {
--			sysctl_head_finish(h);
-+		ret = scan(head, head->attached_by, &pos, filp, dirent, filldir);
-+		if (ret)
- 			break;
--		}
+ 	if (var->vmode & FB_VMODE_DOUBLE) {
+-		yres *= 2;
++		vdispend *= 2;
+ 		vsyncstart *= 2;
+ 		vsyncend *= 2;
+ 		vtotal *= 2;
+ 	} else if (var->vmode & FB_VMODE_INTERLACED) {
+-		yres = (yres + 1) / 2;
++		vdispend = (vdispend + 1) / 2;
+ 		vsyncstart = (vsyncstart + 1) / 2;
+ 		vsyncend = (vsyncend + 1) / 2;
+ 		vtotal = (vtotal + 1) / 2;
  	}
- 	ret = 1;
- out:
+-
+-	vtotal -= 2;
+-	vsyncstart -= 1;
+-	vsyncend -= 1;
+-
++	yres = vdispend;
+ 	if (yres >= 1024) {
+ 		vtotal /= 2;
+ 		vsyncstart /= 2;
+ 		vsyncend /= 2;
+ 		vdispend /= 2;
+ 	}
++
++	vdispend -= 1;
++	vsyncstart -= 1;
++	vsyncend -= 1;
++	vtotal -= 2;
++
+ 	if (cinfo->multiplexing) {
+ 		htotal /= 2;
+ 		hsyncstart /= 2;
+ 		hsyncend /= 2;
+ 		hdispend /= 2;
+ 	}
++
++	htotal -= 5;
++	hdispend -= 1;
++	hsyncstart += 1;
++	hsyncend += 1;
++
+ 	/* unlock register VGA_CRTC_H_TOTAL..CRT7 */
+ 	vga_wcrt(regbase, VGA_CRTC_V_SYNC_END, 0x20);	/* previously: 0x00) */
+ 
 _
 
-Patches currently in -mm which might be from ebiederm@aristanetworks.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 linux-next.patch
-sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
-sysctl-lockdep-support-for-sysctl-reference-counting.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
+cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
+cirrusfb-add-laguna-additional-overflow-register.patch
+cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
+cirrusfb-do-not-calculate-line-length-twice.patch
+cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
+cirrusfb-various-improvements.patch
+cirrusfb-laguna-chipset-8bpp-fix.patch
+cirrusfb-check_var-improvements.patch
+cirrusfb-various-laguna-fixes.patch
+cirrusfb-acceleration-improvements.patch
+cirrusfb-add-imageblit-function.patch
+cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
+cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
+cirrusfb-gd5446-fixes.patch
+cirrusfb-use-24bpp-instead-of-32bpp.patch
+cirrusfb-fix-clock-doubling.patch
+cirrusfb-fix-clock-doubling-fix.patch
+cirrusfb-add-accelerator-constant.patch
+cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
+cirrusfb-set-mclk-in-one-place.patch
+cirrusfb-set-mclk-in-one-place-fix.patch
+cirrusfb-gd5434-aka-sd64-support-fixed.patch
+cirrusfb-fix-threshold-register-mask-for-laguna-chips.patch
+cirrusfb-fix-interlaced-modes.patch
+drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
+tdfxfb-fix-memory-leaks-in-removal-path.patch
+tridentfb-fix-memory-leaks-in-removal-path.patch
+vfb-fix-memory-leaks-in-removal-path.patch
+sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+68328fb-fix-cmap-memory-leaks.patch
+amba-clcd-fix-cmap-memory-leaks.patch
+amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+asiliantfb-fix-cmap-memory-leaks.patch
+asiliantfb-fix-cmap-memory-leaks-fix.patch
+remove-cyblafb-driver.patch
+nvidiafb-remove-open_lock-mutex.patch
+fb-hide-hardware-cursor-in-graphics-mode-mach64.patch
+atyfb-speed-up-mach64-cursor.patch
+tridentfb-delete-acceleration-kconfig-option.patch
 
