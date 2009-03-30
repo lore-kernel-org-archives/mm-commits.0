@@ -1,220 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] devpts-merge-code-for-single-and-multiple-instance-mounts.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:07:31 -0700
-Message-ID: <200903301907.n2UJ7Vrt019376@imap1.linux-foundation.org>
+Subject: [merged] nommu-add-support-for-direct-mapping-through-mtdconcat-if-possible.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:06:47 -0700
+Message-ID: <200903301906.n2UJ6lgq019169@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46746 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759460AbZC3TMA (ORCPT
+	by vger.kernel.org with ESMTP id S1759455AbZC3TMA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 30 Mar 2009 15:12:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sukadev@linux.vnet.ibm.com, alan@lxorguk.ukuu.org.uk, hch@lst.de, hpa@zytor.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, bernd.schmidt@analog.com, dwmw2@infradead.org, gavinl@compacsort.com, gerg@snapgear.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devpts: merge code for single and multiple-instance mounts
+     nommu: add support for direct mapping through mtdconcat if possible
 has been removed from the -mm tree.  Its filename was
-     devpts-merge-code-for-single-and-multiple-instance-mounts.patch
+     nommu-add-support-for-direct-mapping-through-mtdconcat-if-possible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: merge code for single and multiple-instance mounts
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Subject: nommu: add support for direct mapping through mtdconcat if possible
+From: David Howells <dhowells@redhat.com>
 
-new_pts_mount() (including the get_sb_nodev()), shares a lot of code with
-init_pts_mount().  The only difference between them is the 'test-super'
-function passed into sget().
+Add support for direct mapping through mtdconcat, if possible, by
+attaching the samebacking_dev_info structure to the master.
 
-Move all common code into devpts_get_sb() and remove the new_pts_mount() and
-init_pts_mount() functions,
+It has some restrictions:
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Tested-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+ (1) It won't permit direct mapping of concatenated devices that have differing
+     BDIs.
+
+ (2) It doesn't support maps that span the 'gap' between devices, although it
+     possibly could if the devices spanned across return compatible
+     (ie. contiguous) addresses from their get_unmapped_area() ops.
+
+Signed-off-by: Gavin Lambert <gavinl@compacsort.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Tested-by: Bernd Schmidt <bernd.schmidt@analog.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |  113 +++++++++++++++-----------------------------
- 1 file changed, 40 insertions(+), 73 deletions(-)
+ drivers/mtd/mtdconcat.c |   47 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff -puN fs/devpts/inode.c~devpts-merge-code-for-single-and-multiple-instance-mounts fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-merge-code-for-single-and-multiple-instance-mounts
-+++ a/fs/devpts/inode.c
-@@ -322,85 +322,38 @@ static int compare_init_pts_sb(struct su
+diff -puN drivers/mtd/mtdconcat.c~nommu-add-support-for-direct-mapping-through-mtdconcat-if-possible drivers/mtd/mtdconcat.c
+--- a/drivers/mtd/mtdconcat.c~nommu-add-support-for-direct-mapping-through-mtdconcat-if-possible
++++ a/drivers/mtd/mtdconcat.c
+@@ -13,6 +13,7 @@
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+ #include <linux/types.h>
++#include <linux/backing-dev.h>
+ 
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/concat.h>
+@@ -684,6 +685,40 @@ static int concat_block_markbad(struct m
  }
  
  /*
-- * Mount a new (private) instance of devpts.  PTYs created in this
-- * instance are independent of the PTYs in other devpts instances.
-- */
--static int new_pts_mount(struct file_system_type *fs_type, int flags,
--		void *data, struct pts_mount_opts *opts, struct vfsmount *mnt)
--{
--	int err;
--	struct pts_fs_info *fsi;
--
--	err = get_sb_nodev(fs_type, flags, data, devpts_fill_super, mnt);
--	if (err)
--		return err;
--
--	fsi = DEVPTS_SB(mnt->mnt_sb);
--	memcpy(&fsi->mount_opts, opts, sizeof(opts));
--
--	return 0;
--}
--
--/*
-- * init_pts_mount()
-+ * devpts_get_sb()
-  *
-- *     Mount or remount the initial kernel mount of devpts. This type of
-- *     mount maintains the legacy, single-instance semantics, while the
-- *     kernel still allows multiple-instances.
-+ *     If the '-o newinstance' mount option was specified, mount a new
-+ *     (private) instance of devpts.  PTYs created in this instance are
-+ *     independent of the PTYs in other devpts instances.
-  *
-- *     This interface is needed to support multiple namespace semantics in
-- *     devpts while preserving backward compatibility of the current 'single-
-- *     namespace' semantics. i.e all mounts of devpts without the 'newinstance'
-- *     mount option should bind to the initial kernel mount, like
-- *     get_sb_single().
-+ *     If the '-o newinstance' option was not specified, mount/remount the
-+ *     initial kernel mount of devpts.  This type of mount gives the
-+ *     legacy, single-instance semantics.
-  *
-- *     Mounts with 'newinstance' option create a new private namespace.
-+ *     The 'newinstance' option is needed to support multiple namespace
-+ *     semantics in devpts while preserving backward compatibility of the
-+ *     current 'single-namespace' semantics. i.e all mounts of devpts
-+ *     without the 'newinstance' mount option should bind to the initial
-+ *     kernel mount, like get_sb_single().
-  *
-- *     But for single-mount semantics, devpts cannot use get_sb_single(),
-+ *     Mounts with 'newinstance' option create a new, private namespace.
-+ *
-+ *     NOTE:
-+ *
-+ *     For single-mount semantics, devpts cannot use get_sb_single(),
-  *     because get_sb_single()/sget() find and use the super-block from
-  *     the most recent mount of devpts. But that recent mount may be a
-  *     'newinstance' mount and get_sb_single() would pick the newinstance
-  *     super-block instead of the initial super-block.
-- *
-- *     This interface is identical to get_sb_single() except that it
-- *     consistently selects the 'single-namespace' superblock even in the
-- *     presence of the private namespace (i.e 'newinstance') super-blocks.
-  */
--static int init_pts_mount(struct file_system_type *fs_type, int flags,
--		void *data, struct pts_mount_opts *opts, struct vfsmount *mnt)
--{
--	struct super_block *s;
--	struct pts_fs_info *fsi;
--	int error;
--
--	s = sget(fs_type, compare_init_pts_sb, set_anon_super, NULL);
--	if (IS_ERR(s))
--		return PTR_ERR(s);
--
--	if (!s->s_root) {
--		s->s_flags = flags;
--		error = devpts_fill_super(s, data, flags & MS_SILENT ? 1 : 0);
--		if (error) {
--			up_write(&s->s_umount);
--			deactivate_super(s);
--			return error;
--		}
--		s->s_flags |= MS_ACTIVE;
--	}
--
--	simple_set_mnt(mnt, s);
--
--	fsi = DEVPTS_SB(mnt->mnt_sb);
--	memcpy(&fsi->mount_opts, opts, sizeof(opts));
--
--	return 0;
--}
--
- static int devpts_get_sb(struct file_system_type *fs_type,
- 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
- {
- 	int error;
- 	struct pts_mount_opts opts;
-+	struct super_block *s;
- 
- 	memset(&opts, 0, sizeof(opts));
- 	if (data) {
-@@ -410,23 +363,37 @@ static int devpts_get_sb(struct file_sys
- 	}
- 
- 	if (opts.newinstance)
--		error = new_pts_mount(fs_type, flags, data, &opts, mnt);
-+		s = sget(fs_type, NULL, set_anon_super, NULL);
- 	else
--		error = init_pts_mount(fs_type, flags, data, &opts, mnt);
-+		s = sget(fs_type, compare_init_pts_sb, set_anon_super, NULL);
- 
--	if (error)
--		return error;
-+	if (IS_ERR(s))
-+		return PTR_ERR(s);
- 
--	error = mknod_ptmx(mnt->mnt_sb);
-+	if (!s->s_root) {
-+		s->s_flags = flags;
-+		error = devpts_fill_super(s, data, flags & MS_SILENT ? 1 : 0);
-+		if (error)
-+			goto out_undo_sget;
-+		s->s_flags |= MS_ACTIVE;
++ * try to support NOMMU mmaps on concatenated devices
++ * - we don't support subdev spanning as we can't guarantee it'll work
++ */
++static unsigned long concat_get_unmapped_area(struct mtd_info *mtd,
++					      unsigned long len,
++					      unsigned long offset,
++					      unsigned long flags)
++{
++	struct mtd_concat *concat = CONCAT(mtd);
++	int i;
++
++	for (i = 0; i < concat->num_subdev; i++) {
++		struct mtd_info *subdev = concat->subdev[i];
++
++		if (offset >= subdev->size) {
++			offset -= subdev->size;
++			continue;
++		}
++
++		/* we've found the subdev over which the mapping will reside */
++		if (offset + len > subdev->size)
++			return (unsigned long) -EINVAL;
++
++		if (subdev->get_unmapped_area)
++			return subdev->get_unmapped_area(subdev, len, offset,
++							 flags);
++
++		break;
 +	}
 +
-+	simple_set_mnt(mnt, s);
++	return (unsigned long) -ENOSYS;
++}
 +
-+	memcpy(&(DEVPTS_SB(s))->mount_opts, &opts, sizeof(opts));
++/*
+  * This function constructs a virtual MTD device by concatenating
+  * num_devs MTD devices. A pointer to the new device object is
+  * stored to *new_dev upon success. This function does _not_
+@@ -740,6 +775,8 @@ struct mtd_info *mtd_concat_create(struc
+ 
+ 	concat->mtd.ecc_stats.badblocks = subdev[0]->ecc_stats.badblocks;
+ 
++	concat->mtd.backing_dev_info = subdev[0]->backing_dev_info;
 +
-+	error = mknod_ptmx(s);
- 	if (error)
- 		goto out_dput;
+ 	concat->subdev[0] = subdev[0];
  
- 	return 0;
- 
- out_dput:
--	dput(mnt->mnt_sb->s_root);
--	up_write(&mnt->mnt_sb->s_umount);
--	deactivate_super(mnt->mnt_sb);
-+	dput(s->s_root);
+ 	for (i = 1; i < num_devs; i++) {
+@@ -766,6 +803,15 @@ struct mtd_info *mtd_concat_create(struc
+ 				concat->mtd.flags |=
+ 				    subdev[i]->flags & MTD_WRITEABLE;
+ 		}
 +
-+out_undo_sget:
-+	up_write(&s->s_umount);
-+	deactivate_super(s);
- 	return error;
- }
++		/* only permit direct mapping if the BDIs are all the same
++		 * - copy-mapping is still permitted
++		 */
++		if (concat->mtd.backing_dev_info !=
++		    subdev[i]->backing_dev_info)
++			concat->mtd.backing_dev_info =
++				&default_backing_dev_info;
++
+ 		concat->mtd.size += subdev[i]->size;
+ 		concat->mtd.ecc_stats.badblocks +=
+ 			subdev[i]->ecc_stats.badblocks;
+@@ -796,6 +842,7 @@ struct mtd_info *mtd_concat_create(struc
+ 	concat->mtd.unlock = concat_unlock;
+ 	concat->mtd.suspend = concat_suspend;
+ 	concat->mtd.resume = concat_resume;
++	concat->mtd.get_unmapped_area = concat_get_unmapped_area;
  
+ 	/*
+ 	 * Combine the erase block size info of the subdevices:
 _
 
-Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
 linux-next.patch
-signals-remove-handler-parameter-to-tracehook-functions.patch
-signals-protect-init-from-unwanted-signals-more.patch
-signals-add-from_ancestor_ns-parameter-to-send_signal.patch
-signals-protect-cinit-from-unblocked-sig_dfl-signals.patch
-signals-zap_pid_ns_process-should-use-force_sig.patch
-signals-protect-cinit-from-blocked-fatal-signals.patch
-signals-si_user-masquerade-si_pid-when-crossing-pid-ns-boundary.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
+nommu-there-is-no-mlock-for-nommu-so-dont-provide-the-bits.patch
+nommu-make-config_unevictable_lru-available-when-config_mmu=n.patch
+frv-duplicate-output_buffer-of-e03.patch
+flat-fix-data-sections-alignment.patch
+flat-fix-data-sections-alignment-update.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
+mutex-subsystem-synchro-test-module.patch
 
