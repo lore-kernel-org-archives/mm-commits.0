@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-partitioning-utility-predicates.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:06:05 -0700
-Message-ID: <200903301906.n2UJ652X018964@imap1.linux-foundation.org>
+Subject: [merged] mtd-we-dont-need-no-misc-devices.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:06:02 -0700
+Message-ID: <200903301906.n2UJ62HW018925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57772 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33158 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759168AbZC3TKM (ORCPT
+	by vger.kernel.org with ESMTP id S1759169AbZC3TKM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 30 Mar 2009 15:10:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,150 +15,105 @@ To: dbrownell@users.sourceforge.net, dwmw2@infradead.org, mm-commits@vger.kernel
 
 
 The patch titled
-     mtd: partitioning utility predicates
+     mtd: we don't need no misc devices
 has been removed from the -mm tree.  Its filename was
-     mtd-partitioning-utility-predicates.patch
+     mtd-we-dont-need-no-misc-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: partitioning utility predicates
+Subject: mtd: we don't need no misc devices
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Move mtd_has_partitions() and mtd_has_cmdlinepart() inlines from a
-DaVinci-specific driver to the <linux/mtd/partitions.h> header.
+Remove <linux/miscdevice.h> from various drivers which don't actually use
+any of its contents.  There are still a number of these left in
+arch-specific bits of the tree.
 
-Use those to eliminate #ifdefs in two drivers which had their own
-definitions of mtd_has_partitions().
-
-Quite a lot of other MTD drivers could benefit from using use one or both
-of these to remove #ifdeffery.  Maybe some Janitors would like to help.
+(Found by diffing results of "grep -rl" for linux/miscdevice.h and for
+misc_register, examining the differences, and verifying removals with a
+build test.)
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/m25p80.c        |   17 ++++++-----------
- drivers/mtd/devices/mtd_dataflash.c |   16 ++++++----------
- drivers/mtd/nand/davinci_nand.c     |   13 -------------
- include/linux/mtd/partitions.h      |   12 ++++++++++++
- 4 files changed, 24 insertions(+), 34 deletions(-)
+ drivers/mtd/devices/doc2000.c     |    1 -
+ drivers/mtd/devices/doc2001.c     |    1 -
+ drivers/mtd/devices/doc2001plus.c |    1 -
+ drivers/mtd/devices/docecc.c      |    1 -
+ drivers/mtd/inftlmount.c          |    1 -
+ drivers/mtd/nftlcore.c            |    1 -
+ 6 files changed, 6 deletions(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~mtd-partitioning-utility-predicates drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~mtd-partitioning-utility-predicates
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -65,12 +65,6 @@
- #define FAST_READ_DUMMY_BYTE 0
- #endif
- 
--#ifdef CONFIG_MTD_PARTITIONS
--#define	mtd_has_partitions()	(1)
--#else
--#define	mtd_has_partitions()	(0)
--#endif
--
- /****************************************************************************/
- 
- struct m25p {
-@@ -708,12 +702,13 @@ static int __devinit m25p_probe(struct s
- 		struct mtd_partition	*parts = NULL;
- 		int			nr_parts = 0;
- 
--#ifdef CONFIG_MTD_CMDLINE_PARTS
--		static const char *part_probes[] = { "cmdlinepart", NULL, };
-+		if (mtd_has_cmdlinepart()) {
-+			static const char *part_probes[]
-+					= { "cmdlinepart", NULL, };
- 
--		nr_parts = parse_mtd_partitions(&flash->mtd,
--				part_probes, &parts, 0);
--#endif
-+			nr_parts = parse_mtd_partitions(&flash->mtd,
-+					part_probes, &parts, 0);
-+		}
- 
- 		if (nr_parts <= 0 && data && data->parts) {
- 			parts = data->parts;
-diff -puN drivers/mtd/devices/mtd_dataflash.c~mtd-partitioning-utility-predicates drivers/mtd/devices/mtd_dataflash.c
---- a/drivers/mtd/devices/mtd_dataflash.c~mtd-partitioning-utility-predicates
-+++ a/drivers/mtd/devices/mtd_dataflash.c
-@@ -98,12 +98,6 @@ struct dataflash {
- 	struct mtd_info		mtd;
- };
- 
--#ifdef CONFIG_MTD_PARTITIONS
--#define	mtd_has_partitions()	(1)
--#else
--#define	mtd_has_partitions()	(0)
--#endif
--
- /* ......................................................................... */
- 
- /*
-@@ -682,11 +676,13 @@ add_dataflash_otp(struct spi_device *spi
- 		struct mtd_partition	*parts;
- 		int			nr_parts = 0;
- 
--#ifdef CONFIG_MTD_CMDLINE_PARTS
--		static const char *part_probes[] = { "cmdlinepart", NULL, };
-+		if (mtd_has_cmdlinepart()) {
-+			static const char *part_probes[]
-+					= { "cmdlinepart", NULL, };
- 
--		nr_parts = parse_mtd_partitions(device, part_probes, &parts, 0);
--#endif
-+			nr_parts = parse_mtd_partitions(device,
-+					part_probes, &parts, 0);
-+		}
- 
- 		if (nr_parts <= 0 && pdata && pdata->parts) {
- 			parts = pdata->parts;
-diff -puN drivers/mtd/nand/davinci_nand.c~mtd-partitioning-utility-predicates drivers/mtd/nand/davinci_nand.c
---- a/drivers/mtd/nand/davinci_nand.c~mtd-partitioning-utility-predicates
-+++ a/drivers/mtd/nand/davinci_nand.c
-@@ -38,19 +38,6 @@
- #include <asm/mach-types.h>
- 
- 
--#ifdef CONFIG_MTD_PARTITIONS
--static inline int mtd_has_partitions(void) { return 1; }
--#else
--static inline int mtd_has_partitions(void) { return 0; }
--#endif
--
--#ifdef CONFIG_MTD_CMDLINE_PARTS
--static inline int mtd_has_cmdlinepart(void) { return 1; }
--#else
--static inline int mtd_has_cmdlinepart(void) { return 0; }
--#endif
--
--
- /*
-  * This is a device driver for the NAND flash controller found on the
-  * various DaVinci family chips.  It handles up to four SoC chipselects,
-diff -puN include/linux/mtd/partitions.h~mtd-partitioning-utility-predicates include/linux/mtd/partitions.h
---- a/include/linux/mtd/partitions.h~mtd-partitioning-utility-predicates
-+++ a/include/linux/mtd/partitions.h
-@@ -76,4 +76,16 @@ int __devinit of_mtd_parse_partitions(st
-                                       struct device_node *node,
-                                       struct mtd_partition **pparts);
- 
-+#ifdef CONFIG_MTD_PARTITIONS
-+static inline int mtd_has_partitions(void) { return 1; }
-+#else
-+static inline int mtd_has_partitions(void) { return 0; }
-+#endif
-+
-+#ifdef CONFIG_MTD_CMDLINE_PARTS
-+static inline int mtd_has_cmdlinepart(void) { return 1; }
-+#else
-+static inline int mtd_has_cmdlinepart(void) { return 0; }
-+#endif
-+
- #endif
+diff -puN drivers/mtd/devices/doc2000.c~mtd-we-dont-need-no-misc-devices drivers/mtd/devices/doc2000.c
+--- a/drivers/mtd/devices/doc2000.c~mtd-we-dont-need-no-misc-devices
++++ a/drivers/mtd/devices/doc2000.c
+@@ -10,7 +10,6 @@
+ #include <asm/errno.h>
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+-#include <linux/miscdevice.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+diff -puN drivers/mtd/devices/doc2001.c~mtd-we-dont-need-no-misc-devices drivers/mtd/devices/doc2001.c
+--- a/drivers/mtd/devices/doc2001.c~mtd-we-dont-need-no-misc-devices
++++ a/drivers/mtd/devices/doc2001.c
+@@ -10,7 +10,6 @@
+ #include <asm/errno.h>
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+-#include <linux/miscdevice.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+diff -puN drivers/mtd/devices/doc2001plus.c~mtd-we-dont-need-no-misc-devices drivers/mtd/devices/doc2001plus.c
+--- a/drivers/mtd/devices/doc2001plus.c~mtd-we-dont-need-no-misc-devices
++++ a/drivers/mtd/devices/doc2001plus.c
+@@ -14,7 +14,6 @@
+ #include <asm/errno.h>
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+-#include <linux/miscdevice.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+diff -puN drivers/mtd/devices/docecc.c~mtd-we-dont-need-no-misc-devices drivers/mtd/devices/docecc.c
+--- a/drivers/mtd/devices/docecc.c~mtd-we-dont-need-no-misc-devices
++++ a/drivers/mtd/devices/docecc.c
+@@ -26,7 +26,6 @@
+ #include <asm/errno.h>
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+-#include <linux/miscdevice.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+diff -puN drivers/mtd/inftlmount.c~mtd-we-dont-need-no-misc-devices drivers/mtd/inftlmount.c
+--- a/drivers/mtd/inftlmount.c~mtd-we-dont-need-no-misc-devices
++++ a/drivers/mtd/inftlmount.c
+@@ -28,7 +28,6 @@
+ #include <asm/errno.h>
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+-#include <linux/miscdevice.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+diff -puN drivers/mtd/nftlcore.c~mtd-we-dont-need-no-misc-devices drivers/mtd/nftlcore.c
+--- a/drivers/mtd/nftlcore.c~mtd-we-dont-need-no-misc-devices
++++ a/drivers/mtd/nftlcore.c
+@@ -15,7 +15,6 @@
+ #include <asm/errno.h>
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+-#include <linux/miscdevice.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
 _
 
 Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
