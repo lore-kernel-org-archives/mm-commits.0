@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lis3-spi-transport-layer.patch added to -mm tree
-Date: Mon, 30 Mar 2009 16:26:48 -0700
-Message-ID: <200903302326.n2UNQmZO022731@imap1.linux-foundation.org>
+Subject: + vmscan-fix-it-to-take-care-of-nodemask.patch added to -mm tree
+Date: Mon, 30 Mar 2009 16:28:49 -0700
+Message-ID: <200903302328.n2UNSntJ023213@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58008 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752427AbZC3X3y (ORCPT
+	by vger.kernel.org with ESMTP id S1753202AbZC3Xcv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 19:29:54 -0400
+	Mon, 30 Mar 2009 19:32:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daniel@caiaq.de, david-b@pacbell.net, eric.piel@tremplin-utc.net, pavel@ucw.cz
+Cc: kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     lis3: SPI transport layer
+     vmscan: fix it to take care of nodemask
 has been added to the -mm tree.  Its filename is
-     lis3-spi-transport-layer.patch
+     vmscan-fix-it-to-take-care-of-nodemask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,190 +34,158 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: SPI transport layer
-From: Daniel Mack <daniel@caiaq.de>
+Subject: vmscan: fix it to take care of nodemask
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Make use of the new abstraction layer and add a new transport layer for
-spi.  Works fine on a PXA based board.
+try_to_free_pages() is used for the direct reclaim of up to
+SWAP_CLUSTER_MAX pages when watermarks are low.  The caller to
+alloc_pages_nodemask() can specify a nodemask of nodes that are allowed to
+be used but this is not passed to try_to_free_pages().  This can lead to
+unnecessary reclaim of pages that are unusable by the caller and int the
+worst case lead to allocation failure as progress was not been make where
+it is needed.
 
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: David Brownell <david-b@pacbell.net>
+This patch passes the nodemask used for alloc_pages_nodemask() to
+try_to_free_pages().
+
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/Kconfig         |   16 ++++
- drivers/hwmon/Makefile        |    1 
- drivers/hwmon/lis3lv02d_spi.c |  114 ++++++++++++++++++++++++++++++++
- 3 files changed, 131 insertions(+)
+ fs/buffer.c          |    2 +-
+ include/linux/swap.h |    2 +-
+ mm/page_alloc.c      |    3 ++-
+ mm/vmscan.c          |   13 +++++++++++--
+ 4 files changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN drivers/hwmon/Kconfig~lis3-spi-transport-layer drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig~lis3-spi-transport-layer
-+++ a/drivers/hwmon/Kconfig
-@@ -932,6 +932,22 @@ config SENSORS_LIS3LV02D
- 	  Say Y here if you have an applicable laptop and want to experience
- 	  the awesome power of lis3lv02d.
+diff -puN fs/buffer.c~vmscan-fix-it-to-take-care-of-nodemask fs/buffer.c
+--- a/fs/buffer.c~vmscan-fix-it-to-take-care-of-nodemask
++++ a/fs/buffer.c
+@@ -290,7 +290,7 @@ static void free_more_memory(void)
+ 						&zone);
+ 		if (zone)
+ 			try_to_free_pages(node_zonelist(nid, GFP_NOFS), 0,
+-						GFP_NOFS);
++						GFP_NOFS, NULL);
+ 	}
+ }
  
-+config SENSORS_LIS3_SPI
-+	tristate "STMicroeletronics LIS3LV02Dx three-axis digital accelerometer (SPI)"
-+	depends on !ACPI && SPI_MASTER && INPUT
-+	default n
-+	help
-+	  This driver provides support for the LIS3LV02Dx accelerometer connected
-+	  via SPI. The accelerometer data is readable via
-+	  /sys/devices/platform/lis3lv02d.
+diff -puN include/linux/swap.h~vmscan-fix-it-to-take-care-of-nodemask include/linux/swap.h
+--- a/include/linux/swap.h~vmscan-fix-it-to-take-care-of-nodemask
++++ a/include/linux/swap.h
+@@ -213,7 +213,7 @@ static inline void lru_cache_add_active_
+ 
+ /* linux/mm/vmscan.c */
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+-					gfp_t gfp_mask);
++					gfp_t gfp_mask, nodemask_t *mask);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
+ 						  gfp_t gfp_mask, bool noswap,
+ 						  unsigned int swappiness);
+diff -puN mm/page_alloc.c~vmscan-fix-it-to-take-care-of-nodemask mm/page_alloc.c
+--- a/mm/page_alloc.c~vmscan-fix-it-to-take-care-of-nodemask
++++ a/mm/page_alloc.c
+@@ -1583,7 +1583,8 @@ nofail_alloc:
+ 	reclaim_state.reclaimed_slab = 0;
+ 	p->reclaim_state = &reclaim_state;
+ 
+-	did_some_progress = try_to_free_pages(zonelist, order, gfp_mask);
++	did_some_progress = try_to_free_pages(zonelist, order,
++						gfp_mask, nodemask);
+ 
+ 	p->reclaim_state = NULL;
+ 	lockdep_clear_current_reclaim_state();
+diff -puN mm/vmscan.c~vmscan-fix-it-to-take-care-of-nodemask mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-it-to-take-care-of-nodemask
++++ a/mm/vmscan.c
+@@ -78,6 +78,12 @@ struct scan_control {
+ 	/* Which cgroup do we reclaim from */
+ 	struct mem_cgroup *mem_cgroup;
+ 
++	/*
++	 * Nodemask of nodes allowed by the caller. If NULL, all nodes
++	 * are scanned.
++	 */
++	nodemask_t	*nodemask;
 +
-+	  This driver also provides an absolute input class device, allowing
-+	  the laptop to act as a pinball machine-esque joystick.
-+
-+	  This driver can also be built as modules.  If so, the core module
-+	  will be called lis3lv02d and a specific module for the SPI transport
-+	  is called lis3lv02d_spi.
-+
- config SENSORS_APPLESMC
- 	tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)"
- 	depends on INPUT && X86
-diff -puN drivers/hwmon/Makefile~lis3-spi-transport-layer drivers/hwmon/Makefile
---- a/drivers/hwmon/Makefile~lis3-spi-transport-layer
-+++ a/drivers/hwmon/Makefile
-@@ -52,6 +52,7 @@ obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
- obj-$(CONFIG_SENSORS_IT87)	+= it87.o
- obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
- obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3lv02d.o hp_accel.o
-+obj-$(CONFIG_SENSORS_LIS3_SPI)	+= lis3lv02d.o lis3lv02d_spi.o
- obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
- obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
- obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
-diff -puN /dev/null drivers/hwmon/lis3lv02d_spi.c
---- /dev/null
-+++ a/drivers/hwmon/lis3lv02d_spi.c
-@@ -0,0 +1,114 @@
-+/*
-+ * lis3lv02d_spi - SPI glue layer for lis3lv02d
-+ *
-+ * Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  publishhed by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <linux/workqueue.h>
-+#include <linux/spi/spi.h>
-+
-+#include "lis3lv02d.h"
-+
-+#define DRV_NAME 	"lis3lv02d_spi"
-+#define LIS3_SPI_READ	0x80
-+
-+static int lis3_spi_read(struct lis3lv02d *lis3, int reg, u8 *v)
-+{
-+	struct spi_device *spi = lis3->bus_priv;
-+	int ret = spi_w8r8(spi, reg | LIS3_SPI_READ);
-+	if (ret < 0)
-+		return -EINVAL;
-+
-+	*v = (u8) ret;
-+	return 0;
-+}
-+
-+static int lis3_spi_write(struct lis3lv02d *lis3, int reg, u8 val)
-+{
-+	u8 tmp[2] = { reg, val };
-+	struct spi_device *spi = lis3->bus_priv;
-+	return spi_write(spi, tmp, sizeof(tmp));
-+}
-+
-+static int lis3_spi_init(struct lis3lv02d *lis3)
-+{
-+	u8 reg;
-+	int ret;
-+
-+	/* power up the device */
-+	ret = lis3->read(lis3, CTRL_REG1, &reg);
-+	if (ret < 0)
-+		return ret;
-+
-+	reg |= CTRL1_PD0;
-+	return lis3->write(lis3, CTRL_REG1, reg);
-+}
-+
-+static struct axis_conversion lis3lv02d_axis_normal = { 1, 2, 3 };
-+
-+static int __devinit lis302dl_spi_probe(struct spi_device *spi)
-+{
-+	int ret;
-+
-+	spi->bits_per_word = 8;
-+	spi->mode = SPI_MODE_0;
-+	ret = spi_setup(spi);
-+	if (ret < 0)
-+		return ret;
-+
-+	lis3_dev.bus_priv = spi;
-+	lis3_dev.init = lis3_spi_init;
-+	lis3_dev.read = lis3_spi_read;
-+	lis3_dev.write = lis3_spi_write;
-+	lis3_dev.irq = spi->irq;
-+	lis3_dev.ac = lis3lv02d_axis_normal;
-+	spi_set_drvdata(spi, &lis3_dev);
-+
-+	ret = lis3lv02d_init_device(&lis3_dev);
-+	return ret;
-+}
-+
-+static int __devexit lis302dl_spi_remove(struct spi_device *spi)
-+{
-+	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
-+	lis3lv02d_joystick_disable();
-+	lis3lv02d_poweroff(lis3);
-+	return 0;
-+}
-+
-+static struct spi_driver lis302dl_spi_driver = {
-+	.driver	 = {
-+		.name   = DRV_NAME,
-+		.owner  = THIS_MODULE,
-+	},
-+	.probe	= lis302dl_spi_probe,
-+	.remove	= __devexit_p(lis302dl_spi_remove),
-+};
-+
-+static int __init lis302dl_init(void)
-+{
-+	return spi_register_driver(&lis302dl_spi_driver);
-+}
-+
-+static void __exit lis302dl_exit(void)
-+{
-+	spi_unregister_driver(&lis302dl_spi_driver);
-+}
-+
-+module_init(lis302dl_init);
-+module_exit(lis302dl_exit);
-+
-+MODULE_AUTHOR("Daniel Mack <daniel@caiaq.de>");
-+MODULE_DESCRIPTION("lis3lv02d SPI glue layer");
-+MODULE_LICENSE("GPL");
-+
+ 	/* Pluggable isolate pages callback */
+ 	unsigned long (*isolate_pages)(unsigned long nr, struct list_head *dst,
+ 			unsigned long *scanned, int order, int mode,
+@@ -1538,7 +1544,8 @@ static void shrink_zones(int priority, s
+ 	struct zone *zone;
+ 
+ 	sc->all_unreclaimable = 1;
+-	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
++	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
++					sc->nodemask) {
+ 		if (!populated_zone(zone))
+ 			continue;
+ 		/*
+@@ -1683,7 +1690,7 @@ out:
+ }
+ 
+ unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+-								gfp_t gfp_mask)
++				gfp_t gfp_mask, nodemask_t *nodemask)
+ {
+ 	struct scan_control sc = {
+ 		.gfp_mask = gfp_mask,
+@@ -1694,6 +1701,7 @@ unsigned long try_to_free_pages(struct z
+ 		.order = order,
+ 		.mem_cgroup = NULL,
+ 		.isolate_pages = isolate_pages_global,
++		.nodemask = nodemask,
+ 	};
+ 
+ 	return do_try_to_free_pages(zonelist, &sc);
+@@ -1714,6 +1722,7 @@ unsigned long try_to_free_mem_cgroup_pag
+ 		.order = 0,
+ 		.mem_cgroup = mem_cont,
+ 		.isolate_pages = mem_cgroup_isolate_pages,
++		.nodemask = NULL, /* we don't care the placement */
+ 	};
+ 	struct zonelist *zonelist;
+ 
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
 linux-next.patch
-drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor.patch
-drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor-fix.patch
-hp_accel-add-two-more-axis-information.patch
-lis3-reorder-functions-to-make-forward-decl-obsolete.patch
-lis3-solve-dependency-between-core-and-acpi.patch
-lis3-spi-transport-layer.patch
-w1-coding-style-cleanups-in-w1_ioc.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+vmscan-respect-higher-order-in-zone_reclaim.patch
+vmscan-fix-it-to-take-care-of-nodemask.patch
+cgroup-css-id-support.patch
+cgroup-css-id-support-remove-rcu_read_lock-from-css_get_next.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+cgroups-more-documentation-for-remount-and-release_agent.patch
+cgroups-show-correct-file-mode.patch
+cgroups-show-correct-file-mode-fix.patch
+devcgroup-avoid-using-cgroup_lock.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
+memcg-charge-swapcache-to-proper-memcg.patch
+cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
+cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5-fix.patch
+memcg-remove-redundant-message-at-swapon.patch
+cgroups-add-data-field-to-struct-cgroup_scanner.patch
+cpuset-rewrite-update_tasks_nodemask.patch
+cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
+cpuset-remove-struct-cpuset_hotplug_scanner.patch
 
