@@ -1,171 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] git-acpi-vs-git-cpufreq.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:05:23 -0700
-Message-ID: <200903301905.n2UJ5N6G018665@imap1.linux-foundation.org>
+Subject: [merged] do_pipe-drop-its-last-user-in-arch-alpha.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:06:58 -0700
+Message-ID: <200903301906.n2UJ6w1G019220@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47863 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759653AbZC3Tht (ORCPT
+	by vger.kernel.org with ESMTP id S1760144AbZC3TjQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 15:37:49 -0400
+	Mon, 30 Mar 2009 15:39:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@codemonkey.org.uk, len.brown@intel.com, ming.m.lin@intel.com, randy.dunlap@oracle.com, robert.moore@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: crquan@gmail.com, ink@jurassic.park.msu.ru, jens.axboe@oracle.com, rth@twiddle.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi vs git-cpufreq
+     do_pipe(): drop its last user in arch/alpha/
 has been removed from the -mm tree.  Its filename was
-     git-acpi-vs-git-cpufreq.patch
+     do_pipe-drop-its-last-user-in-arch-alpha.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-acpi vs git-cpufreq
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: do_pipe(): drop its last user in arch/alpha/
+From: Cheng Renquan <crquan@gmail.com>
 
-acpi_set_register() got renamed in the acpi tree.
+The last user of do_pipe is in arch/alpha/, after replacing it with
+do_pipe_flags, the do_pipe can be removed.
 
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Dave Jones <davej@codemonkey.org.uk>
-Randy Dunlap <randy.dunlap@oracle.com>
-Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Cheng Renquan <crquan@gmail.com>
+Acked-by: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/longhaul.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/alpha/kernel/entry.S   |    3 ++-
+ arch/alpha/kernel/osf_sys.c |    2 +-
+ fs/pipe.c                   |    5 -----
+ include/linux/fs.h          |    1 -
+ 4 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/longhaul.c~git-acpi-vs-git-cpufreq arch/x86/kernel/cpu/cpufreq/longhaul.c
---- a/arch/x86/kernel/cpu/cpufreq/longhaul.c~git-acpi-vs-git-cpufreq
-+++ a/arch/x86/kernel/cpu/cpufreq/longhaul.c
-@@ -305,7 +305,7 @@ retry_loop:
- 		outb(3, 0x22);
- 	} else if ((pr != NULL) && pr->flags.bm_control) {
- 		/* Disable bus master arbitration */
--		acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1);
-+		acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 1);
- 	}
- 	switch (longhaul_version) {
+diff -puN arch/alpha/kernel/entry.S~do_pipe-drop-its-last-user-in-arch-alpha arch/alpha/kernel/entry.S
+--- a/arch/alpha/kernel/entry.S~do_pipe-drop-its-last-user-in-arch-alpha
++++ a/arch/alpha/kernel/entry.S
+@@ -903,8 +903,9 @@ sys_alpha_pipe:
+ 	stq	$26, 0($sp)
+ 	.prologue 0
  
-@@ -328,7 +328,7 @@ retry_loop:
- 	case TYPE_POWERSAVER:
- 		if (longhaul_flags & USE_ACPI_C3) {
- 			/* Don't allow wakeup */
--			acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
-+			acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
- 			do_powersaver(cx->address, mults_index, dir);
- 		} else {
- 			do_powersaver(0, mults_index, dir);
-@@ -341,7 +341,7 @@ retry_loop:
- 		outb(0, 0x22);
- 	} else if ((pr != NULL) && pr->flags.bm_control) {
- 		/* Enable bus master arbitration */
--		acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
-+		acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 0);
- 	}
- 	outb(pic2_mask, 0xA1);	/* restore mask */
- 	outb(pic1_mask, 0x21);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-arch-x86-mm-iomap_32c-fix-warning.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-flex-onenand-support-v2-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional-fix.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-isicom-isicom-kref-leak-fix-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-ubd-stop-defintining-major_nr-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-cirrusfb-fix-clock-doubling-fix.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-
++	mov	$31, $17
+ 	lda	$16, 8($sp)
+-	jsr	$26, do_pipe
++	jsr	$26, do_pipe_flags
+ 
+ 	ldq	$26, 0($sp)
+ 	bne	$0, 1f
+diff -puN arch/alpha/kernel/osf_sys.c~do_pipe-drop-its-last-user-in-arch-alpha arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~do_pipe-drop-its-last-user-in-arch-alpha
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -46,7 +46,7 @@
+ #include <asm/hwrpb.h>
+ #include <asm/processor.h>
+ 
+-extern int do_pipe(int *);
++extern int do_pipe_flags(int *, int);
+ 
+ /*
+  * Brk needs to return an error.  Still support Linux's brk(0) query idiom,
+diff -puN fs/pipe.c~do_pipe-drop-its-last-user-in-arch-alpha fs/pipe.c
+--- a/fs/pipe.c~do_pipe-drop-its-last-user-in-arch-alpha
++++ a/fs/pipe.c
+@@ -1035,11 +1035,6 @@ int do_pipe_flags(int *fd, int flags)
+ 	return error;
+ }
+ 
+-int do_pipe(int *fd)
+-{
+-	return do_pipe_flags(fd, 0);
+-}
