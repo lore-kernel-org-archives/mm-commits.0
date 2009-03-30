@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-tracehook_notify_jctl-change.patch added to -mm tree
-Date: Mon, 30 Mar 2009 15:18:56 -0700
-Message-ID: <200903302218.n2UMIvEb004737@imap1.linux-foundation.org>
+Subject: + sysctl-lockdep-support-for-sysctl-reference-counting.patch added to -mm tree
+Date: Mon, 30 Mar 2009 15:26:40 -0700
+Message-ID: <200903302226.n2UMQe6w006808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755337AbZC3WVO (ORCPT
+	by vger.kernel.org with ESMTP id S1751196AbZC3W2t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 18:21:14 -0400
+	Mon, 30 Mar 2009 18:28:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, oleg@redhat.com
+Cc: ebiederm@aristanetworks.com, a.p.zijlstra@chello.nl, adobriyan@gmail.com
 
 
 The patch titled
-     signals: tracehook_notify_jctl change
+     sysctl: lockdep support for sysctl reference counting
 has been added to the -mm tree.  Its filename is
-     signals-tracehook_notify_jctl-change.patch
+     sysctl-lockdep-support-for-sysctl-reference-counting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,236 +34,301 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: tracehook_notify_jctl change
-From: Roland McGrath <roland@redhat.com>
+Subject: sysctl: lockdep support for sysctl reference counting
+From: Eric Biederman <ebiederm@aristanetworks.com>
 
-This changes tracehook_notify_jctl() so it's called with the siglock held,
-and changes its argument and return value definition.  These clean-ups
-make it a better fit for what new tracing hooks need to check.
+It is possible for get lock ordering deadlocks between locks and waiting
+for the sysctl used count to drop to zero.  We have recently observed one
+of these in the networking code.
 
-Tracing needs the siglock here, held from the time TASK_STOPPED was set,
-to avoid potential SIGCONT races if it wants to allow any blocking in its
-tracing hooks.
+So teach the sysctl code how to speak lockdep so the kernel
+can warn about these kinds of rare issues proactively.
 
-This also folds the finish_stop() function into its caller
-do_signal_stop().  The function is short, called only once and only
-unconditionally.  It aids readability to fold it in.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Eric Biederman <ebiederm@aristanetworks.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   25 ++++++++-----
- kernel/signal.c           |   69 ++++++++++++++++++------------------
- 2 files changed, 51 insertions(+), 43 deletions(-)
+ include/linux/sysctl.h |    4 +
+ kernel/sysctl.c        |  108 +++++++++++++++++++++++++++++++--------
+ 2 files changed, 91 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/tracehook.h~signals-tracehook_notify_jctl-change include/linux/tracehook.h
---- a/include/linux/tracehook.h~signals-tracehook_notify_jctl-change
-+++ a/include/linux/tracehook.h
-@@ -1,7 +1,7 @@
- /*
-  * Tracing hooks
-  *
-- * Copyright (C) 2008 Red Hat, Inc.  All rights reserved.
-+ * Copyright (C) 2008-2009 Red Hat, Inc.  All rights reserved.
-  *
-  * This copyrighted material is made available to anyone wishing to use,
-  * modify, copy, or redistribute it subject to the terms and conditions
-@@ -464,22 +464,29 @@ static inline int tracehook_get_signal(s
+diff -puN include/linux/sysctl.h~sysctl-lockdep-support-for-sysctl-reference-counting include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-lockdep-support-for-sysctl-reference-counting
++++ a/include/linux/sysctl.h
+@@ -28,6 +28,7 @@
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/compiler.h>
++#include <linux/lockdep.h>
  
- /**
-  * tracehook_notify_jctl - report about job control stop/continue
-- * @notify:		nonzero if this is the last thread in the group to stop
-+ * @notify:		zero, %CLD_STOPPED or %CLD_CONTINUED
-  * @why:		%CLD_STOPPED or %CLD_CONTINUED
-  *
-  * This is called when we might call do_notify_parent_cldstop().
-- * It's called when about to stop for job control; we are already in
-- * %TASK_STOPPED state, about to call schedule().  It's also called when
-- * a delayed %CLD_STOPPED or %CLD_CONTINUED report is ready to be made.
-  *
-- * Return nonzero to generate a %SIGCHLD with @why, which is
-- * normal if @notify is nonzero.
-+ * @notify is zero if we would not ordinarily send a %SIGCHLD,
-+ * or is the %CLD_STOPPED or %CLD_CONTINUED .si_code for %SIGCHLD.
-  *
-- * Called with no locks held.
-+ * @why is %CLD_STOPPED when about to stop for job control;
-+ * we are already in %TASK_STOPPED state, about to call schedule().
-+ * It might also be that we have just exited (check %PF_EXITING),
-+ * but need to report that a group-wide stop is complete.
-+ *
-+ * @why is %CLD_CONTINUED when waking up after job control stop and
-+ * ready to make a delayed @notify report.
-+ *
-+ * Return the %CLD_* value for %SIGCHLD, or zero to generate no signal.
-+ *
-+ * Called with the siglock held.
-  */
- static inline int tracehook_notify_jctl(int notify, int why)
+ struct file;
+ struct completion;
+@@ -1088,6 +1089,9 @@ struct ctl_table_header
+ 	struct ctl_table *attached_by;
+ 	struct ctl_table *attached_to;
+ 	struct ctl_table_header *parent;
++#ifdef CONFIG_PROVE_LOCKING
++	struct lockdep_map dep_map;
++#endif
+ };
+ 
+ /* struct ctl_path describes where in the hierarchy a table is added */
+diff -puN kernel/sysctl.c~sysctl-lockdep-support-for-sysctl-reference-counting kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-lockdep-support-for-sysctl-reference-counting
++++ a/kernel/sysctl.c
+@@ -1478,12 +1478,63 @@ static struct ctl_table dev_table[] = {
+ 
+ static DEFINE_SPINLOCK(sysctl_lock);
+ 
++#ifndef CONFIG_PROVE_LOCKING
++
++# define lock_sysctl() spin_lock(&sysctl_lock)
++# define unlock_sysctl() spin_unlock(&sysctl_lock)
++
++static inline void table_acquire_use(struct ctl_table_header *hdr) { }
++static inline void table_release_use(struct ctl_table_header *hdr) { }
++static inline void table_acquire(struct ctl_table_header *hdr) { }
++static inline void table_contended(struct ctl_table_header *hdr) { }
++static inline void table_acquired(struct ctl_table_header *hdr) { }
++static inline void table_release(struct ctl_table_header *hdr) { }
++
++#else	/* CONFIG_PROVE_LOCKING */
++
++#  define lock_sysctl() __raw_spin_lock(&sysctl_lock.raw_lock)
++#  define unlock_sysctl() __raw_spin_unlock(&sysctl_lock.raw_lock)
++
++static inline void table_acquire_use(struct ctl_table_header *hdr)
++{
++	lock_acquire(&hdr->dep_map, 0, 0, 1, 2, NULL, _RET_IP_);
++	lock_acquired(&hdr->dep_map, _RET_IP_);
++}
++
++static inline void table_release_use(struct ctl_table_header *hdr)
++{
++	lock_release(&hdr->dep_map, 0, _RET_IP_);
++}
++
++static inline void table_acquire(struct ctl_table_header *hdr)
++{
++	lock_acquire(&hdr->dep_map, 0, 0, 0, 2, NULL, _RET_IP_);
++}
++
++static inline void table_contended(struct ctl_table_header *hdr)
++{
++	lock_contended(&hdr->dep_map, _RET_IP_);
++}
++
++static inline void table_acquired(struct ctl_table_header *hdr)
++{
++	lock_acquired(&hdr->dep_map, _RET_IP_);
++}
++
++static inline void table_release(struct ctl_table_header *hdr)
++{
++	lock_release(&hdr->dep_map, 0, _RET_IP_);
++}
++
++#endif /* CONFIG_PROVE_LOCKING */
++
+ /* called under sysctl_lock */
+ static int use_table(struct ctl_table_header *p)
  {
--	return notify || (current->ptrace & PT_PTRACED);
-+	return notify ?: (current->ptrace & PT_PTRACED) ? why : 0;
- }
- 
- #define DEATH_REAP			-1
-diff -puN kernel/signal.c~signals-tracehook_notify_jctl-change kernel/signal.c
---- a/kernel/signal.c~signals-tracehook_notify_jctl-change
-+++ a/kernel/signal.c
-@@ -702,7 +702,7 @@ static int prepare_signal(int sig, struc
- 
- 		if (why) {
- 			/*
--			 * The first thread which returns from finish_stop()
-+			 * The first thread which returns from do_signal_stop()
- 			 * will take ->siglock, notice SIGNAL_CLD_MASK, and
- 			 * notify its parent. See get_signal_to_deliver().
- 			 */
-@@ -1665,29 +1665,6 @@ void ptrace_notify(int exit_code)
- 	spin_unlock_irq(&current->sighand->siglock);
- }
- 
--static void
--finish_stop(int stop_count)
--{
--	/*
--	 * If there are no other threads in the group, or if there is
--	 * a group stop in progress and we are the last to stop,
--	 * report to the parent.  When ptraced, every thread reports itself.
--	 */
--	if (tracehook_notify_jctl(stop_count == 0, CLD_STOPPED)) {
--		read_lock(&tasklist_lock);
--		do_notify_parent_cldstop(current, CLD_STOPPED);
--		read_unlock(&tasklist_lock);
--	}
--
--	do {
--		schedule();
--	} while (try_to_freeze());
--	/*
--	 * Now we don't run again until continued.
--	 */
--	current->exit_code = 0;
--}
--
- /*
-  * This performs the stopping for SIGSTOP and other stop signals.
-  * We have to stop all threads in the thread group.
-@@ -1698,6 +1675,7 @@ static int do_signal_stop(int signr)
- {
- 	struct signal_struct *sig = current->signal;
- 	int stop_count;
-+	int notify;
- 
- 	if (sig->group_stop_count > 0) {
- 		/*
-@@ -1737,8 +1715,30 @@ static int do_signal_stop(int signr)
- 	current->exit_code = sig->group_exit_code;
- 	__set_current_state(TASK_STOPPED);
- 
-+	/*
-+	 * If there are no other threads in the group, or if there is
-+	 * a group stop in progress and we are the last to stop,
-+	 * report to the parent.  When ptraced, every thread reports itself.
-+	 */
-+	notify = tracehook_notify_jctl(stop_count == 0 ? CLD_STOPPED : 0,
-+				       CLD_STOPPED);
-+
- 	spin_unlock_irq(&current->sighand->siglock);
--	finish_stop(stop_count);
-+
-+	if (notify) {
-+		read_lock(&tasklist_lock);
-+		do_notify_parent_cldstop(current, notify);
-+		read_unlock(&tasklist_lock);
-+	}
-+
-+	do {
-+		schedule();
-+	} while (try_to_freeze());
-+	/*
-+	 * Now we don't run again until continued.
-+	 */
-+	current->exit_code = 0;
-+
+ 	if (unlikely(p->unregistering))
+ 		return 0;
+ 	p->used++;
++	table_acquire_use(p);
  	return 1;
  }
  
-@@ -1807,14 +1807,15 @@ relock:
- 		int why = (signal->flags & SIGNAL_STOP_CONTINUED)
- 				? CLD_CONTINUED : CLD_STOPPED;
- 		signal->flags &= ~SIGNAL_CLD_MASK;
--		spin_unlock_irq(&sighand->siglock);
+@@ -1493,6 +1544,8 @@ static void unuse_table(struct ctl_table
+ 	if (!--p->used)
+ 		if (unlikely(p->unregistering))
+ 			complete(p->unregistering);
++
++	table_release_use(p);
+ }
  
--		if (unlikely(!tracehook_notify_jctl(1, why)))
--			goto relock;
-+		why = tracehook_notify_jctl(why, CLD_CONTINUED);
-+		spin_unlock_irq(&sighand->siglock);
- 
--		read_lock(&tasklist_lock);
--		do_notify_parent_cldstop(current->group_leader, why);
--		read_unlock(&tasklist_lock);
-+		if (why) {
-+			read_lock(&tasklist_lock);
-+			do_notify_parent_cldstop(current->group_leader, why);
-+			read_unlock(&tasklist_lock);
-+		}
- 		goto relock;
+ /* called under sysctl_lock, will reacquire if has to wait */
+@@ -1502,47 +1555,54 @@ static void start_unregistering(struct c
+ 	 * if p->used is 0, nobody will ever touch that entry again;
+ 	 * we'll eliminate all paths to it before dropping sysctl_lock
+ 	 */
++	table_acquire(p);
+ 	if (unlikely(p->used)) {
+ 		struct completion wait;
++		table_contended(p);
++
+ 		init_completion(&wait);
+ 		p->unregistering = &wait;
+-		spin_unlock(&sysctl_lock);
++		unlock_sysctl();
+ 		wait_for_completion(&wait);
+-		spin_lock(&sysctl_lock);
++		lock_sysctl();
+ 	} else {
+ 		/* anything non-NULL; we'll never dereference it */
+ 		p->unregistering = ERR_PTR(-EINVAL);
  	}
++	table_acquired(p);
++
+ 	/*
+ 	 * do not remove from the list until nobody holds it; walking the
+ 	 * list in do_sysctl() relies on that.
+ 	 */
+ 	list_del_init(&p->ctl_entry);
++
++	table_release(p);
+ }
  
-@@ -1979,14 +1980,14 @@ void exit_signals(struct task_struct *ts
- 	if (unlikely(tsk->signal->group_stop_count) &&
- 			!--tsk->signal->group_stop_count) {
- 		tsk->signal->flags = SIGNAL_STOP_STOPPED;
--		group_stop = 1;
-+		group_stop = tracehook_notify_jctl(CLD_STOPPED, CLD_STOPPED);
+ void sysctl_head_get(struct ctl_table_header *head)
+ {
+-	spin_lock(&sysctl_lock);
++	lock_sysctl();
+ 	head->count++;
+-	spin_unlock(&sysctl_lock);
++	unlock_sysctl();
+ }
+ 
+ void sysctl_head_put(struct ctl_table_header *head)
+ {
+-	spin_lock(&sysctl_lock);
++	lock_sysctl();
+ 	if (!--head->count)
+ 		kfree(head);
+-	spin_unlock(&sysctl_lock);
++	unlock_sysctl();
+ }
+ 
+ struct ctl_table_header *sysctl_head_grab(struct ctl_table_header *head)
+ {
+ 	if (!head)
+ 		BUG();
+-	spin_lock(&sysctl_lock);
++	lock_sysctl();
+ 	if (!use_table(head))
+ 		head = ERR_PTR(-ENOENT);
+-	spin_unlock(&sysctl_lock);
++	unlock_sysctl();
+ 	return head;
+ }
+ 
+@@ -1550,9 +1610,9 @@ void sysctl_head_finish(struct ctl_table
+ {
+ 	if (!head)
+ 		return;
+-	spin_lock(&sysctl_lock);
++	lock_sysctl();
+ 	unuse_table(head);
+-	spin_unlock(&sysctl_lock);
++	unlock_sysctl();
+ }
+ 
+ static struct ctl_table_set *
+@@ -1579,7 +1639,7 @@ struct ctl_table_header *__sysctl_head_n
+ 	struct ctl_table_header *head;
+ 	struct list_head *tmp;
+ 
+-	spin_lock(&sysctl_lock);
++	lock_sysctl();
+ 	if (prev) {
+ 		head = prev;
+ 		tmp = &prev->ctl_entry;
+@@ -1592,7 +1652,7 @@ struct ctl_table_header *__sysctl_head_n
+ 
+ 		if (!use_table(head))
+ 			goto next;
+-		spin_unlock(&sysctl_lock);
++		unlock_sysctl();
+ 		return head;
+ 	next:
+ 		root = head->root;
+@@ -1611,7 +1671,7 @@ struct ctl_table_header *__sysctl_head_n
+ 		tmp = header_list->next;
  	}
  out:
- 	spin_unlock_irq(&tsk->sighand->siglock);
- 
--	if (unlikely(group_stop) && tracehook_notify_jctl(1, CLD_STOPPED)) {
-+	if (unlikely(group_stop)) {
- 		read_lock(&tasklist_lock);
--		do_notify_parent_cldstop(tsk, CLD_STOPPED);
-+		do_notify_parent_cldstop(tsk, group_stop);
- 		read_unlock(&tasklist_lock);
- 	}
+-	spin_unlock(&sysctl_lock);
++	unlock_sysctl();
+ 	return NULL;
  }
+ 
+@@ -1622,9 +1682,9 @@ struct ctl_table_header *sysctl_head_nex
+ 
+ void register_sysctl_root(struct ctl_table_root *root)
+ {
+-	spin_lock(&sysctl_lock);
++	lock_sysctl();
+ 	list_add_tail(&root->root_list, &sysctl_table_root.root_list);
+-	spin_unlock(&sysctl_lock);
++	unlock_sysctl();
+ }
+ 
+ #ifdef CONFIG_SYSCTL_SYSCALL
+@@ -1975,7 +2035,13 @@ struct ctl_table_header *__register_sysc
+ 		return NULL;
+ 	}
+ #endif
+-	spin_lock(&sysctl_lock);
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	{
++		static struct lock_class_key __key;
++		lockdep_init_map(&header->dep_map, "sysctl_used", &__key, 0);
++	}
++#endif
++	lock_sysctl();
+ 	header->set = lookup_header_set(root, namespaces);
+ 	header->attached_by = header->ctl_table;
+ 	header->attached_to = root_table;
+@@ -1990,7 +2056,7 @@ struct ctl_table_header *__register_sysc
+ 	}
+ 	header->parent->count++;
+ 	list_add_tail(&header->ctl_entry, &header->set->list);
+-	spin_unlock(&sysctl_lock);
++	unlock_sysctl();
+ 
+ 	return header;
+ }
+@@ -2042,7 +2108,7 @@ void unregister_sysctl_table(struct ctl_
+ 	if (header == NULL)
+ 		return;
+ 
+-	spin_lock(&sysctl_lock);
++	lock_sysctl();
+ 	start_unregistering(header);
+ 	if (!--header->parent->count) {
+ 		WARN_ON(1);
+@@ -2050,21 +2116,21 @@ void unregister_sysctl_table(struct ctl_
+ 	}
+ 	if (!--header->count)
+ 		kfree(header);
+-	spin_unlock(&sysctl_lock);
++	unlock_sysctl();
+ }
+ 
+ int sysctl_is_seen(struct ctl_table_header *p)
+ {
+ 	struct ctl_table_set *set = p->set;
+ 	int res;
+-	spin_lock(&sysctl_lock);
++	lock_sysctl();
+ 	if (p->unregistering)
+ 		res = 0;
+ 	else if (!set->is_seen)
+ 		res = 1;
+ 	else
+ 		res = set->is_seen(set);
+-	spin_unlock(&sysctl_lock);
++	unlock_sysctl();
+ 	return res;
+ }
+ 
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from ebiederm@aristanetworks.com are
 
 origin.patch
 linux-next.patch
-do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
-signals-remove-handler-parameter-to-tracehook-functions.patch
-signals-protect-init-from-unwanted-signals-more.patch
-signals-add-from_ancestor_ns-parameter-to-send_signal.patch
-signals-protect-cinit-from-unblocked-sig_dfl-signals.patch
-signals-zap_pid_ns_process-should-use-force_sig.patch
-signals-protect-cinit-from-blocked-fatal-signals.patch
-signals-si_user-masquerade-si_pid-when-crossing-pid-ns-boundary.patch
-ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
-ptrace-simplify-ptrace_exit-ignoring_children-path.patch
-ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
-ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
-reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
-reparent_thread-fix-the-is-it-traced-check.patch
-reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
-forget_original_parent-split-out-the-un-ptrace-part.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-tracehook_notify_death-use-task_detached-helper.patch
-ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch
-ptrace_untrace-fix-the-signal_stop_stopped-check.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
+sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
+sysctl-lockdep-support-for-sysctl-reference-counting.patch
 
