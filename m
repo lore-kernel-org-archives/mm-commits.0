@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-elantechc-make-sure-touchpad-is-really-in-absolute-mode.patch added to -mm tree
-Date: Mon, 30 Mar 2009 14:54:45 -0700
-Message-ID: <200903302154.n2ULskw5030856@imap1.linux-foundation.org>
+Subject: + initramfs-prevent-initramfs-printk-message-being-split-by-messages-from-other-code.patch added to -mm tree
+Date: Mon, 30 Mar 2009 15:05:37 -0700
+Message-ID: <200903302205.n2UM5cAN001225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49206 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754028AbZC3V46 (ORCPT
+	by vger.kernel.org with ESMTP id S1757823AbZC3WHV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 17:56:58 -0400
+	Mon, 30 Mar 2009 18:07:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@opmeer.net, dtor@mail.ru
+Cc: skitching@apache.org
 
 
 The patch titled
-     input: elantech.c make sure touchpad is really in absolute mode
+     initramfs: prevent initramfs printk message being split by messages from other code.
 has been added to the -mm tree.  Its filename is
-     input-elantechc-make-sure-touchpad-is-really-in-absolute-mode.patch
+     initramfs-prevent-initramfs-printk-message-being-split-by-messages-from-other-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: elantech.c make sure touchpad is really in absolute mode
-From: Arjan Opmeer <arjan@opmeer.net>
+Subject: initramfs: prevent initramfs printk message being split by messages from other code.
+From: Simon Kitching <skitching@apache.org>
 
-There exist laptops with Elantech touchpads where switching to absolute
-mode does not happen, although writing the configuration register succeeds
-without error.  Reading back the register afterwards reveils that the
-absolute mode bit is not set as if masked out by the touchpad firmware.
+initramfs uses printk without a linefeed, then does some work, then uses
+printk to finish the message off.  However if some other code does a
+printk in between, then the messages get mixed together.  Better for each
+message to be an independent line...
 
-Always read back register 0x10, make sure that for hardware version 1 the
-absolute mode bit is actually set and fail otherwise.  This prevents the
-case where the touchpad is claimed by the Elantech driver but is
-nonetheless not working.
+Example of problem that this fixes:
 
-Signed-off-by: Arjan Opmeer <arjan@opmeer.net>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+    checking if image is initramfs...<7>Switched to high resolution mode on CPU 1
+    Switched to high resolution mode on CPU 0
+    it is
+
+Signed-off-by: Simon Kitching <skitching@apache.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/elantech.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ init/initramfs.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/input/mouse/elantech.c~input-elantechc-make-sure-touchpad-is-really-in-absolute-mode drivers/input/mouse/elantech.c
---- a/drivers/input/mouse/elantech.c~input-elantechc-make-sure-touchpad-is-really-in-absolute-mode
-+++ a/drivers/input/mouse/elantech.c
-@@ -375,9 +375,14 @@ static int elantech_set_absolute_mode(st
- 			rc = -1;
- 			break;
+diff -puN init/initramfs.c~initramfs-prevent-initramfs-printk-message-being-split-by-messages-from-other-code init/initramfs.c
+--- a/init/initramfs.c~initramfs-prevent-initramfs-printk-message-being-split-by-messages-from-other-code
++++ a/init/initramfs.c
+@@ -571,11 +571,11 @@ static int __init populate_rootfs(void)
+ 	if (initrd_start) {
+ #ifdef CONFIG_BLK_DEV_RAM
+ 		int fd;
+-		printk(KERN_INFO "checking if image is initramfs...");
++		printk(KERN_INFO "checking if image is initramfs...\n");
+ 		err = unpack_to_rootfs((char *)initrd_start,
+ 			initrd_end - initrd_start);
+ 		if (!err) {
+-			printk(" it is\n");
++			printk(KERN_INFO "rootfs image is initramfs; unpacking...\n");
+ 			free_initrd();
+ 			return 0;
+ 		} else {
+@@ -583,7 +583,8 @@ static int __init populate_rootfs(void)
+ 			unpack_to_rootfs(__initramfs_start,
+ 				 __initramfs_end - __initramfs_start);
  		}
-+	}
-+
-+	if (rc == 0) {
- 		/*
--		 * Read back reg 0x10. The touchpad is probably initalising
--		 * and not ready until we read back the value we just wrote.
-+		 * Read back reg 0x10. For hardware version 1 we must make
-+		 * sure the absolute mode bit is set. For hardware version 2
-+		 * the touchpad is probably initalising and not ready until
-+		 * we read back the value we just wrote.
- 		 */
- 		do {
- 			rc = elantech_read_reg(psmouse, 0x10, &val);
-@@ -388,9 +393,17 @@ static int elantech_set_absolute_mode(st
- 				tries);
- 			msleep(ETP_READ_BACK_DELAY);
- 		} while (tries > 0);
--		if (rc)
-+
-+		if (rc) {
- 			pr_err("elantech.c: failed to read back register 0x10.\n");
--		break;
-+		} else {
-+			if (etd->hw_version == 1 &&
-+			    val & ETP_R10_ABSOLUTE_MODE == 0) {
-+				pr_err("elantech.c: touchpad refuses "
-+					"to have absolute mode bit set\n");
-+				rc = -1;
-+			}
-+		}
- 	}
- 
- 	if (rc)
+-		printk("it isn't (%s); looks like an initrd\n", err);
++		printk(KERN_INFO "rootfs image is not initramfs (%s)"
++				"; looks like an initrd\n", err);
+ 		fd = sys_open("/initrd.image", O_WRONLY|O_CREAT, 0700);
+ 		if (fd >= 0) {
+ 			sys_write(fd, (char *)initrd_start,
 _
 
-Patches currently in -mm which might be from arjan@opmeer.net are
+Patches currently in -mm which might be from skitching@apache.org are
 
-input-elantechc-provide-a-workaround-for-jumpy-cursor-on-firmware-234.patch
-input-elantechc-make-sure-touchpad-is-really-in-absolute-mode.patch
+initramfs-prevent-initramfs-printk-message-being-split-by-messages-from-other-code.patch
 
