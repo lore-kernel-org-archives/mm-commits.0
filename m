@@ -1,70 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:06:13 -0700
-Message-ID: <200903301906.n2UJ6DpT019009@imap1.linux-foundation.org>
+Subject: [merged] jffs2_acl_count-tests-0-on-unsigned.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:06:07 -0700
+Message-ID: <200903301906.n2UJ67Nq018967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755864AbZC3TLA (ORCPT
+	by vger.kernel.org with ESMTP id S1758696AbZC3TJi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 15:11:00 -0400
+	Mon, 30 Mar 2009 15:09:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: graf.yang@analog.com, cooloney@kernel.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: CFI: fix bug - bonnie++ error on BF548 NOR flash
+     jffs2_acl_count() tests < 0 on unsigned
 has been removed from the -mm tree.  Its filename was
-     mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash.patch
+     jffs2_acl_count-tests-0-on-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: CFI: fix bug - bonnie++ error on BF548 NOR flash
-From: Graf Yang <graf.yang@analog.com>
+Subject: jffs2_acl_count() tests < 0 on unsigned
+From: Roel Kluin <roel.kluin@gmail.com>
 
-The function inval_cache_and_wait_for_operation() is called both
-by write and erase operation. If erase call it and stayed there, then write
-call it and male-cleared chip->erase_suspended, the time out error may arise.
+size_t s is unsigned and cannot be less than 0.
 
-Signed-off-by: Graf Yang <graf.yang@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/cfi_cmdset_0001.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/jffs2/acl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash drivers/mtd/chips/cfi_cmdset_0001.c
---- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash
-+++ a/drivers/mtd/chips/cfi_cmdset_0001.c
-@@ -1236,10 +1236,14 @@ static int inval_cache_and_wait_for_oper
- 			remove_wait_queue(&chip->wq, &wait);
- 			spin_lock(chip->mutex);
- 		}
--		if (chip->erase_suspended || chip->write_suspended)  {
--			/* Suspend has occured while sleep: reset timeout */
-+		if (chip->erase_suspended && chip_state == FL_ERASING)  {
-+			/* Erase suspend has occured while sleep: reset timeout */
- 			timeo = reset_timeo;
- 			chip->erase_suspended = 0;
-+		}
-+		if (chip->write_suspended && chip_state == FL_WRITING)  {
-+			/* Write suspend has occured while sleep: reset timeout */
-+			timeo = reset_timeo;
- 			chip->write_suspended = 0;
- 		}
- 	}
+diff -puN fs/jffs2/acl.c~jffs2_acl_count-tests-0-on-unsigned fs/jffs2/acl.c
+--- a/fs/jffs2/acl.c~jffs2_acl_count-tests-0-on-unsigned
++++ a/fs/jffs2/acl.c
+@@ -38,12 +38,12 @@ static int jffs2_acl_count(size_t size)
+ 	size_t s;
+ 
+ 	size -= sizeof(struct jffs2_acl_header);
+-	s = size - 4 * sizeof(struct jffs2_acl_entry_short);
+-	if (s < 0) {
++	if (size < 4 * sizeof(struct jffs2_acl_entry_short)) {
+ 		if (size % sizeof(struct jffs2_acl_entry_short))
+ 			return -1;
+ 		return size / sizeof(struct jffs2_acl_entry_short);
+ 	} else {
++		s = size - 4 * sizeof(struct jffs2_acl_entry_short);
+ 		if (s % sizeof(struct jffs2_acl_entry))
+ 			return -1;
+ 		return s / sizeof(struct jffs2_acl_entry) + 4;
 _
 
-Patches currently in -mm which might be from graf.yang@analog.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch
+drm-fix-lock_test_with_return-macro.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+hugetlb-chg-cannot-become-less-than-0.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-fix-macros.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-wm8350-retries-will-reach-1.patch
+rtc-test-before-subtraction-on-unsigned.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
+arkfb-fix-misplaced-parentheses.patch
+uvesafb-bitwise-or-has-higher-precedence-than.patch
+vesafb-bitwise-or-has-higher-precedence-than.patch
+viafb-returns-0-two-too-early.patch
+ufs-sector_t-cannot-be-negative.patch
+hppfs-hppfs_read_file-may-return-error.patch
 
