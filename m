@@ -1,86 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jffs2_acl_count-tests-0-on-unsigned.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:06:07 -0700
-Message-ID: <200903301906.n2UJ67Nq018967@imap1.linux-foundation.org>
+Subject: [merged] isicom-isicom-kref-leak-fix.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:06:39 -0700
+Message-ID: <200903301906.n2UJ6dYx019119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758696AbZC3TJi (ORCPT
+	by vger.kernel.org with ESMTP id S1757875AbZC3TJP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 15:09:38 -0400
+	Mon, 30 Mar 2009 15:09:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jffs2_acl_count() tests < 0 on unsigned
+     isicom: isicom kref leak fix
 has been removed from the -mm tree.  Its filename was
-     jffs2_acl_count-tests-0-on-unsigned.patch
+     isicom-isicom-kref-leak-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2_acl_count() tests < 0 on unsigned
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: isicom: isicom kref leak fix
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-size_t s is unsigned and cannot be less than 0.
+The isicom driver leaks a kref on the shutdown path. Drop the additional
+kref we took
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Acked-by: Jiri Slaby <jirislaby@gmail.com>
+Reported-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/acl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/isicom.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/jffs2/acl.c~jffs2_acl_count-tests-0-on-unsigned fs/jffs2/acl.c
---- a/fs/jffs2/acl.c~jffs2_acl_count-tests-0-on-unsigned
-+++ a/fs/jffs2/acl.c
-@@ -38,12 +38,12 @@ static int jffs2_acl_count(size_t size)
- 	size_t s;
+diff -puN drivers/char/isicom.c~isicom-isicom-kref-leak-fix drivers/char/isicom.c
+--- a/drivers/char/isicom.c~isicom-isicom-kref-leak-fix
++++ a/drivers/char/isicom.c
+@@ -925,6 +925,7 @@ static void isicom_shutdown_port(struct 
+ 		if (!card->count)
+ 			isicom_shutdown_board(card);
+ 	}
++	tty_kref_put(tty);
+ }
  
- 	size -= sizeof(struct jffs2_acl_header);
--	s = size - 4 * sizeof(struct jffs2_acl_entry_short);
--	if (s < 0) {
-+	if (size < 4 * sizeof(struct jffs2_acl_entry_short)) {
- 		if (size % sizeof(struct jffs2_acl_entry_short))
- 			return -1;
- 		return size / sizeof(struct jffs2_acl_entry_short);
- 	} else {
-+		s = size - 4 * sizeof(struct jffs2_acl_entry_short);
- 		if (s % sizeof(struct jffs2_acl_entry))
- 			return -1;
- 		return s / sizeof(struct jffs2_acl_entry) + 4;
+ static void isicom_flush_buffer(struct tty_struct *tty)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
 linux-next.patch
-drm-fix-lock_test_with_return-macro.patch
 pata-rb532-cf-platform_get_irq-failure-ignored.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-hugetlb-chg-cannot-become-less-than-0.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-fix-macros.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-wm8350-retries-will-reach-1.patch
-rtc-test-before-subtraction-on-unsigned.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-fbdev-newport-newport_wait-return-0-on-timeout.patch
-drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
-arkfb-fix-misplaced-parentheses.patch
-uvesafb-bitwise-or-has-higher-precedence-than.patch
-vesafb-bitwise-or-has-higher-precedence-than.patch
-viafb-returns-0-two-too-early.patch
-ufs-sector_t-cannot-be-negative.patch
-hppfs-hppfs_read_file-may-return-error.patch
+mflash-initial-support.patch
+mflash-initial-support-v2.patch
+proc-tty-add-struct-tty_operations-proc_fops.patch
+proc-tty-switch-cyclades-to-proc_fops.patch
+proc-tty-switch-ip2-to-proc_fops.patch
+proc-tty-switch-istallion-to-proc_fops.patch
+proc-tty-switch-synclink_cs-to-proc_fops.patch
+proc-tty-switch-stallion-to-proc_fops.patch
+proc-tty-switch-synclink-to-proc_fops.patch
+proc-tty-switch-synclink_gt-to-proc_fops.patch
+proc-tty-switch-synclinkmp-to-proc_fops.patch
+proc-tty-switch-sdio_uart-to-proc_fops.patch
+proc-tty-switch-serial_core-to-proc_fops.patch
+proc-tty-switch-usb-serial-to-proc_fops.patch
+proc-tty-switch-ircomm-to-proc_fops.patch
+proc-tty-switch-amiserial-to-proc_fops.patch
+proc-tty-switch-ia64-simserial-to-proc_fops.patch
+proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
+proc-tty-remove-struct-tty_operations-read_proc.patch
+tty-pty-lookup-retval-fixup.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+isicom-isicom-kref-leak-fix-fix.patch
+blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch
+blackfin-serial-driver-change-hardware-flowcontrol-from-poll-to-interrupt-driven.patch
+blackfin-serial-driver-fix-bug-serial-port-transfer-big-file-from-host-to-target-would-have-more-lines.patch
+blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags.patch
+blackfin-serial-driver-update-kgdb-uart-config-name.patch
+blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled.patch
+blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n.patch
+blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences.patch
+blackfin-serial-driver-fix-bug-enable-hardware-based-cts-and-rts-for-bf548.patch
+blackfin-serial-driver-update-path-to-gpio-header.patch
+max3100-spi-uart-driver.patch
+epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
+epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
+epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
+epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+serial-clean-up-rs485-on-cris-architecture.patch
+jsm-cleanup.patch
+serial-8250c-irq-handling-race-and-spurious-iir-read.patch
+vt-add-ioctl-commands-to-dev-vcsan-to-get-put-the-current-palette-of-the-given-tty.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
 
