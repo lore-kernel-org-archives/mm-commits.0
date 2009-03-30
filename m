@@ -1,68 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-nand-drop-usage-of-cpu_is_-macro.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:05:59 -0700
-Message-ID: <200903301905.n2UJ5xMI018916@imap1.linux-foundation.org>
+Subject: [merged] powerpc-spufs-check-file-offset-before-calculating-write-size-in-fixed-sized-files.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:05:30 -0700
+Message-ID: <200903301905.n2UJ5UuW018672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44089 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55251 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759352AbZC3TJl (ORCPT
+	by vger.kernel.org with ESMTP id S1757866AbZC3TJL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 15:09:41 -0400
+	Mon, 30 Mar 2009 15:09:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khilman@deeprootsystems.com, david-b@pacbell.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: jk@ozlabs.org, benh@kernel.crashing.org, roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: nand: drop usage of cpu_is_* macro
+     powerpc/spufs: check file offset before calculating write size in fixed-sized files
 has been removed from the -mm tree.  Its filename was
-     mtd-nand-drop-usage-of-cpu_is_-macro.patch
+     powerpc-spufs-check-file-offset-before-calculating-write-size-in-fixed-sized-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: nand: drop usage of cpu_is_* macro
-From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: powerpc/spufs: check file offset before calculating write size in fixed-sized files
+From: Jeremy Kerr <jk@ozlabs.org>
 
-Usage of davinci-specific cpu_is macros is not allowed in drivers. 
-These options should be passed in through platform_data.
+Based on an original patch from Roel Kluin.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
+The write size calculated during regs and fpcr writes may currently
+go negative. Because size is unsigned, this will wrap, and our
+check for EFBIG will fail.
+
+Instead, do the check for EFBIG before subtracting from size.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Roel Kluin <roel.kluin@gmail.com>.
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/davinci_nand.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/powerpc/platforms/cell/spufs/file.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mtd/nand/davinci_nand.c~mtd-nand-drop-usage-of-cpu_is_-macro drivers/mtd/nand/davinci_nand.c
---- a/drivers/mtd/nand/davinci_nand.c~mtd-nand-drop-usage-of-cpu_is_-macro
-+++ a/drivers/mtd/nand/davinci_nand.c
-@@ -33,7 +33,6 @@
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
+diff -puN arch/powerpc/platforms/cell/spufs/file.c~powerpc-spufs-check-file-offset-before-calculating-write-size-in-fixed-sized-files arch/powerpc/platforms/cell/spufs/file.c
+--- a/arch/powerpc/platforms/cell/spufs/file.c~powerpc-spufs-check-file-offset-before-calculating-write-size-in-fixed-sized-files
++++ a/arch/powerpc/platforms/cell/spufs/file.c
+@@ -568,9 +568,10 @@ spufs_regs_write(struct file *file, cons
+ 	struct spu_lscsa *lscsa = ctx->csa.lscsa;
+ 	int ret;
  
--#include <mach/cpu.h>
- #include <mach/nand.h>
+-	size = min_t(ssize_t, sizeof lscsa->gprs - *pos, size);
+-	if (size <= 0)
++	if (*pos >= sizeof(lscsa->gprs))
+ 		return -EFBIG;
++
++	size = min_t(ssize_t, sizeof(lscsa->gprs) - *pos, size);
+ 	*pos += size;
  
- #include <asm/mach-types.h>
-@@ -392,8 +391,6 @@ static int __init nand_davinci_probe(str
- 	/* use board-specific ECC config; else, the best available */
- 	if (pdata)
- 		ecc_mode = pdata->ecc_mode;
--	else if (cpu_is_davinci_dm355())
--		ecc_mode = NAND_ECC_HW_SYNDROME;
- 	else
- 		ecc_mode = NAND_ECC_HW;
+ 	ret = spu_acquire_saved(ctx);
+@@ -623,10 +624,11 @@ spufs_fpcr_write(struct file *file, cons
+ 	struct spu_lscsa *lscsa = ctx->csa.lscsa;
+ 	int ret;
  
+-	size = min_t(ssize_t, sizeof(lscsa->fpcr) - *pos, size);
+-	if (size <= 0)
++	if (*pos >= sizeof(lscsa->fpcr))
+ 		return -EFBIG;
+ 
++	size = min_t(ssize_t, sizeof(lscsa->fpcr) - *pos, size);
++
+ 	ret = spu_acquire_saved(ctx);
+ 	if (ret)
+ 		return ret;
 _
 
-Patches currently in -mm which might be from khilman@deeprootsystems.com are
+Patches currently in -mm which might be from jk@ozlabs.org are
 
-origin.patch
 linux-next.patch
 
