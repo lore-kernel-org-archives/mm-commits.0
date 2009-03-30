@@ -1,31 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:05:37 -0700
-Message-ID: <200903301905.n2UJ5bFj018721@imap1.linux-foundation.org>
+Subject: [merged] blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:05:35 -0700
+Message-ID: <200903301905.n2UJ5ZOR018718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57912 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759913AbZC3TXY (ORCPT
+	by vger.kernel.org with ESMTP id S1753220AbZC3T0Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 15:23:24 -0400
+	Mon, 30 Mar 2009 15:26:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vapier.adi@gmail.com, cooloney@kernel.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: Blackfin NFC Driver: drop pointless casts with set_dma_callback()
+     mtd: Blackfin NFC Driver: mark bf5xx_nand_add_partition() as __devinit
 has been removed from the -mm tree.  Its filename was
-     blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch
+     blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: Blackfin NFC Driver: drop pointless casts with set_dma_callback()
+Subject: mtd: Blackfin NFC Driver: mark bf5xx_nand_add_partition() as __devinit
 From: Mike Frysinger <vapier.adi@gmail.com>
+
+The bf5xx_nand_add_partition() func is only called by __devinit functions,
+so put it into the __devinit section as well
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
@@ -36,18 +39,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/mtd/nand/bf5xx_nand.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback drivers/mtd/nand/bf5xx_nand.c
---- a/drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback
+diff -puN drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit drivers/mtd/nand/bf5xx_nand.c
+--- a/drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit
 +++ a/drivers/mtd/nand/bf5xx_nand.c
-@@ -572,7 +572,7 @@ static int bf5xx_nand_dma_init(struct bf
- 	SSYNC();
- #endif
+@@ -630,7 +630,7 @@ static int bf5xx_nand_hw_init(struct bf5
+ /*
+  * Device management interface
+  */
+-static int bf5xx_nand_add_partition(struct bf5xx_nand_info *info)
++static int __devinit bf5xx_nand_add_partition(struct bf5xx_nand_info *info)
+ {
+ 	struct mtd_info *mtd = &info->mtd;
  
--	set_dma_callback(CH_NFC, (void *) bf5xx_nand_dma_irq, (void *) info);
-+	set_dma_callback(CH_NFC, bf5xx_nand_dma_irq, info);
- 
- 	/* Turn off the DMA channel first */
- 	disable_dma(CH_NFC);
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
