@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-fix-it-to-take-care-of-nodemask.patch added to -mm tree
-Date: Mon, 30 Mar 2009 16:28:49 -0700
-Message-ID: <200903302328.n2UNSntJ023213@imap1.linux-foundation.org>
+Subject: + shmem-writepage-directly-to-swap.patch added to -mm tree
+Date: Mon, 30 Mar 2009 16:30:55 -0700
+Message-ID: <200903302330.n2UNUuSE023788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753202AbZC3Xcv (ORCPT
+	by vger.kernel.org with ESMTP id S1752110AbZC3Xeg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 19:32:51 -0400
+	Mon, 30 Mar 2009 19:34:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com
+Cc: hugh@veritas.com, penberg@cs.helsinki.fi, riel@redhat.com
 
 
 The patch titled
-     vmscan: fix it to take care of nodemask
+     shmem: writepage directly to swap
 has been added to the -mm tree.  Its filename is
-     vmscan-fix-it-to-take-care-of-nodemask.patch
+     shmem-writepage-directly-to-swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,158 +34,143 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: fix it to take care of nodemask
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: shmem: writepage directly to swap
+From: Hugh Dickins <hugh@veritas.com>
 
-try_to_free_pages() is used for the direct reclaim of up to
-SWAP_CLUSTER_MAX pages when watermarks are low.  The caller to
-alloc_pages_nodemask() can specify a nodemask of nodes that are allowed to
-be used but this is not passed to try_to_free_pages().  This can lead to
-unnecessary reclaim of pages that are unusable by the caller and int the
-worst case lead to allocation failure as progress was not been make where
-it is needed.
+Synopsis: if shmem_writepage calls swap_writepage directly, most shmem
+swap loads benefit, and a catastrophic interaction between SLUB and some
+flash storage is avoided.
 
-This patch passes the nodemask used for alloc_pages_nodemask() to
-try_to_free_pages().
+shmem_writepage() has always been peculiar in making no attempt to write:
+it has just transferred a shmem page from file cache to swap cache, then
+let that page make its way around the LRU again before being written and
+freed.
 
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+The idea was that people use tmpfs because they want those pages to stay
+in RAM; so although we give it an overflow to swap, we should resist
+writing too soon, giving those pages a second chance before they can be
+reclaimed.
+
+That was always questionable, and I've toyed with this patch for years;
+but never had a clear justification to depart from the original design.
+
+It became more questionable in 2.6.28, when the split LRU patches classed
+shmem and tmpfs pages as SwapBacked rather than as file_cache: that in
+itself gives them more resistance to reclaim than normal file pages.  I
+prepared this patch for 2.6.29, but the merge window arrived before I'd
+completed gathering statistics to justify sending it in.
+
+Then while comparing SLQB against SLUB, running SLUB on a laptop I'd
+habitually used with SLAB, I found SLUB to run my tmpfs kbuild swapping
+tests five times slower than SLAB or SLQB - other machines slower too, but
+nowhere near so bad.  Simpler "cp -a" swapping tests showed the same.
+
+slub_max_order=0 brings sanity to all, but heavy swapping is too far from
+normal to justify such a tuning.  The crucial factor on that laptop turns
+out to be that I'm using an SD card for swap.  What happens is this:
+
+By default, SLUB uses order-2 pages for shmem_inode_cache (and many other
+fs inodes), so creating tmpfs files under memory pressure brings lumpy
+reclaim into play.  One subpage of the order is chosen from the bottom of
+the LRU as usual, then the other three picked out from their random
+positions on the LRUs.
+
+In a tmpfs load, many of these pages will be ones which already passed
+through shmem_writepage, so already have swap allocated.  And though their
+offsets on swap were probably allocated sequentially, now that the pages
+are picked off at random, their swap offsets are scattered.
+
+But the flash storage on the SD card is very sensitive to having its
+writes merged: once swap is written at scattered offsets, performance
+falls apart.  Rotating disk seeks increase too, but less disastrously.
+
+So: stop giving shmem/tmpfs pages a second pass around the LRU, write them
+out to swap as soon as their swap has been allocated.
+
+It's surely possible to devise an artificial load which runs faster the
+old way, one whose sizing is such that the tmpfs pages on their second
+pass are the ones that are wanted again, and other pages not.
+
+But I've not yet found such a load: on all machines, under the loads I've
+tried, immediate swap_writepage speeds up shmem swapping: especially when
+using the SLUB allocator (and more effectively than slub_max_order=0), but
+also with the others; and it also reduces the variance between runs.  How
+much faster varies widely: a factor of five is rare, 5% is common.
+
+One load which might have suffered: imagine a swapping shmem load in a
+limited mem_cgroup on a machine with plenty of memory.  Before 2.6.29 the
+swapcache was not charged, and such a load would have run quickest with
+the shmem swapcache never written to swap.  But now swapcache is charged,
+so even this load benefits from shmem_writepage directly to swap.
+
+Apologies for the #ifndef CONFIG_SWAP swap_writepage() stub in swap.h:
+it's silly because that will never get called; but refactoring shmem.c
+sensibly according to CONFIG_SWAP will be a separate task.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c          |    2 +-
- include/linux/swap.h |    2 +-
- mm/page_alloc.c      |    3 ++-
- mm/vmscan.c          |   13 +++++++++++--
- 4 files changed, 15 insertions(+), 5 deletions(-)
+ include/linux/swap.h |    5 +++++
+ mm/shmem.c           |    3 +--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/buffer.c~vmscan-fix-it-to-take-care-of-nodemask fs/buffer.c
---- a/fs/buffer.c~vmscan-fix-it-to-take-care-of-nodemask
-+++ a/fs/buffer.c
-@@ -290,7 +290,7 @@ static void free_more_memory(void)
- 						&zone);
- 		if (zone)
- 			try_to_free_pages(node_zonelist(nid, GFP_NOFS), 0,
--						GFP_NOFS);
-+						GFP_NOFS, NULL);
- 	}
- }
- 
-diff -puN include/linux/swap.h~vmscan-fix-it-to-take-care-of-nodemask include/linux/swap.h
---- a/include/linux/swap.h~vmscan-fix-it-to-take-care-of-nodemask
+diff -puN include/linux/swap.h~shmem-writepage-directly-to-swap include/linux/swap.h
+--- a/include/linux/swap.h~shmem-writepage-directly-to-swap
 +++ a/include/linux/swap.h
-@@ -213,7 +213,7 @@ static inline void lru_cache_add_active_
- 
- /* linux/mm/vmscan.c */
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
--					gfp_t gfp_mask);
-+					gfp_t gfp_mask, nodemask_t *mask);
- extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
- 						  gfp_t gfp_mask, bool noswap,
- 						  unsigned int swappiness);
-diff -puN mm/page_alloc.c~vmscan-fix-it-to-take-care-of-nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~vmscan-fix-it-to-take-care-of-nodemask
-+++ a/mm/page_alloc.c
-@@ -1583,7 +1583,8 @@ nofail_alloc:
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
--	did_some_progress = try_to_free_pages(zonelist, order, gfp_mask);
-+	did_some_progress = try_to_free_pages(zonelist, order,
-+						gfp_mask, nodemask);
- 
- 	p->reclaim_state = NULL;
- 	lockdep_clear_current_reclaim_state();
-diff -puN mm/vmscan.c~vmscan-fix-it-to-take-care-of-nodemask mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-it-to-take-care-of-nodemask
-+++ a/mm/vmscan.c
-@@ -78,6 +78,12 @@ struct scan_control {
- 	/* Which cgroup do we reclaim from */
- 	struct mem_cgroup *mem_cgroup;
- 
-+	/*
-+	 * Nodemask of nodes allowed by the caller. If NULL, all nodes
-+	 * are scanned.
-+	 */
-+	nodemask_t	*nodemask;
-+
- 	/* Pluggable isolate pages callback */
- 	unsigned long (*isolate_pages)(unsigned long nr, struct list_head *dst,
- 			unsigned long *scanned, int order, int mode,
-@@ -1538,7 +1544,8 @@ static void shrink_zones(int priority, s
- 	struct zone *zone;
- 
- 	sc->all_unreclaimable = 1;
--	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
-+					sc->nodemask) {
- 		if (!populated_zone(zone))
- 			continue;
- 		/*
-@@ -1683,7 +1690,7 @@ out:
+@@ -383,6 +383,11 @@ static inline struct page *swapin_readah
+ 	return NULL;
  }
  
- unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
--								gfp_t gfp_mask)
-+				gfp_t gfp_mask, nodemask_t *nodemask)
++static inline int swap_writepage(struct page *p, struct writeback_control *wbc)
++{
++	return 0;
++}
++
+ static inline struct page *lookup_swap_cache(swp_entry_t swp)
  {
- 	struct scan_control sc = {
- 		.gfp_mask = gfp_mask,
-@@ -1694,6 +1701,7 @@ unsigned long try_to_free_pages(struct z
- 		.order = order,
- 		.mem_cgroup = NULL,
- 		.isolate_pages = isolate_pages_global,
-+		.nodemask = nodemask,
- 	};
- 
- 	return do_try_to_free_pages(zonelist, &sc);
-@@ -1714,6 +1722,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
- 		.isolate_pages = mem_cgroup_isolate_pages,
-+		.nodemask = NULL, /* we don't care the placement */
- 	};
- 	struct zonelist *zonelist;
- 
+ 	return NULL;
+diff -puN mm/shmem.c~shmem-writepage-directly-to-swap mm/shmem.c
+--- a/mm/shmem.c~shmem-writepage-directly-to-swap
++++ a/mm/shmem.c
+@@ -1068,8 +1068,7 @@ static int shmem_writepage(struct page *
+ 		swap_duplicate(swap);
+ 		BUG_ON(page_mapped(page));
+ 		page_cache_release(page);	/* pagecache ref */
+-		set_page_dirty(page);
+-		unlock_page(page);
++		swap_writepage(page, wbc);
+ 		if (inode) {
+ 			mutex_lock(&shmem_swaplist_mutex);
+ 			/* move instead of add in case we're racing */
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
+origin.patch
 linux-next.patch
+clocksource-pass-clocksource-to-read-callback.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+mm-shmemc-fix-division-by-zero.patch
+get_mm_hiwater_xxx-trivial-s-define-inline.patch
 proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
 proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-vmscan-respect-higher-order-in-zone_reclaim.patch
-vmscan-fix-it-to-take-care-of-nodemask.patch
-cgroup-css-id-support.patch
-cgroup-css-id-support-remove-rcu_read_lock-from-css_get_next.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-cgroups-more-documentation-for-remount-and-release_agent.patch
-cgroups-show-correct-file-mode.patch
-cgroups-show-correct-file-mode-fix.patch
-devcgroup-avoid-using-cgroup_lock.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
-memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
+mm-dont-call-mark_page_accessed-in-do_swap_page.patch
+mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+mm-dont-free-swap-slots-on-page-deactivation.patch
+mm-remove-pagevec_swap_free.patch
+mm-page_mkwrite-change-prototype-to-match-fault-sysfs.patch
+shmem-writepage-directly-to-swap.patch
+getrusage-fill-ru_maxrss-value.patch
 memcg-charge-swapcache-to-proper-memcg.patch
 cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
 cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5-fix.patch
 memcg-remove-redundant-message-at-swapon.patch
-cgroups-add-data-field-to-struct-cgroup_scanner.patch
-cpuset-rewrite-update_tasks_nodemask.patch
-cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
-cpuset-remove-struct-cpuset_hotplug_scanner.patch
+prio_tree-debugging-patch.patch
 
