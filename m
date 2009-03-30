@@ -1,135 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-we-dont-need-no-misc-devices.patch removed from -mm tree
-Date: Mon, 30 Mar 2009 12:06:02 -0700
-Message-ID: <200903301906.n2UJ62HW018925@imap1.linux-foundation.org>
+Subject: [merged] blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch removed from -mm tree
+Date: Mon, 30 Mar 2009 12:05:33 -0700
+Message-ID: <200903301905.n2UJ5X3e018712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759169AbZC3TKM (ORCPT
+	by vger.kernel.org with ESMTP id S1759134AbZC3TKe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 15:10:12 -0400
+	Mon, 30 Mar 2009 15:10:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, cooloney@kernel.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: we don't need no misc devices
+     mtd: Blackfin NFC Driver: do not clobber DMAC1_PERIMUX
 has been removed from the -mm tree.  Its filename was
-     mtd-we-dont-need-no-misc-devices.patch
+     blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: we don't need no misc devices
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: mtd: Blackfin NFC Driver: do not clobber DMAC1_PERIMUX
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Remove <linux/miscdevice.h> from various drivers which don't actually use
-any of its contents.  There are still a number of these left in
-arch-specific bits of the tree.
+Only set DMAC1_PERIMUX once we have requested and been granted the dma
+channel to prevent breaking other peripherals in the error case
 
-(Found by diffing results of "grep -rl" for linux/miscdevice.h and for
-misc_register, examining the differences, and verifying removals with a
-build test.)
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/doc2000.c     |    1 -
- drivers/mtd/devices/doc2001.c     |    1 -
- drivers/mtd/devices/doc2001plus.c |    1 -
- drivers/mtd/devices/docecc.c      |    1 -
- drivers/mtd/inftlmount.c          |    1 -
- drivers/mtd/nftlcore.c            |    1 -
- 6 files changed, 6 deletions(-)
+ drivers/mtd/nand/bf5xx_nand.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mtd/devices/doc2000.c~mtd-we-dont-need-no-misc-devices drivers/mtd/devices/doc2000.c
---- a/drivers/mtd/devices/doc2000.c~mtd-we-dont-need-no-misc-devices
-+++ a/drivers/mtd/devices/doc2000.c
-@@ -10,7 +10,6 @@
- #include <asm/errno.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
--#include <linux/miscdevice.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-diff -puN drivers/mtd/devices/doc2001.c~mtd-we-dont-need-no-misc-devices drivers/mtd/devices/doc2001.c
---- a/drivers/mtd/devices/doc2001.c~mtd-we-dont-need-no-misc-devices
-+++ a/drivers/mtd/devices/doc2001.c
-@@ -10,7 +10,6 @@
- #include <asm/errno.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
--#include <linux/miscdevice.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/init.h>
-diff -puN drivers/mtd/devices/doc2001plus.c~mtd-we-dont-need-no-misc-devices drivers/mtd/devices/doc2001plus.c
---- a/drivers/mtd/devices/doc2001plus.c~mtd-we-dont-need-no-misc-devices
-+++ a/drivers/mtd/devices/doc2001plus.c
-@@ -14,7 +14,6 @@
- #include <asm/errno.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
--#include <linux/miscdevice.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/init.h>
-diff -puN drivers/mtd/devices/docecc.c~mtd-we-dont-need-no-misc-devices drivers/mtd/devices/docecc.c
---- a/drivers/mtd/devices/docecc.c~mtd-we-dont-need-no-misc-devices
-+++ a/drivers/mtd/devices/docecc.c
-@@ -26,7 +26,6 @@
- #include <asm/errno.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
--#include <linux/miscdevice.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/init.h>
-diff -puN drivers/mtd/inftlmount.c~mtd-we-dont-need-no-misc-devices drivers/mtd/inftlmount.c
---- a/drivers/mtd/inftlmount.c~mtd-we-dont-need-no-misc-devices
-+++ a/drivers/mtd/inftlmount.c
-@@ -28,7 +28,6 @@
- #include <asm/errno.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
--#include <linux/miscdevice.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/init.h>
-diff -puN drivers/mtd/nftlcore.c~mtd-we-dont-need-no-misc-devices drivers/mtd/nftlcore.c
---- a/drivers/mtd/nftlcore.c~mtd-we-dont-need-no-misc-devices
-+++ a/drivers/mtd/nftlcore.c
-@@ -15,7 +15,6 @@
- #include <asm/errno.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
--#include <linux/miscdevice.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/init.h>
+diff -puN drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-do-not-clobber-dmac1_perimux drivers/mtd/nand/bf5xx_nand.c
+--- a/drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-do-not-clobber-dmac1_perimux
++++ a/drivers/mtd/nand/bf5xx_nand.c
+@@ -552,7 +552,6 @@ static void bf5xx_nand_dma_write_buf(str
+ static int bf5xx_nand_dma_init(struct bf5xx_nand_info *info)
+ {
+ 	int ret;
+-	unsigned short val;
+ 
+ 	/* Do not use dma */
+ 	if (!hardware_ecc)
+@@ -560,13 +559,6 @@ static int bf5xx_nand_dma_init(struct bf
+ 
+ 	init_completion(&info->dma_completion);
+ 
+-#ifdef CONFIG_BF54x
+-	/* Setup DMAC1 channel mux for NFC which shared with SDH */
+-	val = bfin_read_DMAC1_PERIMUX();
+-	val &= 0xFFFE;
+-	bfin_write_DMAC1_PERIMUX(val);
+-	SSYNC();
+-#endif
+ 	/* Request NFC DMA channel */
+ 	ret = request_dma(CH_NFC, "BF5XX NFC driver");
+ 	if (ret < 0) {
+@@ -574,6 +566,12 @@ static int bf5xx_nand_dma_init(struct bf
+ 		return ret;
+ 	}
+ 
++#ifdef CONFIG_BF54x
++	/* Setup DMAC1 channel mux for NFC which shared with SDH */
++	bfin_write_DMAC1_PERIMUX(bfin_read_DMAC1_PERIMUX() & ~1);
++	SSYNC();
++#endif
++
+ 	set_dma_callback(CH_NFC, (void *) bf5xx_nand_dma_irq, (void *) info);
+ 
+ 	/* Turn off the DMA channel first */
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
 origin.patch
 linux-next.patch
-blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
+blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags.patch
+blackfin-serial-driver-update-kgdb-uart-config-name.patch
+blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled.patch
+blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n.patch
+blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences.patch
+blackfin-serial-driver-update-path-to-gpio-header.patch
+flat-fix-data-sections-alignment-update.patch
+blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
 blackfin-spi-driver-remove-useless-asm-cplbinith.patch
 blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
 blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
 blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
 blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
+blackfin-spi-driver-add-a-few-more-dma-debug-messages.patch
+blackfin-spi-driver-do-not-check-for-spi-errors-if-dma-itself-did-not-flag-any.patch
+blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
+blackfin-spi-driver-spi-slave-select-code-cleanup.patch
 blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
-blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
-blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-ds1307-true-smbus-compatibility.patch
-gpio-gpio_requestfree-now-required-feature-removal.patch
+blackfin-spi-driver-add-timeout-while-waiting-for-spif-in-dma-irq-handler.patch
+blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
+blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch
+blackfin-spi-driver-fix-null-pointer-crash.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
 
