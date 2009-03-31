@@ -1,57 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] rtc-test-before-subtraction-on-unsigned-fix.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:07:03 -0700
-Message-ID: <200903312207.n2VM73A1017461@imap1.linux-foundation.org>
+Subject: [folded] cirrusfb-convert-printks-to-dev_foo-fix.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:07:39 -0700
+Message-ID: <200903312207.n2VM7dHT017619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52662 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760649AbZCaWJp (ORCPT
+	by vger.kernel.org with ESMTP id S1762243AbZCaWJr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:09:45 -0400
+	Tue, 31 Mar 2009 18:09:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-test-before-subtraction-on-unsigned-fix
+     cirrusfb-convert-printks-to-dev_foo-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-test-before-subtraction-on-unsigned-fix.patch
+     cirrusfb-convert-printks-to-dev_foo-fix.patch
 
-This patch was dropped because it was folded into rtc-test-before-subtraction-on-unsigned.patch
+This patch was dropped because it was folded into cirrusfb-convert-printks-to-dev_foo.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-test-before-subtraction-on-unsigned-fix
+Subject: cirrusfb-convert-printks-to-dev_foo-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-handle wrapping too.
+drivers/video/cirrusfb.c: In function 'cirrusfb_pci_register':
+drivers/video/cirrusfb.c:2137: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'resource_size_t'
+drivers/video/cirrusfb.c:2140: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'resource_size_t'
 
-Needs review & test, please.
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Roel Kluin <roel.kluin@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/cirrusfb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-test-before-subtraction-on-unsigned-fix drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-test-before-subtraction-on-unsigned-fix
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -228,7 +228,7 @@ static int ds1374_set_alarm(struct devic
- 	 * (i.e. not something that we'd rather the caller know about via
- 	 * an error), and the alarm is set to go off as soon as possible.
- 	 */
--	if (new_alarm <= itime)
-+	if (time_before_eq(new_alarm, itime))
- 		new_alarm = 1;
- 	else
- 		new_alarm -= itime;
+diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix
++++ a/drivers/video/cirrusfb.c
+@@ -2135,10 +2135,10 @@ static int __devinit cirrusfb_pci_regist
+ 	cinfo->btype = btype = (enum cirrus_board) ent->driver_data;
+ 
+ 	dev_dbg(info->device,
+-		" Found PCI device, base address 0 is 0x%x, btype set to %d\n",
+-		pdev->resource[0].start, btype);
+-	dev_dbg(info->device,
+-		" base address 1 is 0x%x\n", pdev->resource[1].start);
++		" Found PCI device, base address 0 is 0x%Lx, btype set to %d\n",
++		(unsigned long long)pdev->resource[0].start, btype);
++	dev_dbg(info->device, " base address 1 is 0x%Lx\n",
++		(unsigned long long)pdev->resource[1].start);
+ 
+ 	if (isPReP) {
+ 		pci_write_config_dword(pdev, PCI_BASE_ADDRESS_0, 0x00000000);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,8 +73,8 @@ epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
 rtc-convert-leap_year-into-an-inline.patch
 rtc-add-platform-driver-for-efi.patch
 rtc-test-before-subtraction-on-unsigned.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
 drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo.patch
 cirrusfb-convert-printks-to-dev_foo-fix.patch
 cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
 cirrusfb-fix-clock-doubling-fix.patch
@@ -110,6 +115,7 @@ frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
 simplify-copy_thread-checkpatch-fixes.patch
 flat-fix-data-sections-alignment.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
 memcg-fix-oom-killer-under-memcg-fix2.patch
