@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86-hookup-sys_rt_tgsigqueueinfo.patch added to -mm tree
-Date: Tue, 31 Mar 2009 16:42:05 -0700
-Message-ID: <200903312342.n2VNg5Vq012229@imap1.linux-foundation.org>
+Subject: + signals-implement-sys_rt_tgsigqueueinfo.patch added to -mm tree
+Date: Tue, 31 Mar 2009 16:42:02 -0700
+Message-ID: <200903312342.n2VNg3da012224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43669 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34658 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756346AbZCaXrI (ORCPT
+	by vger.kernel.org with ESMTP id S1760187AbZCaXrK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 19:47:08 -0400
+	Tue, 31 Mar 2009 19:47:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tglx@linutronix.de, drepper@redhat.com, linux-abi@vger.kernel.org, linux-arc
 
 
 The patch titled
-     x86: hook up sys_rt_tgsigqueueinfo
+     signals: implement sys_rt_tgsigqueueinfo
 has been added to the -mm tree.  Its filename is
-     x86-hookup-sys_rt_tgsigqueueinfo.patch
+     signals-implement-sys_rt_tgsigqueueinfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: hook up sys_rt_tgsigqueueinfo
+Subject: signals: implement sys_rt_tgsigqueueinfo
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Make the new sys_rt_tgsigqueueinfo available for x86.
+sys_kill has the per thread counterpart sys_tgkill.  sigqueueinfo is
+missing a thread directed counterpart.  Such an interface is important for
+migrating applications from other OSes which have the per thread delivery
+implemented.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Reviewed-by: Oleg Nesterov <oleg@redhat.com>
@@ -48,52 +51,93 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S          |    1 +
- arch/x86/include/asm/unistd_32.h   |    1 +
- arch/x86/include/asm/unistd_64.h   |    2 ++
- arch/x86/kernel/syscall_table_32.S |    1 +
- 4 files changed, 5 insertions(+)
+ include/linux/compat.h |    2 ++
+ include/linux/signal.h |    2 ++
+ kernel/compat.c        |   11 +++++++++++
+ kernel/signal.c        |   26 ++++++++++++++++++++++++++
+ 4 files changed, 41 insertions(+)
 
-diff -puN arch/x86/ia32/ia32entry.S~x86-hookup-sys_rt_tgsigqueueinfo arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~x86-hookup-sys_rt_tgsigqueueinfo
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -828,4 +828,5 @@ ia32_sys_call_table:
- 	.quad sys_dup3			/* 330 */
- 	.quad sys_pipe2
- 	.quad sys_inotify_init1
-+	.quad compat_sys_rt_tgsigqueueinfo
- ia32_syscall_end:
-diff -puN arch/x86/include/asm/unistd_32.h~x86-hookup-sys_rt_tgsigqueueinfo arch/x86/include/asm/unistd_32.h
---- a/arch/x86/include/asm/unistd_32.h~x86-hookup-sys_rt_tgsigqueueinfo
-+++ a/arch/x86/include/asm/unistd_32.h
-@@ -338,6 +338,7 @@
- #define __NR_dup3		330
- #define __NR_pipe2		331
- #define __NR_inotify_init1	332
-+#define __NR_rt_tgsigqueueinfo	333
+diff -puN include/linux/compat.h~signals-implement-sys_rt_tgsigqueueinfo include/linux/compat.h
+--- a/include/linux/compat.h~signals-implement-sys_rt_tgsigqueueinfo
++++ a/include/linux/compat.h
+@@ -216,6 +216,8 @@ int copy_siginfo_from_user32(siginfo_t *
+ int copy_siginfo_to_user32(struct compat_siginfo __user *to, siginfo_t *from);
+ int get_compat_sigevent(struct sigevent *event,
+ 		const struct compat_sigevent __user *u_event);
++long compat_sys_rt_tgsigqueueinfo(compat_pid_t tgid, compat_pid_t pid, int sig,
++				  struct compat_siginfo __user *uinfo);
  
- #ifdef __KERNEL__
+ static inline int compat_timeval_compare(struct compat_timeval *lhs,
+ 					struct compat_timeval *rhs)
+diff -puN include/linux/signal.h~signals-implement-sys_rt_tgsigqueueinfo include/linux/signal.h
+--- a/include/linux/signal.h~signals-implement-sys_rt_tgsigqueueinfo
++++ a/include/linux/signal.h
+@@ -235,6 +235,8 @@ static inline int valid_signal(unsigned 
+ extern int next_signal(struct sigpending *pending, sigset_t *mask);
+ extern int group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p);
+ extern int __group_send_sig_info(int, struct siginfo *, struct task_struct *);
++extern long do_rt_tgsigqueueinfo(pid_t tgid, pid_t pid, int sig,
++				 siginfo_t *info);
+ extern long do_sigpending(void __user *, unsigned long);
+ extern int sigprocmask(int, sigset_t *, sigset_t *);
+ extern int show_unhandled_signals;
+diff -puN kernel/compat.c~signals-implement-sys_rt_tgsigqueueinfo kernel/compat.c
+--- a/kernel/compat.c~signals-implement-sys_rt_tgsigqueueinfo
++++ a/kernel/compat.c
+@@ -882,6 +882,17 @@ compat_sys_rt_sigtimedwait (compat_sigse
  
-diff -puN arch/x86/include/asm/unistd_64.h~x86-hookup-sys_rt_tgsigqueueinfo arch/x86/include/asm/unistd_64.h
---- a/arch/x86/include/asm/unistd_64.h~x86-hookup-sys_rt_tgsigqueueinfo
-+++ a/arch/x86/include/asm/unistd_64.h
-@@ -653,6 +653,8 @@ __SYSCALL(__NR_dup3, sys_dup3)
- __SYSCALL(__NR_pipe2, sys_pipe2)
- #define __NR_inotify_init1			294
- __SYSCALL(__NR_inotify_init1, sys_inotify_init1)
-+#define __NR_rt_tgsigqueueinfo			295
-+__SYSCALL(__NR_rt_tgsigqueueinfo, sys_rt_tgsigqueueinfo)
+ }
  
++asmlinkage long
++compat_sys_rt_tgsigqueueinfo(compat_pid_t tgid, compat_pid_t pid, int sig,
++			     struct compat_siginfo __user *uinfo)
++{
++	siginfo_t info;
++
++	if (copy_siginfo_from_user32(&info, uinfo))
++		return -EFAULT;
++	return do_rt_tgsigqueueinfo(tgid, pid, sig, &info);
++}
++
+ #ifdef __ARCH_WANT_COMPAT_SYS_TIME
  
- #ifndef __NO_STUBS
-diff -puN arch/x86/kernel/syscall_table_32.S~x86-hookup-sys_rt_tgsigqueueinfo arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~x86-hookup-sys_rt_tgsigqueueinfo
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -332,3 +332,4 @@ ENTRY(sys_call_table)
- 	.long sys_dup3			/* 330 */
- 	.long sys_pipe2
- 	.long sys_inotify_init1
-+	.long sys_rt_tgsigqueueinfo
+ /* compat_time_t is a 32 bit "long" and needs to get converted. */
+diff -puN kernel/signal.c~signals-implement-sys_rt_tgsigqueueinfo kernel/signal.c
+--- a/kernel/signal.c~signals-implement-sys_rt_tgsigqueueinfo
++++ a/kernel/signal.c
+@@ -2369,6 +2369,32 @@ SYSCALL_DEFINE3(rt_sigqueueinfo, pid_t, 
+ 	return kill_proc_info(sig, &info, pid);
+ }
+ 
++long do_rt_tgsigqueueinfo(pid_t tgid, pid_t pid, int sig, siginfo_t *info)
++{
++	/* This is only valid for single tasks */
++	if (pid <= 0 || tgid <= 0)
++		return -EINVAL;
++
++	/* Not even root can pretend to send signals from the kernel.
++	   Nor can they impersonate a kill(), which adds source info.  */
++	if (info->si_code >= 0)
++		return -EPERM;
++	info->si_signo = sig;
++
++	return do_send_specific(tgid, pid, sig, info);
++}
++
++SYSCALL_DEFINE4(rt_tgsigqueueinfo, pid_t, tgid, pid_t, pid, int, sig,
++		siginfo_t __user *, uinfo)
++{
++	siginfo_t info;
++
++	if (copy_from_user(&info, uinfo, sizeof(siginfo_t)))
++		return -EFAULT;
++
++	return do_rt_tgsigqueueinfo(tgid, pid, sig, &info);
++}
++
+ int do_sigaction(int sig, struct k_sigaction *act, struct k_sigaction *oact)
+ {
+ 	struct task_struct *t = current;
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
