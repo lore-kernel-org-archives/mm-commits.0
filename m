@@ -1,99 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [folded] epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:04:52 -0700
-Message-ID: <200903312204.n2VM4rP6016862@imap1.linux-foundation.org>
+Subject: [folded] cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:07:45 -0700
+Message-ID: <200903312207.n2VM7jp0017663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52193 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763414AbZCaWHb (ORCPT
+	by vger.kernel.org with ESMTP id S1763498AbZCaWJE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:07:31 -0400
+	Tue, 31 Mar 2009 18:09:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, wli@movementarian.org, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key update
+     cirrusfb: fix compilation of Zorro code
 has been removed from the -mm tree.  Its filename was
-     epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch
+     cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
 
-This patch was dropped because it was folded into epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
+This patch was dropped because it was folded into cirrusfb-convert-printks-to-dev_foo.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key update
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: cirrusfb: fix compilation of Zorro code
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-- wake_up_nested() was only used by epoll, so the new wake_up_nested_poll()
-  has been moved into fs/eventpoll.c, and wake_up_nested() being no more
-  used, has been dropped
+Add a missing comma.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: William Lee Irwin III <wli@movementarian.org>
+Also, push down frequencies for the SD64 card as it is based on a GD5434
+chip and cannot do more than a GD5446 chip.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ drivers/video/cirrusfb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update
-+++ a/fs/eventpoll.c
-@@ -370,10 +370,28 @@ static int ep_call_nested(struct nested_
- 	return error;
- }
+diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix3 drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix3
++++ a/drivers/video/cirrusfb.c
+@@ -137,7 +137,7 @@ static const struct cirrusfb_board_info_
+ 		.maxclock		= {
+ 			/* guess */
+ 			/* the SD64/P4 have a higher max. videoclock */
+-			140000, 140000, 140000, 140000, 140000,
++			135100, 135100, 85500, 85500, 0
+ 		},
+ 		.init_sr07		= true,
+ 		.init_sr1f		= true,
+@@ -2321,7 +2321,7 @@ static int __devinit cirrusfb_zorro_regi
+ 	cinfo->unmap = cirrusfb_zorro_unmap;
  
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+static inline void ep_wake_up_nested(wait_queue_head_t *wqueue,
-+				     unsigned long events, int subclass)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave_nested(&wqueue->lock, flags, subclass);
-+	wake_up_locked_poll(wqueue, events);
-+	spin_unlock_irqrestore(&wqueue->lock, flags);
-+}
-+#else
-+static inline void ep_wake_up_nested(wait_queue_head_t *wqueue,
-+				     unsigned long events, int subclass)
-+{
-+	wake_up_poll(wqueue, events);
-+}
-+#endif
-+
- static int ep_poll_wakeup_proc(void *priv, void *cookie, int call_nests)
- {
--	wake_up_nested_poll((wait_queue_head_t *) cookie, POLLIN,
--			    1 + call_nests);
-+	ep_wake_up_nested((wait_queue_head_t *) cookie, POLLIN,
-+			  1 + call_nests);
- 	return 0;
- }
+ 	dev_info(info->device,
+-		 "Cirrus Logic chipset on Zorro bus, RAM (%lu MB) at $%lx\n"
++		 "Cirrus Logic chipset on Zorro bus, RAM (%lu MB) at $%lx\n",
+ 		 board_size / MB_, board_addr);
  
+ 	zorro_set_drvdata(z, info);
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-epoll-fix-own-poll.patch
-epoll-fix-epolls-own-poll-update.patch
-epoll-remove-debugging-code.patch
-epoll-dont-use-current-in-irq-context.patch
-epoll-remember-the-event-if-epoll_wait-returns-efault.patch
-epoll-remove-unnecessary-xchg.patch
-epoll-clean-up-ep_modify.patch
-epoll-use-real-type-instead-of-void.patch
-eventfd-improve-support-for-semaphore-like-behavior.patch
-epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
-epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
-epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
+cirrusfb-convert-printks-to-dev_foo.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
+cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
+cirrusfb-add-laguna-additional-overflow-register.patch
+cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
+cirrusfb-do-not-calculate-line-length-twice.patch
+cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
+cirrusfb-various-improvements.patch
+cirrusfb-laguna-chipset-8bpp-fix.patch
+cirrusfb-check_var-improvements.patch
+cirrusfb-various-laguna-fixes.patch
+cirrusfb-acceleration-improvements.patch
+cirrusfb-add-imageblit-function.patch
+cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
+cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
+cirrusfb-gd5446-fixes.patch
+cirrusfb-use-24bpp-instead-of-32bpp.patch
+cirrusfb-fix-clock-doubling.patch
+cirrusfb-fix-clock-doubling-fix.patch
+cirrusfb-add-accelerator-constant.patch
+cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
+cirrusfb-set-mclk-in-one-place.patch
+cirrusfb-set-mclk-in-one-place-fix.patch
+cirrusfb-gd5434-aka-sd64-support-fixed.patch
+cirrusfb-fix-threshold-register-mask-for-laguna-chips.patch
+cirrusfb-fix-interlaced-modes.patch
+drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
+tdfxfb-fix-memory-leaks-in-removal-path.patch
+tridentfb-fix-memory-leaks-in-removal-path.patch
+vfb-fix-memory-leaks-in-removal-path.patch
+sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+68328fb-fix-cmap-memory-leaks.patch
+amba-clcd-fix-cmap-memory-leaks.patch
+amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+asiliantfb-fix-cmap-memory-leaks.patch
+asiliantfb-fix-cmap-memory-leaks-fix.patch
+remove-cyblafb-driver.patch
+nvidiafb-remove-open_lock-mutex.patch
+fb-hide-hardware-cursor-in-graphics-mode-mach64.patch
+atyfb-speed-up-mach64-cursor.patch
+tridentfb-delete-acceleration-kconfig-option.patch
 linux-next.patch
 
