@@ -1,64 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:07:42 -0700
-Message-ID: <200903312207.n2VM7gCt017622@imap1.linux-foundation.org>
+Subject: [folded] cirrusfb-fix-clock-doubling-fix.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:09:14 -0700
+Message-ID: <200903312209.n2VM9EJx018135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58266 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757669AbZCaWKa (ORCPT
+	by vger.kernel.org with ESMTP id S1757694AbZCaWKa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 31 Mar 2009 18:10:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert@linux-m68k.org, krzysztof.h1@poczta.fm, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb-convert-printks-to-dev_foo-fix-fix2
+     cirrusfb-fix-clock-doubling-fix
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+     cirrusfb-fix-clock-doubling-fix.patch
 
-This patch was dropped because it was folded into cirrusfb-convert-printks-to-dev_foo.patch
+This patch was dropped because it was folded into cirrusfb-fix-clock-doubling.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb-convert-printks-to-dev_foo-fix-fix2
+Subject: cirrusfb-fix-clock-doubling-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+- fix spelling
+
+- use usual comment layout
+
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/video/cirrusfb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix2 drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix2
+diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-clock-doubling-fix drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-fix-clock-doubling-fix
 +++ a/drivers/video/cirrusfb.c
-@@ -2384,7 +2384,8 @@ static int __init cirrusfb_init(void)
- }
- 
- #ifndef MODULE
--static int __init cirrusfb_setup(char *options) {
-+static int __init cirrusfb_setup(char *options)
-+{
- 	char *this_opt;
- 
- 	if (!options || !*options)
-@@ -2394,9 +2395,6 @@ static int __init cirrusfb_setup(char *o
- 		if (!*this_opt)
- 			continue;
- 
--		dev_dbg(info->device,
--			"cirrusfb_setup: option '%s'\n", this_opt);
--
- 		if (!strcmp(this_opt, "noaccel"))
- 			noaccel = 1;
- 		else if (!strncmp(this_opt, "mode:", 5))
+@@ -475,8 +475,10 @@ static int cirrusfb_check_pixclock(const
+ 			maxclock);
+ 		return -EINVAL;
+ 	}
+-	/* Additional constrain: 8bpp uses DAC clock doubling
+-	 * to allow maximum pixel clock */
++	/*
++	 * Additional constraint: 8bpp uses DAC clock doubling to allow maximum
++	 * pixel clock
++	 */
+ 	if (var->bits_per_pixel == 8) {
+ 		switch (cinfo->btype) {
+ 		case BT_ALPINE:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,7 +72,7 @@ rtc-add-platform-driver-for-efi.patch
 rtc-test-before-subtraction-on-unsigned.patch
 drivers-video-uvesafbc-dont-use-gfp_any.patch
 cirrusfb-convert-printks-to-dev_foo.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-fix-clock-doubling.patch
 cirrusfb-fix-clock-doubling-fix.patch
 fbdev-uninline-lock_fb_info.patch
 fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
