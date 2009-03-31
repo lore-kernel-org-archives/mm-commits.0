@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:08:52 -0700
-Message-ID: <200903312208.n2VM8qLu017935@imap1.linux-foundation.org>
+Subject: [folded] cirrusfb-add-accelerator-constantpatch-compilation-fix.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:09:44 -0700
+Message-ID: <200903312209.n2VM9jwM018257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41826 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763512AbZCaWKn (ORCPT
+	by vger.kernel.org with ESMTP id S932139AbZCaWLZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:10:43 -0400
+	Tue, 31 Mar 2009 18:11:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@poczta.fm, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ To: krzysztof.h1@poczta.fm, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 The patch titled
      From: Krzysztof Helt <krzysztof.h1@poczta.fm>
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
+     cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
 
-This patch was dropped because it was folded into cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
+This patch was dropped because it was folded into cirrusfb-add-accelerator-constant.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -28,45 +28,44 @@ Subject: From: Krzysztof Helt <krzysztof.h1@poczta.fm>
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
 
-My latest change introduced a typo
-so fix it.
+Add a missing constant for the patch:
+cirrusfb: add accelerator constant
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 ---
 
-Where can I get m68 cross compiler for PC able
-to compile Amiga kernel?
+I am sorry but the patch cirrusfb-add-accelerator-constant.patch
+was not posted in full scope.
 
-Regards,
+I spotted it after reviewing the patches accepted to the -mm tree.
+
 Krzysztof
 
-index b96bc5d..070bf5f 100644
+index 31527e1..fe7d0d7 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/fb.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix
-+++ a/drivers/video/cirrusfb.c
-@@ -2327,7 +2327,7 @@ static int __devinit cirrusfb_zorro_regi
- 
- 	ret = cirrusfb_register(info);
- 	if (!ret)
--		return 0
-+		return 0;
- 
- 	if (btype == BT_PICASSO4 || board_addr > 0x01000000)
- 		iounmap(info->screen_base);
+diff -puN include/linux/fb.h~cirrusfb-add-accelerator-constantpatch-compilation-fix include/linux/fb.h
+--- a/include/linux/fb.h~cirrusfb-add-accelerator-constantpatch-compilation-fix
++++ a/include/linux/fb.h
+@@ -123,6 +123,7 @@ struct dentry;
+ #define FB_ACCEL_TRIDENT_3DIMAGE 51	/* Trident 3DImage		*/
+ #define FB_ACCEL_TRIDENT_BLADE3D 52	/* Trident Blade3D		*/
+ #define FB_ACCEL_TRIDENT_BLADEXP 53	/* Trident BladeXP		*/
++#define FB_ACCEL_CIRRUS_ALPINE   53	/* Cirrus Logic 543x/544x/5480	*/
+ #define FB_ACCEL_NEOMAGIC_NM2070 90	/* NeoMagic NM2070              */
+ #define FB_ACCEL_NEOMAGIC_NM2090 91	/* NeoMagic NM2090              */
+ #define FB_ACCEL_NEOMAGIC_NM2093 92	/* NeoMagic NM2093              */
 _
 
 Patches currently in -mm which might be from krzysztof.h1@poczta.fm are
 
 cirrusfb-convert-printks-to-dev_foo.patch
 cirrusfb-various-improvements.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
+cirrusfb-add-accelerator-constant.patch
 cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
 fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
 fbdev-uninline-lock_fb_info.patch
