@@ -1,78 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:01:07 -0700
-Message-ID: <200903312201.n2VM179j015836@imap1.linux-foundation.org>
+Subject: [folded] alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:01:41 -0700
+Message-ID: <200903312201.n2VM1f3B015979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48272 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752248AbZCaWCp (ORCPT
+	by vger.kernel.org with ESMTP id S1762367AbZCaWEu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:02:45 -0400
+	Tue, 31 Mar 2009 18:04:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, randy.dunlap@oracle.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes
+     alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
+     alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
+This patch was dropped because it was folded into alpha-convert-u64-to-unsigned-long-long.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes
+Subject: alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#100: FILE: mm/page-writeback.c:806:
-+		mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
+WARNING: space prohibited between function name and open parenthesis '('
+#100: FILE: arch/alpha/kernel/sys_jensen.c:247:
++jensen_machine_check (unsigned long vector, unsigned long la)
 
-WARNING: line over 80 characters
-#109: FILE: mm/page-writeback.c:908:
-+	mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
+total: 0 errors, 1 warnings, 72 lines checked
 
-total: 0 errors, 2 warnings, 66 lines checked
-
-./patches/mm-fix-proc_dointvec_userhz_jiffies-breakage.patch has style problems, please review.  If any of these errors
+./patches/alpha-convert-u64-to-unsigned-long-long-fix-3.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/alpha/kernel/sys_jensen.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes mm/page-writeback.c
---- a/mm/page-writeback.c~mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes
-+++ a/mm/page-writeback.c
-@@ -803,7 +803,8 @@ int dirty_writeback_centisecs_handler(ct
- {
- 	proc_dointvec(table, write, file, buffer, length, ppos);
- 	if (dirty_writeback_interval)
--		mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
-+		mod_timer(&wb_timer, jiffies +
-+			msecs_to_jiffies(dirty_writeback_interval * 10));
- 	else
- 		del_timer(&wb_timer);
- 	return 0;
-@@ -905,7 +906,8 @@ void __init page_writeback_init(void)
- {
- 	int shift;
+diff -puN arch/alpha/kernel/sys_jensen.c~alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes arch/alpha/kernel/sys_jensen.c
+--- a/arch/alpha/kernel/sys_jensen.c~alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes
++++ a/arch/alpha/kernel/sys_jensen.c
+@@ -244,12 +244,11 @@ jensen_init_arch(void)
+ }
  
--	mod_timer(&wb_timer, jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
-+	mod_timer(&wb_timer,
-+		  jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
- 	writeback_set_ratelimit();
- 	register_cpu_notifier(&ratelimit_nb);
+ static void
+-jensen_machine_check (unsigned long vector, unsigned long la)
++jensen_machine_check(unsigned long vector, unsigned long la)
+ {
+ 	printk(KERN_CRIT "Machine check\n");
+ }
  
+-
+ /*
+  * The System Vector
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,9 +75,7 @@ mm-introduce-for_each_populated_zone-macro.patch
 mm-shrink_all_memory-use-scnr_reclaimed.patch
 mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
 mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
-mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long.patch
 alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
 ubd-stop-defintining-major_nr-checkpatch-fixes.patch
 epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
