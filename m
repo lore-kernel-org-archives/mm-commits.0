@@ -1,90 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] mm-shmemc-fix-division-by-zero.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 13:08:46 -0700
-Message-ID: <200903312008.n2VK8lZj018230@imap1.linux-foundation.org>
+Subject: [folded] page_fault-retry-with-nopage_retry-fix-fix.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 14:51:08 -0700
+Message-ID: <200903312151.n2VLp8Va013091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752702AbZCaULJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751636AbZCaVxG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 16:11:09 -0400
+	Tue, 31 Mar 2009 17:53:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yur@emcraft.com, hugh@veritas.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mikew@google.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/shmem.c: fix division by zero
+     page_fault-retry-with-nopage_retry-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-shmemc-fix-division-by-zero.patch
+     page_fault-retry-with-nopage_retry-fix-fix.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was folded into page_fault-retry-with-nopage_retry.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/shmem.c: fix division by zero
-From: Yuri Tikhonov <yur@emcraft.com>
+Subject: page_fault-retry-with-nopage_retry-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a division by zero which we have in shmem_truncate_range() and
-shmem_unuse_inode() when using big PAGE_SIZE values (e.g.  256KB on ppc44x).
+A shot in the dark :(
 
-With 256KB PAGE_SIZE the ENTRIES_PER_PAGEPAGE constant becomes too large
-(0x1.0000.0000), so this patch just changes the types from 'ulong' to
-'ullong' where it's necessary.
-
-Signed-off-by: Yuri Tikhonov <yur@emcraft.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Mike Waychison <mikew@google.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/mm/fault.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/shmem.c~mm-shmemc-fix-division-by-zero mm/shmem.c
---- a/mm/shmem.c~mm-shmemc-fix-division-by-zero
-+++ a/mm/shmem.c
-@@ -66,7 +66,7 @@ static struct vfsmount *shm_mnt;
- #include <asm/pgtable.h>
+diff -puN arch/x86/mm/fault.c~page_fault-retry-with-nopage_retry-fix-fix arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~page_fault-retry-with-nopage_retry-fix-fix
++++ a/arch/x86/mm/fault.c
+@@ -964,8 +964,6 @@ good_area:
+ 		return;
+ 	}
  
- #define ENTRIES_PER_PAGE (PAGE_CACHE_SIZE/sizeof(unsigned long))
--#define ENTRIES_PER_PAGEPAGE (ENTRIES_PER_PAGE*ENTRIES_PER_PAGE)
-+#define ENTRIES_PER_PAGEPAGE ((unsigned long long)ENTRIES_PER_PAGE*ENTRIES_PER_PAGE)
- #define BLOCKS_PER_PAGE  (PAGE_CACHE_SIZE/512)
- 
- #define SHMEM_MAX_INDEX  (SHMEM_NR_DIRECT + (ENTRIES_PER_PAGEPAGE/2) * (ENTRIES_PER_PAGE+1))
-@@ -104,7 +104,7 @@ static unsigned long shmem_default_max_i
- }
- #endif
- 
--static int shmem_getpage(struct inode *inode, unsigned long idx,
-+static int shmem_getpage(struct inode *inode, unsigned long long idx,
- 			 struct page **pagep, enum sgp_type sgp, int *type);
- 
- static inline struct page *shmem_dir_alloc(gfp_t gfp_mask)
-@@ -542,7 +542,7 @@ static void shmem_truncate_range(struct 
- 	int punch_hole;
- 	spinlock_t *needs_lock;
- 	spinlock_t *punch_lock;
--	unsigned long upper_limit;
-+	unsigned long long upper_limit;
- 
- 	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
- 	idx = (start + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-@@ -1188,7 +1188,7 @@ static inline struct mempolicy *shmem_ge
-  * vm. If we swap it in we mark it dirty since we also free the swap
-  * entry since a page cannot live in both the swap and page cache
-  */
--static int shmem_getpage(struct inode *inode, unsigned long idx,
-+static int shmem_getpage(struct inode *inode, unsigned long long idx,
- 			struct page **pagep, enum sgp_type sgp, int *type)
- {
- 	struct address_space *mapping = inode->i_mapping;
+-	write |= retry_flag;
+-
+ 	/*
+ 	 * If for any reason at all we couldn't handle the fault,
+ 	 * make sure we exit gracefully rather than endlessly redo
 _
 
-Patches currently in -mm which might be from yur@emcraft.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-shmemc-fix-division-by-zero.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+ubd-stop-defintining-major_nr-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-fix-clock-doubling-fix.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+flex-onenand-support-v2-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+simplify-copy_thread-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+kernel-auditscc-fix-warning.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
