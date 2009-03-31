@@ -1,100 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [failures] fs-reiserfs-return-f_fsid-for-statfs2-v2.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 16:45:50 -0700
-Message-ID: <200903312345.n2VNjoNc013322@imap1.linux-foundation.org>
+Subject: + vfs-skip-i_clear-state-inodes.patch added to -mm tree
+Date: Tue, 31 Mar 2009 16:44:35 -0700
+Message-ID: <200903312344.n2VNiZAl012993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43501 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757909AbZCaXrU (ORCPT
+	by vger.kernel.org with ESMTP id S1755612AbZCaXs5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 19:47:20 -0400
+	Tue, 31 Mar 2009 19:48:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: coly.li@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: fengguang.wu@intel.com, jack@suse.cz, m.mizuma@jp.fujitsu.com, stable@kernel.org
 
 
 The patch titled
-     fs/reiserfs: return f_fsid for statfs(2), v2
-has been removed from the -mm tree.  Its filename was
-     fs-reiserfs-return-f_fsid-for-statfs2-v2.patch
+     vfs: skip I_CLEAR state inodes
+has been added to the -mm tree.  Its filename is
+     vfs-skip-i_clear-state-inodes.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/reiserfs: return f_fsid for statfs(2), v2
-From: Coly Li <coly.li@suse.de>
+Subject: vfs: skip I_CLEAR state inodes
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-This patch makes reiserfs3 return f_fsid info for statfs(2).  By Andreas'
-suggestion, this patch populates a persistent f_fsid between boots/mounts
-with help of on-disk uuid record.
+clear_inode() will switch inode state from I_FREEING to I_CLEAR, and do so
+_outside_ of inode_lock.  So any I_FREEING testing is incomplete without a
+coupled testing of I_CLEAR.
 
-Signed-off-by: Coly Li <coly.li@suse.de>
+So add I_CLEAR tests to drop_pagecache_sb(), generic_sync_sb_inodes() and
+add_dquot_ref().
+
+Masayoshi MIZUMA discovered the bug in drop_pagecache_sb() and Jan Kara
+reminds fixing the other two cases.
+
+Reported-by: Masayoshi MIZUMA <m.mizuma@jp.fujitsu.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/drop_caches.c  |    2 +-
+ fs/fs-writeback.c |    3 ++-
+ fs/quota/dquot.c  |    2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2-v2 fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2-v2
-+++ a/fs/reiserfs/super.c
-@@ -27,6 +27,7 @@
- #include <linux/mnt_namespace.h>
- #include <linux/mount.h>
- #include <linux/namei.h>
-+#include <linux/crc32.h>
+diff -puN fs/drop_caches.c~vfs-skip-i_clear-state-inodes fs/drop_caches.c
+--- a/fs/drop_caches.c~vfs-skip-i_clear-state-inodes
++++ a/fs/drop_caches.c
+@@ -18,7 +18,7 @@ static void drop_pagecache_sb(struct sup
  
- struct file_system_type reiserfs_fs_type;
+ 	spin_lock(&inode_lock);
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+-		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
++		if (inode->i_state & (I_FREEING|I_CLEAR|I_WILL_FREE|I_NEW))
+ 			continue;
+ 		if (inode->i_mapping->nrpages == 0)
+ 			continue;
+diff -puN fs/fs-writeback.c~vfs-skip-i_clear-state-inodes fs/fs-writeback.c
+--- a/fs/fs-writeback.c~vfs-skip-i_clear-state-inodes
++++ a/fs/fs-writeback.c
+@@ -538,7 +538,8 @@ void generic_sync_sb_inodes(struct super
+ 		list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+ 			struct address_space *mapping;
  
-@@ -1883,9 +1884,7 @@ error:
+-			if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
++			if (inode->i_state &
++					(I_FREEING|I_CLEAR|I_WILL_FREE|I_NEW))
+ 				continue;
+ 			mapping = inode->i_mapping;
+ 			if (mapping->nrpages == 0)
+diff -puN fs/quota/dquot.c~vfs-skip-i_clear-state-inodes fs/quota/dquot.c
+--- a/fs/quota/dquot.c~vfs-skip-i_clear-state-inodes
++++ a/fs/quota/dquot.c
+@@ -823,7 +823,7 @@ static void add_dquot_ref(struct super_b
  
- static int reiserfs_statfs(struct dentry *dentry, struct kstatfs *buf)
- {
--	struct super_block *sb = dentry->d_sb;
--	struct reiserfs_super_block *rs = SB_DISK_SUPER_BLOCK(sb);
--	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
-+	struct reiserfs_super_block *rs = SB_DISK_SUPER_BLOCK(dentry->d_sb);
- 
- 	buf->f_namelen = (REISERFS_MAX_NAME(s->s_blocksize));
- 	buf->f_bfree = sb_free_blocks(rs);
-@@ -1894,8 +1893,9 @@ static int reiserfs_statfs(struct dentry
- 	buf->f_bsize = dentry->d_sb->s_blocksize;
- 	/* changed to accommodate gcc folks. */
- 	buf->f_type = REISERFS_SUPER_MAGIC;
--	buf->f_fsid.val[0] = (u32)id;
--	buf->f_fsid.val[1] = (u32)(id >> 32);
-+	buf->f_fsid.val[0] = (u32)crc32_le(0, rs->s_uuid, sizeof(rs->s_uuid)/2);
-+	buf->f_fsid.val[1] = (u32)crc32_le(0, rs->s_uuid + sizeof(rs->s_uuid)/2,
-+				sizeof(rs->s_uuid)/2);
- 
- 	return 0;
- }
+ 	spin_lock(&inode_lock);
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+-		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
++		if (inode->i_state & (I_FREEING|I_CLEAR|I_WILL_FREE|I_NEW))
+ 			continue;
+ 		if (!atomic_read(&inode->i_writecount))
+ 			continue;
 _
 
-Patches currently in -mm which might be from coly.li@suse.de are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
+ramfs-add-support-for-mode=-mount-option.patch
+writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks.patch
+vfs-skip-i_clear-state-inodes.patch
 linux-next.patch
-fs-adfs-return-f_fsid-for-statfs2.patch
-fs-affs-return-f_fsid-for-statfs2.patch
-fs-befs-return-f_fsid-for-statfs2.patch
-fs-cramfs-return-f_fsid-for-statfs2.patch
-fs-efs-return-f_fsid-for-statfs2.patch
-fs-fat-return-f_fsid-for-statfs2.patch
-fs-hfs-return-f_fsid-for-statfs2.patch
-fs-hfsplus-return-f_fsid-for-statfs2.patch
-fs-hpfs-return-f_fsid-for-statfs2.patch
-fs-isofs-return-f_fsid-for-statfs2.patch
-fs-minix-return-f_fsid-for-statfs2.patch
-fs-omfs-return-f_fsid-for-statfs2.patch
-fs-qnx4-return-f_fsid-for-statfs2.patch
-fs-reiserfs-return-f_fsid-for-statfs2.patch
-fs-reiserfs-return-f_fsid-for-statfs2-v2.patch
-fs-romfs-return-f_fsid-for-statfs2.patch
-fs-squashfs-return-f_fsid-for-statfs2.patch
-fs-sysv-return-f_fsid-for-statfs2.patch
-fs-ufs-return-f_fsid-for-statfs2.patch
 
