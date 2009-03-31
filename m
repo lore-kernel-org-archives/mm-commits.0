@@ -1,55 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-introduce-for_each_populated_zone-macro-cleanup.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 14:54:05 -0700
-Message-ID: <200903312154.n2VLs5lw013854@imap1.linux-foundation.org>
+Subject: [folded] mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 14:55:11 -0700
+Message-ID: <200903312155.n2VLtBeI014186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754084AbZCaV5a (ORCPT
+	by vger.kernel.org with ESMTP id S1755081AbZCaV5v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 17:57:30 -0400
+	Tue, 31 Mar 2009 17:57:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-introduce-for_each_populated_zone-macro-cleanup
+     mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-for_each_populated_zone-macro-cleanup.patch
+     mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
 
-This patch was dropped because it was folded into mm-introduce-for_each_populated_zone-macro.patch
+This patch was dropped because it was folded into mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-introduce-for_each_populated_zone-macro-cleanup
+Subject: mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro-cleanup include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro-cleanup
-+++ a/include/linux/mmzone.h
-@@ -814,9 +814,6 @@ extern struct zone *next_zone(struct zon
- 			; /* do nothing */		\
- 		else
- 
--
--
--
- static inline struct zone *zonelist_zone(struct zoneref *zoneref)
- {
- 	return zoneref->zone;
+diff -puN mm/memory.c~mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix mm/memory.c
+--- a/mm/memory.c~mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix
++++ a/mm/memory.c
+@@ -1153,7 +1153,7 @@ struct page *follow_page(struct vm_area_
+ 			set_page_dirty(page);
+ 		/*
+ 		 * pte_mkyoung() would be more correct here, but atomic care
+-		 * is needed to avoid losing dirty bit: easier to
++		 * is needed to avoid losing the dirty bit: it is easier to use
+ 		 * mark_page_accessed().
+ 		 */
+ 		mark_page_accessed(page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -57,8 +55,8 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 page_fault-retry-with-nopage_retry.patch
 mm-introduce-for_each_populated_zone-macro.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-shrink_all_memory-use-scnr_reclaimed.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
 mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
 mm-fix-proc_dointvec_userhz_jiffies-breakage-checkpatch-fixes.patch
 alpha-convert-u64-to-unsigned-long-long-fix.patch
