@@ -1,108 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-skip-i_clear-state-inodes.patch added to -mm tree
-Date: Tue, 31 Mar 2009 16:44:35 -0700
-Message-ID: <200903312344.n2VNiZAl012993@imap1.linux-foundation.org>
+Subject: [folded] rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 16:54:05 -0700
+Message-ID: <200903312354.n2VNs5MD015699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755612AbZCaXs5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755612AbZCaX5N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 19:48:57 -0400
+	Tue, 31 Mar 2009 19:57:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, jack@suse.cz, m.mizuma@jp.fujitsu.com, stable@kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, mike@compulab.co.il, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: skip I_CLEAR state inodes
-has been added to the -mm tree.  Its filename is
-     vfs-skip-i_clear-state-inodes.patch
+     rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix
+has been removed from the -mm tree.  Its filename was
+     rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: skip I_CLEAR state inodes
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-clear_inode() will switch inode state from I_FREEING to I_CLEAR, and do so
-_outside_ of inode_lock.  So any I_FREEING testing is incomplete without a
-coupled testing of I_CLEAR.
+fix off-by-one in error path
 
-So add I_CLEAR tests to drop_pagecache_sb(), generic_sync_sb_inodes() and
-add_dquot_ref().
-
-Masayoshi MIZUMA discovered the bug in drop_pagecache_sb() and Jan Kara
-reminds fixing the other two cases.
-
-Reported-by: Masayoshi MIZUMA <m.mizuma@jp.fujitsu.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: <stable@kernel.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Mike Rapoport <mike@compulab.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c  |    2 +-
- fs/fs-writeback.c |    3 ++-
- fs/quota/dquot.c  |    2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-v3020.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/drop_caches.c~vfs-skip-i_clear-state-inodes fs/drop_caches.c
---- a/fs/drop_caches.c~vfs-skip-i_clear-state-inodes
-+++ a/fs/drop_caches.c
-@@ -18,7 +18,7 @@ static void drop_pagecache_sb(struct sup
+diff -puN drivers/rtc/rtc-v3020.c~rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix drivers/rtc/rtc-v3020.c
+--- a/drivers/rtc/rtc-v3020.c~rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix
++++ a/drivers/rtc/rtc-v3020.c
+@@ -136,7 +136,7 @@ static int v3020_gpio_map(struct v3020 *
+ 	return 0;
  
- 	spin_lock(&inode_lock);
- 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
--		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
-+		if (inode->i_state & (I_FREEING|I_CLEAR|I_WILL_FREE|I_NEW))
- 			continue;
- 		if (inode->i_mapping->nrpages == 0)
- 			continue;
-diff -puN fs/fs-writeback.c~vfs-skip-i_clear-state-inodes fs/fs-writeback.c
---- a/fs/fs-writeback.c~vfs-skip-i_clear-state-inodes
-+++ a/fs/fs-writeback.c
-@@ -538,7 +538,8 @@ void generic_sync_sb_inodes(struct super
- 		list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
- 			struct address_space *mapping;
+ err_request:
+-	for (; i >= 0; i--)
++	while (--i >= 0)
+ 		gpio_free(v3020_gpio[i].gpio);
  
--			if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
-+			if (inode->i_state &
-+					(I_FREEING|I_CLEAR|I_WILL_FREE|I_NEW))
- 				continue;
- 			mapping = inode->i_mapping;
- 			if (mapping->nrpages == 0)
-diff -puN fs/quota/dquot.c~vfs-skip-i_clear-state-inodes fs/quota/dquot.c
---- a/fs/quota/dquot.c~vfs-skip-i_clear-state-inodes
-+++ a/fs/quota/dquot.c
-@@ -823,7 +823,7 @@ static void add_dquot_ref(struct super_b
- 
- 	spin_lock(&inode_lock);
- 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
--		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW))
-+		if (inode->i_state & (I_FREEING|I_CLEAR|I_WILL_FREE|I_NEW))
- 			continue;
- 		if (!atomic_read(&inode->i_writecount))
- 			continue;
+ 	return err;
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ramfs-add-support-for-mode=-mount-option.patch
-writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks.patch
-vfs-skip-i_clear-state-inodes.patch
+page_fault-retry-with-nopage_retry.patch
+mm-introduce-for_each_populated_zone-macro.patch
+mm-shrink_all_memory-use-scnr_reclaimed.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
+mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
+alpha-convert-u64-to-unsigned-long-long.patch
+ubd-stop-defintining-major_nr.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi.patch
+rtc-test-before-subtraction-on-unsigned.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo.patch
+cirrusfb-fix-clock-doubling.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+flex-onenand-support-v2-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+simplify-copy_thread-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+kernel-auditscc-fix-warning.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+page-owner-tracking.patch
+page-owner-tracking-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
