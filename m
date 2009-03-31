@@ -1,52 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:10:35 -0700
-Message-ID: <200903312210.n2VMAaaT018478@imap1.linux-foundation.org>
+Subject: [folded] fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:10:38 -0700
+Message-ID: <200903312210.n2VMAcIf018481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36036 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757616AbZCaWMU (ORCPT
+	by vger.kernel.org with ESMTP id S1758332AbZCaWMW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:12:20 -0400
+	Tue, 31 Mar 2009 18:12:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, kristoffer.ericson@gmail.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes
+     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification
 has been removed from the -mm tree.  Its filename was
-     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
 
 This patch was dropped because it was folded into fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes
+Subject: fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification
 From: Andrew Morton <akpm@linux-foundation.org>
-
-ERROR: space required after that ',' (ctx:VxV)
-#64: FILE: drivers/video/s1d13xxxfb.c:559:
-+	u8 revision,prod_id;
- 	           ^
-
-WARNING: line over 80 characters
-#97: FILE: drivers/video/s1d13xxxfb.c:648:
-+		printk(KERN_INFO PFX "chip production id %i = %s\n", prod_id, s1d13xxxfb_prod_names[i]);
-
-WARNING: line over 80 characters
-#102: FILE: drivers/video/s1d13xxxfb.c:651:
-+		printk(KERN_INFO PFX "unknown chip production id %i, revision %i\n", prod_id, revision);
-
-total: 1 errors, 2 warnings, 78 lines checked
-
-./patches/fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
 
 Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com
 Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com>
@@ -54,37 +33,25 @@ Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s1d13xxxfb.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/video/s1d13xxxfb.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes drivers/video/s1d13xxxfb.c
---- a/drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes
+diff -puN drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification drivers/video/s1d13xxxfb.c
+--- a/drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification
 +++ a/drivers/video/s1d13xxxfb.c
-@@ -556,7 +556,7 @@ s1d13xxxfb_probe(struct platform_device 
- 	struct s1d13xxxfb_pdata *pdata = NULL;
- 	int ret = 0;
- 	int i;
--	u8 revision,prod_id;
-+	u8 revision, prod_id;
- 
- 	dbg("probe called: device is %p\n", pdev);
- 
-@@ -645,10 +645,13 @@ s1d13xxxfb_probe(struct platform_device 
+@@ -637,11 +637,8 @@ s1d13xxxfb_probe(struct platform_device 
+ 			default_par->prod_id = prod_id;
+ 			default_par->revision = revision;
+ 			ret = 0;
+-		}
+-
+-		/* jump ship if we find something */
+-		if (!ret)
+ 			break;
++		}
  	}
  
  	if (!ret) {
--		printk(KERN_INFO PFX "chip production id %i = %s\n", prod_id, s1d13xxxfb_prod_names[i]);
-+		printk(KERN_INFO PFX "chip production id %i = %s\n",
-+			prod_id, s1d13xxxfb_prod_names[i]);
- 		printk(KERN_INFO PFX "chip revision %i\n", revision);
- 	} else {
--		printk(KERN_INFO PFX "unknown chip production id %i, revision %i\n", prod_id, revision);
-+		printk(KERN_INFO PFX
-+			"unknown chip production id %i, revision %i\n",
-+			prod_id, revision);
- 		printk(KERN_INFO PFX "please contant maintainer\n");
- 		goto bail;
- 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +73,6 @@ cirrusfb-convert-printks-to-dev_foo.patch
 cirrusfb-fix-clock-doubling.patch
 fbdev-uninline-lock_fb_info.patch
 fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
 fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
