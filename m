@@ -1,43 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [folded] alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:01:41 -0700
-Message-ID: <200903312201.n2VM1f3B015979@imap1.linux-foundation.org>
+Subject: [folded] alpha-convert-u64-to-unsigned-long-long-fix.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:01:32 -0700
+Message-ID: <200903312201.n2VM1W2s015923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762367AbZCaWEu (ORCPT
+	by vger.kernel.org with ESMTP id S1760709AbZCaWEn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:04:50 -0400
+	Tue, 31 Mar 2009 18:04:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, randy.dunlap@oracle.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes
+     alpha-convert-u64-to-unsigned-long-long-fix
 has been removed from the -mm tree.  Its filename was
-     alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+     alpha-convert-u64-to-unsigned-long-long-fix.patch
 
 This patch was dropped because it was folded into alpha-convert-u64-to-unsigned-long-long.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes
+Subject: alpha-convert-u64-to-unsigned-long-long-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#100: FILE: arch/alpha/kernel/sys_jensen.c:247:
-+jensen_machine_check (unsigned long vector, unsigned long la)
-
-total: 0 errors, 1 warnings, 72 lines checked
-
-./patches/alpha-convert-u64-to-unsigned-long-long-fix-3.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+arch/alpha/kernel/pci.c: In function 'pcibios_align_resource':
+arch/alpha/kernel/pci.c:171: warning: comparison of distinct pointer types lacks a cast
 
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
@@ -45,26 +36,21 @@ Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/sys_jensen.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/alpha/kernel/pci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/kernel/sys_jensen.c~alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes arch/alpha/kernel/sys_jensen.c
---- a/arch/alpha/kernel/sys_jensen.c~alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes
-+++ a/arch/alpha/kernel/sys_jensen.c
-@@ -244,12 +244,11 @@ jensen_init_arch(void)
- }
+diff -puN arch/alpha/kernel/pci.c~alpha-convert-u64-to-unsigned-long-long-fix arch/alpha/kernel/pci.c
+--- a/arch/alpha/kernel/pci.c~alpha-convert-u64-to-unsigned-long-long-fix
++++ a/arch/alpha/kernel/pci.c
+@@ -168,7 +168,7 @@ pcibios_align_resource(void *data, struc
+ 		 */
  
- static void
--jensen_machine_check (unsigned long vector, unsigned long la)
-+jensen_machine_check(unsigned long vector, unsigned long la)
- {
- 	printk(KERN_CRIT "Machine check\n");
- }
- 
--
- /*
-  * The System Vector
-  */
+ 		/* Align to multiple of size of minimum base.  */
+-		alignto = max(0x1000UL, align);
++		alignto = max_t(resource_size_t, 0x1000, align);
+ 		start = ALIGN(start, alignto);
+ 		if (hose->sparse_mem_base && size <= 7 * 16*MB) {
+ 			if (((start / (16*MB)) & 0x7) == 0) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +62,8 @@ mm-shrink_all_memory-use-scnr_reclaimed.patch
 mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
 mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
 alpha-convert-u64-to-unsigned-long-long.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
 alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
 ubd-stop-defintining-major_nr-checkpatch-fixes.patch
 epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
