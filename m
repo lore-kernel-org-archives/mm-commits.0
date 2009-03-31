@@ -1,69 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:10:41 -0700
-Message-ID: <200903312210.n2VMAfjX018484@imap1.linux-foundation.org>
+Subject: [folded] asiliantfb-fix-cmap-memory-leaks-fix.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:11:39 -0700
+Message-ID: <200903312211.n2VMBdUl018769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53462 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758577AbZCaWNI (ORCPT
+	by vger.kernel.org with ESMTP id S1751764AbZCaWOM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:13:08 -0400
+	Tue, 31 Mar 2009 18:14:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristoffer.ericson@gmail.com, krzysztof.h1@poczta.fm, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, dilinger@debian.org, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids fix
+     asiliantfb: fix ISO declaration/code warning
 has been removed from the -mm tree.  Its filename was
-     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
+     asiliantfb-fix-cmap-memory-leaks-fix.patch
 
-This patch was dropped because it was folded into fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
+This patch was dropped because it was folded into asiliantfb-fix-cmap-memory-leaks.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids fix
-From: Kristoffer Ericson <kristoffer.ericson@gmail.com>
+Subject: asiliantfb: fix ISO declaration/code warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Update the s1d13xxxfb.h file to reflect the recent changes to the driver.
+Move data declaration before any code:
 
-Signed-off-by: Kristoffer Ericson <kristoffer.ericson@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+drivers/video/asiliantfb.c:515: warning: ISO C90 forbids mixed declarations and code
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Andres Salomon <dilinger@debian.org>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/video/s1d13xxxfb.h |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/video/asiliantfb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/video/s1d13xxxfb.h~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix include/video/s1d13xxxfb.h
---- a/include/video/s1d13xxxfb.h~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix
-+++ a/include/video/s1d13xxxfb.h
-@@ -14,13 +14,16 @@
- #define	S1D13XXXFB_H
+diff -puN drivers/video/asiliantfb.c~asiliantfb-fix-cmap-memory-leaks-fix drivers/video/asiliantfb.c
+--- a/drivers/video/asiliantfb.c~asiliantfb-fix-cmap-memory-leaks-fix
++++ a/drivers/video/asiliantfb.c
+@@ -507,12 +507,13 @@ static struct fb_var_screeninfo asiliant
  
- #define S1D_PALETTE_SIZE		256
--#define S1D13506_CHIP_REV		4	/* expected chip revision number for s1d13506 */
--#define S1D13806_CHIP_REV		7	/* expected chip revision number for s1d13806 */
--#define S1D_FBID			"S1D13806"
--#define S1D_DEVICENAME			"s1d13806fb"
-+#define S1D_FBID			"S1D13xxx"
-+#define S1D_DEVICENAME			"s1d13xxxfb"
+ static int __devinit init_asiliant(struct fb_info *p, unsigned long addr)
+ {
++	int err;
 +
-+/* S1DREG_REV_CODE register = prod_id (6 bits) + revision (2 bits) */
-+#define S1D13505_PROD_ID		0x3	/* 000011 */
-+#define S1D13506_PROD_ID		0x4	/* 000100 */
-+#define S1D13806_PROD_ID		0x7	/* 000111 */
+ 	p->fix			= asiliantfb_fix;
+ 	p->fix.smem_start	= addr;
+ 	p->var			= asiliantfb_var;
+ 	p->fbops		= &asiliantfb_ops;
+ 	p->flags		= FBINFO_DEFAULT;
+-	int err;
  
- /* register definitions (tested on s1d13896) */
--#define S1DREG_REV_CODE			0x0000	/* Revision Code Register */
-+#define S1DREG_REV_CODE			0x0000	/* Prod + Rev Code Register */
- #define S1DREG_MISC			0x0001	/* Miscellaneous Register */
- #define S1DREG_GPIO_CNF0		0x0004	/* General IO Pins Configuration Register 0 */
- #define S1DREG_GPIO_CNF1		0x0005	/* General IO Pins Configuration Register 1 */
-@@ -141,10 +144,11 @@ struct s1d13xxxfb_regval {
- 	u8	value;
- };
- 
+ 	err = fb_alloc_cmap(&p->cmap, 256, 0);
+ 	if (err) {
+_
+
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
+
+origin.patch
+alpha-convert-u64-to-unsigned-long-long.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
+atyfb-fix-header-file-trailing-whitespace.patch
+asiliantfb-fix-cmap-memory-leaks.patch
+asiliantfb-fix-cmap-memory-leaks-fix.patch
+linux-next.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+esp-fix-section-mismatch-warning.patch
+qla2x-fix-printk-format-warnings.patch
+max3100-spi-uart-driver.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
+documentation-ignore-byproducts-from-latex.patch
+cpusets-replace-zone-allowed-functions-with-node-allowed.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
+auditsc-fix-kernel-doc-notation.patch
+reiser4-export-remove_from_page_cache-fix.patch
+
