@@ -1,67 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] rtc-add-platform-driver-for-efi-fix.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:05:51 -0700
-Message-ID: <200903312205.n2VM5pq4017127@imap1.linux-foundation.org>
+Subject: [folded] cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:07:42 -0700
+Message-ID: <200903312207.n2VM7gCt017622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755420AbZCaWK3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757669AbZCaWKa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:10:29 -0400
+	Tue, 31 Mar 2009 18:10:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alessandro.zummo@towertech.it, dannf@dannf.org, dannf@hp.com, david-b@pacbell.net, eranian@googlemail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, krzysztof.h1@poczta.fm, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-add-platform-driver-for-efi-fix
+     cirrusfb-convert-printks-to-dev_foo-fix-fix2
 has been removed from the -mm tree.  Its filename was
-     rtc-add-platform-driver-for-efi-fix.patch
+     cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
 
-This patch was dropped because it was folded into rtc-add-platform-driver-for-efi.patch
+This patch was dropped because it was folded into cirrusfb-convert-printks-to-dev_foo.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-add-platform-driver-for-efi-fix
+Subject: cirrusfb-convert-printks-to-dev_foo-fix-fix2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Use is_leap_year()
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: dann frazier <dannf@dannf.org>
-Cc: dann frazier <dannf@hp.com>
-Cc: stephane eranian <eranian@googlemail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-efi.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/video/cirrusfb.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-efi.c~rtc-add-platform-driver-for-efi-fix drivers/rtc/rtc-efi.c
---- a/drivers/rtc/rtc-efi.c~rtc-add-platform-driver-for-efi-fix
-+++ a/drivers/rtc/rtc-efi.c
-@@ -26,8 +26,6 @@
-  */
- #define EFI_RTC_EPOCH		1998
+diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix2 drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix2
++++ a/drivers/video/cirrusfb.c
+@@ -2384,7 +2384,8 @@ static int __init cirrusfb_init(void)
+ }
  
--#define LEAP_YEAR(year) ((!(year % 4) && (year % 100)) || !(year % 400))
+ #ifndef MODULE
+-static int __init cirrusfb_setup(char *options) {
++static int __init cirrusfb_setup(char *options)
++{
+ 	char *this_opt;
+ 
+ 	if (!options || !*options)
+@@ -2394,9 +2395,6 @@ static int __init cirrusfb_setup(char *o
+ 		if (!*this_opt)
+ 			continue;
+ 
+-		dev_dbg(info->device,
+-			"cirrusfb_setup: option '%s'\n", this_opt);
 -
- /*
-  * returns day of the year [0-365]
-  */
-@@ -54,7 +52,7 @@ compute_wday(efi_time_t *eft)
- 	}
- 
- 	for (y = EFI_RTC_EPOCH; y < eft->year; y++)
--		ndays += 365 + (LEAP_YEAR(y) ? 1 : 0);
-+		ndays += 365 + (is_leap_year(y) ? 1 : 0);
- 
- 	ndays += compute_yday(eft);
- 
+ 		if (!strcmp(this_opt, "noaccel"))
+ 			noaccel = 1;
+ 		else if (!strncmp(this_opt, "mode:", 5))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,11 +74,9 @@ ubd-stop-defintining-major_nr.patch
 epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
 rtc-convert-leap_year-into-an-inline.patch
 rtc-add-platform-driver-for-efi.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
+rtc-test-before-subtraction-on-unsigned.patch
 drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo.patch
 cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
 cirrusfb-fix-clock-doubling-fix.patch
 fbdev-uninline-lock_fb_info.patch
@@ -121,6 +116,7 @@ frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
 simplify-copy_thread-checkpatch-fixes.patch
 flat-fix-data-sections-alignment.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
 memcg-fix-oom-killer-under-memcg-fix2.patch
