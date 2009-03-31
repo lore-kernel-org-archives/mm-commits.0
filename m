@@ -1,61 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] page_fault-retry-with-nopage_retry-fix-fix.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 14:51:08 -0700
-Message-ID: <200903312151.n2VLp8Va013091@imap1.linux-foundation.org>
+Subject: [folded] mm-introduce-for_each_populated_zone-macro-cleanup.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 14:54:05 -0700
+Message-ID: <200903312154.n2VLs5lw013854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59528 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751636AbZCaVxG (ORCPT
+	by vger.kernel.org with ESMTP id S1754084AbZCaV5a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 17:53:06 -0400
+	Tue, 31 Mar 2009 17:57:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mikew@google.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page_fault-retry-with-nopage_retry-fix-fix
+     mm-introduce-for_each_populated_zone-macro-cleanup
 has been removed from the -mm tree.  Its filename was
-     page_fault-retry-with-nopage_retry-fix-fix.patch
+     mm-introduce-for_each_populated_zone-macro-cleanup.patch
 
-This patch was dropped because it was folded into page_fault-retry-with-nopage_retry.patch
+This patch was dropped because it was folded into mm-introduce-for_each_populated_zone-macro.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_fault-retry-with-nopage_retry-fix-fix
+Subject: mm-introduce-for_each_populated_zone-macro-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-A shot in the dark :(
-
-Cc: Mike Waychison <mikew@google.com>
-Cc: Ying Han <yinghan@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/mmzone.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/x86/mm/fault.c~page_fault-retry-with-nopage_retry-fix-fix arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~page_fault-retry-with-nopage_retry-fix-fix
-+++ a/arch/x86/mm/fault.c
-@@ -964,8 +964,6 @@ good_area:
- 		return;
- 	}
+diff -puN include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro-cleanup include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro-cleanup
++++ a/include/linux/mmzone.h
+@@ -814,9 +814,6 @@ extern struct zone *next_zone(struct zon
+ 			; /* do nothing */		\
+ 		else
  
--	write |= retry_flag;
 -
- 	/*
- 	 * If for any reason at all we couldn't handle the fault,
- 	 * make sure we exit gracefully rather than endlessly redo
+-
+-
+ static inline struct zone *zonelist_zone(struct zoneref *zoneref)
+ {
+ 	return zoneref->zone;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-introduce-for_each_populated_zone-macro.patch
 mm-introduce-for_each_populated_zone-macro-cleanup.patch
 mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
 mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
