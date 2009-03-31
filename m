@@ -1,149 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [folded] rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 16:54:05 -0700
-Message-ID: <200903312354.n2VNs5MD015699@imap1.linux-foundation.org>
+Subject: + xtensa-enable-m41t80-driver-in-s6105_defconfig.patch added to -mm tree
+Date: Tue, 31 Mar 2009 16:53:56 -0700
+Message-ID: <200903312353.n2VNrumj015647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755612AbZCaX5N (ORCPT
+	by vger.kernel.org with ESMTP id S1751869AbZCaX6b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 19:57:13 -0400
+	Tue, 31 Mar 2009 19:58:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, mike@compulab.co.il, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dg@emlix.com, a.zummo@towertech.it, chris@zankel.net, david-b@pacbell.net
 
 
 The patch titled
-     rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix
-has been removed from the -mm tree.  Its filename was
-     rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+     xtensa: enable m41t80 driver in s6105_defconfig
+has been added to the -mm tree.  Its filename is
+     xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
 
-This patch was dropped because it was folded into rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xtensa: enable m41t80 driver in s6105_defconfig
+From: Daniel Glockner <dg@emlix.com>
 
-fix off-by-one in error path
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Daniel Glockner <dg@emlix.com>
+Cc: Chris Zankel <chris@zankel.net>
 Cc: David Brownell <david-b@pacbell.net>
-Cc: Mike Rapoport <mike@compulab.co.il>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-v3020.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/xtensa/configs/s6105_defconfig |   56 ++++++++++++++++++++++++--
+ 1 file changed, 53 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-v3020.c~rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix drivers/rtc/rtc-v3020.c
---- a/drivers/rtc/rtc-v3020.c~rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix
-+++ a/drivers/rtc/rtc-v3020.c
-@@ -136,7 +136,7 @@ static int v3020_gpio_map(struct v3020 *
- 	return 0;
- 
- err_request:
--	for (; i >= 0; i--)
-+	while (--i >= 0)
- 		gpio_free(v3020_gpio[i].gpio);
- 
- 	return err;
+diff -puN arch/xtensa/configs/s6105_defconfig~xtensa-enable-m41t80-driver-in-s6105_defconfig arch/xtensa/configs/s6105_defconfig
+--- a/arch/xtensa/configs/s6105_defconfig~xtensa-enable-m41t80-driver-in-s6105_defconfig
++++ a/arch/xtensa/configs/s6105_defconfig
+@@ -352,8 +352,6 @@ CONFIG_UNIX98_PTYS=y
+ # CONFIG_LEGACY_PTYS is not set
+ # CONFIG_IPMI_HANDLER is not set
+ # CONFIG_HW_RANDOM is not set
+-# CONFIG_RTC is not set
+-# CONFIG_GEN_RTC is not set
+ # CONFIG_R3964 is not set
+ # CONFIG_RAW_DRIVER is not set
+ # CONFIG_TCG_TPM is not set
+@@ -435,7 +433,59 @@ CONFIG_SSB_POSSIBLE=y
+ # CONFIG_MEMSTICK is not set
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+-# CONFIG_RTC_CLASS is not set
++CONFIG_RTC_LIB=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_HCTOSYS=y
++CONFIG_RTC_HCTOSYS_DEVICE="rtc0"
++# CONFIG_RTC_DEBUG is not set
++
++#
++# RTC interfaces
++#
++# CONFIG_RTC_INTF_SYSFS is not set
++# CONFIG_RTC_INTF_PROC is not set
++# CONFIG_RTC_INTF_DEV is not set
++# CONFIG_RTC_DRV_TEST is not set
++
++#
++# I2C RTC drivers
++#
++# CONFIG_RTC_DRV_DS1307 is not set
++# CONFIG_RTC_DRV_DS1374 is not set
++# CONFIG_RTC_DRV_DS1672 is not set
++# CONFIG_RTC_DRV_MAX6900 is not set
++# CONFIG_RTC_DRV_RS5C372 is not set
++# CONFIG_RTC_DRV_ISL1208 is not set
++# CONFIG_RTC_DRV_X1205 is not set
++# CONFIG_RTC_DRV_PCF8563 is not set
++# CONFIG_RTC_DRV_PCF8583 is not set
++CONFIG_RTC_DRV_M41T80=y
++# CONFIG_RTC_DRV_M41T80_WDT is not set
++# CONFIG_RTC_DRV_S35390A is not set
++# CONFIG_RTC_DRV_FM3130 is not set
++# CONFIG_RTC_DRV_RX8581 is not set
++
++#
++# SPI RTC drivers
++#
++
++#
++# Platform RTC drivers
++#
++# CONFIG_RTC_DRV_DS1286 is not set
++# CONFIG_RTC_DRV_DS1511 is not set
++# CONFIG_RTC_DRV_DS1553 is not set
++# CONFIG_RTC_DRV_DS1742 is not set
++# CONFIG_RTC_DRV_STK17TA8 is not set
++# CONFIG_RTC_DRV_M48T86 is not set
++# CONFIG_RTC_DRV_M48T35 is not set
++# CONFIG_RTC_DRV_M48T59 is not set
++# CONFIG_RTC_DRV_BQ4802 is not set
++# CONFIG_RTC_DRV_V3020 is not set
++
++#
++# on-CPU RTC drivers
++#
+ # CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ # CONFIG_STAGING is not set
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dg@emlix.com are
 
 origin.patch
-page_fault-retry-with-nopage_retry.patch
-mm-introduce-for_each_populated_zone-macro.patch
-mm-shrink_all_memory-use-scnr_reclaimed.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
-mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
-alpha-convert-u64-to-unsigned-long-long.patch
-ubd-stop-defintining-major_nr.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi.patch
-rtc-test-before-subtraction-on-unsigned.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo.patch
-cirrusfb-fix-clock-doubling.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-arch-x86-mm-iomap_32c-fix-warning.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-flex-onenand-support-v2-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional-fix.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-simplify-copy_thread-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-kernel-auditscc-fix-warning.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-page-owner-tracking.patch
-page-owner-tracking-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+xtensa-make-startup-code-discardable.patch
+xtensa-nommu-support.patch
+xtensa-variant-specific-code.patch
+xtensa-variant-irq-set-callbacks.patch
+xtensa-s6000-variant-core-definitions.patch
+xtensa-s6000-variant.patch
+xtensa-s6000-gpio-driver.patch
+xtensa-let-platform-override-kerneloffset.patch
+xtensa-platform-stretch-s6105-eval-board.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-s6000-dma-engine-support.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+rtc-add-m41t62-support-to-rtc-m41t80-driver.patch
+xtensa-add-m41t62-rtc-to-s6105-platform.patch
+xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
 
