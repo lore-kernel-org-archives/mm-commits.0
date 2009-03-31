@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-s6000-variant.patch added to -mm tree
-Date: Mon, 30 Mar 2009 17:00:37 -0700
-Message-ID: <200903310000.n2V00boq031506@imap1.linux-foundation.org>
+Subject: + xtensa-platform-stretch-s6105-eval-board.patch added to -mm tree
+Date: Mon, 30 Mar 2009 17:00:47 -0700
+Message-ID: <200903310000.n2V00lg8031557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45583 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761649AbZCaAEl (ORCPT
+	by vger.kernel.org with ESMTP id S1761839AbZCaAE4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 20:04:41 -0400
+	Mon, 30 Mar 2009 20:04:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jw@emlix.com, chris@zankel.net, dg@emlix.com, os@emlix.com
 
 
 The patch titled
-     xtensa: s6000 variant
+     xtensa: platform stretch s6105 eval board
 has been added to the -mm tree.  Its filename is
-     xtensa-s6000-variant.patch
+     xtensa-platform-stretch-s6105-eval-board.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,412 +34,788 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: s6000 variant
+Subject: xtensa: platform stretch s6105 eval board
 From: Johannes Weiner <jw@emlix.com>
 
-Support for the Xtensa S6000 core variant.
+Support for the Stretch S6105 evaluation board.
 
 Signed-off-by: Johannes Weiner <jw@emlix.com>
 Signed-off-by: Oskar Schirmer <os@emlix.com>
-Cc: Oskar Schirmer <os@emlix.com>
 Cc: Daniel Glockner <dg@emlix.com>
 Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/Kconfig                                   |    4 
- arch/xtensa/Makefile                                  |    1 
- arch/xtensa/variants/s6000/Makefile                   |    3 
- arch/xtensa/variants/s6000/include/variant/hardware.h |  259 ++++++++++
- arch/xtensa/variants/s6000/include/variant/irq.h      |    9 
- arch/xtensa/variants/s6000/irq.c                      |   74 ++
- 6 files changed, 350 insertions(+)
+ arch/xtensa/Kconfig                                     |    4 
+ arch/xtensa/Makefile                                    |    1 
+ arch/xtensa/configs/s6105_defconfig                     |  530 ++++++++++
+ arch/xtensa/platforms/s6105/Makefile                    |    3 
+ arch/xtensa/platforms/s6105/device.c                    |   67 +
+ arch/xtensa/platforms/s6105/include/platform/gpio.h     |   27 
+ arch/xtensa/platforms/s6105/include/platform/hardware.h |   11 
+ arch/xtensa/platforms/s6105/include/platform/serial.h   |    8 
+ arch/xtensa/platforms/s6105/setup.c                     |   61 +
+ 9 files changed, 712 insertions(+)
 
-diff -puN arch/xtensa/Kconfig~xtensa-s6000-variant arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~xtensa-s6000-variant
+diff -puN arch/xtensa/Kconfig~xtensa-platform-stretch-s6105-eval-board arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~xtensa-platform-stretch-s6105-eval-board
 +++ a/arch/xtensa/Kconfig
-@@ -73,6 +73,10 @@ config XTENSA_VARIANT_DC232B
- 	bool "dc232b - Diamond 232L Standard Core Rev.B (LE)"
- 	help
- 	This variant refers to Tensilica's Diamond 232L Standard core Rev.B (LE).
+@@ -133,6 +133,10 @@ config XTENSA_PLATFORM_XT2000
+ 	  XT2000 is the name of Tensilica's feature-rich emulation platform.
+ 	  This hardware is capable of running a full Linux distribution.
+ 
++config XTENSA_PLATFORM_S6105
++	bool "S6105"
++	select SERIAL_CONSOLE
 +
-+config XTENSA_VARIANT_S6000
-+	bool "s6000 - Stretch software configurable processor"
-+	select VARIANT_IRQ_SWITCH
  endchoice
  
- config MMU
-diff -puN arch/xtensa/Makefile~xtensa-s6000-variant arch/xtensa/Makefile
---- a/arch/xtensa/Makefile~xtensa-s6000-variant
+ 
+diff -puN arch/xtensa/Makefile~xtensa-platform-stretch-s6105-eval-board arch/xtensa/Makefile
+--- a/arch/xtensa/Makefile~xtensa-platform-stretch-s6105-eval-board
 +++ a/arch/xtensa/Makefile
-@@ -15,6 +15,7 @@
+@@ -25,6 +25,7 @@ export VARIANT
  
- variant-$(CONFIG_XTENSA_VARIANT_FSF)		:= fsf
- variant-$(CONFIG_XTENSA_VARIANT_DC232B)		:= dc232b
-+variant-$(CONFIG_XTENSA_VARIANT_S6000)		:= s6000
- variant-$(CONFIG_XTENSA_VARIANT_LINUX_CUSTOM)	:= custom
+ platform-$(CONFIG_XTENSA_PLATFORM_XT2000)	:= xt2000
+ platform-$(CONFIG_XTENSA_PLATFORM_ISS)		:= iss
++platform-$(CONFIG_XTENSA_PLATFORM_S6105)	:= s6105
  
- VARIANT = $(variant-y)
-diff -puN /dev/null arch/xtensa/variants/s6000/Makefile
+ PLATFORM = $(platform-y)
+ export PLATFORM
+diff -puN /dev/null arch/xtensa/configs/s6105_defconfig
 --- /dev/null
-+++ a/arch/xtensa/variants/s6000/Makefile
++++ a/arch/xtensa/configs/s6105_defconfig
+@@ -0,0 +1,530 @@
++#
++# Automatically generated make config: don't edit
++# Linux kernel version: 2.6.29-rc7-s6
++# Tue Mar 10 11:09:26 2009
++#
++# CONFIG_FRAME_POINTER is not set
++CONFIG_ZONE_DMA=y
++CONFIG_XTENSA=y
++CONFIG_RWSEM_XCHGADD_ALGORITHM=y
++CONFIG_GENERIC_FIND_NEXT_BIT=y
++CONFIG_GENERIC_HWEIGHT=y
++CONFIG_GENERIC_HARDIRQS=y
++CONFIG_GENERIC_GPIO=y
++# CONFIG_ARCH_HAS_ILOG2_U32 is not set
++# CONFIG_ARCH_HAS_ILOG2_U64 is not set
++CONFIG_NO_IOPORT=y
++CONFIG_HZ=100
++CONFIG_GENERIC_TIME=y
++CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
++
++#
++# General setup
++#
++CONFIG_EXPERIMENTAL=y
++CONFIG_BROKEN_ON_SMP=y
++CONFIG_LOCK_KERNEL=y
++CONFIG_INIT_ENV_ARG_LIMIT=32
++CONFIG_LOCALVERSION=""
++CONFIG_LOCALVERSION_AUTO=y
++CONFIG_SYSVIPC=y
++CONFIG_SYSVIPC_SYSCTL=y
++# CONFIG_POSIX_MQUEUE is not set
++# CONFIG_BSD_PROCESS_ACCT is not set
++# CONFIG_TASKSTATS is not set
++# CONFIG_AUDIT is not set
++
++#
++# RCU Subsystem
++#
++# CONFIG_CLASSIC_RCU is not set
++# CONFIG_TREE_RCU is not set
++CONFIG_PREEMPT_RCU=y
++# CONFIG_RCU_TRACE is not set
++# CONFIG_TREE_RCU_TRACE is not set
++# CONFIG_PREEMPT_RCU_TRACE is not set
++CONFIG_IKCONFIG=y
++CONFIG_IKCONFIG_PROC=y
++CONFIG_LOG_BUF_SHIFT=16
++# CONFIG_GROUP_SCHED is not set
++# CONFIG_CGROUPS is not set
++# CONFIG_SYSFS_DEPRECATED_V2 is not set
++# CONFIG_RELAY is not set
++# CONFIG_NAMESPACES is not set
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_INITRAMFS_SOURCE=""
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_SYSCTL=y
++CONFIG_EMBEDDED=y
++CONFIG_SYSCTL_SYSCALL=y
++CONFIG_KALLSYMS=y
++# CONFIG_KALLSYMS_ALL is not set
++# CONFIG_KALLSYMS_EXTRA_PASS is not set
++# CONFIG_HOTPLUG is not set
++CONFIG_PRINTK=y
++CONFIG_BUG=y
++CONFIG_ELF_CORE=y
++# CONFIG_COMPAT_BRK is not set
++CONFIG_BASE_FULL=y
++CONFIG_FUTEX=y
++CONFIG_ANON_INODES=y
++CONFIG_EPOLL=y
++CONFIG_SIGNALFD=y
++CONFIG_TIMERFD=y
++CONFIG_EVENTFD=y
++CONFIG_AIO=y
++CONFIG_VM_EVENT_COUNTERS=y
++CONFIG_SLAB=y
++# CONFIG_SLUB is not set
++# CONFIG_SLOB is not set
++# CONFIG_PROFILING is not set
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
++CONFIG_SLABINFO=y
++CONFIG_RT_MUTEXES=y
++CONFIG_BASE_SMALL=0
++# CONFIG_MODULES is not set
++CONFIG_BLOCK=y
++# CONFIG_LBD is not set
++# CONFIG_BLK_DEV_IO_TRACE is not set
++# CONFIG_BLK_DEV_BSG is not set
++# CONFIG_BLK_DEV_INTEGRITY is not set
++
++#
++# IO Schedulers
++#
++CONFIG_IOSCHED_NOOP=y
++# CONFIG_IOSCHED_AS is not set
++# CONFIG_IOSCHED_DEADLINE is not set
++CONFIG_IOSCHED_CFQ=y
++# CONFIG_DEFAULT_AS is not set
++# CONFIG_DEFAULT_DEADLINE is not set
++CONFIG_DEFAULT_CFQ=y
++# CONFIG_DEFAULT_NOOP is not set
++CONFIG_DEFAULT_IOSCHED="cfq"
++# CONFIG_FREEZER is not set
++# CONFIG_MMU is not set
++CONFIG_VARIANT_IRQ_SWITCH=y
++
++#
++# Processor type and features
++#
++# CONFIG_XTENSA_VARIANT_FSF is not set
++# CONFIG_XTENSA_VARIANT_DC232B is not set
++CONFIG_XTENSA_VARIANT_S6000=y
++# CONFIG_XTENSA_UNALIGNED_USER is not set
++CONFIG_PREEMPT=y
++# CONFIG_MATH_EMULATION is not set
++# CONFIG_HIGHMEM is not set
++# CONFIG_XTENSA_CALIBRATE_CCOUNT is not set
++CONFIG_SERIAL_CONSOLE=y
++# CONFIG_XTENSA_ISS_NETWORK is not set
++
++#
++# Bus options
++#
++# CONFIG_PCI is not set
++# CONFIG_ARCH_SUPPORTS_MSI is not set
++
++#
++# Platform options
++#
++# CONFIG_XTENSA_PLATFORM_ISS is not set
++# CONFIG_XTENSA_PLATFORM_XT2000 is not set
++CONFIG_XTENSA_PLATFORM_S6105=y
++CONFIG_XTENSA_CPU_CLOCK=300
++CONFIG_GENERIC_CALIBRATE_DELAY=y
++CONFIG_CMDLINE_BOOL=y
++CONFIG_CMDLINE="console=ttyS1,38400 debug bootmem_debug loglevel=7"
++CONFIG_SELECT_MEMORY_MODEL=y
++CONFIG_FLATMEM_MANUAL=y
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=y
++CONFIG_FLAT_NODE_MEM_MAP=y
++CONFIG_PAGEFLAGS_EXTENDED=y
++CONFIG_SPLIT_PTLOCK_CPUS=4
++# CONFIG_PHYS_ADDR_T_64BIT is not set
++CONFIG_ZONE_DMA_FLAG=1
++CONFIG_VIRT_TO_BUS=y
++
++#
++# Executable file formats
++#
++CONFIG_KCORE_ELF=y
++CONFIG_BINFMT_FLAT=y
++# CONFIG_BINFMT_ZFLAT is not set
++# CONFIG_BINFMT_SHARED_FLAT is not set
++# CONFIG_HAVE_AOUT is not set
++# CONFIG_BINFMT_MISC is not set
++CONFIG_NET=y
++
++#
++# Networking options
++#
++CONFIG_COMPAT_NET_DEV_OPS=y
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++CONFIG_UNIX=y
++# CONFIG_NET_KEY is not set
++CONFIG_INET=y
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_FIB_HASH=y
++# CONFIG_IP_PNP is not set
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_ARPD is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_INET_AH is not set
++# CONFIG_INET_ESP is not set
++# CONFIG_INET_IPCOMP is not set
++# CONFIG_INET_XFRM_TUNNEL is not set
++# CONFIG_INET_TUNNEL is not set
++# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
++# CONFIG_INET_XFRM_MODE_TUNNEL is not set
++# CONFIG_INET_XFRM_MODE_BEET is not set
++# CONFIG_INET_LRO is not set
++# CONFIG_INET_DIAG is not set
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_TCP_CONG_CUBIC=y
++CONFIG_DEFAULT_TCP_CONG="cubic"
++# CONFIG_TCP_MD5SIG is not set
++# CONFIG_IPV6 is not set
++# CONFIG_NETWORK_SECMARK is not set
++# CONFIG_NETFILTER is not set
++# CONFIG_IP_DCCP is not set
++# CONFIG_IP_SCTP is not set
++# CONFIG_TIPC is not set
++# CONFIG_ATM is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_NET_DSA is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_DECNET is not set
++# CONFIG_LLC2 is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_X25 is not set
++# CONFIG_LAPB is not set
++# CONFIG_ECONET is not set
++# CONFIG_WAN_ROUTER is not set
++# CONFIG_NET_SCHED is not set
++# CONFIG_DCB is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++# CONFIG_HAMRADIO is not set
++# CONFIG_CAN is not set
++# CONFIG_IRDA is not set
++# CONFIG_BT is not set
++# CONFIG_AF_RXRPC is not set
++# CONFIG_PHONET is not set
++# CONFIG_WIRELESS is not set
++# CONFIG_WIMAX is not set
++# CONFIG_RFKILL is not set
++# CONFIG_NET_9P is not set
++
++#
++# Device Drivers
++#
++
++#
++# Generic Driver Options
++#
++CONFIG_STANDALONE=y
++CONFIG_PREVENT_FIRMWARE_BUILD=y
++# CONFIG_DEBUG_DRIVER is not set
++# CONFIG_DEBUG_DEVRES is not set
++# CONFIG_SYS_HYPERVISOR is not set
++# CONFIG_CONNECTOR is not set
++# CONFIG_MTD is not set
++# CONFIG_PARPORT is not set
++CONFIG_BLK_DEV=y
++# CONFIG_BLK_DEV_COW_COMMON is not set
++# CONFIG_BLK_DEV_LOOP is not set
++# CONFIG_BLK_DEV_NBD is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_COUNT=16
++CONFIG_BLK_DEV_RAM_SIZE=4096
++# CONFIG_BLK_DEV_XIP is not set
++# CONFIG_CDROM_PKTCDVD is not set
++# CONFIG_ATA_OVER_ETH is not set
++# CONFIG_BLK_DEV_HD is not set
++# CONFIG_MISC_DEVICES is not set
++CONFIG_HAVE_IDE=y
++# CONFIG_IDE is not set
++
++#
++# SCSI device support
++#
++# CONFIG_RAID_ATTRS is not set
++# CONFIG_SCSI is not set
++# CONFIG_SCSI_DMA is not set
++# CONFIG_SCSI_NETLINK is not set
++# CONFIG_ATA is not set
++# CONFIG_MD is not set
++# CONFIG_NETDEVICES is not set
++# CONFIG_ISDN is not set
++# CONFIG_PHONE is not set
++
++#
++# Input device support
++#
++# CONFIG_INPUT is not set
++
++#
++# Hardware I/O ports
++#
++# CONFIG_SERIO is not set
++# CONFIG_GAMEPORT is not set
++
++#
++# Character devices
++#
++# CONFIG_VT is not set
++# CONFIG_DEVKMEM is not set
++# CONFIG_SERIAL_NONSTANDARD is not set
++
++#
++# Serial drivers
++#
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++CONFIG_SERIAL_8250_NR_UARTS=2
++CONFIG_SERIAL_8250_RUNTIME_UARTS=2
++# CONFIG_SERIAL_8250_EXTENDED is not set
++
++#
++# Non-8250 serial port support
++#
++CONFIG_SERIAL_CORE=y
++CONFIG_SERIAL_CORE_CONSOLE=y
++CONFIG_UNIX98_PTYS=y
++# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
++# CONFIG_LEGACY_PTYS is not set
++# CONFIG_IPMI_HANDLER is not set
++# CONFIG_HW_RANDOM is not set
++# CONFIG_RTC is not set
++# CONFIG_GEN_RTC is not set
++# CONFIG_R3964 is not set
++# CONFIG_RAW_DRIVER is not set
++# CONFIG_TCG_TPM is not set
++# CONFIG_I2C is not set
++# CONFIG_SPI is not set
++CONFIG_ARCH_REQUIRE_GPIOLIB=y
++CONFIG_GPIOLIB=y
++# CONFIG_DEBUG_GPIO is not set
++# CONFIG_GPIO_SYSFS is not set
++
++#
++# Memory mapped GPIO expanders:
++#
++
++#
++# I2C GPIO expanders:
++#
++
++#
++# PCI GPIO expanders:
++#
++
++#
++# SPI GPIO expanders:
++#
++# CONFIG_W1 is not set
++# CONFIG_POWER_SUPPLY is not set
++# CONFIG_HWMON is not set
++# CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
++# CONFIG_WATCHDOG is not set
++CONFIG_SSB_POSSIBLE=y
++
++#
++# Sonics Silicon Backplane
++#
++# CONFIG_SSB is not set
++
++#
++# Multifunction device drivers
++#
++# CONFIG_MFD_CORE is not set
++# CONFIG_MFD_SM501 is not set
++# CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
++# CONFIG_REGULATOR is not set
++
++#
++# Multimedia devices
++#
++
++#
++# Multimedia core support
++#
++# CONFIG_VIDEO_DEV is not set
++# CONFIG_DVB_CORE is not set
++# CONFIG_VIDEO_MEDIA is not set
++
++#
++# Multimedia drivers
++#
++# CONFIG_DAB is not set
++
++#
++# Graphics support
++#
++# CONFIG_VGASTATE is not set
++# CONFIG_VIDEO_OUTPUT_CONTROL is not set
++# CONFIG_FB is not set
++# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
++
++#
++# Display device support
++#
++# CONFIG_DISPLAY_SUPPORT is not set
++# CONFIG_SOUND is not set
++# CONFIG_USB_SUPPORT is not set
++# CONFIG_MMC is not set
++# CONFIG_MEMSTICK is not set
++# CONFIG_NEW_LEDS is not set
++# CONFIG_ACCESSIBILITY is not set
++# CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
++# CONFIG_UIO is not set
++# CONFIG_STAGING is not set
++
++#
++# File systems
++#
++# CONFIG_EXT2_FS is not set
++# CONFIG_EXT3_FS is not set
++# CONFIG_EXT4_FS is not set
++# CONFIG_REISERFS_FS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
++CONFIG_FILE_LOCKING=y
++# CONFIG_XFS_FS is not set
++# CONFIG_OCFS2_FS is not set
++# CONFIG_BTRFS_FS is not set
++# CONFIG_DNOTIFY is not set
++# CONFIG_INOTIFY is not set
++# CONFIG_QUOTA is not set
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_FUSE_FS is not set
++
++#
++# CD-ROM/DVD Filesystems
++#
++# CONFIG_ISO9660_FS is not set
++# CONFIG_UDF_FS is not set
++
++#
++# DOS/FAT/NT Filesystems
++#
++# CONFIG_MSDOS_FS is not set
++# CONFIG_VFAT_FS is not set
++# CONFIG_NTFS_FS is not set
++
++#
++# Pseudo filesystems
++#
++CONFIG_PROC_FS=y
++CONFIG_PROC_SYSCTL=y
++CONFIG_SYSFS=y
++# CONFIG_TMPFS is not set
++# CONFIG_HUGETLB_PAGE is not set
++# CONFIG_CONFIGFS_FS is not set
++# CONFIG_MISC_FILESYSTEMS is not set
++# CONFIG_NETWORK_FILESYSTEMS is not set
++
++#
++# Partition Types
++#
++# CONFIG_PARTITION_ADVANCED is not set
++CONFIG_MSDOS_PARTITION=y
++# CONFIG_NLS is not set
++# CONFIG_DLM is not set
++
++#
++# Xtensa initrd options
++#
++# CONFIG_EMBEDDED_RAMDISK is not set
++
++#
++# Kernel hacking
++#
++CONFIG_PRINTK_TIME=y
++# CONFIG_ENABLE_WARN_DEPRECATED is not set
++# CONFIG_ENABLE_MUST_CHECK is not set
++CONFIG_FRAME_WARN=1024
++# CONFIG_MAGIC_SYSRQ is not set
++# CONFIG_UNUSED_SYMBOLS is not set
++# CONFIG_DEBUG_FS is not set
++# CONFIG_HEADERS_CHECK is not set
++CONFIG_DEBUG_KERNEL=y
++CONFIG_DEBUG_SHIRQ=y
++CONFIG_DETECT_SOFTLOCKUP=y
++# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
++CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
++# CONFIG_SCHED_DEBUG is not set
++# CONFIG_SCHEDSTATS is not set
++# CONFIG_TIMER_STATS is not set
++# CONFIG_DEBUG_OBJECTS is not set
++# CONFIG_DEBUG_SLAB is not set
++# CONFIG_DEBUG_RT_MUTEXES is not set
++# CONFIG_RT_MUTEX_TESTER is not set
++CONFIG_DEBUG_SPINLOCK=y
++CONFIG_DEBUG_MUTEXES=y
++CONFIG_DEBUG_SPINLOCK_SLEEP=y
++# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
++# CONFIG_DEBUG_KOBJECT is not set
++# CONFIG_DEBUG_INFO is not set
++# CONFIG_DEBUG_VM is not set
++CONFIG_DEBUG_NOMMU_REGIONS=y
++# CONFIG_DEBUG_WRITECOUNT is not set
++# CONFIG_DEBUG_MEMORY_INIT is not set
++# CONFIG_DEBUG_LIST is not set
++# CONFIG_DEBUG_SG is not set
++# CONFIG_DEBUG_NOTIFIERS is not set
++# CONFIG_BOOT_PRINTK_DELAY is not set
++# CONFIG_RCU_TORTURE_TEST is not set
++# CONFIG_BACKTRACE_SELF_TEST is not set
++# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
++# CONFIG_FAULT_INJECTION is not set
++# CONFIG_SYSCTL_SYSCALL_CHECK is not set
++
++#
++# Tracers
++#
++# CONFIG_PREEMPT_TRACER is not set
++# CONFIG_SCHED_TRACER is not set
++# CONFIG_CONTEXT_SWITCH_TRACER is not set
++# CONFIG_BOOT_TRACER is not set
++# CONFIG_TRACE_BRANCH_PROFILING is not set
++# CONFIG_DYNAMIC_PRINTK_DEBUG is not set
++# CONFIG_SAMPLES is not set
++
++#
++# Security options
++#
++# CONFIG_KEYS is not set
++# CONFIG_SECURITY is not set
++# CONFIG_SECURITYFS is not set
++# CONFIG_SECURITY_FILE_CAPABILITIES is not set
++# CONFIG_CRYPTO is not set
++
++#
++# Library routines
++#
++CONFIG_GENERIC_FIND_LAST_BIT=y
++# CONFIG_CRC_CCITT is not set
++# CONFIG_CRC16 is not set
++# CONFIG_CRC_T10DIF is not set
++# CONFIG_CRC_ITU_T is not set
++# CONFIG_CRC32 is not set
++# CONFIG_CRC7 is not set
++# CONFIG_LIBCRC32C is not set
++CONFIG_PLIST=y
++CONFIG_HAS_IOMEM=y
++CONFIG_HAS_DMA=y
+diff -puN /dev/null arch/xtensa/platforms/s6105/Makefile
+--- /dev/null
++++ a/arch/xtensa/platforms/s6105/Makefile
 @@ -0,0 +1,3 @@
-+# s6000 Makefile
++# Makefile for the Stretch S6105 eval board
 +
-+obj-y		+= irq.o
-diff -puN /dev/null arch/xtensa/variants/s6000/include/variant/hardware.h
++obj-y		:= setup.o device.o
+diff -puN /dev/null arch/xtensa/platforms/s6105/device.c
 --- /dev/null
-+++ a/arch/xtensa/variants/s6000/include/variant/hardware.h
-@@ -0,0 +1,259 @@
-+#ifndef __XTENSA_S6000_HARDWARE_H
-+#define __XTENSA_S6000_HARDWARE_H
-+
-+#define S6_SCLK			1843200
-+
-+#define S6_MEM_REG              0x20000000
-+#define S6_MEM_EFI              0x33F00000
-+#define S6_MEM_PCIE_DATARAM1    0x34000000
-+#define S6_MEM_XLMI             0x37F80000
-+#define S6_MEM_PIF_DATARAM1     0x37FFC000
-+#define S6_MEM_GMAC             0x38000000
-+#define S6_MEM_I2S              0x3A000000
-+#define S6_MEM_EGIB             0x3C000000
-+#define S6_MEM_PCIE_CFG         0x3E000000
-+#define S6_MEM_PIF_DATARAM      0x3FFE0000
-+#define S6_MEM_XLMI_DATARAM     0x3FFF0000
-+#define S6_MEM_DDR              0x40000000
-+#define S6_MEM_PCIE_APER        0xC0000000
-+#define S6_MEM_AUX              0xF0000000
-+
-+/* Device addresses */
-+
-+#define S6_REG_SCB              S6_MEM_REG
-+#define S6_REG_NB               (S6_REG_SCB + 0x10000)
-+#define S6_REG_LMSDMA           (S6_REG_SCB + 0x20000)
-+#define S6_REG_NI               (S6_REG_SCB + 0x30000)
-+#define S6_REG_NIDMA            (S6_REG_SCB + 0x40000)
-+#define S6_REG_NS               (S6_REG_SCB + 0x50000)
-+#define S6_REG_DDR              (S6_REG_SCB + 0x60000)
-+#define S6_REG_GREG1            (S6_REG_SCB + 0x70000)
-+#define S6_REG_DP               (S6_REG_SCB + 0x80000)
-+#define S6_REG_DPDMA            (S6_REG_SCB + 0x90000)
-+#define S6_REG_EGIB             (S6_REG_SCB + 0xA0000)
-+#define S6_REG_PCIE             (S6_REG_SCB + 0xB0000)
-+#define S6_REG_I2S              (S6_REG_SCB + 0xC0000)
-+#define S6_REG_GMAC             (S6_REG_SCB + 0xD0000)
-+#define S6_REG_HIFDMA           (S6_REG_SCB + 0xE0000)
-+#define S6_REG_GREG2            (S6_REG_SCB + 0xF0000)
-+
-+#define S6_REG_APB              S6_REG_SCB
-+#define S6_REG_UART             (S6_REG_APB + 0x0000)
-+#define S6_REG_INTC             (S6_REG_APB + 0x2000)
-+#define S6_REG_SPI              (S6_REG_APB + 0x3000)
-+#define S6_REG_I2C              (S6_REG_APB + 0x4000)
-+#define S6_REG_GPIO             (S6_REG_APB + 0x8000)
-+
-+/* Global register block */
-+
-+#define S6_GREG1_PLL_LOCKCLEAR	0x000
-+#define S6_GREG1_PLL_LOCK_SYS		0
-+#define S6_GREG1_PLL_LOCK_IO		1
-+#define S6_GREG1_PLL_LOCK_AIM		2
-+#define S6_GREG1_PLL_LOCK_DP0		3
-+#define S6_GREG1_PLL_LOCK_DP2		4
-+#define S6_GREG1_PLL_LOCK_DDR		5
-+#define S6_GREG1_PLL_LOCKSTAT	0x004
-+#define S6_GREG1_PLL_LOCKSTAT_CURLOCK	0
-+#define S6_GREG1_PLL_LOCKSTAT_EVERUNLCK	8
-+#define S6_GREG1_PLLSEL		0x010
-+#define S6_GREG1_PLLSEL_AIM		0
-+#define S6_GREG1_PLLSEL_AIM_DDR2		0
-+#define S6_GREG1_PLLSEL_AIM_300MHZ		1
-+#define S6_GREG1_PLLSEL_AIM_240MHZ		2
-+#define S6_GREG1_PLLSEL_AIM_200MHZ		3
-+#define S6_GREG1_PLLSEL_AIM_150MHZ		4
-+#define S6_GREG1_PLLSEL_AIM_120MHZ		5
-+#define S6_GREG1_PLLSEL_AIM_40MHZ		6
-+#define S6_GREG1_PLLSEL_AIM_PLLAIMREF		7
-+#define S6_GREG1_PLLSEL_AIM_MASK		7
-+#define S6_GREG1_PLLSEL_DDR		8
-+#define S6_GREG1_PLLSEL_DDR_HS			0
-+#define S6_GREG1_PLLSEL_DDR_333MHZ		1
-+#define S6_GREG1_PLLSEL_DDR_250MHZ		2
-+#define S6_GREG1_PLLSEL_DDR_200MHZ		3
-+#define S6_GREG1_PLLSEL_DDR_167MHZ		4
-+#define S6_GREG1_PLLSEL_DDR_100MHZ		5
-+#define S6_GREG1_PLLSEL_DDR_33MHZ		6
-+#define S6_GREG1_PLLSEL_DDR_PLLIOREF		7
-+#define S6_GREG1_PLLSEL_DDR_MASK		7
-+#define S6_GREG1_PLLSEL_GMAC		16
-+#define S6_GREG1_PLLSEL_GMAC_125MHZ		0
-+#define S6_GREG1_PLLSEL_GMAC_25MHZ		1
-+#define S6_GREG1_PLLSEL_GMAC_2500KHZ		2
-+#define S6_GREG1_PLLSEL_GMAC_EXTERN		3
-+#define S6_GREG1_PLLSEL_GMAC_MASK		3
-+#define S6_GREG1_PLLSEL_GMII		18
-+#define S6_GREG1_PLLSEL_GMII_111MHZ		0
-+#define S6_GREG1_PLLSEL_GMII_IOREF		1
-+#define S6_GREG1_PLLSEL_GMII_NONE		2
-+#define S6_GREG1_PLLSEL_GMII_125MHZ		3
-+#define S6_GREG1_PLLSEL_GMII_MASK		3
-+#define S6_GREG1_SYSUNLOCKCNT	0x020
-+#define S6_GREG1_IOUNLOCKCNT	0x024
-+#define S6_GREG1_AIMUNLOCKCNT	0x028
-+#define S6_GREG1_DP0UNLOCKCNT	0x02C
-+#define S6_GREG1_DP2UNLOCKCNT	0x030
-+#define S6_GREG1_DDRUNLOCKCNT	0x034
-+#define S6_GREG1_CLKBAL0	0x040
-+#define S6_GREG1_CLKBAL0_LSGB		0
-+#define S6_GREG1_CLKBAL0_LSPX		8
-+#define S6_GREG1_CLKBAL0_MEMDO		16
-+#define S6_GREG1_CLKBAL0_HSXT1		24
-+#define S6_GREG1_CLKBAL1	0x044
-+#define S6_GREG1_CLKBAL1_HSISEF		0
-+#define S6_GREG1_CLKBAL1_HSNI		8
-+#define S6_GREG1_CLKBAL1_HSNS		16
-+#define S6_GREG1_CLKBAL1_HSISEFCFG	24
-+#define S6_GREG1_CLKBAL2	0x048
-+#define S6_GREG1_CLKBAL2_LSNB		0
-+#define S6_GREG1_CLKBAL2_LSSB		8
-+#define S6_GREG1_CLKBAL2_LSREST		24
-+#define S6_GREG1_CLKBAL3	0x04C
-+#define S6_GREG1_CLKBAL3_ISEFXAD	0
-+#define S6_GREG1_CLKBAL3_ISEFLMS	8
-+#define S6_GREG1_CLKBAL3_ISEFISEF	16
-+#define S6_GREG1_CLKBAL3_DDRDD		24
-+#define S6_GREG1_CLKBAL4	0x050
-+#define S6_GREG1_CLKBAL4_DDRDP		0
-+#define S6_GREG1_CLKBAL4_DDRDO		8
-+#define S6_GREG1_CLKBAL4_DDRNB		16
-+#define S6_GREG1_CLKBAL4_DDRLMS		24
-+#define S6_GREG1_BLOCKENA	0x100
-+#define S6_GREG1_BLOCK_DDR		0
-+#define S6_GREG1_BLOCK_DP		1
-+#define S6_GREG1_BLOCK_NSNI		2
-+#define S6_GREG1_BLOCK_PCIE		3
-+#define S6_GREG1_BLOCK_GMAC		4
-+#define S6_GREG1_BLOCK_I2S		5
-+#define S6_GREG1_BLOCK_EGIB		6
-+#define S6_GREG1_BLOCK_SB		7
-+#define S6_GREG1_BLOCK_XT1		8
-+#define S6_GREG1_CLKGATE	0x104
-+#define S6_GREG1_BGATE_AIMNORTH		9
-+#define S6_GREG1_BGATE_AIMEAST		10
-+#define S6_GREG1_BGATE_AIMWEST		11
-+#define S6_GREG1_BGATE_AIMSOUTH		12
-+#define S6_GREG1_CHIPRES	0x108
-+#define S6_GREG1_CHIPRES_SOFTRES	0
-+#define S6_GREG1_CHIPRES_LOSTLOCK	1
-+#define S6_GREG1_RESETCAUSE	0x10C
-+#define S6_GREG1_RESETCAUSE_RESETN	0
-+#define S6_GREG1_RESETCAUSE_GLOBAL	1
-+#define S6_GREG1_RESETCAUSE_WDOGTIMER	2
-+#define S6_GREG1_RESETCAUSE_SWCHIP	3
-+#define S6_GREG1_RESETCAUSE_PLLSYSLOSS	4
-+#define S6_GREG1_RESETCAUSE_PCIE	5
-+#define S6_GREG1_RESETCAUSE_CREATEDGLOB	6
-+#define S6_GREG1_REFCLOCKCNT	0x110
-+#define S6_GREG1_RESETTIMER	0x114
-+#define S6_GREG1_NMITIMER	0x118
-+#define S6_GREG1_GLOBAL_TIMER	0x11C
-+#define S6_GREG1_TIMER0		0x180
-+#define S6_GREG1_TIMER1		0x184
-+#define S6_GREG1_UARTCLOCKSEL	0x204
-+#define S6_GREG1_CHIPVERSPACKG	0x208
-+#define S6_GREG1_CHIPVERSPACKG_CHIPVID	0
-+#define S6_GREG1_CHIPVERSPACKG_PACKSEL	8
-+#define S6_GREG1_ONDIETERMCTRL	0x20C
-+#define S6_GREG1_ONDIETERMCTRL_WEST	0
-+#define S6_GREG1_ONDIETERMCTRL_NORTH	2
-+#define S6_GREG1_ONDIETERMCTRL_EAST	4
-+#define S6_GREG1_ONDIETERMCTRL_SOUTH	6
-+#define S6_GREG1_ONDIETERMCTRL_NONE		0
-+#define S6_GREG1_ONDIETERMCTRL_75OHM		2
-+#define S6_GREG1_ONDIETERMCTRL_MASK		3
-+#define S6_GREG1_BOOT_CFG0	0x210
-+#define S6_GREG1_BOOT_CFG0_AIMSTRONG	1
-+#define S6_GREG1_BOOT_CFG0_MINIBOOTDL	2
-+#define S6_GREG1_BOOT_CFG0_OCDGPIO8SET	5
-+#define S6_GREG1_BOOT_CFG0_OCDGPIOENA	6
-+#define S6_GREG1_BOOT_CFG0_DOWNSTREAM	7
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV	8
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_300MHZ	1
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_240MHZ	2
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_200MHZ	3
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_150MHZ	4
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_120MHZ	5
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_40MHZ	6
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_MASK	7
-+#define S6_GREG1_BOOT_CFG0_BALHSLMS	12
-+#define S6_GREG1_BOOT_CFG0_BALHSNB	18
-+#define S6_GREG1_BOOT_CFG0_BALHSXAD	24
-+#define S6_GREG1_BOOT_CFG1	0x214
-+#define S6_GREG1_BOOT_CFG1_PCIE1LANE	1
-+#define S6_GREG1_BOOT_CFG1_MPLLPRESCALE	2
-+#define S6_GREG1_BOOT_CFG1_MPLLNCY	4
-+#define S6_GREG1_BOOT_CFG1_MPLLNCY5	9
-+#define S6_GREG1_BOOT_CFG1_BALHSREST	14
-+#define S6_GREG1_BOOT_CFG1_BALHSPSMEMS	20
-+#define S6_GREG1_BOOT_CFG1_BALLSGI	26
-+#define S6_GREG1_BOOT_CFG2	0x218
-+#define S6_GREG1_BOOT_CFG2_PEID		0
-+#define S6_GREG1_BOOT_CFG3	0x21C
-+#define S6_GREG1_DRAMBUSYHOLDOF	0x220
-+#define S6_GREG1_DRAMBUSYHOLDOF_XT0	0
-+#define S6_GREG1_DRAMBUSYHOLDOF_XT1	4
-+#define S6_GREG1_DRAMBUSYHOLDOF_XT_MASK		7
-+#define S6_GREG1_PCIEBAR1SIZE	0x224
-+#define S6_GREG1_PCIEBAR2SIZE	0x228
-+#define S6_GREG1_PCIEVENDOR	0x22C
-+#define S6_GREG1_PCIEDEVICE	0x230
-+#define S6_GREG1_PCIEREV	0x234
-+#define S6_GREG1_PCIECLASS	0x238
-+#define S6_GREG1_XT1DCACHEMISS	0x240
-+#define S6_GREG1_XT1ICACHEMISS	0x244
-+#define S6_GREG1_HWSEMAPHORE(n)	(0x400 + 4 * (n))
-+#define S6_GREG1_HWSEMAPHORE_NB		16
-+
-+/* peripheral interrupt numbers */
-+
-+#define S6_INTC_GPIO(n)			(n)		/* 0..3 */
-+#define S6_INTC_I2C			4
-+#define S6_INTC_SPI			5
-+#define S6_INTC_NB_ERR			6
-+#define S6_INTC_DMA_LMSERR		7
-+#define S6_INTC_DMA_LMSLOWWMRK(n)	(8 + (n))	/* 0..11 */
-+#define S6_INTC_DMA_LMSPENDCNT(n)	(20 + (n))	/* 0..11 */
-+#define S6_INTC_DMA HOSTLOWWMRK(n)	(32 + (n))	/* 0..6 */
-+#define S6_INTC_DMA_HOSTPENDCNT(n)	(39 + (n))	/* 0..6 */
-+#define S6_INTC_DMA_HOSTERR		46
-+#define S6_INTC_UART(n)			(47 + (n))	/* 0..1 */
-+#define S6_INTC_XAD			49
-+#define S6_INTC_NI_ERR			50
-+#define S6_INTC_NI_INFIFOFULL		51
-+#define S6_INTC_DMA_NIERR		52
-+#define S6_INTC_DMA_NILOWWMRK(n)	(53 + (n))	/* 0..3 */
-+#define S6_INTC_DMA_NIPENDCNT(n)	(57 + (n))	/* 0..3 */
-+#define S6_INTC_DDR			61
-+#define S6_INTC_NS_ERR			62
-+#define S6_INTC_EFI_CFGERR		63
-+#define S6_INTC_EFI_ISEFTEST		64
-+#define S6_INTC_EFI_WRITEERR		65
-+#define S6_INTC_NMI_TIMER		66
-+#define S6_INTC_PLLLOCK_SYS		67
-+#define S6_INTC_PLLLOCK_IO		68
-+#define S6_INTC_PLLLOCK_AIM		69
-+#define S6_INTC_PLLLOCK_DP0		70
-+#define S6_INTC_PLLLOCK_DP2		71
-+#define S6_INTC_I2S_ERR			72
-+#define S6_INTC_GMAC_STAT		73
-+#define S6_INTC_GMAC_ERR		74
-+#define S6_INTC_GIB_ERR			75
-+#define S6_INTC_PCIE_ERR		76
-+#define S6_INTC_PCIE_MSI(n)		(77 + (n))	/* 0..3 */
-+#define S6_INTC_PCIE_INTA		81
-+#define S6_INTC_PCIE_INTB		82
-+#define S6_INTC_PCIE_INTC		83
-+#define S6_INTC_PCIE_INTD		84
-+#define S6_INTC_SW(n)			(85 + (n))	/* 0..9 */
-+#define S6_INTC_SW_ENABLE(n)		(85 + 256 + (n))
-+#define S6_INTC_DMA_DP_ERR		95
-+#define S6_INTC_DMA_DPLOWWMRK(n)	(96 + (n))	/* 0..3 */
-+#define S6_INTC_DMA_DPPENDCNT(n)	(100 + (n))	/* 0..3 */
-+#define S6_INTC_DMA_DPTERMCNT(n)	(104 + (n))	/* 0..3 */
-+#define S6_INTC_TIMER0			108
-+#define S6_INTC_TIMER1			109
-+#define S6_INTC_DMA_HOSTTERMCNT(n)	(110 + (n))	/* 0..6 */
-+
-+#endif /* __XTENSA_S6000_HARDWARE_H */
-diff -puN /dev/null arch/xtensa/variants/s6000/include/variant/irq.h
---- /dev/null
-+++ a/arch/xtensa/variants/s6000/include/variant/irq.h
-@@ -0,0 +1,9 @@
-+#ifndef __XTENSA_S6000_IRQ_H
-+#define __XTENSA_S6000_IRQ_H
-+
-+#define NO_IRQ		(-1)
-+
-+extern void variant_irq_enable(unsigned int irq);
-+extern void variant_irq_disable(unsigned int irq);
-+
-+#endif /* __XTENSA_S6000_IRQ_H */
-diff -puN /dev/null arch/xtensa/variants/s6000/irq.c
---- /dev/null
-+++ a/arch/xtensa/variants/s6000/irq.c
-@@ -0,0 +1,74 @@
++++ a/arch/xtensa/platforms/s6105/device.c
+@@ -0,0 +1,67 @@
 +/*
-+ * s6000 irq crossbar
++ * s6105 platform devices
 + *
 + * Copyright (c) 2009 emlix GmbH
-+ * Authors:	Johannes Weiner <jw@emlix.com>
-+ *		Oskar Schirmer <os@emlix.com>
 + */
-+#include <linux/io.h>
-+#include <asm/irq.h>
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/serial.h>
++#include <linux/serial_8250.h>
++
 +#include <variant/hardware.h>
 +
-+/* S6_REG_INTC */
-+#define INTC_STATUS	0x000
-+#define INTC_RAW	0x010
-+#define INTC_STATUS_AG	0x100
-+#define INTC_CFG(n)	(0x200 + 4 * (n))
++#define UART_INTNUM		4
 +
-+/*
-+ * The s6000 has a crossbar that multiplexes interrupt output lines
-+ * from the peripherals to input lines on the xtensa core.
-+ *
-+ * We leave the mapping decisions to the platform as it depends on the
-+ * actually connected peripherals which distribution makes sense.
-+ */
-+extern const signed char *platform_irq_mappings[NR_IRQS];
-+
-+static unsigned long scp_to_intc_enable[] = {
-+#define	TO_INTC_ENABLE(n)	(((n) << 1) + 1)
-+	TO_INTC_ENABLE(0),
-+	TO_INTC_ENABLE(1),
-+	TO_INTC_ENABLE(2),
-+	TO_INTC_ENABLE(3),
-+	TO_INTC_ENABLE(4),
-+	TO_INTC_ENABLE(5),
-+	TO_INTC_ENABLE(6),
-+	TO_INTC_ENABLE(7),
-+	TO_INTC_ENABLE(8),
-+	TO_INTC_ENABLE(9),
-+	TO_INTC_ENABLE(10),
-+	TO_INTC_ENABLE(11),
-+	TO_INTC_ENABLE(12),
++static const signed char uart_irq_mappings[] = {
++	S6_INTC_UART(0),
++	S6_INTC_UART(1),
 +	-1,
-+	-1,
-+	TO_INTC_ENABLE(13),
-+	-1,
-+	TO_INTC_ENABLE(14),
-+	-1,
-+	TO_INTC_ENABLE(15),
-+#undef	TO_INTC_ENABLE
 +};
 +
-+static void irq_set(unsigned int irq, int enable)
-+{
-+	unsigned long en;
-+	const signed char *m = platform_irq_mappings[irq];
++const signed char *platform_irq_mappings[NR_IRQS] = {
++	[UART_INTNUM] = uart_irq_mappings,
++};
 +
-+	if (!m)
-+		return;
-+	en = enable ? scp_to_intc_enable[irq] : 0;
-+	while (*m >= 0) {
-+		writel(en, S6_REG_INTC + INTC_CFG(*m));
-+		m++;
-+	}
++static struct plat_serial8250_port serial_platform_data[] = {
++	{
++		.membase = (void *)S6_REG_UART + 0x0000,
++		.mapbase = S6_REG_UART + 0x0000,
++		.irq = UART_INTNUM,
++		.uartclk = S6_SCLK,
++		.regshift = 2,
++		.iotype = SERIAL_IO_MEM,
++		.flags = ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST,
++	},
++	{
++		.membase = (void *)S6_REG_UART + 0x1000,
++		.mapbase = S6_REG_UART + 0x1000,
++		.irq = UART_INTNUM,
++		.uartclk = S6_SCLK,
++		.regshift = 2,
++		.iotype = SERIAL_IO_MEM,
++		.flags = ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST,
++	},
++	{ },
++};
++
++static struct platform_device platform_devices[] = {
++	{
++		.name = "serial8250",
++		.id = PLAT8250_DEV_PLATFORM,
++		.dev = {
++			.platform_data = serial_platform_data,
++		},
++	},
++};
++
++static int __init device_init(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(platform_devices); i++)
++		platform_device_register(&platform_devices[i]);
++	return 0;
++}
++arch_initcall_sync(device_init);
+diff -puN /dev/null arch/xtensa/platforms/s6105/include/platform/gpio.h
+--- /dev/null
++++ a/arch/xtensa/platforms/s6105/include/platform/gpio.h
+@@ -0,0 +1,27 @@
++#ifndef __ASM_XTENSA_S6105_GPIO_H
++#define __ASM_XTENSA_S6105_GPIO_H
++
++#define GPIO_BP_TEMP_ALARM	0
++#define GPIO_PB_RESET_IN	1
++#define GPIO_EXP_IRQ		2
++#define GPIO_TRIGGER_IRQ	3
++#define GPIO_RTC_IRQ		4
++#define GPIO_PHY_IRQ		5
++#define GPIO_IMAGER_RESET	6
++#define GPIO_SD_IRQ		7
++#define GPIO_MINI_BOOT_INH	8
++#define GPIO_BOARD_RESET	9
++#define GPIO_EXP_PRESENT	10
++#define GPIO_LED1_NGREEN	12
++#define GPIO_LED1_RED		13
++#define GPIO_LED0_NGREEN	14
++#define GPIO_LED0_NRED		15
++#define GPIO_SPI_CS0		16
++#define GPIO_SPI_CS1		17
++#define GPIO_SPI_CS3		19
++#define GPIO_SPI_CS4		20
++#define GPIO_SD_WP		21
++#define GPIO_BP_RESET		22
++#define GPIO_ALARM_OUT		23
++
++#endif /* __ASM_XTENSA_S6105_GPIO_H */
+diff -puN /dev/null arch/xtensa/platforms/s6105/include/platform/hardware.h
+--- /dev/null
++++ a/arch/xtensa/platforms/s6105/include/platform/hardware.h
+@@ -0,0 +1,11 @@
++#ifndef __XTENSA_S6105_HARDWARE_H
++#define __XTENSA_S6105_HARDWARE_H
++
++#define PLATFORM_DEFAULT_MEM_START	0x40000000
++#define PLATFORM_DEFAULT_MEM_SIZE	0x08000000
++
++#define MAX_DMA_ADDRESS			0
++
++#define KERNELOFFSET			(PLATFORM_DEFAULT_MEM_START + 0x1000)
++
++#endif /* __XTENSA_S6105_HARDWARE_H */
+diff -puN /dev/null arch/xtensa/platforms/s6105/include/platform/serial.h
+--- /dev/null
++++ a/arch/xtensa/platforms/s6105/include/platform/serial.h
+@@ -0,0 +1,8 @@
++#ifndef __ASM_XTENSA_S6105_SERIAL_H
++#define __ASM_XTENSA_S6105_SERIAL_H
++
++#include <variant/hardware.h>
++
++#define BASE_BAUD (S6_SCLK / 16)
++
++#endif /* __ASM_XTENSA_S6105_SERIAL_H */
+diff -puN /dev/null arch/xtensa/platforms/s6105/setup.c
+--- /dev/null
++++ a/arch/xtensa/platforms/s6105/setup.c
+@@ -0,0 +1,61 @@
++/*
++ * s6105 control routines
++ *
++ * Copyright (c) 2009 emlix GmbH
++ */
++#include <linux/irq.h>
++#include <linux/io.h>
++#include <linux/gpio.h>
++
++#include <asm/bootparam.h>
++
++#include <variant/hardware.h>
++#include <platform/gpio.h>
++
++void platform_halt(void)
++{
++	local_irq_disable();
++	while (1)
++		;
 +}
 +
-+void variant_irq_enable(unsigned int irq)
++void platform_power_off(void)
 +{
-+	irq_set(irq, 1);
++	platform_halt();
 +}
 +
-+void variant_irq_disable(unsigned int irq)
++void platform_restart(void)
 +{
-+	irq_set(irq, 0);
++	platform_halt();
++}
++
++void __init platform_setup(char **cmdline)
++{
++	unsigned long reg;
++
++	reg = readl(S6_REG_GREG1 + S6_GREG1_CLKGATE);
++	reg &= ~(1 << S6_GREG1_BLOCK_SB);
++	writel(reg, S6_REG_GREG1 + S6_GREG1_CLKGATE);
++
++	reg = readl(S6_REG_GREG1 + S6_GREG1_BLOCKENA);
++	reg |= 1 << S6_GREG1_BLOCK_SB;
++	writel(reg, S6_REG_GREG1 + S6_GREG1_BLOCKENA);
++
++	printk(KERN_NOTICE "S6105 on Stretch S6000 - "
++		"Copyright (C) 2009 emlix GmbH <info@emlix.com>\n");
++}
++
++void __init platform_init(bp_tag_t *first)
++{
++	gpio_request(GPIO_LED1_NGREEN, "led1_green");
++	gpio_request(GPIO_LED1_RED, "led1_red");
++	gpio_direction_output(GPIO_LED1_NGREEN, 1);
++}
++
++void platform_heartbeat(void)
++{
++	static unsigned int c;
++
++	if (!(++c & 0x4F))
++		gpio_direction_output(GPIO_LED1_RED, !(c & 0x10));
 +}
 _
 
