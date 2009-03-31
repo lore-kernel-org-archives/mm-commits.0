@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-s6105-specific-configuration-for-s6gmac.patch added to -mm tree
-Date: Mon, 30 Mar 2009 17:01:10 -0700
-Message-ID: <200903310001.n2V01BJS031714@imap1.linux-foundation.org>
+Subject: + xtensa-variant-irq-set-callbacks.patch added to -mm tree
+Date: Mon, 30 Mar 2009 17:00:11 -0700
+Message-ID: <200903310000.n2V00CKR031415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36653 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932083AbZCaAFr (ORCPT
+	by vger.kernel.org with ESMTP id S1753697AbZCaANV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Mar 2009 20:05:47 -0400
+	Mon, 30 Mar 2009 20:13:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: os@emlix.com, chris@zankel.net, davem@davemloft.net, dg@emlix.com, jw@emlix.com
+Cc: jw@emlix.com, chris@zankel.net, dg@emlix.com, os@emlix.com
 
 
 The patch titled
-     xtensa: s6105 specific configuration for s6gmac
+     xtensa: variant irq set callbacks
 has been added to the -mm tree.  Its filename is
-     xtensa-s6105-specific-configuration-for-s6gmac.patch
+     xtensa-variant-irq-set-callbacks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,190 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: s6105 specific configuration for s6gmac
-From: Oskar Schirmer <os@emlix.com>
+Subject: xtensa: variant irq set callbacks
+From: Johannes Weiner <jw@emlix.com>
 
-Platform-specific configuration for the s6gmac driver, including the
-PHY interrupt line.
+Allow the core variant code to provide irq enable/disable callbacks.
 
-Signed-off-by: Daniel Glockner <dg@emlix.com>
-Signed-off-by: Oskar Schirmer <os@emlix.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Johannes Weiner <jw@emlix.com>
+The s6000 has a crossbar that multiplexes peripheral IRQ lines to a
+smaller number of core lines.  These callbacks allow the s6000 variant
+to program the crossbar when core lines are toggled.
+
+Signed-off-by: Johannes Weiner <jw@emlix.com>
+Cc: Oskar Schirmer <os@emlix.com>
+Cc: Daniel Glockner <dg@emlix.com>
 Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/platforms/s6105/device.c |   91 +++++++++++++++++++++++++
- arch/xtensa/platforms/s6105/setup.c  |    9 ++
- 2 files changed, 100 insertions(+)
+ arch/xtensa/Kconfig           |    3 +++
+ arch/xtensa/include/asm/irq.h |    7 +++++++
+ arch/xtensa/kernel/irq.c      |   14 ++++++++++++++
+ 3 files changed, 24 insertions(+)
 
-diff -puN arch/xtensa/platforms/s6105/device.c~xtensa-s6105-specific-configuration-for-s6gmac arch/xtensa/platforms/s6105/device.c
---- a/arch/xtensa/platforms/s6105/device.c~xtensa-s6105-specific-configuration-for-s6gmac
-+++ a/arch/xtensa/platforms/s6105/device.c
-@@ -5,14 +5,27 @@
-  */
+diff -puN arch/xtensa/Kconfig~xtensa-variant-irq-set-callbacks arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~xtensa-variant-irq-set-callbacks
++++ a/arch/xtensa/Kconfig
+@@ -57,6 +57,9 @@ config HZ
+ source "init/Kconfig"
+ source "kernel/Kconfig.freezer"
  
- #include <linux/kernel.h>
-+#include <linux/gpio.h>
- #include <linux/init.h>
-+#include <linux/irq.h>
-+#include <linux/phy.h>
- #include <linux/platform_device.h>
- #include <linux/serial.h>
- #include <linux/serial_8250.h>
- 
- #include <variant/hardware.h>
-+#include <variant/dmac.h>
- 
-+#include <platform/gpio.h>
++config VARIANT_IRQ_SWITCH
++	def_bool n
 +
-+#define GPIO3_INTNUM		3
- #define UART_INTNUM		4
-+#define GMAC_INTNUM		5
+ menu "Processor type and features"
+ 
+ choice
+diff -puN arch/xtensa/include/asm/irq.h~xtensa-variant-irq-set-callbacks arch/xtensa/include/asm/irq.h
+--- a/arch/xtensa/include/asm/irq.h~xtensa-variant-irq-set-callbacks
++++ a/arch/xtensa/include/asm/irq.h
+@@ -14,6 +14,13 @@
+ #include <platform/hardware.h>
+ #include <variant/core.h>
+ 
++#ifdef CONFIG_VARIANT_IRQ_SWITCH
++#include <variant/irq.h>
++#else
++static inline void variant_irq_enable(unsigned int irq) { }
++static inline void variant_irq_disable(unsigned int irq) { }
++#endif
 +
-+static const signed char gpio3_irq_mappings[] = {
-+	S6_INTC_GPIO(3),
-+	-1
-+};
+ #ifndef PLATFORM_NR_IRQS
+ # define PLATFORM_NR_IRQS 0
+ #endif
+diff -puN arch/xtensa/kernel/irq.c~xtensa-variant-irq-set-callbacks arch/xtensa/kernel/irq.c
+--- a/arch/xtensa/kernel/irq.c~xtensa-variant-irq-set-callbacks
++++ a/arch/xtensa/kernel/irq.c
+@@ -132,6 +132,18 @@ static void xtensa_irq_unmask(unsigned i
+ 	set_sr (cached_irq_mask, INTENABLE);
+ }
  
- static const signed char uart_irq_mappings[] = {
- 	S6_INTC_UART(0),
-@@ -20,8 +33,18 @@ static const signed char uart_irq_mappin
- 	-1,
- };
- 
-+static const signed char gmac_irq_mappings[] = {
-+	S6_INTC_GMAC_STAT,
-+	S6_INTC_GMAC_ERR,
-+	S6_INTC_DMA_HOSTTERMCNT(0),
-+	S6_INTC_DMA_HOSTTERMCNT(1),
-+	-1
-+};
-+
- const signed char *platform_irq_mappings[NR_IRQS] = {
-+	[GPIO3_INTNUM] = gpio3_irq_mappings,
- 	[UART_INTNUM] = uart_irq_mappings,
-+	[GMAC_INTNUM] = gmac_irq_mappings,
- };
- 
- static struct plat_serial8250_port serial_platform_data[] = {
-@@ -46,6 +69,66 @@ static struct plat_serial8250_port seria
- 	{ },
- };
- 
-+static struct resource s6_gmac_resource[] = {
-+	{
-+		.name   = "mem",
-+		.start  = (resource_size_t)S6_REG_GMAC,
-+		.end    = (resource_size_t)S6_REG_GMAC + 0x10000 - 1,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+	{
-+		.name   = "dma",
-+		.start  = (resource_size_t)
-+			DMA_CHNL(S6_REG_HIFDMA, S6_HIFDMA_GMACTX),
-+		.end    = (resource_size_t)
-+			DMA_CHNL(S6_REG_HIFDMA, S6_HIFDMA_GMACTX) + 0x100 - 1,
-+		.flags  = IORESOURCE_DMA,
-+	},
-+	{
-+		.name   = "dma",
-+		.start  = (resource_size_t)
-+			DMA_CHNL(S6_REG_HIFDMA, S6_HIFDMA_GMACRX),
-+		.end    = (resource_size_t)
-+			DMA_CHNL(S6_REG_HIFDMA, S6_HIFDMA_GMACRX) + 0x100 - 1,
-+		.flags  = IORESOURCE_DMA,
-+	},
-+	{
-+		.name   = "io",
-+		.start  = (resource_size_t)S6_MEM_GMAC,
-+		.end    = (resource_size_t)S6_MEM_GMAC + 0x2000000 - 1,
-+		.flags  = IORESOURCE_IO,
-+	},
-+	{
-+		.name   = "irq",
-+		.start  = (resource_size_t)GMAC_INTNUM,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+	{
-+		.name   = "irq",
-+		.start  = (resource_size_t)PHY_POLL,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static int __init prepare_phy_irq(int pin)
++static void xtensa_irq_enable(unsigned int irq)
 +{
-+	int irq;
-+	if (gpio_request(pin, "s6gmac_phy") < 0)
-+		goto fail;
-+	if (gpio_direction_input(pin) < 0)
-+		goto free;
-+	irq = gpio_to_irq(pin);
-+	if (irq < 0)
-+		goto free;
-+	if (set_irq_type(irq, IRQ_TYPE_LEVEL_LOW) < 0)
-+		goto free;
-+	return irq;
-+free:
-+	gpio_free(pin);
-+fail:
-+	return PHY_POLL;
++	variant_irq_enable(irq);
++	xtensa_irq_unmask(irq);
 +}
 +
- static struct platform_device platform_devices[] = {
- 	{
- 		.name = "serial8250",
-@@ -54,12 +137,20 @@ static struct platform_device platform_d
- 			.platform_data = serial_platform_data,
- 		},
- 	},
-+	{
-+		.name = "s6gmac",
-+		.id = 0,
-+		.resource = s6_gmac_resource,
-+		.num_resources = ARRAY_SIZE(s6_gmac_resource),
-+	},
- };
- 
- static int __init device_init(void)
- {
- 	int i;
- 
-+	s6_gmac_resource[5].start = prepare_phy_irq(GPIO_PHY_IRQ);
++static void xtensa_irq_disable(unsigned int irq)
++{
++	xtensa_irq_mask(irq);
++	variant_irq_disable(irq);
++}
 +
- 	for (i = 0; i < ARRAY_SIZE(platform_devices); i++)
- 		platform_device_register(&platform_devices[i]);
- 	return 0;
-diff -puN arch/xtensa/platforms/s6105/setup.c~xtensa-s6105-specific-configuration-for-s6gmac arch/xtensa/platforms/s6105/setup.c
---- a/arch/xtensa/platforms/s6105/setup.c~xtensa-s6105-specific-configuration-for-s6gmac
-+++ a/arch/xtensa/platforms/s6105/setup.c
-@@ -35,12 +35,21 @@ void __init platform_setup(char **cmdlin
+ static void xtensa_irq_ack(unsigned int irq)
  {
- 	unsigned long reg;
+ 	set_sr(1 << irq, INTCLEAR);
+@@ -146,6 +158,8 @@ static int xtensa_irq_retrigger(unsigned
  
-+	reg = readl(S6_REG_GREG1 + S6_GREG1_PLLSEL);
-+	reg &= ~(S6_GREG1_PLLSEL_GMAC_MASK << S6_GREG1_PLLSEL_GMAC |
-+		S6_GREG1_PLLSEL_GMII_MASK << S6_GREG1_PLLSEL_GMII);
-+	reg |= S6_GREG1_PLLSEL_GMAC_125MHZ << S6_GREG1_PLLSEL_GMAC |
-+		S6_GREG1_PLLSEL_GMII_125MHZ << S6_GREG1_PLLSEL_GMII;
-+	writel(reg, S6_REG_GREG1 + S6_GREG1_PLLSEL);
-+
- 	reg = readl(S6_REG_GREG1 + S6_GREG1_CLKGATE);
- 	reg &= ~(1 << S6_GREG1_BLOCK_SB);
-+	reg &= ~(1 << S6_GREG1_BLOCK_GMAC);
- 	writel(reg, S6_REG_GREG1 + S6_GREG1_CLKGATE);
- 
- 	reg = readl(S6_REG_GREG1 + S6_GREG1_BLOCKENA);
- 	reg |= 1 << S6_GREG1_BLOCK_SB;
-+	reg |= 1 << S6_GREG1_BLOCK_GMAC;
- 	writel(reg, S6_REG_GREG1 + S6_GREG1_BLOCKENA);
- 
- 	printk(KERN_NOTICE "S6105 on Stretch S6000 - "
+ static struct irq_chip xtensa_irq_chip = {
+ 	.name		= "xtensa",
++	.enable		= xtensa_irq_enable,
++	.disable	= xtensa_irq_disable,
+ 	.mask		= xtensa_irq_mask,
+ 	.unmask		= xtensa_irq_unmask,
+ 	.ack		= xtensa_irq_ack,
 _
 
-Patches currently in -mm which might be from os@emlix.com are
+Patches currently in -mm which might be from jw@emlix.com are
 
 xtensa-enforce-slab-alignment-to-maximum-register-width.patch
 xtensa-add-flat-support.patch
@@ -231,7 +132,6 @@ xtensa-s6000-gpio-driver.patch
 xtensa-let-platform-override-kerneloffset.patch
 xtensa-platform-stretch-s6105-eval-board.patch
 xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-s6000-dma-engine-support.patch
 xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
 xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
 s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
