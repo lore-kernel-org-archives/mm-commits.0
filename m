@@ -1,112 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch removed from -mm tree
-Date: Tue, 31 Mar 2009 15:07:45 -0700
-Message-ID: <200903312207.n2VM7jp0017663@imap1.linux-foundation.org>
+Subject: [folded] rtc-test-before-subtraction-on-unsigned-fix.patch removed from -mm tree
+Date: Tue, 31 Mar 2009 15:07:03 -0700
+Message-ID: <200903312207.n2VM73A1017461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52662 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763498AbZCaWJE (ORCPT
+	by vger.kernel.org with ESMTP id S1760649AbZCaWJp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:09:04 -0400
+	Tue, 31 Mar 2009 18:09:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: fix compilation of Zorro code
+     rtc-test-before-subtraction-on-unsigned-fix
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
+     rtc-test-before-subtraction-on-unsigned-fix.patch
 
-This patch was dropped because it was folded into cirrusfb-convert-printks-to-dev_foo.patch
+This patch was dropped because it was folded into rtc-test-before-subtraction-on-unsigned.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: fix compilation of Zorro code
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: rtc-test-before-subtraction-on-unsigned-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add a missing comma.
+handle wrapping too.
 
-Also, push down frequencies for the SD64 card as it is based on a GD5434
-chip and cannot do more than a GD5446 chip.
+Needs review & test, please.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ds1374.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix3 drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix3
-+++ a/drivers/video/cirrusfb.c
-@@ -137,7 +137,7 @@ static const struct cirrusfb_board_info_
- 		.maxclock		= {
- 			/* guess */
- 			/* the SD64/P4 have a higher max. videoclock */
--			140000, 140000, 140000, 140000, 140000,
-+			135100, 135100, 85500, 85500, 0
- 		},
- 		.init_sr07		= true,
- 		.init_sr1f		= true,
-@@ -2321,7 +2321,7 @@ static int __devinit cirrusfb_zorro_regi
- 	cinfo->unmap = cirrusfb_zorro_unmap;
- 
- 	dev_info(info->device,
--		 "Cirrus Logic chipset on Zorro bus, RAM (%lu MB) at $%lx\n"
-+		 "Cirrus Logic chipset on Zorro bus, RAM (%lu MB) at $%lx\n",
- 		 board_size / MB_, board_addr);
- 
- 	zorro_set_drvdata(z, info);
+diff -puN drivers/rtc/rtc-ds1374.c~rtc-test-before-subtraction-on-unsigned-fix drivers/rtc/rtc-ds1374.c
+--- a/drivers/rtc/rtc-ds1374.c~rtc-test-before-subtraction-on-unsigned-fix
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -228,7 +228,7 @@ static int ds1374_set_alarm(struct devic
+ 	 * (i.e. not something that we'd rather the caller know about via
+ 	 * an error), and the alarm is set to go off as soon as possible.
+ 	 */
+-	if (new_alarm <= itime)
++	if (time_before_eq(new_alarm, itime))
+ 		new_alarm = 1;
+ 	else
+ 		new_alarm -= itime;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cirrusfb-convert-printks-to-dev_foo.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
-cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
-cirrusfb-do-not-calculate-line-length-twice.patch
-cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
-cirrusfb-various-improvements.patch
-cirrusfb-laguna-chipset-8bpp-fix.patch
-cirrusfb-check_var-improvements.patch
-cirrusfb-various-laguna-fixes.patch
-cirrusfb-acceleration-improvements.patch
-cirrusfb-add-imageblit-function.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
-cirrusfb-gd5446-fixes.patch
-cirrusfb-use-24bpp-instead-of-32bpp.patch
-cirrusfb-fix-clock-doubling.patch
+page_fault-retry-with-nopage_retry.patch
+mm-introduce-for_each_populated_zone-macro.patch
+mm-shrink_all_memory-use-scnr_reclaimed.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
+mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
+alpha-convert-u64-to-unsigned-long-long.patch
+ubd-stop-defintining-major_nr.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi.patch
+rtc-test-before-subtraction-on-unsigned.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
 cirrusfb-fix-clock-doubling-fix.patch
-cirrusfb-add-accelerator-constant.patch
-cirrusfb-add-accelerator-constantpatch-compilation-fix.patch
-cirrusfb-set-mclk-in-one-place.patch
-cirrusfb-set-mclk-in-one-place-fix.patch
-cirrusfb-gd5434-aka-sd64-support-fixed.patch
-cirrusfb-fix-threshold-register-mask-for-laguna-chips.patch
-cirrusfb-fix-interlaced-modes.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-asiliantfb-fix-cmap-memory-leaks.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
-remove-cyblafb-driver.patch
-nvidiafb-remove-open_lock-mutex.patch
-fb-hide-hardware-cursor-in-graphics-mode-mach64.patch
-atyfb-speed-up-mach64-cursor.patch
-tridentfb-delete-acceleration-kconfig-option.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+flex-onenand-support-v2-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+simplify-copy_thread-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+kernel-auditscc-fix-warning.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
