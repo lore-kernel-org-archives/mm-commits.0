@@ -1,102 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cirrusfb-add-accelerator-constant.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:57 -0700
-Message-ID: <200904011842.n31Igv2r009866@imap1.linux-foundation.org>
+Subject: [merged] tridentfb-delete-acceleration-kconfig-option.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:44:19 -0700
+Message-ID: <200904011844.n31IiJ24010437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60297 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933883AbZDATB7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:01:59 -0400
+	by vger.kernel.org with ESMTP id S1758401AbZDATD5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:03:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: add accelerator constant
+     tridentfb: delete acceleration Kconfig option
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-add-accelerator-constant.patch
+     tridentfb-delete-acceleration-kconfig-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: add accelerator constant
+Subject: tridentfb: delete acceleration Kconfig option
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Add an accelerator constant so almost all Cirrus are recognized as
-accelerators by the fbset command.
+Remove Kconfig option for tridentfb acceleration.  The acceleration can be
+switched off with modules "noaccel" parameter.
+
+The acceleration for Trident chips was fixed in the 2.6.27 kernel.
+
+Also, add CyberXXX and CyberBlade names to Kconfig option's name.  It should
+make easier to find the tridentfb choice for cyblafb driver's users.  The
+cyblafb driver has been replaced by the tridentfb driver.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   11 +++++++++--
- include/linux/fb.h       |    1 +
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/video/Kconfig     |    9 +--------
+ drivers/video/tridentfb.c |   12 ------------
+ 2 files changed, 1 insertion(+), 20 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-add-accelerator-constant drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-add-accelerator-constant
-+++ a/drivers/video/cirrusfb.c
-@@ -519,6 +519,7 @@ static int cirrusfb_check_var(struct fb_
- 	int yres;
- 	/* memory size in pixels */
- 	unsigned pixels = info->screen_size * 8 / var->bits_per_pixel;
-+	struct cirrusfb_info *cinfo = info->par;
+diff -puN drivers/video/Kconfig~tridentfb-delete-acceleration-kconfig-option drivers/video/Kconfig
+--- a/drivers/video/Kconfig~tridentfb-delete-acceleration-kconfig-option
++++ a/drivers/video/Kconfig
+@@ -1598,7 +1598,7 @@ config FB_VT8623
+ 	  VIA VT8623 [Apollo CLE266] chipset.
  
- 	switch (var->bits_per_pixel) {
- 	case 1:
-@@ -627,6 +628,9 @@ static int cirrusfb_check_var(struct fb_
- 	if (cirrusfb_check_pixclock(var, info))
- 		return -EINVAL;
+ config FB_TRIDENT
+-	tristate "Trident support"
++	tristate "Trident/CyberXXX/CyberBlade support"
+ 	depends on FB && PCI
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+@@ -1617,13 +1617,6 @@ config FB_TRIDENT
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called tridentfb.
  
-+	if (!is_laguna(cinfo))
-+		var->accel_flags = FB_ACCELF_TEXT;
-+
+-config FB_TRIDENT_ACCEL
+-	bool "Trident Acceleration functions (EXPERIMENTAL)"
+-	depends on FB_TRIDENT && EXPERIMENTAL
+-	---help---
+-	This will compile the Trident frame buffer device with
+-	acceleration functions.
+-
+ config FB_ARK
+ 	tristate "ARK 2000PV support"
+ 	depends on FB && PCI
+diff -puN drivers/video/tridentfb.c~tridentfb-delete-acceleration-kconfig-option drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-delete-acceleration-kconfig-option
++++ a/drivers/video/tridentfb.c
+@@ -490,7 +490,6 @@ static void tgui_copy_rect(struct triden
+ /*
+  * Accel functions called by the upper layers
+  */
+-#ifdef CONFIG_FB_TRIDENT_ACCEL
+ static void tridentfb_fillrect(struct fb_info *info,
+ 			       const struct fb_fillrect *fr)
+ {
+@@ -565,11 +564,6 @@ static int tridentfb_sync(struct fb_info
+ 		par->wait_engine(par);
  	return 0;
  }
+-#else
+-#define tridentfb_fillrect cfb_fillrect
+-#define tridentfb_copyarea cfb_copyarea
+-#define tridentfb_imageblit cfb_imageblit
+-#endif /* CONFIG_FB_TRIDENT_ACCEL */
  
-@@ -2029,8 +2033,12 @@ static int __devinit cirrusfb_set_fbinfo
- 		    | FBINFO_HWACCEL_FILLRECT
- 		    | FBINFO_HWACCEL_IMAGEBLIT
- 		    | FBINFO_HWACCEL_COPYAREA;
--	if (noaccel || is_laguna(cinfo))
-+	if (noaccel || is_laguna(cinfo)) {
- 		info->flags |= FBINFO_HWACCEL_DISABLED;
-+		info->fix.accel = FB_ACCEL_NONE;
-+	} else
-+		info->fix.accel = FB_ACCEL_CIRRUS_ALPINE;
-+
- 	info->fbops = &cirrusfb_ops;
+ /*
+  * Hardware access functions
+@@ -1333,9 +1327,7 @@ static struct fb_ops tridentfb_ops = {
+ 	.fb_fillrect = tridentfb_fillrect,
+ 	.fb_copyarea = tridentfb_copyarea,
+ 	.fb_imageblit = tridentfb_imageblit,
+-#ifdef CONFIG_FB_TRIDENT_ACCEL
+ 	.fb_sync = tridentfb_sync,
+-#endif
+ };
  
- 	if (cinfo->btype == BT_GD5480) {
-@@ -2056,7 +2064,6 @@ static int __devinit cirrusfb_set_fbinfo
+ static int __devinit trident_pci_probe(struct pci_dev *dev,
+@@ -1359,10 +1351,6 @@ static int __devinit trident_pci_probe(s
  
- 	/* FIXME: map region at 0xB8000 if available, fill in here */
- 	info->fix.mmio_len   = 0;
--	info->fix.accel = FB_ACCEL_NONE;
+ 	chip_id = id->device;
  
- 	fb_alloc_cmap(&info->cmap, 256, 0);
- 
-diff -puN include/linux/fb.h~cirrusfb-add-accelerator-constant include/linux/fb.h
---- a/include/linux/fb.h~cirrusfb-add-accelerator-constant
-+++ a/include/linux/fb.h
-@@ -123,6 +123,7 @@ struct dentry;
- #define FB_ACCEL_TRIDENT_3DIMAGE 51	/* Trident 3DImage		*/
- #define FB_ACCEL_TRIDENT_BLADE3D 52	/* Trident Blade3D		*/
- #define FB_ACCEL_TRIDENT_BLADEXP 53	/* Trident BladeXP		*/
-+#define FB_ACCEL_CIRRUS_ALPINE   53	/* Cirrus Logic 543x/544x/5480	*/
- #define FB_ACCEL_NEOMAGIC_NM2070 90	/* NeoMagic NM2070              */
- #define FB_ACCEL_NEOMAGIC_NM2090 91	/* NeoMagic NM2090              */
- #define FB_ACCEL_NEOMAGIC_NM2093 92	/* NeoMagic NM2093              */
-_
-
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
-
-origin.patch
-linux-next.patch
-tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
-tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
-
+-#ifndef CONFIG_FB_TRIDENT_ACCEL
+-	noaccel = 1;
+-#endif
