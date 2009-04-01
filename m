@@ -1,119 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:41:31 -0700
-Message-ID: <200904011841.n31IfV08009397@imap1.linux-foundation.org>
+Subject: [merged] fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:43:44 -0700
+Message-ID: <200904011843.n31Ihi22010169@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46594 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933645AbZDASp4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:45:56 -0400
+	by vger.kernel.org with ESMTP id S933550AbZDASqC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:46:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: kristoffer.ericson@gmail.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc/83xx: add mmc-spi support via the device tree for MPC8323E-RDB
+     fbdev: update s1d13xxxfb to differ between revisions and production ids
 has been removed from the -mm tree.  Its filename was
-     powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb.patch
+     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/83xx: add mmc-spi support via the device tree for MPC8323E-RDB
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: fbdev: update s1d13xxxfb to differ between revisions and production ids
+From: Kristoffer Ericson <kristoffer.ericson@gmail.com>
 
-- Add gpio-controller node to manage QE GPIO Bank D;
-- Add mmc-spi node;
-- Modify board file so that it won't use legacy SPI support with the new
-  device trees.
+The s1d13xxx chip provides two values of identification value: the
+Production id (e.g 13506/13505/13806..) and a revision number 0,1,2,3). 
+Together these can help us to differentiate between similiar setups.
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+This patch adds the proper way of grabbing both those values and save them
+for future reference (in order to decide what functions a card supports,
+e.g acceleration).
+
+We also move away from the concept of all s1d13xxx = s1d13806 when we
+really support alot more.
+
+[akpm@linux-foundation.org: coding-style fixes]
+[akpm@linux-foundation.org: simplify s1d13xxxfb_probe()]
+Signed-off-by: Kristoffer Ericson <kristoffer.ericson@gmail.com
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/dts/mpc832x_rdb.dts     |   24 ++++++++++++++++++++
- arch/powerpc/platforms/83xx/mpc832x_rdb.c |    6 +++++
- 2 files changed, 30 insertions(+)
+ drivers/video/s1d13xxxfb.c |   48 ++++++++++++++++++++++++++---------
+ include/video/s1d13xxxfb.h |   16 +++++++----
+ 2 files changed, 46 insertions(+), 18 deletions(-)
 
-diff -puN arch/powerpc/boot/dts/mpc832x_rdb.dts~powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb arch/powerpc/boot/dts/mpc832x_rdb.dts
---- a/arch/powerpc/boot/dts/mpc832x_rdb.dts~powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb
-+++ a/arch/powerpc/boot/dts/mpc832x_rdb.dts
-@@ -152,10 +152,21 @@
- 		};
+diff -puN drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids drivers/video/s1d13xxxfb.c
+--- a/drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids
++++ a/drivers/video/s1d13xxxfb.c
+@@ -50,9 +50,22 @@
+ #define dbg(fmt, args...) do { } while (0)
+ #endif
  
- 		par_io@1400 {
-+			#address-cells = <1>;
-+			#size-cells = <1>;
- 			reg = <0x1400 0x100>;
-+			ranges = <3 0x1448 0x18>;
-+			compatible = "fsl,mpc8323-qe-pario";
- 			device_type = "par_io";
- 			num-ports = <7>;
- 
-+			qe_pio_d: gpio-controller@1448 {
-+				#gpio-cells = <2>;
-+				compatible = "fsl,mpc8323-qe-pario-bank";
-+				reg = <3 0x18>;
-+				gpio-controller;
-+			};
+-static const int __devinitconst s1d13xxxfb_revisions[] = {
+-	S1D13506_CHIP_REV,	/* Rev.4 on HP Jornada 7xx S1D13506 */
+-	S1D13806_CHIP_REV,	/* Rev.7 on .. */
++/*
++ * List of card production ids
++ */
++static const int s1d13xxxfb_prod_ids[] = {
++	S1D13505_PROD_ID,
++	S1D13506_PROD_ID,
++	S1D13806_PROD_ID,
++};
 +
- 			ucc2pio:ucc_pin@02 {
- 				pio-map = <
- 			/* port  pin  dir  open_drain  assignment  has_irq */
-@@ -225,12 +236,25 @@
- 		};
++/*
++ * List of card strings
++ */
++static const char *s1d13xxxfb_prod_names[] = {
++	"S1D13505",
++	"S1D13506",
++	"S1D13806",
+ };
  
- 		spi@4c0 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
- 			cell-index = <0>;
- 			compatible = "fsl,spi";
- 			reg = <0x4c0 0x40>;
- 			interrupts = <2>;
- 			interrupt-parent = <&qeic>;
-+			gpios = <&qe_pio_d 13 0>;
- 			mode = "cpu-qe";
-+
-+			mmc-slot@0 {
-+				compatible = "fsl,mpc8323rdb-mmc-slot",
-+					     "mmc-spi-slot";
-+				reg = <0>;
-+				gpios = <&qe_pio_d 14 1
-+					 &qe_pio_d 15 0>;
-+				voltage-ranges = <3300 3300>;
-+				spi-max-frequency = <50000000>;
-+			};
- 		};
- 
- 		spi@500 {
-diff -puN arch/powerpc/platforms/83xx/mpc832x_rdb.c~powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb arch/powerpc/platforms/83xx/mpc832x_rdb.c
---- a/arch/powerpc/platforms/83xx/mpc832x_rdb.c~powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb
-+++ a/arch/powerpc/platforms/83xx/mpc832x_rdb.c
-@@ -68,6 +68,12 @@ static int __init mpc832x_spi_init(void)
- 	par_io_config_pin(3, 14, 2, 0, 0, 0); /* SD_INSERT, I */
- 	par_io_config_pin(3, 15, 2, 0, 0, 0); /* SD_PROTECT,I */
- 
-+	/*
-+	 * Don't bother with legacy stuff when device tree contains
-+	 * mmc-spi-slot node.
-+	 */
-+	if (of_find_compatible_node(NULL, NULL, "mmc-spi-slot"))
-+		return 0;
- 	return fsl_spi_init(&mpc832x_spi_boardinfo, 1, mpc83xx_spi_cs_control);
+ /*
+@@ -377,7 +390,6 @@ s1d13xxxfb_pan_display(struct fb_var_scr
+ 	return 0;
  }
- machine_device_initcall(mpc832x_rdb, mpc832x_spi_init);
-_
-
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
-
-origin.patch
-linux-next.patch
-
+ 
+-
+ /* framebuffer information structures */
+ 
+ static struct fb_ops s1d13xxxfb_fbops = {
+@@ -544,7 +556,7 @@ s1d13xxxfb_probe(struct platform_device 
+ 	struct s1d13xxxfb_pdata *pdata = NULL;
+ 	int ret = 0;
+ 	int i;
+-	u8 revision;
++	u8 revision, prod_id;
+ 
+ 	dbg("probe called: device is %p\n", pdev);
+ 
+@@ -613,19 +625,31 @@ s1d13xxxfb_probe(struct platform_device 
+ 		goto bail;
+ 	}
+ 
+-	revision = s1d13xxxfb_readreg(default_par, S1DREG_REV_CODE) >> 2;
+-
++	/* production id is top 6 bits */
++	prod_id = s1d13xxxfb_readreg(default_par, S1DREG_REV_CODE) >> 2;
++	/* revision id is lower 2 bits */
++	revision = s1d13xxxfb_readreg(default_par, S1DREG_REV_CODE) & 0x3;
+ 	ret = -ENODEV;
+ 
+-	for (i = 0; i < ARRAY_SIZE(s1d13xxxfb_revisions); i++) {
+-		if (revision == s1d13xxxfb_revisions[i])
++	for (i = 0; i < ARRAY_SIZE(s1d13xxxfb_prod_ids); i++) {
++		if (prod_id == s1d13xxxfb_prod_ids[i]) {
++			/* looks like we got it in our list */
++			default_par->prod_id = prod_id;
++			default_par->revision = revision;
+ 			ret = 0;
++			break;
++		}
+ 	}
+ 
+-	if (!ret)
++	if (!ret) {
++		printk(KERN_INFO PFX "chip production id %i = %s\n",
++			prod_id, s1d13xxxfb_prod_names[i]);
+ 		printk(KERN_INFO PFX "chip revision %i\n", revision);
+-	else {
+-		printk(KERN_INFO PFX "unknown chip revision %i\n", revision);
++	} else {
++		printk(KERN_INFO PFX
++			"unknown chip production id %i, revision %i\n",
++			prod_id, revision);
++		printk(KERN_INFO PFX "please contant maintainer\n");
+ 		goto bail;
+ 	}
+ 
+diff -puN include/video/s1d13xxxfb.h~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids include/video/s1d13xxxfb.h
+--- a/include/video/s1d13xxxfb.h~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids
++++ a/include/video/s1d13xxxfb.h
+@@ -14,13 +14,16 @@
+ #define	S1D13XXXFB_H
+ 
+ #define S1D_PALETTE_SIZE		256
+-#define S1D13506_CHIP_REV		4	/* expected chip revision number for s1d13506 */
+-#define S1D13806_CHIP_REV		7	/* expected chip revision number for s1d13806 */
+-#define S1D_FBID			"S1D13806"
+-#define S1D_DEVICENAME			"s1d13806fb"
++#define S1D_FBID			"S1D13xxx"
++#define S1D_DEVICENAME			"s1d13xxxfb"
++
++/* S1DREG_REV_CODE register = prod_id (6 bits) + revision (2 bits) */
++#define S1D13505_PROD_ID		0x3	/* 000011 */
++#define S1D13506_PROD_ID		0x4	/* 000100 */
++#define S1D13806_PROD_ID		0x7	/* 000111 */
+ 
+ /* register definitions (tested on s1d13896) */
+-#define S1DREG_REV_CODE			0x0000	/* Revision Code Register */
++#define S1DREG_REV_CODE			0x0000	/* Prod + Rev Code Register */
+ #define S1DREG_MISC			0x0001	/* Miscellaneous Register */
+ #define S1DREG_GPIO_CNF0		0x0004	/* General IO Pins Configuration Register 0 */
+ #define S1DREG_GPIO_CNF1		0x0005	/* General IO Pins Configuration Register 1 */
+@@ -141,10 +144,11 @@ struct s1d13xxxfb_regval {
+ 	u8	value;
+ };
+ 
