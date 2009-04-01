@@ -1,208 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-add-epson-rx8025-support-to-ds1307-rtc-driver.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:10 -0700
-Message-ID: <200904011842.n31IgAZ0009625@imap1.linux-foundation.org>
+Subject: [merged] powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:31 -0700
+Message-ID: <200904011841.n31IfV08009397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933608AbZDASpi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:45:38 -0400
+	by vger.kernel.org with ESMTP id S933645AbZDASp4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:45:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.fuchs@esd-electronics.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: add EPSON RX8025 support to DS1307 RTC driver
+     powerpc/83xx: add mmc-spi support via the device tree for MPC8323E-RDB
 has been removed from the -mm tree.  Its filename was
-     rtc-add-epson-rx8025-support-to-ds1307-rtc-driver.patch
+     powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add EPSON RX8025 support to DS1307 RTC driver
-From: Matthias Fuchs <matthias.fuchs@esd-electronics.com>
+Subject: powerpc/83xx: add mmc-spi support via the device tree for MPC8323E-RDB
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Add support for the EPSON RX8025 RTC.  The date/time registers of this
-chip are compatible with the DS1307.
+- Add gpio-controller node to manage QE GPIO Bank D;
+- Add mmc-spi node;
+- Modify board file so that it won't use legacy SPI support with the new
+  device trees.
 
-Signed-off-by: Matthias Fuchs <matthias.fuchs@esd-electronics.com>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: David Brownell <david-b@pacbell.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    7 +--
- drivers/rtc/rtc-ds1307.c |   80 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 84 insertions(+), 3 deletions(-)
+ arch/powerpc/boot/dts/mpc832x_rdb.dts     |   24 ++++++++++++++++++++
+ arch/powerpc/platforms/83xx/mpc832x_rdb.c |    6 +++++
+ 2 files changed, 30 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-epson-rx8025-support-to-ds1307-rtc-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-epson-rx8025-support-to-ds1307-rtc-driver
-+++ a/drivers/rtc/Kconfig
-@@ -129,13 +129,14 @@ comment "I2C RTC drivers"
- if I2C
+diff -puN arch/powerpc/boot/dts/mpc832x_rdb.dts~powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb arch/powerpc/boot/dts/mpc832x_rdb.dts
+--- a/arch/powerpc/boot/dts/mpc832x_rdb.dts~powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb
++++ a/arch/powerpc/boot/dts/mpc832x_rdb.dts
+@@ -152,10 +152,21 @@
+ 		};
  
- config RTC_DRV_DS1307
--	tristate "Dallas/Maxim DS1307/37/38/39/40, ST M41T00"
-+	tristate "Dallas/Maxim DS1307/37/38/39/40, ST M41T00, EPSON RX-8025"
- 	help
- 	  If you say yes here you get support for various compatible RTC
- 	  chips (often with battery backup) connected with I2C. This driver
- 	  should handle DS1307, DS1337, DS1338, DS1339, DS1340, ST M41T00,
--	  and probably other chips. In some cases the RTC must already
--	  have been initialized (by manufacturing or a bootloader).
-+	  EPSON RX-8025 and probably other chips. In some cases the RTC
-+	  must already have been initialized (by manufacturing or a
-+	  bootloader).
+ 		par_io@1400 {
++			#address-cells = <1>;
++			#size-cells = <1>;
+ 			reg = <0x1400 0x100>;
++			ranges = <3 0x1448 0x18>;
++			compatible = "fsl,mpc8323-qe-pario";
+ 			device_type = "par_io";
+ 			num-ports = <7>;
  
- 	  The first seven registers on these chips hold an RTC, and other
- 	  registers may add features such as NVRAM, a trickle charger for
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-add-epson-rx8025-support-to-ds1307-rtc-driver drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-add-epson-rx8025-support-to-ds1307-rtc-driver
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -3,6 +3,7 @@
-  *
-  *  Copyright (C) 2005 James Chapman (ds1337 core)
-  *  Copyright (C) 2006 David Brownell
-+ *  Copyright (C) 2009 Matthias Fuchs (rx8025 support)
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -31,6 +32,7 @@ enum ds_type {
- 	ds_1339,
- 	ds_1340,
- 	m41t00,
-+	rx_8025,
- 	// rs5c372 too?  different address...
- };
++			qe_pio_d: gpio-controller@1448 {
++				#gpio-cells = <2>;
++				compatible = "fsl,mpc8323-qe-pario-bank";
++				reg = <3 0x18>;
++				gpio-controller;
++			};
++
+ 			ucc2pio:ucc_pin@02 {
+ 				pio-map = <
+ 			/* port  pin  dir  open_drain  assignment  has_irq */
+@@ -225,12 +236,25 @@
+ 		};
  
-@@ -83,6 +85,12 @@ enum ds_type {
- #define DS1339_REG_ALARM1_SECS	0x07
- #define DS1339_REG_TRICKLE	0x10
+ 		spi@4c0 {
++			#address-cells = <1>;
++			#size-cells = <0>;
+ 			cell-index = <0>;
+ 			compatible = "fsl,spi";
+ 			reg = <0x4c0 0x40>;
+ 			interrupts = <2>;
+ 			interrupt-parent = <&qeic>;
++			gpios = <&qe_pio_d 13 0>;
+ 			mode = "cpu-qe";
++
++			mmc-slot@0 {
++				compatible = "fsl,mpc8323rdb-mmc-slot",
++					     "mmc-spi-slot";
++				reg = <0>;
++				gpios = <&qe_pio_d 14 1
++					 &qe_pio_d 15 0>;
++				voltage-ranges = <3300 3300>;
++				spi-max-frequency = <50000000>;
++			};
+ 		};
  
-+#define RX8025_REG_CTRL1	0x0e
-+#	define RX8025_BIT_2412		0x20
-+#define RX8025_REG_CTRL2	0x0f
-+#	define RX8025_BIT_PON		0x10
-+#	define RX8025_BIT_VDET		0x40
-+#	define RX8025_BIT_XST		0x20
+ 		spi@500 {
+diff -puN arch/powerpc/platforms/83xx/mpc832x_rdb.c~powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb arch/powerpc/platforms/83xx/mpc832x_rdb.c
+--- a/arch/powerpc/platforms/83xx/mpc832x_rdb.c~powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb
++++ a/arch/powerpc/platforms/83xx/mpc832x_rdb.c
+@@ -68,6 +68,12 @@ static int __init mpc832x_spi_init(void)
+ 	par_io_config_pin(3, 14, 2, 0, 0, 0); /* SD_INSERT, I */
+ 	par_io_config_pin(3, 15, 2, 0, 0, 0); /* SD_PROTECT,I */
  
- 
- struct ds1307 {
-@@ -121,6 +129,8 @@ static const struct chip_desc chips[] = 
- [ds_1340] = {
- },
- [m41t00] = {
-+},
-+[rx_8025] = {
- }, };
- 
- static const struct i2c_device_id ds1307_id[] = {
-@@ -130,6 +140,7 @@ static const struct i2c_device_id ds1307
- 	{ "ds1339", ds_1339 },
- 	{ "ds1340", ds_1340 },
- 	{ "m41t00", m41t00 },
-+	{ "rx8025", rx_8025 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, ds1307_id);
-@@ -674,6 +685,72 @@ static int __devinit ds1307_probe(struct
- 			dev_warn(&client->dev, "SET TIME!\n");
- 		}
- 		break;
-+
-+	case rx_8025:
-+		tmp = i2c_smbus_read_i2c_block_data(ds1307->client,
-+				RX8025_REG_CTRL1 << 4 | 0x08, 2, buf);
-+		if (tmp != 2) {
-+			pr_debug("read error %d\n", tmp);
-+			err = -EIO;
-+			goto exit_free;
-+		}
-+
-+		/* oscillator off?  turn it on, so clock can tick. */
-+		if (!(ds1307->regs[1] & RX8025_BIT_XST)) {
-+			ds1307->regs[1] |= RX8025_BIT_XST;
-+			i2c_smbus_write_byte_data(client,
-+						  RX8025_REG_CTRL2 << 4 | 0x08,
-+						  ds1307->regs[1]);
-+			dev_warn(&client->dev,
-+				 "oscillator stop detected - SET TIME!\n");
-+		}
-+
-+		if (ds1307->regs[1] & RX8025_BIT_PON) {
-+			ds1307->regs[1] &= ~RX8025_BIT_PON;
-+			i2c_smbus_write_byte_data(client,
-+						  RX8025_REG_CTRL2 << 4 | 0x08,
-+						  ds1307->regs[1]);
-+			dev_warn(&client->dev, "power-on detected\n");
-+		}
-+
-+		if (ds1307->regs[1] & RX8025_BIT_VDET) {
-+			ds1307->regs[1] &= ~RX8025_BIT_VDET;
-+			i2c_smbus_write_byte_data(client,
-+						  RX8025_REG_CTRL2 << 4 | 0x08,
-+						  ds1307->regs[1]);
-+			dev_warn(&client->dev, "voltage drop detected\n");
-+		}
-+
-+		/* make sure we are running in 24hour mode */
-+		if (!(ds1307->regs[0] & RX8025_BIT_2412)) {
-+			u8 hour;
-+
-+			/* switch to 24 hour mode */
-+			i2c_smbus_write_byte_data(client,
-+						  RX8025_REG_CTRL1 << 4 | 0x08,
-+						  ds1307->regs[0] |
-+						  RX8025_BIT_2412);
-+
-+			tmp = i2c_smbus_read_i2c_block_data(ds1307->client,
-+					RX8025_REG_CTRL1 << 4 | 0x08, 2, buf);
-+			if (tmp != 2) {
-+				pr_debug("read error %d\n", tmp);
-+				err = -EIO;
-+				goto exit_free;
-+			}
-+
-+			/* correct hour */
-+			hour = bcd2bin(ds1307->regs[DS1307_REG_HOUR]);
-+			if (hour == 12)
-+				hour = 0;
-+			if (ds1307->regs[DS1307_REG_HOUR] & DS1307_BIT_PM)
-+				hour += 12;
-+
-+			i2c_smbus_write_byte_data(client,
-+						  DS1307_REG_HOUR << 4 | 0x08,
-+						  hour);
-+		}
-+		break;
- 	default:
- 		break;
- 	}
-@@ -734,6 +811,7 @@ read_rtc:
- 			dev_warn(&client->dev, "SET TIME!\n");
- 		}
- 		break;
-+	case rx_8025:
- 	case ds_1337:
- 	case ds_1339:
- 		break;
-@@ -747,6 +825,8 @@ read_rtc:
- 		 * systems that will run through year 2100.
- 		 */
- 		break;
-+	case rx_8025:
-+		break;
- 	default:
- 		if (!(tmp & DS1307_BIT_12HR))
- 			break;
++	/*
++	 * Don't bother with legacy stuff when device tree contains
++	 * mmc-spi-slot node.
++	 */
++	if (of_find_compatible_node(NULL, NULL, "mmc-spi-slot"))
++		return 0;
+ 	return fsl_spi_init(&mpc832x_spi_boardinfo, 1, mpc83xx_spi_cs_control);
+ }
+ machine_device_initcall(mpc832x_rdb, mpc832x_spi_init);
 _
 
-Patches currently in -mm which might be from matthias.fuchs@esd-electronics.com are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
-rtc-add-ds1685-ds1687-rtc-driver.patch
+linux-next.patch
 
