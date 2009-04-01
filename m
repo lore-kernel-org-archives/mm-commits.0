@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-hvc_console.patch added to -mm tree
-Date: Wed, 01 Apr 2009 14:18:03 -0700
-Message-ID: <200904012118.n31LI3hO022284@imap1.linux-foundation.org>
+Subject: + mm-do_xip_mapping_read-fix-length-calculation.patch added to -mm tree
+Date: Wed, 01 Apr 2009 14:16:32 -0700
+Message-ID: <200904012116.n31LGWc8021850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755391AbZDAVUW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 17:20:22 -0400
+	by vger.kernel.org with ESMTP id S934115AbZDAVWI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 17:22:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael@ellerman.id.au, benh@kernel.crashing.org, jwboyer@linux.vnet.ibm.com
+Cc: schwidefsky@de.ibm.com, cotte@de.ibm.com, jaredeh@gmail.com, npiggin@suse.de, stable@kernel.org
 
 
 The patch titled
-     MAINTAINERS: add hvc_console
+     mm: do_xip_mapping_read: fix length calculation
 has been added to the -mm tree.  Its filename is
-     maintainers-add-hvc_console.patch
+     mm-do_xip_mapping_read-fix-length-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add hvc_console
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: mm: do_xip_mapping_read: fix length calculation
+From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-Add a MAINTAINERS entry for the hypervisor virtual console driver.
+The calculation of the value nr in do_xip_mapping_read is incorrect.  If
+the copy required more than one iteration in the do while loop the copies
+variable will be non-zero.  The maximum length that may be passed to the
+call to copy_to_user(buf+copied, xip_mem+offset, nr) is len-copied but the
+check only compares against (nr > len).
 
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
-Acked-by: Josh Boyer <jwboyer@linux.vnet.ibm.com>
-Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+This bug is the cause for the heap corruption Carsten has been chasing
+for so long:
+
+*** glibc detected *** /bin/bash: free(): invalid next size (normal): 0x00000000800e39f0 ***
+======= Backtrace: =========
+/lib64/libc.so.6[0x200000b9b44]
+/lib64/libc.so.6(cfree+0x8e)[0x200000bdade]
+/bin/bash(free_buffered_stream+0x32)[0x80050e4e]
+/bin/bash(close_buffered_stream+0x1c)[0x80050ea4]
+/bin/bash(unset_bash_input+0x2a)[0x8001c366]
+/bin/bash(make_child+0x1d4)[0x8004115c]
+/bin/bash[0x8002fc3c]
+/bin/bash(execute_command_internal+0x656)[0x8003048e]
+/bin/bash(execute_command+0x5e)[0x80031e1e]
+/bin/bash(execute_command_internal+0x79a)[0x800305d2]
+/bin/bash(execute_command+0x5e)[0x80031e1e]
+/bin/bash(reader_loop+0x270)[0x8001efe0]
+/bin/bash(main+0x1328)[0x8001e960]
+/lib64/libc.so.6(__libc_start_main+0x100)[0x200000592a8]
+/bin/bash(clearerr+0x5e)[0x8001c092]
+
+With this bug fix the commit 0e4a9b59282914fe057ab17027f55123964bc2e2
+"ext2/xip: refuse to change xip flag during remount with busy inodes" can
+be removed again.
+
+Cc: Carsten Otte <cotte@de.ibm.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Jared Hulbert <jaredeh@gmail.com>
+Cc: <stable@kernel.org>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/filemap_xip.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-hvc_console MAINTAINERS
---- a/MAINTAINERS~maintainers-add-hvc_console
-+++ a/MAINTAINERS
-@@ -1945,6 +1945,12 @@ L:	lm-sensors@lm-sensors.org
- W:	http://www.kernel.org/pub/linux/kernel/people/fseidel/hdaps/
- S:	Maintained
+diff -puN mm/filemap_xip.c~mm-do_xip_mapping_read-fix-length-calculation mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-do_xip_mapping_read-fix-length-calculation
++++ a/mm/filemap_xip.c
+@@ -89,8 +89,8 @@ do_xip_mapping_read(struct address_space
+ 			}
+ 		}
+ 		nr = nr - offset;
+-		if (nr > len)
+-			nr = len;
++		if (nr > len - copied)
++			nr = len - copied;
  
-+HYPERVISOR VIRTUAL CONSOLE DRIVER
-+L:	linuxppc-dev@ozlabs.org
-+L:	linux-kernel@vger.kernel.org
-+S:	Odd Fixes
-+F:	drivers/char/hvc_*
-+
- GSPCA FINEPIX SUBDRIVER
- P:	Frank Zago
- M:	frank@zago.net
+ 		error = mapping->a_ops->get_xip_mem(mapping, index, 0,
+ 							&xip_mem, &xip_pfn);
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from schwidefsky@de.ibm.com are
 
 origin.patch
-maintainers-add-hvc_console.patch
+linux-next.patch
+mm-do_xip_mapping_read-fix-length-calculation.patch
 
