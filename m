@@ -1,87 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cirrusfb-fix-clock-doubling.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:55 -0700
-Message-ID: <200904011842.n31IgtQd009863@imap1.linux-foundation.org>
+Subject: [merged] pm-rework-includes-remove-arch-ifdefs-v2.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:39:16 -0700
+Message-ID: <200904011839.n31IdGi6008618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37492 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759443AbZDAS5y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:57:54 -0400
+	by vger.kernel.org with ESMTP id S1765926AbZDATAN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: damm@igel.co.jp, lethal@linux-sh.org, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: fix clock doubling
+     pm: rework includes, remove arch ifdefs
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-fix-clock-doubling.patch
+     pm-rework-includes-remove-arch-ifdefs-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: fix clock doubling
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: pm: rework includes, remove arch ifdefs
+From: Magnus Damm <damm@igel.co.jp>
 
-Cirrus' Alpine and Picasso4 chips uses DAC clock doubling to achieve full
-range of pixclock frequencies.
+Make the following header file changes:
 
-[akpm@linux-foundation.org: fix spelling, use usual comment layout]
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+ - remove arch ifdefs and asm/suspend.h from linux/suspend.h
+ - add asm/suspend.h to disk.c (for arch_prepare_suspend())
+ - add linux/io.h to swsusp.c (for ioremap())
+ - x86 32/64 bit compile fixes
+
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ arch/x86/kernel/asm-offsets_32.c |    1 +
+ arch/x86/kernel/asm-offsets_64.c |    1 +
+ arch/x86/power/cpu_32.c          |    1 +
+ arch/x86/power/cpu_64.c          |    1 +
+ arch/x86/power/hibernate_64.c    |    1 +
+ include/linux/suspend.h          |    3 ---
+ kernel/power/disk.c              |    1 +
+ kernel/power/swsusp.c            |    1 +
+ 8 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-clock-doubling drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-fix-clock-doubling
-+++ a/drivers/video/cirrusfb.c
-@@ -470,10 +470,25 @@ static int cirrusfb_check_pixclock(const
- 	/* If the frequency is greater than we can support, we might be able
- 	 * to use multiplexing for the video mode */
- 	if (freq > maxclock) {
-+		dev_err(info->device,
-+			"Frequency greater than maxclock (%ld kHz)\n",
-+			maxclock);
-+		return -EINVAL;
-+	}
-+	/*
-+	 * Additional constraint: 8bpp uses DAC clock doubling to allow maximum
-+	 * pixel clock
-+	 */
-+	if (var->bits_per_pixel == 8) {
- 		switch (cinfo->btype) {
- 		case BT_ALPINE:
-+		case BT_PICASSO4:
-+			if (freq > 85500)
-+				cinfo->multiplexing = 1;
-+			break;
- 		case BT_GD5480:
--			cinfo->multiplexing = 1;
-+			if (freq > 135100)
-+				cinfo->multiplexing = 1;
- 			break;
+diff -puN arch/x86/kernel/asm-offsets_32.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/kernel/asm-offsets_32.c
+--- a/arch/x86/kernel/asm-offsets_32.c~pm-rework-includes-remove-arch-ifdefs-v2
++++ a/arch/x86/kernel/asm-offsets_32.c
+@@ -18,6 +18,7 @@
+ #include <asm/thread_info.h>
+ #include <asm/bootparam.h>
+ #include <asm/elf.h>
++#include <asm/suspend.h>
  
- 		default:
-@@ -815,6 +830,8 @@ static int cirrusfb_set_par_foo(struct f
- 	freq = PICOS2KHZ(var->pixclock);
- 	if (cinfo->btype == BT_ALPINE && var->bits_per_pixel == 24)
- 		freq *= 3;
-+	if (cinfo->multiplexing)
-+		freq /= 2;
+ #include <xen/interface/xen.h>
  
- 	bestclock(freq, &nom, &den, &div);
+diff -puN arch/x86/kernel/asm-offsets_64.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/kernel/asm-offsets_64.c
+--- a/arch/x86/kernel/asm-offsets_64.c~pm-rework-includes-remove-arch-ifdefs-v2
++++ a/arch/x86/kernel/asm-offsets_64.c
+@@ -16,6 +16,7 @@
+ #include <asm/thread_info.h>
+ #include <asm/ia32.h>
+ #include <asm/bootparam.h>
++#include <asm/suspend.h>
+ 
+ #include <xen/interface/xen.h>
+ 
+diff -puN arch/x86/power/cpu_32.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/power/cpu_32.c
+--- a/arch/x86/power/cpu_32.c~pm-rework-includes-remove-arch-ifdefs-v2
++++ a/arch/x86/power/cpu_32.c
+@@ -12,6 +12,7 @@
+ #include <asm/mtrr.h>
+ #include <asm/mce.h>
+ #include <asm/xcr.h>
++#include <asm/suspend.h>
+ 
+ static struct saved_context saved_context;
+ 
+diff -puN arch/x86/power/cpu_64.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/power/cpu_64.c
+--- a/arch/x86/power/cpu_64.c~pm-rework-includes-remove-arch-ifdefs-v2
++++ a/arch/x86/power/cpu_64.c
+@@ -15,6 +15,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/mtrr.h>
+ #include <asm/xcr.h>
++#include <asm/suspend.h>
+ 
+ static void fix_processor_context(void);
+ 
+diff -puN arch/x86/power/hibernate_64.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/power/hibernate_64.c
+--- a/arch/x86/power/hibernate_64.c~pm-rework-includes-remove-arch-ifdefs-v2
++++ a/arch/x86/power/hibernate_64.c
+@@ -14,6 +14,7 @@
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+ #include <asm/mtrr.h>
++#include <asm/suspend.h>
+ 
+ /* References to section boundaries */
+ extern const void __nosave_begin, __nosave_end;
+diff -puN include/linux/suspend.h~pm-rework-includes-remove-arch-ifdefs-v2 include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-rework-includes-remove-arch-ifdefs-v2
++++ a/include/linux/suspend.h
+@@ -1,9 +1,6 @@
+ #ifndef _LINUX_SUSPEND_H
+ #define _LINUX_SUSPEND_H
+ 
+-#if defined(CONFIG_X86) || defined(CONFIG_FRV) || defined(CONFIG_PPC32) || defined(CONFIG_PPC64)
+-#include <asm/suspend.h>
+-#endif
+ #include <linux/swap.h>
+ #include <linux/notifier.h>
+ #include <linux/init.h>
+diff -puN kernel/power/disk.c~pm-rework-includes-remove-arch-ifdefs-v2 kernel/power/disk.c
+--- a/kernel/power/disk.c~pm-rework-includes-remove-arch-ifdefs-v2
++++ a/kernel/power/disk.c
+@@ -22,6 +22,7 @@
+ #include <linux/console.h>
+ #include <linux/cpu.h>
+ #include <linux/freezer.h>
++#include <asm/suspend.h>
+ 
+ #include "power.h"
+ 
+diff -puN kernel/power/swsusp.c~pm-rework-includes-remove-arch-ifdefs-v2 kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~pm-rework-includes-remove-arch-ifdefs-v2
++++ a/kernel/power/swsusp.c
+@@ -51,6 +51,7 @@
+ #include <linux/highmem.h>
+ #include <linux/time.h>
+ #include <linux/rbtree.h>
++#include <linux/io.h>
+ 
+ #include "power.h"
  
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from damm@igel.co.jp are
 
 origin.patch
 linux-next.patch
-tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
-tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-add-enable-and-disable-callbacks.patch
 
