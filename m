@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-correct-stack-pointer-for-stack-traces.patch added to -mm tree
-Date: Wed, 01 Apr 2009 13:14:38 -0700
-Message-ID: <200904012014.n31KEckk004113@imap1.linux-foundation.org>
+Subject: + xtensa-dont-make-bootmem-bitmap-larger-than-required.patch added to -mm tree
+Date: Wed, 01 Apr 2009 13:14:42 -0700
+Message-ID: <200904012014.n31KEgTY004119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40606 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758253AbZDAURS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 16:17:18 -0400
+	by vger.kernel.org with ESMTP id S1763522AbZDAURW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 16:17:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jw@emlix.com, chris@zankel.net, os@emlix.com
 
 
 The patch titled
-     xtensa: use correct stack pointer for stack traces
+     xtensa: dont make bootmem bitmap larger than required
 has been added to the -mm tree.  Its filename is
-     xtensa-use-correct-stack-pointer-for-stack-traces.patch
+     xtensa-dont-make-bootmem-bitmap-larger-than-required.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,17 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: use correct stack pointer for stack traces
+Subject: xtensa: dont make bootmem bitmap larger than required
 From: Johannes Weiner <jw@emlix.com>
 
-Right now, the xtensa stacktrace code reads the _current_ kernel stack
-pointer if nothing is supplied.  With debugging facilities like sysrq this
-means that the backtrace of the sysrq-handler is printed instead of a
-trace of the given task's stack.
+If min_low_pfn is non-zero, the bitmap reserved for bootmem is bigger
+than needed.  The number of pages bootmem has to maintain is the range
+from min_low_pfn to max_low_pfn.
 
-When no stack pointer is specified in show_trace() and show_stack(), use
-the stack pointer that comes with the handed in task descriptor to make
-stack traces more useful.
+For now it has only been a theoretical mistake, min_low_pfn was always
+zero.
 
 Signed-off-by: Johannes Weiner <jw@emlix.com>
 Cc: Oskar Schirmer <os@emlix.com>
@@ -51,40 +49,22 @@ Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/traps.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ arch/xtensa/mm/init.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/xtensa/kernel/traps.c~xtensa-use-correct-stack-pointer-for-stack-traces arch/xtensa/kernel/traps.c
---- a/arch/xtensa/kernel/traps.c~xtensa-use-correct-stack-pointer-for-stack-traces
-+++ a/arch/xtensa/kernel/traps.c
-@@ -374,11 +374,10 @@ void show_trace(struct task_struct *task
- 	unsigned long a0, a1, pc;
- 	unsigned long sp_start, sp_end;
+diff -puN arch/xtensa/mm/init.c~xtensa-dont-make-bootmem-bitmap-larger-than-required arch/xtensa/mm/init.c
+--- a/arch/xtensa/mm/init.c~xtensa-dont-make-bootmem-bitmap-larger-than-required
++++ a/arch/xtensa/mm/init.c
+@@ -123,7 +123,8 @@ void __init bootmem_init(void)
  
--	a1 = (unsigned long)sp;
--
--	if (a1 == 0)
--		__asm__ __volatile__ ("mov %0, a1\n" : "=a"(a1));
--
-+	if (sp)
-+		a1 = (unsigned long)sp;
-+	else
-+		a1 = task->thread.sp;
+ 	/* Find an area to use for the bootmem bitmap. */
  
- 	sp_start = a1 & ~(THREAD_SIZE-1);
- 	sp_end = sp_start + THREAD_SIZE;
-@@ -420,9 +419,8 @@ void show_stack(struct task_struct *task
- 	int i = 0;
- 	unsigned long *stack;
+-	bootmap_size = bootmem_bootmap_pages(max_low_pfn) << PAGE_SHIFT;
++	bootmap_size = bootmem_bootmap_pages(max_low_pfn - min_low_pfn);
++	bootmap_size <<= PAGE_SHIFT;
+ 	bootmap_start = ~0;
  
--	if (sp == 0)
--		__asm__ __volatile__ ("mov %0, a1\n" : "=a"(sp));
--
-+	if (!sp)
-+		sp = (unsigned long *)task->thread.sp;
-  	stack = sp;
- 
- 	printk("\nStack: ");
+ 	for (i=0; i<sysmem.nr_banks; i++)
 _
 
 Patches currently in -mm which might be from jw@emlix.com are
