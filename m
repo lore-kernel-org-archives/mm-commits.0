@@ -1,94 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-chg-cannot-become-less-than-0.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:38:22 -0700
-Message-ID: <200904011838.n31IcMb1008238@imap1.linux-foundation.org>
+Subject: [merged] introduce-debug_kmap_atomic.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:38:43 -0700
+Message-ID: <200904011838.n31IchWa008370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933548AbZDASnm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:43:42 -0400
+	by vger.kernel.org with ESMTP id S933543AbZDASnr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:43:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: chg cannot become less than 0
+     mm: introduce debug_kmap_atomic
 has been removed from the -mm tree.  Its filename was
-     hugetlb-chg-cannot-become-less-than-0.patch
+     introduce-debug_kmap_atomic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: chg cannot become less than 0
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: mm: introduce debug_kmap_atomic
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-chg is unsigned, so it cannot be less than 0.
+x86 has debug_kmap_atomic_prot() which is error checking function for
+kmap_atomic.  It is usefull for the other architectures, although it needs
+CONFIG_TRACE_IRQFLAGS_SUPPORT.
 
-Also, since region_chg returns long, let vma_needs_reservation() forward
-this to alloc_huge_page().  Store it as long as well.  all callers cast it
-to long anyway.
+This patch exposes it to the other architectures.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/mm/highmem_32.c |   45 -------------------------------------
+ include/linux/highmem.h  |   12 +++++++++
+ mm/highmem.c             |   45 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 58 insertions(+), 44 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-chg-cannot-become-less-than-0 mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-chg-cannot-become-less-than-0
-+++ a/mm/hugetlb.c
-@@ -918,7 +918,7 @@ static void return_unused_surplus_pages(
-  * an instantiated the change should be committed via vma_commit_reservation.
-  * No action is required on failure.
-  */
--static int vma_needs_reservation(struct hstate *h,
-+static long vma_needs_reservation(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long addr)
- {
- 	struct address_space *mapping = vma->vm_file->f_mapping;
-@@ -933,7 +933,7 @@ static int vma_needs_reservation(struct 
- 		return 1;
+diff -puN arch/x86/mm/highmem_32.c~introduce-debug_kmap_atomic arch/x86/mm/highmem_32.c
+--- a/arch/x86/mm/highmem_32.c~introduce-debug_kmap_atomic
++++ a/arch/x86/mm/highmem_32.c
+@@ -19,49 +19,6 @@ void kunmap(struct page *page)
+ 	kunmap_high(page);
+ }
  
- 	} else  {
--		int err;
-+		long err;
- 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		struct resv_map *reservations = vma_resv_map(vma);
+-static void debug_kmap_atomic_prot(enum km_type type)
+-{
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	static unsigned warn_count = 10;
+-
+-	if (unlikely(warn_count == 0))
+-		return;
+-
+-	if (unlikely(in_interrupt())) {
+-		if (in_irq()) {
+-			if (type != KM_IRQ0 && type != KM_IRQ1 &&
+-			    type != KM_BIO_SRC_IRQ && type != KM_BIO_DST_IRQ &&
+-			    type != KM_BOUNCE_READ) {
+-				WARN_ON(1);
+-				warn_count--;
+-			}
+-		} else if (!irqs_disabled()) {	/* softirq */
+-			if (type != KM_IRQ0 && type != KM_IRQ1 &&
+-			    type != KM_SOFTIRQ0 && type != KM_SOFTIRQ1 &&
+-			    type != KM_SKB_SUNRPC_DATA &&
+-			    type != KM_SKB_DATA_SOFTIRQ &&
+-			    type != KM_BOUNCE_READ) {
+-				WARN_ON(1);
+-				warn_count--;
+-			}
+-		}
+-	}
+-
+-	if (type == KM_IRQ0 || type == KM_IRQ1 || type == KM_BOUNCE_READ ||
+-			type == KM_BIO_SRC_IRQ || type == KM_BIO_DST_IRQ) {
+-		if (!irqs_disabled()) {
+-			WARN_ON(1);
+-			warn_count--;
+-		}
+-	} else if (type == KM_SOFTIRQ0 || type == KM_SOFTIRQ1) {
+-		if (irq_count() == 0 && !irqs_disabled()) {
+-			WARN_ON(1);
+-			warn_count--;
+-		}
+-	}
+-#endif
+-}
+-
+ /*
+  * kmap_atomic/kunmap_atomic is significantly faster than kmap/kunmap because
+  * no global lock is needed and because the kmap code must perform a global TLB
+@@ -81,7 +38,7 @@ void *kmap_atomic_prot(struct page *page
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
  
-@@ -969,7 +969,7 @@ static struct page *alloc_huge_page(stru
- 	struct page *page;
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	struct inode *inode = mapping->host;
--	unsigned int chg;
-+	long chg;
+-	debug_kmap_atomic_prot(type);
++	debug_kmap_atomic(type);
  
- 	/*
- 	 * Processes that did not create the mapping will have no reserves and
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+diff -puN include/linux/highmem.h~introduce-debug_kmap_atomic include/linux/highmem.h
+--- a/include/linux/highmem.h~introduce-debug_kmap_atomic
++++ a/include/linux/highmem.h
+@@ -187,4 +187,16 @@ static inline void copy_highpage(struct 
+ 	kunmap_atomic(vto, KM_USER1);
+ }
+ 
++#if defined(CONFIG_DEBUG_HIGHMEM) && defined(CONFIG_TRACE_IRQFLAGS_SUPPORT)
++
++void debug_kmap_atomic(enum km_type type);
++
++#else
++
++static inline void debug_kmap_atomic(enum km_type type)
++{
++}
++
++#endif
++
+ #endif /* _LINUX_HIGHMEM_H */
+diff -puN mm/highmem.c~introduce-debug_kmap_atomic mm/highmem.c
+--- a/mm/highmem.c~introduce-debug_kmap_atomic
++++ a/mm/highmem.c
+@@ -422,3 +422,48 @@ void __init page_address_init(void)
+ }
+ 
+ #endif	/* defined(CONFIG_HIGHMEM) && !defined(WANT_PAGE_VIRTUAL) */
++
++#if defined(CONFIG_DEBUG_HIGHMEM) && defined(CONFIG_TRACE_IRQFLAGS_SUPPORT)
++
++void debug_kmap_atomic(enum km_type type)
++{
++	static unsigned warn_count = 10;
++
++	if (unlikely(warn_count == 0))
++		return;
++
++	if (unlikely(in_interrupt())) {
++		if (in_irq()) {
++			if (type != KM_IRQ0 && type != KM_IRQ1 &&
++			    type != KM_BIO_SRC_IRQ && type != KM_BIO_DST_IRQ &&
++			    type != KM_BOUNCE_READ) {
++				WARN_ON(1);
++				warn_count--;
++			}
++		} else if (!irqs_disabled()) {	/* softirq */
++			if (type != KM_IRQ0 && type != KM_IRQ1 &&
++			    type != KM_SOFTIRQ0 && type != KM_SOFTIRQ1 &&
++			    type != KM_SKB_SUNRPC_DATA &&
++			    type != KM_SKB_DATA_SOFTIRQ &&
++			    type != KM_BOUNCE_READ) {
++				WARN_ON(1);
++				warn_count--;
++			}
++		}
++	}
++
++	if (type == KM_IRQ0 || type == KM_IRQ1 || type == KM_BOUNCE_READ ||
++			type == KM_BIO_SRC_IRQ || type == KM_BIO_DST_IRQ) {
++		if (!irqs_disabled()) {
++			WARN_ON(1);
++			warn_count--;
++		}
++	} else if (type == KM_SOFTIRQ0 || type == KM_SOFTIRQ1) {
++		if (irq_count() == 0 && !irqs_disabled()) {
++			WARN_ON(1);
++			warn_count--;
++		}
++	}
++}
++
++#endif
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-linux-next.patch
-drm-fix-lock_test_with_return-macro.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-uwb-event_size-should-be-signed.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-spi-limit-reaches-1-tested-0.patch
-ufs-sector_t-cannot-be-negative.patch
-hppfs-hppfs_read_file-may-return-error.patch
 
