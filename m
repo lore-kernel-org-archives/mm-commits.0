@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-tty-switch-synclink-to-proc_fops.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:33:45 -0700
-Message-ID: <200904011833.n31IXjg1006855@imap1.linux-foundation.org>
+Subject: [merged] proc-tty-switch-istallion-to-proc_fops.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:33:39 -0700
+Message-ID: <200904011833.n31IXdjd006815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56929 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765785AbZDASg0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:36:26 -0400
+	by vger.kernel.org with ESMTP id S932346AbZDASg1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:36:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc tty: switch synclink to ->proc_fops
+     proc tty: switch istallion to ->proc_fops
 has been removed from the -mm tree.  Its filename was
-     proc-tty-switch-synclink-to-proc_fops.patch
+     proc-tty-switch-istallion-to-proc_fops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch synclink to ->proc_fops
+Subject: proc tty: switch istallion to ->proc_fops
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
@@ -31,190 +31,216 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink.c |   98 +++++++++++++++-----------------------
- 1 file changed, 39 insertions(+), 59 deletions(-)
+ drivers/char/istallion.c |  121 +++++++++++++++----------------------
+ 1 file changed, 52 insertions(+), 69 deletions(-)
 
-diff -puN drivers/char/synclink.c~proc-tty-switch-synclink-to-proc_fops drivers/char/synclink.c
---- a/drivers/char/synclink.c~proc-tty-switch-synclink-to-proc_fops
-+++ a/drivers/char/synclink.c
-@@ -79,6 +79,7 @@
- #include <linux/ptrace.h>
- #include <linux/ioport.h>
- #include <linux/mm.h>
+diff -puN drivers/char/istallion.c~proc-tty-switch-istallion-to-proc_fops drivers/char/istallion.c
+--- a/drivers/char/istallion.c~proc-tty-switch-istallion-to-proc_fops
++++ a/drivers/char/istallion.c
+@@ -24,6 +24,7 @@
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/serial.h>
 +#include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/netdevice.h>
-@@ -3459,18 +3460,17 @@ cleanup:			
-  * /proc fs routines....
+ #include <linux/cdk.h>
+ #include <linux/comstats.h>
+ #include <linux/istallion.h>
+@@ -613,7 +614,6 @@ static int	stli_breakctl(struct tty_stru
+ static void	stli_waituntilsent(struct tty_struct *tty, int timeout);
+ static void	stli_sendxchar(struct tty_struct *tty, char ch);
+ static void	stli_hangup(struct tty_struct *tty);
+-static int	stli_portinfo(struct stlibrd *brdp, struct stliport *portp, int portnr, char *pos);
+ 
+ static int	stli_brdinit(struct stlibrd *brdp);
+ static int	stli_startbrd(struct stlibrd *brdp);
+@@ -1893,20 +1893,10 @@ static void stli_sendxchar(struct tty_st
+ 	stli_cmdwait(brdp, portp, A_PORTCTRL, &actrl, sizeof(asyctrl_t), 0);
+ }
+ 
+-/*****************************************************************************/
+-
+-#define	MAXLINE		80
+-
+-/*
+- *	Format info for a specified port. The line is deliberately limited
+- *	to 80 characters. (If it is too long it will be truncated, if too
+- *	short then padded with spaces).
+- */
+-
+-static int stli_portinfo(struct stlibrd *brdp, struct stliport *portp, int portnr, char *pos)
++static void stli_portinfo(struct seq_file *m, struct stlibrd *brdp, struct stliport *portp, int portnr)
+ {
+-	char *sp, *uart;
+-	int rc, cnt;
++	char *uart;
++	int rc;
+ 
+ 	rc = stli_portcmdstats(NULL, portp);
+ 
+@@ -1918,44 +1908,50 @@ static int stli_portinfo(struct stlibrd 
+ 		default:uart = "CD1400"; break;
+ 		}
+ 	}
+-
+-	sp = pos;
+-	sp += sprintf(sp, "%d: uart:%s ", portnr, uart);
++	seq_printf(m, "%d: uart:%s ", portnr, uart);
+ 
+ 	if ((brdp->state & BST_STARTED) && (rc >= 0)) {
+-		sp += sprintf(sp, "tx:%d rx:%d", (int) stli_comstats.txtotal,
++		char sep;
++
++		seq_printf(m, "tx:%d rx:%d", (int) stli_comstats.txtotal,
+ 			(int) stli_comstats.rxtotal);
+ 
+ 		if (stli_comstats.rxframing)
+-			sp += sprintf(sp, " fe:%d",
++			seq_printf(m, " fe:%d",
+ 				(int) stli_comstats.rxframing);
+ 		if (stli_comstats.rxparity)
+-			sp += sprintf(sp, " pe:%d",
++			seq_printf(m, " pe:%d",
+ 				(int) stli_comstats.rxparity);
+ 		if (stli_comstats.rxbreaks)
+-			sp += sprintf(sp, " brk:%d",
++			seq_printf(m, " brk:%d",
+ 				(int) stli_comstats.rxbreaks);
+ 		if (stli_comstats.rxoverrun)
+-			sp += sprintf(sp, " oe:%d",
++			seq_printf(m, " oe:%d",
+ 				(int) stli_comstats.rxoverrun);
+ 
+-		cnt = sprintf(sp, "%s%s%s%s%s ",
+-			(stli_comstats.signals & TIOCM_RTS) ? "|RTS" : "",
+-			(stli_comstats.signals & TIOCM_CTS) ? "|CTS" : "",
+-			(stli_comstats.signals & TIOCM_DTR) ? "|DTR" : "",
+-			(stli_comstats.signals & TIOCM_CD) ? "|DCD" : "",
+-			(stli_comstats.signals & TIOCM_DSR) ? "|DSR" : "");
+-		*sp = ' ';
+-		sp += cnt;
+-	}
+-
+-	for (cnt = (sp - pos); (cnt < (MAXLINE - 1)); cnt++)
+-		*sp++ = ' ';
+-	if (cnt >= MAXLINE)
+-		pos[(MAXLINE - 2)] = '+';
+-	pos[(MAXLINE - 1)] = '\n';
+-
+-	return(MAXLINE);
++		sep = ' ';
++		if (stli_comstats.signals & TIOCM_RTS) {
++			seq_printf(m, "%c%s", sep, "RTS");
++			sep = '|';
++		}
++		if (stli_comstats.signals & TIOCM_CTS) {
++			seq_printf(m, "%c%s", sep, "CTS");
++			sep = '|';
++		}
++		if (stli_comstats.signals & TIOCM_DTR) {
++			seq_printf(m, "%c%s", sep, "DTR");
++			sep = '|';
++		}
++		if (stli_comstats.signals & TIOCM_CD) {
++			seq_printf(m, "%c%s", sep, "DCD");
++			sep = '|';
++		}
++		if (stli_comstats.signals & TIOCM_DSR) {
++			seq_printf(m, "%c%s", sep, "DSR");
++			sep = '|';
++		}
++	}
++	seq_putc(m, '\n');
+ }
+ 
+ /*****************************************************************************/
+@@ -1964,26 +1960,15 @@ static int stli_portinfo(struct stlibrd 
+  *	Port info, read from the /proc file system.
   */
  
--static inline int line_info(char *buf, struct mgsl_struct *info)
-+static inline void line_info(struct seq_file *m, struct mgsl_struct *info)
+-static int stli_readproc(char *page, char **start, off_t off, int count, int *eof, void *data)
++static int stli_proc_show(struct seq_file *m, void *v)
  {
- 	char	stat_buf[30];
--	int	ret;
- 	unsigned long flags;
+ 	struct stlibrd *brdp;
+ 	struct stliport *portp;
+ 	unsigned int brdnr, portnr, totalport;
+-	int curoff, maxoff;
+-	char *pos;
  
- 	if (info->bus_type == MGSL_BUS_TYPE_PCI) {
--		ret = sprintf(buf, "%s:PCI io:%04X irq:%d mem:%08X lcr:%08X",
-+		seq_printf(m, "%s:PCI io:%04X irq:%d mem:%08X lcr:%08X",
- 			info->device_name, info->io_base, info->irq_level,
- 			info->phys_memory_base, info->phys_lcr_base);
- 	} else {
--		ret = sprintf(buf, "%s:(E)ISA io:%04X irq:%d dma:%d",
-+		seq_printf(m, "%s:(E)ISA io:%04X irq:%d dma:%d",
- 			info->device_name, info->io_base, 
- 			info->irq_level, info->dma_level);
- 	}
-@@ -3497,37 +3497,37 @@ static inline int line_info(char *buf, s
+-	pos = page;
+ 	totalport = 0;
+-	curoff = 0;
  
- 	if (info->params.mode == MGSL_MODE_HDLC ||
- 	    info->params.mode == MGSL_MODE_RAW ) {
--		ret += sprintf(buf+ret, " HDLC txok:%d rxok:%d",
-+		seq_printf(m, " HDLC txok:%d rxok:%d",
- 			      info->icount.txok, info->icount.rxok);
- 		if (info->icount.txunder)
--			ret += sprintf(buf+ret, " txunder:%d", info->icount.txunder);
-+			seq_printf(m, " txunder:%d", info->icount.txunder);
- 		if (info->icount.txabort)
--			ret += sprintf(buf+ret, " txabort:%d", info->icount.txabort);
-+			seq_printf(m, " txabort:%d", info->icount.txabort);
- 		if (info->icount.rxshort)
--			ret += sprintf(buf+ret, " rxshort:%d", info->icount.rxshort);	
-+			seq_printf(m, " rxshort:%d", info->icount.rxshort);
- 		if (info->icount.rxlong)
--			ret += sprintf(buf+ret, " rxlong:%d", info->icount.rxlong);
-+			seq_printf(m, " rxlong:%d", info->icount.rxlong);
- 		if (info->icount.rxover)
--			ret += sprintf(buf+ret, " rxover:%d", info->icount.rxover);
-+			seq_printf(m, " rxover:%d", info->icount.rxover);
- 		if (info->icount.rxcrc)
--			ret += sprintf(buf+ret, " rxcrc:%d", info->icount.rxcrc);
-+			seq_printf(m, " rxcrc:%d", info->icount.rxcrc);
- 	} else {
--		ret += sprintf(buf+ret, " ASYNC tx:%d rx:%d",
-+		seq_printf(m, " ASYNC tx:%d rx:%d",
- 			      info->icount.tx, info->icount.rx);
- 		if (info->icount.frame)
--			ret += sprintf(buf+ret, " fe:%d", info->icount.frame);
-+			seq_printf(m, " fe:%d", info->icount.frame);
- 		if (info->icount.parity)
--			ret += sprintf(buf+ret, " pe:%d", info->icount.parity);
-+			seq_printf(m, " pe:%d", info->icount.parity);
- 		if (info->icount.brk)
--			ret += sprintf(buf+ret, " brk:%d", info->icount.brk);	
-+			seq_printf(m, " brk:%d", info->icount.brk);
- 		if (info->icount.overrun)
--			ret += sprintf(buf+ret, " oe:%d", info->icount.overrun);
-+			seq_printf(m, " oe:%d", info->icount.overrun);
- 	}
- 	
- 	/* Append serial signal status to end */
--	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
-+	seq_printf(m, " %s\n", stat_buf+1);
- 	
--	ret += sprintf(buf+ret, "txactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
-+	seq_printf(m, "txactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
- 	 info->tx_active,info->bh_requested,info->bh_running,
- 	 info->pending_bh);
- 	 
-@@ -3544,60 +3544,40 @@ static inline int line_info(char *buf, s
- 	u16 Tmr = usc_InReg( info, TMR );
- 	u16 Tccr = usc_InReg( info, TCCR );
- 	u16 Ccar = inw( info->io_base + CCAR );
--	ret += sprintf(buf+ret, "tcsr=%04X tdmr=%04X ticr=%04X rcsr=%04X rdmr=%04X\n"
-+	seq_printf(m, "tcsr=%04X tdmr=%04X ticr=%04X rcsr=%04X rdmr=%04X\n"
-                         "ricr=%04X icr =%04X dccr=%04X tmr=%04X tccr=%04X ccar=%04X\n",
- 	 		Tcsr,Tdmr,Ticr,Rscr,Rdmr,Ricr,Icr,Dccr,Tmr,Tccr,Ccar );
- 	}
- 	spin_unlock_irqrestore(&info->irq_spinlock,flags);
--	
--	return ret;
--	
--}	/* end of line_info() */
-+}
+-	if (off == 0) {
+-		pos += sprintf(pos, "%s: version %s", stli_drvtitle,
+-			stli_drvversion);
+-		while (pos < (page + MAXLINE - 1))
+-			*pos++ = ' ';
+-		*pos++ = '\n';
+-	}
+-	curoff =  MAXLINE;
++	seq_printf(m, "%s: version %s\n", stli_drvtitle, stli_drvversion);
  
--/* mgsl_read_proc()
-- * 
-- * Called to print information about devices
-- * 
-- * Arguments:
-- * 	page	page of memory to hold returned info
-- * 	start	
-- * 	off
-- * 	count
-- * 	eof
-- * 	data
-- * 	
-- * Return Value:
-- */
--static int mgsl_read_proc(char *page, char **start, off_t off, int count,
--		 int *eof, void *data)
-+/* Called to print information about devices */
-+static int mgsl_proc_show(struct seq_file *m, void *v)
- {
--	int len = 0, l;
--	off_t	begin = 0;
- 	struct mgsl_struct *info;
- 	
--	len += sprintf(page, "synclink driver:%s\n", driver_version);
-+	seq_printf(m, "synclink driver:%s\n", driver_version);
- 	
- 	info = mgsl_device_list;
- 	while( info ) {
--		l = line_info(page + len, info);
--		len += l;
--		if (len+begin > off+count)
--			goto done;
--		if (len+begin < off) {
--			begin += len;
--			len = 0;
+ /*
+  *	We scan through for each board, panel and port. The offset is
+@@ -1996,33 +1981,31 @@ static int stli_readproc(char *page, cha
+ 		if (brdp->state == 0)
+ 			continue;
+ 
+-		maxoff = curoff + (brdp->nrports * MAXLINE);
+-		if (off >= maxoff) {
+-			curoff = maxoff;
+-			continue;
 -		}
-+		line_info(m, info);
- 		info = info->next_device;
+-
+ 		totalport = brdnr * STL_MAXPORTS;
+ 		for (portnr = 0; (portnr < brdp->nrports); portnr++,
+ 		    totalport++) {
+ 			portp = brdp->ports[portnr];
+ 			if (portp == NULL)
+ 				continue;
+-			if (off >= (curoff += MAXLINE))
+-				continue;
+-			if ((pos - page + MAXLINE) > count)
+-				goto stli_readdone;
+-			pos += stli_portinfo(brdp, portp, totalport, pos);
++			stli_portinfo(m, brdp, portp, totalport);
+ 		}
  	}
 +	return 0;
 +}
  
 -	*eof = 1;
--done:
--	if (off >= len+begin)
--		return 0;
--	*start = page + (off-begin);
--	return ((count < begin+len-off) ? count : begin+len-off);
--	
--}	/* end of mgsl_read_proc() */
-+static int mgsl_proc_open(struct inode *inode, struct file *file)
+-
+-stli_readdone:
+-	*start = page;
+-	return(pos - page);
++static int stli_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, mgsl_proc_show, NULL);
-+}
-+
-+static const struct file_operations mgsl_proc_fops = {
++	return single_open(file, stli_proc_show, NULL);
+ }
+ 
++static const struct file_operations stli_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= mgsl_proc_open,
++	.open		= stli_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
- 
- /* mgsl_allocate_dma_buffers()
-  * 
-@@ -4335,13 +4315,13 @@ static const struct tty_operations mgsl_
- 	.send_xchar = mgsl_send_xchar,
- 	.break_ctl = mgsl_break,
- 	.wait_until_sent = mgsl_wait_until_sent,
-- 	.read_proc = mgsl_read_proc,
- 	.set_termios = mgsl_set_termios,
- 	.stop = mgsl_stop,
- 	.start = mgsl_start,
- 	.hangup = mgsl_hangup,
- 	.tiocmget = tiocmget,
- 	.tiocmset = tiocmset,
-+	.proc_fops = &mgsl_proc_fops,
- };
++
+ /*****************************************************************************/
  
  /*
+@@ -4427,9 +4410,9 @@ static const struct tty_operations stli_
+ 	.break_ctl = stli_breakctl,
+ 	.wait_until_sent = stli_waituntilsent,
+ 	.send_xchar = stli_sendxchar,
+-	.read_proc = stli_readproc,
+ 	.tiocmget = stli_tiocmget,
+ 	.tiocmset = stli_tiocmset,
++	.proc_fops = &stli_proc_fops,
+ };
+ 
+ static const struct tty_port_operations stli_port_ops = {
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
