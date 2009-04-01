@@ -1,275 +1,372 @@
 From: akpm@linux-foundation.org
-Subject: [merged] epoll-fix-epolls-own-poll-update.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:40:22 -0700
-Message-ID: <200904011840.n31IeMnS008997@imap1.linux-foundation.org>
+Subject: [merged] proc-tty-switch-ircomm-to-proc_fops.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:33:57 -0700
+Message-ID: <200904011833.n31IXvos006913@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757859AbZDATTA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:19:00 -0400
+	by vger.kernel.org with ESMTP id S1758258AbZDATTQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:19:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, pisa@cmp.felk.cvut.cz, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll: fix epoll's own poll (update)
+     proc tty: switch ircomm to ->proc_fops
 has been removed from the -mm tree.  Its filename was
-     epoll-fix-epolls-own-poll-update.patch
+     proc-tty-switch-ircomm-to-proc_fops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: fix epoll's own poll (update)
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: proc tty: switch ircomm to ->proc_fops
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |  110 ++++++++++++++++++++++++-----------------------
- 1 file changed, 57 insertions(+), 53 deletions(-)
+ net/irda/ircomm/ircomm_tty.c |  246 +++++++++++++++++----------------
+ 1 file changed, 133 insertions(+), 113 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-fix-epolls-own-poll-update fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-fix-epolls-own-poll-update
-+++ a/fs/eventpoll.c
-@@ -454,9 +454,7 @@ static int ep_scan_ready_list(struct eve
- 	int error, pwake = 0;
- 	unsigned long flags;
- 	struct epitem *epi, *nepi;
--	struct list_head txlist;
+diff -puN net/irda/ircomm/ircomm_tty.c~proc-tty-switch-ircomm-to-proc_fops net/irda/ircomm/ircomm_tty.c
+--- a/net/irda/ircomm/ircomm_tty.c~proc-tty-switch-ircomm-to-proc_fops
++++ a/net/irda/ircomm/ircomm_tty.c
+@@ -34,6 +34,7 @@
+ #include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/sched.h>
++#include <linux/seq_file.h>
+ #include <linux/termios.h>
+ #include <linux/tty.h>
+ #include <linux/interrupt.h>
+@@ -72,8 +73,7 @@ static int ircomm_tty_control_indication
+ static void ircomm_tty_flow_indication(void *instance, void *sap,
+ 				       LOCAL_FLOW cmd);
+ #ifdef CONFIG_PROC_FS
+-static int ircomm_tty_read_proc(char *buf, char **start, off_t offset, int len,
+-				int *eof, void *unused);
++static const struct file_operations ircomm_tty_proc_fops;
+ #endif /* CONFIG_PROC_FS */
+ static struct tty_driver *driver;
+ 
+@@ -98,7 +98,7 @@ static const struct tty_operations ops =
+ 	.hangup          = ircomm_tty_hangup,
+ 	.wait_until_sent = ircomm_tty_wait_until_sent,
+ #ifdef CONFIG_PROC_FS
+-	.read_proc       = ircomm_tty_read_proc,
++	.proc_fops       = &ircomm_tty_proc_fops,
+ #endif /* CONFIG_PROC_FS */
+ };
+ 
+@@ -1245,150 +1245,170 @@ static void ircomm_tty_flow_indication(v
+ }
+ 
+ #ifdef CONFIG_PROC_FS
+-static int ircomm_tty_line_info(struct ircomm_tty_cb *self, char *buf)
++static void ircomm_tty_line_info(struct ircomm_tty_cb *self, struct seq_file *m)
+ {
+-	int  ret=0;
++	char sep;
+ 
+-	ret += sprintf(buf+ret, "State: %s\n", ircomm_tty_state[self->state]);
++	seq_printf(m, "State: %s\n", ircomm_tty_state[self->state]);
+ 
+-	ret += sprintf(buf+ret, "Service type: ");
++	seq_puts(m, "Service type: ");
+ 	if (self->service_type & IRCOMM_9_WIRE)
+-		ret += sprintf(buf+ret, "9_WIRE");
++		seq_puts(m, "9_WIRE");
+ 	else if (self->service_type & IRCOMM_3_WIRE)
+-		ret += sprintf(buf+ret, "3_WIRE");
++		seq_puts(m, "3_WIRE");
+ 	else if (self->service_type & IRCOMM_3_WIRE_RAW)
+-		ret += sprintf(buf+ret, "3_WIRE_RAW");
++		seq_puts(m, "3_WIRE_RAW");
+ 	else
+-		ret += sprintf(buf+ret, "No common service type!\n");
+-	ret += sprintf(buf+ret, "\n");
++		seq_puts(m, "No common service type!\n");
++	seq_putc(m, '\n');
+ 
+-	ret += sprintf(buf+ret, "Port name: %s\n", self->settings.port_name);
++	seq_printf(m, "Port name: %s\n", self->settings.port_name);
+ 
+-	ret += sprintf(buf+ret, "DTE status: ");
+-	if (self->settings.dte & IRCOMM_RTS)
+-		ret += sprintf(buf+ret, "RTS|");
+-	if (self->settings.dte & IRCOMM_DTR)
+-		ret += sprintf(buf+ret, "DTR|");
+-	if (self->settings.dte)
+-		ret--; /* remove the last | */
+-	ret += sprintf(buf+ret, "\n");
 -
--	INIT_LIST_HEAD(&txlist);
-+	LIST_HEAD(txlist);
- 
- 	/*
- 	 * We need to lock this because we could be hit by
-@@ -473,8 +471,7 @@ static int ep_scan_ready_list(struct eve
- 	 * in a lockless way.
- 	 */
- 	spin_lock_irqsave(&ep->lock, flags);
--	list_splice(&ep->rdllist, &txlist);
--	INIT_LIST_HEAD(&ep->rdllist);
-+	list_splice_init(&ep->rdllist, &txlist);
- 	ep->ovflist = NULL;
- 	spin_unlock_irqrestore(&ep->lock, flags);
- 
-@@ -514,8 +511,8 @@ static int ep_scan_ready_list(struct eve
- 
- 	if (!list_empty(&ep->rdllist)) {
- 		/*
--		 * Wake up (if active) both the eventpoll wait list and the ->poll()
--		 * wait list (delayed after we release the lock).
-+		 * Wake up (if active) both the eventpoll wait list and
-+		 * the ->poll() wait list (delayed after we release the lock).
- 		 */
- 		if (waitqueue_active(&ep->wq))
- 			wake_up_locked(&ep->wq);
-@@ -632,7 +629,8 @@ static int ep_eventpoll_release(struct i
- 	return 0;
- }
- 
--static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head, void *priv)
-+static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
-+			       void *priv)
- {
- 	struct epitem *epi, *tmp;
- 
-@@ -640,13 +638,14 @@ static int ep_read_events_proc(struct ev
- 		if (epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
- 		    epi->event.events)
- 			return POLLIN | POLLRDNORM;
--		else
-+		else {
- 			/*
- 			 * Item has been dropped into the ready list by the poll
- 			 * callback, but it's not actually ready, as far as
- 			 * caller requested events goes. We can remove it here.
- 			 */
- 			list_del_init(&epi->rdllink);
-+		}
- 	}
- 
- 	return 0;
-@@ -674,7 +673,7 @@ static unsigned int ep_eventpoll_poll(st
- 	pollflags = ep_call_nested(&poll_readywalk_ncalls, EP_MAX_NESTS,
- 				   ep_poll_readyevents_proc, ep, ep);
- 
--	return pollflags != -1 ? pollflags: 0;
-+	return pollflags != -1 ? pollflags : 0;
- }
- 
- /* File callbacks that implement the eventpoll file behaviour */
-@@ -872,9 +871,10 @@ static void ep_ptable_queue_proc(struct 
- 		add_wait_queue(whead, &pwq->wait);
- 		list_add_tail(&pwq->llink, &epi->pwqlist);
- 		epi->nwait++;
--	} else
-+	} else {
- 		/* We have to signal that an error occurred */
- 		epi->nwait = -1;
+-	ret += sprintf(buf+ret, "DCE status: ");
+-	if (self->settings.dce & IRCOMM_CTS)
+-		ret += sprintf(buf+ret, "CTS|");
+-	if (self->settings.dce & IRCOMM_DSR)
+-		ret += sprintf(buf+ret, "DSR|");
+-	if (self->settings.dce & IRCOMM_CD)
+-		ret += sprintf(buf+ret, "CD|");
+-	if (self->settings.dce & IRCOMM_RI)
+-		ret += sprintf(buf+ret, "RI|");
+-	if (self->settings.dce)
+-		ret--; /* remove the last | */
+-	ret += sprintf(buf+ret, "\n");
++	seq_printf(m, "DTE status:");
++	sep = ' ';
++	if (self->settings.dte & IRCOMM_RTS) {
++		seq_printf(m, "%cRTS", sep);
++		sep = '|';
 +	}
- }
- 
- static void ep_rbtree_insert(struct eventpoll *ep, struct epitem *epi)
-@@ -1055,62 +1055,65 @@ static int ep_modify(struct eventpoll *e
- 	return 0;
- }
- 
--static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head, void *priv)
-+static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
-+			       void *priv)
- {
- 	struct ep_send_events_data *esed = priv;
- 	int eventcnt;
--  	unsigned int revents;
-+	unsigned int revents;
- 	struct epitem *epi;
- 	struct epoll_event __user *uevent;
- 
--  	/*
-+	/*
- 	 * We can loop without lock because we are passed a task private list.
- 	 * Items cannot vanish during the loop because ep_scan_ready_list() is
- 	 * holding "mtx" during this call.
--  	 */
-+	 */
- 	for (eventcnt = 0, uevent = esed->events;
- 	     !list_empty(head) && eventcnt < esed->maxevents;) {
- 		epi = list_first_entry(head, struct epitem, rdllink);
- 
- 		list_del_init(&epi->rdllink);
- 
--  		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
--  			epi->event.events;
-+		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+			epi->event.events;
- 
--  		/*
-+		/*
- 		 * If the event mask intersect the caller-requested one,
- 		 * deliver the event to userspace. Again, ep_scan_ready_list()
- 		 * is holding "mtx", so no operations coming from userspace
- 		 * can change the item.
--  		 */
--  		if (revents) {
-+		 */
-+		if (revents) {
- 			if (__put_user(revents, &uevent->events) ||
- 			    __put_user(epi->event.data, &uevent->data))
--				return eventcnt ? eventcnt: -EFAULT;
--  			eventcnt++;
-+				return eventcnt ? eventcnt : -EFAULT;
-+			eventcnt++;
- 			uevent++;
--  			if (epi->event.events & EPOLLONESHOT)
--  				epi->event.events &= EP_PRIVATE_BITS;
--  			else if (!(epi->event.events & EPOLLET))
--  				/*
--				 * If this file has been added with Level Trigger
--				 * mode, we need to insert back inside the ready
--				 * list, so that the next call to epoll_wait()
--				 * will check again the events availability.
--  				 * At this point, noone can insert into ep->rdllist
--  				 * besides us. The epoll_ctl() callers are locked
--				 * out by ep_scan_ready_list() holding "mtx" and
--				 * the poll callback will queue them in ep->ovflist.
--  				 */
--  				list_add_tail(&epi->rdllink, &ep->rdllist);
--  		}
--  	}
-+			if (epi->event.events & EPOLLONESHOT)
-+				epi->event.events &= EP_PRIVATE_BITS;
-+			else if (!(epi->event.events & EPOLLET)) {
-+				/*
-+				 * If this file has been added with Level
-+				 * Trigger mode, we need to insert back inside
-+				 * the ready list, so that the next call to
-+				 * epoll_wait() will check again the events
-+				 * availability. At this point, noone can insert
-+				 * into ep->rdllist besides us. The epoll_ctl()
-+				 * callers are locked out by
-+				 * ep_scan_ready_list() holding "mtx" and the
-+				 * poll callback will queue them in ep->ovflist.
-+				 */
-+				list_add_tail(&epi->rdllink, &ep->rdllist);
-+			}
-+		}
++	if (self->settings.dte & IRCOMM_DTR) {
++		seq_printf(m, "%cDTR", sep);
++		sep = '|';
 +	}
++	seq_putc(m, '\n');
  
- 	return eventcnt;
- }
- 
--static int ep_send_events(struct eventpoll *ep, struct epoll_event __user *events,
--			  int maxevents)
-+static int ep_send_events(struct eventpoll *ep,
-+			  struct epoll_event __user *events, int maxevents)
- {
- 	struct ep_send_events_data esed;
- 
-@@ -1194,40 +1197,41 @@ retry:
-  */
- SYSCALL_DEFINE1(epoll_create1, int, flags)
- {
--	int error;
--	struct eventpoll *ep = NULL;
-+	int error, fd = -1;
-+	struct eventpoll *ep;
- 
- 	/* Check the EPOLL_* constant for consistency.  */
- 	BUILD_BUG_ON(EPOLL_CLOEXEC != O_CLOEXEC);
- 
-+	if (flags & ~EPOLL_CLOEXEC)
-+		return -EINVAL;
+-	ret += sprintf(buf+ret, "Configuration: ");
++	seq_puts(m, "DCE status:");
++	sep = ' ';
++	if (self->settings.dce & IRCOMM_CTS) {
++		seq_printf(m, "%cCTS", sep);
++		sep = '|';
++	}
++	if (self->settings.dce & IRCOMM_DSR) {
++		seq_printf(m, "%cDSR", sep);
++		sep = '|';
++	}
++	if (self->settings.dce & IRCOMM_CD) {
++		seq_printf(m, "%cCD", sep);
++		sep = '|';
++	}
++	if (self->settings.dce & IRCOMM_RI) {
++		seq_printf(m, "%cRI", sep);
++		sep = '|';
++	}
++	seq_putc(m, '\n');
 +
- 	DNPRINTK(3, (KERN_INFO "[%p] eventpoll: sys_epoll_create(%d)\n",
- 		     current, flags));
++	seq_puts(m, "Configuration: ");
+ 	if (!self->settings.null_modem)
+-		ret += sprintf(buf+ret, "DTE <-> DCE\n");
++		seq_puts(m, "DTE <-> DCE\n");
+ 	else
+-		ret += sprintf(buf+ret,
+-			       "DTE <-> DTE (null modem emulation)\n");
++		seq_puts(m, "DTE <-> DTE (null modem emulation)\n");
  
--	error = -EINVAL;
--	if (flags & ~EPOLL_CLOEXEC)
--		goto error_return;
+-	ret += sprintf(buf+ret, "Data rate: %d\n", self->settings.data_rate);
++	seq_printf(m, "Data rate: %d\n", self->settings.data_rate);
+ 
+-	ret += sprintf(buf+ret, "Flow control: ");
+-	if (self->settings.flow_control & IRCOMM_XON_XOFF_IN)
+-		ret += sprintf(buf+ret, "XON_XOFF_IN|");
+-	if (self->settings.flow_control & IRCOMM_XON_XOFF_OUT)
+-		ret += sprintf(buf+ret, "XON_XOFF_OUT|");
+-	if (self->settings.flow_control & IRCOMM_RTS_CTS_IN)
+-		ret += sprintf(buf+ret, "RTS_CTS_IN|");
+-	if (self->settings.flow_control & IRCOMM_RTS_CTS_OUT)
+-		ret += sprintf(buf+ret, "RTS_CTS_OUT|");
+-	if (self->settings.flow_control & IRCOMM_DSR_DTR_IN)
+-		ret += sprintf(buf+ret, "DSR_DTR_IN|");
+-	if (self->settings.flow_control & IRCOMM_DSR_DTR_OUT)
+-		ret += sprintf(buf+ret, "DSR_DTR_OUT|");
+-	if (self->settings.flow_control & IRCOMM_ENQ_ACK_IN)
+-		ret += sprintf(buf+ret, "ENQ_ACK_IN|");
+-	if (self->settings.flow_control & IRCOMM_ENQ_ACK_OUT)
+-		ret += sprintf(buf+ret, "ENQ_ACK_OUT|");
+-	if (self->settings.flow_control)
+-		ret--; /* remove the last | */
+-	ret += sprintf(buf+ret, "\n");
 -
- 	/*
--	 * Create the internal data structure ("struct eventpoll").
-+	 * Create the internal data structure ( "struct eventpoll" ).
- 	 */
- 	error = ep_alloc(&ep);
--	if (error < 0)
-+	if (error < 0) {
-+		fd = error;
- 		goto error_return;
+-	ret += sprintf(buf+ret, "Flags: ");
+-	if (self->flags & ASYNC_CTS_FLOW)
+-		ret += sprintf(buf+ret, "ASYNC_CTS_FLOW|");
+-	if (self->flags & ASYNC_CHECK_CD)
+-		ret += sprintf(buf+ret, "ASYNC_CHECK_CD|");
+-	if (self->flags & ASYNC_INITIALIZED)
+-		ret += sprintf(buf+ret, "ASYNC_INITIALIZED|");
+-	if (self->flags & ASYNC_LOW_LATENCY)
+-		ret += sprintf(buf+ret, "ASYNC_LOW_LATENCY|");
+-	if (self->flags & ASYNC_CLOSING)
+-		ret += sprintf(buf+ret, "ASYNC_CLOSING|");
+-	if (self->flags & ASYNC_NORMAL_ACTIVE)
+-		ret += sprintf(buf+ret, "ASYNC_NORMAL_ACTIVE|");
+-	if (self->flags)
+-		ret--; /* remove the last | */
+-	ret += sprintf(buf+ret, "\n");
+-
+-	ret += sprintf(buf+ret, "Role: %s\n", self->client ?
+-		       "client" : "server");
+-	ret += sprintf(buf+ret, "Open count: %d\n", self->open_count);
+-	ret += sprintf(buf+ret, "Max data size: %d\n", self->max_data_size);
+-	ret += sprintf(buf+ret, "Max header size: %d\n", self->max_header_size);
++	seq_puts(m, "Flow control:");
++	sep = ' ';
++	if (self->settings.flow_control & IRCOMM_XON_XOFF_IN) {
++		seq_printf(m, "%cXON_XOFF_IN", sep);
++		sep = '|';
 +	}
++	if (self->settings.flow_control & IRCOMM_XON_XOFF_OUT) {
++		seq_printf(m, "%cXON_XOFF_OUT", sep);
++		sep = '|';
++	}
++	if (self->settings.flow_control & IRCOMM_RTS_CTS_IN) {
++		seq_printf(m, "%cRTS_CTS_IN", sep);
++		sep = '|';
++	}
++	if (self->settings.flow_control & IRCOMM_RTS_CTS_OUT) {
++		seq_printf(m, "%cRTS_CTS_OUT", sep);
++		sep = '|';
++	}
++	if (self->settings.flow_control & IRCOMM_DSR_DTR_IN) {
++		seq_printf(m, "%cDSR_DTR_IN", sep);
++		sep = '|';
++	}
++	if (self->settings.flow_control & IRCOMM_DSR_DTR_OUT) {
++		seq_printf(m, "%cDSR_DTR_OUT", sep);
++		sep = '|';
++	}
++	if (self->settings.flow_control & IRCOMM_ENQ_ACK_IN) {
++		seq_printf(m, "%cENQ_ACK_IN", sep);
++		sep = '|';
++	}
++	if (self->settings.flow_control & IRCOMM_ENQ_ACK_OUT) {
++		seq_printf(m, "%cENQ_ACK_OUT", sep);
++		sep = '|';
++	}
++	seq_putc(m, '\n');
++
++	seq_puts(m, "Flags:");
++	sep = ' ';
++	if (self->flags & ASYNC_CTS_FLOW) {
++		seq_printf(m, "%cASYNC_CTS_FLOW", sep);
++		sep = '|';
++	}
++	if (self->flags & ASYNC_CHECK_CD) {
++		seq_printf(m, "%cASYNC_CHECK_CD", sep);
++		sep = '|';
++	}
++	if (self->flags & ASYNC_INITIALIZED) {
++		seq_printf(m, "%cASYNC_INITIALIZED", sep);
++		sep = '|';
++	}
++	if (self->flags & ASYNC_LOW_LATENCY) {
++		seq_printf(m, "%cASYNC_LOW_LATENCY", sep);
++		sep = '|';
++	}
++	if (self->flags & ASYNC_CLOSING) {
++		seq_printf(m, "%cASYNC_CLOSING", sep);
++		sep = '|';
++	}
++	if (self->flags & ASYNC_NORMAL_ACTIVE) {
++		seq_printf(m, "%cASYNC_NORMAL_ACTIVE", sep);
++		sep = '|';
++	}
++	seq_putc(m, '\n');
++
++	seq_printf(m, "Role: %s\n", self->client ? "client" : "server");
++	seq_printf(m, "Open count: %d\n", self->open_count);
++	seq_printf(m, "Max data size: %d\n", self->max_data_size);
++	seq_printf(m, "Max header size: %d\n", self->max_header_size);
  
- 	/*
- 	 * Creates all the items needed to setup an eventpoll file. That is,
- 	 * a file structure and a free file descriptor.
- 	 */
--	error = anon_inode_getfd("[eventpoll]", &eventpoll_fops, ep,
--				 flags & O_CLOEXEC);
--	if (error < 0)
-+	fd = anon_inode_getfd("[eventpoll]", &eventpoll_fops, ep,
-+			      flags & O_CLOEXEC);
-+	if (fd < 0)
- 		ep_free(ep);
- 
- error_return:
- 	DNPRINTK(3, (KERN_INFO "[%p] eventpoll: sys_epoll_create(%d) = %d\n",
--		     current, flags, error));
-+		     current, flags, fd));
- 
--	return error;
-+	return fd;
+ 	if (self->tty)
+-		ret += sprintf(buf+ret, "Hardware: %s\n",
++		seq_printf(m, "Hardware: %s\n",
+ 			       self->tty->hw_stopped ? "Stopped" : "Running");
+-
+-	ret += sprintf(buf+ret, "\n");
+-	return ret;
  }
  
- SYSCALL_DEFINE1(epoll_create, int, size)
+-
+-/*
+- * Function ircomm_tty_read_proc (buf, start, offset, len, eof, unused)
+- *
+- *
+- *
+- */
+-static int ircomm_tty_read_proc(char *buf, char **start, off_t offset, int len,
+-				int *eof, void *unused)
++static int ircomm_tty_proc_show(struct seq_file *m, void *v)
+ {
+ 	struct ircomm_tty_cb *self;
+-	int count = 0, l;
+-	off_t begin = 0;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&ircomm_tty->hb_spinlock, flags);
+ 
+ 	self = (struct ircomm_tty_cb *) hashbin_get_first(ircomm_tty);
+-	while ((self != NULL) && (count < 4000)) {
++	while (self != NULL) {
+ 		if (self->magic != IRCOMM_TTY_MAGIC)
+ 			break;
+ 
+-		l = ircomm_tty_line_info(self, buf + count);
+-		count += l;
+-		if (count+begin > offset+len)
+-			goto done;
+-		if (count+begin < offset) {
+-			begin += count;
+-			count = 0;
+-		}
+-
++		ircomm_tty_line_info(self, m);
+ 		self = (struct ircomm_tty_cb *) hashbin_get_next(ircomm_tty);
+ 	}
+-	*eof = 1;
+-done:
+ 	spin_unlock_irqrestore(&ircomm_tty->hb_spinlock, flags);
++	return 0;
++}
+ 
+-	if (offset >= count+begin)
+-		return 0;
+-	*start = buf + (offset-begin);
+-	return ((len < begin+count-offset) ? len : begin+count-offset);
++static int ircomm_tty_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, ircomm_tty_proc_show, NULL);
+ }
++
++static const struct file_operations ircomm_tty_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= ircomm_tty_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ #endif /* CONFIG_PROC_FS */
+ 
+ MODULE_AUTHOR("Dag Brattli <dagb@cs.uit.no>");
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 linux-next.patch
+sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
+sysctl-lockdep-support-for-sysctl-reference-counting.patch
+simplify-copy_thread.patch
+simplify-copy_thread-checkpatch-fixes.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
+sysctl-fix-suid_dumpable-and-lease-break-time-sysctls.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
+namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
+namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
+namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
+namespaces-mqueue-namespace-adapt-sysctl.patch
+namespaces-mqueue-namespace-adapt-sysctl-update.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
 
