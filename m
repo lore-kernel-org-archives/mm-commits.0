@@ -1,52 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uvesafb-bitwise-or-has-higher-precedence-than.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:43:53 -0700
-Message-ID: <200904011843.n31Ihrfl010222@imap1.linux-foundation.org>
+Subject: [merged] alpha-fix-macros.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:39:04 -0700
+Message-ID: <200904011839.n31Id4kW008488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52642 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756872AbZDATY1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:24:27 -0400
+	by vger.kernel.org with ESMTP id S934085AbZDATXr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:23:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, krzysztof.h1@poczta.fm, michalj@gmail.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uvesafb: bitwise OR has higher precedence than ?:
+     alpha: fix macros
 has been removed from the -mm tree.  Its filename was
-     uvesafb-bitwise-or-has-higher-precedence-than.patch
+     alpha-fix-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uvesafb: bitwise OR has higher precedence than ?:
+Subject: alpha: fix macros
 From: Roel Kluin <roel.kluin@gmail.com>
 
+When this macros isn't called with 'fixup', e.g.  with foo this will
+incorectly expand to foo->foo.bits.errreg
+
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Michal Januszewski <michalj@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/alpha/include/asm/uaccess.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-bitwise-or-has-higher-precedence-than drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-bitwise-or-has-higher-precedence-than
-+++ a/drivers/video/uvesafb.c
-@@ -1552,7 +1552,7 @@ static void __devinit uvesafb_init_info(
- 	}
+diff -puN arch/alpha/include/asm/uaccess.h~alpha-fix-macros arch/alpha/include/asm/uaccess.h
+--- a/arch/alpha/include/asm/uaccess.h~alpha-fix-macros
++++ a/arch/alpha/include/asm/uaccess.h
+@@ -498,13 +498,13 @@ struct exception_table_entry
+ };
  
- 	info->flags = FBINFO_FLAG_DEFAULT |
--			(par->ypan) ? FBINFO_HWACCEL_YPAN : 0;
-+			(par->ypan ? FBINFO_HWACCEL_YPAN : 0);
+ /* Returns the new pc */
+-#define fixup_exception(map_reg, fixup, pc)			\
++#define fixup_exception(map_reg, _fixup, pc)			\
+ ({								\
+-	if ((fixup)->fixup.bits.valreg != 31)			\
+-		map_reg((fixup)->fixup.bits.valreg) = 0;	\
+-	if ((fixup)->fixup.bits.errreg != 31)			\
+-		map_reg((fixup)->fixup.bits.errreg) = -EFAULT;	\
+-	(pc) + (fixup)->fixup.bits.nextinsn;			\
++	if ((_fixup)->fixup.bits.valreg != 31)			\
++		map_reg((_fixup)->fixup.bits.valreg) = 0;	\
++	if ((_fixup)->fixup.bits.errreg != 31)			\
++		map_reg((_fixup)->fixup.bits.errreg) = -EFAULT;	\
++	(pc) + (_fixup)->fixup.bits.nextinsn;			\
+ })
  
- 	if (!par->ypan)
- 		info->fbops->fb_pan_display = NULL;
+ 
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
