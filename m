@@ -1,177 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-fix-it-to-take-care-of-nodemask.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:38:57 -0700
-Message-ID: <200904011838.n31Icv85008435@imap1.linux-foundation.org>
+Subject: [merged] cirrusfb-add-imageblit-function.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:42:47 -0700
+Message-ID: <200904011842.n31Igli1009805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932448AbZDATFP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:05:15 -0400
+	by vger.kernel.org with ESMTP id S1764810AbZDATE5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:04:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: fix it to take care of nodemask
+     cirrusfb: add imageblit function
 has been removed from the -mm tree.  Its filename was
-     vmscan-fix-it-to-take-care-of-nodemask.patch
+     cirrusfb-add-imageblit-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: fix it to take care of nodemask
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: cirrusfb: add imageblit function
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-try_to_free_pages() is used for the direct reclaim of up to
-SWAP_CLUSTER_MAX pages when watermarks are low.  The caller to
-alloc_pages_nodemask() can specify a nodemask of nodes that are allowed to
-be used but this is not passed to try_to_free_pages().  This can lead to
-unnecessary reclaim of pages that are unusable by the caller and int the
-worst case lead to allocation failure as progress was not been make where
-it is needed.
+Add hardware color expansion (imageblit) function.  It roughly doubles
+scrolling speed of my Alpine card (GD5430).
 
-This patch passes the nodemask used for alloc_pages_nodemask() to
-try_to_free_pages().
-
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c          |    2 +-
- include/linux/swap.h |    2 +-
- mm/page_alloc.c      |    3 ++-
- mm/vmscan.c          |   13 +++++++++++--
- 4 files changed, 15 insertions(+), 5 deletions(-)
+ drivers/video/cirrusfb.c |   64 ++++++++++++++++++++++++++-----------
+ 1 file changed, 46 insertions(+), 18 deletions(-)
 
-diff -puN fs/buffer.c~vmscan-fix-it-to-take-care-of-nodemask fs/buffer.c
---- a/fs/buffer.c~vmscan-fix-it-to-take-care-of-nodemask
-+++ a/fs/buffer.c
-@@ -290,7 +290,7 @@ static void free_more_memory(void)
- 						&zone);
- 		if (zone)
- 			try_to_free_pages(node_zonelist(nid, GFP_NOFS), 0,
--						GFP_NOFS);
-+						GFP_NOFS, NULL);
- 	}
+diff -puN drivers/video/cirrusfb.c~cirrusfb-add-imageblit-function drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-add-imageblit-function
++++ a/drivers/video/cirrusfb.c
+@@ -381,7 +381,8 @@ static void cirrusfb_BitBLT(u8 __iomem *
+ static void cirrusfb_RectFill(u8 __iomem *regbase, int bits_per_pixel,
+ 			      u_short x, u_short y,
+ 			      u_short width, u_short height,
+-			      u32 color, u_short line_length);
++			      u32 fg_color, u32 bg_color,
++			      u_short line_length, u_char blitmode);
+ 
+ static void bestclock(long freq, int *nom, int *den, int *div);
+ 
+@@ -1790,8 +1791,8 @@ static void cirrusfb_fillrect(struct fb_
+ 			  info->var.bits_per_pixel,
+ 			  (region->dx * m) / 8, region->dy,
+ 			  (region->width * m) / 8, region->height,
+-			  color,
+-			  info->fix.line_length);
++			  color, color,
++			  info->fix.line_length, 0x40);
  }
  
-diff -puN include/linux/swap.h~vmscan-fix-it-to-take-care-of-nodemask include/linux/swap.h
---- a/include/linux/swap.h~vmscan-fix-it-to-take-care-of-nodemask
-+++ a/include/linux/swap.h
-@@ -212,7 +212,7 @@ static inline void lru_cache_add_active_
- 
- /* linux/mm/vmscan.c */
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
--					gfp_t gfp_mask);
-+					gfp_t gfp_mask, nodemask_t *mask);
- extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
- 						  gfp_t gfp_mask, bool noswap,
- 						  unsigned int swappiness);
-diff -puN mm/page_alloc.c~vmscan-fix-it-to-take-care-of-nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~vmscan-fix-it-to-take-care-of-nodemask
-+++ a/mm/page_alloc.c
-@@ -1582,7 +1582,8 @@ nofail_alloc:
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
--	did_some_progress = try_to_free_pages(zonelist, order, gfp_mask);
-+	did_some_progress = try_to_free_pages(zonelist, order,
-+						gfp_mask, nodemask);
- 
- 	p->reclaim_state = NULL;
- 	lockdep_clear_current_reclaim_state();
-diff -puN mm/vmscan.c~vmscan-fix-it-to-take-care-of-nodemask mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-it-to-take-care-of-nodemask
-+++ a/mm/vmscan.c
-@@ -78,6 +78,12 @@ struct scan_control {
- 	/* Which cgroup do we reclaim from */
- 	struct mem_cgroup *mem_cgroup;
- 
-+	/*
-+	 * Nodemask of nodes allowed by the caller. If NULL, all nodes
-+	 * are scanned.
-+	 */
-+	nodemask_t	*nodemask;
-+
- 	/* Pluggable isolate pages callback */
- 	unsigned long (*isolate_pages)(unsigned long nr, struct list_head *dst,
- 			unsigned long *scanned, int order, int mode,
-@@ -1538,7 +1544,8 @@ static void shrink_zones(int priority, s
- 	struct zone *zone;
- 
- 	sc->all_unreclaimable = 1;
--	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
-+					sc->nodemask) {
- 		if (!populated_zone(zone))
- 			continue;
- 		/*
-@@ -1683,7 +1690,7 @@ out:
- }
- 
- unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
--								gfp_t gfp_mask)
-+				gfp_t gfp_mask, nodemask_t *nodemask)
+ static void cirrusfb_copyarea(struct fb_info *info,
+@@ -1840,9 +1841,33 @@ static void cirrusfb_imageblit(struct fb
  {
- 	struct scan_control sc = {
- 		.gfp_mask = gfp_mask,
-@@ -1694,6 +1701,7 @@ unsigned long try_to_free_pages(struct z
- 		.order = order,
- 		.mem_cgroup = NULL,
- 		.isolate_pages = isolate_pages_global,
-+		.nodemask = nodemask,
- 	};
+ 	struct cirrusfb_info *cinfo = info->par;
  
- 	return do_try_to_free_pages(zonelist, &sc);
-@@ -1714,6 +1722,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
- 		.isolate_pages = mem_cgroup_isolate_pages,
-+		.nodemask = NULL, /* we don't care the placement */
- 	};
- 	struct zonelist *zonelist;
+-	if (!is_laguna(cinfo))
++	if (info->state != FBINFO_STATE_RUNNING)
++		return;
++	if (info->flags & FBINFO_HWACCEL_DISABLED)
++		cfb_imageblit(info, image);
++	else {
++		unsigned size = ((image->width + 7) >> 3) * image->height;
++		int m = info->var.bits_per_pixel;
++		u32 fg, bg;
++
++		if (info->var.bits_per_pixel == 8) {
++			fg = image->fg_color;
++			bg = image->bg_color;
++		} else {
++			fg = ((u32 *)(info->pseudo_palette))[image->fg_color];
++			bg = ((u32 *)(info->pseudo_palette))[image->bg_color];
++		}
+ 		cirrusfb_WaitBLT(cinfo->regbase);
+-	cfb_imageblit(info, image);
++		/* byte rounded scanlines */
++		vga_wgfx(cinfo->regbase, CL_GR33, 0x00);
++		cirrusfb_RectFill(cinfo->regbase,
++				  info->var.bits_per_pixel,
++				  (image->dx * m) / 8, image->dy,
++				  (image->width * m) / 8, image->height,
++				  fg, bg,
++				  info->fix.line_length, 0x04);
++		memcpy(info->screen_base, image->data, size);
++	}
+ }
  
+ #ifdef CONFIG_PPC_PREP
+@@ -1988,10 +2013,12 @@ static int __devinit cirrusfb_set_fbinfo
+ 		    | FBINFO_HWACCEL_XPAN
+ 		    | FBINFO_HWACCEL_YPAN
+ 		    | FBINFO_HWACCEL_FILLRECT
++		    | FBINFO_HWACCEL_IMAGEBLIT
+ 		    | FBINFO_HWACCEL_COPYAREA;
+ 	if (noaccel || is_laguna(cinfo))
+ 		info->flags |= FBINFO_HWACCEL_DISABLED;
+ 	info->fbops = &cirrusfb_ops;
++
+ 	if (cinfo->btype == BT_GD5480) {
+ 		if (var->bits_per_pixel == 16)
+ 			info->screen_base += 1 * MB_;
+@@ -2711,7 +2738,8 @@ static void cirrusfb_BitBLT(u8 __iomem *
+ 
+ static void cirrusfb_RectFill(u8 __iomem *regbase, int bits_per_pixel,
+ 		     u_short x, u_short y, u_short width, u_short height,
+-		     u32 color, u_short line_length)
++		     u32 fg_color, u32 bg_color, u_short line_length,
++		     u_char blitmode)
+ {
+ 	u_long ndest = (y * line_length) + x;
+ 	u_char op;
+@@ -2720,24 +2748,24 @@ static void cirrusfb_RectFill(u8 __iomem
+ 
+ 	/* This is a ColorExpand Blt, using the */
+ 	/* same color for foreground and background */
+-	vga_wgfx(regbase, VGA_GFX_SR_VALUE, color);	/* foreground color */
+-	vga_wgfx(regbase, VGA_GFX_SR_ENABLE, color);	/* background color */
++	vga_wgfx(regbase, VGA_GFX_SR_VALUE, bg_color);
++	vga_wgfx(regbase, VGA_GFX_SR_ENABLE, fg_color);
+ 
+-	op = 0xc0;
++	op = 0x80;
+ 	if (bits_per_pixel >= 16) {
+-		vga_wgfx(regbase, CL_GR10, color >> 8);	/* foreground color */
+-		vga_wgfx(regbase, CL_GR11, color >> 8);	/* background color */
+-		op = 0xd0;
++		vga_wgfx(regbase, CL_GR10, bg_color >> 8);
++		vga_wgfx(regbase, CL_GR11, fg_color >> 8);
++		op = 0x90;
+ 	}
+ 	if (bits_per_pixel == 32) {
+-		vga_wgfx(regbase, CL_GR12, color >> 16);/* foreground color */
+-		vga_wgfx(regbase, CL_GR13, color >> 16);/* background color */
+-		vga_wgfx(regbase, CL_GR14, color >> 24);/* foreground color */
+-		vga_wgfx(regbase, CL_GR15, color >> 24);/* background color */
+-		op = 0xf0;
++		vga_wgfx(regbase, CL_GR12, bg_color >> 16);
++		vga_wgfx(regbase, CL_GR13, fg_color >> 16);
++		vga_wgfx(regbase, CL_GR14, bg_color >> 24);
++		vga_wgfx(regbase, CL_GR15, fg_color >> 24);
++		op = 0xb0;
+ 	}
+ 	cirrusfb_set_blitter(regbase, width - 1, height - 1,
+-			    0, ndest, op, line_length);
++			    0, ndest, op | blitmode, line_length);
+ }
+ 
+ /**************************************************************************
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-cgroup-css-id-support.patch
-cgroup-css-id-support-remove-rcu_read_lock-from-css_get_next.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-cgroups-more-documentation-for-remount-and-release_agent.patch
-cgroups-show-correct-file-mode.patch
-cgroups-show-correct-file-mode-fix.patch
-devcgroup-avoid-using-cgroup_lock.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
-memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
-memcg-charge-swapcache-to-proper-memcg.patch
-cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
-cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5-fix.patch
-memcg-remove-redundant-message-at-swapon.patch
-memcg-cleanup-cache_charge.patch
-cgroups-add-data-field-to-struct-cgroup_scanner.patch
-cpuset-rewrite-update_tasks_nodemask.patch
-cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
-cpuset-remove-struct-cpuset_hotplug_scanner.patch
+linux-next.patch
+tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
+tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
 
