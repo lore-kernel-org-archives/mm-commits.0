@@ -1,162 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: + synclink_gt-add-clock-options.patch added to -mm tree
-Date: Wed, 01 Apr 2009 12:30:17 -0700
-Message-ID: <200904011930.n31JUHAu023701@imap1.linux-foundation.org>
+Subject: [merged] rtc-v3020-coding-style-cleanup.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:42:14 -0700
+Message-ID: <200904011842.n31IgEs4009633@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755756AbZDATcu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:32:50 -0400
+	by vger.kernel.org with ESMTP id S1755756AbZDATdR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk
+To: mike@compulab.co.il, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synclink_gt: add clock options
-has been added to the -mm tree.  Its filename is
-     synclink_gt-add-clock-options.patch
+     rtc-v3020: coding style cleanup
+has been removed from the -mm tree.  Its filename was
+     rtc-v3020-coding-style-cleanup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt: add clock options
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: rtc-v3020: coding style cleanup
+From: Mike Rapoport <mike@compulab.co.il>
 
-Add support for x8 asynchronous sample rate and ability to specify base
-clock frequency.
-
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |   58 ++++++++++++++++++++++-------------
- include/linux/synclink.h   |    1 
- 2 files changed, 39 insertions(+), 20 deletions(-)
+ drivers/rtc/rtc-v3020.c |   40 +++++++++++++++++---------------------
+ 1 file changed, 18 insertions(+), 22 deletions(-)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-add-clock-options drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-add-clock-options
-+++ a/drivers/char/synclink_gt.c
-@@ -298,6 +298,7 @@ struct slgt_info {
+diff -puN drivers/rtc/rtc-v3020.c~rtc-v3020-coding-style-cleanup drivers/rtc/rtc-v3020.c
+--- a/drivers/rtc/rtc-v3020.c~rtc-v3020-coding-style-cleanup
++++ a/drivers/rtc/rtc-v3020.c
+@@ -28,7 +28,7 @@
+ #include <linux/rtc-v3020.h>
+ #include <linux/delay.h>
  
- 	unsigned int rbuf_fill_level;
- 	unsigned int if_mode;
-+	unsigned int base_clock;
+-#include <asm/io.h>
++#include <linux/io.h>
  
- 	/* device status */
+ #undef DEBUG
  
-@@ -1156,22 +1157,26 @@ static long set_params32(struct slgt_inf
- 		return -EFAULT;
+@@ -63,7 +63,7 @@ static void v3020_set_reg(struct v3020 *
  
- 	spin_lock(&info->lock);
--	info->params.mode            = tmp_params.mode;
--	info->params.loopback        = tmp_params.loopback;
--	info->params.flags           = tmp_params.flags;
--	info->params.encoding        = tmp_params.encoding;
--	info->params.clock_speed     = tmp_params.clock_speed;
--	info->params.addr_filter     = tmp_params.addr_filter;
--	info->params.crc_type        = tmp_params.crc_type;
--	info->params.preamble_length = tmp_params.preamble_length;
--	info->params.preamble        = tmp_params.preamble;
--	info->params.data_rate       = tmp_params.data_rate;
--	info->params.data_bits       = tmp_params.data_bits;
--	info->params.stop_bits       = tmp_params.stop_bits;
--	info->params.parity          = tmp_params.parity;
-+	if (tmp_params.mode == MGSL_MODE_BASE_CLOCK) {
-+		info->base_clock = tmp_params.clock_speed;
-+	} else {
-+		info->params.mode            = tmp_params.mode;
-+		info->params.loopback        = tmp_params.loopback;
-+		info->params.flags           = tmp_params.flags;
-+		info->params.encoding        = tmp_params.encoding;
-+		info->params.clock_speed     = tmp_params.clock_speed;
-+		info->params.addr_filter     = tmp_params.addr_filter;
-+		info->params.crc_type        = tmp_params.crc_type;
-+		info->params.preamble_length = tmp_params.preamble_length;
-+		info->params.preamble        = tmp_params.preamble;
-+		info->params.data_rate       = tmp_params.data_rate;
-+		info->params.data_bits       = tmp_params.data_bits;
-+		info->params.stop_bits       = tmp_params.stop_bits;
-+		info->params.parity          = tmp_params.parity;
-+	}
- 	spin_unlock(&info->lock);
- 
-- 	change_params(info);
-+	program_hw(info);
- 
- 	return 0;
- }
-@@ -2559,10 +2564,13 @@ static int set_params(struct slgt_info *
- 		return -EFAULT;
- 
- 	spin_lock_irqsave(&info->lock, flags);
--	memcpy(&info->params, &tmp_params, sizeof(MGSL_PARAMS));
-+	if (tmp_params.mode == MGSL_MODE_BASE_CLOCK)
-+		info->base_clock = tmp_params.clock_speed;
-+	else
-+		memcpy(&info->params, &tmp_params, sizeof(MGSL_PARAMS));
- 	spin_unlock_irqrestore(&info->lock, flags);
- 
-- 	change_params(info);
-+	program_hw(info);
- 
- 	return 0;
- }
-@@ -3432,6 +3440,7 @@ static struct slgt_info *alloc_dev(int a
- 		info->magic = MGSL_MAGIC;
- 		INIT_WORK(&info->task, bh_handler);
- 		info->max_frame_size = 4096;
-+		info->base_clock = 14745600;
- 		info->rbuf_fill_level = DMABUFSIZE;
- 		info->port.close_delay = 5*HZ/10;
- 		info->port.closing_wait = 30*HZ;
-@@ -3779,7 +3788,7 @@ static void enable_loopback(struct slgt_
- static void set_rate(struct slgt_info *info, u32 rate)
+ static unsigned char v3020_get_reg(struct v3020 *chip, unsigned char address)
  {
- 	unsigned int div;
--	static unsigned int osc = 14745600;
-+	unsigned int osc = info->base_clock;
+-	unsigned int data=0;
++	unsigned int data = 0;
+ 	int i;
  
- 	/* div = osc/rate - 1
- 	 *
-@@ -4083,18 +4092,27 @@ static void async_mode(struct slgt_info 
- 	 * 06  CTS      IRQ enable
- 	 * 05  DCD      IRQ enable
- 	 * 04  RI       IRQ enable
--	 * 03  reserved, must be zero
-+	 * 03  0=16x sampling, 1=8x sampling
- 	 * 02  1=txd->rxd internal loopback enable
- 	 * 01  reserved, must be zero
- 	 * 00  1=master IRQ enable
- 	 */
- 	val = BIT15 + BIT14 + BIT0;
-+	/* JCR[8] : 1 = x8 async mode feature available */
-+	if ((rd_reg32(info, JCR) & BIT8) && info->params.data_rate &&
-+	    ((info->base_clock < (info->params.data_rate * 16)) ||
-+	     (info->base_clock % (info->params.data_rate * 16)))) {
-+		/* use 8x sampling */
-+		val |= BIT3;
-+		set_rate(info, info->params.data_rate * 8);
-+	} else {
-+		/* use 16x sampling */
-+		set_rate(info, info->params.data_rate * 16);
-+	}
- 	wr_reg16(info, SCR, val);
+ 	for (i = 0; i < 4; i++) {
+@@ -106,16 +106,14 @@ static int v3020_read_time(struct device
+ 	tmp = v3020_get_reg(chip, V3020_YEAR);
+ 	dt->tm_year = bcd2bin(tmp)+100;
  
- 	slgt_irq_on(info, IRQ_RXBREAK | IRQ_RXOVER);
+-#ifdef DEBUG
+-	printk("\n%s : Read RTC values\n",__func__);
+-	printk("tm_hour: %i\n",dt->tm_hour);
+-	printk("tm_min : %i\n",dt->tm_min);
+-	printk("tm_sec : %i\n",dt->tm_sec);
+-	printk("tm_year: %i\n",dt->tm_year);
+-	printk("tm_mon : %i\n",dt->tm_mon);
+-	printk("tm_mday: %i\n",dt->tm_mday);
+-	printk("tm_wday: %i\n",dt->tm_wday);
+-#endif
++	dev_dbg(dev, "\n%s : Read RTC values\n", __func__);
++	dev_dbg(dev, "tm_hour: %i\n", dt->tm_hour);
++	dev_dbg(dev, "tm_min : %i\n", dt->tm_min);
++	dev_dbg(dev, "tm_sec : %i\n", dt->tm_sec);
++	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
++	dev_dbg(dev, "tm_mon : %i\n", dt->tm_mon);
++	dev_dbg(dev, "tm_mday: %i\n", dt->tm_mday);
++	dev_dbg(dev, "tm_wday: %i\n", dt->tm_wday);
  
--	set_rate(info, info->params.data_rate * 16);
+ 	return 0;
+ }
+@@ -125,15 +123,13 @@ static int v3020_set_time(struct device 
+ {
+ 	struct v3020 *chip = dev_get_drvdata(dev);
+ 
+-#ifdef DEBUG
+-	printk("\n%s : Setting RTC values\n",__func__);
+-	printk("tm_sec : %i\n",dt->tm_sec);
+-	printk("tm_min : %i\n",dt->tm_min);
+-	printk("tm_hour: %i\n",dt->tm_hour);
+-	printk("tm_mday: %i\n",dt->tm_mday);
+-	printk("tm_wday: %i\n",dt->tm_wday);
+-	printk("tm_year: %i\n",dt->tm_year);
+-#endif
++	dev_dbg(dev, "\n%s : Setting RTC values\n", __func__);
++	dev_dbg(dev, "tm_sec : %i\n", dt->tm_sec);
++	dev_dbg(dev, "tm_min : %i\n", dt->tm_min);
++	dev_dbg(dev, "tm_hour: %i\n", dt->tm_hour);
++	dev_dbg(dev, "tm_mday: %i\n", dt->tm_mday);
++	dev_dbg(dev, "tm_wday: %i\n", dt->tm_wday);
++	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
+ 
+ 	/* Write all the values to ram... */
+ 	v3020_set_reg(chip, V3020_SECONDS, 	bin2bcd(dt->tm_sec));
+@@ -191,7 +187,7 @@ static int rtc_probe(struct platform_dev
+ 	/* Test chip by doing a write/read sequence
+ 	 * to the chip ram */
+ 	v3020_set_reg(chip, V3020_SECONDS, 0x33);
+-	if(v3020_get_reg(chip, V3020_SECONDS) != 0x33) {
++	if (v3020_get_reg(chip, V3020_SECONDS) != 0x33) {
+ 		retval = -ENODEV;
+ 		goto err_io;
+ 	}
+_
+
+Patches currently in -mm which might be from mike@compulab.co.il are
+
+origin.patch
+linux-next.patch
+spi_bfin5xx-remove-unused-is_dma_aligned-macro.patch
+spi-add-dma_alignment-field-to-spi_master.patch
+pxa2xx_spi-set-spi_masterdma_alignment-=-8.patch
+spi_imx-set-spi_masterdma_alignment-=-4.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
+
