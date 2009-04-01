@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-tty-switch-synclink_cs-to-proc_fops.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:33:41 -0700
-Message-ID: <200904011833.n31IXf8n006846@imap1.linux-foundation.org>
+Subject: [merged] proc-tty-switch-synclink_gt-to-proc_fops.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:33:47 -0700
+Message-ID: <200904011833.n31IXlOx006858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49966 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758944AbZDASgT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:36:19 -0400
+	by vger.kernel.org with ESMTP id S1764815AbZDASgZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:36:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc tty: switch synclink_cs to ->proc_fops
+     proc tty: switch synclink_gt to ->proc_fops
 has been removed from the -mm tree.  Its filename was
-     proc-tty-switch-synclink_cs-to-proc_fops.patch
+     proc-tty-switch-synclink_gt-to-proc_fops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch synclink_cs to ->proc_fops
+Subject: proc tty: switch synclink_gt to ->proc_fops
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
@@ -31,13 +31,13 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/synclink_cs.c |   73 +++++++++++++---------------
- 1 file changed, 34 insertions(+), 39 deletions(-)
+ drivers/char/synclink_gt.c |   74 ++++++++++++++++-------------------
+ 1 file changed, 34 insertions(+), 40 deletions(-)
 
-diff -puN drivers/char/pcmcia/synclink_cs.c~proc-tty-switch-synclink_cs-to-proc_fops drivers/char/pcmcia/synclink_cs.c
---- a/drivers/char/pcmcia/synclink_cs.c~proc-tty-switch-synclink_cs-to-proc_fops
-+++ a/drivers/char/pcmcia/synclink_cs.c
-@@ -51,6 +51,7 @@
+diff -puN drivers/char/synclink_gt.c~proc-tty-switch-synclink_gt-to-proc_fops drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~proc-tty-switch-synclink_gt-to-proc_fops
++++ a/drivers/char/synclink_gt.c
+@@ -60,6 +60,7 @@
  #include <linux/ptrace.h>
  #include <linux/ioport.h>
  #include <linux/mm.h>
@@ -45,29 +45,37 @@ diff -puN drivers/char/pcmcia/synclink_cs.c~proc-tty-switch-synclink_cs-to-proc_
  #include <linux/slab.h>
  #include <linux/netdevice.h>
  #include <linux/vmalloc.h>
-@@ -2619,13 +2620,12 @@ cleanup:
-  * /proc fs routines....
-  */
+@@ -154,7 +155,6 @@ static void tx_hold(struct tty_struct *t
+ static void tx_release(struct tty_struct *tty);
  
--static inline int line_info(char *buf, MGSLPC_INFO *info)
-+static inline void line_info(struct seq_file *m, MGSLPC_INFO *info)
+ static int  ioctl(struct tty_struct *tty, struct file *file, unsigned int cmd, unsigned long arg);
+-static int  read_proc(char *page, char **start, off_t off, int count,int *eof, void *data);
+ static int  chars_in_buffer(struct tty_struct *tty);
+ static void throttle(struct tty_struct * tty);
+ static void unthrottle(struct tty_struct * tty);
+@@ -1229,13 +1229,12 @@ static long slgt_compat_ioctl(struct tty
+ /*
+  * proc fs support
+  */
+-static inline int line_info(char *buf, struct slgt_info *info)
++static inline void line_info(struct seq_file *m, struct slgt_info *info)
  {
- 	char	stat_buf[30];
--	int	ret;
+ 	char stat_buf[30];
+-	int ret;
  	unsigned long flags;
  
--	ret = sprintf(buf, "%s:io:%04X irq:%d",
-+	seq_printf(m, "%s:io:%04X irq:%d",
- 		      info->device_name, info->io_base, info->irq_level);
+-	ret = sprintf(buf, "%s: IO=%08X IRQ=%d MaxFrameSize=%u\n",
++	seq_printf(m, "%s: IO=%08X IRQ=%d MaxFrameSize=%u\n",
+ 		      info->device_name, info->phys_reg_addr,
+ 		      info->irq_level, info->max_frame_size);
  
- 	/* output current serial signal states */
-@@ -2649,75 +2649,70 @@ static inline int line_info(char *buf, M
+@@ -1260,75 +1259,70 @@ static inline int line_info(char *buf, s
  		strcat(stat_buf, "|RI");
  
- 	if (info->params.mode == MGSL_MODE_HDLC) {
--		ret += sprintf(buf+ret, " HDLC txok:%d rxok:%d",
-+		seq_printf(m, " HDLC txok:%d rxok:%d",
- 			      info->icount.txok, info->icount.rxok);
+ 	if (info->params.mode != MGSL_MODE_ASYNC) {
+-		ret += sprintf(buf+ret, "\tHDLC txok:%d rxok:%d",
++		seq_printf(m, "\tHDLC txok:%d rxok:%d",
+ 			       info->icount.txok, info->icount.rxok);
  		if (info->icount.txunder)
 -			ret += sprintf(buf+ret, " txunder:%d", info->icount.txunder);
 +			seq_printf(m, " txunder:%d", info->icount.txunder);
@@ -87,9 +95,9 @@ diff -puN drivers/char/pcmcia/synclink_cs.c~proc-tty-switch-synclink_cs-to-proc_
 -			ret += sprintf(buf+ret, " rxcrc:%d", info->icount.rxcrc);
 +			seq_printf(m, " rxcrc:%d", info->icount.rxcrc);
  	} else {
--		ret += sprintf(buf+ret, " ASYNC tx:%d rx:%d",
-+		seq_printf(m, " ASYNC tx:%d rx:%d",
- 			      info->icount.tx, info->icount.rx);
+-		ret += sprintf(buf+ret, "\tASYNC tx:%d rx:%d",
++		seq_printf(m, "\tASYNC tx:%d rx:%d",
+ 			       info->icount.tx, info->icount.rx);
  		if (info->icount.frame)
 -			ret += sprintf(buf+ret, " fe:%d", info->icount.frame);
 +			seq_printf(m, " fe:%d", info->icount.frame);
@@ -108,8 +116,8 @@ diff -puN drivers/char/pcmcia/synclink_cs.c~proc-tty-switch-synclink_cs-to-proc_
 -	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
 +	seq_printf(m, " %s\n", stat_buf+1);
  
--	ret += sprintf(buf+ret, "txactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
-+	seq_printf(m, "txactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
+-	ret += sprintf(buf+ret, "\ttxactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
++	seq_printf(m, "\ttxactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
  		       info->tx_active,info->bh_requested,info->bh_running,
  		       info->pending_bh);
 -
@@ -118,18 +126,18 @@ diff -puN drivers/char/pcmcia/synclink_cs.c~proc-tty-switch-synclink_cs-to-proc_
  
  /* Called to print information about devices
   */
--static int mgslpc_read_proc(char *page, char **start, off_t off, int count,
--		 int *eof, void *data)
-+static int mgslpc_proc_show(struct seq_file *m, void *v)
+-static int read_proc(char *page, char **start, off_t off, int count,
+-		     int *eof, void *data)
++static int synclink_gt_proc_show(struct seq_file *m, void *v)
  {
 -	int len = 0, l;
 -	off_t	begin = 0;
- 	MGSLPC_INFO *info;
+ 	struct slgt_info *info;
  
--	len += sprintf(page, "synclink driver:%s\n", driver_version);
-+	seq_printf(m, "synclink driver:%s\n", driver_version);
+-	len += sprintf(page, "synclink_gt driver\n");
++	seq_puts(m, "synclink_gt driver\n");
  
- 	info = mgslpc_device_list;
+ 	info = slgt_device_list;
  	while( info ) {
 -		l = line_info(page + len, info);
 -		len += l;
@@ -151,37 +159,37 @@ diff -puN drivers/char/pcmcia/synclink_cs.c~proc-tty-switch-synclink_cs-to-proc_
 -		return 0;
 -	*start = page + (off-begin);
 -	return ((count < begin+len-off) ? count : begin+len-off);
-+static int mgslpc_proc_open(struct inode *inode, struct file *file)
++static int synclink_gt_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, mgslpc_proc_show, NULL);
++	return single_open(file, synclink_gt_proc_show, NULL);
  }
  
-+static const struct file_operations mgslpc_proc_fops = {
++static const struct file_operations synclink_gt_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= mgslpc_proc_open,
++	.open		= synclink_gt_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
 +
- static int rx_alloc_buffers(MGSLPC_INFO *info)
- {
- 	/* each buffer has header and data */
-@@ -2861,13 +2856,13 @@ static const struct tty_operations mgslp
- 	.send_xchar = mgslpc_send_xchar,
- 	.break_ctl = mgslpc_break,
- 	.wait_until_sent = mgslpc_wait_until_sent,
--	.read_proc = mgslpc_read_proc,
- 	.set_termios = mgslpc_set_termios,
- 	.stop = tx_pause,
+ /*
+  * return count of bytes in transmit buffer
+  */
+@@ -3562,13 +3556,13 @@ static const struct tty_operations ops =
+ 	.send_xchar = send_xchar,
+ 	.break_ctl = set_break,
+ 	.wait_until_sent = wait_until_sent,
+- 	.read_proc = read_proc,
+ 	.set_termios = set_termios,
+ 	.stop = tx_hold,
  	.start = tx_release,
- 	.hangup = mgslpc_hangup,
+ 	.hangup = hangup,
  	.tiocmget = tiocmget,
  	.tiocmset = tiocmset,
-+	.proc_fops = &mgslpc_proc_fops,
++	.proc_fops = &synclink_gt_proc_fops,
  };
  
- static void synclink_cs_cleanup(void)
+ static void slgt_cleanup(void)
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
