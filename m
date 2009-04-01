@@ -1,71 +1,354 @@
 From: akpm@linux-foundation.org
-Subject: + sunrpc-align-cache_clean-works-timer.patch added to -mm tree
-Date: Wed, 01 Apr 2009 12:45:36 -0700
-Message-ID: <200904011945.n31Jjaeo028161@imap1.linux-foundation.org>
+Subject: [merged] rtc-add-platform-driver-for-efi.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:49 -0700
+Message-ID: <200904011841.n31Ifnus009488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52750 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934022AbZDATtU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:49:20 -0400
+	by vger.kernel.org with ESMTP id S934313AbZDATt2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:49:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: anton@samba.org, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no
+To: dannf@dannf.org, alessandro.zummo@towertech.it, dannf@hp.com, david-b@pacbell.net, eranian@googlemail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sunrpc: align cache_clean work's timer
-has been added to the -mm tree.  Its filename is
-     sunrpc-align-cache_clean-works-timer.patch
+     rtc: add platform driver for EFI
+has been removed from the -mm tree.  Its filename was
+     rtc-add-platform-driver-for-efi.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunrpc: align cache_clean work's timer
-From: Anton Blanchard <anton@samba.org>
+Subject: rtc: add platform driver for EFI
+From: dann frazier <dannf@dannf.org>
 
-Align cache_clean work.
+Munge Stephane Eranian's efirtc.c code into an rtc platform driver
 
-Signed-off-by: Anton Blanchard <anton@samba.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "David S. Miller" <davem@davemloft.net>
+[akpm@linux-foundation.org: use is_leap_year()]
+Signed-off-by: dann frazier <dannf@hp.com>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: stephane eranian <eranian@googlemail.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/cache.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/kernel/time.c |   16 ++
+ drivers/rtc/Kconfig     |   10 +
+ drivers/rtc/Makefile    |    1 
+ drivers/rtc/rtc-efi.c   |  235 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 262 insertions(+)
 
-diff -puN net/sunrpc/cache.c~sunrpc-align-cache_clean-works-timer net/sunrpc/cache.c
---- a/net/sunrpc/cache.c~sunrpc-align-cache_clean-works-timer
-+++ a/net/sunrpc/cache.c
-@@ -488,7 +488,7 @@ static void do_cache_clean(struct work_s
- {
- 	int delay = 5;
- 	if (cache_clean() == -1)
--		delay = 30*HZ;
-+		delay = round_jiffies_relative(30*HZ);
+diff -puN arch/ia64/kernel/time.c~rtc-add-platform-driver-for-efi arch/ia64/kernel/time.c
+--- a/arch/ia64/kernel/time.c~rtc-add-platform-driver-for-efi
++++ a/arch/ia64/kernel/time.c
+@@ -20,6 +20,7 @@
+ #include <linux/efi.h>
+ #include <linux/timex.h>
+ #include <linux/clocksource.h>
++#include <linux/platform_device.h>
  
- 	if (list_empty(&cache_list))
- 		delay = 0;
+ #include <asm/machvec.h>
+ #include <asm/delay.h>
+@@ -405,6 +406,21 @@ static struct irqaction timer_irqaction 
+ 	.name =		"timer"
+ };
+ 
++static struct platform_device rtc_efi_dev = {
++	.name = "rtc-efi",
++	.id = -1,
++};
++
++static int __init rtc_init(void)
++{
++	if (platform_device_register(&rtc_efi_dev) < 0)
++		printk(KERN_ERR "unable to register rtc device...\n");
++
++	/* not necessarily an error */
++	return 0;
++}
++module_init(rtc_init);
++
+ void __init
+ time_init (void)
+ {
+diff -puN drivers/rtc/Kconfig~rtc-add-platform-driver-for-efi drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-platform-driver-for-efi
++++ a/drivers/rtc/Kconfig
+@@ -440,6 +440,16 @@ config RTC_DRV_DS1742
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1742.
+ 
++config RTC_DRV_EFI
++	tristate "EFI RTC"
++	depends on IA64
++	help
++	  If you say yes here you will get support for the EFI
++	  Real Time Clock.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-efi.
++
+ config RTC_DRV_STK17TA8
+ 	tristate "Simtek STK17TA8"
+ 	depends on RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-add-platform-driver-for-efi drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-platform-driver-for-efi
++++ a/drivers/rtc/Makefile
+@@ -36,6 +36,7 @@ obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds15
+ obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
+ obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
+ obj-$(CONFIG_RTC_DRV_DS3234)	+= rtc-ds3234.o
++obj-$(CONFIG_RTC_DRV_EFI)	+= rtc-efi.o
+ obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
+ obj-$(CONFIG_RTC_DRV_FM3130)	+= rtc-fm3130.o
+ obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
+diff -puN /dev/null drivers/rtc/rtc-efi.c
+--- /dev/null
++++ a/drivers/rtc/rtc-efi.c
+@@ -0,0 +1,235 @@
++/*
++ * rtc-efi: RTC Class Driver for EFI-based systems
++ *
++ * Copyright (C) 2009 Hewlett-Packard Development Company, L.P.
++ *
++ * Author: dann frazier <dannf@hp.com>
++ * Based on efirtc.c by Stephane Eranian
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/time.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/efi.h>
++
++#define EFI_ISDST (EFI_TIME_ADJUST_DAYLIGHT|EFI_TIME_IN_DAYLIGHT)
++/*
++ * EFI Epoch is 1/1/1998
++ */
++#define EFI_RTC_EPOCH		1998
++
++/*
++ * returns day of the year [0-365]
++ */
++static inline int
++compute_yday(efi_time_t *eft)
++{
++	/* efi_time_t.month is in the [1-12] so, we need -1 */
++	return rtc_year_days(eft->day - 1, eft->month - 1, eft->year);
++}
++/*
++ * returns day of the week [0-6] 0=Sunday
++ *
++ * Don't try to provide a year that's before 1998, please !
++ */
++static int
++compute_wday(efi_time_t *eft)
++{
++	int y;
++	int ndays = 0;
++
++	if (eft->year < 1998) {
++		printk(KERN_ERR "efirtc: EFI year < 1998, invalid date\n");
++		return -1;
++	}
++
++	for (y = EFI_RTC_EPOCH; y < eft->year; y++)
++		ndays += 365 + (is_leap_year(y) ? 1 : 0);
++
++	ndays += compute_yday(eft);
++
++	/*
++	 * 4=1/1/1998 was a Thursday
++	 */
++	return (ndays + 4) % 7;
++}
++
++static void
++convert_to_efi_time(struct rtc_time *wtime, efi_time_t *eft)
++{
++	eft->year	= wtime->tm_year + 1900;
++	eft->month	= wtime->tm_mon + 1;
++	eft->day	= wtime->tm_mday;
++	eft->hour	= wtime->tm_hour;
++	eft->minute	= wtime->tm_min;
++	eft->second 	= wtime->tm_sec;
++	eft->nanosecond = 0;
++	eft->daylight	= wtime->tm_isdst ? EFI_ISDST : 0;
++	eft->timezone	= EFI_UNSPECIFIED_TIMEZONE;
++}
++
++static void
++convert_from_efi_time(efi_time_t *eft, struct rtc_time *wtime)
++{
++	memset(wtime, 0, sizeof(*wtime));
++	wtime->tm_sec  = eft->second;
++	wtime->tm_min  = eft->minute;
++	wtime->tm_hour = eft->hour;
++	wtime->tm_mday = eft->day;
++	wtime->tm_mon  = eft->month - 1;
++	wtime->tm_year = eft->year - 1900;
++
++	/* day of the week [0-6], Sunday=0 */
++	wtime->tm_wday = compute_wday(eft);
++
++	/* day in the year [1-365]*/
++	wtime->tm_yday = compute_yday(eft);
++
++
++	switch (eft->daylight & EFI_ISDST) {
++	case EFI_ISDST:
++		wtime->tm_isdst = 1;
++		break;
++	case EFI_TIME_ADJUST_DAYLIGHT:
++		wtime->tm_isdst = 0;
++		break;
++	default:
++		wtime->tm_isdst = -1;
++	}
++}
++
++static int efi_read_alarm(struct device *dev, struct rtc_wkalrm *wkalrm)
++{
++	efi_time_t eft;
++	efi_status_t status;
++
++	/*
++	 * As of EFI v1.10, this call always returns an unsupported status
++	 */
++	status = efi.get_wakeup_time((efi_bool_t *)&wkalrm->enabled,
++				     (efi_bool_t *)&wkalrm->pending, &eft);
++
++	if (status != EFI_SUCCESS)
++		return -EINVAL;
++
++	convert_from_efi_time(&eft, &wkalrm->time);
++
++	return rtc_valid_tm(&wkalrm->time);
++}
++
++static int efi_set_alarm(struct device *dev, struct rtc_wkalrm *wkalrm)
++{
++	efi_time_t eft;
++	efi_status_t status;
++
++	convert_to_efi_time(&wkalrm->time, &eft);
++
++	/*
++	 * XXX Fixme:
++	 * As of EFI 0.92 with the firmware I have on my
++	 * machine this call does not seem to work quite
++	 * right
++	 *
++	 * As of v1.10, this call always returns an unsupported status
++	 */
++	status = efi.set_wakeup_time((efi_bool_t)wkalrm->enabled, &eft);
++
++	printk(KERN_WARNING "write status is %d\n", (int)status);
++
++	return status == EFI_SUCCESS ? 0 : -EINVAL;
++}
++
++static int efi_read_time(struct device *dev, struct rtc_time *tm)
++{
++	efi_status_t status;
++	efi_time_t eft;
++	efi_time_cap_t cap;
++
++	status = efi.get_time(&eft, &cap);
++
++	if (status != EFI_SUCCESS) {
++		/* should never happen */
++		printk(KERN_ERR "efitime: can't read time\n");
++		return -EINVAL;
++	}
++
++	convert_from_efi_time(&eft, tm);
++
++	return rtc_valid_tm(tm);
++}
++
++static int efi_set_time(struct device *dev, struct rtc_time *tm)
++{
++	efi_status_t status;
++	efi_time_t eft;
++
++	convert_to_efi_time(tm, &eft);
++
++	status = efi.set_time(&eft);
++
++	return status == EFI_SUCCESS ? 0 : -EINVAL;
++}
++
++static const struct rtc_class_ops efi_rtc_ops = {
++	.read_time = efi_read_time,
++	.set_time = efi_set_time,
++	.read_alarm = efi_read_alarm,
++	.set_alarm = efi_set_alarm,
++};
++
++static int __init efi_rtc_probe(struct platform_device *dev)
++{
++	struct rtc_device *rtc;
++
++	rtc = rtc_device_register("rtc-efi", &dev->dev, &efi_rtc_ops,
++					THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++
++	platform_set_drvdata(dev, rtc);
++
++	return 0;
++}
++
++static int __exit efi_rtc_remove(struct platform_device *dev)
++{
++	struct rtc_device *rtc = platform_get_drvdata(dev);
++
++	rtc_device_unregister(rtc);
++
++	return 0;
++}
++
++static struct platform_driver efi_rtc_driver = {
++	.driver = {
++		.name = "rtc-efi",
++		.owner = THIS_MODULE,
++	},
++	.probe = efi_rtc_probe,
++	.remove = __exit_p(efi_rtc_remove),
++};
++
++static int __init efi_rtc_init(void)
++{
++	return platform_driver_probe(&efi_rtc_driver, efi_rtc_probe);
++}
++
++static void __exit efi_rtc_exit(void)
++{
++	platform_driver_unregister(&efi_rtc_driver);
++}
++
++module_init(efi_rtc_init);
++module_exit(efi_rtc_exit);
++
++MODULE_AUTHOR("dann frazier <dannf@hp.com>");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("EFI RTC driver");
 _
 
-Patches currently in -mm which might be from anton@samba.org are
+Patches currently in -mm which might be from dannf@dannf.org are
 
 origin.patch
-mm-align-vmstat_works-timer.patch
-random-align-rekey_works-timer.patch
-sunrpc-align-cache_clean-works-timer.patch
 
