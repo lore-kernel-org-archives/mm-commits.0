@@ -1,206 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lis3-spi-transport-layer.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:41:18 -0700
-Message-ID: <200904011841.n31IfIL3009295@imap1.linux-foundation.org>
+Subject: [merged] nommu-there-is-no-mlock-for-nommu-so-dont-provide-the-bits.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:38:47 -0700
+Message-ID: <200904011838.n31Iclam008376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754351AbZDATlJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:41:09 -0400
+	by vger.kernel.org with ESMTP id S1755310AbZDATld (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:41:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@caiaq.de, david-b@pacbell.net, eric.piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, Enrik.Berkhan@ge.com, a.p.zijlstra@chello.nl, gerg@snapgear.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-
 
 
 The patch titled
-     lis3: SPI transport layer
+     nommu: there is no mlock() for NOMMU, so don't provide the bits
 has been removed from the -mm tree.  Its filename was
-     lis3-spi-transport-layer.patch
+     nommu-there-is-no-mlock-for-nommu-so-dont-provide-the-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: SPI transport layer
-From: Daniel Mack <daniel@caiaq.de>
+Subject: nommu: there is no mlock() for NOMMU, so don't provide the bits
+From: David Howells <dhowells@redhat.com>
 
-Make use of the new abstraction layer and add a new transport layer for
-spi.  Works fine on a PXA based board.
+The mlock() facility does not exist for NOMMU since all mappings are
+effectively locked anyway, so we don't make the bits available when
+they're not useful.
 
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Enrik Berkhan <Enrik.Berkhan@ge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/Kconfig         |   16 ++++
- drivers/hwmon/Makefile        |    1 
- drivers/hwmon/lis3lv02d_spi.c |  114 ++++++++++++++++++++++++++++++++
- 3 files changed, 131 insertions(+)
+ include/linux/page-flags.h |   20 +++++++++++++-------
+ mm/Kconfig                 |    8 ++++++++
+ mm/internal.h              |    8 +++++---
+ 3 files changed, 26 insertions(+), 10 deletions(-)
 
-diff -puN drivers/hwmon/Kconfig~lis3-spi-transport-layer drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig~lis3-spi-transport-layer
-+++ a/drivers/hwmon/Kconfig
-@@ -932,6 +932,22 @@ config SENSORS_LIS3LV02D
- 	  Say Y here if you have an applicable laptop and want to experience
- 	  the awesome power of lis3lv02d.
+diff -puN include/linux/page-flags.h~nommu-there-is-no-mlock-for-nommu-so-dont-provide-the-bits include/linux/page-flags.h
+--- a/include/linux/page-flags.h~nommu-there-is-no-mlock-for-nommu-so-dont-provide-the-bits
++++ a/include/linux/page-flags.h
+@@ -96,6 +96,8 @@ enum pageflags {
+ 	PG_swapbacked,		/* Page is backed by RAM/swap */
+ #ifdef CONFIG_UNEVICTABLE_LRU
+ 	PG_unevictable,		/* Page is "unevictable"  */
++#endif
++#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
+ 	PG_mlocked,		/* Page is vma mlocked */
+ #endif
+ #ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
+@@ -234,20 +236,20 @@ PAGEFLAG_FALSE(SwapCache)
+ #ifdef CONFIG_UNEVICTABLE_LRU
+ PAGEFLAG(Unevictable, unevictable) __CLEARPAGEFLAG(Unevictable, unevictable)
+ 	TESTCLEARFLAG(Unevictable, unevictable)
++#else
++PAGEFLAG_FALSE(Unevictable) TESTCLEARFLAG_FALSE(Unevictable)
++	SETPAGEFLAG_NOOP(Unevictable) CLEARPAGEFLAG_NOOP(Unevictable)
++	__CLEARPAGEFLAG_NOOP(Unevictable)
++#endif
  
-+config SENSORS_LIS3_SPI
-+	tristate "STMicroeletronics LIS3LV02Dx three-axis digital accelerometer (SPI)"
-+	depends on !ACPI && SPI_MASTER && INPUT
-+	default n
-+	help
-+	  This driver provides support for the LIS3LV02Dx accelerometer connected
-+	  via SPI. The accelerometer data is readable via
-+	  /sys/devices/platform/lis3lv02d.
++#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
+ #define MLOCK_PAGES 1
+ PAGEFLAG(Mlocked, mlocked) __CLEARPAGEFLAG(Mlocked, mlocked)
+ 	TESTSCFLAG(Mlocked, mlocked)
+-
+ #else
+-
+ #define MLOCK_PAGES 0
+ PAGEFLAG_FALSE(Mlocked)
+ 	SETPAGEFLAG_NOOP(Mlocked) TESTCLEARFLAG_FALSE(Mlocked)
+-
+-PAGEFLAG_FALSE(Unevictable) TESTCLEARFLAG_FALSE(Unevictable)
+-	SETPAGEFLAG_NOOP(Unevictable) CLEARPAGEFLAG_NOOP(Unevictable)
+-	__CLEARPAGEFLAG_NOOP(Unevictable)
+ #endif
+ 
+ #ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
+@@ -367,9 +369,13 @@ static inline void __ClearPageTail(struc
+ 
+ #ifdef CONFIG_UNEVICTABLE_LRU
+ #define __PG_UNEVICTABLE	(1 << PG_unevictable)
+-#define __PG_MLOCKED		(1 << PG_mlocked)
+ #else
+ #define __PG_UNEVICTABLE	0
++#endif
 +
-+	  This driver also provides an absolute input class device, allowing
-+	  the laptop to act as a pinball machine-esque joystick.
++#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
++#define __PG_MLOCKED		(1 << PG_mlocked)
++#else
+ #define __PG_MLOCKED		0
+ #endif
+ 
+diff -puN mm/Kconfig~nommu-there-is-no-mlock-for-nommu-so-dont-provide-the-bits mm/Kconfig
+--- a/mm/Kconfig~nommu-there-is-no-mlock-for-nommu-so-dont-provide-the-bits
++++ a/mm/Kconfig
+@@ -214,5 +214,13 @@ config UNEVICTABLE_LRU
+ 	  will use one page flag and increase the code size a little,
+ 	  say Y unless you know what you are doing.
+ 
++config HAVE_MLOCK
++	bool
++	default y if MMU=y
 +
-+	  This driver can also be built as modules.  If so, the core module
-+	  will be called lis3lv02d and a specific module for the SPI transport
-+	  is called lis3lv02d_spi.
++config HAVE_MLOCKED_PAGE_BIT
++	bool
++	default y if HAVE_MLOCK=y && UNEVICTABLE_LRU=y
 +
- config SENSORS_APPLESMC
- 	tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)"
- 	depends on INPUT && X86
-diff -puN drivers/hwmon/Makefile~lis3-spi-transport-layer drivers/hwmon/Makefile
---- a/drivers/hwmon/Makefile~lis3-spi-transport-layer
-+++ a/drivers/hwmon/Makefile
-@@ -52,6 +52,7 @@ obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
- obj-$(CONFIG_SENSORS_IT87)	+= it87.o
- obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
- obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3lv02d.o hp_accel.o
-+obj-$(CONFIG_SENSORS_LIS3_SPI)	+= lis3lv02d.o lis3lv02d_spi.o
- obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
- obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
- obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
-diff -puN /dev/null drivers/hwmon/lis3lv02d_spi.c
---- /dev/null
-+++ a/drivers/hwmon/lis3lv02d_spi.c
-@@ -0,0 +1,114 @@
-+/*
-+ * lis3lv02d_spi - SPI glue layer for lis3lv02d
-+ *
-+ * Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  publishhed by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <linux/workqueue.h>
-+#include <linux/spi/spi.h>
-+
-+#include "lis3lv02d.h"
-+
-+#define DRV_NAME 	"lis3lv02d_spi"
-+#define LIS3_SPI_READ	0x80
-+
-+static int lis3_spi_read(struct lis3lv02d *lis3, int reg, u8 *v)
-+{
-+	struct spi_device *spi = lis3->bus_priv;
-+	int ret = spi_w8r8(spi, reg | LIS3_SPI_READ);
-+	if (ret < 0)
-+		return -EINVAL;
-+
-+	*v = (u8) ret;
-+	return 0;
-+}
-+
-+static int lis3_spi_write(struct lis3lv02d *lis3, int reg, u8 val)
-+{
-+	u8 tmp[2] = { reg, val };
-+	struct spi_device *spi = lis3->bus_priv;
-+	return spi_write(spi, tmp, sizeof(tmp));
-+}
-+
-+static int lis3_spi_init(struct lis3lv02d *lis3)
-+{
-+	u8 reg;
-+	int ret;
-+
-+	/* power up the device */
-+	ret = lis3->read(lis3, CTRL_REG1, &reg);
-+	if (ret < 0)
-+		return ret;
-+
-+	reg |= CTRL1_PD0;
-+	return lis3->write(lis3, CTRL_REG1, reg);
-+}
-+
-+static struct axis_conversion lis3lv02d_axis_normal = { 1, 2, 3 };
-+
-+static int __devinit lis302dl_spi_probe(struct spi_device *spi)
-+{
-+	int ret;
-+
-+	spi->bits_per_word = 8;
-+	spi->mode = SPI_MODE_0;
-+	ret = spi_setup(spi);
-+	if (ret < 0)
-+		return ret;
-+
-+	lis3_dev.bus_priv = spi;
-+	lis3_dev.init = lis3_spi_init;
-+	lis3_dev.read = lis3_spi_read;
-+	lis3_dev.write = lis3_spi_write;
-+	lis3_dev.irq = spi->irq;
-+	lis3_dev.ac = lis3lv02d_axis_normal;
-+	spi_set_drvdata(spi, &lis3_dev);
-+
-+	ret = lis3lv02d_init_device(&lis3_dev);
-+	return ret;
-+}
-+
-+static int __devexit lis302dl_spi_remove(struct spi_device *spi)
-+{
-+	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
-+	lis3lv02d_joystick_disable();
-+	lis3lv02d_poweroff(lis3);
-+	return 0;
-+}
-+
-+static struct spi_driver lis302dl_spi_driver = {
-+	.driver	 = {
-+		.name   = DRV_NAME,
-+		.owner  = THIS_MODULE,
-+	},
-+	.probe	= lis302dl_spi_probe,
-+	.remove	= __devexit_p(lis302dl_spi_remove),
-+};
-+
-+static int __init lis302dl_init(void)
-+{
-+	return spi_register_driver(&lis302dl_spi_driver);
-+}
-+
-+static void __exit lis302dl_exit(void)
-+{
-+	spi_unregister_driver(&lis302dl_spi_driver);
-+}
-+
-+module_init(lis302dl_init);
-+module_exit(lis302dl_exit);
-+
-+MODULE_AUTHOR("Daniel Mack <daniel@caiaq.de>");
-+MODULE_DESCRIPTION("lis3lv02d SPI glue layer");
-+MODULE_LICENSE("GPL");
-+
+ config MMU_NOTIFIER
+ 	bool
+diff -puN mm/internal.h~nommu-there-is-no-mlock-for-nommu-so-dont-provide-the-bits mm/internal.h
+--- a/mm/internal.h~nommu-there-is-no-mlock-for-nommu-so-dont-provide-the-bits
++++ a/mm/internal.h
+@@ -63,6 +63,7 @@ static inline unsigned long page_order(s
+ 	return page_private(page);
+ }
+ 
++#ifdef CONFIG_HAVE_MLOCK
+ extern long mlock_vma_pages_range(struct vm_area_struct *vma,
+ 			unsigned long start, unsigned long end);
+ extern void munlock_vma_pages_range(struct vm_area_struct *vma,
+@@ -71,6 +72,7 @@ static inline void munlock_vma_pages_all
+ {
+ 	munlock_vma_pages_range(vma, vma->vm_start, vma->vm_end);
+ }
++#endif
+ 
+ #ifdef CONFIG_UNEVICTABLE_LRU
+ /*
+@@ -90,7 +92,7 @@ static inline void unevictable_migrate_p
+ }
+ #endif
+ 
+-#ifdef CONFIG_UNEVICTABLE_LRU
++#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
+ /*
+  * Called only in fault path via page_evictable() for a new page
+  * to determine if it's being mapped into a LOCKED vma.
+@@ -165,7 +167,7 @@ static inline void free_page_mlock(struc
+ 	}
+ }
+ 
+-#else /* CONFIG_UNEVICTABLE_LRU */
++#else /* CONFIG_HAVE_MLOCKED_PAGE_BIT */
+ static inline int is_mlocked_vma(struct vm_area_struct *v, struct page *p)
+ {
+ 	return 0;
+@@ -175,7 +177,7 @@ static inline void mlock_vma_page(struct
+ static inline void mlock_migrate_page(struct page *new, struct page *old) { }
+ static inline void free_page_mlock(struct page *page) { }
+ 
+-#endif /* CONFIG_UNEVICTABLE_LRU */
++#endif /* CONFIG_HAVE_MLOCKED_PAGE_BIT */
+ 
+ /*
+  * Return the mem_map entry representing the 'offset' subpage within
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
 linux-next.patch
-w1-coding-style-cleanups-in-w1_ioc.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
+xtensa-nommu-support.patch
+frv-duplicate-output_buffer-of-e03.patch
+flat-fix-data-sections-alignment.patch
+flat-fix-data-sections-alignment-update.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
+mutex-subsystem-synchro-test-module.patch
 
