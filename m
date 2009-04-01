@@ -1,187 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [merged] introduce-debug_kmap_atomic.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:38:43 -0700
-Message-ID: <200904011838.n31IchWa008370@imap1.linux-foundation.org>
+Subject: [merged] autofs4-fix-lookup-deadlock.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:39 -0700
+Message-ID: <200904011841.n31IfdaG009437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933543AbZDASnr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:43:47 -0400
+	by vger.kernel.org with ESMTP id S933572AbZDASnv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:43:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: introduce debug_kmap_atomic
+     autofs4: fix lookup deadlock
 has been removed from the -mm tree.  Its filename was
-     introduce-debug_kmap_atomic.patch
+     autofs4-fix-lookup-deadlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce debug_kmap_atomic
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: autofs4: fix lookup deadlock
+From: Ian Kent <raven@themaw.net>
 
-x86 has debug_kmap_atomic_prot() which is error checking function for
-kmap_atomic.  It is usefull for the other architectures, although it needs
-CONFIG_TRACE_IRQFLAGS_SUPPORT.
+A deadlock can occur when user space uses a signal (autofs version 4 uses
+SIGCHLD for this) to effect expire completion.
 
-This patch exposes it to the other architectures.
+The order of events is:
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <linux-arch@vger.kernel.org>
+Expire process completes, but before being able to send SIGCHLD to it's parent
+...
+
+Another process walks onto a different mount point and drops the directory
+inode semaphore prior to sending the request to the daemon as it must ...
+
+A third process does an lstat on on the expired mount point causing it to wait
+on expire completion (unfortunately) holding the directory semaphore.
+
+The mount request then arrives at the daemon which does an lstat and,
+deadlock.
+
+For some time I was concerned about releasing the directory semaphore around
+the expire wait in autofs4_lookup as well as for the mount call back.  I
+finally realized that the last round of changes in this function made the
+expiring dentry and the lookup dentry separate and distinct so the check and
+possible wait can be done anywhere prior to the mount call back.  This patch
+moves the check to just before the mount call back and inside the directory
+inode mutex release.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/highmem_32.c |   45 -------------------------------------
- include/linux/highmem.h  |   12 +++++++++
- mm/highmem.c             |   45 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 58 insertions(+), 44 deletions(-)
+ fs/autofs4/root.c |   41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86/mm/highmem_32.c~introduce-debug_kmap_atomic arch/x86/mm/highmem_32.c
---- a/arch/x86/mm/highmem_32.c~introduce-debug_kmap_atomic
-+++ a/arch/x86/mm/highmem_32.c
-@@ -19,49 +19,6 @@ void kunmap(struct page *page)
- 	kunmap_high(page);
- }
+diff -puN fs/autofs4/root.c~autofs4-fix-lookup-deadlock fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-fix-lookup-deadlock
++++ a/fs/autofs4/root.c
+@@ -485,22 +485,6 @@ static struct dentry *autofs4_lookup(str
+ 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
+ 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
  
--static void debug_kmap_atomic_prot(enum km_type type)
--{
--#ifdef CONFIG_DEBUG_HIGHMEM
--	static unsigned warn_count = 10;
--
--	if (unlikely(warn_count == 0))
--		return;
--
--	if (unlikely(in_interrupt())) {
--		if (in_irq()) {
--			if (type != KM_IRQ0 && type != KM_IRQ1 &&
--			    type != KM_BIO_SRC_IRQ && type != KM_BIO_DST_IRQ &&
--			    type != KM_BOUNCE_READ) {
--				WARN_ON(1);
--				warn_count--;
--			}
--		} else if (!irqs_disabled()) {	/* softirq */
--			if (type != KM_IRQ0 && type != KM_IRQ1 &&
--			    type != KM_SOFTIRQ0 && type != KM_SOFTIRQ1 &&
--			    type != KM_SKB_SUNRPC_DATA &&
--			    type != KM_SKB_DATA_SOFTIRQ &&
--			    type != KM_BOUNCE_READ) {
--				WARN_ON(1);
--				warn_count--;
--			}
--		}
+-	expiring = autofs4_lookup_expiring(sbi, dentry->d_parent, &dentry->d_name);
+-	if (expiring) {
+-		/*
+-		 * If we are racing with expire the request might not
+-		 * be quite complete but the directory has been removed
+-		 * so it must have been successful, so just wait for it.
+-		 */
+-		ino = autofs4_dentry_ino(expiring);
+-		autofs4_expire_wait(expiring);
+-		spin_lock(&sbi->lookup_lock);
+-		if (!list_empty(&ino->expiring))
+-			list_del_init(&ino->expiring);
+-		spin_unlock(&sbi->lookup_lock);
+-		dput(expiring);
 -	}
 -
--	if (type == KM_IRQ0 || type == KM_IRQ1 || type == KM_BOUNCE_READ ||
--			type == KM_BIO_SRC_IRQ || type == KM_BIO_DST_IRQ) {
--		if (!irqs_disabled()) {
--			WARN_ON(1);
--			warn_count--;
+ 	unhashed = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
+ 	if (unhashed)
+ 		dentry = unhashed;
+@@ -538,14 +522,31 @@ static struct dentry *autofs4_lookup(str
+ 	}
+ 
+ 	if (!oz_mode) {
++		mutex_unlock(&dir->i_mutex);
++		expiring = autofs4_lookup_expiring(sbi,
++						   dentry->d_parent,
++						   &dentry->d_name);
++		if (expiring) {
++			/*
++			 * If we are racing with expire the request might not
++			 * be quite complete but the directory has been removed
++			 * so it must have been successful, so just wait for it.
++			 */
++			ino = autofs4_dentry_ino(expiring);
++			autofs4_expire_wait(expiring);
++			spin_lock(&sbi->lookup_lock);
++			if (!list_empty(&ino->expiring))
++				list_del_init(&ino->expiring);
++			spin_unlock(&sbi->lookup_lock);
++			dput(expiring);
++		}
++
+ 		spin_lock(&dentry->d_lock);
+ 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
+ 		spin_unlock(&dentry->d_lock);
+-		if (dentry->d_op && dentry->d_op->d_revalidate) {
+-			mutex_unlock(&dir->i_mutex);
++		if (dentry->d_op && dentry->d_op->d_revalidate)
+ 			(dentry->d_op->d_revalidate)(dentry, nd);
+-			mutex_lock(&dir->i_mutex);
 -		}
--	} else if (type == KM_SOFTIRQ0 || type == KM_SOFTIRQ1) {
--		if (irq_count() == 0 && !irqs_disabled()) {
--			WARN_ON(1);
--			warn_count--;
--		}
--	}
--#endif
--}
--
- /*
-  * kmap_atomic/kunmap_atomic is significantly faster than kmap/kunmap because
-  * no global lock is needed and because the kmap code must perform a global TLB
-@@ -81,7 +38,7 @@ void *kmap_atomic_prot(struct page *page
- 	if (!PageHighMem(page))
- 		return page_address(page);
++		mutex_lock(&dir->i_mutex);
+ 	}
  
--	debug_kmap_atomic_prot(type);
-+	debug_kmap_atomic(type);
- 
- 	idx = type + KM_TYPE_NR*smp_processor_id();
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
-diff -puN include/linux/highmem.h~introduce-debug_kmap_atomic include/linux/highmem.h
---- a/include/linux/highmem.h~introduce-debug_kmap_atomic
-+++ a/include/linux/highmem.h
-@@ -187,4 +187,16 @@ static inline void copy_highpage(struct 
- 	kunmap_atomic(vto, KM_USER1);
- }
- 
-+#if defined(CONFIG_DEBUG_HIGHMEM) && defined(CONFIG_TRACE_IRQFLAGS_SUPPORT)
-+
-+void debug_kmap_atomic(enum km_type type);
-+
-+#else
-+
-+static inline void debug_kmap_atomic(enum km_type type)
-+{
-+}
-+
-+#endif
-+
- #endif /* _LINUX_HIGHMEM_H */
-diff -puN mm/highmem.c~introduce-debug_kmap_atomic mm/highmem.c
---- a/mm/highmem.c~introduce-debug_kmap_atomic
-+++ a/mm/highmem.c
-@@ -422,3 +422,48 @@ void __init page_address_init(void)
- }
- 
- #endif	/* defined(CONFIG_HIGHMEM) && !defined(WANT_PAGE_VIRTUAL) */
-+
-+#if defined(CONFIG_DEBUG_HIGHMEM) && defined(CONFIG_TRACE_IRQFLAGS_SUPPORT)
-+
-+void debug_kmap_atomic(enum km_type type)
-+{
-+	static unsigned warn_count = 10;
-+
-+	if (unlikely(warn_count == 0))
-+		return;
-+
-+	if (unlikely(in_interrupt())) {
-+		if (in_irq()) {
-+			if (type != KM_IRQ0 && type != KM_IRQ1 &&
-+			    type != KM_BIO_SRC_IRQ && type != KM_BIO_DST_IRQ &&
-+			    type != KM_BOUNCE_READ) {
-+				WARN_ON(1);
-+				warn_count--;
-+			}
-+		} else if (!irqs_disabled()) {	/* softirq */
-+			if (type != KM_IRQ0 && type != KM_IRQ1 &&
-+			    type != KM_SOFTIRQ0 && type != KM_SOFTIRQ1 &&
-+			    type != KM_SKB_SUNRPC_DATA &&
-+			    type != KM_SKB_DATA_SOFTIRQ &&
-+			    type != KM_BOUNCE_READ) {
-+				WARN_ON(1);
-+				warn_count--;
-+			}
-+		}
-+	}
-+
-+	if (type == KM_IRQ0 || type == KM_IRQ1 || type == KM_BOUNCE_READ ||
-+			type == KM_BIO_SRC_IRQ || type == KM_BIO_DST_IRQ) {
-+		if (!irqs_disabled()) {
-+			WARN_ON(1);
-+			warn_count--;
-+		}
-+	} else if (type == KM_SOFTIRQ0 || type == KM_SOFTIRQ1) {
-+		if (irq_count() == 0 && !irqs_disabled()) {
-+			WARN_ON(1);
-+			warn_count--;
-+		}
-+	}
-+}
-+
-+#endif
+ 	/*
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
 origin.patch
+writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks.patch
+writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks-try-2.patch
 
