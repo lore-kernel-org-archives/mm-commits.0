@@ -1,126 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfs-add-use-account_page_dirtied.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:34:39 -0700
-Message-ID: <200904011834.n31IYdd3007248@imap1.linux-foundation.org>
+Subject: [merged] get_mm_hiwater_xxx-trivial-s-define-inline.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:34:16 -0700
+Message-ID: <200904011834.n31IYGow007103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760340AbZDAShO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:37:14 -0400
+	by vger.kernel.org with ESMTP id S1765336AbZDAShm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:37:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edward.shishkin@gmail.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: oleg@redhat.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: add/use account_page_dirtied()
+     get_mm_hiwater_xxx: trivial, s/define/inline/
 has been removed from the -mm tree.  Its filename was
-     vfs-add-use-account_page_dirtied.patch
+     get_mm_hiwater_xxx-trivial-s-define-inline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: add/use account_page_dirtied()
-From: Edward Shishkin <edward.shishkin@gmail.com>
+Subject: get_mm_hiwater_xxx: trivial, s/define/inline/
+From: Oleg Nesterov <oleg@redhat.com>
 
-Add a helper function account_page_dirtied().  Use that from two
-callsites.  reiser4 adds a function which adds a third callsite.
+Andrew pointed out get_mm_hiwater_xxx() evaluate "mm" argument thrice/twice,
+make them inline.
 
-Signed-off-by: Edward Shishkin<edward.shishkin@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c         |    9 +--------
- include/linux/mm.h  |    1 +
- mm/page-writeback.c |   22 +++++++++++++++-------
- 3 files changed, 17 insertions(+), 15 deletions(-)
+ include/linux/sched.h |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN fs/buffer.c~vfs-add-use-account_page_dirtied fs/buffer.c
---- a/fs/buffer.c~vfs-add-use-account_page_dirtied
-+++ a/fs/buffer.c
-@@ -621,14 +621,7 @@ static void __set_page_dirty(struct page
- 	spin_lock_irq(&mapping->tree_lock);
- 	if (page->mapping) {	/* Race with truncate? */
- 		WARN_ON_ONCE(warn && !PageUptodate(page));
--
--		if (mapping_cap_account_dirty(mapping)) {
--			__inc_zone_page_state(page, NR_FILE_DIRTY);
--			__inc_bdi_stat(mapping->backing_dev_info,
--					BDI_RECLAIMABLE);
--			task_dirty_inc(current);
--			task_io_account_write(PAGE_CACHE_SIZE);
--		}
-+		account_page_dirtied(page, mapping);
- 		radix_tree_tag_set(&mapping->page_tree,
- 				page_index(page), PAGECACHE_TAG_DIRTY);
- 	}
-diff -puN include/linux/mm.h~vfs-add-use-account_page_dirtied include/linux/mm.h
---- a/include/linux/mm.h~vfs-add-use-account_page_dirtied
-+++ a/include/linux/mm.h
-@@ -836,6 +836,7 @@ int __set_page_dirty_nobuffers(struct pa
- int __set_page_dirty_no_writeback(struct page *page);
- int redirty_page_for_writepage(struct writeback_control *wbc,
- 				struct page *page);
-+void account_page_dirtied(struct page *page, struct address_space *mapping);
- int set_page_dirty(struct page *page);
- int set_page_dirty_lock(struct page *page);
- int clear_page_dirty_for_io(struct page *page);
-diff -puN mm/page-writeback.c~vfs-add-use-account_page_dirtied mm/page-writeback.c
---- a/mm/page-writeback.c~vfs-add-use-account_page_dirtied
-+++ a/mm/page-writeback.c
-@@ -1198,6 +1198,20 @@ int __set_page_dirty_no_writeback(struct
- }
+diff -puN include/linux/sched.h~get_mm_hiwater_xxx-trivial-s-define-inline include/linux/sched.h
+--- a/include/linux/sched.h~get_mm_hiwater_xxx-trivial-s-define-inline
++++ a/include/linux/sched.h
+@@ -391,8 +391,15 @@ extern void arch_unmap_area_topdown(stru
+ 		(mm)->hiwater_vm = (mm)->total_vm;	\
+ } while (0)
  
- /*
-+ * Helper function for set_page_dirty family.
-+ * NOTE: This relies on being atomic wrt interrupts.
-+ */
-+void account_page_dirtied(struct page *page, struct address_space *mapping)
+-#define get_mm_hiwater_rss(mm)	max((mm)->hiwater_rss, get_mm_rss(mm))
+-#define get_mm_hiwater_vm(mm)	max((mm)->hiwater_vm, (mm)->total_vm)
++static inline unsigned long get_mm_hiwater_rss(struct mm_struct *mm)
 +{
-+	if (mapping_cap_account_dirty(mapping)) {
-+		__inc_zone_page_state(page, NR_FILE_DIRTY);
-+		__inc_bdi_stat(mapping->backing_dev_info, BDI_RECLAIMABLE);
-+		task_dirty_inc(current);
-+		task_io_account_write(PAGE_CACHE_SIZE);
-+	}
++	return max(mm->hiwater_rss, get_mm_rss(mm));
 +}
 +
-+/*
-  * For address_spaces which do not use buffers.  Just tag the page as dirty in
-  * its radix tree.
-  *
-@@ -1226,13 +1240,7 @@ int __set_page_dirty_nobuffers(struct pa
- 		if (mapping2) { /* Race with truncate? */
- 			BUG_ON(mapping2 != mapping);
- 			WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
--			if (mapping_cap_account_dirty(mapping)) {
--				__inc_zone_page_state(page, NR_FILE_DIRTY);
--				__inc_bdi_stat(mapping->backing_dev_info,
--						BDI_RECLAIMABLE);
--				task_dirty_inc(current);
--				task_io_account_write(PAGE_CACHE_SIZE);
--			}
-+			account_page_dirtied(page, mapping);
- 			radix_tree_tag_set(&mapping->page_tree,
- 				page_index(page), PAGECACHE_TAG_DIRTY);
- 		}
++static inline unsigned long get_mm_hiwater_vm(struct mm_struct *mm)
++{
++	return max(mm->hiwater_vm, mm->total_vm);
++}
+ 
+ extern void set_dumpable(struct mm_struct *mm, int value);
+ extern int get_dumpable(struct mm_struct *mm);
 _
 
-Patches currently in -mm which might be from edward.shishkin@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4-vfs-add-super_operationssync_inodes-2.patch
-reiser4.patch
-reiser4-adjust-to-the-new-aops.patch
-reiser4-adjust-to-the-new-aops-fixup.patch
-reiser4-remove-simple_prepare_write-usage.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
-reiser4-update-names-of-quota-methods.patch
-reiser4-use-set_page_dirty_notag.patch
+linux-next.patch
+getrusage-fill-ru_maxrss-value.patch
+do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
+signals-remove-handler-parameter-to-tracehook-functions.patch
+signals-protect-init-from-unwanted-signals-more.patch
+ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
+ptrace-simplify-ptrace_exit-ignoring_children-path.patch
+ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
+ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
+ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
+ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
+reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
+reparent_thread-fix-the-is-it-traced-check.patch
+reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
+forget_original_parent-split-out-the-un-ptrace-part.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+tracehook_notify_death-use-task_detached-helper.patch
+ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch
+ptrace_untrace-fix-the-signal_stop_stopped-check.patch
+workqueue-avoid-recursion-in-run_workqueue.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
+pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
+pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+signals-tracehook_notify_jctl-change.patch
 
