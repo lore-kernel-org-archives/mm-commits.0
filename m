@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-do_xip_mapping_read-fix-length-calculation.patch added to -mm tree
-Date: Wed, 01 Apr 2009 14:16:32 -0700
-Message-ID: <200904012116.n31LGWc8021850@imap1.linux-foundation.org>
+Subject: + documentation-fix-unix_dgram_qlen-description.patch added to -mm tree
+Date: Wed, 01 Apr 2009 14:30:48 -0700
+Message-ID: <200904012130.n31LUmBv026018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49002 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934115AbZDAVWI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 17:22:08 -0400
+	by vger.kernel.org with ESMTP id S1754738AbZDAVcz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 17:32:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: schwidefsky@de.ibm.com, cotte@de.ibm.com, jaredeh@gmail.com, npiggin@suse.de, stable@kernel.org
+Cc: lixd@cn.fujitsu.com, davem@davemloft.net
 
 
 The patch titled
-     mm: do_xip_mapping_read: fix length calculation
+     documentation: fix unix_dgram_qlen description
 has been added to the -mm tree.  Its filename is
-     mm-do_xip_mapping_read-fix-length-calculation.patch
+     documentation-fix-unix_dgram_qlen-description.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: do_xip_mapping_read: fix length calculation
-From: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Subject: documentation: fix unix_dgram_qlen description
+From: Li Xiaodong <lixd@cn.fujitsu.com>
 
-The calculation of the value nr in do_xip_mapping_read is incorrect.  If
-the copy required more than one iteration in the do while loop the copies
-variable will be non-zero.  The maximum length that may be passed to the
-call to copy_to_user(buf+copied, xip_mem+offset, nr) is len-copied but the
-check only compares against (nr > len).
+Previous description about system parameter in /proc/sys/net/unix/ is
+wrong (or missed).  Simply add a new description about unix_dgram_qlen
+according to latest kernel.
 
-This bug is the cause for the heap corruption Carsten has been chasing
-for so long:
-
-*** glibc detected *** /bin/bash: free(): invalid next size (normal): 0x00000000800e39f0 ***
-======= Backtrace: =========
-/lib64/libc.so.6[0x200000b9b44]
-/lib64/libc.so.6(cfree+0x8e)[0x200000bdade]
-/bin/bash(free_buffered_stream+0x32)[0x80050e4e]
-/bin/bash(close_buffered_stream+0x1c)[0x80050ea4]
-/bin/bash(unset_bash_input+0x2a)[0x8001c366]
-/bin/bash(make_child+0x1d4)[0x8004115c]
-/bin/bash[0x8002fc3c]
-/bin/bash(execute_command_internal+0x656)[0x8003048e]
-/bin/bash(execute_command+0x5e)[0x80031e1e]
-/bin/bash(execute_command_internal+0x79a)[0x800305d2]
-/bin/bash(execute_command+0x5e)[0x80031e1e]
-/bin/bash(reader_loop+0x270)[0x8001efe0]
-/bin/bash(main+0x1328)[0x8001e960]
-/lib64/libc.so.6(__libc_start_main+0x100)[0x200000592a8]
-/bin/bash(clearerr+0x5e)[0x8001c092]
-
-With this bug fix the commit 0e4a9b59282914fe057ab17027f55123964bc2e2
-"ext2/xip: refuse to change xip flag during remount with busy inodes" can
-be removed again.
-
-Cc: Carsten Otte <cotte@de.ibm.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Jared Hulbert <jaredeh@gmail.com>
-Cc: <stable@kernel.org>
-Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Li Xiaodong <lixd@cn.fujitsu.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap_xip.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/sysctl/net.txt |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/filemap_xip.c~mm-do_xip_mapping_read-fix-length-calculation mm/filemap_xip.c
---- a/mm/filemap_xip.c~mm-do_xip_mapping_read-fix-length-calculation
-+++ a/mm/filemap_xip.c
-@@ -89,8 +89,8 @@ do_xip_mapping_read(struct address_space
- 			}
- 		}
- 		nr = nr - offset;
--		if (nr > len)
--			nr = len;
-+		if (nr > len - copied)
-+			nr = len - copied;
+diff -puN Documentation/sysctl/net.txt~documentation-fix-unix_dgram_qlen-description Documentation/sysctl/net.txt
+--- a/Documentation/sysctl/net.txt~documentation-fix-unix_dgram_qlen-description
++++ a/Documentation/sysctl/net.txt
+@@ -93,8 +93,9 @@ of struct cmsghdr structures with append
+ 2. /proc/sys/net/unix - Parameters for Unix domain sockets
+ -------------------------------------------------------
  
- 		error = mapping->a_ops->get_xip_mem(mapping, index, 0,
- 							&xip_mem, &xip_pfn);
+-There are  only  two  files  in this subdirectory. They control the delays for
+-deleting and destroying socket descriptors.
++There is only one file in this directory.
++unix_dgram_qlen limits the max number of datagrams queued in Unix domain
++socket's buffer. It will not take effect unless PF_UNIX flag is spicified.
+ 
+ 
+ 3. /proc/sys/net/ipv4 - IPV4 settings
 _
 
-Patches currently in -mm which might be from schwidefsky@de.ibm.com are
+Patches currently in -mm which might be from lixd@cn.fujitsu.com are
 
-origin.patch
-linux-next.patch
-mm-do_xip_mapping_read-fix-length-calculation.patch
+documentation-fix-unix_dgram_qlen-description.patch
 
