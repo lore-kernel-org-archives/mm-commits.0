@@ -1,110 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:36:29 -0700
-Message-ID: <200904011836.n31IaTC0007735@imap1.linux-foundation.org>
+Subject: [merged] autofs4-cleanup-expire-code-duplication.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:37 -0700
+Message-ID: <200904011841.n31Ifbqq009407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43048 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41492 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933545AbZDASnz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:43:55 -0400
+	by vger.kernel.org with ESMTP id S1759730AbZDASok (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:44:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kiran@scalex86.org, agl@us.ibm.com, mel@csn.ul.ie, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: raven@themaw.net, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: reintroduce and deprecate rlimit based access for SHM_HUGETLB
+     autofs4: cleanup expire code duplication
 has been removed from the -mm tree.  Its filename was
-     mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb.patch
+     autofs4-cleanup-expire-code-duplication.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: reintroduce and deprecate rlimit based access for SHM_HUGETLB
-From: Ravikiran G Thirumalai <kiran@scalex86.org>
+Subject: autofs4: cleanup expire code duplication
+From: Ian Kent <raven@themaw.net>
 
-Allow non root users with sufficient mlock rlimits to be able to allocate
-hugetlb backed shm for now.  Deprecate this though.  This is being
-deprecated because the mlock based rlimit checks for SHM_HUGETLB is not
-consistent with mmap based huge page allocations.
+A significant portion of the autofs_dev_ioctl_expire() and
+autofs4_expire_multi() functions is duplicated code.  This patch cleans that
+up.
 
-Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
-Reviewed-by: Mel Gorman <mel@csn.ul.ie>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Adam Litke <agl@us.ibm.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   12 ++++++++++++
- fs/hugetlbfs/inode.c                       |   13 +++++++++++--
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ fs/autofs4/autofs_i.h  |    2 ++
+ fs/autofs4/dev-ioctl.c |   29 +----------------------------
+ fs/autofs4/expire.c    |   27 +++++++++++++++++----------
+ 3 files changed, 20 insertions(+), 38 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -311,6 +311,18 @@ Who:	Vlad Yasevich <vladislav.yasevich@h
- 
- ---------------------------
- 
-+What:	Ability for non root users to shm_get hugetlb pages based on mlock
-+	resource limits
-+When:	2.6.31
-+Why:	Non root users need to be part of /proc/sys/vm/hugetlb_shm_group or
-+	have CAP_IPC_LOCK to be able to allocate shm segments backed by
-+	huge pages.  The mlock based rlimit check to allow shm hugetlb is
-+	inconsistent with mmap based allocations.  Hence it is being
-+	deprecated.
-+Who:	Ravikiran Thirumalai <kiran@scalex86.org>
-+
-+---------------------------
-+
- What:	CONFIG_THERMAL_HWMON
- When:	January 2009
- Why:	This option was introduced just to allow older lm-sensors userspace
-diff -puN fs/hugetlbfs/inode.c~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb
-+++ a/fs/hugetlbfs/inode.c
-@@ -949,6 +949,7 @@ static int can_do_hugetlb_shm(void)
- struct file *hugetlb_file_setup(const char *name, size_t size, int acctflag)
+diff -puN fs/autofs4/autofs_i.h~autofs4-cleanup-expire-code-duplication fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-cleanup-expire-code-duplication
++++ a/fs/autofs4/autofs_i.h
+@@ -186,6 +186,8 @@ int autofs4_expire_wait(struct dentry *d
+ int autofs4_expire_run(struct super_block *, struct vfsmount *,
+ 			struct autofs_sb_info *,
+ 			struct autofs_packet_expire __user *);
++int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
++			    struct autofs_sb_info *sbi, int when);
+ int autofs4_expire_multi(struct super_block *, struct vfsmount *,
+ 			struct autofs_sb_info *, int __user *);
+ struct dentry *autofs4_expire_direct(struct super_block *sb,
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-cleanup-expire-code-duplication fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-cleanup-expire-code-duplication
++++ a/fs/autofs4/dev-ioctl.c
+@@ -525,40 +525,13 @@ static int autofs_dev_ioctl_expire(struc
+ 				   struct autofs_sb_info *sbi,
+ 				   struct autofs_dev_ioctl *param)
  {
- 	int error = -ENOMEM;
-+	int unlock_shm = 0;
- 	struct file *file;
- 	struct inode *inode;
- 	struct dentry *dentry, *root;
-@@ -958,8 +959,14 @@ struct file *hugetlb_file_setup(const ch
- 	if (!hugetlbfs_vfsmount)
- 		return ERR_PTR(-ENOENT);
+-	struct dentry *dentry;
+ 	struct vfsmount *mnt;
+-	int err = -EAGAIN;
+ 	int how;
  
--	if (!can_do_hugetlb_shm())
--		return ERR_PTR(-EPERM);
-+	if (!can_do_hugetlb_shm()) {
-+		if (user_shm_lock(size, user)) {
-+			unlock_shm = 1;
-+			WARN_ONCE(1,
-+			  "Using mlock ulimits for SHM_HUGETLB deprecated\n");
-+		} else
-+			return ERR_PTR(-EPERM);
-+	}
+ 	how = param->expire.how;
+ 	mnt = fp->f_path.mnt;
  
- 	root = hugetlbfs_vfsmount->mnt_root;
- 	quick_string.name = name;
-@@ -999,6 +1006,8 @@ out_inode:
- out_dentry:
- 	dput(dentry);
- out_shm_unlock:
-+	if (unlock_shm)
-+		user_shm_unlock(size, user);
- 	return ERR_PTR(error);
+-	if (autofs_type_trigger(sbi->type))
+-		dentry = autofs4_expire_direct(sbi->sb, mnt, sbi, how);
+-	else
+-		dentry = autofs4_expire_indirect(sbi->sb, mnt, sbi, how);
+-
+-	if (dentry) {
+-		struct autofs_info *ino = autofs4_dentry_ino(dentry);
+-
+-		/*
+-		 * This is synchronous because it makes the daemon a
+-		 * little easier
+-		*/
+-		err = autofs4_wait(sbi, dentry, NFY_EXPIRE);
+-
+-		spin_lock(&sbi->fs_lock);
+-		if (ino->flags & AUTOFS_INF_MOUNTPOINT) {
+-			ino->flags &= ~AUTOFS_INF_MOUNTPOINT;
+-			sbi->sb->s_root->d_mounted++;
+-		}
+-		ino->flags &= ~AUTOFS_INF_EXPIRING;
+-		complete_all(&ino->expire_complete);
+-		spin_unlock(&sbi->fs_lock);
+-		dput(dentry);
+-	}
+-
+-	return err;
++	return autofs4_do_expire_multi(sbi->sb, mnt, sbi, how);
  }
  
+ /* Check if autofs mount point is in use */
+diff -puN fs/autofs4/expire.c~autofs4-cleanup-expire-code-duplication fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs4-cleanup-expire-code-duplication
++++ a/fs/autofs4/expire.c
+@@ -478,22 +478,16 @@ int autofs4_expire_run(struct super_bloc
+ 	return ret;
+ }
+ 
+-/* Call repeatedly until it returns -EAGAIN, meaning there's nothing
+-   more to be done */
+-int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
+-			struct autofs_sb_info *sbi, int __user *arg)
++int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
++			    struct autofs_sb_info *sbi, int when)
+ {
+ 	struct dentry *dentry;
+ 	int ret = -EAGAIN;
+-	int do_now = 0;
+-
+-	if (arg && get_user(do_now, arg))
+-		return -EFAULT;
+ 
+ 	if (autofs_type_trigger(sbi->type))
+-		dentry = autofs4_expire_direct(sb, mnt, sbi, do_now);
++		dentry = autofs4_expire_direct(sb, mnt, sbi, when);
+ 	else
+-		dentry = autofs4_expire_indirect(sb, mnt, sbi, do_now);
++		dentry = autofs4_expire_indirect(sb, mnt, sbi, when);
+ 
+ 	if (dentry) {
+ 		struct autofs_info *ino = autofs4_dentry_ino(dentry);
+@@ -516,3 +510,16 @@ int autofs4_expire_multi(struct super_bl
+ 	return ret;
+ }
+ 
++/* Call repeatedly until it returns -EAGAIN, meaning there's nothing
++   more to be done */
++int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
++			struct autofs_sb_info *sbi, int __user *arg)
++{
++	int do_now = 0;
++
++	if (arg && get_user(do_now, arg))
++		return -EFAULT;
++
++	return autofs4_do_expire_multi(sb, mnt, sbi, do_now);
++}
++
 _
 
-Patches currently in -mm which might be from kiran@scalex86.org are
+Patches currently in -mm which might be from raven@themaw.net are
 
 origin.patch
-slab-leaks3-default-y.patch
+writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks.patch
+writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks-try-2.patch
 
