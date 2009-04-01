@@ -1,187 +1,624 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-convert-leap_year-into-an-inline.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:41:47 -0700
-Message-ID: <200904011841.n31IflRU009465@imap1.linux-foundation.org>
+Subject: [merged] drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:40:05 -0700
+Message-ID: <200904011840.n31Ie5Sv008907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45110 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761033AbZDAThd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:37:33 -0400
+	by vger.kernel.org with ESMTP id S1756614AbZDATiV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:38:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alessandro.zummo@towertech.it, dannf@hp.com, david-b@pacbell.net, eranian@googlemail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: daniel@caiaq.de, jic23@cam.ac.uk, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: convert LEAP_YEAR into an inline
+     drivers/misc/isl29003.c: driver for the ISL29003 ambient light sensor
 has been removed from the -mm tree.  Its filename was
-     rtc-convert-leap_year-into-an-inline.patch
+     drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: convert LEAP_YEAR into an inline
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/misc/isl29003.c: driver for the ISL29003 ambient light sensor
+From: Daniel Mack <daniel@caiaq.de>
 
-- the LEAP_YEAR macro is buggy - it references its arg multiple times. 
-  Fix this by turning it into a C function.
+Add a driver for Intersil's ISL29003 ambient light sensor device plus some
+documentation.  Inspired by tsl2550.c, a driver for a similar device.
 
-- give it a more approriate name
+It is put in drivers/misc for now until the industrial I/O framework gets
+merged.
 
-- Move it to rtc.h so that other .c files can use it, instead of copying it.
-
-Cc: dann frazier <dannf@hp.com>
-Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
-Cc: stephane eranian <eranian@googlemail.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-lib.c |    7 +++----
- include/linux/rtc.h   |    6 ++++++
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ Documentation/misc-devices/isl29003 |   62 +++
+ drivers/misc/Kconfig                |   10 
+ drivers/misc/Makefile               |    1 
+ drivers/misc/isl29003.c             |  470 ++++++++++++++++++++++++++
+ 4 files changed, 543 insertions(+)
 
-diff -puN drivers/rtc/rtc-lib.c~rtc-convert-leap_year-into-an-inline drivers/rtc/rtc-lib.c
---- a/drivers/rtc/rtc-lib.c~rtc-convert-leap_year-into-an-inline
-+++ a/drivers/rtc/rtc-lib.c
-@@ -26,14 +26,13 @@ static const unsigned short rtc_ydays[2]
- };
+diff -puN /dev/null Documentation/misc-devices/isl29003
+--- /dev/null
++++ a/Documentation/misc-devices/isl29003
+@@ -0,0 +1,62 @@
++Kernel driver isl29003
++=====================
++
++Supported chips:
++* Intersil ISL29003
++Prefix: 'isl29003'
++Addresses scanned: none
++Datasheet:
++http://www.intersil.com/data/fn/fn7464.pdf
++
++Author: Daniel Mack <daniel@caiaq.de>
++
++
++Description
++-----------
++The ISL29003 is an integrated light sensor with a 16-bit integrating type
++ADC, I2C user programmable lux range select for optimized counts/lux, and
++I2C multi-function control and monitoring capabilities. The internal ADC
++provides 16-bit resolution while rejecting 50Hz and 60Hz flicker caused by
++artificial light sources.
++
++The driver allows to set the lux range, the bit resolution, the operational
++mode (see below) and the power state of device and can read the current lux
++value, of course.
++
++
++Detection
++---------
++
++The ISL29003 does not have an ID register which could be used to identify
++it, so the detection routine will just try to read from the configured I2C
++addess and consider the device to be present as soon as it ACKs the
++transfer.
++
++
++Sysfs entries
++-------------
++
++range:
++	0: 0 lux to 1000 lux (default)
++	1: 0 lux to 4000 lux
++	2: 0 lux to 16,000 lux
++	3: 0 lux to 64,000 lux
++
++resolution:
++	0: 2^16 cycles (default)
++	1: 2^12 cycles
++	2: 2^8 cycles
++	3: 2^4 cycles
++
++mode:
++	0: diode1's current (unsigned 16bit) (default)
++	1: diode1's current (unsigned 16bit)
++	2: difference between diodes (l1 - l2, signed 15bit)
++
++power_state:
++	0: device is disabled (default)
++	1: device is enabled
++
++lux (read only):
++	returns the value from the last sensor reading
++
+diff -puN drivers/misc/Kconfig~drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor
++++ a/drivers/misc/Kconfig
+@@ -223,6 +223,16 @@ config DELL_LAPTOP
+ 	This driver adds support for rfkill and backlight control to Dell
+ 	laptops.
  
- #define LEAPS_THRU_END_OF(y) ((y)/4 - (y)/100 + (y)/400)
--#define LEAP_YEAR(year) ((!(year % 4) && (year % 100)) || !(year % 400))
++config ISL29003
++	tristate "Intersil ISL29003 ambient light sensor"
++	depends on I2C && SYSFS
++	help
++	  If you say yes here you get support for the Intersil ISL29003
++	  ambient light sensor.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called isl29003.
++
+ source "drivers/misc/c2port/Kconfig"
+ source "drivers/misc/eeprom/Kconfig"
  
- /*
-  * The number of days in the month.
-  */
- int rtc_month_days(unsigned int month, unsigned int year)
- {
--	return rtc_days_in_month[month] + (LEAP_YEAR(year) && month == 1);
-+	return rtc_days_in_month[month] + (is_leap_year(year) && month == 1);
- }
- EXPORT_SYMBOL(rtc_month_days);
- 
-@@ -42,7 +41,7 @@ EXPORT_SYMBOL(rtc_month_days);
-  */
- int rtc_year_days(unsigned int day, unsigned int month, unsigned int year)
- {
--	return rtc_ydays[LEAP_YEAR(year)][month] + day-1;
-+	return rtc_ydays[is_leap_year(year)][month] + day-1;
- }
- EXPORT_SYMBOL(rtc_year_days);
- 
-@@ -66,7 +65,7 @@ void rtc_time_to_tm(unsigned long time, 
- 		- LEAPS_THRU_END_OF(1970 - 1);
- 	if (days < 0) {
- 		year -= 1;
--		days += 365 + LEAP_YEAR(year);
-+		days += 365 + is_leap_year(year);
- 	}
- 	tm->tm_year = year - 1900;
- 	tm->tm_yday = days + 1;
-diff -puN include/linux/rtc.h~rtc-convert-leap_year-into-an-inline include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-convert-leap_year-into-an-inline
-+++ a/include/linux/rtc.h
-@@ -99,6 +99,7 @@ struct rtc_pll_info {
- 
- #ifdef __KERNEL__
- 
-+#include <linux/types.h>
- #include <linux/interrupt.h>
- 
- extern int rtc_month_days(unsigned int month, unsigned int year);
-@@ -232,6 +233,11 @@ int rtc_register(rtc_task_t *task);
- int rtc_unregister(rtc_task_t *task);
- int rtc_control(rtc_task_t *t, unsigned int cmd, unsigned long arg);
- 
-+static inline bool is_leap_year(unsigned int year)
+diff -puN drivers/misc/Makefile~drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor drivers/misc/Makefile
+--- a/drivers/misc/Makefile~drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor
++++ a/drivers/misc/Makefile
+@@ -18,5 +18,6 @@ obj-$(CONFIG_KGDB_TESTS)	+= kgdbts.o
+ obj-$(CONFIG_SGI_XP)		+= sgi-xp/
+ obj-$(CONFIG_SGI_GRU)		+= sgi-gru/
+ obj-$(CONFIG_HP_ILO)		+= hpilo.o
++obj-$(CONFIG_ISL29003)		+= isl29003.o
+ obj-$(CONFIG_C2PORT)		+= c2port/
+ obj-y				+= eeprom/
+diff -puN /dev/null drivers/misc/isl29003.c
+--- /dev/null
++++ a/drivers/misc/isl29003.c
+@@ -0,0 +1,470 @@
++/*
++ *  isl29003.c - Linux kernel module for
++ * 	Intersil ISL29003 ambient light sensor
++ *
++ *  See file:Documentation/misc-devices/isl29003
++ *
++ *  Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
++ *
++ *  Based on code written by
++ *  	Rodolfo Giometti <giometti@linux.it>
++ *  	Eurotech S.p.A. <info@eurotech.it>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/mutex.h>
++#include <linux/delay.h>
++
++#define ISL29003_DRV_NAME	"isl29003"
++#define DRIVER_VERSION		"1.0"
++
++#define ISL29003_REG_COMMAND		0x00
++#define ISL29003_ADC_ENABLED		(1 << 7)
++#define ISL29003_ADC_PD			(1 << 6)
++#define ISL29003_TIMING_INT		(1 << 5)
++#define ISL29003_MODE_SHIFT		(2)
++#define ISL29003_MODE_MASK		(0x3 << ISL29003_MODE_SHIFT)
++#define ISL29003_RES_SHIFT		(0)
++#define ISL29003_RES_MASK		(0x3 << ISL29003_RES_SHIFT)
++
++#define ISL29003_REG_CONTROL		0x01
++#define ISL29003_INT_FLG		(1 << 5)
++#define ISL29003_RANGE_SHIFT		(2)
++#define ISL29003_RANGE_MASK		(0x3 << ISL29003_RANGE_SHIFT)
++#define ISL29003_INT_PERSISTS_SHIFT	(0)
++#define ISL29003_INT_PERSISTS_MASK	(0xf << ISL29003_INT_PERSISTS_SHIFT)
++
++#define ISL29003_REG_IRQ_THRESH_HI	0x02
++#define ISL29003_REG_IRQ_THRESH_LO	0x03
++#define ISL29003_REG_LSB_SENSOR		0x04
++#define ISL29003_REG_MSB_SENSOR		0x05
++#define ISL29003_REG_LSB_TIMER		0x06
++#define ISL29003_REG_MSB_TIMER		0x07
++
++#define ISL29003_NUM_CACHABLE_REGS	4
++
++struct isl29003_data {
++	struct i2c_client *client;
++	struct mutex lock;
++	u8 reg_cache[ISL29003_NUM_CACHABLE_REGS];
++};
++
++static int gain_range[] = {
++	1000, 4000, 16000, 64000
++};
++
++/*
++ * register access helpers
++ */
++
++static int __isl29003_read_reg(struct i2c_client *client,
++			       u32 reg, u8 mask, u8 shift)
 +{
-+	return (!(year % 4) && (year % 100)) || !(year % 400);
++	struct isl29003_data *data = i2c_get_clientdata(client);
++	return (data->reg_cache[reg] & mask) >> shift;
 +}
 +
- #endif /* __KERNEL__ */
- 
- #endif /* _LINUX_RTC_H_ */
++static int __isl29003_write_reg(struct i2c_client *client,
++				u32 reg, u8 mask, u8 shift, u8 val)
++{
++	struct isl29003_data *data = i2c_get_clientdata(client);
++	int ret = 0;
++	u8 tmp;
++
++	if (reg >= ISL29003_NUM_CACHABLE_REGS)
++		return -EINVAL;
++
++	mutex_lock(&data->lock);
++
++	tmp = data->reg_cache[reg];
++	tmp &= ~mask;
++	tmp |= val << shift;
++
++	ret = i2c_smbus_write_byte_data(client, reg, tmp);
++	if (!ret)
++		data->reg_cache[reg] = tmp;
++
++	mutex_unlock(&data->lock);
++	return ret;
++}
++
++/*
++ * internally used functions
++ */
++
++/* range */
++static int isl29003_get_range(struct i2c_client *client)
++{
++	return __isl29003_read_reg(client, ISL29003_REG_CONTROL,
++		ISL29003_RANGE_MASK, ISL29003_RANGE_SHIFT);
++}
++
++static int isl29003_set_range(struct i2c_client *client, int range)
++{
++	return __isl29003_write_reg(client, ISL29003_REG_CONTROL,
++		ISL29003_RANGE_MASK, ISL29003_RANGE_SHIFT, range);
++}
++
++/* resolution */
++static int isl29003_get_resolution(struct i2c_client *client)
++{
++	return __isl29003_read_reg(client, ISL29003_REG_COMMAND,
++		ISL29003_RES_MASK, ISL29003_RES_SHIFT);
++}
++
++static int isl29003_set_resolution(struct i2c_client *client, int res)
++{
++	return __isl29003_write_reg(client, ISL29003_REG_COMMAND,
++		ISL29003_RES_MASK, ISL29003_RES_SHIFT, res);
++}
++
++/* mode */
++static int isl29003_get_mode(struct i2c_client *client)
++{
++	return __isl29003_read_reg(client, ISL29003_REG_COMMAND,
++		ISL29003_RES_MASK, ISL29003_RES_SHIFT);
++}
++
++static int isl29003_set_mode(struct i2c_client *client, int mode)
++{
++	return __isl29003_write_reg(client, ISL29003_REG_COMMAND,
++		ISL29003_RES_MASK, ISL29003_RES_SHIFT, mode);
++}
++
++/* power_state */
++static int isl29003_set_power_state(struct i2c_client *client, int state)
++{
++	return __isl29003_write_reg(client, ISL29003_REG_COMMAND,
++				ISL29003_ADC_ENABLED | ISL29003_ADC_PD, 0,
++				state ? ISL29003_ADC_ENABLED : ISL29003_ADC_PD);
++}
++
++static int isl29003_get_power_state(struct i2c_client *client)
++{
++	struct isl29003_data *data = i2c_get_clientdata(client);
++	u8 cmdreg = data->reg_cache[ISL29003_REG_COMMAND];
++	return ~cmdreg & ISL29003_ADC_PD;
++}
++
++static int isl29003_get_adc_value(struct i2c_client *client)
++{
++	struct isl29003_data *data = i2c_get_clientdata(client);
++	int lsb, msb, range, bitdepth;
++
++	mutex_lock(&data->lock);
++	lsb = i2c_smbus_read_byte_data(client, ISL29003_REG_LSB_SENSOR);
++
++	if (lsb < 0) {
++		mutex_unlock(&data->lock);
++		return lsb;
++	}
++
++	msb = i2c_smbus_read_byte_data(client, ISL29003_REG_MSB_SENSOR);
++	mutex_unlock(&data->lock);
++
++	if (msb < 0)
++		return msb;
++
++	range = isl29003_get_range(client);
++	bitdepth = (4 - isl29003_get_resolution(client)) * 4;
++	return (((msb << 8) | lsb) * gain_range[range]) >> bitdepth;
++}
++
++/*
++ * sysfs layer
++ */
++
++/* range */
++static ssize_t isl29003_show_range(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	return sprintf(buf, "%i\n", isl29003_get_range(client));
++}
++
++static ssize_t isl29003_store_range(struct device *dev,
++				    struct device_attribute *attr,
++				    const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	unsigned long val;
++	int ret;
++
++	if ((strict_strtoul(buf, 10, &val) < 0) || (val > 3))
++		return -EINVAL;
++
++	ret = isl29003_set_range(client, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static DEVICE_ATTR(range, S_IWUSR | S_IRUGO,
++		   isl29003_show_range, isl29003_store_range);
++
++
++/* resolution */
++static ssize_t isl29003_show_resolution(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	return sprintf(buf, "%d\n", isl29003_get_resolution(client));
++}
++
++static ssize_t isl29003_store_resolution(struct device *dev,
++					 struct device_attribute *attr,
++					 const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	unsigned long val;
++	int ret;
++
++	if ((strict_strtoul(buf, 10, &val) < 0) || (val > 3))
++		return -EINVAL;
++
++	ret = isl29003_set_resolution(client, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static DEVICE_ATTR(resolution, S_IWUSR | S_IRUGO,
++		   isl29003_show_resolution, isl29003_store_resolution);
++
++/* mode */
++static ssize_t isl29003_show_mode(struct device *dev,
++				  struct device_attribute *attr, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	return sprintf(buf, "%d\n", isl29003_get_mode(client));
++}
++
++static ssize_t isl29003_store_mode(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	unsigned long val;
++	int ret;
++
++	if ((strict_strtoul(buf, 10, &val) < 0) || (val > 2))
++		return -EINVAL;
++
++	ret = isl29003_set_mode(client, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static DEVICE_ATTR(mode, S_IWUSR | S_IRUGO,
++		   isl29003_show_mode, isl29003_store_mode);
++
++
++/* power state */
++static ssize_t isl29003_show_power_state(struct device *dev,
++					 struct device_attribute *attr,
++					 char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	return sprintf(buf, "%d\n", isl29003_get_power_state(client));
++}
++
++static ssize_t isl29003_store_power_state(struct device *dev,
++					  struct device_attribute *attr,
++					  const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	unsigned long val;
++	int ret;
++
++	if ((strict_strtoul(buf, 10, &val) < 0) || (val > 1))
++		return -EINVAL;
++
++	ret = isl29003_set_power_state(client, val);
++	return ret ? ret : count;
++}
++
++static DEVICE_ATTR(power_state, S_IWUSR | S_IRUGO,
++		   isl29003_show_power_state, isl29003_store_power_state);
++
++
++/* lux */
++static ssize_t isl29003_show_lux(struct device *dev,
++				 struct device_attribute *attr, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++
++	/* No LUX data if not operational */
++	if (!isl29003_get_power_state(client))
++		return -EBUSY;
++
++	return sprintf(buf, "%d\n", isl29003_get_adc_value(client));
++}
++
++static DEVICE_ATTR(lux, S_IRUGO, isl29003_show_lux, NULL);
++
++static struct attribute *isl29003_attributes[] = {
++	&dev_attr_range.attr,
++	&dev_attr_resolution.attr,
++	&dev_attr_mode.attr,
++	&dev_attr_power_state.attr,
++	&dev_attr_lux.attr,
++	NULL
++};
++
++static const struct attribute_group isl29003_attr_group = {
++	.attrs = isl29003_attributes,
++};
++
++static int isl29003_init_client(struct i2c_client *client)
++{
++	struct isl29003_data *data = i2c_get_clientdata(client);
++	int i;
++
++	/* read all the registers once to fill the cache.
++	 * if one of the reads fails, we consider the init failed */
++	for (i = 0; i < ARRAY_SIZE(data->reg_cache); i++) {
++		int v = i2c_smbus_read_byte_data(client, i);
++		if (v < 0)
++			return -ENODEV;
++
++		data->reg_cache[i] = v;
++	}
++
++	/* set defaults */
++	isl29003_set_range(client, 0);
++	isl29003_set_resolution(client, 0);
++	isl29003_set_mode(client, 0);
++	isl29003_set_power_state(client, 0);
++
++	return 0;
++}
++
++/*
++ * I2C layer
++ */
++
++static int __devinit isl29003_probe(struct i2c_client *client,
++				    const struct i2c_device_id *id)
++{
++	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
++	struct isl29003_data *data;
++	int err = 0;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
++		return -EIO;
++
++	data = kzalloc(sizeof(struct isl29003_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->client = client;
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->lock);
++
++	/* initialize the ISL29003 chip */
++	err = isl29003_init_client(client);
++	if (err)
++		goto exit_kfree;
++
++	/* register sysfs hooks */
++	err = sysfs_create_group(&client->dev.kobj, &isl29003_attr_group);
++	if (err)
++		goto exit_kfree;
++
++	dev_info(&client->dev, "driver version %s enabled\n", DRIVER_VERSION);
++	return 0;
++
++exit_kfree:
++	kfree(data);
++	return err;
++}
++
++static int __devexit isl29003_remove(struct i2c_client *client)
++{
++	sysfs_remove_group(&client->dev.kobj, &isl29003_attr_group);
++	isl29003_set_power_state(client, 0);
++	kfree(i2c_get_clientdata(client));
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int isl29003_suspend(struct i2c_client *client, pm_message_t mesg)
++{
++	return isl29003_set_power_state(client, 0);
++}
++
++static int isl29003_resume(struct i2c_client *client)
++{
++	int i;
++	struct isl29003_data *data = i2c_get_clientdata(client);
++
++	/* restore registers from cache */
++	for (i = 0; i < ARRAY_SIZE(data->reg_cache); i++)
++		if (!i2c_smbus_write_byte_data(client, i, data->reg_cache[i]))
++			return -EIO;
++
++	return 0;
++}
++
++#else
++#define isl29003_suspend	NULL
++#define isl29003_resume		NULL
++#endif /* CONFIG_PM */
++
++static const struct i2c_device_id isl29003_id[] = {
++	{ "isl29003", 0 },
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, isl29003_id);
++
++static struct i2c_driver isl29003_driver = {
++	.driver = {
++		.name	= ISL29003_DRV_NAME,
++		.owner	= THIS_MODULE,
++	},
++	.suspend = isl29003_suspend,
++	.resume	= isl29003_resume,
++	.probe	= isl29003_probe,
++	.remove	= __devexit_p(isl29003_remove),
++	.id_table = isl29003_id,
++};
++
++static int __init isl29003_init(void)
++{
++	return i2c_add_driver(&isl29003_driver);
++}
++
++static void __exit isl29003_exit(void)
++{
++	i2c_del_driver(&isl29003_driver);
++}
++
++MODULE_AUTHOR("Daniel Mack <daniel@caiaq.de>");
++MODULE_DESCRIPTION("ISL29003 ambient light sensor driver");
++MODULE_LICENSE("GPL v2");
++MODULE_VERSION(DRIVER_VERSION);
++
++module_init(isl29003_init);
++module_exit(isl29003_exit);
++
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
 origin.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-arch-x86-mm-iomap_32c-fix-warning.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-flex-onenand-support-v2-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional-fix.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-simplify-copy_thread-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-kernel-auditscc-fix-warning.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-page-owner-tracking.patch
-page-owner-tracking-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-coding-style-cleanups-in-w1_ioc.patch
 
