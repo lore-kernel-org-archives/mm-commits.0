@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-tty-switch-cyclades-to-proc_fops.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:33:35 -0700
-Message-ID: <200904011833.n31IXZZ4006761@imap1.linux-foundation.org>
+Subject: [merged] proc-tty-switch-ip2-to-proc_fops.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:33:37 -0700
+Message-ID: <200904011833.n31IXbLP006772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39006 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757766AbZDASgJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:36:09 -0400
+	by vger.kernel.org with ESMTP id S1758391AbZDASgT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:36:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc tty: switch cyclades to ->proc_fops
+     proc tty: switch ip2 to ->proc_fops
 has been removed from the -mm tree.  Its filename was
-     proc-tty-switch-cyclades-to-proc_fops.patch
+     proc-tty-switch-ip2-to-proc_fops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch cyclades to ->proc_fops
+Subject: proc tty: switch ip2 to ->proc_fops
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
@@ -31,121 +31,172 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   54 ++++++++++++++------------------------
- 1 file changed, 20 insertions(+), 34 deletions(-)
+ drivers/char/ip2/ip2main.c |   74 ++++++++++++++++-------------------
+ 1 file changed, 34 insertions(+), 40 deletions(-)
 
-diff -puN drivers/char/cyclades.c~proc-tty-switch-cyclades-to-proc_fops drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~proc-tty-switch-cyclades-to-proc_fops
-+++ a/drivers/char/cyclades.c
-@@ -657,6 +657,7 @@
+diff -puN drivers/char/ip2/ip2main.c~proc-tty-switch-ip2-to-proc_fops drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~proc-tty-switch-ip2-to-proc_fops
++++ a/drivers/char/ip2/ip2main.c
+@@ -139,7 +139,7 @@
+ #include <linux/seq_file.h>
  
- #include <linux/stat.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
+ static const struct file_operations ip2mem_proc_fops;
+-static int ip2_read_proc(char *, char **, off_t, int, int *, void * );
++static const struct file_operations ip2_proc_fops;
  
- static void cy_throttle(struct tty_struct *tty);
- static void cy_send_xchar(struct tty_struct *tty, char ch);
-@@ -868,8 +869,6 @@ static int cyz_issue_cmd(struct cyclades
- static unsigned detect_isa_irq(void __iomem *);
- #endif				/* CONFIG_ISA */
- 
--static int cyclades_get_proc_info(char *, char **, off_t, int, int *, void *);
--
- #ifndef CONFIG_CYZ_INTR
- static void cyz_poll(unsigned long);
- 
-@@ -5216,31 +5215,22 @@ static struct pci_driver cy_pci_driver =
+ /********************/
+ /* Type Definitions */
+@@ -446,9 +446,9 @@ static const struct tty_operations ip2_o
+ 	.stop            = ip2_stop,
+ 	.start           = ip2_start,
+ 	.hangup          = ip2_hangup,
+-	.read_proc       = ip2_read_proc,
+ 	.tiocmget	 = ip2_tiocmget,
+ 	.tiocmset	 = ip2_tiocmset,
++	.proc_fops	 = &ip2_proc_fops,
  };
- #endif
  
--static int
--cyclades_get_proc_info(char *buf, char **start, off_t offset, int length,
--		int *eof, void *data)
-+static int cyclades_proc_show(struct seq_file *m, void *v)
+ /******************************************************************************/
+@@ -3029,19 +3029,17 @@ static const struct file_operations ip2m
+  * different sources including ip2mkdev.c and a couple of other drivers.
+  * The bugs are all mine.  :-)	=mhw=
+  */
+-static int ip2_read_proc(char *page, char **start, off_t off,
+-				int count, int *eof, void *data)
++static int ip2_proc_show(struct seq_file *m, void *v)
  {
- 	struct cyclades_port *info;
- 	unsigned int i, j;
--	int len = 0;
--	off_t begin = 0;
--	off_t pos = 0;
--	int size;
- 	__u32 cur_jifs = jiffies;
+ 	int	i, j, box;
+-	int	len = 0;
+ 	int	boxes = 0;
+ 	int	ports = 0;
+ 	int	tports = 0;
+-	off_t	begin = 0;
+ 	i2eBordStrPtr  pB;
++	char *sep;
  
--	size = sprintf(buf, "Dev TimeOpen   BytesOut  IdleOut    BytesIn   "
-+	seq_puts(m, "Dev TimeOpen   BytesOut  IdleOut    BytesIn   "
- 			"IdleIn  Overruns  Ldisc\n");
+-	len += sprintf(page, "ip2info: 1.0 driver: %s\n", pcVersion );
+-	len += sprintf(page+len, "Driver: SMajor=%d CMajor=%d IMajor=%d MaxBoards=%d MaxBoxes=%d MaxPorts=%d\n",
++	seq_printf(m, "ip2info: 1.0 driver: %s\n", pcVersion);
++	seq_printf(m, "Driver: SMajor=%d CMajor=%d IMajor=%d MaxBoards=%d MaxBoxes=%d MaxPorts=%d\n",
+ 			IP2_TTY_MAJOR, IP2_CALLOUT_MAJOR, IP2_IPL_MAJOR,
+ 			IP2_MAX_BOARDS, ABS_MAX_BOXES, ABS_BIGGEST_BOX);
  
--	pos += size;
--	len += size;
+@@ -3053,7 +3051,8 @@ static int ip2_read_proc(char *page, cha
+ 			switch( pB->i2ePom.e.porID & ~POR_ID_RESERVED ) 
+ 			{
+ 			case POR_ID_FIIEX:
+-				len += sprintf( page+len, "Board %d: EX ports=", i );
++				seq_printf(m, "Board %d: EX ports=", i);
++				sep = "";
+ 				for( box = 0; box < ABS_MAX_BOXES; ++box )
+ 				{
+ 					ports = 0;
+@@ -3065,79 +3064,74 @@ static int ip2_read_proc(char *page, cha
+ 							++ports;
+ 						}
+ 					}
+-					len += sprintf( page+len, "%d,", ports );
++					seq_printf(m, "%s%d", sep, ports);
++					sep = ",";
+ 					tports += ports;
+ 				}
 -
- 	/* Output one line for each known port */
- 	for (i = 0; i < NR_CARDS; i++)
- 		for (j = 0; j < cy_card[i].nports; j++) {
- 			info = &cy_card[i].ports[j];
- 
- 			if (info->port.count)
--				size = sprintf(buf + len, "%3d %8lu %10lu %8lu "
-+				seq_printf(m, "%3d %8lu %10lu %8lu "
- 					"%10lu %8lu %9lu %6ld\n", info->line,
- 					(cur_jifs - info->idle_stats.in_use) /
- 					HZ, info->idle_stats.xmit_bytes,
-@@ -5251,30 +5241,26 @@ cyclades_get_proc_info(char *buf, char *
- 					/* FIXME: double check locking */
- 					(long)info->port.tty->ldisc.ops->num);
- 			else
--				size = sprintf(buf + len, "%3d %8lu %10lu %8lu "
-+				seq_printf(m, "%3d %8lu %10lu %8lu "
- 					"%10lu %8lu %9lu %6ld\n",
- 					info->line, 0L, 0L, 0L, 0L, 0L, 0L, 0L);
--			len += size;
--			pos = begin + len;
+-				--len;	/* Backup over that last comma */
 -
--			if (pos < offset) {
--				len = 0;
--				begin = pos;
--			}
--			if (pos > offset + length)
--				goto done;
+-				len += sprintf( page+len, " boxes=%d width=%d", boxes, pB->i2eDataWidth16 ? 16 : 8 );
++				seq_printf(m, " boxes=%d width=%d", boxes, pB->i2eDataWidth16 ? 16 : 8);
+ 				break;
+ 
+ 			case POR_ID_II_4:
+-				len += sprintf(page+len, "Board %d: ISA-4 ports=4 boxes=1", i );
++				seq_printf(m, "Board %d: ISA-4 ports=4 boxes=1", i);
+ 				tports = ports = 4;
+ 				break;
+ 
+ 			case POR_ID_II_8:
+-				len += sprintf(page+len, "Board %d: ISA-8-std ports=8 boxes=1", i );
++				seq_printf(m, "Board %d: ISA-8-std ports=8 boxes=1", i);
+ 				tports = ports = 8;
+ 				break;
+ 
+ 			case POR_ID_II_8R:
+-				len += sprintf(page+len, "Board %d: ISA-8-RJ11 ports=8 boxes=1", i );
++				seq_printf(m, "Board %d: ISA-8-RJ11 ports=8 boxes=1", i);
+ 				tports = ports = 8;
+ 				break;
+ 
+ 			default:
+-				len += sprintf(page+len, "Board %d: unknown", i );
++				seq_printf(m, "Board %d: unknown", i);
+ 				/* Don't try and probe for minor numbers */
+ 				tports = ports = 0;
+ 			}
+ 
+ 		} else {
+ 			/* Don't try and probe for minor numbers */
+-			len += sprintf(page+len, "Board %d: vacant", i );
++			seq_printf(m, "Board %d: vacant", i);
+ 			tports = ports = 0;
  		}
--	*eof = 1;
--done:
--	*start = buf + (offset - begin);	/* Start of wanted data */
--	len -= (offset - begin);	/* Start slop */
--	if (len > length)
--		len = length;	/* Ending slop */
--	if (len < 0)
--		len = 0;
--	return len;
-+	return 0;
-+}
-+
-+static int cyclades_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, cyclades_proc_show, NULL);
- }
  
-+static const struct file_operations cyclades_proc_fops = {
+ 		if( tports ) {
+-			len += sprintf(page+len, " minors=" );
+-
++			seq_puts(m, " minors=");
++			sep = "";
+ 			for ( box = 0; box < ABS_MAX_BOXES; ++box )
+ 			{
+ 				for ( j = 0; j < ABS_BIGGEST_BOX; ++j )
+ 				{
+ 					if ( pB->i2eChannelMap[box] & (1 << j) )
+ 					{
+-						len += sprintf (page+len,"%d,",
++						seq_printf(m, "%s%d", sep,
+ 							j + ABS_BIGGEST_BOX *
+ 							(box+i*ABS_MAX_BOXES));
++						sep = ",";
+ 					}
+ 				}
+ 			}
+-
+-			page[ len - 1 ] = '\n';	/* Overwrite that last comma */
+-		} else {
+-			len += sprintf (page+len,"\n" );
+-		}
+-
+-		if (len+begin > off+count)
+-			break;
+-		if (len+begin < off) {
+-			begin += len;
+-			len = 0;
+ 		}
++		seq_putc(m, '\n');
+ 	}
++	return 0;
++ }
+ 
+-	if (i >= IP2_MAX_BOARDS)
+-		*eof = 1;
+-	if (off >= len+begin)
+-		return 0;
++static int ip2_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, ip2_proc_show, NULL);
++}
+ 
+-	*start = page + (off-begin);
+-	return ((count < begin+len-off) ? count : begin+len-off);
+- }
++static const struct file_operations ip2_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= cyclades_proc_open,
++	.open		= ip2_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
-+
- /* The serial driver boot-time initialization code!
-     Hardware I/O ports are mapped to character special devices on a
-     first found, first allocated manner.  That is, this code searches
-@@ -5311,9 +5297,9 @@ static const struct tty_operations cy_op
- 	.hangup = cy_hangup,
- 	.break_ctl = cy_break,
- 	.wait_until_sent = cy_wait_until_sent,
--	.read_proc = cyclades_get_proc_info,
- 	.tiocmget = cy_tiocmget,
- 	.tiocmset = cy_tiocmset,
-+	.proc_fops = &cyclades_proc_fops,
- };
- 
- static int __init cy_init(void)
+  
+ /******************************************************************************/
+ /* Function:   ip2trace()                                                     */
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
