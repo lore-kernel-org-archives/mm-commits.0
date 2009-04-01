@@ -1,127 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-v3020-coding-style-cleanup.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:14 -0700
-Message-ID: <200904011842.n31IgEs4009633@imap1.linux-foundation.org>
+Subject: [merged] cirrusfb-do-not-calculate-line-length-twice.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:42:32 -0700
+Message-ID: <200904011842.n31IgWAh009743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755756AbZDATdR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:33:17 -0400
+	by vger.kernel.org with ESMTP id S1756778AbZDATd3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:33:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike@compulab.co.il, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, arthur.marsh@internode.on.net, geert.uytterhoeven@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-v3020: coding style cleanup
+     cirrusfb: do not calculate line length twice
 has been removed from the -mm tree.  Its filename was
-     rtc-v3020-coding-style-cleanup.patch
+     cirrusfb-do-not-calculate-line-length-twice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-v3020: coding style cleanup
-From: Mike Rapoport <mike@compulab.co.il>
+Subject: cirrusfb: do not calculate line length twice
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+A line length is calculated twice: first in the cirrusfb_decode_var() then
+in the cirrusfb_set_par_foo().
+
+Use the first calculated value.  A nice side effect is that 32bpp mode
+works now.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Geert Uytterhoeven <geert.uytterhoeven@gmail.com>
+Cc: Arthur Marsh <arthur.marsh@internode.on.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-v3020.c |   40 +++++++++++++++++---------------------
- 1 file changed, 18 insertions(+), 22 deletions(-)
+ drivers/video/cirrusfb.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-v3020.c~rtc-v3020-coding-style-cleanup drivers/rtc/rtc-v3020.c
---- a/drivers/rtc/rtc-v3020.c~rtc-v3020-coding-style-cleanup
-+++ a/drivers/rtc/rtc-v3020.c
-@@ -28,7 +28,7 @@
- #include <linux/rtc-v3020.h>
- #include <linux/delay.h>
- 
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- #undef DEBUG
- 
-@@ -63,7 +63,7 @@ static void v3020_set_reg(struct v3020 *
- 
- static unsigned char v3020_get_reg(struct v3020 *chip, unsigned char address)
- {
--	unsigned int data=0;
-+	unsigned int data = 0;
- 	int i;
- 
- 	for (i = 0; i < 4; i++) {
-@@ -106,16 +106,14 @@ static int v3020_read_time(struct device
- 	tmp = v3020_get_reg(chip, V3020_YEAR);
- 	dt->tm_year = bcd2bin(tmp)+100;
- 
--#ifdef DEBUG
--	printk("\n%s : Read RTC values\n",__func__);
--	printk("tm_hour: %i\n",dt->tm_hour);
--	printk("tm_min : %i\n",dt->tm_min);
--	printk("tm_sec : %i\n",dt->tm_sec);
--	printk("tm_year: %i\n",dt->tm_year);
--	printk("tm_mon : %i\n",dt->tm_mon);
--	printk("tm_mday: %i\n",dt->tm_mday);
--	printk("tm_wday: %i\n",dt->tm_wday);
--#endif
-+	dev_dbg(dev, "\n%s : Read RTC values\n", __func__);
-+	dev_dbg(dev, "tm_hour: %i\n", dt->tm_hour);
-+	dev_dbg(dev, "tm_min : %i\n", dt->tm_min);
-+	dev_dbg(dev, "tm_sec : %i\n", dt->tm_sec);
-+	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
-+	dev_dbg(dev, "tm_mon : %i\n", dt->tm_mon);
-+	dev_dbg(dev, "tm_mday: %i\n", dt->tm_mday);
-+	dev_dbg(dev, "tm_wday: %i\n", dt->tm_wday);
- 
- 	return 0;
- }
-@@ -125,15 +123,13 @@ static int v3020_set_time(struct device 
- {
- 	struct v3020 *chip = dev_get_drvdata(dev);
- 
--#ifdef DEBUG
--	printk("\n%s : Setting RTC values\n",__func__);
--	printk("tm_sec : %i\n",dt->tm_sec);
--	printk("tm_min : %i\n",dt->tm_min);
--	printk("tm_hour: %i\n",dt->tm_hour);
--	printk("tm_mday: %i\n",dt->tm_mday);
--	printk("tm_wday: %i\n",dt->tm_wday);
--	printk("tm_year: %i\n",dt->tm_year);
--#endif
-+	dev_dbg(dev, "\n%s : Setting RTC values\n", __func__);
-+	dev_dbg(dev, "tm_sec : %i\n", dt->tm_sec);
-+	dev_dbg(dev, "tm_min : %i\n", dt->tm_min);
-+	dev_dbg(dev, "tm_hour: %i\n", dt->tm_hour);
-+	dev_dbg(dev, "tm_mday: %i\n", dt->tm_mday);
-+	dev_dbg(dev, "tm_wday: %i\n", dt->tm_wday);
-+	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
- 
- 	/* Write all the values to ram... */
- 	v3020_set_reg(chip, V3020_SECONDS, 	bin2bcd(dt->tm_sec));
-@@ -191,7 +187,7 @@ static int rtc_probe(struct platform_dev
- 	/* Test chip by doing a write/read sequence
- 	 * to the chip ram */
- 	v3020_set_reg(chip, V3020_SECONDS, 0x33);
--	if(v3020_get_reg(chip, V3020_SECONDS) != 0x33) {
-+	if (v3020_get_reg(chip, V3020_SECONDS) != 0x33) {
- 		retval = -ENODEV;
- 		goto err_io;
+diff -puN drivers/video/cirrusfb.c~cirrusfb-do-not-calculate-line-length-twice drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-do-not-calculate-line-length-twice
++++ a/drivers/video/cirrusfb.c
+@@ -694,7 +694,8 @@ static int cirrusfb_set_par_foo(struct f
+ 	struct cirrusfb_regs regs;
+ 	u8 __iomem *regbase = cinfo->regbase;
+ 	unsigned char tmp;
+-	int offset = 0, err;
++	int err;
++	int pitch;
+ 	const struct cirrusfb_board_info_rec *bi;
+ 	int hdispend, hsyncstart, hsyncend, htotal;
+ 	int yres, vdispend, vsyncstart, vsyncend, vtotal;
+@@ -1027,7 +1028,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x06);
+ 		/* plane mask: only write to first plane */
+ 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0x01);
+-		offset = var->xres_virtual / 16;
  	}
+ 
+ 	/******************************************************
+@@ -1113,7 +1113,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x0a);
+ 		/* plane mask: enable writing to all 4 planes */
+ 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0xff);
+-		offset = var->xres_virtual / 8;
+ 	}
+ 
+ 	/******************************************************
+@@ -1190,7 +1189,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x0a);
+ 		/* plane mask: enable writing to all 4 planes */
+ 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0xff);
+-		offset = var->xres_virtual / 4;
+ 	}
+ 
+ 	/******************************************************
+@@ -1263,7 +1261,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x0a);
+ 		/* plane mask: enable writing to all 4 planes */
+ 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0xff);
+-		offset = var->xres_virtual / 4;
+ 	}
+ 
+ 	/******************************************************
+@@ -1277,9 +1274,10 @@ static int cirrusfb_set_par_foo(struct f
+ 			"What's this? requested color depth == %d.\n",
+ 			var->bits_per_pixel);
+ 
+-	vga_wcrt(regbase, VGA_CRTC_OFFSET, offset & 0xff);
++	pitch = info->fix.line_length >> 3;
++	vga_wcrt(regbase, VGA_CRTC_OFFSET, pitch & 0xff);
+ 	tmp = 0x22;
+-	if (offset & 0x100)
++	if (pitch & 0x100)
+ 		tmp |= 0x10;	/* offset overflow bit */
+ 
+ 	/* screen start addr #16-18, fastpagemode cycles */
+@@ -1287,7 +1285,7 @@ static int cirrusfb_set_par_foo(struct f
+ 
+ 	/* screen start address bit 19 */
+ 	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
+-		vga_wcrt(regbase, CL_CRT1D, 0x00);
++		vga_wcrt(regbase, CL_CRT1D, (pitch >> 9) & 1);
+ 
+ 	if (cinfo->btype == BT_LAGUNA ||
+ 	    cinfo->btype == BT_GD5480) {
 _
 
-Patches currently in -mm which might be from mike@compulab.co.il are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 linux-next.patch
-spi_bfin5xx-remove-unused-is_dma_aligned-macro.patch
-spi-add-dma_alignment-field-to-spi_master.patch
-pxa2xx_spi-set-spi_masterdma_alignment-=-8.patch
-spi_imx-set-spi_masterdma_alignment-=-4.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
+tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
+tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
 
