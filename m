@@ -1,129 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-fix-page_mkwrite-error-cases-in-core-code-and-btrfs.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:38:38 -0700
-Message-ID: <200904011838.n31Icc0a008299@imap1.linux-foundation.org>
+Subject: [merged] mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:34:41 -0700
+Message-ID: <200904011834.n31IYfaF007251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759659AbZDASlk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:41:40 -0400
+	by vger.kernel.org with ESMTP id S1765439AbZDASl7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:41:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, chris.mason@oracle.com, mm-commits@vger.kernel.org
+To: kiran@scalex86.org, agl@us.ibm.com, mel@csn.ul.ie, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: fix page_mkwrite error cases in core code and btrfs
+     mm: fix SHM_HUGETLB to work with users in hugetlb_shm_group
 has been removed from the -mm tree.  Its filename was
-     fs-fix-page_mkwrite-error-cases-in-core-code-and-btrfs.patch
+     mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: fix page_mkwrite error cases in core code and btrfs
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm: fix SHM_HUGETLB to work with users in hugetlb_shm_group
+From: Ravikiran G Thirumalai <kiran@scalex86.org>
 
-page_mkwrite is called with neither the page lock nor the ptl held.  This
-means a page can be concurrently truncated or invalidated out from
-underneath it.  Callers are supposed to prevent truncate races themselves,
-however previously the only thing they can do in case they hit one is to
-raise a SIGBUS.  A sigbus is wrong for the case that the page has been
-invalidated or truncated within i_size (eg.  hole punched).  Callers may
-also have to perform memory allocations in this path, where again, SIGBUS
-would be wrong.
+Fix hugetlb subsystem so that non root users belonging to
+hugetlb_shm_group can actually allocate hugetlb backed shm.
 
-The previous patch ("mm: page_mkwrite change prototype to match fault")
-made it possible to properly specify errors.  Convert the generic buffer.c
-code and btrfs to return sane error values (in the case of page removed
-from pagecache, VM_FAULT_NOPAGE will cause the fault handler to exit
-without doing anything, and the fault will be retried properly).
+Currently non root users cannot even map one large page using SHM_HUGETLB
+when they belong to the gid in /proc/sys/vm/hugetlb_shm_group.  This is
+because allocation size is verified against RLIMIT_MEMLOCK resource limit
+even if the user belongs to hugetlb_shm_group.
 
-This fixes core code, and converts btrfs as a template/example.  All other
-filesystems defining their own page_mkwrite should be fixed in a similar
-manner.
+This patch
+1. Fixes hugetlb subsystem so that users with CAP_IPC_LOCK and users
+   belonging to hugetlb_shm_group don't need to be restricted with
+   RLIMIT_MEMLOCK resource limits
+2. This patch also disables mlock based rlimit checking (which will
+   be reinstated and marked deprecated in a subsequent patch).
 
-Acked-by: Chris Mason <chris.mason@oracle.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/inode.c |   11 +++++++----
- fs/buffer.c      |   12 ++++++++----
- 2 files changed, 15 insertions(+), 8 deletions(-)
+ fs/hugetlbfs/inode.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN fs/btrfs/inode.c~fs-fix-page_mkwrite-error-cases-in-core-code-and-btrfs fs/btrfs/inode.c
---- a/fs/btrfs/inode.c~fs-fix-page_mkwrite-error-cases-in-core-code-and-btrfs
-+++ a/fs/btrfs/inode.c
-@@ -4307,10 +4307,15 @@ int btrfs_page_mkwrite(struct vm_area_st
- 	u64 page_end;
+diff -puN fs/hugetlbfs/inode.c~mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group
++++ a/fs/hugetlbfs/inode.c
+@@ -943,9 +943,7 @@ static struct vfsmount *hugetlbfs_vfsmou
  
- 	ret = btrfs_check_data_free_space(root, inode, PAGE_CACHE_SIZE);
--	if (ret)
-+	if (ret) {
-+		if (ret == -ENOMEM)
-+			ret = VM_FAULT_OOM;
-+		else /* -ENOSPC, -EIO, etc */
-+			ret = VM_FAULT_SIGBUS;
- 		goto out;
-+	}
- 
--	ret = -EINVAL;
-+	ret = VM_FAULT_NOPAGE; /* make the VM retry the fault */
- again:
- 	lock_page(page);
- 	size = i_size_read(inode);
-@@ -4363,8 +4368,6 @@ again:
- out_unlock:
- 	unlock_page(page);
- out:
--	if (ret)
--		ret = VM_FAULT_SIGBUS;
- 	return ret;
+ static int can_do_hugetlb_shm(void)
+ {
+-	return likely(capable(CAP_IPC_LOCK) ||
+-			in_group_p(sysctl_hugetlb_shm_group) ||
+-			can_do_mlock());
++	return capable(CAP_IPC_LOCK) || in_group_p(sysctl_hugetlb_shm_group);
  }
  
-diff -puN fs/buffer.c~fs-fix-page_mkwrite-error-cases-in-core-code-and-btrfs fs/buffer.c
---- a/fs/buffer.c~fs-fix-page_mkwrite-error-cases-in-core-code-and-btrfs
-+++ a/fs/buffer.c
-@@ -2320,7 +2320,7 @@ block_page_mkwrite(struct vm_area_struct
- 	struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
- 	unsigned long end;
- 	loff_t size;
--	int ret = -EINVAL;
-+	int ret = VM_FAULT_NOPAGE; /* make the VM retry the fault */
+ struct file *hugetlb_file_setup(const char *name, size_t size, int acctflag)
+@@ -963,9 +961,6 @@ struct file *hugetlb_file_setup(const ch
+ 	if (!can_do_hugetlb_shm())
+ 		return ERR_PTR(-EPERM);
  
- 	lock_page(page);
- 	size = i_size_read(inode);
-@@ -2340,10 +2340,14 @@ block_page_mkwrite(struct vm_area_struct
- 	if (!ret)
- 		ret = block_commit_write(page, 0, end);
- 
--out_unlock:
--	if (ret)
--		ret = VM_FAULT_SIGBUS;
-+	if (unlikely(ret)) {
-+		if (ret == -ENOMEM)
-+			ret = VM_FAULT_OOM;
-+		else /* -ENOSPC, -EIO, etc */
-+			ret = VM_FAULT_SIGBUS;
-+	}
- 
-+out_unlock:
- 	unlock_page(page);
- 	return ret;
- }
-_
-
-Patches currently in -mm which might be from npiggin@suse.de are
-
-origin.patch
-linux-next.patch
-radix-tree-gang-set-if-tagged-operation.patch
-mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
-nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault.patch
-nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault-fix-page_mkwrite-error-cases.patch
-reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-
+-	if (!user_shm_lock(size, user))
+-		return ERR_PTR(-ENOMEM);
