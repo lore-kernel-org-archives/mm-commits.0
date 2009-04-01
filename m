@@ -1,83 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:40:50 -0700
-Message-ID: <200904011840.n31IeoDv009165@imap1.linux-foundation.org>
+Subject: [merged] fbdev-newport-newport_wait-return-0-on-timeout.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:43:42 -0700
+Message-ID: <200904011843.n31Ihg0o010166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933633AbZDASqN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:46:13 -0400
+	by vger.kernel.org with ESMTP id S933635AbZDASqK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:46:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, mingo@elte.hu, torvalds@linux-foundation.org, wli@movementarian.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll keyed wakeups: make sockets use keyed wakeups
+     fbdev: newport: newport_*wait() return 0 on timeout
 has been removed from the -mm tree.  Its filename was
-     epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
+     fbdev-newport-newport_wait-return-0-on-timeout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll keyed wakeups: make sockets use keyed wakeups
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: fbdev: newport: newport_*wait() return 0 on timeout
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Add support for event-aware wakeups to the sockets code.  Events are
-delivered to the wakeup target, so that epoll can avoid spurious wakeups
-for non-interesting events.
+With a postfix decrement t reaches -1 on timeout which results in a
+return of 0.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Miller <davem@davemloft.net>
-Cc: William Lee Irwin III <wli@movementarian.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/sock.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/video/newport.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/core/sock.c~epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups net/core/sock.c
---- a/net/core/sock.c~epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups
-+++ a/net/core/sock.c
-@@ -1677,7 +1677,7 @@ static void sock_def_error_report(struct
+diff -puN include/video/newport.h~fbdev-newport-newport_wait-return-0-on-timeout include/video/newport.h
+--- a/include/video/newport.h~fbdev-newport-newport_wait-return-0-on-timeout
++++ a/include/video/newport.h
+@@ -453,7 +453,7 @@ static __inline__ int newport_wait(struc
  {
- 	read_lock(&sk->sk_callback_lock);
- 	if (sk->sk_sleep && waitqueue_active(sk->sk_sleep))
--		wake_up_interruptible(sk->sk_sleep);
-+		wake_up_interruptible_poll(sk->sk_sleep, POLLERR);
- 	sk_wake_async(sk, SOCK_WAKE_IO, POLL_ERR);
- 	read_unlock(&sk->sk_callback_lock);
- }
-@@ -1686,7 +1686,8 @@ static void sock_def_readable(struct soc
- {
- 	read_lock(&sk->sk_callback_lock);
- 	if (sk->sk_sleep && waitqueue_active(sk->sk_sleep))
--		wake_up_interruptible_sync(sk->sk_sleep);
-+		wake_up_interruptible_sync_poll(sk->sk_sleep, POLLIN |
-+						POLLRDNORM | POLLRDBAND);
- 	sk_wake_async(sk, SOCK_WAKE_WAITD, POLL_IN);
- 	read_unlock(&sk->sk_callback_lock);
- }
-@@ -1700,7 +1701,8 @@ static void sock_def_write_space(struct 
- 	 */
- 	if ((atomic_read(&sk->sk_wmem_alloc) << 1) <= sk->sk_sndbuf) {
- 		if (sk->sk_sleep && waitqueue_active(sk->sk_sleep))
--			wake_up_interruptible_sync(sk->sk_sleep);
-+			wake_up_interruptible_sync_poll(sk->sk_sleep, POLLOUT |
-+						POLLWRNORM | POLLWRBAND);
+ 	int t = BUSY_TIMEOUT;
  
- 		/* Should agree with poll, otherwise some programs break */
- 		if (sock_writeable(sk))
+-	while (t--)
++	while (--t)
+ 		if (!(regs->cset.status & NPORT_STAT_GBUSY))
+ 			break;
+ 	return !t;
+@@ -463,7 +463,7 @@ static __inline__ int newport_bfwait(str
+ {
+ 	int t = BUSY_TIMEOUT;
+ 
+-	while (t--)
++	while (--t)
+ 		if(!(regs->cset.status & NPORT_STAT_BBUSY))
+ 			break;
+ 	return !t;
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
+drm-fix-lock_test_with_return-macro.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+uwb-event_size-should-be-signed.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+spi-limit-reaches-1-tested-0.patch
+ufs-sector_t-cannot-be-negative.patch
+hppfs-hppfs_read_file-may-return-error.patch
 
