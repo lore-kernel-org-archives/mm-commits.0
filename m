@@ -1,88 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atyfb-speed-up-mach64-cursor.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:44:17 -0700
-Message-ID: <200904011844.n31IiH55010426@imap1.linux-foundation.org>
+Subject: [merged] hpilo-reduce-frequency-of-io-operations.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:40:02 -0700
+Message-ID: <200904011840.n31Ie2PY008887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933595AbZDAS7q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:59:46 -0400
+	by vger.kernel.org with ESMTP id S933903AbZDATBq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:01:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: david.altobelli@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atyfb: speed up Mach64 cursor
+     hpilo: reduce frequency of IO operations
 has been removed from the -mm tree.  Its filename was
-     atyfb-speed-up-mach64-cursor.patch
+     hpilo-reduce-frequency-of-io-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atyfb: speed up Mach64 cursor
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: hpilo: reduce frequency of IO operations
+From: David Altobelli <david.altobelli@hp.com>
 
-Save one fifo entry on cursor enabling and disabling.
+Change hpilo open and close logic to spin for 10usec between checking device,
+rather than every usec.
 
-Save another fifo entry for FB_CUR_SETPOS operation by removing redundant one.
+Because the loop is coded to take up to 10ms, it seemed prudent to
+increase the interval between polling the device, to reduce the load on
+the system and allow more other work to happen.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: David Altobelli <david.altobelli@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/mach64_cursor.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/misc/hpilo.c |    6 +++---
+ drivers/misc/hpilo.h |    6 +++++-
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/aty/mach64_cursor.c~atyfb-speed-up-mach64-cursor drivers/video/aty/mach64_cursor.c
---- a/drivers/video/aty/mach64_cursor.c~atyfb-speed-up-mach64-cursor
-+++ a/drivers/video/aty/mach64_cursor.c
-@@ -77,9 +77,13 @@ static int atyfb_cursor(struct fb_info *
- 	if (par->asleep)
- 		return -EPERM;
- 
--	/* Hide cursor */
- 	wait_for_fifo(1, par);
--	aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par) & ~HWCURSOR_ENABLE, par);
-+	if (cursor->enable)
-+		aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par)
-+			    | HWCURSOR_ENABLE, par);
-+	else
-+		aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par)
-+				& ~HWCURSOR_ENABLE, par);
- 
- 	/* set position */
- 	if (cursor->set & FB_CUR_SETPOS) {
-@@ -109,7 +113,7 @@ static int atyfb_cursor(struct fb_info *
- 			y<<=1;
- 			h<<=1;
- 		}
--		wait_for_fifo(4, par);
-+		wait_for_fifo(3, par);
- 		aty_st_le32(CUR_OFFSET, (info->fix.smem_len >> 3) + (yoff << 1), par);
- 		aty_st_le32(CUR_HORZ_VERT_OFF,
- 			    ((u32) (64 - h + yoff) << 16) | xoff, par);
-@@ -177,11 +181,6 @@ static int atyfb_cursor(struct fb_info *
- 	    }
+diff -puN drivers/misc/hpilo.c~hpilo-reduce-frequency-of-io-operations drivers/misc/hpilo.c
+--- a/drivers/misc/hpilo.c~hpilo-reduce-frequency-of-io-operations
++++ a/drivers/misc/hpilo.c
+@@ -209,7 +209,7 @@ static void ilo_ccb_close(struct pci_dev
+ 	/* give iLO some time to process stop request */
+ 	for (retries = MAX_WAIT; retries > 0; retries--) {
+ 		doorbell_set(driver_ccb);
+-		udelay(1);
++		udelay(WAIT_TIME);
+ 		if (!(ioread32(&device_ccb->send_ctrl) & (1 << CTRL_BITPOS_A))
+ 		    &&
+ 		    !(ioread32(&device_ccb->recv_ctrl) & (1 << CTRL_BITPOS_A)))
+@@ -312,7 +312,7 @@ static int ilo_ccb_open(struct ilo_hwinf
+ 	for (i = MAX_WAIT; i > 0; i--) {
+ 		if (ilo_pkt_dequeue(hw, driver_ccb, SENDQ, &pkt_id, NULL, NULL))
+ 			break;
+-		udelay(1);
++		udelay(WAIT_TIME);
  	}
  
--	if (cursor->enable) {
--		wait_for_fifo(1, par);
--		aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par)
--			    | HWCURSOR_ENABLE, par);
--	}
- 	return 0;
+ 	if (i) {
+@@ -759,7 +759,7 @@ static void __exit ilo_exit(void)
+ 	class_destroy(ilo_class);
  }
  
+-MODULE_VERSION("1.0");
++MODULE_VERSION("1.1");
+ MODULE_ALIAS(ILO_NAME);
+ MODULE_DESCRIPTION(ILO_NAME);
+ MODULE_AUTHOR("David Altobelli <david.altobelli@hp.com>");
+diff -puN drivers/misc/hpilo.h~hpilo-reduce-frequency-of-io-operations drivers/misc/hpilo.h
+--- a/drivers/misc/hpilo.h~hpilo-reduce-frequency-of-io-operations
++++ a/drivers/misc/hpilo.h
+@@ -19,8 +19,12 @@
+ #define MAX_ILO_DEV	1
+ /* max number of files */
+ #define MAX_OPEN	(MAX_CCB * MAX_ILO_DEV)
++/* total wait time in usec */
++#define MAX_WAIT_TIME	10000
++/* per spin wait time in usec */
++#define WAIT_TIME	10
+ /* spin counter for open/close delay */
+-#define MAX_WAIT	10000
++#define MAX_WAIT	(MAX_WAIT_TIME / WAIT_TIME)
+ 
+ /*
+  * Per device, used to track global memory allocations.
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from david.altobelli@hp.com are
 
 origin.patch
-linux-next.patch
-tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
-tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
 
