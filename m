@@ -1,82 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-parisc-rename-p-pointer-to-rtc.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:05 -0700
-Message-ID: <200904011842.n31Ig56x009578@imap1.linux-foundation.org>
+Subject: [merged] drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:43:46 -0700
+Message-ID: <200904011843.n31IhkI4010172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36630 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932637AbZDASrk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:47:40 -0400
+	by vger.kernel.org with ESMTP id S933494AbZDASsG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:48:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dannf@hp.com, a.zummo@towertech.it, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, joe@perches.com, rmk@arm.linux.org.uk, soni.trilok@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-parisc: rename p pointer to rtc
+     drivers/video/omap/hwa742.c: div reaches max_clk_div
 has been removed from the -mm tree.  Its filename was
-     rtc-parisc-rename-p-pointer-to-rtc.patch
+     drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-parisc: rename p pointer to rtc
-From: dann frazier <dannf@hp.com>
+Subject: drivers/video/omap/hwa742.c: div reaches max_clk_div
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Signed-off-by: dann frazier <dannf@hp.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
+With for(div = 0; div < max_clk_div; div++) { ... } div reaches max_clk_div.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Acked-by: Trilok Soni <soni.trilok@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-parisc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/video/omap/hwa742.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-parisc.c~rtc-parisc-rename-p-pointer-to-rtc drivers/rtc/rtc-parisc.c
---- a/drivers/rtc/rtc-parisc.c~rtc-parisc-rename-p-pointer-to-rtc
-+++ a/drivers/rtc/rtc-parisc.c
-@@ -38,23 +38,23 @@ static const struct rtc_class_ops parisc
+diff -puN drivers/video/omap/hwa742.c~drivers-video-omap-hwa742c-div-reaches-max_clk_div drivers/video/omap/hwa742.c
+--- a/drivers/video/omap/hwa742.c~drivers-video-omap-hwa742c-div-reaches-max_clk_div
++++ a/drivers/video/omap/hwa742.c
+@@ -742,7 +742,7 @@ static int calc_extif_timings(unsigned l
+ 		if (calc_reg_timing(sysclk, div) == 0)
+ 			break;
+ 	}
+-	if (div > max_clk_div)
++	if (div >= max_clk_div)
+ 		goto err;
  
- static int __init parisc_rtc_probe(struct platform_device *dev)
- {
--	struct rtc_device *p;
-+	struct rtc_device *rtc;
+ 	*extif_mem_div = div;
+@@ -752,7 +752,7 @@ static int calc_extif_timings(unsigned l
+ 			break;
+ 	}
  
--	p = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
--				THIS_MODULE);
--	if (IS_ERR(p))
--		return PTR_ERR(p);
-+	rtc = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
-+				  THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
- 
--	platform_set_drvdata(dev, p);
-+	platform_set_drvdata(dev, rtc);
+-	if (div > max_clk_div)
++	if (div >= max_clk_div)
+ 		goto err;
  
  	return 0;
- }
- 
- static int __exit parisc_rtc_remove(struct platform_device *dev)
- {
--	struct rtc_device *p = platform_get_drvdata(dev);
-+	struct rtc_device *rtc = platform_get_drvdata(dev);
- 
--	rtc_device_unregister(p);
-+	rtc_device_unregister(rtc);
- 
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from dannf@hp.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch
-ipmi-add-oem-message-handling.patch
+linux-next.patch
+drm-fix-lock_test_with_return-macro.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+uwb-event_size-should-be-signed.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+spi-limit-reaches-1-tested-0.patch
+ufs-sector_t-cannot-be-negative.patch
+hppfs-hppfs_read_file-may-return-error.patch
 
