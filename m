@@ -1,241 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-introduce-for_each_populated_zone-macro.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:34:23 -0700
-Message-ID: <200904011834.n31IYN8t007149@imap1.linux-foundation.org>
+Subject: [merged] vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:34:30 -0700
+Message-ID: <200904011834.n31IYUH6007198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59559 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54615 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933513AbZDASit (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:38:49 -0400
+	by vger.kernel.org with ESMTP id S932155AbZDASkL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:40:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, ncunningham@crca.org.au, riel@redhat.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: introduce for_each_populated_zone() macro
+     vmscan: clip swap_cluster_max in shrink_all_memory()
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-for_each_populated_zone-macro.patch
+     vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce for_each_populated_zone() macro
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: vmscan: clip swap_cluster_max in shrink_all_memory()
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Impact: cleanup
+shrink_inactive_list() scans in sc->swap_cluster_max chunks until it hits
+the scan limit it was passed.
 
-In almost cases, for_each_zone() is used with populated_zone().  It's
-because almost function doesn't need memoryless node information. 
-Therefore, for_each_populated_zone() can help to make code simplify.
+shrink_inactive_list()
+{
+	do {
+		isolate_pages(swap_cluster_max)
+		shrink_page_list()
+	} while (nr_scanned < max_scan);
+}
 
-This patch has no functional change.
+This assumes that swap_cluster_max is not bigger than the scan limit
+because the latter is checked only after at least one iteration.
 
-[akpm@linux-foundation.org: small cleanup]
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+In shrink_all_memory() sc->swap_cluster_max is initialized to the overall
+reclaim goal in the beginning but not decreased while reclaim is making
+progress which leads to subsequent calls to shrink_inactive_list()
+reclaiming way too much in the one iteration that is done unconditionally.
+
+Set sc->swap_cluster_max always to the proper goal before doing
+  shrink_all_zones()
+    shrink_list()
+      shrink_inactive_list().
+
+While the current shrink_all_memory() happily reclaims more than actually
+requested, this patch fixes it to never exceed the goal:
+
+unpatched
+   wanted=10000 reclaimed=13356
+   wanted=10000 reclaimed=19711
+   wanted=10000 reclaimed=10289
+   wanted=10000 reclaimed=17306
+   wanted=10000 reclaimed=10700
+   wanted=10000 reclaimed=10004
+   wanted=10000 reclaimed=13301
+   wanted=10000 reclaimed=10976
+   wanted=10000 reclaimed=10605
+   wanted=10000 reclaimed=10088
+   wanted=10000 reclaimed=15000
+
+patched
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=9599
+   wanted=10000 reclaimed=8476
+   wanted=10000 reclaimed=8326
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=9919
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=9624
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=8500 reclaimed=8092
+   wanted=316 reclaimed=316
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: MinChan Kim <minchan.kim@gmail.com>
+Acked-by: Nigel Cunningham <ncunningham@crca.org.au>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h  |    8 ++++++++
- kernel/power/snapshot.c |    9 +++------
- kernel/power/swsusp.c   |   17 ++++++++---------
- mm/page_alloc.c         |   26 +++++---------------------
- mm/vmscan.c             |    4 +---
- mm/vmstat.c             |   11 ++---------
- 6 files changed, 27 insertions(+), 48 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro
-+++ a/include/linux/mmzone.h
-@@ -806,6 +806,14 @@ extern struct zone *next_zone(struct zon
- 	     zone;					\
- 	     zone = next_zone(zone))
- 
-+#define for_each_populated_zone(zone)		        \
-+	for (zone = (first_online_pgdat())->node_zones; \
-+	     zone;					\
-+	     zone = next_zone(zone))			\
-+		if (!populated_zone(zone))		\
-+			; /* do nothing */		\
-+		else
-+
- static inline struct zone *zonelist_zone(struct zoneref *zoneref)
- {
- 	return zoneref->zone;
-diff -puN kernel/power/snapshot.c~mm-introduce-for_each_populated_zone-macro kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~mm-introduce-for_each_populated_zone-macro
-+++ a/kernel/power/snapshot.c
-@@ -321,13 +321,10 @@ static int create_mem_extents(struct lis
- 
- 	INIT_LIST_HEAD(list);
- 
--	for_each_zone(zone) {
-+	for_each_populated_zone(zone) {
- 		unsigned long zone_start, zone_end;
- 		struct mem_extent *ext, *cur, *aux;
- 
--		if (!populated_zone(zone))
--			continue;
--
- 		zone_start = zone->zone_start_pfn;
- 		zone_end = zone->zone_start_pfn + zone->spanned_pages;
- 
-@@ -804,8 +801,8 @@ static unsigned int count_free_highmem_p
- 	struct zone *zone;
- 	unsigned int cnt = 0;
- 
--	for_each_zone(zone)
--		if (populated_zone(zone) && is_highmem(zone))
-+	for_each_populated_zone(zone)
-+		if (is_highmem(zone))
- 			cnt += zone_page_state(zone, NR_FREE_PAGES);
- 
- 	return cnt;
-diff -puN kernel/power/swsusp.c~mm-introduce-for_each_populated_zone-macro kernel/power/swsusp.c
---- a/kernel/power/swsusp.c~mm-introduce-for_each_populated_zone-macro
-+++ a/kernel/power/swsusp.c
-@@ -229,17 +229,16 @@ int swsusp_shrink_memory(void)
- 		size = count_data_pages() + PAGES_FOR_IO + SPARE_PAGES;
- 		tmp = size;
- 		size += highmem_size;
--		for_each_zone (zone)
--			if (populated_zone(zone)) {
--				tmp += snapshot_additional_pages(zone);
--				if (is_highmem(zone)) {
--					highmem_size -=
-+		for_each_populated_zone(zone) {
-+			tmp += snapshot_additional_pages(zone);
-+			if (is_highmem(zone)) {
-+				highmem_size -=
- 					zone_page_state(zone, NR_FREE_PAGES);
--				} else {
--					tmp -= zone_page_state(zone, NR_FREE_PAGES);
--					tmp += zone->lowmem_reserve[ZONE_NORMAL];
--				}
-+			} else {
-+				tmp -= zone_page_state(zone, NR_FREE_PAGES);
-+				tmp += zone->lowmem_reserve[ZONE_NORMAL];
- 			}
-+		}
- 
- 		if (highmem_size < 0)
- 			highmem_size = 0;
-diff -puN mm/page_alloc.c~mm-introduce-for_each_populated_zone-macro mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-for_each_populated_zone-macro
-+++ a/mm/page_alloc.c
-@@ -922,13 +922,10 @@ static void drain_pages(unsigned int cpu
- 	unsigned long flags;
- 	struct zone *zone;
- 
--	for_each_zone(zone) {
-+	for_each_populated_zone(zone) {
- 		struct per_cpu_pageset *pset;
- 		struct per_cpu_pages *pcp;
- 
--		if (!populated_zone(zone))
--			continue;
--
- 		pset = zone_pcp(zone, cpu);
- 
- 		pcp = &pset->pcp;
-@@ -1879,10 +1876,7 @@ void show_free_areas(void)
- 	int cpu;
- 	struct zone *zone;
- 
--	for_each_zone(zone) {
--		if (!populated_zone(zone))
--			continue;
--
-+	for_each_populated_zone(zone) {
- 		show_node(zone);
- 		printk("%s per-cpu:\n", zone->name);
- 
-@@ -1922,12 +1916,9 @@ void show_free_areas(void)
- 		global_page_state(NR_PAGETABLE),
- 		global_page_state(NR_BOUNCE));
- 
--	for_each_zone(zone) {
-+	for_each_populated_zone(zone) {
- 		int i;
- 
--		if (!populated_zone(zone))
--			continue;
--
- 		show_node(zone);
- 		printk("%s"
- 			" free:%lukB"
-@@ -1967,12 +1958,9 @@ void show_free_areas(void)
- 		printk("\n");
- 	}
- 
--	for_each_zone(zone) {
-+	for_each_populated_zone(zone) {
-  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
- 
--		if (!populated_zone(zone))
--			continue;
--
- 		show_node(zone);
- 		printk("%s: ", zone->name);
- 
-@@ -2784,11 +2772,7 @@ static int __cpuinit process_zones(int c
- 
- 	node_set_state(node, N_CPU);	/* this node has a cpu */
- 
--	for_each_zone(zone) {
--
--		if (!populated_zone(zone))
--			continue;
--
-+	for_each_populated_zone(zone) {
- 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
- 					 GFP_KERNEL, node);
- 		if (!zone_pcp(zone, cpu))
-diff -puN mm/vmscan.c~mm-introduce-for_each_populated_zone-macro mm/vmscan.c
---- a/mm/vmscan.c~mm-introduce-for_each_populated_zone-macro
+diff -puN mm/vmscan.c~vmscan-clip-swap_cluster_max-in-shrink_all_memory mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-clip-swap_cluster_max-in-shrink_all_memory
 +++ a/mm/vmscan.c
-@@ -2061,11 +2061,9 @@ static unsigned long shrink_all_zones(un
- 	struct zone *zone;
- 	unsigned long ret = 0;
+@@ -2109,7 +2109,6 @@ unsigned long shrink_all_memory(unsigned
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+ 		.may_unmap = 0,
+-		.swap_cluster_max = nr_pages,
+ 		.may_writepage = 1,
+ 		.isolate_pages = isolate_pages_global,
+ 	};
+@@ -2151,6 +2150,7 @@ unsigned long shrink_all_memory(unsigned
+ 			unsigned long nr_to_scan = nr_pages - sc.nr_reclaimed;
  
--	for_each_zone(zone) {
-+	for_each_populated_zone(zone) {
- 		enum lru_list l;
- 
--		if (!populated_zone(zone))
--			continue;
- 		if (zone_is_all_unreclaimable(zone) && prio != DEF_PRIORITY)
- 			continue;
- 
-diff -puN mm/vmstat.c~mm-introduce-for_each_populated_zone-macro mm/vmstat.c
---- a/mm/vmstat.c~mm-introduce-for_each_populated_zone-macro
-+++ a/mm/vmstat.c
-@@ -135,11 +135,7 @@ static void refresh_zone_stat_thresholds
- 	int cpu;
- 	int threshold;
- 
--	for_each_zone(zone) {
--
--		if (!zone->present_pages)
--			continue;
--
-+	for_each_populated_zone(zone) {
- 		threshold = calculate_threshold(zone);
- 
- 		for_each_online_cpu(cpu)
-@@ -301,12 +297,9 @@ void refresh_cpu_vm_stats(int cpu)
- 	int i;
- 	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
- 
--	for_each_zone(zone) {
-+	for_each_populated_zone(zone) {
- 		struct per_cpu_pageset *p;
- 
--		if (!populated_zone(zone))
--			continue;
+ 			sc.nr_scanned = 0;
++			sc.swap_cluster_max = nr_to_scan;
+ 			shrink_all_zones(nr_to_scan, prio, pass, &sc);
+ 			if (sc.nr_reclaimed >= nr_pages)
+ 				goto out;
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+origin.patch
+linux-next.patch
+cifs-use-kzfree.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+
