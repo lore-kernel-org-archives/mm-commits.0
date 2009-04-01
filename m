@@ -1,111 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tridentfb-delete-acceleration-kconfig-option.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:44:19 -0700
-Message-ID: <200904011844.n31IiJ24010437@imap1.linux-foundation.org>
+Subject: [merged] cirrusfb-gd5446-fixes.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:42:51 -0700
+Message-ID: <200904011842.n31IgprO009853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60297 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758401AbZDATD5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:03:57 -0400
+	by vger.kernel.org with ESMTP id S1753919AbZDATDl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:03:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb: delete acceleration Kconfig option
+     cirrusfb: GD5446 fixes
 has been removed from the -mm tree.  Its filename was
-     tridentfb-delete-acceleration-kconfig-option.patch
+     cirrusfb-gd5446-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: delete acceleration Kconfig option
+Subject: cirrusfb: GD5446 fixes
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Remove Kconfig option for tridentfb acceleration.  The acceleration can be
-switched off with modules "noaccel" parameter.
+Various fixes to make Cirrus GD5446 chip work.
 
-The acceleration for Trident chips was fixed in the 2.6.27 kernel.
-
-Also, add CyberXXX and CyberBlade names to Kconfig option's name.  It should
-make easier to find the tridentfb choice for cyblafb driver's users.  The
-cyblafb driver has been replaced by the tridentfb driver.
+Another Cirrus chip works with the cirrusfb.  The gd5446 seems very
+similar to Alpine chips.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig     |    9 +--------
- drivers/video/tridentfb.c |   12 ------------
- 2 files changed, 1 insertion(+), 20 deletions(-)
+ drivers/video/cirrusfb.c |   27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/Kconfig~tridentfb-delete-acceleration-kconfig-option drivers/video/Kconfig
---- a/drivers/video/Kconfig~tridentfb-delete-acceleration-kconfig-option
-+++ a/drivers/video/Kconfig
-@@ -1598,7 +1598,7 @@ config FB_VT8623
- 	  VIA VT8623 [Apollo CLE266] chipset.
+diff -puN drivers/video/cirrusfb.c~cirrusfb-gd5446-fixes drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-gd5446-fixes
++++ a/drivers/video/cirrusfb.c
+@@ -198,9 +198,11 @@ static const struct cirrusfb_board_info_
+ 		.init_sr07		= true,
+ 		.init_sr1f		= false,
+ 		.scrn_start_bit19	= true,
+-		.sr07			= 0x20,
+-		.sr07_1bpp		= 0x20,
+-		.sr07_8bpp		= 0x21,
++		.sr07			= 0xA0,
++		.sr07_1bpp		= 0xA0,
++		.sr07_1bpp_mux		= 0xA6,
++		.sr07_8bpp		= 0xA1,
++		.sr07_8bpp_mux		= 0xA7,
+ 		.sr1f			= 0
+ 	},
+ 	[BT_ALPINE] = {
+@@ -213,8 +215,8 @@ static const struct cirrusfb_board_info_
+ 		.init_sr1f		= true,
+ 		.scrn_start_bit19	= true,
+ 		.sr07			= 0xA0,
+-		.sr07_1bpp		= 0xA1,
+-		.sr07_1bpp_mux		= 0xA7,
++		.sr07_1bpp		= 0xA0,
++		.sr07_1bpp_mux		= 0xA6,
+ 		.sr07_8bpp		= 0xA1,
+ 		.sr07_8bpp_mux		= 0xA7,
+ 		.sr1f			= 0x1C
+@@ -821,7 +823,7 @@ static int cirrusfb_set_par_foo(struct f
+ 	/* formula: VClk = (OSC * N) / (D * (1+P)) */
+ 	/* Example: VClk = (14.31818 * 91) / (23 * (1+1)) = 28.325 MHz */
  
- config FB_TRIDENT
--	tristate "Trident support"
-+	tristate "Trident/CyberXXX/CyberBlade support"
- 	depends on FB && PCI
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
-@@ -1617,13 +1617,6 @@ config FB_TRIDENT
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tridentfb.
- 
--config FB_TRIDENT_ACCEL
--	bool "Trident Acceleration functions (EXPERIMENTAL)"
--	depends on FB_TRIDENT && EXPERIMENTAL
--	---help---
--	This will compile the Trident frame buffer device with
--	acceleration functions.
+-	if (cinfo->btype == BT_ALPINE) {
++	if (cinfo->btype == BT_ALPINE || cinfo->btype == BT_PICASSO4) {
+ 		/* if freq is close to mclk or mclk/2 select mclk
+ 		 * as clock source
+ 		 */
+@@ -1044,9 +1046,6 @@ static int cirrusfb_set_par_foo(struct f
+ 			/* ### INCOMPLETE!! */
+ 			vga_wseq(regbase, CL_SEQRF, 0xb8);
+ #endif
+-/*	  		vga_wseq(regbase, CL_SEQR1F, 0x1c); */
+-			break;
 -
- config FB_ARK
- 	tristate "ARK 2000PV support"
- 	depends on FB && PCI
-diff -puN drivers/video/tridentfb.c~tridentfb-delete-acceleration-kconfig-option drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-delete-acceleration-kconfig-option
-+++ a/drivers/video/tridentfb.c
-@@ -490,7 +490,6 @@ static void tgui_copy_rect(struct triden
- /*
-  * Accel functions called by the upper layers
-  */
--#ifdef CONFIG_FB_TRIDENT_ACCEL
- static void tridentfb_fillrect(struct fb_info *info,
- 			       const struct fb_fillrect *fr)
- {
-@@ -565,11 +564,6 @@ static int tridentfb_sync(struct fb_info
- 		par->wait_engine(par);
- 	return 0;
- }
--#else
--#define tridentfb_fillrect cfb_fillrect
--#define tridentfb_copyarea cfb_copyarea
--#define tridentfb_imageblit cfb_imageblit
--#endif /* CONFIG_FB_TRIDENT_ACCEL */
+ 		case BT_ALPINE:
+ 			/* We already set SRF and SR1F */
+ 			break;
+@@ -1106,10 +1105,6 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
  
- /*
-  * Hardware access functions
-@@ -1333,9 +1327,7 @@ static struct fb_ops tridentfb_ops = {
- 	.fb_fillrect = tridentfb_fillrect,
- 	.fb_copyarea = tridentfb_copyarea,
- 	.fb_imageblit = tridentfb_imageblit,
--#ifdef CONFIG_FB_TRIDENT_ACCEL
- 	.fb_sync = tridentfb_sync,
--#endif
- };
+ 		case BT_PICASSO4:
+-			vga_wseq(regbase, CL_SEQR7, 0x27);
+-/*			vga_wseq(regbase, CL_SEQR1F, 0x1c);  */
+-			break;
+-
+ 		case BT_ALPINE:
+ 			vga_wseq(regbase, CL_SEQR7, 0xa7);
+ 			break;
+@@ -1177,10 +1172,6 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
  
- static int __devinit trident_pci_probe(struct pci_dev *dev,
-@@ -1359,10 +1351,6 @@ static int __devinit trident_pci_probe(s
- 
- 	chip_id = id->device;
- 
--#ifndef CONFIG_FB_TRIDENT_ACCEL
--	noaccel = 1;
--#endif
+ 		case BT_PICASSO4:
+-			vga_wseq(regbase, CL_SEQR7, 0x25);
+-/*			vga_wseq(regbase, CL_SEQR1F, 0x1c);  */
+-			break;
