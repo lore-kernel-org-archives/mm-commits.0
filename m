@@ -1,619 +1,514 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:40:05 -0700
-Message-ID: <200904011840.n31Ie5Sv008907@imap1.linux-foundation.org>
+Subject: [merged] lis3-solve-dependency-between-core-and-acpi.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:16 -0700
+Message-ID: <200904011841.n31IfGhA009292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756614AbZDATiV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:38:21 -0400
+	by vger.kernel.org with ESMTP id S1758977AbZDATju (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:39:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@caiaq.de, jic23@cam.ac.uk, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/misc/isl29003.c: driver for the ISL29003 ambient light sensor
+     lis3: solve dependency between core and ACPI
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor.patch
+     lis3-solve-dependency-between-core-and-acpi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/isl29003.c: driver for the ISL29003 ambient light sensor
+Subject: lis3: solve dependency between core and ACPI
 From: Daniel Mack <daniel@caiaq.de>
 
-Add a driver for Intersil's ISL29003 ambient light sensor device plus some
-documentation.  Inspired by tsl2550.c, a driver for a similar device.
-
-It is put in drivers/misc for now until the industrial I/O framework gets
-merged.
+This solves the dependency between lis3lv02d.[ch] and ACPI specific
+methods.  It introduces a ->bus_priv pointer to the device struct which is
+casted to 'struct acpi_device' in the ACIP layer.  Changed hp_accel.c
+accordingly.
 
 Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Jean Delvare <khali@linux-fr.org>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/misc-devices/isl29003 |   62 +++
- drivers/misc/Kconfig                |   10 
- drivers/misc/Makefile               |    1 
- drivers/misc/isl29003.c             |  470 ++++++++++++++++++++++++++
- 4 files changed, 543 insertions(+)
+ drivers/hwmon/hp_accel.c  |   99 +++++++++++++-----------------------
+ drivers/hwmon/lis3lv02d.c |   86 ++++++++++++++++++++-----------
+ drivers/hwmon/lis3lv02d.h |   20 +++----
+ 3 files changed, 105 insertions(+), 100 deletions(-)
 
-diff -puN /dev/null Documentation/misc-devices/isl29003
---- /dev/null
-+++ a/Documentation/misc-devices/isl29003
-@@ -0,0 +1,62 @@
-+Kernel driver isl29003
-+=====================
-+
-+Supported chips:
-+* Intersil ISL29003
-+Prefix: 'isl29003'
-+Addresses scanned: none
-+Datasheet:
-+http://www.intersil.com/data/fn/fn7464.pdf
-+
-+Author: Daniel Mack <daniel@caiaq.de>
-+
-+
-+Description
-+-----------
-+The ISL29003 is an integrated light sensor with a 16-bit integrating type
-+ADC, I2C user programmable lux range select for optimized counts/lux, and
-+I2C multi-function control and monitoring capabilities. The internal ADC
-+provides 16-bit resolution while rejecting 50Hz and 60Hz flicker caused by
-+artificial light sources.
-+
-+The driver allows to set the lux range, the bit resolution, the operational
-+mode (see below) and the power state of device and can read the current lux
-+value, of course.
-+
-+
-+Detection
-+---------
-+
-+The ISL29003 does not have an ID register which could be used to identify
-+it, so the detection routine will just try to read from the configured I2C
-+addess and consider the device to be present as soon as it ACKs the
-+transfer.
-+
-+
-+Sysfs entries
-+-------------
-+
-+range:
-+	0: 0 lux to 1000 lux (default)
-+	1: 0 lux to 4000 lux
-+	2: 0 lux to 16,000 lux
-+	3: 0 lux to 64,000 lux
-+
-+resolution:
-+	0: 2^16 cycles (default)
-+	1: 2^12 cycles
-+	2: 2^8 cycles
-+	3: 2^4 cycles
-+
-+mode:
-+	0: diode1's current (unsigned 16bit) (default)
-+	1: diode1's current (unsigned 16bit)
-+	2: difference between diodes (l1 - l2, signed 15bit)
-+
-+power_state:
-+	0: device is disabled (default)
-+	1: device is enabled
-+
-+lux (read only):
-+	returns the value from the last sensor reading
-+
-diff -puN drivers/misc/Kconfig~drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor
-+++ a/drivers/misc/Kconfig
-@@ -223,6 +223,16 @@ config DELL_LAPTOP
- 	This driver adds support for rfkill and backlight control to Dell
- 	laptops.
+diff -puN drivers/hwmon/hp_accel.c~lis3-solve-dependency-between-core-and-acpi drivers/hwmon/hp_accel.c
+--- a/drivers/hwmon/hp_accel.c~lis3-solve-dependency-between-core-and-acpi
++++ a/drivers/hwmon/hp_accel.c
+@@ -85,25 +85,31 @@ MODULE_DEVICE_TABLE(acpi, lis3lv02d_devi
  
-+config ISL29003
-+	tristate "Intersil ISL29003 ambient light sensor"
-+	depends on I2C && SYSFS
-+	help
-+	  If you say yes here you get support for the Intersil ISL29003
-+	  ambient light sensor.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called isl29003.
-+
- source "drivers/misc/c2port/Kconfig"
- source "drivers/misc/eeprom/Kconfig"
- 
-diff -puN drivers/misc/Makefile~drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor drivers/misc/Makefile
---- a/drivers/misc/Makefile~drivers-misc-isl29003c-driver-for-the-isl29003-ambient-light-sensor
-+++ a/drivers/misc/Makefile
-@@ -18,5 +18,6 @@ obj-$(CONFIG_KGDB_TESTS)	+= kgdbts.o
- obj-$(CONFIG_SGI_XP)		+= sgi-xp/
- obj-$(CONFIG_SGI_GRU)		+= sgi-gru/
- obj-$(CONFIG_HP_ILO)		+= hpilo.o
-+obj-$(CONFIG_ISL29003)		+= isl29003.o
- obj-$(CONFIG_C2PORT)		+= c2port/
- obj-y				+= eeprom/
-diff -puN /dev/null drivers/misc/isl29003.c
---- /dev/null
-+++ a/drivers/misc/isl29003.c
-@@ -0,0 +1,470 @@
-+/*
-+ *  isl29003.c - Linux kernel module for
-+ * 	Intersil ISL29003 ambient light sensor
-+ *
-+ *  See file:Documentation/misc-devices/isl29003
-+ *
-+ *  Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
-+ *
-+ *  Based on code written by
-+ *  	Rodolfo Giometti <giometti@linux.it>
-+ *  	Eurotech S.p.A. <info@eurotech.it>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <linux/mutex.h>
-+#include <linux/delay.h>
-+
-+#define ISL29003_DRV_NAME	"isl29003"
-+#define DRIVER_VERSION		"1.0"
-+
-+#define ISL29003_REG_COMMAND		0x00
-+#define ISL29003_ADC_ENABLED		(1 << 7)
-+#define ISL29003_ADC_PD			(1 << 6)
-+#define ISL29003_TIMING_INT		(1 << 5)
-+#define ISL29003_MODE_SHIFT		(2)
-+#define ISL29003_MODE_MASK		(0x3 << ISL29003_MODE_SHIFT)
-+#define ISL29003_RES_SHIFT		(0)
-+#define ISL29003_RES_MASK		(0x3 << ISL29003_RES_SHIFT)
-+
-+#define ISL29003_REG_CONTROL		0x01
-+#define ISL29003_INT_FLG		(1 << 5)
-+#define ISL29003_RANGE_SHIFT		(2)
-+#define ISL29003_RANGE_MASK		(0x3 << ISL29003_RANGE_SHIFT)
-+#define ISL29003_INT_PERSISTS_SHIFT	(0)
-+#define ISL29003_INT_PERSISTS_MASK	(0xf << ISL29003_INT_PERSISTS_SHIFT)
-+
-+#define ISL29003_REG_IRQ_THRESH_HI	0x02
-+#define ISL29003_REG_IRQ_THRESH_LO	0x03
-+#define ISL29003_REG_LSB_SENSOR		0x04
-+#define ISL29003_REG_MSB_SENSOR		0x05
-+#define ISL29003_REG_LSB_TIMER		0x06
-+#define ISL29003_REG_MSB_TIMER		0x07
-+
-+#define ISL29003_NUM_CACHABLE_REGS	4
-+
-+struct isl29003_data {
-+	struct i2c_client *client;
-+	struct mutex lock;
-+	u8 reg_cache[ISL29003_NUM_CACHABLE_REGS];
-+};
-+
-+static int gain_range[] = {
-+	1000, 4000, 16000, 64000
-+};
-+
-+/*
-+ * register access helpers
-+ */
-+
-+static int __isl29003_read_reg(struct i2c_client *client,
-+			       u32 reg, u8 mask, u8 shift)
-+{
-+	struct isl29003_data *data = i2c_get_clientdata(client);
-+	return (data->reg_cache[reg] & mask) >> shift;
-+}
-+
-+static int __isl29003_write_reg(struct i2c_client *client,
-+				u32 reg, u8 mask, u8 shift, u8 val)
-+{
-+	struct isl29003_data *data = i2c_get_clientdata(client);
-+	int ret = 0;
-+	u8 tmp;
-+
-+	if (reg >= ISL29003_NUM_CACHABLE_REGS)
+ /**
+  * lis3lv02d_acpi_init - ACPI _INI method: initialize the device.
+- * @handle: the handle of the device
++ * @lis3: pointer to the device struct
+  *
+- * Returns AE_OK on success.
++ * Returns 0 on success.
+  */
+-acpi_status lis3lv02d_acpi_init(acpi_handle handle)
++int lis3lv02d_acpi_init(struct lis3lv02d *lis3)
+ {
+-	return acpi_evaluate_object(handle, METHOD_NAME__INI, NULL, NULL);
++	struct acpi_device *dev = lis3->bus_priv;
++	if (acpi_evaluate_object(dev->handle, METHOD_NAME__INI,
++				 NULL, NULL) != AE_OK)
 +		return -EINVAL;
 +
-+	mutex_lock(&data->lock);
++	return 0;
+ }
+ 
+ /**
+  * lis3lv02d_acpi_read - ACPI ALRD method: read a register
+- * @handle: the handle of the device
++ * @lis3: pointer to the device struct
+  * @reg:    the register to read
+  * @ret:    result of the operation
+  *
+- * Returns AE_OK on success.
++ * Returns 0 on success.
+  */
+-acpi_status lis3lv02d_acpi_read(acpi_handle handle, int reg, u8 *ret)
++int lis3lv02d_acpi_read(struct lis3lv02d *lis3, int reg, u8 *ret)
+ {
++	struct acpi_device *dev = lis3->bus_priv;
+ 	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+ 	struct acpi_object_list args = { 1, &arg0 };
+ 	unsigned long long lret;
+@@ -111,21 +117,22 @@ acpi_status lis3lv02d_acpi_read(acpi_han
+ 
+ 	arg0.integer.value = reg;
+ 
+-	status = acpi_evaluate_integer(handle, "ALRD", &args, &lret);
++	status = acpi_evaluate_integer(dev->handle, "ALRD", &args, &lret);
+ 	*ret = lret;
+-	return status;
++	return (status != AE_OK) ? -EINVAL : 0;
+ }
+ 
+ /**
+  * lis3lv02d_acpi_write - ACPI ALWR method: write to a register
+- * @handle: the handle of the device
++ * @lis3: pointer to the device struct
+  * @reg:    the register to write to
+  * @val:    the value to write
+  *
+- * Returns AE_OK on success.
++ * Returns 0 on success.
+  */
+-acpi_status lis3lv02d_acpi_write(acpi_handle handle, int reg, u8 val)
++int lis3lv02d_acpi_write(struct lis3lv02d *lis3, int reg, u8 val)
+ {
++	struct acpi_device *dev = lis3->bus_priv;
+ 	unsigned long long ret; /* Not used when writting */
+ 	union acpi_object in_obj[2];
+ 	struct acpi_object_list args = { 2, in_obj };
+@@ -135,7 +142,10 @@ acpi_status lis3lv02d_acpi_write(acpi_ha
+ 	in_obj[1].type          = ACPI_TYPE_INTEGER;
+ 	in_obj[1].integer.value = val;
+ 
+-	return acpi_evaluate_integer(handle, "ALWR", &args, &ret);
++	if (acpi_evaluate_integer(dev->handle, "ALWR", &args, &ret) != AE_OK)
++		return -EINVAL;
 +
-+	tmp = data->reg_cache[reg];
-+	tmp &= ~mask;
-+	tmp |= val << shift;
++	return 0;
+ }
+ 
+ static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
+@@ -217,7 +227,7 @@ static struct dmi_system_id lis3lv02d_dm
+ 
+ static void hpled_set(struct delayed_led_classdev *led_cdev, enum led_brightness value)
+ {
+-	acpi_handle handle = lis3_dev.device->handle;
++	struct acpi_device *dev = lis3_dev.bus_priv;
+ 	unsigned long long ret; /* Not used when writing */
+ 	union acpi_object in_obj[1];
+ 	struct acpi_object_list args = { 1, in_obj };
+@@ -225,7 +235,7 @@ static void hpled_set(struct delayed_led
+ 	in_obj[0].type          = ACPI_TYPE_INTEGER;
+ 	in_obj[0].integer.value = !!value;
+ 
+-	acpi_evaluate_integer(handle, "ALED", &args, &ret);
++	acpi_evaluate_integer(dev->handle, "ALED", &args, &ret);
+ }
+ 
+ static struct delayed_led_classdev hpled_led = {
+@@ -262,23 +272,6 @@ static void lis3lv02d_enum_resources(str
+ 		printk(KERN_DEBUG DRIVER_NAME ": Error getting resources\n");
+ }
+ 
+-static s16 lis3lv02d_read_16(acpi_handle handle, int reg)
+-{
+-	u8 lo, hi;
+-
+-	lis3_dev.read(handle, reg - 1, &lo);
+-	lis3_dev.read(handle, reg, &hi);
+-	/* In "12 bit right justified" mode, bit 6, bit 7, bit 8 = bit 5 */
+-	return (s16)((hi << 8) | lo);
+-}
+-
+-static s16 lis3lv02d_read_8(acpi_handle handle, int reg)
+-{
+-	s8 lo;
+-	lis3_dev.read(handle, reg, &lo);
+-	return lo;
+-}
+-
+ static int lis3lv02d_add(struct acpi_device *device)
+ {
+ 	int ret;
+@@ -286,7 +279,7 @@ static int lis3lv02d_add(struct acpi_dev
+ 	if (!device)
+ 		return -EINVAL;
+ 
+-	lis3_dev.device = device;
++	lis3_dev.bus_priv = device;
+ 	lis3_dev.init = lis3lv02d_acpi_init;
+ 	lis3_dev.read = lis3lv02d_acpi_read;
+ 	lis3_dev.write = lis3lv02d_acpi_write;
+@@ -294,23 +287,8 @@ static int lis3lv02d_add(struct acpi_dev
+ 	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
+ 	device->driver_data = &lis3_dev;
+ 
+-	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &lis3_dev.whoami);
+-	switch (lis3_dev.whoami) {
+-	case LIS_DOUBLE_ID:
+-		printk(KERN_INFO DRIVER_NAME ": 2-byte sensor found\n");
+-		lis3_dev.read_data = lis3lv02d_read_16;
+-		lis3_dev.mdps_max_val = 2048;
+-		break;
+-	case LIS_SINGLE_ID:
+-		printk(KERN_INFO DRIVER_NAME ": 1-byte sensor found\n");
+-		lis3_dev.read_data = lis3lv02d_read_8;
+-		lis3_dev.mdps_max_val = 128;
+-		break;
+-	default:
+-		printk(KERN_ERR DRIVER_NAME
+-			": unknown sensor type 0x%X\n", lis3_dev.whoami);
+-		return -EINVAL;
+-	}
++	/* obtain IRQ number of our device from ACPI */
++	lis3lv02d_enum_resources(device);
+ 
+ 	/* If possible use a "standard" axes order */
+ 	if (dmi_check_system(lis3lv02d_dmi_ids) == 0) {
+@@ -319,18 +297,17 @@ static int lis3lv02d_add(struct acpi_dev
+ 		lis3_dev.ac = lis3lv02d_axis_normal;
+ 	}
+ 
+-	INIT_WORK(&hpled_led.work, delayed_set_status_worker);
+-	ret = led_classdev_register(NULL, &hpled_led.led_classdev);
++	/* call the core layer do its init */
++	ret = lis3lv02d_init_device(&lis3_dev);
+ 	if (ret)
+ 		return ret;
+ 
+-	/* obtain IRQ number of our device from ACPI */
+-	lis3lv02d_enum_resources(lis3_dev.device);
+-
+-	ret = lis3lv02d_init_device(&lis3_dev);
++	INIT_WORK(&hpled_led.work, delayed_set_status_worker);
++	ret = led_classdev_register(NULL, &hpled_led.led_classdev);
+ 	if (ret) {
++		lis3lv02d_joystick_disable();
++		lis3lv02d_poweroff(&lis3_dev);
+ 		flush_work(&hpled_led.work);
+-		led_classdev_unregister(&hpled_led.led_classdev);
+ 		return ret;
+ 	}
+ 
+@@ -343,7 +320,7 @@ static int lis3lv02d_remove(struct acpi_
+ 		return -EINVAL;
+ 
+ 	lis3lv02d_joystick_disable();
+-	lis3lv02d_poweroff(device->handle);
++	lis3lv02d_poweroff(&lis3_dev);
+ 
+ 	flush_work(&hpled_led.work);
+ 	led_classdev_unregister(&hpled_led.led_classdev);
+@@ -356,7 +333,7 @@ static int lis3lv02d_remove(struct acpi_
+ static int lis3lv02d_suspend(struct acpi_device *device, pm_message_t state)
+ {
+ 	/* make sure the device is off when we suspend */
+-	lis3lv02d_poweroff(device->handle);
++	lis3lv02d_poweroff(&lis3_dev);
+ 	return 0;
+ }
+ 
+@@ -365,9 +342,9 @@ static int lis3lv02d_resume(struct acpi_
+ 	/* put back the device in the right state (ACPI might turn it on) */
+ 	mutex_lock(&lis3_dev.lock);
+ 	if (lis3_dev.usage > 0)
+-		lis3lv02d_poweron(device->handle);
++		lis3lv02d_poweron(&lis3_dev);
+ 	else
+-		lis3lv02d_poweroff(device->handle);
++		lis3lv02d_poweroff(&lis3_dev);
+ 	mutex_unlock(&lis3_dev.lock);
+ 	return 0;
+ }
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-solve-dependency-between-core-and-acpi drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-solve-dependency-between-core-and-acpi
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -36,7 +36,6 @@
+ #include <linux/freezer.h>
+ #include <linux/uaccess.h>
+ #include <linux/miscdevice.h>
+-#include <acpi/acpi_drivers.h>
+ #include <asm/atomic.h>
+ #include "lis3lv02d.h"
+ 
+@@ -53,18 +52,27 @@
+  * joystick.
+  */
+ 
+-struct acpi_lis3lv02d lis3_dev = {
++struct lis3lv02d lis3_dev = {
+ 	.misc_wait   = __WAIT_QUEUE_HEAD_INITIALIZER(lis3_dev.misc_wait),
+ };
+ 
+ EXPORT_SYMBOL_GPL(lis3_dev);
+ 
+-static s16 lis3lv02d_read_16(acpi_handle handle, int reg)
++static s16 lis3lv02d_read_8(struct lis3lv02d *lis3, int reg)
++{
++	s8 lo;
++	if (lis3->read(lis3, reg, &lo) < 0)
++		return 0;
 +
-+	ret = i2c_smbus_write_byte_data(client, reg, tmp);
-+	if (!ret)
-+		data->reg_cache[reg] = tmp;
-+
-+	mutex_unlock(&data->lock);
-+	return ret;
++	return lo;
 +}
 +
-+/*
-+ * internally used functions
-+ */
++static s16 lis3lv02d_read_16(struct lis3lv02d *lis3, int reg)
+ {
+ 	u8 lo, hi;
+ 
+-	lis3_dev.read(handle, reg, &lo);
+-	lis3_dev.read(handle, reg + 1, &hi);
++	lis3->read(lis3, reg - 1, &lo);
++	lis3->read(lis3, reg, &hi);
+ 	/* In "12 bit right justified" mode, bit 6, bit 7, bit 8 = bit 5 */
+ 	return (s16)((hi << 8) | lo);
+ }
+@@ -86,36 +94,36 @@ static inline int lis3lv02d_get_axis(s8 
+ 
+ /**
+  * lis3lv02d_get_xyz - Get X, Y and Z axis values from the accelerometer
+- * @handle: the handle to the device
+- * @x:      where to store the X axis value
+- * @y:      where to store the Y axis value
+- * @z:      where to store the Z axis value
++ * @lis3: pointer to the device struct
++ * @x:    where to store the X axis value
++ * @y:    where to store the Y axis value
++ * @z:    where to store the Z axis value
+  *
+  * Note that 40Hz input device can eat up about 10% CPU at 800MHZ
+  */
+-static void lis3lv02d_get_xyz(acpi_handle handle, int *x, int *y, int *z)
++static void lis3lv02d_get_xyz(struct lis3lv02d *lis3, int *x, int *y, int *z)
+ {
+ 	int position[3];
+ 
+-	position[0] = lis3_dev.read_data(handle, OUTX);
+-	position[1] = lis3_dev.read_data(handle, OUTY);
+-	position[2] = lis3_dev.read_data(handle, OUTZ);
++	position[0] = lis3_dev.read_data(lis3, OUTX);
++	position[1] = lis3_dev.read_data(lis3, OUTY);
++	position[2] = lis3_dev.read_data(lis3, OUTZ);
+ 
+ 	*x = lis3lv02d_get_axis(lis3_dev.ac.x, position);
+ 	*y = lis3lv02d_get_axis(lis3_dev.ac.y, position);
+ 	*z = lis3lv02d_get_axis(lis3_dev.ac.z, position);
+ }
+ 
+-void lis3lv02d_poweroff(acpi_handle handle)
++void lis3lv02d_poweroff(struct lis3lv02d *lis3)
+ {
+ 	lis3_dev.is_on = 0;
+ }
+ EXPORT_SYMBOL_GPL(lis3lv02d_poweroff);
+ 
+-void lis3lv02d_poweron(acpi_handle handle)
++void lis3lv02d_poweron(struct lis3lv02d *lis3)
+ {
+ 	lis3_dev.is_on = 1;
+-	lis3_dev.init(handle);
++	lis3_dev.init(lis3);
+ }
+ EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
+ 
+@@ -124,13 +132,13 @@ EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
+  * device will always be on until a call to lis3lv02d_decrease_use(). Not to be
+  * used from interrupt context.
+  */
+-static void lis3lv02d_increase_use(struct acpi_lis3lv02d *dev)
++static void lis3lv02d_increase_use(struct lis3lv02d *dev)
+ {
+ 	mutex_lock(&dev->lock);
+ 	dev->usage++;
+ 	if (dev->usage == 1) {
+ 		if (!dev->is_on)
+-			lis3lv02d_poweron(dev->device->handle);
++			lis3lv02d_poweron(dev);
+ 	}
+ 	mutex_unlock(&dev->lock);
+ }
+@@ -139,12 +147,12 @@ static void lis3lv02d_increase_use(struc
+  * To be called whenever a usage of the device is stopped.
+  * It will make sure to turn off the device when there is not usage.
+  */
+-static void lis3lv02d_decrease_use(struct acpi_lis3lv02d *dev)
++static void lis3lv02d_decrease_use(struct lis3lv02d *dev)
+ {
+ 	mutex_lock(&dev->lock);
+ 	dev->usage--;
+ 	if (dev->usage == 0)
+-		lis3lv02d_poweroff(dev->device->handle);
++		lis3lv02d_poweroff(dev);
+ 	mutex_unlock(&dev->lock);
+ }
+ 
+@@ -291,7 +299,7 @@ static int lis3lv02d_joystick_kthread(vo
+ 	int x, y, z;
+ 
+ 	while (!kthread_should_stop()) {
+-		lis3lv02d_get_xyz(lis3_dev.device->handle, &x, &y, &z);
++		lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
+ 		input_report_abs(lis3_dev.idev, ABS_X, x - lis3_dev.xcalib);
+ 		input_report_abs(lis3_dev.idev, ABS_Y, y - lis3_dev.ycalib);
+ 		input_report_abs(lis3_dev.idev, ABS_Z, z - lis3_dev.zcalib);
+@@ -325,7 +333,8 @@ static void lis3lv02d_joystick_close(str
+ 
+ static inline void lis3lv02d_calibrate_joystick(void)
+ {
+-	lis3lv02d_get_xyz(lis3_dev.device->handle, &lis3_dev.xcalib, &lis3_dev.ycalib, &lis3_dev.zcalib);
++	lis3lv02d_get_xyz(&lis3_dev,
++		&lis3_dev.xcalib, &lis3_dev.ycalib, &lis3_dev.zcalib);
+ }
+ 
+ int lis3lv02d_joystick_enable(void)
+@@ -382,7 +391,7 @@ static ssize_t lis3lv02d_position_show(s
+ 	int x, y, z;
+ 
+ 	lis3lv02d_increase_use(&lis3_dev);
+-	lis3lv02d_get_xyz(lis3_dev.device->handle, &x, &y, &z);
++	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
+ 	lis3lv02d_decrease_use(&lis3_dev);
+ 	return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
+ }
+@@ -412,7 +421,7 @@ static ssize_t lis3lv02d_rate_show(struc
+ 	int val;
+ 
+ 	lis3lv02d_increase_use(&lis3_dev);
+-	lis3_dev.read(lis3_dev.device->handle, CTRL_REG1, &ctrl);
++	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
+ 	lis3lv02d_decrease_use(&lis3_dev);
+ 	val = (ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4;
+ 	return sprintf(buf, "%d\n", lis3lv02dl_df_val[val]);
+@@ -435,7 +444,7 @@ static struct attribute_group lis3lv02d_
+ };
+ 
+ 
+-static int lis3lv02d_add_fs(struct acpi_device *device)
++static int lis3lv02d_add_fs(struct lis3lv02d *lis3)
+ {
+ 	lis3_dev.pdev = platform_device_register_simple(DRIVER_NAME, -1, NULL, 0);
+ 	if (IS_ERR(lis3_dev.pdev))
+@@ -456,10 +465,29 @@ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
+  * Initialise the accelerometer and the various subsystems.
+  * Should be rather independant of the bus system.
+  */
+-int lis3lv02d_init_device(struct acpi_lis3lv02d *dev)
++int lis3lv02d_init_device(struct lis3lv02d *dev)
+ {
++	dev->whoami = lis3lv02d_read_8(dev, WHO_AM_I);
 +
-+/* range */
-+static int isl29003_get_range(struct i2c_client *client)
-+{
-+	return __isl29003_read_reg(client, ISL29003_REG_CONTROL,
-+		ISL29003_RANGE_MASK, ISL29003_RANGE_SHIFT);
-+}
-+
-+static int isl29003_set_range(struct i2c_client *client, int range)
-+{
-+	return __isl29003_write_reg(client, ISL29003_REG_CONTROL,
-+		ISL29003_RANGE_MASK, ISL29003_RANGE_SHIFT, range);
-+}
-+
-+/* resolution */
-+static int isl29003_get_resolution(struct i2c_client *client)
-+{
-+	return __isl29003_read_reg(client, ISL29003_REG_COMMAND,
-+		ISL29003_RES_MASK, ISL29003_RES_SHIFT);
-+}
-+
-+static int isl29003_set_resolution(struct i2c_client *client, int res)
-+{
-+	return __isl29003_write_reg(client, ISL29003_REG_COMMAND,
-+		ISL29003_RES_MASK, ISL29003_RES_SHIFT, res);
-+}
-+
-+/* mode */
-+static int isl29003_get_mode(struct i2c_client *client)
-+{
-+	return __isl29003_read_reg(client, ISL29003_REG_COMMAND,
-+		ISL29003_RES_MASK, ISL29003_RES_SHIFT);
-+}
-+
-+static int isl29003_set_mode(struct i2c_client *client, int mode)
-+{
-+	return __isl29003_write_reg(client, ISL29003_REG_COMMAND,
-+		ISL29003_RES_MASK, ISL29003_RES_SHIFT, mode);
-+}
-+
-+/* power_state */
-+static int isl29003_set_power_state(struct i2c_client *client, int state)
-+{
-+	return __isl29003_write_reg(client, ISL29003_REG_COMMAND,
-+				ISL29003_ADC_ENABLED | ISL29003_ADC_PD, 0,
-+				state ? ISL29003_ADC_ENABLED : ISL29003_ADC_PD);
-+}
-+
-+static int isl29003_get_power_state(struct i2c_client *client)
-+{
-+	struct isl29003_data *data = i2c_get_clientdata(client);
-+	u8 cmdreg = data->reg_cache[ISL29003_REG_COMMAND];
-+	return ~cmdreg & ISL29003_ADC_PD;
-+}
-+
-+static int isl29003_get_adc_value(struct i2c_client *client)
-+{
-+	struct isl29003_data *data = i2c_get_clientdata(client);
-+	int lsb, msb, range, bitdepth;
-+
-+	mutex_lock(&data->lock);
-+	lsb = i2c_smbus_read_byte_data(client, ISL29003_REG_LSB_SENSOR);
-+
-+	if (lsb < 0) {
-+		mutex_unlock(&data->lock);
-+		return lsb;
++	switch (dev->whoami) {
++	case LIS_DOUBLE_ID:
++		printk(KERN_INFO DRIVER_NAME ": 2-byte sensor found\n");
++		dev->read_data = lis3lv02d_read_16;
++		dev->mdps_max_val = 2048;
++		break;
++	case LIS_SINGLE_ID:
++		printk(KERN_INFO DRIVER_NAME ": 1-byte sensor found\n");
++		dev->read_data = lis3lv02d_read_8;
++		dev->mdps_max_val = 128;
++		break;
++	default:
++		printk(KERN_ERR DRIVER_NAME
++			": unknown sensor type 0x%X\n", lis3_dev.whoami);
++		return -EINVAL;
 +	}
 +
-+	msb = i2c_smbus_read_byte_data(client, ISL29003_REG_MSB_SENSOR);
-+	mutex_unlock(&data->lock);
-+
-+	if (msb < 0)
-+		return msb;
-+
-+	range = isl29003_get_range(client);
-+	bitdepth = (4 - isl29003_get_resolution(client)) * 4;
-+	return (((msb << 8) | lsb) * gain_range[range]) >> bitdepth;
-+}
-+
-+/*
-+ * sysfs layer
-+ */
-+
-+/* range */
-+static ssize_t isl29003_show_range(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	return sprintf(buf, "%i\n", isl29003_get_range(client));
-+}
-+
-+static ssize_t isl29003_store_range(struct device *dev,
-+				    struct device_attribute *attr,
-+				    const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	unsigned long val;
-+	int ret;
-+
-+	if ((strict_strtoul(buf, 10, &val) < 0) || (val > 3))
-+		return -EINVAL;
-+
-+	ret = isl29003_set_range(client, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(range, S_IWUSR | S_IRUGO,
-+		   isl29003_show_range, isl29003_store_range);
-+
-+
-+/* resolution */
-+static ssize_t isl29003_show_resolution(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	return sprintf(buf, "%d\n", isl29003_get_resolution(client));
-+}
-+
-+static ssize_t isl29003_store_resolution(struct device *dev,
-+					 struct device_attribute *attr,
-+					 const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	unsigned long val;
-+	int ret;
-+
-+	if ((strict_strtoul(buf, 10, &val) < 0) || (val > 3))
-+		return -EINVAL;
-+
-+	ret = isl29003_set_resolution(client, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(resolution, S_IWUSR | S_IRUGO,
-+		   isl29003_show_resolution, isl29003_store_resolution);
-+
-+/* mode */
-+static ssize_t isl29003_show_mode(struct device *dev,
-+				  struct device_attribute *attr, char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	return sprintf(buf, "%d\n", isl29003_get_mode(client));
-+}
-+
-+static ssize_t isl29003_store_mode(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	unsigned long val;
-+	int ret;
-+
-+	if ((strict_strtoul(buf, 10, &val) < 0) || (val > 2))
-+		return -EINVAL;
-+
-+	ret = isl29003_set_mode(client, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(mode, S_IWUSR | S_IRUGO,
-+		   isl29003_show_mode, isl29003_store_mode);
-+
-+
-+/* power state */
-+static ssize_t isl29003_show_power_state(struct device *dev,
-+					 struct device_attribute *attr,
-+					 char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	return sprintf(buf, "%d\n", isl29003_get_power_state(client));
-+}
-+
-+static ssize_t isl29003_store_power_state(struct device *dev,
-+					  struct device_attribute *attr,
-+					  const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	unsigned long val;
-+	int ret;
-+
-+	if ((strict_strtoul(buf, 10, &val) < 0) || (val > 1))
-+		return -EINVAL;
-+
-+	ret = isl29003_set_power_state(client, val);
-+	return ret ? ret : count;
-+}
-+
-+static DEVICE_ATTR(power_state, S_IWUSR | S_IRUGO,
-+		   isl29003_show_power_state, isl29003_store_power_state);
-+
-+
-+/* lux */
-+static ssize_t isl29003_show_lux(struct device *dev,
-+				 struct device_attribute *attr, char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	/* No LUX data if not operational */
-+	if (!isl29003_get_power_state(client))
-+		return -EBUSY;
-+
-+	return sprintf(buf, "%d\n", isl29003_get_adc_value(client));
-+}
-+
-+static DEVICE_ATTR(lux, S_IRUGO, isl29003_show_lux, NULL);
-+
-+static struct attribute *isl29003_attributes[] = {
-+	&dev_attr_range.attr,
-+	&dev_attr_resolution.attr,
-+	&dev_attr_mode.attr,
-+	&dev_attr_power_state.attr,
-+	&dev_attr_lux.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group isl29003_attr_group = {
-+	.attrs = isl29003_attributes,
-+};
-+
-+static int isl29003_init_client(struct i2c_client *client)
-+{
-+	struct isl29003_data *data = i2c_get_clientdata(client);
-+	int i;
-+
-+	/* read all the registers once to fill the cache.
-+	 * if one of the reads fails, we consider the init failed */
-+	for (i = 0; i < ARRAY_SIZE(data->reg_cache); i++) {
-+		int v = i2c_smbus_read_byte_data(client, i);
-+		if (v < 0)
-+			return -ENODEV;
-+
-+		data->reg_cache[i] = v;
-+	}
-+
-+	/* set defaults */
-+	isl29003_set_range(client, 0);
-+	isl29003_set_resolution(client, 0);
-+	isl29003_set_mode(client, 0);
-+	isl29003_set_power_state(client, 0);
-+
-+	return 0;
-+}
-+
-+/*
-+ * I2C layer
-+ */
-+
-+static int __devinit isl29003_probe(struct i2c_client *client,
-+				    const struct i2c_device_id *id)
-+{
-+	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-+	struct isl29003_data *data;
-+	int err = 0;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
-+		return -EIO;
-+
-+	data = kzalloc(sizeof(struct isl29003_data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	data->client = client;
-+	i2c_set_clientdata(client, data);
-+	mutex_init(&data->lock);
-+
-+	/* initialize the ISL29003 chip */
-+	err = isl29003_init_client(client);
-+	if (err)
-+		goto exit_kfree;
-+
-+	/* register sysfs hooks */
-+	err = sysfs_create_group(&client->dev.kobj, &isl29003_attr_group);
-+	if (err)
-+		goto exit_kfree;
-+
-+	dev_info(&client->dev, "driver version %s enabled\n", DRIVER_VERSION);
-+	return 0;
-+
-+exit_kfree:
-+	kfree(data);
-+	return err;
-+}
-+
-+static int __devexit isl29003_remove(struct i2c_client *client)
-+{
-+	sysfs_remove_group(&client->dev.kobj, &isl29003_attr_group);
-+	isl29003_set_power_state(client, 0);
-+	kfree(i2c_get_clientdata(client));
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int isl29003_suspend(struct i2c_client *client, pm_message_t mesg)
-+{
-+	return isl29003_set_power_state(client, 0);
-+}
-+
-+static int isl29003_resume(struct i2c_client *client)
-+{
-+	int i;
-+	struct isl29003_data *data = i2c_get_clientdata(client);
-+
-+	/* restore registers from cache */
-+	for (i = 0; i < ARRAY_SIZE(data->reg_cache); i++)
-+		if (!i2c_smbus_write_byte_data(client, i, data->reg_cache[i]))
-+			return -EIO;
-+
-+	return 0;
-+}
-+
-+#else
-+#define isl29003_suspend	NULL
-+#define isl29003_resume		NULL
-+#endif /* CONFIG_PM */
-+
-+static const struct i2c_device_id isl29003_id[] = {
-+	{ "isl29003", 0 },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, isl29003_id);
-+
-+static struct i2c_driver isl29003_driver = {
-+	.driver = {
-+		.name	= ISL29003_DRV_NAME,
-+		.owner	= THIS_MODULE,
-+	},
-+	.suspend = isl29003_suspend,
-+	.resume	= isl29003_resume,
-+	.probe	= isl29003_probe,
-+	.remove	= __devexit_p(isl29003_remove),
-+	.id_table = isl29003_id,
-+};
-+
-+static int __init isl29003_init(void)
-+{
-+	return i2c_add_driver(&isl29003_driver);
-+}
-+
-+static void __exit isl29003_exit(void)
-+{
-+	i2c_del_driver(&isl29003_driver);
-+}
-+
-+MODULE_AUTHOR("Daniel Mack <daniel@caiaq.de>");
-+MODULE_DESCRIPTION("ISL29003 ambient light sensor driver");
-+MODULE_LICENSE("GPL v2");
-+MODULE_VERSION(DRIVER_VERSION);
-+
-+module_init(isl29003_init);
-+module_exit(isl29003_exit);
-+
+ 	mutex_init(&dev->lock);
+-	lis3lv02d_add_fs(dev->device);
++	lis3lv02d_add_fs(dev);
+ 	lis3lv02d_increase_use(dev);
+ 
+ 	if (lis3lv02d_joystick_enable())
+@@ -467,10 +495,10 @@ int lis3lv02d_init_device(struct acpi_li
+ 
+ 	printk("lis3_init_device: irq %d\n", dev->irq);
+ 
+-	/* if we did not get an IRQ from ACPI - we have nothing more to do */
++	/* bail if we did not get an IRQ from the bus layer */
+ 	if (!dev->irq) {
+ 		printk(KERN_ERR DRIVER_NAME
+-			": No IRQ in ACPI. Disabling /dev/freefall\n");
++			": No IRQ. Disabling /dev/freefall\n");
+ 		goto out;
+ 	}
+ 
+diff -puN drivers/hwmon/lis3lv02d.h~lis3-solve-dependency-between-core-and-acpi drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3-solve-dependency-between-core-and-acpi
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -159,14 +159,14 @@ struct axis_conversion {
+ 	s8	z;
+ };
+ 
+-struct acpi_lis3lv02d {
+-	struct acpi_device	*device;   /* The ACPI device */
+-	acpi_status (*init) (acpi_handle handle);
+-	acpi_status (*write) (acpi_handle handle, int reg, u8 val);
+-	acpi_status (*read) (acpi_handle handle, int reg, u8 *ret);
++struct lis3lv02d {
++	void			*bus_priv; /* used by the bus layer only */
++	int (*init) (struct lis3lv02d *lis3);
++	int (*write) (struct lis3lv02d *lis3, int reg, u8 val);
++	int (*read) (struct lis3lv02d *lis3, int reg, u8 *ret);
+ 
+ 	u8			whoami;    /* 3Ah: 2-byte registries, 3Bh: 1-byte registries */
+-	s16 (*read_data) (acpi_handle handle, int reg);
++	s16 (*read_data) (struct lis3lv02d *lis3, int reg);
+ 	int			mdps_max_val;
+ 
+ 	struct input_dev	*idev;     /* input device */
+@@ -187,11 +187,11 @@ struct acpi_lis3lv02d {
+ 	unsigned long		misc_opened; /* bit0: whether the device is open */
+ };
+ 
+-int lis3lv02d_init_device(struct acpi_lis3lv02d *dev);
++int lis3lv02d_init_device(struct lis3lv02d *lis3);
+ int lis3lv02d_joystick_enable(void);
+ void lis3lv02d_joystick_disable(void);
+-void lis3lv02d_poweroff(acpi_handle handle);
+-void lis3lv02d_poweron(acpi_handle handle);
++void lis3lv02d_poweroff(struct lis3lv02d *lis3);
++void lis3lv02d_poweron(struct lis3lv02d *lis3);
+ int lis3lv02d_remove_fs(void);
+ 
+-extern struct acpi_lis3lv02d lis3_dev;
++extern struct lis3lv02d lis3_dev;
 _
 
 Patches currently in -mm which might be from daniel@caiaq.de are
