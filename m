@@ -1,70 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] auxdisplay-remove-parport-dependency.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:39:47 -0700
-Message-ID: <200904011839.n31IdlbJ008780@imap1.linux-foundation.org>
+Subject: [merged] rtc-parisc-add-a-missing-include-for-linux-rtch.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:51 -0700
+Message-ID: <200904011841.n31Ifp5q009511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53404 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758272AbZDATlq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:41:46 -0400
+	by vger.kernel.org with ESMTP id S933805AbZDATnJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:43:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hsweeten@visionengravers.com, miguel.ojeda.sandonis@gmail.com, mm-commits@vger.kernel.org
+To: dannf@hp.com, a.zummo@towertech.it, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     auxdisplay: remove PARPORT dependency
+     rtc-parisc: add a missing include for linux/rtc.h
 has been removed from the -mm tree.  Its filename was
-     auxdisplay-remove-parport-dependency.patch
+     rtc-parisc-add-a-missing-include-for-linux-rtch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: auxdisplay: remove PARPORT dependency
-From: H Hartley Sweeten <hsweeten@visionengravers.com>
+Subject: rtc-parisc: add a missing include for linux/rtc.h
+From: dann frazier <dannf@hp.com>
 
-Remove PARPORT dependency for Auxiliary Display support.
-
-This is not needed since the dependency for the KS0108 driver is
-PARPORT_PC.
-
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>
+Signed-off-by: dann frazier <dannf@hp.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/auxdisplay/Kconfig |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/rtc/rtc-parisc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/auxdisplay/Kconfig~auxdisplay-remove-parport-dependency drivers/auxdisplay/Kconfig
---- a/drivers/auxdisplay/Kconfig~auxdisplay-remove-parport-dependency
-+++ a/drivers/auxdisplay/Kconfig
-@@ -6,7 +6,6 @@
- #
+diff -puN drivers/rtc/rtc-parisc.c~rtc-parisc-add-a-missing-include-for-linux-rtch drivers/rtc/rtc-parisc.c
+--- a/drivers/rtc/rtc-parisc.c~rtc-parisc-add-a-missing-include-for-linux-rtch
++++ a/drivers/rtc/rtc-parisc.c
+@@ -7,6 +7,7 @@
+ #include <linux/module.h>
+ #include <linux/time.h>
+ #include <linux/platform_device.h>
++#include <linux/rtc.h>
  
- menuconfig AUXDISPLAY
--	depends on PARPORT
- 	bool "Auxiliary Display support"
- 	---help---
- 	  Say Y here to get to see options for auxiliary display drivers.
-@@ -14,7 +13,7 @@ menuconfig AUXDISPLAY
+ #include <asm/rtc.h>
  
- 	  If you say N, all options in this submenu will be skipped and disabled.
- 
--if AUXDISPLAY && PARPORT
-+if AUXDISPLAY
- 
- config KS0108
- 	tristate "KS0108 LCD Controller"
 _
 
-Patches currently in -mm which might be from hsweeten@visionengravers.com are
+Patches currently in -mm which might be from dannf@hp.com are
 
 origin.patch
-linux-next.patch
-mtd-plat_nand-add-platform-probe-remove-callbacks.patch
-mtd-plat_nand-allow-platform-to-set-partitions.patch
+rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch
+ipmi-add-oem-message-handling.patch
 
