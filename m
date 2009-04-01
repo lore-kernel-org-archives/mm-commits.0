@@ -1,76 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [merged] epoll-remove-unnecessary-xchg.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:40:33 -0700
-Message-ID: <200904011840.n31IeX0M009056@imap1.linux-foundation.org>
+Subject: [merged] ramfs-add-support-for-mode=-mount-option.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:20 -0700
+Message-ID: <200904011841.n31IfKsa009339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49936 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49252 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933469AbZDATOE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:14:04 -0400
+	by vger.kernel.org with ESMTP id S1764794AbZDATPU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:15:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tonyb@cybernetics.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, matimatik@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll: remove unnecessary xchg
+     ramfs: add support for "mode=" mount option
 has been removed from the -mm tree.  Its filename was
-     epoll-remove-unnecessary-xchg.patch
+     ramfs-add-support-for-mode=-mount-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: remove unnecessary xchg
-From: Tony Battersby <tonyb@cybernetics.com>
+Subject: ramfs: add support for "mode=" mount option
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-xchg in ep_unregister_pollwait() is unnecessary because it is protected by
-either epmutex or ep->mtx (the same protection as ep_remove()).
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=12843
 
-If xchg was necessary, it would be insufficient to protect against
-problems: if multiple concurrent calls to ep_unregister_pollwait() were
-possible then a second caller that returns without doing anything because
-nwait == 0 could return before the waitqueues are removed by the first
-caller, which looks like it could lead to problematic races with
-ep_poll_callback().
+"I use ramfs instead of tmpfs for /tmp because I don't use swap on my
+laptop.  Some apps need 1777 mode for /tmp directory, but ramfs does not
+support 'mode=' mount option."
 
-So remove xchg and add comments about the locking.
-
-Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
+Reported-by: Avan Anishchuk <matimatik@gmail.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ fs/ramfs/inode.c |   94 +++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 86 insertions(+), 8 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-remove-unnecessary-xchg fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-remove-unnecessary-xchg
-+++ a/fs/eventpoll.c
-@@ -394,27 +394,21 @@ static void ep_poll_safewake(wait_queue_
+diff -puN fs/ramfs/inode.c~ramfs-add-support-for-mode=-mount-option fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~ramfs-add-support-for-mode=-mount-option
++++ a/fs/ramfs/inode.c
+@@ -33,12 +33,15 @@
+ #include <linux/backing-dev.h>
+ #include <linux/ramfs.h>
+ #include <linux/sched.h>
++#include <linux/parser.h>
+ #include <asm/uaccess.h>
+ #include "internal.h"
+ 
+ /* some random number */
+ #define RAMFS_MAGIC	0x858458f6
+ 
++#define RAMFS_DEFAULT_MODE	0755
++
+ static const struct super_operations ramfs_ops;
+ static const struct inode_operations ramfs_dir_inode_operations;
+ 
+@@ -158,12 +161,75 @@ static const struct inode_operations ram
+ static const struct super_operations ramfs_ops = {
+ 	.statfs		= simple_statfs,
+ 	.drop_inode	= generic_delete_inode,
++	.show_options	= generic_show_options,
++};
++
++struct ramfs_mount_opts {
++	umode_t mode;
++};
++
++enum {
++	Opt_mode,
++	Opt_err
++};
++
++static const match_table_t tokens = {
++	{Opt_mode, "mode=%o"},
++	{Opt_err, NULL}
+ };
+ 
++struct ramfs_fs_info {
++	struct ramfs_mount_opts mount_opts;
++};
++
++static int ramfs_parse_options(char *data, struct ramfs_mount_opts *opts)
++{
++	substring_t args[MAX_OPT_ARGS];
++	int option;
++	int token;
++	char *p;
++
++	opts->mode = RAMFS_DEFAULT_MODE;
++
++	while ((p = strsep(&data, ",")) != NULL) {
++		if (!*p)
++			continue;
++
++		token = match_token(p, tokens, args);
++		switch (token) {
++		case Opt_mode:
++			if (match_octal(&args[0], &option))
++				return -EINVAL;
++			opts->mode = option & S_IALLUGO;
++			break;
++		default:
++			printk(KERN_ERR "ramfs: bad mount option: %s\n", p);
++			return -EINVAL;
++		}
++	}
++
++	return 0;
++}
++
+ static int ramfs_fill_super(struct super_block * sb, void * data, int silent)
+ {
+-	struct inode * inode;
+-	struct dentry * root;
++	struct ramfs_fs_info *fsi;
++	struct inode *inode = NULL;
++	struct dentry *root;
++	int err;
++
++	save_mount_options(sb, data);
++
++	fsi = kzalloc(sizeof(struct ramfs_fs_info), GFP_KERNEL);
++	if (!fsi) {
++		err = -ENOMEM;
++		goto fail;
++	}
++	sb->s_fs_info = fsi;
++
++	err = ramfs_parse_options(data, &fsi->mount_opts);
++	if (err)
++		goto fail;
+ 
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+ 	sb->s_blocksize = PAGE_CACHE_SIZE;
+@@ -171,17 +237,23 @@ static int ramfs_fill_super(struct super
+ 	sb->s_magic = RAMFS_MAGIC;
+ 	sb->s_op = &ramfs_ops;
+ 	sb->s_time_gran = 1;
+-	inode = ramfs_get_inode(sb, S_IFDIR | 0755, 0);
+-	if (!inode)
+-		return -ENOMEM;
++	inode = ramfs_get_inode(sb, S_IFDIR | fsi->mount_opts.mode, 0);
++	if (!inode) {
++		err = -ENOMEM;
++		goto fail;
++	}
+ 
+ 	root = d_alloc_root(inode);
+ 	if (!root) {
+-		iput(inode);
+-		return -ENOMEM;
++		err = -ENOMEM;
++		goto fail;
+ 	}
+ 	sb->s_root = root;
+ 	return 0;
++fail:
++	kfree(fsi);
++	iput(inode);
++	return err;
  }
  
- /*
-- * This function unregister poll callbacks from the associated file descriptor.
-- * Since this must be called without holding "ep->lock" the atomic exchange trick
-- * will protect us from multiple unregister.
-+ * This function unregisters poll callbacks from the associated file
-+ * descriptor.  Must be called with "mtx" held (or "epmutex" if called from
-+ * ep_free).
-  */
- static void ep_unregister_pollwait(struct eventpoll *ep, struct epitem *epi)
- {
--	int nwait;
- 	struct list_head *lsthead = &epi->pwqlist;
- 	struct eppoll_entry *pwq;
+ int ramfs_get_sb(struct file_system_type *fs_type,
+@@ -197,10 +269,16 @@ static int rootfs_get_sb(struct file_sys
+ 			    mnt);
+ }
  
--	/* This is called without locks, so we need the atomic exchange */
--	nwait = xchg(&epi->nwait, 0);
-+	while (!list_empty(lsthead)) {
-+		pwq = list_first_entry(lsthead, struct eppoll_entry, llink);
- 
--	if (nwait) {
--		while (!list_empty(lsthead)) {
--			pwq = list_first_entry(lsthead, struct eppoll_entry, llink);
++static void ramfs_kill_sb(struct super_block *sb)
++{
++	kfree(sb->s_fs_info);
++	kill_litter_super(sb);
++}
++
+ static struct file_system_type ramfs_fs_type = {
+ 	.name		= "ramfs",
+ 	.get_sb		= ramfs_get_sb,
+-	.kill_sb	= kill_litter_super,
++	.kill_sb	= ramfs_kill_sb,
+ };
+ static struct file_system_type rootfs_fs_type = {
+ 	.name		= "rootfs",
+_
+
+Patches currently in -mm which might be from fengguang.wu@intel.com are
+
+origin.patch
+writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks.patch
+writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks-try-2.patch
+vfs-skip-i_clear-state-inodes.patch
+linux-next.patch
+
