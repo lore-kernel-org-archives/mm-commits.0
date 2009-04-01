@@ -1,217 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-tty-switch-synclinkmp-to-proc_fops.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:33:49 -0700
-Message-ID: <200904011833.n31IXnEY006901@imap1.linux-foundation.org>
+Subject: [merged] use-debug_kmap_atomic.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:38:45 -0700
+Message-ID: <200904011838.n31Icj1l008373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756106AbZDATRh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:17:37 -0400
+	by vger.kernel.org with ESMTP id S1756238AbZDATSQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:18:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc tty: switch synclinkmp to ->proc_fops
+     mm: use debug_kmap_atomic
 has been removed from the -mm tree.  Its filename was
-     proc-tty-switch-synclinkmp-to-proc_fops.patch
+     use-debug_kmap_atomic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch synclinkmp to ->proc_fops
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: mm: use debug_kmap_atomic
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Use debug_kmap_atomic in kmap_atomic, kmap_atomic_pfn, and
+iomap_atomic_prot_pfn.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclinkmp.c |   74 ++++++++++++++++--------------------
- 1 file changed, 34 insertions(+), 40 deletions(-)
+ arch/mips/mm/highmem.c             |    2 ++
+ arch/powerpc/include/asm/highmem.h |    2 ++
+ arch/sparc/mm/highmem.c            |    1 +
+ arch/x86/mm/highmem_32.c           |    1 +
+ arch/x86/mm/iomap_32.c             |    2 ++
+ include/asm-frv/highmem.h          |    2 ++
+ include/asm-mn10300/highmem.h      |    2 ++
+ 7 files changed, 12 insertions(+)
 
-diff -puN drivers/char/synclinkmp.c~proc-tty-switch-synclinkmp-to-proc_fops drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~proc-tty-switch-synclinkmp-to-proc_fops
-+++ a/drivers/char/synclinkmp.c
-@@ -50,6 +50,7 @@
- #include <linux/ptrace.h>
- #include <linux/ioport.h>
- #include <linux/mm.h>
-+#include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <linux/netdevice.h>
- #include <linux/vmalloc.h>
-@@ -520,7 +521,6 @@ static void tx_hold(struct tty_struct *t
- static void tx_release(struct tty_struct *tty);
+diff -puN arch/mips/mm/highmem.c~use-debug_kmap_atomic arch/mips/mm/highmem.c
+--- a/arch/mips/mm/highmem.c~use-debug_kmap_atomic
++++ a/arch/mips/mm/highmem.c
+@@ -42,6 +42,7 @@ void *__kmap_atomic(struct page *page, e
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
  
- static int  ioctl(struct tty_struct *tty, struct file *file, unsigned int cmd, unsigned long arg);
--static int  read_proc(char *page, char **start, off_t off, int count,int *eof, void *data);
- static int  chars_in_buffer(struct tty_struct *tty);
- static void throttle(struct tty_struct * tty);
- static void unthrottle(struct tty_struct * tty);
-@@ -1354,13 +1354,12 @@ static int ioctl(struct tty_struct *tty,
-  * /proc fs routines....
-  */
++	debug_kmap_atomic(type);
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ #ifdef CONFIG_DEBUG_HIGHMEM
+@@ -88,6 +89,7 @@ void *kmap_atomic_pfn(unsigned long pfn,
  
--static inline int line_info(char *buf, SLMP_INFO *info)
-+static inline void line_info(struct seq_file *m, SLMP_INFO *info)
+ 	pagefault_disable();
+ 
++	debug_kmap_atomic(type);
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ 	set_pte(kmap_pte-idx, pfn_pte(pfn, kmap_prot));
+diff -puN arch/powerpc/include/asm/highmem.h~use-debug_kmap_atomic arch/powerpc/include/asm/highmem.h
+--- a/arch/powerpc/include/asm/highmem.h~use-debug_kmap_atomic
++++ a/arch/powerpc/include/asm/highmem.h
+@@ -24,6 +24,7 @@
+ 
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
++#include <linux/highmem.h>
+ #include <asm/kmap_types.h>
+ #include <asm/tlbflush.h>
+ #include <asm/page.h>
+@@ -94,6 +95,7 @@ static inline void *kmap_atomic_prot(str
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 
++	debug_kmap_atomic(type);
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ #ifdef CONFIG_DEBUG_HIGHMEM
+diff -puN arch/sparc/mm/highmem.c~use-debug_kmap_atomic arch/sparc/mm/highmem.c
+--- a/arch/sparc/mm/highmem.c~use-debug_kmap_atomic
++++ a/arch/sparc/mm/highmem.c
+@@ -39,6 +39,7 @@ void *kmap_atomic(struct page *page, enu
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 
++	debug_kmap_atomic(type);
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ 
+diff -puN arch/x86/mm/highmem_32.c~use-debug_kmap_atomic arch/x86/mm/highmem_32.c
+--- a/arch/x86/mm/highmem_32.c~use-debug_kmap_atomic
++++ a/arch/x86/mm/highmem_32.c
+@@ -40,6 +40,7 @@ void *kmap_atomic_prot(struct page *page
+ 
+ 	debug_kmap_atomic(type);
+ 
++	debug_kmap_atomic(type);
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ 	BUG_ON(!pte_none(*(kmap_pte-idx)));
+diff -puN arch/x86/mm/iomap_32.c~use-debug_kmap_atomic arch/x86/mm/iomap_32.c
+--- a/arch/x86/mm/iomap_32.c~use-debug_kmap_atomic
++++ a/arch/x86/mm/iomap_32.c
+@@ -19,6 +19,7 @@
+ #include <asm/iomap.h>
+ #include <asm/pat.h>
+ #include <linux/module.h>
++#include <linux/highmem.h>
+ 
+ int is_io_mapping_possible(resource_size_t base, unsigned long size)
  {
- 	char	stat_buf[30];
--	int	ret;
- 	unsigned long flags;
+@@ -71,6 +72,7 @@ iounmap_atomic(void *kvaddr, enum km_typ
+ 	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
+ 	enum fixed_addresses idx = type + KM_TYPE_NR*smp_processor_id();
  
--	ret = sprintf(buf, "%s: SCABase=%08x Mem=%08X StatusControl=%08x LCR=%08X\n"
-+	seq_printf(m, "%s: SCABase=%08x Mem=%08X StatusControl=%08x LCR=%08X\n"
- 		       "\tIRQ=%d MaxFrameSize=%u\n",
- 		info->device_name,
- 		info->phys_sca_base,
-@@ -1391,75 +1390,70 @@ static inline int line_info(char *buf, S
- 		strcat(stat_buf, "|RI");
++	debug_kmap_atomic(type);
+ 	/*
+ 	 * Force other mappings to Oops if they'll try to access this pte
+ 	 * without first remap it.  Keeping stale mappings around is a bad idea
+diff -puN include/asm-frv/highmem.h~use-debug_kmap_atomic include/asm-frv/highmem.h
+--- a/include/asm-frv/highmem.h~use-debug_kmap_atomic
++++ a/include/asm-frv/highmem.h
+@@ -18,6 +18,7 @@
+ #ifdef __KERNEL__
  
- 	if (info->params.mode == MGSL_MODE_HDLC) {
--		ret += sprintf(buf+ret, "\tHDLC txok:%d rxok:%d",
-+		seq_printf(m, "\tHDLC txok:%d rxok:%d",
- 			      info->icount.txok, info->icount.rxok);
- 		if (info->icount.txunder)
--			ret += sprintf(buf+ret, " txunder:%d", info->icount.txunder);
-+			seq_printf(m, " txunder:%d", info->icount.txunder);
- 		if (info->icount.txabort)
--			ret += sprintf(buf+ret, " txabort:%d", info->icount.txabort);
-+			seq_printf(m, " txabort:%d", info->icount.txabort);
- 		if (info->icount.rxshort)
--			ret += sprintf(buf+ret, " rxshort:%d", info->icount.rxshort);
-+			seq_printf(m, " rxshort:%d", info->icount.rxshort);
- 		if (info->icount.rxlong)
--			ret += sprintf(buf+ret, " rxlong:%d", info->icount.rxlong);
-+			seq_printf(m, " rxlong:%d", info->icount.rxlong);
- 		if (info->icount.rxover)
--			ret += sprintf(buf+ret, " rxover:%d", info->icount.rxover);
-+			seq_printf(m, " rxover:%d", info->icount.rxover);
- 		if (info->icount.rxcrc)
--			ret += sprintf(buf+ret, " rxlong:%d", info->icount.rxcrc);
-+			seq_printf(m, " rxlong:%d", info->icount.rxcrc);
- 	} else {
--		ret += sprintf(buf+ret, "\tASYNC tx:%d rx:%d",
-+		seq_printf(m, "\tASYNC tx:%d rx:%d",
- 			      info->icount.tx, info->icount.rx);
- 		if (info->icount.frame)
--			ret += sprintf(buf+ret, " fe:%d", info->icount.frame);
-+			seq_printf(m, " fe:%d", info->icount.frame);
- 		if (info->icount.parity)
--			ret += sprintf(buf+ret, " pe:%d", info->icount.parity);
-+			seq_printf(m, " pe:%d", info->icount.parity);
- 		if (info->icount.brk)
--			ret += sprintf(buf+ret, " brk:%d", info->icount.brk);
-+			seq_printf(m, " brk:%d", info->icount.brk);
- 		if (info->icount.overrun)
--			ret += sprintf(buf+ret, " oe:%d", info->icount.overrun);
-+			seq_printf(m, " oe:%d", info->icount.overrun);
- 	}
+ #include <linux/init.h>
++#include <linux/highmem.h>
+ #include <asm/mem-layout.h>
+ #include <asm/spr-regs.h>
+ #include <asm/mb-regs.h>
+@@ -116,6 +117,7 @@ static inline void *kmap_atomic(struct p
+ 	unsigned long paddr;
  
- 	/* Append serial signal status to end */
--	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
-+	seq_printf(m, " %s\n", stat_buf+1);
+ 	pagefault_disable();
++	debug_kmap_atomic(type);
+ 	paddr = page_to_phys(page);
  
--	ret += sprintf(buf+ret, "\ttxactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
-+	seq_printf(m, "\ttxactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
- 	 info->tx_active,info->bh_requested,info->bh_running,
- 	 info->pending_bh);
--
--	return ret;
- }
+ 	switch (type) {
+diff -puN include/asm-mn10300/highmem.h~use-debug_kmap_atomic include/asm-mn10300/highmem.h
+--- a/include/asm-mn10300/highmem.h~use-debug_kmap_atomic
++++ a/include/asm-mn10300/highmem.h
+@@ -16,6 +16,7 @@
  
- /* Called to print information about devices
-  */
--static int read_proc(char *page, char **start, off_t off, int count,
--	      int *eof, void *data)
-+static int synclinkmp_proc_show(struct seq_file *m, void *v)
- {
--	int len = 0, l;
--	off_t	begin = 0;
- 	SLMP_INFO *info;
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
++#include <linux/highmem.h>
+ #include <asm/kmap_types.h>
+ #include <asm/pgtable.h>
  
--	len += sprintf(page, "synclinkmp driver:%s\n", driver_version);
-+	seq_printf(m, "synclinkmp driver:%s\n", driver_version);
+@@ -77,6 +78,7 @@ static inline unsigned long kmap_atomic(
+ 	if (page < highmem_start_page)
+ 		return page_address(page);
  
- 	info = synclinkmp_device_list;
- 	while( info ) {
--		l = line_info(page + len, info);
--		len += l;
--		if (len+begin > off+count)
--			goto done;
--		if (len+begin < off) {
--			begin += len;
--			len = 0;
--		}
-+		line_info(m, info);
- 		info = info->next_device;
- 	}
-+	return 0;
-+}
- 
--	*eof = 1;
--done:
--	if (off >= len+begin)
--		return 0;
--	*start = page + (off-begin);
--	return ((count < begin+len-off) ? count : begin+len-off);
-+static int synclinkmp_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, synclinkmp_proc_show, NULL);
- }
- 
-+static const struct file_operations synclinkmp_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= synclinkmp_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
- /* Return the count of bytes in transmit buffer
-  */
- static int chars_in_buffer(struct tty_struct *tty)
-@@ -3905,13 +3899,13 @@ static const struct tty_operations ops =
- 	.send_xchar = send_xchar,
- 	.break_ctl = set_break,
- 	.wait_until_sent = wait_until_sent,
-- 	.read_proc = read_proc,
- 	.set_termios = set_termios,
- 	.stop = tx_hold,
- 	.start = tx_release,
- 	.hangup = hangup,
- 	.tiocmget = tiocmget,
- 	.tiocmset = tiocmset,
-+	.proc_fops = &synclinkmp_proc_fops,
- };
- 
- 
++	debug_kmap_atomic(type);
+ 	idx = type + KM_TYPE_NR * smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ #if HIGHMEM_DEBUG
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-linux-next.patch
-sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
-sysctl-lockdep-support-for-sysctl-reference-counting.patch
-simplify-copy_thread.patch
-simplify-copy_thread-checkpatch-fixes.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
-sysctl-fix-suid_dumpable-and-lease-break-time-sysctls.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
-namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-namespaces-mqueue-namespace-adapt-sysctl-update.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
 
