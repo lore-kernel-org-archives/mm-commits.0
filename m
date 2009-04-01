@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-tty-switch-amiserial-to-proc_fops.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:33:59 -0700
-Message-ID: <200904011833.n31IXxTs006956@imap1.linux-foundation.org>
+Subject: [merged] proc-tty-switch-synclink-to-proc_fops.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:33:45 -0700
+Message-ID: <200904011833.n31IXjg1006855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932302AbZDASgm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:36:42 -0400
+	by vger.kernel.org with ESMTP id S1765785AbZDASg0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc tty: switch amiserial to ->proc_fops
+     proc tty: switch synclink to ->proc_fops
 has been removed from the -mm tree.  Its filename was
-     proc-tty-switch-amiserial-to-proc_fops.patch
+     proc-tty-switch-synclink-to-proc_fops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch amiserial to ->proc_fops
+Subject: proc tty: switch synclink to ->proc_fops
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
@@ -31,124 +31,187 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/amiserial.c |   60 ++++++++++++++++---------------------
- 1 file changed, 27 insertions(+), 33 deletions(-)
+ drivers/char/synclink.c |   98 +++++++++++++++-----------------------
+ 1 file changed, 39 insertions(+), 59 deletions(-)
 
-diff -puN drivers/char/amiserial.c~proc-tty-switch-amiserial-to-proc_fops drivers/char/amiserial.c
---- a/drivers/char/amiserial.c~proc-tty-switch-amiserial-to-proc_fops
-+++ a/drivers/char/amiserial.c
-@@ -79,6 +79,7 @@ static char *serial_version = "4.30";
+diff -puN drivers/char/synclink.c~proc-tty-switch-synclink-to-proc_fops drivers/char/synclink.c
+--- a/drivers/char/synclink.c~proc-tty-switch-synclink-to-proc_fops
++++ a/drivers/char/synclink.c
+@@ -79,6 +79,7 @@
  #include <linux/ptrace.h>
  #include <linux/ioport.h>
  #include <linux/mm.h>
 +#include <linux/seq_file.h>
  #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/bitops.h>
-@@ -1825,14 +1826,13 @@ static int rs_open(struct tty_struct *tt
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+@@ -3459,18 +3460,17 @@ cleanup:			
   * /proc fs routines....
   */
  
--static inline int line_info(char *buf, struct serial_state *state)
-+static inline void line_info(struct seq_file *m, struct serial_state *state)
+-static inline int line_info(char *buf, struct mgsl_struct *info)
++static inline void line_info(struct seq_file *m, struct mgsl_struct *info)
  {
- 	struct async_struct *info = state->info, scr_info;
- 	char	stat_buf[30], control, status;
+ 	char	stat_buf[30];
 -	int	ret;
  	unsigned long flags;
  
--	ret = sprintf(buf, "%d: uart:amiga_builtin",state->line);
-+	seq_printf(m, "%d: uart:amiga_builtin",state->line);
- 
- 	/*
- 	 * Figure out the current RS-232 lines
-@@ -1864,55 +1864,49 @@ static inline int line_info(char *buf, s
- 		strcat(stat_buf, "|CD");
- 
- 	if (info->quot) {
--		ret += sprintf(buf+ret, " baud:%d",
--			       state->baud_base / info->quot);
-+		seq_printf(m, " baud:%d", state->baud_base / info->quot);
+ 	if (info->bus_type == MGSL_BUS_TYPE_PCI) {
+-		ret = sprintf(buf, "%s:PCI io:%04X irq:%d mem:%08X lcr:%08X",
++		seq_printf(m, "%s:PCI io:%04X irq:%d mem:%08X lcr:%08X",
+ 			info->device_name, info->io_base, info->irq_level,
+ 			info->phys_memory_base, info->phys_lcr_base);
+ 	} else {
+-		ret = sprintf(buf, "%s:(E)ISA io:%04X irq:%d dma:%d",
++		seq_printf(m, "%s:(E)ISA io:%04X irq:%d dma:%d",
+ 			info->device_name, info->io_base, 
+ 			info->irq_level, info->dma_level);
  	}
+@@ -3497,37 +3497,37 @@ static inline int line_info(char *buf, s
  
--	ret += sprintf(buf+ret, " tx:%d rx:%d",
--		      state->icount.tx, state->icount.rx);
-+	seq_printf(m, " tx:%d rx:%d", state->icount.tx, state->icount.rx);
- 
- 	if (state->icount.frame)
--		ret += sprintf(buf+ret, " fe:%d", state->icount.frame);
-+		seq_printf(m, " fe:%d", state->icount.frame);
- 
- 	if (state->icount.parity)
--		ret += sprintf(buf+ret, " pe:%d", state->icount.parity);
-+		seq_printf(m, " pe:%d", state->icount.parity);
- 
- 	if (state->icount.brk)
--		ret += sprintf(buf+ret, " brk:%d", state->icount.brk);
-+		seq_printf(m, " brk:%d", state->icount.brk);
- 
- 	if (state->icount.overrun)
--		ret += sprintf(buf+ret, " oe:%d", state->icount.overrun);
-+		seq_printf(m, " oe:%d", state->icount.overrun);
- 
- 	/*
- 	 * Last thing is the RS-232 status lines
- 	 */
+ 	if (info->params.mode == MGSL_MODE_HDLC ||
+ 	    info->params.mode == MGSL_MODE_RAW ) {
+-		ret += sprintf(buf+ret, " HDLC txok:%d rxok:%d",
++		seq_printf(m, " HDLC txok:%d rxok:%d",
+ 			      info->icount.txok, info->icount.rxok);
+ 		if (info->icount.txunder)
+-			ret += sprintf(buf+ret, " txunder:%d", info->icount.txunder);
++			seq_printf(m, " txunder:%d", info->icount.txunder);
+ 		if (info->icount.txabort)
+-			ret += sprintf(buf+ret, " txabort:%d", info->icount.txabort);
++			seq_printf(m, " txabort:%d", info->icount.txabort);
+ 		if (info->icount.rxshort)
+-			ret += sprintf(buf+ret, " rxshort:%d", info->icount.rxshort);	
++			seq_printf(m, " rxshort:%d", info->icount.rxshort);
+ 		if (info->icount.rxlong)
+-			ret += sprintf(buf+ret, " rxlong:%d", info->icount.rxlong);
++			seq_printf(m, " rxlong:%d", info->icount.rxlong);
+ 		if (info->icount.rxover)
+-			ret += sprintf(buf+ret, " rxover:%d", info->icount.rxover);
++			seq_printf(m, " rxover:%d", info->icount.rxover);
+ 		if (info->icount.rxcrc)
+-			ret += sprintf(buf+ret, " rxcrc:%d", info->icount.rxcrc);
++			seq_printf(m, " rxcrc:%d", info->icount.rxcrc);
+ 	} else {
+-		ret += sprintf(buf+ret, " ASYNC tx:%d rx:%d",
++		seq_printf(m, " ASYNC tx:%d rx:%d",
+ 			      info->icount.tx, info->icount.rx);
+ 		if (info->icount.frame)
+-			ret += sprintf(buf+ret, " fe:%d", info->icount.frame);
++			seq_printf(m, " fe:%d", info->icount.frame);
+ 		if (info->icount.parity)
+-			ret += sprintf(buf+ret, " pe:%d", info->icount.parity);
++			seq_printf(m, " pe:%d", info->icount.parity);
+ 		if (info->icount.brk)
+-			ret += sprintf(buf+ret, " brk:%d", info->icount.brk);	
++			seq_printf(m, " brk:%d", info->icount.brk);
+ 		if (info->icount.overrun)
+-			ret += sprintf(buf+ret, " oe:%d", info->icount.overrun);
++			seq_printf(m, " oe:%d", info->icount.overrun);
+ 	}
+ 	
+ 	/* Append serial signal status to end */
 -	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
--	return ret;
 +	seq_printf(m, " %s\n", stat_buf+1);
- }
+ 	
+-	ret += sprintf(buf+ret, "txactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
++	seq_printf(m, "txactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
+ 	 info->tx_active,info->bh_requested,info->bh_running,
+ 	 info->pending_bh);
+ 	 
+@@ -3544,60 +3544,40 @@ static inline int line_info(char *buf, s
+ 	u16 Tmr = usc_InReg( info, TMR );
+ 	u16 Tccr = usc_InReg( info, TCCR );
+ 	u16 Ccar = inw( info->io_base + CCAR );
+-	ret += sprintf(buf+ret, "tcsr=%04X tdmr=%04X ticr=%04X rcsr=%04X rdmr=%04X\n"
++	seq_printf(m, "tcsr=%04X tdmr=%04X ticr=%04X rcsr=%04X rdmr=%04X\n"
+                         "ricr=%04X icr =%04X dccr=%04X tmr=%04X tccr=%04X ccar=%04X\n",
+ 	 		Tcsr,Tdmr,Ticr,Rscr,Rdmr,Ricr,Icr,Dccr,Tmr,Tccr,Ccar );
+ 	}
+ 	spin_unlock_irqrestore(&info->irq_spinlock,flags);
+-	
+-	return ret;
+-	
+-}	/* end of line_info() */
++}
  
--static int rs_read_proc(char *page, char **start, off_t off, int count,
--			int *eof, void *data)
-+static int rs_proc_show(struct seq_file *m, void *v)
+-/* mgsl_read_proc()
+- * 
+- * Called to print information about devices
+- * 
+- * Arguments:
+- * 	page	page of memory to hold returned info
+- * 	start	
+- * 	off
+- * 	count
+- * 	eof
+- * 	data
+- * 	
+- * Return Value:
+- */
+-static int mgsl_read_proc(char *page, char **start, off_t off, int count,
+-		 int *eof, void *data)
++/* Called to print information about devices */
++static int mgsl_proc_show(struct seq_file *m, void *v)
  {
 -	int len = 0, l;
 -	off_t	begin = 0;
-+	seq_printf(m, "serinfo:1.0 driver:%s\n", serial_version);
-+	line_info(m, &rs_table[0]);
+ 	struct mgsl_struct *info;
+ 	
+-	len += sprintf(page, "synclink driver:%s\n", driver_version);
++	seq_printf(m, "synclink driver:%s\n", driver_version);
+ 	
+ 	info = mgsl_device_list;
+ 	while( info ) {
+-		l = line_info(page + len, info);
+-		len += l;
+-		if (len+begin > off+count)
+-			goto done;
+-		if (len+begin < off) {
+-			begin += len;
+-			len = 0;
+-		}
++		line_info(m, info);
+ 		info = info->next_device;
+ 	}
 +	return 0;
 +}
  
--	len += sprintf(page, "serinfo:1.0 driver:%s\n", serial_version);
--	l = line_info(page + len, &rs_table[0]);
--	len += l;
--	if (len+begin > off+count)
--	  goto done;
--	if (len+begin < off) {
--	  begin += len;
--	  len = 0;
--	}
 -	*eof = 1;
 -done:
 -	if (off >= len+begin)
 -		return 0;
 -	*start = page + (off-begin);
 -	return ((count < begin+len-off) ? count : begin+len-off);
-+static int rs_proc_open(struct inode *inode, struct file *file)
+-	
+-}	/* end of mgsl_read_proc() */
++static int mgsl_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, rs_proc_show, NULL);
- }
- 
-+static const struct file_operations rs_proc_fops = {
++	return single_open(file, mgsl_proc_show, NULL);
++}
++
++static const struct file_operations mgsl_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= rs_proc_open,
++	.open		= mgsl_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
-+
- /*
-  * ---------------------------------------------------------------------
-  * rs_init() and friends
-@@ -1951,9 +1945,9 @@ static const struct tty_operations seria
- 	.break_ctl = rs_break,
- 	.send_xchar = rs_send_xchar,
- 	.wait_until_sent = rs_wait_until_sent,
--	.read_proc = rs_read_proc,
- 	.tiocmget = rs_tiocmget,
- 	.tiocmset = rs_tiocmset,
-+	.proc_fops = &rs_proc_fops,
+ 
+ /* mgsl_allocate_dma_buffers()
+  * 
+@@ -4335,13 +4315,13 @@ static const struct tty_operations mgsl_
+ 	.send_xchar = mgsl_send_xchar,
+ 	.break_ctl = mgsl_break,
+ 	.wait_until_sent = mgsl_wait_until_sent,
+- 	.read_proc = mgsl_read_proc,
+ 	.set_termios = mgsl_set_termios,
+ 	.stop = mgsl_stop,
+ 	.start = mgsl_start,
+ 	.hangup = mgsl_hangup,
+ 	.tiocmget = tiocmget,
+ 	.tiocmset = tiocmset,
++	.proc_fops = &mgsl_proc_fops,
  };
  
  /*
