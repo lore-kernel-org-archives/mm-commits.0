@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-warnings-in-kernel_execve.patch added to -mm tree
-Date: Wed, 01 Apr 2009 15:34:27 -0700
-Message-ID: <200904012234.n31MYRl1011634@imap1.linux-foundation.org>
+Subject: + uml-fix-compile-error-from-net_device_ops-conversion.patch added to -mm tree
+Date: Wed, 01 Apr 2009 15:34:20 -0700
+Message-ID: <200904012234.n31MYLnA011622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750824AbZDAWh0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 18:37:26 -0400
+	by vger.kernel.org with ESMTP id S1751436AbZDAWhz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 18:37:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, jdike@addtoit.com, xiyou.wangcong@gmail.com
+Cc: mszeredi@suse.cz, davem@davemloft.net, jdike@addtoit.com, shemminger@vyatta.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     uml: fix warnings in kernel_execve
+     uml: fix compile error from net_device_ops conversion
 has been added to the -mm tree.  Its filename is
-     uml-fix-warnings-in-kernel_execve.patch
+     uml-fix-compile-error-from-net_device_ops-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix warnings in kernel_execve
+Subject: uml: fix compile error from net_device_ops conversion
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Fix the following warnings:
+Fix the following compile error:
 
-arch/um/kernel/syscall.c: In function 'kernel_execve':
-arch/um/kernel/syscall.c:130: warning: passing argument 1 of 'um_execve' discards qualifiers from pointer target type
-arch/um/kernel/syscall.c:130: warning: passing argument 2 of 'um_execve' discards qualifiers from pointer target type
-arch/um/kernel/syscall.c:130: warning: passing argument 3 of 'um_execve' discards qualifiers from pointer target type
+arch/um/drivers/net_kern.c: In function 'uml_inetaddr_event':
+arch/um/drivers/net_kern.c:760: error: 'struct net_device' has no member named 'open'
+
+This was introduced by commit 8bb95b39, "uml: convert network device
+to netdevice ops".
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Stephen Hemminger <shemminger@vyatta.com>
+Cc: David S. Miller <davem@davemloft.net>
 Cc: Jeff Dike <jdike@addtoit.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/syscall.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/um/drivers/net_kern.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/kernel/syscall.c~uml-fix-warnings-in-kernel_execve arch/um/kernel/syscall.c
---- a/arch/um/kernel/syscall.c~uml-fix-warnings-in-kernel_execve
-+++ a/arch/um/kernel/syscall.c
-@@ -127,7 +127,8 @@ int kernel_execve(const char *filename, 
+diff -puN arch/um/drivers/net_kern.c~uml-fix-compile-error-from-net_device_ops-conversion arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-fix-compile-error-from-net_device_ops-conversion
++++ a/arch/um/drivers/net_kern.c
+@@ -757,7 +757,7 @@ static int uml_inetaddr_event(struct not
+ 	void (*proc)(unsigned char *, unsigned char *, void *);
+ 	unsigned char addr_buf[4], netmask_buf[4];
  
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
--	ret = um_execve(filename, argv, envp);
-+	ret = um_execve((char *)filename, (char __user *__user *)argv,
-+			(char __user *__user *) envp);
- 	set_fs(fs);
+-	if (dev->open != uml_net_open)
++	if (dev->netdev_ops->ndo_open != uml_net_open)
+ 		return NOTIFY_DONE;
  
- 	return ret;
+ 	lp = netdev_priv(dev);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
