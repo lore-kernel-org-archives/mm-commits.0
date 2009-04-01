@@ -1,171 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-shrink_all_memory-use-scnr_reclaimed.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:34:28 -0700
-Message-ID: <200904011834.n31IYSoq007155@imap1.linux-foundation.org>
+Subject: [merged] vmscan-rename-scmay_swap-to-may_unmap.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:34:19 -0700
+Message-ID: <200904011834.n31IYJAu007146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933205AbZDASjg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:39:36 -0400
+	by vger.kernel.org with ESMTP id S933540AbZDASjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:39:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: shrink_all_memory(): use sc.nr_reclaimed
+     vmscan: rename sc.may_swap to may_unmap
 has been removed from the -mm tree.  Its filename was
-     mm-shrink_all_memory-use-scnr_reclaimed.patch
+     vmscan-rename-scmay_swap-to-may_unmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: shrink_all_memory(): use sc.nr_reclaimed
-From: MinChan Kim <minchan.kim@gmail.com>
+Subject: vmscan: rename sc.may_swap to may_unmap
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Commit a79311c14eae4bb946a97af25f3e1b17d625985d "vmscan: bail out of
-direct reclaim after swap_cluster_max pages" moved the nr_reclaimed
-counter into the scan control to accumulate the number of all reclaimed
-pages in a reclaim invocation.
+sc.may_swap does not only influence reclaiming of anon pages but pages
+mapped into pagetables in general, which also includes mapped file pages.
 
-shrink_all_memory() can use the same mechanism. it increase code
-consistency and redability.
+In shrink_page_list():
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: MinChan Kim <minchan.kim@gmail.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+		if (!sc->may_swap && page_mapped(page))
+			goto keep_locked;
+
+For anon pages, this makes sense as they are always mapped and reclaiming
+them always requires swapping.
+
+But mapped file pages are skipped here as well and it has nothing to do
+with swapping.
+
+The real effect of the knob is whether mapped pages are unmapped and
+reclaimed or not.  Rename it to `may_unmap' to have its name match its
+actual meaning more precisely.
+
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Reviewed-by: MinChan Kim <minchan.kim@gmail.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   46 ++++++++++++++++++++++++----------------------
- 1 file changed, 24 insertions(+), 22 deletions(-)
+ mm/vmscan.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~mm-shrink_all_memory-use-scnr_reclaimed mm/vmscan.c
---- a/mm/vmscan.c~mm-shrink_all_memory-use-scnr_reclaimed
+diff -puN mm/vmscan.c~vmscan-rename-scmay_swap-to-may_unmap mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-rename-scmay_swap-to-may_unmap
 +++ a/mm/vmscan.c
-@@ -2050,16 +2050,15 @@ unsigned long global_lru_pages(void)
- #ifdef CONFIG_PM
- /*
-  * Helper function for shrink_all_memory().  Tries to reclaim 'nr_pages' pages
-- * from LRU lists system-wide, for given pass and priority, and returns the
-- * number of reclaimed pages
-+ * from LRU lists system-wide, for given pass and priority.
-  *
-  * For pass > 3 we also try to shrink the LRU lists that contain a few pages
-  */
--static unsigned long shrink_all_zones(unsigned long nr_pages, int prio,
-+static void shrink_all_zones(unsigned long nr_pages, int prio,
- 				      int pass, struct scan_control *sc)
+@@ -60,8 +60,8 @@ struct scan_control {
+ 
+ 	int may_writepage;
+ 
+-	/* Can pages be swapped as part of reclaim? */
+-	int may_swap;
++	/* Can mapped pages be reclaimed? */
++	int may_unmap;
+ 
+ 	/* This context's SWAP_CLUSTER_MAX. If freeing memory for
+ 	 * suspend, we effectively ignore SWAP_CLUSTER_MAX.
+@@ -606,7 +606,7 @@ static unsigned long shrink_page_list(st
+ 		if (unlikely(!page_evictable(page, NULL)))
+ 			goto cull_mlocked;
+ 
+-		if (!sc->may_swap && page_mapped(page))
++		if (!sc->may_unmap && page_mapped(page))
+ 			goto keep_locked;
+ 
+ 		/* Double the slab pressure for mapped and swapcache pages */
+@@ -1694,7 +1694,7 @@ unsigned long try_to_free_pages(struct z
+ 		.gfp_mask = gfp_mask,
+ 		.may_writepage = !laptop_mode,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+-		.may_swap = 1,
++		.may_unmap = 1,
+ 		.swappiness = vm_swappiness,
+ 		.order = order,
+ 		.mem_cgroup = NULL,
+@@ -1713,7 +1713,7 @@ unsigned long try_to_free_mem_cgroup_pag
  {
- 	struct zone *zone;
--	unsigned long ret = 0;
-+	unsigned long nr_reclaimed = 0;
+ 	struct scan_control sc = {
+ 		.may_writepage = !laptop_mode,
+-		.may_swap = 1,
++		.may_unmap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = swappiness,
+ 		.order = 0,
+@@ -1723,7 +1723,7 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	struct zonelist *zonelist;
  
- 	for_each_populated_zone(zone) {
- 		enum lru_list l;
-@@ -2082,14 +2081,16 @@ static unsigned long shrink_all_zones(un
+ 	if (noswap)
+-		sc.may_swap = 0;
++		sc.may_unmap = 0;
  
- 				zone->lru[l].nr_scan = 0;
- 				nr_to_scan = min(nr_pages, lru_pages);
--				ret += shrink_list(l, nr_to_scan, zone,
-+				nr_reclaimed += shrink_list(l, nr_to_scan, zone,
- 								sc, prio);
--				if (ret >= nr_pages)
--					return ret;
-+				if (nr_reclaimed >= nr_pages) {
-+					sc->nr_reclaimed = nr_reclaimed;
-+					return;
-+				}
- 			}
- 		}
- 	}
--	return ret;
-+	sc->nr_reclaimed = nr_reclaimed;
- }
- 
- /*
-@@ -2103,7 +2104,6 @@ static unsigned long shrink_all_zones(un
- unsigned long shrink_all_memory(unsigned long nr_pages)
- {
- 	unsigned long lru_pages, nr_slab;
--	unsigned long ret = 0;
- 	int pass;
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+@@ -1762,7 +1762,7 @@ static unsigned long balance_pgdat(pg_da
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+-		.may_swap = 1,
++		.may_unmap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = vm_swappiness,
+ 		.order = order,
+@@ -2110,7 +2110,7 @@ unsigned long shrink_all_memory(unsigned
  	struct reclaim_state reclaim_state;
  	struct scan_control sc = {
-@@ -2125,8 +2125,8 @@ unsigned long shrink_all_memory(unsigned
- 		if (!reclaim_state.reclaimed_slab)
- 			break;
+ 		.gfp_mask = GFP_KERNEL,
+-		.may_swap = 0,
++		.may_unmap = 0,
+ 		.swap_cluster_max = nr_pages,
+ 		.may_writepage = 1,
+ 		.isolate_pages = isolate_pages_global,
+@@ -2147,7 +2147,7 @@ unsigned long shrink_all_memory(unsigned
  
--		ret += reclaim_state.reclaimed_slab;
--		if (ret >= nr_pages)
-+		sc.nr_reclaimed += reclaim_state.reclaimed_slab;
-+		if (sc.nr_reclaimed >= nr_pages)
- 			goto out;
- 
- 		nr_slab -= reclaim_state.reclaimed_slab;
-@@ -2148,18 +2148,18 @@ unsigned long shrink_all_memory(unsigned
- 			sc.may_unmap = 1;
+ 		/* Force reclaiming mapped pages in the passes #3 and #4 */
+ 		if (pass > 2)
+-			sc.may_swap = 1;
++			sc.may_unmap = 1;
  
  		for (prio = DEF_PRIORITY; prio >= 0; prio--) {
--			unsigned long nr_to_scan = nr_pages - ret;
-+			unsigned long nr_to_scan = nr_pages - sc.nr_reclaimed;
- 
- 			sc.nr_scanned = 0;
--			ret += shrink_all_zones(nr_to_scan, prio, pass, &sc);
--			if (ret >= nr_pages)
-+			shrink_all_zones(nr_to_scan, prio, pass, &sc);
-+			if (sc.nr_reclaimed >= nr_pages)
- 				goto out;
- 
- 			reclaim_state.reclaimed_slab = 0;
- 			shrink_slab(sc.nr_scanned, sc.gfp_mask,
- 					global_lru_pages());
--			ret += reclaim_state.reclaimed_slab;
--			if (ret >= nr_pages)
-+			sc.nr_reclaimed += reclaim_state.reclaimed_slab;
-+			if (sc.nr_reclaimed >= nr_pages)
- 				goto out;
- 
- 			if (sc.nr_scanned && prio < DEF_PRIORITY - 2)
-@@ -2168,21 +2168,23 @@ unsigned long shrink_all_memory(unsigned
- 	}
- 
- 	/*
--	 * If ret = 0, we could not shrink LRUs, but there may be something
--	 * in slab caches
-+	 * If sc.nr_reclaimed = 0, we could not shrink LRUs, but there may be
-+	 * something in slab caches
- 	 */
--	if (!ret) {
-+	if (!sc.nr_reclaimed) {
- 		do {
- 			reclaim_state.reclaimed_slab = 0;
- 			shrink_slab(nr_pages, sc.gfp_mask, global_lru_pages());
--			ret += reclaim_state.reclaimed_slab;
--		} while (ret < nr_pages && reclaim_state.reclaimed_slab > 0);
-+			sc.nr_reclaimed += reclaim_state.reclaimed_slab;
-+		} while (sc.nr_reclaimed < nr_pages &&
-+				reclaim_state.reclaimed_slab > 0);
- 	}
- 
-+
- out:
- 	current->reclaim_state = NULL;
- 
--	return ret;
-+	return sc.nr_reclaimed;
- }
- #endif
- 
+ 			unsigned long nr_to_scan = nr_pages - ret;
+@@ -2290,7 +2290,7 @@ static int __zone_reclaim(struct zone *z
+ 	int priority;
+ 	struct scan_control sc = {
+ 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
+-		.may_swap = !!(zone_reclaim_mode & RECLAIM_SWAP),
++		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
+ 		.swap_cluster_max = max_t(unsigned long, nr_pages,
+ 					SWAP_CLUSTER_MAX),
+ 		.gfp_mask = gfp_mask,
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+linux-next.patch
+cifs-use-kzfree.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
 
