@@ -1,120 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:34:30 -0700
-Message-ID: <200904011834.n31IYUH6007198@imap1.linux-foundation.org>
+Subject: [merged] vmscan-respect-higher-order-in-zone_reclaim.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:34:36 -0700
+Message-ID: <200904011834.n31IYa1B007204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54615 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932155AbZDASkL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:40:11 -0400
+	by vger.kernel.org with ESMTP id S1764353AbZDASkh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:40:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, ncunningham@crca.org.au, riel@redhat.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: clip swap_cluster_max in shrink_all_memory()
+     vmscan: respect higher order in zone_reclaim()
 has been removed from the -mm tree.  Its filename was
-     vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
+     vmscan-respect-higher-order-in-zone_reclaim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: clip swap_cluster_max in shrink_all_memory()
+Subject: vmscan: respect higher order in zone_reclaim()
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-shrink_inactive_list() scans in sc->swap_cluster_max chunks until it hits
-the scan limit it was passed.
+During page allocation, there are two stages of direct reclaim that are
+applied to each zone in the preferred list.  The first stage using
+zone_reclaim() reclaims unmapped file backed pages and slab pages if over
+defined limits as these are cheaper to reclaim.  The caller specifies the
+order of the target allocation but the scan control is not being correctly
+initialised.
 
-shrink_inactive_list()
-{
-	do {
-		isolate_pages(swap_cluster_max)
-		shrink_page_list()
-	} while (nr_scanned < max_scan);
-}
+The impact is that the correct number of pages are being reclaimed but
+that lumpy reclaim is not being applied.  This increases the chances of a
+full direct reclaim via try_to_free_pages() is required.
 
-This assumes that swap_cluster_max is not bigger than the scan limit
-because the latter is checked only after at least one iteration.
+This patch initialises the order field of the scan control as requested by
+the caller.
 
-In shrink_all_memory() sc->swap_cluster_max is initialized to the overall
-reclaim goal in the beginning but not decreased while reclaim is making
-progress which leads to subsequent calls to shrink_inactive_list()
-reclaiming way too much in the one iteration that is done unconditionally.
-
-Set sc->swap_cluster_max always to the proper goal before doing
-  shrink_all_zones()
-    shrink_list()
-      shrink_inactive_list().
-
-While the current shrink_all_memory() happily reclaims more than actually
-requested, this patch fixes it to never exceed the goal:
-
-unpatched
-   wanted=10000 reclaimed=13356
-   wanted=10000 reclaimed=19711
-   wanted=10000 reclaimed=10289
-   wanted=10000 reclaimed=17306
-   wanted=10000 reclaimed=10700
-   wanted=10000 reclaimed=10004
-   wanted=10000 reclaimed=13301
-   wanted=10000 reclaimed=10976
-   wanted=10000 reclaimed=10605
-   wanted=10000 reclaimed=10088
-   wanted=10000 reclaimed=15000
-
-patched
-   wanted=10000 reclaimed=10000
-   wanted=10000 reclaimed=9599
-   wanted=10000 reclaimed=8476
-   wanted=10000 reclaimed=8326
-   wanted=10000 reclaimed=10000
-   wanted=10000 reclaimed=10000
-   wanted=10000 reclaimed=9919
-   wanted=10000 reclaimed=10000
-   wanted=10000 reclaimed=10000
-   wanted=10000 reclaimed=10000
-   wanted=10000 reclaimed=10000
-   wanted=10000 reclaimed=9624
-   wanted=10000 reclaimed=10000
-   wanted=10000 reclaimed=10000
-   wanted=8500 reclaimed=8092
-   wanted=316 reclaimed=316
-
+[mel@csn.ul.ie: rewrote changelog]
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: MinChan Kim <minchan.kim@gmail.com>
-Acked-by: Nigel Cunningham <ncunningham@crca.org.au>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~vmscan-clip-swap_cluster_max-in-shrink_all_memory mm/vmscan.c
---- a/mm/vmscan.c~vmscan-clip-swap_cluster_max-in-shrink_all_memory
+diff -puN mm/vmscan.c~vmscan-respect-higher-order-in-zone_reclaim mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-respect-higher-order-in-zone_reclaim
 +++ a/mm/vmscan.c
-@@ -2109,7 +2109,6 @@ unsigned long shrink_all_memory(unsigned
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
- 		.may_unmap = 0,
--		.swap_cluster_max = nr_pages,
- 		.may_writepage = 1,
+@@ -2295,6 +2295,7 @@ static int __zone_reclaim(struct zone *z
+ 					SWAP_CLUSTER_MAX),
+ 		.gfp_mask = gfp_mask,
+ 		.swappiness = vm_swappiness,
++		.order = order,
  		.isolate_pages = isolate_pages_global,
  	};
-@@ -2151,6 +2150,7 @@ unsigned long shrink_all_memory(unsigned
- 			unsigned long nr_to_scan = nr_pages - sc.nr_reclaimed;
- 
- 			sc.nr_scanned = 0;
-+			sc.swap_cluster_max = nr_to_scan;
- 			shrink_all_zones(nr_to_scan, prio, pass, &sc);
- 			if (sc.nr_reclaimed >= nr_pages)
- 				goto out;
+ 	unsigned long slab_reclaimable;
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
