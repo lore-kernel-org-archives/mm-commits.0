@@ -1,199 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cirrusfb-laguna-chipset-8bpp-fix.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:39 -0700
-Message-ID: <200904011842.n31Igd3g009770@imap1.linux-foundation.org>
+Subject: [merged] drivers-video-uvesafbc-dont-use-gfp_any.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:42:18 -0700
+Message-ID: <200904011842.n31IgIdu009639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46117 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753490AbZDATHJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:07:09 -0400
+	by vger.kernel.org with ESMTP id S933181AbZDATHd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:07:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, davem@davemloft.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: Laguna chipset 8bpp fix
+     drivers/video/uvesafb.c: don't use gfp_any()
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-laguna-chipset-8bpp-fix.patch
+     drivers-video-uvesafbc-dont-use-gfp_any.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: Laguna chipset 8bpp fix
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: drivers/video/uvesafb.c: don't use gfp_any()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix 8bpp mode by adding handling of the Laguna chipsets to various places
-and stop trashing a HDR register which probably does not exist on the
-Laguna.
+GFP_KERNEL is legal here - we don't need to use gfp_any().
 
-Fix compilation warnings about uninitialized variables also.
-
-Finally, all 8bpp, 16bpp and 32bpp modes work on the Laguna chipset.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   34 +++++++++++++++++++++-------------
- include/video/cirrus.h   |    1 -
- 2 files changed, 21 insertions(+), 14 deletions(-)
+ drivers/video/uvesafb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-laguna-chipset-8bpp-fix drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-laguna-chipset-8bpp-fix
-+++ a/drivers/video/cirrusfb.c
-@@ -660,7 +660,7 @@ static int cirrusfb_set_par_foo(struct f
- 	int yres, vdispend, vsyncstart, vsyncend, vtotal;
- 	long freq;
- 	int nom, den, div;
--	unsigned int control, format, threshold;
-+	unsigned int control = 0, format = 0, threshold = 0;
+diff -puN drivers/video/uvesafb.c~drivers-video-uvesafbc-dont-use-gfp_any drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~drivers-video-uvesafbc-dont-use-gfp_any
++++ a/drivers/video/uvesafb.c
+@@ -189,7 +189,7 @@ static int uvesafb_exec(struct uvesafb_k
+ 	uvfb_tasks[seq] = task;
+ 	mutex_unlock(&uvfb_lock);
  
- 	dev_dbg(info->device, "Requested mode: %dx%dx%d\n",
- 	       var->xres, var->yres, var->bits_per_pixel);
-@@ -842,8 +842,7 @@ static int cirrusfb_set_par_foo(struct f
- 		threshold = fb_readw(cinfo->laguna_mmio + 0xea);
- 		control &= ~0x6800;
- 		format = 0;
--		threshold &= 0xffe0;
--		threshold &= 0x3fbf;
-+		threshold &= 0xffe0 & 0x3fbf;
- 	}
- 	if (nom) {
- 		tmp = den << 1;
-@@ -893,6 +892,8 @@ static int cirrusfb_set_par_foo(struct f
- 		tmp |= 0x40;
- 	if (var->sync & FB_SYNC_VERT_HIGH_ACT)
- 		tmp |= 0x80;
-+	if (cinfo->btype == BT_LAGUNA)
-+		tmp |= 0xc;
- 	WGen(cinfo, VGA_MIS_W, tmp);
- 
- 	/* Screen A Preset Row-Scan register */
-@@ -1228,9 +1229,7 @@ static int cirrusfb_set_par_foo(struct f
- 	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
- 		vga_wcrt(regbase, CL_CRT1D, (pitch >> 9) & 1);
- 
--	if (cinfo->btype == BT_LAGUNA ||
--	    cinfo->btype == BT_GD5480) {
--
-+	if (cinfo->btype == BT_LAGUNA) {
- 		tmp = 0;
- 		if ((htotal + 5) & 256)
- 			tmp |= 128;
-@@ -1360,7 +1359,8 @@ static int cirrusfb_pan_display(struct f
- 		xpix = (unsigned char) ((xoffset % 4) * 2);
- 	}
- 
--	cirrusfb_WaitBLT(cinfo->regbase); /* make sure all the BLT's are done */
-+	if (cinfo->btype != BT_LAGUNA)
-+		cirrusfb_WaitBLT(cinfo->regbase);
- 
- 	/* lower 8 + 8 bits of screen start address */
- 	vga_wcrt(cinfo->regbase, VGA_CRTC_START_LO,
-@@ -1394,7 +1394,8 @@ static int cirrusfb_pan_display(struct f
- 	if (info->var.bits_per_pixel == 1)
- 		vga_wattr(cinfo->regbase, CL_AR33, xpix);
- 
--	cirrusfb_WaitBLT(cinfo->regbase);
-+	if (cinfo->btype != BT_LAGUNA)
-+		cirrusfb_WaitBLT(cinfo->regbase);
- 
- 	return 0;
- }
-@@ -1513,6 +1514,7 @@ static void init_vgachip(struct fb_info 
- 		vga_wgfx(cinfo->regbase, CL_GR2F, 0x00);
- 		break;
- 
-+	case BT_LAGUNA:
- 	case BT_ALPINE:
- 		/* Nothing to do to reset the board. */
- 		break;
-@@ -1538,7 +1540,7 @@ static void init_vgachip(struct fb_info 
- 			WGen(cinfo, CL_VSSM2, 0x01);
- 
- 		/* reset sequencer logic */
--		vga_wseq(cinfo->regbase, CL_SEQR0, 0x03);
-+		vga_wseq(cinfo->regbase, VGA_SEQ_RESET, 0x03);
- 
- 		/* FullBandwidth (video off) and 8/9 dot clock */
- 		vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, 0x21);
-@@ -1560,6 +1562,7 @@ static void init_vgachip(struct fb_info 
- 			vga_wseq(cinfo->regbase, CL_SEQRF, 0x98);
- 			break;
- 		case BT_ALPINE:
-+		case BT_LAGUNA:
- 			break;
- 		case BT_SD64:
- 			vga_wseq(cinfo->regbase, CL_SEQRF, 0xb8);
-@@ -1648,7 +1651,8 @@ static void init_vgachip(struct fb_info 
- 	vga_wgfx(cinfo->regbase, VGA_GFX_COMPARE_MASK, 0x0f);
- 	/* Bit Mask: no mask at all */
- 	vga_wgfx(cinfo->regbase, VGA_GFX_BIT_MASK, 0xff);
--	if (cinfo->btype == BT_ALPINE)
-+
-+	if (cinfo->btype == BT_ALPINE || cinfo->btype == BT_LAGUNA)
- 		/* (5434 can't have bit 3 set for bitblt) */
- 		vga_wgfx(cinfo->regbase, CL_GRB, 0x20);
- 	else
-@@ -1845,7 +1849,8 @@ static void cirrusfb_imageblit(struct fb
- {
- 	struct cirrusfb_info *cinfo = info->par;
- 
--	cirrusfb_WaitBLT(cinfo->regbase);
-+	if (cinfo->btype != BT_LAGUNA)
-+		cirrusfb_WaitBLT(cinfo->regbase);
- 	cfb_imageblit(info, image);
- }
- 
-@@ -1992,7 +1997,7 @@ static int __devinit cirrusfb_set_fbinfo
- 		    | FBINFO_HWACCEL_YPAN
- 		    | FBINFO_HWACCEL_FILLRECT
- 		    | FBINFO_HWACCEL_COPYAREA;
--	if (noaccel)
-+	if (noaccel || cinfo->btype == BT_LAGUNA)
- 		info->flags |= FBINFO_HWACCEL_DISABLED;
- 	info->fbops = &cirrusfb_ops;
- 	if (cinfo->btype == BT_GD5480) {
-@@ -2481,6 +2486,8 @@ static void WHDR(const struct cirrusfb_i
- {
- 	unsigned char dummy;
- 
-+	if (cinfo->btype == BT_LAGUNA)
-+		return;
- 	if (cinfo->btype == BT_PICASSO) {
- 		/* Klaus' hint for correct access to HDR on some boards */
- 		/* first write 0 to pixel mask (3c6) */
-@@ -2548,7 +2555,8 @@ static void WClut(struct cirrusfb_info *
- 	vga_w(cinfo->regbase, VGA_PEL_IW, regnum);
- 
- 	if (cinfo->btype == BT_PICASSO || cinfo->btype == BT_PICASSO4 ||
--	    cinfo->btype == BT_ALPINE || cinfo->btype == BT_GD5480) {
-+	    cinfo->btype == BT_ALPINE || cinfo->btype == BT_GD5480 ||
-+	    cinfo->btype == BT_LAGUNA) {
- 		/* but DAC data register IS, at least for Picasso II */
- 		if (cinfo->btype == BT_PICASSO)
- 			data += 0xfff;
-diff -puN include/video/cirrus.h~cirrusfb-laguna-chipset-8bpp-fix include/video/cirrus.h
---- a/include/video/cirrus.h~cirrusfb-laguna-chipset-8bpp-fix
-+++ a/include/video/cirrus.h
-@@ -32,7 +32,6 @@
- #define CL_VSSM2	0x3c3	/* Motherboard Sleep */
- 
- /*** VGA Sequencer Registers ***/
--#define CL_SEQR0	0x0	/* Reset */
- /* the following are from the "extension registers" group */
- #define CL_SEQR6	0x6	/* Unlock ALL Extensions */
- #define CL_SEQR7	0x7	/* Extended Sequencer Mode */
+-	err = cn_netlink_send(m, 0, gfp_any());
++	err = cn_netlink_send(m, 0, GFP_KERNEL);
+ 	if (err == -ESRCH) {
+ 		/*
+ 		 * Try to start the userspace helper if sending
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
-tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+flex-onenand-support-v2-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+simplify-copy_thread-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+kernel-auditscc-fix-warning.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+page-owner-tracking.patch
+page-owner-tracking-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
