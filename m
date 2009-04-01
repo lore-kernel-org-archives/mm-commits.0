@@ -1,347 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] remove-unused-include-asm-generic-dma-mappingh.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:39:44 -0700
-Message-ID: <200904011839.n31IdiXF008777@imap1.linux-foundation.org>
+Subject: [merged] shmem-writepage-directly-to-swap.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:39:01 -0700
+Message-ID: <200904011839.n31Id1sp008478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58121 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933264AbZDASmb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:42:31 -0400
+	by vger.kernel.org with ESMTP id S933353AbZDASmn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:42:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, penberg@cs.helsinki.fi, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused include/asm-generic/dma-mapping.h
+     shmem: writepage directly to swap
 has been removed from the -mm tree.  Its filename was
-     remove-unused-include-asm-generic-dma-mappingh.patch
+     shmem-writepage-directly-to-swap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove unused include/asm-generic/dma-mapping.h
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: shmem: writepage directly to swap
+From: Hugh Dickins <hugh@veritas.com>
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Synopsis: if shmem_writepage calls swap_writepage directly, most shmem
+swap loads benefit, and a catastrophic interaction between SLUB and some
+flash storage is avoided.
+
+shmem_writepage() has always been peculiar in making no attempt to write:
+it has just transferred a shmem page from file cache to swap cache, then
+let that page make its way around the LRU again before being written and
+freed.
+
+The idea was that people use tmpfs because they want those pages to stay
+in RAM; so although we give it an overflow to swap, we should resist
+writing too soon, giving those pages a second chance before they can be
+reclaimed.
+
+That was always questionable, and I've toyed with this patch for years;
+but never had a clear justification to depart from the original design.
+
+It became more questionable in 2.6.28, when the split LRU patches classed
+shmem and tmpfs pages as SwapBacked rather than as file_cache: that in
+itself gives them more resistance to reclaim than normal file pages.  I
+prepared this patch for 2.6.29, but the merge window arrived before I'd
+completed gathering statistics to justify sending it in.
+
+Then while comparing SLQB against SLUB, running SLUB on a laptop I'd
+habitually used with SLAB, I found SLUB to run my tmpfs kbuild swapping
+tests five times slower than SLAB or SLQB - other machines slower too, but
+nowhere near so bad.  Simpler "cp -a" swapping tests showed the same.
+
+slub_max_order=0 brings sanity to all, but heavy swapping is too far from
+normal to justify such a tuning.  The crucial factor on that laptop turns
+out to be that I'm using an SD card for swap.  What happens is this:
+
+By default, SLUB uses order-2 pages for shmem_inode_cache (and many other
+fs inodes), so creating tmpfs files under memory pressure brings lumpy
+reclaim into play.  One subpage of the order is chosen from the bottom of
+the LRU as usual, then the other three picked out from their random
+positions on the LRUs.
+
+In a tmpfs load, many of these pages will be ones which already passed
+through shmem_writepage, so already have swap allocated.  And though their
+offsets on swap were probably allocated sequentially, now that the pages
+are picked off at random, their swap offsets are scattered.
+
+But the flash storage on the SD card is very sensitive to having its
+writes merged: once swap is written at scattered offsets, performance
+falls apart.  Rotating disk seeks increase too, but less disastrously.
+
+So: stop giving shmem/tmpfs pages a second pass around the LRU, write them
+out to swap as soon as their swap has been allocated.
+
+It's surely possible to devise an artificial load which runs faster the
+old way, one whose sizing is such that the tmpfs pages on their second
+pass are the ones that are wanted again, and other pages not.
+
+But I've not yet found such a load: on all machines, under the loads I've
+tried, immediate swap_writepage speeds up shmem swapping: especially when
+using the SLUB allocator (and more effectively than slub_max_order=0), but
+also with the others; and it also reduces the variance between runs.  How
+much faster varies widely: a factor of five is rare, 5% is common.
+
+One load which might have suffered: imagine a swapping shmem load in a
+limited mem_cgroup on a machine with plenty of memory.  Before 2.6.29 the
+swapcache was not charged, and such a load would have run quickest with
+the shmem swapcache never written to swap.  But now swapcache is charged,
+so even this load benefits from shmem_writepage directly to swap.
+
+Apologies for the #ifndef CONFIG_SWAP swap_writepage() stub in swap.h:
+it's silly because that will never get called; but refactoring shmem.c
+sensibly according to CONFIG_SWAP will be a separate task.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/dma-mapping.h |  308 ----------------------------
- 1 file changed, 308 deletions(-)
+ include/linux/swap.h |    5 +++++
+ mm/shmem.c           |    3 +--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/dma-mapping.h~remove-unused-include-asm-generic-dma-mappingh /dev/null
---- a/include/asm-generic/dma-mapping.h
-+++ /dev/null
-@@ -1,308 +0,0 @@
--/* Copyright (C) 2002 by James.Bottomley@HansenPartnership.com 
-- *
-- * Implements the generic device dma API via the existing pci_ one
-- * for unconverted architectures
-- */
--
--#ifndef _ASM_GENERIC_DMA_MAPPING_H
--#define _ASM_GENERIC_DMA_MAPPING_H
--
--
--#ifdef CONFIG_PCI
--
--/* we implement the API below in terms of the existing PCI one,
-- * so include it */
--#include <linux/pci.h>
--/* need struct page definitions */
--#include <linux/mm.h>
--
--static inline int
--dma_supported(struct device *dev, u64 mask)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	return pci_dma_supported(to_pci_dev(dev), mask);
--}
--
--static inline int
--dma_set_mask(struct device *dev, u64 dma_mask)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	return pci_set_dma_mask(to_pci_dev(dev), dma_mask);
--}
--
--static inline void *
--dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
--		   gfp_t flag)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	return pci_alloc_consistent(to_pci_dev(dev), size, dma_handle);
--}
--
--static inline void
--dma_free_coherent(struct device *dev, size_t size, void *cpu_addr,
--		    dma_addr_t dma_handle)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	pci_free_consistent(to_pci_dev(dev), size, cpu_addr, dma_handle);
--}
--
--static inline dma_addr_t
--dma_map_single(struct device *dev, void *cpu_addr, size_t size,
--	       enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	return pci_map_single(to_pci_dev(dev), cpu_addr, size, (int)direction);
--}
--
--static inline void
--dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
--		 enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	pci_unmap_single(to_pci_dev(dev), dma_addr, size, (int)direction);
--}
--
--static inline dma_addr_t
--dma_map_page(struct device *dev, struct page *page,
--	     unsigned long offset, size_t size,
--	     enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	return pci_map_page(to_pci_dev(dev), page, offset, size, (int)direction);
--}
--
--static inline void
--dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
--	       enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	pci_unmap_page(to_pci_dev(dev), dma_address, size, (int)direction);
--}
--
--static inline int
--dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
--	   enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	return pci_map_sg(to_pci_dev(dev), sg, nents, (int)direction);
--}
--
--static inline void
--dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
--	     enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	pci_unmap_sg(to_pci_dev(dev), sg, nhwentries, (int)direction);
--}
--
--static inline void
--dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
--			enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	pci_dma_sync_single_for_cpu(to_pci_dev(dev), dma_handle,
--				    size, (int)direction);
--}
--
--static inline void
--dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle, size_t size,
--			   enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	pci_dma_sync_single_for_device(to_pci_dev(dev), dma_handle,
--				       size, (int)direction);
--}
--
--static inline void
--dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
--		    enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	pci_dma_sync_sg_for_cpu(to_pci_dev(dev), sg, nelems, (int)direction);
--}
--
--static inline void
--dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
--		       enum dma_data_direction direction)
--{
--	BUG_ON(dev->bus != &pci_bus_type);
--
--	pci_dma_sync_sg_for_device(to_pci_dev(dev), sg, nelems, (int)direction);
--}
--
--static inline int
--dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
--{
--	return pci_dma_mapping_error(to_pci_dev(dev), dma_addr);
--}
--
--
--#else
--
--static inline int
--dma_supported(struct device *dev, u64 mask)
--{
--	return 0;
--}
--
--static inline int
--dma_set_mask(struct device *dev, u64 dma_mask)
--{
--	BUG();
--	return 0;
--}
--
--static inline void *
--dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
--		   gfp_t flag)
--{
--	BUG();
--	return NULL;
--}
--
--static inline void
--dma_free_coherent(struct device *dev, size_t size, void *cpu_addr,
--		    dma_addr_t dma_handle)
--{
--	BUG();
--}
--
--static inline dma_addr_t
--dma_map_single(struct device *dev, void *cpu_addr, size_t size,
--	       enum dma_data_direction direction)
--{
--	BUG();
--	return 0;
--}
--
--static inline void
--dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
--		 enum dma_data_direction direction)
--{
--	BUG();
--}
--
--static inline dma_addr_t
--dma_map_page(struct device *dev, struct page *page,
--	     unsigned long offset, size_t size,
--	     enum dma_data_direction direction)
--{
--	BUG();
--	return 0;
--}
--
--static inline void
--dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
--	       enum dma_data_direction direction)
--{
--	BUG();
--}
--
--static inline int
--dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
--	   enum dma_data_direction direction)
--{
--	BUG();
--	return 0;
--}
--
--static inline void
--dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
--	     enum dma_data_direction direction)
--{
--	BUG();
--}
--
--static inline void
--dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
--			enum dma_data_direction direction)
--{
--	BUG();
--}
--
--static inline void
--dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle, size_t size,
--			   enum dma_data_direction direction)
--{
--	BUG();
--}
--
--static inline void
--dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
--		    enum dma_data_direction direction)
--{
--	BUG();
--}
--
--static inline void
--dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
--		       enum dma_data_direction direction)
--{
--	BUG();
--}
--
--static inline int
--dma_error(dma_addr_t dma_addr)
--{
--	return 0;
--}
--
--#endif
--
--/* Now for the API extensions over the pci_ one */
--
--#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
--#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
--#define dma_is_consistent(d, h)	(1)
--
--static inline int
--dma_get_cache_alignment(void)
--{
--	/* no easy way to get cache size on all processors, so return
--	 * the maximum possible, to be safe */
--	return (1 << INTERNODE_CACHE_SHIFT);
--}
--
--static inline void
--dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
--			      unsigned long offset, size_t size,
--			      enum dma_data_direction direction)
--{
--	/* just sync everything, that's all the pci API can do */
--	dma_sync_single_for_cpu(dev, dma_handle, offset+size, direction);
--}
--
--static inline void
--dma_sync_single_range_for_device(struct device *dev, dma_addr_t dma_handle,
--				 unsigned long offset, size_t size,
--				 enum dma_data_direction direction)
--{
--	/* just sync everything, that's all the pci API can do */
--	dma_sync_single_for_device(dev, dma_handle, offset+size, direction);
--}
--
--static inline void
--dma_cache_sync(struct device *dev, void *vaddr, size_t size,
--	       enum dma_data_direction direction)
--{
--	/* could define this in terms of the dma_cache ... operations,
--	 * but if you get this on a platform, you should convert the platform
--	 * to using the generic device DMA API */
--	BUG();
--}
--
--#endif
+diff -puN include/linux/swap.h~shmem-writepage-directly-to-swap include/linux/swap.h
+--- a/include/linux/swap.h~shmem-writepage-directly-to-swap
++++ a/include/linux/swap.h
+@@ -382,6 +382,11 @@ static inline struct page *swapin_readah
+ 	return NULL;
+ }
+ 
++static inline int swap_writepage(struct page *p, struct writeback_control *wbc)
++{
++	return 0;
++}
++
+ static inline struct page *lookup_swap_cache(swp_entry_t swp)
+ {
+ 	return NULL;
+diff -puN mm/shmem.c~shmem-writepage-directly-to-swap mm/shmem.c
+--- a/mm/shmem.c~shmem-writepage-directly-to-swap
++++ a/mm/shmem.c
+@@ -1068,8 +1068,7 @@ static int shmem_writepage(struct page *
+ 		swap_duplicate(swap);
+ 		BUG_ON(page_mapped(page));
+ 		page_cache_release(page);	/* pagecache ref */
+-		set_page_dirty(page);
+-		unlock_page(page);
++		swap_writepage(page, wbc);
+ 		if (inode) {
+ 			mutex_lock(&shmem_swaplist_mutex);
+ 			/* move instead of add in case we're racing */
+_
+
+Patches currently in -mm which might be from hugh@veritas.com are
+
+origin.patch
+linux-next.patch
+clocksource-pass-clocksource-to-read-callback.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
+mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+getrusage-fill-ru_maxrss-value.patch
+memcg-charge-swapcache-to-proper-memcg.patch
+cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
+cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5-fix.patch
+memcg-remove-redundant-message-at-swapon.patch
+prio_tree-debugging-patch.patch
+
