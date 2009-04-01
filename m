@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiserfs-return-f_fsid-for-statfs2-v3.patch added to -mm tree
-Date: Wed, 01 Apr 2009 12:55:26 -0700
-Message-ID: <200904011955.n31JtQqT030986@imap1.linux-foundation.org>
+Subject: + xtensa-use-correct-stack-pointer-for-stack-traces.patch added to -mm tree
+Date: Wed, 01 Apr 2009 13:14:38 -0700
+Message-ID: <200904012014.n31KEckk004113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35297 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40606 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755279AbZDAT5v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:57:51 -0400
+	by vger.kernel.org with ESMTP id S1758253AbZDAURS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 16:17:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coly.li@suse.de, jeffm@suse.com, randy.dunlap@oracle.com
+Cc: jw@emlix.com, chris@zankel.net, os@emlix.com
 
 
 The patch titled
-     fs/reiserfs: return f_fsid for statfs(2)
+     xtensa: use correct stack pointer for stack traces
 has been added to the -mm tree.  Its filename is
-     fs-reiserfs-return-f_fsid-for-statfs2-v3.patch
+     xtensa-use-correct-stack-pointer-for-stack-traces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/reiserfs: return f_fsid for statfs(2)
-From: Coly Li <coly.li@suse.de>
+Subject: xtensa: use correct stack pointer for stack traces
+From: Johannes Weiner <jw@emlix.com>
 
-Make reiserfs3 return f_fsid info for statfs(2).  By Andreas' suggestion,
-this patch populates a persistent f_fsid between boots/mounts with help of
-on-disk uuid record.
+Right now, the xtensa stacktrace code reads the _current_ kernel stack
+pointer if nothing is supplied.  With debugging facilities like sysrq this
+means that the backtrace of the sysrq-handler is printed instead of a
+trace of the given task's stack.
 
-Randy Dunlap reported a compiling error from v2 patch like:
-    fs/built-in.o: In function `reiserfs_statfs':
-    super.c:(.text+0x7332b): undefined reference to `crc32_le'
-    super.c:(.text+0x7333f): undefined reference to `crc32_le'
-Also he provided helpful solution to fix this error. The modification of v3
-patch is based on Randy's suggestion, add 'select CRC32' in fs/reiserfs/Kconfig.
+When no stack pointer is specified in show_trace() and show_stack(), use
+the stack pointer that comes with the handed in task descriptor to make
+stack traces more useful.
 
-Signed-off-by: Coly Li <coly.li@suse.de>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Johannes Weiner <jw@emlix.com>
+Cc: Oskar Schirmer <os@emlix.com>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/Kconfig |    1 +
- fs/reiserfs/super.c |    5 +++++
- 2 files changed, 6 insertions(+)
+ arch/xtensa/kernel/traps.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN fs/reiserfs/Kconfig~fs-reiserfs-return-f_fsid-for-statfs2-v3 fs/reiserfs/Kconfig
---- a/fs/reiserfs/Kconfig~fs-reiserfs-return-f_fsid-for-statfs2-v3
-+++ a/fs/reiserfs/Kconfig
-@@ -1,5 +1,6 @@
- config REISERFS_FS
- 	tristate "Reiserfs support"
-+	select CRC32
- 	help
- 	  Stores not just filenames but the files themselves in a balanced
- 	  tree.  Uses journalling.
-diff -puN fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2-v3 fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2-v3
-+++ a/fs/reiserfs/super.c
-@@ -27,6 +27,7 @@
- #include <linux/mnt_namespace.h>
- #include <linux/mount.h>
- #include <linux/namei.h>
-+#include <linux/crc32.h>
+diff -puN arch/xtensa/kernel/traps.c~xtensa-use-correct-stack-pointer-for-stack-traces arch/xtensa/kernel/traps.c
+--- a/arch/xtensa/kernel/traps.c~xtensa-use-correct-stack-pointer-for-stack-traces
++++ a/arch/xtensa/kernel/traps.c
+@@ -374,11 +374,10 @@ void show_trace(struct task_struct *task
+ 	unsigned long a0, a1, pc;
+ 	unsigned long sp_start, sp_end;
  
- struct file_system_type reiserfs_fs_type;
+-	a1 = (unsigned long)sp;
+-
+-	if (a1 == 0)
+-		__asm__ __volatile__ ("mov %0, a1\n" : "=a"(a1));
+-
++	if (sp)
++		a1 = (unsigned long)sp;
++	else
++		a1 = task->thread.sp;
  
-@@ -1904,6 +1905,10 @@ static int reiserfs_statfs(struct dentry
- 	buf->f_bsize = dentry->d_sb->s_blocksize;
- 	/* changed to accommodate gcc folks. */
- 	buf->f_type = REISERFS_SUPER_MAGIC;
-+	buf->f_fsid.val[0] = (u32)crc32_le(0, rs->s_uuid, sizeof(rs->s_uuid)/2);
-+	buf->f_fsid.val[1] = (u32)crc32_le(0, rs->s_uuid + sizeof(rs->s_uuid)/2,
-+				sizeof(rs->s_uuid)/2);
-+
- 	return 0;
- }
+ 	sp_start = a1 & ~(THREAD_SIZE-1);
+ 	sp_end = sp_start + THREAD_SIZE;
+@@ -420,9 +419,8 @@ void show_stack(struct task_struct *task
+ 	int i = 0;
+ 	unsigned long *stack;
  
+-	if (sp == 0)
+-		__asm__ __volatile__ ("mov %0, a1\n" : "=a"(sp));
+-
++	if (!sp)
++		sp = (unsigned long *)task->thread.sp;
+  	stack = sp;
+ 
+ 	printk("\nStack: ");
 _
 
-Patches currently in -mm which might be from coly.li@suse.de are
+Patches currently in -mm which might be from jw@emlix.com are
 
-origin.patch
-linux-next.patch
-fs-reiserfs-return-f_fsid-for-statfs2-v3.patch
-fs-adfs-return-f_fsid-for-statfs2.patch
-fs-affs-return-f_fsid-for-statfs2.patch
-fs-befs-return-f_fsid-for-statfs2.patch
-fs-cramfs-return-f_fsid-for-statfs2.patch
-fs-efs-return-f_fsid-for-statfs2.patch
-fs-fat-return-f_fsid-for-statfs2.patch
-fs-hfs-return-f_fsid-for-statfs2.patch
-fs-hfsplus-return-f_fsid-for-statfs2.patch
-fs-hpfs-return-f_fsid-for-statfs2.patch
-fs-isofs-return-f_fsid-for-statfs2.patch
-fs-minix-return-f_fsid-for-statfs2.patch
-fs-omfs-return-f_fsid-for-statfs2.patch
-fs-qnx4-return-f_fsid-for-statfs2.patch
-fs-reiserfs-return-f_fsid-for-statfs2.patch
-fs-romfs-return-f_fsid-for-statfs2.patch
-fs-squashfs-return-f_fsid-for-statfs2.patch
-fs-sysv-return-f_fsid-for-statfs2.patch
-fs-ufs-return-f_fsid-for-statfs2.patch
+xtensa-enforce-slab-alignment-to-maximum-register-width.patch
+xtensa-add-flat-support.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+xtensa-nommu-support.patch
+xtensa-variant-specific-code.patch
+xtensa-variant-irq-set-callbacks.patch
+xtensa-s6000-variant-core-definitions.patch
+xtensa-s6000-variant.patch
+xtensa-s6000-gpio-driver.patch
+xtensa-let-platform-override-kerneloffset.patch
+xtensa-platform-stretch-s6105-eval-board.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+xtensa-remove-redefinition-of-xchal_mmu_asid_bits.patch
+xtensa-use-correct-stack-pointer-for-stack-traces.patch
+xtensa-fix-init_bootmem_node-argument-order.patch
+xtensa-dont-make-bootmem-bitmap-larger-than-required.patch
+xtensa-cope-with-ram-beginning-at-higher-addresses.patch
+flat-fix-data-sections-alignment.patch
+flat-fix-data-sections-alignment-update.patch
 
