@@ -1,104 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hp_accel-small-documentation-updates.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:40:58 -0700
-Message-ID: <200904011840.n31IewHi009177@imap1.linux-foundation.org>
+Subject: [merged] spi_mpc83xx-fix-sparse-warnings.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:22 -0700
+Message-ID: <200904011841.n31IfMo0009342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763496AbZDATpk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:45:40 -0400
+	by vger.kernel.org with ESMTP id S1762036AbZDATqc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:46:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, Quoc.Pham@hp.com, eric.piel@tremplin-utc.net, pavel@suse.cz, vbotka@suse.cz, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hp_accel: small documentation updates
+     spi_mpc83xx: fix sparse warnings
 has been removed from the -mm tree.  Its filename was
-     hp_accel-small-documentation-updates.patch
+     spi_mpc83xx-fix-sparse-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp_accel: small documentation updates
-From: Pavel Machek <pavel@ucw.cz>
+Subject: spi_mpc83xx: fix sparse warnings
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Fix english in Documentation, add "how to test" description.
+The patch fixes following sparse warnings:
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Vladimir Botka <vbotka@suse.cz>
-Cc: <Quoc.Pham@hp.com>
+  CHECK   spi_mpc83xx.c
+spi_mpc83xx.c:145:1: warning: symbol 'mpc83xx_spi_rx_buf_u8' was not declared. Should it be static?
+spi_mpc83xx.c:146:1: warning: symbol 'mpc83xx_spi_rx_buf_u16' was not declared. Should it be static?
+spi_mpc83xx.c:147:1: warning: symbol 'mpc83xx_spi_rx_buf_u32' was not declared. Should it be static?
+spi_mpc83xx.c:148:1: warning: symbol 'mpc83xx_spi_tx_buf_u8' was not declared. Should it be static?
+spi_mpc83xx.c:149:1: warning: symbol 'mpc83xx_spi_tx_buf_u16' was not declared. Should it be static?
+spi_mpc83xx.c:150:1: warning: symbol 'mpc83xx_spi_tx_buf_u32' was not declared. Should it be static?
+spi_mpc83xx.c:175:32: warning: incorrect type in initializer (different address spaces)
+spi_mpc83xx.c:175:32:    expected void *tmp_ptr
+spi_mpc83xx.c:175:32:    got unsigned int [noderef] <asn:2>*<noident>
+spi_mpc83xx.c:183:26: warning: incorrect type in argument 1 (different address spaces)
+spi_mpc83xx.c:183:26:    expected unsigned int [noderef] [usertype] <asn:2>*reg
+spi_mpc83xx.c:183:26:    got void *tmp_ptr
+spi_mpc83xx.c:184:26: warning: incorrect type in argument 1 (different address spaces)
+spi_mpc83xx.c:184:26:    expected unsigned int [noderef] [usertype] <asn:2>*reg
+spi_mpc83xx.c:184:26:    got void *tmp_ptr
+spi_mpc83xx.c:287:31: warning: incorrect type in initializer (different address spaces)
+spi_mpc83xx.c:287:31:    expected void *tmp_ptr
+spi_mpc83xx.c:287:31:    got unsigned int [noderef] <asn:2>*<noident>
+spi_mpc83xx.c:295:25: warning: incorrect type in argument 1 (different address spaces)
+spi_mpc83xx.c:295:25:    expected unsigned int [noderef] [usertype] <asn:2>*reg
+spi_mpc83xx.c:295:25:    got void *tmp_ptr
+spi_mpc83xx.c:296:25: warning: incorrect type in argument 1 (different address spaces)
+spi_mpc83xx.c:296:25:    expected unsigned int [noderef] [usertype] <asn:2>*reg
+spi_mpc83xx.c:296:25:    got void *tmp_ptr
+spi_mpc83xx.c:486:13: warning: symbol 'mpc83xx_spi_irq' was not declared. Should it be static?
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/lis3lv02d |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ drivers/spi/spi_mpc83xx.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/hwmon/lis3lv02d~hp_accel-small-documentation-updates Documentation/hwmon/lis3lv02d
---- a/Documentation/hwmon/lis3lv02d~hp_accel-small-documentation-updates
-+++ a/Documentation/hwmon/lis3lv02d
-@@ -1,11 +1,11 @@
- Kernel driver lis3lv02d
--==================
-+=======================
+diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-fix-sparse-warnings drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-fix-sparse-warnings
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -123,6 +123,7 @@ static inline u32 mpc83xx_spi_read_reg(_
+ }
  
- Supported chips:
+ #define MPC83XX_SPI_RX_BUF(type) 					  \
++static									  \
+ void mpc83xx_spi_rx_buf_##type(u32 data, struct mpc83xx_spi *mpc83xx_spi) \
+ {									  \
+ 	type * rx = mpc83xx_spi->rx;					  \
+@@ -131,6 +132,7 @@ void mpc83xx_spi_rx_buf_##type(u32 data,
+ }
  
-   * STMicroelectronics LIS3LV02DL and LIS3LV02DQ
+ #define MPC83XX_SPI_TX_BUF(type)				\
++static								\
+ u32 mpc83xx_spi_tx_buf_##type(struct mpc83xx_spi *mpc83xx_spi)	\
+ {								\
+ 	u32 data;						\
+@@ -172,7 +174,7 @@ static void mpc83xx_spi_chipselect(struc
  
--Author:
-+Authors:
-         Yan Burman <burman.yan@gmail.com>
- 	Eric Piel <eric.piel@tremplin-utc.net>
+ 		if (cs->hw_mode != regval) {
+ 			unsigned long flags;
+-			void *tmp_ptr = &mpc83xx_spi->base->mode;
++			__be32 __iomem *mode = &mpc83xx_spi->base->mode;
  
-@@ -15,7 +15,7 @@ Description
+ 			regval = cs->hw_mode;
+ 			/* Turn off IRQs locally to minimize time that
+@@ -180,8 +182,8 @@ static void mpc83xx_spi_chipselect(struc
+ 			 */
+ 			local_irq_save(flags);
+ 			/* Turn off SPI unit prior changing mode */
+-			mpc83xx_spi_write_reg(tmp_ptr, regval & ~SPMODE_ENABLE);
+-			mpc83xx_spi_write_reg(tmp_ptr, regval);
++			mpc83xx_spi_write_reg(mode, regval & ~SPMODE_ENABLE);
++			mpc83xx_spi_write_reg(mode, regval);
+ 			local_irq_restore(flags);
+ 		}
+ 		if (mpc83xx_spi->activate_cs)
+@@ -284,7 +286,7 @@ int mpc83xx_spi_setup_transfer(struct sp
+ 	regval =  mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
+ 	if (cs->hw_mode != regval) {
+ 		unsigned long flags;
+-		void *tmp_ptr = &mpc83xx_spi->base->mode;
++		__be32 __iomem *mode = &mpc83xx_spi->base->mode;
  
- This driver provides support for the accelerometer found in various HP
- laptops sporting the feature officially called "HP Mobile Data
--Protection System 3D" or "HP 3D DriveGuard". It detect automatically
-+Protection System 3D" or "HP 3D DriveGuard". It detects automatically
- laptops with this sensor. Known models (for now the HP 2133, nc6420,
- nc2510, nc8510, nc84x0, nw9440 and nx9420) will have their axis
- automatically oriented on standard way (eg: you can directly play
-@@ -27,7 +27,7 @@ position - 3D position that the accelero
- calibrate - read: values (x, y, z) that are used as the base for input
- 		  class device operation.
-             write: forces the base to be recalibrated with the current
--		  position.
-+		   position.
- rate - reports the sampling rate of the accelerometer device in HZ
+ 		regval = cs->hw_mode;
+ 		/* Turn off IRQs locally to minimize time
+@@ -292,8 +294,8 @@ int mpc83xx_spi_setup_transfer(struct sp
+ 		 */
+ 		local_irq_save(flags);
+ 		/* Turn off SPI unit prior changing mode */
+-		mpc83xx_spi_write_reg(tmp_ptr, regval & ~SPMODE_ENABLE);
+-		mpc83xx_spi_write_reg(tmp_ptr, regval);
++		mpc83xx_spi_write_reg(mode, regval & ~SPMODE_ENABLE);
++		mpc83xx_spi_write_reg(mode, regval);
+ 		local_irq_restore(flags);
+ 	}
+ 	return 0;
+@@ -483,7 +485,7 @@ static int mpc83xx_spi_setup(struct spi_
+ 	return 0;
+ }
  
- This driver also provides an absolute input class device, allowing
-@@ -48,7 +48,7 @@ For better compatibility between the var
- the accelerometer are converted into a "standard" organisation of the axes
- (aka "can play neverball out of the box"):
-  * When the laptop is horizontal the position reported is about 0 for X and Y
--and a positive value for Z
-+	and a positive value for Z
-  * If the left side is elevated, X increases (becomes positive)
-  * If the front side (where the touchpad is) is elevated, Y decreases
- 	(becomes negative)
-@@ -59,3 +59,13 @@ email to the authors to add it to the da
- laptop, please include the output of "dmidecode" plus the value of
- /sys/devices/platform/lis3lv02d/position in these four cases.
- 
-+Q&A
-+---
-+
-+Q: How do I safely simulate freefall? I have an HP "portable
-+workstation" which has about 3.5kg and a plastic case, so letting it
-+fall to the ground is out of question...
-+
-+A: The sensor is pretty sensitive, so your hands can do it. Lift it
-+into free space, follow the fall with your hands for like 10
-+centimeters. That should be enough to trigger the detection.
+-irqreturn_t mpc83xx_spi_irq(s32 irq, void *context_data)
++static irqreturn_t mpc83xx_spi_irq(s32 irq, void *context_data)
+ {
+ 	struct mpc83xx_spi *mpc83xx_spi = context_data;
+ 	u32 event;
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
 linux-next.patch
