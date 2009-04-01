@@ -1,82 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-test-before-subtraction-on-unsigned.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:16 -0700
-Message-ID: <200904011842.n31IgGv7009636@imap1.linux-foundation.org>
+Subject: [merged] nommu-make-config_unevictable_lru-available-when-config_mmu=n.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:38:50 -0700
+Message-ID: <200904011838.n31IcovV008419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750824AbZDAT2W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:28:22 -0400
+	by vger.kernel.org with ESMTP id S933697AbZDAT3f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:29:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, Enrik.Berkhan@ge.com, a.p.zijlstra@chello.nl, gerg@snapgear.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-
 
 
 The patch titled
-     rtc: test before subtraction on unsigned
+     nommu: make CONFIG_UNEVICTABLE_LRU available when CONFIG_MMU=n
 has been removed from the -mm tree.  Its filename was
-     rtc-test-before-subtraction-on-unsigned.patch
+     nommu-make-config_unevictable_lru-available-when-config_mmu=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: test before subtraction on unsigned
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: nommu: make CONFIG_UNEVICTABLE_LRU available when CONFIG_MMU=n
+From: David Howells <dhowells@redhat.com>
 
-new_alarm is unsigned so test before the subtraction.
+Make CONFIG_UNEVICTABLE_LRU available when CONFIG_MMU=n.  There's no logical
+reason it shouldn't be available, and it can be used for ramfs.
 
-[akpm@linux-foundation.org: time-wrapping fix]
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Enrik Berkhan <Enrik.Berkhan@ge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-test-before-subtraction-on-unsigned drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-test-before-subtraction-on-unsigned
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -222,16 +222,16 @@ static int ds1374_set_alarm(struct devic
- 	rtc_tm_to_time(&alarm->time, &new_alarm);
- 	rtc_tm_to_time(&now, &itime);
- 
--	new_alarm -= itime;
--
- 	/* This can happen due to races, in addition to dates that are
- 	 * truly in the past.  To avoid requiring the caller to check for
- 	 * races, dates in the past are assumed to be in the recent past
- 	 * (i.e. not something that we'd rather the caller know about via
- 	 * an error), and the alarm is set to go off as soon as possible.
- 	 */
--	if (new_alarm <= 0)
-+	if (time_before_eq(new_alarm, itime))
- 		new_alarm = 1;
-+	else
-+		new_alarm -= itime;
- 
- 	mutex_lock(&ds1374->mutex);
- 
+diff -puN mm/Kconfig~nommu-make-config_unevictable_lru-available-when-config_mmu=n mm/Kconfig
+--- a/mm/Kconfig~nommu-make-config_unevictable_lru-available-when-config_mmu=n
++++ a/mm/Kconfig
+@@ -206,7 +206,6 @@ config VIRT_TO_BUS
+ config UNEVICTABLE_LRU
+ 	bool "Add LRU list to track non-evictable pages"
+ 	default y
+-	depends on MMU
+ 	help
+ 	  Keeps unevictable pages off of the active and inactive pageout
+ 	  lists, so kswapd will not waste CPU time or have its balancing
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
 linux-next.patch
-drm-fix-lock_test_with_return-macro.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-uwb-event_size-should-be-signed.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
+xtensa-nommu-support.patch
 frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-spi-limit-reaches-1-tested-0.patch
-ufs-sector_t-cannot-be-negative.patch
-hppfs-hppfs_read_file-may-return-error.patch
+flat-fix-data-sections-alignment.patch
+flat-fix-data-sections-alignment-update.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
+mutex-subsystem-synchro-test-module.patch
 
