@@ -1,130 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs4-fix-lookup-deadlock.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:41:39 -0700
-Message-ID: <200904011841.n31IfdaG009437@imap1.linux-foundation.org>
+Subject: [merged] bcm47xx-fix-gpio-api-return-codes.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:39:50 -0700
+Message-ID: <200904011839.n31IdoZc008824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933572AbZDASnv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:43:51 -0400
+	by vger.kernel.org with ESMTP id S1759730AbZDASoJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:44:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, mm-commits@vger.kernel.org
+To: mb@bu3sch.de, david-b@pacbell.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: fix lookup deadlock
+     bcm47xx: fix GPIO API return codes
 has been removed from the -mm tree.  Its filename was
-     autofs4-fix-lookup-deadlock.patch
+     bcm47xx-fix-gpio-api-return-codes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: fix lookup deadlock
-From: Ian Kent <raven@themaw.net>
+Subject: bcm47xx: fix GPIO API return codes
+From: Michael Buesch <mb@bu3sch.de>
 
-A deadlock can occur when user space uses a signal (autofs version 4 uses
-SIGCHLD for this) to effect expire completion.
+The GPIO API is supposed to return 0 or a negative error code,
+but the SSB GPIO functions return the bitmask of the GPIO register.
+Fix this by ignoring the bitmask and always returning 0. The SSB GPIO functions can't fail.
 
-The order of events is:
-
-Expire process completes, but before being able to send SIGCHLD to it's parent
-...
-
-Another process walks onto a different mount point and drops the directory
-inode semaphore prior to sending the request to the daemon as it must ...
-
-A third process does an lstat on on the expired mount point causing it to wait
-on expire completion (unfortunately) holding the directory semaphore.
-
-The mount request then arrives at the daemon which does an lstat and,
-deadlock.
-
-For some time I was concerned about releasing the directory semaphore around
-the expire wait in autofs4_lookup as well as for the mount call back.  I
-finally realized that the last round of changes in this function made the
-expiring dentry and the lookup dentry separate and distinct so the check and
-possible wait can be done anywhere prior to the mount call back.  This patch
-moves the check to just before the mount call back and inside the directory
-inode mutex release.
-
-Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |   41 +++++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ arch/mips/include/asm/mach-bcm47xx/gpio.h |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs4-fix-lookup-deadlock fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-fix-lookup-deadlock
-+++ a/fs/autofs4/root.c
-@@ -485,22 +485,6 @@ static struct dentry *autofs4_lookup(str
- 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
- 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
+diff -puN arch/mips/include/asm/mach-bcm47xx/gpio.h~bcm47xx-fix-gpio-api-return-codes arch/mips/include/asm/mach-bcm47xx/gpio.h
+--- a/arch/mips/include/asm/mach-bcm47xx/gpio.h~bcm47xx-fix-gpio-api-return-codes
++++ a/arch/mips/include/asm/mach-bcm47xx/gpio.h
+@@ -31,24 +31,28 @@ static inline void gpio_set_value(unsign
  
--	expiring = autofs4_lookup_expiring(sbi, dentry->d_parent, &dentry->d_name);
--	if (expiring) {
--		/*
--		 * If we are racing with expire the request might not
--		 * be quite complete but the directory has been removed
--		 * so it must have been successful, so just wait for it.
--		 */
--		ino = autofs4_dentry_ino(expiring);
--		autofs4_expire_wait(expiring);
--		spin_lock(&sbi->lookup_lock);
--		if (!list_empty(&ino->expiring))
--			list_del_init(&ino->expiring);
--		spin_unlock(&sbi->lookup_lock);
--		dput(expiring);
--	}
--
- 	unhashed = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
- 	if (unhashed)
- 		dentry = unhashed;
-@@ -538,14 +522,31 @@ static struct dentry *autofs4_lookup(str
- 	}
+ static inline int gpio_direction_input(unsigned gpio)
+ {
+-	return ssb_gpio_outen(&ssb_bcm47xx, 1 << gpio, 0);
++	ssb_gpio_outen(&ssb_bcm47xx, 1 << gpio, 0);
++	return 0;
+ }
  
- 	if (!oz_mode) {
-+		mutex_unlock(&dir->i_mutex);
-+		expiring = autofs4_lookup_expiring(sbi,
-+						   dentry->d_parent,
-+						   &dentry->d_name);
-+		if (expiring) {
-+			/*
-+			 * If we are racing with expire the request might not
-+			 * be quite complete but the directory has been removed
-+			 * so it must have been successful, so just wait for it.
-+			 */
-+			ino = autofs4_dentry_ino(expiring);
-+			autofs4_expire_wait(expiring);
-+			spin_lock(&sbi->lookup_lock);
-+			if (!list_empty(&ino->expiring))
-+				list_del_init(&ino->expiring);
-+			spin_unlock(&sbi->lookup_lock);
-+			dput(expiring);
-+		}
-+
- 		spin_lock(&dentry->d_lock);
- 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
- 		spin_unlock(&dentry->d_lock);
--		if (dentry->d_op && dentry->d_op->d_revalidate) {
--			mutex_unlock(&dir->i_mutex);
-+		if (dentry->d_op && dentry->d_op->d_revalidate)
- 			(dentry->d_op->d_revalidate)(dentry, nd);
--			mutex_lock(&dir->i_mutex);
--		}
-+		mutex_lock(&dir->i_mutex);
- 	}
+ static inline int gpio_direction_output(unsigned gpio, int value)
+ {
+-	return ssb_gpio_outen(&ssb_bcm47xx, 1 << gpio, 1 << gpio);
++	ssb_gpio_outen(&ssb_bcm47xx, 1 << gpio, 1 << gpio);
++	return 0;
+ }
  
- 	/*
+-static int gpio_intmask(unsigned gpio, int value)
++static inline int gpio_intmask(unsigned gpio, int value)
+ {
+-	return ssb_gpio_intmask(&ssb_bcm47xx, 1 << gpio,
+-				value ? 1 << gpio : 0);
++	ssb_gpio_intmask(&ssb_bcm47xx, 1 << gpio,
++			 value ? 1 << gpio : 0);
++	return 0;
+ }
+ 
+-static int gpio_polarity(unsigned gpio, int value)
++static inline int gpio_polarity(unsigned gpio, int value)
+ {
+-	return ssb_gpio_polarity(&ssb_bcm47xx, 1 << gpio,
+-				 value ? 1 << gpio : 0);
++	ssb_gpio_polarity(&ssb_bcm47xx, 1 << gpio,
++			  value ? 1 << gpio : 0);
++	return 0;
+ }
+ 
+ 
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
 origin.patch
-writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks.patch
-writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks-try-2.patch
+linux-next.patch
+spi-gpio-allow-operation-without-cs-signal.patch
 
