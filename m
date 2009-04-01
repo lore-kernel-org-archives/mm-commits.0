@@ -1,99 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:43:29 -0700
-Message-ID: <200904011843.n31IhTPx010045@imap1.linux-foundation.org>
+Subject: + synclink_gt-add-clock-options.patch added to -mm tree
+Date: Wed, 01 Apr 2009 12:30:17 -0700
+Message-ID: <200904011930.n31JUHAu023701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43010 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755963AbZDATcg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:32:36 -0400
+	by vger.kernel.org with ESMTP id S1755756AbZDATcu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:32:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, dilinger@debian.org, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     valkyriefb: check fb_alloc_cmap return value and handle failure properly
-has been removed from the -mm tree.  Its filename was
-     valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+     synclink_gt: add clock options
+has been added to the -mm tree.  Its filename is
+     synclink_gt-add-clock-options.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: valkyriefb: check fb_alloc_cmap return value and handle failure properly
-From: Andres Salomon <dilinger@queued.net>
+Subject: synclink_gt: add clock options
+From: Paul Fulghum <paulkf@microgate.com>
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Add support for x8 asynchronous sample rate and ability to specify base
+clock frequency.
+
+Signed-off-by: Paul Fulghum <paulkf@microgate.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/valkyriefb.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/char/synclink_gt.c |   58 ++++++++++++++++++++++-------------
+ include/linux/synclink.h   |    1 
+ 2 files changed, 39 insertions(+), 20 deletions(-)
 
-diff -puN drivers/video/valkyriefb.c~valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly drivers/video/valkyriefb.c
---- a/drivers/video/valkyriefb.c~valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly
-+++ a/drivers/video/valkyriefb.c
-@@ -119,7 +119,7 @@ static void set_valkyrie_clock(unsigned 
- static int valkyrie_var_to_par(struct fb_var_screeninfo *var,
- 	struct fb_par_valkyrie *par, const struct fb_info *fb_info);
+diff -puN drivers/char/synclink_gt.c~synclink_gt-add-clock-options drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink_gt-add-clock-options
++++ a/drivers/char/synclink_gt.c
+@@ -298,6 +298,7 @@ struct slgt_info {
  
--static void valkyrie_init_info(struct fb_info *info, struct fb_info_valkyrie *p);
-+static int valkyrie_init_info(struct fb_info *info, struct fb_info_valkyrie *p);
- static void valkyrie_par_to_fix(struct fb_par_valkyrie *par, struct fb_fix_screeninfo *fix);
- static void valkyrie_init_fix(struct fb_fix_screeninfo *fix, struct fb_info_valkyrie *p);
+ 	unsigned int rbuf_fill_level;
+ 	unsigned int if_mode;
++	unsigned int base_clock;
  
-@@ -381,18 +381,22 @@ int __init valkyriefb_init(void)
+ 	/* device status */
  
- 	valkyrie_choose_mode(p);
- 	mac_vmode_to_var(default_vmode, default_cmode, &p->info.var);
--	valkyrie_init_info(&p->info, p);
-+	err = valkyrie_init_info(&p->info, p);
-+	if (err < 0)
-+		goto out_free;
- 	valkyrie_init_fix(&p->info.fix, p);
- 	if (valkyriefb_set_par(&p->info))
- 		/* "can't happen" */
- 		printk(KERN_ERR "valkyriefb: can't set default video mode\n");
+@@ -1156,22 +1157,26 @@ static long set_params32(struct slgt_inf
+ 		return -EFAULT;
  
- 	if ((err = register_framebuffer(&p->info)) != 0)
--		goto out_free;
-+		goto out_cmap_free;
+ 	spin_lock(&info->lock);
+-	info->params.mode            = tmp_params.mode;
+-	info->params.loopback        = tmp_params.loopback;
+-	info->params.flags           = tmp_params.flags;
+-	info->params.encoding        = tmp_params.encoding;
+-	info->params.clock_speed     = tmp_params.clock_speed;
+-	info->params.addr_filter     = tmp_params.addr_filter;
+-	info->params.crc_type        = tmp_params.crc_type;
+-	info->params.preamble_length = tmp_params.preamble_length;
+-	info->params.preamble        = tmp_params.preamble;
+-	info->params.data_rate       = tmp_params.data_rate;
+-	info->params.data_bits       = tmp_params.data_bits;
+-	info->params.stop_bits       = tmp_params.stop_bits;
+-	info->params.parity          = tmp_params.parity;
++	if (tmp_params.mode == MGSL_MODE_BASE_CLOCK) {
++		info->base_clock = tmp_params.clock_speed;
++	} else {
++		info->params.mode            = tmp_params.mode;
++		info->params.loopback        = tmp_params.loopback;
++		info->params.flags           = tmp_params.flags;
++		info->params.encoding        = tmp_params.encoding;
++		info->params.clock_speed     = tmp_params.clock_speed;
++		info->params.addr_filter     = tmp_params.addr_filter;
++		info->params.crc_type        = tmp_params.crc_type;
++		info->params.preamble_length = tmp_params.preamble_length;
++		info->params.preamble        = tmp_params.preamble;
++		info->params.data_rate       = tmp_params.data_rate;
++		info->params.data_bits       = tmp_params.data_bits;
++		info->params.stop_bits       = tmp_params.stop_bits;
++		info->params.parity          = tmp_params.parity;
++	}
+ 	spin_unlock(&info->lock);
  
- 	printk(KERN_INFO "fb%d: valkyrie frame buffer device\n", p->info.node);
+- 	change_params(info);
++	program_hw(info);
+ 
  	return 0;
- 
-+ out_cmap_free:
-+	fb_dealloc_cmap(&p->info.cmap);
-  out_free:
- 	if (p->frame_buffer)
- 		iounmap(p->frame_buffer);
-@@ -538,14 +542,15 @@ static void valkyrie_par_to_fix(struct f
- 		/* ywrapstep, xpanstep, ypanstep */
  }
+@@ -2559,10 +2564,13 @@ static int set_params(struct slgt_info *
+ 		return -EFAULT;
  
--static void __init valkyrie_init_info(struct fb_info *info, struct fb_info_valkyrie *p)
-+static int __init valkyrie_init_info(struct fb_info *info,
-+		struct fb_info_valkyrie *p)
+ 	spin_lock_irqsave(&info->lock, flags);
+-	memcpy(&info->params, &tmp_params, sizeof(MGSL_PARAMS));
++	if (tmp_params.mode == MGSL_MODE_BASE_CLOCK)
++		info->base_clock = tmp_params.clock_speed;
++	else
++		memcpy(&info->params, &tmp_params, sizeof(MGSL_PARAMS));
+ 	spin_unlock_irqrestore(&info->lock, flags);
+ 
+- 	change_params(info);
++	program_hw(info);
+ 
+ 	return 0;
+ }
+@@ -3432,6 +3440,7 @@ static struct slgt_info *alloc_dev(int a
+ 		info->magic = MGSL_MAGIC;
+ 		INIT_WORK(&info->task, bh_handler);
+ 		info->max_frame_size = 4096;
++		info->base_clock = 14745600;
+ 		info->rbuf_fill_level = DMABUFSIZE;
+ 		info->port.close_delay = 5*HZ/10;
+ 		info->port.closing_wait = 30*HZ;
+@@ -3779,7 +3788,7 @@ static void enable_loopback(struct slgt_
+ static void set_rate(struct slgt_info *info, u32 rate)
  {
- 	info->fbops = &valkyriefb_ops;
- 	info->screen_base = p->frame_buffer + 0x1000;
- 	info->flags = FBINFO_DEFAULT;
- 	info->pseudo_palette = p->pseudo_palette;
--	fb_alloc_cmap(&info->cmap, 256, 0);
- 	info->par = &p->par;
-+	return fb_alloc_cmap(&info->cmap, 256, 0);
- }
+ 	unsigned int div;
+-	static unsigned int osc = 14745600;
++	unsigned int osc = info->base_clock;
  
+ 	/* div = osc/rate - 1
+ 	 *
+@@ -4083,18 +4092,27 @@ static void async_mode(struct slgt_info 
+ 	 * 06  CTS      IRQ enable
+ 	 * 05  DCD      IRQ enable
+ 	 * 04  RI       IRQ enable
+-	 * 03  reserved, must be zero
++	 * 03  0=16x sampling, 1=8x sampling
+ 	 * 02  1=txd->rxd internal loopback enable
+ 	 * 01  reserved, must be zero
+ 	 * 00  1=master IRQ enable
+ 	 */
+ 	val = BIT15 + BIT14 + BIT0;
++	/* JCR[8] : 1 = x8 async mode feature available */
++	if ((rd_reg32(info, JCR) & BIT8) && info->params.data_rate &&
++	    ((info->base_clock < (info->params.data_rate * 16)) ||
++	     (info->base_clock % (info->params.data_rate * 16)))) {
++		/* use 8x sampling */
++		val |= BIT3;
++		set_rate(info, info->params.data_rate * 8);
++	} else {
++		/* use 16x sampling */
++		set_rate(info, info->params.data_rate * 16);
++	}
+ 	wr_reg16(info, SCR, val);
  
-_
-
-Patches currently in -mm which might be from dilinger@queued.net are
-
-origin.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
-
+ 	slgt_irq_on(info, IRQ_RXBREAK | IRQ_RXOVER);
+ 
+-	set_rate(info, info->params.data_rate * 16);
