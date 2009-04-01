@@ -1,87 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omapfb-fix-argument-of-blank-operation.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:44:09 -0700
-Message-ID: <200904011844.n31Ii9HZ010298@imap1.linux-foundation.org>
+Subject: + sunrpc-align-cache_clean-works-timer.patch added to -mm tree
+Date: Wed, 01 Apr 2009 12:45:36 -0700
+Message-ID: <200904011945.n31Jjaeo028161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934001AbZDATtE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:49:04 -0400
+	by vger.kernel.org with ESMTP id S934022AbZDATtU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:49:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: felipe.contreras@nokia.com, imre.deak@solidboot.com, krzysztof.h1@poczta.fm, righi.andrea@gmail.com, rmk@arm.linux.org.uk, soni.trilok@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: anton@samba.org, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     omapfb: fix argument of blank operation
-has been removed from the -mm tree.  Its filename was
-     omapfb-fix-argument-of-blank-operation.patch
+     sunrpc: align cache_clean work's timer
+has been added to the -mm tree.  Its filename is
+     sunrpc-align-cache_clean-works-timer.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omapfb: fix argument of blank operation
-From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: sunrpc: align cache_clean work's timer
+From: Anton Blanchard <anton@samba.org>
 
-The blank operation should receive FB_BLANK_POWERDOWN, not VESA_POWERDOWN.
+Align cache_clean work.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Andrea Righi <righi.andrea@gmail.com>
-Acked-by: Trilok Soni <soni.trilok@gmail.com>
-Cc: Imre Deak <imre.deak@solidboot.com>
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap/omapfb_main.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/sunrpc/cache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/omap/omapfb_main.c~omapfb-fix-argument-of-blank-operation drivers/video/omap/omapfb_main.c
---- a/drivers/video/omap/omapfb_main.c~omapfb-fix-argument-of-blank-operation
-+++ a/drivers/video/omap/omapfb_main.c
-@@ -338,7 +338,7 @@ static int omapfb_blank(int blank, struc
- 
- 	omapfb_rqueue_lock(fbdev);
- 	switch (blank) {
--	case VESA_NO_BLANKING:
-+	case FB_BLANK_UNBLANK:
- 		if (fbdev->state == OMAPFB_SUSPENDED) {
- 			if (fbdev->ctrl->resume)
- 				fbdev->ctrl->resume();
-@@ -349,7 +349,7 @@ static int omapfb_blank(int blank, struc
- 				do_update = 1;
- 		}
- 		break;
--	case VESA_POWERDOWN:
-+	case FB_BLANK_POWERDOWN:
- 		if (fbdev->state == OMAPFB_ACTIVE) {
- 			fbdev->panel->disable(fbdev->panel);
- 			if (fbdev->ctrl->suspend)
-@@ -1818,7 +1818,7 @@ static int omapfb_suspend(struct platfor
+diff -puN net/sunrpc/cache.c~sunrpc-align-cache_clean-works-timer net/sunrpc/cache.c
+--- a/net/sunrpc/cache.c~sunrpc-align-cache_clean-works-timer
++++ a/net/sunrpc/cache.c
+@@ -488,7 +488,7 @@ static void do_cache_clean(struct work_s
  {
- 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
+ 	int delay = 5;
+ 	if (cache_clean() == -1)
+-		delay = 30*HZ;
++		delay = round_jiffies_relative(30*HZ);
  
--	omapfb_blank(VESA_POWERDOWN, fbdev->fb_info[0]);
-+	omapfb_blank(FB_BLANK_POWERDOWN, fbdev->fb_info[0]);
- 
- 	return 0;
- }
-@@ -1828,7 +1828,7 @@ static int omapfb_resume(struct platform
- {
- 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
- 
--	omapfb_blank(VESA_NO_BLANKING, fbdev->fb_info[0]);
-+	omapfb_blank(FB_BLANK_UNBLANK, fbdev->fb_info[0]);
- 	return 0;
- }
- 
+ 	if (list_empty(&cache_list))
+ 		delay = 0;
 _
 
-Patches currently in -mm which might be from felipe.contreras@nokia.com are
+Patches currently in -mm which might be from anton@samba.org are
 
 origin.patch
+mm-align-vmstat_works-timer.patch
+random-align-rekey_works-timer.patch
+sunrpc-align-cache_clean-works-timer.patch
 
