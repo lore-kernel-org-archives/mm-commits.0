@@ -1,81 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-returns-0-two-too-early.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:43:57 -0700
-Message-ID: <200904011843.n31Ihv00010228@imap1.linux-foundation.org>
+Subject: [merged] rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 12:07:24 -0700
+Message-ID: <200904011907.n31J7Owc017117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758021AbZDATMT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:12:19 -0400
+	by vger.kernel.org with ESMTP id S1765196AbZDATLt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:11:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, josephchan@via.com.tw, mm-commits@vger.kernel.org
+To: dannf@hp.com, a.zummo@towertech.it, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: returns 0 two too early
+     rtc-parisc: use rtc_valid_tm() in parisc_get_time
 has been removed from the -mm tree.  Its filename was
-     viafb-returns-0-two-too-early.patch
+     rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: returns 0 two too early
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: rtc-parisc: use rtc_valid_tm() in parisc_get_time
+From: dann frazier <dannf@hp.com>
 
-Otherwise this will already return 0 if iteration MAXLOOP-2 occurs in the
-first loop.
+Use the return value of rtc_valid_tm() instead of just returning 0.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Joseph Chan <josephchan@via.com.tw>
+Signed-off-by: dann frazier <dannf@hp.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/accel.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-parisc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/via/accel.c~viafb-returns-0-two-too-early drivers/video/via/accel.c
---- a/drivers/video/via/accel.c~viafb-returns-0-two-too-early
-+++ a/drivers/video/via/accel.c
-@@ -267,13 +267,17 @@ int viafb_wait_engine_idle(void)
- 	int loop = 0;
+diff -puN drivers/rtc/rtc-parisc.c~rtc-parisc-use-rtc_valid_tm-in-parisc_get_time drivers/rtc/rtc-parisc.c
+--- a/drivers/rtc/rtc-parisc.c~rtc-parisc-use-rtc_valid_tm-in-parisc_get_time
++++ a/drivers/rtc/rtc-parisc.c
+@@ -20,7 +20,7 @@ static int parisc_get_time(struct device
+ 	if (ret & RTC_BATT_BAD)
+ 		return -EOPNOTSUPP;
  
- 	while (!(readl(viaparinfo->io_virt + VIA_REG_STATUS) &
--			VIA_VR_QUEUE_BUSY) && (loop++ < MAXLOOP))
-+			VIA_VR_QUEUE_BUSY) && (loop < MAXLOOP)) {
-+		loop++;
- 		cpu_relax();
-+	}
- 
- 	while ((readl(viaparinfo->io_virt + VIA_REG_STATUS) &
- 		    (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY | VIA_3D_ENG_BUSY)) &&
--		    (loop++ < MAXLOOP))
-+		    (loop < MAXLOOP)) {
-+		loop++;
- 		cpu_relax();
-+	}
- 
- 	return loop >= MAXLOOP;
+-	return 0;
++	return rtc_valid_tm(tm);
  }
+ 
+ static int parisc_set_time(struct device *dev, struct rtc_time *tm)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from dannf@hp.com are
 
 origin.patch
-linux-next.patch
-drm-fix-lock_test_with_return-macro.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-uwb-event_size-should-be-signed.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-spi-limit-reaches-1-tested-0.patch
-ufs-sector_t-cannot-be-negative.patch
-hppfs-hppfs_read_file-may-return-error.patch
+rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch
+ipmi-add-oem-message-handling.patch
 
