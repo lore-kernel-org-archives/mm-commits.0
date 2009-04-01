@@ -1,292 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: [merged] loop-add-ioctl-to-resize-a-loop-device.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:39:35 -0700
-Message-ID: <200904011839.n31IdZJO008720@imap1.linux-foundation.org>
+Subject: [merged] rtc-ds1307-true-smbus-compatibility.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:42:07 -0700
+Message-ID: <200904011842.n31Ig7GI009581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49227 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41242 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933532AbZDASqz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:46:55 -0400
+	by vger.kernel.org with ESMTP id S933565AbZDASrT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:47:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hooanon05@yahoo.co.jp, akinobu.mita@gmail.com, hch@lst.de, jens.axboe@oracle.com, kzak@redhat.com, linux-api@vger.kernel.org, tomas@slax.org, util-linux-ng@vger.kernel.org, viro@zeniv
+To: eswierk@aristanetworks.com, a.zummo@towertech.it, dbrownell@users.sourceforge.net, khali@linux-fr.org, sbarre@sdelcc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     loop: add ioctl to resize a loop device
+     rtc-ds1307: true SMBus compatibility
 has been removed from the -mm tree.  Its filename was
-     loop-add-ioctl-to-resize-a-loop-device.patch
+     rtc-ds1307-true-smbus-compatibility.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: add ioctl to resize a loop device
-From: J. R. Okajima <hooanon05@yahoo.co.jp>
+Subject: rtc-ds1307: true SMBus compatibility
+From: Ed Swierk <eswierk@aristanetworks.com>
 
-Add the ability to 'resize' the loop device on the fly.
+Allow the rtc-ds1307 driver to work with SMBus controllers like nforce2
+that do not support i2c block transfers.
 
-One practical application is a loop file with XFS filesystem, already
-mounted: You can easily enlarge the file (append some bytes) and then call
-ioctl(fd, LOOP_SET_CAPACITY, new); The loop driver will learn about the
-new size and you can use xfs_growfs later on, which will allow you to use
-full capacity of the loop file without the need to unmount.
-
-Test app:
-
-#include <linux/fs.h>
-#include <linux/loop.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#define _GNU_SOURCE
-#include <getopt.h>
-
-char *me;
-
-void usage(FILE *f)
-{
-	fprintf(f, "%s [options] loop_dev [backend_file]\n"
-		"-s, --set new_size_in_bytes\n"
-		"\twhen backend_file is given, "
-		"it will be expanded too while keeping the original contents\n",
-		me);
-}
-
-struct option opts[] = {
-	{
-		.name		= "set",
-		.has_arg	= 1,
-		.flag		= NULL,
-		.val		= 's'
-	},
-	{
-		.name		= "help",
-		.has_arg	= 0,
-		.flag		= NULL,
-		.val		= 'h'
-	}
-};
-
-void err_size(char *name, __u64 old)
-{
-	fprintf(stderr, "size must be larger than current %s (%llu)\n",
-		name, old);
-}
-
-int main(int argc, char *argv[])
-{
-	int fd, err, c, i, bfd;
-	ssize_t ssz;
-	size_t sz;
-	__u64 old, new, append;
-	char a[BUFSIZ];
-	struct stat st;
-	FILE *out;
-	char *backend, *dev;
-
-	err = EINVAL;
-	out = stderr;
-	me = argv[0];
-	new = 0;
-	while ((c = getopt_long(argc, argv, "s:h", opts, &i)) != -1) {
-		switch (c) {
-		case 's':
-			errno = 0;
-			new = strtoull(optarg, NULL, 0);
-			if (errno) {
-				err = errno;
-				perror(argv[i]);
-				goto out;
-			}
-			break;
-
-		case 'h':
-			err = 0;
-			out = stdout;
-			goto err;
-
-		default:
-			perror(argv[i]);
-			goto err;
-		}
-	}
-
-	if (optind < argc)
-		dev = argv[optind++];
-	else
-		goto err;
-
-	fd = open(dev, O_RDONLY);
-	if (fd < 0) {
-		err = errno;
-		perror(dev);
-		goto out;
-	}
-
-	err = ioctl(fd, BLKGETSIZE64, &old);
-	if (err) {
-		err = errno;
-		perror("ioctl BLKGETSIZE64");
-		goto out;
-	}
-
-	if (!new) {
-		printf("%llu\n", old);
-		goto out;
-	}
-
-	if (new < old) {
-		err = EINVAL;
-		err_size(dev, old);
-		goto out;
-	}
-
-	if (optind < argc) {
-		backend = argv[optind++];
-		bfd = open(backend, O_WRONLY|O_APPEND);
-		if (bfd < 0) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-		err = fstat(bfd, &st);
-		if (err) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-		if (new < st.st_size) {
-			err = EINVAL;
-			err_size(backend, st.st_size);
-			goto out;
-		}
-		append = new - st.st_size;
-		sz = sizeof(a);
-		while (append > 0) {
-			if (append < sz)
-				sz = append;
-			ssz = write(bfd, a, sz);
-			if (ssz != sz) {
-				err = errno;
-				perror(backend);
-				goto out;
-			}
-			append -= sz;
-		}
-		err = fsync(bfd);
-		if (err) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-	}
-
-	err = ioctl(fd, LOOP_SET_CAPACITY, new);
-	if (err) {
-		err = errno;
-		perror("ioctl LOOP_SET_CAPACITY");
-	}
-	goto out;
-
- err:
-	usage(out);
- out:
-	return err;
-}
-
-Signed-off-by: J. R. Okajima <hooanon05@yahoo.co.jp>
-Signed-off-by: Tomas Matejicek <tomas@slax.org>
-Cc: <util-linux-ng@vger.kernel.org>
-Cc: Karel Zak <kzak@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: <linux-api@vger.kernel.org>
+Signed-off-by: Ed Swierk <eswierk@aristanetworks.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: BARRE Sebastien <sbarre@sdelcc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   30 ++++++++++++++++++++++++++++++
- include/linux/loop.h |    1 +
- 2 files changed, 31 insertions(+)
+ drivers/rtc/rtc-ds1307.c |  109 ++++++++++++++++++++++++++++++++-----
+ 1 file changed, 97 insertions(+), 12 deletions(-)
 
-diff -puN drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device drivers/block/loop.c
---- a/drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device
-+++ a/drivers/block/loop.c
-@@ -1192,6 +1192,30 @@ loop_get_status64(struct loop_device *lo
- 	return err;
- }
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-true-smbus-compatibility drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-true-smbus-compatibility
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -94,6 +94,10 @@ struct ds1307 {
+ 	struct i2c_client	*client;
+ 	struct rtc_device	*rtc;
+ 	struct work_struct	work;
++	s32 (*read_block_data)(struct i2c_client *client, u8 command,
++			       u8 length, u8 *values);
++	s32 (*write_block_data)(struct i2c_client *client, u8 command,
++				u8 length, const u8 *values);
+ };
  
-+static int loop_set_capacity(struct loop_device *lo, struct block_device *bdev)
+ struct chip_desc {
+@@ -132,6 +136,79 @@ MODULE_DEVICE_TABLE(i2c, ds1307_id);
+ 
+ /*----------------------------------------------------------------------*/
+ 
++#define BLOCK_DATA_MAX_TRIES 10
++
++static s32 ds1307_read_block_data_once(struct i2c_client *client, u8 command,
++				  u8 length, u8 *values)
 +{
-+	int err;
-+	sector_t sec;
-+	loff_t sz;
++	s32 i, data;
 +
-+	err = -ENXIO;
-+	if (unlikely(lo->lo_state != Lo_bound))
-+		goto out;
-+	err = figure_loop_size(lo);
-+	if (unlikely(err))
-+		goto out;
-+	sec = get_capacity(lo->lo_disk);
-+	/* the width of sector_t may be narrow for bit-shift */
-+	sz = sec;
-+	sz <<= 9;
-+	mutex_lock(&bdev->bd_mutex);
-+	bd_set_size(bdev, sz);
-+	mutex_unlock(&bdev->bd_mutex);
-+
-+ out:
-+	return err;
++	for (i = 0; i < length; i++) {
++		data = i2c_smbus_read_byte_data(client, command + i);
++		if (data < 0)
++			return data;
++		values[i] = data;
++	}
++	return i;
 +}
 +
- static int lo_ioctl(struct block_device *bdev, fmode_t mode,
- 	unsigned int cmd, unsigned long arg)
- {
-@@ -1224,6 +1248,11 @@ static int lo_ioctl(struct block_device 
- 	case LOOP_GET_STATUS64:
- 		err = loop_get_status64(lo, (struct loop_info64 __user *) arg);
- 		break;
-+	case LOOP_SET_CAPACITY:
-+		err = -EPERM;
-+		if ((mode & FMODE_WRITE) || capable(CAP_SYS_ADMIN))
-+			err = loop_set_capacity(lo, bdev);
-+		break;
- 	default:
- 		err = lo->ioctl ? lo->ioctl(lo, cmd, arg) : -EINVAL;
- 	}
-@@ -1371,6 +1400,7 @@ static int lo_compat_ioctl(struct block_
- 			lo, (struct compat_loop_info __user *) arg);
- 		mutex_unlock(&lo->lo_ctl_mutex);
- 		break;
-+	case LOOP_SET_CAPACITY:
- 	case LOOP_CLR_FD:
- 	case LOOP_GET_STATUS64:
- 	case LOOP_SET_STATUS64:
-diff -puN include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device include/linux/loop.h
---- a/include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device
-+++ a/include/linux/loop.h
-@@ -160,5 +160,6 @@ int loop_unregister_transfer(int number)
- #define LOOP_SET_STATUS64	0x4C04
- #define LOOP_GET_STATUS64	0x4C05
- #define LOOP_CHANGE_FD		0x4C06
-+#define LOOP_SET_CAPACITY	0x4C07
++static s32 ds1307_read_block_data(struct i2c_client *client, u8 command,
++				  u8 length, u8 *values)
++{
++	u8 oldvalues[I2C_SMBUS_BLOCK_MAX];
++	s32 ret;
++	int tries = 0;
++
++	dev_dbg(&client->dev, "ds1307_read_block_data (length=%d)\n", length);
++	ret = ds1307_read_block_data_once(client, command, length, values);
++	if (ret < 0)
++		return ret;
++	do {
++		if (++tries > BLOCK_DATA_MAX_TRIES) {
++			dev_err(&client->dev,
++				"ds1307_read_block_data failed\n");
++			return -EIO;
++		}
++		memcpy(oldvalues, values, length);
++		ret = ds1307_read_block_data_once(client, command, length,
++						  values);
++		if (ret < 0)
++			return ret;
++	} while (memcmp(oldvalues, values, length));
++	return length;
++}
++
++static s32 ds1307_write_block_data(struct i2c_client *client, u8 command,
++				   u8 length, const u8 *values)
++{
++	u8 currvalues[I2C_SMBUS_BLOCK_MAX];
++	int tries = 0;
++
++	dev_dbg(&client->dev, "ds1307_write_block_data (length=%d)\n", length);
++	do {
++		s32 i, ret;
++
++		if (++tries > BLOCK_DATA_MAX_TRIES) {
++			dev_err(&client->dev,
++				"ds1307_write_block_data failed\n");
++			return -EIO;
++		}
++		for (i = 0; i < length; i++) {
++			ret = i2c_smbus_write_byte_data(client, command + i,
++							values[i]);
++			if (ret < 0)
++				return ret;
++		}
++		ret = ds1307_read_block_data_once(client, command, length,
++						  currvalues);
++		if (ret < 0)
++			return ret;
++	} while (memcmp(currvalues, values, length));
++	return length;
++}
++
++/*----------------------------------------------------------------------*/
++
+ /*
+  * The IRQ logic includes a "real" handler running in IRQ context just
+  * long enough to schedule this workqueue entry.   We need a task context
+@@ -202,7 +279,7 @@ static int ds1307_get_time(struct device
+ 	int		tmp;
  
- #endif
+ 	/* read the RTC date and time registers all at once */
+-	tmp = i2c_smbus_read_i2c_block_data(ds1307->client,
++	tmp = ds1307->read_block_data(ds1307->client,
+ 		DS1307_REG_SECS, 7, ds1307->regs);
+ 	if (tmp != 7) {
+ 		dev_err(dev, "%s error %d\n", "read", tmp);
+@@ -279,7 +356,7 @@ static int ds1307_set_time(struct device
+ 		"write", buf[0], buf[1], buf[2], buf[3],
+ 		buf[4], buf[5], buf[6]);
+ 
+-	result = i2c_smbus_write_i2c_block_data(ds1307->client, 0, 7, buf);
++	result = ds1307->write_block_data(ds1307->client, 0, 7, buf);
+ 	if (result < 0) {
+ 		dev_err(dev, "%s error %d\n", "write", result);
+ 		return result;
+@@ -297,7 +374,7 @@ static int ds1337_read_alarm(struct devi
+ 		return -EINVAL;
+ 
+ 	/* read all ALARM1, ALARM2, and status registers at once */
+-	ret = i2c_smbus_read_i2c_block_data(client,
++	ret = ds1307->read_block_data(client,
+ 			DS1339_REG_ALARM1_SECS, 9, ds1307->regs);
+ 	if (ret != 9) {
+ 		dev_err(dev, "%s error %d\n", "alarm read", ret);
+@@ -356,7 +433,7 @@ static int ds1337_set_alarm(struct devic
+ 		t->enabled, t->pending);
+ 
+ 	/* read current status of both alarms and the chip */
+-	ret = i2c_smbus_read_i2c_block_data(client,
++	ret = ds1307->read_block_data(client,
+ 			DS1339_REG_ALARM1_SECS, 9, buf);
+ 	if (ret != 9) {
+ 		dev_err(dev, "%s error %d\n", "alarm write", ret);
+@@ -391,7 +468,7 @@ static int ds1337_set_alarm(struct devic
+ 	}
+ 	buf[8] = status & ~(DS1337_BIT_A1I | DS1337_BIT_A2I);
+ 
+-	ret = i2c_smbus_write_i2c_block_data(client,
++	ret = ds1307->write_block_data(client,
+ 			DS1339_REG_ALARM1_SECS, 9, buf);
+ 	if (ret < 0) {
+ 		dev_err(dev, "can't set alarm time\n");
+@@ -479,7 +556,7 @@ ds1307_nvram_read(struct kobject *kobj, 
+ 	if (unlikely(!count))
+ 		return count;
+ 
+-	result = i2c_smbus_read_i2c_block_data(client, 8 + off, count, buf);
++	result = ds1307->read_block_data(client, 8 + off, count, buf);
+ 	if (result < 0)
+ 		dev_err(&client->dev, "%s error %d\n", "nvram read", result);
+ 	return result;
+@@ -490,9 +567,11 @@ ds1307_nvram_write(struct kobject *kobj,
+ 		char *buf, loff_t off, size_t count)
+ {
+ 	struct i2c_client	*client;
++	struct ds1307		*ds1307;
+ 	int			result;
+ 
+ 	client = kobj_to_i2c_client(kobj);
++	ds1307 = i2c_get_clientdata(client);
+ 
+ 	if (unlikely(off >= NVRAM_SIZE))
+ 		return -EFBIG;
+@@ -501,7 +580,7 @@ ds1307_nvram_write(struct kobject *kobj,
+ 	if (unlikely(!count))
+ 		return count;
+ 
+-	result = i2c_smbus_write_i2c_block_data(client, 8 + off, count, buf);
++	result = ds1307->write_block_data(client, 8 + off, count, buf);
+ 	if (result < 0) {
+ 		dev_err(&client->dev, "%s error %d\n", "nvram write", result);
+ 		return result;
+@@ -535,9 +614,8 @@ static int __devinit ds1307_probe(struct
+ 	int			want_irq = false;
+ 	unsigned char		*buf;
+ 
+-	if (!i2c_check_functionality(adapter,
+-			I2C_FUNC_SMBUS_WRITE_BYTE_DATA |
+-			I2C_FUNC_SMBUS_I2C_BLOCK))
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)
++	    && !i2c_check_functionality(adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
+ 		return -EIO;
+ 
+ 	if (!(ds1307 = kzalloc(sizeof(struct ds1307), GFP_KERNEL)))
+@@ -547,6 +625,13 @@ static int __devinit ds1307_probe(struct
+ 	i2c_set_clientdata(client, ds1307);
+ 	ds1307->type = id->driver_data;
+ 	buf = ds1307->regs;
++	if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_I2C_BLOCK)) {
++		ds1307->read_block_data = i2c_smbus_read_i2c_block_data;
++		ds1307->write_block_data = i2c_smbus_write_i2c_block_data;
++	} else {
++		ds1307->read_block_data = ds1307_read_block_data;
++		ds1307->write_block_data = ds1307_write_block_data;
++	}
+ 
+ 	switch (ds1307->type) {
+ 	case ds_1337:
+@@ -557,7 +642,7 @@ static int __devinit ds1307_probe(struct
+ 			want_irq = true;
+ 		}
+ 		/* get registers that the "rtc" read below won't read... */
+-		tmp = i2c_smbus_read_i2c_block_data(ds1307->client,
++		tmp = ds1307->read_block_data(ds1307->client,
+ 				DS1337_REG_CONTROL, 2, buf);
+ 		if (tmp != 2) {
+ 			pr_debug("read error %d\n", tmp);
+@@ -595,7 +680,7 @@ static int __devinit ds1307_probe(struct
+ 
+ read_rtc:
+ 	/* read RTC registers */
+-	tmp = i2c_smbus_read_i2c_block_data(ds1307->client, 0, 8, buf);
++	tmp = ds1307->read_block_data(ds1307->client, 0, 8, buf);
+ 	if (tmp != 8) {
+ 		pr_debug("read error %d\n", tmp);
+ 		err = -EIO;
 _
 
-Patches currently in -mm which might be from hooanon05@yahoo.co.jp are
+Patches currently in -mm which might be from eswierk@aristanetworks.com are
 
 origin.patch
 
