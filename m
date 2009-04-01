@@ -1,119 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-convert-wm8350-use-new-alarm-and-update-operations.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:41:44 -0700
-Message-ID: <200904011841.n31IfiXA009460@imap1.linux-foundation.org>
+Subject: [merged] epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:40:54 -0700
+Message-ID: <200904011840.n31IesDp009171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754137AbZDATaa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:30:30 -0400
+	by vger.kernel.org with ESMTP id S1751436AbZDATba (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:31:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, mingo@elte.hu, torvalds@linux-foundation.org, wli@movementarian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: convert wm8350 use new alarm and update operations
+     epoll keyed wakeups: make eventfd use keyed wakeups
 has been removed from the -mm tree.  Its filename was
-     rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
+     epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: convert wm8350 use new alarm and update operations
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: epoll keyed wakeups: make eventfd use keyed wakeups
+From: Davide Libenzi <davidel@xmailserver.org>
 
-These are the only two ioctls so the ioctl() function is also removed.
+Introduce keyed event wakeups inside the eventfd code.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Miller <davem@davemloft.net>
+Cc: William Lee Irwin III <wli@movementarian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-wm8350.c |   39 +++++++++++++++++--------------------
- 1 file changed, 18 insertions(+), 21 deletions(-)
+ fs/eventfd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-wm8350.c~rtc-convert-wm8350-use-new-alarm-and-update-operations drivers/rtc/rtc-wm8350.c
---- a/drivers/rtc/rtc-wm8350.c~rtc-convert-wm8350-use-new-alarm-and-update-operations
-+++ a/drivers/rtc/rtc-wm8350.c
-@@ -236,6 +236,17 @@ static int wm8350_rtc_start_alarm(struct
- 	return 0;
- }
+diff -puN fs/eventfd.c~epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups fs/eventfd.c
+--- a/fs/eventfd.c~epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups
++++ a/fs/eventfd.c
+@@ -51,7 +51,7 @@ int eventfd_signal(struct file *file, in
+ 		n = (int) (ULLONG_MAX - ctx->count);
+ 	ctx->count += n;
+ 	if (waitqueue_active(&ctx->wqh))
+-		wake_up_locked(&ctx->wqh);
++		wake_up_locked_poll(&ctx->wqh, POLLIN);
+ 	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
  
-+static int wm8350_rtc_alarm_irq_enable(struct device *dev,
-+				       unsigned int enabled)
-+{
-+	struct wm8350 *wm8350 = dev_get_drvdata(dev);
-+
-+	if (enabled)
-+		return wm8350_rtc_start_alarm(wm8350);
-+	else
-+		return wm8350_rtc_stop_alarm(wm8350);
-+}
-+
- static int wm8350_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
- {
- 	struct wm8350 *wm8350 = dev_get_drvdata(dev);
-@@ -291,30 +302,15 @@ static int wm8350_rtc_setalarm(struct de
- 	return ret;
- }
+ 	return n;
+@@ -120,7 +120,7 @@ static ssize_t eventfd_read(struct file 
+ 		ucnt = (ctx->flags & EFD_SEMAPHORE) ? 1 : ctx->count;
+ 		ctx->count -= ucnt;
+ 		if (waitqueue_active(&ctx->wqh))
+-			wake_up_locked(&ctx->wqh);
++			wake_up_locked_poll(&ctx->wqh, POLLOUT);
+ 	}
+ 	spin_unlock_irq(&ctx->wqh.lock);
+ 	if (res > 0 && put_user(ucnt, (__u64 __user *) buf))
+@@ -169,7 +169,7 @@ static ssize_t eventfd_write(struct file
+ 	if (likely(res > 0)) {
+ 		ctx->count += ucnt;
+ 		if (waitqueue_active(&ctx->wqh))
+-			wake_up_locked(&ctx->wqh);
++			wake_up_locked_poll(&ctx->wqh, POLLIN);
+ 	}
+ 	spin_unlock_irq(&ctx->wqh.lock);
  
--/*
-- * Handle commands from user-space
-- */
--static int wm8350_rtc_ioctl(struct device *dev, unsigned int cmd,
--			    unsigned long arg)
-+static int wm8350_rtc_update_irq_enable(struct device *dev,
-+					unsigned int enabled)
- {
- 	struct wm8350 *wm8350 = dev_get_drvdata(dev);
- 
--	switch (cmd) {
--	case RTC_AIE_OFF:
--		return wm8350_rtc_stop_alarm(wm8350);
--	case RTC_AIE_ON:
--		return wm8350_rtc_start_alarm(wm8350);
--
--	case RTC_UIE_OFF:
--		wm8350_mask_irq(wm8350, WM8350_IRQ_RTC_SEC);
--		break;
--	case RTC_UIE_ON:
-+	if (enabled)
- 		wm8350_unmask_irq(wm8350, WM8350_IRQ_RTC_SEC);
--		break;
--
--	default:
--		return -ENOIOCTLCMD;
--	}
-+	else
-+		wm8350_mask_irq(wm8350, WM8350_IRQ_RTC_SEC);
- 
- 	return 0;
- }
-@@ -345,11 +341,12 @@ static void wm8350_rtc_update_handler(st
- }
- 
- static const struct rtc_class_ops wm8350_rtc_ops = {
--	.ioctl = wm8350_rtc_ioctl,
- 	.read_time = wm8350_rtc_readtime,
- 	.set_time = wm8350_rtc_settime,
- 	.read_alarm = wm8350_rtc_readalarm,
- 	.set_alarm = wm8350_rtc_setalarm,
-+	.alarm_irq_enable = wm8350_rtc_alarm_irq_enable,
-+	.update_irq_enable = wm8350_rtc_update_irq_enable,
- };
- 
- #ifdef CONFIG_PM
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
 linux-next.patch
-input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
-mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon.patch
 
