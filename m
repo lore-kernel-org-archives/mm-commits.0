@@ -1,76 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom_kill-dont-call-for-int_sqrt0.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:34:13 -0700
-Message-ID: <200904011834.n31IYDrI007098@imap1.linux-foundation.org>
+Subject: [merged] mm-dont-call-mark_page_accessed-in-do_swap_page.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:34:26 -0700
+Message-ID: <200904011834.n31IYQmV007152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933345AbZDASiJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:38:09 -0400
+	by vger.kernel.org with ESMTP id S1762738AbZDASif (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:38:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, cl@linux-foundation.org, gorcunov@openvz.org, penberg@cs.helsinki.fi, rientjes@google.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, hugh@veritas.com, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom_kill: don't call for int_sqrt(0)
+     mm: don't call mark_page_accessed() in do_swap_page()
 has been removed from the -mm tree.  Its filename was
-     oom_kill-dont-call-for-int_sqrt0.patch
+     mm-dont-call-mark_page_accessed-in-do_swap_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom_kill: don't call for int_sqrt(0)
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: mm: don't call mark_page_accessed() in do_swap_page()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-There is no need to call for int_sqrt if argument is 0.
+commit bf3f3bc5e734706730c12a323f9b2068052aa1f0 (mm: don't
+mark_page_accessed in fault path) only remove the mark_page_accessed() in
+filemap_fault().
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: David Rientjes <rientjes@google.com>
+Therefore, swap-backed pages and file-backed pages have inconsistent
+behavior.  mark_page_accessed() should be removed from do_swap_page().
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ mm/memory.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/oom_kill.c~oom_kill-dont-call-for-int_sqrt0 mm/oom_kill.c
---- a/mm/oom_kill.c~oom_kill-dont-call-for-int_sqrt0
-+++ a/mm/oom_kill.c
-@@ -55,7 +55,7 @@ static DEFINE_SPINLOCK(zone_scan_lock);
+diff -puN mm/memory.c~mm-dont-call-mark_page_accessed-in-do_swap_page mm/memory.c
+--- a/mm/memory.c~mm-dont-call-mark_page_accessed-in-do_swap_page
++++ a/mm/memory.c
+@@ -2435,8 +2435,6 @@ static int do_swap_page(struct mm_struct
+ 		count_vm_event(PGMAJFAULT);
+ 	}
  
- unsigned long badness(struct task_struct *p, unsigned long uptime)
- {
--	unsigned long points, cpu_time, run_time, s;
-+	unsigned long points, cpu_time, run_time;
- 	struct mm_struct *mm;
- 	struct task_struct *child;
- 
-@@ -110,12 +110,10 @@ unsigned long badness(struct task_struct
- 	else
- 		run_time = 0;
- 
--	s = int_sqrt(cpu_time);
--	if (s)
--		points /= s;
--	s = int_sqrt(int_sqrt(run_time));
--	if (s)
--		points /= s;
-+	if (cpu_time)
-+		points /= int_sqrt(cpu_time);
-+	if (run_time)
-+		points /= int_sqrt(int_sqrt(run_time));
- 
- 	/*
- 	 * Niced processes are most likely less important, so double
-_
-
-Patches currently in -mm which might be from gorcunov@gmail.com are
-
-origin.patch
-linux-next.patch
-
+-	mark_page_accessed(page);
