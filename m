@@ -1,97 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-parisc-use-platform_driver_probe.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:41:57 -0700
-Message-ID: <200904011841.n31Ifv9S009520@imap1.linux-foundation.org>
+Subject: [merged] hp_accel-small-documentation-updates.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:40:58 -0700
+Message-ID: <200904011840.n31IewHi009177@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934197AbZDATod (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:44:33 -0400
+	by vger.kernel.org with ESMTP id S1763496AbZDATpk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:45:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dannf@hp.com, a.zummo@towertech.it, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx, mm-commits@vger.kernel.org
+To: pavel@ucw.cz, Quoc.Pham@hp.com, eric.piel@tremplin-utc.net, pavel@suse.cz, vbotka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-parisc: use platform_driver_probe
+     hp_accel: small documentation updates
 has been removed from the -mm tree.  Its filename was
-     rtc-parisc-use-platform_driver_probe.patch
+     hp_accel-small-documentation-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-parisc: use platform_driver_probe
-From: dann frazier <dannf@hp.com>
+Subject: hp_accel: small documentation updates
+From: Pavel Machek <pavel@ucw.cz>
 
-This isn't a hotpluggable device, so call platform_driver_probe
-directly in parisc_rtc_init
+Fix english in Documentation, add "how to test" description.
 
-Signed-off-by: dann frazier <dannf@hp.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: Vladimir Botka <vbotka@suse.cz>
+Cc: <Quoc.Pham@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-parisc.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ Documentation/hwmon/lis3lv02d |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-parisc.c~rtc-parisc-use-platform_driver_probe drivers/rtc/rtc-parisc.c
---- a/drivers/rtc/rtc-parisc.c~rtc-parisc-use-platform_driver_probe
-+++ a/drivers/rtc/rtc-parisc.c
-@@ -40,19 +40,14 @@ static const struct rtc_class_ops parisc
- 	.set_time = parisc_set_time,
- };
+diff -puN Documentation/hwmon/lis3lv02d~hp_accel-small-documentation-updates Documentation/hwmon/lis3lv02d
+--- a/Documentation/hwmon/lis3lv02d~hp_accel-small-documentation-updates
++++ a/Documentation/hwmon/lis3lv02d
+@@ -1,11 +1,11 @@
+ Kernel driver lis3lv02d
+-==================
++=======================
  
--static int __devinit parisc_rtc_probe(struct platform_device *dev)
-+static int __init parisc_rtc_probe(struct platform_device *dev)
- {
- 	struct rtc_device *p;
+ Supported chips:
  
--	p = kzalloc(sizeof (*p), GFP_KERNEL);
--	if (!p)
--		return -ENOMEM;
--
- 	p = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
- 				THIS_MODULE);
- 	if (IS_ERR(p)) {
- 		int err = PTR_ERR(p);
--		kfree(p);
- 		return err;
- 	}
+   * STMicroelectronics LIS3LV02DL and LIS3LV02DQ
  
-@@ -61,12 +56,11 @@ static int __devinit parisc_rtc_probe(st
- 	return 0;
- }
+-Author:
++Authors:
+         Yan Burman <burman.yan@gmail.com>
+ 	Eric Piel <eric.piel@tremplin-utc.net>
  
--static int __devexit parisc_rtc_remove(struct platform_device *dev)
-+static int __exit parisc_rtc_remove(struct platform_device *dev)
- {
- 	struct rtc_device *p = platform_get_drvdata(dev);
+@@ -15,7 +15,7 @@ Description
  
- 	rtc_device_unregister(p);
--	kfree(p);
+ This driver provides support for the accelerometer found in various HP
+ laptops sporting the feature officially called "HP Mobile Data
+-Protection System 3D" or "HP 3D DriveGuard". It detect automatically
++Protection System 3D" or "HP 3D DriveGuard". It detects automatically
+ laptops with this sensor. Known models (for now the HP 2133, nc6420,
+ nc2510, nc8510, nc84x0, nw9440 and nx9420) will have their axis
+ automatically oriented on standard way (eg: you can directly play
+@@ -27,7 +27,7 @@ position - 3D position that the accelero
+ calibrate - read: values (x, y, z) that are used as the base for input
+ 		  class device operation.
+             write: forces the base to be recalibrated with the current
+-		  position.
++		   position.
+ rate - reports the sampling rate of the accelerometer device in HZ
  
- 	return 0;
- }
-@@ -82,7 +76,7 @@ static struct platform_driver parisc_rtc
+ This driver also provides an absolute input class device, allowing
+@@ -48,7 +48,7 @@ For better compatibility between the var
+ the accelerometer are converted into a "standard" organisation of the axes
+ (aka "can play neverball out of the box"):
+  * When the laptop is horizontal the position reported is about 0 for X and Y
+-and a positive value for Z
++	and a positive value for Z
+  * If the left side is elevated, X increases (becomes positive)
+  * If the front side (where the touchpad is) is elevated, Y decreases
+ 	(becomes negative)
+@@ -59,3 +59,13 @@ email to the authors to add it to the da
+ laptop, please include the output of "dmidecode" plus the value of
+ /sys/devices/platform/lis3lv02d/position in these four cases.
  
- static int __init parisc_rtc_init(void)
- {
--	return platform_driver_register(&parisc_rtc_driver);
-+	return platform_driver_probe(&parisc_rtc_driver, parisc_rtc_probe);
- }
- 
- static void __exit parisc_rtc_fini(void)
++Q&A
++---
++
++Q: How do I safely simulate freefall? I have an HP "portable
++workstation" which has about 3.5kg and a plastic case, so letting it
++fall to the ground is out of question...
++
++A: The sensor is pretty sensitive, so your hands can do it. Lift it
++into free space, follow the fall with your hands for like 10
++centimeters. That should be enough to trigger the detection.
 _
 
-Patches currently in -mm which might be from dannf@hp.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
 origin.patch
-rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch
-ipmi-add-oem-message-handling.patch
+linux-next.patch
 
