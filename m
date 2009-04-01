@@ -1,131 +1,353 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-uvesafbc-dont-use-gfp_any.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:18 -0700
-Message-ID: <200904011842.n31IgIdu009639@imap1.linux-foundation.org>
+Subject: [merged] cirrusfb-various-laguna-fixes.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:42:43 -0700
+Message-ID: <200904011842.n31IghUd009798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933181AbZDATHd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:07:33 -0400
+	by vger.kernel.org with ESMTP id S932153AbZDATJ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:09:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, davem@davemloft.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/uvesafb.c: don't use gfp_any()
+     cirrusfb: various Laguna fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-video-uvesafbc-dont-use-gfp_any.patch
+     cirrusfb-various-laguna-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/uvesafb.c: don't use gfp_any()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cirrusfb: various Laguna fixes
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-GFP_KERNEL is legal here - we don't need to use gfp_any().
+- The Laguna GD5465 (AGP) has one register more than non-AGP chips. 
+  Recognize the AGP version and write a tile control register only on the
+  AGP version.  Tested only on an AGP card.
 
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andi Kleen <andi@firstfloor.org>
+- Bump up RAMDAC frequencies after X11 code.  This allow to drive a flat
+  panel resolution 1680x1050 at 16bpp from the 4MB card.
+
+- Fix screen start address overflow bits on Laguna cards (CRT1D
+  register).
+
+- Fix exit path in the cirrusfb_pci_register() in case of error.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/cirrusfb.c |   84 +++++++++++++++++++++++++------------
+ 1 file changed, 57 insertions(+), 27 deletions(-)
 
-diff -puN drivers/video/uvesafb.c~drivers-video-uvesafbc-dont-use-gfp_any drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~drivers-video-uvesafbc-dont-use-gfp_any
-+++ a/drivers/video/uvesafb.c
-@@ -189,7 +189,7 @@ static int uvesafb_exec(struct uvesafb_k
- 	uvfb_tasks[seq] = task;
- 	mutex_unlock(&uvfb_lock);
+diff -puN drivers/video/cirrusfb.c~cirrusfb-various-laguna-fixes drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-various-laguna-fixes
++++ a/drivers/video/cirrusfb.c
+@@ -102,7 +102,8 @@ enum cirrus_board {
+ 	BT_PICASSO4,	/* GD5446 */
+ 	BT_ALPINE,	/* GD543x/4x */
+ 	BT_GD5480,
+-	BT_LAGUNA,	/* GD546x */
++	BT_LAGUNA,	/* GD5462/64 */
++	BT_LAGUNAB,	/* GD5465 */
+ };
  
--	err = cn_netlink_send(m, 0, gfp_any());
-+	err = cn_netlink_send(m, 0, GFP_KERNEL);
- 	if (err == -ESRCH) {
- 		/*
- 		 * Try to start the userspace helper if sending
+ /*
+@@ -234,8 +235,18 @@ static const struct cirrusfb_board_info_
+ 	[BT_LAGUNA] = {
+ 		.name			= "CL Laguna",
+ 		.maxclock		= {
+-			/* guess */
+-			135100, 135100, 135100, 135100, 135100,
++			/* taken from X11 code */
++			170000, 170000, 170000, 170000, 135100,
++		},
++		.init_sr07		= false,
++		.init_sr1f		= false,
++		.scrn_start_bit19	= true,
++	},
++	[BT_LAGUNAB] = {
++		.name			= "CL Laguna AGP",
++		.maxclock		= {
++			/* taken from X11 code */
++			170000, 250000, 170000, 170000, 135100,
+ 		},
+ 		.init_sr07		= false,
+ 		.init_sr1f		= false,
+@@ -258,7 +269,7 @@ static struct pci_device_id cirrusfb_pci
+ 	CHIP(PCI_DEVICE_ID_CIRRUS_5446, BT_PICASSO4), /* Picasso 4 is 5446 */
+ 	CHIP(PCI_DEVICE_ID_CIRRUS_5462, BT_LAGUNA), /* CL Laguna */
+ 	CHIP(PCI_DEVICE_ID_CIRRUS_5464, BT_LAGUNA), /* CL Laguna 3D */
+-	CHIP(PCI_DEVICE_ID_CIRRUS_5465, BT_LAGUNA), /* CL Laguna 3DA*/
++	CHIP(PCI_DEVICE_ID_CIRRUS_5465, BT_LAGUNAB), /* CL Laguna 3DA*/
+ 	{ 0, }
+ };
+ MODULE_DEVICE_TABLE(pci, cirrusfb_pci_table);
+@@ -385,6 +396,11 @@ static void cirrusfb_dbg_print_regs(stru
+ /*****************************************************************************/
+ /*** BEGIN Interface Used by the World ***************************************/
+ 
++static inline int is_laguna(const struct cirrusfb_info *cinfo)
++{
++	return cinfo->btype == BT_LAGUNA || cinfo->btype == BT_LAGUNAB;
++}
++
+ static int opencount;
+ 
+ /*--- Open /dev/fbx ---------------------------------------------------------*/
+@@ -814,13 +830,16 @@ static int cirrusfb_set_par_foo(struct f
+ 			cirrusfb_set_mclk_as_source(info, divMCLK);
+ 		}
+ 	}
+-	if (cinfo->btype == BT_LAGUNA) {
++	if (is_laguna(cinfo)) {
+ 		long pcifc = fb_readl(cinfo->laguna_mmio + 0x3fc);
+ 		unsigned char tile = fb_readb(cinfo->laguna_mmio + 0x407);
+ 		unsigned short tile_control;
+ 
+-		tile_control = fb_readw(cinfo->laguna_mmio + 0x2c4);
+-		fb_writew(tile_control & ~0x80, cinfo->laguna_mmio + 0x2c4);
++		if (cinfo->btype == BT_LAGUNAB) {
++			tile_control = fb_readw(cinfo->laguna_mmio + 0x2c4);
++			tile_control &= ~0x80;
++			fb_writew(tile_control, cinfo->laguna_mmio + 0x2c4);
++		}
+ 
+ 		fb_writel(pcifc | 0x10000000l, cinfo->laguna_mmio + 0x3fc);
+ 		fb_writeb(tile & 0x3f, cinfo->laguna_mmio + 0x407);
+@@ -842,7 +861,7 @@ static int cirrusfb_set_par_foo(struct f
+ 
+ 		dev_dbg(info->device, "CL_SEQR1B: %d\n", (int) tmp);
+ 		/* Laguna chipset has reversed clock registers */
+-		if (cinfo->btype == BT_LAGUNA) {
++		if (is_laguna(cinfo)) {
+ 			vga_wseq(regbase, CL_SEQRE, tmp);
+ 			vga_wseq(regbase, CL_SEQR1E, nom);
+ 		} else {
+@@ -873,7 +892,7 @@ static int cirrusfb_set_par_foo(struct f
+ 		tmp |= 0x40;
+ 	if (var->sync & FB_SYNC_VERT_HIGH_ACT)
+ 		tmp |= 0x80;
+-	if (cinfo->btype == BT_LAGUNA)
++	if (is_laguna(cinfo))
+ 		tmp |= 0xc;
+ 	WGen(cinfo, VGA_MIS_W, tmp);
+ 
+@@ -908,6 +927,7 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
+ 
+ 		case BT_LAGUNA:
++		case BT_LAGUNAB:
+ 			vga_wseq(regbase, CL_SEQR7,
+ 				vga_rseq(regbase, CL_SEQR7) & ~0x01);
+ 			break;
+@@ -947,6 +967,7 @@ static int cirrusfb_set_par_foo(struct f
+ 		case BT_ALPINE:
+ 		case BT_GD5480:
+ 		case BT_LAGUNA:
++		case BT_LAGUNAB:
+ 			/* do nothing */
+ 			break;
+ 
+@@ -991,6 +1012,7 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
+ 
+ 		case BT_LAGUNA:
++		case BT_LAGUNAB:
+ 			vga_wseq(regbase, CL_SEQR7,
+ 				vga_rseq(regbase, CL_SEQR7) | 0x01);
+ 			threshold |= 0x10;
+@@ -1030,6 +1052,7 @@ static int cirrusfb_set_par_foo(struct f
+ 
+ 		case BT_GD5480:
+ 		case BT_LAGUNA:
++		case BT_LAGUNAB:
+ 			/* do nothing */
+ 			break;
+ 
+@@ -1096,6 +1119,7 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
+ 
+ 		case BT_LAGUNA:
++		case BT_LAGUNAB:
+ 			vga_wseq(regbase, CL_SEQR7,
+ 				vga_rseq(regbase, CL_SEQR7) & ~0x01);
+ 			control |= 0x2000;
+@@ -1166,6 +1190,7 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
+ 
+ 		case BT_LAGUNA:
++		case BT_LAGUNAB:
+ 			vga_wseq(regbase, CL_SEQR7,
+ 				vga_rseq(regbase, CL_SEQR7) & ~0x01);
+ 			control |= 0x6000;
+@@ -1208,7 +1233,7 @@ static int cirrusfb_set_par_foo(struct f
+ 	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
+ 		vga_wcrt(regbase, CL_CRT1D, (pitch >> 9) & 1);
+ 
+-	if (cinfo->btype == BT_LAGUNA) {
++	if (is_laguna(cinfo)) {
+ 		tmp = 0;
+ 		if ((htotal + 5) & 256)
+ 			tmp |= 128;
+@@ -1234,7 +1259,7 @@ static int cirrusfb_set_par_foo(struct f
+ 	/* From SetOffset(): Turn on VideoEnable bit in Attribute controller */
+ 	AttrOn(cinfo);
+ 
+-	if (cinfo->btype == BT_LAGUNA) {
++	if (is_laguna(cinfo)) {
+ 		/* no tiles */
+ 		fb_writew(control | 0x1000, cinfo->laguna_mmio + 0x402);
+ 		fb_writew(format, cinfo->laguna_mmio + 0xc0);
+@@ -1332,7 +1357,7 @@ static int cirrusfb_pan_display(struct f
+ 		xpix = (unsigned char) ((xoffset % 4) * 2);
+ 	}
+ 
+-	if (cinfo->btype != BT_LAGUNA)
++	if (!is_laguna(cinfo))
+ 		cirrusfb_WaitBLT(cinfo->regbase);
+ 
+ 	/* lower 8 + 8 bits of screen start address */
+@@ -1353,8 +1378,11 @@ static int cirrusfb_pan_display(struct f
+ 
+ 	/* construct bit 19 of screen start address */
+ 	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19) {
+-		tmp = vga_rcrt(cinfo->regbase, CL_CRT1D) & ~0x80;
+-		tmp |= (base >> 12) & 0x80;
++		tmp = vga_rcrt(cinfo->regbase, CL_CRT1D);
++		if (is_laguna(cinfo))
++			tmp = (tmp & ~0x18) | ((base >> 16) & 0x18);
++		else
++			tmp = (tmp & ~0x80) | ((base >> 12) & 0x80);
+ 		vga_wcrt(cinfo->regbase, CL_CRT1D, tmp);
+ 	}
+ 
+@@ -1365,7 +1393,7 @@ static int cirrusfb_pan_display(struct f
+ 	if (info->var.bits_per_pixel == 1)
+ 		vga_wattr(cinfo->regbase, CL_AR33, xpix);
+ 
+-	if (cinfo->btype != BT_LAGUNA)
++	if (!is_laguna(cinfo))
+ 		cirrusfb_WaitBLT(cinfo->regbase);
+ 
+ 	return 0;
+@@ -1486,6 +1514,7 @@ static void init_vgachip(struct fb_info 
+ 		break;
+ 
+ 	case BT_LAGUNA:
++	case BT_LAGUNAB:
+ 	case BT_ALPINE:
+ 		/* Nothing to do to reset the board. */
+ 		break;
+@@ -1530,6 +1559,7 @@ static void init_vgachip(struct fb_info 
+ 			break;
+ 		case BT_ALPINE:
+ 		case BT_LAGUNA:
++		case BT_LAGUNAB:
+ 			break;
+ 		case BT_SD64:
+ 			vga_wseq(cinfo->regbase, CL_SEQRF, 0xb8);
+@@ -1611,7 +1641,7 @@ static void init_vgachip(struct fb_info 
+ 	/* Bit Mask: no mask at all */
+ 	vga_wgfx(cinfo->regbase, VGA_GFX_BIT_MASK, 0xff);
+ 
+-	if (cinfo->btype == BT_ALPINE || cinfo->btype == BT_LAGUNA)
++	if (cinfo->btype == BT_ALPINE || is_laguna(cinfo))
+ 		/* (5434 can't have bit 3 set for bitblt) */
+ 		vga_wgfx(cinfo->regbase, CL_GRB, 0x20);
+ 	else
+@@ -1802,7 +1832,7 @@ static void cirrusfb_imageblit(struct fb
+ {
+ 	struct cirrusfb_info *cinfo = info->par;
+ 
+-	if (cinfo->btype != BT_LAGUNA)
++	if (!is_laguna(cinfo))
+ 		cirrusfb_WaitBLT(cinfo->regbase);
+ 	cfb_imageblit(info, image);
+ }
+@@ -1831,7 +1861,7 @@ static unsigned int __devinit cirrusfb_g
+ 	unsigned long mem;
+ 	struct cirrusfb_info *cinfo = info->par;
+ 
+-	if (cinfo->btype == BT_LAGUNA) {
++	if (is_laguna(cinfo)) {
+ 		unsigned char SR14 = vga_rseq(regbase, CL_SEQR14);
+ 
+ 		mem = ((SR14 & 7) + 1) << 20;
+@@ -1950,7 +1980,7 @@ static int __devinit cirrusfb_set_fbinfo
+ 		    | FBINFO_HWACCEL_YPAN
+ 		    | FBINFO_HWACCEL_FILLRECT
+ 		    | FBINFO_HWACCEL_COPYAREA;
+-	if (noaccel || cinfo->btype == BT_LAGUNA)
++	if (noaccel || is_laguna(cinfo))
+ 		info->flags |= FBINFO_HWACCEL_DISABLED;
+ 	info->fbops = &cirrusfb_ops;
+ 	if (cinfo->btype == BT_GD5480) {
+@@ -2060,7 +2090,7 @@ static int __devinit cirrusfb_pci_regist
+ 	if (!info) {
+ 		printk(KERN_ERR "cirrusfb: could not allocate memory\n");
+ 		ret = -ENOMEM;
+-		goto err_disable;
++		goto err_out;
+ 	}
+ 
+ 	cinfo = info->par;
+@@ -2127,10 +2157,11 @@ static int __devinit cirrusfb_pci_regist
+ 	pci_set_drvdata(pdev, info);
+ 
+ 	ret = cirrusfb_register(info);
+-	if (ret)
+-		iounmap(info->screen_base);
+-	return ret;
++	if (!ret)
++		return 0;
+ 
++	pci_set_drvdata(pdev, NULL);
++	iounmap(info->screen_base);
+ err_release_legacy:
+ 	if (release_io_ports)
+ 		release_region(0x3C0, 32);
+@@ -2140,10 +2171,9 @@ err_release_regions:
+ #endif
+ 	pci_release_regions(pdev);
+ err_release_fb:
+-	if (cinfo->laguna_mmio == NULL)
++	if (cinfo->laguna_mmio != NULL)
+ 		iounmap(cinfo->laguna_mmio);
+ 	framebuffer_release(info);
+-err_disable:
+ err_out:
+ 	return ret;
+ }
+@@ -2439,7 +2469,7 @@ static void WHDR(const struct cirrusfb_i
+ {
+ 	unsigned char dummy;
+ 
+-	if (cinfo->btype == BT_LAGUNA)
++	if (is_laguna(cinfo))
+ 		return;
+ 	if (cinfo->btype == BT_PICASSO) {
+ 		/* Klaus' hint for correct access to HDR on some boards */
+@@ -2509,7 +2539,7 @@ static void WClut(struct cirrusfb_info *
+ 
+ 	if (cinfo->btype == BT_PICASSO || cinfo->btype == BT_PICASSO4 ||
+ 	    cinfo->btype == BT_ALPINE || cinfo->btype == BT_GD5480 ||
+-	    cinfo->btype == BT_LAGUNA) {
++	    is_laguna(cinfo)) {
+ 		/* but DAC data register IS, at least for Picasso II */
+ 		if (cinfo->btype == BT_PICASSO)
+ 			data += 0xfff;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-arch-x86-mm-iomap_32c-fix-warning.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-flex-onenand-support-v2-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional-fix.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-simplify-copy_thread-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-kernel-auditscc-fix-warning.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-page-owner-tracking.patch
-page-owner-tracking-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
+tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
 
