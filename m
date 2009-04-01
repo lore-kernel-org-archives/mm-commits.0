@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + serial-fixup-proc-tty-driver-serial-after-proc_fops-conversion.patch added to -mm tree
-Date: Wed, 01 Apr 2009 14:38:22 -0700
-Message-ID: <200904012138.n31LcMJt028089@imap1.linux-foundation.org>
+Subject: + fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch added to -mm tree
+Date: Wed, 01 Apr 2009 14:50:58 -0700
+Message-ID: <200904012150.n31LowaN031752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60339 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934644AbZDAVkQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 17:40:16 -0400
+	by vger.kernel.org with ESMTP id S1752015AbZDAVxf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 17:53:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, torvalds@linux-foundation.org
+Cc: mkatiyar@gmail.com, adilger@sun.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     serial: fixup /proc/tty/driver/serial after proc_fops conversion
+     fs/inode.c: add dev-id and inode number for debugging in init_special_inode()
 has been added to the -mm tree.  Its filename is
-     serial-fixup-proc-tty-driver-serial-after-proc_fops-conversion.patch
+     fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: fixup /proc/tty/driver/serial after proc_fops conversion
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fs/inode.c: add dev-id and inode number for debugging in init_special_inode()
+From: Manish Katiyar <mkatiyar@gmail.com>
 
-"struct tty_driver *" lies in m->private not in v which is
-SEQ_TOKEN_START which is 1 which is enough to trigger NULL dereference
-next line:
+Add device-id and inode number for better debugging.  This was suggested
+by Andreas in one of the threads
+http://article.gmane.org/gmane.comp.file-systems.ext4/12062 .
 
-	BUG: unable to handle kernel NULL pointer dereference at 000000ad
-	IP: [<c040d689>] uart_proc_show+0xe/0x2b0
+"If anyone has a chance, fixing this error message to be not-useless would
+be good...  Including the device name and the inode number would help
+track down the source of the problem."
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>a
+Signed-off-by: Manish Katiyar <mkatiyar@gmail.com>
+Cc: Andreas Dilger <adilger@sun.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/inode.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~serial-fixup-proc-tty-driver-serial-after-proc_fops-conversion drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-fixup-proc-tty-driver-serial-after-proc_fops-conversion
-+++ a/drivers/serial/serial_core.c
-@@ -1765,7 +1765,7 @@ static void uart_line_info(struct seq_fi
- 
- static int uart_proc_show(struct seq_file *m, void *v)
- {
--	struct tty_driver *ttydrv = v;
-+	struct tty_driver *ttydrv = m->private;
- 	struct uart_driver *drv = ttydrv->driver_state;
- 	int i;
- 
+diff -puN fs/inode.c~fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode fs/inode.c
+--- a/fs/inode.c~fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode
++++ a/fs/inode.c
+@@ -1588,7 +1588,8 @@ void init_special_inode(struct inode *in
+ 	else if (S_ISSOCK(mode))
+ 		inode->i_fop = &bad_sock_fops;
+ 	else
+-		printk(KERN_DEBUG "init_special_inode: bogus i_mode (%o)\n",
+-		       mode);
++		printk(KERN_DEBUG "init_special_inode: bogus i_mode (%o) for"
++				  " inode %s:%lu\n", mode, inode->i_sb->s_id,
++				  inode->i_ino);
+ }
+ EXPORT_SYMBOL(init_special_inode);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from mkatiyar@gmail.com are
 
 origin.patch
 linux-next.patch
-sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
-sysctl-lockdep-support-for-sysctl-reference-counting.patch
-simplify-copy_thread.patch
-simplify-copy_thread-checkpatch-fixes.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
-sysctl-fix-suid_dumpable-and-lease-break-time-sysctls.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
-namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-namespaces-mqueue-namespace-adapt-sysctl-update.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-serial-fixup-proc-tty-driver-serial-after-proc_fops-conversion.patch
+kernel-kallsymsc-replace-deprecated-__initcall-with-device_initcall-and-fix-whitespace.patch
+fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch
 
