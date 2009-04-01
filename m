@@ -1,166 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cirrusfb-add-mmio-registers-for-laguna-chipsets.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:30 -0700
-Message-ID: <200904011842.n31IgUtr009740@imap1.linux-foundation.org>
+Subject: [merged] vmscan-fix-it-to-take-care-of-nodemask.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:38:57 -0700
+Message-ID: <200904011838.n31Icv85008435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57512 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764279AbZDATEw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:04:52 -0400
+	by vger.kernel.org with ESMTP id S932448AbZDATFP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:05:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: add mmio registers for Laguna chipsets
+     vmscan: fix it to take care of nodemask
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
+     vmscan-fix-it-to-take-care-of-nodemask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: add mmio registers for Laguna chipsets
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: vmscan: fix it to take care of nodemask
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-The Laguna chipsets use special registers which are available through the
-mmio area.  The cirrusfb driver does not use memory mapped registers for
-the PCI cards.
+try_to_free_pages() is used for the direct reclaim of up to
+SWAP_CLUSTER_MAX pages when watermarks are low.  The caller to
+alloc_pages_nodemask() can specify a nodemask of nodes that are allowed to
+be used but this is not passed to try_to_free_pages().  This can lead to
+unnecessary reclaim of pages that are unusable by the caller and int the
+worst case lead to allocation failure as progress was not been make where
+it is needed.
 
-Add the memory mapped area for Laguna chipsets and add basic usage of the
-special Laguna registers after SVGALIB code.
+This patch passes the nodemask used for alloc_pages_nodemask() to
+try_to_free_pages().
 
-This gives readable console at 16bpp on the GD-5465 (Laguna AGP).  The
-8bpp and 32bpp depths are still broken.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   38 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ fs/buffer.c          |    2 +-
+ include/linux/swap.h |    2 +-
+ mm/page_alloc.c      |    3 ++-
+ mm/vmscan.c          |   13 +++++++++++--
+ 4 files changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-add-mmio-registers-for-laguna-chipsets drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-add-mmio-registers-for-laguna-chipsets
-+++ a/drivers/video/cirrusfb.c
-@@ -327,6 +327,7 @@ enum cirrusfb_dbg_reg_class {
- /* info about board */
- struct cirrusfb_info {
- 	u8 __iomem *regbase;
-+	u8 __iomem *laguna_mmio;
- 	enum cirrus_board btype;
- 	unsigned char SFR;	/* Shadow of special function register */
- 
-@@ -699,6 +700,7 @@ static int cirrusfb_set_par_foo(struct f
- 	int yres, vdispend, vsyncstart, vsyncend, vtotal;
- 	long freq;
- 	int nom, den, div;
-+	unsigned int control, format, threshold;
- 
- 	dev_dbg(info->device, "Requested mode: %dx%dx%d\n",
- 	       var->xres, var->yres, var->bits_per_pixel);
-@@ -866,6 +868,23 @@ static int cirrusfb_set_par_foo(struct f
- 			cirrusfb_set_mclk_as_source(info, divMCLK);
- 		}
+diff -puN fs/buffer.c~vmscan-fix-it-to-take-care-of-nodemask fs/buffer.c
+--- a/fs/buffer.c~vmscan-fix-it-to-take-care-of-nodemask
++++ a/fs/buffer.c
+@@ -290,7 +290,7 @@ static void free_more_memory(void)
+ 						&zone);
+ 		if (zone)
+ 			try_to_free_pages(node_zonelist(nid, GFP_NOFS), 0,
+-						GFP_NOFS);
++						GFP_NOFS, NULL);
  	}
-+	if (cinfo->btype == BT_LAGUNA) {
-+		long pcifc = fb_readl(cinfo->laguna_mmio + 0x3fc);
-+		unsigned char tile = fb_readb(cinfo->laguna_mmio + 0x407);
-+		unsigned short tile_control;
+ }
+ 
+diff -puN include/linux/swap.h~vmscan-fix-it-to-take-care-of-nodemask include/linux/swap.h
+--- a/include/linux/swap.h~vmscan-fix-it-to-take-care-of-nodemask
++++ a/include/linux/swap.h
+@@ -212,7 +212,7 @@ static inline void lru_cache_add_active_
+ 
+ /* linux/mm/vmscan.c */
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+-					gfp_t gfp_mask);
++					gfp_t gfp_mask, nodemask_t *mask);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
+ 						  gfp_t gfp_mask, bool noswap,
+ 						  unsigned int swappiness);
+diff -puN mm/page_alloc.c~vmscan-fix-it-to-take-care-of-nodemask mm/page_alloc.c
+--- a/mm/page_alloc.c~vmscan-fix-it-to-take-care-of-nodemask
++++ a/mm/page_alloc.c
+@@ -1582,7 +1582,8 @@ nofail_alloc:
+ 	reclaim_state.reclaimed_slab = 0;
+ 	p->reclaim_state = &reclaim_state;
+ 
+-	did_some_progress = try_to_free_pages(zonelist, order, gfp_mask);
++	did_some_progress = try_to_free_pages(zonelist, order,
++						gfp_mask, nodemask);
+ 
+ 	p->reclaim_state = NULL;
+ 	lockdep_clear_current_reclaim_state();
+diff -puN mm/vmscan.c~vmscan-fix-it-to-take-care-of-nodemask mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-it-to-take-care-of-nodemask
++++ a/mm/vmscan.c
+@@ -78,6 +78,12 @@ struct scan_control {
+ 	/* Which cgroup do we reclaim from */
+ 	struct mem_cgroup *mem_cgroup;
+ 
++	/*
++	 * Nodemask of nodes allowed by the caller. If NULL, all nodes
++	 * are scanned.
++	 */
++	nodemask_t	*nodemask;
 +
-+		tile_control = fb_readw(cinfo->laguna_mmio + 0x2c4);
-+		fb_writew(tile_control & ~0x80, cinfo->laguna_mmio + 0x2c4);
-+
-+		fb_writel(pcifc | 0x10000000l, cinfo->laguna_mmio + 0x3fc);
-+		fb_writeb(tile & 0x3f, cinfo->laguna_mmio + 0x407);
-+		control = fb_readw(cinfo->laguna_mmio + 0x402);
-+		threshold = fb_readw(cinfo->laguna_mmio + 0xea);
-+		control &= ~0x6800;
-+		format = 0;
-+		threshold &= 0xffe0;
-+		threshold &= 0x3fbf;
-+	}
- 	if (nom) {
- 		tmp = den << 1;
- 		if (div != 0)
-@@ -1035,6 +1054,7 @@ static int cirrusfb_set_par_foo(struct f
- 		case BT_LAGUNA:
- 			vga_wseq(regbase, CL_SEQR7,
- 				vga_rseq(regbase, CL_SEQR7) | 0x01);
-+			threshold |= 0x10;
- 			break;
+ 	/* Pluggable isolate pages callback */
+ 	unsigned long (*isolate_pages)(unsigned long nr, struct list_head *dst,
+ 			unsigned long *scanned, int order, int mode,
+@@ -1538,7 +1544,8 @@ static void shrink_zones(int priority, s
+ 	struct zone *zone;
  
- 		default:
-@@ -1146,6 +1166,9 @@ static int cirrusfb_set_par_foo(struct f
- 		case BT_LAGUNA:
- 			vga_wseq(regbase, CL_SEQR7,
- 				vga_rseq(regbase, CL_SEQR7) & ~0x01);
-+			control |= 0x2000;
-+			format |= 0x1400;
-+			threshold |= 0x10;
- 			break;
+ 	sc->all_unreclaimable = 1;
+-	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
++	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
++					sc->nodemask) {
+ 		if (!populated_zone(zone))
+ 			continue;
+ 		/*
+@@ -1683,7 +1690,7 @@ out:
+ }
  
- 		default:
-@@ -1220,6 +1243,9 @@ static int cirrusfb_set_par_foo(struct f
- 		case BT_LAGUNA:
- 			vga_wseq(regbase, CL_SEQR7,
- 				vga_rseq(regbase, CL_SEQR7) & ~0x01);
-+			control |= 0x6000;
-+			format |= 0x3400;
-+			threshold |= 0x20;
- 			break;
- 
- 		default:
-@@ -1327,6 +1353,12 @@ static int cirrusfb_set_par_foo(struct f
- 	/* graphics cursor attributes: nothing special */
- 	vga_wseq(regbase, CL_SEQR12, 0x0);
- 
-+	if (cinfo->btype == BT_LAGUNA) {
-+		/* no tiles */
-+		fb_writew(control | 0x1000, cinfo->laguna_mmio + 0x402);
-+		fb_writew(format, cinfo->laguna_mmio + 0xc0);
-+		fb_writew(threshold, cinfo->laguna_mmio + 0xea);
-+	}
- 	/* finally, turn on everything - turn off "FullBandwidth" bit */
- 	/* also, set "DotClock%2" bit where requested */
- 	tmp = 0x01;
-@@ -2000,7 +2032,10 @@ static void get_pci_addrs(const struct p
- static void cirrusfb_pci_unmap(struct fb_info *info)
+ unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+-								gfp_t gfp_mask)
++				gfp_t gfp_mask, nodemask_t *nodemask)
  {
- 	struct pci_dev *pdev = to_pci_dev(info->device);
-+	struct cirrusfb_info *cinfo = info->par;
+ 	struct scan_control sc = {
+ 		.gfp_mask = gfp_mask,
+@@ -1694,6 +1701,7 @@ unsigned long try_to_free_pages(struct z
+ 		.order = order,
+ 		.mem_cgroup = NULL,
+ 		.isolate_pages = isolate_pages_global,
++		.nodemask = nodemask,
+ 	};
  
-+	if (cinfo->laguna_mmio == NULL)
-+		iounmap(cinfo->laguna_mmio);
- 	iounmap(info->screen_base);
- #if 0 /* if system didn't claim this region, we would... */
- 	release_mem_region(0xA0000, 65535);
-@@ -2180,6 +2215,7 @@ static int __devinit cirrusfb_pci_regist
- 		get_pci_addrs(pdev, &board_addr, &info->fix.mmio_start);
- 		/* FIXME: this forces VGA.  alternatives? */
- 		cinfo->regbase = NULL;
-+		cinfo->laguna_mmio = ioremap(info->fix.mmio_start, 0x1000);
- 	}
+ 	return do_try_to_free_pages(zonelist, &sc);
+@@ -1714,6 +1722,7 @@ unsigned long try_to_free_mem_cgroup_pag
+ 		.order = 0,
+ 		.mem_cgroup = mem_cont,
+ 		.isolate_pages = mem_cgroup_isolate_pages,
++		.nodemask = NULL, /* we don't care the placement */
+ 	};
+ 	struct zonelist *zonelist;
  
- 	dev_dbg(info->device, "Board address: 0x%lx, register address: 0x%lx\n",
-@@ -2234,6 +2270,8 @@ err_release_regions:
- #endif
- 	pci_release_regions(pdev);
- err_release_fb:
-+	if (cinfo->laguna_mmio == NULL)
-+		iounmap(cinfo->laguna_mmio);
- 	framebuffer_release(info);
- err_disable:
- err_out:
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
-tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+cgroup-css-id-support.patch
+cgroup-css-id-support-remove-rcu_read_lock-from-css_get_next.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+cgroups-more-documentation-for-remount-and-release_agent.patch
+cgroups-show-correct-file-mode.patch
+cgroups-show-correct-file-mode-fix.patch
+devcgroup-avoid-using-cgroup_lock.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
+memcg-charge-swapcache-to-proper-memcg.patch
+cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
+cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5-fix.patch
+memcg-remove-redundant-message-at-swapon.patch
+memcg-cleanup-cache_charge.patch
+cgroups-add-data-field-to-struct-cgroup_scanner.patch
+cpuset-rewrite-update_tasks_nodemask.patch
+cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
+cpuset-remove-struct-cpuset_hotplug_scanner.patch
 
