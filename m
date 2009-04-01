@@ -1,166 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-proc_dointvec_userhz_jiffies-breakage.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:38:30 -0700
-Message-ID: <200904011838.n31IcUNq008290@imap1.linux-foundation.org>
+Subject: [merged] filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:39:41 -0700
+Message-ID: <200904011839.n31Idf5B008771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933436AbZDASnY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:43:24 -0400
+	by vger.kernel.org with ESMTP id S933221AbZDASnV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:43:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, nickpiggin@yahoo.com.au, peterz@infradead.org, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, randy.dunlap@oracle.com, t-sato@yk.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix proc_dointvec_userhz_jiffies "breakage"
+     filesystem freeze: allow SysRq emergency thaw to thaw frozen filesystems
 has been removed from the -mm tree.  Its filename was
-     mm-fix-proc_dointvec_userhz_jiffies-breakage.patch
+     filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix proc_dointvec_userhz_jiffies "breakage"
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: filesystem freeze: allow SysRq emergency thaw to thaw frozen filesystems
+From: Eric Sandeen <sandeen@redhat.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9838
+Now that the filesystem freeze operation has been elevated to the VFS, and
+is just an ioctl away, some sort of safety net for unintentionally frozen
+root filesystems may be in order.
 
-On i386, HZ=1000, jiffies_to_clock_t() converts time in a somewhat strange
-way from the user's point of view:
+The timeout thaw originally proposed did not get merged, but perhaps
+something like this would be useful in emergencies.
 
-	# echo 500 >/proc/sys/vm/dirty_writeback_centisecs
-	# cat /proc/sys/vm/dirty_writeback_centisecs
-	499
+For example, freeze /path/to/mountpoint may freeze your root filesystem if
+you forgot that you had that unmounted.
 
-So, we have 5000 jiffies converted to only 499 clock ticks and reported
-back.
+I chose 'j' as the last remaining character other than 'h' which is sort
+of reserved for help (because help is generated on any unknown character).
 
-TICK_NSEC = 999848
-ACTHZ = 256039
+I've tested this on a non-root fs with multiple (nested) freezers, as well
+as on a system rendered unresponsive due to a frozen root fs.
 
-Keeping in-kernel variable in units passed from userspace will fix issue
-of course, but this probably won't be right for every sysctl.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+[randy.dunlap@oracle.com: emergency thaw only if CONFIG_BLOCK enabled]
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Takashi Sato <t-sato@yk.jp.nec.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h |    4 ++--
- kernel/sysctl.c           |    2 +-
- mm/page-writeback.c       |   20 +++++++++++---------
- 3 files changed, 14 insertions(+), 12 deletions(-)
+ Documentation/sysrq.txt |    5 +++++
+ drivers/char/sysrq.c    |   19 ++++++++++++++++++-
+ fs/buffer.c             |   33 +++++++++++++++++++++++++++++++++
+ include/linux/fs.h      |    1 +
+ 4 files changed, 57 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/writeback.h~mm-fix-proc_dointvec_userhz_jiffies-breakage include/linux/writeback.h
---- a/include/linux/writeback.h~mm-fix-proc_dointvec_userhz_jiffies-breakage
-+++ a/include/linux/writeback.h
-@@ -109,8 +109,8 @@ extern int dirty_background_ratio;
- extern unsigned long dirty_background_bytes;
- extern int vm_dirty_ratio;
- extern unsigned long vm_dirty_bytes;
--extern int dirty_writeback_interval;
--extern int dirty_expire_interval;
-+extern unsigned int dirty_writeback_interval;
-+extern unsigned int dirty_expire_interval;
- extern int vm_highmem_is_dirtyable;
- extern int block_dump;
- extern int laptop_mode;
-diff -puN kernel/sysctl.c~mm-fix-proc_dointvec_userhz_jiffies-breakage kernel/sysctl.c
---- a/kernel/sysctl.c~mm-fix-proc_dointvec_userhz_jiffies-breakage
-+++ a/kernel/sysctl.c
-@@ -1010,7 +1010,7 @@ static struct ctl_table vm_table[] = {
- 		.data		= &dirty_expire_interval,
- 		.maxlen		= sizeof(dirty_expire_interval),
- 		.mode		= 0644,
--		.proc_handler	= &proc_dointvec_userhz_jiffies,
-+		.proc_handler	= &proc_dointvec,
- 	},
- 	{
- 		.ctl_name	= VM_NR_PDFLUSH_THREADS,
-diff -puN mm/page-writeback.c~mm-fix-proc_dointvec_userhz_jiffies-breakage mm/page-writeback.c
---- a/mm/page-writeback.c~mm-fix-proc_dointvec_userhz_jiffies-breakage
-+++ a/mm/page-writeback.c
-@@ -92,14 +92,14 @@ int vm_dirty_ratio = 20;
- unsigned long vm_dirty_bytes;
+diff -puN Documentation/sysrq.txt~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems Documentation/sysrq.txt
+--- a/Documentation/sysrq.txt~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems
++++ a/Documentation/sysrq.txt
+@@ -81,6 +81,8 @@ On all -  write a character to /proc/sys
  
- /*
-- * The interval between `kupdate'-style writebacks, in jiffies
-+ * The interval between `kupdate'-style writebacks
-  */
--int dirty_writeback_interval = 5 * HZ;
-+unsigned int dirty_writeback_interval = 5 * 100; /* sentiseconds */
+ 'i'     - Send a SIGKILL to all processes, except for init.
  
- /*
-- * The longest number of jiffies for which data is allowed to remain dirty
-+ * The longest time for which data is allowed to remain dirty
-  */
--int dirty_expire_interval = 30 * HZ;
-+unsigned int dirty_expire_interval = 30 * 100; /* sentiseconds */
++'j'     - Forcibly "Just thaw it" - filesystems frozen by the FIFREEZE ioctl.
++
+ 'k'     - Secure Access Key (SAK) Kills all programs on the current virtual
+           console. NOTE: See important comments below in SAK section.
  
- /*
-  * Flag that makes the machine dump writes/reads and block dirtyings.
-@@ -770,9 +770,9 @@ static void wb_kupdate(unsigned long arg
+@@ -160,6 +162,9 @@ t'E'rm and k'I'll are useful if you have
+ are unable to kill any other way, especially if it's spawning other
+ processes.
  
- 	sync_supers();
++"'J'ust thaw it" is useful if your system becomes unresponsive due to a frozen
++(probably root) filesystem via the FIFREEZE ioctl.
++
+ *  Sometimes SysRq seems to get 'stuck' after using it, what can I do?
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ That happens to me, also. I've found that tapping shift, alt, and control
+diff -puN drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems
++++ a/drivers/char/sysrq.c
+@@ -346,6 +346,19 @@ static struct sysrq_key_op sysrq_moom_op
+ 	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
+ };
  
--	oldest_jif = jiffies - dirty_expire_interval;
-+	oldest_jif = jiffies - msecs_to_jiffies(dirty_expire_interval);
- 	start_jif = jiffies;
--	next_jif = start_jif + dirty_writeback_interval;
-+	next_jif = start_jif + msecs_to_jiffies(dirty_writeback_interval * 10);
- 	nr_to_write = global_page_state(NR_FILE_DIRTY) +
- 			global_page_state(NR_UNSTABLE_NFS) +
- 			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
-@@ -801,9 +801,10 @@ static void wb_kupdate(unsigned long arg
- int dirty_writeback_centisecs_handler(ctl_table *table, int write,
- 	struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
++#ifdef CONFIG_BLOCK
++static void sysrq_handle_thaw(int key, struct tty_struct *tty)
++{
++	emergency_thaw_all();
++}
++static struct sysrq_key_op sysrq_thaw_op = {
++	.handler	= sysrq_handle_thaw,
++	.help_msg	= "thaw-filesystems(J)",
++	.action_msg	= "Emergency Thaw of all frozen filesystems",
++	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
++};
++#endif
++
+ static void sysrq_handle_kill(int key, struct tty_struct *tty)
  {
--	proc_dointvec_userhz_jiffies(table, write, file, buffer, length, ppos);
-+	proc_dointvec(table, write, file, buffer, length, ppos);
- 	if (dirty_writeback_interval)
--		mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
-+		mod_timer(&wb_timer, jiffies +
-+			msecs_to_jiffies(dirty_writeback_interval * 10));
- 	else
- 		del_timer(&wb_timer);
- 	return 0;
-@@ -905,7 +906,8 @@ void __init page_writeback_init(void)
- {
- 	int shift;
+ 	send_sig_all(SIGKILL);
+@@ -396,9 +409,13 @@ static struct sysrq_key_op *sysrq_key_ta
+ 	&sysrq_moom_op,			/* f */
+ 	/* g: May be registered by ppc for kgdb */
+ 	NULL,				/* g */
+-	NULL,				/* h */
++	NULL,				/* h - reserved for help */
+ 	&sysrq_kill_op,			/* i */
++#ifdef CONFIG_BLOCK
++	&sysrq_thaw_op,			/* j */
++#else
+ 	NULL,				/* j */
++#endif
+ 	&sysrq_SAK_op,			/* k */
+ #ifdef CONFIG_SMP
+ 	&sysrq_showallcpus_op,		/* l */
+diff -puN fs/buffer.c~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems fs/buffer.c
+--- a/fs/buffer.c~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems
++++ a/fs/buffer.c
+@@ -547,6 +547,39 @@ repeat:
+ 	return err;
+ }
  
--	mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
-+	mod_timer(&wb_timer,
-+		  jiffies + msecs_to_jiffies(dirty_writeback_interval * 10));
- 	writeback_set_ratelimit();
- 	register_cpu_notifier(&ratelimit_nb);
- 
++void do_thaw_all(unsigned long unused)
++{
++	struct super_block *sb;
++	char b[BDEVNAME_SIZE];
++
++	spin_lock(&sb_lock);
++restart:
++	list_for_each_entry(sb, &super_blocks, s_list) {
++		sb->s_count++;
++		spin_unlock(&sb_lock);
++		down_read(&sb->s_umount);
++		while (sb->s_bdev && !thaw_bdev(sb->s_bdev, sb))
++			printk(KERN_WARNING "Emergency Thaw on %s\n",
++			       bdevname(sb->s_bdev, b));
++		up_read(&sb->s_umount);
++		spin_lock(&sb_lock);
++		if (__put_super_and_need_restart(sb))
++			goto restart;
++	}
++	spin_unlock(&sb_lock);
++	printk(KERN_WARNING "Emergency Thaw complete\n");
++}
++
++/**
++ * emergency_thaw_all -- forcibly thaw every frozen filesystem
++ *
++ * Used for emergency unfreeze of all filesystems via SysRq
++ */
++void emergency_thaw_all(void)
++{
++	pdflush_operation(do_thaw_all, 0);
++}
++
+ /**
+  * sync_mapping_buffers - write out & wait upon a mapping's "associated" buffers
+  * @mapping: the mapping which wants those buffers written
+diff -puN include/linux/fs.h~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems include/linux/fs.h
+--- a/include/linux/fs.h~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems
++++ a/include/linux/fs.h
+@@ -1878,6 +1878,7 @@ extern struct block_device *open_by_devn
+ extern void invalidate_bdev(struct block_device *);
+ extern int sync_blockdev(struct block_device *bdev);
+ extern struct super_block *freeze_bdev(struct block_device *);
++extern void emergency_thaw_all(void);
+ extern int thaw_bdev(struct block_device *bdev, struct super_block *sb);
+ extern int fsync_bdev(struct block_device *);
+ extern int fsync_super(struct super_block *);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
-linux-next.patch
-sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
-sysctl-lockdep-support-for-sysctl-reference-counting.patch
-simplify-copy_thread.patch
-simplify-copy_thread-checkpatch-fixes.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
-sysctl-fix-suid_dumpable-and-lease-break-time-sysctls.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
-namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-namespaces-mqueue-namespace-adapt-sysctl-update.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
 
