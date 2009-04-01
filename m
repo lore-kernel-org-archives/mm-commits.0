@@ -1,154 +1,609 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs4-cleanup-expire-code-duplication.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:41:37 -0700
-Message-ID: <200904011841.n31Ifbqq009407@imap1.linux-foundation.org>
+Subject: [merged] hwmon-lm95241-driver.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:03 -0700
+Message-ID: <200904011841.n31If38l009231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41492 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759730AbZDASok (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:44:40 -0400
+	by vger.kernel.org with ESMTP id S1759730AbZDASoq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:44:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, jmoyer@redhat.com, mm-commits@vger.kernel.org
+To: elpa.rizzo@gmail.com, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: cleanup expire code duplication
+     hwmon: LM95241 driver
 has been removed from the -mm tree.  Its filename was
-     autofs4-cleanup-expire-code-duplication.patch
+     hwmon-lm95241-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: cleanup expire code duplication
-From: Ian Kent <raven@themaw.net>
+Subject: hwmon: LM95241 driver
+From: "Davide Rizzo" <elpa.rizzo@gmail.com>
 
-A significant portion of the autofs_dev_ioctl_expire() and
-autofs4_expire_multi() functions is duplicated code.  This patch cleans that
-up.
+An hwmon driver for the National Semiconductor LM95241 triple temperature
+sensors chip
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Davide Rizzo <elpa-rizzo@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h  |    2 ++
- fs/autofs4/dev-ioctl.c |   29 +----------------------------
- fs/autofs4/expire.c    |   27 +++++++++++++++++----------
- 3 files changed, 20 insertions(+), 38 deletions(-)
+ drivers/hwmon/Kconfig   |    9 
+ drivers/hwmon/Makefile  |    1 
+ drivers/hwmon/lm95241.c |  527 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 537 insertions(+)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-cleanup-expire-code-duplication fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-cleanup-expire-code-duplication
-+++ a/fs/autofs4/autofs_i.h
-@@ -186,6 +186,8 @@ int autofs4_expire_wait(struct dentry *d
- int autofs4_expire_run(struct super_block *, struct vfsmount *,
- 			struct autofs_sb_info *,
- 			struct autofs_packet_expire __user *);
-+int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			    struct autofs_sb_info *sbi, int when);
- int autofs4_expire_multi(struct super_block *, struct vfsmount *,
- 			struct autofs_sb_info *, int __user *);
- struct dentry *autofs4_expire_direct(struct super_block *sb,
-diff -puN fs/autofs4/dev-ioctl.c~autofs4-cleanup-expire-code-duplication fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs4-cleanup-expire-code-duplication
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -525,40 +525,13 @@ static int autofs_dev_ioctl_expire(struc
- 				   struct autofs_sb_info *sbi,
- 				   struct autofs_dev_ioctl *param)
- {
--	struct dentry *dentry;
- 	struct vfsmount *mnt;
--	int err = -EAGAIN;
- 	int how;
+diff -puN drivers/hwmon/Kconfig~hwmon-lm95241-driver drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig~hwmon-lm95241-driver
++++ a/drivers/hwmon/Kconfig
+@@ -582,6 +582,15 @@ config SENSORS_LTC4245
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called ltc4245.
  
- 	how = param->expire.how;
- 	mnt = fp->f_path.mnt;
- 
--	if (autofs_type_trigger(sbi->type))
--		dentry = autofs4_expire_direct(sbi->sb, mnt, sbi, how);
--	else
--		dentry = autofs4_expire_indirect(sbi->sb, mnt, sbi, how);
--
--	if (dentry) {
--		struct autofs_info *ino = autofs4_dentry_ino(dentry);
--
--		/*
--		 * This is synchronous because it makes the daemon a
--		 * little easier
--		*/
--		err = autofs4_wait(sbi, dentry, NFY_EXPIRE);
--
--		spin_lock(&sbi->fs_lock);
--		if (ino->flags & AUTOFS_INF_MOUNTPOINT) {
--			ino->flags &= ~AUTOFS_INF_MOUNTPOINT;
--			sbi->sb->s_root->d_mounted++;
--		}
--		ino->flags &= ~AUTOFS_INF_EXPIRING;
--		complete_all(&ino->expire_complete);
--		spin_unlock(&sbi->fs_lock);
--		dput(dentry);
--	}
--
--	return err;
-+	return autofs4_do_expire_multi(sbi->sb, mnt, sbi, how);
- }
- 
- /* Check if autofs mount point is in use */
-diff -puN fs/autofs4/expire.c~autofs4-cleanup-expire-code-duplication fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs4-cleanup-expire-code-duplication
-+++ a/fs/autofs4/expire.c
-@@ -478,22 +478,16 @@ int autofs4_expire_run(struct super_bloc
- 	return ret;
- }
- 
--/* Call repeatedly until it returns -EAGAIN, meaning there's nothing
--   more to be done */
--int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
--			struct autofs_sb_info *sbi, int __user *arg)
-+int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			    struct autofs_sb_info *sbi, int when)
- {
- 	struct dentry *dentry;
- 	int ret = -EAGAIN;
--	int do_now = 0;
--
--	if (arg && get_user(do_now, arg))
--		return -EFAULT;
- 
- 	if (autofs_type_trigger(sbi->type))
--		dentry = autofs4_expire_direct(sb, mnt, sbi, do_now);
-+		dentry = autofs4_expire_direct(sb, mnt, sbi, when);
- 	else
--		dentry = autofs4_expire_indirect(sb, mnt, sbi, do_now);
-+		dentry = autofs4_expire_indirect(sb, mnt, sbi, when);
- 
- 	if (dentry) {
- 		struct autofs_info *ino = autofs4_dentry_ino(dentry);
-@@ -516,3 +510,16 @@ int autofs4_expire_multi(struct super_bl
- 	return ret;
- }
- 
-+/* Call repeatedly until it returns -EAGAIN, meaning there's nothing
-+   more to be done */
-+int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			struct autofs_sb_info *sbi, int __user *arg)
++config SENSORS_LM95241
++	tristate "National Semiconductor LM95241 sensor chip"
++	depends on I2C
++	help
++	  If you say yes here you get support for LM95241 sensor chip.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called lm95241.
++
+ config SENSORS_MAX1111
+ 	tristate "Maxim MAX1111 Multichannel, Serial 8-bit ADC chip"
+ 	depends on SPI_MASTER
+diff -puN drivers/hwmon/Makefile~hwmon-lm95241-driver drivers/hwmon/Makefile
+--- a/drivers/hwmon/Makefile~hwmon-lm95241-driver
++++ a/drivers/hwmon/Makefile
+@@ -64,6 +64,7 @@ obj-$(CONFIG_SENSORS_LM87)	+= lm87.o
+ obj-$(CONFIG_SENSORS_LM90)	+= lm90.o
+ obj-$(CONFIG_SENSORS_LM92)	+= lm92.o
+ obj-$(CONFIG_SENSORS_LM93)	+= lm93.o
++obj-$(CONFIG_SENSORS_LM95241)	+= lm95241.o
+ obj-$(CONFIG_SENSORS_LTC4245)	+= ltc4245.o
+ obj-$(CONFIG_SENSORS_MAX1111)	+= max1111.o
+ obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
+diff -puN /dev/null drivers/hwmon/lm95241.c
+--- /dev/null
++++ a/drivers/hwmon/lm95241.c
+@@ -0,0 +1,527 @@
++/*
++ * lm95241.c - Part of lm_sensors, Linux kernel modules for hardware
++ *             monitoring
++ * Copyright (C) 2008 Davide Rizzo <elpa-rizzo@gmail.com>
++ *
++ * Based on the max1619 driver. The LM95241 is a sensor chip made by National
++ *   Semiconductors.
++ * It reports up to three temperatures (its own plus up to
++ * two external ones). Complete datasheet can be
++ * obtained from National's website at:
++ *   http://www.national.com/ds.cgi/LM/LM95241.pdf
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/sysfs.h>
++
++static const unsigned short normal_i2c[] = {
++	0x19, 0x2a, 0x2b, I2C_CLIENT_END};
++
++/* Insmod parameters */
++I2C_CLIENT_INSMOD_1(lm95241);
++
++/* LM95241 registers */
++#define LM95241_REG_R_MAN_ID		0xFE
++#define LM95241_REG_R_CHIP_ID		0xFF
++#define LM95241_REG_R_STATUS		0x02
++#define LM95241_REG_RW_CONFIG		0x03
++#define LM95241_REG_RW_REM_FILTER	0x06
++#define LM95241_REG_RW_TRUTHERM		0x07
++#define LM95241_REG_W_ONE_SHOT  	0x0F
++#define LM95241_REG_R_LOCAL_TEMPH	0x10
++#define LM95241_REG_R_REMOTE1_TEMPH	0x11
++#define LM95241_REG_R_REMOTE2_TEMPH	0x12
++#define LM95241_REG_R_LOCAL_TEMPL	0x20
++#define LM95241_REG_R_REMOTE1_TEMPL	0x21
++#define LM95241_REG_R_REMOTE2_TEMPL	0x22
++#define LM95241_REG_RW_REMOTE_MODEL	0x30
++
++/* LM95241 specific bitfields */
++#define CFG_STOP 0x40
++#define CFG_CR0076 0x00
++#define CFG_CR0182 0x10
++#define CFG_CR1000 0x20
++#define CFG_CR2700 0x30
++#define R1MS_SHIFT 0
++#define R2MS_SHIFT 2
++#define R1MS_MASK (0x01 << (R1MS_SHIFT))
++#define R2MS_MASK (0x01 << (R2MS_SHIFT))
++#define R1DF_SHIFT 1
++#define R2DF_SHIFT 2
++#define R1DF_MASK (0x01 << (R1DF_SHIFT))
++#define R2DF_MASK (0x01 << (R2DF_SHIFT))
++#define R1FE_MASK 0x01
++#define R2FE_MASK 0x05
++#define TT1_SHIFT 0
++#define TT2_SHIFT 4
++#define TT_OFF 0
++#define TT_ON 1
++#define TT_MASK 7
++#define MANUFACTURER_ID 0x01
++#define DEFAULT_REVISION 0xA4
++
++/* Conversions and various macros */
++#define TEMP_FROM_REG(val_h, val_l) (((val_h) & 0x80 ? (val_h) - 0x100 : \
++    (val_h)) * 1000 + (val_l) * 1000 / 256)
++
++/* Functions declaration */
++static int lm95241_attach_adapter(struct i2c_adapter *adapter);
++static int lm95241_detect(struct i2c_adapter *adapter, int address,
++			  int kind);
++static void lm95241_init_client(struct i2c_client *client);
++static int lm95241_detach_client(struct i2c_client *client);
++static struct lm95241_data *lm95241_update_device(struct device *dev);
++
++/* Driver data (common to all clients) */
++static struct i2c_driver lm95241_driver = {
++	.driver = {
++		.name   = "lm95241",
++	},
++	.attach_adapter = lm95241_attach_adapter,
++	.detach_client  = lm95241_detach_client,
++};
++
++/* Client data (each client gets its own) */
++struct lm95241_data {
++	struct i2c_client client;
++	struct device *hwmon_dev;
++	struct mutex update_lock;
++	unsigned long last_updated, rate; /* in jiffies */
++	char valid; /* zero until following fields are valid */
++	/* registers values */
++	u8 local_h, local_l; /* local */
++	u8 remote1_h, remote1_l; /* remote1 */
++	u8 remote2_h, remote2_l; /* remote2 */
++	u8 config, model, trutherm;
++};
++
++/* Sysfs stuff */
++#define show_temp(value) \
++static ssize_t show_##value(struct device *dev, \
++    struct device_attribute *attr, char *buf) \
++{ \
++	struct lm95241_data *data = lm95241_update_device(dev); \
++	snprintf(buf, PAGE_SIZE - 1, "%d\n", \
++		TEMP_FROM_REG(data->value##_h, data->value##_l)); \
++	return strlen(buf); \
++}
++show_temp(local);
++show_temp(remote1);
++show_temp(remote2);
++
++static ssize_t show_rate(struct device *dev, struct device_attribute *attr,
++			 char *buf)
 +{
-+	int do_now = 0;
++	struct lm95241_data *data = lm95241_update_device(dev);
 +
-+	if (arg && get_user(do_now, arg))
-+		return -EFAULT;
-+
-+	return autofs4_do_expire_multi(sb, mnt, sbi, do_now);
++	snprintf(buf, PAGE_SIZE - 1, "%lu\n", 1000 * data->rate / HZ);
++	return strlen(buf);
 +}
 +
++static ssize_t set_rate(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm95241_data *data = i2c_get_clientdata(client);
++
++	strict_strtol(buf, 10, &data->rate);
++	data->rate = data->rate * HZ / 1000;
++
++	return count;
++}
++
++#define show_type(flag) \
++static ssize_t show_type##flag(struct device *dev, \
++				   struct device_attribute *attr, char *buf) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct lm95241_data *data = i2c_get_clientdata(client); \
++\
++	snprintf(buf, PAGE_SIZE - 1, \
++		data->model & R##flag##MS_MASK ? "1\n" : "2\n"); \
++	return strlen(buf); \
++}
++show_type(1);
++show_type(2);
++
++#define show_min(flag) \
++static ssize_t show_min##flag(struct device *dev, \
++    struct device_attribute *attr, char *buf) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct lm95241_data *data = i2c_get_clientdata(client); \
++\
++	snprintf(buf, PAGE_SIZE - 1, \
++		data->config & R##flag##DF_MASK ?	\
++		"-127000\n" : "0\n"); \
++	return strlen(buf); \
++}
++show_min(1);
++show_min(2);
++
++#define show_max(flag) \
++static ssize_t show_max##flag(struct device *dev, \
++    struct device_attribute *attr, char *buf) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct lm95241_data *data = i2c_get_clientdata(client); \
++\
++	snprintf(buf, PAGE_SIZE - 1, \
++		data->config & R##flag##DF_MASK ? \
++		"127000\n" : "255000\n"); \
++	return strlen(buf); \
++}
++show_max(1);
++show_max(2);
++
++#define set_type(flag) \
++static ssize_t set_type##flag(struct device *dev, \
++				  struct device_attribute *attr, \
++				  const char *buf, size_t count) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct lm95241_data *data = i2c_get_clientdata(client); \
++\
++	long val; \
++	strict_strtol(buf, 10, &val); \
++\
++	if ((val == 1) || (val == 2)) { \
++\
++		mutex_lock(&data->update_lock); \
++\
++		data->trutherm &= ~(TT_MASK << TT##flag##_SHIFT); \
++		if (val == 1) { \
++			data->model |= R##flag##MS_MASK; \
++			data->trutherm |= (TT_ON << TT##flag##_SHIFT); \
++		} \
++		else { \
++			data->model &= ~R##flag##MS_MASK; \
++			data->trutherm |= (TT_OFF << TT##flag##_SHIFT); \
++		} \
++\
++		data->valid = 0; \
++\
++		i2c_smbus_write_byte_data(client, LM95241_REG_RW_REMOTE_MODEL, \
++					  data->model); \
++		i2c_smbus_write_byte_data(client, LM95241_REG_RW_TRUTHERM, \
++					  data->trutherm); \
++\
++		mutex_unlock(&data->update_lock); \
++\
++	} \
++	return count; \
++}
++set_type(1);
++set_type(2);
++
++#define set_min(flag) \
++static ssize_t set_min##flag(struct device *dev, \
++	struct device_attribute *devattr, const char *buf, size_t count) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct lm95241_data *data = i2c_get_clientdata(client); \
++\
++	long val; \
++	strict_strtol(buf, 10, &val); \
++\
++	mutex_lock(&data->update_lock); \
++\
++	if (val < 0) \
++		data->config |= R##flag##DF_MASK; \
++	else \
++		data->config &= ~R##flag##DF_MASK; \
++\
++	data->valid = 0; \
++\
++	i2c_smbus_write_byte_data(client, LM95241_REG_RW_CONFIG, \
++		data->config); \
++\
++	mutex_unlock(&data->update_lock); \
++\
++	return count; \
++}
++set_min(1);
++set_min(2);
++
++#define set_max(flag) \
++static ssize_t set_max##flag(struct device *dev, \
++	struct device_attribute *devattr, const char *buf, size_t count) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct lm95241_data *data = i2c_get_clientdata(client); \
++\
++	long val; \
++	strict_strtol(buf, 10, &val); \
++\
++	mutex_lock(&data->update_lock); \
++\
++	if (val <= 127000) \
++		data->config |= R##flag##DF_MASK; \
++	else \
++		data->config &= ~R##flag##DF_MASK; \
++\
++	data->valid = 0; \
++\
++	i2c_smbus_write_byte_data(client, LM95241_REG_RW_CONFIG, \
++		data->config); \
++\
++	mutex_unlock(&data->update_lock); \
++\
++	return count; \
++}
++set_max(1);
++set_max(2);
++
++static DEVICE_ATTR(temp1_input, S_IRUGO, show_local, NULL);
++static DEVICE_ATTR(temp2_input, S_IRUGO, show_remote1, NULL);
++static DEVICE_ATTR(temp3_input, S_IRUGO, show_remote2, NULL);
++static DEVICE_ATTR(temp2_type, S_IWUSR | S_IRUGO, show_type1, set_type1);
++static DEVICE_ATTR(temp3_type, S_IWUSR | S_IRUGO, show_type2, set_type2);
++static DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_min1, set_min1);
++static DEVICE_ATTR(temp3_min, S_IWUSR | S_IRUGO, show_min2, set_min2);
++static DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_max1, set_max1);
++static DEVICE_ATTR(temp3_max, S_IWUSR | S_IRUGO, show_max2, set_max2);
++static DEVICE_ATTR(rate, S_IWUSR | S_IRUGO, show_rate, set_rate);
++
++static struct attribute *lm95241_attributes[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp2_input.attr,
++	&dev_attr_temp3_input.attr,
++	&dev_attr_temp2_type.attr,
++	&dev_attr_temp3_type.attr,
++	&dev_attr_temp2_min.attr,
++	&dev_attr_temp3_min.attr,
++	&dev_attr_temp2_max.attr,
++	&dev_attr_temp3_max.attr,
++	&dev_attr_rate.attr,
++	NULL
++};
++
++static const struct attribute_group lm95241_group = {
++	.attrs = lm95241_attributes,
++};
++
++/* Init/exit code */
++static int lm95241_attach_adapter(struct i2c_adapter *adapter)
++{
++	if (!(adapter->class & I2C_CLASS_HWMON))
++		return 0;
++	return i2c_probe(adapter, &addr_data, lm95241_detect);
++}
++
++/*
++ * The following function does more than just detection. If detection
++ * succeeds, it also registers the new chip.
++ */
++static int lm95241_detect(struct i2c_adapter *adapter, int address, int kind)
++{
++	struct i2c_client *new_client;
++	struct lm95241_data *data;
++	int err = 0;
++	const char *name = "";
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		goto exit;
++
++	data = kzalloc(sizeof(struct lm95241_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	/* The common I2C client data is placed right before the
++	   LM95241-specific data. */
++	new_client = &data->client;
++	i2c_set_clientdata(new_client, data);
++	new_client->addr = address;
++	new_client->adapter = adapter;
++	new_client->driver = &lm95241_driver;
++	new_client->flags = 0;
++
++	/*
++	 * Now we do the remaining detection. A negative kind means that
++	 * the driver was loaded with no force parameter (default), so we
++	 * must both detect and identify the chip. A zero kind means that
++	 * the driver was loaded with the force parameter, the detection
++	 * step shall be skipped. A positive kind means that the driver
++	 * was loaded with the force parameter and a given kind of chip is
++	 * requested, so both the detection and the identification steps
++	 * are skipped.
++	 */
++	if (kind < 0) {	/* detection */
++		if ((i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
++		     != MANUFACTURER_ID)
++		|| (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
++		    < DEFAULT_REVISION)) {
++			dev_dbg(&adapter->dev,
++				"LM95241 detection failed at 0x%02x.\n",
++				address);
++			goto exit_free;
++		}
++	}
++
++	if (kind <= 0) { /* identification */
++		if ((i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
++		     == MANUFACTURER_ID)
++		&& (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
++		    >= DEFAULT_REVISION)) {
++
++			kind = lm95241;
++
++			if (kind <= 0) { /* identification failed */
++				dev_info(&adapter->dev, "Unsupported chip\n");
++				goto exit_free;
++			}
++		}
++	}
++
++	if (kind == lm95241)
++		name = "lm95241";
++
++	/* We can fill in the remaining client fields */
++	strlcpy(new_client->name, name, I2C_NAME_SIZE);
++	data->valid = 0;
++	mutex_init(&data->update_lock);
++
++	/* Tell the I2C layer a new client has arrived */
++	err = i2c_attach_client(new_client);
++	if (err)
++		goto exit_free;
++
++	/* Initialize the LM95241 chip */
++	lm95241_init_client(new_client);
++
++	/* Register sysfs hooks */
++	err = sysfs_create_group(&new_client->dev.kobj, &lm95241_group);
++	if (err)
++		goto exit_detach;
++
++	data->hwmon_dev = hwmon_device_register(&new_client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove_files;
++	}
++
++	return 0;
++
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &lm95241_group);
++exit_detach:
++	i2c_detach_client(new_client);
++exit_free:
++	kfree(data);
++exit:
++	return err;
++}
++
++static void lm95241_init_client(struct i2c_client *client)
++{
++	struct lm95241_data *data = i2c_get_clientdata(client);
++
++	data->rate = HZ;    /* 1 sec default */
++	data->valid = 0;
++	data->config = CFG_CR0076;
++	data->model = 0;
++	data->trutherm = (TT_OFF << TT1_SHIFT) | (TT_OFF << TT2_SHIFT);
++
++	i2c_smbus_write_byte_data(client, LM95241_REG_RW_CONFIG,
++				  data->config);
++	i2c_smbus_write_byte_data(client, LM95241_REG_RW_REM_FILTER,
++				  R1FE_MASK | R2FE_MASK);
++	i2c_smbus_write_byte_data(client, LM95241_REG_RW_TRUTHERM,
++				  data->trutherm);
++	i2c_smbus_write_byte_data(client, LM95241_REG_RW_REMOTE_MODEL,
++				  data->model);
++}
++
++static int lm95241_detach_client(struct i2c_client *client)
++{
++	struct lm95241_data *data = i2c_get_clientdata(client);
++	int err;
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &lm95241_group);
++
++	err = i2c_detach_client(client);
++	if (err)
++		return err;
++
++	kfree(data);
++	return 0;
++}
++
++static struct lm95241_data *lm95241_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm95241_data *data = i2c_get_clientdata(client);
++
++	mutex_lock(&data->update_lock);
++
++	if (time_after(jiffies, data->last_updated + data->rate) ||
++	    !data->valid) {
++		dev_dbg(&client->dev, "Updating lm95241 data.\n");
++		data->local_h =
++			i2c_smbus_read_byte_data(client,
++						 LM95241_REG_R_LOCAL_TEMPH);
++		data->local_l =
++			i2c_smbus_read_byte_data(client,
++						 LM95241_REG_R_LOCAL_TEMPL);
++		data->remote1_h =
++			i2c_smbus_read_byte_data(client,
++						 LM95241_REG_R_REMOTE1_TEMPH);
++		data->remote1_l =
++			i2c_smbus_read_byte_data(client,
++						 LM95241_REG_R_REMOTE1_TEMPL);
++		data->remote2_h =
++			i2c_smbus_read_byte_data(client,
++						 LM95241_REG_R_REMOTE2_TEMPH);
++		data->remote2_l =
++			i2c_smbus_read_byte_data(client,
++						 LM95241_REG_R_REMOTE2_TEMPL);
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->update_lock);
++
++	return data;
++}
++
++static int __init sensors_lm95241_init(void)
++{
++	return i2c_add_driver(&lm95241_driver);
++}
++
++static void __exit sensors_lm95241_exit(void)
++{
++	i2c_del_driver(&lm95241_driver);
++}
++
++MODULE_AUTHOR("Davide Rizzo <elpa-rizzo@gmail.com>");
++MODULE_DESCRIPTION("LM95241 sensor driver");
++MODULE_LICENSE("GPL");
++
++module_init(sensors_lm95241_init);
++module_exit(sensors_lm95241_exit);
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from elpa.rizzo@gmail.com are
 
 origin.patch
-writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks.patch
-writeback-guard-against-jiffies-wraparound-on-inode-dirtied_when-checks-try-2.patch
 
