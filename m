@@ -1,85 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:49 -0700
-Message-ID: <200904011842.n31IgnTO009818@imap1.linux-foundation.org>
+Subject: [merged] hp_accel-axis-conversion-for-hp-compaq-8710w.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:11 -0700
+Message-ID: <200904011841.n31IfBSs009286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763532AbZDASo5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:44:57 -0400
+	by vger.kernel.org with ESMTP id S1755743AbZDASoy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:44:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: lcappa@gmail.com, eric.piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: fix error paths in cirrusfb_xxx_register()
+     hp_accel: axis conversion for hp compaq 8710w
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
+     hp_accel-axis-conversion-for-hp-compaq-8710w.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: fix error paths in cirrusfb_xxx_register()
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: hp_accel: axis conversion for hp compaq 8710w
+From: Luca Cappa <lcappa@gmail.com>
 
-Balance iomap and iounmap and alloc and free calls in case of error druing
-device register (probing).
+I have a laptop HP Compaq 8710W, I compiled into my kernel the LIS3LV02DL
+and HP_ACCEL module drivers.  While loading it cannot recognize the laptop
+model, so i am sending the necessary information to update the database of
+axis orientations.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+>When the laptop is horizontal the position reported is about 0 for X and Y
+>and a positive value for Z
+Yes, it is about 0,0,1000, the actual reading says: (-17,-26,1018);
+
+> If the left side is elevated, X increases (becomes positive)
+Yes, X goes toward to positive 1000.
+
+>If the front side (where the touchpad is) is elevated, Y decreases (becomes negative)
+No, Y goes toward to positive 1000.
+
+>If the laptop is put upside-down, Z becomes negative
+Yes, the laptop on a table Z gives 1000, and if upsidedown the Z reads
+-1000.
+
+So in few words the Y axis is inverted.
+
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ drivers/hwmon/hp_accel.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-error-paths-in-cirrusfb_xxx_register drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-fix-error-paths-in-cirrusfb_xxx_register
-+++ a/drivers/video/cirrusfb.c
-@@ -2090,8 +2090,6 @@ static int __devinit cirrusfb_register(s
- 
- err_dealloc_cmap:
- 	fb_dealloc_cmap(&info->cmap);
--	cinfo->unmap(info);
--	framebuffer_release(info);
- 	return err;
- }
- 
-@@ -2328,18 +2326,15 @@ static int __devinit cirrusfb_zorro_regi
- 	zorro_set_drvdata(z, info);
- 
- 	ret = cirrusfb_register(info);
--	if (ret) {
--		if (btype == BT_PICASSO4) {
--			iounmap(info->screen_base);
--			iounmap(cinfo->regbase - 0x600000);
--		} else if (board_addr > 0x01000000)
--			iounmap(info->screen_base);
--	}
--	return ret;
-+	if (!ret)
-+		return 0;
-+
-+	if (btype == BT_PICASSO4 || board_addr > 0x01000000)
-+		iounmap(info->screen_base);
- 
- err_unmap_regbase:
--	/* Parental advisory: explicit hack */
--	iounmap(cinfo->regbase - 0x600000);
-+	if (btype == BT_PICASSO4)
-+		iounmap(cinfo->regbase - 0x600000);
- err_release_region:
- 	release_region(board_addr, board_size);
- err_release_fb:
+diff -puN drivers/hwmon/hp_accel.c~hp_accel-axis-conversion-for-hp-compaq-8710w drivers/hwmon/hp_accel.c
+--- a/drivers/hwmon/hp_accel.c~hp_accel-axis-conversion-for-hp-compaq-8710w
++++ a/drivers/hwmon/hp_accel.c
+@@ -203,6 +203,7 @@ static struct dmi_system_id lis3lv02d_dm
+ 			BOARD_NAME, "3600",
+ 			y_inverted),
+ 	AXIS_DMI_MATCH("DV7", "HP Pavilion dv7", x_inverted),
++	AXIS_DMI_MATCH("HP8710", "HP Compaq 8710", y_inverted),
+ 	{ NULL, }
+ /* Laptop models without axis info (yet):
+  * "NC6910" "HP Compaq 6910"
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from lcappa@gmail.com are
 
 origin.patch
-linux-next.patch
-tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
-tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
 
