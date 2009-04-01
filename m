@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-dont-make-bootmem-bitmap-larger-than-required.patch added to -mm tree
-Date: Wed, 01 Apr 2009 13:14:42 -0700
-Message-ID: <200904012014.n31KEgTY004119@imap1.linux-foundation.org>
+Subject: + xtensa-remove-redefinition-of-xchal_mmu_asid_bits.patch added to -mm tree
+Date: Wed, 01 Apr 2009 13:14:36 -0700
+Message-ID: <200904012014.n31KEaNX004070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43700 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763522AbZDAURW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 16:17:22 -0400
+	by vger.kernel.org with ESMTP id S1757648AbZDAURw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 16:17:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jw@emlix.com, chris@zankel.net, os@emlix.com
 
 
 The patch titled
-     xtensa: dont make bootmem bitmap larger than required
+     xtensa: remove redefinition of XCHAL_MMU_ASID_BITS
 has been added to the -mm tree.  Its filename is
-     xtensa-dont-make-bootmem-bitmap-larger-than-required.patch
+     xtensa-remove-redefinition-of-xchal_mmu_asid_bits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: dont make bootmem bitmap larger than required
+Subject: xtensa: remove redefinition of XCHAL_MMU_ASID_BITS
 From: Johannes Weiner <jw@emlix.com>
 
-If min_low_pfn is non-zero, the bitmap reserved for bootmem is bigger
-than needed.  The number of pages bootmem has to maintain is the range
-from min_low_pfn to max_low_pfn.
-
-For now it has only been a theoretical mistake, min_low_pfn was always
-zero.
+This constant is defined in all core headers.  Remove the redundant
+definition which might error out if other includes lead to inclusion
+of <variant/core.h>.
 
 Signed-off-by: Johannes Weiner <jw@emlix.com>
 Cc: Oskar Schirmer <os@emlix.com>
@@ -49,22 +46,28 @@ Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/mm/init.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/xtensa/include/asm/mmu_context.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/xtensa/mm/init.c~xtensa-dont-make-bootmem-bitmap-larger-than-required arch/xtensa/mm/init.c
---- a/arch/xtensa/mm/init.c~xtensa-dont-make-bootmem-bitmap-larger-than-required
-+++ a/arch/xtensa/mm/init.c
-@@ -123,7 +123,8 @@ void __init bootmem_init(void)
+diff -puN arch/xtensa/include/asm/mmu_context.h~xtensa-remove-redefinition-of-xchal_mmu_asid_bits arch/xtensa/include/asm/mmu_context.h
+--- a/arch/xtensa/include/asm/mmu_context.h~xtensa-remove-redefinition-of-xchal_mmu_asid_bits
++++ a/arch/xtensa/include/asm/mmu_context.h
+@@ -20,13 +20,13 @@
+ #include <linux/stringify.h>
+ #include <linux/sched.h>
  
- 	/* Find an area to use for the bootmem bitmap. */
++#include <variant/core.h>
++
+ #include <asm/pgtable.h>
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+ #include <asm-generic/mm_hooks.h>
  
--	bootmap_size = bootmem_bootmap_pages(max_low_pfn) << PAGE_SHIFT;
-+	bootmap_size = bootmem_bootmap_pages(max_low_pfn - min_low_pfn);
-+	bootmap_size <<= PAGE_SHIFT;
- 	bootmap_start = ~0;
- 
- 	for (i=0; i<sysmem.nr_banks; i++)
+-#define XCHAL_MMU_ASID_BITS	8
+-
+ #if (XCHAL_HAVE_TLBS != 1)
+ # error "Linux must have an MMU!"
+ #endif
 _
 
 Patches currently in -mm which might be from jw@emlix.com are
