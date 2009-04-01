@@ -1,195 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cirrusfb-add-laguna-additional-overflow-register.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:42:28 -0700
-Message-ID: <200904011842.n31IgSqX009694@imap1.linux-foundation.org>
+Subject: [merged] proc-tty-switch-serial_core-to-proc_fops.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:33:53 -0700
+Message-ID: <200904011833.n31IXrpx006907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38308 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765380AbZDATQ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:16:56 -0400
+	by vger.kernel.org with ESMTP id S1758525AbZDATRB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 15:17:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: add Laguna additional overflow register
+     proc tty: switch serial_core to ->proc_fops
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-add-laguna-additional-overflow-register.patch
+     proc-tty-switch-serial_core-to-proc_fops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: add Laguna additional overflow register
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: proc tty: switch serial_core to ->proc_fops
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Add additional overflow register setting for Laguna chips.
-
-Also, simplify some code in the cirrusfb_pan_display() and
-cirrusfb_blank().
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   68 ++++++++++++++++++++++---------------
- include/video/cirrus.h   |    1 
- 2 files changed, 43 insertions(+), 26 deletions(-)
+ drivers/serial/serial_core.c |   76 +++++++++++++++------------------
+ 1 file changed, 36 insertions(+), 40 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-add-laguna-additional-overflow-register drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-add-laguna-additional-overflow-register
-+++ a/drivers/video/cirrusfb.c
-@@ -1259,13 +1259,32 @@ static int cirrusfb_set_par_foo(struct f
- 	/* screen start addr #16-18, fastpagemode cycles */
- 	vga_wcrt(regbase, CL_CRT1B, tmp);
+diff -puN drivers/serial/serial_core.c~proc-tty-switch-serial_core-to-proc_fops drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~proc-tty-switch-serial_core-to-proc_fops
++++ a/drivers/serial/serial_core.c
+@@ -27,6 +27,8 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/console.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/serial_core.h>
+ #include <linux/smp_lock.h>
+ #include <linux/device.h>
+@@ -1682,20 +1684,20 @@ static const char *uart_type(struct uart
  
--	if (cinfo->btype == BT_SD64 ||
--	    cinfo->btype == BT_PICASSO4 ||
--	    cinfo->btype == BT_ALPINE ||
--	    cinfo->btype == BT_GD5480)
--		/* screen start address bit 19 */
-+	/* screen start address bit 19 */
-+	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
- 		vga_wcrt(regbase, CL_CRT1D, 0x00);
+ #ifdef CONFIG_PROC_FS
  
-+	if (cinfo->btype == BT_LAGUNA ||
-+	    cinfo->btype == BT_GD5480) {
-+
-+		tmp = 0;
-+		if ((htotal + 5) & 256)
-+			tmp |= 128;
-+		if (hdispend & 256)
-+			tmp |= 64;
-+		if (hsyncstart & 256)
-+			tmp |= 48;
-+		if (vtotal & 1024)
-+			tmp |= 8;
-+		if (vdispend & 1024)
-+			tmp |= 4;
-+		if (vsyncstart & 1024)
-+			tmp |= 3;
-+
-+		vga_wcrt(regbase, CL_CRT1E, tmp);
-+		dev_dbg(info->device, "CRT1e: %d\n", tmp);
-+	}
-+
-+
- 	/* text cursor location high */
- 	vga_wcrt(regbase, VGA_CRTC_CURSOR_HI, 0);
- 	/* text cursor location low */
-@@ -1383,7 +1402,7 @@ static int cirrusfb_pan_display(struct f
- 	int xoffset = 0;
- 	int yoffset = 0;
- 	unsigned long base;
--	unsigned char tmp = 0, tmp2 = 0, xpix;
-+	unsigned char tmp, xpix;
- 	struct cirrusfb_info *cinfo = info->par;
+-static int uart_line_info(char *buf, struct uart_driver *drv, int i)
++static void uart_line_info(struct seq_file *m, struct uart_driver *drv, int i)
+ {
+ 	struct uart_state *state = drv->state + i;
+ 	int pm_state;
+ 	struct uart_port *port = state->port;
+ 	char stat_buf[32];
+ 	unsigned int status;
+-	int mmio, ret;
++	int mmio;
  
- 	dev_dbg(info->device,
-@@ -1418,6 +1437,8 @@ static int cirrusfb_pan_display(struct f
- 	vga_wcrt(cinfo->regbase, VGA_CRTC_START_HI,
- 		 (unsigned char) (base >> 8));
+ 	if (!port)
+-		return 0;
++		return;
  
-+	/* 0xf2 is %11110010, exclude tmp bits */
-+	tmp = vga_rcrt(cinfo->regbase, CL_CRT1B) & 0xf2;
- 	/* construct bits 16, 17 and 18 of screen start address */
- 	if (base & 0x10000)
- 		tmp |= 0x01;
-@@ -1426,9 +1447,7 @@ static int cirrusfb_pan_display(struct f
- 	if (base & 0x40000)
- 		tmp |= 0x08;
+ 	mmio = port->iotype >= UPIO_MEM;
+-	ret = sprintf(buf, "%d: uart:%s %s%08llX irq:%d",
++	seq_printf(m, "%d: uart:%s %s%08llX irq:%d",
+ 			port->line, uart_type(port),
+ 			mmio ? "mmio:0x" : "port:",
+ 			mmio ? (unsigned long long)port->mapbase
+@@ -1703,8 +1705,8 @@ static int uart_line_info(char *buf, str
+ 			port->irq);
  
--	/* 0xf2 is %11110010, exclude tmp bits */
--	tmp2 = (vga_rcrt(cinfo->regbase, CL_CRT1B) & 0xf2) | tmp;
--	vga_wcrt(cinfo->regbase, CL_CRT1B, tmp2);
-+	vga_wcrt(cinfo->regbase, CL_CRT1B, tmp);
- 
- 	/* construct bit 19 of screen start address */
- 	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
-@@ -1473,47 +1492,44 @@ static int cirrusfb_blank(int blank_mode
- 
- 	/* Undo current */
- 	if (current_mode == FB_BLANK_NORMAL ||
--	    current_mode == FB_BLANK_UNBLANK) {
--		/* unblank the screen */
--		val = vga_rseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE);
-+	    current_mode == FB_BLANK_UNBLANK)
- 		/* clear "FullBandwidth" bit */
--		vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, val & 0xdf);
--		/* and undo VESA suspend trickery */
--		vga_wgfx(cinfo->regbase, CL_GRE, 0x00);
--	}
--
--	/* set new */
--	if (blank_mode > FB_BLANK_NORMAL) {
--		/* blank the screen */
--		val = vga_rseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE);
-+		val = 0;
-+	else
- 		/* set "FullBandwidth" bit */
--		vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, val | 0x20);
--	}
-+		val = 0x20;
-+
-+	val |= vga_rseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE) & 0xdf;
-+	vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, val);
- 
- 	switch (blank_mode) {
- 	case FB_BLANK_UNBLANK:
- 	case FB_BLANK_NORMAL:
-+		val = 0x00;
- 		break;
- 	case FB_BLANK_VSYNC_SUSPEND:
--		vga_wgfx(cinfo->regbase, CL_GRE, 0x04);
-+		val = 0x04;
- 		break;
- 	case FB_BLANK_HSYNC_SUSPEND:
--		vga_wgfx(cinfo->regbase, CL_GRE, 0x02);
-+		val = 0x02;
- 		break;
- 	case FB_BLANK_POWERDOWN:
--		vga_wgfx(cinfo->regbase, CL_GRE, 0x06);
-+		val = 0x06;
- 		break;
- 	default:
- 		dev_dbg(info->device, "EXIT, returning 1\n");
- 		return 1;
+ 	if (port->type == PORT_UNKNOWN) {
+-		strcat(buf, "\n");
+-		return ret + 1;
++		seq_putc(m, '\n');
++		return;
  	}
  
-+	vga_wgfx(cinfo->regbase, CL_GRE, val);
-+
- 	cinfo->blank_mode = blank_mode;
- 	dev_dbg(info->device, "EXIT, returning 0\n");
+ 	if (capable(CAP_SYS_ADMIN)) {
+@@ -1719,19 +1721,19 @@ static int uart_line_info(char *buf, str
+ 			uart_change_pm(state, pm_state);
+ 		mutex_unlock(&state->mutex);
  
- 	/* Let fbcon do a soft blank for us */
- 	return (blank_mode == FB_BLANK_NORMAL) ? 1 : 0;
+-		ret += sprintf(buf + ret, " tx:%d rx:%d",
++		seq_printf(m, " tx:%d rx:%d",
+ 				port->icount.tx, port->icount.rx);
+ 		if (port->icount.frame)
+-			ret += sprintf(buf + ret, " fe:%d",
++			seq_printf(m, " fe:%d",
+ 				port->icount.frame);
+ 		if (port->icount.parity)
+-			ret += sprintf(buf + ret, " pe:%d",
++			seq_printf(m, " pe:%d",
+ 				port->icount.parity);
+ 		if (port->icount.brk)
+-			ret += sprintf(buf + ret, " brk:%d",
++			seq_printf(m, " brk:%d",
+ 				port->icount.brk);
+ 		if (port->icount.overrun)
+-			ret += sprintf(buf + ret, " oe:%d",
++			seq_printf(m, " oe:%d",
+ 				port->icount.overrun);
+ 
+ #define INFOBIT(bit, str) \
+@@ -1753,45 +1755,39 @@ static int uart_line_info(char *buf, str
+ 		STATBIT(TIOCM_RNG, "|RI");
+ 		if (stat_buf[0])
+ 			stat_buf[0] = ' ';
+-		strcat(stat_buf, "\n");
+ 
+-		ret += sprintf(buf + ret, stat_buf);
+-	} else {
+-		strcat(buf, "\n");
+-		ret++;
++		seq_puts(m, stat_buf);
+ 	}
++	seq_putc(m, '\n');
+ #undef STATBIT
+ #undef INFOBIT
+-	return ret;
+ }
+ 
+-static int uart_read_proc(char *page, char **start, off_t off,
+-			  int count, int *eof, void *data)
++static int uart_proc_show(struct seq_file *m, void *v)
+ {
+-	struct tty_driver *ttydrv = data;
++	struct tty_driver *ttydrv = v;
+ 	struct uart_driver *drv = ttydrv->driver_state;
+-	int i, len = 0, l;
+-	off_t begin = 0;
++	int i;
+ 
+-	len += sprintf(page, "serinfo:1.0 driver%s%s revision:%s\n",
++	seq_printf(m, "serinfo:1.0 driver%s%s revision:%s\n",
+ 			"", "", "");
+-	for (i = 0; i < drv->nr && len < PAGE_SIZE - 96; i++) {
+-		l = uart_line_info(page + len, drv, i);
+-		len += l;
+-		if (len + begin > off + count)
+-			goto done;
+-		if (len + begin < off) {
+-			begin += len;
+-			len = 0;
+-		}
+-	}
+-	*eof = 1;
+- done:
+-	if (off >= len + begin)
+-		return 0;
+-	*start = page + (off - begin);
+-	return (count < begin + len - off) ? count : (begin + len - off);
++	for (i = 0; i < drv->nr; i++)
++		uart_line_info(m, drv, i);
++	return 0;
  }
 +
- /**** END   Hardware specific Routines **************************************/
- /****************************************************************************/
- /**** BEGIN Internal Routines ***********************************************/
-diff -puN include/video/cirrus.h~cirrusfb-add-laguna-additional-overflow-register include/video/cirrus.h
---- a/include/video/cirrus.h~cirrusfb-add-laguna-additional-overflow-register
-+++ a/include/video/cirrus.h
-@@ -71,6 +71,7 @@
- #define CL_CRT1B	0x1b	/* Extended Display Controls */
- #define CL_CRT1C	0x1c	/* Sync adjust and genlock register */
- #define CL_CRT1D	0x1d	/* Overlay Extended Control register */
-+#define CL_CRT1E	0x1e	/* Another overflow register */
- #define CL_CRT25	0x25	/* Part Status Register */
- #define CL_CRT27	0x27	/* ID Register */
- #define CL_CRT51	0x51	/* P4 disable "flicker fixer" */
++static int uart_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, uart_proc_show, PDE(inode)->data);
++}
++
++static const struct file_operations uart_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= uart_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ #endif
+ 
+ #if defined(CONFIG_SERIAL_CORE_CONSOLE) || defined(CONFIG_CONSOLE_POLL)
+@@ -2299,7 +2295,7 @@ static const struct tty_operations uart_
+ 	.break_ctl	= uart_break_ctl,
+ 	.wait_until_sent= uart_wait_until_sent,
+ #ifdef CONFIG_PROC_FS
+-	.read_proc	= uart_read_proc,
++	.proc_fops	= &uart_proc_fops,
+ #endif
+ 	.tiocmget	= uart_tiocmget,
+ 	.tiocmset	= uart_tiocmset,
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 linux-next.patch
-tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
-tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
+sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
+sysctl-lockdep-support-for-sysctl-reference-counting.patch
+simplify-copy_thread.patch
+simplify-copy_thread-checkpatch-fixes.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
+sysctl-fix-suid_dumpable-and-lease-break-time-sysctls.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
+namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
+namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
+namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
+namespaces-mqueue-namespace-adapt-sysctl.patch
+namespaces-mqueue-namespace-adapt-sysctl-update.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
 
