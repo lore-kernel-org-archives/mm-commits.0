@@ -1,154 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-writepage-directly-to-swap.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:39:01 -0700
-Message-ID: <200904011839.n31Id1sp008478@imap1.linux-foundation.org>
+Subject: [merged] mm-remove-pagevec_swap_free.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:38:20 -0700
+Message-ID: <200904011838.n31IcKt6008233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933353AbZDASmn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:42:43 -0400
+	by vger.kernel.org with ESMTP id S1758282AbZDASmw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:42:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, penberg@cs.helsinki.fi, riel@redhat.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, hugh@veritas.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shmem: writepage directly to swap
+     mm: remove pagevec_swap_free()
 has been removed from the -mm tree.  Its filename was
-     shmem-writepage-directly-to-swap.patch
+     mm-remove-pagevec_swap_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem: writepage directly to swap
-From: Hugh Dickins <hugh@veritas.com>
+Subject: mm: remove pagevec_swap_free()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Synopsis: if shmem_writepage calls swap_writepage directly, most shmem
-swap loads benefit, and a catastrophic interaction between SLUB and some
-flash storage is avoided.
+pagevec_swap_free() is now unused.
 
-shmem_writepage() has always been peculiar in making no attempt to write:
-it has just transferred a shmem page from file cache to swap cache, then
-let that page make its way around the LRU again before being written and
-freed.
-
-The idea was that people use tmpfs because they want those pages to stay
-in RAM; so although we give it an overflow to swap, we should resist
-writing too soon, giving those pages a second chance before they can be
-reclaimed.
-
-That was always questionable, and I've toyed with this patch for years;
-but never had a clear justification to depart from the original design.
-
-It became more questionable in 2.6.28, when the split LRU patches classed
-shmem and tmpfs pages as SwapBacked rather than as file_cache: that in
-itself gives them more resistance to reclaim than normal file pages.  I
-prepared this patch for 2.6.29, but the merge window arrived before I'd
-completed gathering statistics to justify sending it in.
-
-Then while comparing SLQB against SLUB, running SLUB on a laptop I'd
-habitually used with SLAB, I found SLUB to run my tmpfs kbuild swapping
-tests five times slower than SLAB or SLQB - other machines slower too, but
-nowhere near so bad.  Simpler "cp -a" swapping tests showed the same.
-
-slub_max_order=0 brings sanity to all, but heavy swapping is too far from
-normal to justify such a tuning.  The crucial factor on that laptop turns
-out to be that I'm using an SD card for swap.  What happens is this:
-
-By default, SLUB uses order-2 pages for shmem_inode_cache (and many other
-fs inodes), so creating tmpfs files under memory pressure brings lumpy
-reclaim into play.  One subpage of the order is chosen from the bottom of
-the LRU as usual, then the other three picked out from their random
-positions on the LRUs.
-
-In a tmpfs load, many of these pages will be ones which already passed
-through shmem_writepage, so already have swap allocated.  And though their
-offsets on swap were probably allocated sequentially, now that the pages
-are picked off at random, their swap offsets are scattered.
-
-But the flash storage on the SD card is very sensitive to having its
-writes merged: once swap is written at scattered offsets, performance
-falls apart.  Rotating disk seeks increase too, but less disastrously.
-
-So: stop giving shmem/tmpfs pages a second pass around the LRU, write them
-out to swap as soon as their swap has been allocated.
-
-It's surely possible to devise an artificial load which runs faster the
-old way, one whose sizing is such that the tmpfs pages on their second
-pass are the ones that are wanted again, and other pages not.
-
-But I've not yet found such a load: on all machines, under the loads I've
-tried, immediate swap_writepage speeds up shmem swapping: especially when
-using the SLUB allocator (and more effectively than slub_max_order=0), but
-also with the others; and it also reduces the variance between runs.  How
-much faster varies widely: a factor of five is rare, 5% is common.
-
-One load which might have suffered: imagine a swapping shmem load in a
-limited mem_cgroup on a machine with plenty of memory.  Before 2.6.29 the
-swapcache was not charged, and such a load would have run quickest with
-the shmem swapcache never written to swap.  But now swapcache is charged,
-so even this load benefits from shmem_writepage directly to swap.
-
-Apologies for the #ifndef CONFIG_SWAP swap_writepage() stub in swap.h:
-it's silly because that will never get called; but refactoring shmem.c
-sensibly according to CONFIG_SWAP will be a separate task.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    5 +++++
- mm/shmem.c           |    3 +--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ include/linux/pagevec.h |    1 -
+ mm/swap.c               |   23 -----------------------
+ 2 files changed, 24 deletions(-)
 
-diff -puN include/linux/swap.h~shmem-writepage-directly-to-swap include/linux/swap.h
---- a/include/linux/swap.h~shmem-writepage-directly-to-swap
-+++ a/include/linux/swap.h
-@@ -382,6 +382,11 @@ static inline struct page *swapin_readah
- 	return NULL;
+diff -puN include/linux/pagevec.h~mm-remove-pagevec_swap_free include/linux/pagevec.h
+--- a/include/linux/pagevec.h~mm-remove-pagevec_swap_free
++++ a/include/linux/pagevec.h
+@@ -24,7 +24,6 @@ void __pagevec_release(struct pagevec *p
+ void __pagevec_free(struct pagevec *pvec);
+ void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
+ void pagevec_strip(struct pagevec *pvec);
+-void pagevec_swap_free(struct pagevec *pvec);
+ unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+ 		pgoff_t start, unsigned nr_pages);
+ unsigned pagevec_lookup_tag(struct pagevec *pvec,
+diff -puN mm/swap.c~mm-remove-pagevec_swap_free mm/swap.c
+--- a/mm/swap.c~mm-remove-pagevec_swap_free
++++ a/mm/swap.c
+@@ -457,29 +457,6 @@ void pagevec_strip(struct pagevec *pvec)
  }
  
-+static inline int swap_writepage(struct page *p, struct writeback_control *wbc)
-+{
-+	return 0;
-+}
-+
- static inline struct page *lookup_swap_cache(swp_entry_t swp)
- {
- 	return NULL;
-diff -puN mm/shmem.c~shmem-writepage-directly-to-swap mm/shmem.c
---- a/mm/shmem.c~shmem-writepage-directly-to-swap
-+++ a/mm/shmem.c
-@@ -1068,8 +1068,7 @@ static int shmem_writepage(struct page *
- 		swap_duplicate(swap);
- 		BUG_ON(page_mapped(page));
- 		page_cache_release(page);	/* pagecache ref */
--		set_page_dirty(page);
--		unlock_page(page);
-+		swap_writepage(page, wbc);
- 		if (inode) {
- 			mutex_lock(&shmem_swaplist_mutex);
- 			/* move instead of add in case we're racing */
-_
-
-Patches currently in -mm which might be from hugh@veritas.com are
-
-origin.patch
-linux-next.patch
-clocksource-pass-clocksource-to-read-callback.patch
-mm-disable-preemption-in-apply_to_pte_range.patch
-mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-getrusage-fill-ru_maxrss-value.patch
-memcg-charge-swapcache-to-proper-memcg.patch
-cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
-cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5-fix.patch
-memcg-remove-redundant-message-at-swapon.patch
-prio_tree-debugging-patch.patch
-
+ /**
+- * pagevec_swap_free - try to free swap space from the pages in a pagevec
+- * @pvec: pagevec with swapcache pages to free the swap space of
+- *
+- * The caller needs to hold an extra reference to each page and
+- * not hold the page lock on the pages.  This function uses a
+- * trylock on the page lock so it may not always free the swap
+- * space associated with a page.
+- */
+-void pagevec_swap_free(struct pagevec *pvec)
+-{
+-	int i;
+-
+-	for (i = 0; i < pagevec_count(pvec); i++) {
+-		struct page *page = pvec->pages[i];
+-
+-		if (PageSwapCache(page) && trylock_page(page)) {
+-			try_to_free_swap(page);
+-			unlock_page(page);
+-		}
+-	}
+-}
