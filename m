@@ -1,66 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hp_accel-add-two-more-axis-information.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:41:09 -0700
-Message-ID: <200904011841.n31If95F009265@imap1.linux-foundation.org>
+Subject: [merged] powerpc-add-mmc-spi-slot-bindings.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:41:29 -0700
+Message-ID: <200904011841.n31IfTfg009380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36413 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933619AbZDASpq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:45:46 -0400
+	by vger.kernel.org with ESMTP id S933613AbZDASqA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:46:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, daniel@caiaq.de, eric.piel@tremplin-utc.net, mmarek@suse.cz, vbotka@suse.cz, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hp_accel: add two more axis information
+     powerpc: add mmc-spi-slot bindings
 has been removed from the -mm tree.  Its filename was
-     hp_accel-add-two-more-axis-information.patch
+     powerpc-add-mmc-spi-slot-bindings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp_accel: add two more axis information
-From: Pavel Machek <pavel@ucw.cz>
+Subject: powerpc: add mmc-spi-slot bindings
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Add two more laptops to whitelist.
+The bindings describes a case where MMC/SD/SDIO slot directly connected to
+a SPI bus.  Such setups are widely used on embedded PowerPC boards.
 
-Signed-off-by: Michal Marek <mmarek@suse.cz>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Cc: Daniel Mack <daniel@caiaq.de>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Vladimir Botka <vbotka@suse.cz>
+The patch also adds the mmc-spi-slot entry to the OpenFirmware modalias
+table.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/hp_accel.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/powerpc/dts-bindings/mmc-spi-slot.txt |   23 ++++++++++
+ drivers/of/base.c                                   |    1 
+ 2 files changed, 24 insertions(+)
 
-diff -puN drivers/hwmon/hp_accel.c~hp_accel-add-two-more-axis-information drivers/hwmon/hp_accel.c
---- a/drivers/hwmon/hp_accel.c~hp_accel-add-two-more-axis-information
-+++ a/drivers/hwmon/hp_accel.c
-@@ -187,6 +187,7 @@ static struct dmi_system_id lis3lv02d_dm
- 	AXIS_DMI_MATCH("NC2510", "HP Compaq 2510", y_inverted),
- 	AXIS_DMI_MATCH("NC8510", "HP Compaq 8510", xy_swap_inverted),
- 	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
-+	AXIS_DMI_MATCH("HP2140", "HP 2140", xy_swap_inverted),
- 	AXIS_DMI_MATCH("NC653x", "HP Compaq 653", xy_rotated_left_usd),
- 	AXIS_DMI_MATCH("NC673x", "HP Compaq 673", xy_rotated_left_usd),
- 	AXIS_DMI_MATCH("NC651xx", "HP Compaq 651", xy_rotated_right),
-@@ -201,6 +202,7 @@ static struct dmi_system_id lis3lv02d_dm
- 			PRODUCT_NAME, "HP Pavilion dv5",
- 			BOARD_NAME, "3600",
- 			y_inverted),
-+	AXIS_DMI_MATCH("DV7", "HP Pavilion dv7", x_inverted),
- 	{ NULL, }
- /* Laptop models without axis info (yet):
-  * "NC6910" "HP Compaq 6910"
+diff -puN /dev/null Documentation/powerpc/dts-bindings/mmc-spi-slot.txt
+--- /dev/null
++++ a/Documentation/powerpc/dts-bindings/mmc-spi-slot.txt
+@@ -0,0 +1,23 @@
++MMC/SD/SDIO slot directly connected to a SPI bus
++
++Required properties:
++- compatible : should be "mmc-spi-slot".
++- reg : should specify SPI address (chip-select number).
++- spi-max-frequency : maximum frequency for this device (Hz).
++- voltage-ranges : two cells are required, first cell specifies minimum
++  slot voltage (mV), second cell specifies maximum slot voltage (mV).
++  Several ranges could be specified.
++- gpios : (optional) may specify GPIOs in this order: Card-Detect GPIO,
++  Write-Protect GPIO.
++
++Example:
++
++	mmc-slot@0 {
++		compatible = "fsl,mpc8323rdb-mmc-slot",
++			     "mmc-spi-slot";
++		reg = <0>;
++		gpios = <&qe_pio_d 14 1
++			 &qe_pio_d 15 0>;
++		voltage-ranges = <3300 3300>;
++		spi-max-frequency = <50000000>;
++	};
+diff -puN drivers/of/base.c~powerpc-add-mmc-spi-slot-bindings drivers/of/base.c
+--- a/drivers/of/base.c~powerpc-add-mmc-spi-slot-bindings
++++ a/drivers/of/base.c
+@@ -446,6 +446,7 @@ struct of_modalias_table {
+ };
+ static struct of_modalias_table of_modalias_table[] = {
+ 	{ "fsl,mcu-mpc8349emitx", "mcu-mpc8349emitx" },
++	{ "mmc-spi-slot", "mmc_spi" },
+ };
+ 
+ /**
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
 linux-next.patch
