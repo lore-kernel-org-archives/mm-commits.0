@@ -1,152 +1,241 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-rename-scmay_swap-to-may_unmap.patch removed from -mm tree
-Date: Wed, 01 Apr 2009 11:34:19 -0700
-Message-ID: <200904011834.n31IYJAu007146@imap1.linux-foundation.org>
+Subject: [merged] mm-introduce-for_each_populated_zone-macro.patch removed from -mm tree
+Date: Wed, 01 Apr 2009 11:34:23 -0700
+Message-ID: <200904011834.n31IYN8t007149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55512 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933540AbZDASjR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:39:17 -0400
+	by vger.kernel.org with ESMTP id S933513AbZDASit (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2009 14:38:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: rename sc.may_swap to may_unmap
+     mm: introduce for_each_populated_zone() macro
 has been removed from the -mm tree.  Its filename was
-     vmscan-rename-scmay_swap-to-may_unmap.patch
+     mm-introduce-for_each_populated_zone-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: rename sc.may_swap to may_unmap
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: introduce for_each_populated_zone() macro
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-sc.may_swap does not only influence reclaiming of anon pages but pages
-mapped into pagetables in general, which also includes mapped file pages.
+Impact: cleanup
 
-In shrink_page_list():
+In almost cases, for_each_zone() is used with populated_zone().  It's
+because almost function doesn't need memoryless node information. 
+Therefore, for_each_populated_zone() can help to make code simplify.
 
-		if (!sc->may_swap && page_mapped(page))
-			goto keep_locked;
+This patch has no functional change.
 
-For anon pages, this makes sense as they are always mapped and reclaiming
-them always requires swapping.
-
-But mapped file pages are skipped here as well and it has nothing to do
-with swapping.
-
-The real effect of the knob is whether mapped pages are unmapped and
-reclaimed or not.  Rename it to `may_unmap' to have its name match its
-actual meaning more precisely.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: MinChan Kim <minchan.kim@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
+[akpm@linux-foundation.org: small cleanup]
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ include/linux/mmzone.h  |    8 ++++++++
+ kernel/power/snapshot.c |    9 +++------
+ kernel/power/swsusp.c   |   17 ++++++++---------
+ mm/page_alloc.c         |   26 +++++---------------------
+ mm/vmscan.c             |    4 +---
+ mm/vmstat.c             |   11 ++---------
+ 6 files changed, 27 insertions(+), 48 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-rename-scmay_swap-to-may_unmap mm/vmscan.c
---- a/mm/vmscan.c~vmscan-rename-scmay_swap-to-may_unmap
-+++ a/mm/vmscan.c
-@@ -60,8 +60,8 @@ struct scan_control {
+diff -puN include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro
++++ a/include/linux/mmzone.h
+@@ -806,6 +806,14 @@ extern struct zone *next_zone(struct zon
+ 	     zone;					\
+ 	     zone = next_zone(zone))
  
- 	int may_writepage;
- 
--	/* Can pages be swapped as part of reclaim? */
--	int may_swap;
-+	/* Can mapped pages be reclaimed? */
-+	int may_unmap;
- 
- 	/* This context's SWAP_CLUSTER_MAX. If freeing memory for
- 	 * suspend, we effectively ignore SWAP_CLUSTER_MAX.
-@@ -606,7 +606,7 @@ static unsigned long shrink_page_list(st
- 		if (unlikely(!page_evictable(page, NULL)))
- 			goto cull_mlocked;
- 
--		if (!sc->may_swap && page_mapped(page))
-+		if (!sc->may_unmap && page_mapped(page))
- 			goto keep_locked;
- 
- 		/* Double the slab pressure for mapped and swapcache pages */
-@@ -1694,7 +1694,7 @@ unsigned long try_to_free_pages(struct z
- 		.gfp_mask = gfp_mask,
- 		.may_writepage = !laptop_mode,
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
--		.may_swap = 1,
-+		.may_unmap = 1,
- 		.swappiness = vm_swappiness,
- 		.order = order,
- 		.mem_cgroup = NULL,
-@@ -1713,7 +1713,7 @@ unsigned long try_to_free_mem_cgroup_pag
++#define for_each_populated_zone(zone)		        \
++	for (zone = (first_online_pgdat())->node_zones; \
++	     zone;					\
++	     zone = next_zone(zone))			\
++		if (!populated_zone(zone))		\
++			; /* do nothing */		\
++		else
++
+ static inline struct zone *zonelist_zone(struct zoneref *zoneref)
  {
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
--		.may_swap = 1,
-+		.may_unmap = 1,
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.swappiness = swappiness,
- 		.order = 0,
-@@ -1723,7 +1723,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 	struct zonelist *zonelist;
+ 	return zoneref->zone;
+diff -puN kernel/power/snapshot.c~mm-introduce-for_each_populated_zone-macro kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~mm-introduce-for_each_populated_zone-macro
++++ a/kernel/power/snapshot.c
+@@ -321,13 +321,10 @@ static int create_mem_extents(struct lis
  
- 	if (noswap)
--		sc.may_swap = 0;
-+		sc.may_unmap = 0;
+ 	INIT_LIST_HEAD(list);
  
- 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
-@@ -1762,7 +1762,7 @@ static unsigned long balance_pgdat(pg_da
- 	struct reclaim_state *reclaim_state = current->reclaim_state;
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
--		.may_swap = 1,
-+		.may_unmap = 1,
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.swappiness = vm_swappiness,
- 		.order = order,
-@@ -2110,7 +2110,7 @@ unsigned long shrink_all_memory(unsigned
- 	struct reclaim_state reclaim_state;
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
--		.may_swap = 0,
-+		.may_unmap = 0,
- 		.swap_cluster_max = nr_pages,
- 		.may_writepage = 1,
- 		.isolate_pages = isolate_pages_global,
-@@ -2147,7 +2147,7 @@ unsigned long shrink_all_memory(unsigned
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		unsigned long zone_start, zone_end;
+ 		struct mem_extent *ext, *cur, *aux;
  
- 		/* Force reclaiming mapped pages in the passes #3 and #4 */
- 		if (pass > 2)
--			sc.may_swap = 1;
-+			sc.may_unmap = 1;
+-		if (!populated_zone(zone))
+-			continue;
+-
+ 		zone_start = zone->zone_start_pfn;
+ 		zone_end = zone->zone_start_pfn + zone->spanned_pages;
  
- 		for (prio = DEF_PRIORITY; prio >= 0; prio--) {
- 			unsigned long nr_to_scan = nr_pages - ret;
-@@ -2290,7 +2290,7 @@ static int __zone_reclaim(struct zone *z
- 	int priority;
- 	struct scan_control sc = {
- 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
--		.may_swap = !!(zone_reclaim_mode & RECLAIM_SWAP),
-+		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
- 		.swap_cluster_max = max_t(unsigned long, nr_pages,
- 					SWAP_CLUSTER_MAX),
- 		.gfp_mask = gfp_mask,
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-origin.patch
-linux-next.patch
-cifs-use-kzfree.patch
-memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
-
+@@ -804,8 +801,8 @@ static unsigned int count_free_highmem_p
+ 	struct zone *zone;
+ 	unsigned int cnt = 0;
+ 
+-	for_each_zone(zone)
+-		if (populated_zone(zone) && is_highmem(zone))
++	for_each_populated_zone(zone)
++		if (is_highmem(zone))
+ 			cnt += zone_page_state(zone, NR_FREE_PAGES);
+ 
+ 	return cnt;
+diff -puN kernel/power/swsusp.c~mm-introduce-for_each_populated_zone-macro kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~mm-introduce-for_each_populated_zone-macro
++++ a/kernel/power/swsusp.c
+@@ -229,17 +229,16 @@ int swsusp_shrink_memory(void)
+ 		size = count_data_pages() + PAGES_FOR_IO + SPARE_PAGES;
+ 		tmp = size;
+ 		size += highmem_size;
+-		for_each_zone (zone)
+-			if (populated_zone(zone)) {
+-				tmp += snapshot_additional_pages(zone);
+-				if (is_highmem(zone)) {
+-					highmem_size -=
++		for_each_populated_zone(zone) {
++			tmp += snapshot_additional_pages(zone);
++			if (is_highmem(zone)) {
++				highmem_size -=
+ 					zone_page_state(zone, NR_FREE_PAGES);
+-				} else {
+-					tmp -= zone_page_state(zone, NR_FREE_PAGES);
+-					tmp += zone->lowmem_reserve[ZONE_NORMAL];
+-				}
++			} else {
++				tmp -= zone_page_state(zone, NR_FREE_PAGES);
++				tmp += zone->lowmem_reserve[ZONE_NORMAL];
+ 			}
++		}
+ 
+ 		if (highmem_size < 0)
+ 			highmem_size = 0;
+diff -puN mm/page_alloc.c~mm-introduce-for_each_populated_zone-macro mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-for_each_populated_zone-macro
++++ a/mm/page_alloc.c
+@@ -922,13 +922,10 @@ static void drain_pages(unsigned int cpu
+ 	unsigned long flags;
+ 	struct zone *zone;
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		struct per_cpu_pageset *pset;
+ 		struct per_cpu_pages *pcp;
+ 
+-		if (!populated_zone(zone))
+-			continue;
+-
+ 		pset = zone_pcp(zone, cpu);
+ 
+ 		pcp = &pset->pcp;
+@@ -1879,10 +1876,7 @@ void show_free_areas(void)
+ 	int cpu;
+ 	struct zone *zone;
+ 
+-	for_each_zone(zone) {
+-		if (!populated_zone(zone))
+-			continue;
+-
++	for_each_populated_zone(zone) {
+ 		show_node(zone);
+ 		printk("%s per-cpu:\n", zone->name);
+ 
+@@ -1922,12 +1916,9 @@ void show_free_areas(void)
+ 		global_page_state(NR_PAGETABLE),
+ 		global_page_state(NR_BOUNCE));
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		int i;
+ 
+-		if (!populated_zone(zone))
+-			continue;
+-
+ 		show_node(zone);
+ 		printk("%s"
+ 			" free:%lukB"
+@@ -1967,12 +1958,9 @@ void show_free_areas(void)
+ 		printk("\n");
+ 	}
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
+ 
+-		if (!populated_zone(zone))
+-			continue;
+-
+ 		show_node(zone);
+ 		printk("%s: ", zone->name);
+ 
+@@ -2784,11 +2772,7 @@ static int __cpuinit process_zones(int c
+ 
+ 	node_set_state(node, N_CPU);	/* this node has a cpu */
+ 
+-	for_each_zone(zone) {
+-
+-		if (!populated_zone(zone))
+-			continue;
+-
++	for_each_populated_zone(zone) {
+ 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
+ 					 GFP_KERNEL, node);
+ 		if (!zone_pcp(zone, cpu))
+diff -puN mm/vmscan.c~mm-introduce-for_each_populated_zone-macro mm/vmscan.c
+--- a/mm/vmscan.c~mm-introduce-for_each_populated_zone-macro
++++ a/mm/vmscan.c
+@@ -2061,11 +2061,9 @@ static unsigned long shrink_all_zones(un
+ 	struct zone *zone;
+ 	unsigned long ret = 0;
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		enum lru_list l;
+ 
+-		if (!populated_zone(zone))
+-			continue;
+ 		if (zone_is_all_unreclaimable(zone) && prio != DEF_PRIORITY)
+ 			continue;
+ 
+diff -puN mm/vmstat.c~mm-introduce-for_each_populated_zone-macro mm/vmstat.c
+--- a/mm/vmstat.c~mm-introduce-for_each_populated_zone-macro
++++ a/mm/vmstat.c
+@@ -135,11 +135,7 @@ static void refresh_zone_stat_thresholds
+ 	int cpu;
+ 	int threshold;
+ 
+-	for_each_zone(zone) {
+-
+-		if (!zone->present_pages)
+-			continue;
+-
++	for_each_populated_zone(zone) {
+ 		threshold = calculate_threshold(zone);
+ 
+ 		for_each_online_cpu(cpu)
+@@ -301,12 +297,9 @@ void refresh_cpu_vm_stats(int cpu)
+ 	int i;
+ 	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		struct per_cpu_pageset *p;
+ 
+-		if (!populated_zone(zone))
+-			continue;
