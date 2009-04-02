@@ -1,79 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] simplify-copy_thread-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 13:14:54 -0700
-Message-ID: <200904022014.n32KEstu022632@imap1.linux-foundation.org>
+Subject: [folded] proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 13:17:19 -0700
+Message-ID: <200904022017.n32KHJmg023296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35668 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759535AbZDBUQJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 16:16:09 -0400
+	by vger.kernel.org with ESMTP id S1757192AbZDBUUv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 16:20:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, mikew@google.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     simplify-copy_thread-checkpatch-fixes
+     proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     simplify-copy_thread-checkpatch-fixes.patch
+     proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into simplify-copy_thread.patch
+This patch was dropped because it was folded into proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: simplify-copy_thread-checkpatch-fixes
+Subject: proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#143: FILE: arch/ia64/kernel/process.c:416:
-+copy_thread (unsigned long clone_flags,
+ERROR: spaces required around that '?' (ctx:VxW)
+#29: FILE: fs/proc/task_mmu.c:223:
++			(!vma->vm_file)? 0 :
+ 			               ^
 
-WARNING: line over 80 characters
-#347: FILE: include/linux/sched.h:1984:
-+extern int  copy_thread(unsigned long, unsigned long, unsigned long, struct task_struct *, struct pt_regs *);
+total: 1 errors, 0 warnings, 18 lines checked
 
-total: 0 errors, 2 warnings, 216 lines checked
-
-./patches/simplify-copy_thread.patch has style problems, please review.  If any of these errors
+./patches/proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mike Waychison <mikew@google.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/process.c |    2 +-
- include/linux/sched.h      |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/process.c~simplify-copy_thread-checkpatch-fixes arch/ia64/kernel/process.c
---- a/arch/ia64/kernel/process.c~simplify-copy_thread-checkpatch-fixes
-+++ a/arch/ia64/kernel/process.c
-@@ -413,7 +413,7 @@ ia64_load_extra (struct task_struct *tas
-  * so there is nothing to worry about.
-  */
- int
--copy_thread (unsigned long clone_flags,
-+copy_thread(unsigned long clone_flags,
- 	     unsigned long user_stack_base, unsigned long user_stack_size,
- 	     struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN include/linux/sched.h~simplify-copy_thread-checkpatch-fixes include/linux/sched.h
---- a/include/linux/sched.h~simplify-copy_thread-checkpatch-fixes
-+++ a/include/linux/sched.h
-@@ -1981,7 +1981,8 @@ extern void mm_release(struct task_struc
- /* Allocate a new mm structure and copy contents from tsk->mm */
- extern struct mm_struct *dup_mm(struct task_struct *tsk);
- 
--extern int  copy_thread(unsigned long, unsigned long, unsigned long, struct task_struct *, struct pt_regs *);
-+extern int copy_thread(unsigned long, unsigned long, unsigned long,
-+			struct task_struct *, struct pt_regs *);
- extern void flush_thread(void);
- extern void exit_thread(void);
+diff -puN fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes
++++ a/fs/proc/task_mmu.c
+@@ -220,7 +220,7 @@ static void show_map_vma(struct seq_file
+ 			flags & VM_WRITE ? 'w' : '-',
+ 			flags & VM_EXEC ? 'x' : '-',
+ 			flags & VM_MAYSHARE ? 's' : 'p',
+-			(!vma->vm_file)? 0 :
++			(!vma->vm_file) ? 0 :
+ 				((loff_t)vma->vm_pgoff) << PAGE_SHIFT,
+ 			MAJOR(dev), MINOR(dev), ino, &len);
  
 _
 
@@ -84,7 +70,6 @@ nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
 __tty_open-use-the-correct-type-for-saved_flags.patch
 workqueue-add-to_delayed_work-helper-function.patch
 simplify-copy_thread.patch
-simplify-copy_thread-checkpatch-fixes.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
@@ -111,6 +96,7 @@ input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
 mm-add-proc-controls-for-pdflush-threads-fix.patch
 mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
 mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
 proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
