@@ -1,63 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [folded] m68k-count-can-reach-51-not-50-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 13:04:45 -0700
-Message-ID: <200904022004.n32K4jqQ019717@imap1.linux-foundation.org>
+Subject: [folded] workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 13:13:11 -0700
+Message-ID: <200904022013.n32KDCpl022108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33344 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754248AbZDBUGr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 16:06:47 -0400
+	by vger.kernel.org with ESMTP id S1765266AbZDBUNu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 16:13:50 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n32KDCJf030204
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 2 Apr 2009 13:13:48 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert@linux-m68k.org, roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k-count-can-reach-51-not-50-checkpatch-fixes
+     workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+     workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into m68k-count-can-reach-51-not-50.patch
+This patch was dropped because it was folded into workqueue-add-to_delayed_work-helper-function.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k-count-can-reach-51-not-50-checkpatch-fixes
+Subject: workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required before the open parenthesis '('
-#22: FILE: drivers/macintosh/via-maciisi.c:291:
-+	if(count > 50) /* Hopefully shouldn't happen */
+ERROR: code indent should use tabs where possible
+#52: FILE: drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c:780:
++        struct delayed_work *dwork = to_delayed_work(work);$
 
-total: 1 errors, 0 warnings, 8 lines checked
+ERROR: code indent should use tabs where possible
+#64: FILE: drivers/staging/rtl8187se/r8180_core.c:5462:
++        struct delayed_work *dwork = to_delayed_work(work);$
 
-./patches/m68k-count-can-reach-51-not-50.patch has style problems, please review.  If any of these errors
+ERROR: code indent should use tabs where possible
+#73: FILE: drivers/staging/rtl8187se/r8180_core.c:6410:
++        struct delayed_work *dwork = to_delayed_work(work);$
+
+total: 3 errors, 0 warnings, 41 lines checked
+
+./patches/workqueue-add-to_delayed_work-helper-function-update.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roel Kluin <roel.kluin@gmail.com>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/via-maciisi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c |    2 +-
+ drivers/staging/rtl8187se/r8180_core.c                  |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/macintosh/via-maciisi.c~m68k-count-can-reach-51-not-50-checkpatch-fixes drivers/macintosh/via-maciisi.c
---- a/drivers/macintosh/via-maciisi.c~m68k-count-can-reach-51-not-50-checkpatch-fixes
-+++ a/drivers/macintosh/via-maciisi.c
-@@ -288,7 +288,7 @@ static void maciisi_sync(struct adb_requ
- 	}
- 	/* This could be BAD... when the ADB controller doesn't respond
- 	 * for this long, it's probably not coming back :-( */
--	if(count > 50) /* Hopefully shouldn't happen */
-+	if (count > 50) /* Hopefully shouldn't happen */
- 		printk(KERN_ERR "maciisi_send_request: poll timed out!\n");
- }
- 
+diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c~workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c
+--- a/drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c~workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes
++++ a/drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c
+@@ -777,7 +777,7 @@ out:
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,20))
+ void ieee80211_softmac_scan_wq(struct work_struct *work)
+ {
+-        struct delayed_work *dwork = to_delayed_work(work);
++	struct delayed_work *dwork = to_delayed_work(work);
+         struct ieee80211_device *ieee = container_of(work, struct ieee80211_device, softmac_scan_wq);
+ #else
+ void ieee80211_softmac_scan_wq(struct ieee80211_device *ieee)
+diff -puN drivers/staging/rtl8187se/r8180_core.c~workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes drivers/staging/rtl8187se/r8180_core.c
+--- a/drivers/staging/rtl8187se/r8180_core.c~workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes
++++ a/drivers/staging/rtl8187se/r8180_core.c
+@@ -5459,7 +5459,7 @@ void rtl8180_hw_sleep_wq (struct work_st
+ //      struct r8180_priv *priv = container_of(work, struct r8180_priv, watch_dog_wq);
+ //      struct ieee80211_device * ieee = (struct ieee80211_device*)
+ //                                             container_of(work, struct ieee80211_device, watch_dog_wq);
+-        struct delayed_work *dwork = to_delayed_work(work);
++	struct delayed_work *dwork = to_delayed_work(work);
+         struct ieee80211_device *ieee = container_of(dwork,struct ieee80211_device,hw_sleep_wq);
+         struct net_device *dev = ieee->dev;
+ #else
+@@ -6407,7 +6407,7 @@ priv->txnpring)/8);
+ void rtl8180_tx_irq_wq(struct work_struct *work)
+ {
+ 	//struct r8180_priv *priv = container_of(work, struct r8180_priv, reset_wq);
+-        struct delayed_work *dwork = to_delayed_work(work);
++	struct delayed_work *dwork = to_delayed_work(work);
+ 	struct ieee80211_device * ieee = (struct ieee80211_device*)
+ 	                                       container_of(dwork, struct ieee80211_device, watch_dog_wq);
+ 	struct net_device *dev = ieee->dev;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,6 +99,9 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
 __tty_open-use-the-correct-type-for-saved_flags.patch
+workqueue-add-to_delayed_work-helper-function.patch
+workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes.patch
+simplify-copy_thread-checkpatch-fixes.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
@@ -94,9 +131,6 @@ mm-add-proc-controls-for-pdflush-threads-fix-99.patch
 proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-workqueue-add-to_delayed_work-helper-function-update-checkpatch-fixes.patch
-simplify-copy_thread-checkpatch-fixes.patch
 flat-fix-data-sections-alignment.patch
 rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
