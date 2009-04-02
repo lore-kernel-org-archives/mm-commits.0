@@ -1,156 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 13:21:26 -0700
-Message-ID: <200904022021.n32KLR71024512@imap1.linux-foundation.org>
+Subject: [folded] proc-export-statistics-for-softirq-to-proc-fix.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 13:49:15 -0700
+Message-ID: <200904022049.n32KnFPl032428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762761AbZDBUZ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 16:25:26 -0400
+	by vger.kernel.org with ESMTP id S1751906AbZDBUx6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 16:53:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sage@newdream.net, adilger@sun.com, hch@lst.de, miklos@szeredi.hu, viro@zeniv.linux.org.uk, yehuda@newdream.net, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, dada1@cosmosbay.com, h-shimamoto@ct.jp.nec.com, kobayashi.kk@ncos.nec.co.jp, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: make real_lookup do dentry revalidation with i_mutex held
+     proc: remove redundunt for_each_possible_cpu() loop
 has been removed from the -mm tree.  Its filename was
-     vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch
+     proc-export-statistics-for-softirq-to-proc-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into proc-export-statistics-for-softirq-to-proc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: make real_lookup do dentry revalidation with i_mutex held
-From: Sage Weil <sage@newdream.net>
+Subject: proc: remove redundunt for_each_possible_cpu() loop
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-real_lookup() is called by do_lookup() if dentry revalidation fails.  If
-the cache is re-populated while waiting for i_mutex, it may find that a
-d_lookup() subsequently succeeds (see the "Uhhuh!  Nasty case" comment).
+Distros will set NR_CPUS to very large number and at that time
+for_each_possible_cpu() is a bit costly.
 
-Previously, real_lookup() would drop i_mutex and do_revalidate() again. 
-If revalidate failed _again_, however, it would give up with -ENOENT.  The
-problem here that network file systems may be invalidating dentries via
-server callbacks, e.g.  due to concurrent access from another client, and
--ENOENT is frequently the wrong answer.
+Therefore, To remove unnecessary twice loop is better.
 
-This problem has been seen with both Lustre and Ceph.  It seems possible
-to hit this case with NFS as well if the cache lifetime is very short.
+Note. we can remove softirq's redundunt loop, but we can't remove irq's.
+because NR_SOFTIRQS ~= 10, NR_IRQS ~= 4000 (in x86 case).
 
-Instead, we should do_revalidate() while i_mutex is still held.  If
-revalidation fails, we can move on to a ->lookup() and ensure a correct
-result without worrying about any subsequent races.
-
-Note that do_revalidate() is called with i_mutex held elsewhere.  For
-example, do_filp_open(), lookup_create(), do_unlinkat(), do_rmdir(), and
-possibly others all take the directory i_mutex, and then
-
--> lookup_hash
-        -> __lookup_hash
-                -> cached_lookup
-                        -> do_revalidate
-
-so this does not introduce any new locking rules for d_revalidate
-implementations.
-
-Signed-off-by: Yehuda Sadeh <yehuda@newdream.net>
-Signed-off-by: Sage Weil <sage@newdream.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger@sun.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
+Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   58 +++++++++++++++++++++++++++------------------------
- 1 file changed, 31 insertions(+), 27 deletions(-)
+ fs/proc/stat.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/namei.c~vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held fs/namei.c
---- a/fs/namei.c~vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held
-+++ a/fs/namei.c
-@@ -471,6 +471,7 @@ static struct dentry * real_lookup(struc
- {
- 	struct dentry * result;
- 	struct inode *dir = parent->d_inode;
-+	struct dentry *dentry;
+diff -puN fs/proc/stat.c~proc-export-statistics-for-softirq-to-proc-fix fs/proc/stat.c
+--- a/fs/proc/stat.c~proc-export-statistics-for-softirq-to-proc-fix
++++ a/fs/proc/stat.c
+@@ -27,6 +27,7 @@ static int show_stat(struct seq_file *p,
+ 	cputime64_t guest;
+ 	u64 sum = 0;
+ 	u64 sum_softirq = 0;
++	unsigned int per_softirq_sums[NR_SOFTIRQS] = {0};
+ 	struct timespec boottime;
+ 	unsigned int per_irq_sum;
  
- 	mutex_lock(&dir->i_mutex);
- 	/*
-@@ -488,38 +489,41 @@ static struct dentry * real_lookup(struc
- 	 * so doing d_lookup() (with seqlock), instead of lockfree __d_lookup
- 	 */
- 	result = d_lookup(parent, name);
--	if (!result) {
--		struct dentry *dentry;
--
--		/* Don't create child dentry for a dead directory. */
--		result = ERR_PTR(-ENOENT);
--		if (IS_DEADDIR(dir))
--			goto out_unlock;
--
--		dentry = d_alloc(parent, name);
--		result = ERR_PTR(-ENOMEM);
--		if (dentry) {
--			result = dir->i_op->lookup(dir, dentry, nd);
-+	if (result) {
-+		/*
-+		 * The cache was re-populated while we waited on the
-+		 * mutex.  We need to revalidate, this time while
-+		 * holding i_mutex (to avoid another race).
-+		 */
-+		if (result->d_op && result->d_op->d_revalidate) {
-+			result = do_revalidate(result, nd);
- 			if (result)
--				dput(dentry);
--			else
--				result = dentry;
-+				goto out_unlock;
-+			/*
-+			 * The dentry was left behind invalid.  Just
-+			 * do the lookup.
-+			 */
-+		} else {
-+			goto out_unlock;
+@@ -51,8 +52,12 @@ static int show_stat(struct seq_file *p,
  		}
--out_unlock:
--		mutex_unlock(&dir->i_mutex);
--		return result;
- 	}
+ 		sum += arch_irq_stat_cpu(i);
  
--	/*
--	 * Uhhuh! Nasty case: the cache was re-populated while
--	 * we waited on the semaphore. Need to revalidate.
--	 */
--	mutex_unlock(&dir->i_mutex);
--	if (result->d_op && result->d_op->d_revalidate) {
--		result = do_revalidate(result, nd);
--		if (!result)
--			result = ERR_PTR(-ENOENT);
-+	/* Don't create child dentry for a dead directory. */
-+	result = ERR_PTR(-ENOENT);
-+	if (IS_DEADDIR(dir))
-+		goto out_unlock;
+-		for (j = 0; j < NR_SOFTIRQS; j++)
+-			sum_softirq += kstat_softirqs_cpu(j, i);
++		for (j = 0; j < NR_SOFTIRQS; j++) {
++			unsigned int softirq_stat = kstat_softirqs_cpu(j, i);
 +
-+	dentry = d_alloc(parent, name);
-+	result = ERR_PTR(-ENOMEM);
-+	if (dentry) {
-+		result = dir->i_op->lookup(dir, dentry, nd);
-+		if (result)
-+			dput(dentry);
-+		else
-+			result = dentry;
- 	}
-+out_unlock:
-+	mutex_unlock(&dir->i_mutex);
- 	return result;
- }
++			per_softirq_sums[j] += softirq_stat;
++			sum_softirq += softirq_stat;
++		}
  
-_
-
-Patches currently in -mm which might be from sage@newdream.net are
-
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch
-
+ 	}
+ 	sum += arch_irq_stat();
+@@ -118,12 +123,7 @@ static int show_stat(struct seq_file *p,
+ 	seq_printf(p, "softirq %llu", (unsigned long long)sum_softirq);
+ 
+ 	for (i = 0; i < NR_SOFTIRQS; i++) {
+-		per_irq_sum = 0;
+-
+-		for_each_possible_cpu(j)
+-			per_irq_sum += kstat_softirqs_cpu(i, j);
