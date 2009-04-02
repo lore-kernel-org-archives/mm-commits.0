@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-oom-killer-under-memcg-fix2.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 16:17:36 -0700
-Message-ID: <200904022317.n32NHaup010129@imap1.linux-foundation.org>
+Subject: [folded] memcg-show-memcg-information-during-oom-fix2.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 16:18:46 -0700
+Message-ID: <200904022318.n32NIkDw010450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34157 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751454AbZDBXWb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:22:31 -0400
+	by vger.kernel.org with ESMTP id S1759155AbZDBXXn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:23:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-commits@vger
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-comm
 
 
 The patch titled
-     memcg-fix-oom-killer-under-memcg-fix2
+     memcg-show-memcg-information-during-oom-fix2
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-oom-killer-under-memcg-fix2.patch
+     memcg-show-memcg-information-during-oom-fix2.patch
 
-This patch was dropped because it was folded into memcg-fix-oom-killer-under-memcg.patch
+This patch was dropped because it was folded into memcg-show-memcg-information-during-oom.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-oom-killer-under-memcg-fix2
+Subject: memcg-show-memcg-information-during-oom-fix2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Balbir Singh <balbir@in.ibm.com>
+make compiler happier.
+
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -35,21 +37,22 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix2
-+++ a/mm/memcontrol.c
-@@ -297,7 +297,7 @@ static struct mem_cgroup *try_get_mem_cg
- 	struct mem_cgroup *mem = NULL;
+diff -puN include/linux/memcontrol.h~memcg-show-memcg-information-during-oom-fix2 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-show-memcg-information-during-oom-fix2
++++ a/include/linux/memcontrol.h
+@@ -272,7 +272,8 @@ mem_cgroup_get_reclaim_stat_from_page(st
+ 	return NULL;
+ }
  
- 	if (!mm)
--		return;
-+		return NULL;
- 	/*
- 	 * Because we have no locks, mm->owner's may be being moved to other
- 	 * cgroup. We use css_tryget() here even if this looks
+-void mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
++static inline void
++mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
+ {
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,8 +65,7 @@ simplify-copy_thread.patch
 rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
 memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
 memcg-show-memcg-information-during-oom-fix2.patch
 memcg-show-memcg-information-during-oom-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
