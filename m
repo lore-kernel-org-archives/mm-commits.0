@@ -1,86 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 16:24:45 -0700
-Message-ID: <200904022324.n32NOjK8012275@imap1.linux-foundation.org>
+Subject: [folded] kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 16:24:48 -0700
+Message-ID: <200904022324.n32NOmJW012278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758007AbZDBX1k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:27:40 -0400
+	by vger.kernel.org with ESMTP id S1761094AbZDBX22 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:28:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, horms@verge.net.au, nhorman@tuxdriver.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, horms@verge.net.au, nhorman@tuxdriver.com, randy.dunlap@oracle.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix
 has been removed from the -mm tree.  Its filename was
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
 
 This patch was dropped because it was folded into kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
+Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-- switch didnt-need-to-be-a-macro to inline
-
-- Remove unneeded ifdefs (we already did that in the header)
-
-- repair bouncy enter key
 
 Cc: Neil Horman <nhorman@tuxdriver.com>
 Cc: Simon Horman <horms@verge.net.au>
 Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 +++-
- kernel/kexec.c         |    2 --
- kernel/printk.c        |    1 -
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ kernel/printk.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/kernel.h~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix include/linux/kernel.h
---- a/include/linux/kernel.h~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
-+++ a/include/linux/kernel.h
-@@ -254,7 +254,9 @@ static inline int printk_ratelimit(void)
- static inline bool printk_timed_ratelimit(unsigned long *caller_jiffies, \
- 					  unsigned int interval_msec)	\
- 		{ return false; }
--#define log_buf_kexec_setup() do {} while(0)
-+static inline void log_buf_kexec_setup(void)
-+{
-+}
- #endif
- 
- extern int printk_needs_cpu(int cpu);
-diff -puN kernel/kexec.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix kernel/kexec.c
---- a/kernel/kexec.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
-+++ a/kernel/kexec.c
-@@ -1409,9 +1409,7 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_OFFSET(list_head, prev);
- 	VMCOREINFO_OFFSET(vm_struct, addr);
- 	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
--#ifdef CONFIG_PRINTK
- 	log_buf_kexec_setup();
--#endif
- 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
- 	VMCOREINFO_NUMBER(NR_FREE_PAGES);
- 	VMCOREINFO_NUMBER(PG_lru);
-diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix kernel/printk.c
---- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
+diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix kernel/printk.c
+--- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix
 +++ a/kernel/printk.c
-@@ -142,7 +142,6 @@ void log_buf_kexec_setup(void)
+@@ -136,11 +136,13 @@ static char *log_buf = __log_buf;
+ static int log_buf_len = __LOG_BUF_LEN;
+ static unsigned logged_chars; /* Number of chars produced since last read+clear operation */
+ 
++#ifdef CONFIG_KEXEC
+ void log_buf_kexec_setup(void)
+ {
+ 	VMCOREINFO_SYMBOL(log_buf);
  	VMCOREINFO_SYMBOL(log_end);
  }
++#endif
  
--
  static int __init log_buf_len_setup(char *str)
  {
- 	unsigned size = memparse(str, &str);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,7 +72,6 @@ pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
 nbd-add-locking-to-nbd_ioctl.patch
 edac-new-ppc4xx-driver-module.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
