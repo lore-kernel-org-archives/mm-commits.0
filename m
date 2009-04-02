@@ -1,94 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 16:16:00 -0700
-Message-ID: <200904022316.n32NG0Gq009706@imap1.linux-foundation.org>
+Subject: [folded] ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 16:16:03 -0700
+Message-ID: <200904022316.n32NG37O009718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761720AbZDBXSS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:18:18 -0400
+	by vger.kernel.org with ESMTP id S1756237AbZDBXSf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:18:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, tytso@mit.edu, yjwei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix
+     ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+     ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix
+Subject: ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix up coding-style glitches while we're there (checkpatch!!)
+ERROR: "(foo*)" should be "(foo *)"
+#65: FILE: fs/ext3/namei.c:1130:
++	while ((char*)de < base + blocksize) {
 
-- rename `size' to `blocksize'.
+total: 1 errors, 0 warnings, 48 lines checked
+
+./patches/ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Wei Yongjun <yjwei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ fs/ext3/namei.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext3/namei.c~ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix
+diff -puN fs/ext3/namei.c~ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes
 +++ a/fs/ext3/namei.c
-@@ -161,12 +161,12 @@ static struct dx_frame *dx_probe(struct 
- 				 struct dx_frame *frame,
- 				 int *err);
- static void dx_release (struct dx_frame *frames);
--static int dx_make_map (struct ext3_dir_entry_2 *de, unsigned size,
-+static int dx_make_map(struct ext3_dir_entry_2 *de, unsigned blocksize,
- 			struct dx_hash_info *hinfo, struct dx_map_entry map[]);
- static void dx_sort_map(struct dx_map_entry *map, unsigned count);
- static struct ext3_dir_entry_2 *dx_move_dirents (char *from, char *to,
- 		struct dx_map_entry *offsets, int count);
--static struct ext3_dir_entry_2* dx_pack_dirents (char *base, unsigned size);
-+static struct ext3_dir_entry_2 *dx_pack_dirents(char *base, unsigned blocksize);
- static void dx_insert_block (struct dx_frame *frame, u32 hash, u32 block);
- static int ext3_htree_next_block(struct inode *dir, __u32 hash,
- 				 struct dx_frame *frame,
-@@ -708,14 +708,14 @@ errout:
-  * Create map of hash values, offsets, and sizes, stored at end of block.
-  * Returns number of entries mapped.
-  */
--static int dx_make_map (struct ext3_dir_entry_2 *de, unsigned size,
--			struct dx_hash_info *hinfo, struct dx_map_entry *map_tail)
-+static int dx_make_map(struct ext3_dir_entry_2 *de, unsigned blocksize,
-+		struct dx_hash_info *hinfo, struct dx_map_entry *map_tail)
- {
- 	int count = 0;
- 	char *base = (char *) de;
- 	struct dx_hash_info h = *hinfo;
- 
--	while ((char *) de < base + size)
-+	while ((char *) de < base + blocksize)
- 	{
- 		if (de->name_len && de->inode) {
- 			ext3fs_dirhash(de->name, de->name_len, &h);
-@@ -1120,13 +1120,14 @@ dx_move_dirents(char *from, char *to, st
-  * Compact each dir entry in the range to the minimal rec_len.
-  * Returns pointer to last entry in range.
-  */
--static struct ext3_dir_entry_2* dx_pack_dirents(char *base, unsigned size)
-+static struct ext3_dir_entry_2 *dx_pack_dirents(char *base, unsigned blocksize)
- {
--	struct ext3_dir_entry_2 *next, *to, *prev, *de = (struct ext3_dir_entry_2 *) base;
-+	struct ext3_dir_entry_2 *next, *to, *prev;
-+	struct ext3_dir_entry_2 *de = (struct ext3_dir_entry_2 *)base;
+@@ -1127,7 +1127,7 @@ static struct ext3_dir_entry_2 *dx_pack_
  	unsigned rec_len = 0;
  
  	prev = to = de;
--	while ((char*)de < base + size) {
-+	while ((char*)de < base + blocksize) {
+-	while ((char*)de < base + blocksize) {
++	while ((char *)de < base + blocksize) {
  		next = ext3_next_entry(de);
  		if (de->inode && de->name_len) {
  			rec_len = EXT3_DIR_REC_LEN(de->name_len);
@@ -103,7 +69,6 @@ workqueue-add-to_delayed_work-helper-function.patch
 simplify-copy_thread.patch
 rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
 memcg-fix-oom-killer-under-memcg-fix2.patch
 memcg-fix-oom-killer-under-memcg-fix.patch
