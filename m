@@ -1,34 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-show-memcg-information-during-oom-fix.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 16:18:48 -0700
-Message-ID: <200904022318.n32NIm4Y010454@imap1.linux-foundation.org>
+Subject: [folded] memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 16:18:54 -0700
+Message-ID: <200904022318.n32NIs7E010502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33377 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756249AbZDBXXk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:23:40 -0400
+	by vger.kernel.org with ESMTP id S1759155AbZDBXXz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:23:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-comm
 
 
 The patch titled
-     memcg-show-memcg-information-during-oom-fix
+     memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     memcg-show-memcg-information-during-oom-fix.patch
+     memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into memcg-show-memcg-information-during-oom.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-show-memcg-information-during-oom-fix
+Subject: memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- kerneldoc requires that the function description be a single line
+WARNING: printk() should include KERN_ facility level
+#77: FILE: mm/memcontrol.c:779:
++	printk(" as a result of limit of %s\n", memcg_name);
 
-- unmunge whitespace
+total: 0 errors, 1 warnings, 53 lines checked
+
+./patches/memcg-show-memcg-information-during-oom-fix-fix.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -39,31 +47,21 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-show-memcg-information-during-oom-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-show-memcg-information-during-oom-fix
+diff -puN mm/memcontrol.c~memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes
 +++ a/mm/memcontrol.c
-@@ -724,8 +724,7 @@ static int mem_cgroup_count_children_cb(
- }
+@@ -776,7 +776,7 @@ void mem_cgroup_print_oom_info(struct me
+ 	/*
+ 	 * Continues from above, so we don't need an KERN_ level
+ 	 */
+-	printk(" as a result of limit of %s\n", memcg_name);
++	printk(KERN_CONT " as a result of limit of %s\n", memcg_name);
+ done:
  
- /**
-- * mem_cgroup_print_mem_info: Called from OOM with tasklist_lock held in
-- * read mode.
-+ * mem_cgroup_print_mem_info: Called from OOM with tasklist_lock held in read mode.
-  * @memcg: The memory cgroup that went over limit
-  * @p: Task that is going to be killed
-  *
-@@ -762,7 +761,7 @@ void mem_cgroup_print_oom_info(struct me
- 		goto done;
- 	}
- 	ret = cgroup_path(mem_cgrp, memcg_name, PATH_MAX);
--	 if (ret < 0) {
-+	if (ret < 0) {
- 		rcu_read_unlock();
- 		goto done;
- 	}
+ 	printk(KERN_INFO "memory: usage %llukB, limit %llukB, failcnt %llu\n",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,7 +75,6 @@ rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
 memcg-fix-oom-killer-under-memcg.patch
 memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
 forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
 hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch
