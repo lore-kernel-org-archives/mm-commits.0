@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-show-memcg-information-during-oom-fix2.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 16:18:46 -0700
-Message-ID: <200904022318.n32NIkDw010450@imap1.linux-foundation.org>
+Subject: [folded] memcg-show-memcg-information-during-oom-fix.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 16:18:48 -0700
+Message-ID: <200904022318.n32NIm4Y010454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33377 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759155AbZDBXXn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:23:43 -0400
+	by vger.kernel.org with ESMTP id S1756249AbZDBXXk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:23:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-comm
 
 
 The patch titled
-     memcg-show-memcg-information-during-oom-fix2
+     memcg-show-memcg-information-during-oom-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-show-memcg-information-during-oom-fix2.patch
+     memcg-show-memcg-information-during-oom-fix.patch
 
 This patch was dropped because it was folded into memcg-show-memcg-information-during-oom.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-show-memcg-information-during-oom-fix2
+Subject: memcg-show-memcg-information-during-oom-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make compiler happier.
+- kerneldoc requires that the function description be a single line
+
+- unmunge whitespace
 
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -37,22 +39,31 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-show-memcg-information-during-oom-fix2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-show-memcg-information-during-oom-fix2
-+++ a/include/linux/memcontrol.h
-@@ -272,7 +272,8 @@ mem_cgroup_get_reclaim_stat_from_page(st
- 	return NULL;
+diff -puN mm/memcontrol.c~memcg-show-memcg-information-during-oom-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-show-memcg-information-during-oom-fix
++++ a/mm/memcontrol.c
+@@ -724,8 +724,7 @@ static int mem_cgroup_count_children_cb(
  }
  
--void mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
-+static inline void
-+mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
- {
- }
- 
+ /**
+- * mem_cgroup_print_mem_info: Called from OOM with tasklist_lock held in
+- * read mode.
++ * mem_cgroup_print_mem_info: Called from OOM with tasklist_lock held in read mode.
+  * @memcg: The memory cgroup that went over limit
+  * @p: Task that is going to be killed
+  *
+@@ -762,7 +761,7 @@ void mem_cgroup_print_oom_info(struct me
+ 		goto done;
+ 	}
+ 	ret = cgroup_path(mem_cgrp, memcg_name, PATH_MAX);
+-	 if (ret < 0) {
++	if (ret < 0) {
+ 		rcu_read_unlock();
+ 		goto done;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +77,6 @@ rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
 memcg-fix-oom-killer-under-memcg.patch
 memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
 memcg-show-memcg-information-during-oom-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
 forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
