@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + workqueue-add-to_delayed_work-helper-function-update.patch added to -mm tree
-Date: Thu, 02 Apr 2009 09:14:10 -0700
-Message-ID: <200904021614.n32GEAkB018095@imap1.linux-foundation.org>
+Subject: + generic-debug-pagealloc-build-fix.patch added to -mm tree
+Date: Thu, 02 Apr 2009 09:46:22 -0700
+Message-ID: <200904021646.n32GkMHM027540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43668 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756593AbZDBQQf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 12:16:35 -0400
+	by vger.kernel.org with ESMTP id S932297AbZDBQsi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 12:48:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, mingo@elte.hu
+Cc: akinobu.mita@gmail.com, a.beregalov@gmail.com
 
 
 The patch titled
-     workqueue-add-to_delayed_work-helper-function update
+     generic debug pagealloc: build fix 
 has been added to the -mm tree.  Its filename is
-     workqueue-add-to_delayed_work-helper-function-update.patch
+     generic-debug-pagealloc-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,160 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueue-add-to_delayed_work-helper-function update
-From: Jean Delvare <khali@linux-fr.org>
+Subject: generic debug pagealloc: build fix 
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-It is a fairly common operation to have a pointer to a work and to
-need a pointer to the delayed work it is contained in. In particular,
-all delayed works which want to rearm themselves will have to do that.
-So it would seem fair to offer a helper function for this operation.
+mm/debug-pagealloc.c: In function 'set_page_poison':
+mm/debug-pagealloc.c:8: error: 'struct page' has no member named 'debug_flags'
+mm/debug-pagealloc.c: In function 'clear_page_poison':
+mm/debug-pagealloc.c:13: error: 'struct page' has no member named 'debug_flags'
+mm/debug-pagealloc.c: In function 'page_poison':
+mm/debug-pagealloc.c:18: error: 'struct page' has no member named 'debug_flags'
+mm/debug-pagealloc.c: At top level:
+mm/debug-pagealloc.c:120: error: redefinition of 'kernel_map_pages'
+include/linux/mm.h:1278: error: previous definition of
+'kernel_map_pages' was here
+mm/debug-pagealloc.c: In function 'kernel_map_pages':
+mm/debug-pagealloc.c:122: error: 'debug_pagealloc_enabled' undeclared
+(first use in this function)
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+This patch fixes build failure with generic debug pagealloc:
+
+ - debug_flags should be in struct page
+ - define DEBUG_PAGEALLOC config option for all architectures
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reported-by: Alexander Beregalov <a.beregalov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/mlx4/sense.c                                |    2 +-
- drivers/net/phy/phy.c                                   |    3 +--
- drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c |    2 +-
- drivers/staging/rtl8187se/r8180_core.c                  |    4 ++--
- 4 files changed, 5 insertions(+), 6 deletions(-)
+ arch/powerpc/Kconfig.debug |   10 ----------
+ arch/s390/Kconfig.debug    |    9 ---------
+ arch/sparc/Kconfig.debug   |    9 ---------
+ arch/x86/Kconfig.debug     |    9 ---------
+ include/linux/mm_types.h   |    6 +++---
+ mm/Kconfig.debug           |    9 +++++++++
+ 6 files changed, 12 insertions(+), 40 deletions(-)
 
-diff -puN drivers/net/mlx4/sense.c~workqueue-add-to_delayed_work-helper-function-update drivers/net/mlx4/sense.c
---- a/drivers/net/mlx4/sense.c~workqueue-add-to_delayed_work-helper-function-update
-+++ a/drivers/net/mlx4/sense.c
-@@ -103,7 +103,7 @@ void mlx4_do_sense_ports(struct mlx4_dev
+diff -puN arch/powerpc/Kconfig.debug~generic-debug-pagealloc-build-fix arch/powerpc/Kconfig.debug
+--- a/arch/powerpc/Kconfig.debug~generic-debug-pagealloc-build-fix
++++ a/arch/powerpc/Kconfig.debug
+@@ -27,16 +27,6 @@ config DEBUG_STACK_USAGE
  
- static void mlx4_sense_port(struct work_struct *work)
- {
--	struct delayed_work *delay = container_of(work, struct delayed_work, work);
-+	struct delayed_work *delay = to_delayed_work(work);
- 	struct mlx4_sense *sense = container_of(delay, struct mlx4_sense,
- 						sense_poll);
- 	struct mlx4_dev *dev = sense->dev;
-diff -puN drivers/net/phy/phy.c~workqueue-add-to_delayed_work-helper-function-update drivers/net/phy/phy.c
---- a/drivers/net/phy/phy.c~workqueue-add-to_delayed_work-helper-function-update
-+++ a/drivers/net/phy/phy.c
-@@ -757,8 +757,7 @@ EXPORT_SYMBOL(phy_start);
-  */
- static void phy_state_machine(struct work_struct *work)
- {
--	struct delayed_work *dwork =
--			container_of(work, struct delayed_work, work);
-+	struct delayed_work *dwork = to_delayed_work(work);
- 	struct phy_device *phydev =
- 			container_of(dwork, struct phy_device, state_queue);
- 	int needs_aneg = 0;
-diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c~workqueue-add-to_delayed_work-helper-function-update drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c
---- a/drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c~workqueue-add-to_delayed_work-helper-function-update
-+++ a/drivers/staging/rtl8187se/ieee80211/ieee80211_softmac.c
-@@ -777,7 +777,7 @@ out:
- #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,20))
- void ieee80211_softmac_scan_wq(struct work_struct *work)
- {
--	struct delayed_work *dwork = to_delayed_work(work);
-+        struct delayed_work *dwork = to_delayed_work(work);
-         struct ieee80211_device *ieee = container_of(work, struct ieee80211_device, softmac_scan_wq);
- #else
- void ieee80211_softmac_scan_wq(struct ieee80211_device *ieee)
-diff -puN drivers/staging/rtl8187se/r8180_core.c~workqueue-add-to_delayed_work-helper-function-update drivers/staging/rtl8187se/r8180_core.c
---- a/drivers/staging/rtl8187se/r8180_core.c~workqueue-add-to_delayed_work-helper-function-update
-+++ a/drivers/staging/rtl8187se/r8180_core.c
-@@ -5459,7 +5459,7 @@ void rtl8180_hw_sleep_wq (struct work_st
- //      struct r8180_priv *priv = container_of(work, struct r8180_priv, watch_dog_wq);
- //      struct ieee80211_device * ieee = (struct ieee80211_device*)
- //                                             container_of(work, struct ieee80211_device, watch_dog_wq);
--	struct delayed_work *dwork = to_delayed_work(work);
-+        struct delayed_work *dwork = to_delayed_work(work);
-         struct ieee80211_device *ieee = container_of(dwork,struct ieee80211_device,hw_sleep_wq);
-         struct net_device *dev = ieee->dev;
- #else
-@@ -6407,7 +6407,7 @@ priv->txnpring)/8);
- void rtl8180_tx_irq_wq(struct work_struct *work)
- {
- 	//struct r8180_priv *priv = container_of(work, struct r8180_priv, reset_wq);
--	struct delayed_work *dwork = to_delayed_work(work);
-+        struct delayed_work *dwork = to_delayed_work(work);
- 	struct ieee80211_device * ieee = (struct ieee80211_device*)
- 	                                       container_of(dwork, struct ieee80211_device, watch_dog_wq);
- 	struct net_device *dev = ieee->dev;
+ 	  This option will slow down process creation somewhat.
+ 
+-config DEBUG_PAGEALLOC
+-        bool "Debug page memory allocations"
+-        depends on DEBUG_KERNEL && !HIBERNATION
+-	depends on ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-        help
+-          Unmap pages from the kernel linear mapping after free_pages().
+-          This results in a large slowdown, but helps to find certain types
+-          of memory corruptions.
+-
+-
+ config HCALL_STATS
+ 	bool "Hypervisor call instrumentation"
+ 	depends on PPC_PSERIES && DEBUG_FS
+diff -puN arch/s390/Kconfig.debug~generic-debug-pagealloc-build-fix arch/s390/Kconfig.debug
+--- a/arch/s390/Kconfig.debug~generic-debug-pagealloc-build-fix
++++ a/arch/s390/Kconfig.debug
+@@ -6,13 +6,4 @@ config TRACE_IRQFLAGS_SUPPORT
+ 
+ source "lib/Kconfig.debug"
+ 
+-config DEBUG_PAGEALLOC
+-	bool "Debug page memory allocations"
+-	depends on DEBUG_KERNEL
+-	depends on ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	help
+-	  Unmap pages from the kernel linear mapping after free_pages().
+-	  This results in a slowdown, but helps to find certain types of
+-	  memory corruptions.
+-
+ endmenu
+diff -puN arch/sparc/Kconfig.debug~generic-debug-pagealloc-build-fix arch/sparc/Kconfig.debug
+--- a/arch/sparc/Kconfig.debug~generic-debug-pagealloc-build-fix
++++ a/arch/sparc/Kconfig.debug
+@@ -22,15 +22,6 @@ config DEBUG_DCFLUSH
+ config STACK_DEBUG
+ 	bool "Stack Overflow Detection Support"
+ 
+-config DEBUG_PAGEALLOC
+-	bool "Debug page memory allocations"
+-	depends on DEBUG_KERNEL && !HIBERNATION
+-	depends on ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	help
+-	  Unmap pages from the kernel linear mapping after free_pages().
+-	  This results in a large slowdown, but helps to find certain types
+-	  of memory corruptions.
+-
+ config MCOUNT
+ 	bool
+ 	depends on SPARC64
+diff -puN arch/x86/Kconfig.debug~generic-debug-pagealloc-build-fix arch/x86/Kconfig.debug
+--- a/arch/x86/Kconfig.debug~generic-debug-pagealloc-build-fix
++++ a/arch/x86/Kconfig.debug
+@@ -72,15 +72,6 @@ config DEBUG_STACK_USAGE
+ 
+ 	  This option will slow down process creation somewhat.
+ 
+-config DEBUG_PAGEALLOC
+-	bool "Debug page memory allocations"
+-	depends on DEBUG_KERNEL
+-	depends on ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	---help---
+-	  Unmap pages from the kernel linear mapping after free_pages().
+-	  This results in a large slowdown, but helps to find certain types
+-	  of memory corruptions.
+-
+ config DEBUG_PER_CPU_MAPS
+ 	bool "Debug access to per_cpu maps"
+ 	depends on DEBUG_KERNEL
+diff -puN include/linux/mm_types.h~generic-debug-pagealloc-build-fix include/linux/mm_types.h
+--- a/include/linux/mm_types.h~generic-debug-pagealloc-build-fix
++++ a/include/linux/mm_types.h
+@@ -95,6 +95,9 @@ struct page {
+ 	void *virtual;			/* Kernel virtual address (NULL if
+ 					   not kmapped, ie. highmem) */
+ #endif /* WANT_PAGE_VIRTUAL */
++#ifdef CONFIG_WANT_PAGE_DEBUG_FLAGS
++	unsigned long debug_flags;	/* Use atomic bitops on this */
++#endif
+ };
+ 
+ /*
+@@ -175,9 +178,6 @@ struct vm_area_struct {
+ #ifdef CONFIG_NUMA
+ 	struct mempolicy *vm_policy;	/* NUMA policy for the VMA */
+ #endif
+-#ifdef CONFIG_WANT_PAGE_DEBUG_FLAGS
+-	unsigned long debug_flags;	/* Use atomic bitops on this */
+-#endif
+ };
+ 
+ struct core_thread {
+diff -puN mm/Kconfig.debug~generic-debug-pagealloc-build-fix mm/Kconfig.debug
+--- a/mm/Kconfig.debug~generic-debug-pagealloc-build-fix
++++ a/mm/Kconfig.debug
+@@ -1,3 +1,12 @@
++config DEBUG_PAGEALLOC
++	bool "Debug page memory allocations"
++	depends on DEBUG_KERNEL && ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	depends on !HIBERNATION || !PPC && !SPARC
++	---help---
++	  Unmap pages from the kernel linear mapping after free_pages().
++	  This results in a large slowdown, but helps to find certain types
++	  of memory corruptions.
++
+ config WANT_PAGE_DEBUG_FLAGS
+ 	bool
+ 
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-linux-next.patch
-dell-laptop-fix-uninitialized-wrong-return-value.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-i2c-incremental-i2c-mpc-driver-fix-for-multi-master-i2c-busses.patch
-workqueue-add-to_delayed_work-helper-function.patch
-workqueue-add-to_delayed_work-helper-function-update.patch
-memory_accessor-new-interface-for-reading-writing-persistent-memory.patch
-memory_accessor-implement-the-new-memory_accessor-interface-for-i2c-eeprom.patch
-memory_accessor-implement-the-new-memory_accessor-interfaces-for-spi-eeproms.patch
-tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
-tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
+generic-debug-pagealloc-build-fix.patch
+mm-fix-misuse-of-debug_kmap_atomic.patch
 
