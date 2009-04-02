@@ -1,33 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-oom-killer-under-memcg-fix.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 16:17:39 -0700
-Message-ID: <200904022317.n32NHd5Q010172@imap1.linux-foundation.org>
+Subject: [folded] memcg-fix-oom-killer-under-memcg-fix2.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 16:17:36 -0700
+Message-ID: <200904022317.n32NHaup010129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755179AbZDBXWd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:22:33 -0400
+	by vger.kernel.org with ESMTP id S1751454AbZDBXWb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:22:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-commits@vger
 
 
 The patch titled
-     memcg-fix-oom-killer-under-memcg-fix
+     memcg-fix-oom-killer-under-memcg-fix2
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-oom-killer-under-memcg-fix.patch
+     memcg-fix-oom-killer-under-memcg-fix2.patch
 
 This patch was dropped because it was folded into memcg-fix-oom-killer-under-memcg.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-oom-killer-under-memcg-fix
+Subject: memcg-fix-oom-killer-under-memcg-fix2
 From: Andrew Morton <akpm@linux-foundation.org>
-
-mm/oom_kill.c: In function 'dump_tasks':
-mm/oom_kill.c:293: warning: passing argument 2 of 'task_in_mem_cgroup' discards qualifiers from pointer target type
 
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -38,69 +35,21 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h     |    2 +-
- include/linux/memcontrol.h |    4 ++--
- kernel/cgroup.c            |    2 +-
- mm/memcontrol.c            |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cgroup.h~memcg-fix-oom-killer-under-memcg-fix include/linux/cgroup.h
---- a/include/linux/cgroup.h~memcg-fix-oom-killer-under-memcg-fix
-+++ a/include/linux/cgroup.h
-@@ -501,7 +501,7 @@ struct cgroup_subsys_state *css_get_next
- 
- /* Returns true if root is ancestor of cg */
- bool css_is_ancestor(struct cgroup_subsys_state *cg,
--		     struct cgroup_subsys_state *root);
-+		     const struct cgroup_subsys_state *root);
- 
- /* Get id and depth of css */
- unsigned short css_id(struct cgroup_subsys_state *css);
-diff -puN include/linux/memcontrol.h~memcg-fix-oom-killer-under-memcg-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-oom-killer-under-memcg-fix
-+++ a/include/linux/memcontrol.h
-@@ -66,7 +66,7 @@ extern unsigned long mem_cgroup_isolate_
- 					struct mem_cgroup *mem_cont,
- 					int active, int file);
- extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
--int task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *mem);
-+int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem);
- 
- extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
- 
-@@ -192,7 +192,7 @@ static inline int mm_match_cgroup(struct
- }
- 
- static inline int task_in_mem_cgroup(struct task_struct *task,
--				     struct mem_cgroup *mem)
-+				     const struct mem_cgroup *mem)
- {
- 	return 1;
- }
-diff -puN kernel/cgroup.c~memcg-fix-oom-killer-under-memcg-fix kernel/cgroup.c
---- a/kernel/cgroup.c~memcg-fix-oom-killer-under-memcg-fix
-+++ a/kernel/cgroup.c
-@@ -3377,7 +3377,7 @@ unsigned short css_depth(struct cgroup_s
- }
- 
- bool css_is_ancestor(struct cgroup_subsys_state *child,
--		    struct cgroup_subsys_state *root)
-+		    const struct cgroup_subsys_state *root)
- {
- 	struct css_id *child_id = rcu_dereference(child->id);
- 	struct css_id *root_id = rcu_dereference(root->id);
-diff -puN mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix
+diff -puN mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix2 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix2
 +++ a/mm/memcontrol.c
-@@ -486,7 +486,7 @@ void mem_cgroup_move_lists(struct page *
- 	mem_cgroup_add_lru_list(page, to);
- }
+@@ -297,7 +297,7 @@ static struct mem_cgroup *try_get_mem_cg
+ 	struct mem_cgroup *mem = NULL;
  
--int task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *mem)
-+int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
- {
- 	int ret;
- 	struct mem_cgroup *curr = NULL;
+ 	if (!mm)
+-		return;
++		return NULL;
+ 	/*
+ 	 * Because we have no locks, mm->owner's may be being moved to other
+ 	 * cgroup. We use css_tryget() here even if this looks
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +62,7 @@ simplify-copy_thread.patch
 rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
 memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
 memcg-fix-oom-killer-under-memcg-fix.patch
 memcg-show-memcg-information-during-oom-fix2.patch
 memcg-show-memcg-information-during-oom-fix.patch
