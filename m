@@ -1,73 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 14:15:40 -0700
-Message-ID: <200904022115.n32LFecC007523@imap1.linux-foundation.org>
+Subject: [folded] pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 14:16:43 -0700
+Message-ID: <200904022116.n32LGhL5007789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48369 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759345AbZDBVVF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 17:21:05 -0400
+	by vger.kernel.org with ESMTP id S1759391AbZDBVVW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 17:21:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Robert.Picco@hp.com, clemens@ladisch.de, mingo@elte.hu, paul.gortmaker@windriver.com, venkatesh.pallipadi@intel.com, vojtech@suse.cz, y-goto@jp.fujitsu.com
+To: akpm@linux-foundation.org, Louis.Rilling@kerlabs.com, ebiederm@xmission.com, oleg@redhat.com, roland@redhat.com, sukadev@linux.vnet.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix
+     pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix
 has been removed from the -mm tree.  Its filename was
-     hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
+     pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
 
-This patch was dropped because it was folded into hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch
+This patch was dropped because it was folded into pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix
+Subject: pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-trivial style tweaks.
-
-Cc: Clemens Ladisch <clemens@ladisch.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Robert Picco <Robert.Picco@hp.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Vojtech Pavlik <vojtech@suse.cz>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Louis Rilling <Louis.Rilling@kerlabs.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/sched.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/char/hpet.c~hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix drivers/char/hpet.c
---- a/drivers/char/hpet.c~hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix
-+++ a/drivers/char/hpet.c
-@@ -752,19 +752,20 @@ static unsigned long __hpet_calibrate(st
- 
- static unsigned long hpet_calibrate(struct hpets *hpetp)
+diff -puN include/linux/sched.h~pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix include/linux/sched.h
+--- a/include/linux/sched.h~pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix
++++ a/include/linux/sched.h
+@@ -1476,9 +1476,7 @@ static inline struct pid *task_tgid(stru
+  * Without tasklist or rcu lock it is not safe to dereference
+  * the result of task_pgrp/task_session even if task == current,
+  * we can race with another thread doing sys_setsid/sys_setpgid.
+- *
+  */
+-
+ static inline struct pid *task_pgrp(struct task_struct *task)
  {
--	unsigned long ret = ~0UL, tmp;
-+	unsigned long ret = -1;
-+	unsigned long tmp;
- 
- 	/*
- 	 * Try to calibrate until return value becomes stable small value.
- 	 * If SMI interruption occurs in calibration loop, the return value
- 	 * will be big. This avoids its impact.
- 	 */
--	do {
-+	for ( ; ; ) {
- 		tmp = __hpet_calibrate(hpetp);
- 		if (ret <= tmp)
- 			break;
- 		ret = tmp;
--	} while (1);
-+	}
- 
- 	return ret;
- }
+ 	return task->group_leader->pids[PIDTYPE_PGID].pid;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +69,7 @@ memcg-show-memcg-information-during-oom-fix2.patch
 memcg-show-memcg-information-during-oom-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
 forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
@@ -116,8 +100,7 @@ proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
 flat-fix-data-sections-alignment.patch
-hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch
-hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
 pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
 nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
 nbd-add-locking-to-nbd_ioctl-fix.patch
