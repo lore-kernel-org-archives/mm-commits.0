@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [folded] edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 16:23:29 -0700
-Message-ID: <200904022323.n32NNT4O011883@imap1.linux-foundation.org>
+Subject: [folded] edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 16:23:26 -0700
+Message-ID: <200904022323.n32NNQ3Q011836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53858 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757067AbZDBX0I (ORCPT
+	by vger.kernel.org with ESMTP id S1758442AbZDBX0I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:26:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,26 +14,31 @@ To: akpm@linux-foundation.org, benh@kernel.crashing.org, dougthompson@xmission.c
 
 
 The patch titled
-     edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes
+     edac-new-ppc4xx-driver-module-update-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+     edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into edac-new-ppc4xx-driver-module.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes
+Subject: edac-new-ppc4xx-driver-module-update-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: suspect code indent for conditional statements (28, 36)
-#46: FILE: drivers/edac/ppc4xx_edac.c:340:
-+			    if (n < 0 || n >= size)
-+				    goto fail;
+WARNING: suspect code indent for conditional statements (16, 28)
+#137: FILE: drivers/edac/ppc4xx_edac.c:335:
+ 		if (ppc4xx_edac_check_bank_error(status, row)) {
++			    n = snprintf(buffer, size,
 
-total: 0 errors, 1 warnings, 26 lines checked
+WARNING: suspect code indent for conditional statements (20, 28)
+#146: FILE: drivers/edac/ppc4xx_edac.c:340:
++		    if (n < 0 || n >= size)
++			    goto fail;
 
-./patches/edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch has style problems, please review.  If any of these errors
+total: 0 errors, 2 warnings, 674 lines checked
+
+./patches/edac-new-ppc4xx-driver-module-update.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -45,37 +50,38 @@ Cc: Grant Erickson <gerickson@nuovations.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/ppc4xx_edac.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/edac/ppc4xx_edac.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/edac/ppc4xx_edac.c~edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes drivers/edac/ppc4xx_edac.c
---- a/drivers/edac/ppc4xx_edac.c~edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes
+diff -puN drivers/edac/ppc4xx_edac.c~edac-new-ppc4xx-driver-module-update-checkpatch-fixes drivers/edac/ppc4xx_edac.c
+--- a/drivers/edac/ppc4xx_edac.c~edac-new-ppc4xx-driver-module-update-checkpatch-fixes
 +++ a/drivers/edac/ppc4xx_edac.c
-@@ -333,16 +333,15 @@ ppc4xx_edac_generate_bank_message(const 
+@@ -331,19 +331,20 @@ ppc4xx_edac_generate_bank_message(const 
+ 	size -= n;
+ 	total += n;
  
- 	for (rows = 0, row = 0; row < mci->nr_csrows; row++) {
+-	for (rows = 0, row = 0; row < mci->nr_csrows; row++)
++	for (rows = 0, row = 0; row < mci->nr_csrows; row++) {
  		if (ppc4xx_edac_check_bank_error(status, row)) {
--			    n = snprintf(buffer, size,
--					 "%s%u",
--					 (rows++ ? ", " : ""), row);
--
--			    if (n < 0 || n >= size)
--				    goto fail;
--
--			    buffer += n;
--			    size -= n;
--			    total += n;
-+			n = snprintf(buffer, size, "%s%u",
-+					(rows++ ? ", " : ""), row);
-+
-+			if (n < 0 || n >= size)
-+				goto fail;
-+
-+			buffer += n;
-+			size -= n;
-+			total += n;
+ 			    n = snprintf(buffer, size,
+ 					 "%s%u",
+ 					 (rows++ ? ", " : ""), row);
+ 
+-		    if (n < 0 || n >= size)
+-			    goto fail;
++			    if (n < 0 || n >= size)
++				    goto fail;
+ 
+-		    buffer += n;
+-		    size -= n;
+-		    total += n;
++			    buffer += n;
++			    size -= n;
++			    total += n;
  		}
- 	}
++	}
+ 
+ 	n = snprintf(buffer, size, "%s; ", rows ? "" : "None");
  
 _
 
@@ -95,6 +101,7 @@ hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.pa
 pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
 nbd-add-locking-to-nbd_ioctl.patch
 edac-new-ppc4xx-driver-module.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
 edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
