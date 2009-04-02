@@ -1,85 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [folded] edac-amd8131-driver-source-file-v2.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 16:24:25 -0700
-Message-ID: <200904022324.n32NOPJJ012189@imap1.linux-foundation.org>
+Subject: [folded] kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch removed from -mm tree
+Date: Thu, 02 Apr 2009 16:25:44 -0700
+Message-ID: <200904022325.n32NPjcr012572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57277 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759907AbZDBX0S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:26:18 -0400
+	by vger.kernel.org with ESMTP id S1758500AbZDBX1J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:27:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qingtao.cao@windriver.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, nhorman@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: AMD8131 driver source file v2
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup
 has been removed from the -mm tree.  Its filename was
-     edac-amd8131-driver-source-file-v2.patch
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
 
-This patch was dropped because it was folded into edac-amd8131-driver-source-file.patch
+This patch was dropped because it was folded into kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: AMD8131 driver source file v2
-From: Harry Ciao <qingtao.cao@windriver.com>
+Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Introduce AMD8131 EDAC driver source file, which makes use of error
-detections on the PCI-X Bridge Controllers on the AMD8131 HyperTransport
-PCI-X Tunnel.
-
-Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
-Cc: Doug Thompson <norsk5@yahoo.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/amd8131_edac.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/printk.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/edac/amd8131_edac.c~edac-amd8131-driver-source-file-v2 drivers/edac/amd8131_edac.c
---- a/drivers/edac/amd8131_edac.c~edac-amd8131-driver-source-file-v2
-+++ a/drivers/edac/amd8131_edac.c
-@@ -42,7 +42,7 @@ static void edac_pci_read_dword(struct p
- 	int ret;
- 
- 	ret = pci_read_config_dword(dev, reg, val32);
--	if (ret > 0)
-+	if (ret != 0)
- 		printk(KERN_ERR AMD8131_EDAC_MOD_STR
- 			" PCI Access Read Error at 0x%x\n", reg);
- }
-@@ -52,7 +52,7 @@ static void edac_pci_write_dword(struct 
- 	int ret;
- 
- 	ret = pci_write_config_dword(dev, reg, val32);
--	if (ret > 0)
-+	if (ret != 0)
- 		printk(KERN_ERR AMD8131_EDAC_MOD_STR
- 			" PCI Access Write Error at 0x%x\n", reg);
- }
-@@ -357,6 +357,9 @@ static struct pci_driver amd8131_edac_dr
- 
- static int __init amd8131_edac_init(void)
+diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup kernel/printk.c
+--- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup
++++ a/kernel/printk.c
+@@ -139,12 +139,11 @@ static unsigned logged_chars; /* Number 
+ #ifdef CONFIG_KEXEC
+ /*
+  * This appends the listed symbols to /proc/vmcoreinfo
+- * /proc/vmcoreinfo is used by various utiilties, like
+- * crash and makedumpfile to obtain access to symbols that
+- * are otherwise very difficult to locate.  These symbols
+- * are specifically used so that utilities
+- * can access and extract the dmesg log from a vmcore file
+- * after a crash
++ *
++ * /proc/vmcoreinfo is used by various utiilties, like crash and makedumpfile to
++ * obtain access to symbols that are otherwise very difficult to locate.  These
++ * symbols are specifically used so that utilities can access and extract the
++ * dmesg log from a vmcore file after a crash.
+  */
+ void log_buf_kexec_setup(void)
  {
-+	printk(KERN_INFO "AMD8131 EDAC driver " AMD8131_EDAC_REVISION "\n");
-+	printk(KERN_INFO "\t(c) 2008 Wind River Systems, Inc.\n");
-+
- 	/* Only POLL mode supported so far */
- 	edac_op_state = EDAC_OPSTATE_POLL;
- 
 _
 
-Patches currently in -mm which might be from qingtao.cao@windriver.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-edac-amd8111-driver-header-file.patch
-edac-amd8111-driver-source-file.patch
-edac-add-edac_pci_alloc_index.patch
-pci-add-amd8111-pci-bridge-pci-device-id.patch
-edac-amd8131-driver-header-file.patch
-edac-amd8131-driver-source-file.patch
-edac-amd8131-driver-source-file-v2.patch
-edac-amd8131-driver-kconfig-makefile.patch
-edac-amd8111-driver-kconfig-makefile.patch
+origin.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+workqueue-add-to_delayed_work-helper-function.patch
+simplify-copy_thread.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-show-memcg-information-during-oom.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry.patch
+hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
+nbd-add-locking-to-nbd_ioctl.patch
+edac-new-ppc4xx-driver-module.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+flex-onenand-support-v2-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+max3100-spi-uart-driver-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+flat-fix-data-sections-alignment.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+kernel-auditscc-fix-warning.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+page-owner-tracking.patch
+page-owner-tracking-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
