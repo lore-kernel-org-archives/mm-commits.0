@@ -1,56 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 14:16:43 -0700
-Message-ID: <200904022116.n32LGhL5007789@imap1.linux-foundation.org>
+Subject: + max3100-spi-uart-driver-fix.patch added to -mm tree
+Date: Thu, 02 Apr 2009 14:29:39 -0700
+Message-ID: <200904022129.n32LTd9G011571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35378 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759391AbZDBVVW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 17:21:22 -0400
+	by vger.kernel.org with ESMTP id S1751262AbZDBVcu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 17:32:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Louis.Rilling@kerlabs.com, ebiederm@xmission.com, oleg@redhat.com, roland@redhat.com, sukadev@linux.vnet.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, chripell@fsfe.org, chripell@gmail.com, hpa@zytor.com
 
 
 The patch titled
-     pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix
-has been removed from the -mm tree.  Its filename was
-     pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+     max3100-spi-uart-driver-fix
+has been added to the -mm tree.  Its filename is
+     max3100-spi-uart-driver-fix.patch
 
-This patch was dropped because it was folded into pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix
+Subject: max3100-spi-uart-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Louis Rilling <Louis.Rilling@kerlabs.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Christian Pellegrin <chripell@fsfe.org>
+Cc: Christian Pellegrin <chripell@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 --
- 1 file changed, 2 deletions(-)
+ Documentation/devices.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/sched.h~pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix include/linux/sched.h
---- a/include/linux/sched.h~pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix
-+++ a/include/linux/sched.h
-@@ -1476,9 +1476,7 @@ static inline struct pid *task_tgid(stru
-  * Without tasklist or rcu lock it is not safe to dereference
-  * the result of task_pgrp/task_session even if task == current,
-  * we can race with another thread doing sys_setsid/sys_setpgid.
-- *
-  */
--
- static inline struct pid *task_pgrp(struct task_struct *task)
- {
- 	return task->group_leader->pids[PIDTYPE_PGID].pid;
+diff -puN Documentation/devices.txt~max3100-spi-uart-driver-fix Documentation/devices.txt
+--- a/Documentation/devices.txt~max3100-spi-uart-driver-fix
++++ a/Documentation/devices.txt
+@@ -2810,6 +2810,7 @@ Your cooperation is appreciated.
+ 		    ...
+ 		 190 = /dev/ttyUL3		Xilinx uartlite - port 3
+ 		 191 = /dev/xvc0		Xen virtual console - port 0
++		 192 = /dev/ttyMAX		MAX3100 SPI UART
+ 
+ 205 char	Low-density serial ports (alternate device)
+ 		  0 = /dev/culu0		Callout device for ttyLU0
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +76,15 @@ memcg-show-memcg-information-during-oom-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
 forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
 hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
@@ -91,6 +106,7 @@ pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 xtensa-add-flat-support-checkpatch-fixes.patch
+max3100-spi-uart-driver-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
 mm-add-proc-controls-for-pdflush-threads-fix.patch
@@ -100,17 +116,7 @@ proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
 flat-fix-data-sections-alignment.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
 namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
 kernel-auditscc-fix-warning.patch
 nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
 nilfs2-inode-operations-fix.patch
