@@ -1,128 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch removed from -mm tree
-Date: Thu, 02 Apr 2009 16:24:54 -0700
-Message-ID: <200904022324.n32NOsct012325@imap1.linux-foundation.org>
+Subject: + proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup.patch added to -mm tree
+Date: Thu, 02 Apr 2009 18:41:00 -0700
+Message-ID: <200904030141.n331f0j2019739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48920 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759288AbZDBX3j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 19:29:39 -0400
+	by vger.kernel.org with ESMTP id S1753378AbZDCBoR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2009 21:44:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, horms@verge.net.au, nhorman@tuxdriver.com, oomichi@mxs.nes.nec.co.jp, randy.dunlap@oracle.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, hugh@veritas.com, mikew@google.com, yinghan@google.com
 
 
 The patch titled
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix
-has been removed from the -mm tree.  Its filename was
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+     proc pid maps dont show pgoff of pure anon vmas style fix
+has been added to the -mm tree.  Its filename is
+     proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup.patch
 
-This patch was dropped because it was folded into kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc pid maps dont show pgoff of pure anon vmas style fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-guys...
+Fix conding style of proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mike Waychison <mikew@google.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c   |    5 +++--
+ fs/proc/task_nommu.c |    5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix kernel/printk.c
---- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix
-+++ a/kernel/printk.c
-@@ -151,7 +151,7 @@ void log_buf_kexec_setup(void)
- 	VMCOREINFO_SYMBOL(log_buf);
- 	VMCOREINFO_SYMBOL(log_end);
- 	VMCOREINFO_SYMBOL(log_buf_len);
--	VMCOREINFO_SYMBOL(logged_chars)
-+	VMCOREINFO_SYMBOL(logged_chars);
- }
- #endif
+diff -puN fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup
++++ a/fs/proc/task_mmu.c
+@@ -204,6 +204,7 @@ static void show_map_vma(struct seq_file
+ 	struct file *file = vma->vm_file;
+ 	int flags = vma->vm_flags;
+ 	unsigned long ino = 0;
++	unsigned long long pgoff = 0;
+ 	dev_t dev = 0;
+ 	int len;
  
+@@ -211,6 +212,7 @@ static void show_map_vma(struct seq_file
+ 		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 		dev = inode->i_sb->s_dev;
+ 		ino = inode->i_ino;
++		pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
+ 	}
+ 
+ 	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu %n",
+@@ -220,8 +222,7 @@ static void show_map_vma(struct seq_file
+ 			flags & VM_WRITE ? 'w' : '-',
+ 			flags & VM_EXEC ? 'x' : '-',
+ 			flags & VM_MAYSHARE ? 's' : 'p',
+-			(!vma->vm_file) ? 0 :
+-				((loff_t)vma->vm_pgoff) << PAGE_SHIFT,
++			pgoff,
+ 			MAJOR(dev), MINOR(dev), ino, &len);
+ 
+ 	/*
+diff -puN fs/proc/task_nommu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup
++++ a/fs/proc/task_nommu.c
+@@ -126,6 +126,7 @@ static int nommu_vma_show(struct seq_fil
+ 	struct file *file;
+ 	dev_t dev = 0;
+ 	int flags, len;
++	unsigned long long pgoff = 0;
+ 
+ 	flags = vma->vm_flags;
+ 	file = vma->vm_file;
+@@ -134,6 +135,7 @@ static int nommu_vma_show(struct seq_fil
+ 		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 		dev = inode->i_sb->s_dev;
+ 		ino = inode->i_ino;
++		pgoff = (loff_t)vma->pg_off << PAGE_SHIFT;
+ 	}
+ 
+ 	seq_printf(m,
+@@ -144,8 +146,7 @@ static int nommu_vma_show(struct seq_fil
+ 		   flags & VM_WRITE ? 'w' : '-',
+ 		   flags & VM_EXEC ? 'x' : '-',
+ 		   flags & VM_MAYSHARE ? flags & VM_SHARED ? 'S' : 's' : 'p',
+-		   (!vma->vm_file) ? 0 :
+-			(unsigned long long) vma->vm_pgoff << PAGE_SHIFT,
++		   pgoff,
+ 		   MAJOR(dev), MINOR(dev), ino, &len);
+ 
+ 	if (file) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-workqueue-add-to_delayed_work-helper-function.patch
-simplify-copy_thread.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+cgroups-more-documentation-for-remount-and-release_agent.patch
+cgroups-show-correct-file-mode.patch
+devcgroup-avoid-using-cgroup_lock.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
 memcg-fix-oom-killer-under-memcg.patch
 memcg-show-memcg-information-during-oom.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry.patch
-hpet-fix-the-possibility-of-insane-return-value-of-hpet_calibrate-against-smi.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
-nbd-add-locking-to-nbd_ioctl.patch
-edac-new-ppc4xx-driver-module.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-arch-x86-mm-iomap_32c-fix-warning.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-flex-onenand-support-v2-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-max3100-spi-uart-driver-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
+memcg-charge-swapcache-to-proper-memcg.patch
+cgroups-use-css-id-in-swap-cgroup-for-saving-memory-v5.patch
+memcg-remove-redundant-message-at-swapon.patch
+memcg-cleanup-cache_charge.patch
+cgroups-add-data-field-to-struct-cgroup_scanner.patch
+cpuset-rewrite-update_tasks_nodemask.patch
+cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
+cpuset-remove-struct-cpuset_hotplug_scanner.patch
 proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-flat-fix-data-sections-alignment.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-kernel-auditscc-fix-warning.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-page-owner-tracking.patch
-page-owner-tracking-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup.patch
 
