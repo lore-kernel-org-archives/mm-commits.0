@@ -1,290 +1,453 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sgi-gru-improvements-to-gru-debug-messages-statistics.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:37:25 -0700
-Message-ID: <200904061937.n36JbPCt012904@imap1.linux-foundation.org>
+Subject: [merged] sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:37:27 -0700
+Message-ID: <200904061937.n36JbR5H012945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38518 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752223AbZDFTzj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:55:39 -0400
+	by vger.kernel.org with ESMTP id S1752162AbZDFT5A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:57:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-gru: improvements to GRU debug messages & statistics
+     sgi-gru: change GRU CCH commands from inline functions to outofline functions
 has been removed from the -mm tree.  Its filename was
-     sgi-gru-improvements-to-gru-debug-messages-statistics.patch
+     sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: improvements to GRU debug messages & statistics
+Subject: sgi-gru: change GRU CCH commands from inline functions to outofline functions
 From: Jack Steiner <steiner@sgi.com>
 
-Improvements to GRU debug messages & statistics.
+Change the GRU instructions that manage contexts from inline functions to
+out-of-line functions.  This simplifies adding statistics & error checking
+to these functions.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c     |    5 ++
- drivers/misc/sgi-gru/grufile.c      |    2 -
- drivers/misc/sgi-gru/grukservices.c |    4 +-
- drivers/misc/sgi-gru/grumain.c      |   48 ++++++++++++++------------
- drivers/misc/sgi-gru/gruprocfs.c    |    2 +
- drivers/misc/sgi-gru/grutables.h    |    2 +
- drivers/misc/sgi-gru/grutlbpurge.c  |    2 -
- 7 files changed, 38 insertions(+), 27 deletions(-)
+ drivers/misc/sgi-gru/Makefile     |    2 
+ drivers/misc/sgi-gru/gruhandles.c |  197 ++++++++++++++++++++++++++++
+ drivers/misc/sgi-gru/gruhandles.h |  174 ++----------------------
+ drivers/misc/sgi-gru/grutables.h  |    3 
+ 4 files changed, 217 insertions(+), 159 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~sgi-gru-improvements-to-gru-debug-messages-statistics
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -449,6 +449,7 @@ irqreturn_t gru_intr(int irq, void *dev_
- 			up_read(&gts->ts_mm->mmap_sem);
- 		} else {
- 			tfh_user_polling_mode(tfh);
-+			STAT(intr_mm_lock_failed);
- 		}
- 	}
- 	return IRQ_HANDLED;
-@@ -508,8 +509,10 @@ int gru_handle_user_call_os(unsigned lon
- 	 * context.
- 	 */
- 	if (gts->ts_tgid_owner == current->tgid && gts->ts_blade >= 0 &&
--				gts->ts_blade != uv_numa_blade_id())
-+				gts->ts_blade != uv_numa_blade_id()) {
-+		STAT(call_os_offnode_reference);
- 		gts->ts_force_unload = 1;
+diff -puN drivers/misc/sgi-gru/Makefile~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions drivers/misc/sgi-gru/Makefile
+--- a/drivers/misc/sgi-gru/Makefile~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions
++++ a/drivers/misc/sgi-gru/Makefile
+@@ -3,5 +3,5 @@ ifdef CONFIG_SGI_GRU_DEBUG
+ endif
+ 
+ obj-$(CONFIG_SGI_GRU) := gru.o
+-gru-y := grufile.o grumain.o grufault.o grutlbpurge.o gruprocfs.o grukservices.o
++gru-y := grufile.o grumain.o grufault.o grutlbpurge.o gruprocfs.o grukservices.o gruhandles.o
+ 
+diff -puN /dev/null drivers/misc/sgi-gru/gruhandles.c
+--- /dev/null
++++ a/drivers/misc/sgi-gru/gruhandles.c
+@@ -0,0 +1,197 @@
++/*
++ *              GRU KERNEL MCS INSTRUCTIONS
++ *
++ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ */
++
++#include <linux/kernel.h>
++#include "gru.h"
++#include "grulib.h"
++#include "grutables.h"
++
++/* 10 sec */
++#ifdef CONFIG_IA64
++#include <asm/processor.h>
++#define GRU_OPERATION_TIMEOUT	(((cycles_t) local_cpu_data->itc_freq)*10)
++#else
++#include <asm/tsc.h>
++#define GRU_OPERATION_TIMEOUT	((cycles_t) tsc_khz*10*1000)
++#endif
++
++/* Extract the status field from a kernel handle */
++#define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
++
++static void start_instruction(void *h)
++{
++	unsigned long *w0 = h;
++
++	wmb();		/* setting CMD bit must be last */
++	*w0 = *w0 | 1;
++	gru_flush_cache(h);
++}
++
++static int wait_instruction_complete(void *h, enum mcs_op opc)
++{
++	int status;
++	cycles_t start_time = get_cycles();
++
++	while (1) {
++		cpu_relax();
++		status = GET_MSEG_HANDLE_STATUS(h);
++		if (status != CCHSTATUS_ACTIVE)
++			break;
++		if (GRU_OPERATION_TIMEOUT < (get_cycles() - start_time))
++			panic("GRU %p is malfunctioning\n", h);
 +	}
++	return status;
++}
++
++#if defined CONFIG_IA64
++static void cch_allocate_set_asids(
++		  struct gru_context_configuration_handle *cch, int asidval)
++{
++	int i;
++
++	for (i = 0; i < 8; i++) {
++		cch->asid[i] = (asidval++);
++#if 0
++		/* ZZZ hugepages not supported yet */
++		if (i == RGN_HPAGE)
++			cch->sizeavail[i] = GRU_SIZEAVAIL(hpage_shift);
++		else
++#endif
++			cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT);
++	}
++}
++#elif defined CONFIG_X86_64
++static void cch_allocate_set_asids(
++		  struct gru_context_configuration_handle *cch, int asidval)
++{
++	int i;
++
++	for (i = 0; i < 8; i++) {
++		cch->asid[i] = asidval++;
++		cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT) |
++			GRU_SIZEAVAIL(21);
++	}
++}
++#endif
++
++int cch_allocate(struct gru_context_configuration_handle *cch,
++			       int asidval, unsigned long cbrmap,
++			       unsigned long dsrmap)
++{
++	cch_allocate_set_asids(cch, asidval);
++	cch->dsr_allocation_map = dsrmap;
++	cch->cbr_allocation_map = cbrmap;
++	cch->opc = CCHOP_ALLOCATE;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_allocate);
++}
++
++int cch_start(struct gru_context_configuration_handle *cch)
++{
++	cch->opc = CCHOP_START;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_start);
++}
++
++int cch_interrupt(struct gru_context_configuration_handle *cch)
++{
++	cch->opc = CCHOP_INTERRUPT;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_interrupt);
++}
++
++int cch_deallocate(struct gru_context_configuration_handle *cch)
++{
++	cch->opc = CCHOP_DEALLOCATE;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_deallocate);
++}
++
++int cch_interrupt_sync(struct gru_context_configuration_handle
++				     *cch)
++{
++	cch->opc = CCHOP_INTERRUPT_SYNC;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_interrupt_sync);
++}
++
++int tgh_invalidate(struct gru_tlb_global_handle *tgh,
++				 unsigned long vaddr, unsigned long vaddrmask,
++				 int asid, int pagesize, int global, int n,
++				 unsigned short ctxbitmap)
++{
++	tgh->vaddr = vaddr;
++	tgh->asid = asid;
++	tgh->pagesize = pagesize;
++	tgh->n = n;
++	tgh->global = global;
++	tgh->vaddrmask = vaddrmask;
++	tgh->ctxbitmap = ctxbitmap;
++	tgh->opc = TGHOP_TLBINV;
++	start_instruction(tgh);
++	return wait_instruction_complete(tgh, tghop_invalidate);
++}
++
++void tfh_write_only(struct gru_tlb_fault_handle *tfh,
++				  unsigned long pfn, unsigned long vaddr,
++				  int asid, int dirty, int pagesize)
++{
++	tfh->fillasid = asid;
++	tfh->fillvaddr = vaddr;
++	tfh->pfn = pfn;
++	tfh->dirty = dirty;
++	tfh->pagesize = pagesize;
++	tfh->opc = TFHOP_WRITE_ONLY;
++	start_instruction(tfh);
++}
++
++void tfh_write_restart(struct gru_tlb_fault_handle *tfh,
++				     unsigned long paddr, int gaa,
++				     unsigned long vaddr, int asid, int dirty,
++				     int pagesize)
++{
++	tfh->fillasid = asid;
++	tfh->fillvaddr = vaddr;
++	tfh->pfn = paddr >> GRU_PADDR_SHIFT;
++	tfh->gaa = gaa;
++	tfh->dirty = dirty;
++	tfh->pagesize = pagesize;
++	tfh->opc = TFHOP_WRITE_RESTART;
++	start_instruction(tfh);
++}
++
++void tfh_restart(struct gru_tlb_fault_handle *tfh)
++{
++	tfh->opc = TFHOP_RESTART;
++	start_instruction(tfh);
++}
++
++void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh)
++{
++	tfh->opc = TFHOP_USER_POLLING_MODE;
++	start_instruction(tfh);
++}
++
++void tfh_exception(struct gru_tlb_fault_handle *tfh)
++{
++	tfh->opc = TFHOP_EXCEPTION;
++	start_instruction(tfh);
++}
++
+diff -puN drivers/misc/sgi-gru/gruhandles.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions drivers/misc/sgi-gru/gruhandles.h
+--- a/drivers/misc/sgi-gru/gruhandles.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions
++++ a/drivers/misc/sgi-gru/gruhandles.h
+@@ -495,164 +495,22 @@ enum gru_cbr_state {
+ /* minimum TLB purge count to ensure a full purge */
+ #define GRUMAXINVAL		1024UL
  
- 	ret = -EAGAIN;
- 	cbrnum = thread_cbr_number(gts, ucbnum);
-diff -puN drivers/misc/sgi-gru/grufile.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~sgi-gru-improvements-to-gru-debug-messages-statistics
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -275,7 +275,7 @@ static void gru_init_chiplet(struct gru_
- 	gru->gs_cbr_map = (GRU_CBR_AU == 64) ? ~0 : (1UL << GRU_CBR_AU) - 1;
- 	gru->gs_dsr_map = (1UL << GRU_DSR_AU) - 1;
- 	gru_tgh_flush_init(gru);
--	gru_dbg(grudev, "bid %d, nid %d, gru %x, vaddr %p (0x%lx)\n",
-+	gru_dbg(grudev, "bid %d, nid %d, gid %d, vaddr %p (0x%lx)\n",
- 		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
- 		gru->gs_gru_base_paddr);
- 	gru_kservices_init(gru);
-diff -puN drivers/misc/sgi-gru/grukservices.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~sgi-gru-improvements-to-gru-debug-messages-statistics
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -663,12 +663,12 @@ int gru_kservices_init(struct gru_state 
- 	err = cch_allocate(cch, 0, cbr_map, dsr_map);
- 	if (err) {
- 		gru_dbg(grudev,
--			"Unable to allocate kernel CCH: gru %d, err %d\n",
-+			"Unable to allocate kernel CCH: gid %d, err %d\n",
- 			gru->gs_gid, err);
- 		BUG();
- 	}
- 	if (cch_start(cch)) {
--		gru_dbg(grudev, "Unable to start kernel CCH: gru %d, err %d\n",
-+		gru_dbg(grudev, "Unable to start kernel CCH: gid %d, err %d\n",
- 			gru->gs_gid, err);
- 		BUG();
- 	}
-diff -puN drivers/misc/sgi-gru/grumain.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~sgi-gru-improvements-to-gru-debug-messages-statistics
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -76,7 +76,7 @@ int gru_cpu_fault_map_id(void)
- /* Hit the asid limit. Start over */
- static int gru_wrap_asid(struct gru_state *gru)
- {
--	gru_dbg(grudev, "gru %p\n", gru);
-+	gru_dbg(grudev, "gid %d\n", gru->gs_gid);
- 	STAT(asid_wrap);
- 	gru->gs_asid_gen++;
- 	gru_flush_all_tlb(gru);
-@@ -88,7 +88,7 @@ static int gru_reset_asid_limit(struct g
- {
- 	int i, gid, inuse_asid, limit;
++int cch_allocate(struct gru_context_configuration_handle *cch,
++       int asidval, unsigned long cbrmap, unsigned long dsrmap);
  
--	gru_dbg(grudev, "gru %p, asid 0x%x\n", gru, asid);
-+	gru_dbg(grudev, "gid %d, asid 0x%x\n", gru->gs_gid, asid);
- 	STAT(asid_next);
- 	limit = MAX_ASID;
- 	if (asid >= limit)
-@@ -99,8 +99,9 @@ again:
- 		if (!gru->gs_gts[i])
- 			continue;
- 		inuse_asid = gru->gs_gts[i]->ts_gms->ms_asids[gid].mt_asid;
--		gru_dbg(grudev, "gru %p, inuse_asid 0x%x, cxtnum %d, gts %p\n",
--			gru, inuse_asid, i, gru->gs_gts[i]);
-+		gru_dbg(grudev, "gid %d, gts %p, gms %p, inuse 0x%x, cxt %d\n",
-+			gru->gs_gid, gru->gs_gts[i], gru->gs_gts[i]->ts_gms,
-+			inuse_asid, i);
- 		if (inuse_asid == asid) {
- 			asid += ASID_INC;
- 			if (asid >= limit) {
-@@ -120,8 +121,8 @@ again:
- 	}
- 	gru->gs_asid_limit = limit;
- 	gru->gs_asid = asid;
--	gru_dbg(grudev, "gru %p, new asid 0x%x, new_limit 0x%x\n", gru, asid,
--		limit);
-+	gru_dbg(grudev, "gid %d, new asid 0x%x, new_limit 0x%x\n", gru->gs_gid,
-+					asid, limit);
- 	return asid;
- }
+-/* Extract the status field from a kernel handle */
+-#define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
+-
+-static inline void start_instruction(void *h)
+-{
+-	unsigned long *w0 = h;
+-
+-	wmb();		/* setting CMD bit must be last */
+-	*w0 = *w0 | 1;
+-	gru_flush_cache(h);
+-}
+-
+-static inline int wait_instruction_complete(void *h)
+-{
+-	int status;
+-
+-	do {
+-		cpu_relax();
+-		barrier();
+-		status = GET_MSEG_HANDLE_STATUS(h);
+-	} while (status == CCHSTATUS_ACTIVE);
+-	return status;
+-}
+-
+-#if defined CONFIG_IA64
+-static inline void cch_allocate_set_asids(
+-		  struct gru_context_configuration_handle *cch, int asidval)
+-{
+-	int i;
+-
+-	for (i = 0; i <= RGN_HPAGE; i++) {  /*  assume HPAGE is last region */
+-		cch->asid[i] = (asidval++);
+-#if 0
+-		/* ZZZ hugepages not supported yet */
+-		if (i == RGN_HPAGE)
+-			cch->sizeavail[i] = GRU_SIZEAVAIL(hpage_shift);
+-		else
+-#endif
+-			cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT);
+-	}
+-}
+-#elif defined CONFIG_X86_64
+-static inline void cch_allocate_set_asids(
+-		  struct gru_context_configuration_handle *cch, int asidval)
+-{
+-	int i;
+-
+-	for (i = 0; i < 8; i++) {
+-		cch->asid[i] = asidval++;
+-		cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT) |
+-			GRU_SIZEAVAIL(21);
+-	}
+-}
+-#endif
+-
+-static inline int cch_allocate(struct gru_context_configuration_handle *cch,
+-			       int asidval, unsigned long cbrmap,
+-			       unsigned long dsrmap)
+-{
+-	cch_allocate_set_asids(cch, asidval);
+-	cch->dsr_allocation_map = dsrmap;
+-	cch->cbr_allocation_map = cbrmap;
+-	cch->opc = CCHOP_ALLOCATE;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int cch_start(struct gru_context_configuration_handle *cch)
+-{
+-	cch->opc = CCHOP_START;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int cch_interrupt(struct gru_context_configuration_handle *cch)
+-{
+-	cch->opc = CCHOP_INTERRUPT;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int cch_deallocate(struct gru_context_configuration_handle *cch)
+-{
+-	cch->opc = CCHOP_DEALLOCATE;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int cch_interrupt_sync(struct gru_context_configuration_handle
+-				     *cch)
+-{
+-	cch->opc = CCHOP_INTERRUPT_SYNC;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int tgh_invalidate(struct gru_tlb_global_handle *tgh,
+-				 unsigned long vaddr, unsigned long vaddrmask,
+-				 int asid, int pagesize, int global, int n,
+-				 unsigned short ctxbitmap)
+-{
+-	tgh->vaddr = vaddr;
+-	tgh->asid = asid;
+-	tgh->pagesize = pagesize;
+-	tgh->n = n;
+-	tgh->global = global;
+-	tgh->vaddrmask = vaddrmask;
+-	tgh->ctxbitmap = ctxbitmap;
+-	tgh->opc = TGHOP_TLBINV;
+-	start_instruction(tgh);
+-	return wait_instruction_complete(tgh);
+-}
+-
+-static inline void tfh_write_only(struct gru_tlb_fault_handle *tfh,
+-				  unsigned long pfn, unsigned long vaddr,
+-				  int asid, int dirty, int pagesize)
+-{
+-	tfh->fillasid = asid;
+-	tfh->fillvaddr = vaddr;
+-	tfh->pfn = pfn;
+-	tfh->dirty = dirty;
+-	tfh->pagesize = pagesize;
+-	tfh->opc = TFHOP_WRITE_ONLY;
+-	start_instruction(tfh);
+-}
+-
+-static inline void tfh_write_restart(struct gru_tlb_fault_handle *tfh,
+-				     unsigned long paddr, int gaa,
+-				     unsigned long vaddr, int asid, int dirty,
+-				     int pagesize)
+-{
+-	tfh->fillasid = asid;
+-	tfh->fillvaddr = vaddr;
+-	tfh->pfn = paddr >> GRU_PADDR_SHIFT;
+-	tfh->gaa = gaa;
+-	tfh->dirty = dirty;
+-	tfh->pagesize = pagesize;
+-	tfh->opc = TFHOP_WRITE_RESTART;
+-	start_instruction(tfh);
+-}
+-
+-static inline void tfh_restart(struct gru_tlb_fault_handle *tfh)
+-{
+-	tfh->opc = TFHOP_RESTART;
+-	start_instruction(tfh);
+-}
+-
+-static inline void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh)
+-{
+-	tfh->opc = TFHOP_USER_POLLING_MODE;
+-	start_instruction(tfh);
+-}
+-
+-static inline void tfh_exception(struct gru_tlb_fault_handle *tfh)
+-{
+-	tfh->opc = TFHOP_EXCEPTION;
+-	start_instruction(tfh);
+-}
++int cch_start(struct gru_context_configuration_handle *cch);
++int cch_interrupt(struct gru_context_configuration_handle *cch);
++int cch_deallocate(struct gru_context_configuration_handle *cch);
++int cch_interrupt_sync(struct gru_context_configuration_handle *cch);
++int tgh_invalidate(struct gru_tlb_global_handle *tgh, unsigned long vaddr,
++	unsigned long vaddrmask, int asid, int pagesize, int global, int n,
++	unsigned short ctxbitmap);
++void tfh_write_only(struct gru_tlb_fault_handle *tfh, unsigned long pfn,
++	unsigned long vaddr, int asid, int dirty, int pagesize);
++void tfh_write_restart(struct gru_tlb_fault_handle *tfh, unsigned long paddr,
++	int gaa, unsigned long vaddr, int asid, int dirty, int pagesize);
++void tfh_restart(struct gru_tlb_fault_handle *tfh);
++void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh);
++void tfh_exception(struct gru_tlb_fault_handle *tfh);
  
-@@ -137,7 +138,7 @@ static int gru_assign_asid(struct gru_st
- 		asid = gru_reset_asid_limit(gru, asid);
- 	spin_unlock(&gru->gs_asid_lock);
- 
--	gru_dbg(grudev, "gru %p, asid 0x%x\n", gru, asid);
-+	gru_dbg(grudev, "gid %d, asid 0x%x\n", gru->gs_gid, asid);
- 	return asid;
- }
- 
-@@ -215,11 +216,12 @@ static int check_gru_resources(struct gr
-  * TLB manangment requires tracking all GRU chiplets that have loaded a GSEG
-  * context.
-  */
--static int gru_load_mm_tracker(struct gru_state *gru, struct gru_mm_struct *gms,
--			       int ctxnum)
-+static int gru_load_mm_tracker(struct gru_state *gru,
-+					struct gru_thread_state *gts)
- {
-+	struct gru_mm_struct *gms = gts->ts_gms;
- 	struct gru_mm_tracker *asids = &gms->ms_asids[gru->gs_gid];
--	unsigned short ctxbitmap = (1 << ctxnum);
-+	unsigned short ctxbitmap = (1 << gts->ts_ctxnum);
- 	int asid;
- 
- 	spin_lock(&gms->ms_asid_lock);
-@@ -241,24 +243,26 @@ static int gru_load_mm_tracker(struct gr
- 	spin_unlock(&gms->ms_asid_lock);
- 
- 	gru_dbg(grudev,
--		"gru %x, gms %p, ctxnum 0x%d, asid 0x%x, asidmap 0x%lx\n",
--		gru->gs_gid, gms, ctxnum, asid, gms->ms_asidmap[0]);
-+		"gid %d, gts %p, gms %p, ctxnum %d, asid 0x%x, asidmap 0x%lx\n",
-+		gru->gs_gid, gts, gms, gts->ts_ctxnum, asid,
-+		gms->ms_asidmap[0]);
- 	return asid;
- }
- 
- static void gru_unload_mm_tracker(struct gru_state *gru,
--				  struct gru_mm_struct *gms, int ctxnum)
-+					struct gru_thread_state *gts)
- {
-+	struct gru_mm_struct *gms = gts->ts_gms;
- 	struct gru_mm_tracker *asids;
- 	unsigned short ctxbitmap;
- 
- 	asids = &gms->ms_asids[gru->gs_gid];
--	ctxbitmap = (1 << ctxnum);
-+	ctxbitmap = (1 << gts->ts_ctxnum);
- 	spin_lock(&gms->ms_asid_lock);
- 	BUG_ON((asids->mt_ctxbitmap & ctxbitmap) != ctxbitmap);
- 	asids->mt_ctxbitmap ^= ctxbitmap;
--	gru_dbg(grudev, "gru %x, gms %p, ctxnum 0x%d, asidmap 0x%lx\n",
--		gru->gs_gid, gms, ctxnum, gms->ms_asidmap[0]);
-+	gru_dbg(grudev, "gid %d, gts %p, gms %p, ctxnum 0x%d, asidmap 0x%lx\n",
-+		gru->gs_gid, gts, gms, gts->ts_ctxnum, gms->ms_asidmap[0]);
- 	spin_unlock(&gms->ms_asid_lock);
- }
- 
-@@ -399,7 +403,7 @@ static void gru_free_gru_context(struct 
- 	struct gru_state *gru;
- 
- 	gru = gts->ts_gru;
--	gru_dbg(grudev, "gts %p, gru %p\n", gts, gru);
-+	gru_dbg(grudev, "gts %p, gid %d\n", gts, gru->gs_gid);
- 
- 	spin_lock(&gru->gs_lock);
- 	gru->gs_gts[gts->ts_ctxnum] = NULL;
-@@ -500,12 +504,12 @@ void gru_unload_context(struct gru_threa
- 	zap_vma_ptes(gts->ts_vma, UGRUADDR(gts), GRU_GSEG_PAGESIZE);
- 	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
- 
-+	gru_dbg(grudev, "gts %p\n", gts);
- 	lock_cch_handle(cch);
- 	if (cch_interrupt_sync(cch))
- 		BUG();
--	gru_dbg(grudev, "gts %p\n", gts);
- 
--	gru_unload_mm_tracker(gru, gts->ts_gms, gts->ts_ctxnum);
-+	gru_unload_mm_tracker(gru, gts);
- 	if (savestate)
- 		gru_unload_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr,
- 					ctxnum, gts->ts_cbr_map,
-@@ -534,7 +538,7 @@ static void gru_load_context(struct gru_
- 	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
- 
- 	lock_cch_handle(cch);
--	asid = gru_load_mm_tracker(gru, gts->ts_gms, gts->ts_ctxnum);
-+	asid = gru_load_mm_tracker(gru, gts);
- 	cch->tfm_fault_bit_enable =
- 	    (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
- 	     || gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
-@@ -688,7 +692,7 @@ static void gru_steal_context(struct gru
- 		STAT(steal_context_failed);
- 	}
- 	gru_dbg(grudev,
--		"stole gru %x, ctxnum %d from gts %p. Need cb %d, ds %d;"
-+		"stole gid %d, ctxnum %d from gts %p. Need cb %d, ds %d;"
- 		" avail cb %ld, ds %ld\n",
- 		gru->gs_gid, ctxnum, ngts, cbr, dsr, hweight64(gru->gs_cbr_map),
- 		hweight64(gru->gs_dsr_map));
-@@ -737,7 +741,7 @@ again:
- 
- 		STAT(assign_context);
- 		gru_dbg(grudev,
--			"gseg %p, gts %p, gru %x, ctx %d, cbr %d, dsr %d\n",
-+			"gseg %p, gts %p, gid %d, ctx %d, cbr %d, dsr %d\n",
- 			gseg_virtual_address(gts->ts_gru, gts->ts_ctxnum), gts,
- 			gts->ts_gru->gs_gid, gts->ts_ctxnum,
- 			gts->ts_cbr_au_count, gts->ts_dsr_au_count);
-diff -puN drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/gruprocfs.c
---- a/drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-improvements-to-gru-debug-messages-statistics
-+++ a/drivers/misc/sgi-gru/gruprocfs.c
-@@ -62,7 +62,9 @@ static int statistics_show(struct seq_fi
- 	printstat(s, asid_wrap);
- 	printstat(s, asid_reuse);
- 	printstat(s, intr);
-+	printstat(s, intr_mm_lock_failed);
- 	printstat(s, call_os);
-+	printstat(s, call_os_offnode_reference);
- 	printstat(s, call_os_check_for_bug);
- 	printstat(s, call_os_wait_queue);
- 	printstat(s, user_flush_tlb);
-diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-improvements-to-gru-debug-messages-statistics
+ #endif /* __GRUHANDLES_H__ */
+diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions
 +++ a/drivers/misc/sgi-gru/grutables.h
-@@ -184,7 +184,9 @@ struct gru_stats_s {
- 	atomic_long_t asid_wrap;
- 	atomic_long_t asid_reuse;
- 	atomic_long_t intr;
-+	atomic_long_t intr_mm_lock_failed;
- 	atomic_long_t call_os;
-+	atomic_long_t call_os_offnode_reference;
- 	atomic_long_t call_os_check_for_bug;
- 	atomic_long_t call_os_wait_queue;
- 	atomic_long_t user_flush_tlb;
-diff -puN drivers/misc/sgi-gru/grutlbpurge.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grutlbpurge.c
---- a/drivers/misc/sgi-gru/grutlbpurge.c~sgi-gru-improvements-to-gru-debug-messages-statistics
-+++ a/drivers/misc/sgi-gru/grutlbpurge.c
-@@ -210,7 +210,7 @@ void gru_flush_all_tlb(struct gru_state 
- {
- 	struct gru_tlb_global_handle *tgh;
+@@ -239,6 +239,9 @@ struct gru_stats_s {
  
--	gru_dbg(grudev, "gru %p, gid %d\n", gru, gru->gs_gid);
-+	gru_dbg(grudev, "gid %d\n", gru->gs_gid);
- 	tgh = get_lock_tgh_handle(gru);
- 	tgh_invalidate(tgh, 0, ~0, 0, 1, 1, GRUMAXINVAL - 1, 0xffff);
- 	get_unlock_tgh_handle(tgh);
+ };
+ 
++enum mcs_op {cchop_allocate, cchop_start, cchop_interrupt, cchop_interrupt_sync,
++	cchop_deallocate, tghop_invalidate, mcsop_last};
++
+ #define OPT_DPRINT	1
+ #define OPT_STATS	2
+ #define GRU_QUICKLOOK	4
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
