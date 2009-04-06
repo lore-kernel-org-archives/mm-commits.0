@@ -1,72 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-enforce-slab-alignment-to-maximum-register-width.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:39:26 -0700
-Message-ID: <200904061939.n36JdQ2i013909@imap1.linux-foundation.org>
+Subject: [merged] preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:38:02 -0700
+Message-ID: <200904061938.n36Jc2kK013200__22471.1099909202$1239047135$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40012 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753946AbZDFTnh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:37 -0400
+	by vger.kernel.org with ESMTP id S1757723AbZDFTnl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: os@emlix.com, chris@zankel.net, jw@emlix.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, arnd@arndb.de, kraxel@redhat.com, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: enforce slab alignment to maximum register width
+     preadv/pwritev: MIPS: Add preadv(2) and pwritev(2) syscalls.
 has been removed from the -mm tree.  Its filename was
-     xtensa-enforce-slab-alignment-to-maximum-register-width.patch
+     preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: enforce slab alignment to maximum register width
-From: Oskar Schirmer <os@emlix.com>
+Subject: preadv/pwritev: MIPS: Add preadv(2) and pwritev(2) syscalls.
+From: Ralf Baechle <ralf@linux-mips.org>
 
-XCHAL_DATA_WIDTH is the maximum register width, slab caches should be
-aligned to this.
-
-Theoretical fix as all variants have had an XCHAL_DATA_WIDTH of 4
-(wordsize) for now.  But the S6000 variant will raise this to 16.
-
-Signed-off-by: Oskar Schirmer <os@emlix.com>
-Signed-off-by: Johannes Weiner <jw@emlix.com>
-Cc: Chris Zankel <chris@zankel.net>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <linux-api@vger.kernel.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/processor.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/mips/include/asm/unistd.h |   18 ++++++++++++------
+ arch/mips/kernel/scall32-o32.S |    2 ++
+ arch/mips/kernel/scall64-64.S  |    2 ++
+ arch/mips/kernel/scall64-n32.S |    2 ++
+ arch/mips/kernel/scall64-o32.S |    2 ++
+ 5 files changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN arch/xtensa/include/asm/processor.h~xtensa-enforce-slab-alignment-to-maximum-register-width arch/xtensa/include/asm/processor.h
---- a/arch/xtensa/include/asm/processor.h~xtensa-enforce-slab-alignment-to-maximum-register-width
-+++ a/arch/xtensa/include/asm/processor.h
-@@ -25,6 +25,8 @@
- # error Linux requires the Xtensa Windowed Registers Option.
- #endif
+diff -puN arch/mips/include/asm/unistd.h~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/include/asm/unistd.h
+--- a/arch/mips/include/asm/unistd.h~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/include/asm/unistd.h
+@@ -350,16 +350,18 @@
+ #define __NR_dup3			(__NR_Linux + 327)
+ #define __NR_pipe2			(__NR_Linux + 328)
+ #define __NR_inotify_init1		(__NR_Linux + 329)
++#define __NR_preadv			(__NR_Linux + 330)
++#define __NR_pwritev			(__NR_Linux + 331)
  
-+#define ARCH_SLAB_MINALIGN	XCHAL_DATA_WIDTH
-+
  /*
-  * User space process size: 1 GB.
-  * Windowed call ABI requires caller and callee to be located within the same
+  * Offset of the last Linux o32 flavoured syscall
+  */
+-#define __NR_Linux_syscalls		329
++#define __NR_Linux_syscalls		331
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_ABI32 */
+ 
+ #define __NR_O32_Linux			4000
+-#define __NR_O32_Linux_syscalls		329
++#define __NR_O32_Linux_syscalls		331
+ 
+ #if _MIPS_SIM == _MIPS_SIM_ABI64
+ 
+@@ -656,16 +658,18 @@
+ #define __NR_dup3			(__NR_Linux + 286)
+ #define __NR_pipe2			(__NR_Linux + 287)
+ #define __NR_inotify_init1		(__NR_Linux + 288)
++#define __NR_preadv			(__NR_Linux + 289)
++#define __NR_pwritev			(__NR_Linux + 290)
+ 
+ /*
+  * Offset of the last Linux 64-bit flavoured syscall
+  */
+-#define __NR_Linux_syscalls		288
++#define __NR_Linux_syscalls		290
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_ABI64 */
+ 
+ #define __NR_64_Linux			5000
+-#define __NR_64_Linux_syscalls		288
++#define __NR_64_Linux_syscalls		290
+ 
+ #if _MIPS_SIM == _MIPS_SIM_NABI32
+ 
+@@ -966,16 +970,18 @@
+ #define __NR_dup3			(__NR_Linux + 290)
+ #define __NR_pipe2			(__NR_Linux + 291)
+ #define __NR_inotify_init1		(__NR_Linux + 292)
++#define __NR_preadv			(__NR_Linux + 293)
++#define __NR_pwritev			(__NR_Linux + 294)
+ 
+ /*
+  * Offset of the last N32 flavoured syscall
+  */
+-#define __NR_Linux_syscalls		292
++#define __NR_Linux_syscalls		294
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_NABI32 */
+ 
+ #define __NR_N32_Linux			6000
+-#define __NR_N32_Linux_syscalls		292
++#define __NR_N32_Linux_syscalls		294
+ 
+ #ifdef __KERNEL__
+ 
+diff -puN arch/mips/kernel/scall32-o32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/kernel/scall32-o32.S
+--- a/arch/mips/kernel/scall32-o32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/kernel/scall32-o32.S
+@@ -650,6 +650,8 @@ einval:	li	v0, -ENOSYS
+ 	sys	sys_dup3		3
+ 	sys	sys_pipe2		2
+ 	sys	sys_inotify_init1	1
++	sys	sys_preadv		6	/* 4330 */
++	sys	sys_pwritev		6
+ 	.endm
+ 
+ 	/* We pre-compute the number of _instruction_ bytes needed to
+diff -puN arch/mips/kernel/scall64-64.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/kernel/scall64-64.S
+--- a/arch/mips/kernel/scall64-64.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/kernel/scall64-64.S
+@@ -487,4 +487,6 @@ sys_call_table:
+ 	PTR	sys_dup3
+ 	PTR	sys_pipe2
+ 	PTR	sys_inotify_init1
++	PTR	sys_preadv
++	PTR	sys_pwritev			/* 5390 */
+ 	.size	sys_call_table,.-sys_call_table
+diff -puN arch/mips/kernel/scall64-n32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/kernel/scall64-n32.S
+--- a/arch/mips/kernel/scall64-n32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/kernel/scall64-n32.S
+@@ -413,4 +413,6 @@ EXPORT(sysn32_call_table)
+ 	PTR	sys_dup3			/* 5290 */
+ 	PTR	sys_pipe2
+ 	PTR	sys_inotify_init1
++	PTR	sys_preadv
++	PTR	sys_pwritev
+ 	.size	sysn32_call_table,.-sysn32_call_table
+diff -puN arch/mips/kernel/scall64-o32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/kernel/scall64-o32.S
+--- a/arch/mips/kernel/scall64-o32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/kernel/scall64-o32.S
+@@ -533,4 +533,6 @@ sys_call_table:
+ 	PTR	sys_dup3
+ 	PTR	sys_pipe2
+ 	PTR	sys_inotify_init1
++	PTR	compat_sys_preadv		/* 4330 */
++	PTR	compat_sys_pwritev
+ 	.size	sys_call_table,.-sys_call_table
 _
 
-Patches currently in -mm which might be from os@emlix.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-xtensa-variant-specific-code.patch
-xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-s6000-dma-engine-support.patch
-xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
-xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
-xtensa-s6105-specific-configuration-for-s6gmac.patch
-xtensa-enable-s6gmac-in-s6105_defconfig.patch
-flat-fix-data-sections-alignment.patch
+linux-next.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
 
