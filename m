@@ -1,232 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] preadv-pwritev-create-compat_readv.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:37:53 -0700
-Message-ID: <200904061937.n36JbrsD013127__10635.8615834781$1239047093$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] workqueue-avoid-recursion-in-run_workqueue.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:35:59 -0700
+Message-ID: <200904061935.n36JZxgS012277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44469 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756249AbZDFTnO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:14 -0400
+	by vger.kernel.org with ESMTP id S1756751AbZDFTnP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kraxel@redhat.com, arnd@arndb.de, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, ralf@linux-mips.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: laijs@cn.fujitsu.com, dada1@cosmosbay.com, fweisbec@gmail.com, mingo@elte.hu, oleg@redhat.com, peterz@infradead.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     preadv/pwritev: create compat_readv()
+     workqueue: avoid recursion in run_workqueue()
 has been removed from the -mm tree.  Its filename was
-     preadv-pwritev-create-compat_readv.patch
+     workqueue-avoid-recursion-in-run_workqueue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: preadv/pwritev: create compat_readv()
-From: Gerd Hoffmann <kraxel@redhat.com>
+Subject: workqueue: avoid recursion in run_workqueue()
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-This patch series:
+1) lockdep will complain when run_workqueue() performs recursion.
 
-Implement the preadv() and pwritev() syscalls.  *BSD has this syscall for
-quite some time.
+2) The recursive implementation of run_workqueue() means that
+   flush_workqueue() and its documentation are inconsistent.  This may
+   hide deadlocks and other bugs.
 
-Test code:
+3) The recursion in run_workqueue() will poison cwq->current_work, but
+   flush_work() and __cancel_work_timer(), etcetera need a reliable
+   cwq->current_work.
 
-#if 0
-set -x
-gcc -Wall -O2 -o preadv $0
-exit 0
-#endif
-/*
- * preadv demo / test
- *
- * (c) 2008 Gerd Hoffmann <kraxel@redhat.com>
- *
- * build with "sh $thisfile"
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <sys/uio.h>
-
-/* ----------------------------------------------------------------- */
-/* syscall windup                                                    */
-
-#include <sys/syscall.h>
-#if 0
-/* WARNING: Be sure you know what you are doing if you enable this.
- * linux syscall code isn't upstream yet, syscall numbers are subject
- * to change */
-# ifndef __NR_preadv
-#  ifdef __i386__
-#   define __NR_preadv  333
-#   define __NR_pwritev 334
-#  endif
-#  ifdef __x86_64__
-#   define __NR_preadv  295
-#   define __NR_pwritev 296
-#  endif
-# endif
-#endif
-#ifndef __NR_preadv
-# error preadv/pwritev syscall numbers are unknown
-#endif
-
-static ssize_t preadv(int fd, const struct iovec *iov, int iovcnt, off_t offset)
-{
-    uint32_t pos_high = (offset >> 32) & 0xffffffff;
-    uint32_t pos_low  =  offset        & 0xffffffff;
-
-    return syscall(__NR_preadv, fd, iov, iovcnt, pos_high, pos_low);
-}
-
-static ssize_t pwritev(int fd, const struct iovec *iov, int iovcnt, off_t offset)
-{
-    uint32_t pos_high = (offset >> 32) & 0xffffffff;
-    uint32_t pos_low  =  offset        & 0xffffffff;
-
-    return syscall(__NR_pwritev, fd, iov, iovcnt, pos_high, pos_low);
-}
-
-/* ----------------------------------------------------------------- */
-/* demo/test app                                                     */
-
-static char filename[] = "/tmp/preadv-XXXXXX";
-static char outbuf[11] = "0123456789";
-static char inbuf[11]  = "----------";
-
-static struct iovec ovec[2] = {{
-        .iov_base = outbuf + 5,
-        .iov_len  = 5,
-    },{
-        .iov_base = outbuf + 0,
-        .iov_len  = 5,
-    }};
-
-static struct iovec ivec[3] = {{
-        .iov_base = inbuf + 6,
-        .iov_len  = 2,
-    },{
-        .iov_base = inbuf + 4,
-        .iov_len  = 2,
-    },{
-        .iov_base = inbuf + 2,
-        .iov_len  = 2,
-    }};
-
-void cleanup(void)
-{
-    unlink(filename);
-}
-
-int main(int argc, char **argv)
-{
-    int fd, rc;
-
-    fd = mkstemp(filename);
-    if (-1 == fd) {
-        perror("mkstemp");
-        exit(1);
-    }
-    atexit(cleanup);
-
-    /* write to file: "56789-01234" */
-    rc = pwritev(fd, ovec, 2, 0);
-    if (rc < 0) {
-        perror("pwritev");
-        exit(1);
-    }
-
-    /* read from file: "78-90-12" */
-    rc = preadv(fd, ivec, 3, 2);
-    if (rc < 0) {
-        perror("preadv");
-        exit(1);
-    }
-
-    printf("result  : %s\n", inbuf);
-    printf("expected: %s\n", "--129078--");
-    exit(0);
-}
-
-
-This patch:
-
-Factor out some code from compat_sys_readv() which can be shared with the
-upcoming compat_sys_preadv().
-
-
-Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <linux-api@vger.kernel.org>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |   26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ kernel/workqueue.c |   41 +++++++++++------------------------------
+ 1 file changed, 11 insertions(+), 30 deletions(-)
 
-diff -puN fs/compat.c~preadv-pwritev-create-compat_readv fs/compat.c
---- a/fs/compat.c~preadv-pwritev-create-compat_readv
-+++ a/fs/compat.c
-@@ -1195,16 +1195,12 @@ out:
- 	return ret;
- }
+diff -puN kernel/workqueue.c~workqueue-avoid-recursion-in-run_workqueue kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-avoid-recursion-in-run_workqueue
++++ a/kernel/workqueue.c
+@@ -48,8 +48,6 @@ struct cpu_workqueue_struct {
  
--asmlinkage ssize_t
--compat_sys_readv(unsigned long fd, const struct compat_iovec __user *vec, unsigned long vlen)
-+static size_t compat_readv(struct file *file,
-+			   const struct compat_iovec __user *vec,
-+			   unsigned long vlen, loff_t *pos)
- {
--	struct file *file;
- 	ssize_t ret = -EBADF;
- 
--	file = fget(fd);
--	if (!file)
--		return -EBADF;
+ 	struct workqueue_struct *wq;
+ 	struct task_struct *thread;
 -
- 	if (!(file->f_mode & FMODE_READ))
- 		goto out;
+-	int run_depth;		/* Detect run_workqueue() recursion depth */
+ } ____cacheline_aligned;
  
-@@ -1212,12 +1208,26 @@ compat_sys_readv(unsigned long fd, const
- 	if (!file->f_op || (!file->f_op->aio_read && !file->f_op->read))
- 		goto out;
- 
--	ret = compat_do_readv_writev(READ, file, vec, vlen, &file->f_pos);
-+	ret = compat_do_readv_writev(READ, file, vec, vlen, pos);
- 
- out:
- 	if (ret > 0)
- 		add_rchar(current, ret);
- 	inc_syscr(current);
-+	return ret;
-+}
-+
-+asmlinkage ssize_t
-+compat_sys_readv(unsigned long fd, const struct compat_iovec __user *vec,
-+		 unsigned long vlen)
-+{
-+	struct file *file;
-+	ssize_t ret;
-+
-+	file = fget(fd);
-+	if (!file)
-+		return -EBADF;
-+	ret = compat_readv(file, vec, vlen, &file->f_pos);
- 	fput(file);
- 	return ret;
+ /*
+@@ -262,13 +260,6 @@ EXPORT_SYMBOL_GPL(queue_delayed_work_on)
+ static void run_workqueue(struct cpu_workqueue_struct *cwq)
+ {
+ 	spin_lock_irq(&cwq->lock);
+-	cwq->run_depth++;
+-	if (cwq->run_depth > 3) {
+-		/* morton gets to eat his hat */
+-		printk("%s: recursion depth exceeded: %d\n",
+-			__func__, cwq->run_depth);
+-		dump_stack();
+-	}
+ 	while (!list_empty(&cwq->worklist)) {
+ 		struct work_struct *work = list_entry(cwq->worklist.next,
+ 						struct work_struct, entry);
+@@ -311,7 +302,6 @@ static void run_workqueue(struct cpu_wor
+ 		spin_lock_irq(&cwq->lock);
+ 		cwq->current_work = NULL;
+ 	}
+-	cwq->run_depth--;
+ 	spin_unlock_irq(&cwq->lock);
  }
-_
-
-Patches currently in -mm which might be from kraxel@redhat.com are
-
-origin.patch
-linux-next.patch
-
+ 
+@@ -368,29 +358,20 @@ static void insert_wq_barrier(struct cpu
+ 
+ static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
+ {
+-	int active;
++	int active = 0;
++	struct wq_barrier barr;
+ 
+-	if (cwq->thread == current) {
+-		/*
+-		 * Probably keventd trying to flush its own queue. So simply run
+-		 * it by hand rather than deadlocking.
+-		 */
+-		run_workqueue(cwq);
+-		active = 1;
+-	} else {
+-		struct wq_barrier barr;
++	WARN_ON(cwq->thread == current);
+ 
+-		active = 0;
+-		spin_lock_irq(&cwq->lock);
+-		if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
+-			insert_wq_barrier(cwq, &barr, &cwq->worklist);
+-			active = 1;
+-		}
+-		spin_unlock_irq(&cwq->lock);
