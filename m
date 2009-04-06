@@ -1,823 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-platform-stretch-s6105-eval-board.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:39:44 -0700
-Message-ID: <200904061939.n36JdiH8013994@imap1.linux-foundation.org>
+Subject: [merged] pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:36:30 -0700
+Message-ID: <200904061936.n36JaU5s012493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757691AbZDFTnr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:47 -0400
+	by vger.kernel.org with ESMTP id S1757737AbZDFTn7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jw@emlix.com, chris@zankel.net, dg@emlix.com, os@emlix.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, number6@the-village.bc.nu, roland@redhat.com, serue@us.ibm.com, sukadev@linux.vnet.ibm.com, xemul@openvz.or
 
 
 The patch titled
-     xtensa: platform stretch s6105 eval board
+     pids: kill signal_struct-> __pgrp/__session and friends
 has been removed from the -mm tree.  Its filename was
-     xtensa-platform-stretch-s6105-eval-board.patch
+     pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: platform stretch s6105 eval board
-From: Johannes Weiner <jw@emlix.com>
+Subject: pids: kill signal_struct-> __pgrp/__session and friends
+From: Oleg Nesterov <oleg@redhat.com>
 
-Support for the Stretch S6105 evaluation board.
+We are wasting 2 words in signal_struct without any reason to implement
+task_pgrp_nr() and task_session_nr().
 
-Signed-off-by: Johannes Weiner <jw@emlix.com>
-Signed-off-by: Oskar Schirmer <os@emlix.com>
-Cc: Daniel Glockner <dg@emlix.com>
-Cc: Christian Zankel <chris@zankel.net>
+task_session_nr() has no callers since
+2e2ba22ea4fd4bb85f0fa37c521066db6775cbef, we can remove it.
+
+task_pgrp_nr() is still (I believe wrongly) used in fs/autofsX and
+fs/coda.
+
+This patch reimplements task_pgrp_nr() via task_pgrp_nr_ns(), and kills
+__pgrp/__session and the related helpers.
+
+The change in drivers/char/tty_io.c is cosmetic, but hopefully makes sense
+anyway.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Alan Cox <number6@the-village.bc.nu>		[tty parts]
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/Kconfig                                     |    4 
- arch/xtensa/Makefile                                    |    1 
- arch/xtensa/configs/s6105_defconfig                     |  530 ++++++++++
- arch/xtensa/platforms/s6105/Makefile                    |    3 
- arch/xtensa/platforms/s6105/device.c                    |   67 +
- arch/xtensa/platforms/s6105/include/platform/gpio.h     |   27 
- arch/xtensa/platforms/s6105/include/platform/hardware.h |   11 
- arch/xtensa/platforms/s6105/include/platform/serial.h   |    8 
- arch/xtensa/platforms/s6105/setup.c                     |   61 +
- 9 files changed, 712 insertions(+)
+ drivers/char/tty_io.c |    4 +--
+ include/linux/sched.h |   43 +++++-----------------------------------
+ kernel/exit.c         |   10 ++-------
+ kernel/fork.c         |    2 -
+ kernel/sys.c          |    4 ---
+ 5 files changed, 12 insertions(+), 51 deletions(-)
 
-diff -puN arch/xtensa/Kconfig~xtensa-platform-stretch-s6105-eval-board arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~xtensa-platform-stretch-s6105-eval-board
-+++ a/arch/xtensa/Kconfig
-@@ -133,6 +133,10 @@ config XTENSA_PLATFORM_XT2000
- 	  XT2000 is the name of Tensilica's feature-rich emulation platform.
- 	  This hardware is capable of running a full Linux distribution.
+diff -puN drivers/char/tty_io.c~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends
++++ a/drivers/char/tty_io.c
+@@ -2681,7 +2681,7 @@ void __do_SAK(struct tty_struct *tty)
+ 	/* Kill the entire session */
+ 	do_each_pid_task(session, PIDTYPE_SID, p) {
+ 		printk(KERN_NOTICE "SAK: killed process %d"
+-			" (%s): task_session_nr(p)==tty->session\n",
++			" (%s): task_session(p)==tty->session\n",
+ 			task_pid_nr(p), p->comm);
+ 		send_sig(SIGKILL, p, 1);
+ 	} while_each_pid_task(session, PIDTYPE_SID, p);
+@@ -2691,7 +2691,7 @@ void __do_SAK(struct tty_struct *tty)
+ 	do_each_thread(g, p) {
+ 		if (p->signal->tty == tty) {
+ 			printk(KERN_NOTICE "SAK: killed process %d"
+-			    " (%s): task_session_nr(p)==tty->session\n",
++			    " (%s): task_session(p)==tty->session\n",
+ 			    task_pid_nr(p), p->comm);
+ 			send_sig(SIGKILL, p, 1);
+ 			continue;
+diff -puN include/linux/sched.h~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends include/linux/sched.h
+--- a/include/linux/sched.h~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends
++++ a/include/linux/sched.h
+@@ -547,25 +547,8 @@ struct signal_struct {
  
-+config XTENSA_PLATFORM_S6105
-+	bool "S6105"
-+	select SERIAL_CONSOLE
-+
- endchoice
+ 	struct list_head cpu_timers[3];
+ 
+-	/* job control IDs */
+-
+-	/*
+-	 * pgrp and session fields are deprecated.
+-	 * use the task_session_Xnr and task_pgrp_Xnr routines below
+-	 */
+-
+-	union {
+-		pid_t pgrp __deprecated;
+-		pid_t __pgrp;
+-	};
+-
+ 	struct pid *tty_old_pgrp;
+ 
+-	union {
+-		pid_t session __deprecated;
+-		pid_t __session;
+-	};
+-
+ 	/* boolean value for session group leader */
+ 	int leader;
+ 
+@@ -1469,16 +1452,6 @@ static inline int rt_task(struct task_st
+ 	return rt_prio(p->prio);
+ }
+ 
+-static inline void set_task_session(struct task_struct *tsk, pid_t session)
+-{
+-	tsk->signal->__session = session;
+-}
+-
+-static inline void set_task_pgrp(struct task_struct *tsk, pid_t pgrp)
+-{
+-	tsk->signal->__pgrp = pgrp;
+-}
+-
+ static inline struct pid *task_pid(struct task_struct *task)
+ {
+ 	return task->pids[PIDTYPE_PID].pid;
+@@ -1552,11 +1525,6 @@ static inline pid_t task_tgid_vnr(struct
+ }
  
  
-diff -puN arch/xtensa/Makefile~xtensa-platform-stretch-s6105-eval-board arch/xtensa/Makefile
---- a/arch/xtensa/Makefile~xtensa-platform-stretch-s6105-eval-board
-+++ a/arch/xtensa/Makefile
-@@ -25,6 +25,7 @@ export VARIANT
+-static inline pid_t task_pgrp_nr(struct task_struct *tsk)
+-{
+-	return tsk->signal->__pgrp;
+-}
+-
+ static inline pid_t task_pgrp_nr_ns(struct task_struct *tsk,
+ 					struct pid_namespace *ns)
+ {
+@@ -1569,11 +1537,6 @@ static inline pid_t task_pgrp_vnr(struct
+ }
  
- platform-$(CONFIG_XTENSA_PLATFORM_XT2000)	:= xt2000
- platform-$(CONFIG_XTENSA_PLATFORM_ISS)		:= iss
-+platform-$(CONFIG_XTENSA_PLATFORM_S6105)	:= s6105
  
- PLATFORM = $(platform-y)
- export PLATFORM
-diff -puN /dev/null arch/xtensa/configs/s6105_defconfig
---- /dev/null
-+++ a/arch/xtensa/configs/s6105_defconfig
-@@ -0,0 +1,530 @@
-+#
-+# Automatically generated make config: don't edit
-+# Linux kernel version: 2.6.29-rc7-s6
-+# Tue Mar 10 11:09:26 2009
-+#
-+# CONFIG_FRAME_POINTER is not set
-+CONFIG_ZONE_DMA=y
-+CONFIG_XTENSA=y
-+CONFIG_RWSEM_XCHGADD_ALGORITHM=y
-+CONFIG_GENERIC_FIND_NEXT_BIT=y
-+CONFIG_GENERIC_HWEIGHT=y
-+CONFIG_GENERIC_HARDIRQS=y
-+CONFIG_GENERIC_GPIO=y
-+# CONFIG_ARCH_HAS_ILOG2_U32 is not set
-+# CONFIG_ARCH_HAS_ILOG2_U64 is not set
-+CONFIG_NO_IOPORT=y
-+CONFIG_HZ=100
-+CONFIG_GENERIC_TIME=y
-+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
-+
-+#
-+# General setup
-+#
-+CONFIG_EXPERIMENTAL=y
-+CONFIG_BROKEN_ON_SMP=y
-+CONFIG_LOCK_KERNEL=y
-+CONFIG_INIT_ENV_ARG_LIMIT=32
-+CONFIG_LOCALVERSION=""
-+CONFIG_LOCALVERSION_AUTO=y
-+CONFIG_SYSVIPC=y
-+CONFIG_SYSVIPC_SYSCTL=y
-+# CONFIG_POSIX_MQUEUE is not set
-+# CONFIG_BSD_PROCESS_ACCT is not set
-+# CONFIG_TASKSTATS is not set
-+# CONFIG_AUDIT is not set
-+
-+#
-+# RCU Subsystem
-+#
-+# CONFIG_CLASSIC_RCU is not set
-+# CONFIG_TREE_RCU is not set
-+CONFIG_PREEMPT_RCU=y
-+# CONFIG_RCU_TRACE is not set
-+# CONFIG_TREE_RCU_TRACE is not set
-+# CONFIG_PREEMPT_RCU_TRACE is not set
-+CONFIG_IKCONFIG=y
-+CONFIG_IKCONFIG_PROC=y
-+CONFIG_LOG_BUF_SHIFT=16
-+# CONFIG_GROUP_SCHED is not set
-+# CONFIG_CGROUPS is not set
-+# CONFIG_SYSFS_DEPRECATED_V2 is not set
-+# CONFIG_RELAY is not set
-+# CONFIG_NAMESPACES is not set
-+CONFIG_BLK_DEV_INITRD=y
-+CONFIG_INITRAMFS_SOURCE=""
-+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-+CONFIG_SYSCTL=y
-+CONFIG_EMBEDDED=y
-+CONFIG_SYSCTL_SYSCALL=y
-+CONFIG_KALLSYMS=y
-+# CONFIG_KALLSYMS_ALL is not set
-+# CONFIG_KALLSYMS_EXTRA_PASS is not set
-+# CONFIG_HOTPLUG is not set
-+CONFIG_PRINTK=y
-+CONFIG_BUG=y
-+CONFIG_ELF_CORE=y
-+# CONFIG_COMPAT_BRK is not set
-+CONFIG_BASE_FULL=y
-+CONFIG_FUTEX=y
-+CONFIG_ANON_INODES=y
-+CONFIG_EPOLL=y
-+CONFIG_SIGNALFD=y
-+CONFIG_TIMERFD=y
-+CONFIG_EVENTFD=y
-+CONFIG_AIO=y
-+CONFIG_VM_EVENT_COUNTERS=y
-+CONFIG_SLAB=y
-+# CONFIG_SLUB is not set
-+# CONFIG_SLOB is not set
-+# CONFIG_PROFILING is not set
-+# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
-+CONFIG_SLABINFO=y
-+CONFIG_RT_MUTEXES=y
-+CONFIG_BASE_SMALL=0
-+# CONFIG_MODULES is not set
-+CONFIG_BLOCK=y
-+# CONFIG_LBD is not set
-+# CONFIG_BLK_DEV_IO_TRACE is not set
-+# CONFIG_BLK_DEV_BSG is not set
-+# CONFIG_BLK_DEV_INTEGRITY is not set
-+
-+#
-+# IO Schedulers
-+#
-+CONFIG_IOSCHED_NOOP=y
-+# CONFIG_IOSCHED_AS is not set
-+# CONFIG_IOSCHED_DEADLINE is not set
-+CONFIG_IOSCHED_CFQ=y
-+# CONFIG_DEFAULT_AS is not set
-+# CONFIG_DEFAULT_DEADLINE is not set
-+CONFIG_DEFAULT_CFQ=y
-+# CONFIG_DEFAULT_NOOP is not set
-+CONFIG_DEFAULT_IOSCHED="cfq"
-+# CONFIG_FREEZER is not set
-+# CONFIG_MMU is not set
-+CONFIG_VARIANT_IRQ_SWITCH=y
-+
-+#
-+# Processor type and features
-+#
-+# CONFIG_XTENSA_VARIANT_FSF is not set
-+# CONFIG_XTENSA_VARIANT_DC232B is not set
-+CONFIG_XTENSA_VARIANT_S6000=y
-+# CONFIG_XTENSA_UNALIGNED_USER is not set
-+CONFIG_PREEMPT=y
-+# CONFIG_MATH_EMULATION is not set
-+# CONFIG_HIGHMEM is not set
-+# CONFIG_XTENSA_CALIBRATE_CCOUNT is not set
-+CONFIG_SERIAL_CONSOLE=y
-+# CONFIG_XTENSA_ISS_NETWORK is not set
-+
-+#
-+# Bus options
-+#
-+# CONFIG_PCI is not set
-+# CONFIG_ARCH_SUPPORTS_MSI is not set
-+
-+#
-+# Platform options
-+#
-+# CONFIG_XTENSA_PLATFORM_ISS is not set
-+# CONFIG_XTENSA_PLATFORM_XT2000 is not set
-+CONFIG_XTENSA_PLATFORM_S6105=y
-+CONFIG_XTENSA_CPU_CLOCK=300
-+CONFIG_GENERIC_CALIBRATE_DELAY=y
-+CONFIG_CMDLINE_BOOL=y
-+CONFIG_CMDLINE="console=ttyS1,38400 debug bootmem_debug loglevel=7"
-+CONFIG_SELECT_MEMORY_MODEL=y
-+CONFIG_FLATMEM_MANUAL=y
-+# CONFIG_DISCONTIGMEM_MANUAL is not set
-+# CONFIG_SPARSEMEM_MANUAL is not set
-+CONFIG_FLATMEM=y
-+CONFIG_FLAT_NODE_MEM_MAP=y
-+CONFIG_PAGEFLAGS_EXTENDED=y
-+CONFIG_SPLIT_PTLOCK_CPUS=4
-+# CONFIG_PHYS_ADDR_T_64BIT is not set
-+CONFIG_ZONE_DMA_FLAG=1
-+CONFIG_VIRT_TO_BUS=y
-+
-+#
-+# Executable file formats
-+#
-+CONFIG_KCORE_ELF=y
-+CONFIG_BINFMT_FLAT=y
-+# CONFIG_BINFMT_ZFLAT is not set
-+# CONFIG_BINFMT_SHARED_FLAT is not set
-+# CONFIG_HAVE_AOUT is not set
-+# CONFIG_BINFMT_MISC is not set
-+CONFIG_NET=y
-+
-+#
-+# Networking options
-+#
-+CONFIG_COMPAT_NET_DEV_OPS=y
-+CONFIG_PACKET=y
-+# CONFIG_PACKET_MMAP is not set
-+CONFIG_UNIX=y
-+# CONFIG_NET_KEY is not set
-+CONFIG_INET=y
-+# CONFIG_IP_MULTICAST is not set
-+# CONFIG_IP_ADVANCED_ROUTER is not set
-+CONFIG_IP_FIB_HASH=y
-+# CONFIG_IP_PNP is not set
-+# CONFIG_NET_IPIP is not set
-+# CONFIG_NET_IPGRE is not set
-+# CONFIG_ARPD is not set
-+# CONFIG_SYN_COOKIES is not set
-+# CONFIG_INET_AH is not set
-+# CONFIG_INET_ESP is not set
-+# CONFIG_INET_IPCOMP is not set
-+# CONFIG_INET_XFRM_TUNNEL is not set
-+# CONFIG_INET_TUNNEL is not set
-+# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
-+# CONFIG_INET_XFRM_MODE_TUNNEL is not set
-+# CONFIG_INET_XFRM_MODE_BEET is not set
-+# CONFIG_INET_LRO is not set
-+# CONFIG_INET_DIAG is not set
-+# CONFIG_TCP_CONG_ADVANCED is not set
-+CONFIG_TCP_CONG_CUBIC=y
-+CONFIG_DEFAULT_TCP_CONG="cubic"
-+# CONFIG_TCP_MD5SIG is not set
-+# CONFIG_IPV6 is not set
-+# CONFIG_NETWORK_SECMARK is not set
-+# CONFIG_NETFILTER is not set
-+# CONFIG_IP_DCCP is not set
-+# CONFIG_IP_SCTP is not set
-+# CONFIG_TIPC is not set
-+# CONFIG_ATM is not set
-+# CONFIG_BRIDGE is not set
-+# CONFIG_NET_DSA is not set
-+# CONFIG_VLAN_8021Q is not set
-+# CONFIG_DECNET is not set
-+# CONFIG_LLC2 is not set
-+# CONFIG_IPX is not set
-+# CONFIG_ATALK is not set
-+# CONFIG_X25 is not set
-+# CONFIG_LAPB is not set
-+# CONFIG_ECONET is not set
-+# CONFIG_WAN_ROUTER is not set
-+# CONFIG_NET_SCHED is not set
-+# CONFIG_DCB is not set
-+
-+#
-+# Network testing
-+#
-+# CONFIG_NET_PKTGEN is not set
-+# CONFIG_HAMRADIO is not set
-+# CONFIG_CAN is not set
-+# CONFIG_IRDA is not set
-+# CONFIG_BT is not set
-+# CONFIG_AF_RXRPC is not set
-+# CONFIG_PHONET is not set
-+# CONFIG_WIRELESS is not set
-+# CONFIG_WIMAX is not set
-+# CONFIG_RFKILL is not set
-+# CONFIG_NET_9P is not set
-+
-+#
-+# Device Drivers
-+#
-+
-+#
-+# Generic Driver Options
-+#
-+CONFIG_STANDALONE=y
-+CONFIG_PREVENT_FIRMWARE_BUILD=y
-+# CONFIG_DEBUG_DRIVER is not set
-+# CONFIG_DEBUG_DEVRES is not set
-+# CONFIG_SYS_HYPERVISOR is not set
-+# CONFIG_CONNECTOR is not set
-+# CONFIG_MTD is not set
-+# CONFIG_PARPORT is not set
-+CONFIG_BLK_DEV=y
-+# CONFIG_BLK_DEV_COW_COMMON is not set
-+# CONFIG_BLK_DEV_LOOP is not set
-+# CONFIG_BLK_DEV_NBD is not set
-+CONFIG_BLK_DEV_RAM=y
-+CONFIG_BLK_DEV_RAM_COUNT=16
-+CONFIG_BLK_DEV_RAM_SIZE=4096
-+# CONFIG_BLK_DEV_XIP is not set
-+# CONFIG_CDROM_PKTCDVD is not set
-+# CONFIG_ATA_OVER_ETH is not set
-+# CONFIG_BLK_DEV_HD is not set
-+# CONFIG_MISC_DEVICES is not set
-+CONFIG_HAVE_IDE=y
-+# CONFIG_IDE is not set
-+
-+#
-+# SCSI device support
-+#
-+# CONFIG_RAID_ATTRS is not set
-+# CONFIG_SCSI is not set
-+# CONFIG_SCSI_DMA is not set
-+# CONFIG_SCSI_NETLINK is not set
-+# CONFIG_ATA is not set
-+# CONFIG_MD is not set
-+# CONFIG_NETDEVICES is not set
-+# CONFIG_ISDN is not set
-+# CONFIG_PHONE is not set
-+
-+#
-+# Input device support
-+#
-+# CONFIG_INPUT is not set
-+
-+#
-+# Hardware I/O ports
-+#
-+# CONFIG_SERIO is not set
-+# CONFIG_GAMEPORT is not set
-+
-+#
-+# Character devices
-+#
-+# CONFIG_VT is not set
-+# CONFIG_DEVKMEM is not set
-+# CONFIG_SERIAL_NONSTANDARD is not set
-+
-+#
-+# Serial drivers
-+#
-+CONFIG_SERIAL_8250=y
-+CONFIG_SERIAL_8250_CONSOLE=y
-+CONFIG_SERIAL_8250_NR_UARTS=2
-+CONFIG_SERIAL_8250_RUNTIME_UARTS=2
-+# CONFIG_SERIAL_8250_EXTENDED is not set
-+
-+#
-+# Non-8250 serial port support
-+#
-+CONFIG_SERIAL_CORE=y
-+CONFIG_SERIAL_CORE_CONSOLE=y
-+CONFIG_UNIX98_PTYS=y
-+# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
-+# CONFIG_LEGACY_PTYS is not set
-+# CONFIG_IPMI_HANDLER is not set
-+# CONFIG_HW_RANDOM is not set
-+# CONFIG_RTC is not set
-+# CONFIG_GEN_RTC is not set
-+# CONFIG_R3964 is not set
-+# CONFIG_RAW_DRIVER is not set
-+# CONFIG_TCG_TPM is not set
-+# CONFIG_I2C is not set
-+# CONFIG_SPI is not set
-+CONFIG_ARCH_REQUIRE_GPIOLIB=y
-+CONFIG_GPIOLIB=y
-+# CONFIG_DEBUG_GPIO is not set
-+# CONFIG_GPIO_SYSFS is not set
-+
-+#
-+# Memory mapped GPIO expanders:
-+#
-+
-+#
-+# I2C GPIO expanders:
-+#
-+
-+#
-+# PCI GPIO expanders:
-+#
-+
-+#
-+# SPI GPIO expanders:
-+#
-+# CONFIG_W1 is not set
-+# CONFIG_POWER_SUPPLY is not set
-+# CONFIG_HWMON is not set
-+# CONFIG_THERMAL is not set
-+# CONFIG_THERMAL_HWMON is not set
-+# CONFIG_WATCHDOG is not set
-+CONFIG_SSB_POSSIBLE=y
-+
-+#
-+# Sonics Silicon Backplane
-+#
-+# CONFIG_SSB is not set
-+
-+#
-+# Multifunction device drivers
-+#
-+# CONFIG_MFD_CORE is not set
-+# CONFIG_MFD_SM501 is not set
-+# CONFIG_HTC_PASIC3 is not set
-+# CONFIG_MFD_TMIO is not set
-+# CONFIG_REGULATOR is not set
-+
-+#
-+# Multimedia devices
-+#
-+
-+#
-+# Multimedia core support
-+#
-+# CONFIG_VIDEO_DEV is not set
-+# CONFIG_DVB_CORE is not set
-+# CONFIG_VIDEO_MEDIA is not set
-+
-+#
-+# Multimedia drivers
-+#
-+# CONFIG_DAB is not set
-+
-+#
-+# Graphics support
-+#
-+# CONFIG_VGASTATE is not set
-+# CONFIG_VIDEO_OUTPUT_CONTROL is not set
-+# CONFIG_FB is not set
-+# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-+
-+#
-+# Display device support
-+#
-+# CONFIG_DISPLAY_SUPPORT is not set
-+# CONFIG_SOUND is not set
-+# CONFIG_USB_SUPPORT is not set
-+# CONFIG_MMC is not set
-+# CONFIG_MEMSTICK is not set
-+# CONFIG_NEW_LEDS is not set
-+# CONFIG_ACCESSIBILITY is not set
-+# CONFIG_RTC_CLASS is not set
-+# CONFIG_DMADEVICES is not set
-+# CONFIG_UIO is not set
-+# CONFIG_STAGING is not set
-+
-+#
-+# File systems
-+#
-+# CONFIG_EXT2_FS is not set
-+# CONFIG_EXT3_FS is not set
-+# CONFIG_EXT4_FS is not set
-+# CONFIG_REISERFS_FS is not set
-+# CONFIG_JFS_FS is not set
-+# CONFIG_FS_POSIX_ACL is not set
-+CONFIG_FILE_LOCKING=y
-+# CONFIG_XFS_FS is not set
-+# CONFIG_OCFS2_FS is not set
-+# CONFIG_BTRFS_FS is not set
-+# CONFIG_DNOTIFY is not set
-+# CONFIG_INOTIFY is not set
-+# CONFIG_QUOTA is not set
-+# CONFIG_AUTOFS_FS is not set
-+# CONFIG_AUTOFS4_FS is not set
-+# CONFIG_FUSE_FS is not set
-+
-+#
-+# CD-ROM/DVD Filesystems
-+#
-+# CONFIG_ISO9660_FS is not set
-+# CONFIG_UDF_FS is not set
-+
-+#
-+# DOS/FAT/NT Filesystems
-+#
-+# CONFIG_MSDOS_FS is not set
-+# CONFIG_VFAT_FS is not set
-+# CONFIG_NTFS_FS is not set
-+
-+#
-+# Pseudo filesystems
-+#
-+CONFIG_PROC_FS=y
-+CONFIG_PROC_SYSCTL=y
-+CONFIG_SYSFS=y
-+# CONFIG_TMPFS is not set
-+# CONFIG_HUGETLB_PAGE is not set
-+# CONFIG_CONFIGFS_FS is not set
-+# CONFIG_MISC_FILESYSTEMS is not set
-+# CONFIG_NETWORK_FILESYSTEMS is not set
-+
-+#
-+# Partition Types
-+#
-+# CONFIG_PARTITION_ADVANCED is not set
-+CONFIG_MSDOS_PARTITION=y
-+# CONFIG_NLS is not set
-+# CONFIG_DLM is not set
-+
-+#
-+# Xtensa initrd options
-+#
-+# CONFIG_EMBEDDED_RAMDISK is not set
-+
-+#
-+# Kernel hacking
-+#
-+CONFIG_PRINTK_TIME=y
-+# CONFIG_ENABLE_WARN_DEPRECATED is not set
-+# CONFIG_ENABLE_MUST_CHECK is not set
-+CONFIG_FRAME_WARN=1024
-+# CONFIG_MAGIC_SYSRQ is not set
-+# CONFIG_UNUSED_SYMBOLS is not set
-+# CONFIG_DEBUG_FS is not set
-+# CONFIG_HEADERS_CHECK is not set
-+CONFIG_DEBUG_KERNEL=y
-+CONFIG_DEBUG_SHIRQ=y
-+CONFIG_DETECT_SOFTLOCKUP=y
-+# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
-+# CONFIG_SCHED_DEBUG is not set
-+# CONFIG_SCHEDSTATS is not set
-+# CONFIG_TIMER_STATS is not set
-+# CONFIG_DEBUG_OBJECTS is not set
-+# CONFIG_DEBUG_SLAB is not set
-+# CONFIG_DEBUG_RT_MUTEXES is not set
-+# CONFIG_RT_MUTEX_TESTER is not set
-+CONFIG_DEBUG_SPINLOCK=y
-+CONFIG_DEBUG_MUTEXES=y
-+CONFIG_DEBUG_SPINLOCK_SLEEP=y
-+# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
-+# CONFIG_DEBUG_KOBJECT is not set
-+# CONFIG_DEBUG_INFO is not set
-+# CONFIG_DEBUG_VM is not set
-+CONFIG_DEBUG_NOMMU_REGIONS=y
-+# CONFIG_DEBUG_WRITECOUNT is not set
-+# CONFIG_DEBUG_MEMORY_INIT is not set
-+# CONFIG_DEBUG_LIST is not set
-+# CONFIG_DEBUG_SG is not set
-+# CONFIG_DEBUG_NOTIFIERS is not set
-+# CONFIG_BOOT_PRINTK_DELAY is not set
-+# CONFIG_RCU_TORTURE_TEST is not set
-+# CONFIG_BACKTRACE_SELF_TEST is not set
-+# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
-+# CONFIG_FAULT_INJECTION is not set
-+# CONFIG_SYSCTL_SYSCALL_CHECK is not set
-+
-+#
-+# Tracers
-+#
-+# CONFIG_PREEMPT_TRACER is not set
-+# CONFIG_SCHED_TRACER is not set
-+# CONFIG_CONTEXT_SWITCH_TRACER is not set
-+# CONFIG_BOOT_TRACER is not set
-+# CONFIG_TRACE_BRANCH_PROFILING is not set
-+# CONFIG_DYNAMIC_PRINTK_DEBUG is not set
-+# CONFIG_SAMPLES is not set
-+
-+#
-+# Security options
-+#
-+# CONFIG_KEYS is not set
-+# CONFIG_SECURITY is not set
-+# CONFIG_SECURITYFS is not set
-+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
-+# CONFIG_CRYPTO is not set
-+
-+#
-+# Library routines
-+#
-+CONFIG_GENERIC_FIND_LAST_BIT=y
-+# CONFIG_CRC_CCITT is not set
-+# CONFIG_CRC16 is not set
-+# CONFIG_CRC_T10DIF is not set
-+# CONFIG_CRC_ITU_T is not set
-+# CONFIG_CRC32 is not set
-+# CONFIG_CRC7 is not set
-+# CONFIG_LIBCRC32C is not set
-+CONFIG_PLIST=y
-+CONFIG_HAS_IOMEM=y
-+CONFIG_HAS_DMA=y
-diff -puN /dev/null arch/xtensa/platforms/s6105/Makefile
---- /dev/null
-+++ a/arch/xtensa/platforms/s6105/Makefile
-@@ -0,0 +1,3 @@
-+# Makefile for the Stretch S6105 eval board
-+
-+obj-y		:= setup.o device.o
-diff -puN /dev/null arch/xtensa/platforms/s6105/device.c
---- /dev/null
-+++ a/arch/xtensa/platforms/s6105/device.c
-@@ -0,0 +1,67 @@
-+/*
-+ * s6105 platform devices
-+ *
-+ * Copyright (c) 2009 emlix GmbH
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/serial.h>
-+#include <linux/serial_8250.h>
-+
-+#include <variant/hardware.h>
-+
-+#define UART_INTNUM		4
-+
-+static const signed char uart_irq_mappings[] = {
-+	S6_INTC_UART(0),
-+	S6_INTC_UART(1),
-+	-1,
-+};
-+
-+const signed char *platform_irq_mappings[NR_IRQS] = {
-+	[UART_INTNUM] = uart_irq_mappings,
-+};
-+
-+static struct plat_serial8250_port serial_platform_data[] = {
-+	{
-+		.membase = (void *)S6_REG_UART + 0x0000,
-+		.mapbase = S6_REG_UART + 0x0000,
-+		.irq = UART_INTNUM,
-+		.uartclk = S6_SCLK,
-+		.regshift = 2,
-+		.iotype = SERIAL_IO_MEM,
-+		.flags = ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST,
-+	},
-+	{
-+		.membase = (void *)S6_REG_UART + 0x1000,
-+		.mapbase = S6_REG_UART + 0x1000,
-+		.irq = UART_INTNUM,
-+		.uartclk = S6_SCLK,
-+		.regshift = 2,
-+		.iotype = SERIAL_IO_MEM,
-+		.flags = ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST,
-+	},
-+	{ },
-+};
-+
-+static struct platform_device platform_devices[] = {
-+	{
-+		.name = "serial8250",
-+		.id = PLAT8250_DEV_PLATFORM,
-+		.dev = {
-+			.platform_data = serial_platform_data,
-+		},
-+	},
-+};
-+
-+static int __init device_init(void)
+-static inline pid_t task_session_nr(struct task_struct *tsk)
+-{
+-	return tsk->signal->__session;
+-}
+-
+ static inline pid_t task_session_nr_ns(struct task_struct *tsk,
+ 					struct pid_namespace *ns)
+ {
+@@ -1585,6 +1548,12 @@ static inline pid_t task_session_vnr(str
+ 	return __task_pid_nr_ns(tsk, PIDTYPE_SID, NULL);
+ }
+ 
++/* obsolete, do not use */
++static inline pid_t task_pgrp_nr(struct task_struct *tsk)
 +{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(platform_devices); i++)
-+		platform_device_register(&platform_devices[i]);
-+	return 0;
-+}
-+arch_initcall_sync(device_init);
-diff -puN /dev/null arch/xtensa/platforms/s6105/include/platform/gpio.h
---- /dev/null
-+++ a/arch/xtensa/platforms/s6105/include/platform/gpio.h
-@@ -0,0 +1,27 @@
-+#ifndef __ASM_XTENSA_S6105_GPIO_H
-+#define __ASM_XTENSA_S6105_GPIO_H
-+
-+#define GPIO_BP_TEMP_ALARM	0
-+#define GPIO_PB_RESET_IN	1
-+#define GPIO_EXP_IRQ		2
-+#define GPIO_TRIGGER_IRQ	3
-+#define GPIO_RTC_IRQ		4
-+#define GPIO_PHY_IRQ		5
-+#define GPIO_IMAGER_RESET	6
-+#define GPIO_SD_IRQ		7
-+#define GPIO_MINI_BOOT_INH	8
-+#define GPIO_BOARD_RESET	9
-+#define GPIO_EXP_PRESENT	10
-+#define GPIO_LED1_NGREEN	12
-+#define GPIO_LED1_RED		13
-+#define GPIO_LED0_NGREEN	14
-+#define GPIO_LED0_NRED		15
-+#define GPIO_SPI_CS0		16
-+#define GPIO_SPI_CS1		17
-+#define GPIO_SPI_CS3		19
-+#define GPIO_SPI_CS4		20
-+#define GPIO_SD_WP		21
-+#define GPIO_BP_RESET		22
-+#define GPIO_ALARM_OUT		23
-+
-+#endif /* __ASM_XTENSA_S6105_GPIO_H */
-diff -puN /dev/null arch/xtensa/platforms/s6105/include/platform/hardware.h
---- /dev/null
-+++ a/arch/xtensa/platforms/s6105/include/platform/hardware.h
-@@ -0,0 +1,11 @@
-+#ifndef __XTENSA_S6105_HARDWARE_H
-+#define __XTENSA_S6105_HARDWARE_H
-+
-+#define PLATFORM_DEFAULT_MEM_START	0x40000000
-+#define PLATFORM_DEFAULT_MEM_SIZE	0x08000000
-+
-+#define MAX_DMA_ADDRESS			0
-+
-+#define KERNELOFFSET			(PLATFORM_DEFAULT_MEM_START + 0x1000)
-+
-+#endif /* __XTENSA_S6105_HARDWARE_H */
-diff -puN /dev/null arch/xtensa/platforms/s6105/include/platform/serial.h
---- /dev/null
-+++ a/arch/xtensa/platforms/s6105/include/platform/serial.h
-@@ -0,0 +1,8 @@
-+#ifndef __ASM_XTENSA_S6105_SERIAL_H
-+#define __ASM_XTENSA_S6105_SERIAL_H
-+
-+#include <variant/hardware.h>
-+
-+#define BASE_BAUD (S6_SCLK / 16)
-+
-+#endif /* __ASM_XTENSA_S6105_SERIAL_H */
-diff -puN /dev/null arch/xtensa/platforms/s6105/setup.c
---- /dev/null
-+++ a/arch/xtensa/platforms/s6105/setup.c
-@@ -0,0 +1,61 @@
-+/*
-+ * s6105 control routines
-+ *
-+ * Copyright (c) 2009 emlix GmbH
-+ */
-+#include <linux/irq.h>
-+#include <linux/io.h>
-+#include <linux/gpio.h>
-+
-+#include <asm/bootparam.h>
-+
-+#include <variant/hardware.h>
-+#include <platform/gpio.h>
-+
-+void platform_halt(void)
-+{
-+	local_irq_disable();
-+	while (1)
-+		;
++	return task_pgrp_nr_ns(tsk, &init_pid_ns);
 +}
 +
-+void platform_power_off(void)
-+{
-+	platform_halt();
-+}
+ /**
+  * pid_alive - check that a task structure is not stale
+  * @p: Task structure to be checked.
+diff -puN kernel/exit.c~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends kernel/exit.c
+--- a/kernel/exit.c~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends
++++ a/kernel/exit.c
+@@ -357,16 +357,12 @@ static void reparent_to_kthreadd(void)
+ void __set_special_pids(struct pid *pid)
+ {
+ 	struct task_struct *curr = current->group_leader;
+-	pid_t nr = pid_nr(pid);
+ 
+-	if (task_session(curr) != pid) {
++	if (task_session(curr) != pid)
+ 		change_pid(curr, PIDTYPE_SID, pid);
+-		set_task_session(curr, nr);
+-	}
+-	if (task_pgrp(curr) != pid) {
 +
-+void platform_restart(void)
-+{
-+	platform_halt();
-+}
-+
-+void __init platform_setup(char **cmdline)
-+{
-+	unsigned long reg;
-+
-+	reg = readl(S6_REG_GREG1 + S6_GREG1_CLKGATE);
-+	reg &= ~(1 << S6_GREG1_BLOCK_SB);
-+	writel(reg, S6_REG_GREG1 + S6_GREG1_CLKGATE);
-+
-+	reg = readl(S6_REG_GREG1 + S6_GREG1_BLOCKENA);
-+	reg |= 1 << S6_GREG1_BLOCK_SB;
-+	writel(reg, S6_REG_GREG1 + S6_GREG1_BLOCKENA);
-+
-+	printk(KERN_NOTICE "S6105 on Stretch S6000 - "
-+		"Copyright (C) 2009 emlix GmbH <info@emlix.com>\n");
-+}
-+
-+void __init platform_init(bp_tag_t *first)
-+{
-+	gpio_request(GPIO_LED1_NGREEN, "led1_green");
-+	gpio_request(GPIO_LED1_RED, "led1_red");
-+	gpio_direction_output(GPIO_LED1_NGREEN, 1);
-+}
-+
-+void platform_heartbeat(void)
-+{
-+	static unsigned int c;
-+
-+	if (!(++c & 0x4F))
-+		gpio_direction_output(GPIO_LED1_RED, !(c & 0x10));
-+}
++	if (task_pgrp(curr) != pid)
+ 		change_pid(curr, PIDTYPE_PGID, pid);
+-		set_task_pgrp(curr, nr);
+-	}
+ }
+ 
+ static void set_special_pids(struct pid *pid)
+diff -puN kernel/fork.c~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends kernel/fork.c
+--- a/kernel/fork.c~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends
++++ a/kernel/fork.c
+@@ -1265,8 +1265,6 @@ static struct task_struct *copy_process(
+ 			p->signal->leader_pid = pid;
+ 			tty_kref_put(p->signal->tty);
+ 			p->signal->tty = tty_kref_get(current->signal->tty);
+-			set_task_pgrp(p, task_pgrp_nr(current));
+-			set_task_session(p, task_session_nr(current));
+ 			attach_pid(p, PIDTYPE_PGID, task_pgrp(current));
+ 			attach_pid(p, PIDTYPE_SID, task_session(current));
+ 			list_add_tail_rcu(&p->tasks, &init_task.tasks);
+diff -puN kernel/sys.c~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends kernel/sys.c
+--- a/kernel/sys.c~pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends
++++ a/kernel/sys.c
+@@ -1013,10 +1013,8 @@ SYSCALL_DEFINE2(setpgid, pid_t, pid, pid
+ 	if (err)
+ 		goto out;
+ 
+-	if (task_pgrp(p) != pgrp) {
++	if (task_pgrp(p) != pgrp)
+ 		change_pid(p, PIDTYPE_PGID, pgrp);
+-		set_task_pgrp(p, pid_nr(pgrp));
+-	}
+ 
+ 	err = 0;
+ out:
 _
 
-Patches currently in -mm which might be from jw@emlix.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-xtensa-variant-specific-code.patch
-xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
-xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
-xtensa-s6105-specific-configuration-for-s6gmac.patch
-xtensa-enable-s6gmac-in-s6105_defconfig.patch
-flat-fix-data-sections-alignment.patch
+linux-next.patch
+getrusage-fill-ru_maxrss-value.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+signals-tracehook_notify_jctl-change.patch
 
