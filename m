@@ -1,94 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uml-fix-link-error-from-prefixing-of-i386-syscalls-with-ptregs_.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:33:05 -0700
-Message-ID: <200904061933.n36JX5BS010995@imap1.linux-foundation.org>
+Subject: [merged] remove-sgi_gru-as-a-valid-config-option-for-ia64-configs-with-sgi_uv.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:37:45 -0700
+Message-ID: <200904061937.n36JbjVR013079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756819AbZDFTkK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:40:10 -0400
+	by vger.kernel.org with ESMTP id S1757980AbZDFTkT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:40:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miklos@szeredi.hu, brgerst@gmail.com, jdike@addtoit.com, mingo@elte.hu, mszeredi@suse.cz, tj@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: holt@sgi.com, steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix link error from prefixing of i386 syscalls with ptregs_
+     sgi-gru: remove SGI_GRU as a valid config option for ia64 configs with SGI_UV
 has been removed from the -mm tree.  Its filename was
-     uml-fix-link-error-from-prefixing-of-i386-syscalls-with-ptregs_.patch
+     remove-sgi_gru-as-a-valid-config-option-for-ia64-configs-with-sgi_uv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix link error from prefixing of i386 syscalls with ptregs_
-From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: sgi-gru: remove SGI_GRU as a valid config option for ia64 configs with SGI_UV
+From: Robin Holt <holt@sgi.com>
 
-Fix the following link error:
+Some current configs turn on GRU for ia64.  The GRU code does not
+correctly load on boot on ia64 (GRU does continue to work for x86-64), so
+changing the IA64 Kconfig to not select GRU on ia64 configs for now until
+we have time to fix.
 
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x11c): undefined reference to `ptregs_fork'
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x140): undefined reference to `ptregs_execve'
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x2cc): undefined reference to `ptregs_iopl'
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x2d8): undefined reference to `ptregs_vm86old'
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x2f0): undefined reference to `ptregs_sigreturn'
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x2f4): undefined reference to `ptregs_clone'
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x3ac): undefined reference to `ptregs_vm86'
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x3c8): undefined reference to `ptregs_rt_sigreturn'
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x3fc): undefined reference to `ptregs_sigaltstack'
-arch/um/sys-i386/built-in.o: In function `sys_call_table':
-(.rodata+0x40c): undefined reference to `ptregs_vfork'
-
-This was introduced by commit 253f29a4, "x86: pass in pt_regs pointer
-for syscalls that need it"
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jeff Dike <jdike@addtoit.com>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Acked-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/sys_call_table.S |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/ia64/configs/generic_defconfig |    3 ---
+ drivers/misc/Kconfig                |    4 ++--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/sys-i386/sys_call_table.S~uml-fix-link-error-from-prefixing-of-i386-syscalls-with-ptregs_ arch/um/sys-i386/sys_call_table.S
---- a/arch/um/sys-i386/sys_call_table.S~uml-fix-link-error-from-prefixing-of-i386-syscalls-with-ptregs_
-+++ a/arch/um/sys-i386/sys_call_table.S
-@@ -9,6 +9,17 @@
+diff -puN arch/ia64/configs/generic_defconfig~remove-sgi_gru-as-a-valid-config-option-for-ia64-configs-with-sgi_uv arch/ia64/configs/generic_defconfig
+--- a/arch/ia64/configs/generic_defconfig~remove-sgi_gru-as-a-valid-config-option-for-ia64-configs-with-sgi_uv
++++ a/arch/ia64/configs/generic_defconfig
+@@ -193,7 +193,6 @@ CONFIG_BOUNCE=y
+ CONFIG_NR_QUICK=1
+ CONFIG_VIRT_TO_BUS=y
+ CONFIG_UNEVICTABLE_LRU=y
+-CONFIG_MMU_NOTIFIER=y
+ CONFIG_ARCH_SELECT_MEMORY_MODEL=y
+ CONFIG_ARCH_DISCONTIGMEM_ENABLE=y
+ CONFIG_ARCH_FLATMEM_ENABLE=y
+@@ -416,8 +415,6 @@ CONFIG_SGI_IOC4=y
+ # CONFIG_ENCLOSURE_SERVICES is not set
+ CONFIG_SGI_XP=m
+ # CONFIG_HP_ILO is not set
+-CONFIG_SGI_GRU=m
+-# CONFIG_SGI_GRU_DEBUG is not set
+ # CONFIG_C2PORT is not set
+ CONFIG_HAVE_IDE=y
+ CONFIG_IDE=y
+diff -puN drivers/misc/Kconfig~remove-sgi_gru-as-a-valid-config-option-for-ia64-configs-with-sgi_uv drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~remove-sgi_gru-as-a-valid-config-option-for-ia64-configs-with-sgi_uv
++++ a/drivers/misc/Kconfig
+@@ -165,7 +165,7 @@ config SGI_XP
+ 	depends on (IA64_GENERIC || IA64_SGI_SN2 || IA64_SGI_UV || X86_UV) && SMP
+ 	select IA64_UNCACHED_ALLOCATOR if IA64_GENERIC || IA64_SGI_SN2
+ 	select GENERIC_ALLOCATOR if IA64_GENERIC || IA64_SGI_SN2
+-	select SGI_GRU if (IA64_GENERIC || IA64_SGI_UV || X86_64) && SMP
++	select SGI_GRU if X86_64 && SMP
+ 	---help---
+ 	  An SGI machine can be divided into multiple Single System
+ 	  Images which act independently of each other and have
+@@ -189,7 +189,7 @@ config HP_ILO
  
- #define old_mmap old_mmap_i386
- 
-+#define ptregs_fork sys_fork
-+#define ptregs_execve sys_execve
-+#define ptregs_iopl sys_iopl
-+#define ptregs_vm86old sys_vm86old
-+#define ptregs_sigreturn sys_sigreturn
-+#define ptregs_clone sys_clone
-+#define ptregs_vm86 sys_vm86
-+#define ptregs_rt_sigreturn sys_rt_sigreturn
-+#define ptregs_sigaltstack sys_sigaltstack
-+#define ptregs_vfork sys_vfork
-+
- .section .rodata,"a"
- 
- #include "../../x86/kernel/syscall_table_32.S"
+ config SGI_GRU
+ 	tristate "SGI GRU driver"
+-	depends on (X86_UV || IA64_SGI_UV || IA64_GENERIC) && SMP
++	depends on X86_UV && SMP
+ 	default n
+ 	select MMU_NOTIFIER
+ 	---help---
 _
 
-Patches currently in -mm which might be from miklos@szeredi.hu are
+Patches currently in -mm which might be from holt@sgi.com are
 
 origin.patch
-notify_change-callers-must-hold-i_mutex.patch
 
