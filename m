@@ -1,159 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] forget_original_parent-do-not-abuse-child-ptrace_entry.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:35:50 -0700
-Message-ID: <200904061935.n36JZoGa012209@imap1.linux-foundation.org>
+Subject: [merged] ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:35:38 -0700
+Message-ID: <200904061935.n36JZcR1012129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42512 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758442AbZDFUXa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:23:30 -0400
+	by vger.kernel.org with ESMTP id S1758583AbZDFUXw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:23:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, ebiederm@xmission.com, markus.t.metzger@intel.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, dvlasenk@redhat.com, jmarchan@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forget_original_parent: do not abuse child->ptrace_entry
+     ptrace: reintroduce __ptrace_detach() as a callee of ptrace_exit()
 has been removed from the -mm tree.  Its filename was
-     forget_original_parent-do-not-abuse-child-ptrace_entry.patch
+     ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forget_original_parent: do not abuse child->ptrace_entry
+Subject: ptrace: reintroduce __ptrace_detach() as a callee of ptrace_exit()
 From: Oleg Nesterov <oleg@redhat.com>
 
-By discussion with Roland.
+No functional changes, preparation for the next patch.
 
-- Use ->sibling instead of ->ptrace_entry to chain the need to be
-  release_task'd childs. Nobody else can use ->sibling, this task
-  is EXIT_DEAD and nobody can find it on its own list.
+Move the "should we release this child" logic into the separate handler,
+__ptrace_detach().
 
-- rename ptrace_dead to dead_childs.
-
-- Now that we don't have the "parallel" untrace code, change back
-  reparent_thread() to return void, pass dead_childs as an argument.
-
-Actually, I don't understand why do we notify /sbin/init when we
-reparent a zombie, probably it is better to reap it unconditionally.
-
-[akpm@linux-foundation.org: s/childs/children/]
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Metzger, Markus T" <markus.t.metzger@intel.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   87 ++++++++++++++++++++++--------------------------
- 1 file changed, 41 insertions(+), 46 deletions(-)
+ kernel/exit.c |   62 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 33 insertions(+), 29 deletions(-)
 
-diff -puN kernel/exit.c~forget_original_parent-do-not-abuse-child-ptrace_entry kernel/exit.c
---- a/kernel/exit.c~forget_original_parent-do-not-abuse-child-ptrace_entry
+diff -puN kernel/exit.c~ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit kernel/exit.c
+--- a/kernel/exit.c~ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit
 +++ a/kernel/exit.c
-@@ -726,46 +726,6 @@ static void exit_mm(struct task_struct *
- 	mmput(mm);
+@@ -744,6 +744,38 @@ static int ignoring_children(struct sigh
+ 	return ret;
  }
  
--/* Returns nonzero if the child should be released. */
--static int reparent_thread(struct task_struct *p, struct task_struct *father)
--{
--	int dead;
--
--	if (p->pdeath_signal)
--		/* We already hold the tasklist_lock here.  */
--		group_send_sig_info(p->pdeath_signal, SEND_SIG_NOINFO, p);
--
--	list_move_tail(&p->sibling, &p->real_parent->children);
--
--	if (task_detached(p))
--		return 0;
--	/* If this is a threaded reparent there is no need to
--	 * notify anyone anything has happened.
--	 */
--	if (same_thread_group(p->real_parent, father))
--		return 0;
--
--	/* We don't want people slaying init.  */
--	p->exit_signal = SIGCHLD;
--
--	/* If we'd notified the old parent about this child's death,
--	 * also notify the new parent.
--	 */
--	dead = 0;
--	if (!p->ptrace &&
--	    p->exit_state == EXIT_ZOMBIE && thread_group_empty(p)) {
--		do_notify_parent(p, p->exit_signal);
--		if (task_detached(p)) {
--			p->exit_state = EXIT_DEAD;
--			dead = 1;
--		}
--	}
--
--	kill_orphaned_pgrp(p, father);
--
--	return dead;
--}
--
- /*
-  * When we die, we re-parent all our children.
-  * Try to give them to another thread in our thread
-@@ -805,10 +765,46 @@ static struct task_struct *find_new_reap
- 	return pid_ns->child_reaper;
- }
- 
-+/*
-+* Any that need to be release_task'd are put on the @dead list.
-+ */
-+static void reparent_thread(struct task_struct *father, struct task_struct *p,
-+				struct list_head *dead)
++/* Returns nonzero if the tracee should be released. */
++int __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
 +{
-+	if (p->pdeath_signal)
-+		group_send_sig_info(p->pdeath_signal, SEND_SIG_NOINFO, p);
++	__ptrace_unlink(p);
 +
-+	list_move_tail(&p->sibling, &p->real_parent->children);
-+
-+	if (task_detached(p))
-+		return;
++	if (p->exit_state != EXIT_ZOMBIE)
++		return 0;
 +	/*
-+	 * If this is a threaded reparent there is no need to
-+	 * notify anyone anything has happened.
++	 * If it's a zombie, our attachedness prevented normal
++	 * parent notification or self-reaping.  Do notification
++	 * now if it would have happened earlier.  If it should
++	 * reap itself we return true.
++	 *
++	 * If it's our own child, there is no notification to do.
++	 * But if our normal children self-reap, then this child
++	 * was prevented by ptrace and we must reap it now.
 +	 */
-+	if (same_thread_group(p->real_parent, father))
-+		return;
-+
-+	/* We don't want people slaying init.  */
-+	p->exit_signal = SIGCHLD;
-+
-+	/* If it has exited notify the new parent about this child's death. */
-+	if (!p->ptrace &&
-+	    p->exit_state == EXIT_ZOMBIE && thread_group_empty(p)) {
-+		do_notify_parent(p, p->exit_signal);
-+		if (task_detached(p)) {
-+			p->exit_state = EXIT_DEAD;
-+			list_move_tail(&p->sibling, dead);
-+		}
++	if (!task_detached(p) && thread_group_empty(p)) {
++		if (!same_thread_group(p->real_parent, tracer))
++			do_notify_parent(p, p->exit_signal);
++		else if (ignoring_children(tracer->sighand))
++			p->exit_signal = -1;
 +	}
 +
-+	kill_orphaned_pgrp(p, father);
++	if (!task_detached(p))
++		return 0;
++
++	/* Mark it as in the process of being reaped. */
++	p->exit_state = EXIT_DEAD;
++	return 1;
 +}
 +
- static void forget_original_parent(struct task_struct *father)
- {
- 	struct task_struct *p, *n, *reaper;
--	LIST_HEAD(ptrace_dead);
-+	LIST_HEAD(dead_children);
+ /*
+  * Detach all tasks we were using ptrace on.
+  * Any that need to be release_task'd are put on the @dead list.
+@@ -755,36 +787,8 @@ static void ptrace_exit(struct task_stru
+ 	struct task_struct *p, *n;
  
- 	exit_ptrace(father);
- 
-@@ -821,15 +817,14 @@ static void forget_original_parent(struc
- 			BUG_ON(p->ptrace);
- 			p->parent = p->real_parent;
- 		}
--		if (reparent_thread(p, father))
--			list_add(&p->ptrace_entry, &ptrace_dead);;
-+		reparent_thread(father, p, &dead_children);
- 	}
+ 	list_for_each_entry_safe(p, n, &parent->ptraced, ptrace_entry) {
+-		__ptrace_unlink(p);
+-
+-		if (p->exit_state != EXIT_ZOMBIE)
+-			continue;
+-
+-		/*
+-		 * If it's a zombie, our attachedness prevented normal
+-		 * parent notification or self-reaping.  Do notification
+-		 * now if it would have happened earlier.  If it should
+-		 * reap itself, add it to the @dead list.  We can't call
+-		 * release_task() here because we already hold tasklist_lock.
+-		 *
+-		 * If it's our own child, there is no notification to do.
+-		 * But if our normal children self-reap, then this child
+-		 * was prevented by ptrace and we must reap it now.
+-		 */
+-		if (!task_detached(p) && thread_group_empty(p)) {
+-			if (!same_thread_group(p->real_parent, parent))
+-				do_notify_parent(p, p->exit_signal);
+-			else if (ignoring_children(parent->sighand))
+-				p->exit_signal = -1;
+-		}
