@@ -1,79 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpuset-fix-possible-races-in-cpu-memory-hotplug.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:34:56 -0700
-Message-ID: <200904061934.n36JYuxl011831@imap1.linux-foundation.org>
+Subject: [merged] mm-do_xip_mapping_read-fix-length-calculation.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:32:33 -0700
+Message-ID: <200904061932.n36JWXN2010738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33215 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41371 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757281AbZDFTim (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:38:42 -0400
+	by vger.kernel.org with ESMTP id S1755064AbZDFTix (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:38:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, a.p.zijlstra@chello.nl, menage@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: schwidefsky@de.ibm.com, cotte@de.ibm.com, jaredeh@gmail.com, minchan.kim@gmail.com, npiggin@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: fix possible races in cpu/memory hotplug
+     mm: do_xip_mapping_read: fix length calculation
 has been removed from the -mm tree.  Its filename was
-     cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
+     mm-do_xip_mapping_read-fix-length-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: fix possible races in cpu/memory hotplug
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: mm: do_xip_mapping_read: fix length calculation
+From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-Change to cpuset->cpus_allowed and cpuset->mems_allowed should be protected
-by callback_mutex, otherwise the reader may read wrong cpus/mems. This is
-cpuset's lock rule.
+The calculation of the value nr in do_xip_mapping_read is incorrect.  If
+the copy required more than one iteration in the do while loop the copies
+variable will be non-zero.  The maximum length that may be passed to the
+call to copy_to_user(buf+copied, xip_mem+offset, nr) is len-copied but the
+check only compares against (nr > len).
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+This bug is the cause for the heap corruption Carsten has been chasing
+for so long:
+
+*** glibc detected *** /bin/bash: free(): invalid next size (normal): 0x00000000800e39f0 ***
+======= Backtrace: =========
+/lib64/libc.so.6[0x200000b9b44]
+/lib64/libc.so.6(cfree+0x8e)[0x200000bdade]
+/bin/bash(free_buffered_stream+0x32)[0x80050e4e]
+/bin/bash(close_buffered_stream+0x1c)[0x80050ea4]
+/bin/bash(unset_bash_input+0x2a)[0x8001c366]
+/bin/bash(make_child+0x1d4)[0x8004115c]
+/bin/bash[0x8002fc3c]
+/bin/bash(execute_command_internal+0x656)[0x8003048e]
+/bin/bash(execute_command+0x5e)[0x80031e1e]
+/bin/bash(execute_command_internal+0x79a)[0x800305d2]
+/bin/bash(execute_command+0x5e)[0x80031e1e]
+/bin/bash(reader_loop+0x270)[0x8001efe0]
+/bin/bash(main+0x1328)[0x8001e960]
+/lib64/libc.so.6(__libc_start_main+0x100)[0x200000592a8]
+/bin/bash(clearerr+0x5e)[0x8001c092]
+
+With this bug fix the commit 0e4a9b59282914fe057ab17027f55123964bc2e2
+"ext2/xip: refuse to change xip flag during remount with busy inodes" can
+be removed again.
+
+Cc: Carsten Otte <cotte@de.ibm.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Jared Hulbert <jaredeh@gmail.com>
+Cc: <stable@kernel.org>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/filemap_xip.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-fix-possible-races-in-cpu-memory-hotplug kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-fix-possible-races-in-cpu-memory-hotplug
-+++ a/kernel/cpuset.c
-@@ -2070,7 +2070,9 @@ static int cpuset_track_online_cpus(stru
- 	}
+diff -puN mm/filemap_xip.c~mm-do_xip_mapping_read-fix-length-calculation mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-do_xip_mapping_read-fix-length-calculation
++++ a/mm/filemap_xip.c
+@@ -89,8 +89,8 @@ do_xip_mapping_read(struct address_space
+ 			}
+ 		}
+ 		nr = nr - offset;
+-		if (nr > len)
+-			nr = len;
++		if (nr > len - copied)
++			nr = len - copied;
  
- 	cgroup_lock();
-+	mutex_lock(&callback_mutex);
- 	cpumask_copy(top_cpuset.cpus_allowed, cpu_online_mask);
-+	mutex_unlock(&callback_mutex);
- 	scan_for_empty_cpusets(&top_cpuset);
- 	ndoms = generate_sched_domains(&doms, &attr);
- 	cgroup_unlock();
-@@ -2093,11 +2095,12 @@ static int cpuset_track_online_nodes(str
- 	cgroup_lock();
- 	switch (action) {
- 	case MEM_ONLINE:
--		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
--		break;
- 	case MEM_OFFLINE:
-+		mutex_lock(&callback_mutex);
- 		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
--		scan_for_empty_cpusets(&top_cpuset);
-+		mutex_unlock(&callback_mutex);
-+		if (action == MEM_OFFLINE)
-+			scan_for_empty_cpusets(&top_cpuset);
- 		break;
- 	default:
- 		break;
+ 		error = mapping->a_ops->get_xip_mem(mapping, index, 0,
+ 							&xip_mem, &xip_pfn);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from schwidefsky@de.ibm.com are
 
 origin.patch
 linux-next.patch
-cls_cgroup-remove-unneeded-cgroup_lock.patch
 
