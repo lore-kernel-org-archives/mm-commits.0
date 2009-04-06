@@ -1,72 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-add-flat-support.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:39:28 -0700
-Message-ID: <200904061939.n36JdSxl013914@imap1.linux-foundation.org>
+Subject: [merged] auditsc-fix-kernel-doc-notation.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:39:57 -0700
+Message-ID: <200904061939.n36Jdvp8014116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756346AbZDFTnE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:04 -0400
+	by vger.kernel.org with ESMTP id S1753141AbZDFTnN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: os@emlix.com, chris@zankel.net, jw@emlix.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, eparis@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: add flat support
+     auditsc: fix kernel-doc notation
 has been removed from the -mm tree.  Its filename was
-     xtensa-add-flat-support.patch
+     auditsc-fix-kernel-doc-notation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: add flat support
-From: Oskar Schirmer <os@emlix.com>
+Subject: auditsc: fix kernel-doc notation
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add the arch-specific header for flat support on xtensa in preparation for
-the Xtensa S6000 nommu port.
+Fix auditsc kernel-doc notation:
 
-Signed-off-by: Oskar Schirmer <os@emlix.com>
-Signed-off-by: Johannes Weiner <jw@emlix.com>
-Cc: Chris Zankel <chris@zankel.net>
+Warning(linux-2.6.28-git7//kernel/auditsc.c:2156): No description found for parameter 'attr'
+Warning(linux-2.6.28-git7//kernel/auditsc.c:2156): Excess function parameter 'u_attr' description in '__audit_mq_open'
+Warning(linux-2.6.28-git7//kernel/auditsc.c:2204): No description found for parameter 'notification'
+Warning(linux-2.6.28-git7//kernel/auditsc.c:2204): Excess function parameter 'u_notification' description in '__audit_mq_notify'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/flat.h |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ kernel/auditsc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null arch/xtensa/include/asm/flat.h
---- /dev/null
-+++ a/arch/xtensa/include/asm/flat.h
-@@ -0,0 +1,12 @@
-+#ifndef __ASM_XTENSA_FLAT_H
-+#define __ASM_XTENSA_FLAT_H
-+
-+#define flat_argvp_envp_on_stack()			0
-+#define flat_old_ram_flag(flags)			(flags)
-+#define flat_reloc_valid(reloc, size)			((reloc) <= (size))
-+#define flat_get_addr_from_rp(rp, relval, flags, p)	get_unaligned(rp)
-+#define flat_put_addr_at_rp(rp, val, relval	)	put_unaligned(val, rp)
-+#define flat_get_relocate_addr(rel)			(rel)
-+#define flat_set_persistent(relval, p)			0
-+
-+#endif /* __ASM_XTENSA_FLAT_H */
+diff -puN kernel/auditsc.c~auditsc-fix-kernel-doc-notation kernel/auditsc.c
+--- a/kernel/auditsc.c~auditsc-fix-kernel-doc-notation
++++ a/kernel/auditsc.c
+@@ -2149,7 +2149,7 @@ int audit_set_loginuid(struct task_struc
+  * __audit_mq_open - record audit data for a POSIX MQ open
+  * @oflag: open flag
+  * @mode: mode bits
+- * @u_attr: queue attributes
++ * @attr: queue attributes
+  *
+  */
+ void __audit_mq_open(int oflag, mode_t mode, struct mq_attr *attr)
+@@ -2196,7 +2196,7 @@ void __audit_mq_sendrecv(mqd_t mqdes, si
+ /**
+  * __audit_mq_notify - record audit data for a POSIX MQ notify
+  * @mqdes: MQ descriptor
+- * @u_notification: Notification event
++ * @notification: Notification event
+  *
+  */
+ 
 _
 
-Patches currently in -mm which might be from os@emlix.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-xtensa-variant-specific-code.patch
-xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-s6000-dma-engine-support.patch
-xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
-xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
-xtensa-s6105-specific-configuration-for-s6gmac.patch
-xtensa-enable-s6gmac-in-s6105_defconfig.patch
-flat-fix-data-sections-alignment.patch
+linux-next.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+qla2x-fix-printk-format-warnings.patch
+esp-fix-section-mismatch-warning.patch
+max3100-spi-uart-driver.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
