@@ -1,120 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [folded] namespaces-mqueue-namespace-adapt-sysctl-update.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 15:29:55 -0700
-Message-ID: <200904062229.n36MTtWw015915@imap1.linux-foundation.org>
+Subject: [folded] nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 15:32:26 -0700
+Message-ID: <200904062232.n36MWQYt016894@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47887 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753699AbZDFWdX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:33:23 -0400
+	by vger.kernel.org with ESMTP id S1754733AbZDFWeK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:34:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, Nadia.Derbey@bull.net, adobriyan@gmail.com, clg@fr.ibm.com, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mqueue-namespace-adapt-sysctl-update
+     nilfs2: fix compilation error of nilfs_init_acl
 has been removed from the -mm tree.  Its filename was
-     namespaces-mqueue-namespace-adapt-sysctl-update.patch
+     nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl.patch
 
-This patch was dropped because it was folded into namespaces-mqueue-namespace-adapt-sysctl.patch
+This patch was dropped because it was folded into nilfs2-add-inode-and-other-major-structures.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mqueue-namespace-adapt-sysctl-update
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: nilfs2: fix compilation error of nilfs_init_acl
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-Feb 24: comments from Alexey Dobriyan:
+This replaces current->fs->umask reference with current_umask() macro
+to follow the removal of indirect include of fs_struct.h brought by
+the patch ("Get rid of indirect include of fs_struct.h") and to fix
+the following compilation error:
 
-1) put proc handlers under CONFIG_PROC_SYSCTL and make them NULL
-   otherwise.
+  In file included from fs/nilfs2/inode.c:28:
+  fs/nilfs2/nilfs.h: In function 'nilfs_init_acl':
+  fs/nilfs2/nilfs.h:215: error: dereferencing pointer to incomplete type
+  In file included from fs/nilfs2/file.c:27:
+  fs/nilfs2/nilfs.h: In function 'nilfs_init_acl':
+  fs/nilfs2/nilfs.h:215: error: dereferencing pointer to incomplete type
+    make[2]: *** [fs/nilfs2/file.o] Error 1
+    make[2]: *** Waiting for unfinished jobs....
+    make[2]: *** [fs/nilfs2/inode.o] Error 1
+    make[1]: *** [fs/nilfs2] Error 2
+    make: *** [fs] Error 2
 
-2) remove & from proc_handler when assigned to ctl_table.
-
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mq_sysctl.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ fs/nilfs2/nilfs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/mq_sysctl.c~namespaces-mqueue-namespace-adapt-sysctl-update ipc/mq_sysctl.c
---- a/ipc/mq_sysctl.c~namespaces-mqueue-namespace-adapt-sysctl-update
-+++ a/ipc/mq_sysctl.c
-@@ -30,7 +30,7 @@ static void *get_mq(ctl_table *table)
- 	return which;
- }
+diff -puN fs/nilfs2/nilfs.h~nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl
++++ a/fs/nilfs2/nilfs.h
+@@ -218,7 +218,7 @@ static inline int nilfs_acl_chmod(struct
  
--#ifdef CONFIG_PROC_FS
-+#ifdef CONFIG_PROC_SYSCTL
- static int proc_mq_dointvec(ctl_table *table, int write, struct file *filp,
- 	void __user *buffer, size_t *lenp, loff_t *ppos)
+ static inline int nilfs_init_acl(struct inode *inode, struct inode *dir)
  {
-@@ -51,19 +51,10 @@ static int proc_mq_dointvec_minmax(ctl_t
- 	return proc_dointvec_minmax(&mq_table, write, filp, buffer,
- 					lenp, ppos);
+-	inode->i_mode &= ~current->fs->umask;
++	inode->i_mode &= ~current_umask();
+ 	return 0;
  }
--#else /* CONFIG_PROC_FS */
--static int proc_mq_dointvec(ctl_table *table, int write, struct file *filp,
--	void __user *buffer, size_t *lenp, loff_t *ppos)
--{
--	return -ENOSYS;
--}
--
--static int proc_mq_dointvec_minmax(ctl_table *table, int write,
--	struct file *filp, void __user *buffer, size_t *lenp, loff_t *ppos)
--{
--	return -ENOSYS;
--}
--#endif /* CONFIG_PROC_FS */
-+#else
-+proc_handler *proc_mq_dointvec = NULL;
-+proc_handler *proc_mq_dointvec_minmax = NULL;
-+#endif
- 
- static int msg_max_limit_min = MIN_MSGMAX;
- static int msg_max_limit_max = MAX_MSGMAX;
-@@ -77,14 +68,14 @@ static ctl_table mq_sysctls[] = {
- 		.data		= &init_ipc_ns.mq_queues_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= &proc_mq_dointvec,
-+		.proc_handler	= proc_mq_dointvec,
- 	},
- 	{
- 		.procname	= "msg_max",
- 		.data		= &init_ipc_ns.mq_msg_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= &proc_mq_dointvec_minmax,
-+		.proc_handler	= proc_mq_dointvec_minmax,
- 		.extra1		= &msg_max_limit_min,
- 		.extra2		= &msg_max_limit_max,
- 	},
-@@ -93,7 +84,7 @@ static ctl_table mq_sysctls[] = {
- 		.data		= &init_ipc_ns.mq_msgsize_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= &proc_mq_dointvec_minmax,
-+		.proc_handler	= proc_mq_dointvec_minmax,
- 		.extra1		= &msg_maxsize_limit_min,
- 		.extra2		= &msg_maxsize_limit_max,
- 	},
+ #endif
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-origin.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
-namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-namespaces-mqueue-namespace-adapt-sysctl-update.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-reiser4.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-buffer-fix.patch
+nilfs2-segment-constructor.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault-fix-page_mkwrite-error-cases.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+nilfs2-cleanup-nilfs_clear_inode.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+nilfs2-insert-explanations-in-gcinode-file.patch
+nilfs2-add-maintainer.patch
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
+nilfs2-fix-improper-return-values-of-nilfs_get_cpinfo-ioctl.patch
+nilfs2-clean-up-indirect-function-calling-conventions.patch
+nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch
+nilfs2-remove-timedwait-ioctl-command.patch
+nilfs2-use-fixed-sized-types-for-ioctl-structures.patch
+nilfs2-remove-compat-ioctl-code.patch
+nilfs2-use-unlocked_ioctl.patch
+nilfs2-extend-nilfs_sustat-ioctl-struct.patch
+nilfs2-replace-bug_on-and-bug-calls-triggerable-from-ioctl.patch
+nilfs2-super-block-operations-fix-endian-bug.patch
+nilfs2-clean-up-sketch-file.patch
+nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation.patch
+nilfs2-simplify-handling-of-active-state-of-segments.patch
+nilfs2-introduce-secondary-super-block.patch
+nilfs2-introduce-secondary-super-block-fix.patch
+nilfs2-support-nanosecond-timestamp.patch
 
