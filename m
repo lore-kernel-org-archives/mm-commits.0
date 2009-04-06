@@ -1,616 +1,607 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroup-css-id-support.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:34:07 -0700
-Message-ID: <200904061934.n36JY7rK011422@imap1.linux-foundation.org>
+Subject: [merged] xtensa-nommu-support.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:39:32 -0700
+Message-ID: <200904061939.n36JdWhC013922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38178 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753019AbZDFUiJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:38:09 -0400
+	by vger.kernel.org with ESMTP id S1753482AbZDFUjN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:39:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, bharata@linux.vnet.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: jw@emlix.com, chris@zankel.net, dg@emlix.com, dhowells@redhat.com, gerg@snapgear.com, os@emlix.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup: CSS ID support
+     xtensa: nommu support
 has been removed from the -mm tree.  Its filename was
-     cgroup-css-id-support.patch
+     xtensa-nommu-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: CSS ID support
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: xtensa: nommu support
+From: Johannes Weiner <jw@emlix.com>
 
-Patch for Per-CSS(Cgroup Subsys State) ID and private hierarchy code.
+Add support for CONFIG_MMU=n configurations.
 
-This patch attaches unique ID to each css and provides following.
-
- - css_lookup(subsys, id)
-   returns pointer to struct cgroup_subysys_state of id.
- - css_get_next(subsys, id, rootid, depth, foundid)
-   returns the next css under "root" by scanning
-
-When cgroup_subsys->use_id is set, an id for css is maintained.
-
-The cgroup framework only parepares
-	- css_id of root css for subsys
-	- id is automatically attached at creation of css.
-	- id is *not* freed automatically. Because the cgroup framework
-	  don't know lifetime of cgroup_subsys_state.
-	  free_css_id() function is provided. This must be called by subsys.
-
-There are several reasons to develop this.
-	- Saving space .... For example, memcg's swap_cgroup is array of
-	  pointers to cgroup. But it is not necessary to be very fast.
-	  By replacing pointers(8bytes per ent) to ID (2byes per ent), we can
-	  reduce much amount of memory usage.
-
-	- Scanning without lock.
-	  CSS_ID provides "scan id under this ROOT" function. By this, scanning
-	  css under root can be written without locks.
-	  ex)
-	  do {
-		rcu_read_lock();
-		next = cgroup_get_next(subsys, id, root, &found);
-		/* check sanity of next here */
-		css_tryget();
-		rcu_read_unlock();
-		id = found + 1
-	 } while(...)
-
-Characteristics:
-	- Each css has unique ID under subsys.
-	- Lifetime of ID is controlled by subsys.
-	- css ID contains "ID" and "Depth in hierarchy" and stack of hierarchy
-	- Allowed ID is 1-65535, ID 0 is UNUSED ID.
-
-Design Choices:
-	- scan-by-ID v.s. scan-by-tree-walk.
-	  As /proc's pid scan does, scan-by-ID is robust when scanning is done
-	  by following kind of routine.
-	  scan -> rest a while(release a lock) -> conitunue from interrupted
-	  memcg's hierarchical reclaim does this.
-
-	- When subsys->use_id is set, # of css in the system is limited to
-	  65535.
-
-[bharata@linux.vnet.ibm.com: remove rcu_read_lock() from css_get_next()]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Signed-off-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
+Signed-off-by: Johannes Weiner <jw@emlix.com>
+Cc: Oskar Schirmer <os@emlix.com>
+Cc: Daniel Glockner <dg@emlix.com>
+Cc: Christian Zankel <chris@zankel.net>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   50 ++++++
- include/linux/idr.h    |    1 
- kernel/cgroup.c        |  286 ++++++++++++++++++++++++++++++++++++++-
- lib/idr.c              |   46 ++++++
- 4 files changed, 382 insertions(+), 1 deletion(-)
+ arch/xtensa/include/asm/cacheflush.h    |   10 ++-
+ arch/xtensa/include/asm/dma.h           |    3 
+ arch/xtensa/include/asm/io.h            |    9 ++
+ arch/xtensa/include/asm/mmu.h           |    5 +
+ arch/xtensa/include/asm/mmu_context.h   |    5 +
+ arch/xtensa/include/asm/nommu.h         |    3 
+ arch/xtensa/include/asm/nommu_context.h |   25 +++++++
+ arch/xtensa/include/asm/page.h          |    9 ++
+ arch/xtensa/include/asm/pgtable.h       |   13 ++--
+ arch/xtensa/include/asm/processor.h     |    6 +
+ arch/xtensa/kernel/entry.S              |    3 
+ arch/xtensa/kernel/head.S               |    3 
+ arch/xtensa/kernel/setup.c              |    7 ++
+ arch/xtensa/kernel/traps.c              |    2 
+ arch/xtensa/kernel/vectors.S            |    4 +
+ arch/xtensa/mm/Makefile                 |    3 
+ arch/xtensa/mm/init.c                   |   62 -------------------
+ arch/xtensa/mm/misc.S                   |    2 
+ arch/xtensa/mm/mmu.c                    |   70 ++++++++++++++++++++++
+ 19 files changed, 169 insertions(+), 75 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroup-css-id-support include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-css-id-support
-+++ a/include/linux/cgroup.h
-@@ -15,6 +15,7 @@
- #include <linux/cgroupstats.h>
- #include <linux/prio_heap.h>
- #include <linux/rwsem.h>
-+#include <linux/idr.h>
+diff -puN arch/xtensa/include/asm/cacheflush.h~xtensa-nommu-support arch/xtensa/include/asm/cacheflush.h
+--- a/arch/xtensa/include/asm/cacheflush.h~xtensa-nommu-support
++++ a/arch/xtensa/include/asm/cacheflush.h
+@@ -65,13 +65,17 @@ extern void __flush_invalidate_dcache_ra
+ # define __flush_invalidate_dcache_range(p,s)	__invalidate_dcache_range(p,s)
+ #endif
  
- #ifdef CONFIG_CGROUPS
+-#if (DCACHE_WAY_SIZE > PAGE_SIZE)
++#if defined(CONFIG_MMU) && (DCACHE_WAY_SIZE > PAGE_SIZE)
+ extern void __flush_invalidate_dcache_page_alias(unsigned long, unsigned long);
++#else
++static inline void __flush_invalidate_dcache_page_alias(unsigned long virt,
++							unsigned long phys) { }
+ #endif
+-#if (ICACHE_WAY_SIZE > PAGE_SIZE)
++#if defined(CONFIG_MMU) && (ICACHE_WAY_SIZE > PAGE_SIZE)
+ extern void __invalidate_icache_page_alias(unsigned long, unsigned long);
+ #else
+-# define __invalidate_icache_page_alias(v,p)	do { } while(0)
++static inline void __invalidate_icache_page_alias(unsigned long virt,
++						unsigned long phys) { }
+ #endif
  
-@@ -22,6 +23,7 @@ struct cgroupfs_root;
- struct cgroup_subsys;
- struct inode;
- struct cgroup;
-+struct css_id;
+ /*
+diff -puN arch/xtensa/include/asm/dma.h~xtensa-nommu-support arch/xtensa/include/asm/dma.h
+--- a/arch/xtensa/include/asm/dma.h~xtensa-nommu-support
++++ a/arch/xtensa/include/asm/dma.h
+@@ -44,8 +44,9 @@
+  *	the value desired).
+  */
  
- extern int cgroup_init_early(void);
- extern int cgroup_init(void);
-@@ -63,6 +65,8 @@ struct cgroup_subsys_state {
- 	atomic_t refcnt;
++#ifndef MAX_DMA_ADDRESS
+ #define MAX_DMA_ADDRESS		(PAGE_OFFSET + XCHAL_KIO_SIZE - 1)
+-
++#endif
  
- 	unsigned long flags;
-+	/* ID for this css, if possible */
-+	struct css_id *id;
- };
+ /* Reserve and release a DMA channel */
+ extern int request_dma(unsigned int dmanr, const char * device_id);
+diff -puN arch/xtensa/include/asm/io.h~xtensa-nommu-support arch/xtensa/include/asm/io.h
+--- a/arch/xtensa/include/asm/io.h~xtensa-nommu-support
++++ a/arch/xtensa/include/asm/io.h
+@@ -69,21 +69,28 @@ static inline void * phys_to_virt(unsign
  
- /* bits in struct cgroup_subsys_state flags field */
-@@ -373,6 +377,11 @@ struct cgroup_subsys {
- 	int active;
- 	int disabled;
- 	int early_init;
-+	/*
-+	 * True if this subsys uses ID. ID is not available before cgroup_init()
-+	 * (not available in early_init time.)
-+	 */
-+	bool use_id;
- #define MAX_CGROUP_TYPE_NAMELEN 32
- 	const char *name;
+ static inline void *ioremap(unsigned long offset, unsigned long size)
+ {
++#ifdef CONFIG_MMU
+ 	if (offset >= XCHAL_KIO_PADDR
+ 	    && offset < XCHAL_KIO_PADDR + XCHAL_KIO_SIZE)
+ 		return (void*)(offset-XCHAL_KIO_PADDR+XCHAL_KIO_BYPASS_VADDR);
+-
+ 	else
+ 		BUG();
++#else
++	return (void *)offset;
++#endif
+ }
  
-@@ -395,6 +404,9 @@ struct cgroup_subsys {
- 	 */
- 	struct cgroupfs_root *root;
- 	struct list_head sibling;
-+	/* used when use_id == true */
-+	struct idr idr;
-+	spinlock_t id_lock;
- };
+ static inline void *ioremap_nocache(unsigned long offset, unsigned long size)
+ {
++#ifdef CONFIG_MMU
+ 	if (offset >= XCHAL_KIO_PADDR
+ 	    && offset < XCHAL_KIO_PADDR + XCHAL_KIO_SIZE)
+ 		return (void*)(offset-XCHAL_KIO_PADDR+XCHAL_KIO_CACHED_VADDR);
+ 	else
+ 		BUG();
++#else
++	return (void *)offset;
++#endif
+ }
  
- #define SUBSYS(_x) extern struct cgroup_subsys _x ## _subsys;
-@@ -450,6 +462,44 @@ void cgroup_iter_end(struct cgroup *cgrp
- int cgroup_scan_tasks(struct cgroup_scanner *scan);
- int cgroup_attach_task(struct cgroup *, struct task_struct *);
+ static inline void iounmap(void *addr)
+diff -puN arch/xtensa/include/asm/mmu.h~xtensa-nommu-support arch/xtensa/include/asm/mmu.h
+--- a/arch/xtensa/include/asm/mmu.h~xtensa-nommu-support
++++ a/arch/xtensa/include/asm/mmu.h
+@@ -11,7 +11,12 @@
+ #ifndef _XTENSA_MMU_H
+ #define _XTENSA_MMU_H
  
-+/*
-+ * CSS ID is ID for cgroup_subsys_state structs under subsys. This only works
-+ * if cgroup_subsys.use_id == true. It can be used for looking up and scanning.
-+ * CSS ID is assigned at cgroup allocation (create) automatically
-+ * and removed when subsys calls free_css_id() function. This is because
-+ * the lifetime of cgroup_subsys_state is subsys's matter.
-+ *
-+ * Looking up and scanning function should be called under rcu_read_lock().
-+ * Taking cgroup_mutex()/hierarchy_mutex() is not necessary for following calls.
-+ * But the css returned by this routine can be "not populated yet" or "being
-+ * destroyed". The caller should check css and cgroup's status.
-+ */
++#ifndef CONFIG_MMU
++#include <asm/nommu.h>
++#else
 +
-+/*
-+ * Typically Called at ->destroy(), or somewhere the subsys frees
-+ * cgroup_subsys_state.
-+ */
-+void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css);
-+
-+/* Find a cgroup_subsys_state which has given ID */
-+
-+struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id);
-+
-+/*
-+ * Get a cgroup whose id is greater than or equal to id under tree of root.
-+ * Returning a cgroup_subsys_state or NULL.
-+ */
-+struct cgroup_subsys_state *css_get_next(struct cgroup_subsys *ss, int id,
-+		struct cgroup_subsys_state *root, int *foundid);
-+
-+/* Returns true if root is ancestor of cg */
-+bool css_is_ancestor(struct cgroup_subsys_state *cg,
-+		     struct cgroup_subsys_state *root);
-+
-+/* Get id and depth of css */
-+unsigned short css_id(struct cgroup_subsys_state *css);
-+unsigned short css_depth(struct cgroup_subsys_state *css);
-+
- #else /* !CONFIG_CGROUPS */
+ /* Default "unsigned long" context */
+ typedef unsigned long mm_context_t;
  
- static inline int cgroup_init_early(void) { return 0; }
-diff -puN include/linux/idr.h~cgroup-css-id-support include/linux/idr.h
---- a/include/linux/idr.h~cgroup-css-id-support
-+++ a/include/linux/idr.h
-@@ -106,6 +106,7 @@ int idr_get_new(struct idr *idp, void *p
- int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id);
- int idr_for_each(struct idr *idp,
- 		 int (*fn)(int id, void *p, void *data), void *data);
-+void *idr_get_next(struct idr *idp, int *nextid);
- void *idr_replace(struct idr *idp, void *ptr, int id);
- void idr_remove(struct idr *idp, int id);
- void idr_remove_all(struct idr *idp);
-diff -puN kernel/cgroup.c~cgroup-css-id-support kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-css-id-support
-+++ a/kernel/cgroup.c
-@@ -94,7 +94,6 @@ struct cgroupfs_root {
- 	char release_agent_path[PATH_MAX];
- };
++#endif /* CONFIG_MMU */
+ #endif	/* _XTENSA_MMU_H */
+diff -puN arch/xtensa/include/asm/mmu_context.h~xtensa-nommu-support arch/xtensa/include/asm/mmu_context.h
+--- a/arch/xtensa/include/asm/mmu_context.h~xtensa-nommu-support
++++ a/arch/xtensa/include/asm/mmu_context.h
+@@ -13,6 +13,10 @@
+ #ifndef _XTENSA_MMU_CONTEXT_H
+ #define _XTENSA_MMU_CONTEXT_H
+ 
++#ifndef CONFIG_MMU
++#include <asm/nommu_context.h>
++#else
++
+ #include <linux/stringify.h>
+ #include <linux/sched.h>
+ 
+@@ -133,4 +137,5 @@ static inline void enter_lazy_tlb(struct
+ 
+ }
+ 
++#endif /* CONFIG_MMU */
+ #endif /* _XTENSA_MMU_CONTEXT_H */
+diff -puN /dev/null arch/xtensa/include/asm/nommu.h
+--- /dev/null
++++ a/arch/xtensa/include/asm/nommu.h
+@@ -0,0 +1,3 @@
++typedef struct {
++	unsigned long end_brk;
++} mm_context_t;
+diff -puN /dev/null arch/xtensa/include/asm/nommu_context.h
+--- /dev/null
++++ a/arch/xtensa/include/asm/nommu_context.h
+@@ -0,0 +1,25 @@
++static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
++{
++}
++
++static inline int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
++{
++	return 0;
++}
++
++static inline void destroy_context(struct mm_struct *mm)
++{
++}
++
++static inline void activate_mm(struct mm_struct *prev, struct mm_struct *next)
++{
++}
++
++static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
++				struct task_struct *tsk)
++{
++}
++
++static inline void deactivate_mm(struct task_struct *tsk, struct mm_struct *mm)
++{
++}
+diff -puN arch/xtensa/include/asm/page.h~xtensa-nommu-support arch/xtensa/include/asm/page.h
+--- a/arch/xtensa/include/asm/page.h~xtensa-nommu-support
++++ a/arch/xtensa/include/asm/page.h
+@@ -32,8 +32,14 @@
+ #define PAGE_SIZE		(__XTENSA_UL_CONST(1) << PAGE_SHIFT)
+ #define PAGE_MASK		(~(PAGE_SIZE-1))
+ 
++#ifdef CONFIG_MMU
+ #define PAGE_OFFSET		XCHAL_KSEG_CACHED_VADDR
+ #define MAX_MEM_PFN		XCHAL_KSEG_SIZE
++#else
++#define PAGE_OFFSET		0
++#define MAX_MEM_PFN		(PLATFORM_DEFAULT_MEM_START + PLATFORM_DEFAULT_MEM_SIZE)
++#endif
++
+ #define PGTABLE_START		0x80000000
+ 
+ /*
+@@ -162,8 +168,9 @@ extern void copy_user_page(void*, void*,
+ #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+ #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
+ 
++#ifdef CONFIG_MMU
+ #define WANT_PAGE_VIRTUAL
+-
++#endif
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+diff -puN arch/xtensa/include/asm/pgtable.h~xtensa-nommu-support arch/xtensa/include/asm/pgtable.h
+--- a/arch/xtensa/include/asm/pgtable.h~xtensa-nommu-support
++++ a/arch/xtensa/include/asm/pgtable.h
+@@ -183,7 +183,15 @@ extern unsigned long empty_zero_page[102
+ 
+ #define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
+ 
++#ifdef CONFIG_MMU
+ extern pgd_t swapper_pg_dir[PAGE_SIZE/sizeof(pgd_t)];
++extern void paging_init(void);
++extern void pgtable_cache_init(void);
++#else
++# define swapper_pg_dir NULL
++static inline void paging_init(void) { }
++static inline void pgtable_cache_init(void) { }
++#endif
+ 
+ /*
+  * The pmd contains the kernel virtual address of the pte page.
+@@ -383,8 +391,6 @@ ptep_set_wrprotect(struct mm_struct *mm,
+ 
+ #else
+ 
+-extern void paging_init(void);
+-
+ #define kern_addr_valid(addr)	(1)
+ 
+ extern  void update_mmu_cache(struct vm_area_struct * vma,
+@@ -398,9 +404,6 @@ extern  void update_mmu_cache(struct vm_
+ #define io_remap_pfn_range(vma,from,pfn,size,prot) \
+                 remap_pfn_range(vma, from, pfn, size, prot)
  
 -
- /*
-  * The "rootnode" hierarchy is the "dummy hierarchy", reserved for the
-  * subsystems that are otherwise unattached - it never has more than a
-@@ -102,6 +101,39 @@ struct cgroupfs_root {
+-extern void pgtable_cache_init(void);
+-
+ typedef pte_t *pte_addr_t;
+ 
+ #endif /* !defined (__ASSEMBLY__) */
+diff -puN arch/xtensa/include/asm/processor.h~xtensa-nommu-support arch/xtensa/include/asm/processor.h
+--- a/arch/xtensa/include/asm/processor.h~xtensa-nommu-support
++++ a/arch/xtensa/include/asm/processor.h
+@@ -13,6 +13,7 @@
+ 
+ #include <variant/core.h>
+ #include <asm/coprocessor.h>
++#include <platform/hardware.h>
+ 
+ #include <linux/compiler.h>
+ #include <asm/ptrace.h>
+@@ -35,7 +36,12 @@
+  * the 1 GB requirement applies to the stack as well.
   */
- static struct cgroupfs_root rootnode;
  
-+/*
-+ * CSS ID -- ID per subsys's Cgroup Subsys State(CSS). used only when
-+ * cgroup_subsys->use_id != 0.
-+ */
-+#define CSS_ID_MAX	(65535)
-+struct css_id {
-+	/*
-+	 * The css to which this ID points. This pointer is set to valid value
-+	 * after cgroup is populated. If cgroup is removed, this will be NULL.
-+	 * This pointer is expected to be RCU-safe because destroy()
-+	 * is called after synchronize_rcu(). But for safe use, css_is_removed()
-+	 * css_tryget() should be used for avoiding race.
-+	 */
-+	struct cgroup_subsys_state *css;
-+	/*
-+	 * ID of this css.
-+	 */
-+	unsigned short id;
-+	/*
-+	 * Depth in hierarchy which this ID belongs to.
-+	 */
-+	unsigned short depth;
-+	/*
-+	 * ID is freed by RCU. (and lookup routine is RCU safe.)
-+	 */
-+	struct rcu_head rcu_head;
-+	/*
-+	 * Hierarchy of CSS ID belongs to.
-+	 */
-+	unsigned short stack[0]; /* Array of Length (depth+1) */
-+};
++#ifdef CONFIG_MMU
+ #define TASK_SIZE	__XTENSA_UL_CONST(0x40000000)
++#else
++#define TASK_SIZE	(PLATFORM_DEFAULT_MEM_START + PLATFORM_DEFAULT_MEM_SIZE)
++#endif
 +
-+
- /* The list of hierarchy roots */
+ #define STACK_TOP	TASK_SIZE
+ #define STACK_TOP_MAX	STACK_TOP
  
- static LIST_HEAD(roots);
-@@ -185,6 +217,8 @@ struct cg_cgroup_link {
- static struct css_set init_css_set;
- static struct cg_cgroup_link init_css_set_link;
+diff -puN arch/xtensa/kernel/entry.S~xtensa-nommu-support arch/xtensa/kernel/entry.S
+--- a/arch/xtensa/kernel/entry.S~xtensa-nommu-support
++++ a/arch/xtensa/kernel/entry.S
+@@ -1463,6 +1463,7 @@ ENTRY(_spill_registers)
+ 	callx0	a0		# should not return
+ 1:	j	1b
  
-+static int cgroup_subsys_init_idr(struct cgroup_subsys *ss);
-+
- /* css_set_lock protects the list of css_set objects, and the
-  * chain of tasks off each css_set.  Nests outside task->alloc_lock
-  * due to cgroup_iter_start() */
-@@ -567,6 +601,9 @@ static struct backing_dev_info cgroup_ba
- 	.capabilities	= BDI_CAP_NO_ACCT_AND_WRITEBACK,
- };
++#ifdef CONFIG_MMU
+ /*
+  * We should never get here. Bail out!
+  */
+@@ -1775,7 +1776,7 @@ ENTRY(fast_store_prohibited)
+ 	bbsi.l	a2, PS_UM_BIT, 1f
+ 	j	_kernel_exception
+ 1:	j	_user_exception
+-
++#endif /* CONFIG_MMU */
  
-+static int alloc_css_id(struct cgroup_subsys *ss,
-+			struct cgroup *parent, struct cgroup *child);
+ /*
+  * System Calls.
+diff -puN arch/xtensa/kernel/head.S~xtensa-nommu-support arch/xtensa/kernel/head.S
+--- a/arch/xtensa/kernel/head.S~xtensa-nommu-support
++++ a/arch/xtensa/kernel/head.S
+@@ -235,8 +235,9 @@ should_never_return:
+  */
+ 	
+ .section ".bss.page_aligned", "w"
++#ifdef CONFIG_MMU
+ ENTRY(swapper_pg_dir)
+ 	.fill	PAGE_SIZE, 1, 0
++#endif
+ ENTRY(empty_zero_page)
+ 	.fill	PAGE_SIZE, 1, 0
+-
+diff -puN arch/xtensa/kernel/setup.c~xtensa-nommu-support arch/xtensa/kernel/setup.c
+--- a/arch/xtensa/kernel/setup.c~xtensa-nommu-support
++++ a/arch/xtensa/kernel/setup.c
+@@ -84,7 +84,13 @@ sysmem_info_t __initdata sysmem;
+ int initrd_is_mapped;
+ #endif
+ 
++#ifdef CONFIG_MMU
+ extern void init_mmu(void);
++#else
++static inline void init_mmu(void) { }
++#endif
 +
- static struct inode *cgroup_new_inode(mode_t mode, struct super_block *sb)
++extern void zones_init(void);
+ 
+ /*
+  * Boot parameter parsing.
+@@ -286,6 +292,7 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 
+ 	paging_init();
++	zones_init();
+ 
+ #ifdef CONFIG_VT
+ # if defined(CONFIG_VGA_CONSOLE)
+diff -puN arch/xtensa/kernel/traps.c~xtensa-nommu-support arch/xtensa/kernel/traps.c
+--- a/arch/xtensa/kernel/traps.c~xtensa-nommu-support
++++ a/arch/xtensa/kernel/traps.c
+@@ -104,6 +104,7 @@ static dispatch_init_table_t __initdata 
+ #endif
+ { EXCCAUSE_UNALIGNED,		KRNL,	   fast_unaligned },
+ #endif
++#ifdef CONFIG_MMU
+ { EXCCAUSE_ITLB_MISS,		0,	   do_page_fault },
+ { EXCCAUSE_ITLB_MISS,		USER|KRNL, fast_second_level_miss},
+ { EXCCAUSE_ITLB_MULTIHIT,		0,	   do_multihit },
+@@ -118,6 +119,7 @@ static dispatch_init_table_t __initdata 
+ { EXCCAUSE_STORE_CACHE_ATTRIBUTE,	USER|KRNL, fast_store_prohibited },
+ { EXCCAUSE_STORE_CACHE_ATTRIBUTE,	0,	   do_page_fault },
+ { EXCCAUSE_LOAD_CACHE_ATTRIBUTE,	0,	   do_page_fault },
++#endif /* CONFIG_MMU */
+ /* XCCHAL_EXCCAUSE_FLOATING_POINT unhandled */
+ #if XTENSA_HAVE_COPROCESSOR(0)
+ COPROCESSOR(0),
+diff -puN arch/xtensa/kernel/vectors.S~xtensa-nommu-support arch/xtensa/kernel/vectors.S
+--- a/arch/xtensa/kernel/vectors.S~xtensa-nommu-support
++++ a/arch/xtensa/kernel/vectors.S
+@@ -309,6 +309,7 @@ ENTRY(_DoubleExceptionVector)
+ 	 * All other exceptions are unexpected and thus unrecoverable!
+ 	 */
+ 
++#ifdef CONFIG_MMU
+ 	.extern fast_second_level_miss_double_kernel
+ 
+ .Lksp:	/* a0: a0, a1: a1, a2: a2, a3: trashed, depc: depc, excsave: a3 */
+@@ -319,6 +320,9 @@ ENTRY(_DoubleExceptionVector)
+ 	bnez	a3, .Lunrecoverable
+ 1:	movi	a3, fast_second_level_miss_double_kernel
+ 	jx	a3
++#else
++.equ	.Lksp,	.Lunrecoverable
++#endif
+ 
+ 	/* Critical! We can't handle this situation. PANIC! */
+ 
+diff -puN arch/xtensa/mm/Makefile~xtensa-nommu-support arch/xtensa/mm/Makefile
+--- a/arch/xtensa/mm/Makefile~xtensa-nommu-support
++++ a/arch/xtensa/mm/Makefile
+@@ -2,4 +2,5 @@
+ # Makefile for the Linux/Xtensa-specific parts of the memory manager.
+ #
+ 
+-obj-y	 := init.o fault.o tlb.o misc.o cache.o
++obj-y			:= init.o cache.o misc.o
++obj-$(CONFIG_MMU)	+= fault.o mmu.o tlb.o
+diff -puN arch/xtensa/mm/init.c~xtensa-nommu-support arch/xtensa/mm/init.c
+--- a/arch/xtensa/mm/init.c~xtensa-nommu-support
++++ a/arch/xtensa/mm/init.c
+@@ -24,15 +24,8 @@
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+ 
+-#include <asm/pgtable.h>
+ #include <asm/bootparam.h>
+-#include <asm/mmu_context.h>
+-#include <asm/tlb.h>
+ #include <asm/page.h>
+-#include <asm/pgalloc.h>
+-
+-
+-DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
+ 
+ /* References to section boundaries */
+ 
+@@ -158,7 +151,7 @@ void __init bootmem_init(void)
+ }
+ 
+ 
+-void __init paging_init(void)
++void __init zones_init(void)
  {
- 	struct inode *inode = new_inode(sb);
-@@ -2327,6 +2364,17 @@ static int cgroup_populate_dir(struct cg
- 		if (ss->populate && (err = ss->populate(ss, cgrp)) < 0)
- 			return err;
- 	}
-+	/* This cgroup is ready now */
-+	for_each_subsys(cgrp->root, ss) {
-+		struct cgroup_subsys_state *css = cgrp->subsys[ss->subsys_id];
-+		/*
-+		 * Update id->css pointer and make this css visible from
-+		 * CSS ID functions. This pointer will be dereferened
-+		 * from RCU-read-side without locks.
-+		 */
-+		if (css->id)
-+			rcu_assign_pointer(css->id->css, css);
-+	}
+ 	unsigned long zones_size[MAX_NR_ZONES];
+ 	int i;
+@@ -173,43 +166,10 @@ void __init paging_init(void)
+ 	zones_size[ZONE_HIGHMEM] = max_pfn - max_low_pfn;
+ #endif
  
- 	return 0;
+-	/* Initialize the kernel's page tables. */
+-
+-	memset(swapper_pg_dir, 0, PAGE_SIZE);
+-
+ 	free_area_init(zones_size);
  }
-@@ -2338,6 +2386,7 @@ static void init_cgroup_css(struct cgrou
- 	css->cgroup = cgrp;
- 	atomic_set(&css->refcnt, 1);
- 	css->flags = 0;
-+	css->id = NULL;
- 	if (cgrp == dummytop)
- 		set_bit(CSS_ROOT, &css->flags);
- 	BUG_ON(cgrp->subsys[ss->subsys_id]);
-@@ -2413,6 +2462,10 @@ static long cgroup_create(struct cgroup 
- 			goto err_destroy;
- 		}
- 		init_cgroup_css(css, ss, cgrp);
-+		if (ss->use_id)
-+			if (alloc_css_id(ss, parent, cgrp))
-+				goto err_destroy;
-+		/* At error, ->destroy() callback has to free assigned ID. */
- 	}
  
- 	cgroup_lock_hierarchy(root);
-@@ -2708,6 +2761,8 @@ int __init cgroup_init(void)
- 		struct cgroup_subsys *ss = subsys[i];
- 		if (!ss->early_init)
- 			cgroup_init_subsys(ss);
-+		if (ss->use_id)
-+			cgroup_subsys_init_idr(ss);
- 	}
+ /*
+- * Flush the mmu and reset associated register to default values.
+- */
+-
+-void __init init_mmu (void)
+-{
+-	/* Writing zeros to the <t>TLBCFG special registers ensure
+-	 * that valid values exist in the register.  For existing
+-	 * PGSZID<w> fields, zero selects the first element of the
+-	 * page-size array.  For nonexistent PGSZID<w> fields, zero is
+-	 * the best value to write.  Also, when changing PGSZID<w>
+-	 * fields, the corresponding TLB must be flushed.
+-	 */
+-	set_itlbcfg_register (0);
+-	set_dtlbcfg_register (0);
+-	flush_tlb_all ();
+-
+-	/* Set rasid register to a known value. */
+-
+-	set_rasid_register (ASID_USER_FIRST);
+-
+-	/* Set PTEVADDR special register to the start of the page
+-	 * table, which is in kernel mappable space (ie. not
+-	 * statically mapped).  This register's value is undefined on
+-	 * reset.
+-	 */
+-	set_ptevaddr_register (PGTABLE_START);
+-}
+-
+-/*
+  * Initialize memory pages.
+  */
  
- 	/* Add init_css_set to the hash table */
-@@ -3242,3 +3297,232 @@ static int __init cgroup_disable(char *s
- 	return 1;
+@@ -279,23 +239,3 @@ void free_initmem(void)
+ 	printk("Freeing unused kernel memory: %dk freed\n",
+ 	       (&__init_end - &__init_begin) >> 10);
  }
- __setup("cgroup_disable=", cgroup_disable);
+-
+-struct kmem_cache *pgtable_cache __read_mostly;
+-
+-static void pgd_ctor(void* addr)
+-{
+-	pte_t* ptep = (pte_t*)addr;
+-	int i;
+-
+-	for (i = 0; i < 1024; i++, ptep++)
+-		pte_clear(NULL, 0, ptep);
+-
+-}
+-
+-void __init pgtable_cache_init(void)
+-{
+-	pgtable_cache = kmem_cache_create("pgd",
+-			PAGE_SIZE, PAGE_SIZE,
+-			SLAB_HWCACHE_ALIGN,
+-			pgd_ctor);
+-}
+diff -puN arch/xtensa/mm/misc.S~xtensa-nommu-support arch/xtensa/mm/misc.S
+--- a/arch/xtensa/mm/misc.S~xtensa-nommu-support
++++ a/arch/xtensa/mm/misc.S
+@@ -84,6 +84,7 @@ ENTRY(copy_page)
+ 
+ 	retw
+ 
++#ifdef CONFIG_MMU
+ /*
+  * If we have to deal with cache aliasing, we use temporary memory mappings
+  * to ensure that the source and destination pages have the same color as
+@@ -311,6 +312,7 @@ ENTRY(__invalidate_icache_page_alias)
+ /* End of special treatment in tlb miss exception */
+ 
+ ENTRY(__tlbtemp_mapping_end)
++#endif /* CONFIG_MMU
+ 
+ /*
+  * void __invalidate_icache_page(ulong start)
+diff -puN /dev/null arch/xtensa/mm/mmu.c
+--- /dev/null
++++ a/arch/xtensa/mm/mmu.c
+@@ -0,0 +1,70 @@
++/*
++ * xtensa mmu stuff
++ *
++ * Extracted from init.c
++ */
++#include <linux/percpu.h>
++#include <linux/init.h>
++#include <linux/string.h>
++#include <linux/slab.h>
++#include <linux/cache.h>
++
++#include <asm/tlb.h>
++#include <asm/tlbflush.h>
++#include <asm/mmu_context.h>
++#include <asm/page.h>
++
++DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
++
++void __init paging_init(void)
++{
++	memset(swapper_pg_dir, 0, PAGE_SIZE);
++}
 +
 +/*
-+ * Functons for CSS ID.
++ * Flush the mmu and reset associated register to default values.
 + */
-+
-+/*
-+ *To get ID other than 0, this should be called when !cgroup_is_removed().
-+ */
-+unsigned short css_id(struct cgroup_subsys_state *css)
++void __init init_mmu(void)
 +{
-+	struct css_id *cssid = rcu_dereference(css->id);
-+
-+	if (cssid)
-+		return cssid->id;
-+	return 0;
-+}
-+
-+unsigned short css_depth(struct cgroup_subsys_state *css)
-+{
-+	struct css_id *cssid = rcu_dereference(css->id);
-+
-+	if (cssid)
-+		return cssid->depth;
-+	return 0;
-+}
-+
-+bool css_is_ancestor(struct cgroup_subsys_state *child,
-+		    struct cgroup_subsys_state *root)
-+{
-+	struct css_id *child_id = rcu_dereference(child->id);
-+	struct css_id *root_id = rcu_dereference(root->id);
-+
-+	if (!child_id || !root_id || (child_id->depth < root_id->depth))
-+		return false;
-+	return child_id->stack[root_id->depth] == root_id->id;
-+}
-+
-+static void __free_css_id_cb(struct rcu_head *head)
-+{
-+	struct css_id *id;
-+
-+	id = container_of(head, struct css_id, rcu_head);
-+	kfree(id);
-+}
-+
-+void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css)
-+{
-+	struct css_id *id = css->id;
-+	/* When this is called before css_id initialization, id can be NULL */
-+	if (!id)
-+		return;
-+
-+	BUG_ON(!ss->use_id);
-+
-+	rcu_assign_pointer(id->css, NULL);
-+	rcu_assign_pointer(css->id, NULL);
-+	spin_lock(&ss->id_lock);
-+	idr_remove(&ss->idr, id->id);
-+	spin_unlock(&ss->id_lock);
-+	call_rcu(&id->rcu_head, __free_css_id_cb);
-+}
-+
-+/*
-+ * This is called by init or create(). Then, calls to this function are
-+ * always serialized (By cgroup_mutex() at create()).
-+ */
-+
-+static struct css_id *get_new_cssid(struct cgroup_subsys *ss, int depth)
-+{
-+	struct css_id *newid;
-+	int myid, error, size;
-+
-+	BUG_ON(!ss->use_id);
-+
-+	size = sizeof(*newid) + sizeof(unsigned short) * (depth + 1);
-+	newid = kzalloc(size, GFP_KERNEL);
-+	if (!newid)
-+		return ERR_PTR(-ENOMEM);
-+	/* get id */
-+	if (unlikely(!idr_pre_get(&ss->idr, GFP_KERNEL))) {
-+		error = -ENOMEM;
-+		goto err_out;
-+	}
-+	spin_lock(&ss->id_lock);
-+	/* Don't use 0. allocates an ID of 1-65535 */
-+	error = idr_get_new_above(&ss->idr, newid, 1, &myid);
-+	spin_unlock(&ss->id_lock);
-+
-+	/* Returns error when there are no free spaces for new ID.*/
-+	if (error) {
-+		error = -ENOSPC;
-+		goto err_out;
-+	}
-+	if (myid > CSS_ID_MAX)
-+		goto remove_idr;
-+
-+	newid->id = myid;
-+	newid->depth = depth;
-+	return newid;
-+remove_idr:
-+	error = -ENOSPC;
-+	spin_lock(&ss->id_lock);
-+	idr_remove(&ss->idr, myid);
-+	spin_unlock(&ss->id_lock);
-+err_out:
-+	kfree(newid);
-+	return ERR_PTR(error);
-+
-+}
-+
-+static int __init cgroup_subsys_init_idr(struct cgroup_subsys *ss)
-+{
-+	struct css_id *newid;
-+	struct cgroup_subsys_state *rootcss;
-+
-+	spin_lock_init(&ss->id_lock);
-+	idr_init(&ss->idr);
-+
-+	rootcss = init_css_set.subsys[ss->subsys_id];
-+	newid = get_new_cssid(ss, 0);
-+	if (IS_ERR(newid))
-+		return PTR_ERR(newid);
-+
-+	newid->stack[0] = newid->id;
-+	newid->css = rootcss;
-+	rootcss->id = newid;
-+	return 0;
-+}
-+
-+static int alloc_css_id(struct cgroup_subsys *ss, struct cgroup *parent,
-+			struct cgroup *child)
-+{
-+	int subsys_id, i, depth = 0;
-+	struct cgroup_subsys_state *parent_css, *child_css;
-+	struct css_id *child_id, *parent_id = NULL;
-+
-+	subsys_id = ss->subsys_id;
-+	parent_css = parent->subsys[subsys_id];
-+	child_css = child->subsys[subsys_id];
-+	depth = css_depth(parent_css) + 1;
-+	parent_id = parent_css->id;
-+
-+	child_id = get_new_cssid(ss, depth);
-+	if (IS_ERR(child_id))
-+		return PTR_ERR(child_id);
-+
-+	for (i = 0; i < depth; i++)
-+		child_id->stack[i] = parent_id->stack[i];
-+	child_id->stack[depth] = child_id->id;
-+	/*
-+	 * child_id->css pointer will be set after this cgroup is available
-+	 * see cgroup_populate_dir()
++	/* Writing zeros to the <t>TLBCFG special registers ensure
++	 * that valid values exist in the register.  For existing
++	 * PGSZID<w> fields, zero selects the first element of the
++	 * page-size array.  For nonexistent PGSZID<w> fields, zero is
++	 * the best value to write.  Also, when changing PGSZID<w>
++	 * fields, the corresponding TLB must be flushed.
 +	 */
-+	rcu_assign_pointer(child_css->id, child_id);
++	set_itlbcfg_register(0);
++	set_dtlbcfg_register(0);
++	flush_tlb_all();
 +
-+	return 0;
++	/* Set rasid register to a known value. */
++
++	set_rasid_register(ASID_USER_FIRST);
++
++	/* Set PTEVADDR special register to the start of the page
++	 * table, which is in kernel mappable space (ie. not
++	 * statically mapped).  This register's value is undefined on
++	 * reset.
++	 */
++	set_ptevaddr_register(PGTABLE_START);
 +}
 +
-+/**
-+ * css_lookup - lookup css by id
-+ * @ss: cgroup subsys to be looked into.
-+ * @id: the id
-+ *
-+ * Returns pointer to cgroup_subsys_state if there is valid one with id.
-+ * NULL if not. Should be called under rcu_read_lock()
-+ */
-+struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id)
++struct kmem_cache *pgtable_cache __read_mostly;
++
++static void pgd_ctor(void *addr)
 +{
-+	struct css_id *cssid = NULL;
++	pte_t *ptep = (pte_t *)addr;
++	int i;
 +
-+	BUG_ON(!ss->use_id);
-+	cssid = idr_find(&ss->idr, id);
++	for (i = 0; i < 1024; i++, ptep++)
++		pte_clear(NULL, 0, ptep);
 +
-+	if (unlikely(!cssid))
-+		return NULL;
-+
-+	return rcu_dereference(cssid->css);
 +}
 +
-+/**
-+ * css_get_next - lookup next cgroup under specified hierarchy.
-+ * @ss: pointer to subsystem
-+ * @id: current position of iteration.
-+ * @root: pointer to css. search tree under this.
-+ * @foundid: position of found object.
-+ *
-+ * Search next css under the specified hierarchy of rootid. Calling under
-+ * rcu_read_lock() is necessary. Returns NULL if it reaches the end.
-+ */
-+struct cgroup_subsys_state *
-+css_get_next(struct cgroup_subsys *ss, int id,
-+	     struct cgroup_subsys_state *root, int *foundid)
++void __init pgtable_cache_init(void)
 +{
-+	struct cgroup_subsys_state *ret = NULL;
-+	struct css_id *tmp;
-+	int tmpid;
-+	int rootid = css_id(root);
-+	int depth = css_depth(root);
-+
-+	if (!rootid)
-+		return NULL;
-+
-+	BUG_ON(!ss->use_id);
-+	/* fill start point for scan */
-+	tmpid = id;
-+	while (1) {
-+		/*
-+		 * scan next entry from bitmap(tree), tmpid is updated after
-+		 * idr_get_next().
-+		 */
-+		spin_lock(&ss->id_lock);
-+		tmp = idr_get_next(&ss->idr, &tmpid);
-+		spin_unlock(&ss->id_lock);
-+
-+		if (!tmp)
-+			break;
-+		if (tmp->depth >= depth && tmp->stack[depth] == rootid) {
-+			ret = rcu_dereference(tmp->css);
-+			if (ret) {
-+				*foundid = tmpid;
-+				break;
-+			}
-+		}
-+		/* continue to scan from next id */
-+		tmpid = tmpid + 1;
-+	}
-+	return ret;
++	pgtable_cache = kmem_cache_create("pgd",
++			PAGE_SIZE, PAGE_SIZE,
++			SLAB_HWCACHE_ALIGN,
++			pgd_ctor);
 +}
-+
-diff -puN lib/idr.c~cgroup-css-id-support lib/idr.c
---- a/lib/idr.c~cgroup-css-id-support
-+++ a/lib/idr.c
-@@ -579,6 +579,52 @@ int idr_for_each(struct idr *idp,
- EXPORT_SYMBOL(idr_for_each);
- 
- /**
-+ * idr_get_next - lookup next object of id to given id.
-+ * @idp: idr handle
-+ * @id:  pointer to lookup key
-+ *
-+ * Returns pointer to registered object with id, which is next number to
-+ * given id.
-+ */
-+
-+void *idr_get_next(struct idr *idp, int *nextidp)
-+{
-+	struct idr_layer *p, *pa[MAX_LEVEL];
-+	struct idr_layer **paa = &pa[0];
-+	int id = *nextidp;
-+	int n, max;
-+
-+	/* find first ent */
-+	n = idp->layers * IDR_BITS;
-+	max = 1 << n;
-+	p = rcu_dereference(idp->top);
-+	if (!p)
-+		return NULL;
-+
-+	while (id < max) {
-+		while (n > 0 && p) {
-+			n -= IDR_BITS;
-+			*paa++ = p;
-+			p = rcu_dereference(p->ary[(id >> n) & IDR_MASK]);
-+		}
-+
-+		if (p) {
-+			*nextidp = id;
-+			return p;
-+		}
-+
-+		id += 1 << n;
-+		while (n < fls(id)) {
-+			n += IDR_BITS;
-+			p = *--paa;
-+		}
-+	}
-+	return NULL;
-+}
-+
-+
-+
-+/**
-  * idr_replace - replace pointer for given id
-  * @idp: idr handle
-  * @ptr: pointer you want associated with the id
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from jw@emlix.com are
 
 origin.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+xtensa-variant-specific-code.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+flat-fix-data-sections-alignment.patch
 
