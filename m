@@ -1,217 +1,611 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:34:31 -0700
-Message-ID: <200904061934.n36JYVTb011643@imap1.linux-foundation.org>
+Subject: [merged] cgroup-css-id-support.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:34:07 -0700
+Message-ID: <200904061934.n36JY7rK011422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752834AbZDFUes (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:34:48 -0400
+	by vger.kernel.org with ESMTP id S1753019AbZDFUiJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:38:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, bharata@linux.vnet.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix shrinking memory to return -EBUSY by fixing retry algorithm
+     cgroup: CSS ID support
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+     cgroup-css-id-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix shrinking memory to return -EBUSY by fixing retry algorithm
+Subject: cgroup: CSS ID support
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-As pointed out, shrinking memcg's limit should return -EBUSY after
-reasonable retries.  This patch tries to fix the current behavior of
-shrink_usage.
+Patch for Per-CSS(Cgroup Subsys State) ID and private hierarchy code.
 
-Before looking into "shrink should return -EBUSY" problem, we should fix
-hierarchical reclaim code.  It compares current usage and current limit,
-but it only makes sense when the kernel reclaims memory because hit
-limits.  This is also a problem.
+This patch attaches unique ID to each css and provides following.
 
-What this patch does are.
+ - css_lookup(subsys, id)
+   returns pointer to struct cgroup_subysys_state of id.
+ - css_get_next(subsys, id, rootid, depth, foundid)
+   returns the next css under "root" by scanning
 
-  1. add new argument "shrink" to hierarchical reclaim. If "shrink==true",
-     hierarchical reclaim returns immediately and the caller checks the kernel
-     should shrink more or not.
-     (At shrinking memory, usage is always smaller than limit. So check for
-      usage < limit is useless.)
+When cgroup_subsys->use_id is set, an id for css is maintained.
 
-  2. For adjusting to above change, 2 changes in "shrink"'s retry path.
-     2-a. retry_count depends on # of children because the kernel visits
-	  the children under hierarchy one by one.
-     2-b. rather than checking return value of hierarchical_reclaim's progress,
-	  compares usage-before-shrink and usage-after-shrink.
-	  If usage-before-shrink <= usage-after-shrink, retry_count is
-	  decremented.
+The cgroup framework only parepares
+	- css_id of root css for subsys
+	- id is automatically attached at creation of css.
+	- id is *not* freed automatically. Because the cgroup framework
+	  don't know lifetime of cgroup_subsys_state.
+	  free_css_id() function is provided. This must be called by subsys.
 
-Reported-by: Li Zefan <lizf@cn.fujitsu.com>
+There are several reasons to develop this.
+	- Saving space .... For example, memcg's swap_cgroup is array of
+	  pointers to cgroup. But it is not necessary to be very fast.
+	  By replacing pointers(8bytes per ent) to ID (2byes per ent), we can
+	  reduce much amount of memory usage.
+
+	- Scanning without lock.
+	  CSS_ID provides "scan id under this ROOT" function. By this, scanning
+	  css under root can be written without locks.
+	  ex)
+	  do {
+		rcu_read_lock();
+		next = cgroup_get_next(subsys, id, root, &found);
+		/* check sanity of next here */
+		css_tryget();
+		rcu_read_unlock();
+		id = found + 1
+	 } while(...)
+
+Characteristics:
+	- Each css has unique ID under subsys.
+	- Lifetime of ID is controlled by subsys.
+	- css ID contains "ID" and "Depth in hierarchy" and stack of hierarchy
+	- Allowed ID is 1-65535, ID 0 is UNUSED ID.
+
+Design Choices:
+	- scan-by-ID v.s. scan-by-tree-walk.
+	  As /proc's pid scan does, scan-by-ID is robust when scanning is done
+	  by following kind of routine.
+	  scan -> rest a while(release a lock) -> conitunue from interrupted
+	  memcg's hierarchical reclaim does this.
+
+	- When subsys->use_id is set, # of css in the system is limited to
+	  65535.
+
+[bharata@linux.vnet.ibm.com: remove rcu_read_lock() from css_get_next()]
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Acked-by: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   71 ++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 59 insertions(+), 12 deletions(-)
+ include/linux/cgroup.h |   50 ++++++
+ include/linux/idr.h    |    1 
+ kernel/cgroup.c        |  286 ++++++++++++++++++++++++++++++++++++++-
+ lib/idr.c              |   46 ++++++
+ 4 files changed, 382 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm
-+++ a/mm/memcontrol.c
-@@ -702,6 +702,23 @@ static unsigned int get_swappiness(struc
- 	return swappiness;
- }
+diff -puN include/linux/cgroup.h~cgroup-css-id-support include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-css-id-support
++++ a/include/linux/cgroup.h
+@@ -15,6 +15,7 @@
+ #include <linux/cgroupstats.h>
+ #include <linux/prio_heap.h>
+ #include <linux/rwsem.h>
++#include <linux/idr.h>
  
-+static int mem_cgroup_count_children_cb(struct mem_cgroup *mem, void *data)
+ #ifdef CONFIG_CGROUPS
+ 
+@@ -22,6 +23,7 @@ struct cgroupfs_root;
+ struct cgroup_subsys;
+ struct inode;
+ struct cgroup;
++struct css_id;
+ 
+ extern int cgroup_init_early(void);
+ extern int cgroup_init(void);
+@@ -63,6 +65,8 @@ struct cgroup_subsys_state {
+ 	atomic_t refcnt;
+ 
+ 	unsigned long flags;
++	/* ID for this css, if possible */
++	struct css_id *id;
+ };
+ 
+ /* bits in struct cgroup_subsys_state flags field */
+@@ -373,6 +377,11 @@ struct cgroup_subsys {
+ 	int active;
+ 	int disabled;
+ 	int early_init;
++	/*
++	 * True if this subsys uses ID. ID is not available before cgroup_init()
++	 * (not available in early_init time.)
++	 */
++	bool use_id;
+ #define MAX_CGROUP_TYPE_NAMELEN 32
+ 	const char *name;
+ 
+@@ -395,6 +404,9 @@ struct cgroup_subsys {
+ 	 */
+ 	struct cgroupfs_root *root;
+ 	struct list_head sibling;
++	/* used when use_id == true */
++	struct idr idr;
++	spinlock_t id_lock;
+ };
+ 
+ #define SUBSYS(_x) extern struct cgroup_subsys _x ## _subsys;
+@@ -450,6 +462,44 @@ void cgroup_iter_end(struct cgroup *cgrp
+ int cgroup_scan_tasks(struct cgroup_scanner *scan);
+ int cgroup_attach_task(struct cgroup *, struct task_struct *);
+ 
++/*
++ * CSS ID is ID for cgroup_subsys_state structs under subsys. This only works
++ * if cgroup_subsys.use_id == true. It can be used for looking up and scanning.
++ * CSS ID is assigned at cgroup allocation (create) automatically
++ * and removed when subsys calls free_css_id() function. This is because
++ * the lifetime of cgroup_subsys_state is subsys's matter.
++ *
++ * Looking up and scanning function should be called under rcu_read_lock().
++ * Taking cgroup_mutex()/hierarchy_mutex() is not necessary for following calls.
++ * But the css returned by this routine can be "not populated yet" or "being
++ * destroyed". The caller should check css and cgroup's status.
++ */
++
++/*
++ * Typically Called at ->destroy(), or somewhere the subsys frees
++ * cgroup_subsys_state.
++ */
++void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css);
++
++/* Find a cgroup_subsys_state which has given ID */
++
++struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id);
++
++/*
++ * Get a cgroup whose id is greater than or equal to id under tree of root.
++ * Returning a cgroup_subsys_state or NULL.
++ */
++struct cgroup_subsys_state *css_get_next(struct cgroup_subsys *ss, int id,
++		struct cgroup_subsys_state *root, int *foundid);
++
++/* Returns true if root is ancestor of cg */
++bool css_is_ancestor(struct cgroup_subsys_state *cg,
++		     struct cgroup_subsys_state *root);
++
++/* Get id and depth of css */
++unsigned short css_id(struct cgroup_subsys_state *css);
++unsigned short css_depth(struct cgroup_subsys_state *css);
++
+ #else /* !CONFIG_CGROUPS */
+ 
+ static inline int cgroup_init_early(void) { return 0; }
+diff -puN include/linux/idr.h~cgroup-css-id-support include/linux/idr.h
+--- a/include/linux/idr.h~cgroup-css-id-support
++++ a/include/linux/idr.h
+@@ -106,6 +106,7 @@ int idr_get_new(struct idr *idp, void *p
+ int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id);
+ int idr_for_each(struct idr *idp,
+ 		 int (*fn)(int id, void *p, void *data), void *data);
++void *idr_get_next(struct idr *idp, int *nextid);
+ void *idr_replace(struct idr *idp, void *ptr, int id);
+ void idr_remove(struct idr *idp, int id);
+ void idr_remove_all(struct idr *idp);
+diff -puN kernel/cgroup.c~cgroup-css-id-support kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-css-id-support
++++ a/kernel/cgroup.c
+@@ -94,7 +94,6 @@ struct cgroupfs_root {
+ 	char release_agent_path[PATH_MAX];
+ };
+ 
+-
+ /*
+  * The "rootnode" hierarchy is the "dummy hierarchy", reserved for the
+  * subsystems that are otherwise unattached - it never has more than a
+@@ -102,6 +101,39 @@ struct cgroupfs_root {
+  */
+ static struct cgroupfs_root rootnode;
+ 
++/*
++ * CSS ID -- ID per subsys's Cgroup Subsys State(CSS). used only when
++ * cgroup_subsys->use_id != 0.
++ */
++#define CSS_ID_MAX	(65535)
++struct css_id {
++	/*
++	 * The css to which this ID points. This pointer is set to valid value
++	 * after cgroup is populated. If cgroup is removed, this will be NULL.
++	 * This pointer is expected to be RCU-safe because destroy()
++	 * is called after synchronize_rcu(). But for safe use, css_is_removed()
++	 * css_tryget() should be used for avoiding race.
++	 */
++	struct cgroup_subsys_state *css;
++	/*
++	 * ID of this css.
++	 */
++	unsigned short id;
++	/*
++	 * Depth in hierarchy which this ID belongs to.
++	 */
++	unsigned short depth;
++	/*
++	 * ID is freed by RCU. (and lookup routine is RCU safe.)
++	 */
++	struct rcu_head rcu_head;
++	/*
++	 * Hierarchy of CSS ID belongs to.
++	 */
++	unsigned short stack[0]; /* Array of Length (depth+1) */
++};
++
++
+ /* The list of hierarchy roots */
+ 
+ static LIST_HEAD(roots);
+@@ -185,6 +217,8 @@ struct cg_cgroup_link {
+ static struct css_set init_css_set;
+ static struct cg_cgroup_link init_css_set_link;
+ 
++static int cgroup_subsys_init_idr(struct cgroup_subsys *ss);
++
+ /* css_set_lock protects the list of css_set objects, and the
+  * chain of tasks off each css_set.  Nests outside task->alloc_lock
+  * due to cgroup_iter_start() */
+@@ -567,6 +601,9 @@ static struct backing_dev_info cgroup_ba
+ 	.capabilities	= BDI_CAP_NO_ACCT_AND_WRITEBACK,
+ };
+ 
++static int alloc_css_id(struct cgroup_subsys *ss,
++			struct cgroup *parent, struct cgroup *child);
++
+ static struct inode *cgroup_new_inode(mode_t mode, struct super_block *sb)
+ {
+ 	struct inode *inode = new_inode(sb);
+@@ -2327,6 +2364,17 @@ static int cgroup_populate_dir(struct cg
+ 		if (ss->populate && (err = ss->populate(ss, cgrp)) < 0)
+ 			return err;
+ 	}
++	/* This cgroup is ready now */
++	for_each_subsys(cgrp->root, ss) {
++		struct cgroup_subsys_state *css = cgrp->subsys[ss->subsys_id];
++		/*
++		 * Update id->css pointer and make this css visible from
++		 * CSS ID functions. This pointer will be dereferened
++		 * from RCU-read-side without locks.
++		 */
++		if (css->id)
++			rcu_assign_pointer(css->id->css, css);
++	}
+ 
+ 	return 0;
+ }
+@@ -2338,6 +2386,7 @@ static void init_cgroup_css(struct cgrou
+ 	css->cgroup = cgrp;
+ 	atomic_set(&css->refcnt, 1);
+ 	css->flags = 0;
++	css->id = NULL;
+ 	if (cgrp == dummytop)
+ 		set_bit(CSS_ROOT, &css->flags);
+ 	BUG_ON(cgrp->subsys[ss->subsys_id]);
+@@ -2413,6 +2462,10 @@ static long cgroup_create(struct cgroup 
+ 			goto err_destroy;
+ 		}
+ 		init_cgroup_css(css, ss, cgrp);
++		if (ss->use_id)
++			if (alloc_css_id(ss, parent, cgrp))
++				goto err_destroy;
++		/* At error, ->destroy() callback has to free assigned ID. */
+ 	}
+ 
+ 	cgroup_lock_hierarchy(root);
+@@ -2708,6 +2761,8 @@ int __init cgroup_init(void)
+ 		struct cgroup_subsys *ss = subsys[i];
+ 		if (!ss->early_init)
+ 			cgroup_init_subsys(ss);
++		if (ss->use_id)
++			cgroup_subsys_init_idr(ss);
+ 	}
+ 
+ 	/* Add init_css_set to the hash table */
+@@ -3242,3 +3297,232 @@ static int __init cgroup_disable(char *s
+ 	return 1;
+ }
+ __setup("cgroup_disable=", cgroup_disable);
++
++/*
++ * Functons for CSS ID.
++ */
++
++/*
++ *To get ID other than 0, this should be called when !cgroup_is_removed().
++ */
++unsigned short css_id(struct cgroup_subsys_state *css)
 +{
-+	int *val = data;
-+	(*val)++;
++	struct css_id *cssid = rcu_dereference(css->id);
++
++	if (cssid)
++		return cssid->id;
 +	return 0;
 +}
-+/*
-+ * This function returns the number of memcg under hierarchy tree. Returns
-+ * 1(self count) if no children.
-+ */
-+static int mem_cgroup_count_children(struct mem_cgroup *mem)
++
++unsigned short css_depth(struct cgroup_subsys_state *css)
 +{
-+	int num = 0;
-+ 	mem_cgroup_walk_tree(mem, &num, mem_cgroup_count_children_cb);
-+	return num;
++	struct css_id *cssid = rcu_dereference(css->id);
++
++	if (cssid)
++		return cssid->depth;
++	return 0;
 +}
 +
- /*
-  * Visit the first child (need not be the first child as per the ordering
-  * of the cgroup list, since we track last_scanned_child) of @mem and use
-@@ -750,9 +767,11 @@ mem_cgroup_select_victim(struct mem_cgro
-  *
-  * We give up and return to the caller when we visit root_mem twice.
-  * (other groups can be removed while we're walking....)
-+ *
-+ * If shrink==true, for avoiding to free too much, this returns immedieately.
-  */
- static int mem_cgroup_hierarchical_reclaim(struct mem_cgroup *root_mem,
--						gfp_t gfp_mask, bool noswap)
-+				   gfp_t gfp_mask, bool noswap, bool shrink)
- {
- 	struct mem_cgroup *victim;
- 	int ret, total = 0;
-@@ -771,6 +790,13 @@ static int mem_cgroup_hierarchical_recla
- 		ret = try_to_free_mem_cgroup_pages(victim, gfp_mask, noswap,
- 						   get_swappiness(victim));
- 		css_put(&victim->css);
-+		/*
-+		 * At shrinking usage, we can't check we should stop here or
-+		 * reclaim more. It's depends on callers. last_scanned_child
-+		 * will work enough for keeping fairness under tree.
-+		 */
-+		if (shrink)
-+			return ret;
- 		total += ret;
- 		if (mem_cgroup_check_under_limit(root_mem))
- 			return 1 + total;
-@@ -856,7 +882,7 @@ static int __mem_cgroup_try_charge(struc
- 			goto nomem;
- 
- 		ret = mem_cgroup_hierarchical_reclaim(mem_over_limit, gfp_mask,
--							noswap);
-+							noswap, false);
- 		if (ret)
- 			continue;
- 
-@@ -1489,7 +1515,8 @@ int mem_cgroup_shrink_usage(struct page 
- 		return 0;
- 
- 	do {
--		progress = mem_cgroup_hierarchical_reclaim(mem, gfp_mask, true);
-+		progress = mem_cgroup_hierarchical_reclaim(mem,
-+					gfp_mask, true, false);
- 		progress += mem_cgroup_check_under_limit(mem);
- 	} while (!progress && --retry);
- 
-@@ -1504,11 +1531,21 @@ static DEFINE_MUTEX(set_limit_mutex);
- static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
- 				unsigned long long val)
- {
--
--	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
-+	int retry_count;
- 	int progress;
- 	u64 memswlimit;
- 	int ret = 0;
-+	int children = mem_cgroup_count_children(memcg);
-+	u64 curusage, oldusage;
++bool css_is_ancestor(struct cgroup_subsys_state *child,
++		    struct cgroup_subsys_state *root)
++{
++	struct css_id *child_id = rcu_dereference(child->id);
++	struct css_id *root_id = rcu_dereference(root->id);
 +
++	if (!child_id || !root_id || (child_id->depth < root_id->depth))
++		return false;
++	return child_id->stack[root_id->depth] == root_id->id;
++}
++
++static void __free_css_id_cb(struct rcu_head *head)
++{
++	struct css_id *id;
++
++	id = container_of(head, struct css_id, rcu_head);
++	kfree(id);
++}
++
++void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css)
++{
++	struct css_id *id = css->id;
++	/* When this is called before css_id initialization, id can be NULL */
++	if (!id)
++		return;
++
++	BUG_ON(!ss->use_id);
++
++	rcu_assign_pointer(id->css, NULL);
++	rcu_assign_pointer(css->id, NULL);
++	spin_lock(&ss->id_lock);
++	idr_remove(&ss->idr, id->id);
++	spin_unlock(&ss->id_lock);
++	call_rcu(&id->rcu_head, __free_css_id_cb);
++}
++
++/*
++ * This is called by init or create(). Then, calls to this function are
++ * always serialized (By cgroup_mutex() at create()).
++ */
++
++static struct css_id *get_new_cssid(struct cgroup_subsys *ss, int depth)
++{
++	struct css_id *newid;
++	int myid, error, size;
++
++	BUG_ON(!ss->use_id);
++
++	size = sizeof(*newid) + sizeof(unsigned short) * (depth + 1);
++	newid = kzalloc(size, GFP_KERNEL);
++	if (!newid)
++		return ERR_PTR(-ENOMEM);
++	/* get id */
++	if (unlikely(!idr_pre_get(&ss->idr, GFP_KERNEL))) {
++		error = -ENOMEM;
++		goto err_out;
++	}
++	spin_lock(&ss->id_lock);
++	/* Don't use 0. allocates an ID of 1-65535 */
++	error = idr_get_new_above(&ss->idr, newid, 1, &myid);
++	spin_unlock(&ss->id_lock);
++
++	/* Returns error when there are no free spaces for new ID.*/
++	if (error) {
++		error = -ENOSPC;
++		goto err_out;
++	}
++	if (myid > CSS_ID_MAX)
++		goto remove_idr;
++
++	newid->id = myid;
++	newid->depth = depth;
++	return newid;
++remove_idr:
++	error = -ENOSPC;
++	spin_lock(&ss->id_lock);
++	idr_remove(&ss->idr, myid);
++	spin_unlock(&ss->id_lock);
++err_out:
++	kfree(newid);
++	return ERR_PTR(error);
++
++}
++
++static int __init cgroup_subsys_init_idr(struct cgroup_subsys *ss)
++{
++	struct css_id *newid;
++	struct cgroup_subsys_state *rootcss;
++
++	spin_lock_init(&ss->id_lock);
++	idr_init(&ss->idr);
++
++	rootcss = init_css_set.subsys[ss->subsys_id];
++	newid = get_new_cssid(ss, 0);
++	if (IS_ERR(newid))
++		return PTR_ERR(newid);
++
++	newid->stack[0] = newid->id;
++	newid->css = rootcss;
++	rootcss->id = newid;
++	return 0;
++}
++
++static int alloc_css_id(struct cgroup_subsys *ss, struct cgroup *parent,
++			struct cgroup *child)
++{
++	int subsys_id, i, depth = 0;
++	struct cgroup_subsys_state *parent_css, *child_css;
++	struct css_id *child_id, *parent_id = NULL;
++
++	subsys_id = ss->subsys_id;
++	parent_css = parent->subsys[subsys_id];
++	child_css = child->subsys[subsys_id];
++	depth = css_depth(parent_css) + 1;
++	parent_id = parent_css->id;
++
++	child_id = get_new_cssid(ss, depth);
++	if (IS_ERR(child_id))
++		return PTR_ERR(child_id);
++
++	for (i = 0; i < depth; i++)
++		child_id->stack[i] = parent_id->stack[i];
++	child_id->stack[depth] = child_id->id;
 +	/*
-+	 * For keeping hierarchical_reclaim simple, how long we should retry
-+	 * is depends on callers. We set our retry-count to be function
-+	 * of # of children which we should visit in this loop.
++	 * child_id->css pointer will be set after this cgroup is available
++	 * see cgroup_populate_dir()
 +	 */
-+	retry_count = MEM_CGROUP_RECLAIM_RETRIES * children;
++	rcu_assign_pointer(child_css->id, child_id);
 +
-+	oldusage = res_counter_read_u64(&memcg->res, RES_USAGE);
++	return 0;
++}
++
++/**
++ * css_lookup - lookup css by id
++ * @ss: cgroup subsys to be looked into.
++ * @id: the id
++ *
++ * Returns pointer to cgroup_subsys_state if there is valid one with id.
++ * NULL if not. Should be called under rcu_read_lock()
++ */
++struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id)
++{
++	struct css_id *cssid = NULL;
++
++	BUG_ON(!ss->use_id);
++	cssid = idr_find(&ss->idr, id);
++
++	if (unlikely(!cssid))
++		return NULL;
++
++	return rcu_dereference(cssid->css);
++}
++
++/**
++ * css_get_next - lookup next cgroup under specified hierarchy.
++ * @ss: pointer to subsystem
++ * @id: current position of iteration.
++ * @root: pointer to css. search tree under this.
++ * @foundid: position of found object.
++ *
++ * Search next css under the specified hierarchy of rootid. Calling under
++ * rcu_read_lock() is necessary. Returns NULL if it reaches the end.
++ */
++struct cgroup_subsys_state *
++css_get_next(struct cgroup_subsys *ss, int id,
++	     struct cgroup_subsys_state *root, int *foundid)
++{
++	struct cgroup_subsys_state *ret = NULL;
++	struct css_id *tmp;
++	int tmpid;
++	int rootid = css_id(root);
++	int depth = css_depth(root);
++
++	if (!rootid)
++		return NULL;
++
++	BUG_ON(!ss->use_id);
++	/* fill start point for scan */
++	tmpid = id;
++	while (1) {
++		/*
++		 * scan next entry from bitmap(tree), tmpid is updated after
++		 * idr_get_next().
++		 */
++		spin_lock(&ss->id_lock);
++		tmp = idr_get_next(&ss->idr, &tmpid);
++		spin_unlock(&ss->id_lock);
++
++		if (!tmp)
++			break;
++		if (tmp->depth >= depth && tmp->stack[depth] == rootid) {
++			ret = rcu_dereference(tmp->css);
++			if (ret) {
++				*foundid = tmpid;
++				break;
++			}
++		}
++		/* continue to scan from next id */
++		tmpid = tmpid + 1;
++	}
++	return ret;
++}
++
+diff -puN lib/idr.c~cgroup-css-id-support lib/idr.c
+--- a/lib/idr.c~cgroup-css-id-support
++++ a/lib/idr.c
+@@ -579,6 +579,52 @@ int idr_for_each(struct idr *idp,
+ EXPORT_SYMBOL(idr_for_each);
  
- 	while (retry_count) {
- 		if (signal_pending(current)) {
-@@ -1534,8 +1571,13 @@ static int mem_cgroup_resize_limit(struc
- 			break;
- 
- 		progress = mem_cgroup_hierarchical_reclaim(memcg, GFP_KERNEL,
--							   false);
--  		if (!progress)			retry_count--;
-+						   false, true);
-+		curusage = res_counter_read_u64(&memcg->res, RES_USAGE);
-+		/* Usage is reduced ? */
-+  		if (curusage >= oldusage)
-+			retry_count--;
-+		else
-+			oldusage = curusage;
- 	}
- 
- 	return ret;
-@@ -1544,13 +1586,16 @@ static int mem_cgroup_resize_limit(struc
- int mem_cgroup_resize_memsw_limit(struct mem_cgroup *memcg,
- 				unsigned long long val)
- {
--	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
-+	int retry_count;
- 	u64 memlimit, oldusage, curusage;
--	int ret;
-+	int children = mem_cgroup_count_children(memcg);
-+	int ret = -EBUSY;
- 
- 	if (!do_swap_account)
- 		return -EINVAL;
--
-+	/* see mem_cgroup_resize_res_limit */
-+ 	retry_count = children * MEM_CGROUP_RECLAIM_RETRIES;
-+	oldusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
- 	while (retry_count) {
- 		if (signal_pending(current)) {
- 			ret = -EINTR;
-@@ -1574,11 +1619,13 @@ int mem_cgroup_resize_memsw_limit(struct
- 		if (!ret)
- 			break;
- 
--		oldusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
--		mem_cgroup_hierarchical_reclaim(memcg, GFP_KERNEL, true);
-+		mem_cgroup_hierarchical_reclaim(memcg, GFP_KERNEL, true, true);
- 		curusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
-+		/* Usage is reduced ? */
- 		if (curusage >= oldusage)
- 			retry_count--;
-+		else
-+			oldusage = curusage;
- 	}
- 	return ret;
- }
+ /**
++ * idr_get_next - lookup next object of id to given id.
++ * @idp: idr handle
++ * @id:  pointer to lookup key
++ *
++ * Returns pointer to registered object with id, which is next number to
++ * given id.
++ */
++
++void *idr_get_next(struct idr *idp, int *nextidp)
++{
++	struct idr_layer *p, *pa[MAX_LEVEL];
++	struct idr_layer **paa = &pa[0];
++	int id = *nextidp;
++	int n, max;
++
++	/* find first ent */
++	n = idp->layers * IDR_BITS;
++	max = 1 << n;
++	p = rcu_dereference(idp->top);
++	if (!p)
++		return NULL;
++
++	while (id < max) {
++		while (n > 0 && p) {
++			n -= IDR_BITS;
++			*paa++ = p;
++			p = rcu_dereference(p->ary[(id >> n) & IDR_MASK]);
++		}
++
++		if (p) {
++			*nextidp = id;
++			return p;
++		}
++
++		id += 1 << n;
++		while (n < fls(id)) {
++			n += IDR_BITS;
++			p = *--paa;
++		}
++	}
++	return NULL;
++}
++
++
++
++/**
+  * idr_replace - replace pointer for given id
+  * @idp: idr handle
+  * @ptr: pointer you want associated with the id
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
