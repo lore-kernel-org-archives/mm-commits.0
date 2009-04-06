@@ -1,152 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] synclink_gt-add-clock-options.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:36:14 -0700
-Message-ID: <200904061936.n36JaEwb012362@imap1.linux-foundation.org>
+Subject: [merged] devcgroup-avoid-using-cgroup_lock.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:34:23 -0700
+Message-ID: <200904061934.n36JYNjc011577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49975 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757513AbZDFTi0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:38:26 -0400
+	by vger.kernel.org with ESMTP id S1754581AbZDFTig (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:38:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synclink_gt: add clock options
+     devcgroup: avoid using cgroup_lock
 has been removed from the -mm tree.  Its filename was
-     synclink_gt-add-clock-options.patch
+     devcgroup-avoid-using-cgroup_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt: add clock options
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: devcgroup: avoid using cgroup_lock
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Add support for x8 asynchronous sample rate and ability to specify base
-clock frequency.
+There is nothing special that has to be protected by cgroup_lock,
+so introduce devcgroup_mtuex for it's own use.
 
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |   58 ++++++++++++++++++++++-------------
- include/linux/synclink.h   |    1 
- 2 files changed, 39 insertions(+), 20 deletions(-)
+ security/device_cgroup.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-add-clock-options drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-add-clock-options
-+++ a/drivers/char/synclink_gt.c
-@@ -298,6 +298,7 @@ struct slgt_info {
+diff -puN security/device_cgroup.c~devcgroup-avoid-using-cgroup_lock security/device_cgroup.c
+--- a/security/device_cgroup.c~devcgroup-avoid-using-cgroup_lock
++++ a/security/device_cgroup.c
+@@ -11,6 +11,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/seq_file.h>
+ #include <linux/rcupdate.h>
++#include <linux/mutex.h>
  
- 	unsigned int rbuf_fill_level;
- 	unsigned int if_mode;
-+	unsigned int base_clock;
+ #define ACC_MKNOD 1
+ #define ACC_READ  2
+@@ -21,9 +22,11 @@
+ #define DEV_CHAR  2
+ #define DEV_ALL   4  /* this represents all devices */
  
- 	/* device status */
++static DEFINE_MUTEX(devcgroup_mutex);
++
+ /*
+  * whitelist locking rules:
+- * hold cgroup_lock() for update/read.
++ * hold devcgroup_mutex for update/read.
+  * hold rcu_read_lock() for read.
+  */
  
-@@ -1156,22 +1157,26 @@ static long set_params32(struct slgt_inf
- 		return -EFAULT;
- 
- 	spin_lock(&info->lock);
--	info->params.mode            = tmp_params.mode;
--	info->params.loopback        = tmp_params.loopback;
--	info->params.flags           = tmp_params.flags;
--	info->params.encoding        = tmp_params.encoding;
--	info->params.clock_speed     = tmp_params.clock_speed;
--	info->params.addr_filter     = tmp_params.addr_filter;
--	info->params.crc_type        = tmp_params.crc_type;
--	info->params.preamble_length = tmp_params.preamble_length;
--	info->params.preamble        = tmp_params.preamble;
--	info->params.data_rate       = tmp_params.data_rate;
--	info->params.data_bits       = tmp_params.data_bits;
--	info->params.stop_bits       = tmp_params.stop_bits;
--	info->params.parity          = tmp_params.parity;
-+	if (tmp_params.mode == MGSL_MODE_BASE_CLOCK) {
-+		info->base_clock = tmp_params.clock_speed;
-+	} else {
-+		info->params.mode            = tmp_params.mode;
-+		info->params.loopback        = tmp_params.loopback;
-+		info->params.flags           = tmp_params.flags;
-+		info->params.encoding        = tmp_params.encoding;
-+		info->params.clock_speed     = tmp_params.clock_speed;
-+		info->params.addr_filter     = tmp_params.addr_filter;
-+		info->params.crc_type        = tmp_params.crc_type;
-+		info->params.preamble_length = tmp_params.preamble_length;
-+		info->params.preamble        = tmp_params.preamble;
-+		info->params.data_rate       = tmp_params.data_rate;
-+		info->params.data_bits       = tmp_params.data_bits;
-+		info->params.stop_bits       = tmp_params.stop_bits;
-+		info->params.parity          = tmp_params.parity;
-+	}
- 	spin_unlock(&info->lock);
- 
-- 	change_params(info);
-+	program_hw(info);
- 
- 	return 0;
+@@ -67,7 +70,7 @@ static int devcgroup_can_attach(struct c
  }
-@@ -2559,10 +2564,13 @@ static int set_params(struct slgt_info *
- 		return -EFAULT;
  
- 	spin_lock_irqsave(&info->lock, flags);
--	memcpy(&info->params, &tmp_params, sizeof(MGSL_PARAMS));
-+	if (tmp_params.mode == MGSL_MODE_BASE_CLOCK)
-+		info->base_clock = tmp_params.clock_speed;
-+	else
-+		memcpy(&info->params, &tmp_params, sizeof(MGSL_PARAMS));
- 	spin_unlock_irqrestore(&info->lock, flags);
- 
-- 	change_params(info);
-+	program_hw(info);
- 
- 	return 0;
- }
-@@ -3432,6 +3440,7 @@ static struct slgt_info *alloc_dev(int a
- 		info->magic = MGSL_MAGIC;
- 		INIT_WORK(&info->task, bh_handler);
- 		info->max_frame_size = 4096;
-+		info->base_clock = 14745600;
- 		info->rbuf_fill_level = DMABUFSIZE;
- 		info->port.close_delay = 5*HZ/10;
- 		info->port.closing_wait = 30*HZ;
-@@ -3779,7 +3788,7 @@ static void enable_loopback(struct slgt_
- static void set_rate(struct slgt_info *info, u32 rate)
+ /*
+- * called under cgroup_lock()
++ * called under devcgroup_mutex
+  */
+ static int dev_whitelist_copy(struct list_head *dest, struct list_head *orig)
  {
- 	unsigned int div;
--	static unsigned int osc = 14745600;
-+	unsigned int osc = info->base_clock;
+@@ -92,7 +95,7 @@ free_and_exit:
  
- 	/* div = osc/rate - 1
- 	 *
-@@ -4083,18 +4092,27 @@ static void async_mode(struct slgt_info 
- 	 * 06  CTS      IRQ enable
- 	 * 05  DCD      IRQ enable
- 	 * 04  RI       IRQ enable
--	 * 03  reserved, must be zero
-+	 * 03  0=16x sampling, 1=8x sampling
- 	 * 02  1=txd->rxd internal loopback enable
- 	 * 01  reserved, must be zero
- 	 * 00  1=master IRQ enable
- 	 */
- 	val = BIT15 + BIT14 + BIT0;
-+	/* JCR[8] : 1 = x8 async mode feature available */
-+	if ((rd_reg32(info, JCR) & BIT8) && info->params.data_rate &&
-+	    ((info->base_clock < (info->params.data_rate * 16)) ||
-+	     (info->base_clock % (info->params.data_rate * 16)))) {
-+		/* use 8x sampling */
-+		val |= BIT3;
-+		set_rate(info, info->params.data_rate * 8);
-+	} else {
-+		/* use 16x sampling */
-+		set_rate(info, info->params.data_rate * 16);
-+	}
- 	wr_reg16(info, SCR, val);
+ /* Stupid prototype - don't bother combining existing entries */
+ /*
+- * called under cgroup_lock()
++ * called under devcgroup_mutex
+  */
+ static int dev_whitelist_add(struct dev_cgroup *dev_cgroup,
+ 			struct dev_whitelist_item *wh)
+@@ -130,7 +133,7 @@ static void whitelist_item_free(struct r
+ }
  
- 	slgt_irq_on(info, IRQ_RXBREAK | IRQ_RXOVER);
+ /*
+- * called under cgroup_lock()
++ * called under devcgroup_mutex
+  */
+ static void dev_whitelist_rm(struct dev_cgroup *dev_cgroup,
+ 			struct dev_whitelist_item *wh)
+@@ -185,8 +188,10 @@ static struct cgroup_subsys_state *devcg
+ 		list_add(&wh->list, &dev_cgroup->whitelist);
+ 	} else {
+ 		parent_dev_cgroup = cgroup_to_devcgroup(parent_cgroup);
++		mutex_lock(&devcgroup_mutex);
+ 		ret = dev_whitelist_copy(&dev_cgroup->whitelist,
+ 				&parent_dev_cgroup->whitelist);
++		mutex_unlock(&devcgroup_mutex);
+ 		if (ret) {
+ 			kfree(dev_cgroup);
+ 			return ERR_PTR(ret);
+@@ -273,7 +278,7 @@ static int devcgroup_seq_read(struct cgr
+  * does the access granted to dev_cgroup c contain the access
+  * requested in whitelist item refwh.
+  * return 1 if yes, 0 if no.
+- * call with c->lock held
++ * call with devcgroup_mutex held
+  */
+ static int may_access_whitelist(struct dev_cgroup *c,
+ 				       struct dev_whitelist_item *refwh)
+@@ -426,11 +431,11 @@ static int devcgroup_access_write(struct
+ 				  const char *buffer)
+ {
+ 	int retval;
+-	if (!cgroup_lock_live_group(cgrp))
+-		return -ENODEV;
++
++	mutex_lock(&devcgroup_mutex);
+ 	retval = devcgroup_update_access(cgroup_to_devcgroup(cgrp),
+ 					 cft->private, buffer);
+-	cgroup_unlock();
++	mutex_unlock(&devcgroup_mutex);
+ 	return retval;
+ }
  
--	set_rate(info, info->params.data_rate * 16);
+_
+
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+
+origin.patch
+linux-next.patch
+cls_cgroup-remove-unneeded-cgroup_lock.patch
+
