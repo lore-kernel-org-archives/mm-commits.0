@@ -1,79 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-efs-return-f_fsid-for-statfs2.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:38:18 -0700
-Message-ID: <200904061938.n36JcIbw013324@imap1.linux-foundation.org>
+Subject: [merged] cramfs-propagate-uncompression-errors-v21.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:37:49 -0700
+Message-ID: <200904061937.n36JbnCY013120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53768 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750905AbZDFTsV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:48:21 -0400
+	by vger.kernel.org with ESMTP id S1751268AbZDFTt2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:49:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: coly.li@suse.de, mm-commits@vger.kernel.org
+To: dvomlehn@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/efs: return f_fsid for statfs(2)
+     cramfs: propagate uncompression errors
 has been removed from the -mm tree.  Its filename was
-     fs-efs-return-f_fsid-for-statfs2.patch
+     cramfs-propagate-uncompression-errors-v21.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/efs: return f_fsid for statfs(2)
-From: Coly Li <coly.li@suse.de>
+Subject: cramfs: propagate uncompression errors
+From: David VomLehn <dvomlehn@cisco.com>
 
-Make efs return f_fsid info for statfs(2), and do a little variable
-renaming in efs_statfs().
+Decompression errors can arise due to corruption of compressed blocks on
+flash or in memory.  This patch propagates errors detected during
+decompression back to the block layer.
 
-Signed-off-by: Coly Li <coly.li@suse.de>
+Signed-off-by: David VomLehn <dvomlehn@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/super.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ fs/cramfs/inode.c      |   36 ++++++++++++++++++++++++++----------
+ fs/cramfs/uncompress.c |    2 +-
+ 2 files changed, 27 insertions(+), 11 deletions(-)
 
-diff -puN fs/efs/super.c~fs-efs-return-f_fsid-for-statfs2 fs/efs/super.c
---- a/fs/efs/super.c~fs-efs-return-f_fsid-for-statfs2
-+++ a/fs/efs/super.c
-@@ -329,18 +329,22 @@ out_no_fs:
+diff -puN fs/cramfs/inode.c~cramfs-propagate-uncompression-errors-v21 fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~cramfs-propagate-uncompression-errors-v21
++++ a/fs/cramfs/inode.c
+@@ -459,11 +459,14 @@ static struct dentry * cramfs_lookup(str
+ static int cramfs_readpage(struct file *file, struct page * page)
+ {
+ 	struct inode *inode = page->mapping->host;
+-	u32 maxblock, bytes_filled;
++	u32 maxblock;
++	int bytes_filled;
+ 	void *pgdata;
+ 
+ 	maxblock = (inode->i_size + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+ 	bytes_filled = 0;
++	pgdata = kmap(page);
++
+ 	if (page->index < maxblock) {
+ 		struct super_block *sb = inode->i_sb;
+ 		u32 blkptr_offset = OFFSET(inode) + page->index*4;
+@@ -472,30 +475,43 @@ static int cramfs_readpage(struct file *
+ 		start_offset = OFFSET(inode) + maxblock*4;
+ 		mutex_lock(&read_mutex);
+ 		if (page->index)
+-			start_offset = *(u32 *) cramfs_read(sb, blkptr_offset-4, 4);
+-		compr_len = (*(u32 *) cramfs_read(sb, blkptr_offset, 4) - start_offset);
++			start_offset = *(u32 *) cramfs_read(sb, blkptr_offset-4,
++				4);
++		compr_len = (*(u32 *) cramfs_read(sb, blkptr_offset, 4) -
++			start_offset);
+ 		mutex_unlock(&read_mutex);
+-		pgdata = kmap(page);
++
+ 		if (compr_len == 0)
+ 			; /* hole */
+-		else if (compr_len > (PAGE_CACHE_SIZE << 1))
+-			printk(KERN_ERR "cramfs: bad compressed blocksize %u\n", compr_len);
+-		else {
++		else if (unlikely(compr_len > (PAGE_CACHE_SIZE << 1))) {
++			pr_err("cramfs: bad compressed blocksize %u\n",
++				compr_len);
++			goto err;
++		} else {
+ 			mutex_lock(&read_mutex);
+ 			bytes_filled = cramfs_uncompress_block(pgdata,
+ 				 PAGE_CACHE_SIZE,
+ 				 cramfs_read(sb, start_offset, compr_len),
+ 				 compr_len);
+ 			mutex_unlock(&read_mutex);
++			if (unlikely(bytes_filled < 0))
++				goto err;
+ 		}
+-	} else
+-		pgdata = kmap(page);
++	}
++
+ 	memset(pgdata + bytes_filled, 0, PAGE_CACHE_SIZE - bytes_filled);
+-	kunmap(page);
+ 	flush_dcache_page(page);
++	kunmap(page);
+ 	SetPageUptodate(page);
+ 	unlock_page(page);
+ 	return 0;
++
++err:
++	kunmap(page);
++	ClearPageUptodate(page);
++	SetPageError(page);
++	unlock_page(page);
++	return 0;
  }
  
- static int efs_statfs(struct dentry *dentry, struct kstatfs *buf) {
--	struct efs_sb_info *sb = SUPER_INFO(dentry->d_sb);
-+	struct super_block *sb = dentry->d_sb;
-+	struct efs_sb_info *sbi = SUPER_INFO(sb);
-+	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
+ static const struct address_space_operations cramfs_aops = {
+diff -puN fs/cramfs/uncompress.c~cramfs-propagate-uncompression-errors-v21 fs/cramfs/uncompress.c
+--- a/fs/cramfs/uncompress.c~cramfs-propagate-uncompression-errors-v21
++++ a/fs/cramfs/uncompress.c
+@@ -50,7 +50,7 @@ int cramfs_uncompress_block(void *dst, i
+ err:
+ 	printk("Error %d while decompressing!\n", err);
+ 	printk("%p(%d)->%p(%d)\n", src, srclen, dst, dstlen);
+-	return 0;
++	return -EIO;
+ }
  
- 	buf->f_type    = EFS_SUPER_MAGIC;	/* efs magic number */
- 	buf->f_bsize   = EFS_BLOCKSIZE;		/* blocksize */
--	buf->f_blocks  = sb->total_groups *	/* total data blocks */
--			(sb->group_size - sb->inode_blocks);
--	buf->f_bfree   = sb->data_free;		/* free data blocks */
--	buf->f_bavail  = sb->data_free;		/* free blocks for non-root */
--	buf->f_files   = sb->total_groups *	/* total inodes */
--			sb->inode_blocks *
-+	buf->f_blocks  = sbi->total_groups *	/* total data blocks */
-+			(sbi->group_size - sbi->inode_blocks);
-+	buf->f_bfree   = sbi->data_free;	/* free data blocks */
-+	buf->f_bavail  = sbi->data_free;	/* free blocks for non-root */
-+	buf->f_files   = sbi->total_groups *	/* total inodes */
-+			sbi->inode_blocks *
- 			(EFS_BLOCKSIZE / sizeof(struct efs_dinode));
--	buf->f_ffree   = sb->inode_free;	/* free inodes */
-+	buf->f_ffree   = sbi->inode_free;	/* free inodes */
-+	buf->f_fsid.val[0] = (u32)id;
-+	buf->f_fsid.val[1] = (u32)(id >> 32);
- 	buf->f_namelen = EFS_MAXNAMELEN;	/* max filename length */
- 
- 	return 0;
+ int cramfs_uncompress_init(void)
 _
 
-Patches currently in -mm which might be from coly.li@suse.de are
+Patches currently in -mm which might be from dvomlehn@cisco.com are
 
 origin.patch
-fs-romfs-return-f_fsid-for-statfs2.patch
+linux-next.patch
 
