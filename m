@@ -1,89 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nbd-trivial-cleanups.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:36:36 -0700
-Message-ID: <200904061936.n36JaaSg012550@imap1.linux-foundation.org>
+Subject: [merged] reparent_thread-fix-the-is-it-traced-check.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:35:44 -0700
+Message-ID: <200904061935.n36JZiDG012145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757652AbZDFTjO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:39:14 -0400
+	by vger.kernel.org with ESMTP id S1756092AbZDFTjK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:39:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@suse.cz, paul.clements@steeleye.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, ebiederm@xmission.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nbd: trivial cleanups
+     reparent_thread: fix the "is it traced" check
 has been removed from the -mm tree.  Its filename was
-     nbd-trivial-cleanups.patch
+     reparent_thread-fix-the-is-it-traced-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nbd: trivial cleanups
-From: Pavel Machek <pavel@suse.cz>
+Subject: reparent_thread: fix the "is it traced" check
+From: Oleg Nesterov <oleg@redhat.com>
 
-Trivial cleanups for nbd: only the return -EIO one really changes code,
-and I've verified all the callers (plus 0 == success, 1 == error
-convention is really ugly).
+reparent_thread() uses ptrace_reparented() to check whether this thread is
+ptraced, in that case we should not notify the new parent.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Paul Clements <paul.clements@steeleye.com>
+But ptrace_reparented() is not exactly correct when the reparented thread
+is traced by /sbin/init, because forget_original_parent() has already
+changed ->real_parent.
+
+Currently, the only problem is the false notification.  But with the next
+patch the kernel crash in this (yes, pathological) case.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/nbd.c~nbd-trivial-cleanups drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-trivial-cleanups
-+++ a/drivers/block/nbd.c
-@@ -4,7 +4,7 @@
-  * Note that you can not swap over this thing, yet. Seems to work but
-  * deadlocks sometimes - you can not swap over TCP in general.
-  * 
-- * Copyright 1997-2000 Pavel Machek <pavel@ucw.cz>
-+ * Copyright 1997-2000, 2008 Pavel Machek <pavel@suse.cz>
-  * Parts copyright 2001 Steven Whitehouse <steve@chygwyn.com>
-  *
-  * This file is released under GPLv2 or later.
-@@ -276,7 +276,7 @@ static int nbd_send_req(struct nbd_devic
- 	return 0;
+diff -puN kernel/exit.c~reparent_thread-fix-the-is-it-traced-check kernel/exit.c
+--- a/kernel/exit.c~reparent_thread-fix-the-is-it-traced-check
++++ a/kernel/exit.c
+@@ -832,7 +832,7 @@ static void reparent_thread(struct task_
+ 	/* If we'd notified the old parent about this child's death,
+ 	 * also notify the new parent.
+ 	 */
+-	if (!ptrace_reparented(p) &&
++	if (!p->ptrace &&
+ 	    p->exit_state == EXIT_ZOMBIE && thread_group_empty(p))
+ 		do_notify_parent(p, p->exit_signal);
  
- error_out:
--	return 1;
-+	return -EIO;
- }
- 
- static struct request *nbd_find_request(struct nbd_device *lo,
-@@ -467,9 +467,7 @@ static void nbd_handle_req(struct nbd_de
- 		mutex_unlock(&lo->tx_lock);
- 		printk(KERN_ERR "%s: Attempted send on closed socket\n",
- 		       lo->disk->disk_name);
--		req->errors++;
--		nbd_end_request(req);
--		return;
-+		goto error_out;
- 	}
- 
- 	lo->active_req = req;
-@@ -531,7 +529,7 @@ static int nbd_thread(void *data)
-  *   { printk( "Warning: Ignoring result!\n"); nbd_end_request( req ); }
-  */
- 
--static void do_nbd_request(struct request_queue * q)
-+static void do_nbd_request(struct request_queue *q)
- {
- 	struct request *req;
- 	
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
+getrusage-fill-ru_maxrss-value.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+signals-tracehook_notify_jctl-change.patch
 
