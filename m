@@ -1,447 +1,1723 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-s6000-variant.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:39:38 -0700
-Message-ID: <200904061939.n36JdcP3013983@imap1.linux-foundation.org>
+Subject: [merged] edac-new-ppc4xx-driver-module.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:36:42 -0700
+Message-ID: <200904061936.n36JagAV012570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43337 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751986AbZDFUZO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:25:14 -0400
+	by vger.kernel.org with ESMTP id S1752362AbZDFUZV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:25:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jw@emlix.com, chris@zankel.net, dg@emlix.com, os@emlix.com, mm-commits@vger.kernel.org
+To: gerickson@nuovations.com, benh@kernel.crashing.org, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: s6000 variant
+     edac: new ppc4xx driver module
 has been removed from the -mm tree.  Its filename was
-     xtensa-s6000-variant.patch
+     edac-new-ppc4xx-driver-module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: s6000 variant
-From: Johannes Weiner <jw@emlix.com>
+Subject: edac: new ppc4xx driver module
+From: Grant Erickson <gerickson@nuovations.com>
 
-Support for the Xtensa S6000 core variant.
+This adds support for an EDAC memory controller adaptation driver for the
+"ibm,sdram-4xx-ddr2" ECC controller realized in the AMCC PowerPC 405EX[r].
 
-Signed-off-by: Johannes Weiner <jw@emlix.com>
-Signed-off-by: Oskar Schirmer <os@emlix.com>
-Cc: Oskar Schirmer <os@emlix.com>
-Cc: Daniel Glockner <dg@emlix.com>
-Cc: Christian Zankel <chris@zankel.net>
+At present, this driver has been developed and tested against the
+controller realization in the AMCC PPC405EX[r] on the AMCC Kilauea and
+Haleakala boards (256 MiB w/o ECC memory soldered onto the board) and a
+proprietary board based on those designs (128 MiB ECC memory, also
+soldered onto the board).
+
+In the future, dynamic feature detection and handling needs to be added
+for the other realizations of this controller found in the 440SP, 440SPe,
+460EX, 460GT and 460SX.
+
+Eventually, this driver will likely be evolved and adapted to the above
+variant realizations of this controller as well as broken apart to handle
+the other known ECC-capable controllers prevalent in other PPC4xx
+processors:
+
+  - IBM SDRAM (405GP, 405CR and 405EP) "ibm,sdram-4xx"
+  - IBM DDR1 (440GP, 440GX, 440EP and 440GR) "ibm,sdram-4xx-ddr"
+  - Denali DDR1/DDR2 (440EPX and 440GRX) "denali,sdram-4xx-ddr2"
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Grant Erickson <gerickson@nuovations.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/Kconfig                                   |    4 
- arch/xtensa/Makefile                                  |    1 
- arch/xtensa/variants/s6000/Makefile                   |    3 
- arch/xtensa/variants/s6000/include/variant/hardware.h |  259 ++++++++++
- arch/xtensa/variants/s6000/include/variant/irq.h      |    9 
- arch/xtensa/variants/s6000/irq.c                      |   74 ++
- 6 files changed, 350 insertions(+)
+ drivers/edac/Kconfig       |    9 
+ drivers/edac/Makefile      |    2 
+ drivers/edac/ppc4xx_edac.c | 1448 +++++++++++++++++++++++++++++++++++
+ drivers/edac/ppc4xx_edac.h |  172 ++++
+ 4 files changed, 1630 insertions(+), 1 deletion(-)
 
-diff -puN arch/xtensa/Kconfig~xtensa-s6000-variant arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~xtensa-s6000-variant
-+++ a/arch/xtensa/Kconfig
-@@ -73,6 +73,10 @@ config XTENSA_VARIANT_DC232B
- 	bool "dc232b - Diamond 232L Standard Core Rev.B (LE)"
- 	help
- 	This variant refers to Tensilica's Diamond 232L Standard core Rev.B (LE).
-+
-+config XTENSA_VARIANT_S6000
-+	bool "s6000 - Stretch software configurable processor"
-+	select VARIANT_IRQ_SWITCH
- endchoice
+diff -puN drivers/edac/Kconfig~edac-new-ppc4xx-driver-module drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~edac-new-ppc4xx-driver-module
++++ a/drivers/edac/Kconfig
+@@ -181,4 +181,13 @@ config EDAC_CELL
+ 	  Cell Broadband Engine internal memory controller
+ 	  on platform without a hypervisor
  
- config MMU
-diff -puN arch/xtensa/Makefile~xtensa-s6000-variant arch/xtensa/Makefile
---- a/arch/xtensa/Makefile~xtensa-s6000-variant
-+++ a/arch/xtensa/Makefile
-@@ -15,6 +15,7 @@
- 
- variant-$(CONFIG_XTENSA_VARIANT_FSF)		:= fsf
- variant-$(CONFIG_XTENSA_VARIANT_DC232B)		:= dc232b
-+variant-$(CONFIG_XTENSA_VARIANT_S6000)		:= s6000
- variant-$(CONFIG_XTENSA_VARIANT_LINUX_CUSTOM)	:= custom
- 
- VARIANT = $(variant-y)
-diff -puN /dev/null arch/xtensa/variants/s6000/Makefile
++config EDAC_PPC4XX
++	tristate "PPC4xx IBM DDR2 Memory Controller"
++	depends on EDAC_MM_EDAC && 4xx
++	help
++	  This enables support for EDAC on the ECC memory used
++	  with the IBM DDR2 memory controller found in various
++	  PowerPC 4xx embedded processors such as the 405EX[r],
++	  440SP, 440SPe, 460EX, 460GT and 460SX.
++
+ endif # EDAC
+diff -puN drivers/edac/Makefile~edac-new-ppc4xx-driver-module drivers/edac/Makefile
+--- a/drivers/edac/Makefile~edac-new-ppc4xx-driver-module
++++ a/drivers/edac/Makefile
+@@ -34,4 +34,4 @@ obj-$(CONFIG_EDAC_PASEMI)		+= pasemi_eda
+ obj-$(CONFIG_EDAC_MPC85XX)		+= mpc85xx_edac.o
+ obj-$(CONFIG_EDAC_MV64X60)		+= mv64x60_edac.o
+ obj-$(CONFIG_EDAC_CELL)			+= cell_edac.o
+-
++obj-$(CONFIG_EDAC_PPC4XX)		+= ppc4xx_edac.o
+diff -puN /dev/null drivers/edac/ppc4xx_edac.c
 --- /dev/null
-+++ a/arch/xtensa/variants/s6000/Makefile
-@@ -0,0 +1,3 @@
-+# s6000 Makefile
-+
-+obj-y		+= irq.o
-diff -puN /dev/null arch/xtensa/variants/s6000/include/variant/hardware.h
---- /dev/null
-+++ a/arch/xtensa/variants/s6000/include/variant/hardware.h
-@@ -0,0 +1,259 @@
-+#ifndef __XTENSA_S6000_HARDWARE_H
-+#define __XTENSA_S6000_HARDWARE_H
-+
-+#define S6_SCLK			1843200
-+
-+#define S6_MEM_REG              0x20000000
-+#define S6_MEM_EFI              0x33F00000
-+#define S6_MEM_PCIE_DATARAM1    0x34000000
-+#define S6_MEM_XLMI             0x37F80000
-+#define S6_MEM_PIF_DATARAM1     0x37FFC000
-+#define S6_MEM_GMAC             0x38000000
-+#define S6_MEM_I2S              0x3A000000
-+#define S6_MEM_EGIB             0x3C000000
-+#define S6_MEM_PCIE_CFG         0x3E000000
-+#define S6_MEM_PIF_DATARAM      0x3FFE0000
-+#define S6_MEM_XLMI_DATARAM     0x3FFF0000
-+#define S6_MEM_DDR              0x40000000
-+#define S6_MEM_PCIE_APER        0xC0000000
-+#define S6_MEM_AUX              0xF0000000
-+
-+/* Device addresses */
-+
-+#define S6_REG_SCB              S6_MEM_REG
-+#define S6_REG_NB               (S6_REG_SCB + 0x10000)
-+#define S6_REG_LMSDMA           (S6_REG_SCB + 0x20000)
-+#define S6_REG_NI               (S6_REG_SCB + 0x30000)
-+#define S6_REG_NIDMA            (S6_REG_SCB + 0x40000)
-+#define S6_REG_NS               (S6_REG_SCB + 0x50000)
-+#define S6_REG_DDR              (S6_REG_SCB + 0x60000)
-+#define S6_REG_GREG1            (S6_REG_SCB + 0x70000)
-+#define S6_REG_DP               (S6_REG_SCB + 0x80000)
-+#define S6_REG_DPDMA            (S6_REG_SCB + 0x90000)
-+#define S6_REG_EGIB             (S6_REG_SCB + 0xA0000)
-+#define S6_REG_PCIE             (S6_REG_SCB + 0xB0000)
-+#define S6_REG_I2S              (S6_REG_SCB + 0xC0000)
-+#define S6_REG_GMAC             (S6_REG_SCB + 0xD0000)
-+#define S6_REG_HIFDMA           (S6_REG_SCB + 0xE0000)
-+#define S6_REG_GREG2            (S6_REG_SCB + 0xF0000)
-+
-+#define S6_REG_APB              S6_REG_SCB
-+#define S6_REG_UART             (S6_REG_APB + 0x0000)
-+#define S6_REG_INTC             (S6_REG_APB + 0x2000)
-+#define S6_REG_SPI              (S6_REG_APB + 0x3000)
-+#define S6_REG_I2C              (S6_REG_APB + 0x4000)
-+#define S6_REG_GPIO             (S6_REG_APB + 0x8000)
-+
-+/* Global register block */
-+
-+#define S6_GREG1_PLL_LOCKCLEAR	0x000
-+#define S6_GREG1_PLL_LOCK_SYS		0
-+#define S6_GREG1_PLL_LOCK_IO		1
-+#define S6_GREG1_PLL_LOCK_AIM		2
-+#define S6_GREG1_PLL_LOCK_DP0		3
-+#define S6_GREG1_PLL_LOCK_DP2		4
-+#define S6_GREG1_PLL_LOCK_DDR		5
-+#define S6_GREG1_PLL_LOCKSTAT	0x004
-+#define S6_GREG1_PLL_LOCKSTAT_CURLOCK	0
-+#define S6_GREG1_PLL_LOCKSTAT_EVERUNLCK	8
-+#define S6_GREG1_PLLSEL		0x010
-+#define S6_GREG1_PLLSEL_AIM		0
-+#define S6_GREG1_PLLSEL_AIM_DDR2		0
-+#define S6_GREG1_PLLSEL_AIM_300MHZ		1
-+#define S6_GREG1_PLLSEL_AIM_240MHZ		2
-+#define S6_GREG1_PLLSEL_AIM_200MHZ		3
-+#define S6_GREG1_PLLSEL_AIM_150MHZ		4
-+#define S6_GREG1_PLLSEL_AIM_120MHZ		5
-+#define S6_GREG1_PLLSEL_AIM_40MHZ		6
-+#define S6_GREG1_PLLSEL_AIM_PLLAIMREF		7
-+#define S6_GREG1_PLLSEL_AIM_MASK		7
-+#define S6_GREG1_PLLSEL_DDR		8
-+#define S6_GREG1_PLLSEL_DDR_HS			0
-+#define S6_GREG1_PLLSEL_DDR_333MHZ		1
-+#define S6_GREG1_PLLSEL_DDR_250MHZ		2
-+#define S6_GREG1_PLLSEL_DDR_200MHZ		3
-+#define S6_GREG1_PLLSEL_DDR_167MHZ		4
-+#define S6_GREG1_PLLSEL_DDR_100MHZ		5
-+#define S6_GREG1_PLLSEL_DDR_33MHZ		6
-+#define S6_GREG1_PLLSEL_DDR_PLLIOREF		7
-+#define S6_GREG1_PLLSEL_DDR_MASK		7
-+#define S6_GREG1_PLLSEL_GMAC		16
-+#define S6_GREG1_PLLSEL_GMAC_125MHZ		0
-+#define S6_GREG1_PLLSEL_GMAC_25MHZ		1
-+#define S6_GREG1_PLLSEL_GMAC_2500KHZ		2
-+#define S6_GREG1_PLLSEL_GMAC_EXTERN		3
-+#define S6_GREG1_PLLSEL_GMAC_MASK		3
-+#define S6_GREG1_PLLSEL_GMII		18
-+#define S6_GREG1_PLLSEL_GMII_111MHZ		0
-+#define S6_GREG1_PLLSEL_GMII_IOREF		1
-+#define S6_GREG1_PLLSEL_GMII_NONE		2
-+#define S6_GREG1_PLLSEL_GMII_125MHZ		3
-+#define S6_GREG1_PLLSEL_GMII_MASK		3
-+#define S6_GREG1_SYSUNLOCKCNT	0x020
-+#define S6_GREG1_IOUNLOCKCNT	0x024
-+#define S6_GREG1_AIMUNLOCKCNT	0x028
-+#define S6_GREG1_DP0UNLOCKCNT	0x02C
-+#define S6_GREG1_DP2UNLOCKCNT	0x030
-+#define S6_GREG1_DDRUNLOCKCNT	0x034
-+#define S6_GREG1_CLKBAL0	0x040
-+#define S6_GREG1_CLKBAL0_LSGB		0
-+#define S6_GREG1_CLKBAL0_LSPX		8
-+#define S6_GREG1_CLKBAL0_MEMDO		16
-+#define S6_GREG1_CLKBAL0_HSXT1		24
-+#define S6_GREG1_CLKBAL1	0x044
-+#define S6_GREG1_CLKBAL1_HSISEF		0
-+#define S6_GREG1_CLKBAL1_HSNI		8
-+#define S6_GREG1_CLKBAL1_HSNS		16
-+#define S6_GREG1_CLKBAL1_HSISEFCFG	24
-+#define S6_GREG1_CLKBAL2	0x048
-+#define S6_GREG1_CLKBAL2_LSNB		0
-+#define S6_GREG1_CLKBAL2_LSSB		8
-+#define S6_GREG1_CLKBAL2_LSREST		24
-+#define S6_GREG1_CLKBAL3	0x04C
-+#define S6_GREG1_CLKBAL3_ISEFXAD	0
-+#define S6_GREG1_CLKBAL3_ISEFLMS	8
-+#define S6_GREG1_CLKBAL3_ISEFISEF	16
-+#define S6_GREG1_CLKBAL3_DDRDD		24
-+#define S6_GREG1_CLKBAL4	0x050
-+#define S6_GREG1_CLKBAL4_DDRDP		0
-+#define S6_GREG1_CLKBAL4_DDRDO		8
-+#define S6_GREG1_CLKBAL4_DDRNB		16
-+#define S6_GREG1_CLKBAL4_DDRLMS		24
-+#define S6_GREG1_BLOCKENA	0x100
-+#define S6_GREG1_BLOCK_DDR		0
-+#define S6_GREG1_BLOCK_DP		1
-+#define S6_GREG1_BLOCK_NSNI		2
-+#define S6_GREG1_BLOCK_PCIE		3
-+#define S6_GREG1_BLOCK_GMAC		4
-+#define S6_GREG1_BLOCK_I2S		5
-+#define S6_GREG1_BLOCK_EGIB		6
-+#define S6_GREG1_BLOCK_SB		7
-+#define S6_GREG1_BLOCK_XT1		8
-+#define S6_GREG1_CLKGATE	0x104
-+#define S6_GREG1_BGATE_AIMNORTH		9
-+#define S6_GREG1_BGATE_AIMEAST		10
-+#define S6_GREG1_BGATE_AIMWEST		11
-+#define S6_GREG1_BGATE_AIMSOUTH		12
-+#define S6_GREG1_CHIPRES	0x108
-+#define S6_GREG1_CHIPRES_SOFTRES	0
-+#define S6_GREG1_CHIPRES_LOSTLOCK	1
-+#define S6_GREG1_RESETCAUSE	0x10C
-+#define S6_GREG1_RESETCAUSE_RESETN	0
-+#define S6_GREG1_RESETCAUSE_GLOBAL	1
-+#define S6_GREG1_RESETCAUSE_WDOGTIMER	2
-+#define S6_GREG1_RESETCAUSE_SWCHIP	3
-+#define S6_GREG1_RESETCAUSE_PLLSYSLOSS	4
-+#define S6_GREG1_RESETCAUSE_PCIE	5
-+#define S6_GREG1_RESETCAUSE_CREATEDGLOB	6
-+#define S6_GREG1_REFCLOCKCNT	0x110
-+#define S6_GREG1_RESETTIMER	0x114
-+#define S6_GREG1_NMITIMER	0x118
-+#define S6_GREG1_GLOBAL_TIMER	0x11C
-+#define S6_GREG1_TIMER0		0x180
-+#define S6_GREG1_TIMER1		0x184
-+#define S6_GREG1_UARTCLOCKSEL	0x204
-+#define S6_GREG1_CHIPVERSPACKG	0x208
-+#define S6_GREG1_CHIPVERSPACKG_CHIPVID	0
-+#define S6_GREG1_CHIPVERSPACKG_PACKSEL	8
-+#define S6_GREG1_ONDIETERMCTRL	0x20C
-+#define S6_GREG1_ONDIETERMCTRL_WEST	0
-+#define S6_GREG1_ONDIETERMCTRL_NORTH	2
-+#define S6_GREG1_ONDIETERMCTRL_EAST	4
-+#define S6_GREG1_ONDIETERMCTRL_SOUTH	6
-+#define S6_GREG1_ONDIETERMCTRL_NONE		0
-+#define S6_GREG1_ONDIETERMCTRL_75OHM		2
-+#define S6_GREG1_ONDIETERMCTRL_MASK		3
-+#define S6_GREG1_BOOT_CFG0	0x210
-+#define S6_GREG1_BOOT_CFG0_AIMSTRONG	1
-+#define S6_GREG1_BOOT_CFG0_MINIBOOTDL	2
-+#define S6_GREG1_BOOT_CFG0_OCDGPIO8SET	5
-+#define S6_GREG1_BOOT_CFG0_OCDGPIOENA	6
-+#define S6_GREG1_BOOT_CFG0_DOWNSTREAM	7
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV	8
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_300MHZ	1
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_240MHZ	2
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_200MHZ	3
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_150MHZ	4
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_120MHZ	5
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_40MHZ	6
-+#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_MASK	7
-+#define S6_GREG1_BOOT_CFG0_BALHSLMS	12
-+#define S6_GREG1_BOOT_CFG0_BALHSNB	18
-+#define S6_GREG1_BOOT_CFG0_BALHSXAD	24
-+#define S6_GREG1_BOOT_CFG1	0x214
-+#define S6_GREG1_BOOT_CFG1_PCIE1LANE	1
-+#define S6_GREG1_BOOT_CFG1_MPLLPRESCALE	2
-+#define S6_GREG1_BOOT_CFG1_MPLLNCY	4
-+#define S6_GREG1_BOOT_CFG1_MPLLNCY5	9
-+#define S6_GREG1_BOOT_CFG1_BALHSREST	14
-+#define S6_GREG1_BOOT_CFG1_BALHSPSMEMS	20
-+#define S6_GREG1_BOOT_CFG1_BALLSGI	26
-+#define S6_GREG1_BOOT_CFG2	0x218
-+#define S6_GREG1_BOOT_CFG2_PEID		0
-+#define S6_GREG1_BOOT_CFG3	0x21C
-+#define S6_GREG1_DRAMBUSYHOLDOF	0x220
-+#define S6_GREG1_DRAMBUSYHOLDOF_XT0	0
-+#define S6_GREG1_DRAMBUSYHOLDOF_XT1	4
-+#define S6_GREG1_DRAMBUSYHOLDOF_XT_MASK		7
-+#define S6_GREG1_PCIEBAR1SIZE	0x224
-+#define S6_GREG1_PCIEBAR2SIZE	0x228
-+#define S6_GREG1_PCIEVENDOR	0x22C
-+#define S6_GREG1_PCIEDEVICE	0x230
-+#define S6_GREG1_PCIEREV	0x234
-+#define S6_GREG1_PCIECLASS	0x238
-+#define S6_GREG1_XT1DCACHEMISS	0x240
-+#define S6_GREG1_XT1ICACHEMISS	0x244
-+#define S6_GREG1_HWSEMAPHORE(n)	(0x400 + 4 * (n))
-+#define S6_GREG1_HWSEMAPHORE_NB		16
-+
-+/* peripheral interrupt numbers */
-+
-+#define S6_INTC_GPIO(n)			(n)		/* 0..3 */
-+#define S6_INTC_I2C			4
-+#define S6_INTC_SPI			5
-+#define S6_INTC_NB_ERR			6
-+#define S6_INTC_DMA_LMSERR		7
-+#define S6_INTC_DMA_LMSLOWWMRK(n)	(8 + (n))	/* 0..11 */
-+#define S6_INTC_DMA_LMSPENDCNT(n)	(20 + (n))	/* 0..11 */
-+#define S6_INTC_DMA HOSTLOWWMRK(n)	(32 + (n))	/* 0..6 */
-+#define S6_INTC_DMA_HOSTPENDCNT(n)	(39 + (n))	/* 0..6 */
-+#define S6_INTC_DMA_HOSTERR		46
-+#define S6_INTC_UART(n)			(47 + (n))	/* 0..1 */
-+#define S6_INTC_XAD			49
-+#define S6_INTC_NI_ERR			50
-+#define S6_INTC_NI_INFIFOFULL		51
-+#define S6_INTC_DMA_NIERR		52
-+#define S6_INTC_DMA_NILOWWMRK(n)	(53 + (n))	/* 0..3 */
-+#define S6_INTC_DMA_NIPENDCNT(n)	(57 + (n))	/* 0..3 */
-+#define S6_INTC_DDR			61
-+#define S6_INTC_NS_ERR			62
-+#define S6_INTC_EFI_CFGERR		63
-+#define S6_INTC_EFI_ISEFTEST		64
-+#define S6_INTC_EFI_WRITEERR		65
-+#define S6_INTC_NMI_TIMER		66
-+#define S6_INTC_PLLLOCK_SYS		67
-+#define S6_INTC_PLLLOCK_IO		68
-+#define S6_INTC_PLLLOCK_AIM		69
-+#define S6_INTC_PLLLOCK_DP0		70
-+#define S6_INTC_PLLLOCK_DP2		71
-+#define S6_INTC_I2S_ERR			72
-+#define S6_INTC_GMAC_STAT		73
-+#define S6_INTC_GMAC_ERR		74
-+#define S6_INTC_GIB_ERR			75
-+#define S6_INTC_PCIE_ERR		76
-+#define S6_INTC_PCIE_MSI(n)		(77 + (n))	/* 0..3 */
-+#define S6_INTC_PCIE_INTA		81
-+#define S6_INTC_PCIE_INTB		82
-+#define S6_INTC_PCIE_INTC		83
-+#define S6_INTC_PCIE_INTD		84
-+#define S6_INTC_SW(n)			(85 + (n))	/* 0..9 */
-+#define S6_INTC_SW_ENABLE(n)		(85 + 256 + (n))
-+#define S6_INTC_DMA_DP_ERR		95
-+#define S6_INTC_DMA_DPLOWWMRK(n)	(96 + (n))	/* 0..3 */
-+#define S6_INTC_DMA_DPPENDCNT(n)	(100 + (n))	/* 0..3 */
-+#define S6_INTC_DMA_DPTERMCNT(n)	(104 + (n))	/* 0..3 */
-+#define S6_INTC_TIMER0			108
-+#define S6_INTC_TIMER1			109
-+#define S6_INTC_DMA_HOSTTERMCNT(n)	(110 + (n))	/* 0..6 */
-+
-+#endif /* __XTENSA_S6000_HARDWARE_H */
-diff -puN /dev/null arch/xtensa/variants/s6000/include/variant/irq.h
---- /dev/null
-+++ a/arch/xtensa/variants/s6000/include/variant/irq.h
-@@ -0,0 +1,9 @@
-+#ifndef __XTENSA_S6000_IRQ_H
-+#define __XTENSA_S6000_IRQ_H
-+
-+#define NO_IRQ		(-1)
-+
-+extern void variant_irq_enable(unsigned int irq);
-+extern void variant_irq_disable(unsigned int irq);
-+
-+#endif /* __XTENSA_S6000_IRQ_H */
-diff -puN /dev/null arch/xtensa/variants/s6000/irq.c
---- /dev/null
-+++ a/arch/xtensa/variants/s6000/irq.c
-@@ -0,0 +1,74 @@
++++ a/drivers/edac/ppc4xx_edac.c
+@@ -0,0 +1,1448 @@
 +/*
-+ * s6000 irq crossbar
++ * Copyright (c) 2008 Nuovation System Designs, LLC
++ *   Grant Erickson <gerickson@nuovations.com>
 + *
-+ * Copyright (c) 2009 emlix GmbH
-+ * Authors:	Johannes Weiner <jw@emlix.com>
-+ *		Oskar Schirmer <os@emlix.com>
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; version 2 of the
++ * License.
++ *
 + */
-+#include <linux/io.h>
-+#include <asm/irq.h>
-+#include <variant/hardware.h>
 +
-+/* S6_REG_INTC */
-+#define INTC_STATUS	0x000
-+#define INTC_RAW	0x010
-+#define INTC_STATUS_AG	0x100
-+#define INTC_CFG(n)	(0x200 + 4 * (n))
++#include <linux/edac.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/kernel.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/of_device.h>
++#include <linux/of_platform.h>
++#include <linux/types.h>
++
++#include <asm/dcr.h>
++
++#include "edac_core.h"
++#include "ppc4xx_edac.h"
 +
 +/*
-+ * The s6000 has a crossbar that multiplexes interrupt output lines
-+ * from the peripherals to input lines on the xtensa core.
++ * This file implements a driver for monitoring and handling events
++ * associated with the IMB DDR2 ECC controller found in the AMCC/IBM
++ * 405EX[r], 440SP, 440SPe, 460EX, 460GT and 460SX.
 + *
-+ * We leave the mapping decisions to the platform as it depends on the
-+ * actually connected peripherals which distribution makes sense.
++ * As realized in the 405EX[r], this controller features:
++ *
++ *   - Support for registered- and non-registered DDR1 and DDR2 memory.
++ *   - 32-bit or 16-bit memory interface with optional ECC.
++ *
++ *     o ECC support includes:
++ *
++ *       - 4-bit SEC/DED
++ *       - Aligned-nibble error detect
++ *       - Bypass mode
++ *
++ *   - Two (2) memory banks/ranks.
++ *   - Up to 1 GiB per bank/rank in 32-bit mode and up to 512 MiB per
++ *     bank/rank in 16-bit mode.
++ *
++ * As realized in the 440SP and 440SPe, this controller changes/adds:
++ *
++ *   - 64-bit or 32-bit memory interface with optional ECC.
++ *
++ *     o ECC support includes:
++ *
++ *       - 8-bit SEC/DED
++ *       - Aligned-nibble error detect
++ *       - Bypass mode
++ *
++ *   - Up to 4 GiB per bank/rank in 64-bit mode and up to 2 GiB
++ *     per bank/rank in 32-bit mode.
++ *
++ * As realized in the 460EX and 460GT, this controller changes/adds:
++ *
++ *   - 64-bit or 32-bit memory interface with optional ECC.
++ *
++ *     o ECC support includes:
++ *
++ *       - 8-bit SEC/DED
++ *       - Aligned-nibble error detect
++ *       - Bypass mode
++ *
++ *   - Four (4) memory banks/ranks.
++ *   - Up to 16 GiB per bank/rank in 64-bit mode and up to 8 GiB
++ *     per bank/rank in 32-bit mode.
++ *
++ * At present, this driver has ONLY been tested against the controller
++ * realization in the 405EX[r] on the AMCC Kilauea and Haleakala
++ * boards (256 MiB w/o ECC memory soldered onto the board) and a
++ * proprietary board based on those designs (128 MiB ECC memory, also
++ * soldered onto the board).
++ *
++ * Dynamic feature detection and handling needs to be added for the
++ * other realizations of this controller listed above.
++ *
++ * Eventually, this driver will likely be adapted to the above variant
++ * realizations of this controller as well as broken apart to handle
++ * the other known ECC-capable controllers prevalent in other 4xx
++ * processors:
++ *
++ *   - IBM SDRAM (405GP, 405CR and 405EP) "ibm,sdram-4xx"
++ *   - IBM DDR1 (440GP, 440GX, 440EP and 440GR) "ibm,sdram-4xx-ddr"
++ *   - Denali DDR1/DDR2 (440EPX and 440GRX) "denali,sdram-4xx-ddr2"
++ *
++ * For this controller, unfortunately, correctable errors report
++ * nothing more than the beat/cycle and byte/lane the correction
++ * occurred on and the check bit group that covered the error.
++ *
++ * In contrast, uncorrectable errors also report the failing address,
++ * the bus master and the transaction direction (i.e. read or write)
++ *
++ * Regardless of whether the error is a CE or a UE, we report the
++ * following pieces of information in the driver-unique message to the
++ * EDAC subsystem:
++ *
++ *   - Device tree path
++ *   - Bank(s)
++ *   - Check bit error group
++ *   - Beat(s)/lane(s)
 + */
-+extern const signed char *platform_irq_mappings[NR_IRQS];
 +
-+static unsigned long scp_to_intc_enable[] = {
-+#define	TO_INTC_ENABLE(n)	(((n) << 1) + 1)
-+	TO_INTC_ENABLE(0),
-+	TO_INTC_ENABLE(1),
-+	TO_INTC_ENABLE(2),
-+	TO_INTC_ENABLE(3),
-+	TO_INTC_ENABLE(4),
-+	TO_INTC_ENABLE(5),
-+	TO_INTC_ENABLE(6),
-+	TO_INTC_ENABLE(7),
-+	TO_INTC_ENABLE(8),
-+	TO_INTC_ENABLE(9),
-+	TO_INTC_ENABLE(10),
-+	TO_INTC_ENABLE(11),
-+	TO_INTC_ENABLE(12),
-+	-1,
-+	-1,
-+	TO_INTC_ENABLE(13),
-+	-1,
-+	TO_INTC_ENABLE(14),
-+	-1,
-+	TO_INTC_ENABLE(15),
-+#undef	TO_INTC_ENABLE
++/* Preprocessor Definitions */
++
++#define EDAC_OPSTATE_INT_STR		"interrupt"
++#define EDAC_OPSTATE_POLL_STR		"polled"
++#define EDAC_OPSTATE_UNKNOWN_STR	"unknown"
++
++#define PPC4XX_EDAC_MODULE_NAME		"ppc4xx_edac"
++#define PPC4XX_EDAC_MODULE_REVISION	"v1.0.0 " __DATE__
++
++#define PPC4XX_EDAC_MESSAGE_SIZE	256
++
++/*
++ * Kernel logging without an EDAC instance
++ */
++#define ppc4xx_edac_printk(level, fmt, arg...) \
++	edac_printk(level, "PPC4xx MC", fmt, ##arg)
++
++/*
++ * Kernel logging with an EDAC instance
++ */
++#define ppc4xx_edac_mc_printk(level, mci, fmt, arg...) \
++	edac_mc_chipset_printk(mci, level, "PPC4xx", fmt, ##arg)
++
++/*
++ * Macros to convert bank configuration size enumerations into MiB and
++ * page values.
++ */
++#define SDRAM_MBCF_SZ_MiB_MIN		4
++#define SDRAM_MBCF_SZ_TO_MiB(n)		(SDRAM_MBCF_SZ_MiB_MIN \
++					 << (SDRAM_MBCF_SZ_DECODE(n)))
++#define SDRAM_MBCF_SZ_TO_PAGES(n)	(SDRAM_MBCF_SZ_MiB_MIN \
++					 << (20 - PAGE_SHIFT + \
++					     SDRAM_MBCF_SZ_DECODE(n)))
++
++/*
++ * The ibm,sdram-4xx-ddr2 Device Control Registers (DCRs) are
++ * indirectly acccessed and have a base and length defined by the
++ * device tree. The base can be anything; however, we expect the
++ * length to be precisely two registers, the first for the address
++ * window and the second for the data window.
++ */
++#define SDRAM_DCR_RESOURCE_LEN		2
++#define SDRAM_DCR_ADDR_OFFSET		0
++#define SDRAM_DCR_DATA_OFFSET		1
++
++/*
++ * Device tree interrupt indices
++ */
++#define INTMAP_ECCDED_INDEX		0	/* Double-bit Error Detect */
++#define INTMAP_ECCSEC_INDEX		1	/* Single-bit Error Correct */
++
++/* Type Definitions */
++
++/*
++ * PPC4xx SDRAM memory controller private instance data
++ */
++struct ppc4xx_edac_pdata {
++	dcr_host_t dcr_host;	/* Indirect DCR address/data window mapping */
++	struct {
++		int sec;	/* Single-bit correctable error IRQ assigned */
++		int ded;	/* Double-bit detectable error IRQ assigned */
++	} irqs;
 +};
 +
-+static void irq_set(unsigned int irq, int enable)
-+{
-+	unsigned long en;
-+	const signed char *m = platform_irq_mappings[irq];
++/*
++ * Various status data gathered and manipulated when checking and
++ * reporting ECC status.
++ */
++struct ppc4xx_ecc_status {
++	u32 ecces;
++	u32 besr;
++	u32 bearh;
++	u32 bearl;
++	u32 wmirq;
++};
 +
-+	if (!m)
-+		return;
-+	en = enable ? scp_to_intc_enable[irq] : 0;
-+	while (*m >= 0) {
-+		writel(en, S6_REG_INTC + INTC_CFG(*m));
-+		m++;
++/* Function Prototypes */
++
++static int ppc4xx_edac_probe(struct of_device *device,
++			     const struct of_device_id *device_id);
++static int ppc4xx_edac_remove(struct of_device *device);
++
++/* Global Variables */
++
++/*
++ * Device tree node type and compatible tuples this driver can match
++ * on.
++ */
++static struct of_device_id ppc4xx_edac_match[] = {
++	{
++		.compatible	= "ibm,sdram-4xx-ddr2"
++	},
++	{ }
++};
++
++static struct of_platform_driver ppc4xx_edac_driver = {
++	.match_table		= ppc4xx_edac_match,
++	.probe			= ppc4xx_edac_probe,
++	.remove			= ppc4xx_edac_remove,
++	.driver			= {
++		.owner	= THIS_MODULE,
++		.name	= PPC4XX_EDAC_MODULE_NAME
++	}
++};
++
++/*
++ * TODO: The row and channel parameters likely need to be dynamically
++ * set based on the aforementioned variant controller realizations.
++ */
++static const unsigned ppc4xx_edac_nr_csrows = 2;
++static const unsigned ppc4xx_edac_nr_chans = 1;
++
++/*
++ * Strings associated with PLB master IDs capable of being posted in
++ * SDRAM_BESR or SDRAM_WMIRQ on uncorrectable ECC errors.
++ */
++static const char * const ppc4xx_plb_masters[9] = {
++	[SDRAM_PLB_M0ID_ICU]	= "ICU",
++	[SDRAM_PLB_M0ID_PCIE0]	= "PCI-E 0",
++	[SDRAM_PLB_M0ID_PCIE1]	= "PCI-E 1",
++	[SDRAM_PLB_M0ID_DMA]	= "DMA",
++	[SDRAM_PLB_M0ID_DCU]	= "DCU",
++	[SDRAM_PLB_M0ID_OPB]	= "OPB",
++	[SDRAM_PLB_M0ID_MAL]	= "MAL",
++	[SDRAM_PLB_M0ID_SEC]	= "SEC",
++	[SDRAM_PLB_M0ID_AHB]	= "AHB"
++};
++
++/**
++ * mfsdram - read and return controller register data
++ * @dcr_host: A pointer to the DCR mapping.
++ * @idcr_n: The indirect DCR register to read.
++ *
++ * This routine reads and returns the data associated with the
++ * controller's specified indirect DCR register.
++ *
++ * Returns the read data.
++ */
++static inline u32
++mfsdram(const dcr_host_t *dcr_host, unsigned int idcr_n)
++{
++	return __mfdcri(dcr_host->base + SDRAM_DCR_ADDR_OFFSET,
++			dcr_host->base + SDRAM_DCR_DATA_OFFSET,
++			idcr_n);
++}
++
++/**
++ * mtsdram - write controller register data
++ * @dcr_host: A pointer to the DCR mapping.
++ * @idcr_n: The indirect DCR register to write.
++ * @value: The data to write.
++ *
++ * This routine writes the provided data to the controller's specified
++ * indirect DCR register.
++ */
++static inline void
++mtsdram(const dcr_host_t *dcr_host, unsigned int idcr_n, u32 value)
++{
++	return __mtdcri(dcr_host->base + SDRAM_DCR_ADDR_OFFSET,
++			dcr_host->base + SDRAM_DCR_DATA_OFFSET,
++			idcr_n,
++			value);
++}
++
++/**
++ * ppc4xx_edac_check_bank_error - check a bank for an ECC bank error
++ * @status: A pointer to the ECC status structure to check for an
++ *          ECC bank error.
++ * @bank: The bank to check for an ECC error.
++ *
++ * This routine determines whether the specified bank has an ECC
++ * error.
++ *
++ * Returns true if the specified bank has an ECC error; otherwise,
++ * false.
++ */
++static bool
++ppc4xx_edac_check_bank_error(const struct ppc4xx_ecc_status *status,
++			     unsigned int bank)
++{
++	switch (bank) {
++	case 0:
++		return status->ecces & SDRAM_ECCES_BK0ER;
++	case 1:
++		return status->ecces & SDRAM_ECCES_BK1ER;
++	default:
++		return false;
 +	}
 +}
 +
-+void variant_irq_enable(unsigned int irq)
++/**
++ * ppc4xx_edac_generate_bank_message - generate interpretted bank status message
++ * @mci: A pointer to the EDAC memory controller instance associated
++ *       with the bank message being generated.
++ * @status: A pointer to the ECC status structure to generate the
++ *          message from.
++ * @buffer: A pointer to the buffer in which to generate the
++ *          message.
++ * @size: The size, in bytes, of space available in buffer.
++ *
++ * This routine generates to the provided buffer the portion of the
++ * driver-unique report message associated with the ECCESS[BKNER]
++ * field of the specified ECC status.
++ *
++ * Returns the number of characters generated on success; otherwise, <
++ * 0 on error.
++ */
++static int
++ppc4xx_edac_generate_bank_message(const struct mem_ctl_info *mci,
++				  const struct ppc4xx_ecc_status *status,
++				  char *buffer,
++				  size_t size)
 +{
-+	irq_set(irq, 1);
++	int n, total = 0;
++	unsigned int row, rows;
++
++	n = snprintf(buffer, size, "%s: Banks: ", mci->dev_name);
++
++	if (n < 0 || n >= size)
++		goto fail;
++
++	buffer += n;
++	size -= n;
++	total += n;
++
++	for (rows = 0, row = 0; row < mci->nr_csrows; row++) {
++		if (ppc4xx_edac_check_bank_error(status, row)) {
++			n = snprintf(buffer, size, "%s%u",
++					(rows++ ? ", " : ""), row);
++
++			if (n < 0 || n >= size)
++				goto fail;
++
++			buffer += n;
++			size -= n;
++			total += n;
++		}
++	}
++
++	n = snprintf(buffer, size, "%s; ", rows ? "" : "None");
++
++	if (n < 0 || n >= size)
++		goto fail;
++
++	buffer += n;
++	size -= n;
++	total += n;
++
++ fail:
++	return total;
 +}
 +
-+void variant_irq_disable(unsigned int irq)
++/**
++ * ppc4xx_edac_generate_checkbit_message - generate interpretted checkbit message
++ * @mci: A pointer to the EDAC memory controller instance associated
++ *       with the checkbit message being generated.
++ * @status: A pointer to the ECC status structure to generate the
++ *          message from.
++ * @buffer: A pointer to the buffer in which to generate the
++ *          message.
++ * @size: The size, in bytes, of space available in buffer.
++ *
++ * This routine generates to the provided buffer the portion of the
++ * driver-unique report message associated with the ECCESS[CKBER]
++ * field of the specified ECC status.
++ *
++ * Returns the number of characters generated on success; otherwise, <
++ * 0 on error.
++ */
++static int
++ppc4xx_edac_generate_checkbit_message(const struct mem_ctl_info *mci,
++				      const struct ppc4xx_ecc_status *status,
++				      char *buffer,
++				      size_t size)
 +{
-+	irq_set(irq, 0);
++	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
++	const char *ckber = NULL;
++
++	switch (status->ecces & SDRAM_ECCES_CKBER_MASK) {
++	case SDRAM_ECCES_CKBER_NONE:
++		ckber = "None";
++		break;
++	case SDRAM_ECCES_CKBER_32_ECC_0_3:
++		ckber = "ECC0:3";
++		break;
++	case SDRAM_ECCES_CKBER_32_ECC_4_8:
++		switch (mfsdram(&pdata->dcr_host, SDRAM_MCOPT1) &
++			SDRAM_MCOPT1_WDTH_MASK) {
++		case SDRAM_MCOPT1_WDTH_16:
++			ckber = "ECC0:3";
++			break;
++		case SDRAM_MCOPT1_WDTH_32:
++			ckber = "ECC4:8";
++			break;
++		default:
++			ckber = "Unknown";
++			break;
++		}
++		break;
++	case SDRAM_ECCES_CKBER_32_ECC_0_8:
++		ckber = "ECC0:8";
++		break;
++	default:
++		ckber = "Unknown";
++		break;
++	}
++
++	return snprintf(buffer, size, "Checkbit Error: %s", ckber);
 +}
++
++/**
++ * ppc4xx_edac_generate_lane_message - generate interpretted byte lane message
++ * @mci: A pointer to the EDAC memory controller instance associated
++ *       with the byte lane message being generated.
++ * @status: A pointer to the ECC status structure to generate the
++ *          message from.
++ * @buffer: A pointer to the buffer in which to generate the
++ *          message.
++ * @size: The size, in bytes, of space available in buffer.
++ *
++ * This routine generates to the provided buffer the portion of the
++ * driver-unique report message associated with the ECCESS[BNCE]
++ * field of the specified ECC status.
++ *
++ * Returns the number of characters generated on success; otherwise, <
++ * 0 on error.
++ */
++static int
++ppc4xx_edac_generate_lane_message(const struct mem_ctl_info *mci,
++				  const struct ppc4xx_ecc_status *status,
++				  char *buffer,
++				  size_t size)
++{
++	int n, total = 0;
++	unsigned int lane, lanes;
++	const unsigned int first_lane = 0;
++	const unsigned int lane_count = 16;
++
++	n = snprintf(buffer, size, "; Byte Lane Errors: ");
++
++	if (n < 0 || n >= size)
++		goto fail;
++
++	buffer += n;
++	size -= n;
++	total += n;
++
++	for (lanes = 0, lane = first_lane; lane < lane_count; lane++) {
++		if ((status->ecces & SDRAM_ECCES_BNCE_ENCODE(lane)) != 0) {
++			n = snprintf(buffer, size,
++				     "%s%u",
++				     (lanes++ ? ", " : ""), lane);
++
++			if (n < 0 || n >= size)
++				goto fail;
++
++			buffer += n;
++			size -= n;
++			total += n;
++		}
++	}
++
++	n = snprintf(buffer, size, "%s; ", lanes ? "" : "None");
++
++	if (n < 0 || n >= size)
++		goto fail;
++
++	buffer += n;
++	size -= n;
++	total += n;
++
++ fail:
++	return total;
++}
++
++/**
++ * ppc4xx_edac_generate_ecc_message - generate interpretted ECC status message
++ * @mci: A pointer to the EDAC memory controller instance associated
++ *       with the ECCES message being generated.
++ * @status: A pointer to the ECC status structure to generate the
++ *          message from.
++ * @buffer: A pointer to the buffer in which to generate the
++ *          message.
++ * @size: The size, in bytes, of space available in buffer.
++ *
++ * This routine generates to the provided buffer the portion of the
++ * driver-unique report message associated with the ECCESS register of
++ * the specified ECC status.
++ *
++ * Returns the number of characters generated on success; otherwise, <
++ * 0 on error.
++ */
++static int
++ppc4xx_edac_generate_ecc_message(const struct mem_ctl_info *mci,
++				 const struct ppc4xx_ecc_status *status,
++				 char *buffer,
++				 size_t size)
++{
++	int n, total = 0;
++
++	n = ppc4xx_edac_generate_bank_message(mci, status, buffer, size);
++
++	if (n < 0 || n >= size)
++		goto fail;
++
++	buffer += n;
++	size -= n;
++	total += n;
++
++	n = ppc4xx_edac_generate_checkbit_message(mci, status, buffer, size);
++
++	if (n < 0 || n >= size)
++		goto fail;
++
++	buffer += n;
++	size -= n;
++	total += n;
++
++	n = ppc4xx_edac_generate_lane_message(mci, status, buffer, size);
++
++	if (n < 0 || n >= size)
++		goto fail;
++
++	buffer += n;
++	size -= n;
++	total += n;
++
++ fail:
++	return total;
++}
++
++/**
++ * ppc4xx_edac_generate_plb_message - generate interpretted PLB status message
++ * @mci: A pointer to the EDAC memory controller instance associated
++ *       with the PLB message being generated.
++ * @status: A pointer to the ECC status structure to generate the
++ *          message from.
++ * @buffer: A pointer to the buffer in which to generate the
++ *          message.
++ * @size: The size, in bytes, of space available in buffer.
++ *
++ * This routine generates to the provided buffer the portion of the
++ * driver-unique report message associated with the PLB-related BESR
++ * and/or WMIRQ registers of the specified ECC status.
++ *
++ * Returns the number of characters generated on success; otherwise, <
++ * 0 on error.
++ */
++static int
++ppc4xx_edac_generate_plb_message(const struct mem_ctl_info *mci,
++				 const struct ppc4xx_ecc_status *status,
++				 char *buffer,
++				 size_t size)
++{
++	unsigned int master;
++	bool read;
++
++	if ((status->besr & SDRAM_BESR_MASK) == 0)
++		return 0;
++
++	if ((status->besr & SDRAM_BESR_M0ET_MASK) == SDRAM_BESR_M0ET_NONE)
++		return 0;
++
++	read = ((status->besr & SDRAM_BESR_M0RW_MASK) == SDRAM_BESR_M0RW_READ);
++
++	master = SDRAM_BESR_M0ID_DECODE(status->besr);
++
++	return snprintf(buffer, size,
++			"%s error w/ PLB master %u \"%s\"; ",
++			(read ? "Read" : "Write"),
++			master,
++			(((master >= SDRAM_PLB_M0ID_FIRST) &&
++			  (master <= SDRAM_PLB_M0ID_LAST)) ?
++			 ppc4xx_plb_masters[master] : "UNKNOWN"));
++}
++
++/**
++ * ppc4xx_edac_generate_message - generate interpretted status message
++ * @mci: A pointer to the EDAC memory controller instance associated
++ *       with the driver-unique message being generated.
++ * @status: A pointer to the ECC status structure to generate the
++ *          message from.
++ * @buffer: A pointer to the buffer in which to generate the
++ *          message.
++ * @size: The size, in bytes, of space available in buffer.
++ *
++ * This routine generates to the provided buffer the driver-unique
++ * EDAC report message from the specified ECC status.
++ */
++static void
++ppc4xx_edac_generate_message(const struct mem_ctl_info *mci,
++			     const struct ppc4xx_ecc_status *status,
++			     char *buffer,
++			     size_t size)
++{
++	int n;
++
++	if (buffer == NULL || size == 0)
++		return;
++
++	n = ppc4xx_edac_generate_ecc_message(mci, status, buffer, size);
++
++	if (n < 0 || n >= size)
++		return;
++
++	buffer += n;
++	size -= n;
++
++	ppc4xx_edac_generate_plb_message(mci, status, buffer, size);
++}
++
++#ifdef DEBUG
++/**
++ * ppc4xx_ecc_dump_status - dump controller ECC status registers
++ * @mci: A pointer to the EDAC memory controller instance
++ *       associated with the status being dumped.
++ * @status: A pointer to the ECC status structure to generate the
++ *          dump from.
++ *
++ * This routine dumps to the kernel log buffer the raw and
++ * interpretted specified ECC status.
++ */
++static void
++ppc4xx_ecc_dump_status(const struct mem_ctl_info *mci,
++		       const struct ppc4xx_ecc_status *status)
++{
++	char message[PPC4XX_EDAC_MESSAGE_SIZE];
++
++	ppc4xx_edac_generate_message(mci, status, message, sizeof(message));
++
++	ppc4xx_edac_mc_printk(KERN_INFO, mci,
++			      "\n"
++			      "\tECCES: 0x%08x\n"
++			      "\tWMIRQ: 0x%08x\n"
++			      "\tBESR:  0x%08x\n"
++			      "\tBEAR:  0x%08x%08x\n"
++			      "\t%s\n",
++			      status->ecces,
++			      status->wmirq,
++			      status->besr,
++			      status->bearh,
++			      status->bearl,
++			      message);
++}
++#endif /* DEBUG */
++
++/**
++ * ppc4xx_ecc_get_status - get controller ECC status
++ * @mci: A pointer to the EDAC memory controller instance
++ *       associated with the status being retrieved.
++ * @status: A pointer to the ECC status structure to populate the
++ *          ECC status with.
++ *
++ * This routine reads and masks, as appropriate, all the relevant
++ * status registers that deal with ibm,sdram-4xx-ddr2 ECC errors.
++ * While we read all of them, for correctable errors, we only expect
++ * to deal with ECCES. For uncorrectable errors, we expect to deal
++ * with all of them.
++ */
++static void
++ppc4xx_ecc_get_status(const struct mem_ctl_info *mci,
++		      struct ppc4xx_ecc_status *status)
++{
++	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
++	const dcr_host_t *dcr_host = &pdata->dcr_host;
++
++	status->ecces = mfsdram(dcr_host, SDRAM_ECCES) & SDRAM_ECCES_MASK;
++	status->wmirq = mfsdram(dcr_host, SDRAM_WMIRQ) & SDRAM_WMIRQ_MASK;
++	status->besr  = mfsdram(dcr_host, SDRAM_BESR)  & SDRAM_BESR_MASK;
++	status->bearl = mfsdram(dcr_host, SDRAM_BEARL);
++	status->bearh = mfsdram(dcr_host, SDRAM_BEARH);
++}
++
++/**
++ * ppc4xx_ecc_clear_status - clear controller ECC status
++ * @mci: A pointer to the EDAC memory controller instance
++ *       associated with the status being cleared.
++ * @status: A pointer to the ECC status structure containing the
++ *          values to write to clear the ECC status.
++ *
++ * This routine clears--by writing the masked (as appropriate) status
++ * values back to--the status registers that deal with
++ * ibm,sdram-4xx-ddr2 ECC errors.
++ */
++static void
++ppc4xx_ecc_clear_status(const struct mem_ctl_info *mci,
++			const struct ppc4xx_ecc_status *status)
++{
++	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
++	const dcr_host_t *dcr_host = &pdata->dcr_host;
++
++	mtsdram(dcr_host, SDRAM_ECCES,	status->ecces & SDRAM_ECCES_MASK);
++	mtsdram(dcr_host, SDRAM_WMIRQ,	status->wmirq & SDRAM_WMIRQ_MASK);
++	mtsdram(dcr_host, SDRAM_BESR,	status->besr & SDRAM_BESR_MASK);
++	mtsdram(dcr_host, SDRAM_BEARL,	0);
++	mtsdram(dcr_host, SDRAM_BEARH,	0);
++}
++
++/**
++ * ppc4xx_edac_handle_ce - handle controller correctable ECC error (CE)
++ * @mci: A pointer to the EDAC memory controller instance
++ *       associated with the correctable error being handled and reported.
++ * @status: A pointer to the ECC status structure associated with
++ *          the correctable error being handled and reported.
++ *
++ * This routine handles an ibm,sdram-4xx-ddr2 controller ECC
++ * correctable error. Per the aforementioned discussion, there's not
++ * enough status available to use the full EDAC correctable error
++ * interface, so we just pass driver-unique message to the "no info"
++ * interface.
++ */
++static void
++ppc4xx_edac_handle_ce(struct mem_ctl_info *mci,
++		      const struct ppc4xx_ecc_status *status)
++{
++	int row;
++	char message[PPC4XX_EDAC_MESSAGE_SIZE];
++
++	ppc4xx_edac_generate_message(mci, status, message, sizeof(message));
++
++	for (row = 0; row < mci->nr_csrows; row++)
++		if (ppc4xx_edac_check_bank_error(status, row))
++			edac_mc_handle_ce_no_info(mci, message);
++}
++
++/**
++ * ppc4xx_edac_handle_ue - handle controller uncorrectable ECC error (UE)
++ * @mci: A pointer to the EDAC memory controller instance
++ *       associated with the uncorrectable error being handled and
++ *       reported.
++ * @status: A pointer to the ECC status structure associated with
++ *          the uncorrectable error being handled and reported.
++ *
++ * This routine handles an ibm,sdram-4xx-ddr2 controller ECC
++ * uncorrectable error.
++ */
++static void
++ppc4xx_edac_handle_ue(struct mem_ctl_info *mci,
++		      const struct ppc4xx_ecc_status *status)
++{
++	const u64 bear = ((u64)status->bearh << 32 | status->bearl);
++	const unsigned long page = bear >> PAGE_SHIFT;
++	const unsigned long offset = bear & ~PAGE_MASK;
++	int row;
++	char message[PPC4XX_EDAC_MESSAGE_SIZE];
++
++	ppc4xx_edac_generate_message(mci, status, message, sizeof(message));
++
++	for (row = 0; row < mci->nr_csrows; row++)
++		if (ppc4xx_edac_check_bank_error(status, row))
++			edac_mc_handle_ue(mci, page, offset, row, message);
++}
++
++/**
++ * ppc4xx_edac_check - check controller for ECC errors
++ * @mci: A pointer to the EDAC memory controller instance
++ *       associated with the ibm,sdram-4xx-ddr2 controller being
++ *       checked.
++ *
++ * This routine is used to check and post ECC errors and is called by
++ * both the EDAC polling thread and this driver's CE and UE interrupt
++ * handler.
++ */
++static void
++ppc4xx_edac_check(struct mem_ctl_info *mci)
++{
++#ifdef DEBUG
++	static unsigned int count;
++#endif
++	struct ppc4xx_ecc_status status;
++
++	ppc4xx_ecc_get_status(mci, &status);
++
++#ifdef DEBUG
++	if (count++ % 30 == 0)
++		ppc4xx_ecc_dump_status(mci, &status);
++#endif
++
++	if (status.ecces & SDRAM_ECCES_UE)
++		ppc4xx_edac_handle_ue(mci, &status);
++
++	if (status.ecces & SDRAM_ECCES_CE)
++		ppc4xx_edac_handle_ce(mci, &status);
++
++	ppc4xx_ecc_clear_status(mci, &status);
++}
++
++/**
++ * ppc4xx_edac_isr - SEC (CE) and DED (UE) interrupt service routine
++ * @irq:    The virtual interrupt number being serviced.
++ * @dev_id: A pointer to the EDAC memory controller instance
++ *          associated with the interrupt being handled.
++ *
++ * This routine implements the interrupt handler for both correctable
++ * (CE) and uncorrectable (UE) ECC errors for the ibm,sdram-4xx-ddr2
++ * controller. It simply calls through to the same routine used during
++ * polling to check, report and clear the ECC status.
++ *
++ * Unconditionally returns IRQ_HANDLED.
++ */
++static irqreturn_t
++ppc4xx_edac_isr(int irq, void *dev_id)
++{
++	struct mem_ctl_info *mci = dev_id;
++
++	ppc4xx_edac_check(mci);
++
++	return IRQ_HANDLED;
++}
++
++/**
++ * ppc4xx_edac_get_dtype - return the controller memory width
++ * @mcopt1: The 32-bit Memory Controller Option 1 register value
++ *          currently set for the controller, from which the width
++ *          is derived.
++ *
++ * This routine returns the EDAC device type width appropriate for the
++ * current controller configuration.
++ *
++ * TODO: This needs to be conditioned dynamically through feature
++ * flags or some such when other controller variants are supported as
++ * the 405EX[r] is 16-/32-bit and the others are 32-/64-bit with the
++ * 16- and 64-bit field definition/value/enumeration (b1) overloaded
++ * among them.
++ *
++ * Returns a device type width enumeration.
++ */
++static enum dev_type __devinit
++ppc4xx_edac_get_dtype(u32 mcopt1)
++{
++	switch (mcopt1 & SDRAM_MCOPT1_WDTH_MASK) {
++	case SDRAM_MCOPT1_WDTH_16:
++		return DEV_X2;
++	case SDRAM_MCOPT1_WDTH_32:
++		return DEV_X4;
++	default:
++		return DEV_UNKNOWN;
++	}
++}
++
++/**
++ * ppc4xx_edac_get_mtype - return controller memory type
++ * @mcopt1: The 32-bit Memory Controller Option 1 register value
++ *          currently set for the controller, from which the memory type
++ *          is derived.
++ *
++ * This routine returns the EDAC memory type appropriate for the
++ * current controller configuration.
++ *
++ * Returns a memory type enumeration.
++ */
++static enum mem_type __devinit
++ppc4xx_edac_get_mtype(u32 mcopt1)
++{
++	bool rden = ((mcopt1 & SDRAM_MCOPT1_RDEN_MASK) == SDRAM_MCOPT1_RDEN);
++
++	switch (mcopt1 & SDRAM_MCOPT1_DDR_TYPE_MASK) {
++	case SDRAM_MCOPT1_DDR2_TYPE:
++		return rden ? MEM_RDDR2 : MEM_DDR2;
++	case SDRAM_MCOPT1_DDR1_TYPE:
++		return rden ? MEM_RDDR : MEM_DDR;
++	default:
++		return MEM_UNKNOWN;
++	}
++}
++
++/**
++ * ppc4xx_edac_init_csrows - intialize driver instance rows
++ * @mci: A pointer to the EDAC memory controller instance
++ *       associated with the ibm,sdram-4xx-ddr2 controller for which
++ *       the csrows (i.e. banks/ranks) are being initialized.
++ * @mcopt1: The 32-bit Memory Controller Option 1 register value
++ *          currently set for the controller, from which bank width
++ *          and memory typ information is derived.
++ *
++ * This routine intializes the virtual "chip select rows" associated
++ * with the EDAC memory controller instance. An ibm,sdram-4xx-ddr2
++ * controller bank/rank is mapped to a row.
++ *
++ * Returns 0 if OK; otherwise, -EINVAL if the memory bank size
++ * configuration cannot be determined.
++ */
++static int __devinit
++ppc4xx_edac_init_csrows(struct mem_ctl_info *mci, u32 mcopt1)
++{
++	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
++	int status = 0;
++	enum mem_type mtype;
++	enum dev_type dtype;
++	enum edac_type edac_mode;
++	int row;
++	u32 mbxcf, size;
++	static u32 ppc4xx_last_page;
++
++	/* Establish the memory type and width */
++
++	mtype = ppc4xx_edac_get_mtype(mcopt1);
++	dtype = ppc4xx_edac_get_dtype(mcopt1);
++
++	/* Establish EDAC mode */
++
++	if (mci->edac_cap & EDAC_FLAG_SECDED)
++		edac_mode = EDAC_SECDED;
++	else if (mci->edac_cap & EDAC_FLAG_EC)
++		edac_mode = EDAC_EC;
++	else
++		edac_mode = EDAC_NONE;
++
++	/*
++	 * Initialize each chip select row structure which correspond
++	 * 1:1 with a controller bank/rank.
++	 */
++
++	for (row = 0; row < mci->nr_csrows; row++) {
++		struct csrow_info *csi = &mci->csrows[row];
++
++		/*
++		 * Get the configuration settings for this
++		 * row/bank/rank and skip disabled banks.
++		 */
++
++		mbxcf = mfsdram(&pdata->dcr_host, SDRAM_MBXCF(row));
++
++		if ((mbxcf & SDRAM_MBCF_BE_MASK) != SDRAM_MBCF_BE_ENABLE)
++			continue;
++
++		/* Map the bank configuration size setting to pages. */
++
++		size = mbxcf & SDRAM_MBCF_SZ_MASK;
++
++		switch (size) {
++		case SDRAM_MBCF_SZ_4MB:
++		case SDRAM_MBCF_SZ_8MB:
++		case SDRAM_MBCF_SZ_16MB:
++		case SDRAM_MBCF_SZ_32MB:
++		case SDRAM_MBCF_SZ_64MB:
++		case SDRAM_MBCF_SZ_128MB:
++		case SDRAM_MBCF_SZ_256MB:
++		case SDRAM_MBCF_SZ_512MB:
++		case SDRAM_MBCF_SZ_1GB:
++		case SDRAM_MBCF_SZ_2GB:
++		case SDRAM_MBCF_SZ_4GB:
++		case SDRAM_MBCF_SZ_8GB:
++			csi->nr_pages = SDRAM_MBCF_SZ_TO_PAGES(size);
++			break;
++		default:
++			ppc4xx_edac_mc_printk(KERN_ERR, mci,
++					      "Unrecognized memory bank %d "
++					      "size 0x%08x\n",
++					      row, SDRAM_MBCF_SZ_DECODE(size));
++			status = -EINVAL;
++			goto done;
++		}
++
++		csi->first_page = ppc4xx_last_page;
++		csi->last_page	= csi->first_page + csi->nr_pages - 1;
++		csi->page_mask	= 0;
++
++		/*
++		 * It's unclear exactly what grain should be set to
++		 * here. The SDRAM_ECCES register allows resolution of
++		 * an error down to a nibble which would potentially
++		 * argue for a grain of '1' byte, even though we only
++		 * know the associated address for uncorrectable
++		 * errors. This value is not used at present for
++		 * anything other than error reporting so getting it
++		 * wrong should be of little consequence. Other
++		 * possible values would be the PLB width (16), the
++		 * page size (PAGE_SIZE) or the memory width (2 or 4).
++		 */
++
++		csi->grain	= 1;
++
++		csi->mtype	= mtype;
++		csi->dtype	= dtype;
++
++		csi->edac_mode	= edac_mode;
++
++		ppc4xx_last_page += csi->nr_pages;
++	}
++
++ done:
++	return status;
++}
++
++/**
++ * ppc4xx_edac_mc_init - intialize driver instance
++ * @mci: A pointer to the EDAC memory controller instance being
++ *       initialized.
++ * @op: A pointer to the OpenFirmware device tree node associated
++ *      with the controller this EDAC instance is bound to.
++ * @match: A pointer to the OpenFirmware device tree match
++ *         information associated with the controller this EDAC instance
++ *         is bound to.
++ * @dcr_host: A pointer to the DCR data containing the DCR mapping
++ *            for this controller instance.
++ * @mcopt1: The 32-bit Memory Controller Option 1 register value
++ *          currently set for the controller, from which ECC capabilities
++ *          and scrub mode are derived.
++ *
++ * This routine performs initialization of the EDAC memory controller
++ * instance and related driver-private data associated with the
++ * ibm,sdram-4xx-ddr2 memory controller the instance is bound to.
++ *
++ * Returns 0 if OK; otherwise, < 0 on error.
++ */
++static int __devinit
++ppc4xx_edac_mc_init(struct mem_ctl_info *mci,
++		    struct of_device *op,
++		    const struct of_device_id *match,
++		    const dcr_host_t *dcr_host,
++		    u32 mcopt1)
++{
++	int status = 0;
++	const u32 memcheck = (mcopt1 & SDRAM_MCOPT1_MCHK_MASK);
++	struct ppc4xx_edac_pdata *pdata = NULL;
++	const struct device_node *np = op->node;
++
++	if (match == NULL)
++		return -EINVAL;
++
++	/* Initial driver pointers and private data */
++
++	mci->dev		= &op->dev;
++
++	dev_set_drvdata(mci->dev, mci);
++
++	pdata			= mci->pvt_info;
++
++	pdata->dcr_host		= *dcr_host;
++	pdata->irqs.sec		= NO_IRQ;
++	pdata->irqs.ded		= NO_IRQ;
++
++	/* Initialize controller capabilities and configuration */
++
++	mci->mtype_cap		= (MEM_FLAG_DDR | MEM_FLAG_RDDR |
++				   MEM_FLAG_DDR2 | MEM_FLAG_RDDR2);
++
++	mci->edac_ctl_cap	= (EDAC_FLAG_NONE |
++				   EDAC_FLAG_EC |
++				   EDAC_FLAG_SECDED);
++
++	mci->scrub_cap		= SCRUB_NONE;
++	mci->scrub_mode		= SCRUB_NONE;
++
++	/*
++	 * Update the actual capabilites based on the MCOPT1[MCHK]
++	 * settings. Scrubbing is only useful if reporting is enabled.
++	 */
++
++	switch (memcheck) {
++	case SDRAM_MCOPT1_MCHK_CHK:
++		mci->edac_cap	= EDAC_FLAG_EC;
++		break;
++	case SDRAM_MCOPT1_MCHK_CHK_REP:
++		mci->edac_cap	= (EDAC_FLAG_EC | EDAC_FLAG_SECDED);
++		mci->scrub_mode	= SCRUB_SW_SRC;
++		break;
++	default:
++		mci->edac_cap	= EDAC_FLAG_NONE;
++		break;
++	}
++
++	/* Initialize strings */
++
++	mci->mod_name		= PPC4XX_EDAC_MODULE_NAME;
++	mci->mod_ver		= PPC4XX_EDAC_MODULE_REVISION;
++	mci->ctl_name		= match->compatible,
++	mci->dev_name		= np->full_name;
++
++	/* Initialize callbacks */
++
++	mci->edac_check		= ppc4xx_edac_check;
++	mci->ctl_page_to_phys	= NULL;
++
++	/* Initialize chip select rows */
++
++	status = ppc4xx_edac_init_csrows(mci, mcopt1);
++
++	if (status)
++		ppc4xx_edac_mc_printk(KERN_ERR, mci,
++				      "Failed to initialize rows!\n");
++
++	return status;
++}
++
++/**
++ * ppc4xx_edac_register_irq - setup and register controller interrupts
++ * @op: A pointer to the OpenFirmware device tree node associated
++ *      with the controller this EDAC instance is bound to.
++ * @mci: A pointer to the EDAC memory controller instance
++ *       associated with the ibm,sdram-4xx-ddr2 controller for which
++ *       interrupts are being registered.
++ *
++ * This routine parses the correctable (CE) and uncorrectable error (UE)
++ * interrupts from the device tree node and maps and assigns them to
++ * the associated EDAC memory controller instance.
++ *
++ * Returns 0 if OK; otherwise, -ENODEV if the interrupts could not be
++ * mapped and assigned.
++ */
++static int __devinit
++ppc4xx_edac_register_irq(struct of_device *op, struct mem_ctl_info *mci)
++{
++	int status = 0;
++	int ded_irq, sec_irq;
++	struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
++	struct device_node *np = op->node;
++
++	ded_irq = irq_of_parse_and_map(np, INTMAP_ECCDED_INDEX);
++	sec_irq = irq_of_parse_and_map(np, INTMAP_ECCSEC_INDEX);
++
++	if (ded_irq == NO_IRQ || sec_irq == NO_IRQ) {
++		ppc4xx_edac_mc_printk(KERN_ERR, mci,
++				      "Unable to map interrupts.\n");
++		status = -ENODEV;
++		goto fail;
++	}
++
++	status = request_irq(ded_irq,
++			     ppc4xx_edac_isr,
++			     IRQF_DISABLED,
++			     "[EDAC] MC ECCDED",
++			     mci);
++
++	if (status < 0) {
++		ppc4xx_edac_mc_printk(KERN_ERR, mci,
++				      "Unable to request irq %d for ECC DED",
++				      ded_irq);
++		status = -ENODEV;
++		goto fail1;
++	}
++
++	status = request_irq(sec_irq,
++			     ppc4xx_edac_isr,
++			     IRQF_DISABLED,
++			     "[EDAC] MC ECCSEC",
++			     mci);
++
++	if (status < 0) {
++		ppc4xx_edac_mc_printk(KERN_ERR, mci,
++				      "Unable to request irq %d for ECC SEC",
++				      sec_irq);
++		status = -ENODEV;
++		goto fail2;
++	}
++
++	ppc4xx_edac_mc_printk(KERN_INFO, mci, "ECCDED irq is %d\n", ded_irq);
++	ppc4xx_edac_mc_printk(KERN_INFO, mci, "ECCSEC irq is %d\n", sec_irq);
++
++	pdata->irqs.ded = ded_irq;
++	pdata->irqs.sec = sec_irq;
++
++	return 0;
++
++ fail2:
++	free_irq(sec_irq, mci);
++
++ fail1:
++	free_irq(ded_irq, mci);
++
++ fail:
++	return status;
++}
++
++/**
++ * ppc4xx_edac_map_dcrs - locate and map controller registers
++ * @np: A pointer to the device tree node containing the DCR
++ *      resources to map.
++ * @dcr_host: A pointer to the DCR data to populate with the
++ *            DCR mapping.
++ *
++ * This routine attempts to locate in the device tree and map the DCR
++ * register resources associated with the controller's indirect DCR
++ * address and data windows.
++ *
++ * Returns 0 if the DCRs were successfully mapped; otherwise, < 0 on
++ * error.
++ */
++static int __devinit
++ppc4xx_edac_map_dcrs(const struct device_node *np, dcr_host_t *dcr_host)
++{
++	unsigned int dcr_base, dcr_len;
++
++	if (np == NULL || dcr_host == NULL)
++		return -EINVAL;
++
++	/* Get the DCR resource extent and sanity check the values. */
++
++	dcr_base = dcr_resource_start(np, 0);
++	dcr_len = dcr_resource_len(np, 0);
++
++	if (dcr_base == 0 || dcr_len == 0) {
++		ppc4xx_edac_printk(KERN_ERR,
++				   "Failed to obtain DCR property.\n");
++		return -ENODEV;
++	}
++
++	if (dcr_len != SDRAM_DCR_RESOURCE_LEN) {
++		ppc4xx_edac_printk(KERN_ERR,
++				   "Unexpected DCR length %d, expected %d.\n",
++				   dcr_len, SDRAM_DCR_RESOURCE_LEN);
++		return -ENODEV;
++	}
++
++	/*  Attempt to map the DCR extent. */
++
++	*dcr_host = dcr_map(np, dcr_base, dcr_len);
++
++	if (!DCR_MAP_OK(*dcr_host)) {
++		ppc4xx_edac_printk(KERN_INFO, "Failed to map DCRs.\n");
++		    return -ENODEV;
++	}
++
++	return 0;
++}
++
++/**
++ * ppc4xx_edac_probe - check controller and bind driver
++ * @op: A pointer to the OpenFirmware device tree node associated
++ *      with the controller being probed for driver binding.
++ * @match: A pointer to the OpenFirmware device tree match
++ *         information associated with the controller being probed
++ *         for driver binding.
++ *
++ * This routine probes a specific ibm,sdram-4xx-ddr2 controller
++ * instance for binding with the driver.
++ *
++ * Returns 0 if the controller instance was successfully bound to the
++ * driver; otherwise, < 0 on error.
++ */
++static int __devinit
++ppc4xx_edac_probe(struct of_device *op, const struct of_device_id *match)
++{
++	int status = 0;
++	u32 mcopt1, memcheck;
++	dcr_host_t dcr_host;
++	const struct device_node *np = op->node;
++	struct mem_ctl_info *mci = NULL;
++	static int ppc4xx_edac_instance;
++
++	/*
++	 * At this point, we only support the controller realized on
++	 * the AMCC PPC 405EX[r]. Reject anything else.
++	 */
++
++	if (!of_device_is_compatible(np, "ibm,sdram-405ex") &&
++	    !of_device_is_compatible(np, "ibm,sdram-405exr")) {
++		ppc4xx_edac_printk(KERN_NOTICE,
++				   "Only the PPC405EX[r] is supported.\n");
++		return -ENODEV;
++	}
++
++	/*
++	 * Next, get the DCR property and attempt to map it so that we
++	 * can probe the controller.
++	 */
++
++	status = ppc4xx_edac_map_dcrs(np, &dcr_host);
++
++	if (status)
++		return status;
++
++	/*
++	 * First determine whether ECC is enabled at all. If not,
++	 * there is no useful checking or monitoring that can be done
++	 * for this controller.
++	 */
++
++	mcopt1 = mfsdram(&dcr_host, SDRAM_MCOPT1);
++	memcheck = (mcopt1 & SDRAM_MCOPT1_MCHK_MASK);
++
++	if (memcheck == SDRAM_MCOPT1_MCHK_NON) {
++		ppc4xx_edac_printk(KERN_INFO, "%s: No ECC memory detected or "
++				   "ECC is disabled.\n", np->full_name);
++		status = -ENODEV;
++		goto done;
++	}
++
++	/*
++	 * At this point, we know ECC is enabled, allocate an EDAC
++	 * controller instance and perform the appropriate
++	 * initialization.
++	 */
++
++	mci = edac_mc_alloc(sizeof(struct ppc4xx_edac_pdata),
++			    ppc4xx_edac_nr_csrows,
++			    ppc4xx_edac_nr_chans,
++			    ppc4xx_edac_instance);
++
++	if (mci == NULL) {
++		ppc4xx_edac_printk(KERN_ERR, "%s: "
++				   "Failed to allocate EDAC MC instance!\n",
++				   np->full_name);
++		status = -ENOMEM;
++		goto done;
++	}
++
++	status = ppc4xx_edac_mc_init(mci, op, match, &dcr_host, mcopt1);
++
++	if (status) {
++		ppc4xx_edac_mc_printk(KERN_ERR, mci,
++				      "Failed to initialize instance!\n");
++		goto fail;
++	}
++
++	/*
++	 * We have a valid, initialized EDAC instance bound to the
++	 * controller. Attempt to register it with the EDAC subsystem
++	 * and, if necessary, register interrupts.
++	 */
++
++	if (edac_mc_add_mc(mci)) {
++		ppc4xx_edac_mc_printk(KERN_ERR, mci,
++				      "Failed to add instance!\n");
++		status = -ENODEV;
++		goto fail;
++	}
++
++	if (edac_op_state == EDAC_OPSTATE_INT) {
++		status = ppc4xx_edac_register_irq(op, mci);
++
++		if (status)
++			goto fail1;
++	}
++
++	ppc4xx_edac_instance++;
++
++	return 0;
++
++ fail1:
++	edac_mc_del_mc(mci->dev);
++
++ fail:
++	edac_mc_free(mci);
++
++ done:
++	return status;
++}
++
++/**
++ * ppc4xx_edac_remove - unbind driver from controller
++ * @op: A pointer to the OpenFirmware device tree node associated
++ *      with the controller this EDAC instance is to be unbound/removed
++ *      from.
++ *
++ * This routine unbinds the EDAC memory controller instance associated
++ * with the specified ibm,sdram-4xx-ddr2 controller described by the
++ * OpenFirmware device tree node passed as a parameter.
++ *
++ * Unconditionally returns 0.
++ */
++static int
++ppc4xx_edac_remove(struct of_device *op)
++{
++	struct mem_ctl_info *mci = dev_get_drvdata(&op->dev);
++	struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
++
++	if (edac_op_state == EDAC_OPSTATE_INT) {
++		free_irq(pdata->irqs.sec, mci);
++		free_irq(pdata->irqs.ded, mci);
++	}
++
++	dcr_unmap(pdata->dcr_host, SDRAM_DCR_RESOURCE_LEN);
++
++	edac_mc_del_mc(mci->dev);
++	edac_mc_free(mci);
++
++	return 0;
++}
++
++/**
++ * ppc4xx_edac_opstate_init - initialize EDAC reporting method
++ *
++ * This routine ensures that the EDAC memory controller reporting
++ * method is mapped to a sane value as the EDAC core defines the value
++ * to EDAC_OPSTATE_INVAL by default. We don't call the global
++ * opstate_init as that defaults to polling and we want interrupt as
++ * the default.
++ */
++static inline void __init
++ppc4xx_edac_opstate_init(void)
++{
++	switch (edac_op_state) {
++	case EDAC_OPSTATE_POLL:
++	case EDAC_OPSTATE_INT:
++		break;
++	default:
++		edac_op_state = EDAC_OPSTATE_INT;
++		break;
++	}
++
++	ppc4xx_edac_printk(KERN_INFO, "Reporting type: %s\n",
++			   ((edac_op_state == EDAC_OPSTATE_POLL) ?
++			    EDAC_OPSTATE_POLL_STR :
++			    ((edac_op_state == EDAC_OPSTATE_INT) ?
++			     EDAC_OPSTATE_INT_STR :
++			     EDAC_OPSTATE_UNKNOWN_STR)));
++}
++
++/**
++ * ppc4xx_edac_init - driver/module insertion entry point
++ *
++ * This routine is the driver/module insertion entry point. It
++ * initializes the EDAC memory controller reporting state and
++ * registers the driver as an OpenFirmware device tree platform
++ * driver.
++ */
++static int __init
++ppc4xx_edac_init(void)
++{
++	ppc4xx_edac_printk(KERN_INFO, PPC4XX_EDAC_MODULE_REVISION "\n");
++
++	ppc4xx_edac_opstate_init();
++
++	return of_register_platform_driver(&ppc4xx_edac_driver);
++}
++
++/**
++ * ppc4xx_edac_exit - driver/module removal entry point
++ *
++ * This routine is the driver/module removal entry point. It
++ * unregisters the driver as an OpenFirmware device tree platform
++ * driver.
++ */
++static void __exit
++ppc4xx_edac_exit(void)
++{
++	of_unregister_platform_driver(&ppc4xx_edac_driver);
++}
++
++module_init(ppc4xx_edac_init);
++module_exit(ppc4xx_edac_exit);
++
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Grant Erickson <gerickson@nuovations.com>");
++MODULE_DESCRIPTION("EDAC MC Driver for the PPC4xx IBM DDR2 Memory Controller");
++module_param(edac_op_state, int, 0444);
++MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting State: "
++		 "0=" EDAC_OPSTATE_POLL_STR ", 2=" EDAC_OPSTATE_INT_STR);
+diff -puN /dev/null drivers/edac/ppc4xx_edac.h
+--- /dev/null
++++ a/drivers/edac/ppc4xx_edac.h
+@@ -0,0 +1,172 @@
++/*
++ * Copyright (c) 2008 Nuovation System Designs, LLC
++ *   Grant Erickson <gerickson@nuovations.com>
++ *
++ * This file defines processor mnemonics for accessing and managing
++ * the IBM DDR1/DDR2 ECC controller found in the 405EX[r], 440SP,
++ * 440SPe, 460EX, 460GT and 460SX.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; version 2 of the
++ * License.
++ *
++ */
++
++#ifndef __PPC4XX_EDAC_H
++#define __PPC4XX_EDAC_H
++
++#include <linux/types.h>
++
++/*
++ * Macro for generating register field mnemonics
++ */
++#define PPC_REG_BITS			32
++#define PPC_REG_VAL(bit, val)		((val) << ((PPC_REG_BITS - 1) - (bit)))
++#define PPC_REG_DECODE(bit, val)	((val) >> ((PPC_REG_BITS - 1) - (bit)))
++
++/*
++ * IBM 4xx DDR1/DDR2 SDRAM memory controller registers (at least those
++ * relevant to ECC)
++ */
++#define SDRAM_BESR			0x00	/* Error status (read/clear) */
++#define SDRAM_BESRT			0x01	/* Error statuss (test/set)  */
++#define SDRAM_BEARL			0x02	/* Error address low	     */
++#define SDRAM_BEARH			0x03	/* Error address high	     */
++#define SDRAM_WMIRQ			0x06	/* Write master (read/clear) */
++#define SDRAM_WMIRQT			0x07	/* Write master (test/set)   */
++#define SDRAM_MCOPT1			0x20	/* Controller options 1	     */
++#define SDRAM_MBXCF_BASE		0x40	/* Bank n configuration base */
++#define	SDRAM_MBXCF(n)			(SDRAM_MBXCF_BASE + (4 * (n)))
++#define SDRAM_MB0CF			SDRAM_MBXCF(0)
++#define SDRAM_MB1CF			SDRAM_MBXCF(1)
++#define SDRAM_MB2CF			SDRAM_MBXCF(2)
++#define SDRAM_MB3CF			SDRAM_MBXCF(3)
++#define SDRAM_ECCCR			0x98	/* ECC error status	     */
++#define SDRAM_ECCES			SDRAM_ECCCR
++
++/*
++ * PLB Master IDs
++ */
++#define	SDRAM_PLB_M0ID_FIRST		0
++#define	SDRAM_PLB_M0ID_ICU		SDRAM_PLB_M0ID_FIRST
++#define	SDRAM_PLB_M0ID_PCIE0		1
++#define	SDRAM_PLB_M0ID_PCIE1		2
++#define	SDRAM_PLB_M0ID_DMA		3
++#define	SDRAM_PLB_M0ID_DCU		4
++#define	SDRAM_PLB_M0ID_OPB		5
++#define	SDRAM_PLB_M0ID_MAL		6
++#define	SDRAM_PLB_M0ID_SEC		7
++#define	SDRAM_PLB_M0ID_AHB		8
++#define SDRAM_PLB_M0ID_LAST		SDRAM_PLB_M0ID_AHB
++#define SDRAM_PLB_M0ID_COUNT		(SDRAM_PLB_M0ID_LAST - \
++					 SDRAM_PLB_M0ID_FIRST + 1)
++
++/*
++ * Memory Controller Bus Error Status Register
++ */
++#define SDRAM_BESR_MASK			PPC_REG_VAL(7, 0xFF)
++#define SDRAM_BESR_M0ID_MASK		PPC_REG_VAL(3, 0xF)
++#define	SDRAM_BESR_M0ID_DECODE(n)	PPC_REG_DECODE(3, n)
++#define SDRAM_BESR_M0ID_ICU		PPC_REG_VAL(3, SDRAM_PLB_M0ID_ICU)
++#define SDRAM_BESR_M0ID_PCIE0		PPC_REG_VAL(3, SDRAM_PLB_M0ID_PCIE0)
++#define SDRAM_BESR_M0ID_PCIE1		PPC_REG_VAL(3, SDRAM_PLB_M0ID_PCIE1)
++#define SDRAM_BESR_M0ID_DMA		PPC_REG_VAL(3, SDRAM_PLB_M0ID_DMA)
++#define SDRAM_BESR_M0ID_DCU		PPC_REG_VAL(3, SDRAM_PLB_M0ID_DCU)
++#define SDRAM_BESR_M0ID_OPB		PPC_REG_VAL(3, SDRAM_PLB_M0ID_OPB)
++#define SDRAM_BESR_M0ID_MAL		PPC_REG_VAL(3, SDRAM_PLB_M0ID_MAL)
++#define SDRAM_BESR_M0ID_SEC		PPC_REG_VAL(3, SDRAM_PLB_M0ID_SEC)
++#define SDRAM_BESR_M0ID_AHB		PPC_REG_VAL(3, SDRAM_PLB_M0ID_AHB)
++#define SDRAM_BESR_M0ET_MASK		PPC_REG_VAL(6, 0x7)
++#define SDRAM_BESR_M0ET_NONE		PPC_REG_VAL(6, 0)
++#define SDRAM_BESR_M0ET_ECC		PPC_REG_VAL(6, 1)
++#define SDRAM_BESR_M0RW_MASK		PPC_REG_VAL(7, 1)
++#define SDRAM_BESR_M0RW_WRITE		PPC_REG_VAL(7, 0)
++#define SDRAM_BESR_M0RW_READ		PPC_REG_VAL(7, 1)
++
++/*
++ * Memory Controller PLB Write Master Interrupt Register
++ */
++#define SDRAM_WMIRQ_MASK		PPC_REG_VAL(8, 0x1FF)
++#define	SDRAM_WMIRQ_ENCODE(id)		PPC_REG_VAL((id % \
++						     SDRAM_PLB_M0ID_COUNT), 1)
++#define SDRAM_WMIRQ_ICU			PPC_REG_VAL(SDRAM_PLB_M0ID_ICU, 1)
++#define SDRAM_WMIRQ_PCIE0		PPC_REG_VAL(SDRAM_PLB_M0ID_PCIE0, 1)
++#define SDRAM_WMIRQ_PCIE1		PPC_REG_VAL(SDRAM_PLB_M0ID_PCIE1, 1)
++#define SDRAM_WMIRQ_DMA			PPC_REG_VAL(SDRAM_PLB_M0ID_DMA, 1)
++#define SDRAM_WMIRQ_DCU			PPC_REG_VAL(SDRAM_PLB_M0ID_DCU, 1)
++#define SDRAM_WMIRQ_OPB			PPC_REG_VAL(SDRAM_PLB_M0ID_OPB, 1)
++#define SDRAM_WMIRQ_MAL			PPC_REG_VAL(SDRAM_PLB_M0ID_MAL, 1)
++#define SDRAM_WMIRQ_SEC			PPC_REG_VAL(SDRAM_PLB_M0ID_SEC, 1)
++#define SDRAM_WMIRQ_AHB			PPC_REG_VAL(SDRAM_PLB_M0ID_AHB, 1)
++
++/*
++ * Memory Controller Options 1 Register
++ */
++#define SDRAM_MCOPT1_MCHK_MASK	    PPC_REG_VAL(3, 0x3)	 /* ECC mask	     */
++#define SDRAM_MCOPT1_MCHK_NON	    PPC_REG_VAL(3, 0x0)	 /* No ECC gen	     */
++#define SDRAM_MCOPT1_MCHK_GEN	    PPC_REG_VAL(3, 0x2)	 /* ECC gen	     */
++#define SDRAM_MCOPT1_MCHK_CHK	    PPC_REG_VAL(3, 0x1)	 /* ECC gen and chk  */
++#define SDRAM_MCOPT1_MCHK_CHK_REP   PPC_REG_VAL(3, 0x3)	 /* ECC gen/chk/rpt  */
++#define SDRAM_MCOPT1_MCHK_DECODE(n) ((((u32)(n)) >> 28) & 0x3)
++#define SDRAM_MCOPT1_RDEN_MASK	    PPC_REG_VAL(4, 0x1)	 /* Rgstrd DIMM mask */
++#define SDRAM_MCOPT1_RDEN	    PPC_REG_VAL(4, 0x1)	 /* Rgstrd DIMM enbl */
++#define SDRAM_MCOPT1_WDTH_MASK	    PPC_REG_VAL(7, 0x1)	 /* Width mask	     */
++#define SDRAM_MCOPT1_WDTH_32	    PPC_REG_VAL(7, 0x0)	 /* 32 bits	     */
++#define SDRAM_MCOPT1_WDTH_16	    PPC_REG_VAL(7, 0x1)	 /* 16 bits	     */
++#define SDRAM_MCOPT1_DDR_TYPE_MASK  PPC_REG_VAL(11, 0x1) /* DDR type mask    */
++#define SDRAM_MCOPT1_DDR1_TYPE	    PPC_REG_VAL(11, 0x0) /* DDR1 type	     */
++#define SDRAM_MCOPT1_DDR2_TYPE	    PPC_REG_VAL(11, 0x1) /* DDR2 type	     */
++
++/*
++ * Memory Bank 0 - n Configuration Register
++ */
++#define SDRAM_MBCF_BA_MASK		PPC_REG_VAL(12, 0x1FFF)
++#define SDRAM_MBCF_SZ_MASK		PPC_REG_VAL(19, 0xF)
++#define SDRAM_MBCF_SZ_DECODE(mbxcf)	PPC_REG_DECODE(19, mbxcf)
++#define SDRAM_MBCF_SZ_4MB		PPC_REG_VAL(19, 0x0)
++#define SDRAM_MBCF_SZ_8MB		PPC_REG_VAL(19, 0x1)
++#define SDRAM_MBCF_SZ_16MB		PPC_REG_VAL(19, 0x2)
++#define SDRAM_MBCF_SZ_32MB		PPC_REG_VAL(19, 0x3)
++#define SDRAM_MBCF_SZ_64MB		PPC_REG_VAL(19, 0x4)
++#define SDRAM_MBCF_SZ_128MB		PPC_REG_VAL(19, 0x5)
++#define SDRAM_MBCF_SZ_256MB		PPC_REG_VAL(19, 0x6)
++#define SDRAM_MBCF_SZ_512MB		PPC_REG_VAL(19, 0x7)
++#define SDRAM_MBCF_SZ_1GB		PPC_REG_VAL(19, 0x8)
++#define SDRAM_MBCF_SZ_2GB		PPC_REG_VAL(19, 0x9)
++#define SDRAM_MBCF_SZ_4GB		PPC_REG_VAL(19, 0xA)
++#define SDRAM_MBCF_SZ_8GB		PPC_REG_VAL(19, 0xB)
++#define SDRAM_MBCF_AM_MASK		PPC_REG_VAL(23, 0xF)
++#define SDRAM_MBCF_AM_MODE0		PPC_REG_VAL(23, 0x0)
++#define SDRAM_MBCF_AM_MODE1		PPC_REG_VAL(23, 0x1)
++#define SDRAM_MBCF_AM_MODE2		PPC_REG_VAL(23, 0x2)
++#define SDRAM_MBCF_AM_MODE3		PPC_REG_VAL(23, 0x3)
++#define SDRAM_MBCF_AM_MODE4		PPC_REG_VAL(23, 0x4)
++#define SDRAM_MBCF_AM_MODE5		PPC_REG_VAL(23, 0x5)
++#define SDRAM_MBCF_AM_MODE6		PPC_REG_VAL(23, 0x6)
++#define SDRAM_MBCF_AM_MODE7		PPC_REG_VAL(23, 0x7)
++#define SDRAM_MBCF_AM_MODE8		PPC_REG_VAL(23, 0x8)
++#define SDRAM_MBCF_AM_MODE9		PPC_REG_VAL(23, 0x9)
++#define SDRAM_MBCF_BE_MASK		PPC_REG_VAL(31, 0x1)
++#define SDRAM_MBCF_BE_DISABLE		PPC_REG_VAL(31, 0x0)
++#define SDRAM_MBCF_BE_ENABLE		PPC_REG_VAL(31, 0x1)
++
++/*
++ * ECC Error Status
++ */
++#define SDRAM_ECCES_MASK		PPC_REG_VAL(21, 0x3FFFFF)
++#define SDRAM_ECCES_BNCE_MASK		PPC_REG_VAL(15, 0xFFFF)
++#define SDRAM_ECCES_BNCE_ENCODE(lane)	PPC_REG_VAL(((lane) & 0xF), 1)
++#define SDRAM_ECCES_CKBER_MASK		PPC_REG_VAL(17, 0x3)
++#define SDRAM_ECCES_CKBER_NONE		PPC_REG_VAL(17, 0)
++#define SDRAM_ECCES_CKBER_16_ECC_0_3	PPC_REG_VAL(17, 2)
++#define SDRAM_ECCES_CKBER_32_ECC_0_3	PPC_REG_VAL(17, 1)
++#define SDRAM_ECCES_CKBER_32_ECC_4_8	PPC_REG_VAL(17, 2)
++#define SDRAM_ECCES_CKBER_32_ECC_0_8	PPC_REG_VAL(17, 3)
++#define SDRAM_ECCES_CE			PPC_REG_VAL(18, 1)
++#define SDRAM_ECCES_UE			PPC_REG_VAL(19, 1)
++#define SDRAM_ECCES_BKNER_MASK		PPC_REG_VAL(21, 0x3)
++#define SDRAM_ECCES_BK0ER		PPC_REG_VAL(20, 1)
++#define SDRAM_ECCES_BK1ER		PPC_REG_VAL(21, 1)
++
++#endif /* __PPC4XX_EDAC_H */
 _
 
-Patches currently in -mm which might be from jw@emlix.com are
+Patches currently in -mm which might be from gerickson@nuovations.com are
 
 origin.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-xtensa-variant-specific-code.patch
-xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
-xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
-xtensa-s6105-specific-configuration-for-s6gmac.patch
-xtensa-enable-s6gmac-in-s6105_defconfig.patch
-flat-fix-data-sections-alignment.patch
 
