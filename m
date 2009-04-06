@@ -1,122 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] preadv-pwritev-switch-compat-readv-preadv-writev-pwritev-from-fget-to-fget_light.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:38:04 -0700
-Message-ID: <200904061938.n36Jc4YA013203__41094.888925045$1239047122$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] xtensa-enforce-slab-alignment-to-maximum-register-width.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:39:26 -0700
+Message-ID: <200904061939.n36JdQ2i013909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56457 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753726AbZDFTne (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:34 -0400
+	by vger.kernel.org with ESMTP id S1753946AbZDFTnh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kraxel@redhat.com, arnd@arndb.de, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, ralf@linux-mips.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: os@emlix.com, chris@zankel.net, jw@emlix.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     preadv/pwritev: switch compat readv/preadv/writev/pwritev from fget to fget_light
+     xtensa: enforce slab alignment to maximum register width
 has been removed from the -mm tree.  Its filename was
-     preadv-pwritev-switch-compat-readv-preadv-writev-pwritev-from-fget-to-fget_light.patch
+     xtensa-enforce-slab-alignment-to-maximum-register-width.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: preadv/pwritev: switch compat readv/preadv/writev/pwritev from fget to fget_light
-From: Gerd Hoffmann <kraxel@redhat.com>
+Subject: xtensa: enforce slab alignment to maximum register width
+From: Oskar Schirmer <os@emlix.com>
 
-Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <linux-api@vger.kernel.org>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+XCHAL_DATA_WIDTH is the maximum register width, slab caches should be
+aligned to this.
+
+Theoretical fix as all variants have had an XCHAL_DATA_WIDTH of 4
+(wordsize) for now.  But the S6000 variant will raise this to 16.
+
+Signed-off-by: Oskar Schirmer <os@emlix.com>
+Signed-off-by: Johannes Weiner <jw@emlix.com>
+Cc: Chris Zankel <chris@zankel.net>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ arch/xtensa/include/asm/processor.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/compat.c~preadv-pwritev-switch-compat-readv-preadv-writev-pwritev-from-fget-to-fget_light fs/compat.c
---- a/fs/compat.c~preadv-pwritev-switch-compat-readv-preadv-writev-pwritev-from-fget-to-fget_light
-+++ a/fs/compat.c
-@@ -1222,13 +1222,14 @@ compat_sys_readv(unsigned long fd, const
- 		 unsigned long vlen)
- {
- 	struct file *file;
-+	int fput_needed;
- 	ssize_t ret;
+diff -puN arch/xtensa/include/asm/processor.h~xtensa-enforce-slab-alignment-to-maximum-register-width arch/xtensa/include/asm/processor.h
+--- a/arch/xtensa/include/asm/processor.h~xtensa-enforce-slab-alignment-to-maximum-register-width
++++ a/arch/xtensa/include/asm/processor.h
+@@ -25,6 +25,8 @@
+ # error Linux requires the Xtensa Windowed Registers Option.
+ #endif
  
--	file = fget(fd);
-+	file = fget_light(fd, &fput_needed);
- 	if (!file)
- 		return -EBADF;
- 	ret = compat_readv(file, vec, vlen, &file->f_pos);
--	fput(file);
-+	fput_light(file, fput_needed);
- 	return ret;
- }
- 
-@@ -1238,15 +1239,16 @@ compat_sys_preadv(unsigned long fd, cons
- {
- 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
- 	struct file *file;
-+	int fput_needed;
- 	ssize_t ret;
- 
- 	if (pos < 0)
- 		return -EINVAL;
--	file = fget(fd);
-+	file = fget_light(fd, &fput_needed);
- 	if (!file)
- 		return -EBADF;
- 	ret = compat_readv(file, vec, vlen, &pos);
--	fput(file);
-+	fput_light(file, fput_needed);
- 	return ret;
- }
- 
-@@ -1277,13 +1279,14 @@ compat_sys_writev(unsigned long fd, cons
- 		  unsigned long vlen)
- {
- 	struct file *file;
-+	int fput_needed;
- 	ssize_t ret;
- 
--	file = fget(fd);
-+	file = fget_light(fd, &fput_needed);
- 	if (!file)
- 		return -EBADF;
- 	ret = compat_writev(file, vec, vlen, &file->f_pos);
--	fput(file);
-+	fput_light(file, fput_needed);
- 	return ret;
- }
- 
-@@ -1293,15 +1296,16 @@ compat_sys_pwritev(unsigned long fd, con
- {
- 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
- 	struct file *file;
-+	int fput_needed;
- 	ssize_t ret;
- 
- 	if (pos < 0)
- 		return -EINVAL;
--	file = fget(fd);
-+	file = fget_light(fd, &fput_needed);
- 	if (!file)
- 		return -EBADF;
- 	ret = compat_writev(file, vec, vlen, &pos);
--	fput(file);
-+	fput_light(file, fput_needed);
- 	return ret;
- }
- 
++#define ARCH_SLAB_MINALIGN	XCHAL_DATA_WIDTH
++
+ /*
+  * User space process size: 1 GB.
+  * Windowed call ABI requires caller and callee to be located within the same
 _
 
-Patches currently in -mm which might be from kraxel@redhat.com are
+Patches currently in -mm which might be from os@emlix.com are
 
 origin.patch
-linux-next.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+xtensa-variant-specific-code.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-s6000-dma-engine-support.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+flat-fix-data-sections-alignment.patch
 
