@@ -1,1723 +1,967 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-new-ppc4xx-driver-module.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:36:42 -0700
-Message-ID: <200904061936.n36JagAV012570@imap1.linux-foundation.org>
+Subject: [merged] scsi-replace-__inline-with-inline.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:39:10 -0700
+Message-ID: <200904061939.n36JdAhe013708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752362AbZDFUZV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:25:21 -0400
+	by vger.kernel.org with ESMTP id S1752431AbZDFU1C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:27:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerickson@nuovations.com, benh@kernel.crashing.org, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, hare@suse.de, jgarzik@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: new ppc4xx driver module
+     scsi: replace __inline with inline
 has been removed from the -mm tree.  Its filename was
-     edac-new-ppc4xx-driver-module.patch
+     scsi-replace-__inline-with-inline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: new ppc4xx driver module
-From: Grant Erickson <gerickson@nuovations.com>
+Subject: scsi: replace __inline with inline
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-This adds support for an EDAC memory controller adaptation driver for the
-"ibm,sdram-4xx-ddr2" ECC controller realized in the AMCC PowerPC 405EX[r].
-
-At present, this driver has been developed and tested against the
-controller realization in the AMCC PPC405EX[r] on the AMCC Kilauea and
-Haleakala boards (256 MiB w/o ECC memory soldered onto the board) and a
-proprietary board based on those designs (128 MiB ECC memory, also
-soldered onto the board).
-
-In the future, dynamic feature detection and handling needs to be added
-for the other realizations of this controller found in the 440SP, 440SPe,
-460EX, 460GT and 460SX.
-
-Eventually, this driver will likely be evolved and adapted to the above
-variant realizations of this controller as well as broken apart to handle
-the other known ECC-capable controllers prevalent in other PPC4xx
-processors:
-
-  - IBM SDRAM (405GP, 405CR and 405EP) "ibm,sdram-4xx"
-  - IBM DDR1 (440GP, 440GX, 440EP and 440GR) "ibm,sdram-4xx-ddr"
-  - Denali DDR1/DDR2 (440EPX and 440GRX) "denali,sdram-4xx-ddr2"
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Grant Erickson <gerickson@nuovations.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Acked-by: Jeff Garzik <jgarzik@redhat.com>
+Acked-by: Hannes Reinecke <hare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig       |    9 
- drivers/edac/Makefile      |    2 
- drivers/edac/ppc4xx_edac.c | 1448 +++++++++++++++++++++++++++++++++++
- drivers/edac/ppc4xx_edac.h |  172 ++++
- 4 files changed, 1630 insertions(+), 1 deletion(-)
+ drivers/scsi/aic7xxx/aic79xx_core.c   |   12 +-
+ drivers/scsi/aic7xxx/aic79xx_inline.h |   32 +++----
+ drivers/scsi/aic7xxx/aic79xx_osm.h    |  102 +++++++++++------------
+ drivers/scsi/aic7xxx/aic79xx_pci.c    |    2 
+ drivers/scsi/aic7xxx/aic7xxx_inline.h |    5 -
+ drivers/scsi/aic7xxx/aic7xxx_osm.h    |  104 ++++++++++++------------
+ drivers/scsi/aic7xxx/aic7xxx_pci.c    |    2 
+ drivers/scsi/aic7xxx/aiclib.h         |    4 
+ drivers/scsi/sym53c8xx_2/sym_glue.h   |    6 -
+ drivers/scsi/sym53c8xx_2/sym_hipd.c   |    2 
+ drivers/scsi/sym53c8xx_2/sym_hipd.h   |    6 -
+ drivers/scsi/sym53c8xx_2/sym_malloc.c |    2 
+ drivers/scsi/sym53c8xx_2/sym_misc.h   |   18 ++--
+ 13 files changed, 146 insertions(+), 151 deletions(-)
 
-diff -puN drivers/edac/Kconfig~edac-new-ppc4xx-driver-module drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-new-ppc4xx-driver-module
-+++ a/drivers/edac/Kconfig
-@@ -181,4 +181,13 @@ config EDAC_CELL
- 	  Cell Broadband Engine internal memory controller
- 	  on platform without a hypervisor
+diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~scsi-replace-__inline-with-inline drivers/scsi/aic7xxx/aic79xx_core.c
+--- a/drivers/scsi/aic7xxx/aic79xx_core.c~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/aic7xxx/aic79xx_core.c
+@@ -1034,7 +1034,7 @@ ahd_intr(struct ahd_softc *ahd)
+ }
  
-+config EDAC_PPC4XX
-+	tristate "PPC4xx IBM DDR2 Memory Controller"
-+	depends on EDAC_MM_EDAC && 4xx
-+	help
-+	  This enables support for EDAC on the ECC memory used
-+	  with the IBM DDR2 memory controller found in various
-+	  PowerPC 4xx embedded processors such as the 405EX[r],
-+	  440SP, 440SPe, 460EX, 460GT and 460SX.
-+
- endif # EDAC
-diff -puN drivers/edac/Makefile~edac-new-ppc4xx-driver-module drivers/edac/Makefile
---- a/drivers/edac/Makefile~edac-new-ppc4xx-driver-module
-+++ a/drivers/edac/Makefile
-@@ -34,4 +34,4 @@ obj-$(CONFIG_EDAC_PASEMI)		+= pasemi_eda
- obj-$(CONFIG_EDAC_MPC85XX)		+= mpc85xx_edac.o
- obj-$(CONFIG_EDAC_MV64X60)		+= mv64x60_edac.o
- obj-$(CONFIG_EDAC_CELL)			+= cell_edac.o
--
-+obj-$(CONFIG_EDAC_PPC4XX)		+= ppc4xx_edac.o
-diff -puN /dev/null drivers/edac/ppc4xx_edac.c
---- /dev/null
-+++ a/drivers/edac/ppc4xx_edac.c
-@@ -0,0 +1,1448 @@
-+/*
-+ * Copyright (c) 2008 Nuovation System Designs, LLC
-+ *   Grant Erickson <gerickson@nuovations.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; version 2 of the
-+ * License.
-+ *
-+ */
-+
-+#include <linux/edac.h>
-+#include <linux/interrupt.h>
-+#include <linux/irq.h>
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/of_platform.h>
-+#include <linux/types.h>
-+
-+#include <asm/dcr.h>
-+
-+#include "edac_core.h"
-+#include "ppc4xx_edac.h"
-+
-+/*
-+ * This file implements a driver for monitoring and handling events
-+ * associated with the IMB DDR2 ECC controller found in the AMCC/IBM
-+ * 405EX[r], 440SP, 440SPe, 460EX, 460GT and 460SX.
-+ *
-+ * As realized in the 405EX[r], this controller features:
-+ *
-+ *   - Support for registered- and non-registered DDR1 and DDR2 memory.
-+ *   - 32-bit or 16-bit memory interface with optional ECC.
-+ *
-+ *     o ECC support includes:
-+ *
-+ *       - 4-bit SEC/DED
-+ *       - Aligned-nibble error detect
-+ *       - Bypass mode
-+ *
-+ *   - Two (2) memory banks/ranks.
-+ *   - Up to 1 GiB per bank/rank in 32-bit mode and up to 512 MiB per
-+ *     bank/rank in 16-bit mode.
-+ *
-+ * As realized in the 440SP and 440SPe, this controller changes/adds:
-+ *
-+ *   - 64-bit or 32-bit memory interface with optional ECC.
-+ *
-+ *     o ECC support includes:
-+ *
-+ *       - 8-bit SEC/DED
-+ *       - Aligned-nibble error detect
-+ *       - Bypass mode
-+ *
-+ *   - Up to 4 GiB per bank/rank in 64-bit mode and up to 2 GiB
-+ *     per bank/rank in 32-bit mode.
-+ *
-+ * As realized in the 460EX and 460GT, this controller changes/adds:
-+ *
-+ *   - 64-bit or 32-bit memory interface with optional ECC.
-+ *
-+ *     o ECC support includes:
-+ *
-+ *       - 8-bit SEC/DED
-+ *       - Aligned-nibble error detect
-+ *       - Bypass mode
-+ *
-+ *   - Four (4) memory banks/ranks.
-+ *   - Up to 16 GiB per bank/rank in 64-bit mode and up to 8 GiB
-+ *     per bank/rank in 32-bit mode.
-+ *
-+ * At present, this driver has ONLY been tested against the controller
-+ * realization in the 405EX[r] on the AMCC Kilauea and Haleakala
-+ * boards (256 MiB w/o ECC memory soldered onto the board) and a
-+ * proprietary board based on those designs (128 MiB ECC memory, also
-+ * soldered onto the board).
-+ *
-+ * Dynamic feature detection and handling needs to be added for the
-+ * other realizations of this controller listed above.
-+ *
-+ * Eventually, this driver will likely be adapted to the above variant
-+ * realizations of this controller as well as broken apart to handle
-+ * the other known ECC-capable controllers prevalent in other 4xx
-+ * processors:
-+ *
-+ *   - IBM SDRAM (405GP, 405CR and 405EP) "ibm,sdram-4xx"
-+ *   - IBM DDR1 (440GP, 440GX, 440EP and 440GR) "ibm,sdram-4xx-ddr"
-+ *   - Denali DDR1/DDR2 (440EPX and 440GRX) "denali,sdram-4xx-ddr2"
-+ *
-+ * For this controller, unfortunately, correctable errors report
-+ * nothing more than the beat/cycle and byte/lane the correction
-+ * occurred on and the check bit group that covered the error.
-+ *
-+ * In contrast, uncorrectable errors also report the failing address,
-+ * the bus master and the transaction direction (i.e. read or write)
-+ *
-+ * Regardless of whether the error is a CE or a UE, we report the
-+ * following pieces of information in the driver-unique message to the
-+ * EDAC subsystem:
-+ *
-+ *   - Device tree path
-+ *   - Bank(s)
-+ *   - Check bit error group
-+ *   - Beat(s)/lane(s)
-+ */
-+
-+/* Preprocessor Definitions */
-+
-+#define EDAC_OPSTATE_INT_STR		"interrupt"
-+#define EDAC_OPSTATE_POLL_STR		"polled"
-+#define EDAC_OPSTATE_UNKNOWN_STR	"unknown"
-+
-+#define PPC4XX_EDAC_MODULE_NAME		"ppc4xx_edac"
-+#define PPC4XX_EDAC_MODULE_REVISION	"v1.0.0 " __DATE__
-+
-+#define PPC4XX_EDAC_MESSAGE_SIZE	256
-+
-+/*
-+ * Kernel logging without an EDAC instance
-+ */
-+#define ppc4xx_edac_printk(level, fmt, arg...) \
-+	edac_printk(level, "PPC4xx MC", fmt, ##arg)
-+
-+/*
-+ * Kernel logging with an EDAC instance
-+ */
-+#define ppc4xx_edac_mc_printk(level, mci, fmt, arg...) \
-+	edac_mc_chipset_printk(mci, level, "PPC4xx", fmt, ##arg)
-+
-+/*
-+ * Macros to convert bank configuration size enumerations into MiB and
-+ * page values.
-+ */
-+#define SDRAM_MBCF_SZ_MiB_MIN		4
-+#define SDRAM_MBCF_SZ_TO_MiB(n)		(SDRAM_MBCF_SZ_MiB_MIN \
-+					 << (SDRAM_MBCF_SZ_DECODE(n)))
-+#define SDRAM_MBCF_SZ_TO_PAGES(n)	(SDRAM_MBCF_SZ_MiB_MIN \
-+					 << (20 - PAGE_SHIFT + \
-+					     SDRAM_MBCF_SZ_DECODE(n)))
-+
-+/*
-+ * The ibm,sdram-4xx-ddr2 Device Control Registers (DCRs) are
-+ * indirectly acccessed and have a base and length defined by the
-+ * device tree. The base can be anything; however, we expect the
-+ * length to be precisely two registers, the first for the address
-+ * window and the second for the data window.
-+ */
-+#define SDRAM_DCR_RESOURCE_LEN		2
-+#define SDRAM_DCR_ADDR_OFFSET		0
-+#define SDRAM_DCR_DATA_OFFSET		1
-+
-+/*
-+ * Device tree interrupt indices
-+ */
-+#define INTMAP_ECCDED_INDEX		0	/* Double-bit Error Detect */
-+#define INTMAP_ECCSEC_INDEX		1	/* Single-bit Error Correct */
-+
-+/* Type Definitions */
-+
-+/*
-+ * PPC4xx SDRAM memory controller private instance data
-+ */
-+struct ppc4xx_edac_pdata {
-+	dcr_host_t dcr_host;	/* Indirect DCR address/data window mapping */
-+	struct {
-+		int sec;	/* Single-bit correctable error IRQ assigned */
-+		int ded;	/* Double-bit detectable error IRQ assigned */
-+	} irqs;
-+};
-+
-+/*
-+ * Various status data gathered and manipulated when checking and
-+ * reporting ECC status.
-+ */
-+struct ppc4xx_ecc_status {
-+	u32 ecces;
-+	u32 besr;
-+	u32 bearh;
-+	u32 bearl;
-+	u32 wmirq;
-+};
-+
-+/* Function Prototypes */
-+
-+static int ppc4xx_edac_probe(struct of_device *device,
-+			     const struct of_device_id *device_id);
-+static int ppc4xx_edac_remove(struct of_device *device);
-+
-+/* Global Variables */
-+
-+/*
-+ * Device tree node type and compatible tuples this driver can match
-+ * on.
-+ */
-+static struct of_device_id ppc4xx_edac_match[] = {
-+	{
-+		.compatible	= "ibm,sdram-4xx-ddr2"
-+	},
-+	{ }
-+};
-+
-+static struct of_platform_driver ppc4xx_edac_driver = {
-+	.match_table		= ppc4xx_edac_match,
-+	.probe			= ppc4xx_edac_probe,
-+	.remove			= ppc4xx_edac_remove,
-+	.driver			= {
-+		.owner	= THIS_MODULE,
-+		.name	= PPC4XX_EDAC_MODULE_NAME
-+	}
-+};
-+
-+/*
-+ * TODO: The row and channel parameters likely need to be dynamically
-+ * set based on the aforementioned variant controller realizations.
-+ */
-+static const unsigned ppc4xx_edac_nr_csrows = 2;
-+static const unsigned ppc4xx_edac_nr_chans = 1;
-+
-+/*
-+ * Strings associated with PLB master IDs capable of being posted in
-+ * SDRAM_BESR or SDRAM_WMIRQ on uncorrectable ECC errors.
-+ */
-+static const char * const ppc4xx_plb_masters[9] = {
-+	[SDRAM_PLB_M0ID_ICU]	= "ICU",
-+	[SDRAM_PLB_M0ID_PCIE0]	= "PCI-E 0",
-+	[SDRAM_PLB_M0ID_PCIE1]	= "PCI-E 1",
-+	[SDRAM_PLB_M0ID_DMA]	= "DMA",
-+	[SDRAM_PLB_M0ID_DCU]	= "DCU",
-+	[SDRAM_PLB_M0ID_OPB]	= "OPB",
-+	[SDRAM_PLB_M0ID_MAL]	= "MAL",
-+	[SDRAM_PLB_M0ID_SEC]	= "SEC",
-+	[SDRAM_PLB_M0ID_AHB]	= "AHB"
-+};
-+
-+/**
-+ * mfsdram - read and return controller register data
-+ * @dcr_host: A pointer to the DCR mapping.
-+ * @idcr_n: The indirect DCR register to read.
-+ *
-+ * This routine reads and returns the data associated with the
-+ * controller's specified indirect DCR register.
-+ *
-+ * Returns the read data.
-+ */
-+static inline u32
-+mfsdram(const dcr_host_t *dcr_host, unsigned int idcr_n)
-+{
-+	return __mfdcri(dcr_host->base + SDRAM_DCR_ADDR_OFFSET,
-+			dcr_host->base + SDRAM_DCR_DATA_OFFSET,
-+			idcr_n);
-+}
-+
-+/**
-+ * mtsdram - write controller register data
-+ * @dcr_host: A pointer to the DCR mapping.
-+ * @idcr_n: The indirect DCR register to write.
-+ * @value: The data to write.
-+ *
-+ * This routine writes the provided data to the controller's specified
-+ * indirect DCR register.
-+ */
+ /******************************** Private Inlines *****************************/
+-static __inline void
 +static inline void
-+mtsdram(const dcr_host_t *dcr_host, unsigned int idcr_n, u32 value)
-+{
-+	return __mtdcri(dcr_host->base + SDRAM_DCR_ADDR_OFFSET,
-+			dcr_host->base + SDRAM_DCR_DATA_OFFSET,
-+			idcr_n,
-+			value);
-+}
-+
-+/**
-+ * ppc4xx_edac_check_bank_error - check a bank for an ECC bank error
-+ * @status: A pointer to the ECC status structure to check for an
-+ *          ECC bank error.
-+ * @bank: The bank to check for an ECC error.
-+ *
-+ * This routine determines whether the specified bank has an ECC
-+ * error.
-+ *
-+ * Returns true if the specified bank has an ECC error; otherwise,
-+ * false.
-+ */
-+static bool
-+ppc4xx_edac_check_bank_error(const struct ppc4xx_ecc_status *status,
-+			     unsigned int bank)
-+{
-+	switch (bank) {
-+	case 0:
-+		return status->ecces & SDRAM_ECCES_BK0ER;
-+	case 1:
-+		return status->ecces & SDRAM_ECCES_BK1ER;
-+	default:
-+		return false;
-+	}
-+}
-+
-+/**
-+ * ppc4xx_edac_generate_bank_message - generate interpretted bank status message
-+ * @mci: A pointer to the EDAC memory controller instance associated
-+ *       with the bank message being generated.
-+ * @status: A pointer to the ECC status structure to generate the
-+ *          message from.
-+ * @buffer: A pointer to the buffer in which to generate the
-+ *          message.
-+ * @size: The size, in bytes, of space available in buffer.
-+ *
-+ * This routine generates to the provided buffer the portion of the
-+ * driver-unique report message associated with the ECCESS[BKNER]
-+ * field of the specified ECC status.
-+ *
-+ * Returns the number of characters generated on success; otherwise, <
-+ * 0 on error.
-+ */
-+static int
-+ppc4xx_edac_generate_bank_message(const struct mem_ctl_info *mci,
-+				  const struct ppc4xx_ecc_status *status,
-+				  char *buffer,
-+				  size_t size)
-+{
-+	int n, total = 0;
-+	unsigned int row, rows;
-+
-+	n = snprintf(buffer, size, "%s: Banks: ", mci->dev_name);
-+
-+	if (n < 0 || n >= size)
-+		goto fail;
-+
-+	buffer += n;
-+	size -= n;
-+	total += n;
-+
-+	for (rows = 0, row = 0; row < mci->nr_csrows; row++) {
-+		if (ppc4xx_edac_check_bank_error(status, row)) {
-+			n = snprintf(buffer, size, "%s%u",
-+					(rows++ ? ", " : ""), row);
-+
-+			if (n < 0 || n >= size)
-+				goto fail;
-+
-+			buffer += n;
-+			size -= n;
-+			total += n;
-+		}
-+	}
-+
-+	n = snprintf(buffer, size, "%s; ", rows ? "" : "None");
-+
-+	if (n < 0 || n >= size)
-+		goto fail;
-+
-+	buffer += n;
-+	size -= n;
-+	total += n;
-+
-+ fail:
-+	return total;
-+}
-+
-+/**
-+ * ppc4xx_edac_generate_checkbit_message - generate interpretted checkbit message
-+ * @mci: A pointer to the EDAC memory controller instance associated
-+ *       with the checkbit message being generated.
-+ * @status: A pointer to the ECC status structure to generate the
-+ *          message from.
-+ * @buffer: A pointer to the buffer in which to generate the
-+ *          message.
-+ * @size: The size, in bytes, of space available in buffer.
-+ *
-+ * This routine generates to the provided buffer the portion of the
-+ * driver-unique report message associated with the ECCESS[CKBER]
-+ * field of the specified ECC status.
-+ *
-+ * Returns the number of characters generated on success; otherwise, <
-+ * 0 on error.
-+ */
-+static int
-+ppc4xx_edac_generate_checkbit_message(const struct mem_ctl_info *mci,
-+				      const struct ppc4xx_ecc_status *status,
-+				      char *buffer,
-+				      size_t size)
-+{
-+	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
-+	const char *ckber = NULL;
-+
-+	switch (status->ecces & SDRAM_ECCES_CKBER_MASK) {
-+	case SDRAM_ECCES_CKBER_NONE:
-+		ckber = "None";
-+		break;
-+	case SDRAM_ECCES_CKBER_32_ECC_0_3:
-+		ckber = "ECC0:3";
-+		break;
-+	case SDRAM_ECCES_CKBER_32_ECC_4_8:
-+		switch (mfsdram(&pdata->dcr_host, SDRAM_MCOPT1) &
-+			SDRAM_MCOPT1_WDTH_MASK) {
-+		case SDRAM_MCOPT1_WDTH_16:
-+			ckber = "ECC0:3";
-+			break;
-+		case SDRAM_MCOPT1_WDTH_32:
-+			ckber = "ECC4:8";
-+			break;
-+		default:
-+			ckber = "Unknown";
-+			break;
-+		}
-+		break;
-+	case SDRAM_ECCES_CKBER_32_ECC_0_8:
-+		ckber = "ECC0:8";
-+		break;
-+	default:
-+		ckber = "Unknown";
-+		break;
-+	}
-+
-+	return snprintf(buffer, size, "Checkbit Error: %s", ckber);
-+}
-+
-+/**
-+ * ppc4xx_edac_generate_lane_message - generate interpretted byte lane message
-+ * @mci: A pointer to the EDAC memory controller instance associated
-+ *       with the byte lane message being generated.
-+ * @status: A pointer to the ECC status structure to generate the
-+ *          message from.
-+ * @buffer: A pointer to the buffer in which to generate the
-+ *          message.
-+ * @size: The size, in bytes, of space available in buffer.
-+ *
-+ * This routine generates to the provided buffer the portion of the
-+ * driver-unique report message associated with the ECCESS[BNCE]
-+ * field of the specified ECC status.
-+ *
-+ * Returns the number of characters generated on success; otherwise, <
-+ * 0 on error.
-+ */
-+static int
-+ppc4xx_edac_generate_lane_message(const struct mem_ctl_info *mci,
-+				  const struct ppc4xx_ecc_status *status,
-+				  char *buffer,
-+				  size_t size)
-+{
-+	int n, total = 0;
-+	unsigned int lane, lanes;
-+	const unsigned int first_lane = 0;
-+	const unsigned int lane_count = 16;
-+
-+	n = snprintf(buffer, size, "; Byte Lane Errors: ");
-+
-+	if (n < 0 || n >= size)
-+		goto fail;
-+
-+	buffer += n;
-+	size -= n;
-+	total += n;
-+
-+	for (lanes = 0, lane = first_lane; lane < lane_count; lane++) {
-+		if ((status->ecces & SDRAM_ECCES_BNCE_ENCODE(lane)) != 0) {
-+			n = snprintf(buffer, size,
-+				     "%s%u",
-+				     (lanes++ ? ", " : ""), lane);
-+
-+			if (n < 0 || n >= size)
-+				goto fail;
-+
-+			buffer += n;
-+			size -= n;
-+			total += n;
-+		}
-+	}
-+
-+	n = snprintf(buffer, size, "%s; ", lanes ? "" : "None");
-+
-+	if (n < 0 || n >= size)
-+		goto fail;
-+
-+	buffer += n;
-+	size -= n;
-+	total += n;
-+
-+ fail:
-+	return total;
-+}
-+
-+/**
-+ * ppc4xx_edac_generate_ecc_message - generate interpretted ECC status message
-+ * @mci: A pointer to the EDAC memory controller instance associated
-+ *       with the ECCES message being generated.
-+ * @status: A pointer to the ECC status structure to generate the
-+ *          message from.
-+ * @buffer: A pointer to the buffer in which to generate the
-+ *          message.
-+ * @size: The size, in bytes, of space available in buffer.
-+ *
-+ * This routine generates to the provided buffer the portion of the
-+ * driver-unique report message associated with the ECCESS register of
-+ * the specified ECC status.
-+ *
-+ * Returns the number of characters generated on success; otherwise, <
-+ * 0 on error.
-+ */
-+static int
-+ppc4xx_edac_generate_ecc_message(const struct mem_ctl_info *mci,
-+				 const struct ppc4xx_ecc_status *status,
-+				 char *buffer,
-+				 size_t size)
-+{
-+	int n, total = 0;
-+
-+	n = ppc4xx_edac_generate_bank_message(mci, status, buffer, size);
-+
-+	if (n < 0 || n >= size)
-+		goto fail;
-+
-+	buffer += n;
-+	size -= n;
-+	total += n;
-+
-+	n = ppc4xx_edac_generate_checkbit_message(mci, status, buffer, size);
-+
-+	if (n < 0 || n >= size)
-+		goto fail;
-+
-+	buffer += n;
-+	size -= n;
-+	total += n;
-+
-+	n = ppc4xx_edac_generate_lane_message(mci, status, buffer, size);
-+
-+	if (n < 0 || n >= size)
-+		goto fail;
-+
-+	buffer += n;
-+	size -= n;
-+	total += n;
-+
-+ fail:
-+	return total;
-+}
-+
-+/**
-+ * ppc4xx_edac_generate_plb_message - generate interpretted PLB status message
-+ * @mci: A pointer to the EDAC memory controller instance associated
-+ *       with the PLB message being generated.
-+ * @status: A pointer to the ECC status structure to generate the
-+ *          message from.
-+ * @buffer: A pointer to the buffer in which to generate the
-+ *          message.
-+ * @size: The size, in bytes, of space available in buffer.
-+ *
-+ * This routine generates to the provided buffer the portion of the
-+ * driver-unique report message associated with the PLB-related BESR
-+ * and/or WMIRQ registers of the specified ECC status.
-+ *
-+ * Returns the number of characters generated on success; otherwise, <
-+ * 0 on error.
-+ */
-+static int
-+ppc4xx_edac_generate_plb_message(const struct mem_ctl_info *mci,
-+				 const struct ppc4xx_ecc_status *status,
-+				 char *buffer,
-+				 size_t size)
-+{
-+	unsigned int master;
-+	bool read;
-+
-+	if ((status->besr & SDRAM_BESR_MASK) == 0)
-+		return 0;
-+
-+	if ((status->besr & SDRAM_BESR_M0ET_MASK) == SDRAM_BESR_M0ET_NONE)
-+		return 0;
-+
-+	read = ((status->besr & SDRAM_BESR_M0RW_MASK) == SDRAM_BESR_M0RW_READ);
-+
-+	master = SDRAM_BESR_M0ID_DECODE(status->besr);
-+
-+	return snprintf(buffer, size,
-+			"%s error w/ PLB master %u \"%s\"; ",
-+			(read ? "Read" : "Write"),
-+			master,
-+			(((master >= SDRAM_PLB_M0ID_FIRST) &&
-+			  (master <= SDRAM_PLB_M0ID_LAST)) ?
-+			 ppc4xx_plb_masters[master] : "UNKNOWN"));
-+}
-+
-+/**
-+ * ppc4xx_edac_generate_message - generate interpretted status message
-+ * @mci: A pointer to the EDAC memory controller instance associated
-+ *       with the driver-unique message being generated.
-+ * @status: A pointer to the ECC status structure to generate the
-+ *          message from.
-+ * @buffer: A pointer to the buffer in which to generate the
-+ *          message.
-+ * @size: The size, in bytes, of space available in buffer.
-+ *
-+ * This routine generates to the provided buffer the driver-unique
-+ * EDAC report message from the specified ECC status.
-+ */
-+static void
-+ppc4xx_edac_generate_message(const struct mem_ctl_info *mci,
-+			     const struct ppc4xx_ecc_status *status,
-+			     char *buffer,
-+			     size_t size)
-+{
-+	int n;
-+
-+	if (buffer == NULL || size == 0)
-+		return;
-+
-+	n = ppc4xx_edac_generate_ecc_message(mci, status, buffer, size);
-+
-+	if (n < 0 || n >= size)
-+		return;
-+
-+	buffer += n;
-+	size -= n;
-+
-+	ppc4xx_edac_generate_plb_message(mci, status, buffer, size);
-+}
-+
-+#ifdef DEBUG
-+/**
-+ * ppc4xx_ecc_dump_status - dump controller ECC status registers
-+ * @mci: A pointer to the EDAC memory controller instance
-+ *       associated with the status being dumped.
-+ * @status: A pointer to the ECC status structure to generate the
-+ *          dump from.
-+ *
-+ * This routine dumps to the kernel log buffer the raw and
-+ * interpretted specified ECC status.
-+ */
-+static void
-+ppc4xx_ecc_dump_status(const struct mem_ctl_info *mci,
-+		       const struct ppc4xx_ecc_status *status)
-+{
-+	char message[PPC4XX_EDAC_MESSAGE_SIZE];
-+
-+	ppc4xx_edac_generate_message(mci, status, message, sizeof(message));
-+
-+	ppc4xx_edac_mc_printk(KERN_INFO, mci,
-+			      "\n"
-+			      "\tECCES: 0x%08x\n"
-+			      "\tWMIRQ: 0x%08x\n"
-+			      "\tBESR:  0x%08x\n"
-+			      "\tBEAR:  0x%08x%08x\n"
-+			      "\t%s\n",
-+			      status->ecces,
-+			      status->wmirq,
-+			      status->besr,
-+			      status->bearh,
-+			      status->bearl,
-+			      message);
-+}
-+#endif /* DEBUG */
-+
-+/**
-+ * ppc4xx_ecc_get_status - get controller ECC status
-+ * @mci: A pointer to the EDAC memory controller instance
-+ *       associated with the status being retrieved.
-+ * @status: A pointer to the ECC status structure to populate the
-+ *          ECC status with.
-+ *
-+ * This routine reads and masks, as appropriate, all the relevant
-+ * status registers that deal with ibm,sdram-4xx-ddr2 ECC errors.
-+ * While we read all of them, for correctable errors, we only expect
-+ * to deal with ECCES. For uncorrectable errors, we expect to deal
-+ * with all of them.
-+ */
-+static void
-+ppc4xx_ecc_get_status(const struct mem_ctl_info *mci,
-+		      struct ppc4xx_ecc_status *status)
-+{
-+	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
-+	const dcr_host_t *dcr_host = &pdata->dcr_host;
-+
-+	status->ecces = mfsdram(dcr_host, SDRAM_ECCES) & SDRAM_ECCES_MASK;
-+	status->wmirq = mfsdram(dcr_host, SDRAM_WMIRQ) & SDRAM_WMIRQ_MASK;
-+	status->besr  = mfsdram(dcr_host, SDRAM_BESR)  & SDRAM_BESR_MASK;
-+	status->bearl = mfsdram(dcr_host, SDRAM_BEARL);
-+	status->bearh = mfsdram(dcr_host, SDRAM_BEARH);
-+}
-+
-+/**
-+ * ppc4xx_ecc_clear_status - clear controller ECC status
-+ * @mci: A pointer to the EDAC memory controller instance
-+ *       associated with the status being cleared.
-+ * @status: A pointer to the ECC status structure containing the
-+ *          values to write to clear the ECC status.
-+ *
-+ * This routine clears--by writing the masked (as appropriate) status
-+ * values back to--the status registers that deal with
-+ * ibm,sdram-4xx-ddr2 ECC errors.
-+ */
-+static void
-+ppc4xx_ecc_clear_status(const struct mem_ctl_info *mci,
-+			const struct ppc4xx_ecc_status *status)
-+{
-+	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
-+	const dcr_host_t *dcr_host = &pdata->dcr_host;
-+
-+	mtsdram(dcr_host, SDRAM_ECCES,	status->ecces & SDRAM_ECCES_MASK);
-+	mtsdram(dcr_host, SDRAM_WMIRQ,	status->wmirq & SDRAM_WMIRQ_MASK);
-+	mtsdram(dcr_host, SDRAM_BESR,	status->besr & SDRAM_BESR_MASK);
-+	mtsdram(dcr_host, SDRAM_BEARL,	0);
-+	mtsdram(dcr_host, SDRAM_BEARH,	0);
-+}
-+
-+/**
-+ * ppc4xx_edac_handle_ce - handle controller correctable ECC error (CE)
-+ * @mci: A pointer to the EDAC memory controller instance
-+ *       associated with the correctable error being handled and reported.
-+ * @status: A pointer to the ECC status structure associated with
-+ *          the correctable error being handled and reported.
-+ *
-+ * This routine handles an ibm,sdram-4xx-ddr2 controller ECC
-+ * correctable error. Per the aforementioned discussion, there's not
-+ * enough status available to use the full EDAC correctable error
-+ * interface, so we just pass driver-unique message to the "no info"
-+ * interface.
-+ */
-+static void
-+ppc4xx_edac_handle_ce(struct mem_ctl_info *mci,
-+		      const struct ppc4xx_ecc_status *status)
-+{
-+	int row;
-+	char message[PPC4XX_EDAC_MESSAGE_SIZE];
-+
-+	ppc4xx_edac_generate_message(mci, status, message, sizeof(message));
-+
-+	for (row = 0; row < mci->nr_csrows; row++)
-+		if (ppc4xx_edac_check_bank_error(status, row))
-+			edac_mc_handle_ce_no_info(mci, message);
-+}
-+
-+/**
-+ * ppc4xx_edac_handle_ue - handle controller uncorrectable ECC error (UE)
-+ * @mci: A pointer to the EDAC memory controller instance
-+ *       associated with the uncorrectable error being handled and
-+ *       reported.
-+ * @status: A pointer to the ECC status structure associated with
-+ *          the uncorrectable error being handled and reported.
-+ *
-+ * This routine handles an ibm,sdram-4xx-ddr2 controller ECC
-+ * uncorrectable error.
-+ */
-+static void
-+ppc4xx_edac_handle_ue(struct mem_ctl_info *mci,
-+		      const struct ppc4xx_ecc_status *status)
-+{
-+	const u64 bear = ((u64)status->bearh << 32 | status->bearl);
-+	const unsigned long page = bear >> PAGE_SHIFT;
-+	const unsigned long offset = bear & ~PAGE_MASK;
-+	int row;
-+	char message[PPC4XX_EDAC_MESSAGE_SIZE];
-+
-+	ppc4xx_edac_generate_message(mci, status, message, sizeof(message));
-+
-+	for (row = 0; row < mci->nr_csrows; row++)
-+		if (ppc4xx_edac_check_bank_error(status, row))
-+			edac_mc_handle_ue(mci, page, offset, row, message);
-+}
-+
-+/**
-+ * ppc4xx_edac_check - check controller for ECC errors
-+ * @mci: A pointer to the EDAC memory controller instance
-+ *       associated with the ibm,sdram-4xx-ddr2 controller being
-+ *       checked.
-+ *
-+ * This routine is used to check and post ECC errors and is called by
-+ * both the EDAC polling thread and this driver's CE and UE interrupt
-+ * handler.
-+ */
-+static void
-+ppc4xx_edac_check(struct mem_ctl_info *mci)
-+{
-+#ifdef DEBUG
-+	static unsigned int count;
-+#endif
-+	struct ppc4xx_ecc_status status;
-+
-+	ppc4xx_ecc_get_status(mci, &status);
-+
-+#ifdef DEBUG
-+	if (count++ % 30 == 0)
-+		ppc4xx_ecc_dump_status(mci, &status);
-+#endif
-+
-+	if (status.ecces & SDRAM_ECCES_UE)
-+		ppc4xx_edac_handle_ue(mci, &status);
-+
-+	if (status.ecces & SDRAM_ECCES_CE)
-+		ppc4xx_edac_handle_ce(mci, &status);
-+
-+	ppc4xx_ecc_clear_status(mci, &status);
-+}
-+
-+/**
-+ * ppc4xx_edac_isr - SEC (CE) and DED (UE) interrupt service routine
-+ * @irq:    The virtual interrupt number being serviced.
-+ * @dev_id: A pointer to the EDAC memory controller instance
-+ *          associated with the interrupt being handled.
-+ *
-+ * This routine implements the interrupt handler for both correctable
-+ * (CE) and uncorrectable (UE) ECC errors for the ibm,sdram-4xx-ddr2
-+ * controller. It simply calls through to the same routine used during
-+ * polling to check, report and clear the ECC status.
-+ *
-+ * Unconditionally returns IRQ_HANDLED.
-+ */
-+static irqreturn_t
-+ppc4xx_edac_isr(int irq, void *dev_id)
-+{
-+	struct mem_ctl_info *mci = dev_id;
-+
-+	ppc4xx_edac_check(mci);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/**
-+ * ppc4xx_edac_get_dtype - return the controller memory width
-+ * @mcopt1: The 32-bit Memory Controller Option 1 register value
-+ *          currently set for the controller, from which the width
-+ *          is derived.
-+ *
-+ * This routine returns the EDAC device type width appropriate for the
-+ * current controller configuration.
-+ *
-+ * TODO: This needs to be conditioned dynamically through feature
-+ * flags or some such when other controller variants are supported as
-+ * the 405EX[r] is 16-/32-bit and the others are 32-/64-bit with the
-+ * 16- and 64-bit field definition/value/enumeration (b1) overloaded
-+ * among them.
-+ *
-+ * Returns a device type width enumeration.
-+ */
-+static enum dev_type __devinit
-+ppc4xx_edac_get_dtype(u32 mcopt1)
-+{
-+	switch (mcopt1 & SDRAM_MCOPT1_WDTH_MASK) {
-+	case SDRAM_MCOPT1_WDTH_16:
-+		return DEV_X2;
-+	case SDRAM_MCOPT1_WDTH_32:
-+		return DEV_X4;
-+	default:
-+		return DEV_UNKNOWN;
-+	}
-+}
-+
-+/**
-+ * ppc4xx_edac_get_mtype - return controller memory type
-+ * @mcopt1: The 32-bit Memory Controller Option 1 register value
-+ *          currently set for the controller, from which the memory type
-+ *          is derived.
-+ *
-+ * This routine returns the EDAC memory type appropriate for the
-+ * current controller configuration.
-+ *
-+ * Returns a memory type enumeration.
-+ */
-+static enum mem_type __devinit
-+ppc4xx_edac_get_mtype(u32 mcopt1)
-+{
-+	bool rden = ((mcopt1 & SDRAM_MCOPT1_RDEN_MASK) == SDRAM_MCOPT1_RDEN);
-+
-+	switch (mcopt1 & SDRAM_MCOPT1_DDR_TYPE_MASK) {
-+	case SDRAM_MCOPT1_DDR2_TYPE:
-+		return rden ? MEM_RDDR2 : MEM_DDR2;
-+	case SDRAM_MCOPT1_DDR1_TYPE:
-+		return rden ? MEM_RDDR : MEM_DDR;
-+	default:
-+		return MEM_UNKNOWN;
-+	}
-+}
-+
-+/**
-+ * ppc4xx_edac_init_csrows - intialize driver instance rows
-+ * @mci: A pointer to the EDAC memory controller instance
-+ *       associated with the ibm,sdram-4xx-ddr2 controller for which
-+ *       the csrows (i.e. banks/ranks) are being initialized.
-+ * @mcopt1: The 32-bit Memory Controller Option 1 register value
-+ *          currently set for the controller, from which bank width
-+ *          and memory typ information is derived.
-+ *
-+ * This routine intializes the virtual "chip select rows" associated
-+ * with the EDAC memory controller instance. An ibm,sdram-4xx-ddr2
-+ * controller bank/rank is mapped to a row.
-+ *
-+ * Returns 0 if OK; otherwise, -EINVAL if the memory bank size
-+ * configuration cannot be determined.
-+ */
-+static int __devinit
-+ppc4xx_edac_init_csrows(struct mem_ctl_info *mci, u32 mcopt1)
-+{
-+	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
-+	int status = 0;
-+	enum mem_type mtype;
-+	enum dev_type dtype;
-+	enum edac_type edac_mode;
-+	int row;
-+	u32 mbxcf, size;
-+	static u32 ppc4xx_last_page;
-+
-+	/* Establish the memory type and width */
-+
-+	mtype = ppc4xx_edac_get_mtype(mcopt1);
-+	dtype = ppc4xx_edac_get_dtype(mcopt1);
-+
-+	/* Establish EDAC mode */
-+
-+	if (mci->edac_cap & EDAC_FLAG_SECDED)
-+		edac_mode = EDAC_SECDED;
-+	else if (mci->edac_cap & EDAC_FLAG_EC)
-+		edac_mode = EDAC_EC;
-+	else
-+		edac_mode = EDAC_NONE;
-+
-+	/*
-+	 * Initialize each chip select row structure which correspond
-+	 * 1:1 with a controller bank/rank.
-+	 */
-+
-+	for (row = 0; row < mci->nr_csrows; row++) {
-+		struct csrow_info *csi = &mci->csrows[row];
-+
-+		/*
-+		 * Get the configuration settings for this
-+		 * row/bank/rank and skip disabled banks.
-+		 */
-+
-+		mbxcf = mfsdram(&pdata->dcr_host, SDRAM_MBXCF(row));
-+
-+		if ((mbxcf & SDRAM_MBCF_BE_MASK) != SDRAM_MBCF_BE_ENABLE)
-+			continue;
-+
-+		/* Map the bank configuration size setting to pages. */
-+
-+		size = mbxcf & SDRAM_MBCF_SZ_MASK;
-+
-+		switch (size) {
-+		case SDRAM_MBCF_SZ_4MB:
-+		case SDRAM_MBCF_SZ_8MB:
-+		case SDRAM_MBCF_SZ_16MB:
-+		case SDRAM_MBCF_SZ_32MB:
-+		case SDRAM_MBCF_SZ_64MB:
-+		case SDRAM_MBCF_SZ_128MB:
-+		case SDRAM_MBCF_SZ_256MB:
-+		case SDRAM_MBCF_SZ_512MB:
-+		case SDRAM_MBCF_SZ_1GB:
-+		case SDRAM_MBCF_SZ_2GB:
-+		case SDRAM_MBCF_SZ_4GB:
-+		case SDRAM_MBCF_SZ_8GB:
-+			csi->nr_pages = SDRAM_MBCF_SZ_TO_PAGES(size);
-+			break;
-+		default:
-+			ppc4xx_edac_mc_printk(KERN_ERR, mci,
-+					      "Unrecognized memory bank %d "
-+					      "size 0x%08x\n",
-+					      row, SDRAM_MBCF_SZ_DECODE(size));
-+			status = -EINVAL;
-+			goto done;
-+		}
-+
-+		csi->first_page = ppc4xx_last_page;
-+		csi->last_page	= csi->first_page + csi->nr_pages - 1;
-+		csi->page_mask	= 0;
-+
-+		/*
-+		 * It's unclear exactly what grain should be set to
-+		 * here. The SDRAM_ECCES register allows resolution of
-+		 * an error down to a nibble which would potentially
-+		 * argue for a grain of '1' byte, even though we only
-+		 * know the associated address for uncorrectable
-+		 * errors. This value is not used at present for
-+		 * anything other than error reporting so getting it
-+		 * wrong should be of little consequence. Other
-+		 * possible values would be the PLB width (16), the
-+		 * page size (PAGE_SIZE) or the memory width (2 or 4).
-+		 */
-+
-+		csi->grain	= 1;
-+
-+		csi->mtype	= mtype;
-+		csi->dtype	= dtype;
-+
-+		csi->edac_mode	= edac_mode;
-+
-+		ppc4xx_last_page += csi->nr_pages;
-+	}
-+
-+ done:
-+	return status;
-+}
-+
-+/**
-+ * ppc4xx_edac_mc_init - intialize driver instance
-+ * @mci: A pointer to the EDAC memory controller instance being
-+ *       initialized.
-+ * @op: A pointer to the OpenFirmware device tree node associated
-+ *      with the controller this EDAC instance is bound to.
-+ * @match: A pointer to the OpenFirmware device tree match
-+ *         information associated with the controller this EDAC instance
-+ *         is bound to.
-+ * @dcr_host: A pointer to the DCR data containing the DCR mapping
-+ *            for this controller instance.
-+ * @mcopt1: The 32-bit Memory Controller Option 1 register value
-+ *          currently set for the controller, from which ECC capabilities
-+ *          and scrub mode are derived.
-+ *
-+ * This routine performs initialization of the EDAC memory controller
-+ * instance and related driver-private data associated with the
-+ * ibm,sdram-4xx-ddr2 memory controller the instance is bound to.
-+ *
-+ * Returns 0 if OK; otherwise, < 0 on error.
-+ */
-+static int __devinit
-+ppc4xx_edac_mc_init(struct mem_ctl_info *mci,
-+		    struct of_device *op,
-+		    const struct of_device_id *match,
-+		    const dcr_host_t *dcr_host,
-+		    u32 mcopt1)
-+{
-+	int status = 0;
-+	const u32 memcheck = (mcopt1 & SDRAM_MCOPT1_MCHK_MASK);
-+	struct ppc4xx_edac_pdata *pdata = NULL;
-+	const struct device_node *np = op->node;
-+
-+	if (match == NULL)
-+		return -EINVAL;
-+
-+	/* Initial driver pointers and private data */
-+
-+	mci->dev		= &op->dev;
-+
-+	dev_set_drvdata(mci->dev, mci);
-+
-+	pdata			= mci->pvt_info;
-+
-+	pdata->dcr_host		= *dcr_host;
-+	pdata->irqs.sec		= NO_IRQ;
-+	pdata->irqs.ded		= NO_IRQ;
-+
-+	/* Initialize controller capabilities and configuration */
-+
-+	mci->mtype_cap		= (MEM_FLAG_DDR | MEM_FLAG_RDDR |
-+				   MEM_FLAG_DDR2 | MEM_FLAG_RDDR2);
-+
-+	mci->edac_ctl_cap	= (EDAC_FLAG_NONE |
-+				   EDAC_FLAG_EC |
-+				   EDAC_FLAG_SECDED);
-+
-+	mci->scrub_cap		= SCRUB_NONE;
-+	mci->scrub_mode		= SCRUB_NONE;
-+
-+	/*
-+	 * Update the actual capabilites based on the MCOPT1[MCHK]
-+	 * settings. Scrubbing is only useful if reporting is enabled.
-+	 */
-+
-+	switch (memcheck) {
-+	case SDRAM_MCOPT1_MCHK_CHK:
-+		mci->edac_cap	= EDAC_FLAG_EC;
-+		break;
-+	case SDRAM_MCOPT1_MCHK_CHK_REP:
-+		mci->edac_cap	= (EDAC_FLAG_EC | EDAC_FLAG_SECDED);
-+		mci->scrub_mode	= SCRUB_SW_SRC;
-+		break;
-+	default:
-+		mci->edac_cap	= EDAC_FLAG_NONE;
-+		break;
-+	}
-+
-+	/* Initialize strings */
-+
-+	mci->mod_name		= PPC4XX_EDAC_MODULE_NAME;
-+	mci->mod_ver		= PPC4XX_EDAC_MODULE_REVISION;
-+	mci->ctl_name		= match->compatible,
-+	mci->dev_name		= np->full_name;
-+
-+	/* Initialize callbacks */
-+
-+	mci->edac_check		= ppc4xx_edac_check;
-+	mci->ctl_page_to_phys	= NULL;
-+
-+	/* Initialize chip select rows */
-+
-+	status = ppc4xx_edac_init_csrows(mci, mcopt1);
-+
-+	if (status)
-+		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-+				      "Failed to initialize rows!\n");
-+
-+	return status;
-+}
-+
-+/**
-+ * ppc4xx_edac_register_irq - setup and register controller interrupts
-+ * @op: A pointer to the OpenFirmware device tree node associated
-+ *      with the controller this EDAC instance is bound to.
-+ * @mci: A pointer to the EDAC memory controller instance
-+ *       associated with the ibm,sdram-4xx-ddr2 controller for which
-+ *       interrupts are being registered.
-+ *
-+ * This routine parses the correctable (CE) and uncorrectable error (UE)
-+ * interrupts from the device tree node and maps and assigns them to
-+ * the associated EDAC memory controller instance.
-+ *
-+ * Returns 0 if OK; otherwise, -ENODEV if the interrupts could not be
-+ * mapped and assigned.
-+ */
-+static int __devinit
-+ppc4xx_edac_register_irq(struct of_device *op, struct mem_ctl_info *mci)
-+{
-+	int status = 0;
-+	int ded_irq, sec_irq;
-+	struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
-+	struct device_node *np = op->node;
-+
-+	ded_irq = irq_of_parse_and_map(np, INTMAP_ECCDED_INDEX);
-+	sec_irq = irq_of_parse_and_map(np, INTMAP_ECCSEC_INDEX);
-+
-+	if (ded_irq == NO_IRQ || sec_irq == NO_IRQ) {
-+		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-+				      "Unable to map interrupts.\n");
-+		status = -ENODEV;
-+		goto fail;
-+	}
-+
-+	status = request_irq(ded_irq,
-+			     ppc4xx_edac_isr,
-+			     IRQF_DISABLED,
-+			     "[EDAC] MC ECCDED",
-+			     mci);
-+
-+	if (status < 0) {
-+		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-+				      "Unable to request irq %d for ECC DED",
-+				      ded_irq);
-+		status = -ENODEV;
-+		goto fail1;
-+	}
-+
-+	status = request_irq(sec_irq,
-+			     ppc4xx_edac_isr,
-+			     IRQF_DISABLED,
-+			     "[EDAC] MC ECCSEC",
-+			     mci);
-+
-+	if (status < 0) {
-+		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-+				      "Unable to request irq %d for ECC SEC",
-+				      sec_irq);
-+		status = -ENODEV;
-+		goto fail2;
-+	}
-+
-+	ppc4xx_edac_mc_printk(KERN_INFO, mci, "ECCDED irq is %d\n", ded_irq);
-+	ppc4xx_edac_mc_printk(KERN_INFO, mci, "ECCSEC irq is %d\n", sec_irq);
-+
-+	pdata->irqs.ded = ded_irq;
-+	pdata->irqs.sec = sec_irq;
-+
-+	return 0;
-+
-+ fail2:
-+	free_irq(sec_irq, mci);
-+
-+ fail1:
-+	free_irq(ded_irq, mci);
-+
-+ fail:
-+	return status;
-+}
-+
-+/**
-+ * ppc4xx_edac_map_dcrs - locate and map controller registers
-+ * @np: A pointer to the device tree node containing the DCR
-+ *      resources to map.
-+ * @dcr_host: A pointer to the DCR data to populate with the
-+ *            DCR mapping.
-+ *
-+ * This routine attempts to locate in the device tree and map the DCR
-+ * register resources associated with the controller's indirect DCR
-+ * address and data windows.
-+ *
-+ * Returns 0 if the DCRs were successfully mapped; otherwise, < 0 on
-+ * error.
-+ */
-+static int __devinit
-+ppc4xx_edac_map_dcrs(const struct device_node *np, dcr_host_t *dcr_host)
-+{
-+	unsigned int dcr_base, dcr_len;
-+
-+	if (np == NULL || dcr_host == NULL)
-+		return -EINVAL;
-+
-+	/* Get the DCR resource extent and sanity check the values. */
-+
-+	dcr_base = dcr_resource_start(np, 0);
-+	dcr_len = dcr_resource_len(np, 0);
-+
-+	if (dcr_base == 0 || dcr_len == 0) {
-+		ppc4xx_edac_printk(KERN_ERR,
-+				   "Failed to obtain DCR property.\n");
-+		return -ENODEV;
-+	}
-+
-+	if (dcr_len != SDRAM_DCR_RESOURCE_LEN) {
-+		ppc4xx_edac_printk(KERN_ERR,
-+				   "Unexpected DCR length %d, expected %d.\n",
-+				   dcr_len, SDRAM_DCR_RESOURCE_LEN);
-+		return -ENODEV;
-+	}
-+
-+	/*  Attempt to map the DCR extent. */
-+
-+	*dcr_host = dcr_map(np, dcr_base, dcr_len);
-+
-+	if (!DCR_MAP_OK(*dcr_host)) {
-+		ppc4xx_edac_printk(KERN_INFO, "Failed to map DCRs.\n");
-+		    return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * ppc4xx_edac_probe - check controller and bind driver
-+ * @op: A pointer to the OpenFirmware device tree node associated
-+ *      with the controller being probed for driver binding.
-+ * @match: A pointer to the OpenFirmware device tree match
-+ *         information associated with the controller being probed
-+ *         for driver binding.
-+ *
-+ * This routine probes a specific ibm,sdram-4xx-ddr2 controller
-+ * instance for binding with the driver.
-+ *
-+ * Returns 0 if the controller instance was successfully bound to the
-+ * driver; otherwise, < 0 on error.
-+ */
-+static int __devinit
-+ppc4xx_edac_probe(struct of_device *op, const struct of_device_id *match)
-+{
-+	int status = 0;
-+	u32 mcopt1, memcheck;
-+	dcr_host_t dcr_host;
-+	const struct device_node *np = op->node;
-+	struct mem_ctl_info *mci = NULL;
-+	static int ppc4xx_edac_instance;
-+
-+	/*
-+	 * At this point, we only support the controller realized on
-+	 * the AMCC PPC 405EX[r]. Reject anything else.
-+	 */
-+
-+	if (!of_device_is_compatible(np, "ibm,sdram-405ex") &&
-+	    !of_device_is_compatible(np, "ibm,sdram-405exr")) {
-+		ppc4xx_edac_printk(KERN_NOTICE,
-+				   "Only the PPC405EX[r] is supported.\n");
-+		return -ENODEV;
-+	}
-+
-+	/*
-+	 * Next, get the DCR property and attempt to map it so that we
-+	 * can probe the controller.
-+	 */
-+
-+	status = ppc4xx_edac_map_dcrs(np, &dcr_host);
-+
-+	if (status)
-+		return status;
-+
-+	/*
-+	 * First determine whether ECC is enabled at all. If not,
-+	 * there is no useful checking or monitoring that can be done
-+	 * for this controller.
-+	 */
-+
-+	mcopt1 = mfsdram(&dcr_host, SDRAM_MCOPT1);
-+	memcheck = (mcopt1 & SDRAM_MCOPT1_MCHK_MASK);
-+
-+	if (memcheck == SDRAM_MCOPT1_MCHK_NON) {
-+		ppc4xx_edac_printk(KERN_INFO, "%s: No ECC memory detected or "
-+				   "ECC is disabled.\n", np->full_name);
-+		status = -ENODEV;
-+		goto done;
-+	}
-+
-+	/*
-+	 * At this point, we know ECC is enabled, allocate an EDAC
-+	 * controller instance and perform the appropriate
-+	 * initialization.
-+	 */
-+
-+	mci = edac_mc_alloc(sizeof(struct ppc4xx_edac_pdata),
-+			    ppc4xx_edac_nr_csrows,
-+			    ppc4xx_edac_nr_chans,
-+			    ppc4xx_edac_instance);
-+
-+	if (mci == NULL) {
-+		ppc4xx_edac_printk(KERN_ERR, "%s: "
-+				   "Failed to allocate EDAC MC instance!\n",
-+				   np->full_name);
-+		status = -ENOMEM;
-+		goto done;
-+	}
-+
-+	status = ppc4xx_edac_mc_init(mci, op, match, &dcr_host, mcopt1);
-+
-+	if (status) {
-+		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-+				      "Failed to initialize instance!\n");
-+		goto fail;
-+	}
-+
-+	/*
-+	 * We have a valid, initialized EDAC instance bound to the
-+	 * controller. Attempt to register it with the EDAC subsystem
-+	 * and, if necessary, register interrupts.
-+	 */
-+
-+	if (edac_mc_add_mc(mci)) {
-+		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-+				      "Failed to add instance!\n");
-+		status = -ENODEV;
-+		goto fail;
-+	}
-+
-+	if (edac_op_state == EDAC_OPSTATE_INT) {
-+		status = ppc4xx_edac_register_irq(op, mci);
-+
-+		if (status)
-+			goto fail1;
-+	}
-+
-+	ppc4xx_edac_instance++;
-+
-+	return 0;
-+
-+ fail1:
-+	edac_mc_del_mc(mci->dev);
-+
-+ fail:
-+	edac_mc_free(mci);
-+
-+ done:
-+	return status;
-+}
-+
-+/**
-+ * ppc4xx_edac_remove - unbind driver from controller
-+ * @op: A pointer to the OpenFirmware device tree node associated
-+ *      with the controller this EDAC instance is to be unbound/removed
-+ *      from.
-+ *
-+ * This routine unbinds the EDAC memory controller instance associated
-+ * with the specified ibm,sdram-4xx-ddr2 controller described by the
-+ * OpenFirmware device tree node passed as a parameter.
-+ *
-+ * Unconditionally returns 0.
-+ */
-+static int
-+ppc4xx_edac_remove(struct of_device *op)
-+{
-+	struct mem_ctl_info *mci = dev_get_drvdata(&op->dev);
-+	struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
-+
-+	if (edac_op_state == EDAC_OPSTATE_INT) {
-+		free_irq(pdata->irqs.sec, mci);
-+		free_irq(pdata->irqs.ded, mci);
-+	}
-+
-+	dcr_unmap(pdata->dcr_host, SDRAM_DCR_RESOURCE_LEN);
-+
-+	edac_mc_del_mc(mci->dev);
-+	edac_mc_free(mci);
-+
-+	return 0;
-+}
-+
-+/**
-+ * ppc4xx_edac_opstate_init - initialize EDAC reporting method
-+ *
-+ * This routine ensures that the EDAC memory controller reporting
-+ * method is mapped to a sane value as the EDAC core defines the value
-+ * to EDAC_OPSTATE_INVAL by default. We don't call the global
-+ * opstate_init as that defaults to polling and we want interrupt as
-+ * the default.
-+ */
-+static inline void __init
-+ppc4xx_edac_opstate_init(void)
-+{
-+	switch (edac_op_state) {
-+	case EDAC_OPSTATE_POLL:
-+	case EDAC_OPSTATE_INT:
-+		break;
-+	default:
-+		edac_op_state = EDAC_OPSTATE_INT;
-+		break;
-+	}
-+
-+	ppc4xx_edac_printk(KERN_INFO, "Reporting type: %s\n",
-+			   ((edac_op_state == EDAC_OPSTATE_POLL) ?
-+			    EDAC_OPSTATE_POLL_STR :
-+			    ((edac_op_state == EDAC_OPSTATE_INT) ?
-+			     EDAC_OPSTATE_INT_STR :
-+			     EDAC_OPSTATE_UNKNOWN_STR)));
-+}
-+
-+/**
-+ * ppc4xx_edac_init - driver/module insertion entry point
-+ *
-+ * This routine is the driver/module insertion entry point. It
-+ * initializes the EDAC memory controller reporting state and
-+ * registers the driver as an OpenFirmware device tree platform
-+ * driver.
-+ */
-+static int __init
-+ppc4xx_edac_init(void)
-+{
-+	ppc4xx_edac_printk(KERN_INFO, PPC4XX_EDAC_MODULE_REVISION "\n");
-+
-+	ppc4xx_edac_opstate_init();
-+
-+	return of_register_platform_driver(&ppc4xx_edac_driver);
-+}
-+
-+/**
-+ * ppc4xx_edac_exit - driver/module removal entry point
-+ *
-+ * This routine is the driver/module removal entry point. It
-+ * unregisters the driver as an OpenFirmware device tree platform
-+ * driver.
-+ */
-+static void __exit
-+ppc4xx_edac_exit(void)
-+{
-+	of_unregister_platform_driver(&ppc4xx_edac_driver);
-+}
-+
-+module_init(ppc4xx_edac_init);
-+module_exit(ppc4xx_edac_exit);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Grant Erickson <gerickson@nuovations.com>");
-+MODULE_DESCRIPTION("EDAC MC Driver for the PPC4xx IBM DDR2 Memory Controller");
-+module_param(edac_op_state, int, 0444);
-+MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting State: "
-+		 "0=" EDAC_OPSTATE_POLL_STR ", 2=" EDAC_OPSTATE_INT_STR);
-diff -puN /dev/null drivers/edac/ppc4xx_edac.h
---- /dev/null
-+++ a/drivers/edac/ppc4xx_edac.h
-@@ -0,0 +1,172 @@
-+/*
-+ * Copyright (c) 2008 Nuovation System Designs, LLC
-+ *   Grant Erickson <gerickson@nuovations.com>
-+ *
-+ * This file defines processor mnemonics for accessing and managing
-+ * the IBM DDR1/DDR2 ECC controller found in the 405EX[r], 440SP,
-+ * 440SPe, 460EX, 460GT and 460SX.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; version 2 of the
-+ * License.
-+ *
-+ */
-+
-+#ifndef __PPC4XX_EDAC_H
-+#define __PPC4XX_EDAC_H
-+
-+#include <linux/types.h>
-+
-+/*
-+ * Macro for generating register field mnemonics
-+ */
-+#define PPC_REG_BITS			32
-+#define PPC_REG_VAL(bit, val)		((val) << ((PPC_REG_BITS - 1) - (bit)))
-+#define PPC_REG_DECODE(bit, val)	((val) >> ((PPC_REG_BITS - 1) - (bit)))
-+
-+/*
-+ * IBM 4xx DDR1/DDR2 SDRAM memory controller registers (at least those
-+ * relevant to ECC)
-+ */
-+#define SDRAM_BESR			0x00	/* Error status (read/clear) */
-+#define SDRAM_BESRT			0x01	/* Error statuss (test/set)  */
-+#define SDRAM_BEARL			0x02	/* Error address low	     */
-+#define SDRAM_BEARH			0x03	/* Error address high	     */
-+#define SDRAM_WMIRQ			0x06	/* Write master (read/clear) */
-+#define SDRAM_WMIRQT			0x07	/* Write master (test/set)   */
-+#define SDRAM_MCOPT1			0x20	/* Controller options 1	     */
-+#define SDRAM_MBXCF_BASE		0x40	/* Bank n configuration base */
-+#define	SDRAM_MBXCF(n)			(SDRAM_MBXCF_BASE + (4 * (n)))
-+#define SDRAM_MB0CF			SDRAM_MBXCF(0)
-+#define SDRAM_MB1CF			SDRAM_MBXCF(1)
-+#define SDRAM_MB2CF			SDRAM_MBXCF(2)
-+#define SDRAM_MB3CF			SDRAM_MBXCF(3)
-+#define SDRAM_ECCCR			0x98	/* ECC error status	     */
-+#define SDRAM_ECCES			SDRAM_ECCCR
-+
-+/*
-+ * PLB Master IDs
-+ */
-+#define	SDRAM_PLB_M0ID_FIRST		0
-+#define	SDRAM_PLB_M0ID_ICU		SDRAM_PLB_M0ID_FIRST
-+#define	SDRAM_PLB_M0ID_PCIE0		1
-+#define	SDRAM_PLB_M0ID_PCIE1		2
-+#define	SDRAM_PLB_M0ID_DMA		3
-+#define	SDRAM_PLB_M0ID_DCU		4
-+#define	SDRAM_PLB_M0ID_OPB		5
-+#define	SDRAM_PLB_M0ID_MAL		6
-+#define	SDRAM_PLB_M0ID_SEC		7
-+#define	SDRAM_PLB_M0ID_AHB		8
-+#define SDRAM_PLB_M0ID_LAST		SDRAM_PLB_M0ID_AHB
-+#define SDRAM_PLB_M0ID_COUNT		(SDRAM_PLB_M0ID_LAST - \
-+					 SDRAM_PLB_M0ID_FIRST + 1)
-+
-+/*
-+ * Memory Controller Bus Error Status Register
-+ */
-+#define SDRAM_BESR_MASK			PPC_REG_VAL(7, 0xFF)
-+#define SDRAM_BESR_M0ID_MASK		PPC_REG_VAL(3, 0xF)
-+#define	SDRAM_BESR_M0ID_DECODE(n)	PPC_REG_DECODE(3, n)
-+#define SDRAM_BESR_M0ID_ICU		PPC_REG_VAL(3, SDRAM_PLB_M0ID_ICU)
-+#define SDRAM_BESR_M0ID_PCIE0		PPC_REG_VAL(3, SDRAM_PLB_M0ID_PCIE0)
-+#define SDRAM_BESR_M0ID_PCIE1		PPC_REG_VAL(3, SDRAM_PLB_M0ID_PCIE1)
-+#define SDRAM_BESR_M0ID_DMA		PPC_REG_VAL(3, SDRAM_PLB_M0ID_DMA)
-+#define SDRAM_BESR_M0ID_DCU		PPC_REG_VAL(3, SDRAM_PLB_M0ID_DCU)
-+#define SDRAM_BESR_M0ID_OPB		PPC_REG_VAL(3, SDRAM_PLB_M0ID_OPB)
-+#define SDRAM_BESR_M0ID_MAL		PPC_REG_VAL(3, SDRAM_PLB_M0ID_MAL)
-+#define SDRAM_BESR_M0ID_SEC		PPC_REG_VAL(3, SDRAM_PLB_M0ID_SEC)
-+#define SDRAM_BESR_M0ID_AHB		PPC_REG_VAL(3, SDRAM_PLB_M0ID_AHB)
-+#define SDRAM_BESR_M0ET_MASK		PPC_REG_VAL(6, 0x7)
-+#define SDRAM_BESR_M0ET_NONE		PPC_REG_VAL(6, 0)
-+#define SDRAM_BESR_M0ET_ECC		PPC_REG_VAL(6, 1)
-+#define SDRAM_BESR_M0RW_MASK		PPC_REG_VAL(7, 1)
-+#define SDRAM_BESR_M0RW_WRITE		PPC_REG_VAL(7, 0)
-+#define SDRAM_BESR_M0RW_READ		PPC_REG_VAL(7, 1)
-+
-+/*
-+ * Memory Controller PLB Write Master Interrupt Register
-+ */
-+#define SDRAM_WMIRQ_MASK		PPC_REG_VAL(8, 0x1FF)
-+#define	SDRAM_WMIRQ_ENCODE(id)		PPC_REG_VAL((id % \
-+						     SDRAM_PLB_M0ID_COUNT), 1)
-+#define SDRAM_WMIRQ_ICU			PPC_REG_VAL(SDRAM_PLB_M0ID_ICU, 1)
-+#define SDRAM_WMIRQ_PCIE0		PPC_REG_VAL(SDRAM_PLB_M0ID_PCIE0, 1)
-+#define SDRAM_WMIRQ_PCIE1		PPC_REG_VAL(SDRAM_PLB_M0ID_PCIE1, 1)
-+#define SDRAM_WMIRQ_DMA			PPC_REG_VAL(SDRAM_PLB_M0ID_DMA, 1)
-+#define SDRAM_WMIRQ_DCU			PPC_REG_VAL(SDRAM_PLB_M0ID_DCU, 1)
-+#define SDRAM_WMIRQ_OPB			PPC_REG_VAL(SDRAM_PLB_M0ID_OPB, 1)
-+#define SDRAM_WMIRQ_MAL			PPC_REG_VAL(SDRAM_PLB_M0ID_MAL, 1)
-+#define SDRAM_WMIRQ_SEC			PPC_REG_VAL(SDRAM_PLB_M0ID_SEC, 1)
-+#define SDRAM_WMIRQ_AHB			PPC_REG_VAL(SDRAM_PLB_M0ID_AHB, 1)
-+
-+/*
-+ * Memory Controller Options 1 Register
-+ */
-+#define SDRAM_MCOPT1_MCHK_MASK	    PPC_REG_VAL(3, 0x3)	 /* ECC mask	     */
-+#define SDRAM_MCOPT1_MCHK_NON	    PPC_REG_VAL(3, 0x0)	 /* No ECC gen	     */
-+#define SDRAM_MCOPT1_MCHK_GEN	    PPC_REG_VAL(3, 0x2)	 /* ECC gen	     */
-+#define SDRAM_MCOPT1_MCHK_CHK	    PPC_REG_VAL(3, 0x1)	 /* ECC gen and chk  */
-+#define SDRAM_MCOPT1_MCHK_CHK_REP   PPC_REG_VAL(3, 0x3)	 /* ECC gen/chk/rpt  */
-+#define SDRAM_MCOPT1_MCHK_DECODE(n) ((((u32)(n)) >> 28) & 0x3)
-+#define SDRAM_MCOPT1_RDEN_MASK	    PPC_REG_VAL(4, 0x1)	 /* Rgstrd DIMM mask */
-+#define SDRAM_MCOPT1_RDEN	    PPC_REG_VAL(4, 0x1)	 /* Rgstrd DIMM enbl */
-+#define SDRAM_MCOPT1_WDTH_MASK	    PPC_REG_VAL(7, 0x1)	 /* Width mask	     */
-+#define SDRAM_MCOPT1_WDTH_32	    PPC_REG_VAL(7, 0x0)	 /* 32 bits	     */
-+#define SDRAM_MCOPT1_WDTH_16	    PPC_REG_VAL(7, 0x1)	 /* 16 bits	     */
-+#define SDRAM_MCOPT1_DDR_TYPE_MASK  PPC_REG_VAL(11, 0x1) /* DDR type mask    */
-+#define SDRAM_MCOPT1_DDR1_TYPE	    PPC_REG_VAL(11, 0x0) /* DDR1 type	     */
-+#define SDRAM_MCOPT1_DDR2_TYPE	    PPC_REG_VAL(11, 0x1) /* DDR2 type	     */
-+
-+/*
-+ * Memory Bank 0 - n Configuration Register
-+ */
-+#define SDRAM_MBCF_BA_MASK		PPC_REG_VAL(12, 0x1FFF)
-+#define SDRAM_MBCF_SZ_MASK		PPC_REG_VAL(19, 0xF)
-+#define SDRAM_MBCF_SZ_DECODE(mbxcf)	PPC_REG_DECODE(19, mbxcf)
-+#define SDRAM_MBCF_SZ_4MB		PPC_REG_VAL(19, 0x0)
-+#define SDRAM_MBCF_SZ_8MB		PPC_REG_VAL(19, 0x1)
-+#define SDRAM_MBCF_SZ_16MB		PPC_REG_VAL(19, 0x2)
-+#define SDRAM_MBCF_SZ_32MB		PPC_REG_VAL(19, 0x3)
-+#define SDRAM_MBCF_SZ_64MB		PPC_REG_VAL(19, 0x4)
-+#define SDRAM_MBCF_SZ_128MB		PPC_REG_VAL(19, 0x5)
-+#define SDRAM_MBCF_SZ_256MB		PPC_REG_VAL(19, 0x6)
-+#define SDRAM_MBCF_SZ_512MB		PPC_REG_VAL(19, 0x7)
-+#define SDRAM_MBCF_SZ_1GB		PPC_REG_VAL(19, 0x8)
-+#define SDRAM_MBCF_SZ_2GB		PPC_REG_VAL(19, 0x9)
-+#define SDRAM_MBCF_SZ_4GB		PPC_REG_VAL(19, 0xA)
-+#define SDRAM_MBCF_SZ_8GB		PPC_REG_VAL(19, 0xB)
-+#define SDRAM_MBCF_AM_MASK		PPC_REG_VAL(23, 0xF)
-+#define SDRAM_MBCF_AM_MODE0		PPC_REG_VAL(23, 0x0)
-+#define SDRAM_MBCF_AM_MODE1		PPC_REG_VAL(23, 0x1)
-+#define SDRAM_MBCF_AM_MODE2		PPC_REG_VAL(23, 0x2)
-+#define SDRAM_MBCF_AM_MODE3		PPC_REG_VAL(23, 0x3)
-+#define SDRAM_MBCF_AM_MODE4		PPC_REG_VAL(23, 0x4)
-+#define SDRAM_MBCF_AM_MODE5		PPC_REG_VAL(23, 0x5)
-+#define SDRAM_MBCF_AM_MODE6		PPC_REG_VAL(23, 0x6)
-+#define SDRAM_MBCF_AM_MODE7		PPC_REG_VAL(23, 0x7)
-+#define SDRAM_MBCF_AM_MODE8		PPC_REG_VAL(23, 0x8)
-+#define SDRAM_MBCF_AM_MODE9		PPC_REG_VAL(23, 0x9)
-+#define SDRAM_MBCF_BE_MASK		PPC_REG_VAL(31, 0x1)
-+#define SDRAM_MBCF_BE_DISABLE		PPC_REG_VAL(31, 0x0)
-+#define SDRAM_MBCF_BE_ENABLE		PPC_REG_VAL(31, 0x1)
-+
-+/*
-+ * ECC Error Status
-+ */
-+#define SDRAM_ECCES_MASK		PPC_REG_VAL(21, 0x3FFFFF)
-+#define SDRAM_ECCES_BNCE_MASK		PPC_REG_VAL(15, 0xFFFF)
-+#define SDRAM_ECCES_BNCE_ENCODE(lane)	PPC_REG_VAL(((lane) & 0xF), 1)
-+#define SDRAM_ECCES_CKBER_MASK		PPC_REG_VAL(17, 0x3)
-+#define SDRAM_ECCES_CKBER_NONE		PPC_REG_VAL(17, 0)
-+#define SDRAM_ECCES_CKBER_16_ECC_0_3	PPC_REG_VAL(17, 2)
-+#define SDRAM_ECCES_CKBER_32_ECC_0_3	PPC_REG_VAL(17, 1)
-+#define SDRAM_ECCES_CKBER_32_ECC_4_8	PPC_REG_VAL(17, 2)
-+#define SDRAM_ECCES_CKBER_32_ECC_0_8	PPC_REG_VAL(17, 3)
-+#define SDRAM_ECCES_CE			PPC_REG_VAL(18, 1)
-+#define SDRAM_ECCES_UE			PPC_REG_VAL(19, 1)
-+#define SDRAM_ECCES_BKNER_MASK		PPC_REG_VAL(21, 0x3)
-+#define SDRAM_ECCES_BK0ER		PPC_REG_VAL(20, 1)
-+#define SDRAM_ECCES_BK1ER		PPC_REG_VAL(21, 1)
-+
-+#endif /* __PPC4XX_EDAC_H */
+ ahd_assert_atn(struct ahd_softc *ahd)
+ {
+ 	ahd_outb(ahd, SCSISIGO, ATNO);
+@@ -1069,7 +1069,7 @@ ahd_currently_packetized(struct ahd_soft
+ 	return (packetized);
+ }
+ 
+-static __inline int
++static inline int
+ ahd_set_active_fifo(struct ahd_softc *ahd)
+ {
+ 	u_int active_fifo;
+@@ -1086,7 +1086,7 @@ ahd_set_active_fifo(struct ahd_softc *ah
+ 	}
+ }
+ 
+-static __inline void
++static inline void
+ ahd_unbusy_tcl(struct ahd_softc *ahd, u_int tcl)
+ {
+ 	ahd_busy_tcl(ahd, tcl, SCB_LIST_NULL);
+@@ -1096,7 +1096,7 @@ ahd_unbusy_tcl(struct ahd_softc *ahd, u_
+  * Determine whether the sequencer reported a residual
+  * for this SCB/transaction.
+  */
+-static __inline void
++static inline void
+ ahd_update_residual(struct ahd_softc *ahd, struct scb *scb)
+ {
+ 	uint32_t sgptr;
+@@ -1106,7 +1106,7 @@ ahd_update_residual(struct ahd_softc *ah
+ 		ahd_calc_residual(ahd, scb);
+ }
+ 
+-static __inline void
++static inline void
+ ahd_complete_scb(struct ahd_softc *ahd, struct scb *scb)
+ {
+ 	uint32_t sgptr;
+@@ -7987,7 +7987,7 @@ ahd_resume(struct ahd_softc *ahd)
+  * scbid that should be restored once manipualtion
+  * of the TCL entry is complete.
+  */
+-static __inline u_int
++static inline u_int
+ ahd_index_busy_tcl(struct ahd_softc *ahd, u_int *saved_scbid, u_int tcl)
+ {
+ 	/*
+diff -puN drivers/scsi/aic7xxx/aic79xx_inline.h~scsi-replace-__inline-with-inline drivers/scsi/aic7xxx/aic79xx_inline.h
+--- a/drivers/scsi/aic7xxx/aic79xx_inline.h~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/aic7xxx/aic79xx_inline.h
+@@ -46,21 +46,20 @@
+ #define _AIC79XX_INLINE_H_
+ 
+ /******************************** Debugging ***********************************/
+-static __inline char *ahd_name(struct ahd_softc *ahd);
++static inline char *ahd_name(struct ahd_softc *ahd);
+ 
+-static __inline char *
+-ahd_name(struct ahd_softc *ahd)
++static inline char *ahd_name(struct ahd_softc *ahd)
+ {
+ 	return (ahd->name);
+ }
+ 
+ /************************ Sequencer Execution Control *************************/
+-static __inline void ahd_known_modes(struct ahd_softc *ahd,
++static inline void ahd_known_modes(struct ahd_softc *ahd,
+ 				     ahd_mode src, ahd_mode dst);
+-static __inline ahd_mode_state ahd_build_mode_state(struct ahd_softc *ahd,
++static inline ahd_mode_state ahd_build_mode_state(struct ahd_softc *ahd,
+ 						    ahd_mode src,
+ 						    ahd_mode dst);
+-static __inline void ahd_extract_mode_state(struct ahd_softc *ahd,
++static inline void ahd_extract_mode_state(struct ahd_softc *ahd,
+ 					    ahd_mode_state state,
+ 					    ahd_mode *src, ahd_mode *dst);
+ 
+@@ -73,7 +72,7 @@ int  ahd_is_paused(struct ahd_softc *ahd
+ void ahd_pause(struct ahd_softc *ahd);
+ void ahd_unpause(struct ahd_softc *ahd);
+ 
+-static __inline void
++static inline void
+ ahd_known_modes(struct ahd_softc *ahd, ahd_mode src, ahd_mode dst)
+ {
+ 	ahd->src_mode = src;
+@@ -82,13 +81,13 @@ ahd_known_modes(struct ahd_softc *ahd, a
+ 	ahd->saved_dst_mode = dst;
+ }
+ 
+-static __inline ahd_mode_state
++static inline ahd_mode_state
+ ahd_build_mode_state(struct ahd_softc *ahd, ahd_mode src, ahd_mode dst)
+ {
+ 	return ((src << SRC_MODE_SHIFT) | (dst << DST_MODE_SHIFT));
+ }
+ 
+-static __inline void
++static inline void
+ ahd_extract_mode_state(struct ahd_softc *ahd, ahd_mode_state state,
+ 		       ahd_mode *src, ahd_mode *dst)
+ {
+@@ -102,13 +101,12 @@ void	*ahd_sg_setup(struct ahd_softc *ahd
+ 		      bus_size_t len, int last);
+ 
+ /************************** Memory mapping routines ***************************/
+-static __inline size_t	ahd_sg_size(struct ahd_softc *ahd);
++static inline size_t	ahd_sg_size(struct ahd_softc *ahd);
+ 
+ void	ahd_sync_sglist(struct ahd_softc *ahd,
+ 			struct scb *scb, int op);
+ 
+-static __inline size_t
+-ahd_sg_size(struct ahd_softc *ahd)
++static inline size_t ahd_sg_size(struct ahd_softc *ahd)
+ {
+ 	if ((ahd->flags & AHD_64BIT_ADDRESSING) != 0)
+ 		return (sizeof(struct ahd_dma64_seg));
+@@ -141,11 +139,9 @@ struct scb *
+ 	ahd_lookup_scb(struct ahd_softc *ahd, u_int tag);
+ void	ahd_queue_scb(struct ahd_softc *ahd, struct scb *scb);
+ 
+-static __inline uint8_t *
+-			ahd_get_sense_buf(struct ahd_softc *ahd,
++static inline uint8_t *ahd_get_sense_buf(struct ahd_softc *ahd,
+ 					  struct scb *scb);
+-static __inline uint32_t
+-			ahd_get_sense_bufaddr(struct ahd_softc *ahd,
++static inline uint32_t ahd_get_sense_bufaddr(struct ahd_softc *ahd,
+ 					      struct scb *scb);
+ 
+ #if 0 /* unused */
+@@ -158,13 +154,13 @@ do {								\
+ 
+ #endif
+ 
+-static __inline uint8_t *
++static inline uint8_t *
+ ahd_get_sense_buf(struct ahd_softc *ahd, struct scb *scb)
+ {
+ 	return (scb->sense_data);
+ }
+ 
+-static __inline uint32_t
++static inline uint32_t
+ ahd_get_sense_bufaddr(struct ahd_softc *ahd, struct scb *scb)
+ {
+ 	return (scb->sense_busaddr);
+diff -puN drivers/scsi/aic7xxx/aic79xx_osm.h~scsi-replace-__inline-with-inline drivers/scsi/aic7xxx/aic79xx_osm.h
+--- a/drivers/scsi/aic7xxx/aic79xx_osm.h~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/aic7xxx/aic79xx_osm.h
+@@ -395,19 +395,19 @@ struct info_str {
+ };
+ 
+ /******************************** Locking *************************************/
+-static __inline void
++static inline void
+ ahd_lockinit(struct ahd_softc *ahd)
+ {
+ 	spin_lock_init(&ahd->platform_data->spin_lock);
+ }
+ 
+-static __inline void
++static inline void
+ ahd_lock(struct ahd_softc *ahd, unsigned long *flags)
+ {
+ 	spin_lock_irqsave(&ahd->platform_data->spin_lock, *flags);
+ }
+ 
+-static __inline void
++static inline void
+ ahd_unlock(struct ahd_softc *ahd, unsigned long *flags)
+ {
+ 	spin_unlock_irqrestore(&ahd->platform_data->spin_lock, *flags);
+@@ -490,29 +490,29 @@ void			 ahd_pci_write_config(ahd_dev_sof
+ 					  int reg, uint32_t value,
+ 					  int width);
+ 
+-static __inline int ahd_get_pci_function(ahd_dev_softc_t);
+-static __inline int
++static inline int ahd_get_pci_function(ahd_dev_softc_t);
++static inline int
+ ahd_get_pci_function(ahd_dev_softc_t pci)
+ {
+ 	return (PCI_FUNC(pci->devfn));
+ }
+ 
+-static __inline int ahd_get_pci_slot(ahd_dev_softc_t);
+-static __inline int
++static inline int ahd_get_pci_slot(ahd_dev_softc_t);
++static inline int
+ ahd_get_pci_slot(ahd_dev_softc_t pci)
+ {
+ 	return (PCI_SLOT(pci->devfn));
+ }
+ 
+-static __inline int ahd_get_pci_bus(ahd_dev_softc_t);
+-static __inline int
++static inline int ahd_get_pci_bus(ahd_dev_softc_t);
++static inline int
+ ahd_get_pci_bus(ahd_dev_softc_t pci)
+ {
+ 	return (pci->bus->number);
+ }
+ 
+-static __inline void ahd_flush_device_writes(struct ahd_softc *);
+-static __inline void
++static inline void ahd_flush_device_writes(struct ahd_softc *);
++static inline void
+ ahd_flush_device_writes(struct ahd_softc *ahd)
+ {
+ 	/* XXX Is this sufficient for all architectures??? */
+@@ -524,81 +524,81 @@ int	ahd_linux_proc_info(struct Scsi_Host
+ 			    off_t, int, int);
+ 
+ /*********************** Transaction Access Wrappers **************************/
+-static __inline void ahd_cmd_set_transaction_status(struct scsi_cmnd *, uint32_t);
+-static __inline void ahd_set_transaction_status(struct scb *, uint32_t);
+-static __inline void ahd_cmd_set_scsi_status(struct scsi_cmnd *, uint32_t);
+-static __inline void ahd_set_scsi_status(struct scb *, uint32_t);
+-static __inline uint32_t ahd_cmd_get_transaction_status(struct scsi_cmnd *cmd);
+-static __inline uint32_t ahd_get_transaction_status(struct scb *);
+-static __inline uint32_t ahd_cmd_get_scsi_status(struct scsi_cmnd *cmd);
+-static __inline uint32_t ahd_get_scsi_status(struct scb *);
+-static __inline void ahd_set_transaction_tag(struct scb *, int, u_int);
+-static __inline u_long ahd_get_transfer_length(struct scb *);
+-static __inline int ahd_get_transfer_dir(struct scb *);
+-static __inline void ahd_set_residual(struct scb *, u_long);
+-static __inline void ahd_set_sense_residual(struct scb *scb, u_long resid);
+-static __inline u_long ahd_get_residual(struct scb *);
+-static __inline u_long ahd_get_sense_residual(struct scb *);
+-static __inline int ahd_perform_autosense(struct scb *);
+-static __inline uint32_t ahd_get_sense_bufsize(struct ahd_softc *,
++static inline void ahd_cmd_set_transaction_status(struct scsi_cmnd *, uint32_t);
++static inline void ahd_set_transaction_status(struct scb *, uint32_t);
++static inline void ahd_cmd_set_scsi_status(struct scsi_cmnd *, uint32_t);
++static inline void ahd_set_scsi_status(struct scb *, uint32_t);
++static inline uint32_t ahd_cmd_get_transaction_status(struct scsi_cmnd *cmd);
++static inline uint32_t ahd_get_transaction_status(struct scb *);
++static inline uint32_t ahd_cmd_get_scsi_status(struct scsi_cmnd *cmd);
++static inline uint32_t ahd_get_scsi_status(struct scb *);
++static inline void ahd_set_transaction_tag(struct scb *, int, u_int);
++static inline u_long ahd_get_transfer_length(struct scb *);
++static inline int ahd_get_transfer_dir(struct scb *);
++static inline void ahd_set_residual(struct scb *, u_long);
++static inline void ahd_set_sense_residual(struct scb *scb, u_long resid);
++static inline u_long ahd_get_residual(struct scb *);
++static inline u_long ahd_get_sense_residual(struct scb *);
++static inline int ahd_perform_autosense(struct scb *);
++static inline uint32_t ahd_get_sense_bufsize(struct ahd_softc *,
+ 					       struct scb *);
+-static __inline void ahd_notify_xfer_settings_change(struct ahd_softc *,
++static inline void ahd_notify_xfer_settings_change(struct ahd_softc *,
+ 						     struct ahd_devinfo *);
+-static __inline void ahd_platform_scb_free(struct ahd_softc *ahd,
++static inline void ahd_platform_scb_free(struct ahd_softc *ahd,
+ 					   struct scb *scb);
+-static __inline void ahd_freeze_scb(struct scb *scb);
++static inline void ahd_freeze_scb(struct scb *scb);
+ 
+-static __inline
++static inline
+ void ahd_cmd_set_transaction_status(struct scsi_cmnd *cmd, uint32_t status)
+ {
+ 	cmd->result &= ~(CAM_STATUS_MASK << 16);
+ 	cmd->result |= status << 16;
+ }
+ 
+-static __inline
++static inline
+ void ahd_set_transaction_status(struct scb *scb, uint32_t status)
+ {
+ 	ahd_cmd_set_transaction_status(scb->io_ctx,status);
+ }
+ 
+-static __inline
++static inline
+ void ahd_cmd_set_scsi_status(struct scsi_cmnd *cmd, uint32_t status)
+ {
+ 	cmd->result &= ~0xFFFF;
+ 	cmd->result |= status;
+ }
+ 
+-static __inline
++static inline
+ void ahd_set_scsi_status(struct scb *scb, uint32_t status)
+ {
+ 	ahd_cmd_set_scsi_status(scb->io_ctx, status);
+ }
+ 
+-static __inline
++static inline
+ uint32_t ahd_cmd_get_transaction_status(struct scsi_cmnd *cmd)
+ {
+ 	return ((cmd->result >> 16) & CAM_STATUS_MASK);
+ }
+ 
+-static __inline
++static inline
+ uint32_t ahd_get_transaction_status(struct scb *scb)
+ {
+ 	return (ahd_cmd_get_transaction_status(scb->io_ctx));
+ }
+ 
+-static __inline
++static inline
+ uint32_t ahd_cmd_get_scsi_status(struct scsi_cmnd *cmd)
+ {
+ 	return (cmd->result & 0xFFFF);
+ }
+ 
+-static __inline
++static inline
+ uint32_t ahd_get_scsi_status(struct scb *scb)
+ {
+ 	return (ahd_cmd_get_scsi_status(scb->io_ctx));
+ }
+ 
+-static __inline
++static inline
+ void ahd_set_transaction_tag(struct scb *scb, int enabled, u_int type)
+ {
+ 	/*
+@@ -607,43 +607,43 @@ void ahd_set_transaction_tag(struct scb 
+ 	 */
+ }
+ 
+-static __inline
++static inline
+ u_long ahd_get_transfer_length(struct scb *scb)
+ {
+ 	return (scb->platform_data->xfer_len);
+ }
+ 
+-static __inline
++static inline
+ int ahd_get_transfer_dir(struct scb *scb)
+ {
+ 	return (scb->io_ctx->sc_data_direction);
+ }
+ 
+-static __inline
++static inline
+ void ahd_set_residual(struct scb *scb, u_long resid)
+ {
+ 	scsi_set_resid(scb->io_ctx, resid);
+ }
+ 
+-static __inline
++static inline
+ void ahd_set_sense_residual(struct scb *scb, u_long resid)
+ {
+ 	scb->platform_data->sense_resid = resid;
+ }
+ 
+-static __inline
++static inline
+ u_long ahd_get_residual(struct scb *scb)
+ {
+ 	return scsi_get_resid(scb->io_ctx);
+ }
+ 
+-static __inline
++static inline
+ u_long ahd_get_sense_residual(struct scb *scb)
+ {
+ 	return (scb->platform_data->sense_resid);
+ }
+ 
+-static __inline
++static inline
+ int ahd_perform_autosense(struct scb *scb)
+ {
+ 	/*
+@@ -654,20 +654,20 @@ int ahd_perform_autosense(struct scb *sc
+ 	return (1);
+ }
+ 
+-static __inline uint32_t
++static inline uint32_t
+ ahd_get_sense_bufsize(struct ahd_softc *ahd, struct scb *scb)
+ {
+ 	return (sizeof(struct scsi_sense_data));
+ }
+ 
+-static __inline void
++static inline void
+ ahd_notify_xfer_settings_change(struct ahd_softc *ahd,
+ 				struct ahd_devinfo *devinfo)
+ {
+ 	/* Nothing to do here for linux */
+ }
+ 
+-static __inline void
++static inline void
+ ahd_platform_scb_free(struct ahd_softc *ahd, struct scb *scb)
+ {
+ 	ahd->flags &= ~AHD_RESOURCE_SHORTAGE;
+@@ -678,7 +678,7 @@ void	ahd_platform_free(struct ahd_softc 
+ void	ahd_platform_init(struct ahd_softc *ahd);
+ void	ahd_platform_freeze_devq(struct ahd_softc *ahd, struct scb *scb);
+ 
+-static __inline void
++static inline void
+ ahd_freeze_scb(struct scb *scb)
+ {
+ 	if ((scb->io_ctx->result & (CAM_DEV_QFRZN << 16)) == 0) {
+diff -puN drivers/scsi/aic7xxx/aic79xx_pci.c~scsi-replace-__inline-with-inline drivers/scsi/aic7xxx/aic79xx_pci.c
+--- a/drivers/scsi/aic7xxx/aic79xx_pci.c~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/aic7xxx/aic79xx_pci.c
+@@ -51,7 +51,7 @@
+ 
+ #include "aic79xx_pci.h"
+ 
+-static __inline uint64_t
++static inline uint64_t
+ ahd_compose_id(u_int device, u_int vendor, u_int subdevice, u_int subvendor)
+ {
+ 	uint64_t id;
+diff -puN drivers/scsi/aic7xxx/aic7xxx_inline.h~scsi-replace-__inline-with-inline drivers/scsi/aic7xxx/aic7xxx_inline.h
+--- a/drivers/scsi/aic7xxx/aic7xxx_inline.h~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/aic7xxx/aic7xxx_inline.h
+@@ -55,10 +55,9 @@ void	ahc_sync_sglist(struct ahc_softc *a
+ 			struct scb *scb, int op);
+ 
+ /******************************** Debugging ***********************************/
+-static __inline char *ahc_name(struct ahc_softc *ahc);
++static inline char *ahc_name(struct ahc_softc *ahc);
+ 
+-static __inline char *
+-ahc_name(struct ahc_softc *ahc)
++static inline char *ahc_name(struct ahc_softc *ahc)
+ {
+ 	return (ahc->name);
+ }
+diff -puN drivers/scsi/aic7xxx/aic7xxx_osm.h~scsi-replace-__inline-with-inline drivers/scsi/aic7xxx/aic7xxx_osm.h
+--- a/drivers/scsi/aic7xxx/aic7xxx_osm.h~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/aic7xxx/aic7xxx_osm.h
+@@ -230,7 +230,7 @@ int	ahc_dmamap_unload(struct ahc_softc *
+ #include "aic7xxx.h"
+ 
+ /***************************** Timer Facilities *******************************/
+-static __inline void
++static inline void
+ ahc_scb_timer_reset(struct scb *scb, u_int usec)
+ {
+ }
+@@ -401,19 +401,19 @@ struct info_str {
+ /******************************** Locking *************************************/
+ /* Lock protecting internal data structures */
+ 
+-static __inline void
++static inline void
+ ahc_lockinit(struct ahc_softc *ahc)
+ {
+ 	spin_lock_init(&ahc->platform_data->spin_lock);
+ }
+ 
+-static __inline void
++static inline void
+ ahc_lock(struct ahc_softc *ahc, unsigned long *flags)
+ {
+ 	spin_lock_irqsave(&ahc->platform_data->spin_lock, *flags);
+ }
+ 
+-static __inline void
++static inline void
+ ahc_unlock(struct ahc_softc *ahc, unsigned long *flags)
+ {
+ 	spin_unlock_irqrestore(&ahc->platform_data->spin_lock, *flags);
+@@ -493,22 +493,22 @@ void			 ahc_pci_write_config(ahc_dev_sof
+ 					      int reg, uint32_t value,
+ 					      int width);
+ 
+-static __inline int ahc_get_pci_function(ahc_dev_softc_t);
+-static __inline int
++static inline int ahc_get_pci_function(ahc_dev_softc_t);
++static inline int
+ ahc_get_pci_function(ahc_dev_softc_t pci)
+ {
+ 	return (PCI_FUNC(pci->devfn));
+ }
+ 
+-static __inline int ahc_get_pci_slot(ahc_dev_softc_t);
+-static __inline int
++static inline int ahc_get_pci_slot(ahc_dev_softc_t);
++static inline int
+ ahc_get_pci_slot(ahc_dev_softc_t pci)
+ {
+ 	return (PCI_SLOT(pci->devfn));
+ }
+ 
+-static __inline int ahc_get_pci_bus(ahc_dev_softc_t);
+-static __inline int
++static inline int ahc_get_pci_bus(ahc_dev_softc_t);
++static inline int
+ ahc_get_pci_bus(ahc_dev_softc_t pci)
+ {
+ 	return (pci->bus->number);
+@@ -521,8 +521,8 @@ static inline void ahc_linux_pci_exit(vo
+ }
+ #endif
+ 
+-static __inline void ahc_flush_device_writes(struct ahc_softc *);
+-static __inline void
++static inline void ahc_flush_device_writes(struct ahc_softc *);
++static inline void
+ ahc_flush_device_writes(struct ahc_softc *ahc)
+ {
+ 	/* XXX Is this sufficient for all architectures??? */
+@@ -535,81 +535,81 @@ int	ahc_linux_proc_info(struct Scsi_Host
+ 
+ /*************************** Domain Validation ********************************/
+ /*********************** Transaction Access Wrappers *************************/
+-static __inline void ahc_cmd_set_transaction_status(struct scsi_cmnd *, uint32_t);
+-static __inline void ahc_set_transaction_status(struct scb *, uint32_t);
+-static __inline void ahc_cmd_set_scsi_status(struct scsi_cmnd *, uint32_t);
+-static __inline void ahc_set_scsi_status(struct scb *, uint32_t);
+-static __inline uint32_t ahc_cmd_get_transaction_status(struct scsi_cmnd *cmd);
+-static __inline uint32_t ahc_get_transaction_status(struct scb *);
+-static __inline uint32_t ahc_cmd_get_scsi_status(struct scsi_cmnd *cmd);
+-static __inline uint32_t ahc_get_scsi_status(struct scb *);
+-static __inline void ahc_set_transaction_tag(struct scb *, int, u_int);
+-static __inline u_long ahc_get_transfer_length(struct scb *);
+-static __inline int ahc_get_transfer_dir(struct scb *);
+-static __inline void ahc_set_residual(struct scb *, u_long);
+-static __inline void ahc_set_sense_residual(struct scb *scb, u_long resid);
+-static __inline u_long ahc_get_residual(struct scb *);
+-static __inline u_long ahc_get_sense_residual(struct scb *);
+-static __inline int ahc_perform_autosense(struct scb *);
+-static __inline uint32_t ahc_get_sense_bufsize(struct ahc_softc *,
++static inline void ahc_cmd_set_transaction_status(struct scsi_cmnd *, uint32_t);
++static inline void ahc_set_transaction_status(struct scb *, uint32_t);
++static inline void ahc_cmd_set_scsi_status(struct scsi_cmnd *, uint32_t);
++static inline void ahc_set_scsi_status(struct scb *, uint32_t);
++static inline uint32_t ahc_cmd_get_transaction_status(struct scsi_cmnd *cmd);
++static inline uint32_t ahc_get_transaction_status(struct scb *);
++static inline uint32_t ahc_cmd_get_scsi_status(struct scsi_cmnd *cmd);
++static inline uint32_t ahc_get_scsi_status(struct scb *);
++static inline void ahc_set_transaction_tag(struct scb *, int, u_int);
++static inline u_long ahc_get_transfer_length(struct scb *);
++static inline int ahc_get_transfer_dir(struct scb *);
++static inline void ahc_set_residual(struct scb *, u_long);
++static inline void ahc_set_sense_residual(struct scb *scb, u_long resid);
++static inline u_long ahc_get_residual(struct scb *);
++static inline u_long ahc_get_sense_residual(struct scb *);
++static inline int ahc_perform_autosense(struct scb *);
++static inline uint32_t ahc_get_sense_bufsize(struct ahc_softc *,
+ 					       struct scb *);
+-static __inline void ahc_notify_xfer_settings_change(struct ahc_softc *,
++static inline void ahc_notify_xfer_settings_change(struct ahc_softc *,
+ 						     struct ahc_devinfo *);
+-static __inline void ahc_platform_scb_free(struct ahc_softc *ahc,
++static inline void ahc_platform_scb_free(struct ahc_softc *ahc,
+ 					   struct scb *scb);
+-static __inline void ahc_freeze_scb(struct scb *scb);
++static inline void ahc_freeze_scb(struct scb *scb);
+ 
+-static __inline
++static inline
+ void ahc_cmd_set_transaction_status(struct scsi_cmnd *cmd, uint32_t status)
+ {
+ 	cmd->result &= ~(CAM_STATUS_MASK << 16);
+ 	cmd->result |= status << 16;
+ }
+ 
+-static __inline
++static inline
+ void ahc_set_transaction_status(struct scb *scb, uint32_t status)
+ {
+ 	ahc_cmd_set_transaction_status(scb->io_ctx,status);
+ }
+ 
+-static __inline
++static inline
+ void ahc_cmd_set_scsi_status(struct scsi_cmnd *cmd, uint32_t status)
+ {
+ 	cmd->result &= ~0xFFFF;
+ 	cmd->result |= status;
+ }
+ 
+-static __inline
++static inline
+ void ahc_set_scsi_status(struct scb *scb, uint32_t status)
+ {
+ 	ahc_cmd_set_scsi_status(scb->io_ctx, status);
+ }
+ 
+-static __inline
++static inline
+ uint32_t ahc_cmd_get_transaction_status(struct scsi_cmnd *cmd)
+ {
+ 	return ((cmd->result >> 16) & CAM_STATUS_MASK);
+ }
+ 
+-static __inline
++static inline
+ uint32_t ahc_get_transaction_status(struct scb *scb)
+ {
+ 	return (ahc_cmd_get_transaction_status(scb->io_ctx));
+ }
+ 
+-static __inline
++static inline
+ uint32_t ahc_cmd_get_scsi_status(struct scsi_cmnd *cmd)
+ {
+ 	return (cmd->result & 0xFFFF);
+ }
+ 
+-static __inline
++static inline
+ uint32_t ahc_get_scsi_status(struct scb *scb)
+ {
+ 	return (ahc_cmd_get_scsi_status(scb->io_ctx));
+ }
+ 
+-static __inline
++static inline
+ void ahc_set_transaction_tag(struct scb *scb, int enabled, u_int type)
+ {
+ 	/*
+@@ -618,43 +618,43 @@ void ahc_set_transaction_tag(struct scb 
+ 	 */
+ }
+ 
+-static __inline
++static inline
+ u_long ahc_get_transfer_length(struct scb *scb)
+ {
+ 	return (scb->platform_data->xfer_len);
+ }
+ 
+-static __inline
++static inline
+ int ahc_get_transfer_dir(struct scb *scb)
+ {
+ 	return (scb->io_ctx->sc_data_direction);
+ }
+ 
+-static __inline
++static inline
+ void ahc_set_residual(struct scb *scb, u_long resid)
+ {
+ 	scsi_set_resid(scb->io_ctx, resid);
+ }
+ 
+-static __inline
++static inline
+ void ahc_set_sense_residual(struct scb *scb, u_long resid)
+ {
+ 	scb->platform_data->sense_resid = resid;
+ }
+ 
+-static __inline
++static inline
+ u_long ahc_get_residual(struct scb *scb)
+ {
+ 	return scsi_get_resid(scb->io_ctx);
+ }
+ 
+-static __inline
++static inline
+ u_long ahc_get_sense_residual(struct scb *scb)
+ {
+ 	return (scb->platform_data->sense_resid);
+ }
+ 
+-static __inline
++static inline
+ int ahc_perform_autosense(struct scb *scb)
+ {
+ 	/*
+@@ -665,20 +665,20 @@ int ahc_perform_autosense(struct scb *sc
+ 	return (1);
+ }
+ 
+-static __inline uint32_t
++static inline uint32_t
+ ahc_get_sense_bufsize(struct ahc_softc *ahc, struct scb *scb)
+ {
+ 	return (sizeof(struct scsi_sense_data));
+ }
+ 
+-static __inline void
++static inline void
+ ahc_notify_xfer_settings_change(struct ahc_softc *ahc,
+ 				struct ahc_devinfo *devinfo)
+ {
+ 	/* Nothing to do here for linux */
+ }
+ 
+-static __inline void
++static inline void
+ ahc_platform_scb_free(struct ahc_softc *ahc, struct scb *scb)
+ {
+ }
+@@ -687,7 +687,7 @@ int	ahc_platform_alloc(struct ahc_softc 
+ void	ahc_platform_free(struct ahc_softc *ahc);
+ void	ahc_platform_freeze_devq(struct ahc_softc *ahc, struct scb *scb);
+ 
+-static __inline void
++static inline void
+ ahc_freeze_scb(struct scb *scb)
+ {
+ 	if ((scb->io_ctx->result & (CAM_DEV_QFRZN << 16)) == 0) {
+diff -puN drivers/scsi/aic7xxx/aic7xxx_pci.c~scsi-replace-__inline-with-inline drivers/scsi/aic7xxx/aic7xxx_pci.c
+--- a/drivers/scsi/aic7xxx/aic7xxx_pci.c~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/aic7xxx/aic7xxx_pci.c
+@@ -54,7 +54,7 @@
+ 
+ #include "aic7xxx_pci.h"
+ 
+-static __inline uint64_t
++static inline uint64_t
+ ahc_compose_id(u_int device, u_int vendor, u_int subdevice, u_int subvendor)
+ {
+ 	uint64_t id;
+diff -puN drivers/scsi/aic7xxx/aiclib.h~scsi-replace-__inline-with-inline drivers/scsi/aic7xxx/aiclib.h
+--- a/drivers/scsi/aic7xxx/aiclib.h~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/aic7xxx/aiclib.h
+@@ -133,7 +133,7 @@ struct scsi_sense_data
+ #define SCSI_STATUS_TASK_ABORTED	0x40
+ 
+ /************************* Large Disk Handling ********************************/
+-static __inline int
++static inline int
+ aic_sector_div(sector_t capacity, int heads, int sectors)
+ {
+ 	/* ugly, ugly sector_div calling convention.. */
+@@ -141,7 +141,7 @@ aic_sector_div(sector_t capacity, int he
+ 	return (int)capacity;
+ }
+ 
+-static __inline uint32_t
++static inline uint32_t
+ scsi_4btoul(uint8_t *bytes)
+ {
+ 	uint32_t rv;
+diff -puN drivers/scsi/sym53c8xx_2/sym_glue.h~scsi-replace-__inline-with-inline drivers/scsi/sym53c8xx_2/sym_glue.h
+--- a/drivers/scsi/sym53c8xx_2/sym_glue.h~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/sym53c8xx_2/sym_glue.h
+@@ -234,7 +234,7 @@ static inline struct sym_hcb * sym_get_h
+ /*
+  *  Set the status field of a CAM CCB.
+  */
+-static __inline void 
++static inline void
+ sym_set_cam_status(struct scsi_cmnd *cmd, int status)
+ {
+ 	cmd->result &= ~(0xff  << 16);
+@@ -244,7 +244,7 @@ sym_set_cam_status(struct scsi_cmnd *cmd
+ /*
+  *  Get the status field of a CAM CCB.
+  */
+-static __inline int 
++static inline int
+ sym_get_cam_status(struct scsi_cmnd *cmd)
+ {
+ 	return host_byte(cmd->result);
+@@ -253,7 +253,7 @@ sym_get_cam_status(struct scsi_cmnd *cmd
+ /*
+  *  Build CAM result for a successful IO and for a failed IO.
+  */
+-static __inline void sym_set_cam_result_ok(struct sym_ccb *cp, struct scsi_cmnd *cmd, int resid)
++static inline void sym_set_cam_result_ok(struct sym_ccb *cp, struct scsi_cmnd *cmd, int resid)
+ {
+ 	scsi_set_resid(cmd, resid);
+ 	cmd->result = (((DID_OK) << 16) + ((cp->ssss_status) & 0x7f));
+diff -puN drivers/scsi/sym53c8xx_2/sym_hipd.c~scsi-replace-__inline-with-inline drivers/scsi/sym53c8xx_2/sym_hipd.c
+--- a/drivers/scsi/sym53c8xx_2/sym_hipd.c~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/sym53c8xx_2/sym_hipd.c
+@@ -602,7 +602,7 @@ sym_getsync(struct sym_hcb *np, u_char d
+ /*
+  *  Set initial io register bits from burst code.
+  */
+-static __inline void sym_init_burst(struct sym_hcb *np, u_char bc)
++static inline void sym_init_burst(struct sym_hcb *np, u_char bc)
+ {
+ 	np->rv_ctest4	&= ~0x80;
+ 	np->rv_dmode	&= ~(0x3 << 6);
+diff -puN drivers/scsi/sym53c8xx_2/sym_hipd.h~scsi-replace-__inline-with-inline drivers/scsi/sym53c8xx_2/sym_hipd.h
+--- a/drivers/scsi/sym53c8xx_2/sym_hipd.h~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/sym53c8xx_2/sym_hipd.h
+@@ -1093,7 +1093,7 @@ do {									\
+ #elif SYM_CONF_DMA_ADDRESSING_MODE == 2
+ #define DMA_DAC_MASK	DMA_64BIT_MASK
+ int sym_lookup_dmap(struct sym_hcb *np, u32 h, int s);
+-static __inline void 
++static inline void
+ sym_build_sge(struct sym_hcb *np, struct sym_tblmove *data, u64 badd, int len)
+ {
+ 	u32 h = (badd>>32);
+@@ -1198,7 +1198,7 @@ dma_addr_t __vtobus(m_pool_ident_t dev_d
+ 
+ #define sym_m_pool_match(mp_id1, mp_id2)	(mp_id1 == mp_id2)
+ 
+-static __inline void *sym_m_get_dma_mem_cluster(m_pool_p mp, m_vtob_p vbp)
++static inline void *sym_m_get_dma_mem_cluster(m_pool_p mp, m_vtob_p vbp)
+ {
+ 	void *vaddr = NULL;
+ 	dma_addr_t baddr = 0;
+@@ -1212,7 +1212,7 @@ static __inline void *sym_m_get_dma_mem_
+ 	return vaddr;
+ }
+ 
+-static __inline void sym_m_free_dma_mem_cluster(m_pool_p mp, m_vtob_p vbp)
++static inline void sym_m_free_dma_mem_cluster(m_pool_p mp, m_vtob_p vbp)
+ {
+ 	dma_free_coherent(mp->dev_dmat, SYM_MEM_CLUSTER_SIZE, vbp->vaddr,
+ 			vbp->baddr);
+diff -puN drivers/scsi/sym53c8xx_2/sym_malloc.c~scsi-replace-__inline-with-inline drivers/scsi/sym53c8xx_2/sym_malloc.c
+--- a/drivers/scsi/sym53c8xx_2/sym_malloc.c~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/sym53c8xx_2/sym_malloc.c
+@@ -262,7 +262,7 @@ static void ___free_dma_mem_cluster(m_po
+ #endif
+ 
+ /* Fetch the memory pool for a given pool id (i.e. DMA constraints) */
+-static __inline m_pool_p ___get_dma_pool(m_pool_ident_t dev_dmat)
++static inline m_pool_p ___get_dma_pool(m_pool_ident_t dev_dmat)
+ {
+ 	m_pool_p mp;
+ 	for (mp = mp0.next;
+diff -puN drivers/scsi/sym53c8xx_2/sym_misc.h~scsi-replace-__inline-with-inline drivers/scsi/sym53c8xx_2/sym_misc.h
+--- a/drivers/scsi/sym53c8xx_2/sym_misc.h~scsi-replace-__inline-with-inline
++++ a/drivers/scsi/sym53c8xx_2/sym_misc.h
+@@ -52,17 +52,17 @@ typedef struct sym_quehead {
+ 	(ptr)->flink = (ptr); (ptr)->blink = (ptr); \
+ } while (0)
+ 
+-static __inline struct sym_quehead *sym_que_first(struct sym_quehead *head)
++static inline struct sym_quehead *sym_que_first(struct sym_quehead *head)
+ {
+ 	return (head->flink == head) ? 0 : head->flink;
+ }
+ 
+-static __inline struct sym_quehead *sym_que_last(struct sym_quehead *head)
++static inline struct sym_quehead *sym_que_last(struct sym_quehead *head)
+ {
+ 	return (head->blink == head) ? 0 : head->blink;
+ }
+ 
+-static __inline void __sym_que_add(struct sym_quehead * new,
++static inline void __sym_que_add(struct sym_quehead * new,
+ 	struct sym_quehead * blink,
+ 	struct sym_quehead * flink)
+ {
+@@ -72,19 +72,19 @@ static __inline void __sym_que_add(struc
+ 	blink->flink	= new;
+ }
+ 
+-static __inline void __sym_que_del(struct sym_quehead * blink,
++static inline void __sym_que_del(struct sym_quehead * blink,
+ 	struct sym_quehead * flink)
+ {
+ 	flink->blink = blink;
+ 	blink->flink = flink;
+ }
+ 
+-static __inline int sym_que_empty(struct sym_quehead *head)
++static inline int sym_que_empty(struct sym_quehead *head)
+ {
+ 	return head->flink == head;
+ }
+ 
+-static __inline void sym_que_splice(struct sym_quehead *list,
++static inline void sym_que_splice(struct sym_quehead *list,
+ 	struct sym_quehead *head)
+ {
+ 	struct sym_quehead *first = list->flink;
+@@ -101,7 +101,7 @@ static __inline void sym_que_splice(stru
+ 	}
+ }
+ 
+-static __inline void sym_que_move(struct sym_quehead *orig,
++static inline void sym_que_move(struct sym_quehead *orig,
+ 	struct sym_quehead *dest)
+ {
+ 	struct sym_quehead *first, *last;
+@@ -129,7 +129,7 @@ static __inline void sym_que_move(struct
+ 
+ #define sym_insque_head(new, head)	__sym_que_add(new, head, (head)->flink)
+ 
+-static __inline struct sym_quehead *sym_remque_head(struct sym_quehead *head)
++static inline struct sym_quehead *sym_remque_head(struct sym_quehead *head)
+ {
+ 	struct sym_quehead *elem = head->flink;
+ 
+@@ -142,7 +142,7 @@ static __inline struct sym_quehead *sym_
+ 
+ #define sym_insque_tail(new, head)	__sym_que_add(new, (head)->blink, head)
+ 
+-static __inline struct sym_quehead *sym_remque_tail(struct sym_quehead *head)
++static inline struct sym_quehead *sym_remque_tail(struct sym_quehead *head)
+ {
+ 	struct sym_quehead *elem = head->blink;
+ 
 _
 
-Patches currently in -mm which might be from gerickson@nuovations.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
+linux-next.patch
+input-ads7846c-sparse-lock-annotation.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
 
