@@ -1,168 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpuset-rewrite-update_tasks_nodemask.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:35:00 -0700
-Message-ID: <200904061935.n36JZ0t6011843@imap1.linux-foundation.org>
+Subject: [merged] factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:38:45 -0700
+Message-ID: <200904061938.n36Jcjhp013524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60898 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752451AbZDFUbt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:31:49 -0400
+	by vger.kernel.org with ESMTP id S1752185AbZDFUdS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:33:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, a.p.zijlstra@chello.nl, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: holt@sgi.com, a.p.zijlstra@chello.nl, linux-arch@vger.kernel.org, mingo@elte.hu, ptesarik@suse.cz, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: rewrite update_tasks_nodemask()
+     Factor out #ifdefs from kernel/spinlock.c to LOCK_CONTENDED_FLAGS
 has been removed from the -mm tree.  Its filename was
-     cpuset-rewrite-update_tasks_nodemask.patch
+     factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: rewrite update_tasks_nodemask()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: Factor out #ifdefs from kernel/spinlock.c to LOCK_CONTENDED_FLAGS
+From: Robin Holt <holt@sgi.com>
 
-This patch uses cgroup_scan_tasks() to rebind tasks' vmas to new cpuset's
-mems_allowed.
+SGI has observed that on large systems, interrupts are not serviced for a
+long period of time when waiting for a rwlock.  The following patch series
+re-enables irqs while waiting for the lock, resembling the code which is
+already there for spinlocks.
 
-Not only simplify the code largely, but also avoid allocating an array to
-hold mm pointers of all the tasks in the cpuset.  This array can be big
-(size > PAGESIZE) if we have lots of tasks in that cpuset, thus has a
-chance to fail the allocation when under memory stress.
+I only made the ia64 version, because the patch adds some overhead to the
+fast path.  I assume there is currently no demand to have this for other
+architectures, because the systems are not so large.  Of course, the
+possibility to implement raw_{read|write}_lock_flags for any architecture
+is still there.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+
+This patch:
+
+The new macro LOCK_CONTENDED_FLAGS expands to the correct implementation
+depending on the config options, so that IRQ's are re-enabled when
+possible, but they remain disabled if CONFIG_LOCKDEP is set.
+
+Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: <linux-arch@vger.kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |  109 ++++++++++++++++------------------------------
- 1 file changed, 39 insertions(+), 70 deletions(-)
+ include/linux/lockdep.h |   17 +++++++++++++++++
+ kernel/spinlock.c       |   12 ++----------
+ 2 files changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-rewrite-update_tasks_nodemask kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-rewrite-update_tasks_nodemask
-+++ a/kernel/cpuset.c
-@@ -1026,6 +1026,31 @@ static void cpuset_migrate_mm(struct mm_
- 	mutex_unlock(&callback_mutex);
- }
+diff -puN include/linux/lockdep.h~factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags include/linux/lockdep.h
+--- a/include/linux/lockdep.h~factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags
++++ a/include/linux/lockdep.h
+@@ -364,6 +364,23 @@ do {								\
  
+ #endif /* CONFIG_LOCK_STAT */
+ 
++#ifdef CONFIG_LOCKDEP
++
 +/*
-+ * Rebind task's vmas to cpuset's new mems_allowed, and migrate pages to new
-+ * nodes if memory_migrate flag is set. Called with cgroup_mutex held.
++ * On lockdep we dont want the hand-coded irq-enable of
++ * _raw_*_lock_flags() code, because lockdep assumes
++ * that interrupts are not re-enabled during lock-acquire:
 + */
-+static void cpuset_change_nodemask(struct task_struct *p,
-+				   struct cgroup_scanner *scan)
-+{
-+	struct mm_struct *mm;
-+	struct cpuset *cs;
-+	int migrate;
-+	const nodemask_t *oldmem = scan->data;
++#define LOCK_CONTENDED_FLAGS(_lock, try, lock, lockfl, flags) \
++	LOCK_CONTENDED((_lock), (try), (lock))
 +
-+	mm = get_task_mm(p);
-+	if (!mm)
-+		return;
++#else /* CONFIG_LOCKDEP */
 +
-+	cs = cgroup_cs(scan->cg);
-+	migrate = is_memory_migrate(cs);
++#define LOCK_CONTENDED_FLAGS(_lock, try, lock, lockfl, flags) \
++	lockfl((_lock), (flags))
 +
-+	mpol_rebind_mm(mm, &cs->mems_allowed);
-+	if (migrate)
-+		cpuset_migrate_mm(mm, oldmem, &cs->mems_allowed);
-+	mmput(mm);
-+}
++#endif /* CONFIG_LOCKDEP */
 +
- static void *cpuset_being_rebound;
- 
- /**
-@@ -1038,88 +1063,32 @@ static void *cpuset_being_rebound;
-  */
- static int update_tasks_nodemask(struct cpuset *cs, const nodemask_t *oldmem)
- {
--	struct task_struct *p;
--	struct mm_struct **mmarray;
--	int i, n, ntasks;
--	int migrate;
--	int fudge;
--	struct cgroup_iter it;
- 	int retval;
-+	struct cgroup_scanner scan;
- 
- 	cpuset_being_rebound = cs;		/* causes mpol_dup() rebind */
- 
--	fudge = 10;				/* spare mmarray[] slots */
--	fudge += cpumask_weight(cs->cpus_allowed);/* imagine 1 fork-bomb/cpu */
--	retval = -ENOMEM;
-+	scan.cg = cs->css.cgroup;
-+	scan.test_task = NULL;
-+	scan.process_task = cpuset_change_nodemask;
-+	scan.heap = NULL;
-+	scan.data = (nodemask_t *)oldmem;
- 
- 	/*
--	 * Allocate mmarray[] to hold mm reference for each task
--	 * in cpuset cs.  Can't kmalloc GFP_KERNEL while holding
--	 * tasklist_lock.  We could use GFP_ATOMIC, but with a
--	 * few more lines of code, we can retry until we get a big
--	 * enough mmarray[] w/o using GFP_ATOMIC.
--	 */
--	while (1) {
--		ntasks = cgroup_task_count(cs->css.cgroup);  /* guess */
--		ntasks += fudge;
--		mmarray = kmalloc(ntasks * sizeof(*mmarray), GFP_KERNEL);
--		if (!mmarray)
--			goto done;
--		read_lock(&tasklist_lock);		/* block fork */
--		if (cgroup_task_count(cs->css.cgroup) <= ntasks)
--			break;				/* got enough */
--		read_unlock(&tasklist_lock);		/* try again */
--		kfree(mmarray);
--	}
--
--	n = 0;
--
--	/* Load up mmarray[] with mm reference for each task in cpuset. */
--	cgroup_iter_start(cs->css.cgroup, &it);
--	while ((p = cgroup_iter_next(cs->css.cgroup, &it))) {
--		struct mm_struct *mm;
--
--		if (n >= ntasks) {
--			printk(KERN_WARNING
--				"Cpuset mempolicy rebind incomplete.\n");
--			break;
--		}
--		mm = get_task_mm(p);
--		if (!mm)
--			continue;
--		mmarray[n++] = mm;
--	}
--	cgroup_iter_end(cs->css.cgroup, &it);
--	read_unlock(&tasklist_lock);
--
+ #ifdef CONFIG_GENERIC_HARDIRQS
+ extern void early_init_irq_lock_class(void);
+ #else
+diff -puN kernel/spinlock.c~factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags kernel/spinlock.c
+--- a/kernel/spinlock.c~factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags
++++ a/kernel/spinlock.c
+@@ -299,16 +299,8 @@ unsigned long __lockfunc _spin_lock_irqs
+ 	local_irq_save(flags);
+ 	preempt_disable();
+ 	spin_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
 -	/*
--	 * Now that we've dropped the tasklist spinlock, we can
--	 * rebind the vma mempolicies of each mm in mmarray[] to their
--	 * new cpuset, and release that mm.  The mpol_rebind_mm()
--	 * call takes mmap_sem, which we couldn't take while holding
--	 * tasklist_lock.  Forks can happen again now - the mpol_dup()
--	 * cpuset_being_rebound check will catch such forks, and rebind
--	 * their vma mempolicies too.  Because we still hold the global
--	 * cgroup_mutex, we know that no other rebind effort will
--	 * be contending for the global variable cpuset_being_rebound.
-+	 * The mpol_rebind_mm() call takes mmap_sem, which we couldn't
-+	 * take while holding tasklist_lock.  Forks can happen - the
-+	 * mpol_dup() cpuset_being_rebound check will catch such forks,
-+	 * and rebind their vma mempolicies too.  Because we still hold
-+	 * the global cgroup_mutex, we know that no other rebind effort
-+	 * will be contending for the global variable cpuset_being_rebound.
- 	 * It's ok if we rebind the same mm twice; mpol_rebind_mm()
- 	 * is idempotent.  Also migrate pages in each mm to new nodes.
- 	 */
--	migrate = is_memory_migrate(cs);
--	for (i = 0; i < n; i++) {
--		struct mm_struct *mm = mmarray[i];
+-	 * On lockdep we dont want the hand-coded irq-enable of
+-	 * _raw_spin_lock_flags() code, because lockdep assumes
+-	 * that interrupts are not re-enabled during lock-acquire:
+-	 */
+-#ifdef CONFIG_LOCKDEP
+-	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
+-#else
+-	_raw_spin_lock_flags(lock, &flags);
+-#endif
++	LOCK_CONTENDED_FLAGS(lock, _raw_spin_trylock, _raw_spin_lock,
++				_raw_spin_lock_flags, &flags);
+ 	return flags;
+ }
+ EXPORT_SYMBOL(_spin_lock_irqsave_nested);
+_
+
+Patches currently in -mm which might be from holt@sgi.com are
+
+origin.patch
+
