@@ -1,210 +1,297 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory_accessor-implement-the-new-memory_accessor-interfaces-for-spi-eeproms.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:33:19 -0700
-Message-ID: <200904061933.n36JXJl3011068@imap1.linux-foundation.org>
+Subject: [merged] ext3-avoid-false-eio-errors-v4.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:33:50 -0700
+Message-ID: <200904061933.n36JXofx011281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53523 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757431AbZDFTgr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:36:47 -0400
+	by vger.kernel.org with ESMTP id S1757570AbZDFThS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:37:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, khali@linux-fr.org, khilman@deeprootsystems.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory_accessor: implement the new memory_accessor interfaces for SPI EEPROMs
+     ext3: avoid false EIO errors
 has been removed from the -mm tree.  Its filename was
-     memory_accessor-implement-the-new-memory_accessor-interfaces-for-spi-eeproms.patch
+     ext3-avoid-false-eio-errors-v4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory_accessor: implement the new memory_accessor interfaces for SPI EEPROMs
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: ext3: avoid false EIO errors
+From: Jan Kara <jack@suse.cz>
 
- - Define new setup() hook to export the accessor
- - Implement accessor methods
+Sometimes block_write_begin() can map buffers in a page but later we
+fail to copy data into those buffers (because the source page has been
+paged out in the mean time).  We then end up with !uptodate mapped
+buffers.  To add a bit more to the confusion, block_write_end() does
+not commit any data (and thus does not any mark buffers as uptodate) if
+we didn't succeed with copying all the data.
 
-Moves some error checking out of the sysfs interface code into the layer
-below it, which is now shared by both sysfs and memory access code.
+Commit f4fc66a894546bdc88a775d0e83ad20a65210bcb (ext3: convert to new
+aops) missed these cases and thus we were inserting non-uptodate
+buffers to transaction's list which confuses JBD code and it reports IO
+errors, aborts a transaction and generally makes users afraid about
+their data ;-P.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+This patch fixes the problem by reorganizing ext3_..._write_end() code
+to first call block_write_end() to mark buffers with valid data
+uptodate and after that we file only uptodate buffers to transaction's
+lists.
+
+We also fix a problem where we could leave blocks allocated beyond i_size
+(i_disksize in fact) because of failed write. We now add inode to orphan
+list when write fails (to be safe in case we crash) and then truncate blocks
+beyond i_size in a separate transaction.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/eeprom/at25.c |   58 ++++++++++++++++++++++++++---------
- include/linux/spi/eeprom.h |    6 +++
- 2 files changed, 50 insertions(+), 14 deletions(-)
+ fs/ext3/inode.c |  143 ++++++++++++++++++++++++----------------------
+ 1 file changed, 76 insertions(+), 67 deletions(-)
 
-diff -puN drivers/misc/eeprom/at25.c~memory_accessor-implement-the-new-memory_accessor-interfaces-for-spi-eeproms drivers/misc/eeprom/at25.c
---- a/drivers/misc/eeprom/at25.c~memory_accessor-implement-the-new-memory_accessor-interfaces-for-spi-eeproms
-+++ a/drivers/misc/eeprom/at25.c
-@@ -30,6 +30,7 @@
- 
- struct at25_data {
- 	struct spi_device	*spi;
-+	struct memory_accessor	mem;
- 	struct mutex		lock;
- 	struct spi_eeprom	chip;
- 	struct bin_attribute	bin;
-@@ -75,6 +76,13 @@ at25_ee_read(
- 	struct spi_transfer	t[2];
- 	struct spi_message	m;
- 
-+	if (unlikely(offset >= at25->bin.size))
-+		return 0;
-+	if ((offset + count) > at25->bin.size)
-+		count = at25->bin.size - offset;
-+	if (unlikely(!count))
-+		return count;
-+
- 	cp = command;
- 	*cp++ = AT25_READ;
- 
-@@ -127,13 +135,6 @@ at25_bin_read(struct kobject *kobj, stru
- 	dev = container_of(kobj, struct device, kobj);
- 	at25 = dev_get_drvdata(dev);
- 
--	if (unlikely(off >= at25->bin.size))
--		return 0;
--	if ((off + count) > at25->bin.size)
--		count = at25->bin.size - off;
--	if (unlikely(!count))
--		return count;
--
- 	return at25_ee_read(at25, buf, off, count);
- }
- 
-@@ -146,6 +147,13 @@ at25_ee_write(struct at25_data *at25, ch
- 	unsigned		buf_size;
- 	u8			*bounce;
- 
-+	if (unlikely(off >= at25->bin.size))
-+		return -EFBIG;
-+	if ((off + count) > at25->bin.size)
-+		count = at25->bin.size - off;
-+	if (unlikely(!count))
-+		return count;
-+
- 	/* Temp buffer starts with command and address */
- 	buf_size = at25->chip.page_size;
- 	if (buf_size > io_limit)
-@@ -253,18 +261,31 @@ at25_bin_write(struct kobject *kobj, str
- 	dev = container_of(kobj, struct device, kobj);
- 	at25 = dev_get_drvdata(dev);
- 
--	if (unlikely(off >= at25->bin.size))
--		return -EFBIG;
--	if ((off + count) > at25->bin.size)
--		count = at25->bin.size - off;
--	if (unlikely(!count))
--		return count;
--
- 	return at25_ee_write(at25, buf, off, count);
- }
- 
- /*-------------------------------------------------------------------------*/
- 
-+/* Let in-kernel code access the eeprom data. */
-+
-+static ssize_t at25_mem_read(struct memory_accessor *mem, char *buf,
-+			 off_t offset, size_t count)
-+{
-+	struct at25_data *at25 = container_of(mem, struct at25_data, mem);
-+
-+	return at25_ee_read(at25, buf, offset, count);
-+}
-+
-+static ssize_t at25_mem_write(struct memory_accessor *mem, char *buf,
-+			  off_t offset, size_t count)
-+{
-+	struct at25_data *at25 = container_of(mem, struct at25_data, mem);
-+
-+	return at25_ee_write(at25, buf, offset, count);
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+
- static int at25_probe(struct spi_device *spi)
+diff -puN fs/ext3/inode.c~ext3-avoid-false-eio-errors-v4 fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-avoid-false-eio-errors-v4
++++ a/fs/ext3/inode.c
+@@ -1149,12 +1149,15 @@ static int ext3_write_begin(struct file 
+ 				struct page **pagep, void **fsdata)
  {
- 	struct at25_data	*at25 = NULL;
-@@ -317,6 +338,10 @@ static int at25_probe(struct spi_device 
- 	at25->addrlen = addrlen;
+ 	struct inode *inode = mapping->host;
+-	int ret, needed_blocks = ext3_writepage_trans_blocks(inode);
++	int ret;
+ 	handle_t *handle;
+ 	int retries = 0;
+ 	struct page *page;
+ 	pgoff_t index;
+ 	unsigned from, to;
++	/* Reserve one block more for addition to orphan list in case
++	 * we allocate blocks but write fails for some reason */
++	int needed_blocks = ext3_writepage_trans_blocks(inode) + 1;
  
- 	/* Export the EEPROM bytes through sysfs, since that's convenient.
-+	 * And maybe to other kernel code; it might hold a board's Ethernet
-+	 * address, or board-specific calibration data generated on the
-+	 * manufacturing floor.
-+	 *
- 	 * Default to root-only access to the data; EEPROMs often hold data
- 	 * that's sensitive for read and/or write, like ethernet addresses,
- 	 * security codes, board-specific manufacturing calibrations, etc.
-@@ -324,17 +349,22 @@ static int at25_probe(struct spi_device 
- 	at25->bin.attr.name = "eeprom";
- 	at25->bin.attr.mode = S_IRUSR;
- 	at25->bin.read = at25_bin_read;
-+	at25->mem.read = at25_mem_read;
+ 	index = pos >> PAGE_CACHE_SHIFT;
+ 	from = pos & (PAGE_CACHE_SIZE - 1);
+@@ -1184,15 +1187,20 @@ retry:
+ 	}
+ write_begin_failed:
+ 	if (ret) {
+-		ext3_journal_stop(handle);
+-		unlock_page(page);
+-		page_cache_release(page);
+ 		/*
+ 		 * block_write_begin may have instantiated a few blocks
+ 		 * outside i_size.  Trim these off again. Don't need
+ 		 * i_size_read because we hold i_mutex.
++		 *
++		 * Add inode to orphan list in case we crash before truncate
++		 * finishes.
+ 		 */
+ 		if (pos + len > inode->i_size)
++			ext3_orphan_add(handle, inode);
++		ext3_journal_stop(handle);
++		unlock_page(page);
++		page_cache_release(page);
++		if (pos + len > inode->i_size)
+ 			vmtruncate(inode, inode->i_size);
+ 	}
+ 	if (ret == -ENOSPC && ext3_should_retry_alloc(inode->i_sb, &retries))
+@@ -1211,6 +1219,18 @@ int ext3_journal_dirty_data(handle_t *ha
+ 	return err;
+ }
  
- 	at25->bin.size = at25->chip.byte_len;
- 	if (!(chip->flags & EE_READONLY)) {
- 		at25->bin.write = at25_bin_write;
- 		at25->bin.attr.mode |= S_IWUSR;
-+		at25->mem.write = at25_mem_write;
++/* For ordered writepage and write_end functions */
++static int journal_dirty_data_fn(handle_t *handle, struct buffer_head *bh)
++{
++	/*
++	 * Write could have mapped the buffer but it didn't copy the data in
++	 * yet. So avoid filing such buffer into a transaction.
++	 */
++	if (buffer_mapped(bh) && buffer_uptodate(bh))
++		return ext3_journal_dirty_data(handle, bh);
++	return 0;
++}
++
+ /* For write_end() in data=journal mode */
+ static int write_end_fn(handle_t *handle, struct buffer_head *bh)
+ {
+@@ -1221,26 +1241,20 @@ static int write_end_fn(handle_t *handle
+ }
+ 
+ /*
+- * Generic write_end handler for ordered and writeback ext3 journal modes.
+- * We can't use generic_write_end, because that unlocks the page and we need to
+- * unlock the page after ext3_journal_stop, but ext3_journal_stop must run
+- * after block_write_end.
+- */
+-static int ext3_generic_write_end(struct file *file,
+-				struct address_space *mapping,
+-				loff_t pos, unsigned len, unsigned copied,
+-				struct page *page, void *fsdata)
+-{
+-	struct inode *inode = file->f_mapping->host;
+-
+-	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
+-
+-	if (pos+copied > inode->i_size) {
+-		i_size_write(inode, pos+copied);
++ * This is nasty and subtle: ext3_write_begin() could have allocated blocks
++ * for the whole page but later we failed to copy the data in. Update inode
++ * size according to what we managed to copy. The rest is going to be
++ * truncated in write_end function.
++ */
++static void update_file_sizes(struct inode *inode, loff_t pos, unsigned copied)
++{
++	/* What matters to us is i_disksize. We don't write i_size anywhere */
++	if (pos + copied > inode->i_size)
++		i_size_write(inode, pos + copied);
++	if (pos + copied > EXT3_I(inode)->i_disksize) {
++		EXT3_I(inode)->i_disksize = pos + copied;
+ 		mark_inode_dirty(inode);
+ 	}
+-
+-	return copied;
+ }
+ 
+ /*
+@@ -1260,35 +1274,29 @@ static int ext3_ordered_write_end(struct
+ 	unsigned from, to;
+ 	int ret = 0, ret2;
+ 
+-	from = pos & (PAGE_CACHE_SIZE - 1);
+-	to = from + len;
++	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
+ 
++	from = pos & (PAGE_CACHE_SIZE - 1);
++	to = from + copied;
+ 	ret = walk_page_buffers(handle, page_buffers(page),
+-		from, to, NULL, ext3_journal_dirty_data);
+-
+-	if (ret == 0) {
+-		/*
+-		 * generic_write_end() will run mark_inode_dirty() if i_size
+-		 * changes.  So let's piggyback the i_disksize mark_inode_dirty
+-		 * into that.
+-		 */
+-		loff_t new_i_size;
++		from, to, NULL, journal_dirty_data_fn);
+ 
+-		new_i_size = pos + copied;
+-		if (new_i_size > EXT3_I(inode)->i_disksize)
+-			EXT3_I(inode)->i_disksize = new_i_size;
+-		ret2 = ext3_generic_write_end(file, mapping, pos, len, copied,
+-							page, fsdata);
+-		copied = ret2;
+-		if (ret2 < 0)
+-			ret = ret2;
+-	}
++	if (ret == 0)
++		update_file_sizes(inode, pos, copied);
++	/*
++	 * There may be allocated blocks outside of i_size because
++	 * we failed to copy some data. Prepare for truncate.
++	 */
++	if (pos + len > inode->i_size)
++		ext3_orphan_add(handle, inode);
+ 	ret2 = ext3_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
+ 	unlock_page(page);
+ 	page_cache_release(page);
+ 
++	if (pos + len > inode->i_size)
++		vmtruncate(inode, inode->i_size);
+ 	return ret ? ret : copied;
+ }
+ 
+@@ -1299,25 +1307,22 @@ static int ext3_writeback_write_end(stru
+ {
+ 	handle_t *handle = ext3_journal_current_handle();
+ 	struct inode *inode = file->f_mapping->host;
+-	int ret = 0, ret2;
+-	loff_t new_i_size;
+-
+-	new_i_size = pos + copied;
+-	if (new_i_size > EXT3_I(inode)->i_disksize)
+-		EXT3_I(inode)->i_disksize = new_i_size;
+-
+-	ret2 = ext3_generic_write_end(file, mapping, pos, len, copied,
+-							page, fsdata);
+-	copied = ret2;
+-	if (ret2 < 0)
+-		ret = ret2;
++	int ret;
+ 
+-	ret2 = ext3_journal_stop(handle);
+-	if (!ret)
+-		ret = ret2;
++	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
++	update_file_sizes(inode, pos, copied);
++	/*
++	 * There may be allocated blocks outside of i_size because
++	 * we failed to copy some data. Prepare for truncate.
++	 */
++	if (pos + len > inode->i_size)
++		ext3_orphan_add(handle, inode);
++	ret = ext3_journal_stop(handle);
+ 	unlock_page(page);
+ 	page_cache_release(page);
+ 
++	if (pos + len > inode->i_size)
++		vmtruncate(inode, inode->i_size);
+ 	return ret ? ret : copied;
+ }
+ 
+@@ -1338,15 +1343,23 @@ static int ext3_journalled_write_end(str
+ 	if (copied < len) {
+ 		if (!PageUptodate(page))
+ 			copied = 0;
+-		page_zero_new_buffers(page, from+copied, to);
++		page_zero_new_buffers(page, from + copied, to);
++		to = from + copied;
  	}
  
- 	err = sysfs_create_bin_file(&spi->dev.kobj, &at25->bin);
- 	if (err)
- 		goto fail;
- 
-+	if (chip->setup)
-+		chip->setup(&at25->mem, chip->context);
+ 	ret = walk_page_buffers(handle, page_buffers(page), from,
+ 				to, &partial, write_end_fn);
+ 	if (!partial)
+ 		SetPageUptodate(page);
+-	if (pos+copied > inode->i_size)
+-		i_size_write(inode, pos+copied);
 +
- 	dev_info(&spi->dev, "%Zd %s %s eeprom%s, pagesize %u\n",
- 		(at25->bin.size < 1024)
- 			? at25->bin.size
-diff -puN include/linux/spi/eeprom.h~memory_accessor-implement-the-new-memory_accessor-interfaces-for-spi-eeproms include/linux/spi/eeprom.h
---- a/include/linux/spi/eeprom.h~memory_accessor-implement-the-new-memory_accessor-interfaces-for-spi-eeproms
-+++ a/include/linux/spi/eeprom.h
-@@ -1,6 +1,8 @@
- #ifndef __LINUX_SPI_EEPROM_H
- #define __LINUX_SPI_EEPROM_H
++	if (pos + copied > inode->i_size)
++		i_size_write(inode, pos + copied);
++	/*
++	 * There may be allocated blocks outside of i_size because
++	 * we failed to copy some data. Prepare for truncate.
++	 */
++	if (pos + len > inode->i_size)
++		ext3_orphan_add(handle, inode);
+ 	EXT3_I(inode)->i_state |= EXT3_STATE_JDATA;
+ 	if (inode->i_size > EXT3_I(inode)->i_disksize) {
+ 		EXT3_I(inode)->i_disksize = inode->i_size;
+@@ -1361,6 +1374,8 @@ static int ext3_journalled_write_end(str
+ 	unlock_page(page);
+ 	page_cache_release(page);
  
-+#include <linux/memory.h>
-+
- /*
-  * Put one of these structures in platform_data for SPI EEPROMS handled
-  * by the "at25" driver.  On SPI, most EEPROMS understand the same core
-@@ -17,6 +19,10 @@ struct spi_eeprom {
- #define	EE_ADDR2	0x0002			/* 16 bit addrs */
- #define	EE_ADDR3	0x0004			/* 24 bit addrs */
- #define	EE_READONLY	0x0008			/* disallow writes */
-+
-+	/* for exporting this chip's data to other kernel code */
-+	void (*setup)(struct memory_accessor *mem, void *context);
-+	void *context;
- };
++	if (pos + len > inode->i_size)
++		vmtruncate(inode, inode->i_size);
+ 	return ret ? ret : copied;
+ }
  
- #endif /* __LINUX_SPI_EEPROM_H */
-_
-
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
-
-origin.patch
-linux-next.patch
-blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
-blackfin-spi-driver-remove-useless-asm-cplbinith.patch
-blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
-blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
-blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
-blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
-blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
-blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
-blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
-spi-limit-reaches-1-tested-0.patch
-
+@@ -1428,17 +1443,11 @@ static int bput_one(handle_t *handle, st
+ 	return 0;
+ }
+ 
+-static int journal_dirty_data_fn(handle_t *handle, struct buffer_head *bh)
+-{
+-	if (buffer_mapped(bh))
+-		return ext3_journal_dirty_data(handle, bh);
+-	return 0;
+-}
