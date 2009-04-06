@@ -1,146 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sgi-gru-macro-for-scanning-all-gru-chiplets.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:37:39 -0700
-Message-ID: <200904061937.n36Jbdqe013030@imap1.linux-foundation.org>
+Subject: [merged] sgi-gru-add-statistics-to-the-gru-context-management-functions.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:37:29 -0700
+Message-ID: <200904061937.n36JbTE2012950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751800AbZDFTvg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:51:36 -0400
+	by vger.kernel.org with ESMTP id S1752222AbZDFTwz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:52:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-gru: macro for scanning all gru chiplets
+     sgi-gru: add statistics to the GRU context management functions
 has been removed from the -mm tree.  Its filename was
-     sgi-gru-macro-for-scanning-all-gru-chiplets.patch
+     sgi-gru-add-statistics-to-the-gru-context-management-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: macro for scanning all gru chiplets
+Subject: sgi-gru: add statistics to the GRU context management functions
 From: Jack Steiner <steiner@sgi.com>
 
-Add macro for scanning all active GRU chiplets.  Maximum chiplet id is
-saved during GRU initialization.
+Add statistics to the GRU context management functions.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c  |   11 ++---------
- drivers/misc/sgi-gru/grufile.c   |    3 +++
- drivers/misc/sgi-gru/gruprocfs.c |    4 ++--
- drivers/misc/sgi-gru/grutables.h |    9 +++++++--
- 4 files changed, 14 insertions(+), 13 deletions(-)
+ drivers/misc/sgi-gru/gruhandles.c |   12 ++++++++
+ drivers/misc/sgi-gru/gruprocfs.c  |   39 ++++++++++++++++++++++++++++
+ drivers/misc/sgi-gru/grutables.h  |    8 +++++
+ 3 files changed, 59 insertions(+)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~sgi-gru-macro-for-scanning-all-gru-chiplets drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~sgi-gru-macro-for-scanning-all-gru-chiplets
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -600,18 +600,11 @@ static int gru_unload_all_contexts(void)
- {
- 	struct gru_thread_state *gts;
- 	struct gru_state *gru;
--	int maxgid, gid, ctxnum;
--	int nodesperblade;
-+	int gid, ctxnum;
+diff -puN drivers/misc/sgi-gru/gruhandles.c~sgi-gru-add-statistics-to-the-gru-context-management-functions drivers/misc/sgi-gru/gruhandles.c
+--- a/drivers/misc/sgi-gru/gruhandles.c~sgi-gru-add-statistics-to-the-gru-context-management-functions
++++ a/drivers/misc/sgi-gru/gruhandles.c
+@@ -35,6 +35,16 @@
+ /* Extract the status field from a kernel handle */
+ #define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
--	if (num_online_nodes() > 1 &&
--			(uv_node_to_blade_id(1) == uv_node_to_blade_id(0)))
--		nodesperblade = 2;
--	else
--		nodesperblade = 1;
--	maxgid = GRU_CHIPLETS_PER_BLADE * num_online_nodes() / nodesperblade;
--	for (gid = 0; gid < maxgid; gid++) {
-+	foreach_gid(gid) {
- 		gru = GID_TO_GRU(gid);
- 		spin_lock(&gru->gs_lock);
- 		for (ctxnum = 0; ctxnum < GRU_NUM_CCH; ctxnum++) {
-diff -puN drivers/misc/sgi-gru/grufile.c~sgi-gru-macro-for-scanning-all-gru-chiplets drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~sgi-gru-macro-for-scanning-all-gru-chiplets
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -47,6 +47,7 @@
- struct gru_blade_state *gru_base[GRU_MAX_BLADES] __read_mostly;
- unsigned long gru_start_paddr __read_mostly;
- unsigned long gru_end_paddr __read_mostly;
-+unsigned int gru_max_gids __read_mostly;
- struct gru_stats_s gru_stats;
- 
- /* Guaranteed user available resources on each node */
-@@ -276,6 +277,8 @@ static void gru_init_chiplet(struct gru_
- 	gru->gs_dsr_map = (1UL << GRU_DSR_AU) - 1;
- 	gru->gs_asid_limit = MAX_ASID;
- 	gru_tgh_flush_init(gru);
-+	if (gru->gs_gid >= gru_max_gids)
-+		gru_max_gids = gru->gs_gid + 1;
- 	gru_dbg(grudev, "bid %d, nid %d, gid %d, vaddr %p (0x%lx)\n",
- 		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
- 		gru->gs_gru_base_paddr);
-diff -puN drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-macro-for-scanning-all-gru-chiplets drivers/misc/sgi-gru/gruprocfs.c
---- a/drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-macro-for-scanning-all-gru-chiplets
-+++ a/drivers/misc/sgi-gru/gruprocfs.c
-@@ -226,7 +226,7 @@ static void seq_stop(struct seq_file *fi
- 
- static void *seq_start(struct seq_file *file, loff_t *gid)
- {
--	if (*gid < GRU_MAX_GRUS)
-+	if (*gid < gru_max_gids)
- 		return gid;
- 	return NULL;
- }
-@@ -234,7 +234,7 @@ static void *seq_start(struct seq_file *
- static void *seq_next(struct seq_file *file, void *data, loff_t *gid)
- {
- 	(*gid)++;
--	if (*gid < GRU_MAX_GRUS)
-+	if (*gid < gru_max_gids)
- 		return gid;
- 	return NULL;
- }
-diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-macro-for-scanning-all-gru-chiplets drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-macro-for-scanning-all-gru-chiplets
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -153,6 +153,7 @@
- extern struct gru_stats_s gru_stats;
- extern struct gru_blade_state *gru_base[];
- extern unsigned long gru_start_paddr, gru_end_paddr;
-+extern unsigned int gru_max_gids;
- 
- #define GRU_MAX_BLADES		MAX_NUMNODES
- #define GRU_MAX_GRUS		(GRU_MAX_BLADES * GRU_CHIPLETS_PER_BLADE)
-@@ -406,12 +407,12 @@ struct gru_state {
- 							   gru segments (64) */
- 	void			*gs_gru_base_vaddr;	/* Virtual address of
- 							   gru segments (64) */
--	unsigned char		gs_gid;			/* unique GRU number */
-+	unsigned short		gs_gid;			/* unique GRU number */
-+	unsigned short		gs_blade_id;		/* blade of GRU */
- 	unsigned char		gs_tgh_local_shift;	/* used to pick TGH for
- 							   local flush */
- 	unsigned char		gs_tgh_first_remote;	/* starting TGH# for
- 							   remote flush */
--	unsigned short		gs_blade_id;		/* blade of GRU */
- 	spinlock_t		gs_asid_lock;		/* lock used for
- 							   assigning asids */
- 	spinlock_t		gs_lock;		/* lock used for
-@@ -506,6 +507,10 @@ struct gru_blade_state {
- 			(i) < GRU_CHIPLETS_PER_BLADE;			\
- 			(i)++, (gru)++)
- 
-+/* Scan all GRUs */
-+#define foreach_gid(gid)						\
-+	for ((gid) = 0; (gid) < gru_max_gids; (gid)++)
++struct mcs_op_statistic mcs_op_statistics[mcsop_last];
 +
- /* Scan all active GTSs on a gru. Note: must hold ss_lock to use this macro. */
- #define for_each_gts_on_gru(gts, gru, ctxnum)				\
- 	for ((ctxnum) = 0; (ctxnum) < GRU_NUM_CCH; (ctxnum)++)		\
++static void update_mcs_stats(enum mcs_op op, unsigned long clks)
++{
++	atomic_long_inc(&mcs_op_statistics[op].count);
++	atomic_long_add(clks, &mcs_op_statistics[op].total);
++	if (mcs_op_statistics[op].max < clks)
++		mcs_op_statistics[op].max = clks;
++}
++
+ static void start_instruction(void *h)
+ {
+ 	unsigned long *w0 = h;
+@@ -57,6 +67,8 @@ static int wait_instruction_complete(voi
+ 		if (GRU_OPERATION_TIMEOUT < (get_cycles() - start_time))
+ 			panic("GRU %p is malfunctioning\n", h);
+ 	}
++	if (gru_options & OPT_STATS)
++		update_mcs_stats(opc, get_cycles() - start_time);
+ 	return status;
+ }
+ 
+diff -puN drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-add-statistics-to-the-gru-context-management-functions drivers/misc/sgi-gru/gruprocfs.c
+--- a/drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-add-statistics-to-the-gru-context-management-functions
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -122,6 +122,30 @@ static ssize_t statistics_write(struct f
+ 	return count;
+ }
+ 
++static int mcs_statistics_show(struct seq_file *s, void *p)
++{
++	int op;
++	unsigned long total, count, max;
++	static char *id[] = {"cch_allocate", "cch_start", "cch_interrupt",
++		"cch_interrupt_sync", "cch_deallocate", "tgh_invalidate"};
++
++	for (op = 0; op < mcsop_last; op++) {
++		count = atomic_long_read(&mcs_op_statistics[op].count);
++		total = atomic_long_read(&mcs_op_statistics[op].total);
++		max = mcs_op_statistics[op].max;
++		seq_printf(s, "%-20s%12ld%12ld%12ld\n", id[op], count,
++			   count ? total / count : 0, max);
++	}
++	return 0;
++}
++
++static ssize_t mcs_statistics_write(struct file *file,
++			const char __user *userbuf, size_t count, loff_t *data)
++{
++	memset(mcs_op_statistics, 0, sizeof(mcs_op_statistics));
++	return count;
++}
++
+ static int options_show(struct seq_file *s, void *p)
+ {
+ 	seq_printf(s, "0x%lx\n", gru_options);
+@@ -137,6 +161,7 @@ static ssize_t options_write(struct file
+ 	if (copy_from_user
+ 	    (buf, userbuf, count < sizeof(buf) ? count : sizeof(buf)))
+ 		return -EFAULT;
++	buf[count - 1] = '\0';
+ 	if (!strict_strtoul(buf, 10, &val))
+ 		gru_options = val;
+ 
+@@ -233,6 +258,11 @@ static int statistics_open(struct inode 
+ 	return single_open(file, statistics_show, NULL);
+ }
+ 
++static int mcs_statistics_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, mcs_statistics_show, NULL);
++}
++
+ static int options_open(struct inode *inode, struct file *file)
+ {
+ 	return single_open(file, options_show, NULL);
+@@ -257,6 +287,14 @@ static const struct file_operations stat
+ 	.release 	= single_release,
+ };
+ 
++static const struct file_operations mcs_statistics_fops = {
++	.open 		= mcs_statistics_open,
++	.read 		= seq_read,
++	.write 		= mcs_statistics_write,
++	.llseek 	= seq_lseek,
++	.release 	= single_release,
++};
++
+ static const struct file_operations options_fops = {
+ 	.open 		= options_open,
+ 	.read 		= seq_read,
+@@ -285,6 +323,7 @@ static struct proc_entry {
+ 	struct proc_dir_entry *entry;
+ } proc_files[] = {
+ 	{"statistics", 0644, &statistics_fops},
++	{"mcs_statistics", 0644, &mcs_statistics_fops},
+ 	{"debug_options", 0644, &options_fops},
+ 	{"cch_status", 0444, &cch_fops},
+ 	{"gru_status", 0444, &gru_fops},
+diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-add-statistics-to-the-gru-context-management-functions drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-add-statistics-to-the-gru-context-management-functions
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -242,6 +242,14 @@ struct gru_stats_s {
+ enum mcs_op {cchop_allocate, cchop_start, cchop_interrupt, cchop_interrupt_sync,
+ 	cchop_deallocate, tghop_invalidate, mcsop_last};
+ 
++struct mcs_op_statistic {
++	atomic_long_t	count;
++	atomic_long_t	total;
++	unsigned long	max;
++};
++
++extern struct mcs_op_statistic mcs_op_statistics[mcsop_last];
++
+ #define OPT_DPRINT	1
+ #define OPT_STATS	2
+ #define GRU_QUICKLOOK	4
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
