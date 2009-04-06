@@ -1,79 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] initramfs-prevent-initramfs-printk-message-being-split-by-messages-from-other-code.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:33:23 -0700
-Message-ID: <200904061933.n36JXNmm011074@imap1.linux-foundation.org>
+Subject: [merged] hppfs-hppfs_read_file-may-return-error.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:33:53 -0700
+Message-ID: <200904061933.n36JXrrB011285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753403AbZDFTfL (ORCPT
+	by vger.kernel.org with ESMTP id S1752708AbZDFTfL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:35:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: skitching@apache.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     initramfs: prevent initramfs printk message being split by messages from other code.
+     hppfs: hppfs_read_file() may return -ERROR
 has been removed from the -mm tree.  Its filename was
-     initramfs-prevent-initramfs-printk-message-being-split-by-messages-from-other-code.patch
+     hppfs-hppfs_read_file-may-return-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: initramfs: prevent initramfs printk message being split by messages from other code.
-From: Simon Kitching <skitching@apache.org>
+Subject: hppfs: hppfs_read_file() may return -ERROR
+From: Roel Kluin <roel.kluin@gmail.com>
 
-initramfs uses printk without a linefeed, then does some work, then uses
-printk to finish the message off.  However if some other code does a
-printk in between, then the messages get mixed together.  Better for each
-message to be an independent line...
+hppfs_read_file() may return (ssize_t) -ENOMEM, or -EFAULT.  When stored
+in size_t 'count', these errors will not be noticed, a large value will be
+added to *ppos.
 
-Example of problem that this fixes:
-
-    checking if image is initramfs...<7>Switched to high resolution mode on CPU 1
-    Switched to high resolution mode on CPU 0
-    it is
-
-Signed-off-by: Simon Kitching <skitching@apache.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/hppfs/hppfs.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN init/initramfs.c~initramfs-prevent-initramfs-printk-message-being-split-by-messages-from-other-code init/initramfs.c
---- a/init/initramfs.c~initramfs-prevent-initramfs-printk-message-being-split-by-messages-from-other-code
-+++ a/init/initramfs.c
-@@ -571,11 +571,11 @@ static int __init populate_rootfs(void)
- 	if (initrd_start) {
- #ifdef CONFIG_BLK_DEV_RAM
- 		int fd;
--		printk(KERN_INFO "checking if image is initramfs...");
-+		printk(KERN_INFO "checking if image is initramfs...\n");
- 		err = unpack_to_rootfs((char *)initrd_start,
- 			initrd_end - initrd_start);
- 		if (!err) {
--			printk(" it is\n");
-+			printk(KERN_INFO "rootfs image is initramfs; unpacking...\n");
- 			free_initrd();
- 			return 0;
- 		} else {
-@@ -583,7 +583,8 @@ static int __init populate_rootfs(void)
- 			unpack_to_rootfs(__initramfs_start,
- 				 __initramfs_end - __initramfs_start);
+diff -puN fs/hppfs/hppfs.c~hppfs-hppfs_read_file-may-return-error fs/hppfs/hppfs.c
+--- a/fs/hppfs/hppfs.c~hppfs-hppfs_read_file-may-return-error
++++ a/fs/hppfs/hppfs.c
+@@ -280,7 +280,12 @@ static ssize_t hppfs_read(struct file *f
+ 			       "errno = %d\n", err);
+ 			return err;
  		}
--		printk("it isn't (%s); looks like an initrd\n", err);
-+		printk(KERN_INFO "rootfs image is not initramfs (%s)"
-+				"; looks like an initrd\n", err);
- 		fd = sys_open("/initrd.image", O_WRONLY|O_CREAT, 0700);
- 		if (fd >= 0) {
- 			sys_write(fd, (char *)initrd_start,
+-		count = hppfs_read_file(hppfs->host_fd, buf, count);
++		err = hppfs_read_file(hppfs->host_fd, buf, count);
++		if (err < 0) {
++			printk(KERN_ERR "hppfs_read: read failed: %d\n", err);
++			return err;
++		}
++		count = err;
+ 		if (count > 0)
+ 			*ppos += count;
+ 	}
 _
 
-Patches currently in -mm which might be from skitching@apache.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
+linux-next.patch
+drm-fix-lock_test_with_return-macro.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+uwb-event_size-should-be-signed.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+spi-limit-reaches-1-tested-0.patch
+ufs-sector_t-cannot-be-negative.patch
 
