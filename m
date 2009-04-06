@@ -1,79 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-make-startup-code-discardable.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:39:30 -0700
-Message-ID: <200904061939.n36JdUXw013919@imap1.linux-foundation.org>
+Subject: [merged] sysctl-fix-suid_dumpable-and-lease-break-time-sysctls.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:36:19 -0700
+Message-ID: <200904061936.n36JaJ2T012425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757533AbZDFTmS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:42:18 -0400
+	by vger.kernel.org with ESMTP id S1757431AbZDFTl6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:41:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dg@emlix.com, chris@zankel.net, mm-commits@vger.kernel.org
+To: matthew@wil.cx, adobriyan@gmail.com, hidehiro.kawai.ez@hitachi.com, kernelbt@arbruijn.dds.nl, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: make startup code discardable
+     sysctl: fix suid_dumpable and lease-break-time sysctls
 has been removed from the -mm tree.  Its filename was
-     xtensa-make-startup-code-discardable.patch
+     sysctl-fix-suid_dumpable-and-lease-break-time-sysctls.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: make startup code discardable
-=46rom: Daniel Gl=F6ckner <dg@emlix.com>
+Subject: sysctl: fix suid_dumpable and lease-break-time sysctls
+From: Matthew Wilcox <matthew@wil.cx>
 
-Move it from .text to .init.text to get rid of it after boot and
-prevent illegal section references.
+Arne de Bruijn points out that commit
+76fdbb25f963de5dc1e308325f0578a2f92b1c2d ("coredump masking: bound
+suid_dumpable sysctl") mistakenly limits lease-break-time instead of
+suid_dumpable.
 
-Signed-off-by: Daniel Gl=F6ckner <dg@emlix.com>
-Cc: Chris Zankel <chris@zankel.net>
+Signed-off-by: Matthew Wilcox <matthew@wil.cx>
+Reported-by: Arne de Bruijn <kernelbt@arbruijn.dds.nl>
+Cc: Kawai, Hidehiro <hidehiro.kawai.ez@hitachi.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/head.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN arch/xtensa/kernel/head.S~xtensa-make-startup-code-discardabl=
-e arch/xtensa/kernel/head.S
---- a/arch/xtensa/kernel/head.S~xtensa-make-startup-code-discardable
-+++ a/arch/xtensa/kernel/head.S
-@@ -53,7 +53,7 @@ _start:	_j	2f
- 2:	l32r	a0, 1b
- 	jx	a0
-=20
--	.text
-+	.section .init.text, "ax"
- 	.align 4
- _startup:
-=20
+diff -puN kernel/sysctl.c~sysctl-fix-suid_dumpable-and-lease-break-time-sysctls kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-fix-suid_dumpable-and-lease-break-time-sysctls
++++ a/kernel/sysctl.c
+@@ -95,12 +95,9 @@ static int sixty = 60;
+ static int neg_one = -1;
+ #endif
+ 
+-#if defined(CONFIG_MMU) && defined(CONFIG_FILE_LOCKING)
+-static int two = 2;
+-#endif
+-
+ static int zero;
+ static int one = 1;
++static int two = 2;
+ static unsigned long one_ul = 1;
+ static int one_hundred = 100;
+ 
+@@ -1373,10 +1370,7 @@ static struct ctl_table fs_table[] = {
+ 		.data		= &lease_break_time,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec_minmax,
+-		.strategy	= &sysctl_intvec,
+-		.extra1		= &zero,
+-		.extra2		= &two,
++		.proc_handler	= &proc_dointvec,
+ 	},
+ #endif
+ #ifdef CONFIG_AIO
+@@ -1417,7 +1411,10 @@ static struct ctl_table fs_table[] = {
+ 		.data		= &suid_dumpable,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &zero,
++		.extra2		= &two,
+ 	},
+ #if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
+ 	{
 _
 
-Patches currently in -mm which might be from dg@emlix.com are
+Patches currently in -mm which might be from matthew@wil.cx are
 
 origin.patch
-linux-next.patch
-xtensa-variant-specific-code.patch
-xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-s6000-dma-engine-support.patch
-xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
-xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
-xtensa-s6105-specific-configuration-for-s6gmac.patch
-xtensa-enable-s6gmac-in-s6105_defconfig.patch
-xtensa-add-m41t62-rtc-to-s6105-platform.patch
-xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+make-sure-nobodys-leaking-resources.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
