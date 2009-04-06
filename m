@@ -1,71 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpumask-fix-slab-corruption-caused-by-alloc_cpumask_var_node.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:38:52 -0700
-Message-ID: <200904061938.n36Jcq7c013561@imap1.linux-foundation.org>
+Subject: [merged] memcg-charge-swapcache-to-proper-memcg.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:34:45 -0700
+Message-ID: <200904061934.n36JYjkF011764@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753014AbZDFU3S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:29:18 -0400
+	by vger.kernel.org with ESMTP id S1752521AbZDFU3n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:29:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mingo@elte.hu, rusty@rustcorp.com.au, sfr@canb.auug.org.au, stable@kernel.org, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpumask: fix slab corruption caused by alloc_cpumask_var_node()
+     memcg: charge swapcache to proper memcg
 has been removed from the -mm tree.  Its filename was
-     cpumask-fix-slab-corruption-caused-by-alloc_cpumask_var_node.patch
+     memcg-charge-swapcache-to-proper-memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpumask: fix slab corruption caused by alloc_cpumask_var_node()
-From: Jack Steiner <steiner@sgi.com>
+Subject: memcg: charge swapcache to proper memcg
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Fix slab corruption caused by alloc_cpumask_var_node() overwriting the
-tail end of an off-stack cpumask.
+memcg_test.txt says at 4.1:
 
-The function zeros out cpumask bits beyond the last possible cpu.  The
-starting point for zeroing should be the beginning of the mask offset by a
-byte count derived from the number of possible cpus.  The offset was
-calculated in bits instead of bytes.  This resulted in overwriting the end
-of the cpumask.
+	This swap-in is one of the most complicated work. In do_swap_page(),
+	following events occur when pte is unchanged.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
-Acked-by: Mike Travis <travis.sgi.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: <stable@kernel.org>		[2.6.29.x]
+	(1) the page (SwapCache) is looked up.
+	(2) lock_page()
+	(3) try_charge_swapin()
+	(4) reuse_swap_page() (may call delete_swap_cache())
+	(5) commit_charge_swapin()
+	(6) swap_free().
+
+	Considering following situation for example.
+
+	(A) The page has not been charged before (2) and reuse_swap_page()
+	    doesn't call delete_from_swap_cache().
+	(B) The page has not been charged before (2) and reuse_swap_page()
+	    calls delete_from_swap_cache().
+	(C) The page has been charged before (2) and reuse_swap_page() doesn't
+	    call delete_from_swap_cache().
+	(D) The page has been charged before (2) and reuse_swap_page() calls
+	    delete_from_swap_cache().
+
+	    memory.usage/memsw.usage changes to this page/swp_entry will be
+	 Case          (A)      (B)       (C)     (D)
+         Event
+       Before (2)     0/ 1     0/ 1      1/ 1    1/ 1
+          ===========================================
+          (3)        +1/+1    +1/+1     +1/+1   +1/+1
+          (4)          -       0/ 0       -     -1/ 0
+          (5)         0/-1     0/ 0     -1/-1    0/ 0
+          (6)          -       0/-1       -      0/-1
+          ===========================================
+       Result         1/ 1     1/ 1      1/ 1    1/ 1
+
+       In any cases, charges to this page should be 1/ 1.
+
+In case of (D), mem_cgroup_try_get_from_swapcache() returns NULL
+(because lookup_swap_cgroup() returns NULL), so "+1/+1" at (3) means
+charges to the memcg("foo") to which the "current" belongs.
+OTOH, "-1/0" at (4) and "0/-1" at (6) means uncharges from the memcg("baa")
+to which the page has been charged.
+
+So, if the "foo" and "baa" is different(for example because of task move),
+this charge will be moved from "baa" to "foo".
+
+I think this is an unexpected behavior.
+
+This patch fixes this by modifying mem_cgroup_try_get_from_swapcache()
+to return the memcg to which the swapcache has been charged if PCG_USED bit
+is set.
+IIUC, checking PCG_USED bit of swapcache is safe under page lock.
+
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cpumask.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN lib/cpumask.c~cpumask-fix-slab-corruption-caused-by-alloc_cpumask_var_node lib/cpumask.c
---- a/lib/cpumask.c~cpumask-fix-slab-corruption-caused-by-alloc_cpumask_var_node
-+++ a/lib/cpumask.c
-@@ -109,10 +109,10 @@ bool alloc_cpumask_var_node(cpumask_var_
- #endif
- 	/* FIXME: Bandaid to save us from old primitives which go to NR_CPUS. */
- 	if (*mask) {
-+		unsigned char *ptr = (unsigned char *)cpumask_bits(*mask);
- 		unsigned int tail;
- 		tail = BITS_TO_LONGS(NR_CPUS - nr_cpumask_bits) * sizeof(long);
--		memset(cpumask_bits(*mask) + cpumask_size() - tail,
--		       0, tail);
-+		memset(ptr + cpumask_size() - tail, 0, tail);
- 	}
+diff -puN mm/memcontrol.c~memcg-charge-swapcache-to-proper-memcg mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-charge-swapcache-to-proper-memcg
++++ a/mm/memcontrol.c
+@@ -994,13 +994,24 @@ nomem:
+ static struct mem_cgroup *try_get_mem_cgroup_from_swapcache(struct page *page)
+ {
+ 	struct mem_cgroup *mem;
++	struct page_cgroup *pc;
+ 	swp_entry_t ent;
  
- 	return *mask != NULL;
++	VM_BUG_ON(!PageLocked(page));
++
+ 	if (!PageSwapCache(page))
+ 		return NULL;
+ 
+-	ent.val = page_private(page);
+-	mem = lookup_swap_cgroup(ent);
++	pc = lookup_page_cgroup(page);
++	/*
++	 * Used bit of swapcache is solid under page lock.
++	 */
++	if (PageCgroupUsed(pc))
++		mem = pc->mem_cgroup;
++	else {
++		ent.val = page_private(page);
++		mem = lookup_swap_cgroup(ent);
++	}
+ 	if (!mem)
+ 		return NULL;
+ 	if (!css_tryget(&mem->css))
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
 origin.patch
 
