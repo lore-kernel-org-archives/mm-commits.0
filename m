@@ -1,286 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: [merged] allow-rwlocks-to-re-enable-interrupts.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:38:48 -0700
-Message-ID: <200904061938.n36JcmXo013553__25974.3830691606$1239050290$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-oom-killer-under-memcg.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:34:34 -0700
+Message-ID: <200904061934.n36JYY9O011647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32772 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35121 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753996AbZDFUf6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:35:58 -0400
+	by vger.kernel.org with ESMTP id S1753406AbZDFUes (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:34:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holt@sgi.com, a.p.zijlstra@chello.nl, linux-arch@vger.kernel.org, mingo@elte.hu, ptesarik@suse.cz, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Allow rwlocks to re-enable interrupts
+     memcg: fix OOM killer under memcg
 has been removed from the -mm tree.  Its filename was
-     allow-rwlocks-to-re-enable-interrupts.patch
+     memcg-fix-oom-killer-under-memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Allow rwlocks to re-enable interrupts
-From: Robin Holt <holt@sgi.com>
+Subject: memcg: fix OOM killer under memcg
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Pass the original flags to rwlock arch-code, so that it can re-enable
-interrupts if implemented for that architecture.
+This patch tries to fix OOM Killer problems caused by hierarchy.
+Now, memcg itself has OOM KILL function (in oom_kill.c) and tries to
+kill a task in memcg.
 
-Initially, make __raw_read_lock_flags and __raw_write_lock_flags stubs
-which just do the same thing as non-flags variants.
+But, when hierarchy is used, it's broken and correct task cannot
+be killed. For example, in following cgroup
 
-Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
-Signed-off-by: Robin Holt <holt@sgi.com>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: <linux-arch@vger.kernel.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+	/groupA/	hierarchy=1, limit=1G,
+		01	nolimit
+		02	nolimit
+All tasks' memory usage under /groupA, /groupA/01, groupA/02 is limited to
+groupA's 1Gbytes but OOM Killer just kills tasks in groupA.
+
+This patch provides makes the bad process be selected from all tasks
+under hierarchy. BTW, currently, oom_jiffies is updated against groupA
+in above case. oom_jiffies of tree should be updated.
+
+To see how oom_jiffies is used, please check mem_cgroup_oom_called()
+callers.
+
+[akpm@linux-foundation.org: build fix]
+[akpm@linux-foundation.org: const fix]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/spinlock.h          |    3 +++
- arch/arm/include/asm/spinlock.h            |    3 +++
- arch/cris/include/arch-v32/arch/spinlock.h |    2 ++
- arch/ia64/include/asm/spinlock.h           |    3 +++
- arch/mips/include/asm/spinlock.h           |    2 ++
- arch/parisc/include/asm/spinlock.h         |    3 +++
- arch/powerpc/include/asm/spinlock.h        |    3 +++
- arch/s390/include/asm/spinlock.h           |    3 +++
- arch/sh/include/asm/spinlock.h             |    3 +++
- arch/sparc/include/asm/spinlock_32.h       |    2 ++
- arch/sparc/include/asm/spinlock_64.h       |    2 ++
- arch/x86/include/asm/spinlock.h            |    3 +++
- include/asm-m32r/spinlock.h                |    3 +++
- include/linux/spinlock.h                   |    6 ++++++
- kernel/spinlock.c                          |    6 ++++--
- 15 files changed, 45 insertions(+), 2 deletions(-)
+ Documentation/cgroups/memcg_test.txt |   20 +++++++++++++++-
+ include/linux/cgroup.h               |    2 -
+ kernel/cgroup.c                      |    2 -
+ mm/memcontrol.c                      |   30 +++++++++++++++++++++++--
+ 4 files changed, 49 insertions(+), 5 deletions(-)
 
-diff -puN arch/alpha/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/alpha/include/asm/spinlock.h
---- a/arch/alpha/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/alpha/include/asm/spinlock.h
-@@ -166,6 +166,9 @@ static inline void __raw_write_unlock(ra
- 	lock->lock = 0;
+diff -puN Documentation/cgroups/memcg_test.txt~memcg-fix-oom-killer-under-memcg Documentation/cgroups/memcg_test.txt
+--- a/Documentation/cgroups/memcg_test.txt~memcg-fix-oom-killer-under-memcg
++++ a/Documentation/cgroups/memcg_test.txt
+@@ -1,5 +1,5 @@
+ Memory Resource Controller(Memcg)  Implementation Memo.
+-Last Updated: 2009/1/19
++Last Updated: 2009/1/20
+ Base Kernel Version: based on 2.6.29-rc2.
+ 
+ Because VM is getting complex (one of reasons is memcg...), memcg's behavior
+@@ -360,3 +360,21 @@ Under below explanation, we assume CONFI
+ 	# kill malloc task.
+ 
+ 	Of course, tmpfs v.s. swapoff test should be tested, too.
++
++ 9.8 OOM-Killer
++	Out-of-memory caused by memcg's limit will kill tasks under
++	the memcg. When hierarchy is used, a task under hierarchy
++	will be killed by the kernel.
++	In this case, panic_on_oom shouldn't be invoked and tasks
++	in other groups shouldn't be killed.
++
++	It's not difficult to cause OOM under memcg as following.
++	Case A) when you can swapoff
++	#swapoff -a
++	#echo 50M > /memory.limit_in_bytes
++	run 51M of malloc
++
++	Case B) when you use mem+swap limitation.
++	#echo 50M > memory.limit_in_bytes
++	#echo 50M > memory.memsw.limit_in_bytes
++	run 51M of malloc
+diff -puN include/linux/cgroup.h~memcg-fix-oom-killer-under-memcg include/linux/cgroup.h
+--- a/include/linux/cgroup.h~memcg-fix-oom-killer-under-memcg
++++ a/include/linux/cgroup.h
+@@ -503,7 +503,7 @@ struct cgroup_subsys_state *css_get_next
+ 
+ /* Returns true if root is ancestor of cg */
+ bool css_is_ancestor(struct cgroup_subsys_state *cg,
+-		     struct cgroup_subsys_state *root);
++		     const struct cgroup_subsys_state *root);
+ 
+ /* Get id and depth of css */
+ unsigned short css_id(struct cgroup_subsys_state *css);
+diff -puN kernel/cgroup.c~memcg-fix-oom-killer-under-memcg kernel/cgroup.c
+--- a/kernel/cgroup.c~memcg-fix-oom-killer-under-memcg
++++ a/kernel/cgroup.c
+@@ -3405,7 +3405,7 @@ unsigned short css_depth(struct cgroup_s
  }
  
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
+ bool css_is_ancestor(struct cgroup_subsys_state *child,
+-		    struct cgroup_subsys_state *root)
++		    const struct cgroup_subsys_state *root)
+ {
+ 	struct css_id *child_id = rcu_dereference(child->id);
+ 	struct css_id *root_id = rcu_dereference(root->id);
+diff -puN mm/memcontrol.c~memcg-fix-oom-killer-under-memcg mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-oom-killer-under-memcg
++++ a/mm/memcontrol.c
+@@ -295,6 +295,9 @@ struct mem_cgroup *mem_cgroup_from_task(
+ static struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
+ {
+ 	struct mem_cgroup *mem = NULL;
 +
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
- #define _raw_write_relax(lock)	cpu_relax()
-diff -puN arch/arm/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/arm/include/asm/spinlock.h
---- a/arch/arm/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/arm/include/asm/spinlock.h
-@@ -217,6 +217,9 @@ static inline int __raw_read_trylock(raw
- /* read_can_lock - would read_trylock() succeed? */
- #define __raw_read_can_lock(x)		((x)->lock < 0x80000000)
++	if (!mm)
++		return NULL;
+ 	/*
+ 	 * Because we have no locks, mm->owner's may be being moved to other
+ 	 * cgroup. We use css_tryget() here even if this looks
+@@ -486,10 +489,20 @@ void mem_cgroup_move_lists(struct page *
+ int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
+ {
+ 	int ret;
++	struct mem_cgroup *curr = NULL;
  
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
-+
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
- #define _raw_write_relax(lock)	cpu_relax()
-diff -puN arch/cris/include/arch-v32/arch/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/cris/include/arch-v32/arch/spinlock.h
---- a/arch/cris/include/arch-v32/arch/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/cris/include/arch-v32/arch/spinlock.h
-@@ -121,6 +121,8 @@ static  inline int __raw_write_trylock(r
- 	return 1;
- }
- 
-+#define _raw_read_lock_flags(lock, flags) _raw_read_lock(lock)
-+#define _raw_write_lock_flags(lock, flags) _raw_write_lock(lock)
- 
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
-diff -puN arch/ia64/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/ia64/include/asm/spinlock.h
---- a/arch/ia64/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/ia64/include/asm/spinlock.h
-@@ -213,6 +213,9 @@ static inline int __raw_read_trylock(raw
- 	return (u32)ia64_cmpxchg4_acq((__u32 *)(x), new.word, old.word) == old.word;
- }
- 
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
-+
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
- #define _raw_write_relax(lock)	cpu_relax()
-diff -puN arch/mips/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/mips/include/asm/spinlock.h
---- a/arch/mips/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/mips/include/asm/spinlock.h
-@@ -480,6 +480,8 @@ static inline int __raw_write_trylock(ra
+ 	task_lock(task);
+-	ret = task->mm && mm_match_cgroup(task->mm, mem);
++	rcu_read_lock();
++	curr = try_get_mem_cgroup_from_mm(task->mm);
++	rcu_read_unlock();
+ 	task_unlock(task);
++	if (!curr)
++		return 0;
++	if (curr->use_hierarchy)
++		ret = css_is_ancestor(&curr->css, &mem->css);
++	else
++		ret = (curr == mem);
++	css_put(&curr->css);
  	return ret;
  }
  
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
- 
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
-diff -puN arch/parisc/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/parisc/include/asm/spinlock.h
---- a/arch/parisc/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/parisc/include/asm/spinlock.h
-@@ -187,6 +187,9 @@ static __inline__ int __raw_write_can_lo
- 	return !rw->counter;
+@@ -820,6 +833,19 @@ bool mem_cgroup_oom_called(struct task_s
+ 	rcu_read_unlock();
+ 	return ret;
  }
- 
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
 +
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
- #define _raw_write_relax(lock)	cpu_relax()
-diff -puN arch/powerpc/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/powerpc/include/asm/spinlock.h
---- a/arch/powerpc/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/powerpc/include/asm/spinlock.h
-@@ -287,6 +287,9 @@ static inline void __raw_write_unlock(ra
- 	rw->lock = 0;
- }
- 
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
++static int record_last_oom_cb(struct mem_cgroup *mem, void *data)
++{
++	mem->last_oom_jiffies = jiffies;
++	return 0;
++}
 +
- #define _raw_spin_relax(lock)	__spin_yield(lock)
- #define _raw_read_relax(lock)	__rw_yield(lock)
- #define _raw_write_relax(lock)	__rw_yield(lock)
-diff -puN arch/s390/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/s390/include/asm/spinlock.h
---- a/arch/s390/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/s390/include/asm/spinlock.h
-@@ -172,6 +172,9 @@ static inline int __raw_write_trylock(ra
- 	return _raw_write_trylock_retry(rw);
- }
- 
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
++static void record_last_oom(struct mem_cgroup *mem)
++{
++	mem_cgroup_walk_tree(mem, NULL, record_last_oom_cb);
++}
 +
- #define _raw_read_relax(lock)	cpu_relax()
- #define _raw_write_relax(lock)	cpu_relax()
- 
-diff -puN arch/sh/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/sh/include/asm/spinlock.h
---- a/arch/sh/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/sh/include/asm/spinlock.h
-@@ -216,6 +216,9 @@ static inline int __raw_write_trylock(ra
- 	return (oldval > (RW_LOCK_BIAS - 1));
- }
- 
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
 +
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
- #define _raw_write_relax(lock)	cpu_relax()
-diff -puN arch/sparc/include/asm/spinlock_32.h~allow-rwlocks-to-re-enable-interrupts arch/sparc/include/asm/spinlock_32.h
---- a/arch/sparc/include/asm/spinlock_32.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/sparc/include/asm/spinlock_32.h
-@@ -177,6 +177,8 @@ static inline int __read_trylock(raw_rwl
- #define __raw_write_unlock(rw)	do { (rw)->lock = 0; } while(0)
- 
- #define __raw_spin_lock_flags(lock, flags) __raw_spin_lock(lock)
-+#define __raw_read_lock_flags(rw, flags)   __raw_read_lock(rw)
-+#define __raw_write_lock_flags(rw, flags)  __raw_write_lock(rw)
- 
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
-diff -puN arch/sparc/include/asm/spinlock_64.h~allow-rwlocks-to-re-enable-interrupts arch/sparc/include/asm/spinlock_64.h
---- a/arch/sparc/include/asm/spinlock_64.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/sparc/include/asm/spinlock_64.h
-@@ -211,9 +211,11 @@ static int inline __write_trylock(raw_rw
- }
- 
- #define __raw_read_lock(p)	__read_lock(p)
-+#define __raw_read_lock_flags(p, f) __read_lock(p)
- #define __raw_read_trylock(p)	__read_trylock(p)
- #define __raw_read_unlock(p)	__read_unlock(p)
- #define __raw_write_lock(p)	__write_lock(p)
-+#define __raw_write_lock_flags(p, f) __write_lock(p)
- #define __raw_write_unlock(p)	__write_unlock(p)
- #define __raw_write_trylock(p)	__write_trylock(p)
- 
-diff -puN arch/x86/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/x86/include/asm/spinlock.h
---- a/arch/x86/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/arch/x86/include/asm/spinlock.h
-@@ -295,6 +295,9 @@ static inline void __raw_write_unlock(ra
- 		     : "+m" (rw->lock) : "i" (RW_LOCK_BIAS) : "memory");
- }
- 
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
-+
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
- #define _raw_write_relax(lock)	cpu_relax()
-diff -puN include/asm-m32r/spinlock.h~allow-rwlocks-to-re-enable-interrupts include/asm-m32r/spinlock.h
---- a/include/asm-m32r/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/include/asm-m32r/spinlock.h
-@@ -316,6 +316,9 @@ static inline int __raw_write_trylock(ra
- 	return 0;
- }
- 
-+#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
-+#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
-+
- #define _raw_spin_relax(lock)	cpu_relax()
- #define _raw_read_relax(lock)	cpu_relax()
- #define _raw_write_relax(lock)	cpu_relax()
-diff -puN include/linux/spinlock.h~allow-rwlocks-to-re-enable-interrupts include/linux/spinlock.h
---- a/include/linux/spinlock.h~allow-rwlocks-to-re-enable-interrupts
-+++ a/include/linux/spinlock.h
-@@ -153,9 +153,11 @@ do {								\
-  extern int _raw_spin_trylock(spinlock_t *lock);
-  extern void _raw_spin_unlock(spinlock_t *lock);
-  extern void _raw_read_lock(rwlock_t *lock);
-+#define _raw_read_lock_flags(lock, flags) _raw_read_lock(lock)
-  extern int _raw_read_trylock(rwlock_t *lock);
-  extern void _raw_read_unlock(rwlock_t *lock);
-  extern void _raw_write_lock(rwlock_t *lock);
-+#define _raw_write_lock_flags(lock, flags) _raw_write_lock(lock)
-  extern int _raw_write_trylock(rwlock_t *lock);
-  extern void _raw_write_unlock(rwlock_t *lock);
- #else
-@@ -165,9 +167,13 @@ do {								\
- # define _raw_spin_trylock(lock)	__raw_spin_trylock(&(lock)->raw_lock)
- # define _raw_spin_unlock(lock)		__raw_spin_unlock(&(lock)->raw_lock)
- # define _raw_read_lock(rwlock)		__raw_read_lock(&(rwlock)->raw_lock)
-+# define _raw_read_lock_flags(lock, flags) \
-+		__raw_read_lock_flags(&(lock)->raw_lock, *(flags))
- # define _raw_read_trylock(rwlock)	__raw_read_trylock(&(rwlock)->raw_lock)
- # define _raw_read_unlock(rwlock)	__raw_read_unlock(&(rwlock)->raw_lock)
- # define _raw_write_lock(rwlock)	__raw_write_lock(&(rwlock)->raw_lock)
-+# define _raw_write_lock_flags(lock, flags) \
-+		__raw_write_lock_flags(&(lock)->raw_lock, *(flags))
- # define _raw_write_trylock(rwlock)	__raw_write_trylock(&(rwlock)->raw_lock)
- # define _raw_write_unlock(rwlock)	__raw_write_unlock(&(rwlock)->raw_lock)
- #endif
-diff -puN kernel/spinlock.c~allow-rwlocks-to-re-enable-interrupts kernel/spinlock.c
---- a/kernel/spinlock.c~allow-rwlocks-to-re-enable-interrupts
-+++ a/kernel/spinlock.c
-@@ -121,7 +121,8 @@ unsigned long __lockfunc _read_lock_irqs
- 	local_irq_save(flags);
- 	preempt_disable();
- 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
--	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
-+	LOCK_CONTENDED_FLAGS(lock, _raw_read_trylock, _raw_read_lock,
-+			     _raw_read_lock_flags, &flags);
- 	return flags;
- }
- EXPORT_SYMBOL(_read_lock_irqsave);
-@@ -151,7 +152,8 @@ unsigned long __lockfunc _write_lock_irq
- 	local_irq_save(flags);
- 	preempt_disable();
- 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
-+	LOCK_CONTENDED_FLAGS(lock, _raw_write_trylock, _raw_write_lock,
-+			     _raw_write_lock_flags, &flags);
- 	return flags;
- }
- EXPORT_SYMBOL(_write_lock_irqsave);
+ /*
+  * Unlike exported interface, "oom" parameter is added. if oom==true,
+  * oom-killer can be invoked.
+@@ -902,7 +928,7 @@ static int __mem_cgroup_try_charge(struc
+ 				mutex_lock(&memcg_tasklist);
+ 				mem_cgroup_out_of_memory(mem_over_limit, gfp_mask);
+ 				mutex_unlock(&memcg_tasklist);
+-				mem_over_limit->last_oom_jiffies = jiffies;
++				record_last_oom(mem_over_limit);
+ 			}
+ 			goto nomem;
+ 		}
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup.patch
 
