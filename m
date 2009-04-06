@@ -1,149 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] parport-netmos-9845-9855-1p4s-fixes.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:37:01 -0700
-Message-ID: <200904061937.n36Jb1q7012743@imap1.linux-foundation.org>
+Subject: [merged] edac-amd8111-driver-header-file.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:36:45 -0700
+Message-ID: <200904061936.n36Jaji1012619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40138 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752206AbZDFUIc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:08:32 -0400
+	by vger.kernel.org with ESMTP id S1752249AbZDFUIL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:08:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: phdm@macqel.be, chripell@fsfe.org, mm-commits@vger.kernel.org
+To: qingtao.cao@windriver.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport: netmos 9845 & 9855 1P4S fixes
+     edac: AMD8111 driver header file
 has been removed from the -mm tree.  Its filename was
-     parport-netmos-9845-9855-1p4s-fixes.patch
+     edac-amd8111-driver-header-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport: netmos 9845 & 9855 1P4S fixes
-From: Philippe De Muyter <phdm@macqel.be>
+Subject: edac: AMD8111 driver header file
+From: Harry Ciao <qingtao.cao@windriver.com>
 
-netmos serial/parallel adapters come in different flavour differing only
-by the number of parallel and serial ports, which are encoded in the
-subdevice ID.
+Introduce AMD8111 EDAC driver header file, which adds register and bits
+definitions for the LPC Bridge Controller and PCI Bridge Controller on the
+AMD8111 HyperTransport I/O Hub.
 
-Last fix of Christian Pellegrin for 9855 2P2S broke support for 9855 1P4S,
-and works only by side-effect for the first parallel port of a 2P2S, as
-this first parallel port is found by reading the second addr entry of
-(struct parport_pc_pci) cards[netmos_9855], which is not initialized, and
-hence has value 0, which happens to be the BAR of the first parallel port.
-
-netmos_9xx5_combo entry in (struct parport_pc_pci) cards[], which is used
-for a 9845 1P4S must also be fixed for the parallel port support when
-there are 4 serial ports because this entry currently gives 2 as BAR index
-for the parallel port.  Actually, in this case, BAR 2 is the 3rd serial
-port while the parallel port is at BAR 4.
-
-I fixed 9845 1P4S and 9855 1P4S support, while preserving 9855 2P2S support,
-
-- by creating a netmos_9855_2p entry and using it for 9855 boards with 2
-  parallel ports : 9855 2P2S and 9855 2P0S boards,
-
-- and by allowing netmos_parallel_init to change not only the number of
-  parallel ports (0 or 1), but making it also change the BAR index of the
-  parallel port when the serial ports are before the parallel port.
-
-PS: the netmos_9855_2p entry in (struct pciserial_board)
-pci_parport_serial_boards[] is needed because netmos_parallel_init has no
-clean way to replace FL_BASE2 by FL_BASE4 in the description of the serial
-ports in function of the number of parallel ports on the card.
-
-Tested with 9845 1P4S, 9855 1P4S and 9855 2P2S boards.
-
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Tested-by: Christian Pellegrin <chripell@fsfe.org>
+Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_serial.c |   30 ++++++++++++++++++++++++-----
- 1 file changed, 25 insertions(+), 5 deletions(-)
+ drivers/edac/amd8111_edac.h |  130 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 130 insertions(+)
 
-diff -puN drivers/parport/parport_serial.c~parport-netmos-9845-9855-1p4s-fixes drivers/parport/parport_serial.c
---- a/drivers/parport/parport_serial.c~parport-netmos-9845-9855-1p4s-fixes
-+++ a/drivers/parport/parport_serial.c
-@@ -30,6 +30,7 @@ enum parport_pc_pci_cards {
- 	titan_210l,
- 	netmos_9xx5_combo,
- 	netmos_9855,
-+	netmos_9855_2p,
- 	avlab_1s1p,
- 	avlab_1s2p,
- 	avlab_2s1p,
-@@ -62,7 +63,7 @@ struct parport_pc_pci {
- 				struct parport_pc_pci *card, int failed);
- };
- 
--static int __devinit netmos_parallel_init(struct pci_dev *dev, struct parport_pc_pci *card, int autoirq, int autodma)
-+static int __devinit netmos_parallel_init(struct pci_dev *dev, struct parport_pc_pci *par, int autoirq, int autodma)
- {
- 	/* the rule described below doesn't hold for this device */
- 	if (dev->device == PCI_DEVICE_ID_NETMOS_9835 &&
-@@ -74,9 +75,17 @@ static int __devinit netmos_parallel_ini
- 	 * and serial ports.  The form is 0x00PS, where <P> is the number of
- 	 * parallel ports and <S> is the number of serial ports.
- 	 */
--	card->numports = (dev->subsystem_device & 0xf0) >> 4;
--	if (card->numports > ARRAY_SIZE(card->addr))
--		card->numports = ARRAY_SIZE(card->addr);
-+	par->numports = (dev->subsystem_device & 0xf0) >> 4;
-+	if (par->numports > ARRAY_SIZE(par->addr))
-+		par->numports = ARRAY_SIZE(par->addr);
-+	/*
-+	 * This function is currently only called for cards with up to
-+	 * one parallel port.
-+	 * Parallel port BAR is either before or after serial ports BARS;
-+	 * hence, lo should be either 0 or equal to the number of serial ports.
-+	 */
-+	if (par->addr[0].lo != 0)
-+		par->addr[0].lo = dev->subsystem_device & 0xf;
- 	return 0;
- }
- 
-@@ -84,7 +93,8 @@ static struct parport_pc_pci cards[] __d
- 	/* titan_110l */		{ 1, { { 3, -1 }, } },
- 	/* titan_210l */		{ 1, { { 3, -1 }, } },
- 	/* netmos_9xx5_combo */		{ 1, { { 2, -1 }, }, netmos_parallel_init },
--	/* netmos_9855 */		{ 1, { { 2, -1 }, }, netmos_parallel_init },
-+	/* netmos_9855 */		{ 1, { { 0, -1 }, }, netmos_parallel_init },
-+	/* netmos_9855_2p */		{ 2, { { 0, -1 }, { 2, -1 }, } },
- 	/* avlab_1s1p     */		{ 1, { { 1, 2}, } },
- 	/* avlab_1s2p     */		{ 2, { { 1, 2}, { 3, 4 },} },
- 	/* avlab_2s1p     */		{ 1, { { 2, 3}, } },
-@@ -110,6 +120,10 @@ static struct pci_device_id parport_seri
- 	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9845,
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9xx5_combo },
- 	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9855,
-+	  0x1000, 0x0020, 0, 0, netmos_9855_2p },
-+	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9855,
-+	  0x1000, 0x0022, 0, 0, netmos_9855_2p },
-+	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9855,
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9855 },
- 	/* PCI_VENDOR_ID_AVLAB/Intek21 has another bunch of cards ...*/
- 	{ PCI_VENDOR_ID_AFAVLAB, 0x2110,
-@@ -192,6 +206,12 @@ static struct pciserial_board pci_parpor
- 		.uart_offset	= 8,
- 	},
- 	[netmos_9855] = {
-+		.flags		= FL_BASE2 | FL_BASE_BARS,
-+		.num_ports	= 1,
-+		.base_baud	= 115200,
-+		.uart_offset	= 8,
-+	},
-+	[netmos_9855_2p] = {
- 		.flags		= FL_BASE4 | FL_BASE_BARS,
- 		.num_ports	= 1,
- 		.base_baud	= 115200,
+diff -puN /dev/null drivers/edac/amd8111_edac.h
+--- /dev/null
++++ a/drivers/edac/amd8111_edac.h
+@@ -0,0 +1,130 @@
++/*
++ * amd8111_edac.h, EDAC defs for AMD8111 hypertransport chip
++ *
++ * Copyright (c) 2008 Wind River Systems, Inc.
++ *
++ * Authors:	Cao Qingtao <qingtao.cao@windriver.com>
++ * 		Benjamin Walsh <benjamin.walsh@windriver.com>
++ * 		Hu Yongqi <yongqi.hu@windriver.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
++ * See the GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#ifndef _AMD8111_EDAC_H_
++#define _AMD8111_EDAC_H_
++
++/************************************************************
++ *	PCI Bridge Status and Command Register, DevA:0x04
++ ************************************************************/
++#define REG_PCI_STSCMD	0x04
++enum pci_stscmd_bits {
++	PCI_STSCMD_SSE		= BIT(30),
++	PCI_STSCMD_RMA		= BIT(29),
++	PCI_STSCMD_RTA		= BIT(28),
++	PCI_STSCMD_SERREN	= BIT(8),
++	PCI_STSCMD_CLEAR_MASK	= (PCI_STSCMD_SSE |
++				   PCI_STSCMD_RMA |
++				   PCI_STSCMD_RTA)
++};
++
++/************************************************************
++ *	PCI Bridge Memory Base-Limit Register, DevA:0x1c
++ ************************************************************/
++#define REG_MEM_LIM     0x1c
++enum mem_limit_bits {
++	MEM_LIMIT_DPE   = BIT(31),
++	MEM_LIMIT_RSE   = BIT(30),
++	MEM_LIMIT_RMA   = BIT(29),
++	MEM_LIMIT_RTA   = BIT(28),
++	MEM_LIMIT_STA   = BIT(27),
++	MEM_LIMIT_MDPE  = BIT(24),
++	MEM_LIMIT_CLEAR_MASK  = (MEM_LIMIT_DPE |
++				 MEM_LIMIT_RSE |
++				 MEM_LIMIT_RMA |
++				 MEM_LIMIT_RTA |
++				 MEM_LIMIT_STA |
++				 MEM_LIMIT_MDPE)
++};
++
++/************************************************************
++ *	HyperTransport Link Control Register, DevA:0xc4
++ ************************************************************/
++#define REG_HT_LINK	0xc4
++enum ht_link_bits {
++	HT_LINK_LKFAIL	= BIT(4),
++	HT_LINK_CRCFEN	= BIT(1),
++	HT_LINK_CLEAR_MASK = (HT_LINK_LKFAIL)
++};
++
++/************************************************************
++ *	PCI Bridge Interrupt and Bridge Control, DevA:0x3c
++ ************************************************************/
++#define REG_PCI_INTBRG_CTRL	0x3c
++enum pci_intbrg_ctrl_bits {
++	PCI_INTBRG_CTRL_DTSERREN	= BIT(27),
++	PCI_INTBRG_CTRL_DTSTAT		= BIT(26),
++	PCI_INTBRG_CTRL_MARSP		= BIT(21),
++	PCI_INTBRG_CTRL_SERREN		= BIT(17),
++	PCI_INTBRG_CTRL_PEREN		= BIT(16),
++	PCI_INTBRG_CTRL_CLEAR_MASK	= (PCI_INTBRG_CTRL_DTSTAT),
++	PCI_INTBRG_CTRL_POLL_MASK	= (PCI_INTBRG_CTRL_DTSERREN |
++					   PCI_INTBRG_CTRL_MARSP |
++					   PCI_INTBRG_CTRL_SERREN)
++};
++
++/************************************************************
++ *		I/O Control 1 Register, DevB:0x40
++ ************************************************************/
++#define REG_IO_CTRL_1 0x40
++enum io_ctrl_1_bits {
++	IO_CTRL_1_NMIONERR	= BIT(7),
++	IO_CTRL_1_LPC_ERR	= BIT(6),
++	IO_CTRL_1_PW2LPC	= BIT(1),
++	IO_CTRL_1_CLEAR_MASK	= (IO_CTRL_1_LPC_ERR | IO_CTRL_1_PW2LPC)
++};
++
++/************************************************************
++ *		Legacy I/O Space Registers
++ ************************************************************/
++#define REG_AT_COMPAT 0x61
++enum at_compat_bits {
++	AT_COMPAT_SERR		= BIT(7),
++	AT_COMPAT_IOCHK		= BIT(6),
++	AT_COMPAT_CLRIOCHK	= BIT(3),
++	AT_COMPAT_CLRSERR	= BIT(2),
++};
++
++struct amd8111_dev_info {
++	u16 err_dev;	/* PCI Device ID */
++	struct pci_dev *dev;
++	int edac_idx;	/* device index */
++	char *ctl_name;
++	struct edac_device_ctl_info *edac_dev;
++	void (*init)(struct amd8111_dev_info *dev_info);
++	void (*exit)(struct amd8111_dev_info *dev_info);
++	void (*check)(struct edac_device_ctl_info *edac_dev);
++};
++
++struct amd8111_pci_info {
++	u16 err_dev;	/* PCI Device ID */
++	struct pci_dev *dev;
++	int edac_idx;	/* pci index */
++	const char *ctl_name;
++	struct edac_pci_ctl_info *edac_dev;
++	void (*init)(struct amd8111_pci_info *dev_info);
++	void (*exit)(struct amd8111_pci_info *dev_info);
++	void (*check)(struct edac_pci_ctl_info *edac_dev);
++};
++
++#endif /* _AMD8111_EDAC_H_ */
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from qingtao.cao@windriver.com are
 
 origin.patch
 
