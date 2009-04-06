@@ -1,77 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-let-platform-override-kerneloffset.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:39:42 -0700
-Message-ID: <200904061939.n36Jdgtv013991@imap1.linux-foundation.org>
+Subject: [merged] mm-only-enforce-acpi-resource-conflict-checks.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:38:54 -0700
+Message-ID: <200904061938.n36Jcs5H013564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54985 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757456AbZDFTnw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:52 -0400
+	by vger.kernel.org with ESMTP id S1757723AbZDFTny (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:43:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jw@emlix.com, chris@zankel.net, dg@emlix.com, os@emlix.com, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, bjorn.helgaas@hp.com, lenb@kernel.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: let platform override KERNELOFFSET
+     Enforce ACPI resource conflict checks
 has been removed from the -mm tree.  Its filename was
-     xtensa-let-platform-override-kerneloffset.patch
+     mm-only-enforce-acpi-resource-conflict-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: let platform override KERNELOFFSET
-From: Johannes Weiner <jw@emlix.com>
+Subject: Enforce ACPI resource conflict checks
+From: Jean Delvare <khali@linux-fr.org>
 
-The linker script should not assume a fix offset in memory for the
-kernel, this is platform-specific, so let the platform set it.
+ACPI has a list of resources that it might use at some point in time. 
+These resources are not (yet) requested formally, because it is suspected
+that in many cases that would prevent other legitimate drivers from
+working.  For example, ACPI might list I/O ports, but might not actually
+use them.  Or maybe they are used by the ACPI thermal driver, but the use
+prefers to use full-featured hardware monitoring drivers.
 
-Signed-off-by: Johannes Weiner <jw@emlix.com>
-Cc: Oskar Schirmer <os@emlix.com>
-Cc: Daniel Glockner <dg@emlix.com>
-Cc: Christian Zankel <chris@zankel.net>
+Still, in some cases, ACPI is really conflicting with native Linux drivers
+for I/O ports.  This can cause problems which are hard to diagnose.  So,
+as a first step towards solving this problem, we implemented a mechanism
+which simply reports such conflicts, with the collaboration of involved
+drivers.  To the best of my knowledge, only PC-style i2c bus drivers are
+doing it at the moment.  There was a patch to do the same in hwmon drivers
+but Linus nacked it.
+
+The default behavior is for the native drivers to check for conflict and
+report it if found.  The conflict may or may not be real, but at least if
+a problem happens later, whoever investigates it can see the warning
+message in the logs.
+
+This behavior can be changed using the boot command line, to either silent
+the warnings (acpi_enforce_resources=no) or cause the native drivers to
+fail loading (acpi_enforce_resources=strict.) Typically, if a user reports
+a problem which we suspect could be a bad interaction between ACPI and a
+native driver, we ask him/her to reproduce the problem with
+acpi_enforce_resources=strict.
+
+The patch changes the default from lax (warn in the logs if a conflict is
+found) to strict (cause the drivers to fail loading.) The idea was to get
+more reports about systems which have these conflicts.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/vmlinux.lds.S |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/acpi/osl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/xtensa/kernel/vmlinux.lds.S~xtensa-let-platform-override-kerneloffset arch/xtensa/kernel/vmlinux.lds.S
---- a/arch/xtensa/kernel/vmlinux.lds.S~xtensa-let-platform-override-kerneloffset
-+++ a/arch/xtensa/kernel/vmlinux.lds.S
-@@ -17,6 +17,7 @@
- #include <asm-generic/vmlinux.lds.h>
+diff -puN drivers/acpi/osl.c~mm-only-enforce-acpi-resource-conflict-checks drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~mm-only-enforce-acpi-resource-conflict-checks
++++ a/drivers/acpi/osl.c
+@@ -155,7 +155,7 @@ static struct osi_linux {
+ #define ENFORCE_RESOURCES_LAX    1
+ #define ENFORCE_RESOURCES_NO     0
  
- #include <variant/core.h>
-+#include <platform/hardware.h>
- OUTPUT_ARCH(xtensa)
- ENTRY(_start)
- 
-@@ -26,7 +27,9 @@ jiffies = jiffies_64 + 4;
- jiffies = jiffies_64;
- #endif
- 
-+#ifndef KERNELOFFSET
- #define KERNELOFFSET 0xd0001000
-+#endif
- 
- /* Note: In the following macros, it would be nice to specify only the
-    vector name and section kind and construct "sym" and "section" using
+-static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+ static struct dmi_system_id __initdata acpi_resources_dmi_table[] = {
+ 	{
+ 	.ident = "Asus EEEPC-901",
 _
 
-Patches currently in -mm which might be from jw@emlix.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-xtensa-variant-specific-code.patch
-xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
-xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
-xtensa-s6105-specific-configuration-for-s6gmac.patch
-xtensa-enable-s6gmac-in-s6105_defconfig.patch
-flat-fix-data-sections-alignment.patch
+linux-next.patch
+dell-laptop-fix-uninitialized-wrong-return-value.patch
+i2c-incremental-i2c-mpc-driver-fix-for-multi-master-i2c-busses.patch
+tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
+tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
 
