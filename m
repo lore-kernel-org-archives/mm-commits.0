@@ -1,54 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded] nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault-fix-page_mkwrite-error-cases.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 15:36:27 -0700
-Message-ID: <200904062236.n36MaRcX018520@imap1.linux-foundation.org>
+Subject: [folded] nilfs2-introduce-secondary-super-block-fix.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 15:37:22 -0700
+Message-ID: <200904062237.n36MbNLF018899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756451AbZDFWin (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:38:43 -0400
+	by vger.kernel.org with ESMTP id S1756451AbZDFWim (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:38:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, npiggin@suse.de, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nilfs2: fix page_mkwrite error cases
+     nilfs2: introduce secondary super block fix
 has been removed from the -mm tree.  Its filename was
-     nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault-fix-page_mkwrite-error-cases.patch
+     nilfs2-introduce-secondary-super-block-fix.patch
 
-This patch was dropped because it was folded into nilfs2-segment-constructor.patch
+This patch was dropped because it was folded into nilfs2-introduce-secondary-super-block.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: fix page_mkwrite error cases
+Subject: nilfs2: introduce secondary super block fix
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-will follow the correction shown by ("fs: fix page_mkwrite error cases
-in core code and btrfs") patch to return sane error values.
+This fixes a missing substitution of error code in
+nilfs2-introduce-secondary-super-block.patch, and deletes an unnecessary
+initialization done for the same error variable.
+
+The problem comes to surface if the blocksize recorded in super block is
+not supported by hardware.  In that case, init_nilfs() function will
+wrongly return with a success code and would trigger a kernel fault.
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/the_nilfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/file.c~nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault-fix-page_mkwrite-error-cases fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault-fix-page_mkwrite-error-cases
-+++ a/fs/nilfs2/file.c
-@@ -87,7 +87,7 @@ static int nilfs_page_mkwrite(struct vm_
- 	if (page->mapping != inode->i_mapping ||
- 	    page_offset(page) >= i_size_read(inode) || !PageUptodate(page)) {
- 		unlock_page(page);
--		return VM_FAULT_SIGBUS; /* -EINVAL */
-+		return VM_FAULT_NOPAGE; /* make the VM retry the fault */
- 	}
+diff -puN fs/nilfs2/the_nilfs.c~nilfs2-introduce-secondary-super-block-fix fs/nilfs2/the_nilfs.c
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-introduce-secondary-super-block-fix
++++ a/fs/nilfs2/the_nilfs.c
+@@ -474,7 +474,7 @@ int init_nilfs(struct the_nilfs *nilfs, 
+ 	struct nilfs_super_block *sbp;
+ 	struct backing_dev_info *bdi;
+ 	int blocksize;
+-	int err = 0;
++	int err;
  
- 	/*
+ 	down_write(&nilfs->ns_sem);
+ 	if (nilfs_init(nilfs)) {
+@@ -518,6 +518,7 @@ int init_nilfs(struct the_nilfs *nilfs, 
+ 			       "NILFS: blocksize %d too small for device "
+ 			       "(sector-size = %d).\n",
+ 			       blocksize, hw_blocksize);
++			err = -EINVAL;
+ 			goto failed_sbh;
+ 		}
+ 		nilfs_release_super_block(nilfs);
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
@@ -75,9 +87,7 @@ nilfs2-operations-for-the_nilfs-core-object.patch
 nilfs2-super-block-operations.patch
 nilfs2-segment-buffer.patch
 nilfs2-segment-constructor.patch
-nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault-fix-page_mkwrite-error-cases.patch
 nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
-nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch
 nilfs2-recovery-functions.patch
 nilfs2-another-dat-for-garbage-collection.patch
 nilfs2-block-cache-for-garbage-collection.patch
