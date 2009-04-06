@@ -1,180 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-amd8111-driver-header-file.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:36:45 -0700
-Message-ID: <200904061936.n36Jaji1012619@imap1.linux-foundation.org>
+Subject: [merged] sgi-gru-add-definitions-of-ia64-gru-mmrs.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:37:19 -0700
+Message-ID: <200904061937.n36JbJ3h012877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752249AbZDFUIL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:08:11 -0400
+	by vger.kernel.org with ESMTP id S1752615AbZDFUIn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:08:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qingtao.cao@windriver.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
+To: steiner@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: AMD8111 driver header file
+     sgi-gru: add definitions of ia64 GRU MMRs
 has been removed from the -mm tree.  Its filename was
-     edac-amd8111-driver-header-file.patch
+     sgi-gru-add-definitions-of-ia64-gru-mmrs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: AMD8111 driver header file
-From: Harry Ciao <qingtao.cao@windriver.com>
+Subject: sgi-gru: add definitions of ia64 GRU MMRs
+From: Jack Steiner <steiner@sgi.com>
 
-Introduce AMD8111 EDAC driver header file, which adds register and bits
-definitions for the LPC Bridge Controller and PCI Bridge Controller on the
-AMD8111 HyperTransport I/O Hub.
+Add definitions for IA64 GRU MMRs.
 
-Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
-Cc: Doug Thompson <norsk5@yahoo.com>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/amd8111_edac.h |  130 ++++++++++++++++++++++++++++++++++
- 1 file changed, 130 insertions(+)
+ arch/ia64/include/asm/uv/uv_mmrs.h |  158 ++++++++++++++++++++++++++-
+ 1 file changed, 155 insertions(+), 3 deletions(-)
 
-diff -puN /dev/null drivers/edac/amd8111_edac.h
---- /dev/null
-+++ a/drivers/edac/amd8111_edac.h
-@@ -0,0 +1,130 @@
-+/*
-+ * amd8111_edac.h, EDAC defs for AMD8111 hypertransport chip
-+ *
-+ * Copyright (c) 2008 Wind River Systems, Inc.
-+ *
-+ * Authors:	Cao Qingtao <qingtao.cao@windriver.com>
-+ * 		Benjamin Walsh <benjamin.walsh@windriver.com>
-+ * 		Hu Yongqi <yongqi.hu@windriver.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-+ * See the GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
+diff -puN arch/ia64/include/asm/uv/uv_mmrs.h~sgi-gru-add-definitions-of-ia64-gru-mmrs arch/ia64/include/asm/uv/uv_mmrs.h
+--- a/arch/ia64/include/asm/uv/uv_mmrs.h~sgi-gru-add-definitions-of-ia64-gru-mmrs
++++ a/arch/ia64/include/asm/uv/uv_mmrs.h
+@@ -8,8 +8,8 @@
+  * Copyright (C) 2007-2008 Silicon Graphics, Inc. All rights reserved.
+  */
+ 
+-#ifndef __ASM_IA64_UV_MMRS__
+-#define __ASM_IA64_UV_MMRS__
++#ifndef _ASM_IA64_UV_UV_MMRS_H
++#define _ASM_IA64_UV_UV_MMRS_H
+ 
+ #define UV_MMR_ENABLE		(1UL << 63)
+ 
+@@ -243,6 +243,158 @@ union uvh_event_occurred0_u {
+ #define UVH_EVENT_OCCURRED0_ALIAS_32 0x005f0
+ 
+ /* ========================================================================= */
++/*                         UVH_GR0_TLB_INT0_CONFIG                           */
++/* ========================================================================= */
++#define UVH_GR0_TLB_INT0_CONFIG 0x61b00UL
 +
-+#ifndef _AMD8111_EDAC_H_
-+#define _AMD8111_EDAC_H_
++#define UVH_GR0_TLB_INT0_CONFIG_VECTOR_SHFT 0
++#define UVH_GR0_TLB_INT0_CONFIG_VECTOR_MASK 0x00000000000000ffUL
++#define UVH_GR0_TLB_INT0_CONFIG_DM_SHFT 8
++#define UVH_GR0_TLB_INT0_CONFIG_DM_MASK 0x0000000000000700UL
++#define UVH_GR0_TLB_INT0_CONFIG_DESTMODE_SHFT 11
++#define UVH_GR0_TLB_INT0_CONFIG_DESTMODE_MASK 0x0000000000000800UL
++#define UVH_GR0_TLB_INT0_CONFIG_STATUS_SHFT 12
++#define UVH_GR0_TLB_INT0_CONFIG_STATUS_MASK 0x0000000000001000UL
++#define UVH_GR0_TLB_INT0_CONFIG_P_SHFT 13
++#define UVH_GR0_TLB_INT0_CONFIG_P_MASK 0x0000000000002000UL
++#define UVH_GR0_TLB_INT0_CONFIG_T_SHFT 15
++#define UVH_GR0_TLB_INT0_CONFIG_T_MASK 0x0000000000008000UL
++#define UVH_GR0_TLB_INT0_CONFIG_M_SHFT 16
++#define UVH_GR0_TLB_INT0_CONFIG_M_MASK 0x0000000000010000UL
++#define UVH_GR0_TLB_INT0_CONFIG_APIC_ID_SHFT 32
++#define UVH_GR0_TLB_INT0_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
 +
-+/************************************************************
-+ *	PCI Bridge Status and Command Register, DevA:0x04
-+ ************************************************************/
-+#define REG_PCI_STSCMD	0x04
-+enum pci_stscmd_bits {
-+	PCI_STSCMD_SSE		= BIT(30),
-+	PCI_STSCMD_RMA		= BIT(29),
-+	PCI_STSCMD_RTA		= BIT(28),
-+	PCI_STSCMD_SERREN	= BIT(8),
-+	PCI_STSCMD_CLEAR_MASK	= (PCI_STSCMD_SSE |
-+				   PCI_STSCMD_RMA |
-+				   PCI_STSCMD_RTA)
++union uvh_gr0_tlb_int0_config_u {
++    unsigned long	v;
++    struct uvh_gr0_tlb_int0_config_s {
++	unsigned long	vector_  :  8;  /* RW */
++	unsigned long	dm       :  3;  /* RW */
++	unsigned long	destmode :  1;  /* RW */
++	unsigned long	status   :  1;  /* RO */
++	unsigned long	p        :  1;  /* RO */
++	unsigned long	rsvd_14  :  1;  /*    */
++	unsigned long	t        :  1;  /* RO */
++	unsigned long	m        :  1;  /* RW */
++	unsigned long	rsvd_17_31: 15;  /*    */
++	unsigned long	apic_id  : 32;  /* RW */
++    } s;
 +};
 +
-+/************************************************************
-+ *	PCI Bridge Memory Base-Limit Register, DevA:0x1c
-+ ************************************************************/
-+#define REG_MEM_LIM     0x1c
-+enum mem_limit_bits {
-+	MEM_LIMIT_DPE   = BIT(31),
-+	MEM_LIMIT_RSE   = BIT(30),
-+	MEM_LIMIT_RMA   = BIT(29),
-+	MEM_LIMIT_RTA   = BIT(28),
-+	MEM_LIMIT_STA   = BIT(27),
-+	MEM_LIMIT_MDPE  = BIT(24),
-+	MEM_LIMIT_CLEAR_MASK  = (MEM_LIMIT_DPE |
-+				 MEM_LIMIT_RSE |
-+				 MEM_LIMIT_RMA |
-+				 MEM_LIMIT_RTA |
-+				 MEM_LIMIT_STA |
-+				 MEM_LIMIT_MDPE)
++/* ========================================================================= */
++/*                         UVH_GR0_TLB_INT1_CONFIG                           */
++/* ========================================================================= */
++#define UVH_GR0_TLB_INT1_CONFIG 0x61b40UL
++
++#define UVH_GR0_TLB_INT1_CONFIG_VECTOR_SHFT 0
++#define UVH_GR0_TLB_INT1_CONFIG_VECTOR_MASK 0x00000000000000ffUL
++#define UVH_GR0_TLB_INT1_CONFIG_DM_SHFT 8
++#define UVH_GR0_TLB_INT1_CONFIG_DM_MASK 0x0000000000000700UL
++#define UVH_GR0_TLB_INT1_CONFIG_DESTMODE_SHFT 11
++#define UVH_GR0_TLB_INT1_CONFIG_DESTMODE_MASK 0x0000000000000800UL
++#define UVH_GR0_TLB_INT1_CONFIG_STATUS_SHFT 12
++#define UVH_GR0_TLB_INT1_CONFIG_STATUS_MASK 0x0000000000001000UL
++#define UVH_GR0_TLB_INT1_CONFIG_P_SHFT 13
++#define UVH_GR0_TLB_INT1_CONFIG_P_MASK 0x0000000000002000UL
++#define UVH_GR0_TLB_INT1_CONFIG_T_SHFT 15
++#define UVH_GR0_TLB_INT1_CONFIG_T_MASK 0x0000000000008000UL
++#define UVH_GR0_TLB_INT1_CONFIG_M_SHFT 16
++#define UVH_GR0_TLB_INT1_CONFIG_M_MASK 0x0000000000010000UL
++#define UVH_GR0_TLB_INT1_CONFIG_APIC_ID_SHFT 32
++#define UVH_GR0_TLB_INT1_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
++
++union uvh_gr0_tlb_int1_config_u {
++    unsigned long	v;
++    struct uvh_gr0_tlb_int1_config_s {
++	unsigned long	vector_  :  8;  /* RW */
++	unsigned long	dm       :  3;  /* RW */
++	unsigned long	destmode :  1;  /* RW */
++	unsigned long	status   :  1;  /* RO */
++	unsigned long	p        :  1;  /* RO */
++	unsigned long	rsvd_14  :  1;  /*    */
++	unsigned long	t        :  1;  /* RO */
++	unsigned long	m        :  1;  /* RW */
++	unsigned long	rsvd_17_31: 15;  /*    */
++	unsigned long	apic_id  : 32;  /* RW */
++    } s;
 +};
 +
-+/************************************************************
-+ *	HyperTransport Link Control Register, DevA:0xc4
-+ ************************************************************/
-+#define REG_HT_LINK	0xc4
-+enum ht_link_bits {
-+	HT_LINK_LKFAIL	= BIT(4),
-+	HT_LINK_CRCFEN	= BIT(1),
-+	HT_LINK_CLEAR_MASK = (HT_LINK_LKFAIL)
++/* ========================================================================= */
++/*                         UVH_GR1_TLB_INT0_CONFIG                           */
++/* ========================================================================= */
++#define UVH_GR1_TLB_INT0_CONFIG 0x61f00UL
++
++#define UVH_GR1_TLB_INT0_CONFIG_VECTOR_SHFT 0
++#define UVH_GR1_TLB_INT0_CONFIG_VECTOR_MASK 0x00000000000000ffUL
++#define UVH_GR1_TLB_INT0_CONFIG_DM_SHFT 8
++#define UVH_GR1_TLB_INT0_CONFIG_DM_MASK 0x0000000000000700UL
++#define UVH_GR1_TLB_INT0_CONFIG_DESTMODE_SHFT 11
++#define UVH_GR1_TLB_INT0_CONFIG_DESTMODE_MASK 0x0000000000000800UL
++#define UVH_GR1_TLB_INT0_CONFIG_STATUS_SHFT 12
++#define UVH_GR1_TLB_INT0_CONFIG_STATUS_MASK 0x0000000000001000UL
++#define UVH_GR1_TLB_INT0_CONFIG_P_SHFT 13
++#define UVH_GR1_TLB_INT0_CONFIG_P_MASK 0x0000000000002000UL
++#define UVH_GR1_TLB_INT0_CONFIG_T_SHFT 15
++#define UVH_GR1_TLB_INT0_CONFIG_T_MASK 0x0000000000008000UL
++#define UVH_GR1_TLB_INT0_CONFIG_M_SHFT 16
++#define UVH_GR1_TLB_INT0_CONFIG_M_MASK 0x0000000000010000UL
++#define UVH_GR1_TLB_INT0_CONFIG_APIC_ID_SHFT 32
++#define UVH_GR1_TLB_INT0_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
++
++union uvh_gr1_tlb_int0_config_u {
++    unsigned long	v;
++    struct uvh_gr1_tlb_int0_config_s {
++	unsigned long	vector_  :  8;  /* RW */
++	unsigned long	dm       :  3;  /* RW */
++	unsigned long	destmode :  1;  /* RW */
++	unsigned long	status   :  1;  /* RO */
++	unsigned long	p        :  1;  /* RO */
++	unsigned long	rsvd_14  :  1;  /*    */
++	unsigned long	t        :  1;  /* RO */
++	unsigned long	m        :  1;  /* RW */
++	unsigned long	rsvd_17_31: 15;  /*    */
++	unsigned long	apic_id  : 32;  /* RW */
++    } s;
 +};
 +
-+/************************************************************
-+ *	PCI Bridge Interrupt and Bridge Control, DevA:0x3c
-+ ************************************************************/
-+#define REG_PCI_INTBRG_CTRL	0x3c
-+enum pci_intbrg_ctrl_bits {
-+	PCI_INTBRG_CTRL_DTSERREN	= BIT(27),
-+	PCI_INTBRG_CTRL_DTSTAT		= BIT(26),
-+	PCI_INTBRG_CTRL_MARSP		= BIT(21),
-+	PCI_INTBRG_CTRL_SERREN		= BIT(17),
-+	PCI_INTBRG_CTRL_PEREN		= BIT(16),
-+	PCI_INTBRG_CTRL_CLEAR_MASK	= (PCI_INTBRG_CTRL_DTSTAT),
-+	PCI_INTBRG_CTRL_POLL_MASK	= (PCI_INTBRG_CTRL_DTSERREN |
-+					   PCI_INTBRG_CTRL_MARSP |
-+					   PCI_INTBRG_CTRL_SERREN)
++/* ========================================================================= */
++/*                         UVH_GR1_TLB_INT1_CONFIG                           */
++/* ========================================================================= */
++#define UVH_GR1_TLB_INT1_CONFIG 0x61f40UL
++
++#define UVH_GR1_TLB_INT1_CONFIG_VECTOR_SHFT 0
++#define UVH_GR1_TLB_INT1_CONFIG_VECTOR_MASK 0x00000000000000ffUL
++#define UVH_GR1_TLB_INT1_CONFIG_DM_SHFT 8
++#define UVH_GR1_TLB_INT1_CONFIG_DM_MASK 0x0000000000000700UL
++#define UVH_GR1_TLB_INT1_CONFIG_DESTMODE_SHFT 11
++#define UVH_GR1_TLB_INT1_CONFIG_DESTMODE_MASK 0x0000000000000800UL
++#define UVH_GR1_TLB_INT1_CONFIG_STATUS_SHFT 12
++#define UVH_GR1_TLB_INT1_CONFIG_STATUS_MASK 0x0000000000001000UL
++#define UVH_GR1_TLB_INT1_CONFIG_P_SHFT 13
++#define UVH_GR1_TLB_INT1_CONFIG_P_MASK 0x0000000000002000UL
++#define UVH_GR1_TLB_INT1_CONFIG_T_SHFT 15
++#define UVH_GR1_TLB_INT1_CONFIG_T_MASK 0x0000000000008000UL
++#define UVH_GR1_TLB_INT1_CONFIG_M_SHFT 16
++#define UVH_GR1_TLB_INT1_CONFIG_M_MASK 0x0000000000010000UL
++#define UVH_GR1_TLB_INT1_CONFIG_APIC_ID_SHFT 32
++#define UVH_GR1_TLB_INT1_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
++
++union uvh_gr1_tlb_int1_config_u {
++    unsigned long	v;
++    struct uvh_gr1_tlb_int1_config_s {
++	unsigned long	vector_  :  8;  /* RW */
++	unsigned long	dm       :  3;  /* RW */
++	unsigned long	destmode :  1;  /* RW */
++	unsigned long	status   :  1;  /* RO */
++	unsigned long	p        :  1;  /* RO */
++	unsigned long	rsvd_14  :  1;  /*    */
++	unsigned long	t        :  1;  /* RO */
++	unsigned long	m        :  1;  /* RW */
++	unsigned long	rsvd_17_31: 15;  /*    */
++	unsigned long	apic_id  : 32;  /* RW */
++    } s;
 +};
 +
-+/************************************************************
-+ *		I/O Control 1 Register, DevB:0x40
-+ ************************************************************/
-+#define REG_IO_CTRL_1 0x40
-+enum io_ctrl_1_bits {
-+	IO_CTRL_1_NMIONERR	= BIT(7),
-+	IO_CTRL_1_LPC_ERR	= BIT(6),
-+	IO_CTRL_1_PW2LPC	= BIT(1),
-+	IO_CTRL_1_CLEAR_MASK	= (IO_CTRL_1_LPC_ERR | IO_CTRL_1_PW2LPC)
-+};
-+
-+/************************************************************
-+ *		Legacy I/O Space Registers
-+ ************************************************************/
-+#define REG_AT_COMPAT 0x61
-+enum at_compat_bits {
-+	AT_COMPAT_SERR		= BIT(7),
-+	AT_COMPAT_IOCHK		= BIT(6),
-+	AT_COMPAT_CLRIOCHK	= BIT(3),
-+	AT_COMPAT_CLRSERR	= BIT(2),
-+};
-+
-+struct amd8111_dev_info {
-+	u16 err_dev;	/* PCI Device ID */
-+	struct pci_dev *dev;
-+	int edac_idx;	/* device index */
-+	char *ctl_name;
-+	struct edac_device_ctl_info *edac_dev;
-+	void (*init)(struct amd8111_dev_info *dev_info);
-+	void (*exit)(struct amd8111_dev_info *dev_info);
-+	void (*check)(struct edac_device_ctl_info *edac_dev);
-+};
-+
-+struct amd8111_pci_info {
-+	u16 err_dev;	/* PCI Device ID */
-+	struct pci_dev *dev;
-+	int edac_idx;	/* pci index */
-+	const char *ctl_name;
-+	struct edac_pci_ctl_info *edac_dev;
-+	void (*init)(struct amd8111_pci_info *dev_info);
-+	void (*exit)(struct amd8111_pci_info *dev_info);
-+	void (*check)(struct edac_pci_ctl_info *edac_dev);
-+};
-+
-+#endif /* _AMD8111_EDAC_H_ */
++/* ========================================================================= */
+ /*                               UVH_INT_CMPB                                */
+ /* ========================================================================= */
+ #define UVH_INT_CMPB 0x22080UL
+@@ -670,4 +822,4 @@ union uvh_si_alias2_overlay_config_u {
+ };
+ 
+ 
+-#endif /* __ASM_IA64_UV_MMRS__ */
++#endif /* _ASM_IA64_UV_UV_MMRS_H */
 _
 
-Patches currently in -mm which might be from qingtao.cao@windriver.com are
+Patches currently in -mm which might be from steiner@sgi.com are
 
 origin.patch
 
