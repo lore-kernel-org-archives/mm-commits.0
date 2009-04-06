@@ -1,128 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-charge-swapcache-to-proper-memcg.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:34:45 -0700
-Message-ID: <200904061934.n36JYjkF011764@imap1.linux-foundation.org>
+Subject: [merged] cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:35:02 -0700
+Message-ID: <200904061935.n36JZ2q6011854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38951 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752521AbZDFU3n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:29:43 -0400
+	by vger.kernel.org with ESMTP id S1750784AbZDFUap (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:30:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, a.p.zijlstra@chello.nl, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: charge swapcache to proper memcg
+     cpuset: avoid changing cpuset's mems when errno returned
 has been removed from the -mm tree.  Its filename was
-     memcg-charge-swapcache-to-proper-memcg.patch
+     cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: charge swapcache to proper memcg
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: cpuset: avoid changing cpuset's mems when errno returned
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-memcg_test.txt says at 4.1:
+When writing to cpuset.mems, cpuset has to update its mems_allowed before
+calling update_tasks_nodemask(), but this function might return -ENOMEM.
 
-	This swap-in is one of the most complicated work. In do_swap_page(),
-	following events occur when pte is unchanged.
+To avoid this rare case, we allocate the memory before changing
+mems_allowed, and then pass to update_tasks_nodemask().  Similar to what
+update_cpumask() does.
 
-	(1) the page (SwapCache) is looked up.
-	(2) lock_page()
-	(3) try_charge_swapin()
-	(4) reuse_swap_page() (may call delete_swap_cache())
-	(5) commit_charge_swapin()
-	(6) swap_free().
-
-	Considering following situation for example.
-
-	(A) The page has not been charged before (2) and reuse_swap_page()
-	    doesn't call delete_from_swap_cache().
-	(B) The page has not been charged before (2) and reuse_swap_page()
-	    calls delete_from_swap_cache().
-	(C) The page has been charged before (2) and reuse_swap_page() doesn't
-	    call delete_from_swap_cache().
-	(D) The page has been charged before (2) and reuse_swap_page() calls
-	    delete_from_swap_cache().
-
-	    memory.usage/memsw.usage changes to this page/swp_entry will be
-	 Case          (A)      (B)       (C)     (D)
-         Event
-       Before (2)     0/ 1     0/ 1      1/ 1    1/ 1
-          ===========================================
-          (3)        +1/+1    +1/+1     +1/+1   +1/+1
-          (4)          -       0/ 0       -     -1/ 0
-          (5)         0/-1     0/ 0     -1/-1    0/ 0
-          (6)          -       0/-1       -      0/-1
-          ===========================================
-       Result         1/ 1     1/ 1      1/ 1    1/ 1
-
-       In any cases, charges to this page should be 1/ 1.
-
-In case of (D), mem_cgroup_try_get_from_swapcache() returns NULL
-(because lookup_swap_cgroup() returns NULL), so "+1/+1" at (3) means
-charges to the memcg("foo") to which the "current" belongs.
-OTOH, "-1/0" at (4) and "0/-1" at (6) means uncharges from the memcg("baa")
-to which the page has been charged.
-
-So, if the "foo" and "baa" is different(for example because of task move),
-this charge will be moved from "baa" to "foo".
-
-I think this is an unexpected behavior.
-
-This patch fixes this by modifying mem_cgroup_try_get_from_swapcache()
-to return the memcg to which the swapcache has been charged if PCG_USED bit
-is set.
-IIUC, checking PCG_USED bit of swapcache is safe under page lock.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ kernel/cpuset.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-charge-swapcache-to-proper-memcg mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-charge-swapcache-to-proper-memcg
-+++ a/mm/memcontrol.c
-@@ -994,13 +994,24 @@ nomem:
- static struct mem_cgroup *try_get_mem_cgroup_from_swapcache(struct page *page)
+diff -puN kernel/cpuset.c~cpuset-avoid-changing-cpusets-mems-when-errno-returned kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-avoid-changing-cpusets-mems-when-errno-returned
++++ a/kernel/cpuset.c
+@@ -1057,13 +1057,15 @@ static void *cpuset_being_rebound;
+  * update_tasks_nodemask - Update the nodemasks of tasks in the cpuset.
+  * @cs: the cpuset in which each task's mems_allowed mask needs to be changed
+  * @oldmem: old mems_allowed of cpuset cs
++ * @heap: if NULL, defer allocating heap memory to cgroup_scan_tasks()
+  *
+  * Called with cgroup_mutex held
+- * Return 0 if successful, -errno if not.
++ * No return value. It's guaranteed that cgroup_scan_tasks() always returns 0
++ * if @heap != NULL.
+  */
+-static int update_tasks_nodemask(struct cpuset *cs, const nodemask_t *oldmem)
++static void update_tasks_nodemask(struct cpuset *cs, const nodemask_t *oldmem,
++				 struct ptr_heap *heap)
  {
- 	struct mem_cgroup *mem;
-+	struct page_cgroup *pc;
- 	swp_entry_t ent;
+-	int retval;
+ 	struct cgroup_scanner scan;
  
-+	VM_BUG_ON(!PageLocked(page));
+ 	cpuset_being_rebound = cs;		/* causes mpol_dup() rebind */
+@@ -1071,7 +1073,7 @@ static int update_tasks_nodemask(struct 
+ 	scan.cg = cs->css.cgroup;
+ 	scan.test_task = NULL;
+ 	scan.process_task = cpuset_change_nodemask;
+-	scan.heap = NULL;
++	scan.heap = heap;
+ 	scan.data = (nodemask_t *)oldmem;
+ 
+ 	/*
+@@ -1084,12 +1086,10 @@ static int update_tasks_nodemask(struct 
+ 	 * It's ok if we rebind the same mm twice; mpol_rebind_mm()
+ 	 * is idempotent.  Also migrate pages in each mm to new nodes.
+ 	 */
+-	retval = cgroup_scan_tasks(&scan);
++	cgroup_scan_tasks(&scan);
+ 
+ 	/* We're done rebinding vmas to this cpuset's new mems_allowed. */
+ 	cpuset_being_rebound = NULL;
+-
+-	return retval;
+ }
+ 
+ /*
+@@ -1110,6 +1110,7 @@ static int update_nodemask(struct cpuset
+ {
+ 	nodemask_t oldmem;
+ 	int retval;
++	struct ptr_heap heap;
+ 
+ 	/*
+ 	 * top_cpuset.mems_allowed tracks node_stats[N_HIGH_MEMORY];
+@@ -1144,12 +1145,18 @@ static int update_nodemask(struct cpuset
+ 	if (retval < 0)
+ 		goto done;
+ 
++	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, NULL);
++	if (retval < 0)
++		goto done;
 +
- 	if (!PageSwapCache(page))
- 		return NULL;
+ 	mutex_lock(&callback_mutex);
+ 	cs->mems_allowed = trialcs->mems_allowed;
+ 	cs->mems_generation = cpuset_mems_generation++;
+ 	mutex_unlock(&callback_mutex);
  
--	ent.val = page_private(page);
--	mem = lookup_swap_cgroup(ent);
-+	pc = lookup_page_cgroup(page);
-+	/*
-+	 * Used bit of swapcache is solid under page lock.
-+	 */
-+	if (PageCgroupUsed(pc))
-+		mem = pc->mem_cgroup;
-+	else {
-+		ent.val = page_private(page);
-+		mem = lookup_swap_cgroup(ent);
-+	}
- 	if (!mem)
- 		return NULL;
- 	if (!css_tryget(&mem->css))
+-	retval = update_tasks_nodemask(cs, &oldmem);
++	update_tasks_nodemask(cs, &oldmem, &heap);
++
++	heap_free(&heap);
+ done:
+ 	return retval;
+ }
+@@ -2003,7 +2010,7 @@ static void scan_for_empty_cpusets(struc
+ 			remove_tasks_in_empty_cpuset(cp);
+ 		else {
+ 			update_tasks_cpumask(cp, NULL);
+-			update_tasks_nodemask(cp, &oldmems);
++			update_tasks_nodemask(cp, &oldmems, NULL);
+ 		}
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
+linux-next.patch
+cls_cgroup-remove-unneeded-cgroup_lock.patch
 
