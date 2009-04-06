@@ -1,131 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [folded] nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 15:32:26 -0700
-Message-ID: <200904062232.n36MWQYt016894@imap1.linux-foundation.org>
+Subject: [folded] nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 15:32:40 -0700
+Message-ID: <200904062232.n36MWeNJ016965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754733AbZDFWeK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:34:10 -0400
+	by vger.kernel.org with ESMTP id S1755131AbZDFWe7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:34:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nilfs2: fix compilation error of nilfs_init_acl
+     nilfs2: remove nilfs bmap wrapper macros
 has been removed from the -mm tree.  Its filename was
-     nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl.patch
+     nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
 
-This patch was dropped because it was folded into nilfs2-add-inode-and-other-major-structures.patch
+This patch was dropped because it was folded into nilfs2-integrated-block-mapping.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: fix compilation error of nilfs_init_acl
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: remove nilfs bmap wrapper macros
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-This replaces current->fs->umask reference with current_umask() macro
-to follow the removal of indirect include of fs_struct.h brought by
-the patch ("Get rid of indirect include of fs_struct.h") and to fix
-the following compilation error:
+This patch removes bunch of bmap wrapper macros from fs/nilfs/bmap.h.
 
-  In file included from fs/nilfs2/inode.c:28:
-  fs/nilfs2/nilfs.h: In function 'nilfs_init_acl':
-  fs/nilfs2/nilfs.h:215: error: dereferencing pointer to incomplete type
-  In file included from fs/nilfs2/file.c:27:
-  fs/nilfs2/nilfs.h: In function 'nilfs_init_acl':
-  fs/nilfs2/nilfs.h:215: error: dereferencing pointer to incomplete type
-    make[2]: *** [fs/nilfs2/file.o] Error 1
-    make[2]: *** Waiting for unfinished jobs....
-    make[2]: *** [fs/nilfs2/inode.o] Error 1
-    make[1]: *** [fs/nilfs2] Error 2
-    make: *** [fs] Error 2
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/nilfs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/bmap.c |   16 ++++++++--------
+ fs/nilfs2/bmap.h |    7 -------
+ 2 files changed, 8 insertions(+), 15 deletions(-)
 
-diff -puN fs/nilfs2/nilfs.h~nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl
-+++ a/fs/nilfs2/nilfs.h
-@@ -218,7 +218,7 @@ static inline int nilfs_acl_chmod(struct
+diff -puN fs/nilfs2/bmap.c~nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros fs/nilfs2/bmap.c
+--- a/fs/nilfs2/bmap.c~nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros
++++ a/fs/nilfs2/bmap.c
+@@ -100,7 +100,7 @@ static int nilfs_bmap_do_insert(struct n
+ 				bmap, keys, ptrs, NILFS_BMAP_SMALL_HIGH + 1);
+ 			if (n < 0)
+ 				return n;
+-			ret = (*nilfs_bmap_large_convert_and_insert)(
++			ret = nilfs_btree_convert_and_insert(
+ 				bmap, key, ptr, keys, ptrs, n,
+ 				NILFS_BMAP_LARGE_LOW, NILFS_BMAP_LARGE_HIGH);
+ 			if (ret == 0)
+@@ -157,7 +157,7 @@ static int nilfs_bmap_do_delete(struct n
+ 				bmap, keys, ptrs, NILFS_BMAP_LARGE_LOW + 1);
+ 			if (n < 0)
+ 				return n;
+-			ret = (*nilfs_bmap_small_delete_and_convert)(
++			ret = nilfs_direct_delete_and_convert(
+ 				bmap, key, keys, ptrs, n,
+ 				NILFS_BMAP_SMALL_LOW, NILFS_BMAP_SMALL_HIGH);
+ 			if (ret == 0)
+@@ -730,12 +730,12 @@ int nilfs_bmap_read(struct nilfs_bmap *b
+ 	}
  
- static inline int nilfs_init_acl(struct inode *inode, struct inode *dir)
- {
--	inode->i_mode &= ~current->fs->umask;
-+	inode->i_mode &= ~current_umask();
- 	return 0;
+ 	return (bmap->b_u.u_flags & NILFS_BMAP_LARGE) ?
+-		nilfs_bmap_large_init(bmap,
+-				      NILFS_BMAP_LARGE_LOW,
+-				      NILFS_BMAP_LARGE_HIGH) :
+-		nilfs_bmap_small_init(bmap,
+-				      NILFS_BMAP_SMALL_LOW,
+-				      NILFS_BMAP_SMALL_HIGH);
++		nilfs_btree_init(bmap,
++				 NILFS_BMAP_LARGE_LOW,
++				 NILFS_BMAP_LARGE_HIGH) :
++		nilfs_direct_init(bmap,
++			   	  NILFS_BMAP_SMALL_LOW,
++				  NILFS_BMAP_SMALL_HIGH);
  }
- #endif
-_
-
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
-
-nilfs2-add-document.patch
-nilfs2-disk-format-and-userland-interface.patch
-nilfs2-add-inode-and-other-major-structures.patch
-nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl.patch
-nilfs2-integrated-block-mapping.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-b-tree-based-block-mapping.patch
-nilfs2-direct-block-mapping.patch
-nilfs2-b-tree-node-cache.patch
-nilfs2-buffer-and-page-operations.patch
-nilfs2-meta-data-file.patch
-nilfs2-persistent-object-allocator.patch
-nilfs2-disk-address-translator.patch
-nilfs2-inode-map-file.patch
-nilfs2-checkpoint-file.patch
-nilfs2-segment-usage-file.patch
-nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
-nilfs2-inode-operations.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-file-operations.patch
-nilfs2-directory-entry-operations.patch
-nilfs2-pathname-operations.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-operations-for-the_nilfs-core-object.patch
-nilfs2-super-block-operations.patch
-nilfs2-super-block-operations-fix.patch
-nilfs2-segment-buffer.patch
-nilfs2-segment-buffer-fix.patch
-nilfs2-segment-constructor.patch
-nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
-nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault.patch
-nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault-fix-page_mkwrite-error-cases.patch
-nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
-nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch
-nilfs2-recovery-functions.patch
-nilfs2-another-dat-for-garbage-collection.patch
-nilfs2-block-cache-for-garbage-collection.patch
-nilfs2-ioctl-operations.patch
-nilfs2-update-makefile-and-kconfig.patch
-nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
-nilfs2-cleanup-nilfs_clear_inode.patch
-nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
-nilfs2-insert-explanations-in-gcinode-file.patch
-nilfs2-add-maintainer.patch
-nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
-nilfs2-fix-improper-return-values-of-nilfs_get_cpinfo-ioctl.patch
-nilfs2-clean-up-indirect-function-calling-conventions.patch
-nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch
-nilfs2-remove-timedwait-ioctl-command.patch
-nilfs2-use-fixed-sized-types-for-ioctl-structures.patch
-nilfs2-remove-compat-ioctl-code.patch
-nilfs2-use-unlocked_ioctl.patch
-nilfs2-extend-nilfs_sustat-ioctl-struct.patch
-nilfs2-replace-bug_on-and-bug-calls-triggerable-from-ioctl.patch
-nilfs2-super-block-operations-fix-endian-bug.patch
-nilfs2-clean-up-sketch-file.patch
-nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation.patch
-nilfs2-simplify-handling-of-active-state-of-segments.patch
-nilfs2-introduce-secondary-super-block.patch
-nilfs2-introduce-secondary-super-block-fix.patch
-nilfs2-support-nanosecond-timestamp.patch
-
+ 
+ /**
+diff -puN fs/nilfs2/bmap.h~nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros fs/nilfs2/bmap.h
+--- a/fs/nilfs2/bmap.h~nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros
++++ a/fs/nilfs2/bmap.h
+@@ -241,11 +241,4 @@ static inline void nilfs_bmap_clear_dirt
+ #define NILFS_BMAP_LARGE_LOW	NILFS_BTREE_ROOT_NCHILDREN_MAX
+ #define NILFS_BMAP_LARGE_HIGH	NILFS_BTREE_KEY_MAX
+ 
+-#define nilfs_bmap_small_init			nilfs_direct_init
+-#define nilfs_bmap_small_convert_and_insert	NULL
+-#define nilfs_bmap_small_delete_and_convert	nilfs_direct_delete_and_convert
+-#define nilfs_bmap_large_init			nilfs_btree_init
+-#define nilfs_bmap_large_convert_and_insert	nilfs_btree_convert_and_insert
+-#define nilfs_bmap_large_delete_and_convert	NULL
