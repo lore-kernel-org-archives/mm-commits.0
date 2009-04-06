@@ -1,133 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [merged] relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:34:04 -0700
-Message-ID: <200904061934.n36JY4Xo011365@imap1.linux-foundation.org>
+Subject: [merged] rtc-add-m41t62-support-to-rtc-m41t80-driver.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:33:28 -0700
+Message-ID: <200904061933.n36JXSJN011132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39723 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54202 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756396AbZDFThr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:37:47 -0400
+	by vger.kernel.org with ESMTP id S1756750AbZDFTiF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:38:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: root@localdomain.pl, lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: dg@emlix.com, a.zummo@towertech.it, chris@zankel.net, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: relax ns_can_attach checks to allow attaching to grandchild cgroups
+     rtc: add m41t62 support to rtc-m41t80 driver
 has been removed from the -mm tree.  Its filename was
-     relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+     rtc-add-m41t62-support-to-rtc-m41t80-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: relax ns_can_attach checks to allow attaching to grandchild cgroups
-From: Grzegorz Nosek <root@localdomain.pl>
+Subject: rtc: add m41t62 support to rtc-m41t80 driver
+From: Daniel Glockner <dg@emlix.com>
 
-The ns_proxy cgroup allows moving processes to child cgroups only one
-level deep at a time.  This commit relaxes this restriction and makes it
-possible to attach tasks directly to grandchild cgroups, e.g.:
+Compared to the other supported chips, the m41t62 uses a different
+register to set the square wave frequency.
 
-($pid is in the root cgroup)
-echo $pid > /cgroup/CG1/CG2/tasks
-
-Previously this operation would fail with -EPERM and would have to be
-performed as two steps:
-echo $pid > /cgroup/CG1/tasks
-echo $pid > /cgroup/CG1/CG2/tasks
-
-Also, the target cgroup no longer needs to be empty to move a task there.
-
-Signed-off-by: Grzegorz Nosek <root@localdomain.pl>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Daniel Glockner <dg@emlix.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    4 ++--
- kernel/cgroup.c        |   11 ++++++-----
- kernel/ns_cgroup.c     |   14 ++++----------
- 3 files changed, 12 insertions(+), 17 deletions(-)
+ drivers/rtc/Kconfig      |    4 ++--
+ drivers/rtc/rtc-m41t80.c |   18 +++++++++++++-----
+ 2 files changed, 15 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/cgroup.h~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups include/linux/cgroup.h
---- a/include/linux/cgroup.h~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
-+++ a/include/linux/cgroup.h
-@@ -348,8 +348,8 @@ int cgroup_path(const struct cgroup *cgr
+diff -puN drivers/rtc/Kconfig~rtc-add-m41t62-support-to-rtc-m41t80-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-m41t62-support-to-rtc-m41t80-driver
++++ a/drivers/rtc/Kconfig
+@@ -225,11 +225,11 @@ config RTC_DRV_PCF8583
+ 	  will be called rtc-pcf8583.
  
- int cgroup_task_count(const struct cgroup *cgrp);
+ config RTC_DRV_M41T80
+-	tristate "ST M41T65/M41T80/81/82/83/84/85/87"
++	tristate "ST M41T62/65/M41T80/81/82/83/84/85/87"
+ 	help
+ 	  If you say Y here you will get support for the ST M41T60
+ 	  and M41T80 RTC chips series. Currently, the following chips are
+-	  supported: M41T65, M41T80, M41T81, M41T82, M41T83, M41ST84,
++	  supported: M41T62, M41T65, M41T80, M41T81, M41T82, M41T83, M41ST84,
+ 	  M41ST85, and M41ST87.
  
--/* Return true if the cgroup is a descendant of the current cgroup */
--int cgroup_is_descendant(const struct cgroup *cgrp);
-+/* Return true if cgrp is a descendant of the task's cgroup */
-+int cgroup_is_descendant(const struct cgroup *cgrp, struct task_struct *task);
+ 	  This driver can also be built as a module. If so, the module
+diff -puN drivers/rtc/rtc-m41t80.c~rtc-add-m41t62-support-to-rtc-m41t80-driver drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~rtc-add-m41t62-support-to-rtc-m41t80-driver
++++ a/drivers/rtc/rtc-m41t80.c
+@@ -64,10 +64,12 @@
+ #define M41T80_FEATURE_BL	(1 << 1)	/* Battery low indicator */
+ #define M41T80_FEATURE_SQ	(1 << 2)	/* Squarewave feature */
+ #define M41T80_FEATURE_WD	(1 << 3)	/* Extra watchdog resolution */
++#define M41T80_FEATURE_SQ_ALT	(1 << 4)	/* RSx bits are in reg 4 */
  
- /* Control Group subsystem type. See Documentation/cgroups.txt for details */
+ #define DRV_VERSION "0.05"
  
-diff -puN kernel/cgroup.c~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups kernel/cgroup.c
---- a/kernel/cgroup.c~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
-+++ a/kernel/cgroup.c
-@@ -3084,18 +3084,19 @@ int cgroup_clone(struct task_struct *tsk
- }
- 
- /**
-- * cgroup_is_descendant - see if @cgrp is a descendant of current task's cgrp
-+ * cgroup_is_descendant - see if @cgrp is a descendant of @task's cgrp
-  * @cgrp: the cgroup in question
-+ * @task: the task in question
-  *
-- * See if @cgrp is a descendant of the current task's cgroup in
-- * the appropriate hierarchy.
-+ * See if @cgrp is a descendant of @task's cgroup in the appropriate
-+ * hierarchy.
-  *
-  * If we are sending in dummytop, then presumably we are creating
-  * the top cgroup in the subsystem.
-  *
-  * Called only by the ns (nsproxy) cgroup.
-  */
--int cgroup_is_descendant(const struct cgroup *cgrp)
-+int cgroup_is_descendant(const struct cgroup *cgrp, struct task_struct *task)
+ static const struct i2c_device_id m41t80_id[] = {
++	{ "m41t62", M41T80_FEATURE_SQ | M41T80_FEATURE_SQ_ALT },
+ 	{ "m41t65", M41T80_FEATURE_HT | M41T80_FEATURE_WD },
+ 	{ "m41t80", M41T80_FEATURE_SQ },
+ 	{ "m41t81", M41T80_FEATURE_HT | M41T80_FEATURE_SQ},
+@@ -393,12 +395,15 @@ static ssize_t m41t80_sysfs_show_sqwfreq
  {
- 	int ret;
- 	struct cgroup *target;
-@@ -3105,7 +3106,7 @@ int cgroup_is_descendant(const struct cg
- 		return 1;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct m41t80_data *clientdata = i2c_get_clientdata(client);
+-	int val;
++	int val, reg_sqw;
  
- 	get_first_subsys(cgrp, NULL, &subsys_id);
--	target = task_cgroup(current, subsys_id);
-+	target = task_cgroup(task, subsys_id);
- 	while (cgrp != target && cgrp!= cgrp->top_cgroup)
- 		cgrp = cgrp->parent;
- 	ret = (cgrp == target);
-diff -puN kernel/ns_cgroup.c~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups kernel/ns_cgroup.c
---- a/kernel/ns_cgroup.c~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
-+++ a/kernel/ns_cgroup.c
-@@ -34,7 +34,7 @@ int ns_cgroup_clone(struct task_struct *
+ 	if (!(clientdata->features & M41T80_FEATURE_SQ))
+ 		return -EINVAL;
  
- /*
-  * Rules:
-- *   1. you can only enter a cgroup which is a child of your current
-+ *   1. you can only enter a cgroup which is a descendant of your current
-  *     cgroup
-  *   2. you can only place another process into a cgroup if
-  *     a. you have CAP_SYS_ADMIN
-@@ -45,21 +45,15 @@ int ns_cgroup_clone(struct task_struct *
- static int ns_can_attach(struct cgroup_subsys *ss,
- 		struct cgroup *new_cgroup, struct task_struct *task)
+-	val = i2c_smbus_read_byte_data(client, M41T80_REG_SQW);
++	reg_sqw = M41T80_REG_SQW;
++	if (clientdata->features & M41T80_FEATURE_SQ_ALT)
++		reg_sqw = M41T80_REG_WDAY;
++	val = i2c_smbus_read_byte_data(client, reg_sqw);
+ 	if (val < 0)
+ 		return -EIO;
+ 	val = (val >> 4) & 0xf;
+@@ -419,7 +424,7 @@ static ssize_t m41t80_sysfs_set_sqwfreq(
  {
--	struct cgroup *orig;
--
- 	if (current != task) {
- 		if (!capable(CAP_SYS_ADMIN))
- 			return -EPERM;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct m41t80_data *clientdata = i2c_get_clientdata(client);
+-	int almon, sqw;
++	int almon, sqw, reg_sqw;
+ 	int val = simple_strtoul(buf, NULL, 0);
  
--		if (!cgroup_is_descendant(new_cgroup))
-+		if (!cgroup_is_descendant(new_cgroup, current))
- 			return -EPERM;
- 	}
- 
--	if (atomic_read(&new_cgroup->count) != 0)
--		return -EPERM;
+ 	if (!(clientdata->features & M41T80_FEATURE_SQ))
+@@ -440,13 +445,16 @@ static ssize_t m41t80_sysfs_set_sqwfreq(
+ 	almon = i2c_smbus_read_byte_data(client, M41T80_REG_ALARM_MON);
+ 	if (almon < 0)
+ 		return -EIO;
+-	sqw = i2c_smbus_read_byte_data(client, M41T80_REG_SQW);
++	reg_sqw = M41T80_REG_SQW;
++	if (clientdata->features & M41T80_FEATURE_SQ_ALT)
++		reg_sqw = M41T80_REG_WDAY;
++	sqw = i2c_smbus_read_byte_data(client, reg_sqw);
+ 	if (sqw < 0)
+ 		return -EIO;
+ 	sqw = (sqw & 0x0f) | (val << 4);
+ 	if (i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
+ 				      almon & ~M41T80_ALMON_SQWE) < 0 ||
+-	    i2c_smbus_write_byte_data(client, M41T80_REG_SQW, sqw) < 0)
++	    i2c_smbus_write_byte_data(client, reg_sqw, sqw) < 0)
+ 		return -EIO;
+ 	if (val && i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
+ 					     almon | M41T80_ALMON_SQWE) < 0)
+_
+
+Patches currently in -mm which might be from dg@emlix.com are
+
+origin.patch
+linux-next.patch
+xtensa-variant-specific-code.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-s6000-dma-engine-support.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+xtensa-add-m41t62-rtc-to-s6105-platform.patch
+xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
+
