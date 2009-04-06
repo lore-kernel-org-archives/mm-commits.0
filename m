@@ -1,104 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:37:41 -0700
-Message-ID: <200904061937.n36JbfKj013035@imap1.linux-foundation.org>
+Subject: [merged] ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:35:40 -0700
+Message-ID: <200904061935.n36JZe9U012137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48246 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47157 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757889AbZDFTjc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:39:32 -0400
+	by vger.kernel.org with ESMTP id S1757943AbZDFTjq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:39:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, dvlasenk@redhat.com, jmarchan@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-gru: fix bugs related to module unload of the GRU driver
+     ptrace: fix possible zombie leak on PTRACE_DETACH
 has been removed from the -mm tree.  Its filename was
-     sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver.patch
+     ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: fix bugs related to module unload of the GRU driver
-From: Jack Steiner <steiner@sgi.com>
+Subject: ptrace: fix possible zombie leak on PTRACE_DETACH
+From: Oleg Nesterov <oleg@redhat.com>
 
-Fix bugs related to module unload of the GRU driver.
+When ptrace_detach() takes tasklist, the tracee can be SIGKILL'ed.  If it
+has already passed exit_notify() we can leak a zombie, because a) ptracing
+disables the auto-reaping logic, and b) ->real_parent was not notified
+about the child's death.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+ptrace_detach() should follow the ptrace_exit's logic, change the code
+accordingly.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Tested-by: Denys Vlasenko <dvlasenk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufile.c      |    5 ++++-
- drivers/misc/sgi-gru/grukservices.c |   19 +++++++++++++++++++
- drivers/misc/sgi-gru/grutables.h    |    1 +
- 3 files changed, 24 insertions(+), 1 deletion(-)
+ include/linux/ptrace.h |    1 +
+ kernel/ptrace.c        |    9 +++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufile.c~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -440,7 +440,7 @@ exit1:
+diff -puN include/linux/ptrace.h~ptrace-fix-possible-zombie-leak-on-ptrace_detach include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace-fix-possible-zombie-leak-on-ptrace_detach
++++ a/include/linux/ptrace.h
+@@ -94,6 +94,7 @@ extern void ptrace_notify(int exit_code)
+ extern void __ptrace_link(struct task_struct *child,
+ 			  struct task_struct *new_parent);
+ extern void __ptrace_unlink(struct task_struct *child);
++extern int __ptrace_detach(struct task_struct *tracer, struct task_struct *p);
+ extern void ptrace_fork(struct task_struct *task, unsigned long clone_flags);
+ #define PTRACE_MODE_READ   1
+ #define PTRACE_MODE_ATTACH 2
+diff -puN kernel/ptrace.c~ptrace-fix-possible-zombie-leak-on-ptrace_detach kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-fix-possible-zombie-leak-on-ptrace_detach
++++ a/kernel/ptrace.c
+@@ -237,6 +237,8 @@ out:
  
- static void __exit gru_exit(void)
+ int ptrace_detach(struct task_struct *child, unsigned int data)
  {
--	int i, bid;
-+	int i, bid, gid;
- 	int order = get_order(sizeof(struct gru_state) *
- 			      GRU_CHIPLETS_PER_BLADE);
- 
-@@ -450,6 +450,9 @@ static void __exit gru_exit(void)
- 	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
- 		free_irq(IRQ_GRU + i, NULL);
- 
-+	foreach_gid(gid)
-+		gru_kservices_exit(GID_TO_GRU(gid));
++	int dead = 0;
 +
- 	for (bid = 0; bid < GRU_MAX_BLADES; bid++)
- 		free_pages((unsigned long)gru_base[bid], order);
+ 	if (!valid_signal(data))
+ 		return -EIO;
  
-diff -puN drivers/misc/sgi-gru/grukservices.c~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -690,3 +690,22 @@ int gru_kservices_init(struct gru_state 
- 		quicktest(gru);
+@@ -244,18 +246,21 @@ int ptrace_detach(struct task_struct *ch
+ 	ptrace_disable(child);
+ 	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+ 
+-	/* protect against de_thread()->release_task() */
+ 	write_lock_irq(&tasklist_lock);
++	/* protect against de_thread()->release_task() */
+ 	if (child->ptrace) {
+ 		child->exit_code = data;
+ 
+-		__ptrace_unlink(child);
++		dead = __ptrace_detach(current, child);
+ 
+ 		if (!child->exit_state)
+ 			wake_up_process(child);
+ 	}
+ 	write_unlock_irq(&tasklist_lock);
+ 
++	if (unlikely(dead))
++		release_task(child);
++
  	return 0;
  }
-+
-+void gru_kservices_exit(struct gru_state *gru)
-+{
-+	struct gru_context_configuration_handle *cch;
-+	struct gru_blade_state *bs;
-+
-+	bs = gru->gs_blade;
-+	if (gru != &bs->bs_grus[1])
-+		return;
-+
-+	cch = get_cch(gru->gs_gru_base_vaddr, KERNEL_CTXNUM);
-+	lock_cch_handle(cch);
-+	if (cch_interrupt_sync(cch))
-+		BUG();
-+	if (cch_deallocate(cch))
-+		BUG();
-+	unlock_cch_handle(cch);
-+}
-+
-diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -600,6 +600,7 @@ extern void gru_unload_context(struct gr
- extern void gts_drop(struct gru_thread_state *gts);
- extern void gru_tgh_flush_init(struct gru_state *gru);
- extern int gru_kservices_init(struct gru_state *gru);
-+extern void gru_kservices_exit(struct gru_state *gru);
- extern irqreturn_t gru_intr(int irq, void *dev_id);
- extern int gru_handle_user_call_os(unsigned long address);
- extern int gru_user_flush_tlb(unsigned long arg);
+ 
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+linux-next.patch
+getrusage-fill-ru_maxrss-value.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+signals-tracehook_notify_jctl-change.patch
 
