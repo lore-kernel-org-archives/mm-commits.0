@@ -1,895 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-add-bd2802gu-led-driver.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:39:03 -0700
-Message-ID: <200904061939.n36Jd39U013645@imap1.linux-foundation.org>
+Subject: [merged] cpusets-replace-zone-allowed-functions-with-node-allowed.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:35:06 -0700
+Message-ID: <200904061935.n36JZ6nr011913@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58970 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754262AbZDFUSO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:18:14 -0400
+	by vger.kernel.org with ESMTP id S1752219AbZDFUTR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:19:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chammoru@gmail.com, kyungmin.park@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: rientjes@google.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, menage@google.com, mingo@elte.hu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: add BD2802GU LED driver
+     cpusets: replace zone allowed functions with node allowed
 has been removed from the -mm tree.  Its filename was
-     leds-add-bd2802gu-led-driver.patch
+     cpusets-replace-zone-allowed-functions-with-node-allowed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: add BD2802GU LED driver
-From: Kim Kyuwon <chammoru@gmail.com>
+Subject: cpusets: replace zone allowed functions with node allowed
+From: David Rientjes <rientjes@google.com>
 
-ROHM BD2802GU is a RGB LED controller attached to i2c bus and specifically
-engineered for decoration purposes.  This RGB controller incorporates
-lighting patterns and illuminates.
+The cpuset_zone_allowed() variants are actually only a function of the
+zone's node.
 
-This driver is designed to minimize power consumption, so when there is no
-emitting LED, it enters to reset state.  And because the BD2802GU has lots
-of features that can't be covered by the current LED framework, it
-provides Advanced Configuration Function(ADF) mode, so that user
-applications can set registers of BD2802GU directly.
-
-Here are basic usage examples :
-; to turn on LED (not blink)
-$ echo 1 > /sys/class/leds/led1_R/brightness
-; to blink LED
-$ echo timer > /sys/class/leds/led1_R/trigger
-$ echo 1 > /sys/class/leds/led1_R/delay_on
-$ echo 1 > /sys/class/leds/led1_R/delay_off
-; to turn off LED
-$ echo 0 > /sys/class/leds/led1_R/brightness
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: <kyungmin.park@samsung.com>
+Cc: Paul Menage <menage@google.com>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig        |    7 
- drivers/leds/Makefile       |    1 
- drivers/leds/leds-bd2802.c  |  765 ++++++++++++++++++++++++++++++++++
- include/linux/leds-bd2802.h |   26 +
- 4 files changed, 799 insertions(+)
+ include/linux/cpuset.h |   33 +++++++++++++++++----
+ kernel/cpuset.c        |   59 ++++++++++++++++-----------------------
+ 2 files changed, 52 insertions(+), 40 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-add-bd2802gu-led-driver drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-add-bd2802gu-led-driver
-+++ a/drivers/leds/Kconfig
-@@ -210,6 +210,13 @@ config LEDS_PWM
- 	help
- 	  This option enables support for pwm driven LEDs
+diff -puN include/linux/cpuset.h~cpusets-replace-zone-allowed-functions-with-node-allowed include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpusets-replace-zone-allowed-functions-with-node-allowed
++++ a/include/linux/cpuset.h
+@@ -12,6 +12,7 @@
+ #include <linux/cpumask.h>
+ #include <linux/nodemask.h>
+ #include <linux/cgroup.h>
++#include <linux/mm.h>
  
-+config LEDS_BD2802
-+	tristate "LED driver for BD2802 RGB LED"
-+	depends on LEDS_CLASS && I2C
-+	help
-+	  This option enables support for BD2802GU RGB LED driver chips
-+	  accessed via the I2C bus.
-+
- comment "LED Triggers"
+ #ifdef CONFIG_CPUSETS
  
- config LEDS_TRIGGERS
-diff -puN drivers/leds/Makefile~leds-add-bd2802gu-led-driver drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-add-bd2802gu-led-driver
-+++ a/drivers/leds/Makefile
-@@ -6,6 +6,7 @@ obj-$(CONFIG_LEDS_TRIGGERS)		+= led-trig
+@@ -29,19 +30,29 @@ void cpuset_init_current_mems_allowed(vo
+ void cpuset_update_task_memory_state(void);
+ int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask);
  
- # LED Platform Drivers
- obj-$(CONFIG_LEDS_ATMEL_PWM)		+= leds-atmel-pwm.o
-+obj-$(CONFIG_LEDS_BD2802)		+= leds-bd2802.o
- obj-$(CONFIG_LEDS_LOCOMO)		+= leds-locomo.o
- obj-$(CONFIG_LEDS_MIKROTIK_RB532)	+= leds-rb532.o
- obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c24xx.o
-diff -puN /dev/null drivers/leds/leds-bd2802.c
---- /dev/null
-+++ a/drivers/leds/leds-bd2802.c
-@@ -0,0 +1,765 @@
-+/*
-+ * leds-bd2802.c - RGB LED Driver
-+ *
-+ * Copyright (C) 2009 Samsung Electronics
-+ * Kim Kyuwon <q1.kim@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Datasheet: http://www.rohm.com/products/databook/driver/pdf/bd2802gu-e.pdf
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/gpio.h>
-+#include <linux/delay.h>
-+#include <linux/leds.h>
-+#include <linux/leds-bd2802.h>
-+
-+
-+#define LED_CTL(rgb2en, rgb1en) ((rgb2en) << 4 | ((rgb1en) << 0))
-+
-+#define BD2802_LED_OFFSET		0xa
-+#define BD2802_COLOR_OFFSET		0x3
-+
-+#define BD2802_REG_CLKSETUP 		0x00
-+#define BD2802_REG_CONTROL 		0x01
-+#define BD2802_REG_HOURSETUP		0x02
-+#define BD2802_REG_CURRENT1SETUP	0x03
-+#define BD2802_REG_CURRENT2SETUP	0x04
-+#define BD2802_REG_WAVEPATTERN		0x05
-+
-+#define BD2802_CURRENT_032		0x10 /* 3.2mA */
-+#define BD2802_CURRENT_000		0x00 /* 0.0mA */
-+
-+#define BD2802_PATTERN_FULL		0x07
-+#define BD2802_PATTERN_HALF		0x03
-+
-+enum led_ids {
-+	LED1,
-+	LED2,
-+	LED_NUM,
-+};
-+
-+enum led_colors {
-+	RED,
-+	GREEN,
-+	BLUE,
-+};
-+
-+enum led_bits {
-+	BD2802_OFF,
-+	BD2802_BLINK,
-+	BD2802_ON,
-+};
-+
-+/*
-+ * State '0' : 'off'
-+ * State '1' : 'blink'
-+ * State '2' : 'on'.
-+ */
-+struct led_state {
-+	unsigned r:2;
-+	unsigned g:2;
-+	unsigned b:2;
-+};
-+
-+struct bd2802_led {
-+	struct bd2802_led_platform_data	*pdata;
-+	struct i2c_client		*client;
-+	struct rw_semaphore		rwsem;
-+	struct work_struct		work;
-+
-+	struct led_state		led[2];
-+
-+	/*
-+	 * Making led_classdev as array is not recommended, because array
-+	 * members prevent using 'container_of' macro. So repetitive works
-+	 * are needed.
-+	 */
-+	struct led_classdev		cdev_led1r;
-+	struct led_classdev		cdev_led1g;
-+	struct led_classdev		cdev_led1b;
-+	struct led_classdev		cdev_led2r;
-+	struct led_classdev		cdev_led2g;
-+	struct led_classdev		cdev_led2b;
-+
-+	/*
-+	 * Advanced Configuration Function(ADF) mode:
-+	 * In ADF mode, user can set registers of BD2802GU directly,
-+	 * therefore BD2802GU doesn't enter reset state.
-+	 */
-+	int 				adf_on;
-+
-+	enum led_ids			led_id;
-+	enum led_colors			color;
-+	enum led_bits			state;
-+};
-+
-+
-+/*--------------------------------------------------------------*/
-+/*	BD2802GU helper functions					*/
-+/*--------------------------------------------------------------*/
-+
-+static inline int bd2802_is_rgb_off(struct bd2802_led *led, enum led_ids id,
-+							enum led_colors color)
-+{
-+	switch (color) {
-+	case RED:
-+		return !led->led[id].r;
-+	case GREEN:
-+		return !led->led[id].g;
-+	case BLUE:
-+		return !led->led[id].b;
-+	default:
-+		dev_err(&led->client->dev, "%s: Invalid color\n", __func__);
-+		return -EINVAL;
-+	}
+-extern int __cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask);
+-extern int __cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask);
++extern int __cpuset_node_allowed_softwall(int node, gfp_t gfp_mask);
++extern int __cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask);
+ 
+-static int inline cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
++static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
+ {
+ 	return number_of_cpusets <= 1 ||
+-		__cpuset_zone_allowed_softwall(z, gfp_mask);
++		__cpuset_node_allowed_softwall(node, gfp_mask);
+ }
+ 
+-static int inline cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
++static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
+ {
+ 	return number_of_cpusets <= 1 ||
+-		__cpuset_zone_allowed_hardwall(z, gfp_mask);
++		__cpuset_node_allowed_hardwall(node, gfp_mask);
 +}
 +
-+static inline int bd2802_is_led_off(struct bd2802_led *led, enum led_ids id)
++static inline int cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
 +{
-+	if (led->led[id].r || led->led[id].g || led->led[id].b)
-+		return 0;
++	return cpuset_node_allowed_softwall(zone_to_nid(z), gfp_mask);
++}
 +
++static inline int cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
++{
++	return cpuset_node_allowed_hardwall(zone_to_nid(z), gfp_mask);
+ }
+ 
+ extern int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
+@@ -112,6 +123,16 @@ static inline int cpuset_nodemask_valid_
+ 	return 1;
+ }
+ 
++static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
++{
 +	return 1;
 +}
 +
-+static inline int bd2802_is_all_off(struct bd2802_led *led)
++static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
 +{
-+	int i;
-+
-+	for (i = 0; i < LED_NUM; i++)
-+		if (!bd2802_is_led_off(led, i))
-+			return 0;
-+
 +	return 1;
 +}
 +
-+static inline u8 bd2802_get_base_offset(enum led_ids id, enum led_colors color)
-+{
-+	return id * BD2802_LED_OFFSET + color * BD2802_COLOR_OFFSET;
-+}
-+
-+static inline u8 bd2802_get_reg_addr(enum led_ids id, enum led_colors color,
-+								u8 reg_offset)
-+{
-+	return reg_offset + bd2802_get_base_offset(id, color);
-+}
-+
-+
-+/*--------------------------------------------------------------*/
-+/*	BD2802GU core functions					*/
-+/*--------------------------------------------------------------*/
-+
-+static int bd2802_write_byte(struct i2c_client *client, u8 reg, u8 val)
-+{
-+	int ret = i2c_smbus_write_byte_data(client, reg, val);
-+	if (ret >= 0)
-+		return 0;
-+
-+	dev_err(&client->dev, "%s: reg 0x%x, val 0x%x, err %d\n",
-+						__func__, reg, val, ret);
-+
-+	return ret;
-+}
-+
-+static void bd2802_update_state(struct bd2802_led *led, enum led_ids id,
-+				enum led_colors color, enum led_bits led_bit)
-+{
-+	int i;
-+	u8 value;
-+
-+	for (i = 0; i < LED_NUM; i++) {
-+		if (i == id) {
-+			switch (color) {
-+			case RED:
-+				led->led[i].r = led_bit;
-+				break;
-+			case GREEN:
-+				led->led[i].g = led_bit;
-+				break;
-+			case BLUE:
-+				led->led[i].b = led_bit;
-+				break;
-+			default:
-+				dev_err(&led->client->dev,
-+					"%s: Invalid color\n", __func__);
-+				return;
-+			}
-+		}
-+	}
-+
-+	if (led_bit == BD2802_BLINK || led_bit == BD2802_ON)
-+		return;
-+
-+	if (!bd2802_is_led_off(led, id))
-+		return;
-+
-+	if (bd2802_is_all_off(led) && !led->adf_on) {
-+		gpio_set_value(led->pdata->reset_gpio, 0);
-+		return;
-+	}
-+
-+	/*
-+	 * In this case, other led is turned on, and current led is turned
-+	 * off. So set RGB LED Control register to stop the current RGB LED
-+	 */
-+	value = (id == LED1) ? LED_CTL(1, 0) : LED_CTL(0, 1);
-+	bd2802_write_byte(led->client, BD2802_REG_CONTROL, value);
-+}
-+
-+static void bd2802_configure(struct bd2802_led *led)
-+{
-+	struct bd2802_led_platform_data *pdata = led->pdata;
-+	u8 reg;
-+
-+	reg = bd2802_get_reg_addr(LED1, RED, BD2802_REG_HOURSETUP);
-+	bd2802_write_byte(led->client, reg, pdata->rgb_time);
-+
-+	reg = bd2802_get_reg_addr(LED2, RED, BD2802_REG_HOURSETUP);
-+	bd2802_write_byte(led->client, reg, pdata->rgb_time);
-+}
-+
-+static void bd2802_reset_cancel(struct bd2802_led *led)
-+{
-+	gpio_set_value(led->pdata->reset_gpio, 1);
-+	udelay(100);
-+	bd2802_configure(led);
-+}
-+
-+static void bd2802_enable(struct bd2802_led *led, enum led_ids id)
-+{
-+	enum led_ids other_led = (id == LED1) ? LED2 : LED1;
-+	u8 value, other_led_on;
-+
-+	other_led_on = !bd2802_is_led_off(led, other_led);
-+	if (id == LED1)
-+		value = LED_CTL(other_led_on, 1);
-+	else
-+		value = LED_CTL(1 , other_led_on);
-+
-+	bd2802_write_byte(led->client, BD2802_REG_CONTROL, value);
-+}
-+
-+static void bd2802_set_on(struct bd2802_led *led, enum led_ids id,
-+							enum led_colors color)
-+{
-+	u8 reg;
-+
-+	if (bd2802_is_all_off(led) && !led->adf_on)
-+		bd2802_reset_cancel(led);
-+
-+	reg = bd2802_get_reg_addr(id, color, BD2802_REG_CURRENT1SETUP);
-+	bd2802_write_byte(led->client, reg, BD2802_CURRENT_032);
-+	reg = bd2802_get_reg_addr(id, color, BD2802_REG_CURRENT2SETUP);
-+	bd2802_write_byte(led->client, reg, BD2802_CURRENT_000);
-+	reg = bd2802_get_reg_addr(id, color, BD2802_REG_WAVEPATTERN);
-+	bd2802_write_byte(led->client, reg, BD2802_PATTERN_FULL);
-+
-+	bd2802_enable(led, id);
-+	bd2802_update_state(led, id, color, BD2802_ON);
-+}
-+
-+static void bd2802_set_blink(struct bd2802_led *led, enum led_ids id,
-+							enum led_colors color)
-+{
-+	u8 reg;
-+
-+	if (bd2802_is_all_off(led) && !led->adf_on)
-+		bd2802_reset_cancel(led);
-+
-+	reg = bd2802_get_reg_addr(id, color, BD2802_REG_CURRENT1SETUP);
-+	bd2802_write_byte(led->client, reg, BD2802_CURRENT_000);
-+	reg = bd2802_get_reg_addr(id, color, BD2802_REG_CURRENT2SETUP);
-+	bd2802_write_byte(led->client, reg, BD2802_CURRENT_032);
-+	reg = bd2802_get_reg_addr(id, color, BD2802_REG_WAVEPATTERN);
-+	bd2802_write_byte(led->client, reg, BD2802_PATTERN_HALF);
-+
-+	bd2802_enable(led, id);
-+	bd2802_update_state(led, id, color, BD2802_BLINK);
-+}
-+
-+static void bd2802_turn_on(struct bd2802_led *led, enum led_ids id,
-+				enum led_colors color, enum led_bits led_bit)
-+{
-+	if (led_bit == BD2802_OFF) {
-+		dev_err(&led->client->dev,
-+					"Only 'blink' and 'on' are allowed\n");
-+		return;
-+	}
-+
-+	if (led_bit == BD2802_BLINK)
-+		bd2802_set_blink(led, id, color);
-+	else
-+		bd2802_set_on(led, id, color);
-+}
-+
-+static void bd2802_turn_off(struct bd2802_led *led, enum led_ids id,
-+							enum led_colors color)
-+{
-+	u8 reg;
-+
-+	if (bd2802_is_rgb_off(led, id, color))
-+		return;
-+
-+	reg = bd2802_get_reg_addr(id, color, BD2802_REG_CURRENT1SETUP);
-+	bd2802_write_byte(led->client, reg, BD2802_CURRENT_000);
-+	reg = bd2802_get_reg_addr(id, color, BD2802_REG_CURRENT2SETUP);
-+	bd2802_write_byte(led->client, reg, BD2802_CURRENT_000);
-+
-+	bd2802_update_state(led, id, color, BD2802_OFF);
-+}
-+
-+static void bd2802_restore_state(struct bd2802_led *led)
-+{
-+	int i;
-+
-+	for (i = 0; i < LED_NUM; i++) {
-+		if (led->led[i].r)
-+			bd2802_turn_on(led, i, RED, led->led[i].r);
-+		if (led->led[i].g)
-+			bd2802_turn_on(led, i, GREEN, led->led[i].g);
-+		if (led->led[i].b)
-+			bd2802_turn_on(led, i, BLUE, led->led[i].b);
-+	}
-+}
-+
-+#define BD2802_SET_REGISTER(reg_addr, reg_name)				\
-+static ssize_t bd2802_store_reg##reg_addr(struct device *dev,		\
-+	struct device_attribute *attr, const char *buf, size_t count)	\
-+{									\
-+	struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));\
-+	unsigned long val;						\
-+	int ret;							\
-+	if (!count)							\
-+		return -EINVAL;						\
-+	ret = strict_strtoul(buf, 16, &val);				\
-+	if (ret)							\
-+		return ret;						\
-+	down_write(&led->rwsem);					\
-+	bd2802_write_byte(led->client, reg_addr, (u8) val);		\
-+	up_write(&led->rwsem);						\
-+	return count;							\
-+}									\
-+static struct device_attribute bd2802_reg##reg_addr##_attr = {		\
-+	.attr = {.name = reg_name, .mode = 0644, .owner = THIS_MODULE},	\
-+	.store = bd2802_store_reg##reg_addr,				\
-+};
-+
-+BD2802_SET_REGISTER(0x00, "0x00");
-+BD2802_SET_REGISTER(0x01, "0x01");
-+BD2802_SET_REGISTER(0x02, "0x02");
-+BD2802_SET_REGISTER(0x03, "0x03");
-+BD2802_SET_REGISTER(0x04, "0x04");
-+BD2802_SET_REGISTER(0x05, "0x05");
-+BD2802_SET_REGISTER(0x06, "0x06");
-+BD2802_SET_REGISTER(0x07, "0x07");
-+BD2802_SET_REGISTER(0x08, "0x08");
-+BD2802_SET_REGISTER(0x09, "0x09");
-+BD2802_SET_REGISTER(0x0a, "0x0a");
-+BD2802_SET_REGISTER(0x0b, "0x0b");
-+BD2802_SET_REGISTER(0x0c, "0x0c");
-+BD2802_SET_REGISTER(0x0d, "0x0d");
-+BD2802_SET_REGISTER(0x0e, "0x0e");
-+BD2802_SET_REGISTER(0x0f, "0x0f");
-+BD2802_SET_REGISTER(0x10, "0x10");
-+BD2802_SET_REGISTER(0x11, "0x11");
-+BD2802_SET_REGISTER(0x12, "0x12");
-+BD2802_SET_REGISTER(0x13, "0x13");
-+BD2802_SET_REGISTER(0x14, "0x14");
-+BD2802_SET_REGISTER(0x15, "0x15");
-+
-+static struct device_attribute *bd2802_addr_attributes[] = {
-+	&bd2802_reg0x00_attr,
-+	&bd2802_reg0x01_attr,
-+	&bd2802_reg0x02_attr,
-+	&bd2802_reg0x03_attr,
-+	&bd2802_reg0x04_attr,
-+	&bd2802_reg0x05_attr,
-+	&bd2802_reg0x06_attr,
-+	&bd2802_reg0x07_attr,
-+	&bd2802_reg0x08_attr,
-+	&bd2802_reg0x09_attr,
-+	&bd2802_reg0x0a_attr,
-+	&bd2802_reg0x0b_attr,
-+	&bd2802_reg0x0c_attr,
-+	&bd2802_reg0x0d_attr,
-+	&bd2802_reg0x0e_attr,
-+	&bd2802_reg0x0f_attr,
-+	&bd2802_reg0x10_attr,
-+	&bd2802_reg0x11_attr,
-+	&bd2802_reg0x12_attr,
-+	&bd2802_reg0x13_attr,
-+	&bd2802_reg0x14_attr,
-+	&bd2802_reg0x15_attr,
-+};
-+
-+static void bd2802_enable_adv_conf(struct bd2802_led *led)
-+{
-+	int i, ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(bd2802_addr_attributes); i++) {
-+		ret = device_create_file(&led->client->dev,
-+						bd2802_addr_attributes[i]);
-+		if (ret) {
-+			dev_err(&led->client->dev, "failed to sysfs file %s\n",
-+					bd2802_addr_attributes[i]->attr.name);
-+			goto failed_remove_files;
-+		}
-+	}
-+
-+	if (bd2802_is_all_off(led))
-+		bd2802_reset_cancel(led);
-+
-+	led->adf_on = 1;
-+
-+	return;
-+
-+failed_remove_files:
-+	for (i--; i >= 0; i--)
-+		device_remove_file(&led->client->dev,
-+						bd2802_addr_attributes[i]);
-+}
-+
-+static void bd2802_disable_adv_conf(struct bd2802_led *led)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(bd2802_addr_attributes); i++)
-+		device_remove_file(&led->client->dev,
-+						bd2802_addr_attributes[i]);
-+
-+	if (bd2802_is_all_off(led))
-+		gpio_set_value(led->pdata->reset_gpio, 0);
-+
-+	led->adf_on = 0;
-+}
-+
-+static ssize_t bd2802_show_adv_conf(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));
-+	ssize_t ret;
-+
-+	down_read(&led->rwsem);
-+	if (led->adf_on)
-+		ret = sprintf(buf, "on\n");
-+	else
-+		ret = sprintf(buf, "off\n");
-+	up_read(&led->rwsem);
-+
-+	return ret;
-+}
-+
-+static ssize_t bd2802_store_adv_conf(struct device *dev,
-+	struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));
-+
-+	if (!count)
-+		return -EINVAL;
-+
-+	down_write(&led->rwsem);
-+	if (!led->adf_on && !strncmp(buf, "on", 2))
-+		bd2802_enable_adv_conf(led);
-+	else if (led->adf_on && !strncmp(buf, "off", 3))
-+		bd2802_disable_adv_conf(led);
-+	up_write(&led->rwsem);
-+
-+	return count;
-+}
-+
-+static struct device_attribute bd2802_adv_conf_attr = {
-+	.attr = {
-+		.name = "advanced_configuration",
-+		.mode = 0644,
-+		.owner = THIS_MODULE
-+	},
-+	.show = bd2802_show_adv_conf,
-+	.store = bd2802_store_adv_conf,
-+};
-+
-+static void bd2802_led_work(struct work_struct *work)
-+{
-+	struct bd2802_led *led = container_of(work, struct bd2802_led, work);
-+
-+	if (led->state)
-+		bd2802_turn_on(led, led->led_id, led->color, led->state);
-+	else
-+		bd2802_turn_off(led, led->led_id, led->color);
-+}
-+
-+#define BD2802_CONTROL_RGBS(name, id, clr)				\
-+static void bd2802_set_##name##_brightness(struct led_classdev *led_cdev,\
-+					enum led_brightness value)	\
-+{									\
-+	struct bd2802_led *led =					\
-+		container_of(led_cdev, struct bd2802_led, cdev_##name);	\
-+	led->led_id = id;						\
-+	led->color = clr;						\
-+	if (value == LED_OFF)						\
-+		led->state = BD2802_OFF;				\
-+	else								\
-+		led->state = BD2802_ON;					\
-+	schedule_work(&led->work);					\
-+}									\
-+static int bd2802_set_##name##_blink(struct led_classdev *led_cdev,	\
-+		unsigned long *delay_on, unsigned long *delay_off)	\
-+{									\
-+	struct bd2802_led *led =					\
-+		container_of(led_cdev, struct bd2802_led, cdev_##name);	\
-+	if (*delay_on == 0 || *delay_off == 0)				\
-+		return -EINVAL;						\
-+	led->led_id = id;						\
-+	led->color = clr;						\
-+	led->state = BD2802_BLINK;					\
-+	schedule_work(&led->work);					\
-+	return 0;							\
-+}
-+
-+BD2802_CONTROL_RGBS(led1r, LED1, RED);
-+BD2802_CONTROL_RGBS(led1g, LED1, GREEN);
-+BD2802_CONTROL_RGBS(led1b, LED1, BLUE);
-+BD2802_CONTROL_RGBS(led2r, LED2, RED);
-+BD2802_CONTROL_RGBS(led2g, LED2, GREEN);
-+BD2802_CONTROL_RGBS(led2b, LED2, BLUE);
-+
-+static int bd2802_register_led_classdev(struct bd2802_led *led)
-+{
-+	int ret;
-+
-+	INIT_WORK(&led->work, bd2802_led_work);
-+
-+	led->cdev_led1r.name = "led1_R";
-+	led->cdev_led1r.brightness = LED_OFF;
-+	led->cdev_led1r.brightness_set = bd2802_set_led1r_brightness;
-+	led->cdev_led1r.blink_set = bd2802_set_led1r_blink;
-+	led->cdev_led1r.flags |= LED_CORE_SUSPENDRESUME;
-+
-+	ret = led_classdev_register(&led->client->dev, &led->cdev_led1r);
-+	if (ret < 0) {
-+		dev_err(&led->client->dev, "couldn't register LED %s\n",
-+							led->cdev_led1r.name);
-+		goto failed_unregister_led1_R;
-+	}
-+
-+	led->cdev_led1g.name = "led1_G";
-+	led->cdev_led1g.brightness = LED_OFF;
-+	led->cdev_led1g.brightness_set = bd2802_set_led1g_brightness;
-+	led->cdev_led1g.blink_set = bd2802_set_led1g_blink;
-+	led->cdev_led1g.flags |= LED_CORE_SUSPENDRESUME;
-+
-+	ret = led_classdev_register(&led->client->dev, &led->cdev_led1g);
-+	if (ret < 0) {
-+		dev_err(&led->client->dev, "couldn't register LED %s\n",
-+							led->cdev_led1g.name);
-+		goto failed_unregister_led1_G;
-+	}
-+
-+	led->cdev_led1b.name = "led1_B";
-+	led->cdev_led1b.brightness = LED_OFF;
-+	led->cdev_led1b.brightness_set = bd2802_set_led1b_brightness;
-+	led->cdev_led1b.blink_set = bd2802_set_led1b_blink;
-+	led->cdev_led1b.flags |= LED_CORE_SUSPENDRESUME;
-+
-+	ret = led_classdev_register(&led->client->dev, &led->cdev_led1b);
-+	if (ret < 0) {
-+		dev_err(&led->client->dev, "couldn't register LED %s\n",
-+							led->cdev_led1b.name);
-+		goto failed_unregister_led1_B;
-+	}
-+
-+	led->cdev_led2r.name = "led2_R";
-+	led->cdev_led2r.brightness = LED_OFF;
-+	led->cdev_led2r.brightness_set = bd2802_set_led2r_brightness;
-+	led->cdev_led2r.blink_set = bd2802_set_led2r_blink;
-+	led->cdev_led2r.flags |= LED_CORE_SUSPENDRESUME;
-+
-+	ret = led_classdev_register(&led->client->dev, &led->cdev_led2r);
-+	if (ret < 0) {
-+		dev_err(&led->client->dev, "couldn't register LED %s\n",
-+							led->cdev_led2r.name);
-+		goto failed_unregister_led2_R;
-+	}
-+
-+	led->cdev_led2g.name = "led2_G";
-+	led->cdev_led2g.brightness = LED_OFF;
-+	led->cdev_led2g.brightness_set = bd2802_set_led2g_brightness;
-+	led->cdev_led2g.blink_set = bd2802_set_led2g_blink;
-+	led->cdev_led2g.flags |= LED_CORE_SUSPENDRESUME;
-+
-+	ret = led_classdev_register(&led->client->dev, &led->cdev_led2g);
-+	if (ret < 0) {
-+		dev_err(&led->client->dev, "couldn't register LED %s\n",
-+							led->cdev_led2g.name);
-+		goto failed_unregister_led2_G;
-+	}
-+
-+	led->cdev_led2b.name = "led2_B";
-+	led->cdev_led2b.brightness = LED_OFF;
-+	led->cdev_led2b.brightness_set = bd2802_set_led2b_brightness;
-+	led->cdev_led2b.blink_set = bd2802_set_led2b_blink;
-+	led->cdev_led2b.flags |= LED_CORE_SUSPENDRESUME;
-+
-+	ret = led_classdev_register(&led->client->dev, &led->cdev_led2b);
-+	if (ret < 0) {
-+		dev_err(&led->client->dev, "couldn't register LED %s\n",
-+							led->cdev_led2b.name);
-+		goto failed_unregister_led2_B;
-+	}
-+
-+	return 0;
-+
-+failed_unregister_led2_B:
-+	led_classdev_unregister(&led->cdev_led2g);
-+failed_unregister_led2_G:
-+	led_classdev_unregister(&led->cdev_led2r);
-+failed_unregister_led2_R:
-+	led_classdev_unregister(&led->cdev_led1b);
-+failed_unregister_led1_B:
-+	led_classdev_unregister(&led->cdev_led1g);
-+failed_unregister_led1_G:
-+	led_classdev_unregister(&led->cdev_led1r);
-+failed_unregister_led1_R:
-+
-+	return ret;
-+}
-+
-+static void bd2802_unregister_led_classdev(struct bd2802_led *led)
-+{
-+	cancel_work_sync(&led->work);
-+	led_classdev_unregister(&led->cdev_led1r);
-+}
-+
-+static int __devinit bd2802_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	struct bd2802_led *led;
-+	struct bd2802_led_platform_data *pdata;
-+	int ret;
-+
-+	led = kzalloc(sizeof(struct bd2802_led), GFP_KERNEL);
-+	if (!led) {
-+		dev_err(&client->dev, "failed to allocate driver data\n");
-+		return -ENOMEM;
-+	}
-+
-+	led->client = client;
-+	pdata = led->pdata = client->dev.platform_data;
-+	i2c_set_clientdata(client, led);
-+
-+	/* Configure RESET GPIO (L: RESET, H: RESET cancel) */
-+	gpio_request(pdata->reset_gpio, "RGB_RESETB");
-+	gpio_direction_output(pdata->reset_gpio, 1);
-+
-+	/* Tacss = min 0.1ms */
-+	udelay(100);
-+
-+	/* Detect BD2802GU */
-+	ret = bd2802_write_byte(client, BD2802_REG_CLKSETUP, 0x00);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed to detect device\n");
-+		goto failed_free;
-+	} else
-+		dev_info(&client->dev, "return 0x%02x\n", ret);
-+
-+	/* To save the power, reset BD2802 after detecting */
-+	gpio_set_value(led->pdata->reset_gpio, 0);
-+
-+	init_rwsem(&led->rwsem);
-+
-+	ret = device_create_file(&client->dev, &bd2802_adv_conf_attr);
-+	if (ret) {
-+		dev_err(&client->dev, "failed to create sysfs file %s\n",
-+					bd2802_adv_conf_attr.attr.name);
-+		goto failed_free;
-+	}
-+
-+	ret = bd2802_register_led_classdev(led);
-+	if (ret < 0)
-+		goto failed_unregister_dev_file;
-+
-+	return 0;
-+
-+failed_unregister_dev_file:
-+	device_remove_file(&client->dev, &bd2802_adv_conf_attr);
-+failed_free:
-+	i2c_set_clientdata(client, NULL);
-+	kfree(led);
-+
-+	return ret;
-+}
-+
-+static int __exit bd2802_remove(struct i2c_client *client)
-+{
-+	struct bd2802_led *led = i2c_get_clientdata(client);
-+
-+	bd2802_unregister_led_classdev(led);
-+	gpio_set_value(led->pdata->reset_gpio, 0);
-+	if (led->adf_on)
-+		bd2802_disable_adv_conf(led);
-+	device_remove_file(&client->dev, &bd2802_adv_conf_attr);
-+	i2c_set_clientdata(client, NULL);
-+	kfree(led);
-+
-+	return 0;
-+}
-+
-+static int bd2802_suspend(struct i2c_client *client, pm_message_t mesg)
-+{
-+	struct bd2802_led *led = i2c_get_clientdata(client);
-+
-+	gpio_set_value(led->pdata->reset_gpio, 0);
-+
-+	return 0;
-+}
-+
-+static int bd2802_resume(struct i2c_client *client)
-+{
-+	struct bd2802_led *led = i2c_get_clientdata(client);
-+
-+	if (!bd2802_is_all_off(led) || led->adf_on) {
-+		gpio_set_value(led->pdata->reset_gpio, 1);
-+		udelay(100);
-+		bd2802_restore_state(led);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id bd2802_id[] = {
-+	{ "BD2802", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, bd2802_id);
-+
-+static struct i2c_driver bd2802_i2c_driver = {
-+	.driver	= {
-+		.name	= "BD2802",
-+	},
-+	.probe		= bd2802_probe,
-+	.remove		= __exit_p(bd2802_remove),
-+	.suspend	= bd2802_suspend,
-+	.resume		= bd2802_resume,
-+	.id_table	= bd2802_id,
-+};
-+
-+static int __init bd2802_init(void)
-+{
-+	return i2c_add_driver(&bd2802_i2c_driver);
-+}
-+module_init(bd2802_init);
-+
-+static void __exit bd2802_exit(void)
-+{
-+	i2c_del_driver(&bd2802_i2c_driver);
-+}
-+module_exit(bd2802_exit);
-+
-+MODULE_AUTHOR("Kim Kyuwon <q1.kim@samsung.com>");
-+MODULE_DESCRIPTION("BD2802 LED driver");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null include/linux/leds-bd2802.h
---- /dev/null
-+++ a/include/linux/leds-bd2802.h
-@@ -0,0 +1,26 @@
-+/*
-+ * leds-bd2802.h - RGB LED Driver
-+ *
-+ * Copyright (C) 2009 Samsung Electronics
-+ * Kim Kyuwon <q1.kim@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Datasheet: http://www.rohm.com/products/databook/driver/pdf/bd2802gu-e.pdf
-+ *
-+ */
-+#ifndef _LEDS_BD2802_H_
-+#define _LEDS_BD2802_H_
-+
-+struct bd2802_led_platform_data{
-+	int	reset_gpio;
-+	u8	rgb_time;
-+};
-+
-+#define RGB_TIME(slopedown, slopeup, waveform) \
-+	((slopedown) << 6 | (slopeup) << 4 | (waveform))
-+
-+#endif /* _LEDS_BD2802_H_ */
-+
-_
-
-Patches currently in -mm which might be from chammoru@gmail.com are
-
-origin.patch
-linux-next.patch
-
+ static inline int cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
+ {
+ 	return 1;
+diff -puN kernel/cpuset.c~cpusets-replace-zone-allowed-functions-with-node-allowed kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-replace-zone-allowed-functions-with-node-allowed
++++ a/kernel/cpuset.c
+@@ -2181,26 +2181,24 @@ static const struct cpuset *nearest_hard
+ }
+ 
+ /**
+- * cpuset_zone_allowed_softwall - Can we allocate on zone z's memory node?
+- * @z: is this zone on an allowed node?
++ * cpuset_node_allowed_softwall - Can we allocate on a memory node?
++ * @node: is this an allowed node?
+  * @gfp_mask: memory allocation flags
+  *
+- * If we're in interrupt, yes, we can always allocate.  If
+- * __GFP_THISNODE is set, yes, we can always allocate.  If zone
+- * z's node is in our tasks mems_allowed, yes.  If it's not a
+- * __GFP_HARDWALL request and this zone's nodes is in the nearest
+- * hardwalled cpuset ancestor to this tasks cpuset, yes.
+- * If the task has been OOM killed and has access to memory reserves
+- * as specified by the TIF_MEMDIE flag, yes.
++ * If we're in interrupt, yes, we can always allocate.  If __GFP_THISNODE is
++ * set, yes, we can always allocate.  If node is in our task's mems_allowed,
++ * yes.  If it's not a __GFP_HARDWALL request and this node is in the nearest
++ * hardwalled cpuset ancestor to this task's cpuset, yes.  If the task has been
++ * OOM killed and has access to memory reserves as specified by the TIF_MEMDIE
++ * flag, yes.
+  * Otherwise, no.
+  *
+- * If __GFP_HARDWALL is set, cpuset_zone_allowed_softwall()
+- * reduces to cpuset_zone_allowed_hardwall().  Otherwise,
+- * cpuset_zone_allowed_softwall() might sleep, and might allow a zone
+- * from an enclosing cpuset.
++ * If __GFP_HARDWALL is set, cpuset_node_allowed_softwall() reduces to
++ * cpuset_node_allowed_hardwall().  Otherwise, cpuset_node_allowed_softwall()
++ * might sleep, and might allow a node from an enclosing cpuset.
+  *
+- * cpuset_zone_allowed_hardwall() only handles the simpler case of
+- * hardwall cpusets, and never sleeps.
++ * cpuset_node_allowed_hardwall() only handles the simpler case of hardwall
++ * cpusets, and never sleeps.
+  *
+  * The __GFP_THISNODE placement logic is really handled elsewhere,
+  * by forcibly using a zonelist starting at a specified node, and by
+@@ -2239,20 +2237,17 @@ static const struct cpuset *nearest_hard
+  *	GFP_USER     - only nodes in current tasks mems allowed ok.
+  *
+  * Rule:
+- *    Don't call cpuset_zone_allowed_softwall if you can't sleep, unless you
++ *    Don't call cpuset_node_allowed_softwall if you can't sleep, unless you
+  *    pass in the __GFP_HARDWALL flag set in gfp_flag, which disables
+  *    the code that might scan up ancestor cpusets and sleep.
+  */
+-
+-int __cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
++int __cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
+ {
+-	int node;			/* node that zone z is on */
+ 	const struct cpuset *cs;	/* current cpuset ancestors */
+ 	int allowed;			/* is allocation in zone z allowed? */
+ 
+ 	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
+ 		return 1;
+-	node = zone_to_nid(z);
+ 	might_sleep_if(!(gfp_mask & __GFP_HARDWALL));
+ 	if (node_isset(node, current->mems_allowed))
+ 		return 1;
+@@ -2281,15 +2276,15 @@ int __cpuset_zone_allowed_softwall(struc
+ }
+ 
+ /*
+- * cpuset_zone_allowed_hardwall - Can we allocate on zone z's memory node?
+- * @z: is this zone on an allowed node?
++ * cpuset_node_allowed_hardwall - Can we allocate on a memory node?
++ * @node: is this an allowed node?
+  * @gfp_mask: memory allocation flags
+  *
+- * If we're in interrupt, yes, we can always allocate.
+- * If __GFP_THISNODE is set, yes, we can always allocate.  If zone
+- * z's node is in our tasks mems_allowed, yes.   If the task has been
+- * OOM killed and has access to memory reserves as specified by the
+- * TIF_MEMDIE flag, yes.  Otherwise, no.
++ * If we're in interrupt, yes, we can always allocate.  If __GFP_THISNODE is
++ * set, yes, we can always allocate.  If node is in our task's mems_allowed,
++ * yes.  If the task has been OOM killed and has access to memory reserves as
++ * specified by the TIF_MEMDIE flag, yes.
++ * Otherwise, no.
+  *
+  * The __GFP_THISNODE placement logic is really handled elsewhere,
+  * by forcibly using a zonelist starting at a specified node, and by
+@@ -2297,20 +2292,16 @@ int __cpuset_zone_allowed_softwall(struc
+  * any node on the zonelist except the first.  By the time any such
+  * calls get to this routine, we should just shut up and say 'yes'.
+  *
+- * Unlike the cpuset_zone_allowed_softwall() variant, above,
+- * this variant requires that the zone be in the current tasks
++ * Unlike the cpuset_node_allowed_softwall() variant, above,
++ * this variant requires that the node be in the current task's
+  * mems_allowed or that we're in interrupt.  It does not scan up the
+  * cpuset hierarchy for the nearest enclosing mem_exclusive cpuset.
+  * It never sleeps.
+  */
+-
+-int __cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
++int __cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
+ {
+-	int node;			/* node that zone z is on */
