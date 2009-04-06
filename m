@@ -1,107 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [folded] proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 15:03:34 -0700
-Message-ID: <200904062203.n36M3YbN005391@imap1.linux-foundation.org>
+Subject: + nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl.patch added to -mm tree
+Date: Mon, 06 Apr 2009 15:28:07 -0700
+Message-ID: <200904062228.n36MS7uL015143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751964AbZDFWGk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:06:40 -0400
+	by vger.kernel.org with ESMTP id S1752997AbZDFW3t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:29:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, hugh@veritas.com, mikew@google.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     proc pid maps dont show pgoff of pure anon vmas style fix
-has been removed from the -mm tree.  Its filename was
-     proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup.patch
+     nilfs2: fix compilation error of nilfs_init_acl
+has been added to the -mm tree.  Its filename is
+     nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl.patch
 
-This patch was dropped because it was folded into proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc pid maps dont show pgoff of pure anon vmas style fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: nilfs2: fix compilation error of nilfs_init_acl
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-Fix conding style of proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+This replaces current->fs->umask reference with current_umask() macro
+to follow the removal of indirect include of fs_struct.h brought by
+the patch ("Get rid of indirect include of fs_struct.h") and to fix
+the following compilation error:
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mike Waychison <mikew@google.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+  In file included from fs/nilfs2/inode.c:28:
+  fs/nilfs2/nilfs.h: In function 'nilfs_init_acl':
+  fs/nilfs2/nilfs.h:215: error: dereferencing pointer to incomplete type
+  In file included from fs/nilfs2/file.c:27:
+  fs/nilfs2/nilfs.h: In function 'nilfs_init_acl':
+  fs/nilfs2/nilfs.h:215: error: dereferencing pointer to incomplete type
+    make[2]: *** [fs/nilfs2/file.o] Error 1
+    make[2]: *** Waiting for unfinished jobs....
+    make[2]: *** [fs/nilfs2/inode.o] Error 1
+    make[1]: *** [fs/nilfs2] Error 2
+    make: *** [fs] Error 2
+
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c   |    5 +++--
- fs/proc/task_nommu.c |    5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ fs/nilfs2/nilfs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup
-+++ a/fs/proc/task_mmu.c
-@@ -204,6 +204,7 @@ static void show_map_vma(struct seq_file
- 	struct file *file = vma->vm_file;
- 	int flags = vma->vm_flags;
- 	unsigned long ino = 0;
-+	unsigned long long pgoff = 0;
- 	dev_t dev = 0;
- 	int len;
+diff -puN fs/nilfs2/nilfs.h~nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl
++++ a/fs/nilfs2/nilfs.h
+@@ -218,7 +218,7 @@ static inline int nilfs_acl_chmod(struct
  
-@@ -211,6 +212,7 @@ static void show_map_vma(struct seq_file
- 		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
- 		dev = inode->i_sb->s_dev;
- 		ino = inode->i_ino;
-+		pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
- 	}
- 
- 	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu %n",
-@@ -220,8 +222,7 @@ static void show_map_vma(struct seq_file
- 			flags & VM_WRITE ? 'w' : '-',
- 			flags & VM_EXEC ? 'x' : '-',
- 			flags & VM_MAYSHARE ? 's' : 'p',
--			(!vma->vm_file) ? 0 :
--				((loff_t)vma->vm_pgoff) << PAGE_SHIFT,
-+			pgoff,
- 			MAJOR(dev), MINOR(dev), ino, &len);
- 
- 	/*
-diff -puN fs/proc/task_nommu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup
-+++ a/fs/proc/task_nommu.c
-@@ -126,6 +126,7 @@ static int nommu_vma_show(struct seq_fil
- 	struct file *file;
- 	dev_t dev = 0;
- 	int flags, len;
-+	unsigned long long pgoff = 0;
- 
- 	flags = vma->vm_flags;
- 	file = vma->vm_file;
-@@ -134,6 +135,7 @@ static int nommu_vma_show(struct seq_fil
- 		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
- 		dev = inode->i_sb->s_dev;
- 		ino = inode->i_ino;
-+		pgoff = (loff_t)vma->pg_off << PAGE_SHIFT;
- 	}
- 
- 	seq_printf(m,
-@@ -144,8 +146,7 @@ static int nommu_vma_show(struct seq_fil
- 		   flags & VM_WRITE ? 'w' : '-',
- 		   flags & VM_EXEC ? 'x' : '-',
- 		   flags & VM_MAYSHARE ? flags & VM_SHARED ? 'S' : 's' : 'p',
--		   (!vma->vm_file) ? 0 :
--			(unsigned long long) vma->vm_pgoff << PAGE_SHIFT,
-+		   pgoff,
- 		   MAJOR(dev), MINOR(dev), ino, &len);
- 
- 	if (file) {
+ static inline int nilfs_init_acl(struct inode *inode, struct inode *dir)
+ {
+-	inode->i_mode &= ~current->fs->umask;
++	inode->i_mode &= ~current_umask();
+ 	return 0;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-origin.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-add-inode-and-other-major-structures-nilfs2-fix-compilation-error-of-nilfs_init_acl.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-buffer-fix.patch
+nilfs2-segment-constructor.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite-follow-page_mkwrite-prototype-change-for-matching-fault-fix-page_mkwrite-error-cases.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+nilfs2-cleanup-nilfs_clear_inode.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+nilfs2-insert-explanations-in-gcinode-file.patch
+nilfs2-add-maintainer.patch
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
+nilfs2-fix-improper-return-values-of-nilfs_get_cpinfo-ioctl.patch
+nilfs2-clean-up-indirect-function-calling-conventions.patch
+nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch
+nilfs2-remove-timedwait-ioctl-command.patch
+nilfs2-use-fixed-sized-types-for-ioctl-structures.patch
+nilfs2-remove-compat-ioctl-code.patch
+nilfs2-use-unlocked_ioctl.patch
+nilfs2-extend-nilfs_sustat-ioctl-struct.patch
+nilfs2-replace-bug_on-and-bug-calls-triggerable-from-ioctl.patch
+nilfs2-super-block-operations-fix-endian-bug.patch
+nilfs2-clean-up-sketch-file.patch
+nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation.patch
+nilfs2-simplify-handling-of-active-state-of-segments.patch
+nilfs2-introduce-secondary-super-block.patch
+nilfs2-introduce-secondary-super-block-fix.patch
+nilfs2-support-nanosecond-timestamp.patch
 
