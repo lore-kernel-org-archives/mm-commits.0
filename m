@@ -1,118 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded] nilfs2-introduce-secondary-super-block-fix.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 15:37:22 -0700
-Message-ID: <200904062237.n36MbNLF018899@imap1.linux-foundation.org>
+Subject: [folded] vfs-simple_set_mnt-should-return-void-fix-nilfs.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 15:38:16 -0700
+Message-ID: <200904062238.n36McG40019225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35428 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756451AbZDFWim (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:38:42 -0400
+	by vger.kernel.org with ESMTP id S1756451AbZDFWiv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 18:38:51 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n36McHaY004152
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 6 Apr 2009 15:38:49 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nilfs2: introduce secondary super block fix
+     vfs-simple_set_mnt-should-return-void-fix-nilfs
 has been removed from the -mm tree.  Its filename was
-     nilfs2-introduce-secondary-super-block-fix.patch
+     vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
 
-This patch was dropped because it was folded into nilfs2-introduce-secondary-super-block.patch
+This patch was dropped because it was folded into nilfs2-super-block-operations.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: introduce secondary super block fix
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: vfs-simple_set_mnt-should-return-void-fix-nilfs
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This fixes a missing substitution of error code in
-nilfs2-introduce-secondary-super-block.patch, and deletes an unnecessary
-initialization done for the same error variable.
-
-The problem comes to surface if the blocksize recorded in super block is
-not supported by hardware.  In that case, init_nilfs() function will
-wrongly return with a success code and would trigger a kernel fault.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/the_nilfs.c |    3 ++-
+ fs/nilfs2/super.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/the_nilfs.c~nilfs2-introduce-secondary-super-block-fix fs/nilfs2/the_nilfs.c
---- a/fs/nilfs2/the_nilfs.c~nilfs2-introduce-secondary-super-block-fix
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -474,7 +474,7 @@ int init_nilfs(struct the_nilfs *nilfs, 
- 	struct nilfs_super_block *sbp;
- 	struct backing_dev_info *bdi;
- 	int blocksize;
--	int err = 0;
-+	int err;
+diff -puN fs/nilfs2/super.c~vfs-simple_set_mnt-should-return-void-fix-nilfs fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~vfs-simple_set_mnt-should-return-void-fix-nilfs
++++ a/fs/nilfs2/super.c
+@@ -1220,7 +1220,8 @@ nilfs_get_sb(struct file_system_type *fs
+ 	put_nilfs(nilfs);
+ 	if (need_to_close)
+ 		close_bdev_exclusive(sd.bdev, flags);
+-	return simple_set_mnt(mnt, s);
++	simple_set_mnt(mnt, s);
++	return 0;
  
- 	down_write(&nilfs->ns_sem);
- 	if (nilfs_init(nilfs)) {
-@@ -518,6 +518,7 @@ int init_nilfs(struct the_nilfs *nilfs, 
- 			       "NILFS: blocksize %d too small for device "
- 			       "(sector-size = %d).\n",
- 			       blocksize, hw_blocksize);
-+			err = -EINVAL;
- 			goto failed_sbh;
- 		}
- 		nilfs_release_super_block(nilfs);
+  error_s:
+ 	up(&sd.bdev->bd_mount_sem);
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-nilfs2-add-document.patch
-nilfs2-disk-format-and-userland-interface.patch
-nilfs2-add-inode-and-other-major-structures.patch
+origin.patch
+mm-add-proc-controls-for-pdflush-threads.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+namespaces-mqueue-namespace-adapt-sysctl.patch
 nilfs2-integrated-block-mapping.patch
-nilfs2-b-tree-based-block-mapping.patch
-nilfs2-direct-block-mapping.patch
-nilfs2-b-tree-node-cache.patch
-nilfs2-buffer-and-page-operations.patch
-nilfs2-meta-data-file.patch
-nilfs2-persistent-object-allocator.patch
-nilfs2-disk-address-translator.patch
-nilfs2-inode-map-file.patch
-nilfs2-checkpoint-file.patch
-nilfs2-segment-usage-file.patch
-nilfs2-inode-operations.patch
-nilfs2-file-operations.patch
-nilfs2-directory-entry-operations.patch
-nilfs2-pathname-operations.patch
-nilfs2-operations-for-the_nilfs-core-object.patch
 nilfs2-super-block-operations.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
 nilfs2-segment-buffer.patch
-nilfs2-segment-constructor.patch
-nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
-nilfs2-recovery-functions.patch
-nilfs2-another-dat-for-garbage-collection.patch
-nilfs2-block-cache-for-garbage-collection.patch
-nilfs2-ioctl-operations.patch
-nilfs2-update-makefile-and-kconfig.patch
-nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
-nilfs2-cleanup-nilfs_clear_inode.patch
-nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
-nilfs2-insert-explanations-in-gcinode-file.patch
-nilfs2-add-maintainer.patch
-nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
-nilfs2-fix-improper-return-values-of-nilfs_get_cpinfo-ioctl.patch
-nilfs2-clean-up-indirect-function-calling-conventions.patch
-nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch
-nilfs2-remove-timedwait-ioctl-command.patch
-nilfs2-use-fixed-sized-types-for-ioctl-structures.patch
-nilfs2-remove-compat-ioctl-code.patch
-nilfs2-use-unlocked_ioctl.patch
-nilfs2-extend-nilfs_sustat-ioctl-struct.patch
-nilfs2-replace-bug_on-and-bug-calls-triggerable-from-ioctl.patch
-nilfs2-super-block-operations-fix-endian-bug.patch
-nilfs2-clean-up-sketch-file.patch
-nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation.patch
-nilfs2-simplify-handling-of-active-state-of-segments.patch
-nilfs2-introduce-secondary-super-block.patch
-nilfs2-introduce-secondary-super-block-fix.patch
-nilfs2-support-nanosecond-timestamp.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+page-owner-tracking.patch
+page-owner-tracking-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
