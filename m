@@ -1,213 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sgi-gru-add-definitions-of-x86_64-gru-mmrs.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:37:17 -0700
-Message-ID: <200904061937.n36JbHSc012871@imap1.linux-foundation.org>
+Subject: [merged] signals-add-from_ancestor_ns-parameter-to-send_signal.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:35:23 -0700
+Message-ID: <200904061935.n36JZN1N011994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755512AbZDFTl0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:41:26 -0400
+	by vger.kernel.org with ESMTP id S1751804AbZDFTlg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:41:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: sukadev@linux.vnet.ibm.com, daniel.lezcano@free.fr, ebiederm@xmission.com, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-gru: add definitions of x86_64 GRU MMRs
+     signals: add from_ancestor_ns parameter to send_signal()
 has been removed from the -mm tree.  Its filename was
-     sgi-gru-add-definitions-of-x86_64-gru-mmrs.patch
+     signals-add-from_ancestor_ns-parameter-to-send_signal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: add definitions of x86_64 GRU MMRs
-From: Jack Steiner <steiner@sgi.com>
+Subject: signals: add from_ancestor_ns parameter to send_signal()
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 
-Add definitions for x86_64 GRU MMRs.
+send_signal() (or its helper) needs to determine the pid namespace of the
+sender.  But a signal sent via kill_pid_info_as_uid() comes from within
+the kernel and send_signal() does not need to determine the pid namespace
+of the sender.  So define a helper for send_signal() which takes an
+additional parameter, 'from_ancestor_ns' and have kill_pid_info_as_uid()
+use that helper directly.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+The 'from_ancestor_ns' parameter will be used in a follow-on patch.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uv/uv_mmrs.h |  153 ++++++++++++++++++++++++++++
- 1 file changed, 153 insertions(+)
+ kernel/signal.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/include/asm/uv/uv_mmrs.h~sgi-gru-add-definitions-of-x86_64-gru-mmrs arch/x86/include/asm/uv/uv_mmrs.h
---- a/arch/x86/include/asm/uv/uv_mmrs.h~sgi-gru-add-definitions-of-x86_64-gru-mmrs
-+++ a/arch/x86/include/asm/uv/uv_mmrs.h
-@@ -1,3 +1,4 @@
-+
- /*
-  * This file is subject to the terms and conditions of the GNU General Public
-  * License.  See the file "COPYING" in the main directory of this archive
-@@ -243,6 +244,158 @@ union uvh_event_occurred0_u {
- #define UVH_EVENT_OCCURRED0_ALIAS_32 0x005f0
+diff -puN kernel/signal.c~signals-add-from_ancestor_ns-parameter-to-send_signal kernel/signal.c
+--- a/kernel/signal.c~signals-add-from_ancestor_ns-parameter-to-send_signal
++++ a/kernel/signal.c
+@@ -823,8 +823,8 @@ static inline int legacy_queue(struct si
+ 	return (sig < SIGRTMIN) && sigismember(&signals->signal, sig);
+ }
  
- /* ========================================================================= */
-+/*                         UVH_GR0_TLB_INT0_CONFIG                           */
-+/* ========================================================================= */
-+#define UVH_GR0_TLB_INT0_CONFIG 0x61b00UL
+-static int send_signal(int sig, struct siginfo *info, struct task_struct *t,
+-			int group)
++static int __send_signal(int sig, struct siginfo *info, struct task_struct *t,
++			int group, int from_ancestor_ns)
+ {
+ 	struct sigpending *pending;
+ 	struct sigqueue *q;
+@@ -899,6 +899,12 @@ out_set:
+ 	return 0;
+ }
+ 
++static int send_signal(int sig, struct siginfo *info, struct task_struct *t,
++			int group)
++{
++	return __send_signal(sig, info, t, group, 0);
++}
 +
-+#define UVH_GR0_TLB_INT0_CONFIG_VECTOR_SHFT 0
-+#define UVH_GR0_TLB_INT0_CONFIG_VECTOR_MASK 0x00000000000000ffUL
-+#define UVH_GR0_TLB_INT0_CONFIG_DM_SHFT 8
-+#define UVH_GR0_TLB_INT0_CONFIG_DM_MASK 0x0000000000000700UL
-+#define UVH_GR0_TLB_INT0_CONFIG_DESTMODE_SHFT 11
-+#define UVH_GR0_TLB_INT0_CONFIG_DESTMODE_MASK 0x0000000000000800UL
-+#define UVH_GR0_TLB_INT0_CONFIG_STATUS_SHFT 12
-+#define UVH_GR0_TLB_INT0_CONFIG_STATUS_MASK 0x0000000000001000UL
-+#define UVH_GR0_TLB_INT0_CONFIG_P_SHFT 13
-+#define UVH_GR0_TLB_INT0_CONFIG_P_MASK 0x0000000000002000UL
-+#define UVH_GR0_TLB_INT0_CONFIG_T_SHFT 15
-+#define UVH_GR0_TLB_INT0_CONFIG_T_MASK 0x0000000000008000UL
-+#define UVH_GR0_TLB_INT0_CONFIG_M_SHFT 16
-+#define UVH_GR0_TLB_INT0_CONFIG_M_MASK 0x0000000000010000UL
-+#define UVH_GR0_TLB_INT0_CONFIG_APIC_ID_SHFT 32
-+#define UVH_GR0_TLB_INT0_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
-+
-+union uvh_gr0_tlb_int0_config_u {
-+    unsigned long	v;
-+    struct uvh_gr0_tlb_int0_config_s {
-+	unsigned long	vector_  :  8;  /* RW */
-+	unsigned long	dm       :  3;  /* RW */
-+	unsigned long	destmode :  1;  /* RW */
-+	unsigned long	status   :  1;  /* RO */
-+	unsigned long	p        :  1;  /* RO */
-+	unsigned long	rsvd_14  :  1;  /*    */
-+	unsigned long	t        :  1;  /* RO */
-+	unsigned long	m        :  1;  /* RW */
-+	unsigned long	rsvd_17_31: 15;  /*    */
-+	unsigned long	apic_id  : 32;  /* RW */
-+    } s;
-+};
-+
-+/* ========================================================================= */
-+/*                         UVH_GR0_TLB_INT1_CONFIG                           */
-+/* ========================================================================= */
-+#define UVH_GR0_TLB_INT1_CONFIG 0x61b40UL
-+
-+#define UVH_GR0_TLB_INT1_CONFIG_VECTOR_SHFT 0
-+#define UVH_GR0_TLB_INT1_CONFIG_VECTOR_MASK 0x00000000000000ffUL
-+#define UVH_GR0_TLB_INT1_CONFIG_DM_SHFT 8
-+#define UVH_GR0_TLB_INT1_CONFIG_DM_MASK 0x0000000000000700UL
-+#define UVH_GR0_TLB_INT1_CONFIG_DESTMODE_SHFT 11
-+#define UVH_GR0_TLB_INT1_CONFIG_DESTMODE_MASK 0x0000000000000800UL
-+#define UVH_GR0_TLB_INT1_CONFIG_STATUS_SHFT 12
-+#define UVH_GR0_TLB_INT1_CONFIG_STATUS_MASK 0x0000000000001000UL
-+#define UVH_GR0_TLB_INT1_CONFIG_P_SHFT 13
-+#define UVH_GR0_TLB_INT1_CONFIG_P_MASK 0x0000000000002000UL
-+#define UVH_GR0_TLB_INT1_CONFIG_T_SHFT 15
-+#define UVH_GR0_TLB_INT1_CONFIG_T_MASK 0x0000000000008000UL
-+#define UVH_GR0_TLB_INT1_CONFIG_M_SHFT 16
-+#define UVH_GR0_TLB_INT1_CONFIG_M_MASK 0x0000000000010000UL
-+#define UVH_GR0_TLB_INT1_CONFIG_APIC_ID_SHFT 32
-+#define UVH_GR0_TLB_INT1_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
-+
-+union uvh_gr0_tlb_int1_config_u {
-+    unsigned long	v;
-+    struct uvh_gr0_tlb_int1_config_s {
-+	unsigned long	vector_  :  8;  /* RW */
-+	unsigned long	dm       :  3;  /* RW */
-+	unsigned long	destmode :  1;  /* RW */
-+	unsigned long	status   :  1;  /* RO */
-+	unsigned long	p        :  1;  /* RO */
-+	unsigned long	rsvd_14  :  1;  /*    */
-+	unsigned long	t        :  1;  /* RO */
-+	unsigned long	m        :  1;  /* RW */
-+	unsigned long	rsvd_17_31: 15;  /*    */
-+	unsigned long	apic_id  : 32;  /* RW */
-+    } s;
-+};
-+
-+/* ========================================================================= */
-+/*                         UVH_GR1_TLB_INT0_CONFIG                           */
-+/* ========================================================================= */
-+#define UVH_GR1_TLB_INT0_CONFIG 0x61f00UL
-+
-+#define UVH_GR1_TLB_INT0_CONFIG_VECTOR_SHFT 0
-+#define UVH_GR1_TLB_INT0_CONFIG_VECTOR_MASK 0x00000000000000ffUL
-+#define UVH_GR1_TLB_INT0_CONFIG_DM_SHFT 8
-+#define UVH_GR1_TLB_INT0_CONFIG_DM_MASK 0x0000000000000700UL
-+#define UVH_GR1_TLB_INT0_CONFIG_DESTMODE_SHFT 11
-+#define UVH_GR1_TLB_INT0_CONFIG_DESTMODE_MASK 0x0000000000000800UL
-+#define UVH_GR1_TLB_INT0_CONFIG_STATUS_SHFT 12
-+#define UVH_GR1_TLB_INT0_CONFIG_STATUS_MASK 0x0000000000001000UL
-+#define UVH_GR1_TLB_INT0_CONFIG_P_SHFT 13
-+#define UVH_GR1_TLB_INT0_CONFIG_P_MASK 0x0000000000002000UL
-+#define UVH_GR1_TLB_INT0_CONFIG_T_SHFT 15
-+#define UVH_GR1_TLB_INT0_CONFIG_T_MASK 0x0000000000008000UL
-+#define UVH_GR1_TLB_INT0_CONFIG_M_SHFT 16
-+#define UVH_GR1_TLB_INT0_CONFIG_M_MASK 0x0000000000010000UL
-+#define UVH_GR1_TLB_INT0_CONFIG_APIC_ID_SHFT 32
-+#define UVH_GR1_TLB_INT0_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
-+
-+union uvh_gr1_tlb_int0_config_u {
-+    unsigned long	v;
-+    struct uvh_gr1_tlb_int0_config_s {
-+	unsigned long	vector_  :  8;  /* RW */
-+	unsigned long	dm       :  3;  /* RW */
-+	unsigned long	destmode :  1;  /* RW */
-+	unsigned long	status   :  1;  /* RO */
-+	unsigned long	p        :  1;  /* RO */
-+	unsigned long	rsvd_14  :  1;  /*    */
-+	unsigned long	t        :  1;  /* RO */
-+	unsigned long	m        :  1;  /* RW */
-+	unsigned long	rsvd_17_31: 15;  /*    */
-+	unsigned long	apic_id  : 32;  /* RW */
-+    } s;
-+};
-+
-+/* ========================================================================= */
-+/*                         UVH_GR1_TLB_INT1_CONFIG                           */
-+/* ========================================================================= */
-+#define UVH_GR1_TLB_INT1_CONFIG 0x61f40UL
-+
-+#define UVH_GR1_TLB_INT1_CONFIG_VECTOR_SHFT 0
-+#define UVH_GR1_TLB_INT1_CONFIG_VECTOR_MASK 0x00000000000000ffUL
-+#define UVH_GR1_TLB_INT1_CONFIG_DM_SHFT 8
-+#define UVH_GR1_TLB_INT1_CONFIG_DM_MASK 0x0000000000000700UL
-+#define UVH_GR1_TLB_INT1_CONFIG_DESTMODE_SHFT 11
-+#define UVH_GR1_TLB_INT1_CONFIG_DESTMODE_MASK 0x0000000000000800UL
-+#define UVH_GR1_TLB_INT1_CONFIG_STATUS_SHFT 12
-+#define UVH_GR1_TLB_INT1_CONFIG_STATUS_MASK 0x0000000000001000UL
-+#define UVH_GR1_TLB_INT1_CONFIG_P_SHFT 13
-+#define UVH_GR1_TLB_INT1_CONFIG_P_MASK 0x0000000000002000UL
-+#define UVH_GR1_TLB_INT1_CONFIG_T_SHFT 15
-+#define UVH_GR1_TLB_INT1_CONFIG_T_MASK 0x0000000000008000UL
-+#define UVH_GR1_TLB_INT1_CONFIG_M_SHFT 16
-+#define UVH_GR1_TLB_INT1_CONFIG_M_MASK 0x0000000000010000UL
-+#define UVH_GR1_TLB_INT1_CONFIG_APIC_ID_SHFT 32
-+#define UVH_GR1_TLB_INT1_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
-+
-+union uvh_gr1_tlb_int1_config_u {
-+    unsigned long	v;
-+    struct uvh_gr1_tlb_int1_config_s {
-+	unsigned long	vector_  :  8;  /* RW */
-+	unsigned long	dm       :  3;  /* RW */
-+	unsigned long	destmode :  1;  /* RW */
-+	unsigned long	status   :  1;  /* RO */
-+	unsigned long	p        :  1;  /* RO */
-+	unsigned long	rsvd_14  :  1;  /*    */
-+	unsigned long	t        :  1;  /* RO */
-+	unsigned long	m        :  1;  /* RW */
-+	unsigned long	rsvd_17_31: 15;  /*    */
-+	unsigned long	apic_id  : 32;  /* RW */
-+    } s;
-+};
-+
-+/* ========================================================================= */
- /*                               UVH_INT_CMPB                                */
- /* ========================================================================= */
- #define UVH_INT_CMPB 0x22080UL
+ int print_fatal_signals;
+ 
+ static void print_fatal_signal(struct pt_regs *regs, int signr)
+@@ -1143,7 +1149,7 @@ int kill_pid_info_as_uid(int sig, struct
+ 	if (sig && p->sighand) {
+ 		unsigned long flags;
+ 		spin_lock_irqsave(&p->sighand->siglock, flags);
+-		ret = __group_send_sig_info(sig, info, p);
++		ret = __send_signal(sig, info, p, 1, 0);
+ 		spin_unlock_irqrestore(&p->sighand->siglock, flags);
+ 	}
+ out_unlock:
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
 
 origin.patch
+linux-next.patch
 
