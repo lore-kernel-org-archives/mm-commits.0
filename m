@@ -1,65 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uml-fix-warnings-in-kernel_execve.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:33:09 -0700
-Message-ID: <200904061933.n36JX9l5011002@imap1.linux-foundation.org>
+Subject: [merged] documentation-fix-unix_dgram_qlen-description.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:34:00 -0700
+Message-ID: <200904061934.n36JY0B8011352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57033 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757363AbZDFTgD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:36:03 -0400
+	by vger.kernel.org with ESMTP id S1757352AbZDFTgG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:36:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, jdike@addtoit.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: lixd@cn.fujitsu.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix warnings in kernel_execve
+     documentation: fix unix_dgram_qlen description
 has been removed from the -mm tree.  Its filename was
-     uml-fix-warnings-in-kernel_execve.patch
+     documentation-fix-unix_dgram_qlen-description.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix warnings in kernel_execve
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: documentation: fix unix_dgram_qlen description
+From: Li Xiaodong <lixd@cn.fujitsu.com>
 
-Fix the following warnings:
+Previous description about system parameter in /proc/sys/net/unix/ is
+wrong (or missed).  Simply add a new description about unix_dgram_qlen
+according to latest kernel.
 
-arch/um/kernel/syscall.c: In function 'kernel_execve':
-arch/um/kernel/syscall.c:130: warning: passing argument 1 of 'um_execve' discards qualifiers from pointer target type
-arch/um/kernel/syscall.c:130: warning: passing argument 2 of 'um_execve' discards qualifiers from pointer target type
-arch/um/kernel/syscall.c:130: warning: passing argument 3 of 'um_execve' discards qualifiers from pointer target type
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Li Xiaodong <lixd@cn.fujitsu.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/syscall.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/sysctl/net.txt |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/kernel/syscall.c~uml-fix-warnings-in-kernel_execve arch/um/kernel/syscall.c
---- a/arch/um/kernel/syscall.c~uml-fix-warnings-in-kernel_execve
-+++ a/arch/um/kernel/syscall.c
-@@ -127,7 +127,8 @@ int kernel_execve(const char *filename, 
+diff -puN Documentation/sysctl/net.txt~documentation-fix-unix_dgram_qlen-description Documentation/sysctl/net.txt
+--- a/Documentation/sysctl/net.txt~documentation-fix-unix_dgram_qlen-description
++++ a/Documentation/sysctl/net.txt
+@@ -93,8 +93,9 @@ of struct cmsghdr structures with append
+ 2. /proc/sys/net/unix - Parameters for Unix domain sockets
+ -------------------------------------------------------
  
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
--	ret = um_execve(filename, argv, envp);
-+	ret = um_execve((char *)filename, (char __user *__user *)argv,
-+			(char __user *__user *) envp);
- 	set_fs(fs);
+-There are  only  two  files  in this subdirectory. They control the delays for
+-deleting and destroying socket descriptors.
++There is only one file in this directory.
++unix_dgram_qlen limits the max number of datagrams queued in Unix domain
++socket's buffer. It will not take effect unless PF_UNIX flag is spicified.
  
- 	return ret;
+ 
+ 3. /proc/sys/net/ipv4 - IPV4 settings
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from lixd@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
 
