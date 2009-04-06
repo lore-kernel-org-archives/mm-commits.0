@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-oom-killer-under-memcg.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:34:34 -0700
-Message-ID: <200904061934.n36JYY9O011647@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:34:31 -0700
+Message-ID: <200904061934.n36JYVTb011643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753406AbZDFUes (ORCPT
+	by vger.kernel.org with ESMTP id S1752834AbZDFUes (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:34:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,175 +14,204 @@ To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, mena
 
 
 The patch titled
-     memcg: fix OOM killer under memcg
+     memcg: fix shrinking memory to return -EBUSY by fixing retry algorithm
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-oom-killer-under-memcg.patch
+     memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix OOM killer under memcg
+Subject: memcg: fix shrinking memory to return -EBUSY by fixing retry algorithm
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This patch tries to fix OOM Killer problems caused by hierarchy.
-Now, memcg itself has OOM KILL function (in oom_kill.c) and tries to
-kill a task in memcg.
+As pointed out, shrinking memcg's limit should return -EBUSY after
+reasonable retries.  This patch tries to fix the current behavior of
+shrink_usage.
 
-But, when hierarchy is used, it's broken and correct task cannot
-be killed. For example, in following cgroup
+Before looking into "shrink should return -EBUSY" problem, we should fix
+hierarchical reclaim code.  It compares current usage and current limit,
+but it only makes sense when the kernel reclaims memory because hit
+limits.  This is also a problem.
 
-	/groupA/	hierarchy=1, limit=1G,
-		01	nolimit
-		02	nolimit
-All tasks' memory usage under /groupA, /groupA/01, groupA/02 is limited to
-groupA's 1Gbytes but OOM Killer just kills tasks in groupA.
+What this patch does are.
 
-This patch provides makes the bad process be selected from all tasks
-under hierarchy. BTW, currently, oom_jiffies is updated against groupA
-in above case. oom_jiffies of tree should be updated.
+  1. add new argument "shrink" to hierarchical reclaim. If "shrink==true",
+     hierarchical reclaim returns immediately and the caller checks the kernel
+     should shrink more or not.
+     (At shrinking memory, usage is always smaller than limit. So check for
+      usage < limit is useless.)
 
-To see how oom_jiffies is used, please check mem_cgroup_oom_called()
-callers.
+  2. For adjusting to above change, 2 changes in "shrink"'s retry path.
+     2-a. retry_count depends on # of children because the kernel visits
+	  the children under hierarchy one by one.
+     2-b. rather than checking return value of hierarchical_reclaim's progress,
+	  compares usage-before-shrink and usage-after-shrink.
+	  If usage-before-shrink <= usage-after-shrink, retry_count is
+	  decremented.
 
-[akpm@linux-foundation.org: build fix]
-[akpm@linux-foundation.org: const fix]
+Reported-by: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memcg_test.txt |   20 +++++++++++++++-
- include/linux/cgroup.h               |    2 -
- kernel/cgroup.c                      |    2 -
- mm/memcontrol.c                      |   30 +++++++++++++++++++++++--
- 4 files changed, 49 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   71 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 59 insertions(+), 12 deletions(-)
 
-diff -puN Documentation/cgroups/memcg_test.txt~memcg-fix-oom-killer-under-memcg Documentation/cgroups/memcg_test.txt
---- a/Documentation/cgroups/memcg_test.txt~memcg-fix-oom-killer-under-memcg
-+++ a/Documentation/cgroups/memcg_test.txt
-@@ -1,5 +1,5 @@
- Memory Resource Controller(Memcg)  Implementation Memo.
--Last Updated: 2009/1/19
-+Last Updated: 2009/1/20
- Base Kernel Version: based on 2.6.29-rc2.
- 
- Because VM is getting complex (one of reasons is memcg...), memcg's behavior
-@@ -360,3 +360,21 @@ Under below explanation, we assume CONFI
- 	# kill malloc task.
- 
- 	Of course, tmpfs v.s. swapoff test should be tested, too.
-+
-+ 9.8 OOM-Killer
-+	Out-of-memory caused by memcg's limit will kill tasks under
-+	the memcg. When hierarchy is used, a task under hierarchy
-+	will be killed by the kernel.
-+	In this case, panic_on_oom shouldn't be invoked and tasks
-+	in other groups shouldn't be killed.
-+
-+	It's not difficult to cause OOM under memcg as following.
-+	Case A) when you can swapoff
-+	#swapoff -a
-+	#echo 50M > /memory.limit_in_bytes
-+	run 51M of malloc
-+
-+	Case B) when you use mem+swap limitation.
-+	#echo 50M > memory.limit_in_bytes
-+	#echo 50M > memory.memsw.limit_in_bytes
-+	run 51M of malloc
-diff -puN include/linux/cgroup.h~memcg-fix-oom-killer-under-memcg include/linux/cgroup.h
---- a/include/linux/cgroup.h~memcg-fix-oom-killer-under-memcg
-+++ a/include/linux/cgroup.h
-@@ -503,7 +503,7 @@ struct cgroup_subsys_state *css_get_next
- 
- /* Returns true if root is ancestor of cg */
- bool css_is_ancestor(struct cgroup_subsys_state *cg,
--		     struct cgroup_subsys_state *root);
-+		     const struct cgroup_subsys_state *root);
- 
- /* Get id and depth of css */
- unsigned short css_id(struct cgroup_subsys_state *css);
-diff -puN kernel/cgroup.c~memcg-fix-oom-killer-under-memcg kernel/cgroup.c
---- a/kernel/cgroup.c~memcg-fix-oom-killer-under-memcg
-+++ a/kernel/cgroup.c
-@@ -3405,7 +3405,7 @@ unsigned short css_depth(struct cgroup_s
- }
- 
- bool css_is_ancestor(struct cgroup_subsys_state *child,
--		    struct cgroup_subsys_state *root)
-+		    const struct cgroup_subsys_state *root)
- {
- 	struct css_id *child_id = rcu_dereference(child->id);
- 	struct css_id *root_id = rcu_dereference(root->id);
-diff -puN mm/memcontrol.c~memcg-fix-oom-killer-under-memcg mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-oom-killer-under-memcg
+diff -puN mm/memcontrol.c~memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm
 +++ a/mm/memcontrol.c
-@@ -295,6 +295,9 @@ struct mem_cgroup *mem_cgroup_from_task(
- static struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
- {
- 	struct mem_cgroup *mem = NULL;
-+
-+	if (!mm)
-+		return NULL;
- 	/*
- 	 * Because we have no locks, mm->owner's may be being moved to other
- 	 * cgroup. We use css_tryget() here even if this looks
-@@ -486,10 +489,20 @@ void mem_cgroup_move_lists(struct page *
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
- {
- 	int ret;
-+	struct mem_cgroup *curr = NULL;
- 
- 	task_lock(task);
--	ret = task->mm && mm_match_cgroup(task->mm, mem);
-+	rcu_read_lock();
-+	curr = try_get_mem_cgroup_from_mm(task->mm);
-+	rcu_read_unlock();
- 	task_unlock(task);
-+	if (!curr)
-+		return 0;
-+	if (curr->use_hierarchy)
-+		ret = css_is_ancestor(&curr->css, &mem->css);
-+	else
-+		ret = (curr == mem);
-+	css_put(&curr->css);
- 	return ret;
+@@ -702,6 +702,23 @@ static unsigned int get_swappiness(struc
+ 	return swappiness;
  }
  
-@@ -820,6 +833,19 @@ bool mem_cgroup_oom_called(struct task_s
- 	rcu_read_unlock();
- 	return ret;
- }
-+
-+static int record_last_oom_cb(struct mem_cgroup *mem, void *data)
++static int mem_cgroup_count_children_cb(struct mem_cgroup *mem, void *data)
 +{
-+	mem->last_oom_jiffies = jiffies;
++	int *val = data;
++	(*val)++;
 +	return 0;
 +}
-+
-+static void record_last_oom(struct mem_cgroup *mem)
++/*
++ * This function returns the number of memcg under hierarchy tree. Returns
++ * 1(self count) if no children.
++ */
++static int mem_cgroup_count_children(struct mem_cgroup *mem)
 +{
-+	mem_cgroup_walk_tree(mem, NULL, record_last_oom_cb);
++	int num = 0;
++ 	mem_cgroup_walk_tree(mem, &num, mem_cgroup_count_children_cb);
++	return num;
 +}
 +
-+
  /*
-  * Unlike exported interface, "oom" parameter is added. if oom==true,
-  * oom-killer can be invoked.
-@@ -902,7 +928,7 @@ static int __mem_cgroup_try_charge(struc
- 				mutex_lock(&memcg_tasklist);
- 				mem_cgroup_out_of_memory(mem_over_limit, gfp_mask);
- 				mutex_unlock(&memcg_tasklist);
--				mem_over_limit->last_oom_jiffies = jiffies;
-+				record_last_oom(mem_over_limit);
- 			}
+  * Visit the first child (need not be the first child as per the ordering
+  * of the cgroup list, since we track last_scanned_child) of @mem and use
+@@ -750,9 +767,11 @@ mem_cgroup_select_victim(struct mem_cgro
+  *
+  * We give up and return to the caller when we visit root_mem twice.
+  * (other groups can be removed while we're walking....)
++ *
++ * If shrink==true, for avoiding to free too much, this returns immedieately.
+  */
+ static int mem_cgroup_hierarchical_reclaim(struct mem_cgroup *root_mem,
+-						gfp_t gfp_mask, bool noswap)
++				   gfp_t gfp_mask, bool noswap, bool shrink)
+ {
+ 	struct mem_cgroup *victim;
+ 	int ret, total = 0;
+@@ -771,6 +790,13 @@ static int mem_cgroup_hierarchical_recla
+ 		ret = try_to_free_mem_cgroup_pages(victim, gfp_mask, noswap,
+ 						   get_swappiness(victim));
+ 		css_put(&victim->css);
++		/*
++		 * At shrinking usage, we can't check we should stop here or
++		 * reclaim more. It's depends on callers. last_scanned_child
++		 * will work enough for keeping fairness under tree.
++		 */
++		if (shrink)
++			return ret;
+ 		total += ret;
+ 		if (mem_cgroup_check_under_limit(root_mem))
+ 			return 1 + total;
+@@ -856,7 +882,7 @@ static int __mem_cgroup_try_charge(struc
  			goto nomem;
- 		}
+ 
+ 		ret = mem_cgroup_hierarchical_reclaim(mem_over_limit, gfp_mask,
+-							noswap);
++							noswap, false);
+ 		if (ret)
+ 			continue;
+ 
+@@ -1489,7 +1515,8 @@ int mem_cgroup_shrink_usage(struct page 
+ 		return 0;
+ 
+ 	do {
+-		progress = mem_cgroup_hierarchical_reclaim(mem, gfp_mask, true);
++		progress = mem_cgroup_hierarchical_reclaim(mem,
++					gfp_mask, true, false);
+ 		progress += mem_cgroup_check_under_limit(mem);
+ 	} while (!progress && --retry);
+ 
+@@ -1504,11 +1531,21 @@ static DEFINE_MUTEX(set_limit_mutex);
+ static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
+ 				unsigned long long val)
+ {
+-
+-	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
++	int retry_count;
+ 	int progress;
+ 	u64 memswlimit;
+ 	int ret = 0;
++	int children = mem_cgroup_count_children(memcg);
++	u64 curusage, oldusage;
++
++	/*
++	 * For keeping hierarchical_reclaim simple, how long we should retry
++	 * is depends on callers. We set our retry-count to be function
++	 * of # of children which we should visit in this loop.
++	 */
++	retry_count = MEM_CGROUP_RECLAIM_RETRIES * children;
++
++	oldusage = res_counter_read_u64(&memcg->res, RES_USAGE);
+ 
+ 	while (retry_count) {
+ 		if (signal_pending(current)) {
+@@ -1534,8 +1571,13 @@ static int mem_cgroup_resize_limit(struc
+ 			break;
+ 
+ 		progress = mem_cgroup_hierarchical_reclaim(memcg, GFP_KERNEL,
+-							   false);
+-  		if (!progress)			retry_count--;
++						   false, true);
++		curusage = res_counter_read_u64(&memcg->res, RES_USAGE);
++		/* Usage is reduced ? */
++  		if (curusage >= oldusage)
++			retry_count--;
++		else
++			oldusage = curusage;
+ 	}
+ 
+ 	return ret;
+@@ -1544,13 +1586,16 @@ static int mem_cgroup_resize_limit(struc
+ int mem_cgroup_resize_memsw_limit(struct mem_cgroup *memcg,
+ 				unsigned long long val)
+ {
+-	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
++	int retry_count;
+ 	u64 memlimit, oldusage, curusage;
+-	int ret;
++	int children = mem_cgroup_count_children(memcg);
++	int ret = -EBUSY;
+ 
+ 	if (!do_swap_account)
+ 		return -EINVAL;
+-
++	/* see mem_cgroup_resize_res_limit */
++ 	retry_count = children * MEM_CGROUP_RECLAIM_RETRIES;
++	oldusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+ 	while (retry_count) {
+ 		if (signal_pending(current)) {
+ 			ret = -EINTR;
+@@ -1574,11 +1619,13 @@ int mem_cgroup_resize_memsw_limit(struct
+ 		if (!ret)
+ 			break;
+ 
+-		oldusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+-		mem_cgroup_hierarchical_reclaim(memcg, GFP_KERNEL, true);
++		mem_cgroup_hierarchical_reclaim(memcg, GFP_KERNEL, true, true);
+ 		curusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
++		/* Usage is reduced ? */
+ 		if (curusage >= oldusage)
+ 			retry_count--;
++		else
++			oldusage = curusage;
+ 	}
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
