@@ -1,98 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-more-documentation-for-remount-and-release_agent.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:34:15 -0700
-Message-ID: <200904061934.n36JYFQH011553@imap1.linux-foundation.org>
+Subject: [merged] uml-fix-compile-error-from-net_device_ops-conversion.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:32:49 -0700
+Message-ID: <200904061932.n36JWnao010868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757587AbZDFThF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:37:05 -0400
+	by vger.kernel.org with ESMTP id S1757487AbZDFTgz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:36:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, davem@davemloft.net, jdike@addtoit.com, shemminger@vyatta.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: more documentation for remount and release_agent
+     uml: fix compile error from net_device_ops conversion
 has been removed from the -mm tree.  Its filename was
-     cgroups-more-documentation-for-remount-and-release_agent.patch
+     uml-fix-compile-error-from-net_device_ops-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: more documentation for remount and release_agent
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: uml: fix compile error from net_device_ops conversion
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-This won't remove cpuacct from the mounted hierachy:
- # mount -t cgroup -o cpu,cpuacct xxx /mnt
- # mount -o remount,cpu /mnt
+Fix the following compile error:
 
-Because for this usage mount(8) will append the new options to the original
-options.
+arch/um/drivers/net_kern.c: In function 'uml_inetaddr_event':
+arch/um/drivers/net_kern.c:760: error: 'struct net_device' has no member named 'open'
 
-And this will get you right:
- # mount [-t cgroup] -o remount,cpu xxx /mnt
+This was introduced by commit 8bb95b39, "uml: convert network device
+to netdevice ops".
 
-Also document how to specify or change release_agent.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Reviewd-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Stephen Hemminger <shemminger@vyatta.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Jeff Dike <jdike@addtoit.com>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ arch/um/drivers/net_kern.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroups-more-documentation-for-remount-and-release_agent Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroups-more-documentation-for-remount-and-release_agent
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -333,12 +333,23 @@ The "xxx" is not interpreted by the cgro
+diff -puN arch/um/drivers/net_kern.c~uml-fix-compile-error-from-net_device_ops-conversion arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-fix-compile-error-from-net_device_ops-conversion
++++ a/arch/um/drivers/net_kern.c
+@@ -757,7 +757,7 @@ static int uml_inetaddr_event(struct not
+ 	void (*proc)(unsigned char *, unsigned char *, void *);
+ 	unsigned char addr_buf[4], netmask_buf[4];
  
- To mount a cgroup hierarchy with just the cpuset and numtasks
- subsystems, type:
--# mount -t cgroup -o cpuset,numtasks hier1 /dev/cgroup
-+# mount -t cgroup -o cpuset,memory hier1 /dev/cgroup
+-	if (dev->open != uml_net_open)
++	if (dev->netdev_ops->ndo_open != uml_net_open)
+ 		return NOTIFY_DONE;
  
- To change the set of subsystems bound to a mounted hierarchy, just
- remount with different options:
-+# mount -o remount,cpuset,ns hier1 /dev/cgroup
- 
--# mount -o remount,cpuset,ns  /dev/cgroup
-+Now memory is removed from the hierarchy and ns is added.
-+
-+Note this will add ns to the hierarchy but won't remove memory or
-+cpuset, because the new options are appended to the old ones:
-+# mount -o remount,ns /dev/cgroup
-+
-+To Specify a hierarchy's release_agent:
-+# mount -t cgroup -o cpuset,release_agent="/sbin/cpuset_release_agent" \
-+  xxx /dev/cgroup
-+
-+Note that specifying 'release_agent' more than once will return failure.
- 
- Note that changing the set of subsystems is currently only supported
- when the hierarchy consists of a single (root) cgroup. Supporting
-@@ -349,6 +360,11 @@ Then under /dev/cgroup you can find a tr
- tree of the cgroups in the system. For instance, /dev/cgroup
- is the cgroup that holds the whole system.
- 
-+If you want to change the value of release_agent:
-+# echo "/sbin/new_release_agent" > /dev/cgroup/release_agent
-+
-+It can also be changed via remount.
-+
- If you want to create a new cgroup under /dev/cgroup:
- # cd /dev/cgroup
- # mkdir my_cgroup
+ 	lp = netdev_priv(dev);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
 linux-next.patch
-cls_cgroup-remove-unneeded-cgroup_lock.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
 
