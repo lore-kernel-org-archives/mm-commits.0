@@ -1,456 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:37:27 -0700
-Message-ID: <200904061937.n36JbR5H012945@imap1.linux-foundation.org>
+Subject: [merged] xtensa-s6000-gpio-driver.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:39:40 -0700
+Message-ID: <200904061939.n36Jde2P013988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48309 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752162AbZDFT5A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:57:00 -0400
+	by vger.kernel.org with ESMTP id S1753931AbZDFT5M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:57:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mm-commits@vger.kernel.org
+To: os@emlix.com, chris@zankel.net, dg@emlix.com, jw@emlix.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-gru: change GRU CCH commands from inline functions to outofline functions
+     xtensa: s6000 gpio driver
 has been removed from the -mm tree.  Its filename was
-     sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions.patch
+     xtensa-s6000-gpio-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: change GRU CCH commands from inline functions to outofline functions
-From: Jack Steiner <steiner@sgi.com>
+Subject: xtensa: s6000 gpio driver
+From: Oskar Schirmer <os@emlix.com>
 
-Change the GRU instructions that manage contexts from inline functions to
-out-of-line functions.  This simplifies adding statistics & error checking
-to these functions.
+Implement the s6000 gpio controller as a chip for the generic gpio
+lib.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+Signed-off-by: Oskar Schirmer <os@emlix.com>
+Signed-off-by: Johannes Weiner <jw@emlix.com>
+Cc: Daniel Glockner <dg@emlix.com>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/Makefile     |    2 
- drivers/misc/sgi-gru/gruhandles.c |  197 ++++++++++++++++++++++++++++
- drivers/misc/sgi-gru/gruhandles.h |  174 ++----------------------
- drivers/misc/sgi-gru/grutables.h  |    3 
- 4 files changed, 217 insertions(+), 159 deletions(-)
+ arch/xtensa/Kconfig                 |    4 +
+ arch/xtensa/include/asm/gpio.h      |   56 ++++++++++++++++++++
+ arch/xtensa/variants/s6000/Makefile |    2 
+ arch/xtensa/variants/s6000/gpio.c   |   71 ++++++++++++++++++++++++++
+ 4 files changed, 132 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/sgi-gru/Makefile~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions drivers/misc/sgi-gru/Makefile
---- a/drivers/misc/sgi-gru/Makefile~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions
-+++ a/drivers/misc/sgi-gru/Makefile
-@@ -3,5 +3,5 @@ ifdef CONFIG_SGI_GRU_DEBUG
- endif
+diff -puN arch/xtensa/Kconfig~xtensa-s6000-gpio-driver arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~xtensa-s6000-gpio-driver
++++ a/arch/xtensa/Kconfig
+@@ -39,6 +39,9 @@ config GENERIC_HARDIRQS
+ 	bool
+ 	default y
  
- obj-$(CONFIG_SGI_GRU) := gru.o
--gru-y := grufile.o grumain.o grufault.o grutlbpurge.o gruprocfs.o grukservices.o
-+gru-y := grufile.o grumain.o grufault.o grutlbpurge.o gruprocfs.o grukservices.o gruhandles.o
++config GENERIC_GPIO
++	def_bool y
++
+ config ARCH_HAS_ILOG2_U32
+ 	bool
+ 	default n
+@@ -77,6 +80,7 @@ config XTENSA_VARIANT_DC232B
+ config XTENSA_VARIANT_S6000
+ 	bool "s6000 - Stretch software configurable processor"
+ 	select VARIANT_IRQ_SWITCH
++	select ARCH_REQUIRE_GPIOLIB
+ endchoice
  
-diff -puN /dev/null drivers/misc/sgi-gru/gruhandles.c
+ config MMU
+diff -puN /dev/null arch/xtensa/include/asm/gpio.h
 --- /dev/null
-+++ a/drivers/misc/sgi-gru/gruhandles.c
-@@ -0,0 +1,197 @@
++++ a/arch/xtensa/include/asm/gpio.h
+@@ -0,0 +1,56 @@
 +/*
-+ *              GRU KERNEL MCS INSTRUCTIONS
++ * Generic GPIO API implementation for xtensa.
 + *
-+ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ * Stolen from x86, which is derived from the generic GPIO API for powerpc:
 + *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
++ * Copyright (c) 2007-2008  MontaVista Software, Inc.
 + *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
++ * Author: Anton Vorontsov <avorontsov@ru.mvista.com>
 + *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + */
 +
++#ifndef _ASM_XTENSA_GPIO_H
++#define _ASM_XTENSA_GPIO_H
++
++#include <asm-generic/gpio.h>
++
++#ifdef CONFIG_GPIOLIB
++
++/*
++ * Just call gpiolib.
++ */
++static inline int gpio_get_value(unsigned int gpio)
++{
++	return __gpio_get_value(gpio);
++}
++
++static inline void gpio_set_value(unsigned int gpio, int value)
++{
++	__gpio_set_value(gpio, value);
++}
++
++static inline int gpio_cansleep(unsigned int gpio)
++{
++	return __gpio_cansleep(gpio);
++}
++
++/*
++ * Not implemented, yet.
++ */
++static inline int gpio_to_irq(unsigned int gpio)
++{
++	return -ENOSYS;
++}
++
++static inline int irq_to_gpio(unsigned int irq)
++{
++	return -EINVAL;
++}
++
++#endif /* CONFIG_GPIOLIB */
++
++#endif /* _ASM_XTENSA_GPIO_H */
+diff -puN arch/xtensa/variants/s6000/Makefile~xtensa-s6000-gpio-driver arch/xtensa/variants/s6000/Makefile
+--- a/arch/xtensa/variants/s6000/Makefile~xtensa-s6000-gpio-driver
++++ a/arch/xtensa/variants/s6000/Makefile
+@@ -1,3 +1,3 @@
+ # s6000 Makefile
+ 
+-obj-y		+= irq.o
++obj-y		+= irq.o gpio.o
+diff -puN /dev/null arch/xtensa/variants/s6000/gpio.c
+--- /dev/null
++++ a/arch/xtensa/variants/s6000/gpio.c
+@@ -0,0 +1,71 @@
++/*
++ * s6000 gpio driver
++ *
++ * Copyright (c) 2009 emlix GmbH
++ * Authors:	Oskar Schirmer <os@emlix.com>
++ *		Johannes Weiner <jw@emlix.com>
++ */
 +#include <linux/kernel.h>
-+#include "gru.h"
-+#include "grulib.h"
-+#include "grutables.h"
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/gpio.h>
 +
-+/* 10 sec */
-+#ifdef CONFIG_IA64
-+#include <asm/processor.h>
-+#define GRU_OPERATION_TIMEOUT	(((cycles_t) local_cpu_data->itc_freq)*10)
-+#else
-+#include <asm/tsc.h>
-+#define GRU_OPERATION_TIMEOUT	((cycles_t) tsc_khz*10*1000)
-+#endif
++#include <variant/hardware.h>
 +
-+/* Extract the status field from a kernel handle */
-+#define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
++#define S6_GPIO_DATA		0x000
++#define S6_GPIO_IS		0x404
++#define S6_GPIO_IBE		0x408
++#define S6_GPIO_IEV		0x40C
++#define S6_GPIO_IE		0x410
++#define S6_GPIO_RIS		0x414
++#define S6_GPIO_MIS		0x418
++#define S6_GPIO_IC		0x41C
++#define S6_GPIO_AFSEL		0x420
++#define S6_GPIO_DIR		0x800
++#define S6_GPIO_BANK(nr)	((nr) * 0x1000)
++#define S6_GPIO_MASK(nr)	(4 << (nr))
++#define S6_GPIO_OFFSET(nr) \
++		(S6_GPIO_BANK((nr) >> 3) + S6_GPIO_MASK((nr) & 7))
 +
-+static void start_instruction(void *h)
++static int direction_input(struct gpio_chip *chip, unsigned int off)
 +{
-+	unsigned long *w0 = h;
-+
-+	wmb();		/* setting CMD bit must be last */
-+	*w0 = *w0 | 1;
-+	gru_flush_cache(h);
++	writeb(0, S6_REG_GPIO + S6_GPIO_DIR + S6_GPIO_OFFSET(off));
++	return 0;
 +}
 +
-+static int wait_instruction_complete(void *h, enum mcs_op opc)
++static int get(struct gpio_chip *chip, unsigned int off)
 +{
-+	int status;
-+	cycles_t start_time = get_cycles();
-+
-+	while (1) {
-+		cpu_relax();
-+		status = GET_MSEG_HANDLE_STATUS(h);
-+		if (status != CCHSTATUS_ACTIVE)
-+			break;
-+		if (GRU_OPERATION_TIMEOUT < (get_cycles() - start_time))
-+			panic("GRU %p is malfunctioning\n", h);
-+	}
-+	return status;
++	return readb(S6_REG_GPIO + S6_GPIO_DATA + S6_GPIO_OFFSET(off));
 +}
 +
-+#if defined CONFIG_IA64
-+static void cch_allocate_set_asids(
-+		  struct gru_context_configuration_handle *cch, int asidval)
++static int direction_output(struct gpio_chip *chip, unsigned int off, int val)
 +{
-+	int i;
-+
-+	for (i = 0; i < 8; i++) {
-+		cch->asid[i] = (asidval++);
-+#if 0
-+		/* ZZZ hugepages not supported yet */
-+		if (i == RGN_HPAGE)
-+			cch->sizeavail[i] = GRU_SIZEAVAIL(hpage_shift);
-+		else
-+#endif
-+			cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT);
-+	}
-+}
-+#elif defined CONFIG_X86_64
-+static void cch_allocate_set_asids(
-+		  struct gru_context_configuration_handle *cch, int asidval)
-+{
-+	int i;
-+
-+	for (i = 0; i < 8; i++) {
-+		cch->asid[i] = asidval++;
-+		cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT) |
-+			GRU_SIZEAVAIL(21);
-+	}
-+}
-+#endif
-+
-+int cch_allocate(struct gru_context_configuration_handle *cch,
-+			       int asidval, unsigned long cbrmap,
-+			       unsigned long dsrmap)
-+{
-+	cch_allocate_set_asids(cch, asidval);
-+	cch->dsr_allocation_map = dsrmap;
-+	cch->cbr_allocation_map = cbrmap;
-+	cch->opc = CCHOP_ALLOCATE;
-+	start_instruction(cch);
-+	return wait_instruction_complete(cch, cchop_allocate);
++	unsigned rel = S6_GPIO_OFFSET(off);
++	writeb(~0, S6_REG_GPIO + S6_GPIO_DIR + rel);
++	writeb(val ? ~0 : 0, S6_REG_GPIO + S6_GPIO_DATA + rel);
++	return 0;
 +}
 +
-+int cch_start(struct gru_context_configuration_handle *cch)
++static void set(struct gpio_chip *chip, unsigned int off, int val)
 +{
-+	cch->opc = CCHOP_START;
-+	start_instruction(cch);
-+	return wait_instruction_complete(cch, cchop_start);
++	writeb(val ? ~0 : 0, S6_REG_GPIO + S6_GPIO_DATA + S6_GPIO_OFFSET(off));
 +}
 +
-+int cch_interrupt(struct gru_context_configuration_handle *cch)
++static struct gpio_chip gpiochip = {
++	.owner = THIS_MODULE,
++	.direction_input = direction_input,
++	.get = get,
++	.direction_output = direction_output,
++	.set = set,
++	.base = 0,
++	.ngpio = 24,
++	.can_sleep = 0, /* no blocking io needed */
++	.exported = 0, /* no exporting to userspace */
++};
++
++static int gpio_init(void)
 +{
-+	cch->opc = CCHOP_INTERRUPT;
-+	start_instruction(cch);
-+	return wait_instruction_complete(cch, cchop_interrupt);
++	return gpiochip_add(&gpiochip);
 +}
-+
-+int cch_deallocate(struct gru_context_configuration_handle *cch)
-+{
-+	cch->opc = CCHOP_DEALLOCATE;
-+	start_instruction(cch);
-+	return wait_instruction_complete(cch, cchop_deallocate);
-+}
-+
-+int cch_interrupt_sync(struct gru_context_configuration_handle
-+				     *cch)
-+{
-+	cch->opc = CCHOP_INTERRUPT_SYNC;
-+	start_instruction(cch);
-+	return wait_instruction_complete(cch, cchop_interrupt_sync);
-+}
-+
-+int tgh_invalidate(struct gru_tlb_global_handle *tgh,
-+				 unsigned long vaddr, unsigned long vaddrmask,
-+				 int asid, int pagesize, int global, int n,
-+				 unsigned short ctxbitmap)
-+{
-+	tgh->vaddr = vaddr;
-+	tgh->asid = asid;
-+	tgh->pagesize = pagesize;
-+	tgh->n = n;
-+	tgh->global = global;
-+	tgh->vaddrmask = vaddrmask;
-+	tgh->ctxbitmap = ctxbitmap;
-+	tgh->opc = TGHOP_TLBINV;
-+	start_instruction(tgh);
-+	return wait_instruction_complete(tgh, tghop_invalidate);
-+}
-+
-+void tfh_write_only(struct gru_tlb_fault_handle *tfh,
-+				  unsigned long pfn, unsigned long vaddr,
-+				  int asid, int dirty, int pagesize)
-+{
-+	tfh->fillasid = asid;
-+	tfh->fillvaddr = vaddr;
-+	tfh->pfn = pfn;
-+	tfh->dirty = dirty;
-+	tfh->pagesize = pagesize;
-+	tfh->opc = TFHOP_WRITE_ONLY;
-+	start_instruction(tfh);
-+}
-+
-+void tfh_write_restart(struct gru_tlb_fault_handle *tfh,
-+				     unsigned long paddr, int gaa,
-+				     unsigned long vaddr, int asid, int dirty,
-+				     int pagesize)
-+{
-+	tfh->fillasid = asid;
-+	tfh->fillvaddr = vaddr;
-+	tfh->pfn = paddr >> GRU_PADDR_SHIFT;
-+	tfh->gaa = gaa;
-+	tfh->dirty = dirty;
-+	tfh->pagesize = pagesize;
-+	tfh->opc = TFHOP_WRITE_RESTART;
-+	start_instruction(tfh);
-+}
-+
-+void tfh_restart(struct gru_tlb_fault_handle *tfh)
-+{
-+	tfh->opc = TFHOP_RESTART;
-+	start_instruction(tfh);
-+}
-+
-+void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh)
-+{
-+	tfh->opc = TFHOP_USER_POLLING_MODE;
-+	start_instruction(tfh);
-+}
-+
-+void tfh_exception(struct gru_tlb_fault_handle *tfh)
-+{
-+	tfh->opc = TFHOP_EXCEPTION;
-+	start_instruction(tfh);
-+}
-+
-diff -puN drivers/misc/sgi-gru/gruhandles.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions drivers/misc/sgi-gru/gruhandles.h
---- a/drivers/misc/sgi-gru/gruhandles.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions
-+++ a/drivers/misc/sgi-gru/gruhandles.h
-@@ -495,164 +495,22 @@ enum gru_cbr_state {
- /* minimum TLB purge count to ensure a full purge */
- #define GRUMAXINVAL		1024UL
- 
-+int cch_allocate(struct gru_context_configuration_handle *cch,
-+       int asidval, unsigned long cbrmap, unsigned long dsrmap);
- 
--/* Extract the status field from a kernel handle */
--#define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
--
--static inline void start_instruction(void *h)
--{
--	unsigned long *w0 = h;
--
--	wmb();		/* setting CMD bit must be last */
--	*w0 = *w0 | 1;
--	gru_flush_cache(h);
--}
--
--static inline int wait_instruction_complete(void *h)
--{
--	int status;
--
--	do {
--		cpu_relax();
--		barrier();
--		status = GET_MSEG_HANDLE_STATUS(h);
--	} while (status == CCHSTATUS_ACTIVE);
--	return status;
--}
--
--#if defined CONFIG_IA64
--static inline void cch_allocate_set_asids(
--		  struct gru_context_configuration_handle *cch, int asidval)
--{
--	int i;
--
--	for (i = 0; i <= RGN_HPAGE; i++) {  /*  assume HPAGE is last region */
--		cch->asid[i] = (asidval++);
--#if 0
--		/* ZZZ hugepages not supported yet */
--		if (i == RGN_HPAGE)
--			cch->sizeavail[i] = GRU_SIZEAVAIL(hpage_shift);
--		else
--#endif
--			cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT);
--	}
--}
--#elif defined CONFIG_X86_64
--static inline void cch_allocate_set_asids(
--		  struct gru_context_configuration_handle *cch, int asidval)
--{
--	int i;
--
--	for (i = 0; i < 8; i++) {
--		cch->asid[i] = asidval++;
--		cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT) |
--			GRU_SIZEAVAIL(21);
--	}
--}
--#endif
--
--static inline int cch_allocate(struct gru_context_configuration_handle *cch,
--			       int asidval, unsigned long cbrmap,
--			       unsigned long dsrmap)
--{
--	cch_allocate_set_asids(cch, asidval);
--	cch->dsr_allocation_map = dsrmap;
--	cch->cbr_allocation_map = cbrmap;
--	cch->opc = CCHOP_ALLOCATE;
--	start_instruction(cch);
--	return wait_instruction_complete(cch);
--}
--
--static inline int cch_start(struct gru_context_configuration_handle *cch)
--{
--	cch->opc = CCHOP_START;
--	start_instruction(cch);
--	return wait_instruction_complete(cch);
--}
--
--static inline int cch_interrupt(struct gru_context_configuration_handle *cch)
--{
--	cch->opc = CCHOP_INTERRUPT;
--	start_instruction(cch);
--	return wait_instruction_complete(cch);
--}
--
--static inline int cch_deallocate(struct gru_context_configuration_handle *cch)
--{
--	cch->opc = CCHOP_DEALLOCATE;
--	start_instruction(cch);
--	return wait_instruction_complete(cch);
--}
--
--static inline int cch_interrupt_sync(struct gru_context_configuration_handle
--				     *cch)
--{
--	cch->opc = CCHOP_INTERRUPT_SYNC;
--	start_instruction(cch);
--	return wait_instruction_complete(cch);
--}
--
--static inline int tgh_invalidate(struct gru_tlb_global_handle *tgh,
--				 unsigned long vaddr, unsigned long vaddrmask,
--				 int asid, int pagesize, int global, int n,
--				 unsigned short ctxbitmap)
--{
--	tgh->vaddr = vaddr;
--	tgh->asid = asid;
--	tgh->pagesize = pagesize;
--	tgh->n = n;
--	tgh->global = global;
--	tgh->vaddrmask = vaddrmask;
--	tgh->ctxbitmap = ctxbitmap;
--	tgh->opc = TGHOP_TLBINV;
--	start_instruction(tgh);
--	return wait_instruction_complete(tgh);
--}
--
--static inline void tfh_write_only(struct gru_tlb_fault_handle *tfh,
--				  unsigned long pfn, unsigned long vaddr,
--				  int asid, int dirty, int pagesize)
--{
--	tfh->fillasid = asid;
--	tfh->fillvaddr = vaddr;
--	tfh->pfn = pfn;
--	tfh->dirty = dirty;
--	tfh->pagesize = pagesize;
--	tfh->opc = TFHOP_WRITE_ONLY;
--	start_instruction(tfh);
--}
--
--static inline void tfh_write_restart(struct gru_tlb_fault_handle *tfh,
--				     unsigned long paddr, int gaa,
--				     unsigned long vaddr, int asid, int dirty,
--				     int pagesize)
--{
--	tfh->fillasid = asid;
--	tfh->fillvaddr = vaddr;
--	tfh->pfn = paddr >> GRU_PADDR_SHIFT;
--	tfh->gaa = gaa;
--	tfh->dirty = dirty;
--	tfh->pagesize = pagesize;
--	tfh->opc = TFHOP_WRITE_RESTART;
--	start_instruction(tfh);
--}
--
--static inline void tfh_restart(struct gru_tlb_fault_handle *tfh)
--{
--	tfh->opc = TFHOP_RESTART;
--	start_instruction(tfh);
--}
--
--static inline void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh)
--{
--	tfh->opc = TFHOP_USER_POLLING_MODE;
--	start_instruction(tfh);
--}
--
--static inline void tfh_exception(struct gru_tlb_fault_handle *tfh)
--{
--	tfh->opc = TFHOP_EXCEPTION;
--	start_instruction(tfh);
--}
-+int cch_start(struct gru_context_configuration_handle *cch);
-+int cch_interrupt(struct gru_context_configuration_handle *cch);
-+int cch_deallocate(struct gru_context_configuration_handle *cch);
-+int cch_interrupt_sync(struct gru_context_configuration_handle *cch);
-+int tgh_invalidate(struct gru_tlb_global_handle *tgh, unsigned long vaddr,
-+	unsigned long vaddrmask, int asid, int pagesize, int global, int n,
-+	unsigned short ctxbitmap);
-+void tfh_write_only(struct gru_tlb_fault_handle *tfh, unsigned long pfn,
-+	unsigned long vaddr, int asid, int dirty, int pagesize);
-+void tfh_write_restart(struct gru_tlb_fault_handle *tfh, unsigned long paddr,
-+	int gaa, unsigned long vaddr, int asid, int dirty, int pagesize);
-+void tfh_restart(struct gru_tlb_fault_handle *tfh);
-+void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh);
-+void tfh_exception(struct gru_tlb_fault_handle *tfh);
- 
- #endif /* __GRUHANDLES_H__ */
-diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -239,6 +239,9 @@ struct gru_stats_s {
- 
- };
- 
-+enum mcs_op {cchop_allocate, cchop_start, cchop_interrupt, cchop_interrupt_sync,
-+	cchop_deallocate, tghop_invalidate, mcsop_last};
-+
- #define OPT_DPRINT	1
- #define OPT_STATS	2
- #define GRU_QUICKLOOK	4
++device_initcall(gpio_init);
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from os@emlix.com are
 
 origin.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+xtensa-variant-specific-code.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-s6000-dma-engine-support.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+flat-fix-data-sections-alignment.patch
 
