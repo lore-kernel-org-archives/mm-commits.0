@@ -1,322 +1,447 @@
 From: akpm@linux-foundation.org
-Subject: [merged] forget_original_parent-split-out-the-un-ptrace-part.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:35:48 -0700
-Message-ID: <200904061935.n36JZm4k012204@imap1.linux-foundation.org>
+Subject: [merged] xtensa-s6000-variant.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:39:38 -0700
+Message-ID: <200904061939.n36JdcP3013983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751908AbZDFUYa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:24:30 -0400
+	by vger.kernel.org with ESMTP id S1751986AbZDFUZO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:25:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, ebiederm@xmission.com, markus.t.metzger@intel.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: jw@emlix.com, chris@zankel.net, dg@emlix.com, os@emlix.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forget_original_parent: split out the un-ptrace part
+     xtensa: s6000 variant
 has been removed from the -mm tree.  Its filename was
-     forget_original_parent-split-out-the-un-ptrace-part.patch
+     xtensa-s6000-variant.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forget_original_parent: split out the un-ptrace part
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: xtensa: s6000 variant
+From: Johannes Weiner <jw@emlix.com>
 
-By discussion with Roland.
+Support for the Xtensa S6000 core variant.
 
-- Rename ptrace_exit() to exit_ptrace(), and change it to do all the
-  necessary work with ->ptraced list by its own.
-
-- Move this code from exit.c to ptrace.c
-
-- Update the comment in ptrace_detach() to explain the rechecking of
-  the child->ptrace.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Metzger, Markus T" <markus.t.metzger@intel.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Johannes Weiner <jw@emlix.com>
+Signed-off-by: Oskar Schirmer <os@emlix.com>
+Cc: Oskar Schirmer <os@emlix.com>
+Cc: Daniel Glockner <dg@emlix.com>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    2 
- include/linux/sched.h  |    5 ++
- kernel/exit.c          |   95 ++-------------------------------------
- kernel/ptrace.c        |   78 +++++++++++++++++++++++++++++++-
- 4 files changed, 88 insertions(+), 92 deletions(-)
+ arch/xtensa/Kconfig                                   |    4 
+ arch/xtensa/Makefile                                  |    1 
+ arch/xtensa/variants/s6000/Makefile                   |    3 
+ arch/xtensa/variants/s6000/include/variant/hardware.h |  259 ++++++++++
+ arch/xtensa/variants/s6000/include/variant/irq.h      |    9 
+ arch/xtensa/variants/s6000/irq.c                      |   74 ++
+ 6 files changed, 350 insertions(+)
 
-diff -puN include/linux/ptrace.h~forget_original_parent-split-out-the-un-ptrace-part include/linux/ptrace.h
---- a/include/linux/ptrace.h~forget_original_parent-split-out-the-un-ptrace-part
-+++ a/include/linux/ptrace.h
-@@ -94,7 +94,7 @@ extern void ptrace_notify(int exit_code)
- extern void __ptrace_link(struct task_struct *child,
- 			  struct task_struct *new_parent);
- extern void __ptrace_unlink(struct task_struct *child);
--extern int __ptrace_detach(struct task_struct *tracer, struct task_struct *p);
-+extern void exit_ptrace(struct task_struct *tracer);
- extern void ptrace_fork(struct task_struct *task, unsigned long clone_flags);
- #define PTRACE_MODE_READ   1
- #define PTRACE_MODE_ATTACH 2
-diff -puN include/linux/sched.h~forget_original_parent-split-out-the-un-ptrace-part include/linux/sched.h
---- a/include/linux/sched.h~forget_original_parent-split-out-the-un-ptrace-part
-+++ a/include/linux/sched.h
-@@ -2061,6 +2061,11 @@ static inline int thread_group_empty(str
- #define delay_group_leader(p) \
- 		(thread_group_leader(p) && !thread_group_empty(p))
- 
-+static inline int task_detached(struct task_struct *p)
-+{
-+	return p->exit_signal == -1;
-+}
+diff -puN arch/xtensa/Kconfig~xtensa-s6000-variant arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~xtensa-s6000-variant
++++ a/arch/xtensa/Kconfig
+@@ -73,6 +73,10 @@ config XTENSA_VARIANT_DC232B
+ 	bool "dc232b - Diamond 232L Standard Core Rev.B (LE)"
+ 	help
+ 	This variant refers to Tensilica's Diamond 232L Standard core Rev.B (LE).
 +
- /*
-  * Protects ->fs, ->files, ->mm, ->group_info, ->comm, keyring
-  * subscriptions and synchronises with wait4().  Also used in procfs.  Also
-diff -puN kernel/exit.c~forget_original_parent-split-out-the-un-ptrace-part kernel/exit.c
---- a/kernel/exit.c~forget_original_parent-split-out-the-un-ptrace-part
-+++ a/kernel/exit.c
-@@ -61,11 +61,6 @@ DEFINE_TRACE(sched_process_wait);
++config XTENSA_VARIANT_S6000
++	bool "s6000 - Stretch software configurable processor"
++	select VARIANT_IRQ_SWITCH
+ endchoice
  
- static void exit_mm(struct task_struct * tsk);
+ config MMU
+diff -puN arch/xtensa/Makefile~xtensa-s6000-variant arch/xtensa/Makefile
+--- a/arch/xtensa/Makefile~xtensa-s6000-variant
++++ a/arch/xtensa/Makefile
+@@ -15,6 +15,7 @@
  
--static inline int task_detached(struct task_struct *p)
--{
--	return p->exit_signal == -1;
--}
--
- static void __unhash_process(struct task_struct *p)
- {
- 	nr_threads--;
-@@ -731,85 +726,6 @@ static void exit_mm(struct task_struct *
- 	mmput(mm);
- }
+ variant-$(CONFIG_XTENSA_VARIANT_FSF)		:= fsf
+ variant-$(CONFIG_XTENSA_VARIANT_DC232B)		:= dc232b
++variant-$(CONFIG_XTENSA_VARIANT_S6000)		:= s6000
+ variant-$(CONFIG_XTENSA_VARIANT_LINUX_CUSTOM)	:= custom
  
--/*
-- * Called with irqs disabled, returns true if childs should reap themselves.
-- */
--static int ignoring_children(struct sighand_struct *sigh)
--{
--	int ret;
--	spin_lock(&sigh->siglock);
--	ret = (sigh->action[SIGCHLD-1].sa.sa_handler == SIG_IGN) ||
--	      (sigh->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT);
--	spin_unlock(&sigh->siglock);
--	return ret;
--}
--
--/* Returns nonzero if the tracee should be released. */
--int __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
--{
--	__ptrace_unlink(p);
--
--	if (p->exit_state != EXIT_ZOMBIE)
--		return 0;
--	/*
--	 * If it's a zombie, our attachedness prevented normal
--	 * parent notification or self-reaping.  Do notification
--	 * now if it would have happened earlier.  If it should
--	 * reap itself we return true.
--	 *
--	 * If it's our own child, there is no notification to do.
--	 * But if our normal children self-reap, then this child
--	 * was prevented by ptrace and we must reap it now.
--	 */
--	if (!task_detached(p) && thread_group_empty(p)) {
--		if (!same_thread_group(p->real_parent, tracer))
--			do_notify_parent(p, p->exit_signal);
--		else if (ignoring_children(tracer->sighand))
--			p->exit_signal = -1;
--	}
--
--	if (!task_detached(p))
--		return 0;
--
--	/* Mark it as in the process of being reaped. */
--	p->exit_state = EXIT_DEAD;
--	return 1;
--}
--
--/*
-- * Detach all tasks we were using ptrace on.
-- * Any that need to be release_task'd are put on the @dead list.
-- *
-- * Called with write_lock(&tasklist_lock) held.
-- */
--static void ptrace_exit(struct task_struct *parent, struct list_head *dead)
--{
--	struct task_struct *p, *n;
--
--	list_for_each_entry_safe(p, n, &parent->ptraced, ptrace_entry) {
--		if (__ptrace_detach(parent, p))
--			list_add(&p->ptrace_entry, dead);
--	}
--}
--
--/*
-- * Finish up exit-time ptrace cleanup.
-- *
-- * Called without locks.
-- */
--static void ptrace_exit_finish(struct task_struct *parent,
--			       struct list_head *dead)
--{
--	struct task_struct *p, *n;
--
--	BUG_ON(!list_empty(&parent->ptraced));
--
--	list_for_each_entry_safe(p, n, dead, ptrace_entry) {
--		list_del_init(&p->ptrace_entry);
--		release_task(p);
--	}
--}
--
- /* Returns nonzero if the child should be released. */
- static int reparent_thread(struct task_struct *p, struct task_struct *father)
- {
-@@ -894,12 +810,10 @@ static void forget_original_parent(struc
- 	struct task_struct *p, *n, *reaper;
- 	LIST_HEAD(ptrace_dead);
- 
-+	exit_ptrace(father);
+ VARIANT = $(variant-y)
+diff -puN /dev/null arch/xtensa/variants/s6000/Makefile
+--- /dev/null
++++ a/arch/xtensa/variants/s6000/Makefile
+@@ -0,0 +1,3 @@
++# s6000 Makefile
 +
- 	write_lock_irq(&tasklist_lock);
- 	reaper = find_new_reaper(father);
--	/*
--	 * First clean up ptrace if we were using it.
--	 */
--	ptrace_exit(father, &ptrace_dead);
- 
- 	list_for_each_entry_safe(p, n, &father->children, sibling) {
- 		p->real_parent = reaper;
-@@ -914,7 +828,10 @@ static void forget_original_parent(struc
- 	write_unlock_irq(&tasklist_lock);
- 	BUG_ON(!list_empty(&father->children));
- 
--	ptrace_exit_finish(father, &ptrace_dead);
-+	list_for_each_entry_safe(p, n, &ptrace_dead, ptrace_entry) {
-+		list_del_init(&p->ptrace_entry);
-+		release_task(p);
-+	}
- }
- 
- /*
-diff -puN kernel/ptrace.c~forget_original_parent-split-out-the-un-ptrace-part kernel/ptrace.c
---- a/kernel/ptrace.c~forget_original_parent-split-out-the-un-ptrace-part
-+++ a/kernel/ptrace.c
-@@ -235,9 +235,57 @@ out:
- 	return retval;
- }
- 
++obj-y		+= irq.o
+diff -puN /dev/null arch/xtensa/variants/s6000/include/variant/hardware.h
+--- /dev/null
++++ a/arch/xtensa/variants/s6000/include/variant/hardware.h
+@@ -0,0 +1,259 @@
++#ifndef __XTENSA_S6000_HARDWARE_H
++#define __XTENSA_S6000_HARDWARE_H
++
++#define S6_SCLK			1843200
++
++#define S6_MEM_REG              0x20000000
++#define S6_MEM_EFI              0x33F00000
++#define S6_MEM_PCIE_DATARAM1    0x34000000
++#define S6_MEM_XLMI             0x37F80000
++#define S6_MEM_PIF_DATARAM1     0x37FFC000
++#define S6_MEM_GMAC             0x38000000
++#define S6_MEM_I2S              0x3A000000
++#define S6_MEM_EGIB             0x3C000000
++#define S6_MEM_PCIE_CFG         0x3E000000
++#define S6_MEM_PIF_DATARAM      0x3FFE0000
++#define S6_MEM_XLMI_DATARAM     0x3FFF0000
++#define S6_MEM_DDR              0x40000000
++#define S6_MEM_PCIE_APER        0xC0000000
++#define S6_MEM_AUX              0xF0000000
++
++/* Device addresses */
++
++#define S6_REG_SCB              S6_MEM_REG
++#define S6_REG_NB               (S6_REG_SCB + 0x10000)
++#define S6_REG_LMSDMA           (S6_REG_SCB + 0x20000)
++#define S6_REG_NI               (S6_REG_SCB + 0x30000)
++#define S6_REG_NIDMA            (S6_REG_SCB + 0x40000)
++#define S6_REG_NS               (S6_REG_SCB + 0x50000)
++#define S6_REG_DDR              (S6_REG_SCB + 0x60000)
++#define S6_REG_GREG1            (S6_REG_SCB + 0x70000)
++#define S6_REG_DP               (S6_REG_SCB + 0x80000)
++#define S6_REG_DPDMA            (S6_REG_SCB + 0x90000)
++#define S6_REG_EGIB             (S6_REG_SCB + 0xA0000)
++#define S6_REG_PCIE             (S6_REG_SCB + 0xB0000)
++#define S6_REG_I2S              (S6_REG_SCB + 0xC0000)
++#define S6_REG_GMAC             (S6_REG_SCB + 0xD0000)
++#define S6_REG_HIFDMA           (S6_REG_SCB + 0xE0000)
++#define S6_REG_GREG2            (S6_REG_SCB + 0xF0000)
++
++#define S6_REG_APB              S6_REG_SCB
++#define S6_REG_UART             (S6_REG_APB + 0x0000)
++#define S6_REG_INTC             (S6_REG_APB + 0x2000)
++#define S6_REG_SPI              (S6_REG_APB + 0x3000)
++#define S6_REG_I2C              (S6_REG_APB + 0x4000)
++#define S6_REG_GPIO             (S6_REG_APB + 0x8000)
++
++/* Global register block */
++
++#define S6_GREG1_PLL_LOCKCLEAR	0x000
++#define S6_GREG1_PLL_LOCK_SYS		0
++#define S6_GREG1_PLL_LOCK_IO		1
++#define S6_GREG1_PLL_LOCK_AIM		2
++#define S6_GREG1_PLL_LOCK_DP0		3
++#define S6_GREG1_PLL_LOCK_DP2		4
++#define S6_GREG1_PLL_LOCK_DDR		5
++#define S6_GREG1_PLL_LOCKSTAT	0x004
++#define S6_GREG1_PLL_LOCKSTAT_CURLOCK	0
++#define S6_GREG1_PLL_LOCKSTAT_EVERUNLCK	8
++#define S6_GREG1_PLLSEL		0x010
++#define S6_GREG1_PLLSEL_AIM		0
++#define S6_GREG1_PLLSEL_AIM_DDR2		0
++#define S6_GREG1_PLLSEL_AIM_300MHZ		1
++#define S6_GREG1_PLLSEL_AIM_240MHZ		2
++#define S6_GREG1_PLLSEL_AIM_200MHZ		3
++#define S6_GREG1_PLLSEL_AIM_150MHZ		4
++#define S6_GREG1_PLLSEL_AIM_120MHZ		5
++#define S6_GREG1_PLLSEL_AIM_40MHZ		6
++#define S6_GREG1_PLLSEL_AIM_PLLAIMREF		7
++#define S6_GREG1_PLLSEL_AIM_MASK		7
++#define S6_GREG1_PLLSEL_DDR		8
++#define S6_GREG1_PLLSEL_DDR_HS			0
++#define S6_GREG1_PLLSEL_DDR_333MHZ		1
++#define S6_GREG1_PLLSEL_DDR_250MHZ		2
++#define S6_GREG1_PLLSEL_DDR_200MHZ		3
++#define S6_GREG1_PLLSEL_DDR_167MHZ		4
++#define S6_GREG1_PLLSEL_DDR_100MHZ		5
++#define S6_GREG1_PLLSEL_DDR_33MHZ		6
++#define S6_GREG1_PLLSEL_DDR_PLLIOREF		7
++#define S6_GREG1_PLLSEL_DDR_MASK		7
++#define S6_GREG1_PLLSEL_GMAC		16
++#define S6_GREG1_PLLSEL_GMAC_125MHZ		0
++#define S6_GREG1_PLLSEL_GMAC_25MHZ		1
++#define S6_GREG1_PLLSEL_GMAC_2500KHZ		2
++#define S6_GREG1_PLLSEL_GMAC_EXTERN		3
++#define S6_GREG1_PLLSEL_GMAC_MASK		3
++#define S6_GREG1_PLLSEL_GMII		18
++#define S6_GREG1_PLLSEL_GMII_111MHZ		0
++#define S6_GREG1_PLLSEL_GMII_IOREF		1
++#define S6_GREG1_PLLSEL_GMII_NONE		2
++#define S6_GREG1_PLLSEL_GMII_125MHZ		3
++#define S6_GREG1_PLLSEL_GMII_MASK		3
++#define S6_GREG1_SYSUNLOCKCNT	0x020
++#define S6_GREG1_IOUNLOCKCNT	0x024
++#define S6_GREG1_AIMUNLOCKCNT	0x028
++#define S6_GREG1_DP0UNLOCKCNT	0x02C
++#define S6_GREG1_DP2UNLOCKCNT	0x030
++#define S6_GREG1_DDRUNLOCKCNT	0x034
++#define S6_GREG1_CLKBAL0	0x040
++#define S6_GREG1_CLKBAL0_LSGB		0
++#define S6_GREG1_CLKBAL0_LSPX		8
++#define S6_GREG1_CLKBAL0_MEMDO		16
++#define S6_GREG1_CLKBAL0_HSXT1		24
++#define S6_GREG1_CLKBAL1	0x044
++#define S6_GREG1_CLKBAL1_HSISEF		0
++#define S6_GREG1_CLKBAL1_HSNI		8
++#define S6_GREG1_CLKBAL1_HSNS		16
++#define S6_GREG1_CLKBAL1_HSISEFCFG	24
++#define S6_GREG1_CLKBAL2	0x048
++#define S6_GREG1_CLKBAL2_LSNB		0
++#define S6_GREG1_CLKBAL2_LSSB		8
++#define S6_GREG1_CLKBAL2_LSREST		24
++#define S6_GREG1_CLKBAL3	0x04C
++#define S6_GREG1_CLKBAL3_ISEFXAD	0
++#define S6_GREG1_CLKBAL3_ISEFLMS	8
++#define S6_GREG1_CLKBAL3_ISEFISEF	16
++#define S6_GREG1_CLKBAL3_DDRDD		24
++#define S6_GREG1_CLKBAL4	0x050
++#define S6_GREG1_CLKBAL4_DDRDP		0
++#define S6_GREG1_CLKBAL4_DDRDO		8
++#define S6_GREG1_CLKBAL4_DDRNB		16
++#define S6_GREG1_CLKBAL4_DDRLMS		24
++#define S6_GREG1_BLOCKENA	0x100
++#define S6_GREG1_BLOCK_DDR		0
++#define S6_GREG1_BLOCK_DP		1
++#define S6_GREG1_BLOCK_NSNI		2
++#define S6_GREG1_BLOCK_PCIE		3
++#define S6_GREG1_BLOCK_GMAC		4
++#define S6_GREG1_BLOCK_I2S		5
++#define S6_GREG1_BLOCK_EGIB		6
++#define S6_GREG1_BLOCK_SB		7
++#define S6_GREG1_BLOCK_XT1		8
++#define S6_GREG1_CLKGATE	0x104
++#define S6_GREG1_BGATE_AIMNORTH		9
++#define S6_GREG1_BGATE_AIMEAST		10
++#define S6_GREG1_BGATE_AIMWEST		11
++#define S6_GREG1_BGATE_AIMSOUTH		12
++#define S6_GREG1_CHIPRES	0x108
++#define S6_GREG1_CHIPRES_SOFTRES	0
++#define S6_GREG1_CHIPRES_LOSTLOCK	1
++#define S6_GREG1_RESETCAUSE	0x10C
++#define S6_GREG1_RESETCAUSE_RESETN	0
++#define S6_GREG1_RESETCAUSE_GLOBAL	1
++#define S6_GREG1_RESETCAUSE_WDOGTIMER	2
++#define S6_GREG1_RESETCAUSE_SWCHIP	3
++#define S6_GREG1_RESETCAUSE_PLLSYSLOSS	4
++#define S6_GREG1_RESETCAUSE_PCIE	5
++#define S6_GREG1_RESETCAUSE_CREATEDGLOB	6
++#define S6_GREG1_REFCLOCKCNT	0x110
++#define S6_GREG1_RESETTIMER	0x114
++#define S6_GREG1_NMITIMER	0x118
++#define S6_GREG1_GLOBAL_TIMER	0x11C
++#define S6_GREG1_TIMER0		0x180
++#define S6_GREG1_TIMER1		0x184
++#define S6_GREG1_UARTCLOCKSEL	0x204
++#define S6_GREG1_CHIPVERSPACKG	0x208
++#define S6_GREG1_CHIPVERSPACKG_CHIPVID	0
++#define S6_GREG1_CHIPVERSPACKG_PACKSEL	8
++#define S6_GREG1_ONDIETERMCTRL	0x20C
++#define S6_GREG1_ONDIETERMCTRL_WEST	0
++#define S6_GREG1_ONDIETERMCTRL_NORTH	2
++#define S6_GREG1_ONDIETERMCTRL_EAST	4
++#define S6_GREG1_ONDIETERMCTRL_SOUTH	6
++#define S6_GREG1_ONDIETERMCTRL_NONE		0
++#define S6_GREG1_ONDIETERMCTRL_75OHM		2
++#define S6_GREG1_ONDIETERMCTRL_MASK		3
++#define S6_GREG1_BOOT_CFG0	0x210
++#define S6_GREG1_BOOT_CFG0_AIMSTRONG	1
++#define S6_GREG1_BOOT_CFG0_MINIBOOTDL	2
++#define S6_GREG1_BOOT_CFG0_OCDGPIO8SET	5
++#define S6_GREG1_BOOT_CFG0_OCDGPIOENA	6
++#define S6_GREG1_BOOT_CFG0_DOWNSTREAM	7
++#define S6_GREG1_BOOT_CFG0_PLLSYSDIV	8
++#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_300MHZ	1
++#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_240MHZ	2
++#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_200MHZ	3
++#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_150MHZ	4
++#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_120MHZ	5
++#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_40MHZ	6
++#define S6_GREG1_BOOT_CFG0_PLLSYSDIV_MASK	7
++#define S6_GREG1_BOOT_CFG0_BALHSLMS	12
++#define S6_GREG1_BOOT_CFG0_BALHSNB	18
++#define S6_GREG1_BOOT_CFG0_BALHSXAD	24
++#define S6_GREG1_BOOT_CFG1	0x214
++#define S6_GREG1_BOOT_CFG1_PCIE1LANE	1
++#define S6_GREG1_BOOT_CFG1_MPLLPRESCALE	2
++#define S6_GREG1_BOOT_CFG1_MPLLNCY	4
++#define S6_GREG1_BOOT_CFG1_MPLLNCY5	9
++#define S6_GREG1_BOOT_CFG1_BALHSREST	14
++#define S6_GREG1_BOOT_CFG1_BALHSPSMEMS	20
++#define S6_GREG1_BOOT_CFG1_BALLSGI	26
++#define S6_GREG1_BOOT_CFG2	0x218
++#define S6_GREG1_BOOT_CFG2_PEID		0
++#define S6_GREG1_BOOT_CFG3	0x21C
++#define S6_GREG1_DRAMBUSYHOLDOF	0x220
++#define S6_GREG1_DRAMBUSYHOLDOF_XT0	0
++#define S6_GREG1_DRAMBUSYHOLDOF_XT1	4
++#define S6_GREG1_DRAMBUSYHOLDOF_XT_MASK		7
++#define S6_GREG1_PCIEBAR1SIZE	0x224
++#define S6_GREG1_PCIEBAR2SIZE	0x228
++#define S6_GREG1_PCIEVENDOR	0x22C
++#define S6_GREG1_PCIEDEVICE	0x230
++#define S6_GREG1_PCIEREV	0x234
++#define S6_GREG1_PCIECLASS	0x238
++#define S6_GREG1_XT1DCACHEMISS	0x240
++#define S6_GREG1_XT1ICACHEMISS	0x244
++#define S6_GREG1_HWSEMAPHORE(n)	(0x400 + 4 * (n))
++#define S6_GREG1_HWSEMAPHORE_NB		16
++
++/* peripheral interrupt numbers */
++
++#define S6_INTC_GPIO(n)			(n)		/* 0..3 */
++#define S6_INTC_I2C			4
++#define S6_INTC_SPI			5
++#define S6_INTC_NB_ERR			6
++#define S6_INTC_DMA_LMSERR		7
++#define S6_INTC_DMA_LMSLOWWMRK(n)	(8 + (n))	/* 0..11 */
++#define S6_INTC_DMA_LMSPENDCNT(n)	(20 + (n))	/* 0..11 */
++#define S6_INTC_DMA HOSTLOWWMRK(n)	(32 + (n))	/* 0..6 */
++#define S6_INTC_DMA_HOSTPENDCNT(n)	(39 + (n))	/* 0..6 */
++#define S6_INTC_DMA_HOSTERR		46
++#define S6_INTC_UART(n)			(47 + (n))	/* 0..1 */
++#define S6_INTC_XAD			49
++#define S6_INTC_NI_ERR			50
++#define S6_INTC_NI_INFIFOFULL		51
++#define S6_INTC_DMA_NIERR		52
++#define S6_INTC_DMA_NILOWWMRK(n)	(53 + (n))	/* 0..3 */
++#define S6_INTC_DMA_NIPENDCNT(n)	(57 + (n))	/* 0..3 */
++#define S6_INTC_DDR			61
++#define S6_INTC_NS_ERR			62
++#define S6_INTC_EFI_CFGERR		63
++#define S6_INTC_EFI_ISEFTEST		64
++#define S6_INTC_EFI_WRITEERR		65
++#define S6_INTC_NMI_TIMER		66
++#define S6_INTC_PLLLOCK_SYS		67
++#define S6_INTC_PLLLOCK_IO		68
++#define S6_INTC_PLLLOCK_AIM		69
++#define S6_INTC_PLLLOCK_DP0		70
++#define S6_INTC_PLLLOCK_DP2		71
++#define S6_INTC_I2S_ERR			72
++#define S6_INTC_GMAC_STAT		73
++#define S6_INTC_GMAC_ERR		74
++#define S6_INTC_GIB_ERR			75
++#define S6_INTC_PCIE_ERR		76
++#define S6_INTC_PCIE_MSI(n)		(77 + (n))	/* 0..3 */
++#define S6_INTC_PCIE_INTA		81
++#define S6_INTC_PCIE_INTB		82
++#define S6_INTC_PCIE_INTC		83
++#define S6_INTC_PCIE_INTD		84
++#define S6_INTC_SW(n)			(85 + (n))	/* 0..9 */
++#define S6_INTC_SW_ENABLE(n)		(85 + 256 + (n))
++#define S6_INTC_DMA_DP_ERR		95
++#define S6_INTC_DMA_DPLOWWMRK(n)	(96 + (n))	/* 0..3 */
++#define S6_INTC_DMA_DPPENDCNT(n)	(100 + (n))	/* 0..3 */
++#define S6_INTC_DMA_DPTERMCNT(n)	(104 + (n))	/* 0..3 */
++#define S6_INTC_TIMER0			108
++#define S6_INTC_TIMER1			109
++#define S6_INTC_DMA_HOSTTERMCNT(n)	(110 + (n))	/* 0..6 */
++
++#endif /* __XTENSA_S6000_HARDWARE_H */
+diff -puN /dev/null arch/xtensa/variants/s6000/include/variant/irq.h
+--- /dev/null
++++ a/arch/xtensa/variants/s6000/include/variant/irq.h
+@@ -0,0 +1,9 @@
++#ifndef __XTENSA_S6000_IRQ_H
++#define __XTENSA_S6000_IRQ_H
++
++#define NO_IRQ		(-1)
++
++extern void variant_irq_enable(unsigned int irq);
++extern void variant_irq_disable(unsigned int irq);
++
++#endif /* __XTENSA_S6000_IRQ_H */
+diff -puN /dev/null arch/xtensa/variants/s6000/irq.c
+--- /dev/null
++++ a/arch/xtensa/variants/s6000/irq.c
+@@ -0,0 +1,74 @@
 +/*
-+ * Called with irqs disabled, returns true if childs should reap themselves.
-+ */
-+static int ignoring_children(struct sighand_struct *sigh)
-+{
-+	int ret;
-+	spin_lock(&sigh->siglock);
-+	ret = (sigh->action[SIGCHLD-1].sa.sa_handler == SIG_IGN) ||
-+	      (sigh->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT);
-+	spin_unlock(&sigh->siglock);
-+	return ret;
-+}
-+
-+/*
-+ * Called with tasklist_lock held for writing.
-+ * Unlink a traced task, and clean it up if it was a traced zombie.
-+ * Return true if it needs to be reaped with release_task().
-+ * (We can't call release_task() here because we already hold tasklist_lock.)
++ * s6000 irq crossbar
 + *
-+ * If it's a zombie, our attachedness prevented normal parent notification
-+ * or self-reaping.  Do notification now if it would have happened earlier.
-+ * If it should reap itself, return true.
-+ *
-+ * If it's our own child, there is no notification to do.
-+ * But if our normal children self-reap, then this child
-+ * was prevented by ptrace and we must reap it now.
++ * Copyright (c) 2009 emlix GmbH
++ * Authors:	Johannes Weiner <jw@emlix.com>
++ *		Oskar Schirmer <os@emlix.com>
 + */
-+static bool __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
-+{
-+	__ptrace_unlink(p);
++#include <linux/io.h>
++#include <asm/irq.h>
++#include <variant/hardware.h>
 +
-+	if (p->exit_state == EXIT_ZOMBIE) {
-+		if (!task_detached(p) && thread_group_empty(p)) {
-+			if (!same_thread_group(p->real_parent, tracer))
-+				do_notify_parent(p, p->exit_signal);
-+			else if (ignoring_children(tracer->sighand))
-+				p->exit_signal = -1;
-+		}
-+		if (task_detached(p)) {
-+			/* Mark it as in the process of being reaped. */
-+			p->exit_state = EXIT_DEAD;
-+			return true;
-+		}
-+	}
++/* S6_REG_INTC */
++#define INTC_STATUS	0x000
++#define INTC_RAW	0x010
++#define INTC_STATUS_AG	0x100
++#define INTC_CFG(n)	(0x200 + 4 * (n))
 +
-+	return false;
-+}
-+
- int ptrace_detach(struct task_struct *child, unsigned int data)
- {
--	int dead = 0;
-+	bool dead = false;
- 
- 	if (!valid_signal(data))
- 		return -EIO;
-@@ -247,7 +295,10 @@ int ptrace_detach(struct task_struct *ch
- 	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
- 
- 	write_lock_irq(&tasklist_lock);
--	/* protect against de_thread()->release_task() */
-+	/*
-+	 * This child can be already killed. Make sure de_thread() or
-+	 * our sub-thread doing do_wait() didn't do release_task() yet.
-+	 */
- 	if (child->ptrace) {
- 		child->exit_code = data;
- 
-@@ -264,6 +315,29 @@ int ptrace_detach(struct task_struct *ch
- 	return 0;
- }
- 
 +/*
-+ * Detach all tasks we were using ptrace on.
++ * The s6000 has a crossbar that multiplexes interrupt output lines
++ * from the peripherals to input lines on the xtensa core.
++ *
++ * We leave the mapping decisions to the platform as it depends on the
++ * actually connected peripherals which distribution makes sense.
 + */
-+void exit_ptrace(struct task_struct *tracer)
++extern const signed char *platform_irq_mappings[NR_IRQS];
++
++static unsigned long scp_to_intc_enable[] = {
++#define	TO_INTC_ENABLE(n)	(((n) << 1) + 1)
++	TO_INTC_ENABLE(0),
++	TO_INTC_ENABLE(1),
++	TO_INTC_ENABLE(2),
++	TO_INTC_ENABLE(3),
++	TO_INTC_ENABLE(4),
++	TO_INTC_ENABLE(5),
++	TO_INTC_ENABLE(6),
++	TO_INTC_ENABLE(7),
++	TO_INTC_ENABLE(8),
++	TO_INTC_ENABLE(9),
++	TO_INTC_ENABLE(10),
++	TO_INTC_ENABLE(11),
++	TO_INTC_ENABLE(12),
++	-1,
++	-1,
++	TO_INTC_ENABLE(13),
++	-1,
++	TO_INTC_ENABLE(14),
++	-1,
++	TO_INTC_ENABLE(15),
++#undef	TO_INTC_ENABLE
++};
++
++static void irq_set(unsigned int irq, int enable)
 +{
-+	struct task_struct *p, *n;
-+	LIST_HEAD(ptrace_dead);
++	unsigned long en;
++	const signed char *m = platform_irq_mappings[irq];
 +
-+	write_lock_irq(&tasklist_lock);
-+	list_for_each_entry_safe(p, n, &tracer->ptraced, ptrace_entry) {
-+		if (__ptrace_detach(tracer, p))
-+			list_add(&p->ptrace_entry, &ptrace_dead);
-+	}
-+	write_unlock_irq(&tasklist_lock);
-+
-+	BUG_ON(!list_empty(&tracer->ptraced));
-+
-+	list_for_each_entry_safe(p, n, &ptrace_dead, ptrace_entry) {
-+		list_del_init(&p->ptrace_entry);
-+		release_task(p);
++	if (!m)
++		return;
++	en = enable ? scp_to_intc_enable[irq] : 0;
++	while (*m >= 0) {
++		writel(en, S6_REG_INTC + INTC_CFG(*m));
++		m++;
 +	}
 +}
 +
- int ptrace_readdata(struct task_struct *tsk, unsigned long src, char __user *dst, int len)
- {
- 	int copied = 0;
++void variant_irq_enable(unsigned int irq)
++{
++	irq_set(irq, 1);
++}
++
++void variant_irq_disable(unsigned int irq)
++{
++	irq_set(irq, 0);
++}
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jw@emlix.com are
 
 origin.patch
-linux-next.patch
-getrusage-fill-ru_maxrss-value.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-signals-tracehook_notify_jctl-change.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+xtensa-variant-specific-code.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+flat-fix-data-sections-alignment.patch
 
