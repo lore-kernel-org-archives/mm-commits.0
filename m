@@ -1,410 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] simplify-copy_thread.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:33:21 -0700
-Message-ID: <200904061933.n36JXLHb011071@imap1.linux-foundation.org>
+Subject: [merged] gpio-gpio_requestfree-now-required-feature-removal.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:33:33 -0700
+Message-ID: <200904061933.n36JXXHA011140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48048 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754750AbZDFTfZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:35:25 -0400
+	by vger.kernel.org with ESMTP id S1751569AbZDFTfc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 15:35:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Simplify copy_thread()
+     gpio: gpio_{request,free}() now required (feature removal)
 has been removed from the -mm tree.  Its filename was
-     simplify-copy_thread.patch
+     gpio-gpio_requestfree-now-required-feature-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Simplify copy_thread()
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: gpio: gpio_{request,free}() now required (feature removal)
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-First argument unused since 2.3.11.
+We want to phase out the GPIO "autorequest" mechanism in gpiolib and
+require all callers to use gpio_request().
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <linux-arch@vger.kernel.org>
+ - Update feature-removal-schedule
+ - Update the documentation now
+ - Convert the relevant pr_warning() in gpiolib to a WARN()
+   so folk using this mechanism get a noisy stack dump
+
+Some drivers and board init code will probably need to change. 
+Implementations not using gpiolib will still be fine; they are already
+required to implement gpio_{request,free}() stubs.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/process.c         |    2 +-
- arch/arm/kernel/process.c           |    2 +-
- arch/avr32/kernel/process.c         |    2 +-
- arch/blackfin/kernel/process.c      |    2 +-
- arch/cris/arch-v10/kernel/process.c |    2 +-
- arch/cris/arch-v32/kernel/process.c |    2 +-
- arch/frv/kernel/process.c           |    2 +-
- arch/h8300/kernel/process.c         |    2 +-
- arch/ia64/kernel/process.c          |    2 +-
- arch/m32r/kernel/process.c          |    2 +-
- arch/m68k/kernel/process.c          |    2 +-
- arch/m68knommu/kernel/process.c     |    2 +-
- arch/mips/kernel/process.c          |    2 +-
- arch/mn10300/kernel/process.c       |    2 +-
- arch/parisc/kernel/process.c        |    2 +-
- arch/powerpc/kernel/process.c       |    2 +-
- arch/s390/kernel/process.c          |    2 +-
- arch/sh/kernel/process_32.c         |    2 +-
- arch/sh/kernel/process_64.c         |    2 +-
- arch/sparc/kernel/process_32.c      |    2 +-
- arch/sparc/kernel/process_64.c      |    2 +-
- arch/um/kernel/process.c            |    2 +-
- arch/x86/kernel/process_32.c        |    2 +-
- arch/x86/kernel/process_64.c        |    2 +-
- arch/xtensa/kernel/process.c        |    2 +-
- include/linux/sched.h               |    3 ++-
- kernel/fork.c                       |    2 +-
- 27 files changed, 28 insertions(+), 27 deletions(-)
+ Documentation/feature-removal-schedule.txt |   10 ++++++++
+ Documentation/gpio.txt                     |   23 +++++++------------
+ drivers/gpio/gpiolib.c                     |   12 ++++++---
+ 3 files changed, 27 insertions(+), 18 deletions(-)
 
-diff -puN arch/alpha/kernel/process.c~simplify-copy_thread arch/alpha/kernel/process.c
---- a/arch/alpha/kernel/process.c~simplify-copy_thread
-+++ a/arch/alpha/kernel/process.c
-@@ -272,7 +272,7 @@ alpha_vfork(struct pt_regs *regs)
+diff -puN Documentation/feature-removal-schedule.txt~gpio-gpio_requestfree-now-required-feature-removal Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~gpio-gpio_requestfree-now-required-feature-removal
++++ a/Documentation/feature-removal-schedule.txt
+@@ -255,6 +255,16 @@ Who:	Jan Engelhardt <jengelh@computergmb
+ 
+ ---------------------------
+ 
++What:	GPIO autorequest on gpio_direction_{input,output}() in gpiolib
++When:	February 2010
++Why:	All callers should use explicit gpio_request()/gpio_free().
++	The autorequest mechanism in gpiolib was provided mostly as a
++	migration aid for legacy GPIO interfaces (for SOC based GPIOs).
++	Those users have now largely migrated.  Platforms implementing
++	the GPIO interfaces without using gpiolib will see no changes.
++Who:	David Brownell <dbrownell@users.sourceforge.net>
++---------------------------
++
+ What:	b43 support for firmware revision < 410
+ When:	The schedule was July 2008, but it was decided that we are going to keep the
+         code as long as there are no major maintanance headaches.
+diff -puN Documentation/gpio.txt~gpio-gpio_requestfree-now-required-feature-removal Documentation/gpio.txt
+--- a/Documentation/gpio.txt~gpio-gpio_requestfree-now-required-feature-removal
++++ a/Documentation/gpio.txt
+@@ -123,7 +123,10 @@ platform-specific implementation issue.
+ 
+ Using GPIOs
+ -----------
+-One of the first things to do with a GPIO, often in board setup code when
++The first thing a system should do with a GPIO is allocate it, using
++the gpio_request() call; see later.
++
++One of the next things to do with a GPIO, often in board setup code when
+ setting up a platform_device using the GPIO, is mark its direction:
+ 
+ 	/* set as input or output, returning 0 or negative errno */
+@@ -141,8 +144,8 @@ This helps avoid signal glitching during
+ 
+ For compatibility with legacy interfaces to GPIOs, setting the direction
+ of a GPIO implicitly requests that GPIO (see below) if it has not been
+-requested already.  That compatibility may be removed in the future;
+-explicitly requesting GPIOs is strongly preferred.
++requested already.  That compatibility is being removed from the optional
++gpiolib framework.
+ 
+ Setting the direction can fail if the GPIO number is invalid, or when
+ that particular GPIO can't be used in that mode.  It's generally a bad
+@@ -195,7 +198,7 @@ This requires sleeping, which can't be d
+ 
+ Platforms that support this type of GPIO distinguish them from other GPIOs
+ by returning nonzero from this call (which requires a valid GPIO number,
+-either explicitly or implicitly requested):
++which should have been previously allocated with gpio_request):
+ 
+ 	int gpio_cansleep(unsigned gpio);
+ 
+@@ -212,10 +215,9 @@ for GPIOs that can't be accessed from IR
+ same as the spinlock-safe calls.
+ 
+ 
+-Claiming and Releasing GPIOs (OPTIONAL)
+----------------------------------------
++Claiming and Releasing GPIOs
++----------------------------
+ To help catch system configuration errors, two calls are defined.
+-However, many platforms don't currently support this mechanism.
+ 
+ 	/* request GPIO, returning 0 or negative errno.
+ 	 * non-null labels may be useful for diagnostics.
+@@ -244,13 +246,6 @@ Some platforms may also use knowledge ab
+ power management, such as by powering down unused chip sectors and, more
+ easily, gating off unused clocks.
+ 
+-These two calls are optional because not not all current Linux platforms
+-offer such functionality in their GPIO support; a valid implementation
+-could return success for all gpio_request() calls.  Unlike the other calls,
+-the state they represent doesn't normally match anything from a hardware
+-register; it's just a software bitmap which clearly is not necessary for
+-correct operation of hardware or (bug free) drivers.
+-
+ Note that requesting a GPIO does NOT cause it to be configured in any
+ way; it just marks that GPIO as in use.  Separate code must handle any
+ pin setup (e.g. controlling which pin the GPIO uses, pullup/pulldown).
+diff -puN drivers/gpio/gpiolib.c~gpio-gpio_requestfree-now-required-feature-removal drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-gpio_requestfree-now-required-feature-removal
++++ a/drivers/gpio/gpiolib.c
+@@ -69,20 +69,24 @@ static inline void desc_set_label(struct
+  * those calls have no teeth) we can't avoid autorequesting.  This nag
+  * message should motivate switching to explicit requests... so should
+  * the weaker cleanup after faults, compared to gpio_request().
++ *
++ * NOTE: the autorequest mechanism is going away; at this point it's
++ * only "legal" in the sense that (old) code using it won't break yet,
++ * but instead only triggers a WARN() stack dump.
   */
- 
- int
--copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+copy_thread(unsigned long clone_flags, unsigned long usp,
- 	    unsigned long unused,
- 	    struct task_struct * p, struct pt_regs * regs)
+ static int gpio_ensure_requested(struct gpio_desc *desc, unsigned offset)
  {
-diff -puN arch/arm/kernel/process.c~simplify-copy_thread arch/arm/kernel/process.c
---- a/arch/arm/kernel/process.c~simplify-copy_thread
-+++ a/arch/arm/kernel/process.c
-@@ -301,7 +301,7 @@ void release_thread(struct task_struct *
- asmlinkage void ret_from_fork(void) __asm__("ret_from_fork");
+-	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
+-		struct gpio_chip *chip = desc->chip;
+-		int gpio = chip->base + offset;
++	const struct gpio_chip *chip = desc->chip;
++	const int gpio = chip->base + offset;
  
- int
--copy_thread(int nr, unsigned long clone_flags, unsigned long stack_start,
-+copy_thread(unsigned long clone_flags, unsigned long stack_start,
- 	    unsigned long stk_sz, struct task_struct *p, struct pt_regs *regs)
- {
- 	struct thread_info *thread = task_thread_info(p);
-diff -puN arch/avr32/kernel/process.c~simplify-copy_thread arch/avr32/kernel/process.c
---- a/arch/avr32/kernel/process.c~simplify-copy_thread
-+++ a/arch/avr32/kernel/process.c
-@@ -332,7 +332,7 @@ int dump_fpu(struct pt_regs *regs, elf_f
- 
- asmlinkage void ret_from_fork(void);
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+int copy_thread(unsigned long clone_flags, unsigned long usp,
- 		unsigned long unused,
- 		struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/blackfin/kernel/process.c~simplify-copy_thread arch/blackfin/kernel/process.c
---- a/arch/blackfin/kernel/process.c~simplify-copy_thread
-+++ a/arch/blackfin/kernel/process.c
-@@ -193,7 +193,7 @@ asmlinkage int bfin_clone(struct pt_regs
- }
- 
- int
--copy_thread(int nr, unsigned long clone_flags,
-+copy_thread(unsigned long clone_flags,
- 	    unsigned long usp, unsigned long topstk,
- 	    struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/cris/arch-v10/kernel/process.c~simplify-copy_thread arch/cris/arch-v10/kernel/process.c
---- a/arch/cris/arch-v10/kernel/process.c~simplify-copy_thread
-+++ a/arch/cris/arch-v10/kernel/process.c
-@@ -115,7 +115,7 @@ int kernel_thread(int (*fn)(void *), voi
-  */
- asmlinkage void ret_from_fork(void);
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+int copy_thread(unsigned long clone_flags, unsigned long usp,
- 		unsigned long unused,
- 		struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/cris/arch-v32/kernel/process.c~simplify-copy_thread arch/cris/arch-v32/kernel/process.c
---- a/arch/cris/arch-v32/kernel/process.c~simplify-copy_thread
-+++ a/arch/cris/arch-v32/kernel/process.c
-@@ -131,7 +131,7 @@ kernel_thread(int (*fn)(void *), void * 
- extern asmlinkage void ret_from_fork(void);
- 
- int
--copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+copy_thread(unsigned long clone_flags, unsigned long usp,
- 	unsigned long unused,
- 	struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/frv/kernel/process.c~simplify-copy_thread arch/frv/kernel/process.c
---- a/arch/frv/kernel/process.c~simplify-copy_thread
-+++ a/arch/frv/kernel/process.c
-@@ -204,7 +204,7 @@ void prepare_to_copy(struct task_struct 
- /*
-  * set up the kernel stack and exception frames for a new process
-  */
--int copy_thread(int nr, unsigned long clone_flags,
-+int copy_thread(unsigned long clone_flags,
- 		unsigned long usp, unsigned long topstk,
- 		struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/h8300/kernel/process.c~simplify-copy_thread arch/h8300/kernel/process.c
---- a/arch/h8300/kernel/process.c~simplify-copy_thread
-+++ a/arch/h8300/kernel/process.c
-@@ -191,7 +191,7 @@ asmlinkage int h8300_clone(struct pt_reg
- 
- }
- 
--int copy_thread(int nr, unsigned long clone_flags,
-+int copy_thread(unsigned long clone_flags,
-                 unsigned long usp, unsigned long topstk,
- 		 struct task_struct * p, struct pt_regs * regs)
- {
-diff -puN arch/ia64/kernel/process.c~simplify-copy_thread arch/ia64/kernel/process.c
---- a/arch/ia64/kernel/process.c~simplify-copy_thread
-+++ a/arch/ia64/kernel/process.c
-@@ -413,7 +413,7 @@ ia64_load_extra (struct task_struct *tas
-  * so there is nothing to worry about.
-  */
- int
--copy_thread (int nr, unsigned long clone_flags,
-+copy_thread(unsigned long clone_flags,
- 	     unsigned long user_stack_base, unsigned long user_stack_size,
- 	     struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/m32r/kernel/process.c~simplify-copy_thread arch/m32r/kernel/process.c
---- a/arch/m32r/kernel/process.c~simplify-copy_thread
-+++ a/arch/m32r/kernel/process.c
-@@ -225,7 +225,7 @@ int dump_fpu(struct pt_regs *regs, elf_f
- 	return 0; /* Task didn't use the fpu at all. */
- }
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long spu,
-+int copy_thread(unsigned long clone_flags, unsigned long spu,
- 	unsigned long unused, struct task_struct *tsk, struct pt_regs *regs)
- {
- 	struct pt_regs *childregs = task_pt_regs(tsk);
-diff -puN arch/m68k/kernel/process.c~simplify-copy_thread arch/m68k/kernel/process.c
---- a/arch/m68k/kernel/process.c~simplify-copy_thread
-+++ a/arch/m68k/kernel/process.c
-@@ -233,7 +233,7 @@ asmlinkage int m68k_clone(struct pt_regs
- 		       parent_tidptr, child_tidptr);
- }
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+int copy_thread(unsigned long clone_flags, unsigned long usp,
- 		 unsigned long unused,
- 		 struct task_struct * p, struct pt_regs * regs)
- {
-diff -puN arch/m68knommu/kernel/process.c~simplify-copy_thread arch/m68knommu/kernel/process.c
---- a/arch/m68knommu/kernel/process.c~simplify-copy_thread
-+++ a/arch/m68knommu/kernel/process.c
-@@ -199,7 +199,7 @@ asmlinkage int m68k_clone(struct pt_regs
-         return do_fork(clone_flags, newsp, regs, 0, NULL, NULL);
- }
- 
--int copy_thread(int nr, unsigned long clone_flags,
-+int copy_thread(unsigned long clone_flags,
- 		unsigned long usp, unsigned long topstk,
- 		struct task_struct * p, struct pt_regs * regs)
- {
-diff -puN arch/mips/kernel/process.c~simplify-copy_thread arch/mips/kernel/process.c
---- a/arch/mips/kernel/process.c~simplify-copy_thread
-+++ a/arch/mips/kernel/process.c
-@@ -99,7 +99,7 @@ void flush_thread(void)
- {
- }
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+int copy_thread(unsigned long clone_flags, unsigned long usp,
- 	unsigned long unused, struct task_struct *p, struct pt_regs *regs)
- {
- 	struct thread_info *ti = task_thread_info(p);
-diff -puN arch/mn10300/kernel/process.c~simplify-copy_thread arch/mn10300/kernel/process.c
---- a/arch/mn10300/kernel/process.c~simplify-copy_thread
-+++ a/arch/mn10300/kernel/process.c
-@@ -193,7 +193,7 @@ void prepare_to_copy(struct task_struct 
-  * set up the kernel stack for a new thread and copy arch-specific thread
-  * control information
-  */
--int copy_thread(int nr, unsigned long clone_flags,
-+int copy_thread(unsigned long clone_flags,
- 		unsigned long c_usp, unsigned long ustk_size,
- 		struct task_struct *p, struct pt_regs *kregs)
- {
-diff -puN arch/parisc/kernel/process.c~simplify-copy_thread arch/parisc/kernel/process.c
---- a/arch/parisc/kernel/process.c~simplify-copy_thread
-+++ a/arch/parisc/kernel/process.c
-@@ -263,7 +263,7 @@ sys_vfork(struct pt_regs *regs)
- }
- 
- int
--copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+copy_thread(unsigned long clone_flags, unsigned long usp,
- 	    unsigned long unused,	/* in ia64 this is "user_stack_size" */
- 	    struct task_struct * p, struct pt_regs * pregs)
- {
-diff -puN arch/powerpc/kernel/process.c~simplify-copy_thread arch/powerpc/kernel/process.c
---- a/arch/powerpc/kernel/process.c~simplify-copy_thread
-+++ a/arch/powerpc/kernel/process.c
-@@ -598,7 +598,7 @@ void prepare_to_copy(struct task_struct 
- /*
-  * Copy a thread..
-  */
--int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+int copy_thread(unsigned long clone_flags, unsigned long usp,
- 		unsigned long unused, struct task_struct *p,
- 		struct pt_regs *regs)
- {
-diff -puN arch/s390/kernel/process.c~simplify-copy_thread arch/s390/kernel/process.c
---- a/arch/s390/kernel/process.c~simplify-copy_thread
-+++ a/arch/s390/kernel/process.c
-@@ -160,7 +160,7 @@ void release_thread(struct task_struct *
- {
- }
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long new_stackp,
-+int copy_thread(unsigned long clone_flags, unsigned long new_stackp,
- 		unsigned long unused,
- 		struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/sh/kernel/process_32.c~simplify-copy_thread arch/sh/kernel/process_32.c
---- a/arch/sh/kernel/process_32.c~simplify-copy_thread
-+++ a/arch/sh/kernel/process_32.c
-@@ -170,7 +170,7 @@ int dump_fpu(struct pt_regs *regs, elf_f
- 
- asmlinkage void ret_from_fork(void);
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+int copy_thread(unsigned long clone_flags, unsigned long usp,
- 		unsigned long unused,
- 		struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/sh/kernel/process_64.c~simplify-copy_thread arch/sh/kernel/process_64.c
---- a/arch/sh/kernel/process_64.c~simplify-copy_thread
-+++ a/arch/sh/kernel/process_64.c
-@@ -425,7 +425,7 @@ int dump_fpu(struct pt_regs *regs, elf_f
- 
- asmlinkage void ret_from_fork(void);
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+int copy_thread(unsigned long clone_flags, unsigned long usp,
- 		unsigned long unused,
- 		struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/sparc/kernel/process_32.c~simplify-copy_thread arch/sparc/kernel/process_32.c
---- a/arch/sparc/kernel/process_32.c~simplify-copy_thread
-+++ a/arch/sparc/kernel/process_32.c
-@@ -455,7 +455,7 @@ asmlinkage int sparc_do_fork(unsigned lo
-  */
- extern void ret_from_fork(void);
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long sp,
-+int copy_thread(unsigned long clone_flags, unsigned long sp,
- 		unsigned long unused,
- 		struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/sparc/kernel/process_64.c~simplify-copy_thread arch/sparc/kernel/process_64.c
---- a/arch/sparc/kernel/process_64.c~simplify-copy_thread
-+++ a/arch/sparc/kernel/process_64.c
-@@ -561,7 +561,7 @@ asmlinkage long sparc_do_fork(unsigned l
-  * Parent -->  %o0 == childs  pid, %o1 == 0
-  * Child  -->  %o0 == parents pid, %o1 == 1
-  */
--int copy_thread(int nr, unsigned long clone_flags, unsigned long sp,
-+int copy_thread(unsigned long clone_flags, unsigned long sp,
- 		unsigned long unused,
- 		struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/um/kernel/process.c~simplify-copy_thread arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~simplify-copy_thread
-+++ a/arch/um/kernel/process.c
-@@ -179,7 +179,7 @@ void fork_handler(void)
- 	userspace(&current->thread.regs.regs);
- }
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long sp,
-+int copy_thread(unsigned long clone_flags, unsigned long sp,
- 		unsigned long stack_top, struct task_struct * p,
- 		struct pt_regs *regs)
- {
-diff -puN arch/x86/kernel/process_32.c~simplify-copy_thread arch/x86/kernel/process_32.c
---- a/arch/x86/kernel/process_32.c~simplify-copy_thread
-+++ a/arch/x86/kernel/process_32.c
-@@ -245,7 +245,7 @@ void prepare_to_copy(struct task_struct 
- 	unlazy_fpu(tsk);
- }
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long sp,
-+int copy_thread(unsigned long clone_flags, unsigned long sp,
- 	unsigned long unused,
- 	struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/x86/kernel/process_64.c~simplify-copy_thread arch/x86/kernel/process_64.c
---- a/arch/x86/kernel/process_64.c~simplify-copy_thread
-+++ a/arch/x86/kernel/process_64.c
-@@ -278,7 +278,7 @@ void prepare_to_copy(struct task_struct 
- 	unlazy_fpu(tsk);
- }
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long sp,
-+int copy_thread(unsigned long clone_flags, unsigned long sp,
- 		unsigned long unused,
- 	struct task_struct *p, struct pt_regs *regs)
- {
-diff -puN arch/xtensa/kernel/process.c~simplify-copy_thread arch/xtensa/kernel/process.c
---- a/arch/xtensa/kernel/process.c~simplify-copy_thread
-+++ a/arch/xtensa/kernel/process.c
-@@ -172,7 +172,7 @@ void prepare_to_copy(struct task_struct 
-  *       childregs.
-  */
- 
--int copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
-+int copy_thread(unsigned long clone_flags, unsigned long usp,
- 		unsigned long unused,
-                 struct task_struct * p, struct pt_regs * regs)
- {
-diff -puN include/linux/sched.h~simplify-copy_thread include/linux/sched.h
---- a/include/linux/sched.h~simplify-copy_thread
-+++ a/include/linux/sched.h
-@@ -1975,7 +1975,8 @@ extern void mm_release(struct task_struc
- /* Allocate a new mm structure and copy contents from tsk->mm */
- extern struct mm_struct *dup_mm(struct task_struct *tsk);
- 
--extern int  copy_thread(int, unsigned long, unsigned long, unsigned long, struct task_struct *, struct pt_regs *);
-+extern int copy_thread(unsigned long, unsigned long, unsigned long,
-+			struct task_struct *, struct pt_regs *);
- extern void flush_thread(void);
- extern void exit_thread(void);
- 
-diff -puN kernel/fork.c~simplify-copy_thread kernel/fork.c
---- a/kernel/fork.c~simplify-copy_thread
-+++ a/kernel/fork.c
-@@ -1125,7 +1125,7 @@ static struct task_struct *copy_process(
- 		goto bad_fork_cleanup_mm;
- 	if ((retval = copy_io(clone_flags, p)))
- 		goto bad_fork_cleanup_namespaces;
--	retval = copy_thread(0, clone_flags, stack_start, stack_size, p, regs);
-+	retval = copy_thread(clone_flags, stack_start, stack_size, p, regs);
- 	if (retval)
- 		goto bad_fork_cleanup_io;
- 
++	if (WARN(test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0,
++			"autorequest GPIO-%d\n", gpio)) {
+ 		if (!try_module_get(chip->owner)) {
+ 			pr_err("GPIO-%d: module can't be gotten \n", gpio);
+ 			clear_bit(FLAG_REQUESTED, &desc->flags);
+ 			/* lose */
+ 			return -EIO;
+ 		}
+-		pr_warning("GPIO-%d autorequested\n", gpio);
+ 		desc_set_label(desc, "[auto]");
+ 		/* caller must chip->request() w/o spinlock */
+ 		if (chip->request)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
 linux-next.patch
-sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
-sysctl-lockdep-support-for-sysctl-reference-counting.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
-namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-namespaces-mqueue-namespace-adapt-sysctl-update.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
+blackfin-spi-driver-remove-useless-asm-cplbinith.patch
+blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
+blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
+blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
+blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
+blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
+blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
+blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
+spi-limit-reaches-1-tested-0.patch
 
