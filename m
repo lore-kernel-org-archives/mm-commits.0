@@ -1,99 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpuset-remove-struct-cpuset_hotplug_scanner.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:35:04 -0700
-Message-ID: <200904061935.n36JZ4Rs011857@imap1.linux-foundation.org>
+Subject: [merged] cpumask-fix-slab-corruption-caused-by-alloc_cpumask_var_node.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:38:52 -0700
+Message-ID: <200904061938.n36Jcq7c013561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752563AbZDFU2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:28:51 -0400
+	by vger.kernel.org with ESMTP id S1753014AbZDFU3S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:29:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, a.p.zijlstra@chello.nl, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: steiner@sgi.com, mingo@elte.hu, rusty@rustcorp.com.au, sfr@canb.auug.org.au, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: remove struct cpuset_hotplug_scanner
+     cpumask: fix slab corruption caused by alloc_cpumask_var_node()
 has been removed from the -mm tree.  Its filename was
-     cpuset-remove-struct-cpuset_hotplug_scanner.patch
+     cpumask-fix-slab-corruption-caused-by-alloc_cpumask_var_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: remove struct cpuset_hotplug_scanner
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: cpumask: fix slab corruption caused by alloc_cpumask_var_node()
+From: Jack Steiner <steiner@sgi.com>
 
-Use cgroup_scanner.data, instead of introducing cpuset_hotplug_scanner.
+Fix slab corruption caused by alloc_cpumask_var_node() overwriting the
+tail end of an off-stack cpumask.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+The function zeros out cpumask bits beyond the last possible cpu.  The
+starting point for zeroing should be the beginning of the mask offset by a
+byte count derived from the number of possible cpus.  The offset was
+calculated in bits instead of bytes.  This resulted in overwriting the end
+of the cpumask.
+
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Acked-by: Mike Travis <travis.sgi.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: <stable@kernel.org>		[2.6.29.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ lib/cpumask.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-remove-struct-cpuset_hotplug_scanner kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-remove-struct-cpuset_hotplug_scanner
-+++ a/kernel/cpuset.c
-@@ -128,10 +128,6 @@ static inline struct cpuset *task_cs(str
- 	return container_of(task_subsys_state(task, cpuset_subsys_id),
- 			    struct cpuset, css);
- }
--struct cpuset_hotplug_scanner {
--	struct cgroup_scanner scan;
--	struct cgroup *to;
--};
+diff -puN lib/cpumask.c~cpumask-fix-slab-corruption-caused-by-alloc_cpumask_var_node lib/cpumask.c
+--- a/lib/cpumask.c~cpumask-fix-slab-corruption-caused-by-alloc_cpumask_var_node
++++ a/lib/cpumask.c
+@@ -109,10 +109,10 @@ bool alloc_cpumask_var_node(cpumask_var_
+ #endif
+ 	/* FIXME: Bandaid to save us from old primitives which go to NR_CPUS. */
+ 	if (*mask) {
++		unsigned char *ptr = (unsigned char *)cpumask_bits(*mask);
+ 		unsigned int tail;
+ 		tail = BITS_TO_LONGS(NR_CPUS - nr_cpumask_bits) * sizeof(long);
+-		memset(cpumask_bits(*mask) + cpumask_size() - tail,
+-		       0, tail);
++		memset(ptr + cpumask_size() - tail, 0, tail);
+ 	}
  
- /* bits in struct cpuset flags field */
- typedef enum {
-@@ -1890,10 +1886,9 @@ int __init cpuset_init(void)
- static void cpuset_do_move_task(struct task_struct *tsk,
- 				struct cgroup_scanner *scan)
- {
--	struct cpuset_hotplug_scanner *chsp;
-+	struct cgroup *new_cgroup = scan->data;
- 
--	chsp = container_of(scan, struct cpuset_hotplug_scanner, scan);
--	cgroup_attach_task(chsp->to, tsk);
-+	cgroup_attach_task(new_cgroup, tsk);
- }
- 
- /**
-@@ -1909,15 +1904,15 @@ static void cpuset_do_move_task(struct t
-  */
- static void move_member_tasks_to_cpuset(struct cpuset *from, struct cpuset *to)
- {
--	struct cpuset_hotplug_scanner scan;
-+	struct cgroup_scanner scan;
- 
--	scan.scan.cg = from->css.cgroup;
--	scan.scan.test_task = NULL; /* select all tasks in cgroup */
--	scan.scan.process_task = cpuset_do_move_task;
--	scan.scan.heap = NULL;
--	scan.to = to->css.cgroup;
-+	scan.cg = from->css.cgroup;
-+	scan.test_task = NULL; /* select all tasks in cgroup */
-+	scan.process_task = cpuset_do_move_task;
-+	scan.heap = NULL;
-+	scan.data = to->css.cgroup;
- 
--	if (cgroup_scan_tasks(&scan.scan))
-+	if (cgroup_scan_tasks(&scan))
- 		printk(KERN_ERR "move_member_tasks_to_cpuset: "
- 				"cgroup_scan_tasks failed\n");
- }
+ 	return *mask != NULL;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from steiner@sgi.com are
 
 origin.patch
-linux-next.patch
-cls_cgroup-remove-unneeded-cgroup_lock.patch
 
