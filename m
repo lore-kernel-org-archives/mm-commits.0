@@ -1,386 +1,286 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-use-css-id.patch removed from -mm tree
-Date: Mon, 06 Apr 2009 12:34:25 -0700
-Message-ID: <200904061934.n36JYPnP011631@imap1.linux-foundation.org>
+Subject: [merged] allow-rwlocks-to-re-enable-interrupts.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 12:38:48 -0700
+Message-ID: <200904061938.n36JcmXo013553__25974.3830691606$1239050290$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757565AbZDFUgB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:36:01 -0400
+	by vger.kernel.org with ESMTP id S1753996AbZDFUf6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 16:35:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: holt@sgi.com, a.p.zijlstra@chello.nl, linux-arch@vger.kernel.org, mingo@elte.hu, ptesarik@suse.cz, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: use CSS ID
+     Allow rwlocks to re-enable interrupts
 has been removed from the -mm tree.  Its filename was
-     memcg-use-css-id.patch
+     allow-rwlocks-to-re-enable-interrupts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: use CSS ID
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Allow rwlocks to re-enable interrupts
+From: Robin Holt <holt@sgi.com>
 
-Assigning CSS ID for each memcg and use css_get_next() for scanning hierarchy.
+Pass the original flags to rwlock arch-code, so that it can re-enable
+interrupts if implemented for that architecture.
 
-	Assume folloing tree.
+Initially, make __raw_read_lock_flags and __raw_write_lock_flags stubs
+which just do the same thing as non-flags variants.
 
-	group_A (ID=3)
-		/01 (ID=4)
-		   /0A (ID=7)
-		/02 (ID=10)
-	group_B (ID=5)
-	and task in group_A/01/0A hits limit at group_A.
-
-	reclaim will be done in following order (round-robin).
-	group_A(3) -> group_A/01 (4) -> group_A/01/0A (7) -> group_A/02(10)
-	-> group_A -> .....
-
-	Round robin by ID. The last visited cgroup is recorded and restart
-	from it when it start reclaim again.
-	(More smart algorithm can be implemented..)
-
-	No cgroup_mutex or hierarchy_mutex is required.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: <linux-arch@vger.kernel.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  220 +++++++++++++++++-----------------------------
- 1 file changed, 82 insertions(+), 138 deletions(-)
+ arch/alpha/include/asm/spinlock.h          |    3 +++
+ arch/arm/include/asm/spinlock.h            |    3 +++
+ arch/cris/include/arch-v32/arch/spinlock.h |    2 ++
+ arch/ia64/include/asm/spinlock.h           |    3 +++
+ arch/mips/include/asm/spinlock.h           |    2 ++
+ arch/parisc/include/asm/spinlock.h         |    3 +++
+ arch/powerpc/include/asm/spinlock.h        |    3 +++
+ arch/s390/include/asm/spinlock.h           |    3 +++
+ arch/sh/include/asm/spinlock.h             |    3 +++
+ arch/sparc/include/asm/spinlock_32.h       |    2 ++
+ arch/sparc/include/asm/spinlock_64.h       |    2 ++
+ arch/x86/include/asm/spinlock.h            |    3 +++
+ include/asm-m32r/spinlock.h                |    3 +++
+ include/linux/spinlock.h                   |    6 ++++++
+ kernel/spinlock.c                          |    6 ++++--
+ 15 files changed, 45 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-use-css-id mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-css-id
-+++ a/mm/memcontrol.c
-@@ -95,6 +95,15 @@ static s64 mem_cgroup_read_stat(struct m
+diff -puN arch/alpha/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/alpha/include/asm/spinlock.h
+--- a/arch/alpha/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/alpha/include/asm/spinlock.h
+@@ -166,6 +166,9 @@ static inline void __raw_write_unlock(ra
+ 	lock->lock = 0;
+ }
+ 
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
++
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+ #define _raw_write_relax(lock)	cpu_relax()
+diff -puN arch/arm/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/arm/include/asm/spinlock.h
+--- a/arch/arm/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/arm/include/asm/spinlock.h
+@@ -217,6 +217,9 @@ static inline int __raw_read_trylock(raw
+ /* read_can_lock - would read_trylock() succeed? */
+ #define __raw_read_can_lock(x)		((x)->lock < 0x80000000)
+ 
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
++
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+ #define _raw_write_relax(lock)	cpu_relax()
+diff -puN arch/cris/include/arch-v32/arch/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/cris/include/arch-v32/arch/spinlock.h
+--- a/arch/cris/include/arch-v32/arch/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/cris/include/arch-v32/arch/spinlock.h
+@@ -121,6 +121,8 @@ static  inline int __raw_write_trylock(r
+ 	return 1;
+ }
+ 
++#define _raw_read_lock_flags(lock, flags) _raw_read_lock(lock)
++#define _raw_write_lock_flags(lock, flags) _raw_write_lock(lock)
+ 
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+diff -puN arch/ia64/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/ia64/include/asm/spinlock.h
+--- a/arch/ia64/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/ia64/include/asm/spinlock.h
+@@ -213,6 +213,9 @@ static inline int __raw_read_trylock(raw
+ 	return (u32)ia64_cmpxchg4_acq((__u32 *)(x), new.word, old.word) == old.word;
+ }
+ 
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
++
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+ #define _raw_write_relax(lock)	cpu_relax()
+diff -puN arch/mips/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/mips/include/asm/spinlock.h
+--- a/arch/mips/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/mips/include/asm/spinlock.h
+@@ -480,6 +480,8 @@ static inline int __raw_write_trylock(ra
  	return ret;
  }
  
-+static s64 mem_cgroup_local_usage(struct mem_cgroup_stat *stat)
-+{
-+	s64 ret;
-+
-+	ret = mem_cgroup_read_stat(stat, MEM_CGROUP_STAT_CACHE);
-+	ret += mem_cgroup_read_stat(stat, MEM_CGROUP_STAT_RSS);
-+	return ret;
-+}
-+
- /*
-  * per-zone information in memory controller.
-  */
-@@ -154,9 +163,9 @@ struct mem_cgroup {
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
  
- 	/*
- 	 * While reclaiming in a hiearchy, we cache the last child we
--	 * reclaimed from. Protected by hierarchy_mutex
-+	 * reclaimed from.
- 	 */
--	struct mem_cgroup *last_scanned_child;
-+	int last_scanned_child;
- 	/*
- 	 * Should the accounting and control be hierarchical, per subtree?
- 	 */
-@@ -629,103 +638,6 @@ unsigned long mem_cgroup_isolate_pages(u
- #define mem_cgroup_from_res_counter(counter, member)	\
- 	container_of(counter, struct mem_cgroup, member)
- 
--/*
-- * This routine finds the DFS walk successor. This routine should be
-- * called with hierarchy_mutex held
-- */
--static struct mem_cgroup *
--__mem_cgroup_get_next_node(struct mem_cgroup *curr, struct mem_cgroup *root_mem)
--{
--	struct cgroup *cgroup, *curr_cgroup, *root_cgroup;
--
--	curr_cgroup = curr->css.cgroup;
--	root_cgroup = root_mem->css.cgroup;
--
--	if (!list_empty(&curr_cgroup->children)) {
--		/*
--		 * Walk down to children
--		 */
--		cgroup = list_entry(curr_cgroup->children.next,
--						struct cgroup, sibling);
--		curr = mem_cgroup_from_cont(cgroup);
--		goto done;
--	}
--
--visit_parent:
--	if (curr_cgroup == root_cgroup) {
--		/* caller handles NULL case */
--		curr = NULL;
--		goto done;
--	}
--
--	/*
--	 * Goto next sibling
--	 */
--	if (curr_cgroup->sibling.next != &curr_cgroup->parent->children) {
--		cgroup = list_entry(curr_cgroup->sibling.next, struct cgroup,
--						sibling);
--		curr = mem_cgroup_from_cont(cgroup);
--		goto done;
--	}
--
--	/*
--	 * Go up to next parent and next parent's sibling if need be
--	 */
--	curr_cgroup = curr_cgroup->parent;
--	goto visit_parent;
--
--done:
--	return curr;
--}
--
--/*
-- * Visit the first child (need not be the first child as per the ordering
-- * of the cgroup list, since we track last_scanned_child) of @mem and use
-- * that to reclaim free pages from.
-- */
--static struct mem_cgroup *
--mem_cgroup_get_next_node(struct mem_cgroup *root_mem)
--{
--	struct cgroup *cgroup;
--	struct mem_cgroup *orig, *next;
--	bool obsolete;
--
--	/*
--	 * Scan all children under the mem_cgroup mem
--	 */
--	mutex_lock(&mem_cgroup_subsys.hierarchy_mutex);
--
--	orig = root_mem->last_scanned_child;
--	obsolete = mem_cgroup_is_obsolete(orig);
--
--	if (list_empty(&root_mem->css.cgroup->children)) {
--		/*
--		 * root_mem might have children before and last_scanned_child
--		 * may point to one of them. We put it later.
--		 */
--		if (orig)
--			VM_BUG_ON(!obsolete);
--		next = NULL;
--		goto done;
--	}
--
--	if (!orig || obsolete) {
--		cgroup = list_first_entry(&root_mem->css.cgroup->children,
--				struct cgroup, sibling);
--		next = mem_cgroup_from_cont(cgroup);
--	} else
--		next = __mem_cgroup_get_next_node(orig, root_mem);
--
--done:
--	if (next)
--		mem_cgroup_get(next);
--	root_mem->last_scanned_child = next;
--	if (orig)
--		mem_cgroup_put(orig);
--	mutex_unlock(&mem_cgroup_subsys.hierarchy_mutex);
--	return (next) ? next : root_mem;
--}
--
- static bool mem_cgroup_check_under_limit(struct mem_cgroup *mem)
- {
- 	if (do_swap_account) {
-@@ -755,46 +667,79 @@ static unsigned int get_swappiness(struc
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+diff -puN arch/parisc/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/parisc/include/asm/spinlock.h
+--- a/arch/parisc/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/parisc/include/asm/spinlock.h
+@@ -187,6 +187,9 @@ static __inline__ int __raw_write_can_lo
+ 	return !rw->counter;
  }
  
- /*
-- * Dance down the hierarchy if needed to reclaim memory. We remember the
-- * last child we reclaimed from, so that we don't end up penalizing
-- * one child extensively based on its position in the children list.
-+ * Visit the first child (need not be the first child as per the ordering
-+ * of the cgroup list, since we track last_scanned_child) of @mem and use
-+ * that to reclaim free pages from.
-+ */
-+static struct mem_cgroup *
-+mem_cgroup_select_victim(struct mem_cgroup *root_mem)
-+{
-+	struct mem_cgroup *ret = NULL;
-+	struct cgroup_subsys_state *css;
-+	int nextid, found;
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
 +
-+	if (!root_mem->use_hierarchy) {
-+		css_get(&root_mem->css);
-+		ret = root_mem;
-+	}
-+
-+	while (!ret) {
-+		rcu_read_lock();
-+		nextid = root_mem->last_scanned_child + 1;
-+		css = css_get_next(&mem_cgroup_subsys, nextid, &root_mem->css,
-+				   &found);
-+		if (css && css_tryget(css))
-+			ret = container_of(css, struct mem_cgroup, css);
-+
-+		rcu_read_unlock();
-+		/* Updates scanning parameter */
-+		spin_lock(&root_mem->reclaim_param_lock);
-+		if (!css) {
-+			/* this means start scan from ID:1 */
-+			root_mem->last_scanned_child = 0;
-+		} else
-+			root_mem->last_scanned_child = found;
-+		spin_unlock(&root_mem->reclaim_param_lock);
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-+ * Scan the hierarchy if needed to reclaim memory. We remember the last child
-+ * we reclaimed from, so that we don't end up penalizing one child extensively
-+ * based on its position in the children list.
-  *
-  * root_mem is the original ancestor that we've been reclaim from.
-+ *
-+ * We give up and return to the caller when we visit root_mem twice.
-+ * (other groups can be removed while we're walking....)
-  */
- static int mem_cgroup_hierarchical_reclaim(struct mem_cgroup *root_mem,
- 						gfp_t gfp_mask, bool noswap)
- {
--	struct mem_cgroup *next_mem;
--	int ret = 0;
--
--	/*
--	 * Reclaim unconditionally and don't check for return value.
--	 * We need to reclaim in the current group and down the tree.
--	 * One might think about checking for children before reclaiming,
--	 * but there might be left over accounting, even after children
--	 * have left.
--	 */
--	ret += try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap,
--					   get_swappiness(root_mem));
--	if (mem_cgroup_check_under_limit(root_mem))
--		return 1;	/* indicate reclaim has succeeded */
--	if (!root_mem->use_hierarchy)
--		return ret;
--
--	next_mem = mem_cgroup_get_next_node(root_mem);
--
--	while (next_mem != root_mem) {
--		if (mem_cgroup_is_obsolete(next_mem)) {
--			next_mem = mem_cgroup_get_next_node(root_mem);
-+	struct mem_cgroup *victim;
-+	int ret, total = 0;
-+	int loop = 0;
-+
-+	while (loop < 2) {
-+		victim = mem_cgroup_select_victim(root_mem);
-+		if (victim == root_mem)
-+			loop++;
-+		if (!mem_cgroup_local_usage(&victim->stat)) {
-+			/* this cgroup's local usage == 0 */
-+			css_put(&victim->css);
- 			continue;
- 		}
--		ret += try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap,
--						   get_swappiness(next_mem));
-+		/* we use swappiness of local cgroup */
-+		ret = try_to_free_mem_cgroup_pages(victim, gfp_mask, noswap,
-+						   get_swappiness(victim));
-+		css_put(&victim->css);
-+		total += ret;
- 		if (mem_cgroup_check_under_limit(root_mem))
--			return 1;	/* indicate reclaim has succeeded */
--		next_mem = mem_cgroup_get_next_node(root_mem);
-+			return 1 + total;
- 	}
--	return ret;
-+	return total;
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+ #define _raw_write_relax(lock)	cpu_relax()
+diff -puN arch/powerpc/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/powerpc/include/asm/spinlock.h
+--- a/arch/powerpc/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/powerpc/include/asm/spinlock.h
+@@ -287,6 +287,9 @@ static inline void __raw_write_unlock(ra
+ 	rw->lock = 0;
  }
  
- bool mem_cgroup_oom_called(struct task_struct *task)
-@@ -1324,8 +1269,8 @@ __mem_cgroup_uncharge_common(struct page
- 	res_counter_uncharge(&mem->res, PAGE_SIZE);
- 	if (do_swap_account && (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
- 		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
--
- 	mem_cgroup_charge_statistics(mem, pc, false);
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
 +
- 	ClearPageCgroupUsed(pc);
- 	/*
- 	 * pc->mem_cgroup is not cleared here. It will be accessed when it's
-@@ -2178,6 +2123,8 @@ static void __mem_cgroup_free(struct mem
- {
- 	int node;
- 
-+	free_css_id(&mem_cgroup_subsys, &mem->css);
-+
- 	for_each_node_state(node, N_POSSIBLE)
- 		free_mem_cgroup_per_zone_info(mem, node);
- 
-@@ -2228,11 +2175,12 @@ static struct cgroup_subsys_state * __re
- mem_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
- {
- 	struct mem_cgroup *mem, *parent;
-+	long error = -ENOMEM;
- 	int node;
- 
- 	mem = mem_cgroup_alloc();
- 	if (!mem)
--		return ERR_PTR(-ENOMEM);
-+		return ERR_PTR(error);
- 
- 	for_each_node_state(node, N_POSSIBLE)
- 		if (alloc_mem_cgroup_per_zone_info(mem, node))
-@@ -2260,7 +2208,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 		res_counter_init(&mem->res, NULL);
- 		res_counter_init(&mem->memsw, NULL);
- 	}
--	mem->last_scanned_child = NULL;
-+	mem->last_scanned_child = 0;
- 	spin_lock_init(&mem->reclaim_param_lock);
- 
- 	if (parent)
-@@ -2269,7 +2217,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 	return &mem->css;
- free_out:
- 	__mem_cgroup_free(mem);
--	return ERR_PTR(-ENOMEM);
-+	return ERR_PTR(error);
+ #define _raw_spin_relax(lock)	__spin_yield(lock)
+ #define _raw_read_relax(lock)	__rw_yield(lock)
+ #define _raw_write_relax(lock)	__rw_yield(lock)
+diff -puN arch/s390/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/s390/include/asm/spinlock.h
+--- a/arch/s390/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/s390/include/asm/spinlock.h
+@@ -172,6 +172,9 @@ static inline int __raw_write_trylock(ra
+ 	return _raw_write_trylock_retry(rw);
  }
  
- static int mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
-@@ -2284,12 +2232,7 @@ static void mem_cgroup_destroy(struct cg
- 				struct cgroup *cont)
- {
- 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
--	struct mem_cgroup *last_scanned_child = mem->last_scanned_child;
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
++
+ #define _raw_read_relax(lock)	cpu_relax()
+ #define _raw_write_relax(lock)	cpu_relax()
  
--	if (last_scanned_child) {
--		VM_BUG_ON(!mem_cgroup_is_obsolete(last_scanned_child));
--		mem_cgroup_put(last_scanned_child);
--	}
- 	mem_cgroup_put(mem);
+diff -puN arch/sh/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/sh/include/asm/spinlock.h
+--- a/arch/sh/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/sh/include/asm/spinlock.h
+@@ -216,6 +216,9 @@ static inline int __raw_write_trylock(ra
+ 	return (oldval > (RW_LOCK_BIAS - 1));
  }
  
-@@ -2328,6 +2271,7 @@ struct cgroup_subsys mem_cgroup_subsys =
- 	.populate = mem_cgroup_populate,
- 	.attach = mem_cgroup_move_task,
- 	.early_init = 0,
-+	.use_id = 1,
- };
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
++
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+ #define _raw_write_relax(lock)	cpu_relax()
+diff -puN arch/sparc/include/asm/spinlock_32.h~allow-rwlocks-to-re-enable-interrupts arch/sparc/include/asm/spinlock_32.h
+--- a/arch/sparc/include/asm/spinlock_32.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/sparc/include/asm/spinlock_32.h
+@@ -177,6 +177,8 @@ static inline int __read_trylock(raw_rwl
+ #define __raw_write_unlock(rw)	do { (rw)->lock = 0; } while(0)
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ #define __raw_spin_lock_flags(lock, flags) __raw_spin_lock(lock)
++#define __raw_read_lock_flags(rw, flags)   __raw_read_lock(rw)
++#define __raw_write_lock_flags(rw, flags)  __raw_write_lock(rw)
+ 
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+diff -puN arch/sparc/include/asm/spinlock_64.h~allow-rwlocks-to-re-enable-interrupts arch/sparc/include/asm/spinlock_64.h
+--- a/arch/sparc/include/asm/spinlock_64.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/sparc/include/asm/spinlock_64.h
+@@ -211,9 +211,11 @@ static int inline __write_trylock(raw_rw
+ }
+ 
+ #define __raw_read_lock(p)	__read_lock(p)
++#define __raw_read_lock_flags(p, f) __read_lock(p)
+ #define __raw_read_trylock(p)	__read_trylock(p)
+ #define __raw_read_unlock(p)	__read_unlock(p)
+ #define __raw_write_lock(p)	__write_lock(p)
++#define __raw_write_lock_flags(p, f) __write_lock(p)
+ #define __raw_write_unlock(p)	__write_unlock(p)
+ #define __raw_write_trylock(p)	__write_trylock(p)
+ 
+diff -puN arch/x86/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts arch/x86/include/asm/spinlock.h
+--- a/arch/x86/include/asm/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/arch/x86/include/asm/spinlock.h
+@@ -295,6 +295,9 @@ static inline void __raw_write_unlock(ra
+ 		     : "+m" (rw->lock) : "i" (RW_LOCK_BIAS) : "memory");
+ }
+ 
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
++
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+ #define _raw_write_relax(lock)	cpu_relax()
+diff -puN include/asm-m32r/spinlock.h~allow-rwlocks-to-re-enable-interrupts include/asm-m32r/spinlock.h
+--- a/include/asm-m32r/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/include/asm-m32r/spinlock.h
+@@ -316,6 +316,9 @@ static inline int __raw_write_trylock(ra
+ 	return 0;
+ }
+ 
++#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
++#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
++
+ #define _raw_spin_relax(lock)	cpu_relax()
+ #define _raw_read_relax(lock)	cpu_relax()
+ #define _raw_write_relax(lock)	cpu_relax()
+diff -puN include/linux/spinlock.h~allow-rwlocks-to-re-enable-interrupts include/linux/spinlock.h
+--- a/include/linux/spinlock.h~allow-rwlocks-to-re-enable-interrupts
++++ a/include/linux/spinlock.h
+@@ -153,9 +153,11 @@ do {								\
+  extern int _raw_spin_trylock(spinlock_t *lock);
+  extern void _raw_spin_unlock(spinlock_t *lock);
+  extern void _raw_read_lock(rwlock_t *lock);
++#define _raw_read_lock_flags(lock, flags) _raw_read_lock(lock)
+  extern int _raw_read_trylock(rwlock_t *lock);
+  extern void _raw_read_unlock(rwlock_t *lock);
+  extern void _raw_write_lock(rwlock_t *lock);
++#define _raw_write_lock_flags(lock, flags) _raw_write_lock(lock)
+  extern int _raw_write_trylock(rwlock_t *lock);
+  extern void _raw_write_unlock(rwlock_t *lock);
+ #else
+@@ -165,9 +167,13 @@ do {								\
+ # define _raw_spin_trylock(lock)	__raw_spin_trylock(&(lock)->raw_lock)
+ # define _raw_spin_unlock(lock)		__raw_spin_unlock(&(lock)->raw_lock)
+ # define _raw_read_lock(rwlock)		__raw_read_lock(&(rwlock)->raw_lock)
++# define _raw_read_lock_flags(lock, flags) \
++		__raw_read_lock_flags(&(lock)->raw_lock, *(flags))
+ # define _raw_read_trylock(rwlock)	__raw_read_trylock(&(rwlock)->raw_lock)
+ # define _raw_read_unlock(rwlock)	__raw_read_unlock(&(rwlock)->raw_lock)
+ # define _raw_write_lock(rwlock)	__raw_write_lock(&(rwlock)->raw_lock)
++# define _raw_write_lock_flags(lock, flags) \
++		__raw_write_lock_flags(&(lock)->raw_lock, *(flags))
+ # define _raw_write_trylock(rwlock)	__raw_write_trylock(&(rwlock)->raw_lock)
+ # define _raw_write_unlock(rwlock)	__raw_write_unlock(&(rwlock)->raw_lock)
+ #endif
+diff -puN kernel/spinlock.c~allow-rwlocks-to-re-enable-interrupts kernel/spinlock.c
+--- a/kernel/spinlock.c~allow-rwlocks-to-re-enable-interrupts
++++ a/kernel/spinlock.c
+@@ -121,7 +121,8 @@ unsigned long __lockfunc _read_lock_irqs
+ 	local_irq_save(flags);
+ 	preempt_disable();
+ 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
+-	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
++	LOCK_CONTENDED_FLAGS(lock, _raw_read_trylock, _raw_read_lock,
++			     _raw_read_lock_flags, &flags);
+ 	return flags;
+ }
+ EXPORT_SYMBOL(_read_lock_irqsave);
+@@ -151,7 +152,8 @@ unsigned long __lockfunc _write_lock_irq
+ 	local_irq_save(flags);
+ 	preempt_disable();
+ 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
+-	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
++	LOCK_CONTENDED_FLAGS(lock, _raw_write_trylock, _raw_write_lock,
++			     _raw_write_lock_flags, &flags);
+ 	return flags;
+ }
+ EXPORT_SYMBOL(_write_lock_irqsave);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
 origin.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-cleanup.patch
 
