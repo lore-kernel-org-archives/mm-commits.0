@@ -1,62 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi_imx-set-spi_masterdma_alignment-=-4.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:07:13 -0700
-Message-ID: <200904071907.n37J7DPI011198@imap1.linux-foundation.org>
+Subject: [merged] blackfin-serial-driver-update-kgdb-uart-config-name.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:10:03 -0700
+Message-ID: <200904071910.n37JA3mA012637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59662 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43047 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754925AbZDGT4g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:56:36 -0400
+	by vger.kernel.org with ESMTP id S1757831AbZDGT5S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:57:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike@compulab.co.il, bryan.wu@analog.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_imx: set spi_master.dma_alignment = 4
+     blackfin serial driver: update KGDB UART config name
 has been removed from the -mm tree.  Its filename was
-     spi_imx-set-spi_masterdma_alignment-=-4.patch
+     blackfin-serial-driver-update-kgdb-uart-config-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_imx: set spi_master.dma_alignment = 4
-From: Mike Rapoport <mike@compulab.co.il>
+Subject: blackfin serial driver: update KGDB UART config name
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_imx.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/serial/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_imx.c~spi_imx-set-spi_masterdma_alignment-=-4 drivers/spi/spi_imx.c
---- a/drivers/spi/spi_imx.c~spi_imx-set-spi_masterdma_alignment-=-4
-+++ a/drivers/spi/spi_imx.c
-@@ -186,6 +186,7 @@
- #define QUEUE_STOPPED			(1)
+diff -puN drivers/serial/Kconfig~blackfin-serial-driver-update-kgdb-uart-config-name drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~blackfin-serial-driver-update-kgdb-uart-config-name
++++ a/drivers/serial/Kconfig
+@@ -700,7 +700,7 @@ choice
  
- #define IS_DMA_ALIGNED(x) 		(((u32)(x) & 0x03) == 0)
-+#define DMA_ALIGNMENT			4
- /*-------------------------------------------------------------------------*/
- 
- 
-@@ -1482,6 +1483,7 @@ static int __init spi_imx_probe(struct p
- 
- 	master->bus_num = pdev->id;
- 	master->num_chipselect = platform_info->num_chipselect;
-+	master->dma_alignment = DMA_ALIGNMENT;
- 	master->cleanup = cleanup;
- 	master->setup = setup;
- 	master->transfer = transfer;
+ config SERIAL_BFIN_DMA
+ 	bool "DMA mode"
+-	depends on !DMA_UNCACHED_NONE && !KGDB_UART
++	depends on !DMA_UNCACHED_NONE && !KGDB_SERIAL_CONSOLE
+ 	help
+ 	  This driver works under DMA mode. If this option is selected, the
+ 	  blackfin simple dma driver is also enabled.
 _
 
-Patches currently in -mm which might be from mike@compulab.co.il are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
 origin.patch
 linux-next.patch
