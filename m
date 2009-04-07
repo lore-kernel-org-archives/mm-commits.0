@@ -1,851 +1,483 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-introduce-secondary-super-block.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:09:51 -0700
-Message-ID: <200904071909.n37J9plJ012548@imap1.linux-foundation.org>
+Subject: + sgi-xpc-implement-opencomplete-messaging.patch added to -mm tree
+Date: Tue, 07 Apr 2009 12:52:10 -0700
+Message-ID: <200904071952.n37JqBwi030225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751866AbZDGTxc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:53:32 -0400
+	by vger.kernel.org with ESMTP id S1754925AbZDGTy1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:54:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: holt@sgi.com, dcn@sgi.com
 
 
 The patch titled
-     nilfs2: introduce secondary super block
-has been removed from the -mm tree.  Its filename was
-     nilfs2-introduce-secondary-super-block.patch
+     sgi-xpc: implement opencomplete messaging
+has been added to the -mm tree.  Its filename is
+     sgi-xpc-implement-opencomplete-messaging.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: introduce secondary super block
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: sgi-xpc: implement opencomplete messaging
+From: Robin Holt <holt@sgi.com>
 
-The former versions didn't have extra super blocks.  This improves the
-weak point by introducing another super block at unused region in tail of
-the partition.
+sgi-xpc has a window of failure where an open message can be sent and a
+subsequent data message can get lost.  We have added a new message
+(opencomplete) which closes that window.
 
-This doesn't break disk format compatibility; older versions just ingore
-the secondary super block, and new versions just recover it if it doesn't
-exist.  The partition created by an old mkfs may not have unused region,
-but in that case, the secondary super block will not be added.
-
-This doesn't make more redundant copies of the super block; it is a future
-work.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/nilfs.h         |    7 -
- fs/nilfs2/recovery.c      |    1 
- fs/nilfs2/segment.c       |    8 -
- fs/nilfs2/segment.h       |    2 
- fs/nilfs2/super.c         |  229 ++++++++++++++----------------------
- fs/nilfs2/the_nilfs.c     |  180 ++++++++++++++++++++++++----
- fs/nilfs2/the_nilfs.h     |   18 ++
- include/linux/nilfs2_fs.h |    4 
- 8 files changed, 274 insertions(+), 175 deletions(-)
+ drivers/misc/sgi-xp/xpc.h         |   58 ++++++++++------
+ drivers/misc/sgi-xp/xpc_channel.c |   97 ++++++++++++++++------------
+ drivers/misc/sgi-xp/xpc_main.c    |    2 
+ drivers/misc/sgi-xp/xpc_sn2.c     |    8 ++
+ drivers/misc/sgi-xp/xpc_uv.c      |   22 ++++++
+ 5 files changed, 125 insertions(+), 62 deletions(-)
 
-diff -puN fs/nilfs2/nilfs.h~nilfs2-introduce-secondary-super-block fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-introduce-secondary-super-block
-+++ a/fs/nilfs2/nilfs.h
-@@ -275,13 +275,10 @@ extern void nilfs_error(struct super_blo
- extern void nilfs_warning(struct super_block *, const char *, const char *, ...)
-        __attribute__ ((format (printf, 3, 4)));
- extern struct nilfs_super_block *
--nilfs_load_super_block(struct super_block *, struct buffer_head **);
--extern struct nilfs_super_block *
--nilfs_reload_super_block(struct super_block *, struct buffer_head **, int);
-+nilfs_read_super_block(struct super_block *, u64, int, struct buffer_head **);
- extern int nilfs_store_magic_and_option(struct super_block *,
- 					struct nilfs_super_block *, char *);
--extern void nilfs_update_last_segment(struct nilfs_sb_info *, int);
--extern int nilfs_commit_super(struct nilfs_sb_info *);
-+extern int nilfs_commit_super(struct nilfs_sb_info *, int);
- extern int nilfs_attach_checkpoint(struct nilfs_sb_info *, __u64);
- extern void nilfs_detach_checkpoint(struct nilfs_sb_info *);
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xpc-implement-opencomplete-messaging drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xpc-implement-opencomplete-messaging
++++ a/drivers/misc/sgi-xp/xpc.h
+@@ -232,9 +232,10 @@ struct xpc_activate_mq_msghdr_uv {
+ #define XPC_ACTIVATE_MQ_MSG_CHCTL_CLOSEREPLY_UV		4
+ #define XPC_ACTIVATE_MQ_MSG_CHCTL_OPENREQUEST_UV	5
+ #define XPC_ACTIVATE_MQ_MSG_CHCTL_OPENREPLY_UV		6
++#define XPC_ACTIVATE_MQ_MSG_CHCTL_OPENCOMPLETE_UV	7
  
-diff -puN fs/nilfs2/recovery.c~nilfs2-introduce-secondary-super-block fs/nilfs2/recovery.c
---- a/fs/nilfs2/recovery.c~nilfs2-introduce-secondary-super-block
-+++ a/fs/nilfs2/recovery.c
-@@ -870,7 +870,6 @@ int nilfs_search_super_root(struct the_n
- 		if (scan_newer)
- 			ri->ri_need_recovery = NILFS_RECOVERY_SR_UPDATED;
- 		else {
--			nilfs->ns_prot_seq = ssi.seg_seq;
- 			if (nilfs->ns_mount_state & NILFS_VALID_FS)
- 				goto super_root_found;
- 			scan_newer = 1;
-diff -puN fs/nilfs2/segment.c~nilfs2-introduce-secondary-super-block fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-introduce-secondary-super-block
-+++ a/fs/nilfs2/segment.c
-@@ -2068,7 +2068,8 @@ static void nilfs_segctor_complete_write
+-#define XPC_ACTIVATE_MQ_MSG_MARK_ENGAGED_UV		7
+-#define XPC_ACTIVATE_MQ_MSG_MARK_DISENGAGED_UV		8
++#define XPC_ACTIVATE_MQ_MSG_MARK_ENGAGED_UV		8
++#define XPC_ACTIVATE_MQ_MSG_MARK_DISENGAGED_UV		9
  
- 	if (update_sr) {
- 		nilfs_set_last_segment(nilfs, segbuf->sb_pseg_start,
--				       segbuf->sb_sum.seg_seq, nilfs->ns_cno);
-+				       segbuf->sb_sum.seg_seq, nilfs->ns_cno++);
-+		sbi->s_super->s_dirt = 1;
+ struct xpc_activate_mq_msg_uv {
+ 	struct xpc_activate_mq_msghdr_uv hdr;
+@@ -278,6 +279,11 @@ struct xpc_activate_mq_msg_chctl_openrep
+ 	unsigned long notify_gru_mq_desc_gpa;
+ };
  
- 		clear_bit(NILFS_SC_HAVE_DELTA, &sci->sc_flags);
- 		clear_bit(NILFS_SC_DIRTY, &sci->sc_flags);
-@@ -2224,9 +2225,6 @@ static int nilfs_segctor_do_construct(st
++struct xpc_activate_mq_msg_chctl_opencomplete_uv {
++	struct xpc_activate_mq_msghdr_uv hdr;
++	short ch_number;
++};
++
+ /*
+  * Functions registered by add_timer() or called by kernel_thread() only
+  * allow for a single 64-bit argument. The following macros can be used to
+@@ -583,30 +589,32 @@ struct xpc_channel {
  
- 		/* Commit segments */
- 		if (has_sr) {
--			down_write(&nilfs->ns_sem);
--			nilfs_update_last_segment(sbi, 1);
--			up_write(&nilfs->ns_sem);
- 			nilfs_segctor_commit_free_segments(sci);
- 			nilfs_segctor_clear_metadata_dirty(sci);
- 		}
-@@ -2564,7 +2562,7 @@ static int nilfs_segctor_construct(struc
- 		if (test_bit(NILFS_SC_SUPER_ROOT, &sci->sc_flags) &&
- 		    nilfs_discontinued(nilfs)) {
- 			down_write(&nilfs->ns_sem);
--			req->sb_err = nilfs_commit_super(sbi);
-+			req->sb_err = nilfs_commit_super(sbi, 0);
- 			up_write(&nilfs->ns_sem);
- 		}
- 	}
-diff -puN fs/nilfs2/segment.h~nilfs2-introduce-secondary-super-block fs/nilfs2/segment.h
---- a/fs/nilfs2/segment.h~nilfs2-introduce-secondary-super-block
-+++ a/fs/nilfs2/segment.h
-@@ -206,8 +206,6 @@ enum {
- 					   logical segment with a super root */
- #define NILFS_SC_DEFAULT_SR_FREQ    30  /* Maximum frequency of super root
- 					   creation */
--#define NILFS_SC_DEFAULT_SB_FREQ    30  /* Minimum interval of periodical
--					   update of superblock (reserved) */
+ #define	XPC_C_WASCONNECTED	0x00000001	/* channel was connected */
+ 
+-#define	XPC_C_ROPENREPLY	0x00000002	/* remote open channel reply */
+-#define	XPC_C_OPENREPLY		0x00000004	/* local open channel reply */
+-#define	XPC_C_ROPENREQUEST	0x00000008     /* remote open channel request */
+-#define	XPC_C_OPENREQUEST	0x00000010	/* local open channel request */
++#define XPC_C_ROPENCOMPLETE	0x00000002    /* remote open channel complete */
++#define XPC_C_OPENCOMPLETE	0x00000004     /* local open channel complete */
++#define	XPC_C_ROPENREPLY	0x00000008	/* remote open channel reply */
++#define	XPC_C_OPENREPLY		0x00000010	/* local open channel reply */
++#define	XPC_C_ROPENREQUEST	0x00000020     /* remote open channel request */
++#define	XPC_C_OPENREQUEST	0x00000040	/* local open channel request */
+ 
+-#define	XPC_C_SETUP		0x00000020 /* channel's msgqueues are alloc'd */
+-#define	XPC_C_CONNECTEDCALLOUT	0x00000040     /* connected callout initiated */
++#define	XPC_C_SETUP		0x00000080 /* channel's msgqueues are alloc'd */
++#define	XPC_C_CONNECTEDCALLOUT	0x00000100     /* connected callout initiated */
+ #define	XPC_C_CONNECTEDCALLOUT_MADE \
+-				0x00000080     /* connected callout completed */
+-#define	XPC_C_CONNECTED		0x00000100	/* local channel is connected */
+-#define	XPC_C_CONNECTING	0x00000200	/* channel is being connected */
+-
+-#define	XPC_C_RCLOSEREPLY	0x00000400	/* remote close channel reply */
+-#define	XPC_C_CLOSEREPLY	0x00000800	/* local close channel reply */
+-#define	XPC_C_RCLOSEREQUEST	0x00001000    /* remote close channel request */
+-#define	XPC_C_CLOSEREQUEST	0x00002000     /* local close channel request */
++				0x00000200     /* connected callout completed */
++#define	XPC_C_CONNECTED		0x00000400	/* local channel is connected */
++#define	XPC_C_CONNECTING	0x00000800	/* channel is being connected */
++
++#define	XPC_C_RCLOSEREPLY	0x00001000	/* remote close channel reply */
++#define	XPC_C_CLOSEREPLY	0x00002000	/* local close channel reply */
++#define	XPC_C_RCLOSEREQUEST	0x00004000    /* remote close channel request */
++#define	XPC_C_CLOSEREQUEST	0x00008000     /* local close channel request */
+ 
+-#define	XPC_C_DISCONNECTED	0x00004000	/* channel is disconnected */
+-#define	XPC_C_DISCONNECTING	0x00008000   /* channel is being disconnected */
++#define	XPC_C_DISCONNECTED	0x00010000	/* channel is disconnected */
++#define	XPC_C_DISCONNECTING	0x00020000   /* channel is being disconnected */
+ #define	XPC_C_DISCONNECTINGCALLOUT \
+-				0x00010000 /* disconnecting callout initiated */
++				0x00040000 /* disconnecting callout initiated */
+ #define	XPC_C_DISCONNECTINGCALLOUT_MADE \
+-				0x00020000 /* disconnecting callout completed */
+-#define	XPC_C_WDISCONNECT	0x00040000  /* waiting for channel disconnect */
++				0x00080000 /* disconnecting callout completed */
++#define	XPC_C_WDISCONNECT	0x00100000  /* waiting for channel disconnect */
  
  /*
-  * The default threshold amount of data, in block counts.
-diff -puN fs/nilfs2/super.c~nilfs2-introduce-secondary-super-block fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-introduce-secondary-super-block
-+++ a/fs/nilfs2/super.c
-@@ -103,8 +103,9 @@ void nilfs_error(struct super_block *sb,
- 		down_write(&nilfs->ns_sem);
- 		if (!(nilfs->ns_mount_state & NILFS_ERROR_FS)) {
- 			nilfs->ns_mount_state |= NILFS_ERROR_FS;
--			nilfs->ns_sbp->s_state |= cpu_to_le16(NILFS_ERROR_FS);
--			nilfs_commit_super(sbi);
-+			nilfs->ns_sbp[0]->s_state |=
-+				cpu_to_le16(NILFS_ERROR_FS);
-+			nilfs_commit_super(sbi, 1);
- 		}
- 		up_write(&nilfs->ns_sem);
+  * The channel control flags (chctl) union consists of a 64-bit variable which
+@@ -625,11 +633,13 @@ union xpc_channel_ctl_flags {
+ #define	XPC_CHCTL_CLOSEREPLY	0x02
+ #define	XPC_CHCTL_OPENREQUEST	0x04
+ #define	XPC_CHCTL_OPENREPLY	0x08
+-#define	XPC_CHCTL_MSGREQUEST	0x10
++#define XPC_CHCTL_OPENCOMPLETE	0x10
++#define	XPC_CHCTL_MSGREQUEST	0x20
  
-@@ -208,90 +209,106 @@ static void nilfs_clear_inode(struct ino
- 	nilfs_btnode_cache_clear(&ii->i_btnode_cache);
- }
+ #define XPC_OPENCLOSE_CHCTL_FLAGS \
+ 			(XPC_CHCTL_CLOSEREQUEST | XPC_CHCTL_CLOSEREPLY | \
+-			 XPC_CHCTL_OPENREQUEST | XPC_CHCTL_OPENREPLY)
++			 XPC_CHCTL_OPENREQUEST | XPC_CHCTL_OPENREPLY | \
++			 XPC_CHCTL_OPENCOMPLETE)
+ #define XPC_MSG_CHCTL_FLAGS	XPC_CHCTL_MSGREQUEST
  
--/**
-- * nilfs_update_last_segment - change pointer to the latest segment
-- * @sbi: nilfs_sb_info
-- * @update_cno: flag whether to update checkpoint number.
-- *
-- * nilfs_update_last_segment() changes information in the super block
-- * after a partial segment is written out successfully. The super
-- * block is marked dirty. It will be written out at the next VFS sync
-- * operations such as sync_supers() and generic_shutdown_super().
-- */
--void nilfs_update_last_segment(struct nilfs_sb_info *sbi, int update_cno)
--{
--	struct the_nilfs *nilfs = sbi->s_nilfs;
--	struct nilfs_super_block *sbp = nilfs->ns_sbp;
--
--	/* nilfs->sem must be locked by the caller. */
--	spin_lock(&nilfs->ns_last_segment_lock);
--	if (update_cno)
--		nilfs->ns_last_cno = nilfs->ns_cno++;
--	sbp->s_last_seq = cpu_to_le64(nilfs->ns_last_seq);
--	sbp->s_last_pseg = cpu_to_le64(nilfs->ns_last_pseg);
--	sbp->s_last_cno = cpu_to_le64(nilfs->ns_last_cno);
--	spin_unlock(&nilfs->ns_last_segment_lock);
--
--	sbi->s_super->s_dirt = 1; /* must be set if delaying the call of
--				     nilfs_commit_super() */
--}
--
--static int nilfs_sync_super(struct nilfs_sb_info *sbi)
-+static int nilfs_sync_super(struct nilfs_sb_info *sbi, int dupsb)
- {
- 	struct the_nilfs *nilfs = sbi->s_nilfs;
- 	int err;
- 	int barrier_done = 0;
+ static inline int
+@@ -866,6 +876,8 @@ extern void (*xpc_send_chctl_closereply)
+ extern void (*xpc_send_chctl_openrequest) (struct xpc_channel *,
+ 					   unsigned long *);
+ extern void (*xpc_send_chctl_openreply) (struct xpc_channel *, unsigned long *);
++extern void (*xpc_send_chctl_opencomplete) (struct xpc_channel *,
++					    unsigned long *);
  
- 	if (nilfs_test_opt(sbi, BARRIER)) {
--		set_buffer_ordered(nilfs->ns_sbh);
-+		set_buffer_ordered(nilfs->ns_sbh[0]);
- 		barrier_done = 1;
- 	}
-  retry:
--	set_buffer_dirty(nilfs->ns_sbh);
--	err = sync_dirty_buffer(nilfs->ns_sbh);
-+	set_buffer_dirty(nilfs->ns_sbh[0]);
-+	err = sync_dirty_buffer(nilfs->ns_sbh[0]);
- 	if (err == -EOPNOTSUPP && barrier_done) {
- 		nilfs_warning(sbi->s_super, __func__,
- 			      "barrier-based sync failed. "
- 			      "disabling barriers\n");
- 		nilfs_clear_opt(sbi, BARRIER);
- 		barrier_done = 0;
--		clear_buffer_ordered(nilfs->ns_sbh);
-+		clear_buffer_ordered(nilfs->ns_sbh[0]);
- 		goto retry;
- 	}
--	if (unlikely(err))
-+	if (unlikely(err)) {
- 		printk(KERN_ERR
- 		       "NILFS: unable to write superblock (err=%d)\n", err);
--	else {
-+		if (err == -EIO && nilfs->ns_sbh[1]) {
-+			nilfs_fall_back_super_block(nilfs);
-+			goto retry;
-+		}
-+	} else {
-+		struct nilfs_super_block *sbp = nilfs->ns_sbp[0];
-+
-+		/*
-+		 * The latest segment becomes trailable from the position
-+		 * written in superblock.
-+		 */
- 		clear_nilfs_discontinued(nilfs);
--		spin_lock(&nilfs->ns_last_segment_lock);
--		nilfs->ns_prot_seq = le64_to_cpu(nilfs->ns_sbp->s_last_seq);
--		spin_unlock(&nilfs->ns_last_segment_lock);
-+
-+		/* update GC protection for recent segments */
-+		if (nilfs->ns_sbh[1]) {
-+			sbp = NULL;
-+			if (dupsb) {
-+				set_buffer_dirty(nilfs->ns_sbh[1]);
-+				if (!sync_dirty_buffer(nilfs->ns_sbh[1]))
-+					sbp = nilfs->ns_sbp[1];
-+			}
-+		}
-+		if (sbp) {
-+			spin_lock(&nilfs->ns_last_segment_lock);
-+			nilfs->ns_prot_seq = le64_to_cpu(sbp->s_last_seq);
-+			spin_unlock(&nilfs->ns_last_segment_lock);
-+		}
- 	}
- 
- 	return err;
- }
- 
--int nilfs_commit_super(struct nilfs_sb_info *sbi)
-+int nilfs_commit_super(struct nilfs_sb_info *sbi, int dupsb)
- {
- 	struct the_nilfs *nilfs = sbi->s_nilfs;
--	struct nilfs_super_block *sbp = nilfs->ns_sbp;
-+	struct nilfs_super_block **sbp = nilfs->ns_sbp;
- 	sector_t nfreeblocks;
-+	time_t t;
- 	int err;
- 
- 	/* nilfs->sem must be locked by the caller. */
-+	if (sbp[0]->s_magic != NILFS_SUPER_MAGIC) {
-+		if (sbp[1] && sbp[1]->s_magic == NILFS_SUPER_MAGIC)
-+			nilfs_swap_super_block(nilfs);
-+		else {
-+			printk(KERN_CRIT "NILFS: superblock broke on dev %s\n",
-+			       sbi->s_super->s_id);
-+			return -EIO;
-+		}
-+	}
- 	err = nilfs_count_free_blocks(nilfs, &nfreeblocks);
- 	if (unlikely(err)) {
- 		printk(KERN_ERR "NILFS: failed to count free blocks\n");
- 		return err;
- 	}
--	sbp->s_free_blocks_count = cpu_to_le64(nfreeblocks);
--	sbp->s_wtime = cpu_to_le64(get_seconds());
--	sbp->s_sum = 0;
--	sbp->s_sum = cpu_to_le32(crc32_le(nilfs->ns_crc_seed,
--					  (unsigned char *)sbp,
--					  le16_to_cpu(sbp->s_bytes)));
-+	spin_lock(&nilfs->ns_last_segment_lock);
-+	sbp[0]->s_last_seq = cpu_to_le64(nilfs->ns_last_seq);
-+	sbp[0]->s_last_pseg = cpu_to_le64(nilfs->ns_last_pseg);
-+	sbp[0]->s_last_cno = cpu_to_le64(nilfs->ns_last_cno);
-+	spin_unlock(&nilfs->ns_last_segment_lock);
-+
-+	t = get_seconds();
-+	nilfs->ns_sbwtime[0] = t;
-+	sbp[0]->s_free_blocks_count = cpu_to_le64(nfreeblocks);
-+	sbp[0]->s_wtime = cpu_to_le64(t);
-+	sbp[0]->s_sum = 0;
-+	sbp[0]->s_sum = cpu_to_le32(crc32_le(nilfs->ns_crc_seed,
-+					     (unsigned char *)sbp[0],
-+					     nilfs->ns_sbsize));
-+	if (dupsb && sbp[1]) {
-+		memcpy(sbp[1], sbp[0], nilfs->ns_sbsize);
-+		nilfs->ns_sbwtime[1] = t;
-+	}
- 	sbi->s_super->s_dirt = 0;
--	return nilfs_sync_super(sbi);
-+	return nilfs_sync_super(sbi, dupsb);
- }
- 
- static void nilfs_put_super(struct super_block *sb)
-@@ -303,8 +320,8 @@ static void nilfs_put_super(struct super
- 
- 	if (!(sb->s_flags & MS_RDONLY)) {
- 		down_write(&nilfs->ns_sem);
--		nilfs->ns_sbp->s_state = cpu_to_le16(nilfs->ns_mount_state);
--		nilfs_commit_super(sbi);
-+		nilfs->ns_sbp[0]->s_state = cpu_to_le16(nilfs->ns_mount_state);
-+		nilfs_commit_super(sbi, 1);
- 		up_write(&nilfs->ns_sem);
- 	}
- 
-@@ -330,7 +347,7 @@ static void nilfs_put_super(struct super
-  *   2.    down_write(&nilfs->ns_sem)
+ extern enum xp_retval (*xpc_save_remote_msgqueue_pa) (struct xpc_channel *,
+ 						      unsigned long);
+diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xpc-implement-opencomplete-messaging drivers/misc/sgi-xp/xpc_channel.c
+--- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xpc-implement-opencomplete-messaging
++++ a/drivers/misc/sgi-xp/xpc_channel.c
+@@ -3,7 +3,7 @@
+  * License.  See the file "COPYING" in the main directory of this archive
+  * for more details.
   *
-  * Inside NILFS, locking ns_sem is enough to protect s_dirt and the buffer
-- * of the super block (nilfs->ns_sbp).
-+ * of the super block (nilfs->ns_sbp[]).
-  *
-  * In most cases, VFS functions call lock_super() before calling these
-  * methods.  So we must be careful not to bring on deadlocks when using
-@@ -346,8 +363,19 @@ static void nilfs_write_super(struct sup
- 	struct the_nilfs *nilfs = sbi->s_nilfs;
+- * Copyright (c) 2004-2008 Silicon Graphics, Inc.  All Rights Reserved.
++ * Copyright (c) 2004-2009 Silicon Graphics, Inc.  All Rights Reserved.
+  */
  
- 	down_write(&nilfs->ns_sem);
--	if (!(sb->s_flags & MS_RDONLY))
--		nilfs_commit_super(sbi);
-+	if (!(sb->s_flags & MS_RDONLY)) {
-+		struct nilfs_super_block **sbp = nilfs->ns_sbp;
-+		u64 t = get_seconds();
-+		int dupsb;
-+
-+		if (!nilfs_discontinued(nilfs) && t >= nilfs->ns_sbwtime[0] &&
-+		    t < nilfs->ns_sbwtime[0] + NILFS_SB_FREQ) {
-+			up_write(&nilfs->ns_sem);
-+			return;
-+		}
-+		dupsb = sbp[1] && t > nilfs->ns_sbwtime[1] + NILFS_ALTSB_FREQ;
-+		nilfs_commit_super(sbi, dupsb);
-+	}
- 	sb->s_dirt = 0;
- 	up_write(&nilfs->ns_sem);
- }
-@@ -436,7 +464,7 @@ static int nilfs_mark_recovery_complete(
- 	down_write(&nilfs->ns_sem);
- 	if (!(nilfs->ns_mount_state & NILFS_VALID_FS)) {
- 		nilfs->ns_mount_state |= NILFS_VALID_FS;
--		err = nilfs_commit_super(sbi);
-+		err = nilfs_commit_super(sbi, 1);
- 		if (likely(!err))
- 			printk(KERN_INFO "NILFS: recovery complete.\n");
+ /*
+@@ -44,10 +44,10 @@ xpc_process_connect(struct xpc_channel *
+ 
+ 		if (ret != xpSuccess)
+ 			XPC_DISCONNECT_CHANNEL(ch, ret, irq_flags);
++		else
++			ch->flags |= XPC_C_SETUP;
+ 
+-		ch->flags |= XPC_C_SETUP;
+-
+-		if (ch->flags & (XPC_C_CONNECTED | XPC_C_DISCONNECTING))
++		if (ch->flags & XPC_C_DISCONNECTING)
+ 			return;
  	}
-@@ -652,7 +680,7 @@ nilfs_set_default_options(struct nilfs_s
- static int nilfs_setup_super(struct nilfs_sb_info *sbi)
- {
- 	struct the_nilfs *nilfs = sbi->s_nilfs;
--	struct nilfs_super_block *sbp = nilfs->ns_sbp;
-+	struct nilfs_super_block *sbp = nilfs->ns_sbp[0];
- 	int max_mnt_count = le16_to_cpu(sbp->s_max_mnt_count);
- 	int mnt_count = le16_to_cpu(sbp->s_mnt_count);
  
-@@ -674,88 +702,29 @@ static int nilfs_setup_super(struct nilf
- 	sbp->s_mnt_count = cpu_to_le16(mnt_count + 1);
- 	sbp->s_state = cpu_to_le16(le16_to_cpu(sbp->s_state) & ~NILFS_VALID_FS);
- 	sbp->s_mtime = cpu_to_le64(get_seconds());
--	return nilfs_commit_super(sbi);
-+	return nilfs_commit_super(sbi, 1);
+@@ -59,14 +59,18 @@ xpc_process_connect(struct xpc_channel *
+ 	if (!(ch->flags & XPC_C_ROPENREPLY))
+ 		return;
+ 
+-	ch->flags = (XPC_C_CONNECTED | XPC_C_SETUP);	/* clear all else */
++	if (!(ch->flags & XPC_C_OPENCOMPLETE)) {
++		ch->flags |= (XPC_C_OPENCOMPLETE | XPC_C_CONNECTED);
++		xpc_send_chctl_opencomplete(ch, irq_flags);
++	}
++
++	if (!(ch->flags & XPC_C_ROPENCOMPLETE))
++		return;
+ 
+ 	dev_info(xpc_chan, "channel %d to partition %d connected\n",
+ 		 ch->number, ch->partid);
+ 
+-	spin_unlock_irqrestore(&ch->lock, *irq_flags);
+-	xpc_create_kthreads(ch, 1, 0);
+-	spin_lock_irqsave(&ch->lock, *irq_flags);
++	ch->flags = (XPC_C_CONNECTED | XPC_C_SETUP);	/* clear all else */
  }
  
--struct nilfs_super_block *
--nilfs_load_super_block(struct super_block *sb, struct buffer_head **pbh)
-+struct nilfs_super_block *nilfs_read_super_block(struct super_block *sb,
-+						 u64 pos, int blocksize,
-+						 struct buffer_head **pbh)
- {
--	int blocksize;
--	unsigned long offset, sb_index;
--
--	/*
--	 * Adjusting block size
--	 * Blocksize will be enlarged when it is smaller than hardware
--	 * sector size.
--	 * Disk format of superblock does not change.
--	 */
--	blocksize = sb_min_blocksize(sb, BLOCK_SIZE);
--	if (!blocksize) {
--		printk(KERN_ERR
--		       "NILFS: unable to set blocksize of superblock\n");
--		return NULL;
--	}
--	sb_index = NILFS_SB_OFFSET_BYTES / blocksize;
--	offset = NILFS_SB_OFFSET_BYTES % blocksize;
-+	unsigned long long sb_index = pos;
-+	unsigned long offset;
+ /*
+@@ -184,6 +188,7 @@ xpc_process_openclose_chctl_flags(struct
+ 	struct xpc_channel *ch = &part->channels[ch_number];
+ 	enum xp_retval reason;
+ 	enum xp_retval ret;
++	int create_kthread = 0;
  
-+	offset = do_div(sb_index, blocksize);
- 	*pbh = sb_bread(sb, sb_index);
--	if (!*pbh) {
--		printk(KERN_ERR "NILFS: unable to read superblock\n");
-+	if (!*pbh)
- 		return NULL;
--	}
- 	return (struct nilfs_super_block *)((char *)(*pbh)->b_data + offset);
- }
+ 	spin_lock_irqsave(&ch->lock, irq_flags);
  
--struct nilfs_super_block *
--nilfs_reload_super_block(struct super_block *sb, struct buffer_head **pbh,
--			 int blocksize)
--{
--	struct nilfs_super_block *sbp;
--	unsigned long offset, sb_index;
--	int hw_blocksize = bdev_hardsect_size(sb->s_bdev);
--
--	if (blocksize < hw_blocksize) {
--		printk(KERN_ERR
--		       "NILFS: blocksize %d too small for device "
--		       "(sector-size = %d).\n",
--		       blocksize, hw_blocksize);
--		goto failed_sbh;
--	}
--	brelse(*pbh);
--	sb_set_blocksize(sb, blocksize);
--
--	sb_index = NILFS_SB_OFFSET_BYTES / blocksize;
--	offset = NILFS_SB_OFFSET_BYTES % blocksize;
--
--	*pbh = sb_bread(sb, sb_index);
--	if (!*pbh) {
--		printk(KERN_ERR
--		       "NILFS: cannot read superblock on 2nd try.\n");
--		goto failed;
--	}
--
--	sbp = (struct nilfs_super_block *)((char *)(*pbh)->b_data + offset);
--	if (sbp->s_magic != cpu_to_le16(NILFS_SUPER_MAGIC)) {
--		printk(KERN_ERR
--		       "NILFS: !? Magic mismatch on 2nd try.\n");
--		goto failed_sbh;
--	}
--	return sbp;
--
-- failed_sbh:
--	brelse(*pbh);
--
-- failed:
--	return NULL;
--}
--
- int nilfs_store_magic_and_option(struct super_block *sb,
- 				 struct nilfs_super_block *sbp,
- 				 char *data)
- {
- 	struct nilfs_sb_info *sbi = NILFS_SB(sb);
- 
--	/* trying to fill super (1st stage) */
- 	sb->s_magic = le16_to_cpu(sbp->s_magic);
- 
- 	/* FS independent flags */
-@@ -763,11 +732,6 @@ int nilfs_store_magic_and_option(struct 
- 	sb->s_flags |= MS_NOATIME;
- #endif
- 
--	if (sb->s_magic != NILFS_SUPER_MAGIC) {
--		printk("NILFS: Can't find nilfs on dev %s.\n", sb->s_id);
--		return -EINVAL;
--	}
--
- 	nilfs_set_default_options(sbi, sbp);
- 
- 	sbi->s_resuid = le16_to_cpu(sbp->s_def_resuid);
-@@ -775,10 +739,7 @@ int nilfs_store_magic_and_option(struct 
- 	sbi->s_interval = le32_to_cpu(sbp->s_c_interval);
- 	sbi->s_watermark = le32_to_cpu(sbp->s_c_block_max);
- 
--	if (!parse_options(data, sb))
--		return -EINVAL;
--
--	return 0;
-+	return !parse_options(data, sb) ? -EINVAL : 0 ;
- }
- 
- /**
-@@ -967,12 +928,12 @@ static int nilfs_remount(struct super_bl
- 		 * the RDONLY flag and then mark the partition as valid again.
+@@ -196,8 +201,7 @@ again:
+ 		 * has had a chance to see that the channel is disconnected.
  		 */
- 		down_write(&nilfs->ns_sem);
--		sbp = nilfs->ns_sbp;
-+		sbp = nilfs->ns_sbp[0];
- 		if (!(sbp->s_state & le16_to_cpu(NILFS_VALID_FS)) &&
- 		    (nilfs->ns_mount_state & NILFS_VALID_FS))
- 			sbp->s_state = cpu_to_le16(nilfs->ns_mount_state);
- 		sbp->s_mtime = cpu_to_le64(get_seconds());
--		nilfs_commit_super(sbi);
-+		nilfs_commit_super(sbi, 1);
- 		up_write(&nilfs->ns_sem);
- 	} else {
- 		/*
-diff -puN fs/nilfs2/the_nilfs.c~nilfs2-introduce-secondary-super-block fs/nilfs2/the_nilfs.c
---- a/fs/nilfs2/the_nilfs.c~nilfs2-introduce-secondary-super-block
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -25,6 +25,7 @@
- #include <linux/slab.h>
- #include <linux/blkdev.h>
- #include <linux/backing-dev.h>
-+#include <linux/crc32.h>
- #include "nilfs.h"
- #include "segment.h"
- #include "alloc.h"
-@@ -105,7 +106,8 @@ void put_nilfs(struct the_nilfs *nilfs)
- 	}
- 	if (nilfs_init(nilfs)) {
- 		nilfs_destroy_gccache(nilfs);
--		brelse(nilfs->ns_sbh);
-+		brelse(nilfs->ns_sbh[0]);
-+		brelse(nilfs->ns_sbh[1]);
- 	}
- 	kfree(nilfs);
- }
-@@ -115,6 +117,7 @@ static int nilfs_load_super_root(struct 
- {
- 	struct buffer_head *bh_sr;
- 	struct nilfs_super_root *raw_sr;
-+	struct nilfs_super_block **sbp = nilfs->ns_sbp;
- 	unsigned dat_entry_size, segment_usage_size, checkpoint_size;
- 	unsigned inode_size;
- 	int err;
-@@ -124,9 +127,9 @@ static int nilfs_load_super_root(struct 
- 		return err;
- 
- 	down_read(&nilfs->ns_sem);
--	dat_entry_size = le16_to_cpu(nilfs->ns_sbp->s_dat_entry_size);
--	checkpoint_size = le16_to_cpu(nilfs->ns_sbp->s_checkpoint_size);
--	segment_usage_size = le16_to_cpu(nilfs->ns_sbp->s_segment_usage_size);
-+	dat_entry_size = le16_to_cpu(sbp[0]->s_dat_entry_size);
-+	checkpoint_size = le16_to_cpu(sbp[0]->s_checkpoint_size);
-+	segment_usage_size = le16_to_cpu(sbp[0]->s_segment_usage_size);
- 	up_read(&nilfs->ns_sem);
- 
- 	inode_size = nilfs->ns_inode_size;
-@@ -270,11 +273,8 @@ int load_nilfs(struct the_nilfs *nilfs, 
- 			nilfs_mdt_destroy(nilfs->ns_dat);
- 			goto failed;
- 		}
--		if (ri.ri_need_recovery == NILFS_RECOVERY_SR_UPDATED) {
--			down_write(&nilfs->ns_sem);
--			nilfs_update_last_segment(sbi, 0);
--			up_write(&nilfs->ns_sem);
--		}
-+		if (ri.ri_need_recovery == NILFS_RECOVERY_SR_UPDATED)
-+			sbi->s_super->s_dirt = 1;
- 	}
- 
- 	set_nilfs_loaded(nilfs);
-@@ -296,9 +296,8 @@ static unsigned long long nilfs_max_size
- 	return res;
- }
- 
--static int
--nilfs_store_disk_layout(struct the_nilfs *nilfs, struct super_block *sb,
--			struct nilfs_super_block *sbp)
-+static int nilfs_store_disk_layout(struct the_nilfs *nilfs,
-+				   struct nilfs_super_block *sbp)
- {
- 	if (le32_to_cpu(sbp->s_rev_level) != NILFS_CURRENT_REV) {
- 		printk(KERN_ERR "NILFS: revision mismatch "
-@@ -309,6 +308,10 @@ nilfs_store_disk_layout(struct the_nilfs
- 		       NILFS_CURRENT_REV, NILFS_MINOR_REV);
- 		return -EINVAL;
- 	}
-+	nilfs->ns_sbsize = le16_to_cpu(sbp->s_bytes);
-+	if (nilfs->ns_sbsize > BLOCK_SIZE)
-+		return -EINVAL;
-+
- 	nilfs->ns_inode_size = le16_to_cpu(sbp->s_inode_size);
- 	nilfs->ns_first_ino = le32_to_cpu(sbp->s_first_ino);
- 
-@@ -330,6 +333,122 @@ nilfs_store_disk_layout(struct the_nilfs
- 	return 0;
- }
- 
-+static int nilfs_valid_sb(struct nilfs_super_block *sbp)
-+{
-+	static unsigned char sum[4];
-+	const int sumoff = offsetof(struct nilfs_super_block, s_sum);
-+	size_t bytes;
-+	u32 crc;
-+
-+	if (!sbp || le16_to_cpu(sbp->s_magic) != NILFS_SUPER_MAGIC)
-+		return 0;
-+	bytes = le16_to_cpu(sbp->s_bytes);
-+	if (bytes > BLOCK_SIZE)
-+		return 0;
-+	crc = crc32_le(le32_to_cpu(sbp->s_crc_seed), (unsigned char *)sbp,
-+		       sumoff);
-+	crc = crc32_le(crc, sum, 4);
-+	crc = crc32_le(crc, (unsigned char *)sbp + sumoff + 4,
-+		       bytes - sumoff - 4);
-+	return crc == le32_to_cpu(sbp->s_sum);
-+}
-+
-+static int nilfs_sb2_bad_offset(struct nilfs_super_block *sbp, u64 offset)
-+{
-+	return offset < ((le64_to_cpu(sbp->s_nsegments) *
-+			  le32_to_cpu(sbp->s_blocks_per_segment)) <<
-+			 (le32_to_cpu(sbp->s_log_block_size) + 10));
-+}
-+
-+static void nilfs_release_super_block(struct the_nilfs *nilfs)
-+{
-+	int i;
-+
-+	for (i = 0; i < 2; i++) {
-+		if (nilfs->ns_sbp[i]) {
-+			brelse(nilfs->ns_sbh[i]);
-+			nilfs->ns_sbh[i] = NULL;
-+			nilfs->ns_sbp[i] = NULL;
-+		}
-+	}
-+}
-+
-+void nilfs_fall_back_super_block(struct the_nilfs *nilfs)
-+{
-+	brelse(nilfs->ns_sbh[0]);
-+	nilfs->ns_sbh[0] = nilfs->ns_sbh[1];
-+	nilfs->ns_sbp[0] = nilfs->ns_sbp[1];
-+	nilfs->ns_sbh[1] = NULL;
-+	nilfs->ns_sbp[1] = NULL;
-+}
-+
-+void nilfs_swap_super_block(struct the_nilfs *nilfs)
-+{
-+	struct buffer_head *tsbh = nilfs->ns_sbh[0];
-+	struct nilfs_super_block *tsbp = nilfs->ns_sbp[0];
-+
-+	nilfs->ns_sbh[0] = nilfs->ns_sbh[1];
-+	nilfs->ns_sbp[0] = nilfs->ns_sbp[1];
-+	nilfs->ns_sbh[1] = tsbh;
-+	nilfs->ns_sbp[1] = tsbp;
-+}
-+
-+static int nilfs_load_super_block(struct the_nilfs *nilfs,
-+				  struct super_block *sb, int blocksize,
-+				  struct nilfs_super_block **sbpp)
-+{
-+	struct nilfs_super_block **sbp = nilfs->ns_sbp;
-+	struct buffer_head **sbh = nilfs->ns_sbh;
-+	u64 sb2off = NILFS_SB2_OFFSET_BYTES(nilfs->ns_bdev->bd_inode->i_size);
-+	int valid[2], swp = 0;
-+
-+	sbp[0] = nilfs_read_super_block(sb, NILFS_SB_OFFSET_BYTES, blocksize,
-+					&sbh[0]);
-+	sbp[1] = nilfs_read_super_block(sb, sb2off, blocksize, &sbh[1]);
-+
-+	if (!sbp[0]) {
-+		if (!sbp[1]) {
-+			printk(KERN_ERR "NILFS: unable to read superblock\n");
-+			return -EIO;
-+		}
-+		printk(KERN_WARNING
-+		       "NILFS warning: unable to read primary superblock\n");
-+	} else if (!sbp[1])
-+		printk(KERN_WARNING
-+		       "NILFS warning: unable to read secondary superblock\n");
-+
-+	valid[0] = nilfs_valid_sb(sbp[0]);
-+	valid[1] = nilfs_valid_sb(sbp[1]);
-+	swp = valid[1] &&
-+		(!valid[0] ||
-+		 le64_to_cpu(sbp[1]->s_wtime) > le64_to_cpu(sbp[0]->s_wtime));
-+
-+	if (valid[swp] && nilfs_sb2_bad_offset(sbp[swp], sb2off)) {
-+		brelse(sbh[1]);
-+		sbh[1] = NULL;
-+		sbp[1] = NULL;
-+		swp = 0;
-+	}
-+	if (!valid[swp]) {
-+		nilfs_release_super_block(nilfs);
-+		printk(KERN_ERR "NILFS: Can't find nilfs on dev %s.\n",
-+		       sb->s_id);
-+		return -EINVAL;
-+	}
-+
-+	if (swp) {
-+		printk(KERN_WARNING "NILFS warning: broken superblock. "
-+		       "using spare superblock.\n");
-+		nilfs_swap_super_block(nilfs);
-+	}
-+
-+	nilfs->ns_sbwtime[0] = le64_to_cpu(sbp[0]->s_wtime);
-+	nilfs->ns_sbwtime[1] = valid[!swp] ? le64_to_cpu(sbp[1]->s_wtime) : 0;
-+	nilfs->ns_prot_seq = le64_to_cpu(sbp[valid[1] & !swp]->s_last_seq);
-+	*sbpp = sbp[0];
-+	return 0;
-+}
-+
- /**
-  * init_nilfs - initialize a NILFS instance.
-  * @nilfs: the_nilfs structure
-@@ -352,16 +471,15 @@ nilfs_store_disk_layout(struct the_nilfs
- int init_nilfs(struct the_nilfs *nilfs, struct nilfs_sb_info *sbi, char *data)
- {
- 	struct super_block *sb = sbi->s_super;
--	struct buffer_head *sbh;
- 	struct nilfs_super_block *sbp;
- 	struct backing_dev_info *bdi;
- 	int blocksize;
--	int err = 0;
-+	int err;
- 
- 	down_write(&nilfs->ns_sem);
- 	if (nilfs_init(nilfs)) {
- 		/* Load values from existing the_nilfs */
--		sbp = nilfs->ns_sbp;
-+		sbp = nilfs->ns_sbp[0];
- 		err = nilfs_store_magic_and_option(sb, sbp, data);
- 		if (err)
- 			goto out;
-@@ -377,36 +495,50 @@ int init_nilfs(struct the_nilfs *nilfs, 
- 		goto out;
- 	}
- 
--	sbp = nilfs_load_super_block(sb, &sbh);
--	if (!sbp) {
-+	blocksize = sb_min_blocksize(sb, BLOCK_SIZE);
-+	if (!blocksize) {
-+		printk(KERN_ERR "NILFS: unable to set blocksize\n");
- 		err = -EINVAL;
- 		goto out;
- 	}
-+	err = nilfs_load_super_block(nilfs, sb, blocksize, &sbp);
-+	if (err)
+ 		ch->delayed_chctl_flags |= chctl_flags;
+-		spin_unlock_irqrestore(&ch->lock, irq_flags);
+-		return;
 +		goto out;
-+
- 	err = nilfs_store_magic_and_option(sb, sbp, data);
- 	if (err)
- 		goto failed_sbh;
- 
- 	blocksize = BLOCK_SIZE << le32_to_cpu(sbp->s_log_block_size);
- 	if (sb->s_blocksize != blocksize) {
--		sbp = nilfs_reload_super_block(sb, &sbh, blocksize);
--		if (!sbp) {
-+		int hw_blocksize = bdev_hardsect_size(sb->s_bdev);
-+
-+		if (blocksize < hw_blocksize) {
-+			printk(KERN_ERR
-+			       "NILFS: blocksize %d too small for device "
-+			       "(sector-size = %d).\n",
-+			       blocksize, hw_blocksize);
- 			err = -EINVAL;
-+			goto failed_sbh;
-+		}
-+		nilfs_release_super_block(nilfs);
-+		sb_set_blocksize(sb, blocksize);
-+
-+		err = nilfs_load_super_block(nilfs, sb, blocksize, &sbp);
-+		if (err)
- 			goto out;
- 			/* not failed_sbh; sbh is released automatically
- 			   when reloading fails. */
--		}
  	}
- 	nilfs->ns_blocksize_bits = sb->s_blocksize_bits;
  
--	err = nilfs_store_disk_layout(nilfs, sb, sbp);
-+	err = nilfs_store_disk_layout(nilfs, sbp);
- 	if (err)
- 		goto failed_sbh;
+ 	if (chctl_flags & XPC_CHCTL_CLOSEREQUEST) {
+@@ -239,8 +243,7 @@ again:
+ 					    XPC_CHCTL_CLOSEREQUEST;
+ 					spin_unlock(&part->chctl_lock);
+ 				}
+-				spin_unlock_irqrestore(&ch->lock, irq_flags);
+-				return;
++				goto out;
+ 			}
  
- 	sb->s_maxbytes = nilfs_max_size(sb->s_blocksize_bits);
+ 			XPC_SET_REASON(ch, 0, 0);
+@@ -250,7 +253,8 @@ again:
+ 			ch->flags |= (XPC_C_CONNECTING | XPC_C_ROPENREQUEST);
+ 		}
  
- 	nilfs->ns_mount_state = le16_to_cpu(sbp->s_state);
--	nilfs->ns_sbh = sbh;
--	nilfs->ns_sbp = sbp;
+-		chctl_flags &= ~(XPC_CHCTL_OPENREQUEST | XPC_CHCTL_OPENREPLY);
++		chctl_flags &= ~(XPC_CHCTL_OPENREQUEST | XPC_CHCTL_OPENREPLY |
++		    XPC_CHCTL_OPENCOMPLETE);
  
- 	bdi = nilfs->ns_bdev->bd_inode_backing_dev_info;
- 	if (!bdi)
-@@ -443,7 +575,7 @@ int init_nilfs(struct the_nilfs *nilfs, 
- 	return err;
+ 		/*
+ 		 * The meaningful CLOSEREQUEST connection state fields are:
+@@ -269,8 +273,7 @@ again:
+ 			XPC_DISCONNECT_CHANNEL(ch, reason, &irq_flags);
  
-  failed_sbh:
--	brelse(sbh);
-+	nilfs_release_super_block(nilfs);
- 	goto out;
- }
+ 			DBUG_ON(chctl_flags & XPC_CHCTL_CLOSEREPLY);
+-			spin_unlock_irqrestore(&ch->lock, irq_flags);
+-			return;
++			goto out;
+ 		}
  
-diff -puN fs/nilfs2/the_nilfs.h~nilfs2-introduce-secondary-super-block fs/nilfs2/the_nilfs.h
---- a/fs/nilfs2/the_nilfs.h~nilfs2-introduce-secondary-super-block
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -49,8 +49,10 @@ enum {
-  * @ns_sem: semaphore for shared states
-  * @ns_writer_mutex: mutex protecting ns_writer attach/detach
-  * @ns_writer_refcount: number of referrers on ns_writer
-- * @ns_sbh: buffer head of the on-disk super block
-- * @ns_sbp: pointer to the super block data
-+ * @ns_sbh: buffer heads of on-disk super blocks
-+ * @ns_sbp: pointers to super block data
-+ * @ns_sbwtime: previous write time of super blocks
-+ * @ns_sbsize: size of valid data in super block
-  * @ns_supers: list of nilfs super block structs
-  * @ns_seg_seq: segment sequence counter
-  * @ns_segnum: index number of the latest full segment.
-@@ -101,8 +103,10 @@ struct the_nilfs {
- 	 * - protecting s_dirt in the super_block struct
- 	 *   (see nilfs_write_super) and the following fields.
- 	 */
--	struct buffer_head     *ns_sbh;
--	struct nilfs_super_block *ns_sbp;
-+	struct buffer_head     *ns_sbh[2];
-+	struct nilfs_super_block *ns_sbp[2];
-+	time_t			ns_sbwtime[2];
-+	unsigned		ns_sbsize;
- 	unsigned		ns_mount_state;
- 	struct list_head	ns_supers;
+ 		xpc_process_disconnect(ch, &irq_flags);
+@@ -283,8 +286,7 @@ again:
  
-@@ -182,6 +186,10 @@ THE_NILFS_FNS(INIT, init)
- THE_NILFS_FNS(LOADED, loaded)
- THE_NILFS_FNS(DISCONTINUED, discontinued)
+ 		if (ch->flags & XPC_C_DISCONNECTED) {
+ 			DBUG_ON(part->act_state != XPC_P_AS_DEACTIVATING);
+-			spin_unlock_irqrestore(&ch->lock, irq_flags);
+-			return;
++			goto out;
+ 		}
  
-+/* Minimum interval of periodical update of superblocks (in seconds) */
-+#define NILFS_SB_FREQ		10
-+#define NILFS_ALTSB_FREQ	60  /* spare superblock */
+ 		DBUG_ON(!(ch->flags & XPC_C_CLOSEREQUEST));
+@@ -299,8 +301,7 @@ again:
+ 				    XPC_CHCTL_CLOSEREPLY;
+ 				spin_unlock(&part->chctl_lock);
+ 			}
+-			spin_unlock_irqrestore(&ch->lock, irq_flags);
+-			return;
++			goto out;
+ 		}
+ 
+ 		ch->flags |= XPC_C_RCLOSEREPLY;
+@@ -320,14 +321,12 @@ again:
+ 
+ 		if (part->act_state == XPC_P_AS_DEACTIVATING ||
+ 		    (ch->flags & XPC_C_ROPENREQUEST)) {
+-			spin_unlock_irqrestore(&ch->lock, irq_flags);
+-			return;
++			goto out;
+ 		}
+ 
+ 		if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_WDISCONNECT)) {
+ 			ch->delayed_chctl_flags |= XPC_CHCTL_OPENREQUEST;
+-			spin_unlock_irqrestore(&ch->lock, irq_flags);
+-			return;
++			goto out;
+ 		}
+ 		DBUG_ON(!(ch->flags & (XPC_C_DISCONNECTED |
+ 				       XPC_C_OPENREQUEST)));
+@@ -341,8 +340,7 @@ again:
+ 		 */
+ 		if (args->entry_size == 0 || args->local_nentries == 0) {
+ 			/* assume OPENREQUEST was delayed by mistake */
+-			spin_unlock_irqrestore(&ch->lock, irq_flags);
+-			return;
++			goto out;
+ 		}
+ 
+ 		ch->flags |= (XPC_C_ROPENREQUEST | XPC_C_CONNECTING);
+@@ -352,8 +350,7 @@ again:
+ 			if (args->entry_size != ch->entry_size) {
+ 				XPC_DISCONNECT_CHANNEL(ch, xpUnequalMsgSizes,
+ 						       &irq_flags);
+-				spin_unlock_irqrestore(&ch->lock, irq_flags);
+-				return;
++				goto out;
+ 			}
+ 		} else {
+ 			ch->entry_size = args->entry_size;
+@@ -375,15 +372,13 @@ again:
+ 			args->local_msgqueue_pa, args->local_nentries,
+ 			args->remote_nentries, ch->partid, ch->number);
+ 
+-		if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_DISCONNECTED)) {
+-			spin_unlock_irqrestore(&ch->lock, irq_flags);
+-			return;
+-		}
++		if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_DISCONNECTED))
++			goto out;
 +
- void nilfs_set_last_segment(struct the_nilfs *, sector_t, u64, __u64);
- struct the_nilfs *alloc_nilfs(struct block_device *);
- void put_nilfs(struct the_nilfs *);
-@@ -190,6 +198,8 @@ int load_nilfs(struct the_nilfs *, struc
- int nilfs_count_free_blocks(struct the_nilfs *, sector_t *);
- int nilfs_checkpoint_is_mounted(struct the_nilfs *, __u64, int);
- int nilfs_near_disk_full(struct the_nilfs *);
-+void nilfs_fall_back_super_block(struct the_nilfs *);
-+void nilfs_swap_super_block(struct the_nilfs *);
+ 		if (!(ch->flags & XPC_C_OPENREQUEST)) {
+ 			XPC_DISCONNECT_CHANNEL(ch, xpOpenCloseError,
+ 					       &irq_flags);
+-			spin_unlock_irqrestore(&ch->lock, irq_flags);
+-			return;
++			goto out;
+ 		}
  
+ 		DBUG_ON(!(ch->flags & XPC_C_ROPENREQUEST));
+@@ -403,8 +398,7 @@ again:
+ 		ret = xpc_save_remote_msgqueue_pa(ch, args->local_msgqueue_pa);
+ 		if (ret != xpSuccess) {
+ 			XPC_DISCONNECT_CHANNEL(ch, ret, &irq_flags);
+-			spin_unlock_irqrestore(&ch->lock, irq_flags);
+-			return;
++			goto out;
+ 		}
+ 		ch->flags |= XPC_C_ROPENREPLY;
  
- static inline void get_nilfs(struct the_nilfs *nilfs)
-diff -puN include/linux/nilfs2_fs.h~nilfs2-introduce-secondary-super-block include/linux/nilfs2_fs.h
---- a/include/linux/nilfs2_fs.h~nilfs2-introduce-secondary-super-block
-+++ a/include/linux/nilfs2_fs.h
-@@ -252,6 +252,10 @@ struct nilfs_super_block {
- #define NILFS_MIN_NRSVSEGS	8	/* Minimum number of reserved
- 					   segments */
+@@ -430,7 +424,36 @@ again:
+ 		xpc_process_connect(ch, &irq_flags);
+ 	}
  
-+/*
-+ * bytes offset of secondary super block
-+ */
-+#define NILFS_SB2_OFFSET_BYTES(devsize)	((((devsize) >> 12) - 1) << 12)
++	if (chctl_flags & XPC_CHCTL_OPENCOMPLETE) {
++
++		dev_dbg(xpc_chan, "XPC_CHCTL_OPENCOMPLETE received from "
++			"partid=%d, channel=%d\n", ch->partid, ch->number);
++
++		if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_DISCONNECTED))
++			goto out;
++
++		if (!(ch->flags & XPC_C_OPENREQUEST) ||
++		    !(ch->flags & XPC_C_OPENREPLY)) {
++			XPC_DISCONNECT_CHANNEL(ch, xpOpenCloseError,
++					       &irq_flags);
++			goto out;
++		}
++
++		DBUG_ON(!(ch->flags & XPC_C_ROPENREQUEST));
++		DBUG_ON(!(ch->flags & XPC_C_ROPENREPLY));
++		DBUG_ON(!(ch->flags & XPC_C_CONNECTED));
++
++		ch->flags |= XPC_C_ROPENCOMPLETE;
++
++		xpc_process_connect(ch, &irq_flags);
++		create_kthread = 1;
++	}
++
++out:
+ 	spin_unlock_irqrestore(&ch->lock, irq_flags);
++
++	if (create_kthread)
++		xpc_create_kthreads(ch, 1, 0);
+ }
  
  /*
-  * Maximal count of links to a file
+@@ -564,10 +587,6 @@ xpc_process_sent_chctl_flags(struct xpc_
+ 			if (!(ch_flags & XPC_C_OPENREQUEST)) {
+ 				DBUG_ON(ch_flags & XPC_C_SETUP);
+ 				(void)xpc_connect_channel(ch);
+-			} else {
+-				spin_lock_irqsave(&ch->lock, irq_flags);
+-				xpc_process_connect(ch, &irq_flags);
+-				spin_unlock_irqrestore(&ch->lock, irq_flags);
+ 			}
+ 			continue;
+ 		}
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xpc-implement-opencomplete-messaging drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xpc-implement-opencomplete-messaging
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -220,6 +220,8 @@ void (*xpc_send_chctl_openrequest) (stru
+ 				    unsigned long *irq_flags);
+ void (*xpc_send_chctl_openreply) (struct xpc_channel *ch,
+ 				  unsigned long *irq_flags);
++void (*xpc_send_chctl_opencomplete) (struct xpc_channel *ch,
++				  unsigned long *irq_flags);
+ 
+ enum xp_retval (*xpc_save_remote_msgqueue_pa) (struct xpc_channel *ch,
+ 					       unsigned long msgqueue_pa);
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xpc-implement-opencomplete-messaging drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xpc-implement-opencomplete-messaging
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -431,6 +431,13 @@ xpc_send_chctl_openreply_sn2(struct xpc_
+ }
+ 
+ static void
++xpc_send_chctl_opencomplete_sn2(struct xpc_channel *ch,
++				unsigned long *irq_flags)
++{
++	XPC_SEND_NOTIFY_IRQ_SN2(ch, XPC_CHCTL_OPENCOMPLETE, irq_flags);
++}
++
++static void
+ xpc_send_chctl_msgrequest_sn2(struct xpc_channel *ch)
+ {
+ 	XPC_SEND_NOTIFY_IRQ_SN2(ch, XPC_CHCTL_MSGREQUEST, NULL);
+@@ -2380,6 +2387,7 @@ xpc_init_sn2(void)
+ 	xpc_send_chctl_closereply = xpc_send_chctl_closereply_sn2;
+ 	xpc_send_chctl_openrequest = xpc_send_chctl_openrequest_sn2;
+ 	xpc_send_chctl_openreply = xpc_send_chctl_openreply_sn2;
++	xpc_send_chctl_opencomplete = xpc_send_chctl_opencomplete_sn2;
+ 
+ 	xpc_save_remote_msgqueue_pa = xpc_save_remote_msgqueue_pa_sn2;
+ 
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xpc-implement-opencomplete-messaging drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xpc-implement-opencomplete-messaging
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -534,6 +534,17 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 		xpc_wakeup_channel_mgr(part);
+ 		break;
+ 	}
++	case XPC_ACTIVATE_MQ_MSG_CHCTL_OPENCOMPLETE_UV: {
++		struct xpc_activate_mq_msg_chctl_opencomplete_uv *msg;
++
++		msg = container_of(msg_hdr, struct
++				xpc_activate_mq_msg_chctl_opencomplete_uv, hdr);
++		spin_lock_irqsave(&part->chctl_lock, irq_flags);
++		part->chctl.flags[msg->ch_number] |= XPC_CHCTL_OPENCOMPLETE;
++		spin_unlock_irqrestore(&part->chctl_lock, irq_flags);
++
++		xpc_wakeup_channel_mgr(part);
++	}
+ 	case XPC_ACTIVATE_MQ_MSG_MARK_ENGAGED_UV:
+ 		spin_lock_irqsave(&part_uv->flags_lock, irq_flags);
+ 		part_uv->flags |= XPC_P_ENGAGED_UV;
+@@ -1202,6 +1213,16 @@ xpc_send_chctl_openreply_uv(struct xpc_c
+ }
+ 
+ static void
++xpc_send_chctl_opencomplete_uv(struct xpc_channel *ch, unsigned long *irq_flags)
++{
++	struct xpc_activate_mq_msg_chctl_opencomplete_uv msg;
++
++	msg.ch_number = ch->number;
++	xpc_send_activate_IRQ_ch_uv(ch, irq_flags, &msg, sizeof(msg),
++				    XPC_ACTIVATE_MQ_MSG_CHCTL_OPENCOMPLETE_UV);
++}
++
++static void
+ xpc_send_chctl_local_msgrequest_uv(struct xpc_partition *part, int ch_number)
+ {
+ 	unsigned long irq_flags;
+@@ -1665,6 +1686,7 @@ xpc_init_uv(void)
+ 	xpc_send_chctl_closereply = xpc_send_chctl_closereply_uv;
+ 	xpc_send_chctl_openrequest = xpc_send_chctl_openrequest_uv;
+ 	xpc_send_chctl_openreply = xpc_send_chctl_openreply_uv;
++	xpc_send_chctl_opencomplete = xpc_send_chctl_opencomplete_uv;
+ 
+ 	xpc_save_remote_msgqueue_pa = xpc_save_remote_msgqueue_pa_uv;
+ 
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from holt@sgi.com are
 
 origin.patch
+sgi-xpc-update-sgi-xp-xpc-xpnet-maintainer.patch
+sgi-xpc-prevent-false-heartbeat-failures.patch
+sgi-xpc-implement-opencomplete-messaging.patch
 
