@@ -1,268 +1,398 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi-pxa2xx_spi-introduces-chipselect-gpio-to-simplify-the-common-cases.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:07:05 -0700
-Message-ID: <200904071907.n37J75RQ011124@imap1.linux-foundation.org>
+Subject: [merged] nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:08:57 -0700
+Message-ID: <200904071908.n37J8vsm012044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36923 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759316AbZDGTK2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:10:28 -0400
+	by vger.kernel.org with ESMTP id S1759983AbZDGTLe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:11:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.miao@marvell.com, david-b@pacbell.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, chris.mason@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: pxa2xx_spi: introduce chipselect GPIO to simplify the common cases
+     nilfs2: fix missed-sync issue for do_sync_mapping_range()
 has been removed from the -mm tree.  Its filename was
-     spi-pxa2xx_spi-introduces-chipselect-gpio-to-simplify-the-common-cases.patch
+     nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: pxa2xx_spi: introduce chipselect GPIO to simplify the common cases
-From: Eric Miao <eric.miao@marvell.com>
+Subject: nilfs2: fix missed-sync issue for do_sync_mapping_range()
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-Most SPI peripherals use GPIOs as their chip selects, introduce .gpio_cs
-for this.
+Chris Mason pointed out that there is a missed sync issue in
+nilfs_writepages():
 
-Signed-off-by: Eric Miao <eric.miao@marvell.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+On Wed, 17 Dec 2008 21:52:55 -0500, Chris Mason wrote:
+> It looks like nilfs_writepage ignores WB_SYNC_NONE, which is used by
+> do_sync_mapping_range().
+
+where WB_SYNC_NONE in do_sync_mapping_range() was replaced with
+WB_SYNC_ALL by Nick's patch (commit:
+ee53a891f47444c53318b98dac947ede963db400).
+
+This fixes the problem by letting nilfs_writepages() write out the log of
+file data within the range if sync_mode is WB_SYNC_ALL.
+
+This involves removal of nilfs_file_aio_write() which was previously
+needed to ensure O_SYNC sync writes.
+
+Cc: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/include/mach/pxa2xx_spi.h |    1 
- drivers/spi/pxa2xx_spi.c                    |   96 ++++++++++++++----
- 2 files changed, 79 insertions(+), 18 deletions(-)
+ fs/nilfs2/file.c    |   27 +--------
+ fs/nilfs2/inode.c   |   16 +++--
+ fs/nilfs2/segment.c |  120 +++++++++++++++++++++++++-----------------
+ fs/nilfs2/segment.h |   11 +++
+ 4 files changed, 93 insertions(+), 81 deletions(-)
 
-diff -puN arch/arm/mach-pxa/include/mach/pxa2xx_spi.h~spi-pxa2xx_spi-introduces-chipselect-gpio-to-simplify-the-common-cases arch/arm/mach-pxa/include/mach/pxa2xx_spi.h
---- a/arch/arm/mach-pxa/include/mach/pxa2xx_spi.h~spi-pxa2xx_spi-introduces-chipselect-gpio-to-simplify-the-common-cases
-+++ a/arch/arm/mach-pxa/include/mach/pxa2xx_spi.h
-@@ -38,6 +38,7 @@ struct pxa2xx_spi_chip {
- 	u8 dma_burst_size;
- 	u32 timeout;
- 	u8 enable_loopback;
-+	int gpio_cs;
- 	void (*cs_control)(u32 command);
- };
+diff -puN fs/nilfs2/file.c~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range fs/nilfs2/file.c
+--- a/fs/nilfs2/file.c~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range
++++ a/fs/nilfs2/file.c
+@@ -44,35 +44,14 @@ int nilfs_sync_file(struct file *file, s
+ 		return 0;
  
-diff -puN drivers/spi/pxa2xx_spi.c~spi-pxa2xx_spi-introduces-chipselect-gpio-to-simplify-the-common-cases drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~spi-pxa2xx_spi-introduces-chipselect-gpio-to-simplify-the-common-cases
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -28,6 +28,7 @@
- #include <linux/workqueue.h>
- #include <linux/delay.h>
- #include <linux/clk.h>
-+#include <linux/gpio.h>
+ 	if (datasync)
+-		err = nilfs_construct_dsync_segment(inode->i_sb, inode);
++		err = nilfs_construct_dsync_segment(inode->i_sb, inode, 0,
++						    LLONG_MAX);
+ 	else
+ 		err = nilfs_construct_segment(inode->i_sb);
  
- #include <asm/io.h>
- #include <asm/irq.h>
-@@ -166,6 +167,8 @@ struct chip_data {
- 	u8 enable_dma;
- 	u8 bits_per_word;
- 	u32 speed_hz;
-+	int gpio_cs;
-+	int gpio_cs_inverted;
- 	int (*write)(struct driver_data *drv_data);
- 	int (*read)(struct driver_data *drv_data);
- 	void (*cs_control)(u32 command);
-@@ -173,6 +176,32 @@ struct chip_data {
- 
- static void pump_messages(struct work_struct *work);
- 
-+static void cs_assert(struct driver_data *drv_data)
-+{
-+	struct chip_data *chip = drv_data->cur_chip;
-+
-+	if (chip->cs_control) {
-+		chip->cs_control(PXA2XX_CS_ASSERT);
-+		return;
-+	}
-+
-+	if (gpio_is_valid(chip->gpio_cs))
-+		gpio_set_value(chip->gpio_cs, chip->gpio_cs_inverted);
-+}
-+
-+static void cs_deassert(struct driver_data *drv_data)
-+{
-+	struct chip_data *chip = drv_data->cur_chip;
-+
-+	if (chip->cs_control) {
-+		chip->cs_control(PXA2XX_CS_ASSERT);
-+		return;
-+	}
-+
-+	if (gpio_is_valid(chip->gpio_cs))
-+		gpio_set_value(chip->gpio_cs, !chip->gpio_cs_inverted);
-+}
-+
- static int flush(struct driver_data *drv_data)
- {
- 	unsigned long limit = loops_per_jiffy << 1;
-@@ -189,10 +218,6 @@ static int flush(struct driver_data *drv
- 	return limit;
+ 	return err;
  }
  
--static void null_cs_control(u32 command)
+-static ssize_t
+-nilfs_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
+-		     unsigned long nr_segs, loff_t pos)
 -{
+-	struct file *file = iocb->ki_filp;
+-	struct inode *inode = file->f_dentry->d_inode;
+-	ssize_t ret;
+-
+-	ret = generic_file_aio_write(iocb, iov, nr_segs, pos);
+-	if (ret <= 0)
+-		return ret;
+-
+-	if ((file->f_flags & O_SYNC) || IS_SYNC(inode)) {
+-		int err;
+-
+-		err = nilfs_construct_dsync_segment(inode->i_sb, inode);
+-		if (unlikely(err))
+-			return err;
+-	}
+-	return ret;
 -}
 -
- static int null_writer(struct driver_data *drv_data)
+ static int nilfs_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
- 	void __iomem *reg = drv_data->ioaddr;
-@@ -400,7 +425,6 @@ static void giveback(struct driver_data 
- 	msg = drv_data->cur_msg;
- 	drv_data->cur_msg = NULL;
- 	drv_data->cur_transfer = NULL;
--	drv_data->cur_chip = NULL;
- 	queue_work(drv_data->workqueue, &drv_data->pump_messages);
- 	spin_unlock_irqrestore(&drv_data->lock, flags);
- 
-@@ -416,7 +440,7 @@ static void giveback(struct driver_data 
- 	 * a message with an error, or next message is for another chip
- 	 */
- 	if (!last_transfer->cs_change)
--		drv_data->cs_control(PXA2XX_CS_DEASSERT);
-+		cs_deassert(drv_data);
- 	else {
- 		struct spi_message *next_msg;
- 
-@@ -445,12 +469,14 @@ static void giveback(struct driver_data 
- 		if (next_msg && next_msg->spi != msg->spi)
- 			next_msg = NULL;
- 		if (!next_msg || msg->state == ERROR_STATE)
--			drv_data->cs_control(PXA2XX_CS_DEASSERT);
-+			cs_deassert(drv_data);
- 	}
- 
- 	msg->state = NULL;
- 	if (msg->complete)
- 		msg->complete(msg->context);
-+
-+	drv_data->cur_chip = NULL;
- }
- 
- static int wait_ssp_rx_stall(void const __iomem *ioaddr)
-@@ -887,7 +913,7 @@ static void pump_transfers(unsigned long
- 
- 		/* Drop chip select only if cs_change is requested */
- 		if (previous->cs_change)
--			drv_data->cs_control(PXA2XX_CS_DEASSERT);
-+			cs_deassert(drv_data);
- 	}
- 
- 	/* Check for transfers that need multiple DMA segments */
-@@ -922,7 +948,6 @@ static void pump_transfers(unsigned long
- 	}
- 	drv_data->n_bytes = chip->n_bytes;
- 	drv_data->dma_width = chip->dma_width;
--	drv_data->cs_control = chip->cs_control;
- 	drv_data->tx = (void *)transfer->tx_buf;
- 	drv_data->tx_end = drv_data->tx + transfer->len;
- 	drv_data->rx = transfer->rx_buf;
-@@ -1084,11 +1109,7 @@ static void pump_transfers(unsigned long
- 			write_SSTO(chip->timeout, reg);
- 	}
- 
--	/* FIXME, need to handle cs polarity,
--	 * this driver uses struct pxa2xx_spi_chip.cs_control to
--	 * specify a CS handling function, and it ignores most
--	 * struct spi_device.mode[s], including SPI_CS_HIGH */
--	drv_data->cs_control(PXA2XX_CS_ASSERT);
-+	cs_assert(drv_data);
- 
- 	/* after chip select, release the data by enabling service
- 	 * requests and interrupts, without changing any mode bits */
-@@ -1166,6 +1187,44 @@ static int transfer(struct spi_device *s
- /* the spi->mode bits understood by this driver: */
- #define MODEBITS (SPI_CPOL | SPI_CPHA)
- 
-+static int setup_cs(struct spi_device *spi, struct chip_data *chip,
-+		    struct pxa2xx_spi_chip *chip_info)
-+{
+ 	struct page *page = vmf->page;
+@@ -160,7 +139,7 @@ struct file_operations nilfs_file_operat
+ 	.read		= do_sync_read,
+ 	.write		= do_sync_write,
+ 	.aio_read	= generic_file_aio_read,
+-	.aio_write	= nilfs_file_aio_write,
++	.aio_write	= generic_file_aio_write,
+ 	.ioctl		= nilfs_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= nilfs_compat_ioctl,
+diff -puN fs/nilfs2/inode.c~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range
++++ a/fs/nilfs2/inode.c
+@@ -24,6 +24,7 @@
+ #include <linux/buffer_head.h>
+ #include <linux/mpage.h>
+ #include <linux/writeback.h>
++#include <linux/uio.h>
+ #include "nilfs.h"
+ #include "segment.h"
+ #include "page.h"
+@@ -145,8 +146,14 @@ static int nilfs_readpages(struct file *
+ static int nilfs_writepages(struct address_space *mapping,
+ 			    struct writeback_control *wbc)
+ {
+-	/* This empty method is required not to call generic_writepages() */
+-	return 0;
++	struct inode *inode = mapping->host;
 +	int err = 0;
 +
-+	if (chip == NULL || chip_info == NULL)
-+		return 0;
-+
-+	/* NOTE: setup() can be called multiple times, possibly with
-+	 * different chip_info, release previously requested GPIO
-+	 */
-+	if (gpio_is_valid(chip->gpio_cs))
-+		gpio_free(chip->gpio_cs);
-+
-+	/* If (*cs_control) is provided, ignore GPIO chip select */
-+	if (chip_info->cs_control) {
-+		chip->cs_control = chip_info->cs_control;
-+		return 0;
-+	}
-+
-+	if (gpio_is_valid(chip_info->gpio_cs)) {
-+		err = gpio_request(chip_info->gpio_cs, "SPI_CS");
-+		if (err) {
-+			dev_err(&spi->dev, "failed to request chip select "
-+					"GPIO%d\n", chip_info->gpio_cs);
-+			return err;
-+		}
-+
-+		chip->gpio_cs = chip_info->gpio_cs;
-+		chip->gpio_cs_inverted = spi->mode & SPI_CS_HIGH;
-+
-+		err = gpio_direction_output(chip->gpio_cs,
-+					!chip->gpio_cs_inverted);
-+	}
-+
++	if (wbc->sync_mode == WB_SYNC_ALL)
++		err = nilfs_construct_dsync_segment(inode->i_sb, inode,
++						    wbc->range_start,
++						    wbc->range_end);
 +	return err;
+ }
+ 
+ static int nilfs_writepage(struct page *page, struct writeback_control *wbc)
+@@ -225,11 +232,6 @@ nilfs_direct_IO(int rw, struct kiocb *io
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+ 	ssize_t size;
+-	int err;
+-
+-	err = nilfs_construct_dsync_segment(inode->i_sb, inode);
+-	if (unlikely(err))
+-		return err;
+ 
+ 	if (rw == WRITE)
+ 		return 0;
+diff -puN fs/nilfs2/segment.c~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range
++++ a/fs/nilfs2/segment.c
+@@ -654,29 +654,41 @@ struct nilfs_sc_operations nilfs_sc_dsyn
+ 	.write_node_binfo = NULL,
+ };
+ 
+-static int nilfs_lookup_dirty_data_buffers(struct inode *inode,
+-					   struct list_head *listp,
+-					   struct nilfs_sc_info *sci)
++static size_t nilfs_lookup_dirty_data_buffers(struct inode *inode,
++					      struct list_head *listp,
++					      size_t nlimit,
++					      loff_t start, loff_t end)
+ {
+-	struct nilfs_segment_buffer *segbuf = sci->sc_curseg;
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct pagevec pvec;
+-	unsigned i, ndirties = 0, nlimit;
+-	pgoff_t index = 0;
+-	int err = 0;
++	pgoff_t index = 0, last = ULONG_MAX;
++	size_t ndirties = 0;
++	int i;
+ 
+-	nlimit = sci->sc_segbuf_nblocks -
+-		(sci->sc_nblk_this_inc + segbuf->sb_sum.nblocks);
++	if (unlikely(start != 0 || end != LLONG_MAX)) {
++		/*
++		 * A valid range is given for sync-ing data pages. The
++		 * range is rounded to per-page; extra dirty buffers
++		 * may be included if blocksize < pagesize.
++		 */
++		index = start >> PAGE_SHIFT;
++		last = end >> PAGE_SHIFT;
++	}
+ 	pagevec_init(&pvec, 0);
+  repeat:
+-	if (!pagevec_lookup_tag(&pvec, mapping, &index, PAGECACHE_TAG_DIRTY,
+-				PAGEVEC_SIZE))
+-		return 0;
++	if (unlikely(index > last) ||
++	    !pagevec_lookup_tag(&pvec, mapping, &index, PAGECACHE_TAG_DIRTY,
++				min_t(pgoff_t, last - index,
++				      PAGEVEC_SIZE - 1) + 1))
++		return ndirties;
+ 
+ 	for (i = 0; i < pagevec_count(&pvec); i++) {
+ 		struct buffer_head *bh, *head;
+ 		struct page *page = pvec.pages[i];
+ 
++		if (unlikely(page->index > last))
++			break;
++
+ 		if (mapping->host) {
+ 			lock_page(page);
+ 			if (!page_has_buffers(page))
+@@ -687,24 +699,21 @@ static int nilfs_lookup_dirty_data_buffe
+ 
+ 		bh = head = page_buffers(page);
+ 		do {
+-			if (buffer_dirty(bh)) {
+-				if (ndirties > nlimit) {
+-					err = -E2BIG;
+-					break;
+-				}
+-				get_bh(bh);
+-				list_add_tail(&bh->b_assoc_buffers, listp);
+-				ndirties++;
++			if (!buffer_dirty(bh))
++				continue;
++			get_bh(bh);
++			list_add_tail(&bh->b_assoc_buffers, listp);
++			ndirties++;
++			if (unlikely(ndirties >= nlimit)) {
++				pagevec_release(&pvec);
++				cond_resched();
++				return ndirties;
+ 			}
+-			bh = bh->b_this_page;
+-		} while (bh != head);
++		} while (bh = bh->b_this_page, bh != head);
+ 	}
+ 	pagevec_release(&pvec);
+ 	cond_resched();
+-
+-	if (!err)
+-		goto repeat;
+-	return err;
++	goto repeat;
+ }
+ 
+ static void nilfs_lookup_dirty_node_buffers(struct inode *inode,
+@@ -1058,23 +1067,31 @@ static int nilfs_segctor_apply_buffers(s
+ 	return err;
+ }
+ 
++static size_t nilfs_segctor_buffer_rest(struct nilfs_sc_info *sci)
++{
++	/* Remaining number of blocks within segment buffer */
++	return sci->sc_segbuf_nblocks -
++		(sci->sc_nblk_this_inc + sci->sc_curseg->sb_sum.nblocks);
 +}
 +
- static int setup(struct spi_device *spi)
+ static int nilfs_segctor_scan_file(struct nilfs_sc_info *sci,
+ 				   struct inode *inode,
+ 				   struct nilfs_sc_operations *sc_ops)
  {
- 	struct pxa2xx_spi_chip *chip_info = NULL;
-@@ -1211,7 +1270,7 @@ static int setup(struct spi_device *spi)
- 			return -ENOMEM;
- 		}
+ 	LIST_HEAD(data_buffers);
+ 	LIST_HEAD(node_buffers);
+-	int err, err2;
++	int err;
  
--		chip->cs_control = null_cs_control;
-+		chip->gpio_cs = -1;
- 		chip->enable_dma = 0;
- 		chip->timeout = TIMOUT_DFLT;
- 		chip->dma_burst_size = drv_data->master_info->enable_dma ?
-@@ -1225,8 +1284,6 @@ static int setup(struct spi_device *spi)
- 	/* chip_info isn't always needed */
- 	chip->cr1 = 0;
- 	if (chip_info) {
--		if (chip_info->cs_control)
--			chip->cs_control = chip_info->cs_control;
- 		if (chip_info->timeout)
- 			chip->timeout = chip_info->timeout;
- 		if (chip_info->tx_threshold)
-@@ -1308,13 +1365,16 @@ static int setup(struct spi_device *spi)
- 
- 	spi_set_ctldata(spi, chip);
- 
--	return 0;
-+	return setup_cs(spi, chip, chip_info);
- }
- 
- static void cleanup(struct spi_device *spi)
- {
- 	struct chip_data *chip = spi_get_ctldata(spi);
- 
-+	if (gpio_is_valid(chip->gpio_cs))
-+		gpio_free(chip->gpio_cs);
+ 	if (!(sci->sc_stage.flags & NILFS_CF_NODE)) {
+-		err = nilfs_lookup_dirty_data_buffers(inode, &data_buffers,
+-						      sci);
+-		if (err) {
+-			err2 = nilfs_segctor_apply_buffers(
++		size_t n, rest = nilfs_segctor_buffer_rest(sci);
 +
- 	kfree(chip);
++		n = nilfs_lookup_dirty_data_buffers(
++			inode, &data_buffers, rest + 1, 0, LLONG_MAX);
++		if (n > rest) {
++			err = nilfs_segctor_apply_buffers(
+ 				sci, inode, &data_buffers,
+-				err == -E2BIG ? sc_ops->collect_data : NULL);
+-			if (err == -E2BIG)
+-				err = err2;
++				sc_ops->collect_data);
++			BUG_ON(!err); /* always receive -E2BIG or true error */
+ 			goto break_or_fail;
+ 		}
+ 	}
+@@ -1114,16 +1131,20 @@ static int nilfs_segctor_scan_file_dsync
+ 					 struct inode *inode)
+ {
+ 	LIST_HEAD(data_buffers);
+-	int err, err2;
++	size_t n, rest = nilfs_segctor_buffer_rest(sci);
++	int err;
+ 
+-	err = nilfs_lookup_dirty_data_buffers(inode, &data_buffers, sci);
+-	err2 = nilfs_segctor_apply_buffers(sci, inode, &data_buffers,
+-					   (!err || err == -E2BIG) ?
+-					   nilfs_collect_file_data : NULL);
+-	if (err == -E2BIG)
+-		err = err2;
+-	if (!err)
++	n = nilfs_lookup_dirty_data_buffers(inode, &data_buffers, rest + 1,
++					    sci->sc_dsync_start,
++					    sci->sc_dsync_end);
++
++	err = nilfs_segctor_apply_buffers(sci, inode, &data_buffers,
++					  nilfs_collect_file_data);
++	if (!err) {
+ 		nilfs_segctor_end_finfo(sci, inode);
++		BUG_ON(n > rest);
++		/* always receive -E2BIG or true error if n > rest */
++	}
+ 	return err;
  }
+ 
+@@ -1276,14 +1297,13 @@ static int nilfs_segctor_collect_blocks(
+ 	case NILFS_ST_DSYNC:
+  dsync_mode:
+ 		sci->sc_curseg->sb_sum.flags |= NILFS_SS_SYNDT;
+-		ii = sci->sc_stage.dirty_file_ptr;
++		ii = sci->sc_dsync_inode;
+ 		if (!test_bit(NILFS_I_BUSY, &ii->i_state))
+ 			break;
+ 
+ 		err = nilfs_segctor_scan_file_dsync(sci, &ii->vfs_inode);
+ 		if (unlikely(err))
+ 			break;
+-		sci->sc_stage.dirty_file_ptr = NULL;
+ 		sci->sc_curseg->sb_sum.flags |= NILFS_SS_LOGEND;
+ 		sci->sc_stage.scnt = NILFS_ST_DONE;
+ 		return 0;
+@@ -2624,7 +2644,9 @@ int nilfs_construct_segment(struct super
+ /**
+  * nilfs_construct_dsync_segment - construct a data-only logical segment
+  * @sb: super block
+- * @inode: the inode whose data blocks should be written out
++ * @inode: inode whose data blocks should be written out
++ * @start: start byte offset
++ * @end: end byte offset (inclusive)
+  *
+  * Return Value: On success, 0 is retured. On errors, one of the following
+  * negative error code is returned.
+@@ -2639,8 +2661,8 @@ int nilfs_construct_segment(struct super
+  *
+  * %-ENOMEM - Insufficient memory available.
+  */
+-int nilfs_construct_dsync_segment(struct super_block *sb,
+-				  struct inode *inode)
++int nilfs_construct_dsync_segment(struct super_block *sb, struct inode *inode,
++				  loff_t start, loff_t end)
+ {
+ 	struct nilfs_sb_info *sbi = NILFS_SB(sb);
+ 	struct nilfs_sc_info *sci = NILFS_SC(sbi);
+@@ -2671,7 +2693,9 @@ int nilfs_construct_dsync_segment(struct
+ 		return 0;
+ 	}
+ 	spin_unlock(&sbi->s_inode_lock);
+-	sci->sc_stage.dirty_file_ptr = ii;
++	sci->sc_dsync_inode = ii;
++	sci->sc_dsync_start = start;
++	sci->sc_dsync_end = end;
+ 
+ 	err = nilfs_segctor_do_construct(sci, SC_LSEG_DSYNC);
+ 
+diff -puN fs/nilfs2/segment.h~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range fs/nilfs2/segment.h
+--- a/fs/nilfs2/segment.h~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range
++++ a/fs/nilfs2/segment.h
+@@ -93,6 +93,9 @@ struct nilfs_segsum_pointer {
+  * @sc_active_segments: List of active segments that were already written out
+  * @sc_cleaning_segments: List of segments to be freed through construction
+  * @sc_copied_buffers: List of copied buffers (buffer heads) to freeze data
++ * @sc_dsync_inode: inode whose data pages are written for a sync operation
++ * @sc_dsync_start: start byte offset of data pages
++ * @sc_dsync_end: end byte offset of data pages (inclusive)
+  * @sc_segbufs: List of segment buffers
+  * @sc_segbuf_nblocks: Number of available blocks in segment buffers.
+  * @sc_curseg: Current segment buffer
+@@ -134,6 +137,10 @@ struct nilfs_sc_info {
+ 	struct list_head	sc_cleaning_segments;
+ 	struct list_head	sc_copied_buffers;
+ 
++	struct nilfs_inode_info *sc_dsync_inode;
++	loff_t			sc_dsync_start;
++	loff_t			sc_dsync_end;
++
+ 	/* Segment buffers */
+ 	struct list_head	sc_segbufs;
+ 	unsigned long		sc_segbuf_nblocks;
+@@ -221,8 +228,8 @@ extern void nilfs_destroy_transaction_ca
+ extern void nilfs_relax_pressure_in_lock(struct super_block *);
+ 
+ extern int nilfs_construct_segment(struct super_block *);
+-extern int nilfs_construct_dsync_segment(struct super_block *,
+-					 struct inode *);
++extern int nilfs_construct_dsync_segment(struct super_block *, struct inode *,
++					 loff_t, loff_t);
+ extern void nilfs_flush_segment(struct super_block *, ino_t);
+ extern int nilfs_clean_segments(struct super_block *, void __user *);
  
 _
 
-Patches currently in -mm which might be from eric.miao@marvell.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
 origin.patch
-linux-next.patch
-input-ads7846-introduce-platform-specific-way-to-synchronize-sampling.patch
 
