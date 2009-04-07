@@ -1,163 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blackfin-spi-driver-add-gpio-controlled-spi-slave-select-support.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:06:58 -0700
-Message-ID: <200904071906.n37J6w4Z011096@imap1.linux-foundation.org>
+Subject: [merged] nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:09:09 -0700
+Message-ID: <200904071909.n37J99xk012164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755579AbZDGTLP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:11:15 -0400
+	by vger.kernel.org with ESMTP id S1760122AbZDGTLw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:11:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.hennerich@analog.com, cooloney@kernel.org, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, andi@firstfloor.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin SPI Driver: Add GPIO controlled SPI Slave Select support
+     nilfs2: fix problems of memory allocation in ioctl
 has been removed from the -mm tree.  Its filename was
-     blackfin-spi-driver-add-gpio-controlled-spi-slave-select-support.patch
+     nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: Add GPIO controlled SPI Slave Select support
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: nilfs2: fix problems of memory allocation in ioctl
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-Add support for GPIO controlled SPI Chip Selects.  To make use of this
-feature, set chip_select = 0 and add a proper cs_gpio to your
-controller_data.
+This is another patch for fixing the following problems of a memory
+copy function in nilfs2 ioctl:
 
-struct spi_board_info
-        .chip_select = 0
+(1) It tries to allocate 128KB size of memory even for small objects.
 
-struct bfin5xx_spi_chip
-        .cs_gpio = GPIO_P###
+(2) Though the function repeatedly tries large memory allocations
+    while reducing the size, GFP_NOWAIT flag is not specified.
+    This increases the possibility of system memory shortage.
 
-There are various SPI devices that require SPI MODE_0, and need to have
-the Chip Selects asserted during the entire transfer.  Consider using
-SPI_MODE_3 (SPI_CPHA | SPI_CPOL) if your device allows it.
+(3) During the retries of (2), verbose warnings are printed
+    because _GFP_NOWARN flag is not used for the kmalloc calls.
 
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>
+The first patch was still doing large allocations by kmalloc which are
+repeatedly tried while reducing the size.
+
+Andi Kleen told me that using copy_from_user for large memory is not
+good from the viewpoint of preempt latency:
+
+ On Fri, 12 Dec 2008 21:24:11 +0100, Andi Kleen <andi@firstfloor.org> wrote:
+ > > In the current interface, each data item is copied twice: one is to
+ > > the allocated memory from user space (via copy_from_user), and another
+ >
+ > For such large copies it is better to use multiple smaller (e.g. 4K)
+ > copy user, that gives better real time preempt latencies. Each cfu has a
+ > cond_resched(), but only one, not multiple times in the inner loop.
+
+He also advised me that:
+
+ On Sun, 14 Dec 2008 16:13:27 +0100, Andi Kleen <andi@firstfloor.org> wrote:
+ > Better would be if you could go to PAGE_SIZE. order 0 allocations
+ > are typically the fastest / least likely to stall.
+ >
+ > Also in this case it's a good idea to use __get_free_pages()
+ > directly, kmalloc tends to be become less efficient at larger
+ > sizes.
+
+For the function in question, the size of buffer memory can be reduced
+since the buffer is repeatedly used for a number of small objects.  On
+the other hand, it may incur large preempt latencies for larger buffer
+because a copy_from_user (and a copy_to_user) was applied only once
+each cycle.
+
+With that, this revision uses the order 0 allocations with
+__get_free_pages() to fix the original problems.
+
+Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/bfin5xx_spi.h |    1 
- drivers/spi/spi_bfin5xx.c               |   40 +++++++++++++++++-----
- 2 files changed, 33 insertions(+), 8 deletions(-)
+ fs/nilfs2/ioctl.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN arch/blackfin/include/asm/bfin5xx_spi.h~blackfin-spi-driver-add-gpio-controlled-spi-slave-select-support arch/blackfin/include/asm/bfin5xx_spi.h
---- a/arch/blackfin/include/asm/bfin5xx_spi.h~blackfin-spi-driver-add-gpio-controlled-spi-slave-select-support
-+++ a/arch/blackfin/include/asm/bfin5xx_spi.h
-@@ -124,6 +124,7 @@ struct bfin5xx_spi_chip {
- 	u8 bits_per_word;
- 	u8 cs_change_per_word;
- 	u16 cs_chg_udelay; /* Some devices require 16-bit delays */
-+	u32 cs_gpio;
- };
+diff -puN fs/nilfs2/ioctl.c~nilfs2-fix-problems-of-memory-allocation-in-ioctl fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-fix-problems-of-memory-allocation-in-ioctl
++++ a/fs/nilfs2/ioctl.c
+@@ -34,9 +34,6 @@
+ #include "dat.h"
  
- #endif /* _SPI_CHANNEL_H_ */
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-add-gpio-controlled-spi-slave-select-support drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-add-gpio-controlled-spi-slave-select-support
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -111,6 +111,7 @@ struct chip_data {
- 	u8 bits_per_word;	/* 8 or 16 */
- 	u8 cs_change_per_word;
- 	u16 cs_chg_udelay;	/* Some devices require > 255usec delay */
-+	u32 cs_gpio;
- 	void (*write) (struct driver_data *);
- 	void (*read) (struct driver_data *);
- 	void (*duplex) (struct driver_data *);
-@@ -177,22 +178,30 @@ static int bfin_spi_flush(struct driver_
- /* Chip select operation functions for cs_change flag */
- static void bfin_spi_cs_active(struct driver_data *drv_data, struct chip_data *chip)
+ 
+-#define KMALLOC_SIZE_MIN	4096	/* 4KB */
+-#define KMALLOC_SIZE_MAX	131072	/* 128 KB */
+-
+ static int nilfs_ioctl_wrap_copy(struct the_nilfs *nilfs,
+ 				 struct nilfs_argv *argv, int dir,
+ 				 ssize_t (*dofunc)(struct the_nilfs *,
+@@ -44,21 +41,20 @@ static int nilfs_ioctl_wrap_copy(struct 
+ 						   void *, size_t, size_t))
  {
--	u16 flag = read_FLAG(drv_data);
-+	if (likely(chip->chip_select_num)) {
-+		u16 flag = read_FLAG(drv_data);
+ 	void *buf;
+-	size_t ksize, maxmembs, total, n;
++	size_t maxmembs, total, n;
+ 	ssize_t nr;
+ 	int ret, i;
  
--	flag |= chip->flag;
--	flag &= ~(chip->flag << 8);
-+		flag |= chip->flag;
-+		flag &= ~(chip->flag << 8);
+ 	if (argv->v_nmembs == 0)
+ 		return 0;
  
--	write_FLAG(drv_data, flag);
-+		write_FLAG(drv_data, flag);
-+	} else {
-+		gpio_set_value(chip->cs_gpio, 0);
-+	}
- }
+-	for (ksize = KMALLOC_SIZE_MAX; ksize >= KMALLOC_SIZE_MIN; ksize /= 2) {
+-		buf = kmalloc(ksize, GFP_NOFS);
+-		if (buf != NULL)
+-			break;
+-	}
+-	if (ksize < KMALLOC_SIZE_MIN)
++	if (argv->v_size > PAGE_SIZE)
++		return -EINVAL;
++
++	buf = (void *)__get_free_pages(GFP_NOFS, 0);
++	if (unlikely(!buf))
+ 		return -ENOMEM;
+-	maxmembs = ksize / argv->v_size;
++	maxmembs = PAGE_SIZE / argv->v_size;
  
- static void bfin_spi_cs_deactive(struct driver_data *drv_data, struct chip_data *chip)
- {
--	u16 flag = read_FLAG(drv_data);
-+	if (likely(chip->chip_select_num)) {
-+		u16 flag = read_FLAG(drv_data);
- 
--	flag &= ~chip->flag;
--	flag |= (chip->flag << 8);
-+		flag &= ~chip->flag;
-+		flag |= (chip->flag << 8);
- 
--	write_FLAG(drv_data, flag);
-+		write_FLAG(drv_data, flag);
-+	} else {
-+		gpio_set_value(chip->cs_gpio, 1);
-+	}
- 
- 	/* Move delay here for consistency */
- 	if (chip->cs_chg_udelay)
-@@ -1036,6 +1045,7 @@ static int bfin_spi_setup(struct spi_dev
- 	struct bfin5xx_spi_chip *chip_info = NULL;
- 	struct chip_data *chip;
- 	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
-+	int ret;
- 
- 	/* Abort device setup if requested features are not supported */
- 	if (spi->mode & ~(SPI_CPOL | SPI_CPHA | SPI_LSB_FIRST)) {
-@@ -1081,6 +1091,7 @@ static int bfin_spi_setup(struct spi_dev
- 		chip->bits_per_word = chip_info->bits_per_word;
- 		chip->cs_change_per_word = chip_info->cs_change_per_word;
- 		chip->cs_chg_udelay = chip_info->cs_chg_udelay;
-+		chip->cs_gpio = chip_info->cs_gpio;
+ 	ret = 0;
+ 	total = 0;
+@@ -89,7 +85,7 @@ static int nilfs_ioctl_wrap_copy(struct 
  	}
+ 	argv->v_nmembs = total;
  
- 	/* translate common spi framework into our register */
-@@ -1121,6 +1132,16 @@ static int bfin_spi_setup(struct spi_dev
- 	chip->flag = 1 << (spi->chip_select);
- 	chip->chip_select_num = spi->chip_select;
- 
-+	if (chip->chip_select_num == 0) {
-+		ret = gpio_request(chip->cs_gpio, spi->modalias);
-+		if (ret) {
-+			if (drv_data->dma_requested)
-+				free_dma(drv_data->dma_channel);
-+			return ret;
-+		}
-+		gpio_direction_output(chip->cs_gpio, 1);
-+	}
-+
- 	switch (chip->bits_per_word) {
- 	case 8:
- 		chip->n_bytes = 1;
-@@ -1186,6 +1207,9 @@ static void bfin_spi_cleanup(struct spi_
- 		peripheral_free(ssel[spi->master->bus_num]
- 					[chip->chip_select_num-1]);
- 
-+	if (chip->chip_select_num == 0)
-+		gpio_free(chip->cs_gpio);
-+
- 	kfree(chip);
+-	kfree(buf);
++	free_pages((unsigned long)buf, 0);
+ 	return ret;
  }
  
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
 origin.patch
-linux-next.patch
 
