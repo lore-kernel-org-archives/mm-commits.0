@@ -1,49 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-direct-block-mapping.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:08:21 -0700
-Message-ID: <200904071908.n37J8LRq011761@imap1.linux-foundation.org>
+Subject: [merged] nilfs2-disk-address-translator.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:08:32 -0700
+Message-ID: <200904071908.n37J8WfA011841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40116 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758757AbZDGTco (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:32:44 -0400
+	by vger.kernel.org with ESMTP id S1752270AbZDGTdj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:33:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sato.koji@lab.ntt.co.jp, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nilfs2: direct block mapping
+     nilfs2: disk address translator
 has been removed from the -mm tree.  Its filename was
-     nilfs2-direct-block-mapping.patch
+     nilfs2-disk-address-translator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: direct block mapping
+Subject: nilfs2: disk address translator
 From: Koji Sato <sato.koji@lab.ntt.co.jp>
 
-This adds block mappings using direct pointers which are stored in the
-i_bmap array of inode.
+This adds the disk address translation file (DAT) whose primary function
+is to convert virtual disk block numbers to actual disk block numbers.
+
+The virtual block numbers of NILFS are associated with checkpoint
+generation numbers, and this file also provides functions to manage the
+lifetime information of each virtual block number.
 
 Signed-off-by: Koji Sato <sato.koji@lab.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/direct.c |  429 +++++++++++++++++++++++++++++++++++++++++++
- fs/nilfs2/direct.h |   78 +++++++
- 2 files changed, 507 insertions(+)
+ fs/nilfs2/dat.c |  429 ++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nilfs2/dat.h |   52 +++++
+ 2 files changed, 481 insertions(+)
 
-diff -puN /dev/null fs/nilfs2/direct.c
+diff -puN /dev/null fs/nilfs2/dat.c
 --- /dev/null
-+++ a/fs/nilfs2/direct.c
++++ a/fs/nilfs2/dat.c
 @@ -0,0 +1,429 @@
 +/*
-+ * direct.c - NILFS direct block pointer.
++ * dat.c - NILFS disk address translation.
 + *
 + * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
 + *
@@ -64,419 +68,419 @@ diff -puN /dev/null fs/nilfs2/direct.c
 + * Written by Koji Sato <koji@osrg.net>.
 + */
 +
++#include <linux/types.h>
++#include <linux/buffer_head.h>
++#include <linux/string.h>
 +#include <linux/errno.h>
 +#include "nilfs.h"
-+#include "page.h"
-+#include "direct.h"
++#include "mdt.h"
 +#include "alloc.h"
++#include "dat.h"
 +
-+static inline __le64 *nilfs_direct_dptrs(const struct nilfs_direct *direct)
++
++#define NILFS_CNO_MIN	((__u64)1)
++#define NILFS_CNO_MAX	(~(__u64)0)
++
++static int nilfs_dat_prepare_entry(struct inode *dat,
++				   struct nilfs_palloc_req *req, int create)
 +{
-+	return (__le64 *)
-+		((struct nilfs_direct_node *)direct->d_bmap.b_u.u_data + 1);
++	return nilfs_palloc_get_entry_block(dat, req->pr_entry_nr,
++					    create, &req->pr_entry_bh);
 +}
 +
-+static inline __u64
-+nilfs_direct_get_ptr(const struct nilfs_direct *direct, __u64 key)
++static void nilfs_dat_commit_entry(struct inode *dat,
++				   struct nilfs_palloc_req *req)
 +{
-+	return nilfs_bmap_dptr_to_ptr(*(nilfs_direct_dptrs(direct) + key));
++	nilfs_mdt_mark_buffer_dirty(req->pr_entry_bh);
++	nilfs_mdt_mark_dirty(dat);
++	brelse(req->pr_entry_bh);
 +}
 +
-+static inline void nilfs_direct_set_ptr(struct nilfs_direct *direct,
-+					__u64 key, __u64 ptr)
++static void nilfs_dat_abort_entry(struct inode *dat,
++				  struct nilfs_palloc_req *req)
 +{
-+	*(nilfs_direct_dptrs(direct) + key) = nilfs_bmap_ptr_to_dptr(ptr);
++	brelse(req->pr_entry_bh);
 +}
 +
-+static int nilfs_direct_lookup(const struct nilfs_bmap *bmap,
-+			       __u64 key, int level, __u64 *ptrp)
-+{
-+	struct nilfs_direct *direct;
-+	__u64 ptr;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	if ((key > NILFS_DIRECT_KEY_MAX) ||
-+	    (level != 1) ||	/* XXX: use macro for level 1 */
-+	    ((ptr = nilfs_direct_get_ptr(direct, key)) ==
-+	     NILFS_BMAP_INVALID_PTR))
-+		return -ENOENT;
-+
-+	if (ptrp != NULL)
-+		*ptrp = ptr;
-+	return 0;
-+}
-+
-+static __u64
-+nilfs_direct_find_target_v(const struct nilfs_direct *direct, __u64 key)
-+{
-+	__u64 ptr;
-+
-+	ptr = nilfs_bmap_find_target_seq(&direct->d_bmap, key);
-+	if (ptr != NILFS_BMAP_INVALID_PTR)
-+		/* sequential access */
-+		return ptr;
-+	else
-+		/* block group */
-+		return nilfs_bmap_find_target_in_group(&direct->d_bmap);
-+}
-+
-+static void nilfs_direct_set_target_v(struct nilfs_direct *direct,
-+				      __u64 key, __u64 ptr)
-+{
-+	direct->d_bmap.b_last_allocated_key = key;
-+	direct->d_bmap.b_last_allocated_ptr = ptr;
-+}
-+
-+static int nilfs_direct_prepare_insert(struct nilfs_direct *direct,
-+				       __u64 key,
-+				       union nilfs_bmap_ptr_req *req,
-+				       struct nilfs_bmap_stats *stats)
++int nilfs_dat_prepare_alloc(struct inode *dat, struct nilfs_palloc_req *req)
 +{
 +	int ret;
 +
-+	if (direct->d_ops->dop_find_target != NULL)
-+		req->bpr_ptr = (*direct->d_ops->dop_find_target)(direct, key);
-+	ret = (*direct->d_bmap.b_pops->bpop_prepare_alloc_ptr)(&direct->d_bmap,
-+							       req);
++	ret = nilfs_palloc_prepare_alloc_entry(dat, req);
 +	if (ret < 0)
 +		return ret;
 +
-+	stats->bs_nblocks = 1;
-+	return 0;
-+}
-+
-+static void nilfs_direct_commit_insert(struct nilfs_direct *direct,
-+				       union nilfs_bmap_ptr_req *req,
-+				       __u64 key, __u64 ptr)
-+{
-+	struct buffer_head *bh;
-+
-+	/* ptr must be a pointer to a buffer head. */
-+	bh = (struct buffer_head *)((unsigned long)ptr);
-+	set_buffer_nilfs_volatile(bh);
-+
-+	if (direct->d_bmap.b_pops->bpop_commit_alloc_ptr != NULL)
-+		(*direct->d_bmap.b_pops->bpop_commit_alloc_ptr)(
-+			&direct->d_bmap, req);
-+	nilfs_direct_set_ptr(direct, key, req->bpr_ptr);
-+
-+	if (!nilfs_bmap_dirty(&direct->d_bmap))
-+		nilfs_bmap_set_dirty(&direct->d_bmap);
-+
-+	if (direct->d_ops->dop_set_target != NULL)
-+		(*direct->d_ops->dop_set_target)(direct, key, req->bpr_ptr);
-+}
-+
-+static int nilfs_direct_insert(struct nilfs_bmap *bmap, __u64 key, __u64 ptr)
-+{
-+	struct nilfs_direct *direct;
-+	union nilfs_bmap_ptr_req req;
-+	struct nilfs_bmap_stats stats;
-+	int ret;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	if (key > NILFS_DIRECT_KEY_MAX)
-+		return -ENOENT;
-+	if (nilfs_direct_get_ptr(direct, key) != NILFS_BMAP_INVALID_PTR)
-+		return -EEXIST;
-+
-+	ret = nilfs_direct_prepare_insert(direct, key, &req, &stats);
++	ret = nilfs_dat_prepare_entry(dat, req, 1);
 +	if (ret < 0)
-+		return ret;
-+	nilfs_direct_commit_insert(direct, &req, key, ptr);
-+	nilfs_bmap_add_blocks(bmap, stats.bs_nblocks);
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_prepare_delete(struct nilfs_direct *direct,
-+				       union nilfs_bmap_ptr_req *req,
-+				       __u64 key,
-+				       struct nilfs_bmap_stats *stats)
-+{
-+	int ret;
-+
-+	if (direct->d_bmap.b_pops->bpop_prepare_end_ptr != NULL) {
-+		req->bpr_ptr = nilfs_direct_get_ptr(direct, key);
-+		ret = (*direct->d_bmap.b_pops->bpop_prepare_end_ptr)(
-+			&direct->d_bmap, req);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	stats->bs_nblocks = 1;
-+	return 0;
-+}
-+
-+static void nilfs_direct_commit_delete(struct nilfs_direct *direct,
-+				       union nilfs_bmap_ptr_req *req,
-+				       __u64 key)
-+{
-+	if (direct->d_bmap.b_pops->bpop_commit_end_ptr != NULL)
-+		(*direct->d_bmap.b_pops->bpop_commit_end_ptr)(
-+			&direct->d_bmap, req);
-+	nilfs_direct_set_ptr(direct, key, NILFS_BMAP_INVALID_PTR);
-+}
-+
-+static int nilfs_direct_delete(struct nilfs_bmap *bmap, __u64 key)
-+{
-+	struct nilfs_direct *direct;
-+	union nilfs_bmap_ptr_req req;
-+	struct nilfs_bmap_stats stats;
-+	int ret;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	if ((key > NILFS_DIRECT_KEY_MAX) ||
-+	    nilfs_direct_get_ptr(direct, key) == NILFS_BMAP_INVALID_PTR)
-+		return -ENOENT;
-+
-+	ret = nilfs_direct_prepare_delete(direct, &req, key, &stats);
-+	if (ret < 0)
-+		return ret;
-+	nilfs_direct_commit_delete(direct, &req, key);
-+	nilfs_bmap_sub_blocks(bmap, stats.bs_nblocks);
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_last_key(const struct nilfs_bmap *bmap, __u64 *keyp)
-+{
-+	struct nilfs_direct *direct;
-+	__u64 key, lastkey;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	lastkey = NILFS_DIRECT_KEY_MAX + 1;
-+	for (key = NILFS_DIRECT_KEY_MIN; key <= NILFS_DIRECT_KEY_MAX; key++)
-+		if (nilfs_direct_get_ptr(direct, key) !=
-+		    NILFS_BMAP_INVALID_PTR)
-+			lastkey = key;
-+
-+	if (lastkey == NILFS_DIRECT_KEY_MAX + 1)
-+		return -ENOENT;
-+
-+	BUG_ON(keyp == NULL);
-+	*keyp = lastkey;
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_check_insert(const struct nilfs_bmap *bmap, __u64 key)
-+{
-+	return key > NILFS_DIRECT_KEY_MAX;
-+}
-+
-+static int nilfs_direct_gather_data(struct nilfs_bmap *bmap,
-+				    __u64 *keys, __u64 *ptrs, int nitems)
-+{
-+	struct nilfs_direct *direct;
-+	__u64 key;
-+	__u64 ptr;
-+	int n;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	if (nitems > NILFS_DIRECT_NBLOCKS)
-+		nitems = NILFS_DIRECT_NBLOCKS;
-+	n = 0;
-+	for (key = 0; key < nitems; key++) {
-+		ptr = nilfs_direct_get_ptr(direct, key);
-+		if (ptr != NILFS_BMAP_INVALID_PTR) {
-+			keys[n] = key;
-+			ptrs[n] = ptr;
-+			n++;
-+		}
-+	}
-+	return n;
-+}
-+
-+int nilfs_direct_delete_and_convert(struct nilfs_bmap *bmap,
-+				    __u64 key, __u64 *keys, __u64 *ptrs,
-+				    int n, __u64 low, __u64 high)
-+{
-+	struct nilfs_direct *direct;
-+	__le64 *dptrs;
-+	int ret, i, j;
-+
-+	/* no need to allocate any resource for conversion */
-+
-+	/* delete */
-+	ret = (*bmap->b_ops->bop_delete)(bmap, key);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* free resources */
-+	if (bmap->b_ops->bop_clear != NULL)
-+		(*bmap->b_ops->bop_clear)(bmap);
-+
-+	/* convert */
-+	direct = (struct nilfs_direct *)bmap;
-+	dptrs = nilfs_direct_dptrs(direct);
-+	for (i = 0, j = 0; i < NILFS_DIRECT_NBLOCKS; i++) {
-+		if ((j < n) && (i == keys[j])) {
-+			dptrs[i] = (i != key) ?
-+				nilfs_bmap_ptr_to_dptr(ptrs[j]) :
-+				NILFS_BMAP_INVALID_PTR;
-+			j++;
-+		} else
-+			dptrs[i] = NILFS_BMAP_INVALID_PTR;
-+	}
-+
-+	nilfs_direct_init(bmap, low, high);
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_propagate_v(struct nilfs_direct *direct,
-+				    struct buffer_head *bh)
-+{
-+	union nilfs_bmap_ptr_req oldreq, newreq;
-+	__u64 key;
-+	__u64 ptr;
-+	int ret;
-+
-+	key = nilfs_bmap_data_get_key(&direct->d_bmap, bh);
-+	ptr = nilfs_direct_get_ptr(direct, key);
-+	if (!buffer_nilfs_volatile(bh)) {
-+		oldreq.bpr_ptr = ptr;
-+		newreq.bpr_ptr = ptr;
-+		ret = nilfs_bmap_prepare_update(&direct->d_bmap, &oldreq,
-+						&newreq);
-+		if (ret < 0)
-+			return ret;
-+		nilfs_bmap_commit_update(&direct->d_bmap, &oldreq, &newreq);
-+		set_buffer_nilfs_volatile(bh);
-+		nilfs_direct_set_ptr(direct, key, newreq.bpr_ptr);
-+	} else
-+		ret = nilfs_bmap_mark_dirty(&direct->d_bmap, ptr);
++		nilfs_palloc_abort_alloc_entry(dat, req);
 +
 +	return ret;
 +}
 +
-+static int nilfs_direct_propagate(const struct nilfs_bmap *bmap,
-+				  struct buffer_head *bh)
++void nilfs_dat_commit_alloc(struct inode *dat, struct nilfs_palloc_req *req)
 +{
-+	struct nilfs_direct *direct;
++	struct nilfs_dat_entry *entry;
++	void *kaddr;
 +
-+	direct = (struct nilfs_direct *)bmap;
-+	return (direct->d_ops->dop_propagate != NULL) ?
-+		(*direct->d_ops->dop_propagate)(direct, bh) :
-+		0;
++	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
++	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
++					     req->pr_entry_bh, kaddr);
++	entry->de_start = cpu_to_le64(NILFS_CNO_MIN);
++	entry->de_end = cpu_to_le64(NILFS_CNO_MAX);
++	entry->de_blocknr = cpu_to_le64(0);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	nilfs_palloc_commit_alloc_entry(dat, req);
++	nilfs_dat_commit_entry(dat, req);
 +}
 +
-+static int nilfs_direct_assign_v(struct nilfs_direct *direct,
-+				 __u64 key, __u64 ptr,
-+				 struct buffer_head **bh,
-+				 sector_t blocknr,
-+				 union nilfs_binfo *binfo)
++void nilfs_dat_abort_alloc(struct inode *dat, struct nilfs_palloc_req *req)
 +{
-+	union nilfs_bmap_ptr_req req;
++	nilfs_dat_abort_entry(dat, req);
++	nilfs_palloc_abort_alloc_entry(dat, req);
++}
++
++int nilfs_dat_prepare_free(struct inode *dat, struct nilfs_palloc_req *req)
++{
 +	int ret;
 +
-+	req.bpr_ptr = ptr;
-+	ret = (*direct->d_bmap.b_pops->bpop_prepare_start_ptr)(
-+		&direct->d_bmap, &req);
++	ret = nilfs_palloc_prepare_free_entry(dat, req);
 +	if (ret < 0)
 +		return ret;
-+	(*direct->d_bmap.b_pops->bpop_commit_start_ptr)(&direct->d_bmap,
-+							&req, blocknr);
-+
-+	binfo->bi_v.bi_vblocknr = nilfs_bmap_ptr_to_dptr(ptr);
-+	binfo->bi_v.bi_blkoff = nilfs_bmap_key_to_dkey(key);
-+
++	ret = nilfs_dat_prepare_entry(dat, req, 0);
++	if (ret < 0) {
++		nilfs_palloc_abort_free_entry(dat, req);
++		return ret;
++	}
 +	return 0;
 +}
 +
-+static int nilfs_direct_assign_p(struct nilfs_direct *direct,
-+				 __u64 key, __u64 ptr,
-+				 struct buffer_head **bh,
-+				 sector_t blocknr,
-+				 union nilfs_binfo *binfo)
++void nilfs_dat_commit_free(struct inode *dat, struct nilfs_palloc_req *req)
 +{
-+	nilfs_direct_set_ptr(direct, key, blocknr);
++	struct nilfs_dat_entry *entry;
++	void *kaddr;
 +
-+	binfo->bi_dat.bi_blkoff = nilfs_bmap_key_to_dkey(key);
-+	binfo->bi_dat.bi_level = 0;
++	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
++	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
++					     req->pr_entry_bh, kaddr);
++	entry->de_start = cpu_to_le64(NILFS_CNO_MIN);
++	entry->de_end = cpu_to_le64(NILFS_CNO_MIN);
++	entry->de_blocknr = cpu_to_le64(0);
++	kunmap_atomic(kaddr, KM_USER0);
 +
-+	return 0;
++	nilfs_dat_commit_entry(dat, req);
++	nilfs_palloc_commit_free_entry(dat, req);
 +}
 +
-+static int nilfs_direct_assign(struct nilfs_bmap *bmap,
-+			       struct buffer_head **bh,
-+			       sector_t blocknr,
-+			       union nilfs_binfo *binfo)
++void nilfs_dat_abort_free(struct inode *dat, struct nilfs_palloc_req *req)
 +{
-+	struct nilfs_direct *direct;
-+	__u64 key;
-+	__u64 ptr;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	key = nilfs_bmap_data_get_key(bmap, *bh);
-+	BUG_ON(key > NILFS_DIRECT_KEY_MAX);
-+	ptr = nilfs_direct_get_ptr(direct, key);
-+	BUG_ON(ptr == NILFS_BMAP_INVALID_PTR);
-+
-+	return (*direct->d_ops->dop_assign)(direct, key, ptr, bh,
-+					    blocknr, binfo);
++	nilfs_dat_abort_entry(dat, req);
++	nilfs_palloc_abort_free_entry(dat, req);
 +}
 +
-+static const struct nilfs_bmap_operations nilfs_direct_ops = {
-+	.bop_lookup		=	nilfs_direct_lookup,
-+	.bop_insert		=	nilfs_direct_insert,
-+	.bop_delete		=	nilfs_direct_delete,
-+	.bop_clear		=	NULL,
-+
-+	.bop_propagate		=	nilfs_direct_propagate,
-+
-+	.bop_lookup_dirty_buffers	=	NULL,
-+
-+	.bop_assign		=	nilfs_direct_assign,
-+	.bop_mark		=	NULL,
-+
-+	.bop_last_key		=	nilfs_direct_last_key,
-+	.bop_check_insert	=	nilfs_direct_check_insert,
-+	.bop_check_delete	=	NULL,
-+	.bop_gather_data	=	nilfs_direct_gather_data,
-+};
-+
-+
-+static const struct nilfs_direct_operations nilfs_direct_ops_v = {
-+	.dop_find_target	=	nilfs_direct_find_target_v,
-+	.dop_set_target		=	nilfs_direct_set_target_v,
-+	.dop_propagate		=	nilfs_direct_propagate_v,
-+	.dop_assign		=	nilfs_direct_assign_v,
-+};
-+
-+static const struct nilfs_direct_operations nilfs_direct_ops_p = {
-+	.dop_find_target	=	NULL,
-+	.dop_set_target		=	NULL,
-+	.dop_propagate		=	NULL,
-+	.dop_assign		=	nilfs_direct_assign_p,
-+};
-+
-+int nilfs_direct_init(struct nilfs_bmap *bmap, __u64 low, __u64 high)
++int nilfs_dat_prepare_start(struct inode *dat, struct nilfs_palloc_req *req)
 +{
-+	struct nilfs_direct *direct;
++	int ret;
 +
-+	direct = (struct nilfs_direct *)bmap;
-+	bmap->b_ops = &nilfs_direct_ops;
-+	bmap->b_low = low;
-+	bmap->b_high = high;
-+	switch (bmap->b_inode->i_ino) {
-+	case NILFS_DAT_INO:
-+		direct->d_ops = &nilfs_direct_ops_p;
-+		break;
-+	default:
-+		direct->d_ops = &nilfs_direct_ops_v;
-+		break;
++	ret = nilfs_dat_prepare_entry(dat, req, 0);
++	BUG_ON(ret == -ENOENT);
++	return ret;
++}
++
++void nilfs_dat_commit_start(struct inode *dat, struct nilfs_palloc_req *req,
++			    sector_t blocknr)
++{
++	struct nilfs_dat_entry *entry;
++	void *kaddr;
++
++	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
++	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
++					     req->pr_entry_bh, kaddr);
++	entry->de_start = cpu_to_le64(nilfs_mdt_cno(dat));
++	if (entry->de_blocknr != cpu_to_le64(0) ||
++	    entry->de_end != cpu_to_le64(NILFS_CNO_MAX)) {
++		printk(KERN_CRIT
++		       "%s: vbn = %llu, start = %llu, end = %llu, pbn = %llu\n",
++		       __func__, (unsigned long long)req->pr_entry_nr,
++		       (unsigned long long)le64_to_cpu(entry->de_start),
++		       (unsigned long long)le64_to_cpu(entry->de_end),
++		       (unsigned long long)le64_to_cpu(entry->de_blocknr));
++		BUG();
++	}
++	entry->de_blocknr = cpu_to_le64(blocknr);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	nilfs_dat_commit_entry(dat, req);
++}
++
++void nilfs_dat_abort_start(struct inode *dat, struct nilfs_palloc_req *req)
++{
++	nilfs_dat_abort_entry(dat, req);
++}
++
++int nilfs_dat_prepare_end(struct inode *dat, struct nilfs_palloc_req *req)
++{
++	struct nilfs_dat_entry *entry;
++	__u64 start;
++	sector_t blocknr;
++	void *kaddr;
++	int ret;
++
++	ret = nilfs_dat_prepare_entry(dat, req, 0);
++	if (ret < 0) {
++		BUG_ON(ret == -ENOENT);
++		return ret;
++	}
++
++	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
++	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
++					     req->pr_entry_bh, kaddr);
++	start = le64_to_cpu(entry->de_start);
++	blocknr = le64_to_cpu(entry->de_blocknr);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	if (blocknr == 0) {
++		ret = nilfs_palloc_prepare_free_entry(dat, req);
++		if (ret < 0) {
++			nilfs_dat_abort_entry(dat, req);
++			return ret;
++		}
 +	}
 +
 +	return 0;
 +}
-diff -puN /dev/null fs/nilfs2/direct.h
++
++void nilfs_dat_commit_end(struct inode *dat, struct nilfs_palloc_req *req,
++			  int dead)
++{
++	struct nilfs_dat_entry *entry;
++	__u64 start, end;
++	sector_t blocknr;
++	void *kaddr;
++
++	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
++	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
++					     req->pr_entry_bh, kaddr);
++	end = start = le64_to_cpu(entry->de_start);
++	if (!dead) {
++		end = nilfs_mdt_cno(dat);
++		BUG_ON(start > end);
++	}
++	entry->de_end = cpu_to_le64(end);
++	blocknr = le64_to_cpu(entry->de_blocknr);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	if (blocknr == 0)
++		nilfs_dat_commit_free(dat, req);
++	else
++		nilfs_dat_commit_entry(dat, req);
++}
++
++void nilfs_dat_abort_end(struct inode *dat, struct nilfs_palloc_req *req)
++{
++	struct nilfs_dat_entry *entry;
++	__u64 start;
++	sector_t blocknr;
++	void *kaddr;
++
++	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
++	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
++					     req->pr_entry_bh, kaddr);
++	start = le64_to_cpu(entry->de_start);
++	blocknr = le64_to_cpu(entry->de_blocknr);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	if (start == nilfs_mdt_cno(dat) && blocknr == 0)
++		nilfs_palloc_abort_free_entry(dat, req);
++	nilfs_dat_abort_entry(dat, req);
++}
++
++/**
++ * nilfs_dat_mark_dirty -
++ * @dat: DAT file inode
++ * @vblocknr: virtual block number
++ *
++ * Description:
++ *
++ * Return Value: On success, 0 is returned. On error, one of the following
++ * negative error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ */
++int nilfs_dat_mark_dirty(struct inode *dat, __u64 vblocknr)
++{
++	struct nilfs_palloc_req req;
++	int ret;
++
++	req.pr_entry_nr = vblocknr;
++	ret = nilfs_dat_prepare_entry(dat, &req, 0);
++	if (ret == 0)
++		nilfs_dat_commit_entry(dat, &req);
++	return ret;
++}
++
++/**
++ * nilfs_dat_freev - free virtual block numbers
++ * @dat: DAT file inode
++ * @vblocknrs: array of virtual block numbers
++ * @nitems: number of virtual block numbers
++ *
++ * Description: nilfs_dat_freev() frees the virtual block numbers specified by
++ * @vblocknrs and @nitems.
++ *
++ * Return Value: On success, 0 is returned. On error, one of the following
++ * nagative error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ *
++ * %-ENOENT - The virtual block number have not been allocated.
++ */
++int nilfs_dat_freev(struct inode *dat, __u64 *vblocknrs, size_t nitems)
++{
++	return nilfs_palloc_freev(dat, vblocknrs, nitems);
++}
++
++/**
++ * nilfs_dat_move - change a block number
++ * @dat: DAT file inode
++ * @vblocknr: virtual block number
++ * @blocknr: block number
++ *
++ * Description: nilfs_dat_move() changes the block number associated with
++ * @vblocknr to @blocknr.
++ *
++ * Return Value: On success, 0 is returned. On error, one of the following
++ * negative error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ */
++int nilfs_dat_move(struct inode *dat, __u64 vblocknr, sector_t blocknr)
++{
++	struct buffer_head *entry_bh;
++	struct nilfs_dat_entry *entry;
++	void *kaddr;
++	int ret;
++
++	ret = nilfs_palloc_get_entry_block(dat, vblocknr, 0, &entry_bh);
++	if (ret < 0)
++		return ret;
++	kaddr = kmap_atomic(entry_bh->b_page, KM_USER0);
++	entry = nilfs_palloc_block_get_entry(dat, vblocknr, entry_bh, kaddr);
++	if (entry->de_blocknr == cpu_to_le64(0)) {
++		printk(KERN_CRIT "%s: vbn = %llu, [%llu, %llu)\n", __func__,
++		       (unsigned long long)vblocknr,
++		       (unsigned long long)le64_to_cpu(entry->de_start),
++		       (unsigned long long)le64_to_cpu(entry->de_end));
++		BUG();
++	}
++	BUG_ON(blocknr == 0);
++	entry->de_blocknr = cpu_to_le64(blocknr);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	nilfs_mdt_mark_buffer_dirty(entry_bh);
++	nilfs_mdt_mark_dirty(dat);
++
++	brelse(entry_bh);
++
++	return 0;
++}
++
++/**
++ * nilfs_dat_translate - translate a virtual block number to a block number
++ * @dat: DAT file inode
++ * @vblocknr: virtual block number
++ * @blocknrp: pointer to a block number
++ *
++ * Description: nilfs_dat_translate() maps the virtual block number @vblocknr
++ * to the corresponding block number.
++ *
++ * Return Value: On success, 0 is returned and the block number associated
++ * with @vblocknr is stored in the place pointed by @blocknrp. On error, one
++ * of the following negative error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ *
++ * %-ENOENT - A block number associated with @vblocknr does not exist.
++ */
++int nilfs_dat_translate(struct inode *dat, __u64 vblocknr, sector_t *blocknrp)
++{
++	struct buffer_head *entry_bh;
++	struct nilfs_dat_entry *entry;
++	sector_t blocknr;
++	void *kaddr;
++	int ret;
++
++	ret = nilfs_palloc_get_entry_block(dat, vblocknr, 0, &entry_bh);
++	if (ret < 0)
++		return ret;
++
++	kaddr = kmap_atomic(entry_bh->b_page, KM_USER0);
++	entry = nilfs_palloc_block_get_entry(dat, vblocknr, entry_bh, kaddr);
++	blocknr = le64_to_cpu(entry->de_blocknr);
++	if (blocknr == 0) {
++		ret = -ENOENT;
++		goto out;
++	}
++	if (blocknrp != NULL)
++		*blocknrp = blocknr;
++
++ out:
++	kunmap_atomic(kaddr, KM_USER0);
++	brelse(entry_bh);
++	return ret;
++}
++
++ssize_t nilfs_dat_get_vinfo(struct inode *dat, struct nilfs_vinfo *vinfo,
++			    size_t nvi)
++{
++	struct buffer_head *entry_bh;
++	struct nilfs_dat_entry *entry;
++	__u64 first, last;
++	void *kaddr;
++	unsigned long entries_per_block = NILFS_MDT(dat)->mi_entries_per_block;
++	int i, j, n, ret;
++
++	for (i = 0; i < nvi; i += n) {
++		ret = nilfs_palloc_get_entry_block(dat, vinfo[i].vi_vblocknr,
++						   0, &entry_bh);
++		if (ret < 0)
++			return ret;
++		kaddr = kmap_atomic(entry_bh->b_page, KM_USER0);
++		/* last virtual block number in this block */
++		first = vinfo[i].vi_vblocknr;
++		do_div(first, entries_per_block);
++		first *= entries_per_block;
++		last = first + entries_per_block - 1;
++		for (j = i, n = 0;
++		     j < nvi && vinfo[j].vi_vblocknr >= first &&
++			     vinfo[j].vi_vblocknr <= last;
++		     j++, n++) {
++			entry = nilfs_palloc_block_get_entry(
++				dat, vinfo[j].vi_vblocknr, entry_bh, kaddr);
++			vinfo[j].vi_start = le64_to_cpu(entry->de_start);
++			vinfo[j].vi_end = le64_to_cpu(entry->de_end);
++			vinfo[j].vi_blocknr = le64_to_cpu(entry->de_blocknr);
++		}
++		kunmap_atomic(kaddr, KM_USER0);
++		brelse(entry_bh);
++	}
++
++	return nvi;
++}
+diff -puN /dev/null fs/nilfs2/dat.h
 --- /dev/null
-+++ a/fs/nilfs2/direct.h
-@@ -0,0 +1,78 @@
++++ a/fs/nilfs2/dat.h
+@@ -0,0 +1,52 @@
 +/*
-+ * direct.h - NILFS direct block pointer.
++ * dat.h - NILFS disk address translation.
 + *
 + * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
 + *
@@ -497,62 +501,36 @@ diff -puN /dev/null fs/nilfs2/direct.h
 + * Written by Koji Sato <koji@osrg.net>.
 + */
 +
-+#ifndef _NILFS_DIRECT_H
-+#define _NILFS_DIRECT_H
++#ifndef _NILFS_DAT_H
++#define _NILFS_DAT_H
 +
 +#include <linux/types.h>
 +#include <linux/buffer_head.h>
-+#include "bmap.h"
++#include <linux/fs.h>
 +
++#define NILFS_DAT_GFP	NILFS_MDT_GFP
 +
-+struct nilfs_direct;
++struct nilfs_palloc_req;
 +
-+/**
-+ * struct nilfs_direct_operations - direct mapping operation table
-+ */
-+struct nilfs_direct_operations {
-+	__u64 (*dop_find_target)(const struct nilfs_direct *, __u64);
-+	void (*dop_set_target)(struct nilfs_direct *, __u64, __u64);
-+	int (*dop_propagate)(struct nilfs_direct *, struct buffer_head *);
-+	int (*dop_assign)(struct nilfs_direct *, __u64, __u64,
-+			  struct buffer_head **, sector_t,
-+			  union nilfs_binfo *);
-+};
++int nilfs_dat_translate(struct inode *, __u64, sector_t *);
 +
-+/**
-+ * struct nilfs_direct_node - direct node
-+ * @dn_flags: flags
-+ * @dn_pad: padding
-+ */
-+struct nilfs_direct_node {
-+	__u8 dn_flags;
-+	__u8 pad[7];
-+};
++int nilfs_dat_prepare_alloc(struct inode *, struct nilfs_palloc_req *);
++void nilfs_dat_commit_alloc(struct inode *, struct nilfs_palloc_req *);
++void nilfs_dat_abort_alloc(struct inode *, struct nilfs_palloc_req *);
++int nilfs_dat_prepare_start(struct inode *, struct nilfs_palloc_req *);
++void nilfs_dat_commit_start(struct inode *, struct nilfs_palloc_req *,
++			    sector_t);
++void nilfs_dat_abort_start(struct inode *, struct nilfs_palloc_req *);
++int nilfs_dat_prepare_end(struct inode *, struct nilfs_palloc_req *);
++void nilfs_dat_commit_end(struct inode *, struct nilfs_palloc_req *, int);
++void nilfs_dat_abort_end(struct inode *, struct nilfs_palloc_req *);
 +
-+/**
-+ * struct nilfs_direct - direct mapping
-+ * @d_bmap: bmap structure
-+ * @d_ops: direct mapping operation table
-+ */
-+struct nilfs_direct {
-+	struct nilfs_bmap d_bmap;
++int nilfs_dat_mark_dirty(struct inode *, __u64);
++int nilfs_dat_freev(struct inode *, __u64 *, size_t);
++int nilfs_dat_move(struct inode *, __u64, sector_t);
++ssize_t nilfs_dat_get_vinfo(struct inode *, struct nilfs_vinfo *, size_t);
 +
-+	/* direct-mapping-specific members */
-+	const struct nilfs_direct_operations *d_ops;
-+};
-+
-+
-+#define NILFS_DIRECT_NBLOCKS	(NILFS_BMAP_SIZE / sizeof(__le64) - 1)
-+#define NILFS_DIRECT_KEY_MIN	0
-+#define NILFS_DIRECT_KEY_MAX	(NILFS_DIRECT_NBLOCKS - 1)
-+
-+
-+int nilfs_direct_init(struct nilfs_bmap *, __u64, __u64);
-+int nilfs_direct_delete_and_convert(struct nilfs_bmap *, __u64, __u64 *,
-+				    __u64 *, int, __u64, __u64);
-+
-+
-+#endif	/* _NILFS_DIRECT_H */
++#endif	/* _NILFS_DAT_H */
 _
 
 Patches currently in -mm which might be from sato.koji@lab.ntt.co.jp are
