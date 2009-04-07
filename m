@@ -1,189 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] replace-all-dma_24bit_mask-macro-with-dma_bit_mask24.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:08:06 -0700
-Message-ID: <200904071908.n37J86NH011613@imap1.linux-foundation.org>
+Subject: [merged] proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:06:13 -0700
+Message-ID: <200904071906.n37J6DfZ010705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756132AbZDGTJb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:09:31 -0400
+	by vger.kernel.org with ESMTP id S1755620AbZDGTJj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:09:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yanghy@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, hugh@veritas.com, mikew@google.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping: replace all DMA_24BIT_MASK macro with DMA_BIT_MASK(24)
+     /proc/pid/maps: don't show pgoff of pure ANON VMAs
 has been removed from the -mm tree.  Its filename was
-     replace-all-dma_24bit_mask-macro-with-dma_bit_mask24.patch
+     proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: replace all DMA_24BIT_MASK macro with DMA_BIT_MASK(24)
-From: Yang Hongyang <yanghy@cn.fujitsu.com>
+Subject: /proc/pid/maps: don't show pgoff of pure ANON VMAs
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Replace all DMA_24BIT_MASK macro with DMA_BIT_MASK(24)
+Recently, it's argued that what proc/pid/maps shows is ugly when a 32bit
+binary runs on 64bit host.
 
-Signed-off-by: Yang Hongyang<yanghy@cn.fujitsu.com>
+/proc/pid/maps outputs vma's pgoff member but vma->pgoff is of no use
+information is the vma is for ANON.  With this patch, /proc/pid/maps shows
+just 0 if no file backing store.
+
+[akpm@linux-foundation.org: coding-style fixes]
+[kamezawa.hiroyu@jp.fujitsu.com: coding-style fixes]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mike Waychison <mikew@google.com>
+Reported-by: Ying Han <yinghan@google.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/pci-dma.c         |    2 +-
- arch/x86/include/asm/dma-mapping.h |    4 ++--
- arch/x86/kernel/pci-dma.c          |    2 +-
- drivers/base/isa.c                 |    2 +-
- drivers/pnp/card.c                 |    2 +-
- drivers/pnp/core.c                 |    2 +-
- sound/pci/als4000.c                |    4 ++--
- sound/pci/azt3328.c                |    4 ++--
- sound/pci/es1938.c                 |    4 ++--
- sound/pci/sonicvibes.c             |    4 ++--
- 10 files changed, 15 insertions(+), 15 deletions(-)
+ fs/proc/task_mmu.c   |    4 +++-
+ fs/proc/task_nommu.c |    4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kernel/pci-dma.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 arch/ia64/kernel/pci-dma.c
---- a/arch/ia64/kernel/pci-dma.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/arch/ia64/kernel/pci-dma.c
-@@ -75,7 +75,7 @@ int iommu_dma_supported(struct device *d
- 	/* Copied from i386. Doesn't make much sense, because it will
- 	   only work for pci_alloc_coherent.
- 	   The caller just has to use GFP_DMA in this case. */
--	if (mask < DMA_24BIT_MASK)
-+	if (mask < DMA_BIT_MASK(24))
- 		return 0;
+diff -puN fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas
++++ a/fs/proc/task_mmu.c
+@@ -204,6 +204,7 @@ static void show_map_vma(struct seq_file
+ 	struct file *file = vma->vm_file;
+ 	int flags = vma->vm_flags;
+ 	unsigned long ino = 0;
++	unsigned long long pgoff = 0;
+ 	dev_t dev = 0;
+ 	int len;
  
- 	/* Tell the device to use SAC when IOMMU force is on.  This
-diff -puN arch/x86/include/asm/dma-mapping.h~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 arch/x86/include/asm/dma-mapping.h
---- a/arch/x86/include/asm/dma-mapping.h~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/arch/x86/include/asm/dma-mapping.h
-@@ -238,7 +238,7 @@ static inline unsigned long dma_alloc_co
- 
- 	dma_mask = dev->coherent_dma_mask;
- 	if (!dma_mask)
--		dma_mask = (gfp & GFP_DMA) ? DMA_24BIT_MASK : DMA_BIT_MASK(32);
-+		dma_mask = (gfp & GFP_DMA) ? DMA_BIT_MASK(24) : DMA_BIT_MASK(32);
- 
- 	return dma_mask;
- }
-@@ -247,7 +247,7 @@ static inline gfp_t dma_alloc_coherent_g
- {
- 	unsigned long dma_mask = dma_alloc_coherent_mask(dev, gfp);
- 
--	if (dma_mask <= DMA_24BIT_MASK)
-+	if (dma_mask <= DMA_BIT_MASK(24))
- 		gfp |= GFP_DMA;
- #ifdef CONFIG_X86_64
- 	if (dma_mask <= DMA_BIT_MASK(32) && !(gfp & GFP_DMA))
-diff -puN arch/x86/kernel/pci-dma.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 arch/x86/kernel/pci-dma.c
---- a/arch/x86/kernel/pci-dma.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/arch/x86/kernel/pci-dma.c
-@@ -243,7 +243,7 @@ int dma_supported(struct device *dev, u6
- 	/* Copied from i386. Doesn't make much sense, because it will
- 	   only work for pci_alloc_coherent.
- 	   The caller just has to use GFP_DMA in this case. */
--	if (mask < DMA_24BIT_MASK)
-+	if (mask < DMA_BIT_MASK(24))
- 		return 0;
- 
- 	/* Tell the device to use SAC when IOMMU force is on.  This
-diff -puN drivers/base/isa.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 drivers/base/isa.c
---- a/drivers/base/isa.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/drivers/base/isa.c
-@@ -141,7 +141,7 @@ int isa_register_driver(struct isa_drive
- 		isa_dev->dev.release		= isa_dev_release;
- 		isa_dev->id			= id;
- 
--		isa_dev->dev.coherent_dma_mask = DMA_24BIT_MASK;
-+		isa_dev->dev.coherent_dma_mask = DMA_BIT_MASK(24);
- 		isa_dev->dev.dma_mask = &isa_dev->dev.coherent_dma_mask;
- 
- 		error = device_register(&isa_dev->dev);
-diff -puN drivers/pnp/card.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 drivers/pnp/card.c
---- a/drivers/pnp/card.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/drivers/pnp/card.c
-@@ -167,7 +167,7 @@ struct pnp_card *pnp_alloc_card(struct p
- 	card->dev.parent = &card->protocol->dev;
- 	dev_set_name(&card->dev, "%02x:%02x", card->protocol->number, card->number);
- 
--	card->dev.coherent_dma_mask = DMA_24BIT_MASK;
-+	card->dev.coherent_dma_mask = DMA_BIT_MASK(24);
- 	card->dev.dma_mask = &card->dev.coherent_dma_mask;
- 
- 	dev_id = pnp_add_card_id(card, pnpid);
-diff -puN drivers/pnp/core.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 drivers/pnp/core.c
---- a/drivers/pnp/core.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/drivers/pnp/core.c
-@@ -137,7 +137,7 @@ struct pnp_dev *pnp_alloc_dev(struct pnp
- 	INIT_LIST_HEAD(&dev->options);
- 	dev->protocol = protocol;
- 	dev->number = id;
--	dev->dma_mask = DMA_24BIT_MASK;
-+	dev->dma_mask = DMA_BIT_MASK(24);
- 
- 	dev->dev.parent = &dev->protocol->dev;
- 	dev->dev.bus = &pnp_bus_type;
-diff -puN sound/pci/als4000.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 sound/pci/als4000.c
---- a/sound/pci/als4000.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/sound/pci/als4000.c
-@@ -872,8 +872,8 @@ static int __devinit snd_card_als4000_pr
- 		return err;
+@@ -211,6 +212,7 @@ static void show_map_vma(struct seq_file
+ 		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 		dev = inode->i_sb->s_dev;
+ 		ino = inode->i_ino;
++		pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
  	}
- 	/* check, if we can restrict PCI DMA transfers to 24 bits */
--	if (pci_set_dma_mask(pci, DMA_24BIT_MASK) < 0 ||
--	    pci_set_consistent_dma_mask(pci, DMA_24BIT_MASK) < 0) {
-+	if (pci_set_dma_mask(pci, DMA_BIT_MASK(24)) < 0 ||
-+	    pci_set_consistent_dma_mask(pci, DMA_BIT_MASK(24)) < 0) {
- 		snd_printk(KERN_ERR "architecture does not support 24bit PCI busmaster DMA\n");
- 		pci_disable_device(pci);
- 		return -ENXIO;
-diff -puN sound/pci/azt3328.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 sound/pci/azt3328.c
---- a/sound/pci/azt3328.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/sound/pci/azt3328.c
-@@ -2125,8 +2125,8 @@ snd_azf3328_create(struct snd_card *card
- 	chip->irq = -1;
  
- 	/* check if we can restrict PCI DMA transfers to 24 bits */
--	if (pci_set_dma_mask(pci, DMA_24BIT_MASK) < 0 ||
--	    pci_set_consistent_dma_mask(pci, DMA_24BIT_MASK) < 0) {
-+	if (pci_set_dma_mask(pci, DMA_BIT_MASK(24)) < 0 ||
-+	    pci_set_consistent_dma_mask(pci, DMA_BIT_MASK(24)) < 0) {
- 		snd_printk(KERN_ERR "architecture does not support "
- 					"24bit PCI busmaster DMA\n"
- 		);
-diff -puN sound/pci/es1938.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 sound/pci/es1938.c
---- a/sound/pci/es1938.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/sound/pci/es1938.c
-@@ -1608,8 +1608,8 @@ static int __devinit snd_es1938_create(s
- 	if ((err = pci_enable_device(pci)) < 0)
- 		return err;
-         /* check, if we can restrict PCI DMA transfers to 24 bits */
--	if (pci_set_dma_mask(pci, DMA_24BIT_MASK) < 0 ||
--	    pci_set_consistent_dma_mask(pci, DMA_24BIT_MASK) < 0) {
-+	if (pci_set_dma_mask(pci, DMA_BIT_MASK(24)) < 0 ||
-+	    pci_set_consistent_dma_mask(pci, DMA_BIT_MASK(24)) < 0) {
- 		snd_printk(KERN_ERR "architecture does not support 24bit PCI busmaster DMA\n");
- 		pci_disable_device(pci);
-                 return -ENXIO;
-diff -puN sound/pci/sonicvibes.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24 sound/pci/sonicvibes.c
---- a/sound/pci/sonicvibes.c~replace-all-dma_24bit_mask-macro-with-dma_bit_mask24
-+++ a/sound/pci/sonicvibes.c
-@@ -1264,8 +1264,8 @@ static int __devinit snd_sonicvibes_crea
- 	if ((err = pci_enable_device(pci)) < 0)
- 		return err;
- 	/* check, if we can restrict PCI DMA transfers to 24 bits */
--        if (pci_set_dma_mask(pci, DMA_24BIT_MASK) < 0 ||
--	    pci_set_consistent_dma_mask(pci, DMA_24BIT_MASK) < 0) {
-+        if (pci_set_dma_mask(pci, DMA_BIT_MASK(24)) < 0 ||
-+	    pci_set_consistent_dma_mask(pci, DMA_BIT_MASK(24)) < 0) {
- 		snd_printk(KERN_ERR "architecture does not support 24bit PCI busmaster DMA\n");
- 		pci_disable_device(pci);
-                 return -ENXIO;
+ 	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu %n",
+@@ -220,7 +222,7 @@ static void show_map_vma(struct seq_file
+ 			flags & VM_WRITE ? 'w' : '-',
+ 			flags & VM_EXEC ? 'x' : '-',
+ 			flags & VM_MAYSHARE ? 's' : 'p',
+-			((loff_t)vma->vm_pgoff) << PAGE_SHIFT,
++			pgoff,
+ 			MAJOR(dev), MINOR(dev), ino, &len);
+ 
+ 	/*
+diff -puN fs/proc/task_nommu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas
++++ a/fs/proc/task_nommu.c
+@@ -126,6 +126,7 @@ static int nommu_vma_show(struct seq_fil
+ 	struct file *file;
+ 	dev_t dev = 0;
+ 	int flags, len;
++	unsigned long long pgoff = 0;
+ 
+ 	flags = vma->vm_flags;
+ 	file = vma->vm_file;
+@@ -134,6 +135,7 @@ static int nommu_vma_show(struct seq_fil
+ 		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 		dev = inode->i_sb->s_dev;
+ 		ino = inode->i_ino;
++		pgoff = (loff_t)vma->pg_off << PAGE_SHIFT;
+ 	}
+ 
+ 	seq_printf(m,
+@@ -144,7 +146,7 @@ static int nommu_vma_show(struct seq_fil
+ 		   flags & VM_WRITE ? 'w' : '-',
+ 		   flags & VM_EXEC ? 'x' : '-',
+ 		   flags & VM_MAYSHARE ? flags & VM_SHARED ? 'S' : 's' : 'p',
+-		   (unsigned long long) vma->vm_pgoff << PAGE_SHIFT,
++		   pgoff,
+ 		   MAJOR(dev), MINOR(dev), ino, &len);
+ 
+ 	if (file) {
 _
 
-Patches currently in -mm which might be from yanghy@cn.fujitsu.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
 
