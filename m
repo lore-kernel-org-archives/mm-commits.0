@@ -1,81 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] esp-fix-section-mismatch-warning.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:06:04 -0700
-Message-ID: <200904071906.n37J64ax010632@imap1.linux-foundation.org>
+Subject: [merged] mm-fix-pdflush-thread-creation-upper-bound.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:06:07 -0700
+Message-ID: <200904071906.n37J67Zu010679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752191AbZDGTIN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:08:13 -0400
+	by vger.kernel.org with ESMTP id S1752615AbZDGTIX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:08:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, arobinso@nyx.net, mm-commits@vger.kernel.org
+To: pmorreale@novell.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     esp: fix section mismatch warning
+     mm: fix pdflush thread creation upper bound
 has been removed from the -mm tree.  Its filename was
-     esp-fix-section-mismatch-warning.patch
+     mm-fix-pdflush-thread-creation-upper-bound.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: esp: fix section mismatch warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mm: fix pdflush thread creation upper bound
+From: Peter W Morreale <pmorreale@novell.com>
 
-Not critical.
+Fix a race on creating pdflush threads.  Without the patch, it is possible
+to create more than MAX_PDFLUSH_THREADS threads, and this has been
+observed in practice on IO loaded SMP machines.
 
-WARNING: drivers/char/esp.o(.text+0x278): Section mismatch in reference from the function show_serial_version() to the variable .init.data:serial_version
-The function show_serial_version() references
-the variable __initdata serial_version.
-This is often because show_serial_version lacks a __initdata
-annotation or the annotation of serial_version is wrong.
+The fix involves moving the lock around to protect the check against the
+thread count and correctly dealing with thread creation failure.
 
-WARNING: drivers/char/esp.o(.text+0x27d): Section mismatch in reference from the function show_serial_version() to the variable .init.data:serial_name
-The function show_serial_version() references
-the variable __initdata serial_name.
-This is often because show_serial_version lacks a __initdata
-annotation or the annotation of serial_name is wrong.
+This fix also _mostly_ repairs a race condition on how quickly the threads
+are created.  The original intent was to create a pdflush thread (up to
+the max allowed) every second.  Without this patch is is possible to
+create NCPUS pdflush threads concurrently.  The 'mostly' caveat is because
+an assumption is made that thread creation will be successful.  If we fail
+to create the thread, the miss is not considered fatal.  (we will try
+again in 1 second)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Andrew J. Robinson <arobinso@nyx.net>
+Signed-off-by: Peter W Morreale <pmorreale@novell.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/esp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/pdflush.c |   30 ++++++++++++++++++++++++------
+ 1 file changed, 24 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/esp.c~esp-fix-section-mismatch-warning drivers/char/esp.c
---- a/drivers/char/esp.c~esp-fix-section-mismatch-warning
-+++ a/drivers/char/esp.c
-@@ -2258,7 +2258,7 @@ static int esp_open(struct tty_struct *t
-  * driver.
-  */
+diff -puN mm/pdflush.c~mm-fix-pdflush-thread-creation-upper-bound mm/pdflush.c
+--- a/mm/pdflush.c~mm-fix-pdflush-thread-creation-upper-bound
++++ a/mm/pdflush.c
+@@ -98,7 +98,6 @@ static int __pdflush(struct pdflush_work
+ 	INIT_LIST_HEAD(&my_work->list);
  
--static void show_serial_version(void)
-+static void __init show_serial_version(void)
+ 	spin_lock_irq(&pdflush_lock);
+-	nr_pdflush_threads++;
+ 	for ( ; ; ) {
+ 		struct pdflush_work *pdf;
+ 
+@@ -126,20 +125,26 @@ static int __pdflush(struct pdflush_work
+ 
+ 		(*my_work->fn)(my_work->arg0);
+ 
++		spin_lock_irq(&pdflush_lock);
++
+ 		/*
+ 		 * Thread creation: For how long have there been zero
+ 		 * available threads?
++		 *
++		 * To throttle creation, we reset last_empty_jifs.
+ 		 */
+ 		if (time_after(jiffies, last_empty_jifs + 1 * HZ)) {
+-			/* unlocked list_empty() test is OK here */
+ 			if (list_empty(&pdflush_list)) {
+-				/* unlocked test is OK here */
+-				if (nr_pdflush_threads < MAX_PDFLUSH_THREADS)
++				if (nr_pdflush_threads < MAX_PDFLUSH_THREADS) {
++					last_empty_jifs = jiffies;
++					nr_pdflush_threads++;
++					spin_unlock_irq(&pdflush_lock);
+ 					start_one_pdflush_thread();
++					spin_lock_irq(&pdflush_lock);
++				}
+ 			}
+ 		}
+ 
+-		spin_lock_irq(&pdflush_lock);
+ 		my_work->fn = NULL;
+ 
+ 		/*
+@@ -236,13 +241,26 @@ int pdflush_operation(void (*fn)(unsigne
+ 
+ static void start_one_pdflush_thread(void)
  {
- 	printk(KERN_INFO "%s version %s (DMA %u)\n",
- 		serial_name, serial_version, dma);
+-	kthread_run(pdflush, NULL, "pdflush");
++	struct task_struct *k;
++
++	k = kthread_run(pdflush, NULL, "pdflush");
++	if (unlikely(IS_ERR(k))) {
++		spin_lock_irq(&pdflush_lock);
++		nr_pdflush_threads--;
++		spin_unlock_irq(&pdflush_lock);
++	}
+ }
+ 
+ static int __init pdflush_init(void)
+ {
+ 	int i;
+ 
++	/*
++	 * Pre-set nr_pdflush_threads...  If we fail to create,
++	 * the count will be decremented.
++	 */
++	nr_pdflush_threads = MIN_PDFLUSH_THREADS;
++
+ 	for (i = 0; i < MIN_PDFLUSH_THREADS; i++)
+ 		start_one_pdflush_thread();
+ 	return 0;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from pmorreale@novell.com are
 
 origin.patch
-linux-next.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
-qla2x-fix-printk-format-warnings.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix-fix.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-reiser4-export-remove_from_page_cache-fix.patch
 
