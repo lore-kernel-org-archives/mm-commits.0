@@ -1,127 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-pdflush-thread-creation-upper-bound.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:06:07 -0700
-Message-ID: <200904071906.n37J67Zu010679@imap1.linux-foundation.org>
+Subject: - blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:04:54 -0700
+Message-ID: <200904071904.n37J4thL010123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752615AbZDGTIX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:08:23 -0400
+	by vger.kernel.org with ESMTP id S1752694AbZDGTIq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:08:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmorreale@novell.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: graf.yang@analog.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix pdflush thread creation upper bound
+     blackfin serial driver: add a debug function to serial driver
 has been removed from the -mm tree.  Its filename was
-     mm-fix-pdflush-thread-creation-upper-bound.patch
+     blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because someone merged some of these and fiddled with them - I lost the plot
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix pdflush thread creation upper bound
-From: Peter W Morreale <pmorreale@novell.com>
+Subject: blackfin serial driver: add a debug function to serial driver
+From: Graf Yang <graf.yang@analog.com>
 
-Fix a race on creating pdflush threads.  Without the patch, it is possible
-to create more than MAX_PDFLUSH_THREADS threads, and this has been
-observed in practice on IO loaded SMP machines.
+This is used by several of the succeeding bugfix patches.
 
-The fix involves moving the lock around to protect the check against the
-thread count and correctly dealing with thread creation failure.
-
-This fix also _mostly_ repairs a race condition on how quickly the threads
-are created.  The original intent was to create a pdflush thread (up to
-the max allowed) every second.  Without this patch is is possible to
-create NCPUS pdflush threads concurrently.  The 'mostly' caveat is because
-an assumption is made that thread creation will be successful.  If we fail
-to create the thread, the miss is not considered fatal.  (we will try
-again in 1 second)
-
-Signed-off-by: Peter W Morreale <pmorreale@novell.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Graf Yang <graf.yang@analog.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pdflush.c |   30 ++++++++++++++++++++++++------
- 1 file changed, 24 insertions(+), 6 deletions(-)
+ drivers/serial/bfin_5xx.c |   44 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff -puN mm/pdflush.c~mm-fix-pdflush-thread-creation-upper-bound mm/pdflush.c
---- a/mm/pdflush.c~mm-fix-pdflush-thread-creation-upper-bound
-+++ a/mm/pdflush.c
-@@ -98,7 +98,6 @@ static int __pdflush(struct pdflush_work
- 	INIT_LIST_HEAD(&my_work->list);
+diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-add-a-debug-function-to-serial-driver drivers/serial/bfin_5xx.c
+--- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-add-a-debug-function-to-serial-driver
++++ a/drivers/serial/bfin_5xx.c
+@@ -21,6 +21,7 @@
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/serial_core.h>
++#include <stdarg.h>
  
- 	spin_lock_irq(&pdflush_lock);
--	nr_pdflush_threads++;
- 	for ( ; ; ) {
- 		struct pdflush_work *pdf;
+ #if defined(CONFIG_KGDB_SERIAL_CONSOLE) || \
+ 	defined(CONFIG_KGDB_SERIAL_CONSOLE_MODULE)
+@@ -1177,6 +1178,49 @@ struct console __init *bfin_earlyserial_
  
-@@ -126,20 +125,26 @@ static int __pdflush(struct pdflush_work
+ #endif /* CONFIG_EARLY_PRINTK */
  
- 		(*my_work->fn)(my_work->arg0);
- 
-+		spin_lock_irq(&pdflush_lock);
++#ifdef CONFIG_DEBUG_KERNEL
++void bfin_serial_debug(const char *fmt, ...)
++{
++	struct bfin_serial_port *uart = &bfin_serial_ports[0];
++	unsigned short status, tmp;
++	int flags, i, count;
++	char buf[128];
++	va_list ap;
 +
- 		/*
- 		 * Thread creation: For how long have there been zero
- 		 * available threads?
-+		 *
-+		 * To throttle creation, we reset last_empty_jifs.
- 		 */
- 		if (time_after(jiffies, last_empty_jifs + 1 * HZ)) {
--			/* unlocked list_empty() test is OK here */
- 			if (list_empty(&pdflush_list)) {
--				/* unlocked test is OK here */
--				if (nr_pdflush_threads < MAX_PDFLUSH_THREADS)
-+				if (nr_pdflush_threads < MAX_PDFLUSH_THREADS) {
-+					last_empty_jifs = jiffies;
-+					nr_pdflush_threads++;
-+					spin_unlock_irq(&pdflush_lock);
- 					start_one_pdflush_thread();
-+					spin_lock_irq(&pdflush_lock);
-+				}
- 			}
- 		}
- 
--		spin_lock_irq(&pdflush_lock);
- 		my_work->fn = NULL;
- 
- 		/*
-@@ -236,13 +241,26 @@ int pdflush_operation(void (*fn)(unsigne
- 
- static void start_one_pdflush_thread(void)
- {
--	kthread_run(pdflush, NULL, "pdflush");
-+	struct task_struct *k;
++	if (bfin_serial_console.index < 0)
++		return;		/* Too early. */
 +
-+	k = kthread_run(pdflush, NULL, "pdflush");
-+	if (unlikely(IS_ERR(k))) {
-+		spin_lock_irq(&pdflush_lock);
-+		nr_pdflush_threads--;
-+		spin_unlock_irq(&pdflush_lock);
++	va_start(ap, fmt);
++	vsprintf(buf, fmt, ap);
++	va_end(ap);
++	count = strlen(buf);
++
++	spin_lock_irqsave(&uart->port.lock, flags);
++
++	for (i = 0; i < count; i++) {
++		do {
++			status = UART_GET_LSR(uart);
++		} while (!(status & THRE));
++
++#ifndef CONFIG_BF54x
++		tmp = UART_GET_LCR(uart);
++		tmp &= ~DLAB;
++		UART_PUT_LCR(uart, tmp);
++#endif
++		UART_PUT_CHAR(uart, buf[i]);
++		if (buf[i] == '\n') {
++			do {
++				status = UART_GET_LSR(uart);
++			} while (!(status & THRE));
++			UART_PUT_CHAR(uart, '\r');
++		}
 +	}
- }
- 
- static int __init pdflush_init(void)
- {
- 	int i;
- 
-+	/*
-+	 * Pre-set nr_pdflush_threads...  If we fail to create,
-+	 * the count will be decremented.
-+	 */
-+	nr_pdflush_threads = MIN_PDFLUSH_THREADS;
 +
- 	for (i = 0; i < MIN_PDFLUSH_THREADS; i++)
- 		start_one_pdflush_thread();
- 	return 0;
++	spin_unlock_irqrestore(&uart->port.lock, flags);
++}
++EXPORT_SYMBOL(bfin_serial_debug);
++#endif
++
+ static struct uart_driver bfin_serial_reg = {
+ 	.owner			= THIS_MODULE,
+ 	.driver_name		= "bfin-uart",
 _
 
-Patches currently in -mm which might be from pmorreale@novell.com are
+Patches currently in -mm which might be from graf.yang@analog.com are
 
 origin.patch
+linux-next.patch
+blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch
 
