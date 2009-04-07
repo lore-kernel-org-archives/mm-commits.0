@@ -1,339 +1,373 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2009-04-07-01-06 uploaded
-Date: Tue, 07 Apr 2009 01:12:12 -0700
-Message-ID: <200904070812.n378CCnZ030736@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 07 Apr 2009 12:01:53 -0700
+Message-ID: <200904071901.n37J1rqi008831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751653AbZDGIMw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 04:12:52 -0400
+	by vger.kernel.org with ESMTP id S1753663AbZDGTC4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:02:56 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n378CC0p021816
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n37J1rt7018066
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 7 Apr 2009 01:12:49 -0700
-Received: from localhost.localdomain (localhost [127.0.0.1])
-	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id n378CCnZ030736
-	for <mm-commits@vger.kernel.org>; Tue, 7 Apr 2009 01:12:12 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 7 Apr 2009 12:02:24 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
-The mm-of-the-moment snapshot 2009-04-07-01-06 has been uploaded to
 
-   http://userweb.kernel.org/~akpm/mmotm/
+The patch titled
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-and will soon be available at
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-   git://git.zen-sources.org/zen/mmotm.git
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-It contains the following patches against 2.6.29:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/hwmon/lm95241.c                     |   15 -----
+ drivers/media/video/cx231xx/cx231xx-audio.c |    7 --
+ drivers/media/video/cx231xx/cx231xx-cards.c |   26 ---------
+ drivers/media/video/cx231xx/cx231xx-video.c |   20 -------
+ firmware/WHENCE                             |   10 ---
+ sound/soc/codecs/twl4030.c                  |   49 ------------------
+ 6 files changed, 3 insertions(+), 124 deletions(-)
+
+diff -puN drivers/hwmon/lm95241.c~linux-next-git-rejects drivers/hwmon/lm95241.c
+--- a/drivers/hwmon/lm95241.c~linux-next-git-rejects
++++ a/drivers/hwmon/lm95241.c
+@@ -330,21 +330,6 @@ static int lm95241_detect(struct i2c_cli
+ 	 * requested, so both the detection and the identification steps
+ 	 * are skipped.
+ 	 */
+-<<<<<<< HEAD:drivers/hwmon/lm95241.c
+-	if (kind < 0) {	/* detection */
+-		if ((i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
+-		     != MANUFACTURER_ID)
+-		|| (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
+-		    < DEFAULT_REVISION)) {
+-			dev_dbg(&adapter->dev,
+-				"LM95241 detection failed at 0x%02x.\n",
+-				address);
+-			return -ENODEV;
+-		}
+-	}
+-=======
+->>>>>>> FETCH_HEAD:drivers/hwmon/lm95241.c
+-
+ 	if (kind <= 0) { /* identification */
+ 		if ((i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
+ 		     == MANUFACTURER_ID)
+diff -puN drivers/media/video/cx231xx/cx231xx-audio.c~linux-next-git-rejects drivers/media/video/cx231xx/cx231xx-audio.c
+--- a/drivers/media/video/cx231xx/cx231xx-audio.c~linux-next-git-rejects
++++ a/drivers/media/video/cx231xx/cx231xx-audio.c
+@@ -478,16 +478,9 @@ static int cx231xx_audio_init(struct cx2
+ 	cx231xx_info("cx231xx-audio.c: probing for cx231xx "
+ 		     "non standard usbaudio\n");
+ 
+-<<<<<<< HEAD:drivers/media/video/cx231xx/cx231xx-audio.c
+-	err = snd_card_create(index[devnr], "Cx231xx Audio", THIS_MODULE,
+-			      0, &card);
+-	if (err < 0)
+-		return err;
+-=======
+ 	card = snd_card_new(index[devnr], "Cx231xx Audio", THIS_MODULE, 0);
+ 	if (card == NULL)
+ 		return -ENOMEM;
+->>>>>>> FETCH_HEAD:drivers/media/video/cx231xx/cx231xx-audio.c
+ 
+ 	spin_lock_init(&adev->slock);
+ 	err = snd_pcm_new(card, "Cx231xx Audio", 0, 0, 1, &pcm);
+diff -puN drivers/media/video/cx231xx/cx231xx-cards.c~linux-next-git-rejects drivers/media/video/cx231xx/cx231xx-cards.c
+--- a/drivers/media/video/cx231xx/cx231xx-cards.c~linux-next-git-rejects
++++ a/drivers/media/video/cx231xx/cx231xx-cards.c
+@@ -311,33 +311,19 @@ void cx231xx_card_setup(struct cx231xx *
+ 
+ 	/* request some modules */
+ 	if (dev->board.decoder == CX231XX_AVDECODER) {
+-<<<<<<< HEAD:drivers/media/video/cx231xx/cx231xx-cards.c
+-		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-					&dev->i2c_bus[0].i2c_adap,
+-					"cx25840", "cx25840", 0x88 >> 1);
+-		if (dev->sd_cx25840 == NULL)
+-			cx231xx_info("cx25840 subdev registration failure\n");
+-		cx25840_call(dev, core, load_fw);
+-=======
+ 		dev->sd_cx25840 =
+ 			v4l2_i2c_new_subdev(&dev->i2c_bus[0].i2c_adap,
+-					"cx25840", "cx25840", 0x88 >> 1);
++					"cx25840", "cx25840", 0x88 >> 1, 0);
+ 		if (dev->sd_cx25840 == NULL)
+ 			cx231xx_info("cx25840 subdev registration failure\n");
+ 		cx25840_call(dev, core, init, 0);
+->>>>>>> FETCH_HEAD:drivers/media/video/cx231xx/cx231xx-cards.c
+ 
+ 	}
+ 
+ 	if (dev->board.tuner_type != TUNER_ABSENT) {
+-<<<<<<< HEAD:drivers/media/video/cx231xx/cx231xx-cards.c
+-		dev->sd_tuner =	v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_bus[1].i2c_adap,
+-=======
+ 		dev->sd_tuner =
+ 			v4l2_i2c_new_subdev(&dev->i2c_bus[1].i2c_adap,
+->>>>>>> FETCH_HEAD:drivers/media/video/cx231xx/cx231xx-cards.c
+-				"tuner", "tuner", 0xc2 >> 1);
++				"tuner", "tuner", 0xc2 >> 1, 0);
+ 		if (dev->sd_tuner == NULL)
+ 			cx231xx_info("tuner subdev registration failure\n");
+ 
+@@ -371,14 +357,10 @@ int cx231xx_config(struct cx231xx *dev)
+  */
+ void cx231xx_config_i2c(struct cx231xx *dev)
+ {
+-<<<<<<< HEAD:drivers/media/video/cx231xx/cx231xx-cards.c
+-	/* u32 input = INPUT(dev->video_input)->vmux; */
+-=======
+ 	struct v4l2_routing route;
+ 
+ 	route.input = INPUT(dev->video_input)->vmux;
+ 	route.output = 0;
+->>>>>>> FETCH_HEAD:drivers/media/video/cx231xx/cx231xx-cards.c
+ 
+ 	call_all(dev, video, s_stream, 1);
+ }
+@@ -690,13 +672,9 @@ static int cx231xx_usb_probe(struct usb_
+ 	 */
+ 
+ 	/* Create v4l2 device */
+-<<<<<<< HEAD:drivers/media/video/cx231xx/cx231xx-cards.c
+-	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
+-=======
+ 	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
+ 					"%s-%03d", "cx231xx", nr);
+ 	retval = v4l2_device_register(&udev->dev, &dev->v4l2_dev);
+->>>>>>> FETCH_HEAD:drivers/media/video/cx231xx/cx231xx-cards.c
+ 	if (retval) {
+ 		cx231xx_errdev("v4l2_device_register failed\n");
+ 		cx231xx_devused &= ~(1 << nr);
+diff -puN drivers/media/video/cx231xx/cx231xx-video.c~linux-next-git-rejects drivers/media/video/cx231xx/cx231xx-video.c
+--- a/drivers/media/video/cx231xx/cx231xx-video.c~linux-next-git-rejects
++++ a/drivers/media/video/cx231xx/cx231xx-video.c
+@@ -820,24 +820,15 @@ static struct videobuf_queue_ops cx231xx
+ 
+ void video_mux(struct cx231xx *dev, int index)
+ {
+-<<<<<<< HEAD:drivers/media/video/cx231xx/cx231xx-video.c
+-=======
+-
+ 	struct v4l2_routing route;
+ 
+ 	route.input = INPUT(index)->vmux;
+ 	route.output = 0;
+->>>>>>> FETCH_HEAD:drivers/media/video/cx231xx/cx231xx-video.c
+ 	dev->video_input = index;
+ 	dev->ctl_ainput = INPUT(index)->amux;
+ 
+ 	cx231xx_set_video_input_mux(dev, index);
+ 
+-<<<<<<< HEAD:drivers/media/video/cx231xx/cx231xx-video.c
+-	cx25840_call(dev, video, s_routing, INPUT(index)->vmux, 0, 0);
+-=======
+-	cx25840_call(dev, video, s_routing, &route);
+->>>>>>> FETCH_HEAD:drivers/media/video/cx231xx/cx231xx-video.c
+ 
+ 	cx231xx_set_audio_input(dev, dev->ctl_ainput);
+ 
+@@ -1096,12 +1087,6 @@ static int vidioc_s_std(struct file *fil
+ 	dev->height = f.fmt.pix.height;
+ 	get_scale(dev, dev->width, dev->height, &dev->hscale, &dev->vscale);
+ 
+-<<<<<<< HEAD:drivers/media/video/cx231xx/cx231xx-video.c
+-	call_all(dev, core, s_std, dev->norm);
+-=======
+-	call_all(dev, tuner, s_std, dev->norm);
+->>>>>>> FETCH_HEAD:drivers/media/video/cx231xx/cx231xx-video.c
+-
+ 	mutex_unlock(&dev->lock);
+ 
+ 	cx231xx_resolution_set(dev);
+@@ -2136,11 +2121,6 @@ static int cx231xx_v4l2_close(struct fil
+ 		}
+ 
+ 		/* Save some power by putting tuner to sleep */
+-<<<<<<< HEAD:drivers/media/video/cx231xx/cx231xx-video.c
+-		call_all(dev, tuner, s_standby);
+-=======
+-		call_all(dev, core, s_standby, 0);
+->>>>>>> FETCH_HEAD:drivers/media/video/cx231xx/cx231xx-video.c
+ 
+ 		/* do this before setting alternate! */
+ 		cx231xx_uninit_isoc(dev);
+diff -puN firmware/WHENCE~linux-next-git-rejects firmware/WHENCE
+--- a/firmware/WHENCE~linux-next-git-rejects
++++ a/firmware/WHENCE
+@@ -623,8 +623,6 @@ Found in hex form in kernel source.
+ 
+ --------------------------------------------------------------------------
+ 
+-<<<<<<< HEAD:firmware/WHENCE
+-=======
+ Driver: MYRI_SBUS - MyriCOM Gigabit Ethernet
+ 
+ File: myricom/lanai.bin
+@@ -635,7 +633,6 @@ Found in hex form in kernel source.
+ 
+ --------------------------------------------------------------------------
+ 
+->>>>>>> FETCH_HEAD:firmware/WHENCE
+ Driver: SCSI_QLOGICPTI - PTI Qlogic, ISP Driver
+ 
+ File: qlogic/isp1000.bin
+@@ -645,7 +642,6 @@ Licence: Unknown
+ Found in hex form in kernel source.
+ 
+ --------------------------------------------------------------------------
+-<<<<<<< HEAD:firmware/WHENCE
+ 
+ Driver: MYRI_SBUS - MyriCOM Gigabit Ethernet
+ 
+@@ -656,8 +652,6 @@ Licence: Unknown
+ Found in hex form in kernel source.
+ 
+ --------------------------------------------------------------------------
+-=======
+->>>>>>> FETCH_HEAD:firmware/WHENCE
+ 
+ Driver: BNX2 - Broadcom NetXtremeII
+ 
+@@ -678,8 +672,6 @@ Licence:
+ Found in hex form in kernel source.
+ 
+ --------------------------------------------------------------------------
+-<<<<<<< HEAD:firmware/WHENCE
+-=======
+ 
+ Driver: DVB AV7110 -- AV7110 cards
+ 
+@@ -702,4 +694,4 @@ Found in hex form in kernel source, with
+ 
+ 
+ --------------------------------------------------------------------------
+->>>>>>> FETCH_HEAD:firmware/WHENCE
++
+diff -puN sound/soc/codecs/twl4030.c~linux-next-git-rejects sound/soc/codecs/twl4030.c
+--- a/sound/soc/codecs/twl4030.c~linux-next-git-rejects
++++ a/sound/soc/codecs/twl4030.c
+@@ -1217,55 +1217,6 @@ static int twl4030_set_bias_level(struct
+ 	return 0;
+ }
+ 
+-<<<<<<< HEAD:sound/soc/codecs/twl4030.c
+-static int twl4030_startup(struct snd_pcm_substream *substream,
+-			   struct snd_soc_dai *dai)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_device *socdev = rtd->socdev;
+-	struct snd_soc_codec *codec = socdev->card->codec;
+-	struct twl4030_priv *twl4030 = codec->private_data;
+-
+-	/* If we already have a playback or capture going then constrain
+-	 * this substream to match it.
+-	 */
+-	if (twl4030->master_substream) {
+-		struct snd_pcm_runtime *master_runtime;
+-		master_runtime = twl4030->master_substream->runtime;
+-
+-		snd_pcm_hw_constraint_minmax(substream->runtime,
+-					     SNDRV_PCM_HW_PARAM_RATE,
+-					     master_runtime->rate,
+-					     master_runtime->rate);
+-
+-		snd_pcm_hw_constraint_minmax(substream->runtime,
+-					     SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
+-					     master_runtime->sample_bits,
+-					     master_runtime->sample_bits);
+-
+-		twl4030->slave_substream = substream;
+-	} else
+-		twl4030->master_substream = substream;
+-
+-	return 0;
+-}
+-
+-static void twl4030_shutdown(struct snd_pcm_substream *substream,
+-			     struct snd_soc_dai *dai)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_device *socdev = rtd->socdev;
+-	struct snd_soc_codec *codec = socdev->card->codec;
+-	struct twl4030_priv *twl4030 = codec->private_data;
+-
+-	if (twl4030->master_substream == substream)
+-		twl4030->master_substream = twl4030->slave_substream;
+-
+-	twl4030->slave_substream = NULL;
+-}
+-
+-=======
+->>>>>>> FETCH_HEAD:sound/soc/codecs/twl4030.c
+ static int twl4030_hw_params(struct snd_pcm_substream *substream,
+ 			   struct snd_pcm_hw_params *params,
+ 			   struct snd_soc_dai *dai)
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-esp-fix-section-mismatch-warning.patch
-mm-fix-pdflush-thread-creation-upper-bound.patch
-mm-add-proc-controls-for-pdflush-threads.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-hwmon-add-support-for-gmt-g760a-fan-speed-pwm-controller.patch
-blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
-blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
-blackfin-spi-driver-remove-useless-asm-cplbinith.patch
-blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
-blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
-blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
-blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
-blackfin-spi-driver-add-a-few-more-dma-debug-messages.patch
-blackfin-spi-driver-do-not-check-for-spi-errors-if-dma-itself-did-not-flag-any.patch
-blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
-blackfin-spi-driver-spi-slave-select-code-cleanup.patch
-blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
-blackfin-spi-driver-add-timeout-while-waiting-for-spif-in-dma-irq-handler.patch
-blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
-blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
-blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
-blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch
-blackfin-spi-driver-fix-null-pointer-crash.patch
-blackfin-spi-driver-add-gpio-controlled-spi-slave-select-support.patch
-blackfin-spi-driver-make-mmc_spi-driver-work-on-blackfin.patch
-spi-limit-reaches-1-tested-0.patch
-spi-pxa2xx_spi-introduces-chipselect-gpio-to-simplify-the-common-cases.patch
-spi_bfin5xx-remove-unused-is_dma_aligned-macro.patch
-spi-add-dma_alignment-field-to-spi_master.patch
-pxa2xx_spi-set-spi_masterdma_alignment-=-8.patch
-spi_imx-set-spi_masterdma_alignment-=-4.patch
-kprobes-cleanup-aggr_kprobe-related-code.patch
-kprobes-move-export_symbol_gpl-just-after-function-definitions.patch
-kprobes-cleanup-comment-style-in-kprobesh.patch
-kprobes-rename-kprobe_enabled-to-kprobes_all_disarmed.patch
-kprobes-support-per-kprobe-disabling.patch
-kprobes-support-kretprobe-and-jprobe-per-probe-disabling.patch
-tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
-tdfxfb-make-use-of-ddc-information-about-connected-monitor.patch
-fbdev-imx31-fix-panning-error-handling-clean-up.patch
-uvesafb-documentation-update.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
-namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-fs-romfs-return-f_fsid-for-statfs2.patch
-replace-all-dma_64bit_mask-macro-with-dma_bit_mask64.patch
-replace-all-dma_48bit_mask-macro-with-dma_bit_mask48.patch
-replace-all-dma_40bit_mask-macro-with-dma_bit_mask40.patch
-replace-all-dma_39bit_mask-macro-with-dma_bit_mask39.patch
-replace-all-dma_32bit_mask-macro-with-dma_bit_mask32.patch
-replace-all-dma_31bit_mask-macro-with-dma_bit_mask31.patch
-replace-all-dma_30bit_mask-macro-with-dma_bit_mask30.patch
-replace-all-dma_28bit_mask-macro-with-dma_bit_mask28.patch
-replace-all-dma_24bit_mask-macro-with-dma_bit_mask24.patch
-update-the-old-macro-dma_nbit_mask-related-documentations.patch
-nilfs2-add-document.patch
-nilfs2-disk-format-and-userland-interface.patch
-nilfs2-add-inode-and-other-major-structures.patch
-nilfs2-integrated-block-mapping.patch
-nilfs2-b-tree-based-block-mapping.patch
-nilfs2-direct-block-mapping.patch
-nilfs2-b-tree-node-cache.patch
-nilfs2-buffer-and-page-operations.patch
-nilfs2-meta-data-file.patch
-nilfs2-persistent-object-allocator.patch
-nilfs2-disk-address-translator.patch
-nilfs2-inode-map-file.patch
-nilfs2-checkpoint-file.patch
-nilfs2-segment-usage-file.patch
-nilfs2-inode-operations.patch
-nilfs2-file-operations.patch
-nilfs2-directory-entry-operations.patch
-nilfs2-pathname-operations.patch
-nilfs2-operations-for-the_nilfs-core-object.patch
-nilfs2-super-block-operations.patch
-nilfs2-segment-buffer.patch
-nilfs2-segment-constructor.patch
-nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
-nilfs2-recovery-functions.patch
-nilfs2-another-dat-for-garbage-collection.patch
-nilfs2-block-cache-for-garbage-collection.patch
-nilfs2-ioctl-operations.patch
-nilfs2-update-makefile-and-kconfig.patch
-nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
-nilfs2-cleanup-nilfs_clear_inode.patch
-nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
-nilfs2-insert-explanations-in-gcinode-file.patch
-nilfs2-add-maintainer.patch
-nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
-nilfs2-fix-improper-return-values-of-nilfs_get_cpinfo-ioctl.patch
-nilfs2-clean-up-indirect-function-calling-conventions.patch
-nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch
-nilfs2-remove-timedwait-ioctl-command.patch
-nilfs2-use-fixed-sized-types-for-ioctl-structures.patch
-nilfs2-remove-compat-ioctl-code.patch
-nilfs2-use-unlocked_ioctl.patch
-nilfs2-extend-nilfs_sustat-ioctl-struct.patch
-nilfs2-replace-bug_on-and-bug-calls-triggerable-from-ioctl.patch
-nilfs2-super-block-operations-fix-endian-bug.patch
-nilfs2-clean-up-sketch-file.patch
-nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation.patch
-nilfs2-simplify-handling-of-active-state-of-segments.patch
-nilfs2-introduce-secondary-super-block.patch
-nilfs2-support-nanosecond-timestamp.patch
-befs-fix-build-on-parisc.patch
 i2c-too-much-compiler-noise.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
-acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
-toshiba_acpi-add-full-hotkey-support.patch
 toshiba_acpi-add-full-hotkey-support-fix.patch
-dell-laptop-fix-uninitialized-wrong-return-value.patch
-x86-simplify-highmem-related-kconfig-entries.patch
-agpgart-detected-ali-m-chipset-with-m1621.patch
-pcmcia-pccard-deadlock-fix.patch
 early-platform-driver-v3.patch
-synchronize-device-shutdown.patch
-drm-fix-lock_test_with_return-macro.patch
-radio-mr800c-missing-mutex-include.patch
-i2c-incremental-i2c-mpc-driver-fix-for-multi-master-i2c-busses.patch
 clocksource-pass-clocksource-to-read-callback.patch
-clocksource-add-enable-and-disable-callbacks.patch
-clocksource-sanity-check-sysfs-clocksource-changes.patch
-kernel-time-tick-broadcastc-tick_broadcast_device-can-become-static.patch
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
-input-mouse-alpsc-handle-touchpoints-buttons-correctly.patch
-input-ads7846c-sparse-lock-annotation.patch
-input-bcm5974-prepare-for-a-new-trackpad-header-type.patch
-input-bcm5974-add-quad-finger-tapping.patch
-input-bcm5974-add-support-for-the-macbook-5-unibody.patch
-input-bcm5974-augmented-debug-information.patch
 input-bcm5974-declare-alignment-usage.patch
-input-allow-certain-ev_abs-events-to-bypass-all-filtering.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-add-a-detailed-multi-touch-finger-data-report-protocol-rev2.patch
-drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch
-ads7846-pin-change-interrupt-support.patch
 input-keyboard-introduce-lm8323-driver.patch
-uinput-flush-all-pending-ff-effects-before-destroying-device.patch
-input-ads7846-introduce-platform-specific-way-to-synchronize-sampling.patch
-input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-input-documentation-abi-testing-game_device-sysfs-interface-document-game_device-interface-added-to-xpad-driver.patch
-input-elantechc-provide-a-workaround-for-jumpy-cursor-on-firmware-234.patch
-input-elantechc-make-sure-touchpad-is-really-in-absolute-mode.patch
-serios-async-shutdown.patch
-kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
-kernel-kallsymsc-replace-deprecated-__initcall-with-device_initcall-and-fix-whitespace.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon.patch
-mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch
-mmc-some-microsd-cards-are-not-recognized-by-pcixx12-sda-controller.patch
-mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
 mtd-flex-onenand-support.patch
-mtd-onenand-add-bbt_wait-unlock_all-as-replaceable-for-some-platform.patch
-mtd-plat_nand-add-platform-probe-remove-callbacks.patch
-mtd-plat_nand-allow-platform-to-set-partitions.patch
-uwb-event_size-should-be-signed.patch
-cls_cgroup-remove-unneeded-cgroup_lock.patch
-sunrpc-align-cache_clean-works-timer.patch
-irda-new-blackfin-on-chip-sir-irda-driver.patch
 misdn-l1oip-reduce-stack-memory-footprint.patch
-sfc-modify-allocation-error-message.patch
 drivers-net-82596c-suppress-warnings.patch
-de2104x-support-for-systems-lacking-cache-coherence.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-3x59x-fix-pci-resource-management.patch
-b44-use-kernel-dma-addresses-for-the-kernel-dma-api.patch
-sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
-sysctl-lockdep-support-for-sysctl-reference-counting.patch
 sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
-pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-sg_io-dont-perform-unneeded-copy-in-compat-code.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-qla2x-fix-printk-format-warnings.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-sd-async-shutdown.patch
-rt2870-add-id-for-sitecom-wl-315.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-improve-comment-describing-fget_light.patch
 libfs-make-simple_read_from_buffer-conventional.patch
-fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch
 xtensa-add-flat-support-checkpatch-fixes.patch
-xtensa-variant-specific-code.patch
-xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-s6000-dma-engine-support.patch
-xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
-xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
-xtensa-s6105-specific-configuration-for-s6gmac.patch
-xtensa-enable-s6gmac-in-s6105_defconfig.patch
-xtensa-add-m41t62-rtc-to-s6105-platform.patch
-xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
-mm.patch
-fbdev-fix-color-component-field-length-documentation.patch
-uvesafb-fix-color-component-length-for-pseudocolor-modes.patch
-efifb-exit-if-framebuffer-address-is-invalid.patch
-blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch
-blackfin-serial-driver-change-hardware-flowcontrol-from-poll-to-interrupt-driven.patch
-blackfin-serial-driver-fix-bug-serial-port-transfer-big-file-from-host-to-target-would-have-more-lines.patch
-blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags.patch
-blackfin-serial-driver-update-kgdb-uart-config-name.patch
-blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled.patch
-blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n.patch
-blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences.patch
-blackfin-serial-driver-fix-bug-enable-hardware-based-cts-and-rts-for-bf548.patch
-blackfin-serial-driver-update-path-to-gpio-header.patch
-mm-disable-preemption-in-apply_to_pte_range.patch
-rtc-add-ds1685-ds1687-rtc-driver.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
-max3100-spi-uart-driver.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
-ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port.patch
-input-introduce-a-tougher-i8042reset.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-scsi-mpt-suppress-debugobjects-warning.patch
-mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
 mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-sht15-humidity-sensor-driver.patch
 flat-fix-data-sections-alignment.patch
-pci-use-pci_ioremap_bar-in-drivers-serial.patch
-kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
-serial_txx9-use-container_of-instead-of-direct-cast.patch
-serial-clean-up-rs485-on-cris-architecture.patch
-jsm-cleanup.patch
-icom-converting-space-to-tabs.patch
-serial-8250c-irq-handling-race-and-spurious-iir-read.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix-fix.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix.patch
-intelfb-support-i854.patch
-hfsplus-identify-journal-info-block-in-volume-header.patch
-hfsplus-fix-journal-detection.patch
-ufs-sector_t-cannot-be-negative.patch
-ipmi-fix-platform-return-check.patch
-ipmi-test-for-event-buffer-before-using.patch
-ipmi-fix-statistics-counting-issues.patch
-ipmi-add-console-oops-catcher.patch
-ipmi-add-oem-message-handling.patch
-futex-comment-requeue-key-reference-semantics.patch
-relay-reset-consumed.patch
-trace-code-and-documentation.patch
-trace-code-and-documentation-merging-documentation-tracetxt-with-documentation-filesystems-relaytxt.patch
-trace-sample.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4-vfs-add-super_operationssync_inodes-2.patch
-reiser4-export-remove_from_page_cache.patch
 reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
 reiser4.patch
-reiser4-adjust-to-the-new-aops.patch
-reiser4-adjust-to-the-new-aops-fixup.patch
-reiser4-remove-simple_prepare_write-usage.patch
 reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
-reiser4-update-names-of-quota-methods.patch
-reiser4-use-set_page_dirty_notag.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
 shrink_slab-handle-bad-shrinkers.patch
-keep-track-of-network-interface-renaming.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+
