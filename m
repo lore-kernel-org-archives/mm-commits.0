@@ -1,71 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] char-isicom-prolong-tty-reference-holding.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 14:12:28 -0700
-Message-ID: <200904072112.n37LCS1T031416@imap1.linux-foundation.org>
+Subject: + hfs-fix-memory-leak-when-unmounting.patch added to -mm tree
+Date: Tue, 07 Apr 2009 14:00:52 -0700
+Message-ID: <200904072100.n37L0q3I026557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756772AbZDGVOv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 17:14:51 -0400
+	by vger.kernel.org with ESMTP id S1759330AbZDGVPT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 17:15:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: anderson@redhat.com, eugeneteo@kernel.sg, zippel@linux-m68k.org
 
 
 The patch titled
-     Char: isicom: prolong tty reference holding
-has been removed from the -mm tree.  Its filename was
-     char-isicom-prolong-tty-reference-holding.patch
+     hfs: fix memory leak when unmounting
+has been added to the -mm tree.  Its filename is
+     hfs-fix-memory-leak-when-unmounting.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: isicom: prolong tty reference holding
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: hfs: fix memory leak when unmounting
+From: Dave Anderson <anderson@redhat.com>
 
-Hold the tty reference a bit longer in isicom_shutdown_port, because we
-use it later in the function, so that it won't disappear in the meantime.
+When an HFS filesystem is unmounted, it leaks a 2-page bitmap.  Also,
+under extreme memory pressure, it's possible that hfs_releasepage() may
+use a tree pointer that has not been initialized, and if so, the release
+request should just be rejected.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Dave Anderson <anderson@redhat.com>
+Tested-by: Eugene Teo <eugeneteo@kernel.sg>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/isicom.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/hfs/inode.c |    4 ++++
+ fs/hfs/mdb.c   |    4 ++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN drivers/char/isicom.c~char-isicom-prolong-tty-reference-holding drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-prolong-tty-reference-holding
-+++ a/drivers/char/isicom.c
-@@ -897,8 +897,6 @@ static void isicom_shutdown_port(struct 
- 
- 	tty_port_free_xmit_buf(&port->port);
- 	port->port.flags &= ~ASYNC_INITIALIZED;
--	/* 3rd October 2000 : Vinayak P Risbud */
--	tty_port_tty_set(&port->port, NULL);
- 
- 	/*Fix done by Anil .S on 30-04-2001
- 	remote login through isi port has dtr toggle problem
-@@ -925,6 +923,7 @@ static void isicom_shutdown_port(struct 
- 		if (!card->count)
- 			isicom_shutdown_board(card);
+diff -puN fs/hfs/inode.c~hfs-fix-memory-leak-when-unmounting fs/hfs/inode.c
+--- a/fs/hfs/inode.c~hfs-fix-memory-leak-when-unmounting
++++ a/fs/hfs/inode.c
+@@ -70,6 +70,10 @@ static int hfs_releasepage(struct page *
+ 		BUG();
+ 		return 0;
  	}
-+	tty_port_tty_set(&port->port, NULL);
- 	tty_kref_put(tty);
- }
++
++	if (!tree)
++		return 0;
++
+ 	if (tree->node_size >= PAGE_CACHE_SIZE) {
+ 		nidx = page->index >> (tree->node_size_shift - PAGE_CACHE_SHIFT);
+ 		spin_lock(&tree->hash_lock);
+diff -puN fs/hfs/mdb.c~hfs-fix-memory-leak-when-unmounting fs/hfs/mdb.c
+--- a/fs/hfs/mdb.c~hfs-fix-memory-leak-when-unmounting
++++ a/fs/hfs/mdb.c
+@@ -349,6 +349,10 @@ void hfs_mdb_put(struct super_block *sb)
+ 	if (HFS_SB(sb)->nls_disk)
+ 		unload_nls(HFS_SB(sb)->nls_disk);
  
++	/* free the bitmap page(s) */
++	if (HFS_SB(sb)->bitmap)
++		free_pages((unsigned long)HFS_SB(sb)->bitmap, PAGE_SIZE < 8192 ? 1 : 0);
++
+ 	kfree(HFS_SB(sb));
+ 	sb->s_fs_info = NULL;
+ }
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from anderson@redhat.com are
 
-origin.patch
-linux-next.patch
-icom-converting-space-to-tabs.patch
-char-isicom-prolong-tty-reference-holding.patch
-char-isicom-fix-build-warning.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+hfs-fix-memory-leak-when-unmounting.patch
 
