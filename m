@@ -1,78 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix.patch added to -mm tree
-Date: Mon, 06 Apr 2009 16:56:23 -0700
-Message-ID: <200904062356.n36NuN0r018738@imap1.linux-foundation.org>
+Subject: [merged] frv-fix-compile-breakage.patch removed from -mm tree
+Date: Mon, 06 Apr 2009 17:06:59 -0700
+Message-ID: <200904070025.n370PNZB030943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56631 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751833AbZDGABn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 20:01:43 -0400
+	by vger.kernel.org with ESMTP id S1752775AbZDGA2c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2009 20:28:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, david-b@pacbell.net, dilinger@debian.org, jordan@cosmicpenguin.net, katzj@redhat.com, randy.dunlap@oracle.com, tiwai@suse.de
+To: bunk@kernel.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix
-has been added to the -mm tree.  Its filename is
-     alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix.patch
+     frv: fix compile breakage
+has been removed from the -mm tree.  Its filename was
+     frv-fix-compile-breakage.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix
-From: Andres Salomon <dilinger@queued.net>
+Subject: frv: fix compile breakage
+From: Adrian Bunk <bunk@kernel.org>
 
-force GPIO_CS553X to be defined when OLPC is selected
+Fix the follwing build error caused by commit
+7ca43e7564679604d86e9ed834e7bbcffd8a4a3f (mm: use debug_kmap_atomic):
 
-We've begun using the generic GPIO stuff for geodes, so OLPC implicitly
-depends upon this.  This patch forces selection of it.
+...
+  AS      arch/frv/mm/tlb-miss.o
+...
+In file included from
+arch/frv/mm/tlb-miss.S:13:
+...
+Assembler messages:
+include/asm-generic/ioctl.h:73:
+Error: unrecognized instruction `extern unsigned int __invalid_size_argument_for_IO...'
+...
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jeremy Katz <katzj@redhat.com>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/cs5535audio/Makefile |    2 --
- 1 file changed, 2 deletions(-)
+ arch/frv/mm/tlb-miss.S |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN sound/pci/cs5535audio/Makefile~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix sound/pci/cs5535audio/Makefile
---- a/sound/pci/cs5535audio/Makefile~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix
-+++ a/sound/pci/cs5535audio/Makefile
-@@ -4,9 +4,7 @@
+diff -puN arch/frv/mm/tlb-miss.S~frv-fix-compile-breakage arch/frv/mm/tlb-miss.S
+--- a/arch/frv/mm/tlb-miss.S~frv-fix-compile-breakage
++++ a/arch/frv/mm/tlb-miss.S
+@@ -13,7 +13,6 @@
+ #include <linux/linkage.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+-#include <asm/highmem.h>
+ #include <asm/spr-regs.h>
  
- snd-cs5535audio-y := cs5535audio.o cs5535audio_pcm.o
- snd-cs5535audio-$(CONFIG_PM) += cs5535audio_pm.o
--ifdef CONFIG_GENERIC_GPIO
- snd-cs5535audio-$(CONFIG_OLPC) += cs5535audio_olpc.o
--endif
- 
- # Toplevel Module Dependency
- obj-$(CONFIG_SND_CS5535AUDIO) += snd-cs5535audio.o
+ 	.section	.text.tlbmiss
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix-fix.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix.patch
+frv-fix-compile-breakage.patch
 
