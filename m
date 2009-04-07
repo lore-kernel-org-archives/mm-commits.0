@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-another-dat-for-garbage-collection.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:09:01 -0700
-Message-ID: <200904071909.n37J914L012080@imap1.linux-foundation.org>
+Subject: [merged] nilfs2-block-cache-for-garbage-collection.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:09:03 -0700
+Message-ID: <200904071909.n37J938X012091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39238 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759572AbZDGTMJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:12:09 -0400
+	by vger.kernel.org with ESMTP id S1760682AbZDGTML (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:12:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, amagai.yoshiji@lab.ntt.co.jp, kihara.seiji@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nilfs2: another dat for garbage collection
+     nilfs2: block cache for garbage collection
 has been removed from the -mm tree.  Its filename was
-     nilfs2-another-dat-for-garbage-collection.patch
+     nilfs2-block-cache-for-garbage-collection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: another dat for garbage collection
+Subject: nilfs2: block cache for garbage collection
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-NILFS2 uses another DAT inode during garbage collection to ensure
-atomicity and consistency of the DAT in the transient state.  This
-twin inode is called GCDAT.
-
-This adds functions to initialize the GCDAT and to switch page caches
-and B-tree node caches between these two inodes.
+This adds the cache of on-disk blocks to be moved in garbage
+collection.  The disk blocks are held with dummy inodes (called
+gcinodes), and this file provides lookup function of the dummy inodes,
+and their buffer read function.
 
 Signed-off-by: Seiji Kihara <kihara.seiji@lab.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
@@ -39,15 +37,15 @@ Signed-off-by: Yoshiji Amagai <amagai.yoshiji@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/gcdat.c |   84 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 84 insertions(+)
+ fs/nilfs2/gcinode.c |  270 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 270 insertions(+)
 
-diff -puN /dev/null fs/nilfs2/gcdat.c
+diff -puN /dev/null fs/nilfs2/gcinode.c
 --- /dev/null
-+++ a/fs/nilfs2/gcdat.c
-@@ -0,0 +1,84 @@
++++ a/fs/nilfs2/gcinode.c
+@@ -0,0 +1,270 @@
 +/*
-+ * gcdat.c - NILFS shadow DAT inode for GC
++ * gcinode.c - NILFS memory inode for GC
 + *
 + * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
 + *
@@ -67,68 +65,254 @@ diff -puN /dev/null fs/nilfs2/gcdat.c
 + *
 + * Written by Seiji Kihara <kihara@osrg.net>, Amagai Yoshiji <amagai@osrg.net>,
 + *            and Ryusuke Konishi <ryusuke@osrg.net>.
++ * Revised by Ryusuke Konishi <ryusuke@osrg.net>.
 + *
 + */
 +
 +#include <linux/buffer_head.h>
++#include <linux/mpage.h>
++#include <linux/hash.h>
++#include <linux/swap.h>
 +#include "nilfs.h"
 +#include "page.h"
 +#include "mdt.h"
++#include "dat.h"
++#include "ifile.h"
 +
-+int nilfs_init_gcdat_inode(struct the_nilfs *nilfs)
++static struct address_space_operations def_gcinode_aops = {};
++/* XXX need def_gcinode_iops/fops? */
++
++/*
++ * nilfs_gccache_submit_read_data() - add data buffer and submit read request
++ * @inode - gc inode
++ * @blkoff - dummy offset treated as the key for the page cache
++ * @pbn - physical block number of the block
++ * @vbn - virtual block number of the block, 0 for non-virtual block
++ * @out_bh - indirect pointer to a buffer_head struct to receive the results
++ *
++ * Description: nilfs_gccache_submit_read_data() registers the data buffer
++ * specified by @pbn to the GC pagecache with the key @blkoff.
++ * This function sets @vbn (@pbn if @vbn is zero) in b_blocknr of the buffer.
++ *
++ * Return Value: On success, 0 is returned. On Error, one of the following
++ * negative error code is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ *
++ * %-ENOENT - The block specified with @pbn does not exist.
++ */
++int nilfs_gccache_submit_read_data(struct inode *inode, sector_t blkoff,
++				   sector_t pbn, __u64 vbn,
++				   struct buffer_head **out_bh)
 +{
-+	struct inode *dat = nilfs->ns_dat, *gcdat = nilfs->ns_gc_dat;
-+	struct nilfs_inode_info *dii = NILFS_I(dat), *gii = NILFS_I(gcdat);
++	struct buffer_head *bh;
 +	int err;
 +
-+	gcdat->i_state = 0;
-+	gcdat->i_blocks = dat->i_blocks;
-+	gii->i_flags = dii->i_flags;
-+	gii->i_state = dii->i_state | (1 << NILFS_I_GCDAT);
-+	gii->i_cno = 0;
-+	nilfs_bmap_init_gcdat(gii->i_bmap, dii->i_bmap);
-+	err = nilfs_copy_dirty_pages(gcdat->i_mapping, dat->i_mapping);
-+	if (unlikely(err))
-+		return err;
++	bh = nilfs_grab_buffer(inode, inode->i_mapping, blkoff, 0);
++	if (unlikely(!bh))
++		return -ENOMEM;
 +
-+	return nilfs_copy_dirty_pages(&gii->i_btnode_cache,
-+				      &dii->i_btnode_cache);
++	if (buffer_uptodate(bh))
++		goto out;
++
++	if (pbn == 0) {
++		struct inode *dat_inode = NILFS_I_NILFS(inode)->ns_dat;
++					  /* use original dat, not gc dat. */
++		err = nilfs_dat_translate(dat_inode, vbn, &pbn);
++		if (unlikely(err)) { /* -EIO, -ENOMEM, -ENOENT */
++			brelse(bh);
++			goto failed;
++		}
++	}
++
++	lock_buffer(bh);
++	if (buffer_uptodate(bh)) {
++		unlock_buffer(bh);
++		goto out;
++	}
++
++	if (!buffer_mapped(bh)) {
++		bh->b_bdev = NILFS_I_NILFS(inode)->ns_bdev;
++		set_buffer_mapped(bh);
++	}
++	bh->b_blocknr = pbn;
++	bh->b_end_io = end_buffer_read_sync;
++	get_bh(bh);
++	submit_bh(READ, bh);
++	if (vbn)
++		bh->b_blocknr = vbn;
++ out:
++	err = 0;
++	*out_bh = bh;
++
++ failed:
++	unlock_page(bh->b_page);
++	page_cache_release(bh->b_page);
++	return err;
 +}
 +
-+void nilfs_commit_gcdat_inode(struct the_nilfs *nilfs)
++/*
++ * nilfs_gccache_submit_read_node() - add node buffer and submit read request
++ * @inode - gc inode
++ * @pbn - physical block number for the block
++ * @vbn - virtual block number for the block
++ * @out_bh - indirect pointer to a buffer_head struct to receive the results
++ *
++ * Description: nilfs_gccache_submit_read_node() registers the node buffer
++ * specified by @vbn to the GC pagecache.  @pbn can be supplied by the
++ * caller to avoid translation of the disk block address.
++ *
++ * Return Value: On success, 0 is returned. On Error, one of the following
++ * negative error code is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ */
++int nilfs_gccache_submit_read_node(struct inode *inode, sector_t pbn,
++				   __u64 vbn, struct buffer_head **out_bh)
 +{
-+	struct inode *dat = nilfs->ns_dat, *gcdat = nilfs->ns_gc_dat;
-+	struct nilfs_inode_info *dii = NILFS_I(dat), *gii = NILFS_I(gcdat);
-+	struct address_space *mapping = dat->i_mapping;
-+	struct address_space *gmapping = gcdat->i_mapping;
-+
-+	down_write(&NILFS_MDT(dat)->mi_sem);
-+	dat->i_blocks = gcdat->i_blocks;
-+	dii->i_flags = gii->i_flags;
-+	dii->i_state = gii->i_state & ~(1 << NILFS_I_GCDAT);
-+
-+	nilfs_bmap_commit_gcdat(gii->i_bmap, dii->i_bmap);
-+
-+	nilfs_clear_dirty_pages(mapping);
-+	nilfs_copy_back_pages(mapping, gmapping);
-+	/* note: mdt dirty flags should be cleared by segctor. */
-+
-+	nilfs_clear_dirty_pages(&dii->i_btnode_cache);
-+	nilfs_copy_back_pages(&dii->i_btnode_cache, &gii->i_btnode_cache);
-+
-+	up_write(&NILFS_MDT(dat)->mi_sem);
++	int ret = nilfs_btnode_submit_block(&NILFS_I(inode)->i_btnode_cache,
++					    vbn ? : pbn, pbn, out_bh, 0);
++	if (ret == -EEXIST) /* internal code (cache hit) */
++		ret = 0;
++	return ret;
 +}
 +
-+void nilfs_clear_gcdat_inode(struct the_nilfs *nilfs)
++int nilfs_gccache_wait_and_mark_dirty(struct buffer_head *bh)
 +{
-+	struct inode *gcdat = nilfs->ns_gc_dat;
-+	struct nilfs_inode_info *gii = NILFS_I(gcdat);
++	wait_on_buffer(bh);
++	if (!buffer_uptodate(bh))
++		return -EIO;
++	if (buffer_dirty(bh))
++		return -EEXIST;
 +
-+	gcdat->i_state = I_CLEAR;
-+	gii->i_flags = 0;
++	if (buffer_nilfs_node(bh))
++		nilfs_btnode_mark_dirty(bh);
++	else
++		nilfs_mdt_mark_buffer_dirty(bh);
++	return 0;
++}
 +
-+	truncate_inode_pages(gcdat->i_mapping, 0);
-+	truncate_inode_pages(&gii->i_btnode_cache, 0);
++/*
++ * nilfs_init_gccache() - allocate and initialize gc_inode hash table
++ * @nilfs - the_nilfs
++ *
++ * Return Value: On success, 0.
++ * On error, a negative error code is returned.
++ */
++int nilfs_init_gccache(struct the_nilfs *nilfs)
++{
++	int loop;
++
++	BUG_ON(nilfs->ns_gc_inodes_h);
++
++	INIT_LIST_HEAD(&nilfs->ns_gc_inodes);
++
++	nilfs->ns_gc_inodes_h =
++		kmalloc(sizeof(struct hlist_head) * NILFS_GCINODE_HASH_SIZE,
++			GFP_NOFS);
++	if (nilfs->ns_gc_inodes_h == NULL)
++		return -ENOMEM;
++
++	for (loop = 0; loop < NILFS_GCINODE_HASH_SIZE; loop++)
++		INIT_HLIST_HEAD(&nilfs->ns_gc_inodes_h[loop]);
++	return 0;
++}
++
++/*
++ * nilfs_destroy_gccache() - free gc_inode hash table
++ * @nilfs - the nilfs
++ */
++void nilfs_destroy_gccache(struct the_nilfs *nilfs)
++{
++	if (nilfs->ns_gc_inodes_h) {
++		nilfs_remove_all_gcinode(nilfs);
++		kfree(nilfs->ns_gc_inodes_h);
++		nilfs->ns_gc_inodes_h = NULL;
++	}
++}
++
++static struct inode *alloc_gcinode(struct the_nilfs *nilfs, ino_t ino,
++				   __u64 cno)
++{
++	struct inode *inode = nilfs_mdt_new_common(nilfs, NULL, ino, GFP_NOFS);
++	struct nilfs_inode_info *ii;
++
++	if (!inode)
++		return NULL;
++
++	inode->i_op = NULL;
++	inode->i_fop = NULL;
++	inode->i_mapping->a_ops = &def_gcinode_aops;
++
++	ii = NILFS_I(inode);
++	ii->i_cno = cno;
++	ii->i_flags = 0;
++	ii->i_state = 1 << NILFS_I_GCINODE;
++	ii->i_bh = NULL;
++	ii->i_dtime = 0;
++	nilfs_bmap_init_gc(ii->i_bmap);
++
++	return inode;
++}
++
++static unsigned long ihash(ino_t ino, __u64 cno)
++{
++	return hash_long((unsigned long)((ino << 2) + cno),
++			 NILFS_GCINODE_HASH_BITS);
++}
++
++/*
++ * nilfs_gc_iget() - find or create gc inode with specified (ino,cno)
++ */
++struct inode *nilfs_gc_iget(struct the_nilfs *nilfs, ino_t ino, __u64 cno)
++{
++	struct hlist_head *head = nilfs->ns_gc_inodes_h + ihash(ino, cno);
++	struct hlist_node *node;
++	struct inode *inode;
++
++	hlist_for_each_entry(inode, node, head, i_hash) {
++		if (inode->i_ino == ino && NILFS_I(inode)->i_cno == cno)
++			return inode;
++	}
++
++	inode = alloc_gcinode(nilfs, ino, cno);
++	if (likely(inode)) {
++		hlist_add_head(&inode->i_hash, head);
++		list_add(&NILFS_I(inode)->i_dirty, &nilfs->ns_gc_inodes);
++	}
++	return inode;
++}
++
++/*
++ * nilfs_clear_gcinode() - clear and free a gc inode
++ */
++void nilfs_clear_gcinode(struct inode *inode)
++{
++	nilfs_mdt_clear(inode);
++	nilfs_mdt_destroy(inode);
++}
++
++/*
++ * nilfs_remove_all_gcinode() - remove all inodes from the_nilfs
++ */
++void nilfs_remove_all_gcinode(struct the_nilfs *nilfs)
++{
++	struct hlist_head *head = nilfs->ns_gc_inodes_h;
++	struct hlist_node *node, *n;
++	struct inode *inode;
++	int loop;
++
++	for (loop = 0; loop < NILFS_GCINODE_HASH_SIZE; loop++, head++) {
++		hlist_for_each_entry_safe(inode, node, n, head, i_hash) {
++			hlist_del_init(&inode->i_hash);
++			list_del_init(&NILFS_I(inode)->i_dirty);
++			nilfs_clear_gcinode(inode); /* might sleep */
++		}
++	}
 +}
 _
 
