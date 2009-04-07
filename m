@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + char-isicom-prolong-tty-reference-holding.patch added to -mm tree
-Date: Tue, 07 Apr 2009 13:43:26 -0700
-Message-ID: <200904072043.n37KhQ7N019268@imap1.linux-foundation.org>
+Subject: + usb-imx_udc-fix-leak-in-imx_ep_alloc_request.patch added to -mm tree
+Date: Tue, 07 Apr 2009 13:48:03 -0700
+Message-ID: <200904072048.n37Km3Cf021179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754218AbZDGUpa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 16:45:30 -0400
+	by vger.kernel.org with ESMTP id S1760669AbZDGUwC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 16:52:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: daniel@caiaq.de, augulis.darius@gmail.com, david-b@pacbell.net, eemike@gmail.com, greg@kroah.com
 
 
 The patch titled
-     Char: isicom: prolong tty reference holding
+     usb: imx_udc: fix leak in imx_ep_alloc_request()
 has been added to the -mm tree.  Its filename is
-     char-isicom-prolong-tty-reference-holding.patch
+     usb-imx_udc-fix-leak-in-imx_ep_alloc_request.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: isicom: prolong tty reference holding
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: usb: imx_udc: fix leak in imx_ep_alloc_request()
+From: Daniel Mack <daniel@caiaq.de>
 
-Hold the tty reference a bit longer in isicom_shutdown_port, because we
-use it later in the function, so that it won't disappear in the meantime.
+cppcheck found another leak in drivers/usb/gadget/imx_udc.c
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Mike Lee <eemike@gmail.com>
+Cc: Darius Augulis <augulis.darius@gmail.com>
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/isicom.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/usb/gadget/imx_udc.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-prolong-tty-reference-holding drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-prolong-tty-reference-holding
-+++ a/drivers/char/isicom.c
-@@ -897,8 +897,6 @@ static void isicom_shutdown_port(struct 
+diff -puN drivers/usb/gadget/imx_udc.c~usb-imx_udc-fix-leak-in-imx_ep_alloc_request drivers/usb/gadget/imx_udc.c
+--- a/drivers/usb/gadget/imx_udc.c~usb-imx_udc-fix-leak-in-imx_ep_alloc_request
++++ a/drivers/usb/gadget/imx_udc.c
+@@ -734,9 +734,12 @@ static struct usb_request *imx_ep_alloc_
+ {
+ 	struct imx_request *req;
  
- 	tty_port_free_xmit_buf(&port->port);
- 	port->port.flags &= ~ASYNC_INITIALIZED;
--	/* 3rd October 2000 : Vinayak P Risbud */
--	tty_port_tty_set(&port->port, NULL);
++	if (!usb_ep)
++		return NULL;
++
+ 	req = kzalloc(sizeof *req, gfp_flags);
+-	if (!req || !usb_ep)
+-		return 0;
++	if (!req)
++		return NULL;
  
- 	/*Fix done by Anil .S on 30-04-2001
- 	remote login through isi port has dtr toggle problem
-@@ -925,6 +923,7 @@ static void isicom_shutdown_port(struct 
- 		if (!card->count)
- 			isicom_shutdown_board(card);
- 	}
-+	tty_port_tty_set(&port->port, NULL);
- 	tty_kref_put(tty);
- }
- 
+ 	INIT_LIST_HEAD(&req->queue);
+ 	req->in_use = 0;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
 origin.patch
 linux-next.patch
-icom-converting-space-to-tabs.patch
-char-isicom-prolong-tty-reference-holding.patch
-char-isicom-fix-build-warning.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+usb-imx_udc-fix-leak-in-imx_ep_alloc_request.patch
 
