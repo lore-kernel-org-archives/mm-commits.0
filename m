@@ -1,554 +1,467 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-clean-up-indirect-function-calling-conventions.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:09:27 -0700
-Message-ID: <200904071909.n37J9RJf012345@imap1.linux-foundation.org>
+Subject: [merged] kprobes-support-per-kprobe-disabling.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:07:24 -0700
+Message-ID: <200904071907.n37J7OZU011281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752579AbZDGTMC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:12:02 -0400
+	by vger.kernel.org with ESMTP id S1760327AbZDGTLy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:11:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nilfs2: clean up indirect function calling conventions
+     kprobes: support per-kprobe disabling
 has been removed from the -mm tree.  Its filename was
-     nilfs2-clean-up-indirect-function-calling-conventions.patch
+     kprobes-support-per-kprobe-disabling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: clean up indirect function calling conventions
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: kprobes: support per-kprobe disabling
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-This cleans up the strange indirect function calling convention used in
-nilfs to follow the normal kernel coding style.
+Add disable_kprobe() and enable_kprobe() to disable/enable kprobes
+temporarily.
 
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+disable_kprobe() asynchronously disables probe handlers of specified
+kprobe.  So, after calling it, some handlers can be called at a while. 
+enable_kprobe() enables specified kprobe.
+
+aggr_pre_handler and aggr_post_handler check disabled probes.  On the
+other hand aggr_break_handler and aggr_fault_handler don't check it
+because these handlers will be called while executing pre or post handlers
+and usually those help error handling.
+
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/bmap.c   |   46 +++++++++++++++----------------
- fs/nilfs2/btree.c  |   62 +++++++++++++++++++++----------------------
- fs/nilfs2/direct.c |   28 +++++++++----------
- fs/nilfs2/ioctl.c  |    2 -
- 4 files changed, 69 insertions(+), 69 deletions(-)
+ Documentation/kprobes.txt |   34 ++++++-
+ include/linux/kprobes.h   |   23 ++++
+ kernel/kprobes.c          |  167 ++++++++++++++++++++++++++++++------
+ 3 files changed, 191 insertions(+), 33 deletions(-)
 
-diff -puN fs/nilfs2/bmap.c~nilfs2-clean-up-indirect-function-calling-conventions fs/nilfs2/bmap.c
---- a/fs/nilfs2/bmap.c~nilfs2-clean-up-indirect-function-calling-conventions
-+++ a/fs/nilfs2/bmap.c
-@@ -38,11 +38,11 @@ int nilfs_bmap_lookup_at_level(struct ni
- 	int ret;
+diff -puN Documentation/kprobes.txt~kprobes-support-per-kprobe-disabling Documentation/kprobes.txt
+--- a/Documentation/kprobes.txt~kprobes-support-per-kprobe-disabling
++++ a/Documentation/kprobes.txt
+@@ -212,7 +212,9 @@ hit, Kprobes calls kp->pre_handler.  Aft
+ is single-stepped, Kprobe calls kp->post_handler.  If a fault
+ occurs during execution of kp->pre_handler or kp->post_handler,
+ or during single-stepping of the probed instruction, Kprobes calls
+-kp->fault_handler.  Any or all handlers can be NULL.
++kp->fault_handler.  Any or all handlers can be NULL. If kp->flags
++is set KPROBE_FLAG_DISABLED, that kp will be registered but disabled,
++so, it's handlers aren't hit until calling enable_kprobe(kp).
  
- 	down_read(&bmap->b_sem);
--	ret = (*bmap->b_ops->bop_lookup)(bmap, key, level, ptrp);
-+	ret = bmap->b_ops->bop_lookup(bmap, key, level, ptrp);
- 	if (ret < 0)
- 		goto out;
- 	if (bmap->b_pops->bpop_translate != NULL) {
--		ret = (*bmap->b_pops->bpop_translate)(bmap, *ptrp, &ptr);
-+		ret = bmap->b_pops->bpop_translate(bmap, *ptrp, &ptr);
- 		if (ret < 0)
- 			goto out;
- 		*ptrp = ptr;
-@@ -94,9 +94,9 @@ static int nilfs_bmap_do_insert(struct n
- 	int ret, n;
+ NOTE:
+ 1. With the introduction of the "symbol_name" field to struct kprobe,
+@@ -363,6 +365,22 @@ probes) in the specified array, they cle
+ incorrect probes. However, other probes in the array are
+ unregistered correctly.
  
- 	if (bmap->b_ops->bop_check_insert != NULL) {
--		ret = (*bmap->b_ops->bop_check_insert)(bmap, key);
-+		ret = bmap->b_ops->bop_check_insert(bmap, key);
- 		if (ret > 0) {
--			n = (*bmap->b_ops->bop_gather_data)(
-+			n = bmap->b_ops->bop_gather_data(
- 				bmap, keys, ptrs, NILFS_BMAP_SMALL_HIGH + 1);
- 			if (n < 0)
- 				return n;
-@@ -111,7 +111,7 @@ static int nilfs_bmap_do_insert(struct n
++4.7 disable_kprobe
++
++#include <linux/kprobes.h>
++int disable_kprobe(struct kprobe *kp);
++
++Temporarily disables the specified kprobe. You can enable it again by using
++enable_kprobe(). You must specify the kprobe which has been registered.
++
++4.8 enable_kprobe
++
++#include <linux/kprobes.h>
++int enable_kprobe(struct kprobe *kp);
++
++Enables kprobe which has been disabled by disable_kprobe(). You must specify
++the kprobe which has been registered.
++
+ 5. Kprobes Features and Limitations
+ 
+ Kprobes allows multiple probes at the same address.  Currently,
+@@ -500,10 +518,14 @@ the probe. If the probed function belong
+ is also specified. Following columns show probe status. If the probe is on
+ a virtual address that is no longer valid (module init sections, module
+ virtual addresses that correspond to modules that've been unloaded),
+-such probes are marked with [GONE].
++such probes are marked with [GONE]. If the probe is temporarily disabled,
++such probes are marked with [DISABLED].
+ 
+-/debug/kprobes/enabled: Turn kprobes ON/OFF
++/debug/kprobes/enabled: Turn kprobes ON/OFF forcibly.
+ 
+-Provides a knob to globally turn registered kprobes ON or OFF. By default,
+-all kprobes are enabled. By echoing "0" to this file, all registered probes
+-will be disarmed, till such time a "1" is echoed to this file.
++Provides a knob to globally and forcibly turn registered kprobes ON or OFF.
++By default, all kprobes are enabled. By echoing "0" to this file, all
++registered probes will be disarmed, till such time a "1" is echoed to this
++file. Note that this knob just disarms and arms all kprobes and doesn't
++change each probe's disabling state. This means that disabled kprobes (marked
++[DISABLED]) will be not enabled if you turn ON all kprobes by this knob.
+diff -puN include/linux/kprobes.h~kprobes-support-per-kprobe-disabling include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-support-per-kprobe-disabling
++++ a/include/linux/kprobes.h
+@@ -112,18 +112,28 @@ struct kprobe {
+ 	/* copy of the original instruction */
+ 	struct arch_specific_insn ainsn;
+ 
+-	/* Indicates various status flags.  Protected by kprobe_mutex. */
++	/*
++	 * Indicates various status flags.
++	 * Protected by kprobe_mutex after this kprobe is registered.
++	 */
+ 	u32 flags;
+ };
+ 
+ /* Kprobe status flags */
+ #define KPROBE_FLAG_GONE	1 /* breakpoint has already gone */
++#define KPROBE_FLAG_DISABLED	2 /* probe is temporarily disabled */
+ 
++/* Has this kprobe gone ? */
+ static inline int kprobe_gone(struct kprobe *p)
+ {
+ 	return p->flags & KPROBE_FLAG_GONE;
+ }
+ 
++/* Is this kprobe disabled ? */
++static inline int kprobe_disabled(struct kprobe *p)
++{
++	return p->flags & (KPROBE_FLAG_DISABLED | KPROBE_FLAG_GONE);
++}
+ /*
+  * Special probe type that uses setjmp-longjmp type tricks to resume
+  * execution at a specified entry with a matching prototype corresponding
+@@ -283,6 +293,9 @@ void unregister_kretprobes(struct kretpr
+ void kprobe_flush_task(struct task_struct *tk);
+ void recycle_rp_inst(struct kretprobe_instance *ri, struct hlist_head *head);
+ 
++int disable_kprobe(struct kprobe *kp);
++int enable_kprobe(struct kprobe *kp);
++
+ #else /* !CONFIG_KPROBES: */
+ 
+ static inline int kprobes_built_in(void)
+@@ -349,5 +362,13 @@ static inline void unregister_kretprobes
+ static inline void kprobe_flush_task(struct task_struct *tk)
+ {
+ }
++static inline int disable_kprobe(struct kprobe *kp)
++{
++	return -ENOSYS;
++}
++static inline int enable_kprobe(struct kprobe *kp)
++{
++	return -ENOSYS;
++}
+ #endif /* CONFIG_KPROBES */
+ #endif /* _LINUX_KPROBES_H */
+diff -puN kernel/kprobes.c~kprobes-support-per-kprobe-disabling kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-support-per-kprobe-disabling
++++ a/kernel/kprobes.c
+@@ -328,7 +328,7 @@ static int __kprobes aggr_pre_handler(st
+ 	struct kprobe *kp;
+ 
+ 	list_for_each_entry_rcu(kp, &p->list, list) {
+-		if (kp->pre_handler && !kprobe_gone(kp)) {
++		if (kp->pre_handler && likely(!kprobe_disabled(kp))) {
+ 			set_kprobe_instance(kp);
+ 			if (kp->pre_handler(kp, regs))
+ 				return 1;
+@@ -344,7 +344,7 @@ static void __kprobes aggr_post_handler(
+ 	struct kprobe *kp;
+ 
+ 	list_for_each_entry_rcu(kp, &p->list, list) {
+-		if (kp->post_handler && !kprobe_gone(kp)) {
++		if (kp->post_handler && likely(!kprobe_disabled(kp))) {
+ 			set_kprobe_instance(kp);
+ 			kp->post_handler(kp, regs, flags);
+ 			reset_kprobe_instance();
+@@ -523,6 +523,7 @@ static inline void copy_kprobe(struct kp
+ */
+ static int __kprobes add_new_kprobe(struct kprobe *ap, struct kprobe *p)
+ {
++	BUG_ON(kprobe_gone(ap) || kprobe_gone(p));
+ 	if (p->break_handler) {
+ 		if (ap->break_handler)
+ 			return -EEXIST;
+@@ -532,6 +533,13 @@ static int __kprobes add_new_kprobe(stru
+ 		list_add_rcu(&p->list, &ap->list);
+ 	if (p->post_handler && !ap->post_handler)
+ 		ap->post_handler = aggr_post_handler;
++
++	if (kprobe_disabled(ap) && !kprobe_disabled(p)) {
++		ap->flags &= ~KPROBE_FLAG_DISABLED;
++		if (!kprobes_all_disarmed)
++			/* Arm the breakpoint again. */
++			arch_arm_kprobe(ap);
++	}
+ 	return 0;
+ }
+ 
+@@ -592,20 +600,36 @@ static int __kprobes register_aggr_kprob
+ 			 * freed by unregister_kprobe.
+ 			 */
  			return ret;
+-		/* Clear gone flag to prevent allocating new slot again. */
+-		ap->flags &= ~KPROBE_FLAG_GONE;
++
+ 		/*
+-		 * If the old_p has gone, its breakpoint has been disarmed.
+-		 * We have to arm it again after preparing real kprobes.
++		 * Clear gone flag to prevent allocating new slot again, and
++		 * set disabled flag because it is not armed yet.
+ 		 */
+-		if (!kprobes_all_disarmed)
+-			arch_arm_kprobe(ap);
++		ap->flags = (ap->flags & ~KPROBE_FLAG_GONE)
++			    | KPROBE_FLAG_DISABLED;
  	}
  
--	return (*bmap->b_ops->bop_insert)(bmap, key, ptr);
-+	return bmap->b_ops->bop_insert(bmap, key, ptr);
+ 	copy_kprobe(ap, p);
+ 	return add_new_kprobe(ap, p);
  }
  
- /**
-@@ -151,9 +151,9 @@ static int nilfs_bmap_do_delete(struct n
- 	int ret, n;
- 
- 	if (bmap->b_ops->bop_check_delete != NULL) {
--		ret = (*bmap->b_ops->bop_check_delete)(bmap, key);
-+		ret = bmap->b_ops->bop_check_delete(bmap, key);
- 		if (ret > 0) {
--			n = (*bmap->b_ops->bop_gather_data)(
-+			n = bmap->b_ops->bop_gather_data(
- 				bmap, keys, ptrs, NILFS_BMAP_LARGE_LOW + 1);
- 			if (n < 0)
- 				return n;
-@@ -168,7 +168,7 @@ static int nilfs_bmap_do_delete(struct n
- 			return ret;
++/* Try to disable aggr_kprobe, and return 1 if succeeded.*/
++static int __kprobes try_to_disable_aggr_kprobe(struct kprobe *p)
++{
++	struct kprobe *kp;
++
++	list_for_each_entry_rcu(kp, &p->list, list) {
++		if (!kprobe_disabled(kp))
++			/*
++			 * There is an active probe on the list.
++			 * We can't disable aggr_kprobe.
++			 */
++			return 0;
++	}
++	p->flags |= KPROBE_FLAG_DISABLED;
++	return 1;
++}
++
+ static int __kprobes in_kprobes_functions(unsigned long addr)
+ {
+ 	struct kprobe_blackpoint *kb;
+@@ -664,7 +688,9 @@ int __kprobes register_kprobe(struct kpr
+ 		return -EINVAL;
  	}
  
--	return (*bmap->b_ops->bop_delete)(bmap, key);
-+	return bmap->b_ops->bop_delete(bmap, key);
+-	p->flags = 0;
++	/* User can pass only KPROBE_FLAG_DISABLED to register_kprobe */
++	p->flags &= KPROBE_FLAG_DISABLED;
++
+ 	/*
+ 	 * Check if are we probing a module.
+ 	 */
+@@ -709,7 +735,7 @@ int __kprobes register_kprobe(struct kpr
+ 	hlist_add_head_rcu(&p->hlist,
+ 		       &kprobe_table[hash_ptr(p->addr, KPROBE_HASH_BITS)]);
+ 
+-	if (!kprobes_all_disarmed)
++	if (!kprobes_all_disarmed && !kprobe_disabled(p))
+ 		arch_arm_kprobe(p);
+ 
+ out_unlock_text:
+@@ -724,25 +750,37 @@ out:
  }
+ EXPORT_SYMBOL_GPL(register_kprobe);
  
- int nilfs_bmap_last_key(struct nilfs_bmap *bmap, unsigned long *key)
-@@ -177,7 +177,7 @@ int nilfs_bmap_last_key(struct nilfs_bma
- 	int ret;
- 
- 	down_read(&bmap->b_sem);
--	ret = (*bmap->b_ops->bop_last_key)(bmap, &lastkey);
-+	ret = bmap->b_ops->bop_last_key(bmap, &lastkey);
- 	if (!ret)
- 		*key = lastkey;
- 	up_read(&bmap->b_sem);
-@@ -216,7 +216,7 @@ static int nilfs_bmap_do_truncate(struct
- 	__u64 lastkey;
- 	int ret;
- 
--	ret = (*bmap->b_ops->bop_last_key)(bmap, &lastkey);
-+	ret = bmap->b_ops->bop_last_key(bmap, &lastkey);
- 	if (ret < 0) {
- 		if (ret == -ENOENT)
- 			ret = 0;
-@@ -227,7 +227,7 @@ static int nilfs_bmap_do_truncate(struct
- 		ret = nilfs_bmap_do_delete(bmap, lastkey);
- 		if (ret < 0)
- 			return ret;
--		ret = (*bmap->b_ops->bop_last_key)(bmap, &lastkey);
-+		ret = bmap->b_ops->bop_last_key(bmap, &lastkey);
- 		if (ret < 0) {
- 			if (ret == -ENOENT)
- 				ret = 0;
-@@ -272,7 +272,7 @@ void nilfs_bmap_clear(struct nilfs_bmap 
+-/*
+- * Unregister a kprobe without a scheduler synchronization.
+- */
+-static int __kprobes __unregister_kprobe_top(struct kprobe *p)
++/* Check passed kprobe is valid and return kprobe in kprobe_table. */
++static struct kprobe * __kprobes __get_valid_kprobe(struct kprobe *p)
  {
- 	down_write(&bmap->b_sem);
- 	if (bmap->b_ops->bop_clear != NULL)
--		(*bmap->b_ops->bop_clear)(bmap);
-+		bmap->b_ops->bop_clear(bmap);
- 	up_write(&bmap->b_sem);
- }
+ 	struct kprobe *old_p, *list_p;
  
-@@ -296,7 +296,7 @@ int nilfs_bmap_propagate(struct nilfs_bm
- 	int ret;
+ 	old_p = get_kprobe(p->addr);
+ 	if (unlikely(!old_p))
+-		return -EINVAL;
++		return NULL;
  
- 	down_write(&bmap->b_sem);
--	ret = (*bmap->b_ops->bop_propagate)(bmap, bh);
-+	ret = bmap->b_ops->bop_propagate(bmap, bh);
- 	up_write(&bmap->b_sem);
- 	return ret;
- }
-@@ -310,7 +310,7 @@ void nilfs_bmap_lookup_dirty_buffers(str
- 				     struct list_head *listp)
- {
- 	if (bmap->b_ops->bop_lookup_dirty_buffers != NULL)
--		(*bmap->b_ops->bop_lookup_dirty_buffers)(bmap, listp);
-+		bmap->b_ops->bop_lookup_dirty_buffers(bmap, listp);
- }
- 
- /**
-@@ -340,7 +340,7 @@ int nilfs_bmap_assign(struct nilfs_bmap 
- 	int ret;
- 
- 	down_write(&bmap->b_sem);
--	ret = (*bmap->b_ops->bop_assign)(bmap, bh, blocknr, binfo);
-+	ret = bmap->b_ops->bop_assign(bmap, bh, blocknr, binfo);
- 	up_write(&bmap->b_sem);
- 	return ret;
- }
-@@ -369,7 +369,7 @@ int nilfs_bmap_mark(struct nilfs_bmap *b
- 		return 0;
- 
- 	down_write(&bmap->b_sem);
--	ret = (*bmap->b_ops->bop_mark)(bmap, key, level);
-+	ret = bmap->b_ops->bop_mark(bmap, key, level);
- 	up_write(&bmap->b_sem);
- 	return ret;
- }
-@@ -572,12 +572,12 @@ int nilfs_bmap_prepare_update(struct nil
- {
- 	int ret;
- 
--	ret = (*bmap->b_pops->bpop_prepare_end_ptr)(bmap, oldreq);
-+	ret = bmap->b_pops->bpop_prepare_end_ptr(bmap, oldreq);
- 	if (ret < 0)
- 		return ret;
--	ret = (*bmap->b_pops->bpop_prepare_alloc_ptr)(bmap, newreq);
-+	ret = bmap->b_pops->bpop_prepare_alloc_ptr(bmap, newreq);
- 	if (ret < 0)
--		(*bmap->b_pops->bpop_abort_end_ptr)(bmap, oldreq);
-+		bmap->b_pops->bpop_abort_end_ptr(bmap, oldreq);
- 
- 	return ret;
- }
-@@ -586,16 +586,16 @@ void nilfs_bmap_commit_update(struct nil
- 			      union nilfs_bmap_ptr_req *oldreq,
- 			      union nilfs_bmap_ptr_req *newreq)
- {
--	(*bmap->b_pops->bpop_commit_end_ptr)(bmap, oldreq);
--	(*bmap->b_pops->bpop_commit_alloc_ptr)(bmap, newreq);
-+	bmap->b_pops->bpop_commit_end_ptr(bmap, oldreq);
-+	bmap->b_pops->bpop_commit_alloc_ptr(bmap, newreq);
- }
- 
- void nilfs_bmap_abort_update(struct nilfs_bmap *bmap,
- 			     union nilfs_bmap_ptr_req *oldreq,
- 			     union nilfs_bmap_ptr_req *newreq)
- {
--	(*bmap->b_pops->bpop_abort_end_ptr)(bmap, oldreq);
--	(*bmap->b_pops->bpop_abort_alloc_ptr)(bmap, newreq);
-+	bmap->b_pops->bpop_abort_end_ptr(bmap, oldreq);
-+	bmap->b_pops->bpop_abort_alloc_ptr(bmap, newreq);
- }
- 
- static int nilfs_bmap_translate_v(const struct nilfs_bmap *bmap, __u64 ptr,
-diff -puN fs/nilfs2/btree.c~nilfs2-clean-up-indirect-function-calling-conventions fs/nilfs2/btree.c
---- a/fs/nilfs2/btree.c~nilfs2-clean-up-indirect-function-calling-conventions
-+++ a/fs/nilfs2/btree.c
-@@ -902,9 +902,9 @@ static int nilfs_btree_prepare_insert(st
- 	/* allocate a new ptr for data block */
- 	if (btree->bt_ops->btop_find_target != NULL)
- 		path[level].bp_newreq.bpr_ptr =
--			(*btree->bt_ops->btop_find_target)(btree, path, key);
-+			btree->bt_ops->btop_find_target(btree, path, key);
- 
--	ret = (*btree->bt_bmap.b_pops->bpop_prepare_alloc_ptr)(
-+	ret = btree->bt_bmap.b_pops->bpop_prepare_alloc_ptr(
- 		&btree->bt_bmap, &path[level].bp_newreq);
- 	if (ret < 0)
- 		goto err_out_data;
-@@ -965,7 +965,7 @@ static int nilfs_btree_prepare_insert(st
- 		/* split */
- 		path[level].bp_newreq.bpr_ptr =
- 			path[level - 1].bp_newreq.bpr_ptr + 1;
--		ret = (*btree->bt_bmap.b_pops->bpop_prepare_alloc_ptr)(
-+		ret = btree->bt_bmap.b_pops->bpop_prepare_alloc_ptr(
- 			&btree->bt_bmap, &path[level].bp_newreq);
- 		if (ret < 0)
- 			goto err_out_child_node;
-@@ -997,7 +997,7 @@ static int nilfs_btree_prepare_insert(st
- 
- 	/* grow */
- 	path[level].bp_newreq.bpr_ptr = path[level - 1].bp_newreq.bpr_ptr + 1;
--	ret = (*btree->bt_bmap.b_pops->bpop_prepare_alloc_ptr)(
-+	ret = btree->bt_bmap.b_pops->bpop_prepare_alloc_ptr(
- 		&btree->bt_bmap, &path[level].bp_newreq);
- 	if (ret < 0)
- 		goto err_out_child_node;
-@@ -1026,17 +1026,17 @@ static int nilfs_btree_prepare_insert(st
- 
- 	/* error */
-  err_out_curr_node:
--	(*btree->bt_bmap.b_pops->bpop_abort_alloc_ptr)(&btree->bt_bmap,
--						       &path[level].bp_newreq);
-+	btree->bt_bmap.b_pops->bpop_abort_alloc_ptr(&btree->bt_bmap,
-+						    &path[level].bp_newreq);
-  err_out_child_node:
- 	for (level--; level > NILFS_BTREE_LEVEL_DATA; level--) {
- 		nilfs_bmap_delete_block(&btree->bt_bmap, path[level].bp_sib_bh);
--		(*btree->bt_bmap.b_pops->bpop_abort_alloc_ptr)(
-+		btree->bt_bmap.b_pops->bpop_abort_alloc_ptr(
- 			&btree->bt_bmap, &path[level].bp_newreq);
- 
+ 	if (p != old_p) {
+ 		list_for_each_entry_rcu(list_p, &old_p->list, list)
+ 			if (list_p == p)
+ 			/* kprobe p is a valid probe */
+-				goto valid_p;
+-		return -EINVAL;
++				goto valid;
++		return NULL;
  	}
- 
--	(*btree->bt_bmap.b_pops->bpop_abort_alloc_ptr)(&btree->bt_bmap,
-+	btree->bt_bmap.b_pops->bpop_abort_alloc_ptr(&btree->bt_bmap,
- 						       &path[level].bp_newreq);
-  err_out_data:
- 	*levelp = level;
-@@ -1053,14 +1053,14 @@ static void nilfs_btree_commit_insert(st
- 	set_buffer_nilfs_volatile((struct buffer_head *)((unsigned long)ptr));
- 	ptr = path[NILFS_BTREE_LEVEL_DATA].bp_newreq.bpr_ptr;
- 	if (btree->bt_ops->btop_set_target != NULL)
--		(*btree->bt_ops->btop_set_target)(btree, key, ptr);
-+		btree->bt_ops->btop_set_target(btree, key, ptr);
- 
- 	for (level = NILFS_BTREE_LEVEL_NODE_MIN; level <= maxlevel; level++) {
- 		if (btree->bt_bmap.b_pops->bpop_commit_alloc_ptr != NULL) {
--			(*btree->bt_bmap.b_pops->bpop_commit_alloc_ptr)(
-+			btree->bt_bmap.b_pops->bpop_commit_alloc_ptr(
- 				&btree->bt_bmap, &path[level - 1].bp_newreq);
+-valid_p:
++valid:
++	return old_p;
++}
++
++/*
++ * Unregister a kprobe without a scheduler synchronization.
++ */
++static int __kprobes __unregister_kprobe_top(struct kprobe *p)
++{
++	struct kprobe *old_p, *list_p;
++
++	old_p = __get_valid_kprobe(p);
++	if (old_p == NULL)
++		return -EINVAL;
++
+ 	if (old_p == p ||
+ 	    (old_p->pre_handler == aggr_pre_handler &&
+ 	     list_is_singular(&old_p->list))) {
+@@ -751,7 +789,7 @@ valid_p:
+ 		 * enabled and not gone - otherwise, the breakpoint would
+ 		 * already have been removed. We save on flushing icache.
+ 		 */
+-		if (!kprobes_all_disarmed && !kprobe_gone(old_p)) {
++		if (!kprobes_all_disarmed && !kprobe_disabled(old_p)) {
+ 			mutex_lock(&text_mutex);
+ 			arch_disarm_kprobe(p);
+ 			mutex_unlock(&text_mutex);
+@@ -769,6 +807,11 @@ valid_p:
  		}
--		(*path[level].bp_op)(btree, path, level, &key, &ptr);
-+		path[level].bp_op(btree, path, level, &key, &ptr);
+ noclean:
+ 		list_del_rcu(&p->list);
++		if (!kprobe_disabled(old_p)) {
++			try_to_disable_aggr_kprobe(old_p);
++			if (!kprobes_all_disarmed && kprobe_disabled(old_p))
++				arch_disarm_kprobe(old_p);
++		}
  	}
- 
- 	if (!nilfs_bmap_dirty(&btree->bt_bmap))
-@@ -1304,7 +1304,7 @@ static int nilfs_btree_prepare_delete(st
- 			nilfs_btree_node_get_ptr(btree, node,
- 						 path[level].bp_index);
- 		if (btree->bt_bmap.b_pops->bpop_prepare_end_ptr != NULL) {
--			ret = (*btree->bt_bmap.b_pops->bpop_prepare_end_ptr)(
-+			ret = btree->bt_bmap.b_pops->bpop_prepare_end_ptr(
- 				&btree->bt_bmap, &path[level].bp_oldreq);
- 			if (ret < 0)
- 				goto err_out_child_node;
-@@ -1385,7 +1385,7 @@ static int nilfs_btree_prepare_delete(st
- 	path[level].bp_oldreq.bpr_ptr =
- 		nilfs_btree_node_get_ptr(btree, node, path[level].bp_index);
- 	if (btree->bt_bmap.b_pops->bpop_prepare_end_ptr != NULL) {
--		ret = (*btree->bt_bmap.b_pops->bpop_prepare_end_ptr)(
-+		ret = btree->bt_bmap.b_pops->bpop_prepare_end_ptr(
- 			&btree->bt_bmap, &path[level].bp_oldreq);
- 		if (ret < 0)
- 			goto err_out_child_node;
-@@ -1402,13 +1402,13 @@ static int nilfs_btree_prepare_delete(st
- 	/* error */
-  err_out_curr_node:
- 	if (btree->bt_bmap.b_pops->bpop_abort_end_ptr != NULL)
--		(*btree->bt_bmap.b_pops->bpop_abort_end_ptr)(
-+		btree->bt_bmap.b_pops->bpop_abort_end_ptr(
- 			&btree->bt_bmap, &path[level].bp_oldreq);
-  err_out_child_node:
- 	for (level--; level >= NILFS_BTREE_LEVEL_NODE_MIN; level--) {
- 		nilfs_bmap_put_block(&btree->bt_bmap, path[level].bp_sib_bh);
- 		if (btree->bt_bmap.b_pops->bpop_abort_end_ptr != NULL)
--			(*btree->bt_bmap.b_pops->bpop_abort_end_ptr)(
-+			btree->bt_bmap.b_pops->bpop_abort_end_ptr(
- 				&btree->bt_bmap, &path[level].bp_oldreq);
- 	}
- 	*levelp = level;
-@@ -1424,9 +1424,9 @@ static void nilfs_btree_commit_delete(st
- 
- 	for (level = NILFS_BTREE_LEVEL_NODE_MIN; level <= maxlevel; level++) {
- 		if (btree->bt_bmap.b_pops->bpop_commit_end_ptr != NULL)
--			(*btree->bt_bmap.b_pops->bpop_commit_end_ptr)(
-+			btree->bt_bmap.b_pops->bpop_commit_end_ptr(
- 				&btree->bt_bmap, &path[level].bp_oldreq);
--		(*path[level].bp_op)(btree, path, level, NULL, NULL);
-+		path[level].bp_op(btree, path, level, NULL, NULL);
- 	}
- 
- 	if (!nilfs_bmap_dirty(&btree->bt_bmap))
-@@ -1589,8 +1589,8 @@ nilfs_btree_prepare_convert_and_insert(s
- 	/* cannot find near ptr */
- 	if (btree->bt_ops->btop_find_target != NULL)
- 		dreq->bpr_ptr
--			= (*btree->bt_ops->btop_find_target)(btree, NULL, key);
--	ret = (*bmap->b_pops->bpop_prepare_alloc_ptr)(bmap, dreq);
-+			= btree->bt_ops->btop_find_target(btree, NULL, key);
-+	ret = bmap->b_pops->bpop_prepare_alloc_ptr(bmap, dreq);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1598,7 +1598,7 @@ nilfs_btree_prepare_convert_and_insert(s
- 	stats->bs_nblocks++;
- 	if (nreq != NULL) {
- 		nreq->bpr_ptr = dreq->bpr_ptr + 1;
--		ret = (*bmap->b_pops->bpop_prepare_alloc_ptr)(bmap, nreq);
-+		ret = bmap->b_pops->bpop_prepare_alloc_ptr(bmap, nreq);
- 		if (ret < 0)
- 			goto err_out_dreq;
- 
-@@ -1615,9 +1615,9 @@ nilfs_btree_prepare_convert_and_insert(s
- 
- 	/* error */
-  err_out_nreq:
--	(*bmap->b_pops->bpop_abort_alloc_ptr)(bmap, nreq);
-+	bmap->b_pops->bpop_abort_alloc_ptr(bmap, nreq);
-  err_out_dreq:
--	(*bmap->b_pops->bpop_abort_alloc_ptr)(bmap, dreq);
-+	bmap->b_pops->bpop_abort_alloc_ptr(bmap, dreq);
- 	stats->bs_nblocks = 0;
- 	return ret;
- 
-@@ -1638,7 +1638,7 @@ nilfs_btree_commit_convert_and_insert(st
- 
- 	/* free resources */
- 	if (bmap->b_ops->bop_clear != NULL)
--		(*bmap->b_ops->bop_clear)(bmap);
-+		bmap->b_ops->bop_clear(bmap);
- 
- 	/* ptr must be a pointer to a buffer head. */
- 	set_buffer_nilfs_volatile((struct buffer_head *)((unsigned long)ptr));
-@@ -1648,8 +1648,8 @@ nilfs_btree_commit_convert_and_insert(st
- 	nilfs_btree_init(bmap, low, high);
- 	if (nreq != NULL) {
- 		if (bmap->b_pops->bpop_commit_alloc_ptr != NULL) {
--			(*bmap->b_pops->bpop_commit_alloc_ptr)(bmap, dreq);
--			(*bmap->b_pops->bpop_commit_alloc_ptr)(bmap, nreq);
-+			bmap->b_pops->bpop_commit_alloc_ptr(bmap, dreq);
-+			bmap->b_pops->bpop_commit_alloc_ptr(bmap, nreq);
- 		}
- 
- 		/* create child node at level 1 */
-@@ -1673,7 +1673,7 @@ nilfs_btree_commit_convert_and_insert(st
- 				      2, 1, &keys[0], &tmpptr);
- 	} else {
- 		if (bmap->b_pops->bpop_commit_alloc_ptr != NULL)
--			(*bmap->b_pops->bpop_commit_alloc_ptr)(bmap, dreq);
-+			bmap->b_pops->bpop_commit_alloc_ptr(bmap, dreq);
- 
- 		/* create root node at level 1 */
- 		node = nilfs_btree_get_root(btree);
-@@ -1686,7 +1686,7 @@ nilfs_btree_commit_convert_and_insert(st
- 	}
- 
- 	if (btree->bt_ops->btop_set_target != NULL)
--		(*btree->bt_ops->btop_set_target)(btree, key, dreq->bpr_ptr);
-+		btree->bt_ops->btop_set_target(btree, key, dreq->bpr_ptr);
+ 	return 0;
  }
- 
- /**
-@@ -1937,7 +1937,7 @@ static int nilfs_btree_propagate(const s
- 		goto out;
- 	}
- 
--	ret = (*btree->bt_ops->btop_propagate)(btree, path, level, bh);
-+	ret = btree->bt_ops->btop_propagate(btree, path, level, bh);
- 
-  out:
- 	nilfs_btree_clear_path(btree, path);
-@@ -2073,11 +2073,11 @@ static int nilfs_btree_assign_v(struct n
- 	ptr = nilfs_btree_node_get_ptr(btree, parent,
- 				       path[level + 1].bp_index);
- 	req.bpr_ptr = ptr;
--	ret = (*btree->bt_bmap.b_pops->bpop_prepare_start_ptr)(&btree->bt_bmap,
-+	ret = btree->bt_bmap.b_pops->bpop_prepare_start_ptr(&btree->bt_bmap,
- 							       &req);
- 	if (ret < 0)
- 		return ret;
--	(*btree->bt_bmap.b_pops->bpop_commit_start_ptr)(&btree->bt_bmap,
-+	btree->bt_bmap.b_pops->bpop_commit_start_ptr(&btree->bt_bmap,
- 							&req, blocknr);
- 
- 	key = nilfs_btree_node_get_key(btree, parent,
-@@ -2121,7 +2121,7 @@ static int nilfs_btree_assign(struct nil
- 		goto out;
- 	}
- 
--	ret = (*btree->bt_ops->btop_assign)(btree, path, level, bh,
-+	ret = btree->bt_ops->btop_assign(btree, path, level, bh,
- 					    blocknr, binfo);
- 
-  out:
-diff -puN fs/nilfs2/direct.c~nilfs2-clean-up-indirect-function-calling-conventions fs/nilfs2/direct.c
---- a/fs/nilfs2/direct.c~nilfs2-clean-up-indirect-function-calling-conventions
-+++ a/fs/nilfs2/direct.c
-@@ -91,8 +91,8 @@ static int nilfs_direct_prepare_insert(s
- 	int ret;
- 
- 	if (direct->d_ops->dop_find_target != NULL)
--		req->bpr_ptr = (*direct->d_ops->dop_find_target)(direct, key);
--	ret = (*direct->d_bmap.b_pops->bpop_prepare_alloc_ptr)(&direct->d_bmap,
-+		req->bpr_ptr = direct->d_ops->dop_find_target(direct, key);
-+	ret = direct->d_bmap.b_pops->bpop_prepare_alloc_ptr(&direct->d_bmap,
- 							       req);
- 	if (ret < 0)
- 		return ret;
-@@ -112,7 +112,7 @@ static void nilfs_direct_commit_insert(s
- 	set_buffer_nilfs_volatile(bh);
- 
- 	if (direct->d_bmap.b_pops->bpop_commit_alloc_ptr != NULL)
--		(*direct->d_bmap.b_pops->bpop_commit_alloc_ptr)(
-+		direct->d_bmap.b_pops->bpop_commit_alloc_ptr(
- 			&direct->d_bmap, req);
- 	nilfs_direct_set_ptr(direct, key, req->bpr_ptr);
- 
-@@ -120,7 +120,7 @@ static void nilfs_direct_commit_insert(s
- 		nilfs_bmap_set_dirty(&direct->d_bmap);
- 
- 	if (direct->d_ops->dop_set_target != NULL)
--		(*direct->d_ops->dop_set_target)(direct, key, req->bpr_ptr);
-+		direct->d_ops->dop_set_target(direct, key, req->bpr_ptr);
- }
- 
- static int nilfs_direct_insert(struct nilfs_bmap *bmap, __u64 key, __u64 ptr)
-@@ -154,7 +154,7 @@ static int nilfs_direct_prepare_delete(s
- 
- 	if (direct->d_bmap.b_pops->bpop_prepare_end_ptr != NULL) {
- 		req->bpr_ptr = nilfs_direct_get_ptr(direct, key);
--		ret = (*direct->d_bmap.b_pops->bpop_prepare_end_ptr)(
-+		ret = direct->d_bmap.b_pops->bpop_prepare_end_ptr(
- 			&direct->d_bmap, req);
- 		if (ret < 0)
- 			return ret;
-@@ -169,7 +169,7 @@ static void nilfs_direct_commit_delete(s
- 				       __u64 key)
+@@ -1078,6 +1121,7 @@ static int __kprobes pre_handler_kretpro
+ static void __kprobes kill_kprobe(struct kprobe *p)
  {
- 	if (direct->d_bmap.b_pops->bpop_commit_end_ptr != NULL)
--		(*direct->d_bmap.b_pops->bpop_commit_end_ptr)(
-+		direct->d_bmap.b_pops->bpop_commit_end_ptr(
- 			&direct->d_bmap, req);
- 	nilfs_direct_set_ptr(direct, key, NILFS_BMAP_INVALID_PTR);
- }
-@@ -255,13 +255,13 @@ int nilfs_direct_delete_and_convert(stru
- 	/* no need to allocate any resource for conversion */
- 
- 	/* delete */
--	ret = (*bmap->b_ops->bop_delete)(bmap, key);
-+	ret = bmap->b_ops->bop_delete(bmap, key);
- 	if (ret < 0)
- 		return ret;
- 
- 	/* free resources */
- 	if (bmap->b_ops->bop_clear != NULL)
--		(*bmap->b_ops->bop_clear)(bmap);
-+		bmap->b_ops->bop_clear(bmap);
- 
- 	/* convert */
- 	direct = (struct nilfs_direct *)bmap;
-@@ -314,7 +314,7 @@ static int nilfs_direct_propagate(const 
- 
- 	direct = (struct nilfs_direct *)bmap;
- 	return (direct->d_ops->dop_propagate != NULL) ?
--		(*direct->d_ops->dop_propagate)(direct, bh) :
-+		direct->d_ops->dop_propagate(direct, bh) :
- 		0;
+ 	struct kprobe *kp;
++
+ 	p->flags |= KPROBE_FLAG_GONE;
+ 	if (p->pre_handler == aggr_pre_handler) {
+ 		/*
+@@ -1219,12 +1263,18 @@ static void __kprobes report_probe(struc
+ 	else
+ 		kprobe_type = "k";
+ 	if (sym)
+-		seq_printf(pi, "%p  %s  %s+0x%x  %s %s\n", p->addr, kprobe_type,
+-			sym, offset, (modname ? modname : " "),
+-			(kprobe_gone(p) ? "[GONE]" : ""));
++		seq_printf(pi, "%p  %s  %s+0x%x  %s %s%s\n",
++			p->addr, kprobe_type, sym, offset,
++			(modname ? modname : " "),
++			(kprobe_gone(p) ? "[GONE]" : ""),
++			((kprobe_disabled(p) && !kprobe_gone(p)) ?
++			 "[DISABLED]" : ""));
+ 	else
+-		seq_printf(pi, "%p  %s  %p %s\n", p->addr, kprobe_type, p->addr,
+-			(kprobe_gone(p) ? "[GONE]" : ""));
++		seq_printf(pi, "%p  %s  %p %s%s\n",
++			p->addr, kprobe_type, p->addr,
++			(kprobe_gone(p) ? "[GONE]" : ""),
++			((kprobe_disabled(p) && !kprobe_gone(p)) ?
++			 "[DISABLED]" : ""));
  }
  
-@@ -328,12 +328,12 @@ static int nilfs_direct_assign_v(struct 
- 	int ret;
+ static void __kprobes *kprobe_seq_start(struct seq_file *f, loff_t *pos)
+@@ -1289,6 +1339,71 @@ static struct file_operations debugfs_kp
+ 	.release        = seq_release,
+ };
  
- 	req.bpr_ptr = ptr;
--	ret = (*direct->d_bmap.b_pops->bpop_prepare_start_ptr)(
-+	ret = direct->d_bmap.b_pops->bpop_prepare_start_ptr(
- 		&direct->d_bmap, &req);
- 	if (ret < 0)
- 		return ret;
--	(*direct->d_bmap.b_pops->bpop_commit_start_ptr)(&direct->d_bmap,
--							&req, blocknr);
-+	direct->d_bmap.b_pops->bpop_commit_start_ptr(&direct->d_bmap,
-+						     &req, blocknr);
- 
- 	binfo->bi_v.bi_vblocknr = nilfs_bmap_ptr_to_dptr(ptr);
- 	binfo->bi_v.bi_blkoff = nilfs_bmap_key_to_dkey(key);
-@@ -370,8 +370,8 @@ static int nilfs_direct_assign(struct ni
- 	ptr = nilfs_direct_get_ptr(direct, key);
- 	BUG_ON(ptr == NILFS_BMAP_INVALID_PTR);
- 
--	return (*direct->d_ops->dop_assign)(direct, key, ptr, bh,
--					    blocknr, binfo);
-+	return direct->d_ops->dop_assign(direct, key, ptr, bh,
-+					 blocknr, binfo);
- }
- 
- static const struct nilfs_bmap_operations nilfs_direct_ops = {
-diff -puN fs/nilfs2/ioctl.c~nilfs2-clean-up-indirect-function-calling-conventions fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-clean-up-indirect-function-calling-conventions
-+++ a/fs/nilfs2/ioctl.c
-@@ -71,7 +71,7 @@ static int nilfs_ioctl_wrap_copy(struct 
- 			break;
++/* Disable one kprobe */
++int __kprobes disable_kprobe(struct kprobe *kp)
++{
++	int ret = 0;
++	struct kprobe *p;
++
++	mutex_lock(&kprobe_mutex);
++
++	/* Check whether specified probe is valid. */
++	p = __get_valid_kprobe(kp);
++	if (unlikely(p == NULL)) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	/* If the probe is already disabled (or gone), just return */
++	if (kprobe_disabled(kp))
++		goto out;
++
++	kp->flags |= KPROBE_FLAG_DISABLED;
++	if (p != kp)
++		/* When kp != p, p is always enabled. */
++		try_to_disable_aggr_kprobe(p);
++
++	if (!kprobes_all_disarmed && kprobe_disabled(p))
++		arch_disarm_kprobe(p);
++out:
++	mutex_unlock(&kprobe_mutex);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(disable_kprobe);
++
++/* Enable one kprobe */
++int __kprobes enable_kprobe(struct kprobe *kp)
++{
++	int ret = 0;
++	struct kprobe *p;
++
++	mutex_lock(&kprobe_mutex);
++
++	/* Check whether specified probe is valid. */
++	p = __get_valid_kprobe(kp);
++	if (unlikely(p == NULL)) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (kprobe_gone(kp)) {
++		/* This kprobe has gone, we couldn't enable it. */
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (!kprobes_all_disarmed && kprobe_disabled(p))
++		arch_arm_kprobe(p);
++
++	p->flags &= ~KPROBE_FLAG_DISABLED;
++	if (p != kp)
++		kp->flags &= ~KPROBE_FLAG_DISABLED;
++out:
++	mutex_unlock(&kprobe_mutex);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(enable_kprobe);
++
+ static void __kprobes arm_all_kprobes(void)
+ {
+ 	struct hlist_head *head;
+@@ -1306,7 +1421,7 @@ static void __kprobes arm_all_kprobes(vo
+ 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
+ 		head = &kprobe_table[i];
+ 		hlist_for_each_entry_rcu(p, node, head, hlist)
+-			if (!kprobe_gone(p))
++			if (!kprobe_disabled(p))
+ 				arch_arm_kprobe(p);
+ 	}
+ 	mutex_unlock(&text_mutex);
+@@ -1338,7 +1453,7 @@ static void __kprobes disarm_all_kprobes
+ 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
+ 		head = &kprobe_table[i];
+ 		hlist_for_each_entry_rcu(p, node, head, hlist) {
+-			if (!arch_trampoline_kprobe(p) && !kprobe_gone(p))
++			if (!arch_trampoline_kprobe(p) && !kprobe_disabled(p))
+ 				arch_disarm_kprobe(p);
  		}
- 		ppos = pos;
--		nr = (*dofunc)(nilfs, &pos, argv->v_flags, buf, argv->v_size,
-+		nr = dofunc(nilfs, &pos, argv->v_flags, buf, argv->v_size,
- 			       n);
- 		if (nr < 0) {
- 			ret = nr;
+ 	}
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
 origin.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-linux-next.patch
-slab-leaks3-default-y.patch
 
