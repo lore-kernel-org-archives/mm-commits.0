@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-visws-fix-up-build.patch added to -mm tree
-Date: Tue, 07 Apr 2009 14:03:35 -0700
-Message-ID: <200904072103.n37L3Zq4027688@imap1.linux-foundation.org>
+Subject: + printk-fix-wrong-format-string-iter.patch added to -mm tree
+Date: Tue, 07 Apr 2009 14:31:08 -0700
+Message-ID: <200904072131.n37LV8ix006770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56316 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753007AbZDGVVq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 17:21:46 -0400
+	by vger.kernel.org with ESMTP id S1753692AbZDGVdr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 17:33:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.beregalov@gmail.com, mingo@elte.hu
+Cc: zhaolei@cn.fujitsu.com, fweisbec@gmail.com, laijs@cn.fujitsu.com
 
 
 The patch titled
-     x86: visws: fix UP build
+     printk: fix wrong format string iter
 has been added to the -mm tree.  Its filename is
-     x86-visws-fix-up-build.patch
+     printk-fix-wrong-format-string-iter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: visws: fix UP build
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: printk: fix wrong format string iter
+From: Zhaolei <zhaolei@cn.fujitsu.com>
 
-arch/x86/kernel/visws_quirks.c: In function 'visws_find_smp_config':
-arch/x86/kernel/visws_quirks.c:229: error: 'setup_max_cpus' undeclared
+printk("%Q");
+Output before patch:
+%QQ
+Output after patch:
+%Q
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Zhao Lei <zhaolei@cn.fujitsu.com>
+Reviewed-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/visws_quirks.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/vsprintf.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff -puN arch/x86/kernel/visws_quirks.c~x86-visws-fix-up-build arch/x86/kernel/visws_quirks.c
---- a/arch/x86/kernel/visws_quirks.c~x86-visws-fix-up-build
-+++ a/arch/x86/kernel/visws_quirks.c
-@@ -220,8 +220,10 @@ static int __init visws_find_smp_config(
- 		ncpus = CO_CPU_MAX;
- 	}
+diff -puN lib/vsprintf.c~printk-fix-wrong-format-string-iter lib/vsprintf.c
+--- a/lib/vsprintf.c~printk-fix-wrong-format-string-iter
++++ a/lib/vsprintf.c
+@@ -1062,13 +1062,6 @@ int vsnprintf(char *buf, size_t size, co
+ 			if (str < end)
+ 				*str = '%';
+ 			++str;
+-			if (*fmt) {
+-				if (str < end)
+-					*str = *fmt;
+-				++str;
+-			} else {
+-				--fmt;
+-			}
+ 			break;
  
-+#ifdef CONFIG_SMP
- 	if (ncpus > setup_max_cpus)
- 		ncpus = setup_max_cpus;
-+#endif
+ 		case FORMAT_TYPE_NRCHARS: {
+@@ -1356,8 +1349,6 @@ do {									\
+ 			break;
  
- #ifdef CONFIG_X86_LOCAL_APIC
- 	smp_found_config = 1;
+ 		case FORMAT_TYPE_INVALID:
+-			if (!*fmt)
+-				--fmt;
+ 			break;
+ 
+ 		case FORMAT_TYPE_NRCHARS: {
+@@ -1544,13 +1535,6 @@ int bstr_printf(char *buf, size_t size, 
+ 			if (str < end)
+ 				*str = '%';
+ 			++str;
+-			if (*fmt) {
+-				if (str < end)
+-					*str = *fmt;
+-				++str;
+-			} else {
+-				--fmt;
+-			}
+ 			break;
+ 
+ 		case FORMAT_TYPE_NRCHARS:
 _
 
-Patches currently in -mm which might be from a.beregalov@gmail.com are
+Patches currently in -mm which might be from zhaolei@cn.fujitsu.com are
 
 origin.patch
-befs-fix-build-on-parisc.patch
-linux-next.patch
-x86-visws-fix-up-build.patch
+printk-add-support-for-the-of-hh-length-modifier.patch
+printk-fix-wrong-format-string-iter.patch
 
