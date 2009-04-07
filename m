@@ -1,94 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-proc-controls-for-pdflush-threads-fix-99.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:10:14 -0700
-Message-ID: <200904071910.n37JAEZv012716@imap1.linux-foundation.org>
+Subject: [merged] blackfin-serial-driver-update-path-to-gpio-header.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:10:09 -0700
+Message-ID: <200904071910.n37JA9cm012707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759550AbZDGTNf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:13:35 -0400
+	by vger.kernel.org with ESMTP id S1750999AbZDGTOi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:14:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, pmorreale@novell.com, randy.dunlap@oracle.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-add-proc-controls-for-pdflush-threads-fix-99
+     blackfin serial driver: update path to gpio header
 has been removed from the -mm tree.  Its filename was
-     mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+     blackfin-serial-driver-update-path-to-gpio-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-add-proc-controls-for-pdflush-threads-fix-99
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: blackfin serial driver: update path to gpio header
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Cc: Peter W Morreale <pmorreale@novell.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/serial/Kconfig |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN kernel/sysctl.c~mm-add-proc-controls-for-pdflush-threads-fix-99 kernel/sysctl.c
---- a/kernel/sysctl.c~mm-add-proc-controls-for-pdflush-threads-fix-99
-+++ a/kernel/sysctl.c
-@@ -90,10 +90,7 @@ extern int sysctl_nr_trim_pages;
- extern int rcutorture_runnable;
- #endif /* #ifdef CONFIG_RCU_TORTURE_TEST */
+diff -puN drivers/serial/Kconfig~blackfin-serial-driver-update-path-to-gpio-header drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~blackfin-serial-driver-update-path-to-gpio-header
++++ a/drivers/serial/Kconfig
+@@ -731,7 +731,7 @@ config UART0_CTS_PIN
+ 	default 23
+ 	help
+ 	  The default pin is GPIO_GP7.
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
  
--/* Constants used for minimum and  maximum */
--#if defined(CONFIG_DETECT_HUNG_TASK) || defined(CONFIG_DETECT_SOFTLOCKUP) || defined(CONFIG_HIGHMEM)
--static int one = 1;
--#endif
-+/* Constants used for minimum and maximum */
- #ifdef CONFIG_DETECT_SOFTLOCKUP
- static int sixty = 60;
- static int neg_one = -1;
+ config UART0_RTS_PIN
+ 	int "UART0 RTS pin"
+@@ -739,7 +739,7 @@ config UART0_RTS_PIN
+ 	default 22
+ 	help
+ 	  The default pin is GPIO_GP6.
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config SERIAL_BFIN_UART1
+ 	bool "Enable UART1"
+@@ -759,14 +759,14 @@ config UART1_CTS_PIN
+ 	depends on BFIN_UART1_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config UART1_RTS_PIN
+ 	int "UART1 RTS pin"
+ 	depends on BFIN_UART1_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config SERIAL_BFIN_UART2
+ 	bool "Enable UART2"
+@@ -786,14 +786,14 @@ config UART2_CTS_PIN
+ 	depends on BFIN_UART2_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config UART2_RTS_PIN
+ 	int "UART2 RTS pin"
+ 	depends on BFIN_UART2_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config SERIAL_BFIN_UART3
+ 	bool "Enable UART3"
+@@ -813,14 +813,14 @@ config UART3_CTS_PIN
+ 	depends on BFIN_UART3_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config UART3_RTS_PIN
+ 	int "UART3 RTS pin"
+ 	depends on BFIN_UART3_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config SERIAL_IMX
+ 	bool "IMX serial port support"
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
 origin.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-flat-fix-data-sections-alignment.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
