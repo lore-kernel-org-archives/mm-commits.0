@@ -1,816 +1,622 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:06:54 -0700
-Message-ID: <200904071906.n37J6smm011036@imap1.linux-foundation.org>
+Subject: [merged] namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:07:39 -0700
+Message-ID: <200904071907.n37J7d7d011437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43116 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760819AbZDGTKh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:10:37 -0400
+	by vger.kernel.org with ESMTP id S1760767AbZDGTK4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:10:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, adobriyan@gmail.com, clg@fr.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin SPI Driver: use bfin_spi_ prefix on all functions
+     namespaces: mqueue ns: move mqueue_mnt into struct ipc_namespace
 has been removed from the -mm tree.  Its filename was
-     blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch
+     namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: use bfin_spi_ prefix on all functions
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: namespaces: mqueue ns: move mqueue_mnt into struct ipc_namespace
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Do this because when things crash, we get simple names like "setup" and
-"start_queue" which is pretty difficult to trace back to the real thing:
-the spi driver
+Move mqueue vfsmount plus a few tunables into the ipc_namespace struct. 
+The CONFIG_IPC_NS boolean and the ipc_namespace struct will serve both the
+posix message queue namespaces and the SYSV ipc namespaces.
 
-Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>
+The sysctl code will be fixed separately in patch 3.  After just this
+patch, making a change to posix mqueue tunables always changes the values
+in the initial ipc namespace.
+
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |  223 ++++++++++++++++++------------------
- 1 file changed, 112 insertions(+), 111 deletions(-)
+ include/linux/ipc_namespace.h |   39 +++++++++-
+ init/Kconfig                  |    4 -
+ ipc/mqueue.c                  |  124 +++++++++++++++++---------------
+ ipc/msgutil.c                 |   22 +++++
+ ipc/namespace.c               |    2 
+ ipc/util.c                    |    9 --
+ ipc/util.h                    |   16 ++++
+ 7 files changed, 145 insertions(+), 71 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -29,7 +29,7 @@
- 
- #define DRV_NAME	"bfin-spi"
- #define DRV_AUTHOR	"Bryan Wu, Luke Yang"
--#define DRV_DESC	"Blackfin BF5xx on-chip SPI Controller Driver"
-+#define DRV_DESC	"Blackfin on-chip SPI Controller Driver"
- #define DRV_VERSION	"1.0"
- 
- MODULE_AUTHOR(DRV_AUTHOR);
-@@ -161,7 +161,7 @@ static u16 hz_to_spi_baud(u32 speed_hz)
- 	return spi_baud;
- }
- 
--static int flush(struct driver_data *drv_data)
-+static int bfin_spi_flush(struct driver_data *drv_data)
- {
- 	unsigned long limit = loops_per_jiffy << 1;
- 
-@@ -175,7 +175,7 @@ static int flush(struct driver_data *drv
- }
- 
- /* Chip select operation functions for cs_change flag */
--static void cs_active(struct driver_data *drv_data, struct chip_data *chip)
-+static void bfin_spi_cs_active(struct driver_data *drv_data, struct chip_data *chip)
- {
- 	u16 flag = read_FLAG(drv_data);
- 
-@@ -185,7 +185,7 @@ static void cs_active(struct driver_data
- 	write_FLAG(drv_data, flag);
- }
- 
--static void cs_deactive(struct driver_data *drv_data, struct chip_data *chip)
-+static void bfin_spi_cs_deactive(struct driver_data *drv_data, struct chip_data *chip)
- {
- 	u16 flag = read_FLAG(drv_data);
- 
-@@ -200,7 +200,7 @@ static void cs_deactive(struct driver_da
- }
- 
- /* stop controller and re-config current chip*/
--static void restore_state(struct driver_data *drv_data)
-+static void bfin_spi_restore_state(struct driver_data *drv_data)
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 
-@@ -214,18 +214,18 @@ static void restore_state(struct driver_
- 	write_BAUD(drv_data, chip->baud);
- 
- 	bfin_spi_enable(drv_data);
--	cs_active(drv_data, chip);
-+	bfin_spi_cs_active(drv_data, chip);
- }
- 
- /* used to kick off transfer in rx mode */
--static unsigned short dummy_read(struct driver_data *drv_data)
-+static unsigned short bfin_spi_dummy_read(struct driver_data *drv_data)
- {
- 	unsigned short tmp;
- 	tmp = read_RDBR(drv_data);
- 	return tmp;
- }
- 
--static void null_writer(struct driver_data *drv_data)
-+static void bfin_spi_null_writer(struct driver_data *drv_data)
- {
- 	u8 n_bytes = drv_data->n_bytes;
- 
-@@ -237,20 +237,20 @@ static void null_writer(struct driver_da
- 	}
- }
- 
--static void null_reader(struct driver_data *drv_data)
-+static void bfin_spi_null_reader(struct driver_data *drv_data)
- {
- 	u8 n_bytes = drv_data->n_bytes;
--	dummy_read(drv_data);
-+	bfin_spi_dummy_read(drv_data);
- 
- 	while (drv_data->rx < drv_data->rx_end) {
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			cpu_relax();
--		dummy_read(drv_data);
-+		bfin_spi_dummy_read(drv_data);
- 		drv_data->rx += n_bytes;
- 	}
- }
- 
--static void u8_writer(struct driver_data *drv_data)
-+static void bfin_spi_u8_writer(struct driver_data *drv_data)
- {
- 	dev_dbg(&drv_data->pdev->dev,
- 		"cr8-s is 0x%x\n", read_STAT(drv_data));
-@@ -267,12 +267,12 @@ static void u8_writer(struct driver_data
- 		cpu_relax();
- }
- 
--static void u8_cs_chg_writer(struct driver_data *drv_data)
-+static void bfin_spi_u8_cs_chg_writer(struct driver_data *drv_data)
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->tx < drv_data->tx_end) {
--		cs_active(drv_data, chip);
-+		bfin_spi_cs_active(drv_data, chip);
- 
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
-@@ -280,13 +280,13 @@ static void u8_cs_chg_writer(struct driv
- 		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
- 			cpu_relax();
- 
--		cs_deactive(drv_data, chip);
-+		bfin_spi_cs_deactive(drv_data, chip);
- 
- 		++drv_data->tx;
- 	}
- }
- 
--static void u8_reader(struct driver_data *drv_data)
-+static void bfin_spi_u8_reader(struct driver_data *drv_data)
- {
- 	dev_dbg(&drv_data->pdev->dev,
- 		"cr-8 is 0x%x\n", read_STAT(drv_data));
-@@ -298,7 +298,7 @@ static void u8_reader(struct driver_data
- 	/* clear TDBR buffer before read(else it will be shifted out) */
- 	write_TDBR(drv_data, 0xFFFF);
- 
--	dummy_read(drv_data);
-+	bfin_spi_dummy_read(drv_data);
- 
- 	while (drv_data->rx < drv_data->rx_end - 1) {
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
-@@ -313,12 +313,12 @@ static void u8_reader(struct driver_data
- 	++drv_data->rx;
- }
- 
--static void u8_cs_chg_reader(struct driver_data *drv_data)
-+static void bfin_spi_u8_cs_chg_reader(struct driver_data *drv_data)
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->rx < drv_data->rx_end) {
--		cs_active(drv_data, chip);
-+		bfin_spi_cs_active(drv_data, chip);
- 		read_RDBR(drv_data);	/* kick off */
- 
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
-@@ -327,13 +327,13 @@ static void u8_cs_chg_reader(struct driv
- 			cpu_relax();
- 
- 		*(u8 *) (drv_data->rx) = read_SHAW(drv_data);
--		cs_deactive(drv_data, chip);
-+		bfin_spi_cs_deactive(drv_data, chip);
- 
- 		++drv_data->rx;
- 	}
- }
- 
--static void u8_duplex(struct driver_data *drv_data)
-+static void bfin_spi_u8_duplex(struct driver_data *drv_data)
- {
- 	/* in duplex mode, clk is triggered by writing of TDBR */
- 	while (drv_data->rx < drv_data->rx_end) {
-@@ -348,12 +348,12 @@ static void u8_duplex(struct driver_data
- 	}
- }
- 
--static void u8_cs_chg_duplex(struct driver_data *drv_data)
-+static void bfin_spi_u8_cs_chg_duplex(struct driver_data *drv_data)
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->rx < drv_data->rx_end) {
--		cs_active(drv_data, chip);
-+		bfin_spi_cs_active(drv_data, chip);
- 
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
- 
-@@ -363,14 +363,14 @@ static void u8_cs_chg_duplex(struct driv
- 			cpu_relax();
- 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
- 
--		cs_deactive(drv_data, chip);
-+		bfin_spi_cs_deactive(drv_data, chip);
- 
- 		++drv_data->rx;
- 		++drv_data->tx;
- 	}
- }
- 
--static void u16_writer(struct driver_data *drv_data)
-+static void bfin_spi_u16_writer(struct driver_data *drv_data)
- {
- 	dev_dbg(&drv_data->pdev->dev,
- 		"cr16 is 0x%x\n", read_STAT(drv_data));
-@@ -387,12 +387,12 @@ static void u16_writer(struct driver_dat
- 		cpu_relax();
- }
- 
--static void u16_cs_chg_writer(struct driver_data *drv_data)
-+static void bfin_spi_u16_cs_chg_writer(struct driver_data *drv_data)
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->tx < drv_data->tx_end) {
--		cs_active(drv_data, chip);
-+		bfin_spi_cs_active(drv_data, chip);
- 
- 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
- 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
-@@ -400,13 +400,13 @@ static void u16_cs_chg_writer(struct dri
- 		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
- 			cpu_relax();
- 
--		cs_deactive(drv_data, chip);
-+		bfin_spi_cs_deactive(drv_data, chip);
- 
- 		drv_data->tx += 2;
- 	}
- }
- 
--static void u16_reader(struct driver_data *drv_data)
-+static void bfin_spi_u16_reader(struct driver_data *drv_data)
- {
- 	dev_dbg(&drv_data->pdev->dev,
- 		"cr-16 is 0x%x\n", read_STAT(drv_data));
-@@ -418,7 +418,7 @@ static void u16_reader(struct driver_dat
- 	/* clear TDBR buffer before read(else it will be shifted out) */
- 	write_TDBR(drv_data, 0xFFFF);
- 
--	dummy_read(drv_data);
-+	bfin_spi_dummy_read(drv_data);
- 
- 	while (drv_data->rx < (drv_data->rx_end - 2)) {
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
-@@ -433,7 +433,7 @@ static void u16_reader(struct driver_dat
- 	drv_data->rx += 2;
- }
- 
--static void u16_cs_chg_reader(struct driver_data *drv_data)
-+static void bfin_spi_u16_cs_chg_reader(struct driver_data *drv_data)
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 
-@@ -444,19 +444,19 @@ static void u16_cs_chg_reader(struct dri
- 	/* clear TDBR buffer before read(else it will be shifted out) */
- 	write_TDBR(drv_data, 0xFFFF);
- 
--	cs_active(drv_data, chip);
--	dummy_read(drv_data);
-+	bfin_spi_cs_active(drv_data, chip);
-+	bfin_spi_dummy_read(drv_data);
- 
- 	while (drv_data->rx < drv_data->rx_end - 2) {
--		cs_deactive(drv_data, chip);
-+		bfin_spi_cs_deactive(drv_data, chip);
- 
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			cpu_relax();
--		cs_active(drv_data, chip);
-+		bfin_spi_cs_active(drv_data, chip);
- 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
- 		drv_data->rx += 2;
- 	}
--	cs_deactive(drv_data, chip);
-+	bfin_spi_cs_deactive(drv_data, chip);
- 
- 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 		cpu_relax();
-@@ -464,7 +464,7 @@ static void u16_cs_chg_reader(struct dri
- 	drv_data->rx += 2;
- }
- 
--static void u16_duplex(struct driver_data *drv_data)
-+static void bfin_spi_u16_duplex(struct driver_data *drv_data)
- {
- 	/* in duplex mode, clk is triggered by writing of TDBR */
- 	while (drv_data->tx < drv_data->tx_end) {
-@@ -479,12 +479,12 @@ static void u16_duplex(struct driver_dat
- 	}
- }
- 
--static void u16_cs_chg_duplex(struct driver_data *drv_data)
-+static void bfin_spi_u16_cs_chg_duplex(struct driver_data *drv_data)
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->tx < drv_data->tx_end) {
--		cs_active(drv_data, chip);
-+		bfin_spi_cs_active(drv_data, chip);
- 
- 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
- 		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
-@@ -493,7 +493,7 @@ static void u16_cs_chg_duplex(struct dri
- 			cpu_relax();
- 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
- 
--		cs_deactive(drv_data, chip);
-+		bfin_spi_cs_deactive(drv_data, chip);
- 
- 		drv_data->rx += 2;
- 		drv_data->tx += 2;
-@@ -501,7 +501,7 @@ static void u16_cs_chg_duplex(struct dri
- }
- 
- /* test if ther is more transfer to be done */
--static void *next_transfer(struct driver_data *drv_data)
-+static void *bfin_spi_next_transfer(struct driver_data *drv_data)
- {
- 	struct spi_message *msg = drv_data->cur_msg;
- 	struct spi_transfer *trans = drv_data->cur_transfer;
-@@ -520,7 +520,7 @@ static void *next_transfer(struct driver
-  * caller already set message->status;
-  * dma and pio irqs are blocked give finished message back
-  */
--static void giveback(struct driver_data *drv_data)
-+static void bfin_spi_giveback(struct driver_data *drv_data)
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 	struct spi_transfer *last_transfer;
-@@ -541,7 +541,7 @@ static void giveback(struct driver_data 
- 	msg->state = NULL;
- 
- 	if (!drv_data->cs_change)
--		cs_deactive(drv_data, chip);
-+		bfin_spi_cs_deactive(drv_data, chip);
- 
- 	/* Not stop spi in autobuffer mode */
- 	if (drv_data->tx_dma != 0xFFFF)
-@@ -551,7 +551,7 @@ static void giveback(struct driver_data 
- 		msg->complete(msg->context);
- }
- 
--static irqreturn_t dma_irq_handler(int irq, void *dev_id)
-+static irqreturn_t bfin_spi_dma_irq_handler(int irq, void *dev_id)
- {
- 	struct driver_data *drv_data = dev_id;
- 	struct chip_data *chip = drv_data->cur_chip;
-@@ -601,10 +601,10 @@ static irqreturn_t dma_irq_handler(int i
- 		msg->actual_length += drv_data->len_in_bytes;
- 
- 		if (drv_data->cs_change)
--			cs_deactive(drv_data, chip);
-+			bfin_spi_cs_deactive(drv_data, chip);
- 
- 		/* Move to next transfer */
--		msg->state = next_transfer(drv_data);
-+		msg->state = bfin_spi_next_transfer(drv_data);
- 	}
- 
- 	/* Schedule transfer tasklet */
-@@ -619,7 +619,7 @@ static irqreturn_t dma_irq_handler(int i
- 	return IRQ_HANDLED;
- }
- 
--static void pump_transfers(unsigned long data)
-+static void bfin_spi_pump_transfers(unsigned long data)
- {
- 	struct driver_data *drv_data = (struct driver_data *)data;
- 	struct spi_message *message = NULL;
-@@ -644,7 +644,7 @@ static void pump_transfers(unsigned long
- 	if (message->state == ERROR_STATE) {
- 		dev_dbg(&drv_data->pdev->dev, "transfer: we've hit an error\n");
- 		message->status = -EIO;
--		giveback(drv_data);
-+		bfin_spi_giveback(drv_data);
- 		return;
- 	}
- 
-@@ -652,7 +652,7 @@ static void pump_transfers(unsigned long
- 	if (message->state == DONE_STATE) {
- 		dev_dbg(&drv_data->pdev->dev, "transfer: all done!\n");
- 		message->status = 0;
--		giveback(drv_data);
-+		bfin_spi_giveback(drv_data);
- 		return;
- 	}
- 
-@@ -666,10 +666,10 @@ static void pump_transfers(unsigned long
- 	}
- 
- 	/* Setup the transfer state based on the type of transfer */
--	if (flush(drv_data) == 0) {
-+	if (bfin_spi_flush(drv_data) == 0) {
- 		dev_err(&drv_data->pdev->dev, "pump_transfers: flush failed\n");
- 		message->status = -EIO;
--		giveback(drv_data);
-+		bfin_spi_giveback(drv_data);
- 		return;
- 	}
- 
-@@ -703,31 +703,31 @@ static void pump_transfers(unsigned long
- 		drv_data->n_bytes = 1;
- 		width = CFG_SPI_WORDSIZE8;
- 		drv_data->read = chip->cs_change_per_word ?
--			u8_cs_chg_reader : u8_reader;
-+			bfin_spi_u8_cs_chg_reader : bfin_spi_u8_reader;
- 		drv_data->write = chip->cs_change_per_word ?
--			u8_cs_chg_writer : u8_writer;
-+			bfin_spi_u8_cs_chg_writer : bfin_spi_u8_writer;
- 		drv_data->duplex = chip->cs_change_per_word ?
--			u8_cs_chg_duplex : u8_duplex;
-+			bfin_spi_u8_cs_chg_duplex : bfin_spi_u8_duplex;
- 		break;
- 
- 	case 16:
- 		drv_data->n_bytes = 2;
- 		width = CFG_SPI_WORDSIZE16;
- 		drv_data->read = chip->cs_change_per_word ?
--			u16_cs_chg_reader : u16_reader;
-+			bfin_spi_u16_cs_chg_reader : bfin_spi_u16_reader;
- 		drv_data->write = chip->cs_change_per_word ?
--			u16_cs_chg_writer : u16_writer;
-+			bfin_spi_u16_cs_chg_writer : bfin_spi_u16_writer;
- 		drv_data->duplex = chip->cs_change_per_word ?
--			u16_cs_chg_duplex : u16_duplex;
-+			bfin_spi_u16_cs_chg_duplex : bfin_spi_u16_duplex;
- 		break;
- 
- 	default:
- 		/* No change, the same as default setting */
- 		drv_data->n_bytes = chip->n_bytes;
- 		width = chip->width;
--		drv_data->write = drv_data->tx ? chip->write : null_writer;
--		drv_data->read = drv_data->rx ? chip->read : null_reader;
--		drv_data->duplex = chip->duplex ? chip->duplex : null_writer;
-+		drv_data->write = drv_data->tx ? chip->write : bfin_spi_null_writer;
-+		drv_data->read = drv_data->rx ? chip->read : bfin_spi_null_reader;
-+		drv_data->duplex = chip->duplex ? chip->duplex : bfin_spi_null_writer;
- 		break;
- 	}
- 	cr = (read_CTRL(drv_data) & (~BIT_CTL_TIMOD));
-@@ -741,7 +741,7 @@ static void pump_transfers(unsigned long
- 	}
- 	dev_dbg(&drv_data->pdev->dev,
- 		"transfer: drv_data->write is %p, chip->write is %p, null_wr is %p\n",
--		drv_data->write, chip->write, null_writer);
-+		drv_data->write, chip->write, bfin_spi_null_writer);
- 
- 	/* speed and width has been set on per message */
- 	message->state = RUNNING_STATE;
-@@ -756,7 +756,7 @@ static void pump_transfers(unsigned long
- 	write_STAT(drv_data, BIT_STAT_CLR);
- 	cr = (read_CTRL(drv_data) & (~BIT_CTL_TIMOD));
- 	if (drv_data->cs_change)
--		cs_active(drv_data, chip);
-+		bfin_spi_cs_active(drv_data, chip);
- 
- 	dev_dbg(&drv_data->pdev->dev,
- 		"now pumping a transfer: width is %d, len is %d\n",
-@@ -811,7 +811,7 @@ static void pump_transfers(unsigned long
- 			 * in this mode
- 			 */
- 			message->status = 0;
--			giveback(drv_data);
-+			bfin_spi_giveback(drv_data);
- 			return;
- 		}
- 
-@@ -919,9 +919,9 @@ static void pump_transfers(unsigned long
- 			/* Update total byte transfered */
- 			message->actual_length += drv_data->len_in_bytes;
- 			/* Move to next transfer of this msg */
--			message->state = next_transfer(drv_data);
-+			message->state = bfin_spi_next_transfer(drv_data);
- 			if (drv_data->cs_change)
--				cs_deactive(drv_data, chip);
-+				bfin_spi_cs_deactive(drv_data, chip);
- 		}
- 		/* Schedule next transfer tasklet */
- 		tasklet_schedule(&drv_data->pump_transfers);
-@@ -930,7 +930,7 @@ static void pump_transfers(unsigned long
- }
- 
- /* pop a msg from queue and kick off real transfer */
--static void pump_messages(struct work_struct *work)
-+static void bfin_spi_pump_messages(struct work_struct *work)
- {
- 	struct driver_data *drv_data;
- 	unsigned long flags;
-@@ -958,7 +958,7 @@ static void pump_messages(struct work_st
- 
- 	/* Setup the SSP using the per chip configuration */
- 	drv_data->cur_chip = spi_get_ctldata(drv_data->cur_msg->spi);
--	restore_state(drv_data);
-+	bfin_spi_restore_state(drv_data);
- 
- 	list_del_init(&drv_data->cur_msg->queue);
- 
-@@ -987,7 +987,7 @@ static void pump_messages(struct work_st
-  * got a msg to transfer, queue it in drv_data->queue.
-  * And kick off message pumper
-  */
--static int transfer(struct spi_device *spi, struct spi_message *msg)
-+static int bfin_spi_transfer(struct spi_device *spi, struct spi_message *msg)
- {
- 	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
- 	unsigned long flags;
-@@ -1031,7 +1031,7 @@ static u16 ssel[][MAX_SPI_SSEL] = {
+diff -puN include/linux/ipc_namespace.h~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace
++++ a/include/linux/ipc_namespace.h
+@@ -44,24 +44,55 @@ struct ipc_namespace {
+ 	int		shm_tot;
+ 
+ 	struct notifier_block ipcns_nb;
++
++	/* The kern_mount of the mqueuefs sb.  We take a ref on it */
++	struct vfsmount	*mq_mnt;
++
++	/* # queues in this ns, protected by mq_lock */
++	unsigned int    mq_queues_count;
++
++	/* next fields are set through sysctl */
++	unsigned int    mq_queues_max;   /* initialized to DFLT_QUEUESMAX */
++	unsigned int    mq_msg_max;      /* initialized to DFLT_MSGMAX */
++	unsigned int    mq_msgsize_max;  /* initialized to DFLT_MSGSIZEMAX */
++
  };
  
- /* first setup for new devices */
--static int setup(struct spi_device *spi)
-+static int bfin_spi_setup(struct spi_device *spi)
+ extern struct ipc_namespace init_ipc_ns;
+ extern atomic_t nr_ipc_ns;
+ 
+-#ifdef CONFIG_SYSVIPC
++#if defined(CONFIG_POSIX_MQUEUE) || defined(CONFIG_SYSVIPC)
+ #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
++#else
++#define INIT_IPC_NS(ns)
++#endif
+ 
++#ifdef CONFIG_SYSVIPC
+ extern int register_ipcns_notifier(struct ipc_namespace *);
+ extern int cond_register_ipcns_notifier(struct ipc_namespace *);
+ extern void unregister_ipcns_notifier(struct ipc_namespace *);
+ extern int ipcns_notify(unsigned long);
+-
+ #else /* CONFIG_SYSVIPC */
+-#define INIT_IPC_NS(ns)
++static inline int register_ipcns_notifier(struct ipc_namespace *ns)
++{ return 0; }
++static inline int cond_register_ipcns_notifier(struct ipc_namespace *ns)
++{ return 0; }
++static inline void unregister_ipcns_notifier(struct ipc_namespace *ns) { }
++static inline int ipcns_notify(unsigned long l) { return 0; }
+ #endif /* CONFIG_SYSVIPC */
+ 
+-#if defined(CONFIG_SYSVIPC) && defined(CONFIG_IPC_NS)
++#ifdef CONFIG_POSIX_MQUEUE
++extern void mq_init_ns(struct ipc_namespace *ns);
++/* default values */
++#define DFLT_QUEUESMAX 256     /* max number of message queues */
++#define DFLT_MSGMAX    10      /* max number of messages in each queue */
++#define HARD_MSGMAX    (131072/sizeof(void *))
++#define DFLT_MSGSIZEMAX 8192   /* max message size */
++#else
++#define mq_init_ns(ns) ((void) 0)
++#endif
++
++#if defined(CONFIG_IPC_NS)
+ extern void free_ipc_ns(struct kref *kref);
+ extern struct ipc_namespace *copy_ipcs(unsigned long flags,
+ 				       struct ipc_namespace *ns);
+diff -puN init/Kconfig~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace init/Kconfig
+--- a/init/Kconfig~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace
++++ a/init/Kconfig
+@@ -670,10 +670,10 @@ config UTS_NS
+ 
+ config IPC_NS
+ 	bool "IPC namespace"
+-	depends on NAMESPACES && SYSVIPC
++	depends on NAMESPACES && (SYSVIPC || POSIX_MQUEUE)
+ 	help
+ 	  In this namespace tasks work with IPC ids which correspond to
+-	  different IPC objects in different namespaces
++	  different IPC objects in different namespaces.
+ 
+ config USER_NS
+ 	bool "User namespace (EXPERIMENTAL)"
+diff -puN ipc/mqueue.c~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace ipc/mqueue.c
+--- a/ipc/mqueue.c~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace
++++ a/ipc/mqueue.c
+@@ -31,6 +31,7 @@
+ #include <linux/mutex.h>
+ #include <linux/nsproxy.h>
+ #include <linux/pid.h>
++#include <linux/ipc_namespace.h>
+ 
+ #include <net/sock.h>
+ #include "util.h"
+@@ -46,12 +47,6 @@
+ #define STATE_PENDING	1
+ #define STATE_READY	2
+ 
+-/* default values */
+-#define DFLT_QUEUESMAX	256	/* max number of message queues */
+-#define DFLT_MSGMAX 	10	/* max number of messages in each queue */
+-#define HARD_MSGMAX 	(131072/sizeof(void*))
+-#define DFLT_MSGSIZEMAX 8192	/* max message size */
+-
+ /*
+  * Define the ranges various user-specified maximum values can
+  * be set to.
+@@ -95,12 +90,6 @@ static void remove_notification(struct m
+ 
+ static spinlock_t mq_lock;
+ static struct kmem_cache *mqueue_inode_cachep;
+-static struct vfsmount *mqueue_mnt;
+-
+-static unsigned int queues_count;
+-static unsigned int queues_max 	= DFLT_QUEUESMAX;
+-static unsigned int msg_max 	= DFLT_MSGMAX;
+-static unsigned int msgsize_max = DFLT_MSGSIZEMAX;
+ 
+ static struct ctl_table_header * mq_sysctl_table;
+ 
+@@ -109,11 +98,27 @@ static inline struct mqueue_inode_info *
+ 	return container_of(inode, struct mqueue_inode_info, vfs_inode);
+ }
+ 
++void mq_init_ns(struct ipc_namespace *ns)
++{
++	ns->mq_queues_count  = 0;
++	ns->mq_queues_max    = DFLT_QUEUESMAX;
++	ns->mq_msg_max       = DFLT_MSGMAX;
++	ns->mq_msgsize_max   = DFLT_MSGSIZEMAX;
++	ns->mq_mnt           = mntget(init_ipc_ns.mq_mnt);
++}
++
++void mq_exit_ns(struct ipc_namespace *ns)
++{
++	/* will need to clear out ns->mq_mnt->mnt_sb->s_fs_info here */
++	mntput(ns->mq_mnt);
++}
++
+ static struct inode *mqueue_get_inode(struct super_block *sb, int mode,
+ 							struct mq_attr *attr)
  {
- 	struct bfin5xx_spi_chip *chip_info = NULL;
- 	struct chip_data *chip;
-@@ -1105,7 +1105,7 @@ static int setup(struct spi_device *spi)
- 			return -ENODEV;
- 		}
- 		if (set_dma_callback(drv_data->dma_channel,
--		    dma_irq_handler, drv_data) < 0) {
-+		    bfin_spi_dma_irq_handler, drv_data) < 0) {
- 			dev_dbg(&spi->dev, "Unable to set dma callback\n");
- 			return -EPERM;
- 		}
-@@ -1126,28 +1126,29 @@ static int setup(struct spi_device *spi)
- 		chip->n_bytes = 1;
- 		chip->width = CFG_SPI_WORDSIZE8;
- 		chip->read = chip->cs_change_per_word ?
--			u8_cs_chg_reader : u8_reader;
-+			bfin_spi_u8_cs_chg_reader : bfin_spi_u8_reader;
- 		chip->write = chip->cs_change_per_word ?
--			u8_cs_chg_writer : u8_writer;
-+			bfin_spi_u8_cs_chg_writer : bfin_spi_u8_writer;
- 		chip->duplex = chip->cs_change_per_word ?
--			u8_cs_chg_duplex : u8_duplex;
-+			bfin_spi_u8_cs_chg_duplex : bfin_spi_u8_duplex;
- 		break;
+ 	struct user_struct *u = current_user();
+ 	struct inode *inode;
++	struct ipc_namespace *ipc_ns = &init_ipc_ns;
  
- 	case 16:
- 		chip->n_bytes = 2;
- 		chip->width = CFG_SPI_WORDSIZE16;
- 		chip->read = chip->cs_change_per_word ?
--			u16_cs_chg_reader : u16_reader;
-+			bfin_spi_u16_cs_chg_reader : bfin_spi_u16_reader;
- 		chip->write = chip->cs_change_per_word ?
--			u16_cs_chg_writer : u16_writer;
-+			bfin_spi_u16_cs_chg_writer : bfin_spi_u16_writer;
- 		chip->duplex = chip->cs_change_per_word ?
--			u16_cs_chg_duplex : u16_duplex;
-+			bfin_spi_u16_cs_chg_duplex : bfin_spi_u16_duplex;
- 		break;
+ 	inode = new_inode(sb);
+ 	if (inode) {
+@@ -141,8 +146,8 @@ static struct inode *mqueue_get_inode(st
+ 			info->qsize = 0;
+ 			info->user = NULL;	/* set when all is ok */
+ 			memset(&info->attr, 0, sizeof(info->attr));
+-			info->attr.mq_maxmsg = msg_max;
+-			info->attr.mq_msgsize = msgsize_max;
++			info->attr.mq_maxmsg = ipc_ns->mq_msg_max;
++			info->attr.mq_msgsize = ipc_ns->mq_msgsize_max;
+ 			if (attr) {
+ 				info->attr.mq_maxmsg = attr->mq_maxmsg;
+ 				info->attr.mq_msgsize = attr->mq_msgsize;
+@@ -242,6 +247,7 @@ static void mqueue_delete_inode(struct i
+ 	struct user_struct *user;
+ 	unsigned long mq_bytes;
+ 	int i;
++	struct ipc_namespace *ipc_ns = &init_ipc_ns;
  
- 	default:
- 		dev_err(&spi->dev, "%d bits_per_word is not supported\n",
- 				chip->bits_per_word);
--		kfree(chip);
-+		if (chip_info)
-+			kfree(chip);
- 		return -ENODEV;
+ 	if (S_ISDIR(inode->i_mode)) {
+ 		clear_inode(inode);
+@@ -262,7 +268,7 @@ static void mqueue_delete_inode(struct i
+ 	if (user) {
+ 		spin_lock(&mq_lock);
+ 		user->mq_bytes -= mq_bytes;
+-		queues_count--;
++		ipc_ns->mq_queues_count--;
+ 		spin_unlock(&mq_lock);
+ 		free_uid(user);
+ 	}
+@@ -274,21 +280,23 @@ static int mqueue_create(struct inode *d
+ 	struct inode *inode;
+ 	struct mq_attr *attr = dentry->d_fsdata;
+ 	int error;
++	struct ipc_namespace *ipc_ns = &init_ipc_ns;
+ 
+ 	spin_lock(&mq_lock);
+-	if (queues_count >= queues_max && !capable(CAP_SYS_RESOURCE)) {
++	if (ipc_ns->mq_queues_count >= ipc_ns->mq_queues_max &&
++			!capable(CAP_SYS_RESOURCE)) {
+ 		error = -ENOSPC;
+-		goto out_lock;
++		goto out_unlock;
+ 	}
+-	queues_count++;
++	ipc_ns->mq_queues_count++;
+ 	spin_unlock(&mq_lock);
+ 
+ 	inode = mqueue_get_inode(dir->i_sb, mode, attr);
+ 	if (!inode) {
+ 		error = -ENOMEM;
+ 		spin_lock(&mq_lock);
+-		queues_count--;
+-		goto out_lock;
++		ipc_ns->mq_queues_count--;
++		goto out_unlock;
  	}
  
-@@ -1164,7 +1165,7 @@ static int setup(struct spi_device *spi)
- 		peripheral_request(ssel[spi->master->bus_num]
- 			[chip->chip_select_num-1], spi->modalias);
- 
--	cs_deactive(drv_data, chip);
-+	bfin_spi_cs_deactive(drv_data, chip);
- 
+ 	dir->i_size += DIRENT_SIZE;
+@@ -297,7 +305,7 @@ static int mqueue_create(struct inode *d
+ 	d_instantiate(dentry, inode);
+ 	dget(dentry);
  	return 0;
+-out_lock:
++out_unlock:
+ 	spin_unlock(&mq_lock);
+ 	return error;
  }
-@@ -1173,7 +1174,7 @@ static int setup(struct spi_device *spi)
-  * callback for spi framework.
-  * clean driver specific data
-  */
--static void cleanup(struct spi_device *spi)
-+static void bfin_spi_cleanup(struct spi_device *spi)
- {
- 	struct chip_data *chip = spi_get_ctldata(spi);
- 
-@@ -1185,7 +1186,7 @@ static void cleanup(struct spi_device *s
- 	kfree(chip);
+@@ -562,7 +570,7 @@ static void remove_notification(struct m
+ 	info->notify_owner = NULL;
  }
  
--static inline int init_queue(struct driver_data *drv_data)
-+static inline int bfin_spi_init_queue(struct driver_data *drv_data)
+-static int mq_attr_ok(struct mq_attr *attr)
++static int mq_attr_ok(struct ipc_namespace *ipc_ns, struct mq_attr *attr)
  {
- 	INIT_LIST_HEAD(&drv_data->queue);
- 	spin_lock_init(&drv_data->lock);
-@@ -1195,10 +1196,10 @@ static inline int init_queue(struct driv
- 
- 	/* init transfer tasklet */
- 	tasklet_init(&drv_data->pump_transfers,
--		     pump_transfers, (unsigned long)drv_data);
-+		     bfin_spi_pump_transfers, (unsigned long)drv_data);
- 
- 	/* init messages workqueue */
--	INIT_WORK(&drv_data->pump_messages, pump_messages);
-+	INIT_WORK(&drv_data->pump_messages, bfin_spi_pump_messages);
- 	drv_data->workqueue = create_singlethread_workqueue(
- 				dev_name(drv_data->master->dev.parent));
- 	if (drv_data->workqueue == NULL)
-@@ -1207,7 +1208,7 @@ static inline int init_queue(struct driv
- 	return 0;
- }
- 
--static inline int start_queue(struct driver_data *drv_data)
-+static inline int bfin_spi_start_queue(struct driver_data *drv_data)
- {
- 	unsigned long flags;
- 
-@@ -1229,7 +1230,7 @@ static inline int start_queue(struct dri
- 	return 0;
- }
- 
--static inline int stop_queue(struct driver_data *drv_data)
-+static inline int bfin_spi_stop_queue(struct driver_data *drv_data)
- {
- 	unsigned long flags;
- 	unsigned limit = 500;
-@@ -1258,11 +1259,11 @@ static inline int stop_queue(struct driv
- 	return status;
- }
- 
--static inline int destroy_queue(struct driver_data *drv_data)
-+static inline int bfin_spi_destroy_queue(struct driver_data *drv_data)
- {
- 	int status;
- 
--	status = stop_queue(drv_data);
-+	status = bfin_spi_stop_queue(drv_data);
- 	if (status != 0)
- 		return status;
- 
-@@ -1271,7 +1272,7 @@ static inline int destroy_queue(struct d
- 	return 0;
- }
- 
--static int __init bfin5xx_spi_probe(struct platform_device *pdev)
-+static int __init bfin_spi_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct bfin5xx_spi_master *platform_info;
-@@ -1297,9 +1298,9 @@ static int __init bfin5xx_spi_probe(stru
- 
- 	master->bus_num = pdev->id;
- 	master->num_chipselect = platform_info->num_chipselect;
--	master->cleanup = cleanup;
--	master->setup = setup;
--	master->transfer = transfer;
-+	master->cleanup = bfin_spi_cleanup;
-+	master->setup = bfin_spi_setup;
-+	master->transfer = bfin_spi_transfer;
- 
- 	/* Find and map our resources */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -1324,13 +1325,13 @@ static int __init bfin5xx_spi_probe(stru
- 	}
- 
- 	/* Initial and start queue */
--	status = init_queue(drv_data);
-+	status = bfin_spi_init_queue(drv_data);
- 	if (status != 0) {
- 		dev_err(dev, "problem initializing queue\n");
- 		goto out_error_queue_alloc;
- 	}
- 
--	status = start_queue(drv_data);
-+	status = bfin_spi_start_queue(drv_data);
- 	if (status != 0) {
- 		dev_err(dev, "problem starting queue\n");
- 		goto out_error_queue_alloc;
-@@ -1356,7 +1357,7 @@ static int __init bfin5xx_spi_probe(stru
- 	return status;
- 
- out_error_queue_alloc:
--	destroy_queue(drv_data);
-+	bfin_spi_destroy_queue(drv_data);
- out_error_no_dma_ch:
- 	iounmap((void *) drv_data->regs_base);
- out_error_ioremap:
-@@ -1367,7 +1368,7 @@ out_error_get_res:
- }
- 
- /* stop hardware and remove the driver */
--static int __devexit bfin5xx_spi_remove(struct platform_device *pdev)
-+static int __devexit bfin_spi_remove(struct platform_device *pdev)
- {
- 	struct driver_data *drv_data = platform_get_drvdata(pdev);
- 	int status = 0;
-@@ -1376,7 +1377,7 @@ static int __devexit bfin5xx_spi_remove(
+ 	if (attr->mq_maxmsg <= 0 || attr->mq_msgsize <= 0)
  		return 0;
- 
- 	/* Remove the queue */
--	status = destroy_queue(drv_data);
-+	status = bfin_spi_destroy_queue(drv_data);
- 	if (status != 0)
- 		return status;
- 
-@@ -1401,12 +1402,12 @@ static int __devexit bfin5xx_spi_remove(
- }
- 
- #ifdef CONFIG_PM
--static int bfin5xx_spi_suspend(struct platform_device *pdev, pm_message_t state)
-+static int bfin_spi_suspend(struct platform_device *pdev, pm_message_t state)
+@@ -570,8 +578,8 @@ static int mq_attr_ok(struct mq_attr *at
+ 		if (attr->mq_maxmsg > HARD_MSGMAX)
+ 			return 0;
+ 	} else {
+-		if (attr->mq_maxmsg > msg_max ||
+-				attr->mq_msgsize > msgsize_max)
++		if (attr->mq_maxmsg > ipc_ns->mq_msg_max ||
++				attr->mq_msgsize > ipc_ns->mq_msgsize_max)
+ 			return 0;
+ 	}
+ 	/* check for overflow */
+@@ -587,8 +595,9 @@ static int mq_attr_ok(struct mq_attr *at
+ /*
+  * Invoked when creating a new queue via sys_mq_open
+  */
+-static struct file *do_create(struct dentry *dir, struct dentry *dentry,
+-			int oflag, mode_t mode, struct mq_attr *attr)
++static struct file *do_create(struct ipc_namespace *ipc_ns, struct dentry *dir,
++			struct dentry *dentry, int oflag, mode_t mode,
++			struct mq_attr *attr)
  {
- 	struct driver_data *drv_data = platform_get_drvdata(pdev);
- 	int status = 0;
+ 	const struct cred *cred = current_cred();
+ 	struct file *result;
+@@ -596,14 +605,14 @@ static struct file *do_create(struct den
  
--	status = stop_queue(drv_data);
-+	status = bfin_spi_stop_queue(drv_data);
- 	if (status != 0)
- 		return status;
+ 	if (attr) {
+ 		ret = -EINVAL;
+-		if (!mq_attr_ok(attr))
++		if (!mq_attr_ok(ipc_ns, attr))
+ 			goto out;
+ 		/* store for use during create */
+ 		dentry->d_fsdata = attr;
+ 	}
  
-@@ -1416,7 +1417,7 @@ static int bfin5xx_spi_suspend(struct pl
- 	return 0;
+ 	mode &= ~current_umask();
+-	ret = mnt_want_write(mqueue_mnt);
++	ret = mnt_want_write(ipc_ns->mq_mnt);
+ 	if (ret)
+ 		goto out;
+ 	ret = vfs_create(dir->d_inode, dentry, mode, NULL);
+@@ -611,24 +620,25 @@ static struct file *do_create(struct den
+ 	if (ret)
+ 		goto out_drop_write;
+ 
+-	result = dentry_open(dentry, mqueue_mnt, oflag, cred);
++	result = dentry_open(dentry, ipc_ns->mq_mnt, oflag, cred);
+ 	/*
+ 	 * dentry_open() took a persistent mnt_want_write(),
+ 	 * so we can now drop this one.
+ 	 */
+-	mnt_drop_write(mqueue_mnt);
++	mnt_drop_write(ipc_ns->mq_mnt);
+ 	return result;
+ 
+ out_drop_write:
+-	mnt_drop_write(mqueue_mnt);
++	mnt_drop_write(ipc_ns->mq_mnt);
+ out:
+ 	dput(dentry);
+-	mntput(mqueue_mnt);
++	mntput(ipc_ns->mq_mnt);
+ 	return ERR_PTR(ret);
  }
  
--static int bfin5xx_spi_resume(struct platform_device *pdev)
-+static int bfin_spi_resume(struct platform_device *pdev)
+ /* Opens existing queue */
+-static struct file *do_open(struct dentry *dentry, int oflag)
++static struct file *do_open(struct ipc_namespace *ipc_ns,
++				struct dentry *dentry, int oflag)
  {
- 	struct driver_data *drv_data = platform_get_drvdata(pdev);
- 	int status = 0;
-@@ -1425,7 +1426,7 @@ static int bfin5xx_spi_resume(struct pla
- 	bfin_spi_enable(drv_data);
+ 	const struct cred *cred = current_cred();
  
- 	/* Start the queue running */
--	status = start_queue(drv_data);
-+	status = bfin_spi_start_queue(drv_data);
- 	if (status != 0) {
- 		dev_err(&pdev->dev, "problem starting queue (%d)\n", status);
- 		return status;
-@@ -1434,29 +1435,29 @@ static int bfin5xx_spi_resume(struct pla
- 	return 0;
+@@ -637,17 +647,17 @@ static struct file *do_open(struct dentr
+ 
+ 	if ((oflag & O_ACCMODE) == (O_RDWR | O_WRONLY)) {
+ 		dput(dentry);
+-		mntput(mqueue_mnt);
++		mntput(ipc_ns->mq_mnt);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
+ 	if (inode_permission(dentry->d_inode, oflag2acc[oflag & O_ACCMODE])) {
+ 		dput(dentry);
+-		mntput(mqueue_mnt);
++		mntput(ipc_ns->mq_mnt);
+ 		return ERR_PTR(-EACCES);
+ 	}
+ 
+-	return dentry_open(dentry, mqueue_mnt, oflag, cred);
++	return dentry_open(dentry, ipc_ns->mq_mnt, oflag, cred);
  }
- #else
--#define bfin5xx_spi_suspend NULL
--#define bfin5xx_spi_resume NULL
-+#define bfin_spi_suspend NULL
-+#define bfin_spi_resume NULL
- #endif				/* CONFIG_PM */
  
- MODULE_ALIAS("platform:bfin-spi");
--static struct platform_driver bfin5xx_spi_driver = {
-+static struct platform_driver bfin_spi_driver = {
- 	.driver	= {
- 		.name	= DRV_NAME,
- 		.owner	= THIS_MODULE,
+ SYSCALL_DEFINE4(mq_open, const char __user *, u_name, int, oflag, mode_t, mode,
+@@ -658,6 +668,7 @@ SYSCALL_DEFINE4(mq_open, const char __us
+ 	char *name;
+ 	struct mq_attr attr;
+ 	int fd, error;
++	struct ipc_namespace *ipc_ns = &init_ipc_ns;
+ 
+ 	if (u_attr && copy_from_user(&attr, u_attr, sizeof(struct mq_attr)))
+ 		return -EFAULT;
+@@ -671,13 +682,13 @@ SYSCALL_DEFINE4(mq_open, const char __us
+ 	if (fd < 0)
+ 		goto out_putname;
+ 
+-	mutex_lock(&mqueue_mnt->mnt_root->d_inode->i_mutex);
+-	dentry = lookup_one_len(name, mqueue_mnt->mnt_root, strlen(name));
++	mutex_lock(&ipc_ns->mq_mnt->mnt_root->d_inode->i_mutex);
++	dentry = lookup_one_len(name, ipc_ns->mq_mnt->mnt_root, strlen(name));
+ 	if (IS_ERR(dentry)) {
+ 		error = PTR_ERR(dentry);
+ 		goto out_err;
+ 	}
+-	mntget(mqueue_mnt);
++	mntget(ipc_ns->mq_mnt);
+ 
+ 	if (oflag & O_CREAT) {
+ 		if (dentry->d_inode) {	/* entry already exists */
+@@ -685,10 +696,10 @@ SYSCALL_DEFINE4(mq_open, const char __us
+ 			error = -EEXIST;
+ 			if (oflag & O_EXCL)
+ 				goto out;
+-			filp = do_open(dentry, oflag);
++			filp = do_open(ipc_ns, dentry, oflag);
+ 		} else {
+-			filp = do_create(mqueue_mnt->mnt_root, dentry,
+-						oflag, mode,
++			filp = do_create(ipc_ns, ipc_ns->mq_mnt->mnt_root,
++						dentry, oflag, mode,
+ 						u_attr ? &attr : NULL);
+ 		}
+ 	} else {
+@@ -696,7 +707,7 @@ SYSCALL_DEFINE4(mq_open, const char __us
+ 		if (!dentry->d_inode)
+ 			goto out;
+ 		audit_inode(name, dentry);
+-		filp = do_open(dentry, oflag);
++		filp = do_open(ipc_ns, dentry, oflag);
+ 	}
+ 
+ 	if (IS_ERR(filp)) {
+@@ -709,13 +720,13 @@ SYSCALL_DEFINE4(mq_open, const char __us
+ 
+ out:
+ 	dput(dentry);
+-	mntput(mqueue_mnt);
++	mntput(ipc_ns->mq_mnt);
+ out_putfd:
+ 	put_unused_fd(fd);
+ out_err:
+ 	fd = error;
+ out_upsem:
+-	mutex_unlock(&mqueue_mnt->mnt_root->d_inode->i_mutex);
++	mutex_unlock(&ipc_ns->mq_mnt->mnt_root->d_inode->i_mutex);
+ out_putname:
+ 	putname(name);
+ 	return fd;
+@@ -727,14 +738,15 @@ SYSCALL_DEFINE1(mq_unlink, const char __
+ 	char *name;
+ 	struct dentry *dentry;
+ 	struct inode *inode = NULL;
++	struct ipc_namespace *ipc_ns = &init_ipc_ns;
+ 
+ 	name = getname(u_name);
+ 	if (IS_ERR(name))
+ 		return PTR_ERR(name);
+ 
+-	mutex_lock_nested(&mqueue_mnt->mnt_root->d_inode->i_mutex,
++	mutex_lock_nested(&ipc_ns->mq_mnt->mnt_root->d_inode->i_mutex,
+ 			I_MUTEX_PARENT);
+-	dentry = lookup_one_len(name, mqueue_mnt->mnt_root, strlen(name));
++	dentry = lookup_one_len(name, ipc_ns->mq_mnt->mnt_root, strlen(name));
+ 	if (IS_ERR(dentry)) {
+ 		err = PTR_ERR(dentry);
+ 		goto out_unlock;
+@@ -748,16 +760,16 @@ SYSCALL_DEFINE1(mq_unlink, const char __
+ 	inode = dentry->d_inode;
+ 	if (inode)
+ 		atomic_inc(&inode->i_count);
+-	err = mnt_want_write(mqueue_mnt);
++	err = mnt_want_write(ipc_ns->mq_mnt);
+ 	if (err)
+ 		goto out_err;
+ 	err = vfs_unlink(dentry->d_parent->d_inode, dentry);
+-	mnt_drop_write(mqueue_mnt);
++	mnt_drop_write(ipc_ns->mq_mnt);
+ out_err:
+ 	dput(dentry);
+ 
+ out_unlock:
+-	mutex_unlock(&mqueue_mnt->mnt_root->d_inode->i_mutex);
++	mutex_unlock(&ipc_ns->mq_mnt->mnt_root->d_inode->i_mutex);
+ 	putname(name);
+ 	if (inode)
+ 		iput(inode);
+@@ -1214,14 +1226,14 @@ static int msg_maxsize_limit_max = MAX_M
+ static ctl_table mq_sysctls[] = {
+ 	{
+ 		.procname	= "queues_max",
+-		.data		= &queues_max,
++		.data		= &init_ipc_ns.mq_queues_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
  	},
--	.suspend	= bfin5xx_spi_suspend,
--	.resume		= bfin5xx_spi_resume,
--	.remove		= __devexit_p(bfin5xx_spi_remove),
-+	.suspend	= bfin_spi_suspend,
-+	.resume		= bfin_spi_resume,
-+	.remove		= __devexit_p(bfin_spi_remove),
+ 	{
+ 		.procname	= "msg_max",
+-		.data		= &msg_max,
++		.data		= &init_ipc_ns.mq_msg_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec_minmax,
+@@ -1230,7 +1242,7 @@ static ctl_table mq_sysctls[] = {
+ 	},
+ 	{
+ 		.procname	= "msgsize_max",
+-		.data		= &msgsize_max,
++		.data		= &init_ipc_ns.mq_msgsize_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec_minmax,
+@@ -1276,13 +1288,13 @@ static int __init init_mqueue_fs(void)
+ 	if (error)
+ 		goto out_sysctl;
+ 
+-	if (IS_ERR(mqueue_mnt = kern_mount(&mqueue_fs_type))) {
+-		error = PTR_ERR(mqueue_mnt);
++	init_ipc_ns.mq_mnt = kern_mount(&mqueue_fs_type);
++	if (IS_ERR(init_ipc_ns.mq_mnt)) {
++		error = PTR_ERR(init_ipc_ns.mq_mnt);
+ 		goto out_filesystem;
+ 	}
+ 
+ 	/* internal initialization - not common for vfs */
+-	queues_count = 0;
+ 	spin_lock_init(&mq_lock);
+ 
+ 	return 0;
+diff -puN ipc/msgutil.c~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace ipc/msgutil.c
+--- a/ipc/msgutil.c~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace
++++ a/ipc/msgutil.c
+@@ -13,10 +13,32 @@
+ #include <linux/security.h>
+ #include <linux/slab.h>
+ #include <linux/ipc.h>
++#include <linux/ipc_namespace.h>
+ #include <asm/uaccess.h>
+ 
+ #include "util.h"
+ 
++/*
++ * The next 2 defines are here bc this is the only file
++ * compiled when either CONFIG_SYSVIPC and CONFIG_POSIX_MQUEUE
++ * and not CONFIG_IPC_NS.
++ */
++struct ipc_namespace init_ipc_ns = {
++	.kref = {
++		/* It's not for this patch to change, but should this be 1? */
++		.refcount	= ATOMIC_INIT(2),
++	},
++#ifdef CONFIG_POSIX_MQUEUE
++	.mq_mnt          = NULL,
++	.mq_queues_count = 0,
++	.mq_queues_max   = DFLT_QUEUESMAX,
++	.mq_msg_max      = DFLT_MSGMAX,
++	.mq_msgsize_max  = DFLT_MSGSIZEMAX,
++#endif
++};
++
++atomic_t nr_ipc_ns = ATOMIC_INIT(1);
++
+ struct msg_msgseg {
+ 	struct msg_msgseg* next;
+ 	/* the next part of the message follows immediately */
+diff -puN ipc/namespace.c~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace ipc/namespace.c
+--- a/ipc/namespace.c~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace
++++ a/ipc/namespace.c
+@@ -25,6 +25,7 @@ static struct ipc_namespace *clone_ipc_n
+ 	sem_init_ns(ns);
+ 	msg_init_ns(ns);
+ 	shm_init_ns(ns);
++	mq_init_ns(ns);
+ 
+ 	/*
+ 	 * msgmni has already been computed for the new ipc ns.
+@@ -101,6 +102,7 @@ void free_ipc_ns(struct kref *kref)
+ 	sem_exit_ns(ns);
+ 	msg_exit_ns(ns);
+ 	shm_exit_ns(ns);
++	mq_exit_ns(ns);
+ 	kfree(ns);
+ 	atomic_dec(&nr_ipc_ns);
+ 
+diff -puN ipc/util.c~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace ipc/util.c
+--- a/ipc/util.c~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace
++++ a/ipc/util.c
+@@ -47,15 +47,6 @@ struct ipc_proc_iface {
+ 	int (*show)(struct seq_file *, void *);
  };
  
--static int __init bfin5xx_spi_init(void)
-+static int __init bfin_spi_init(void)
- {
--	return platform_driver_probe(&bfin5xx_spi_driver, bfin5xx_spi_probe);
-+	return platform_driver_probe(&bfin_spi_driver, bfin_spi_probe);
- }
--module_init(bfin5xx_spi_init);
-+module_init(bfin_spi_init);
+-struct ipc_namespace init_ipc_ns = {
+-	.kref = {
+-		.refcount	= ATOMIC_INIT(2),
+-	},
+-};
+-
+-atomic_t nr_ipc_ns = ATOMIC_INIT(1);
+-
+-
+ #ifdef CONFIG_MEMORY_HOTPLUG
  
--static void __exit bfin5xx_spi_exit(void)
-+static void __exit bfin_spi_exit(void)
- {
--	platform_driver_unregister(&bfin5xx_spi_driver);
-+	platform_driver_unregister(&bfin_spi_driver);
- }
--module_exit(bfin5xx_spi_exit);
-+module_exit(bfin_spi_exit);
+ static void ipc_memory_notifier(struct work_struct *work)
+diff -puN ipc/util.h~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace ipc/util.h
+--- a/ipc/util.h~namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace
++++ a/ipc/util.h
+@@ -20,6 +20,13 @@ void shm_init (void);
+ 
+ struct ipc_namespace;
+ 
++#ifdef CONFIG_POSIX_MQUEUE
++void mq_exit_ns(struct ipc_namespace *ns);
++#else
++static inline void mq_exit_ns(struct ipc_namespace *ns) { }
++#endif
++
++#ifdef CONFIG_SYSVIPC
+ void sem_init_ns(struct ipc_namespace *ns);
+ void msg_init_ns(struct ipc_namespace *ns);
+ void shm_init_ns(struct ipc_namespace *ns);
+@@ -27,6 +34,15 @@ void shm_init_ns(struct ipc_namespace *n
+ void sem_exit_ns(struct ipc_namespace *ns);
+ void msg_exit_ns(struct ipc_namespace *ns);
+ void shm_exit_ns(struct ipc_namespace *ns);
++#else
++static inline void sem_init_ns(struct ipc_namespace *ns) { }
++static inline void msg_init_ns(struct ipc_namespace *ns) { }
++static inline void shm_init_ns(struct ipc_namespace *ns) { }
++
++static inline void sem_exit_ns(struct ipc_namespace *ns) { }
++static inline void msg_exit_ns(struct ipc_namespace *ns) { }
++static inline void shm_exit_ns(struct ipc_namespace *ns) { }
++#endif
+ 
+ /*
+  * Structure that holds the parameters needed by the ipc operations
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 origin.patch
 linux-next.patch
+reiser4.patch
 
