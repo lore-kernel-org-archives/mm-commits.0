@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch added to -mm tree
-Date: Mon, 06 Apr 2009 21:24:30 -0700
-Message-ID: <200904070424.n374OUL7001294@imap1.linux-foundation.org>
+Subject: + fbdev-fix-color-component-field-length-documentation.patch added to -mm tree
+Date: Mon, 06 Apr 2009 23:51:49 -0700
+Message-ID: <200904070651.n376pnWY029861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751435AbZDGE2F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 00:28:05 -0400
+	by vger.kernel.org with ESMTP id S1752832AbZDGGze (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 02:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, adobriyan@gmail.com, ebiederm@aristanetworks.com, randy.dunlap@oracle.com
+Cc: spock@gentoo.org, geert.uytterhoeven@gmail.com, krzysztof.h1@poczta.fm, syrjala@sci.fi
 
 
 The patch titled
-     sysctl-lockdep-support-for-sysctl-reference-counting-fix
+     fbdev: fix color component field length documentation
 has been added to the -mm tree.  Its filename is
-     sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
+     fbdev-fix-color-component-field-length-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl-lockdep-support-for-sysctl-reference-counting-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbdev: fix color component field length documentation
+From: Michal Januszewski <spock@gentoo.org>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Eric Biederman <ebiederm@aristanetworks.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+The documentation about the meaning of the color component bitfield
+lengths in pseudocolor modes is inconsistent.  Fix it, so that it
+indicates the correct interpretation everywhere, i.e.  that 1 << length is
+the number of palette entries.
+
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Acked-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: <syrjala@sci.fi>
+Acked-by: Geert Uytterhoeven <geert.uytterhoeven@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/skeletonfb.c |    8 +++++---
+ drivers/video/vfb.c        |   11 +++++++----
+ include/linux/fb.h         |    8 ++++++--
+ 3 files changed, 18 insertions(+), 9 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-lockdep-support-for-sysctl-reference-counting-fix kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-lockdep-support-for-sysctl-reference-counting-fix
-+++ a/kernel/sysctl.c
-@@ -2072,7 +2072,7 @@ struct ctl_table_header *__register_sysc
- 		return NULL;
- 	}
- #endif
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+#ifdef CONFIG_PROVE_LOCKING
- 	{
- 		static struct lock_class_key __key;
- 		lockdep_init_map(&header->dep_map, "sysctl_used", &__key, 0);
+diff -puN drivers/video/skeletonfb.c~fbdev-fix-color-component-field-length-documentation drivers/video/skeletonfb.c
+--- a/drivers/video/skeletonfb.c~fbdev-fix-color-component-field-length-documentation
++++ a/drivers/video/skeletonfb.c
+@@ -308,9 +308,11 @@ static int xxxfb_setcolreg(unsigned regn
+      *   color depth = SUM(var->{color}.length)
+      *
+      * Pseudocolor:
+-     *    var->{color}.offset is 0
+-     *    var->{color}.length contains width of DAC or the number of unique
+-     *                        colors available (color depth)
++     *    var->{color}.offset is 0 unless the palette index takes less than
++     *                        bits_per_pixel bits and is stored in the upper
++     *                        bits of the pixel value
++     *    var->{color}.length is set so that 1 << length is the number of
++     *                        available palette entries
+      *    pseudo_palette is not used
+      *    RAMDAC[X] is programmed to (red, green, blue)
+      *    color depth = var->{color}.length
+diff -puN drivers/video/vfb.c~fbdev-fix-color-component-field-length-documentation drivers/video/vfb.c
+--- a/drivers/video/vfb.c~fbdev-fix-color-component-field-length-documentation
++++ a/drivers/video/vfb.c
+@@ -318,13 +318,16 @@ static int vfb_setcolreg(u_int regno, u_
+ 	 *   {hardwarespecific} contains width of RAMDAC
+ 	 *   cmap[X] is programmed to (X << red.offset) | (X << green.offset) | (X << blue.offset)
+ 	 *   RAMDAC[X] is programmed to (red, green, blue)
+-	 * 
++	 *
+ 	 * Pseudocolor:
+-	 *    uses offset = 0 && length = RAMDAC register width.
+-	 *    var->{color}.offset is 0
+-	 *    var->{color}.length contains widht of DAC
++	 *    var->{color}.offset is 0 unless the palette index takes less than
++	 *                        bits_per_pixel bits and is stored in the upper
++	 *                        bits of the pixel value
++	 *    var->{color}.length is set so that 1 << length is the number of available
++	 *                        palette entries
+ 	 *    cmap is not used
+ 	 *    RAMDAC[X] is programmed to (red, green, blue)
++	 *
+ 	 * Truecolor:
+ 	 *    does not use DAC. Usually 3 are present.
+ 	 *    var->{color}.offset contains start of bitfield
+diff -puN include/linux/fb.h~fbdev-fix-color-component-field-length-documentation include/linux/fb.h
+--- a/include/linux/fb.h~fbdev-fix-color-component-field-length-documentation
++++ a/include/linux/fb.h
+@@ -173,8 +173,12 @@ struct fb_fix_screeninfo {
+ /* Interpretation of offset for color fields: All offsets are from the right,
+  * inside a "pixel" value, which is exactly 'bits_per_pixel' wide (means: you
+  * can use the offset as right argument to <<). A pixel afterwards is a bit
+- * stream and is written to video memory as that unmodified. This implies
+- * big-endian byte order if bits_per_pixel is greater than 8.
++ * stream and is written to video memory as that unmodified.
++ *
++ * For pseudocolor: offset and length should be the same for all color
++ * components. Offset specifies the position of the least significant bit
++ * of the pallette index in a pixel value. Length indicates the number
++ * of available palette entries (i.e. # of entries = 1 << length).
+  */
+ struct fb_bitfield {
+ 	__u32 offset;			/* beginning of bitfield	*/
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from spock@gentoo.org are
 
 origin.patch
-mm-add-proc-controls-for-pdflush-threads.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-nilfs2-integrated-block-mapping.patch
-nilfs2-segment-buffer.patch
-i2c-too-much-compiler-noise.patch
+uvesafb-documentation-update.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-flat-fix-data-sections-alignment.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+fbdev-fix-color-component-field-length-documentation.patch
 
