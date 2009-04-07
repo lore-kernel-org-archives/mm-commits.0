@@ -1,157 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jsm-cleanup.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:10:20 -0700
-Message-ID: <200904071910.n37JAKrn012784@imap1.linux-foundation.org>
+Subject: [merged] mm-add-proc-controls-for-pdflush-threads-fix-99.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:10:14 -0700
+Message-ID: <200904071910.n37JAEZv012716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760858AbZDGTN2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:13:28 -0400
+	by vger.kernel.org with ESMTP id S1759550AbZDGTNf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:13:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: leitao@linux.vnet.ibm.com, Scott.Kilau@digi.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, pmorreale@novell.com, randy.dunlap@oracle.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jsm: cleanup
+     mm-add-proc-controls-for-pdflush-threads-fix-99
 has been removed from the -mm tree.  Its filename was
-     jsm-cleanup.patch
+     mm-add-proc-controls-for-pdflush-threads-fix-99.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jsm: cleanup
-From: Breno Leitao <leitao@linux.vnet.ibm.com>
+Subject: mm-add-proc-controls-for-pdflush-threads-fix-99
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Here are some cleanups, mainly removing unused variables and silly
-declarations.
-
-Signed-off-by: Breno Leitao <leitao@linux.vnet.ibm.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Scott Kilau <Scott.Kilau@digi.com>
+Cc: Peter W Morreale <pmorreale@novell.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_neo.c |   14 ++++----------
- drivers/serial/jsm/jsm_tty.c |   19 ++++++++-----------
- 2 files changed, 12 insertions(+), 21 deletions(-)
+ kernel/sysctl.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm_neo.c~jsm-cleanup drivers/serial/jsm/jsm_neo.c
---- a/drivers/serial/jsm/jsm_neo.c~jsm-cleanup
-+++ a/drivers/serial/jsm/jsm_neo.c
-@@ -533,7 +533,6 @@ static void neo_copy_data_from_queue_to_
- 	if (!(ch->ch_flags & (CH_TX_FIFO_EMPTY | CH_TX_FIFO_LWM)))
- 		return;
+diff -puN kernel/sysctl.c~mm-add-proc-controls-for-pdflush-threads-fix-99 kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-add-proc-controls-for-pdflush-threads-fix-99
++++ a/kernel/sysctl.c
+@@ -90,10 +90,7 @@ extern int sysctl_nr_trim_pages;
+ extern int rcutorture_runnable;
+ #endif /* #ifdef CONFIG_RCU_TORTURE_TEST */
  
--	len_written = 0;
- 	n = UART_17158_TX_FIFOSIZE - ch->ch_t_tlevel;
- 
- 	/* cache head and tail of queue */
-@@ -619,14 +618,10 @@ static void neo_parse_modem(struct jsm_c
- /* Make the UART raise any of the output signals we want up */
- static void neo_assert_modem_signals(struct jsm_channel *ch)
- {
--	u8 out;
--
- 	if (!ch)
- 		return;
- 
--	out = ch->ch_mostat;
--
--	writeb(out, &ch->ch_neo_uart->mcr);
-+	writeb(ch->ch_mostat, &ch->ch_neo_uart->mcr);
- 
- 	/* flush write operation */
- 	neo_pci_posting_flush(ch->ch_bd);
-@@ -936,10 +931,9 @@ static inline void neo_parse_lsr(struct 
- static void neo_param(struct jsm_channel *ch)
- {
- 	u8 lcr = 0;
--	u8 uart_lcr = 0;
--	u8 ier = 0;
--	u32 baud = 9600;
--	int quot = 0;
-+	u8 uart_lcr, ier;
-+	u32 baud;
-+	int quot;
- 	struct jsm_board *bd;
- 
- 	bd = ch->ch_bd;
-diff -puN drivers/serial/jsm/jsm_tty.c~jsm-cleanup drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~jsm-cleanup
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -183,7 +183,6 @@ static void jsm_tty_break(struct uart_po
- static int jsm_tty_open(struct uart_port *port)
- {
- 	struct jsm_board *brd;
--	int rc = 0;
- 	struct jsm_channel *channel = (struct jsm_channel *)port;
- 	struct ktermios *termios;
- 
-@@ -265,7 +264,7 @@ static int jsm_tty_open(struct uart_port
- 	channel->ch_open_count++;
- 
- 	jsm_printk(OPEN, INFO, &channel->ch_bd->pci_dev, "finish\n");
--	return rc;
-+	return 0;
- }
- 
- static void jsm_tty_close(struct uart_port *port)
-@@ -748,7 +747,7 @@ static void jsm_carrier(struct jsm_chann
- void jsm_check_queue_flow_control(struct jsm_channel *ch)
- {
- 	struct board_ops *bd_ops = ch->ch_bd->bd_ops;
--	int qleft = 0;
-+	int qleft;
- 
- 	/* Store how much space we have left in the queue */
- 	if ((qleft = ch->ch_r_tail - ch->ch_r_head - 1) < 0)
-@@ -834,7 +833,7 @@ void jsm_check_queue_flow_control(struct
-  */
- int jsm_tty_write(struct uart_port *port)
- {
--	int bufcount = 0, n = 0;
-+	int bufcount;
- 	int data_count = 0,data_count1 =0;
- 	u16 head;
- 	u16 tail;
-@@ -850,14 +849,12 @@ int jsm_tty_write(struct uart_port *port
- 	if ((bufcount = tail - head - 1) < 0)
- 		bufcount += WQUEUESIZE;
- 
--	n = bufcount;
--
--	n = min(n, 56);
-+	bufcount = min(bufcount, 56);
- 	remain = WQUEUESIZE - head;
- 
- 	data_count = 0;
--	if (n >= remain) {
--		n -= remain;
-+	if (bufcount >= remain) {
-+		bufcount -= remain;
- 		while ((port->info->xmit.head != temp_tail) &&
- 		(data_count < remain)) {
- 			channel->ch_wqueue[head++] =
-@@ -871,8 +868,8 @@ int jsm_tty_write(struct uart_port *port
- 	}
- 
- 	data_count1 = 0;
--	if (n > 0) {
--		remain = n;
-+	if (bufcount > 0) {
-+		remain = bufcount;
- 		while ((port->info->xmit.head != temp_tail) &&
- 			(data_count1 < remain)) {
- 			channel->ch_wqueue[head++] =
+-/* Constants used for minimum and  maximum */
+-#if defined(CONFIG_DETECT_HUNG_TASK) || defined(CONFIG_DETECT_SOFTLOCKUP) || defined(CONFIG_HIGHMEM)
+-static int one = 1;
+-#endif
++/* Constants used for minimum and maximum */
+ #ifdef CONFIG_DETECT_SOFTLOCKUP
+ static int sixty = 60;
+ static int neg_one = -1;
 _
 
-Patches currently in -mm which might be from leitao@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-icom-converting-space-to-tabs.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+flat-fix-data-sections-alignment.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
