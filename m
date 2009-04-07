@@ -1,372 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 12:07:28 -0700
-Message-ID: <200904071907.n37J7S49011340@imap1.linux-foundation.org>
+Subject: [merged] nilfs2-add-document.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 12:08:10 -0700
+Message-ID: <200904071908.n37J8AV8011681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45556 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756376AbZDGTJk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:09:40 -0400
+	by vger.kernel.org with ESMTP id S1757251AbZDGTJe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 15:09:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tdfxfb: move I2C functionality into the tdfxfb
+     nilfs2: add document
 has been removed from the -mm tree.  Its filename was
-     tdfxfb-move-i2c-functionality-into-the-tdfxfb.patch
+     nilfs2-add-document.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tdfxfb: move I2C functionality into the tdfxfb
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: nilfs2: add document
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-The I2C functionality provided by the i2c-voodoo3 driver is moved into the
-tdfxfb (frame buffer driver for Voodoo3 cards).  This way there is no
-conflict between the i2c driver and the fb driver.
+This adds a document describing the features, mount options, userland
+tools, usage, disk format, and related URLs for the nilfs2 file system.
 
-The tdfxfb does not make use from the DDC functionality yet but provides
-all the functionality of the i2c-voodoo3 driver.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig  |    9 +
- drivers/video/tdfxfb.c |  200 ++++++++++++++++++++++++++++++++++++++-
- include/video/tdfx.h   |   26 +++++
- 3 files changed, 234 insertions(+), 1 deletion(-)
+ Documentation/filesystems/00-INDEX   |    2 
+ Documentation/filesystems/nilfs2.txt |  202 +++++++++++++++++++++++++
+ 2 files changed, 204 insertions(+)
 
-diff -puN drivers/video/Kconfig~tdfxfb-move-i2c-functionality-into-the-tdfxfb drivers/video/Kconfig
---- a/drivers/video/Kconfig~tdfxfb-move-i2c-functionality-into-the-tdfxfb
-+++ a/drivers/video/Kconfig
-@@ -1550,6 +1550,7 @@ config FB_3DFX
- 	select FB_CFB_IMAGEBLIT
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
-+	select FB_MODE_HELPERS
- 	help
- 	  This driver supports graphics boards with the 3Dfx Banshee,
- 	  Voodoo3 or VSA-100 (aka Voodoo4/5) chips. Say Y if you have
-@@ -1565,6 +1566,14 @@ config FB_3DFX_ACCEL
- 	This will compile the 3Dfx Banshee/Voodoo3/VSA-100 frame buffer
- 	device driver with acceleration functions.
- 
-+config FB_3DFX_I2C
-+	bool "Enable DDC/I2C support"
-+	depends on FB_3DFX && EXPERIMENTAL
-+	select FB_DDC
-+	default y
-+	help
-+	  Say Y here if you want DDC/I2C support for your 3dfx Voodoo3.
+diff -puN Documentation/filesystems/00-INDEX~nilfs2-add-document Documentation/filesystems/00-INDEX
+--- a/Documentation/filesystems/00-INDEX~nilfs2-add-document
++++ a/Documentation/filesystems/00-INDEX
+@@ -68,6 +68,8 @@ ncpfs.txt
+ 	- info on Novell Netware(tm) filesystem using NCP protocol.
+ nfsroot.txt
+ 	- short guide on setting up a diskless box with NFS root filesystem.
++nilfs2.txt
++	- info and mount options for the NILFS2 filesystem.
+ ntfs.txt
+ 	- info and mount options for the NTFS filesystem (Windows NT).
+ ocfs2.txt
+diff -puN /dev/null Documentation/filesystems/nilfs2.txt
+--- /dev/null
++++ a/Documentation/filesystems/nilfs2.txt
+@@ -0,0 +1,202 @@
++NILFS2
++------
 +
- config FB_VOODOO1
- 	tristate "3Dfx Voodoo Graphics (sst1) support"
- 	depends on FB && PCI
-diff -puN drivers/video/tdfxfb.c~tdfxfb-move-i2c-functionality-into-the-tdfxfb drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-move-i2c-functionality-into-the-tdfxfb
-+++ a/drivers/video/tdfxfb.c
-@@ -10,6 +10,12 @@
-  * Created      : Thu Sep 23 18:17:43 1999, hmallat
-  * Last modified: Tue Nov  2 21:19:47 1999, hmallat
-  *
-+ * I2C part copied from the i2c-voodoo3.c driver by:
-+ * Frodo Looijaard <frodol@dds.nl>,
-+ * Philip Edelbrock <phil@netroedge.com>,
-+ * Ralph Metzler <rjkm@thp.uni-koeln.de>, and
-+ * Mark D. Studebaker <mdsxyz123@yahoo.com>
-+ *
-  * Lots of the information here comes from the Daryll Strauss' Banshee
-  * patches to the XF86 server, and the rest comes from the 3dfx
-  * Banshee specification. I'm very much indebted to Daryll for his
-@@ -1167,6 +1173,190 @@ static struct fb_ops tdfxfb_ops = {
- #endif
- };
- 
-+#ifdef CONFIG_FB_3DFX_I2C
-+/* The voo GPIO registers don't have individual masks for each bit
-+   so we always have to read before writing. */
++NILFS2 is a log-structured file system (LFS) supporting continuous
++snapshotting.  In addition to versioning capability of the entire file
++system, users can even restore files mistakenly overwritten or
++destroyed just a few seconds ago.  Since NILFS2 can keep consistency
++like conventional LFS, it achieves quick recovery after system
++crashes.
 +
-+static void tdfxfb_i2c_setscl(void *data, int val)
-+{
-+	struct tdfxfb_i2c_chan 	*chan = data;
-+	struct tdfx_par 	*par = chan->par;
-+	unsigned int r;
++NILFS2 creates a number of checkpoints every few seconds or per
++synchronous write basis (unless there is no change).  Users can select
++significant versions among continuously created checkpoints, and can
++change them into snapshots which will be preserved until they are
++changed back to checkpoints.
 +
-+	r = tdfx_inl(par, VIDSERPARPORT);
-+	if (val)
-+		r |= I2C_SCL_OUT;
-+	else
-+		r &= ~I2C_SCL_OUT;
-+	tdfx_outl(par, VIDSERPARPORT, r);
-+	tdfx_inl(par, VIDSERPARPORT);	/* flush posted write */
-+}
++There is no limit on the number of snapshots until the volume gets
++full.  Each snapshot is mountable as a read-only file system
++concurrently with its writable mount, and this feature is convenient
++for online backup.
 +
-+static void tdfxfb_i2c_setsda(void *data, int val)
-+{
-+	struct tdfxfb_i2c_chan 	*chan = data;
-+	struct tdfx_par 	*par = chan->par;
-+	unsigned int r;
++The userland tools are included in nilfs-utils package, which is
++available from the following download page.  At least "mkfs.nilfs2",
++"mount.nilfs2", "umount.nilfs2", and "nilfs_cleanerd" (so called
++cleaner or garbage collector) are required.  Details on the tools are
++described in the man pages included in the package.
 +
-+	r = tdfx_inl(par, VIDSERPARPORT);
-+	if (val)
-+		r |= I2C_SDA_OUT;
-+	else
-+		r &= ~I2C_SDA_OUT;
-+	tdfx_outl(par, VIDSERPARPORT, r);
-+	tdfx_inl(par, VIDSERPARPORT);	/* flush posted write */
-+}
++Project web page:    http://www.nilfs.org/en/
++Download page:       http://www.nilfs.org/en/download.html
++Git tree web page:   http://www.nilfs.org/git/
++NILFS mailing lists: http://www.nilfs.org/mailman/listinfo/users
 +
-+/* The GPIO pins are open drain, so the pins always remain outputs.
-+   We rely on the i2c-algo-bit routines to set the pins high before
-+   reading the input from other chips. */
++Caveats
++=======
 +
-+static int tdfxfb_i2c_getscl(void *data)
-+{
-+	struct tdfxfb_i2c_chan 	*chan = data;
-+	struct tdfx_par 	*par = chan->par;
++Features which NILFS2 does not support yet:
 +
-+	return (0 != (tdfx_inl(par, VIDSERPARPORT) & I2C_SCL_IN));
-+}
++	- atime
++	- extended attributes
++	- POSIX ACLs
++	- quotas
++	- writable snapshots
++	- remote backup (CDP)
++	- data integrity
++	- defragmentation
 +
-+static int tdfxfb_i2c_getsda(void *data)
-+{
-+	struct tdfxfb_i2c_chan 	*chan = data;
-+	struct tdfx_par 	*par = chan->par;
++Mount options
++=============
 +
-+	return (0 != (tdfx_inl(par, VIDSERPARPORT) & I2C_SDA_IN));
-+}
++NILFS2 supports the following mount options:
++(*) == default
 +
-+static void tdfxfb_ddc_setscl(void *data, int val)
-+{
-+	struct tdfxfb_i2c_chan 	*chan = data;
-+	struct tdfx_par 	*par = chan->par;
-+	unsigned int r;
++barrier=on(*)		This enables/disables barriers. barrier=off disables
++			it, barrier=on enables it.
++errors=continue(*)	Keep going on a filesystem error.
++errors=remount-ro	Remount the filesystem read-only on an error.
++errors=panic		Panic and halt the machine if an error occurs.
++cp=n			Specify the checkpoint-number of the snapshot to be
++			mounted.  Checkpoints and snapshots are listed by lscp
++			user command.  Only the checkpoints marked as snapshot
++			are mountable with this option.  Snapshot is read-only,
++			so a read-only mount option must be specified together.
++order=relaxed(*)	Apply relaxed order semantics that allows modified data
++			blocks to be written to disk without making a
++			checkpoint if no metadata update is going.  This mode
++			is equivalent to the ordered data mode of the ext3
++			filesystem except for the updates on data blocks still
++			conserve atomicity.  This will improve synchronous
++			write performance for overwriting.
++order=strict		Apply strict in-order semantics that preserves sequence
++			of all file operations including overwriting of data
++			blocks.  That means, it is guaranteed that no
++			overtaking of events occurs in the recovered file
++			system after a crash.
 +
-+	r = tdfx_inl(par, VIDSERPARPORT);
-+	if (val)
-+		r |= DDC_SCL_OUT;
-+	else
-+		r &= ~DDC_SCL_OUT;
-+	tdfx_outl(par, VIDSERPARPORT, r);
-+	tdfx_inl(par, VIDSERPARPORT);	/* flush posted write */
-+}
++NILFS2 usage
++============
 +
-+static void tdfxfb_ddc_setsda(void *data, int val)
-+{
-+	struct tdfxfb_i2c_chan 	*chan = data;
-+	struct tdfx_par 	*par = chan->par;
-+	unsigned int r;
++To use nilfs2 as a local file system, simply:
 +
-+	r = tdfx_inl(par, VIDSERPARPORT);
-+	if (val)
-+		r |= DDC_SDA_OUT;
-+	else
-+		r &= ~DDC_SDA_OUT;
-+	tdfx_outl(par, VIDSERPARPORT, r);
-+	tdfx_inl(par, VIDSERPARPORT);	/* flush posted write */
-+}
++ # mkfs -t nilfs2 /dev/block_device
++ # mount -t nilfs2 /dev/block_device /dir
 +
-+static int tdfxfb_ddc_getscl(void *data)
-+{
-+	struct tdfxfb_i2c_chan 	*chan = data;
-+	struct tdfx_par 	*par = chan->par;
++This will also invoke the cleaner through the mount helper program
++(mount.nilfs2).
 +
-+	return (0 != (tdfx_inl(par, VIDSERPARPORT) & DDC_SCL_IN));
-+}
++Checkpoints and snapshots are managed by the following commands.
++Their manpages are included in the nilfs-utils package above.
 +
-+static int tdfxfb_ddc_getsda(void *data)
-+{
-+	struct tdfxfb_i2c_chan 	*chan = data;
-+	struct tdfx_par 	*par = chan->par;
++  lscp     list checkpoints or snapshots.
++  mkcp     make a checkpoint or a snapshot.
++  chcp     change an existing checkpoint to a snapshot or vice versa.
++  rmcp     invalidate specified checkpoint(s).
 +
-+	return (0 != (tdfx_inl(par, VIDSERPARPORT) & DDC_SDA_IN));
-+}
++To mount a snapshot,
 +
-+static int __devinit tdfxfb_setup_ddc_bus(struct tdfxfb_i2c_chan *chan,
-+					  const char *name, struct device *dev)
-+{
-+	int rc;
++ # mount -t nilfs2 -r -o cp=<cno> /dev/block_device /snap_dir
 +
-+	strlcpy(chan->adapter.name, name, sizeof(chan->adapter.name));
-+	chan->adapter.owner		= THIS_MODULE;
-+	chan->adapter.class		= I2C_CLASS_DDC;
-+	chan->adapter.algo_data		= &chan->algo;
-+	chan->adapter.dev.parent	= dev;
-+	chan->algo.setsda		= tdfxfb_ddc_setsda;
-+	chan->algo.setscl		= tdfxfb_ddc_setscl;
-+	chan->algo.getsda		= tdfxfb_ddc_getsda;
-+	chan->algo.getscl		= tdfxfb_ddc_getscl;
-+	chan->algo.udelay		= 10;
-+	chan->algo.timeout		= msecs_to_jiffies(500);
-+	chan->algo.data 		= chan;
++where <cno> is the checkpoint number of the snapshot.
 +
-+	i2c_set_adapdata(&chan->adapter, chan);
++To unmount the NILFS2 mount point or snapshot, simply:
 +
-+	rc = i2c_bit_add_bus(&chan->adapter);
-+	if (rc == 0)
-+		DPRINTK("I2C bus %s registered.\n", name);
-+	else
-+		chan->par = NULL;
++ # umount /dir
 +
-+	return rc;
-+}
++Then, the cleaner daemon is automatically shut down by the umount
++helper program (umount.nilfs2).
 +
-+static int __devinit tdfxfb_setup_i2c_bus(struct tdfxfb_i2c_chan *chan,
-+					  const char *name, struct device *dev)
-+{
-+	int rc;
++Disk format
++===========
 +
-+	strlcpy(chan->adapter.name, name, sizeof(chan->adapter.name));
-+	chan->adapter.owner		= THIS_MODULE;
-+	chan->adapter.class		= I2C_CLASS_TV_ANALOG;
-+	chan->adapter.algo_data		= &chan->algo;
-+	chan->adapter.dev.parent	= dev;
-+	chan->algo.setsda		= tdfxfb_i2c_setsda;
-+	chan->algo.setscl		= tdfxfb_i2c_setscl;
-+	chan->algo.getsda		= tdfxfb_i2c_getsda;
-+	chan->algo.getscl		= tdfxfb_i2c_getscl;
-+	chan->algo.udelay		= 10;
-+	chan->algo.timeout		= msecs_to_jiffies(500);
-+	chan->algo.data 		= chan;
++A nilfs2 volume is equally divided into a number of segments except
++for the super block (SB) and segment #0.  A segment is the container
++of logs.  Each log is composed of summary information blocks, payload
++blocks, and an optional super root block (SR):
 +
-+	i2c_set_adapdata(&chan->adapter, chan);
++   ______________________________________________________
++  | |SB| | Segment | Segment | Segment | ... | Segment | |
++  |_|__|_|____0____|____1____|____2____|_____|____N____|_|
++  0 +1K +4K       +8M       +16M      +24M  +(8MB x N)
++       .             .            (Typical offsets for 4KB-block)
++    .                  .
++  .______________________.
++  | log | log |... | log |
++  |__1__|__2__|____|__m__|
++        .       .
++      .               .
++    .                       .
++  .______________________________.
++  | Summary | Payload blocks  |SR|
++  |_blocks__|_________________|__|
 +
-+	rc = i2c_bit_add_bus(&chan->adapter);
-+	if (rc == 0)
-+		DPRINTK("I2C bus %s registered.\n", name);
-+	else
-+		chan->par = NULL;
++The payload blocks are organized per file, and each file consists of
++data blocks and B-tree node blocks:
 +
-+	return rc;
-+}
++    |<---       File-A        --->|<---       File-B        --->|
++   _______________________________________________________________
++    | Data blocks | B-tree blocks | Data blocks | B-tree blocks | ...
++   _|_____________|_______________|_____________|_______________|_
 +
-+static void __devinit tdfxfb_create_i2c_busses(struct fb_info *info)
-+{
-+	struct tdfx_par *par = info->par;
 +
-+	tdfx_outl(par, VIDINFORMAT, 0x8160);
-+	tdfx_outl(par, VIDSERPARPORT, 0xcffc0020);
++Since only the modified blocks are written in the log, it may have
++files without data blocks or B-tree node blocks.
 +
-+	par->chan[0].par = par;
-+	par->chan[1].par = par;
++The organization of the blocks is recorded in the summary information
++blocks, which contains a header structure (nilfs_segment_summary), per
++file structures (nilfs_finfo), and per block structures (nilfs_binfo):
 +
-+	tdfxfb_setup_ddc_bus(&par->chan[0], "Voodoo3-DDC", info->dev);
-+	tdfxfb_setup_i2c_bus(&par->chan[1], "Voodoo3-I2C", info->dev);
-+}
++  _________________________________________________________________________
++ | Summary | finfo | binfo | ... | binfo | finfo | binfo | ... | binfo |...
++ |_blocks__|___A___|_(A,1)_|_____|(A,Na)_|___B___|_(B,1)_|_____|(B,Nb)_|___
 +
-+static void tdfxfb_delete_i2c_busses(struct tdfx_par *par)
-+{
-+	if (par->chan[0].par)
-+		i2c_del_adapter(&par->chan[0].adapter);
-+	par->chan[0].par = NULL;
 +
-+	if (par->chan[1].par)
-+		i2c_del_adapter(&par->chan[1].adapter);
-+	par->chan[1].par = NULL;
-+}
-+#endif /* CONFIG_FB_3DFX_I2C */
++The logs include regular files, directory files, symbolic link files
++and several meta data files.  The mata data files are the files used
++to maintain file system meta data.  The current version of NILFS2 uses
++the following meta data files:
 +
- /**
-  *      tdfxfb_probe - Device Initializiation
-  *
-@@ -1284,7 +1474,9 @@ static int __devinit tdfxfb_probe(struct
- 	if (hwcursor)
- 		info->fix.smem_len = (info->fix.smem_len - 1024) &
- 					(PAGE_MASK << 1);
--
-+#ifdef CONFIG_FB_3DFX_I2C
-+	tdfxfb_create_i2c_busses(info);
-+#endif
- 	if (!mode_option)
- 		mode_option = "640x480@60";
- 
-@@ -1315,6 +1507,9 @@ static int __devinit tdfxfb_probe(struct
- 	return 0;
- 
- out_err_iobase:
-+#ifdef CONFIG_FB_3DFX_I2C
-+	tdfxfb_delete_i2c_busses(default_par);
-+#endif
- 	if (default_par->mtrr_handle >= 0)
- 		mtrr_del(default_par->mtrr_handle, info->fix.smem_start,
- 			 info->fix.smem_len);
-@@ -1379,6 +1574,9 @@ static void __devexit tdfxfb_remove(stru
- 	struct tdfx_par *par = info->par;
- 
- 	unregister_framebuffer(info);
-+#ifdef CONFIG_FB_3DFX_I2C
-+	tdfxfb_delete_i2c_busses(par);
-+#endif
- 	if (par->mtrr_handle >= 0)
- 		mtrr_del(par->mtrr_handle, info->fix.smem_start,
- 			 info->fix.smem_len);
-diff -puN include/video/tdfx.h~tdfxfb-move-i2c-functionality-into-the-tdfxfb include/video/tdfx.h
---- a/include/video/tdfx.h~tdfxfb-move-i2c-functionality-into-the-tdfxfb
-+++ a/include/video/tdfx.h
-@@ -1,6 +1,9 @@
- #ifndef _TDFX_H
- #define _TDFX_H
- 
-+#include <linux/i2c.h>
-+#include <linux/i2c-algo-bit.h>
++ 1) Inode file (ifile)             -- Stores on-disk inodes
++ 2) Checkpoint file (cpfile)       -- Stores checkpoints
++ 3) Segment usage file (sufile)    -- Stores allocation state of segments
++ 4) Data address translation file  -- Maps virtual block numbers to usual
++    (DAT)                             block numbers.  This file serves to
++                                      make on-disk blocks relocatable.
++ 5) Sketch file (sketch)           -- Keeps read-only data which can be
++                                      associated with checkpoints (optional)
 +
- /* membase0 register offsets */
- #define STATUS		0x00
- #define PCIINIT0	0x04
-@@ -123,6 +126,18 @@
- #define VIDCFG_PIXFMT_SHIFT             18
- #define DACMODE_2X			BIT(0)
- 
-+/* I2C bit locations in the VIDSERPARPORT register */
-+#define DDC_ENAB	0x00040000
-+#define DDC_SCL_OUT	0x00080000
-+#define DDC_SDA_OUT	0x00100000
-+#define DDC_SCL_IN	0x00200000
-+#define DDC_SDA_IN	0x00400000
-+#define I2C_ENAB	0x00800000
-+#define I2C_SCL_OUT	0x01000000
-+#define I2C_SDA_OUT	0x02000000
-+#define I2C_SCL_IN	0x04000000
-+#define I2C_SDA_IN	0x08000000
++The following figure shows a typical organization of the logs:
 +
- /* VGA rubbish, need to change this for multihead support */
- #define MISC_W		0x3c2
- #define MISC_R		0x3cc
-@@ -168,12 +183,23 @@ struct banshee_reg {
- 	unsigned long miscinit0;
- };
- 
-+struct tdfx_par;
++  _________________________________________________________________________
++ | Summary | regular file | file  | ... | ifile | cpfile | sufile | DAT |SR|
++ |_blocks__|_or_directory_|_______|_____|_______|________|________|_____|__|
 +
-+struct tdfxfb_i2c_chan {
-+	struct tdfx_par *par;
-+	struct i2c_adapter adapter;
-+	struct i2c_algo_bit_data algo;
-+};
 +
- struct tdfx_par {
- 	u32 max_pixclock;
- 	u32 palette[16];
- 	void __iomem *regbase_virt;
- 	unsigned long iobase;
- 	int mtrr_handle;
-+#ifdef CONFIG_FB_3DFX_I2C
-+	struct tdfxfb_i2c_chan chan[2];
-+#endif
- };
- 
- #endif	/* __KERNEL__ */
++To stride over segment boundaries, this sequence of files may be split
++into multiple logs.  The sequence of logs that should be treated as
++logically one log, is delimited with flags marked in the segment
++summary.  The recovery code of nilfs2 looks this boundary information
++to ensure atomicity of updates.
++
++The super root block is inserted for every checkpoints.  It includes
++three special inodes, inodes for the DAT, cpfile, and sufile.  Inodes
++of regular files, directories, symlinks and other special files, are
++included in the ifile.  The inode of ifile itself is included in the
++corresponding checkpoint entry in the cpfile.  Thus, the hierarchy
++among NILFS2 files can be depicted as follows:
++
++  Super block (SB)
++       |
++       v
++  Super root block (the latest cno=xx)
++       |-- DAT
++       |-- sufile
++       `-- cpfile
++              |-- ifile (cno=c1)
++              |-- ifile (cno=c2) ---- file (ino=i1)
++              :        :          |-- file (ino=i2)
++              `-- ifile (cno=xx)  |-- file (ino=i3)
++                                  :        :
++                                  `-- file (ino=yy)
++                                    ( regular file, directory, or symlink )
++
++For detail on the format of each file, please see include/linux/nilfs2_fs.h.
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
 origin.patch
-linux-next.patch
 
