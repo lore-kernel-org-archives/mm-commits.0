@@ -1,90 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] edac-add-new-core-index-allocator.patch removed from -mm tree
-Date: Tue, 07 Apr 2009 17:14:53 -0700
-Message-ID: <200904080014.n380Era1013946@imap1.linux-foundation.org>
+Subject: + vma-fix-typo-vma-pg_off-to-vma-vm_pgoff.patch added to -mm tree
+Date: Tue, 07 Apr 2009 21:21:32 -0700
+Message-ID: <200904080421.n384LWWV021058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34548 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55132 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751676AbZDHAQl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 20:16:41 -0400
+	by vger.kernel.org with ESMTP id S1751496AbZDHEXb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Apr 2009 00:23:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qingtao.cao@windriver.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: iwamatsu.nobuhiro@renesas.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     edac: add new core index allocator
-has been removed from the -mm tree.  Its filename was
-     edac-add-new-core-index-allocator.patch
+     nommu: fix typo vma->pg_off to vma->vm_pgoff
+has been added to the -mm tree.  Its filename is
+     vma-fix-typo-vma-pg_off-to-vma-vm_pgoff.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: add new core index allocator
-From: Harry Ciao <qingtao.cao@windriver.com>
+Subject: nommu: fix typo vma->pg_off to vma->vm_pgoff
+From: Nobuhiro Iwamatsu <iwamatsu.nobuhiro@renesas.com>
 
-Add edac_device_alloc_index(), because for some platforms there may exist
-several EDAC driver modules that could make use of edac_device_ctl_info
-structure at the same time.  The index allocation for these structures
-should be taken care of by EDAC core.
+6260a4b0521a41189b2c2a8119096c1e21dbdf2c ("/proc/pid/maps: don't show
+pgoff of pure ANON VMAs" had a typo.
 
-Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+fs/proc/task_nommu.c:138: error: 'struct vm_area_struct' has no member named 'pg_off'
+distcc[21484] ERROR: compile fs/proc/task_nommu.c on sprygo/32 failed
+
+Signed-off-by: Nobuhiro Iwamatsu <iwamatsu.nobuhiro@renesas.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_core.h   |    1 +
- drivers/edac/edac_device.c |   13 +++++++++++++
- 2 files changed, 14 insertions(+)
+ fs/proc/task_nommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/edac_core.h~edac-add-new-core-index-allocator drivers/edac/edac_core.h
---- a/drivers/edac/edac_core.h~edac-add-new-core-index-allocator
-+++ a/drivers/edac/edac_core.h
-@@ -840,6 +840,7 @@ extern void edac_device_handle_ue(struct
- 				int inst_nr, int block_nr, const char *msg);
- extern void edac_device_handle_ce(struct edac_device_ctl_info *edac_dev,
- 				int inst_nr, int block_nr, const char *msg);
-+extern int edac_device_alloc_index(void);
+diff -puN fs/proc/task_nommu.c~vma-fix-typo-vma-pg_off-to-vma-vm_pgoff fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~vma-fix-typo-vma-pg_off-to-vma-vm_pgoff
++++ a/fs/proc/task_nommu.c
+@@ -135,7 +135,7 @@ static int nommu_vma_show(struct seq_fil
+ 		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 		dev = inode->i_sb->s_dev;
+ 		ino = inode->i_ino;
+-		pgoff = (loff_t)vma->pg_off << PAGE_SHIFT;
++		pgoff = (loff_t)vma->vm_pgoff << PAGE_SHIFT;
+ 	}
  
- /*
-  * edac_pci APIs
-diff -puN drivers/edac/edac_device.c~edac-add-new-core-index-allocator drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~edac-add-new-core-index-allocator
-+++ a/drivers/edac/edac_device.c
-@@ -37,6 +37,7 @@
-  */
- static DEFINE_MUTEX(device_ctls_mutex);
- static LIST_HEAD(edac_device_list);
-+static atomic_t device_indexes = ATOMIC_INIT(0);
- 
- #ifdef CONFIG_EDAC_DEBUG
- static void edac_device_dump_device(struct edac_device_ctl_info *edac_dev)
-@@ -491,6 +492,18 @@ void edac_device_reset_delay_period(stru
- 	mutex_unlock(&device_ctls_mutex);
- }
- 
-+/*
-+ * edac_device_alloc_index: Allocate a unique device index number
-+ *
-+ * Return:
-+ *	allocated index number
-+ */
-+int edac_device_alloc_index(void)
-+{
-+	return atomic_inc_return(&device_indexes) - 1;
-+}
-+EXPORT_SYMBOL_GPL(edac_device_alloc_index);
-+
- /**
-  * edac_device_add_device: Insert the 'edac_dev' structure into the
-  * edac_device global list and create sysfs entries associated with
+ 	seq_printf(m,
 _
 
-Patches currently in -mm which might be from qingtao.cao@windriver.com are
+Patches currently in -mm which might be from iwamatsu.nobuhiro@renesas.com are
 
 origin.patch
-edac-add-new-core-index-allocator.patch
+vma-fix-typo-vma-pg_off-to-vma-vm_pgoff.patch
 
