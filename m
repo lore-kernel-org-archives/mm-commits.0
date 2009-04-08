@@ -1,101 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + edac-fix-worktodo-to-proper-cast.patch added to -mm tree
-Date: Tue, 07 Apr 2009 16:54:48 -0700
-Message-ID: <200904072354.n37Nsmep005358@imap1.linux-foundation.org>
+Subject: [withdrawn] edac-add-new-core-index-allocator.patch removed from -mm tree
+Date: Tue, 07 Apr 2009 17:14:53 -0700
+Message-ID: <200904080014.n380Era1013946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52876 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756524AbZDGX4s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 19:56:48 -0400
+	by vger.kernel.org with ESMTP id S1751676AbZDHAQl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2009 20:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, dougthompson@xmission.com
+To: qingtao.cao@windriver.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: fix worktodo to proper cast
-has been added to the -mm tree.  Its filename is
-     edac-fix-worktodo-to-proper-cast.patch
+     edac: add new core index allocator
+has been removed from the -mm tree.  Its filename was
+     edac-add-new-core-index-allocator.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: fix worktodo to proper cast
-From: Jean Delvare <khali@linux-fr.org>
+Subject: edac: add new core index allocator
+From: Harry Ciao <qingtao.cao@windriver.com>
 
-The edac-core driver includes code which assumes that the work_struct
-which is included in every delayed_work is the first member of that
-structure.  This is currently the case but might change in the future, so
-use to_delayed_work() instead, which doesn't make such an assumption.
+Add edac_device_alloc_index(), because for some platforms there may exist
+several EDAC driver modules that could make use of edac_device_ctl_info
+structure at the same time.  The index allocation for these structures
+should be taken care of by EDAC core.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
 Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_device.c |    3 ++-
- drivers/edac/edac_mc.c     |    3 ++-
- drivers/edac/edac_pci.c    |    3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/edac/edac_core.h   |    1 +
+ drivers/edac/edac_device.c |   13 +++++++++++++
+ 2 files changed, 14 insertions(+)
 
-diff -puN drivers/edac/edac_device.c~edac-fix-worktodo-to-proper-cast drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~edac-fix-worktodo-to-proper-cast
+diff -puN drivers/edac/edac_core.h~edac-add-new-core-index-allocator drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~edac-add-new-core-index-allocator
++++ a/drivers/edac/edac_core.h
+@@ -840,6 +840,7 @@ extern void edac_device_handle_ue(struct
+ 				int inst_nr, int block_nr, const char *msg);
+ extern void edac_device_handle_ce(struct edac_device_ctl_info *edac_dev,
+ 				int inst_nr, int block_nr, const char *msg);
++extern int edac_device_alloc_index(void);
+ 
+ /*
+  * edac_pci APIs
+diff -puN drivers/edac/edac_device.c~edac-add-new-core-index-allocator drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~edac-add-new-core-index-allocator
 +++ a/drivers/edac/edac_device.c
-@@ -389,7 +389,8 @@ static void del_edac_device_from_global_
+@@ -37,6 +37,7 @@
   */
- static void edac_device_workq_function(struct work_struct *work_req)
- {
--	struct delayed_work *d_work = (struct delayed_work *)work_req;
-+	struct delayed_work *d_work =
-+			container_of(work_req, struct delayed_work, work);
- 	struct edac_device_ctl_info *edac_dev = to_edac_device_ctl_work(d_work);
+ static DEFINE_MUTEX(device_ctls_mutex);
+ static LIST_HEAD(edac_device_list);
++static atomic_t device_indexes = ATOMIC_INIT(0);
  
- 	mutex_lock(&device_ctls_mutex);
-diff -puN drivers/edac/edac_mc.c~edac-fix-worktodo-to-proper-cast drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edac-fix-worktodo-to-proper-cast
-+++ a/drivers/edac/edac_mc.c
-@@ -260,7 +260,8 @@ static int edac_mc_assert_error_check_an
-  */
- static void edac_mc_workq_function(struct work_struct *work_req)
- {
--	struct delayed_work *d_work = (struct delayed_work *)work_req;
-+	struct delayed_work *d_work =
-+			container_of(work_req, struct delayed_work, work);
- 	struct mem_ctl_info *mci = to_edac_mem_ctl_work(d_work);
+ #ifdef CONFIG_EDAC_DEBUG
+ static void edac_device_dump_device(struct edac_device_ctl_info *edac_dev)
+@@ -491,6 +492,18 @@ void edac_device_reset_delay_period(stru
+ 	mutex_unlock(&device_ctls_mutex);
+ }
  
- 	mutex_lock(&mem_ctls_mutex);
-diff -puN drivers/edac/edac_pci.c~edac-fix-worktodo-to-proper-cast drivers/edac/edac_pci.c
---- a/drivers/edac/edac_pci.c~edac-fix-worktodo-to-proper-cast
-+++ a/drivers/edac/edac_pci.c
-@@ -233,7 +233,8 @@ EXPORT_SYMBOL_GPL(edac_pci_find);
-  */
- static void edac_pci_workq_function(struct work_struct *work_req)
- {
--	struct delayed_work *d_work = (struct delayed_work *)work_req;
-+	struct delayed_work *d_work =
-+			container_of(work_req, struct delayed_work, work);
- 	struct edac_pci_ctl_info *pci = to_edac_pci_ctl_work(d_work);
- 	int msec;
- 	unsigned long delay;
++/*
++ * edac_device_alloc_index: Allocate a unique device index number
++ *
++ * Return:
++ *	allocated index number
++ */
++int edac_device_alloc_index(void)
++{
++	return atomic_inc_return(&device_indexes) - 1;
++}
++EXPORT_SYMBOL_GPL(edac_device_alloc_index);
++
+ /**
+  * edac_device_add_device: Insert the 'edac_dev' structure into the
+  * edac_device global list and create sysfs entries associated with
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from qingtao.cao@windriver.com are
 
 origin.patch
-linux-next.patch
-dell-laptop-fix-uninitialized-wrong-return-value.patch
-edac-fix-worktodo-to-proper-cast.patch
+edac-add-new-core-index-allocator.patch
 
