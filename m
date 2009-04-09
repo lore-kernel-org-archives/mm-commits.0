@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-do-not-allow-unsupported-pixel-depth.patch added to -mm tree
-Date: Thu, 09 Apr 2009 14:27:20 -0700
-Message-ID: <200904092127.n39LRKvO002471@imap1.linux-foundation.org>
+Subject: + kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch added to -mm tree
+Date: Thu, 09 Apr 2009 14:25:58 -0700
+Message-ID: <200904092125.n39LPwE7001870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41102 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46510 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933318AbZDIV2h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:28:37 -0400
+	by vger.kernel.org with ESMTP id S934556AbZDIV23 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: rpjday@crashcourse.ca, avi@redhat.com
 
 
 The patch titled
-     cirrusfb: do not allow unsupported pixel depth
+     kvm: expand on "help" info to specify kvm intel and amd module names
 has been added to the -mm tree.  Its filename is
-     cirrusfb-do-not-allow-unsupported-pixel-depth.patch
+     kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: do not allow unsupported pixel depth
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: kvm: expand on "help" info to specify kvm intel and amd module names
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Do not allow modes with unsupported pixel depth.  Otherwise, one can hang
-a computer by setting incorrect value with fbset command.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Avi Kivity <avi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/x86/kvm/Kconfig |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-do-not-allow-unsupported-pixel-depth drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-do-not-allow-unsupported-pixel-depth
-+++ a/drivers/video/cirrusfb.c
-@@ -567,9 +567,7 @@ static int cirrusfb_check_var(struct fb_
- 	default:
- 		dev_dbg(info->device,
- 			"Unsupported bpp size: %d\n", var->bits_per_pixel);
--		assert(false);
--		/* should never occur */
--		break;
-+		return -EINVAL;
- 	}
+diff -puN arch/x86/kvm/Kconfig~kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names arch/x86/kvm/Kconfig
+--- a/arch/x86/kvm/Kconfig~kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names
++++ a/arch/x86/kvm/Kconfig
+@@ -50,6 +50,9 @@ config KVM_INTEL
+ 	  Provides support for KVM on Intel processors equipped with the VT
+ 	  extensions.
  
- 	if (var->xres_virtual < var->xres)
++	  To compile this as a module, choose M here: the module
++	  will be called kvm-intel.
++
+ config KVM_AMD
+ 	tristate "KVM for AMD processors support"
+ 	depends on KVM
+@@ -57,6 +60,9 @@ config KVM_AMD
+ 	  Provides support for KVM on AMD processors equipped with the AMD-V
+ 	  (SVM) extensions.
+ 
++	  To compile this as a module, choose M here: the module
++	  will be called kvm-amd.
++
+ config KVM_TRACE
+ 	bool "KVM trace support"
+ 	depends on KVM && SYSFS
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-linux-next.patch
-sisfb-fix-color-component-length-for-pseudocolor-modes.patch
-cirrusfb-do-not-allow-unsupported-pixel-depth.patch
+kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch
 
