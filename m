@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-make-rtc_update_irq-callable-with-irqs-enabled.patch added to -mm tree
-Date: Thu, 09 Apr 2009 15:40:23 -0700
-Message-ID: <200904092240.n39MeN5o001350@imap1.linux-foundation.org>
+Subject: + ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch added to -mm tree
+Date: Thu, 09 Apr 2009 16:10:51 -0700
+Message-ID: <200904092310.n39NApEg014400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57992 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753538AbZDIWnd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 18:43:33 -0400
+	by vger.kernel.org with ESMTP id S1757951AbZDIXMy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 19:12:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net
+Cc: oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     rtc: make rtc_update_irq callable with irqs enabled
+     ptrace: fix exit_ptrace() vs ptrace_traceme() race
 has been added to the -mm tree.  Its filename is
-     rtc-make-rtc_update_irq-callable-with-irqs-enabled.patch
+     ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: make rtc_update_irq callable with irqs enabled
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: ptrace: fix exit_ptrace() vs ptrace_traceme() race
+From: Oleg Nesterov <oleg@redhat.com>
 
-The rtc_update_irq() might be called with irqs enabled, if a interrupt
-handler was registered without IRQF_DISABLED.
+Pointed out by Roland.  The bug was recently introduced by me in
+"forget_original_parent: split out the un-ptrace part", commit
+39c626ae47c469abdfd30c6e42eff884931380d6.
 
-Use spin_lock_irqsave/spin_unlock_irqrestore instead of
-spin_lock/spin_unlock.
+Since that patch we have a window after exit_ptrace() drops tasklist and
+before forget_original_parent() takes it again.  In this window the child
+can do ptrace(PTRACE_TRACEME) and nobody can untrace this child after
+that.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Change ptrace_traceme() to not attach to the exiting ->real_parent.  We
+don't report the error in this case, we pretend we attach right before
+->real_parent calls exit_ptrace() which should untrace us anyway.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ kernel/ptrace.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/interface.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled
-+++ a/drivers/rtc/interface.c
-@@ -376,14 +376,16 @@ EXPORT_SYMBOL_GPL(rtc_update_irq_enable)
- void rtc_update_irq(struct rtc_device *rtc,
- 		unsigned long num, unsigned long events)
- {
--	spin_lock(&rtc->irq_lock);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&rtc->irq_lock, flags);
- 	rtc->irq_data = (rtc->irq_data + (num << 8)) | events;
--	spin_unlock(&rtc->irq_lock);
-+	spin_unlock_irqrestore(&rtc->irq_lock, flags);
+diff -puN kernel/ptrace.c~ptrace-fix-exit_ptrace-vs-ptrace_traceme-race kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-fix-exit_ptrace-vs-ptrace_traceme-race
++++ a/kernel/ptrace.c
+@@ -604,10 +604,11 @@ repeat:
+ 		ret = security_ptrace_traceme(current->parent);
  
--	spin_lock(&rtc->irq_task_lock);
-+	spin_lock_irqsave(&rtc->irq_task_lock, flags);
- 	if (rtc->irq_task)
- 		rtc->irq_task->func(rtc->irq_task->private_data);
--	spin_unlock(&rtc->irq_task_lock);
-+	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
- 
- 	wake_up_interruptible(&rtc->irq_queue);
- 	kill_fasync(&rtc->async_queue, SIGIO, POLL_IN);
+ 		/*
+-		 * Set the ptrace bit in the process ptrace flags.
+-		 * Then link us on our parent's ptraced list.
++		 * Check PF_EXITING to ensure ->real_parent has not passed
++		 * exit_ptrace(). Otherwise we don't report the error but
++		 * pretend ->real_parent untraces us right after return.
+ 		 */
+-		if (!ret) {
++		if (!ret && !(current->real_parent->flags & PF_EXITING)) {
+ 			current->ptrace |= PT_PTRACED;
+ 			__ptrace_link(current, current->real_parent);
+ 		}
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+origin.patch
 linux-next.patch
-kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
-serial_txx9-use-container_of-instead-of-direct-cast.patch
-rtc-rtc-ds1742-nvram-attribute-fix.patch
-rtc-make-rtc_update_irq-callable-with-irqs-enabled.patch
+ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch
+getrusage-fill-ru_maxrss-value.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+signals-tracehook_notify_jctl-change.patch
 
