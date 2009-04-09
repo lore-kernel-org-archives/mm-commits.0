@@ -1,74 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + namespaces-move-get_mq-inside-ifdef-config_sysctl.patch added to -mm tree
-Date: Thu, 09 Apr 2009 09:46:49 -0700
-Message-ID: <200904091646.n39Gknxw012056@imap1.linux-foundation.org>
+Subject: [withdrawn] x86edac-fix-for-compiler-error-in-trapsc.patch removed from -mm tree
+Date: Thu, 09 Apr 2009 09:56:27 -0700
+Message-ID: <200904091656.n39GuRtC016204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38882 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56317 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935555AbZDIQsl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 12:48:41 -0400
+	by vger.kernel.org with ESMTP id S935909AbZDIQ7o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 12:59:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, serue@us.ibm.com
+To: rostedt@goodmis.org, mingo@elte.hu, norsk5@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     namespaces: move get_mq() inside #ifdef CONFIG_SYSCTL
-has been added to the -mm tree.  Its filename is
-     namespaces-move-get_mq-inside-ifdef-config_sysctl.patch
+     x86,edac: fix for compiler error in traps.c
+has been removed from the -mm tree.  Its filename was
+     x86edac-fix-for-compiler-error-in-trapsc.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: namespaces: move get_mq() inside #ifdef CONFIG_SYSCTL
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: x86,edac: fix for compiler error in traps.c
+From: Steven Rostedt <rostedt@goodmis.org>
 
-| ipc/mq_sysctl.c:26: warning: 'get_mq' defined but not used
+Impact: compile fix
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+ I got this compile failure on both tip/tracing/core as well as on
+ v2.6.30-rc1.
+
+   LD      .tmp_vmlinux1
+ arch/x86/kernel/built-in.o: In function `do_nmi':
+ (.text+0x3c18): undefined reference to `edac_handler_set'
+ arch/x86/kernel/built-in.o: In function `do_nmi':
+ (.text+0x3c48): undefined reference to `edac_atomic_assert_error'
+ make: *** [.tmp_vmlinux1] Error 1
+ [root@bxrhel51 linux-trace.git]# grep edac_handler_set
+ [root@bxrhel51 linux-trace.git]# Grep edac_handler_set '*.[ch]'
+ find .  -name "*.[ch]" ! -type d  | xargs grep  "edac_handler_set"
+ ./arch/x86/kernel/traps.c:	if (edac_handler_set()) {
+ ./include/linux/edac.h:extern int edac_handler_set(void);
+ ./drivers/edac/edac_stub.c:int edac_handler_set(void)
+ ./drivers/edac/edac_stub.c:EXPORT_SYMBOL_GPL(edac_handler_set);
+
+This patch seems to fix it.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Doug Thompson <norsk5@yahoo.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mq_sysctl.c |    2 +-
+ drivers/edac/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/mq_sysctl.c~namespaces-move-get_mq-inside-ifdef-config_sysctl ipc/mq_sysctl.c
---- a/ipc/mq_sysctl.c~namespaces-move-get_mq-inside-ifdef-config_sysctl
-+++ a/ipc/mq_sysctl.c
-@@ -22,6 +22,7 @@
- #define MIN_MSGSIZEMAX	128		/* min value for msgsize_max */
- #define MAX_MSGSIZEMAX	(8192*128)	/* max value for msgsize_max */
+diff -puN drivers/edac/Makefile~x86edac-fix-for-compiler-error-in-trapsc drivers/edac/Makefile
+--- a/drivers/edac/Makefile~x86edac-fix-for-compiler-error-in-trapsc
++++ a/drivers/edac/Makefile
+@@ -7,7 +7,7 @@
+ #
  
-+#ifdef CONFIG_PROC_SYSCTL
- static void *get_mq(ctl_table *table)
- {
- 	char *which = table->data;
-@@ -30,7 +31,6 @@ static void *get_mq(ctl_table *table)
- 	return which;
- }
  
--#ifdef CONFIG_PROC_SYSCTL
- static int proc_mq_dointvec(ctl_table *table, int write, struct file *filp,
- 	void __user *buffer, size_t *lenp, loff_t *ppos)
- {
+-obj-$(CONFIG_EDAC)			:= edac_stub.o
++obj-$(CONFIG_EDAC)			+= edac_stub.o
+ obj-$(CONFIG_EDAC_MM_EDAC)		+= edac_core.o
+ 
+ edac_core-objs	:= edac_mc.o edac_device.o edac_mc_sysfs.o edac_pci_sysfs.o
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-linux-next.patch
-namespaces-move-get_mq-inside-ifdef-config_sysctl.patch
+x86edac-fix-for-compiler-error-in-trapsc.patch
+libfs-make-simple_read_from_buffer-conventional.patch
 
