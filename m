@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + filemap-fix-kernel-doc-warnings.patch added to -mm tree
-Date: Thu, 09 Apr 2009 14:25:10 -0700
-Message-ID: <200904092125.n39LPACf001559@imap1.linux-foundation.org>
+Subject: + cirrusfb-do-not-allow-unsupported-pixel-depth.patch added to -mm tree
+Date: Thu, 09 Apr 2009 14:27:20 -0700
+Message-ID: <200904092127.n39LRKvO002471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756120AbZDIV0u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:26:50 -0400
+	by vger.kernel.org with ESMTP id S933318AbZDIV2h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:28:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     filemap: fix kernel-doc warnings
+     cirrusfb: do not allow unsupported pixel depth
 has been added to the -mm tree.  Its filename is
-     filemap-fix-kernel-doc-warnings.patch
+     cirrusfb-do-not-allow-unsupported-pixel-depth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: filemap: fix kernel-doc warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cirrusfb: do not allow unsupported pixel depth
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Fix filemap.c kernel-doc warnings:
+Do not allow modes with unsupported pixel depth.  Otherwise, one can hang
+a computer by setting incorrect value with fbset command.
 
-Warning(mm/filemap.c:575): No description found for parameter 'page'
-Warning(mm/filemap.c:575): No description found for parameter 'waiter'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/cirrusfb.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/filemap.c~filemap-fix-kernel-doc-warnings mm/filemap.c
---- a/mm/filemap.c~filemap-fix-kernel-doc-warnings
-+++ a/mm/filemap.c
-@@ -567,8 +567,8 @@ EXPORT_SYMBOL(wait_on_page_bit);
+diff -puN drivers/video/cirrusfb.c~cirrusfb-do-not-allow-unsupported-pixel-depth drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-do-not-allow-unsupported-pixel-depth
++++ a/drivers/video/cirrusfb.c
+@@ -567,9 +567,7 @@ static int cirrusfb_check_var(struct fb_
+ 	default:
+ 		dev_dbg(info->device,
+ 			"Unsupported bpp size: %d\n", var->bits_per_pixel);
+-		assert(false);
+-		/* should never occur */
+-		break;
++		return -EINVAL;
+ 	}
  
- /**
-  * add_page_wait_queue - Add an arbitrary waiter to a page's wait queue
-- * @page - Page defining the wait queue of interest
-- * @waiter - Waiter to add to the queue
-+ * @page: Page defining the wait queue of interest
-+ * @waiter: Waiter to add to the queue
-  *
-  * Add an arbitrary @waiter to the wait queue for the nominated @page.
-  */
+ 	if (var->xres_virtual < var->xres)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-origin.patch
-maintainers-fix-email-address.patch
 linux-next.patch
-timers-add-missing-kernel-doc.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
-qla2x-fix-printk-format-warnings.patch
-filemap-fix-kernel-doc-warnings.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix-fix.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+sisfb-fix-color-component-length-for-pseudocolor-modes.patch
+cirrusfb-do-not-allow-unsupported-pixel-depth.patch
 
