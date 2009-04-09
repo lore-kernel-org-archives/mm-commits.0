@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-move-logo-externs-to-header-file.patch added to -mm tree
-Date: Thu, 09 Apr 2009 14:01:44 -0700
-Message-ID: <200904092101.n39L1iRX023914@imap1.linux-foundation.org>
+Subject: + kbuild-remove-generated-logo-files.patch added to -mm tree
+Date: Thu, 09 Apr 2009 14:03:29 -0700
+Message-ID: <200904092103.n39L3T74024709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39405 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753589AbZDIVFd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:05:33 -0400
+	by vger.kernel.org with ESMTP id S1755855AbZDIVHF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:07:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, jsimmons@infradead.org, krzysztof.h1@poczta.fm, sam@ravnborg.org
+Cc: sam@ravnborg.org, Geert.Uytterhoeven@sonycom.com, jsimmons@infradead.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     fbdev: move logo externs to header file
+     kbuild: remove generated logo files
 has been added to the -mm tree.  Its filename is
-     fbdev-move-logo-externs-to-header-file.patch
+     kbuild-remove-generated-logo-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,191 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: move logo externs to header file
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: kbuild: remove generated logo files
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Now we have __initconst, we can finally move the external declarations for
-the various Linux logo structures to <linux/linux_logo.h>.
+Presently we have to remove the generated logos, as they're not automatically
+regenerated if scripts/pnmtologo.c changes.  Fix.
 
-James' ack dates back to the previous submission (way to long ago), when the
-logos were still __initdata, which caused failures on some platforms with some
-toolchain versions.
-
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Acked-by: James Simmons <jsimmons@infradead.org>
+Acked-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: James Simmons <jsimmons@infradead.org>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/prom_init.c        |    3 ---
- arch/powerpc/platforms/cell/spu_base.c |   11 +----------
- arch/um/include/shared/init.h          |    2 +-
- drivers/video/logo/logo.c              |   15 ---------------
- include/linux/init.h                   |    2 +-
- include/linux/linux_logo.h             |   16 ++++++++++++++++
- scripts/pnmtologo.c                    |   18 +++++++++---------
- 7 files changed, 28 insertions(+), 39 deletions(-)
+ drivers/video/logo/Makefile |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/kernel/prom_init.c~fbdev-move-logo-externs-to-header-file arch/powerpc/kernel/prom_init.c
---- a/arch/powerpc/kernel/prom_init.c~fbdev-move-logo-externs-to-header-file
-+++ a/arch/powerpc/kernel/prom_init.c
-@@ -44,10 +44,7 @@
- #include <asm/sections.h>
- #include <asm/machdep.h>
+diff -puN drivers/video/logo/Makefile~kbuild-remove-generated-logo-files drivers/video/logo/Makefile
+--- a/drivers/video/logo/Makefile~kbuild-remove-generated-logo-files
++++ a/drivers/video/logo/Makefile
+@@ -37,22 +37,24 @@ extra-y += $(call logo-cfiles,_clut224,p
+ # Gray 256
+ extra-y += $(call logo-cfiles,_gray256,pgm)
  
--#ifdef CONFIG_LOGO_LINUX_CLUT224
- #include <linux/linux_logo.h>
--extern const struct linux_logo logo_linux_clut224;
--#endif
- 
- /*
-  * Properties whose value is longer than this get excluded from our
-diff -puN arch/powerpc/platforms/cell/spu_base.c~fbdev-move-logo-externs-to-header-file arch/powerpc/platforms/cell/spu_base.c
---- a/arch/powerpc/platforms/cell/spu_base.c~fbdev-move-logo-externs-to-header-file
-+++ a/arch/powerpc/platforms/cell/spu_base.c
-@@ -752,17 +752,8 @@ static int __init init_spu_base(void)
- 		goto out_unregister_sysdev_class;
- 	}
- 
--	if (ret > 0) {
--		/*
--		 * We cannot put the forward declaration in
--		 * <linux/linux_logo.h> because of conflicting session type
--		 * conflicts for const and __initdata with different compiler
--		 * versions
--		 */
--		extern const struct linux_logo logo_spe_clut224;
--
-+	if (ret > 0)
- 		fb_append_extra_logo(&logo_spe_clut224, ret);
--	}
- 
- 	mutex_lock(&spu_full_list_mutex);
- 	xmon_register_spus(&spu_full_list);
-diff -puN arch/um/include/shared/init.h~fbdev-move-logo-externs-to-header-file arch/um/include/shared/init.h
---- a/arch/um/include/shared/init.h~fbdev-move-logo-externs-to-header-file
-+++ a/arch/um/include/shared/init.h
-@@ -27,7 +27,7 @@
-  * sign followed by value, e.g.:
-  *
-  * static int init_variable __initdata = 0;
-- * static char linux_logo[] __initdata = { 0x32, 0x36, ... };
-+ * static const char linux_logo[] __initconst = { 0x32, 0x36, ... };
-  *
-  * Don't forget to initialize data not at file scope, i.e. within a function,
-  * as gcc otherwise puts the data into the bss section and not into the init
-diff -puN drivers/video/logo/logo.c~fbdev-move-logo-externs-to-header-file drivers/video/logo/logo.c
---- a/drivers/video/logo/logo.c~fbdev-move-logo-externs-to-header-file
-+++ a/drivers/video/logo/logo.c
-@@ -21,21 +21,6 @@
- #include <asm/bootinfo.h>
- #endif
- 
--extern const struct linux_logo logo_linux_mono;
--extern const struct linux_logo logo_linux_vga16;
--extern const struct linux_logo logo_linux_clut224;
--extern const struct linux_logo logo_blackfin_vga16;
--extern const struct linux_logo logo_blackfin_clut224;
--extern const struct linux_logo logo_dec_clut224;
--extern const struct linux_logo logo_mac_clut224;
--extern const struct linux_logo logo_parisc_clut224;
--extern const struct linux_logo logo_sgi_clut224;
--extern const struct linux_logo logo_sun_clut224;
--extern const struct linux_logo logo_superh_mono;
--extern const struct linux_logo logo_superh_vga16;
--extern const struct linux_logo logo_superh_clut224;
--extern const struct linux_logo logo_m32r_clut224;
--
- static int nologo;
- module_param(nologo, bool, 0);
- MODULE_PARM_DESC(nologo, "Disables startup logo");
-diff -puN include/linux/init.h~fbdev-move-logo-externs-to-header-file include/linux/init.h
---- a/include/linux/init.h~fbdev-move-logo-externs-to-header-file
-+++ a/include/linux/init.h
-@@ -29,7 +29,7 @@
-  * sign followed by value, e.g.:
-  *
-  * static int init_variable __initdata = 0;
-- * static char linux_logo[] __initdata = { 0x32, 0x36, ... };
-+ * static const char linux_logo[] __initconst = { 0x32, 0x36, ... };
-  *
-  * Don't forget to initialize data not at file scope, i.e. within a function,
-  * as gcc otherwise puts the data into the bss section and not into the init
-diff -puN include/linux/linux_logo.h~fbdev-move-logo-externs-to-header-file include/linux/linux_logo.h
---- a/include/linux/linux_logo.h~fbdev-move-logo-externs-to-header-file
-+++ a/include/linux/linux_logo.h
-@@ -32,6 +32,22 @@ struct linux_logo {
- 	const unsigned char *data;
- };
- 
-+extern const struct linux_logo logo_linux_mono;
-+extern const struct linux_logo logo_linux_vga16;
-+extern const struct linux_logo logo_linux_clut224;
-+extern const struct linux_logo logo_blackfin_vga16;
-+extern const struct linux_logo logo_blackfin_clut224;
-+extern const struct linux_logo logo_dec_clut224;
-+extern const struct linux_logo logo_mac_clut224;
-+extern const struct linux_logo logo_parisc_clut224;
-+extern const struct linux_logo logo_sgi_clut224;
-+extern const struct linux_logo logo_sun_clut224;
-+extern const struct linux_logo logo_superh_mono;
-+extern const struct linux_logo logo_superh_vga16;
-+extern const struct linux_logo logo_superh_clut224;
-+extern const struct linux_logo logo_m32r_clut224;
-+extern const struct linux_logo logo_spe_clut224;
++pnmtlogo := scripts/pnmtologo
 +
- extern const struct linux_logo *fb_find_logo(int depth);
- #ifdef CONFIG_FB_LOGO_EXTRA
- extern void fb_append_extra_logo(const struct linux_logo *logo,
-diff -puN scripts/pnmtologo.c~fbdev-move-logo-externs-to-header-file scripts/pnmtologo.c
---- a/scripts/pnmtologo.c~fbdev-move-logo-externs-to-header-file
-+++ a/scripts/pnmtologo.c
-@@ -237,22 +237,22 @@ static void write_header(void)
-     fprintf(out, " *  Linux logo %s\n", logoname);
-     fputs(" */\n\n", out);
-     fputs("#include <linux/linux_logo.h>\n\n", out);
--    fprintf(out, "static unsigned char %s_data[] __initdata = {\n",
-+    fprintf(out, "static const unsigned char %s_data[] __initconst = {\n",
- 	    logoname);
- }
+ # Create commands like "pnmtologo -t mono -n logo_mac_mono -o ..."
+ quiet_cmd_logo = LOGO    $@
+-	cmd_logo = scripts/pnmtologo \
++	cmd_logo = $(pnmtologo) \
+ 			-t $(patsubst $*_%,%,$(notdir $(basename $<))) \
+ 			-n $(notdir $(basename $<)) -o $@ $<
  
- static void write_footer(void)
- {
-     fputs("\n};\n\n", out);
--    fprintf(out, "struct linux_logo %s __initdata = {\n", logoname);
--    fprintf(out, "    .type\t= %s,\n", logo_types[logo_type]);
--    fprintf(out, "    .width\t= %d,\n", logo_width);
--    fprintf(out, "    .height\t= %d,\n", logo_height);
-+    fprintf(out, "const struct linux_logo %s __initconst = {\n", logoname);
-+    fprintf(out, "\t.type\t\t= %s,\n", logo_types[logo_type]);
-+    fprintf(out, "\t.width\t\t= %d,\n", logo_width);
-+    fprintf(out, "\t.height\t\t= %d,\n", logo_height);
-     if (logo_type == LINUX_LOGO_CLUT224) {
--	fprintf(out, "    .clutsize\t= %d,\n", logo_clutsize);
--	fprintf(out, "    .clut\t= %s_clut,\n", logoname);
-+	fprintf(out, "\t.clutsize\t= %d,\n", logo_clutsize);
-+	fprintf(out, "\t.clut\t\t= %s_clut,\n", logoname);
-     }
--    fprintf(out, "    .data\t= %s_data\n", logoname);
-+    fprintf(out, "\t.data\t\t= %s_data\n", logoname);
-     fputs("};\n\n", out);
+-$(obj)/%_mono.c: $(src)/%_mono.pbm FORCE
++$(obj)/%_mono.c: $(src)/%_mono.pbm $(pnmtlogo) FORCE
+ 	$(call if_changed,logo)
  
-     /* close logo file */
-@@ -374,7 +374,7 @@ static void write_logo_clut224(void)
-     fputs("\n};\n\n", out);
+-$(obj)/%_vga16.c: $(src)/%_vga16.ppm FORCE
++$(obj)/%_vga16.c: $(src)/%_vga16.ppm $(pnmtlogo) FORCE
+ 	$(call if_changed,logo)
  
-     /* write logo clut */
--    fprintf(out, "static unsigned char %s_clut[] __initdata = {\n",
-+    fprintf(out, "static const unsigned char %s_clut[] __initconst = {\n",
- 	    logoname);
-     write_hex_cnt = 0;
-     for (i = 0; i < logo_clutsize; i++) {
+-$(obj)/%_clut224.c: $(src)/%_clut224.ppm FORCE
++$(obj)/%_clut224.c: $(src)/%_clut224.ppm $(pnmtlogo) FORCE
+ 	$(call if_changed,logo)
+ 
+-$(obj)/%_gray256.c: $(src)/%_gray256.pgm FORCE
++$(obj)/%_gray256.c: $(src)/%_gray256.pgm $(pnmtlogo) FORCE
+ 	$(call if_changed,logo)
+ 
+ # Files generated that shall be removed upon make clean
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-linux-next.patch
-namespaces-move-get_mq-inside-ifdef-config_sysctl.patch
+kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
+kernel-kallsymsc-replace-deprecated-__initcall-with-device_initcall-and-fix-whitespace.patch
+setlocalversion-use-git-svn-instead-of-git-svn.patch
+kbuild-remove-generated-logo-files.patch
 fbdev-move-logo-externs-to-header-file.patch
 
