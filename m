@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + gru-dump-chiplet-state.patch added to -mm tree
-Date: Thu, 09 Apr 2009 15:37:24 -0700
-Message-ID: <200904092237.n39MbOXM032473@imap1.linux-foundation.org>
+Subject: + gru-dynamic-allocation-of-kernel-contexts.patch added to -mm tree
+Date: Thu, 09 Apr 2009 15:37:26 -0700
+Message-ID: <200904092237.n39MbQMq032478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58585 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936970AbZDIWi7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 18:38:59 -0400
+	by vger.kernel.org with ESMTP id S936762AbZDIWjD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 18:39:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: dump chiplet state
+     gru: dynamic allocation of kernel contexts
 has been added to the -mm tree.  Its filename is
-     gru-dump-chiplet-state.patch
+     gru-dynamic-allocation-of-kernel-contexts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,352 +33,191 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: dump chiplet state
+Subject: gru: dynamic allocation of kernel contexts
 From: Jack Steiner <steiner@sgi.com>
 
-Add support for dumpping the state of an entire GRU chiplet.
+Change the interface to gru_alloc_gts() so that it can be used to allocate
+GRU contexts for kernel threads.  Kernel threads do not have vdata
+structures for the GRU contexts.  The GRU resource count are now passed
+explicitly instead of inside the vdata structure.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/Makefile    |    2 
- drivers/misc/sgi-gru/grufile.c   |    3 
- drivers/misc/sgi-gru/grukdump.c  |  217 +++++++++++++++++++++++++++++
- drivers/misc/sgi-gru/grulib.h    |   33 ++++
- drivers/misc/sgi-gru/grutables.h |   12 +
- 5 files changed, 266 insertions(+), 1 deletion(-)
+ drivers/misc/sgi-gru/grumain.c   |   55 ++++++++++++++---------------
+ drivers/misc/sgi-gru/grutables.h |    2 +
+ 2 files changed, 30 insertions(+), 27 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/Makefile~gru-dump-chiplet-state drivers/misc/sgi-gru/Makefile
---- a/drivers/misc/sgi-gru/Makefile~gru-dump-chiplet-state
-+++ a/drivers/misc/sgi-gru/Makefile
-@@ -3,5 +3,5 @@ ifdef CONFIG_SGI_GRU_DEBUG
- endif
- 
- obj-$(CONFIG_SGI_GRU) := gru.o
--gru-y := grufile.o grumain.o grufault.o grutlbpurge.o gruprocfs.o grukservices.o gruhandles.o
-+gru-y := grufile.o grumain.o grufault.o grutlbpurge.o gruprocfs.o grukservices.o gruhandles.o grukdump.o
- 
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-dump-chiplet-state drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-dump-chiplet-state
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -255,6 +255,9 @@ static long gru_file_unlocked_ioctl(stru
- 	case GRU_GET_CONFIG_INFO:
- 		err = gru_get_config_info(arg);
- 		break;
-+	case GRU_DUMP_CHIPLET_STATE:
-+		err = gru_dump_chiplet_request(arg);
-+		break;
- 	}
- 	return err;
- }
-diff -puN /dev/null drivers/misc/sgi-gru/grukdump.c
---- /dev/null
-+++ a/drivers/misc/sgi-gru/grukdump.c
-@@ -0,0 +1,217 @@
-+/*
-+ * SN Platform GRU Driver
-+ *
-+ *            Dump GRU State
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ *
-+ * Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/spinlock.h>
-+#include <linux/uaccess.h>
-+#include <linux/delay.h>
-+#include <asm/uv/uv_hub.h>
-+#include "gru.h"
-+#include "grutables.h"
-+#include "gruhandles.h"
-+#include "grulib.h"
-+
-+#define CCH_LOCK_ATTEMPTS	10
-+
-+static int gru_user_copy_handle(void __user **dp, void *s)
-+{
-+	if (copy_to_user(*(void __user **)dp, s, GRU_HANDLE_BYTES))
-+		return -1;
-+	*dp += GRU_HANDLE_BYTES;
-+	return 0;
-+}
-+
-+static int gru_dump_context_data(void *grubase,
-+			struct gru_context_configuration_handle *cch,
-+			void __user *ubuf, int ctxnum, int dsrcnt)
-+{
-+	void *cb, *cbe, *tfh, *gseg;
-+	int i, scr;
-+
-+	gseg = grubase + ctxnum * GRU_GSEG_STRIDE;
-+	cb = gseg + GRU_CB_BASE;
-+	cbe = grubase + GRU_CBE_BASE;
-+	tfh = grubase + GRU_TFH_BASE;
-+
-+	for_each_cbr_in_allocation_map(i, &cch->cbr_allocation_map, scr) {
-+		if (gru_user_copy_handle(&ubuf, cb))
-+			goto fail;
-+		if (gru_user_copy_handle(&ubuf, tfh + i * GRU_HANDLE_STRIDE))
-+			goto fail;
-+		if (gru_user_copy_handle(&ubuf, cbe + i * GRU_HANDLE_STRIDE))
-+			goto fail;
-+		cb += GRU_HANDLE_STRIDE;
-+	}
-+	if (dsrcnt)
-+		memcpy(ubuf, gseg + GRU_DS_BASE, dsrcnt * GRU_HANDLE_STRIDE);
-+	return 0;
-+
-+fail:
-+	return -EFAULT;
-+}
-+
-+static int gru_dump_tfm(struct gru_state *gru,
-+		void __user *ubuf, void __user *ubufend)
-+{
-+	struct gru_tlb_fault_map *tfm;
-+	int i, ret, bytes;
-+
-+	bytes = GRU_NUM_TFM * GRU_CACHE_LINE_BYTES;
-+	if (bytes > ubufend - ubuf)
-+		ret = -EFBIG;
-+
-+	for (i = 0; i < GRU_NUM_TFM; i++) {
-+		tfm = get_tfm(gru->gs_gru_base_vaddr, i);
-+		if (gru_user_copy_handle(&ubuf, tfm))
-+			goto fail;
-+	}
-+	return GRU_NUM_TFM * GRU_CACHE_LINE_BYTES;
-+
-+fail:
-+	return -EFAULT;
-+}
-+
-+static int gru_dump_tgh(struct gru_state *gru,
-+		void __user *ubuf, void __user *ubufend)
-+{
-+	struct gru_tlb_global_handle *tgh;
-+	int i, ret, bytes;
-+
-+	bytes = GRU_NUM_TGH * GRU_CACHE_LINE_BYTES;
-+	if (bytes > ubufend - ubuf)
-+		ret = -EFBIG;
-+
-+	for (i = 0; i < GRU_NUM_TGH; i++) {
-+		tgh = get_tgh(gru->gs_gru_base_vaddr, i);
-+		if (gru_user_copy_handle(&ubuf, tgh))
-+			goto fail;
-+	}
-+	return GRU_NUM_TGH * GRU_CACHE_LINE_BYTES;
-+
-+fail:
-+	return -EFAULT;
-+}
-+
-+static int gru_dump_context(struct gru_state *gru, int ctxnum,
-+		void __user *ubuf, void __user *ubufend, char data_opt,
-+		char lock_cch)
-+{
-+	struct gru_dump_context_header hdr;
-+	struct gru_dump_context_header __user *uhdr = ubuf;
-+	struct gru_context_configuration_handle *cch;
-+	struct gru_thread_state *gts;
-+	int try, cch_locked, cbrcnt = 0, dsrcnt = 0, bytes = 0, ret = 0;
-+	void *grubase;
-+
-+	memset(&hdr, 0, sizeof(hdr));
-+	grubase = gru->gs_gru_base_vaddr;
-+	cch = get_cch(grubase, ctxnum);
-+	for (try = 0; try < CCH_LOCK_ATTEMPTS; try++) {
-+		cch_locked =  trylock_cch_handle(cch);
-+		if (cch_locked)
-+			break;
-+		msleep(1);
-+	}
-+
-+	ubuf += sizeof(hdr);
-+	if (gru_user_copy_handle(&ubuf, cch))
-+		goto fail;
-+	bytes = sizeof(hdr) + GRU_CACHE_LINE_BYTES;
-+
-+	if (cch_locked || !lock_cch) {
-+		gts = gru->gs_gts[ctxnum];
-+		if (gts) {
-+			hdr.pid = gts->ts_tgid_owner;
-+			hdr.vaddr = gts->ts_vma->vm_start;
-+		}
-+		if (cch->state != CCHSTATE_INACTIVE) {
-+			cbrcnt = hweight64(cch->cbr_allocation_map) *
-+						GRU_CBR_AU_SIZE;
-+			dsrcnt = data_opt ? hweight32(cch->dsr_allocation_map) *
-+						GRU_DSR_AU_CL : 0;
-+		}
-+		bytes += (3 * cbrcnt + dsrcnt) * GRU_CACHE_LINE_BYTES;
-+		if (bytes > ubufend - ubuf)
-+			ret = -EFBIG;
-+		else
-+			ret = gru_dump_context_data(grubase, cch, ubuf, ctxnum,
-+							dsrcnt);
-+
-+	}
-+	if (cch_locked)
-+		unlock_cch_handle(cch);
-+	if (ret)
-+		return ret;
-+
-+	hdr.magic = GRU_DUMP_MAGIC;
-+	hdr.ctxnum = ctxnum;
-+	hdr.cbrcnt = cbrcnt;
-+	hdr.dsrcnt = dsrcnt;
-+	hdr.cch_locked = cch_locked;
-+	if (!ret && copy_to_user((void __user *)uhdr, &hdr, sizeof(hdr)))
-+		ret = -EFAULT;
-+
-+	return ret ? ret : bytes;
-+
-+fail:
-+	unlock_cch_handle(cch);
-+	return -EFAULT;
-+}
-+
-+int gru_dump_chiplet_request(unsigned long arg)
-+{
-+	struct gru_state *gru;
-+	struct gru_dump_chiplet_state_req req;
-+	void __user *ubuf;
-+	void __user *ubufend;
-+	int ctxnum, ret, cnt = 0;
-+
-+	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
-+		return -EFAULT;
-+
-+	/* Currently, only dump by gid is implemented */
-+	if (req.gid >= gru_max_gids || req.gid < 0)
-+		return -EINVAL;
-+
-+	gru = GID_TO_GRU(req.gid);
-+	ubuf = req.buf;
-+	ubufend = req.buf + req.buflen;
-+
-+	ret = gru_dump_tfm(gru, ubuf, ubufend);
-+	if (ret < 0)
-+		goto fail;
-+	ubuf += ret;
-+
-+	ret = gru_dump_tgh(gru, ubuf, ubufend);
-+	if (ret < 0)
-+		goto fail;
-+	ubuf += ret;
-+
-+	for (ctxnum = 0; ctxnum < GRU_NUM_CCH; ctxnum++) {
-+		if (req.ctxnum == ctxnum || req.ctxnum < 0) {
-+			ret = gru_dump_context(gru, ctxnum, ubuf, ubufend,
-+						req.data_opt, req.lock_cch);
-+			if (ret < 0)
-+				goto fail;
-+			ubuf += ret;
-+			cnt++;
-+		}
-+	}
-+
-+	if (copy_to_user((void __user *)arg, &req, sizeof(req)))
-+		return -EFAULT;
-+	return cnt;
-+
-+fail:
-+	return ret;
-+}
-diff -puN drivers/misc/sgi-gru/grulib.h~gru-dump-chiplet-state drivers/misc/sgi-gru/grulib.h
---- a/drivers/misc/sgi-gru/grulib.h~gru-dump-chiplet-state
-+++ a/drivers/misc/sgi-gru/grulib.h
-@@ -47,6 +47,9 @@
- /* For fetching GRU chiplet status */
- #define GRU_GET_CHIPLET_STATUS		_IOWR(GRU_IOCTL_NUM, 10, void *)
- 
-+/* For dumpping GRU chiplet state */
-+#define GRU_DUMP_CHIPLET_STATE		_IOWR(GRU_IOCTL_NUM, 11, void *)
-+
- /* For user TLB flushing (primarily for tests) */
- #define GRU_USER_FLUSH_TLB		_IOWR(GRU_IOCTL_NUM, 50, void *)
- 
-@@ -84,6 +87,36 @@ struct gru_flush_tlb_req {
- };
- 
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -299,15 +299,13 @@ static struct gru_thread_state *gru_find
  /*
-+ * Structure used to pass TLB flush parameters to the driver
-+ */
-+enum {dcs_pid, dcs_gid};
-+struct gru_dump_chiplet_state_req {
-+	unsigned int	op;
-+	int		gid;
-+	int		ctxnum;
-+	char		data_opt;
-+	char		lock_cch;
-+	pid_t		pid;
-+	void		*buf;
-+	size_t		buflen;
-+	/* ---- output --- */
-+	unsigned int	num_contexts;
-+};
-+
-+#define GRU_DUMP_MAGIC	0x3474ab6c
-+struct gru_dump_context_header {
-+	unsigned int	magic;
-+	unsigned char	gid;
-+	unsigned char	ctxnum;
-+	unsigned char	cbrcnt;
-+	unsigned char	dsrcnt;
-+	pid_t		pid;
-+	unsigned long	vaddr;
-+	int		cch_locked;
-+	unsigned long	data[0];
-+};
-+
-+/*
-  * GRU configuration info (temp - for testing)
+  * Allocate a thread state structure.
   */
- struct gru_config_info {
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-dump-chiplet-state drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-dump-chiplet-state
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -554,6 +554,12 @@ struct gru_blade_state {
- 
- /* Lock hierarchy checking enabled only in emulator */
- 
-+/* 0 = lock failed, 1 = locked */
-+static inline int __trylock_handle(void *h)
-+{
-+	return !test_and_set_bit(1, h);
-+}
-+
- static inline void __lock_handle(void *h)
+-static struct gru_thread_state *gru_alloc_gts(struct vm_area_struct *vma,
+-					      struct gru_vma_data *vdata,
+-					      int tsid)
++struct gru_thread_state *gru_alloc_gts(struct vm_area_struct *vma,
++		int cbr_au_count, int dsr_au_count, int options, int tsid)
  {
- 	while (test_and_set_bit(1, h))
-@@ -565,6 +571,11 @@ static inline void __unlock_handle(void 
- 	clear_bit(1, h);
+ 	struct gru_thread_state *gts;
+ 	int bytes;
+ 
+-	bytes = DSR_BYTES(vdata->vd_dsr_au_count) +
+-				CBR_BYTES(vdata->vd_cbr_au_count);
++	bytes = DSR_BYTES(dsr_au_count) + CBR_BYTES(cbr_au_count);
+ 	bytes += sizeof(struct gru_thread_state);
+ 	gts = kzalloc(bytes, GFP_KERNEL);
+ 	if (!gts)
+@@ -316,21 +314,22 @@ static struct gru_thread_state *gru_allo
+ 	STAT(gts_alloc);
+ 	atomic_set(&gts->ts_refcnt, 1);
+ 	mutex_init(&gts->ts_ctxlock);
+-	gts->ts_cbr_au_count = vdata->vd_cbr_au_count;
+-	gts->ts_dsr_au_count = vdata->vd_dsr_au_count;
+-	gts->ts_user_options = vdata->vd_user_options;
++	gts->ts_cbr_au_count = cbr_au_count;
++	gts->ts_dsr_au_count = dsr_au_count;
++	gts->ts_user_options = options;
+ 	gts->ts_tsid = tsid;
+-	gts->ts_user_options = vdata->vd_user_options;
+ 	gts->ts_ctxnum = NULLCTX;
+-	gts->ts_mm = current->mm;
+-	gts->ts_vma = vma;
+ 	gts->ts_tlb_int_select = -1;
+-	gts->ts_gms = gru_register_mmu_notifier();
+ 	gts->ts_sizeavail = GRU_SIZEAVAIL(PAGE_SHIFT);
+-	if (!gts->ts_gms)
+-		goto err;
++	if (vma) {
++		gts->ts_mm = current->mm;
++		gts->ts_vma = vma;
++		gts->ts_gms = gru_register_mmu_notifier();
++		if (!gts->ts_gms)
++			goto err;
++	}
+ 
+-	gru_dbg(grudev, "alloc vdata %p, new gts %p\n", vdata, gts);
++	gru_dbg(grudev, "alloc gts %p\n", gts);
+ 	return gts;
+ 
+ err:
+@@ -381,7 +380,8 @@ struct gru_thread_state *gru_alloc_threa
+ 	struct gru_vma_data *vdata = vma->vm_private_data;
+ 	struct gru_thread_state *gts, *ngts;
+ 
+-	gts = gru_alloc_gts(vma, vdata, tsid);
++	gts = gru_alloc_gts(vma, vdata->vd_cbr_au_count, vdata->vd_dsr_au_count,
++			    vdata->vd_user_options, tsid);
+ 	if (!gts)
+ 		return NULL;
+ 
+@@ -645,7 +645,7 @@ static int gru_retarget_intr(struct gru_
+ #define next_gru(b, g)	(((g) < &(b)->bs_grus[GRU_CHIPLETS_PER_BLADE - 1]) ?  \
+ 				 ((g)+1) : &(b)->bs_grus[0])
+ 
+-static void gru_steal_context(struct gru_thread_state *gts)
++static void gru_steal_context(struct gru_thread_state *gts, int blade_id)
+ {
+ 	struct gru_blade_state *blade;
+ 	struct gru_state *gru, *gru0;
+@@ -655,8 +655,7 @@ static void gru_steal_context(struct gru
+ 	cbr = gts->ts_cbr_au_count;
+ 	dsr = gts->ts_dsr_au_count;
+ 
+-	preempt_disable();
+-	blade = gru_base[uv_numa_blade_id()];
++	blade = gru_base[blade_id];
+ 	spin_lock(&blade->bs_lock);
+ 
+ 	ctxnum = next_ctxnum(blade->bs_lru_ctxnum);
+@@ -693,7 +692,6 @@ static void gru_steal_context(struct gru
+ 	blade->bs_lru_gru = gru;
+ 	blade->bs_lru_ctxnum = ctxnum;
+ 	spin_unlock(&blade->bs_lock);
+-	preempt_enable();
+ 
+ 	if (ngts) {
+ 		STAT(steal_context);
+@@ -713,17 +711,17 @@ static void gru_steal_context(struct gru
+ /*
+  * Scan the GRUs on the local blade & assign a GRU context.
+  */
+-static struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts)
++static struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts,
++						int blade)
+ {
+ 	struct gru_state *gru, *grux;
+ 	int i, max_active_contexts;
+ 
+-	preempt_disable();
+ 
+ again:
+ 	gru = NULL;
+ 	max_active_contexts = GRU_NUM_CCH;
+-	for_each_gru_on_blade(grux, uv_numa_blade_id(), i) {
++	for_each_gru_on_blade(grux, blade, i) {
+ 		if (check_gru_resources(grux, gts->ts_cbr_au_count,
+ 					gts->ts_dsr_au_count,
+ 					max_active_contexts)) {
+@@ -763,7 +761,6 @@ again:
+ 		STAT(assign_context_failed);
+ 	}
+ 
+-	preempt_enable();
+ 	return gru;
  }
  
-+static inline int trylock_cch_handle(struct gru_context_configuration_handle *cch)
-+{
-+	return __trylock_handle(cch);
-+}
-+
- static inline void lock_cch_handle(struct gru_context_configuration_handle *cch)
+@@ -778,6 +775,7 @@ int gru_fault(struct vm_area_struct *vma
  {
- 	__lock_handle(cch);
-@@ -606,6 +617,7 @@ extern void gts_drop(struct gru_thread_s
- extern void gru_tgh_flush_init(struct gru_state *gru);
- extern int gru_kservices_init(struct gru_state *gru);
- extern void gru_kservices_exit(struct gru_state *gru);
-+extern int gru_dump_chiplet_request(unsigned long arg);
- extern irqreturn_t gru_intr(int irq, void *dev_id);
- extern int gru_handle_user_call_os(unsigned long address);
- extern int gru_user_flush_tlb(unsigned long arg);
+ 	struct gru_thread_state *gts;
+ 	unsigned long paddr, vaddr;
++	int blade_id;
+ 
+ 	vaddr = (unsigned long)vmf->virtual_address;
+ 	gru_dbg(grudev, "vma %p, vaddr 0x%lx (0x%lx)\n",
+@@ -792,8 +790,10 @@ int gru_fault(struct vm_area_struct *vma
+ again:
+ 	mutex_lock(&gts->ts_ctxlock);
+ 	preempt_disable();
++	blade_id = uv_numa_blade_id();
++
+ 	if (gts->ts_gru) {
+-		if (gts->ts_gru->gs_blade_id != uv_numa_blade_id()) {
++		if (gts->ts_gru->gs_blade_id != blade_id) {
+ 			STAT(migrated_nopfn_unload);
+ 			gru_unload_context(gts, 1);
+ 		} else {
+@@ -803,12 +803,13 @@ again:
+ 	}
+ 
+ 	if (!gts->ts_gru) {
+-		if (!gru_assign_gru_context(gts)) {
++		if (!gru_assign_gru_context(gts, blade_id)) {
+ 			mutex_unlock(&gts->ts_ctxlock);
+ 			preempt_enable();
+ 			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
++			blade_id = uv_numa_blade_id();
+ 			if (gts->ts_steal_jiffies + GRU_STEAL_DELAY < jiffies)
+-				gru_steal_context(gts);
++				gru_steal_context(gts, blade_id);
+ 			goto again;
+ 		}
+ 		gru_load_context(gts);
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-dynamic-allocation-of-kernel-contexts drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-dynamic-allocation-of-kernel-contexts
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -630,6 +630,8 @@ extern void gru_flush_all_tlb(struct gru
+ extern int gru_proc_init(void);
+ extern void gru_proc_exit(void);
+ 
++extern struct gru_thread_state *gru_alloc_gts(struct vm_area_struct *vma,
++		int cbr_au_count, int dsr_au_count, int options, int tsid);
+ extern unsigned long gru_reserve_cb_resources(struct gru_state *gru,
+ 		int cbr_au_count, char *cbmap);
+ extern unsigned long gru_reserve_ds_resources(struct gru_state *gru,
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
