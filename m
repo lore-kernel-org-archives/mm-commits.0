@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hp_accel-remove-unused-include-versionh.patch added to -mm tree
-Date: Thu, 09 Apr 2009 13:25:24 -0700
-Message-ID: <200904092025.n39KPOT9008338@imap1.linux-foundation.org>
+Subject: + ext3-fix-chain-verification-in-ext3_get_blocks.patch added to -mm tree
+Date: Thu, 09 Apr 2009 13:32:52 -0700
+Message-ID: <200904092032.n39KWqYF011512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761657AbZDIU1S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 16:27:18 -0400
+	by vger.kernel.org with ESMTP id S936305AbZDIUfH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 16:35:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: weiyi.huang@gmail.com, pavel@ucw.cz
+Cc: jack@suse.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     hp_accel: remove unused #include <version.h>
+     ext3: fix chain verification in ext3_get_blocks()
 has been added to the -mm tree.  Its filename is
-     hp_accel-remove-unused-include-versionh.patch
+     ext3-fix-chain-verification-in-ext3_get_blocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp_accel: remove unused #include <version.h>
-From: Huang Weiyi <weiyi.huang@gmail.com>
+Subject: ext3: fix chain verification in ext3_get_blocks()
+From: Jan Kara <jack@suse.cz>
 
-Remove unused #include <version.h> in drivers/hwmon/hp_accel.c.
+Chain verification in ext3_get_blocks() has been hosed since it called
+verify_chain(chain, NULL) which always returns success.  As a result
+readers could in theory race with truncate.  On the other hand the race
+probably cannot happen with the current locking scheme, since by the time
+ext3_truncate() is called all the pages are already removed and hence
+get_block() shouldn't be called on such pages...
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/hp_accel.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ext3/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/hp_accel.c~hp_accel-remove-unused-include-versionh drivers/hwmon/hp_accel.c
---- a/drivers/hwmon/hp_accel.c~hp_accel-remove-unused-include-versionh
-+++ a/drivers/hwmon/hp_accel.c
-@@ -34,7 +34,6 @@
- #include <linux/wait.h>
- #include <linux/poll.h>
- #include <linux/freezer.h>
--#include <linux/version.h>
- #include <linux/uaccess.h>
- #include <linux/leds.h>
- #include <acpi/acpi_drivers.h>
+diff -puN fs/ext3/inode.c~ext3-fix-chain-verification-in-ext3_get_blocks fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-fix-chain-verification-in-ext3_get_blocks
++++ a/fs/ext3/inode.c
+@@ -820,7 +820,7 @@ int ext3_get_blocks_handle(handle_t *han
+ 		while (count < maxblocks && count <= blocks_to_boundary) {
+ 			ext3_fsblk_t blk;
+ 
+-			if (!verify_chain(chain, partial)) {
++			if (!verify_chain(chain, chain + depth - 1)) {
+ 				/*
+ 				 * Indirect block might be removed by
+ 				 * truncate while we were reading it.
 _
 
-Patches currently in -mm which might be from weiyi.huang@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
 linux-next.patch
-hp_accel-remove-unused-include-versionh.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
+ext2-fix-data-corruption-for-racing-writes.patch
+ext3-fix-chain-verification-in-ext3_get_blocks.patch
+reiser4-update-names-of-quota-methods.patch
 
