@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch added to -mm tree
-Date: Thu, 09 Apr 2009 16:10:51 -0700
-Message-ID: <200904092310.n39NApEg014400@imap1.linux-foundation.org>
+Subject: + rtc-add-x86-support-for-rtc-efi.patch added to -mm tree
+Date: Thu, 09 Apr 2009 16:18:06 -0700
+Message-ID: <200904092318.n39NI69m017437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42421 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52367 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757951AbZDIXMy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 19:12:54 -0400
+	by vger.kernel.org with ESMTP id S937364AbZDIXYA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 19:24:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, roland@redhat.com
+Cc: bmaly@redhat.com, a.zummo@towertech.it, dannf@hp.com, david-b@pacbell.net, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     ptrace: fix exit_ptrace() vs ptrace_traceme() race
+     rtc: add x86 support for rtc-efi
 has been added to the -mm tree.  Its filename is
-     ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch
+     rtc-add-x86-support-for-rtc-efi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: fix exit_ptrace() vs ptrace_traceme() race
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: rtc: add x86 support for rtc-efi
+From: Brian Maly <bmaly@redhat.com>
 
-Pointed out by Roland.  The bug was recently introduced by me in
-"forget_original_parent: split out the un-ptrace part", commit
-39c626ae47c469abdfd30c6e42eff884931380d6.
+Add support for rtc-efi (RTC Class Driver for EFI-based systems) to x86.
 
-Since that patch we have a window after exit_ptrace() drops tasklist and
-before forget_original_parent() takes it again.  In this window the child
-can do ptrace(PTRACE_TRACEME) and nobody can untrace this child after
-that.
+This patch has been tested and works perfectly on every x86 EFI system I
+could find, though all have been EL64 systems.  I would appreciate any
+testing feedback from EL32 systems from anyone that has one and can test.
 
-Change ptrace_traceme() to not attach to the exiting ->real_parent.  We
-don't report the error in this case, we pretend we attach right before
-->real_parent calls exit_ptrace() which should untrace us anyway.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Brian Maly <bmaly@redhat.com>
+Acked-by: dann frazier <dannf@hp.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/x86/kernel/time_32.c |   19 +++++++++++++++++++
+ arch/x86/kernel/time_64.c |   18 ++++++++++++++++++
+ drivers/rtc/Kconfig       |    2 +-
+ 3 files changed, 38 insertions(+), 1 deletion(-)
 
-diff -puN kernel/ptrace.c~ptrace-fix-exit_ptrace-vs-ptrace_traceme-race kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-fix-exit_ptrace-vs-ptrace_traceme-race
-+++ a/kernel/ptrace.c
-@@ -604,10 +604,11 @@ repeat:
- 		ret = security_ptrace_traceme(current->parent);
+diff -puN arch/x86/kernel/time_32.c~rtc-add-x86-support-for-rtc-efi arch/x86/kernel/time_32.c
+--- a/arch/x86/kernel/time_32.c~rtc-add-x86-support-for-rtc-efi
++++ a/arch/x86/kernel/time_32.c
+@@ -32,6 +32,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/time.h>
+ #include <linux/mca.h>
++#include <linux/platform_device.h>
  
- 		/*
--		 * Set the ptrace bit in the process ptrace flags.
--		 * Then link us on our parent's ptraced list.
-+		 * Check PF_EXITING to ensure ->real_parent has not passed
-+		 * exit_ptrace(). Otherwise we don't report the error but
-+		 * pretend ->real_parent untraces us right after return.
- 		 */
--		if (!ret) {
-+		if (!ret && !(current->real_parent->flags & PF_EXITING)) {
- 			current->ptrace |= PT_PTRACED;
- 			__ptrace_link(current, current->real_parent);
- 		}
+ #include <asm/setup.h>
+ #include <asm/hpet.h>
+@@ -135,3 +136,21 @@ void __init time_init(void)
+ 	tsc_init();
+ 	late_time_init = choose_time_init();
+ }
++
++
++#ifdef CONFIG_RTC_DRV_EFI
++static struct platform_device rtc_efi_dev = {
++	.name = "rtc-efi",
++	.id = -1,
++};
++
++static int __init rtc_init(void)
++{
++	if (platform_device_register(&rtc_efi_dev) < 0)
++		printk(KERN_ERR "unable to register rtc device...\n");
++
++	/* not necessarily an error */
++	return 0;
++}
++module_init(rtc_init);
++#endif
+diff -puN arch/x86/kernel/time_64.c~rtc-add-x86-support-for-rtc-efi arch/x86/kernel/time_64.c
+--- a/arch/x86/kernel/time_64.c~rtc-add-x86-support-for-rtc-efi
++++ a/arch/x86/kernel/time_64.c
+@@ -18,6 +18,7 @@
+ #include <linux/time.h>
+ #include <linux/mca.h>
+ #include <linux/nmi.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/i8253.h>
+ #include <asm/hpet.h>
+@@ -133,3 +134,20 @@ void __init time_init(void)
+ 
+ 	late_time_init = choose_time_init();
+ }
++
++#ifdef CONFIG_RTC_DRV_EFI
++static struct platform_device rtc_efi_dev = {
++	.name = "rtc-efi",
++	.id = -1,
++};
++
++static int __init rtc_init(void)
++{
++	if (platform_device_register(&rtc_efi_dev) < 0)
++		printk(KERN_ERR "unable to register rtc device...\n");
++
++	/* not necessarily an error */
++	return 0;
++}
++module_init(rtc_init);
++#endif
+diff -puN drivers/rtc/Kconfig~rtc-add-x86-support-for-rtc-efi drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-x86-support-for-rtc-efi
++++ a/drivers/rtc/Kconfig
+@@ -455,7 +455,7 @@ config RTC_DRV_DS1742
+ 
+ config RTC_DRV_EFI
+ 	tristate "EFI RTC"
+-	depends on IA64
++	depends on EFI
+ 	help
+ 	  If you say yes here you will get support for the EFI
+ 	  Real Time Clock.
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from bmaly@redhat.com are
 
-origin.patch
-linux-next.patch
-ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch
-getrusage-fill-ru_maxrss-value.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-signals-tracehook_notify_jctl-change.patch
+rtc-add-x86-support-for-rtc-efi.patch
 
