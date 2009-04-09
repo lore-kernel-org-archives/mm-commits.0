@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1307-add-ds3231.patch added to -mm tree
-Date: Thu, 09 Apr 2009 12:48:56 -0700
-Message-ID: <200904091948.n39JmuOb025209@imap1.linux-foundation.org>
+Subject: + rtc-rtc-ds1307-add-ds1388.patch added to -mm tree
+Date: Thu, 09 Apr 2009 12:48:54 -0700
+Message-ID: <200904091948.n39JmsCL025204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43402 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761694AbZDITvr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 15:51:47 -0400
+	by vger.kernel.org with ESMTP id S1752579AbZDITvn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 15:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: w.sang@pengutronix.de, a.zummo@towertech.it, dbrownell@users.sourceforge.net
+Cc: Joakim.Tjernlund@transmode.se, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     rtc: rtc-ds1307 add ds3231
+     rtc: rtc-ds1307 add ds1388
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1307-add-ds3231.patch
+     rtc-rtc-ds1307-add-ds1388.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-ds1307 add ds3231
-From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: rtc: rtc-ds1307 add ds1388
+From: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
 
-Add ds3231 variant.  For that, the BBSQI bit position was changed from a
-simple define into a lookup-array as it differs.  This also removes
-writing to an unused bit in case of the ds1337.
+Extend the ds1307 driver to support ds1388 too.
 
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
 Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-ds1307.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-rtc-ds1307-add-ds3231 drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-rtc-ds1307-add-ds3231
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-rtc-ds1307-add-ds1388 drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-rtc-ds1307-add-ds1388
 +++ a/drivers/rtc/rtc-ds1307.c
-@@ -32,6 +32,7 @@ enum ds_type {
+@@ -31,6 +31,7 @@ enum ds_type {
+ 	ds_1338,
  	ds_1339,
  	ds_1340,
- 	ds_1388,
-+	ds_3231,
++	ds_1388,
  	m41t00,
  	rx_8025,
  	// rs5c372 too?  different address...
-@@ -67,6 +68,7 @@ enum ds_type {
- #define DS1337_REG_CONTROL	0x0e
- #	define DS1337_BIT_nEOSC		0x80
- #	define DS1339_BIT_BBSQI		0x20
-+#	define DS3231_BIT_BBSQW		0x40 /* same as BBSQI */
- #	define DS1337_BIT_RS2		0x10
- #	define DS1337_BIT_RS1		0x08
- #	define DS1337_BIT_INTCN		0x04
-@@ -130,6 +132,9 @@ static const struct chip_desc chips[] = 
- },
- [ds_1340] = {
- },
-+[ds_3231] = {
-+	.alarm		= 1,
-+},
- [m41t00] = {
- },
- [rx_8025] = {
-@@ -142,6 +147,7 @@ static const struct i2c_device_id ds1307
+@@ -94,6 +95,7 @@ enum ds_type {
+ 
+ 
+ struct ds1307 {
++	u8			offset; /* register's offset */
+ 	u8			regs[11];
+ 	enum ds_type		type;
+ 	unsigned long		flags;
+@@ -138,6 +140,7 @@ static const struct i2c_device_id ds1307
+ 	{ "ds1337", ds_1337 },
+ 	{ "ds1338", ds_1338 },
  	{ "ds1339", ds_1339 },
- 	{ "ds1388", ds_1388 },
++	{ "ds1388", ds_1388 },
  	{ "ds1340", ds_1340 },
-+	{ "ds3231", ds_3231 },
  	{ "m41t00", m41t00 },
  	{ "rx8025", rx_8025 },
- 	{ }
-@@ -356,6 +362,7 @@ static int ds1307_set_time(struct device
- 	switch (ds1307->type) {
- 	case ds_1337:
- 	case ds_1339:
-+	case ds_3231:
- 		buf[DS1307_REG_MONTH] |= DS1337_BIT_CENTURY;
- 		break;
- 	case ds_1340:
-@@ -628,6 +635,11 @@ static int __devinit ds1307_probe(struct
- 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
- 	int			want_irq = false;
- 	unsigned char		*buf;
-+	static const int	bbsqi_bitpos[] = {
-+		[ds_1337] = 0,
-+		[ds_1339] = DS1339_BIT_BBSQI,
-+		[ds_3231] = DS3231_BIT_BBSQW,
-+	};
+@@ -291,7 +294,7 @@ static int ds1307_get_time(struct device
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)
- 	    && !i2c_check_functionality(adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
-@@ -654,6 +666,7 @@ static int __devinit ds1307_probe(struct
- 	switch (ds1307->type) {
- 	case ds_1337:
- 	case ds_1339:
-+	case ds_3231:
- 		/* has IRQ? */
- 		if (ds1307->client->irq > 0 && chip->alarm) {
- 			INIT_WORK(&ds1307->work, ds1307_work);
-@@ -673,12 +686,12 @@ static int __devinit ds1307_probe(struct
- 			ds1307->regs[0] &= ~DS1337_BIT_nEOSC;
+ 	/* read the RTC date and time registers all at once */
+ 	tmp = ds1307->read_block_data(ds1307->client,
+-		DS1307_REG_SECS, 7, ds1307->regs);
++		ds1307->offset, 7, ds1307->regs);
+ 	if (tmp != 7) {
+ 		dev_err(dev, "%s error %d\n", "read", tmp);
+ 		return -EIO;
+@@ -367,7 +370,8 @@ static int ds1307_set_time(struct device
+ 		"write", buf[0], buf[1], buf[2], buf[3],
+ 		buf[4], buf[5], buf[6]);
  
- 		/* Using IRQ?  Disable the square wave and both alarms.
--		 * For ds1339, be sure alarms can trigger when we're
--		 * running on Vbackup (BBSQI); we assume ds1337 will
--		 * ignore that bit
-+		 * For some variants, be sure alarms can trigger when we're
-+		 * running on Vbackup (BBSQI/BBSQW)
- 		 */
- 		if (want_irq) {
--			ds1307->regs[0] |= DS1337_BIT_INTCN | DS1339_BIT_BBSQI;
-+			ds1307->regs[0] |= DS1337_BIT_INTCN
-+					| bbsqi_bitpos[ds1307->type];
- 			ds1307->regs[0] &= ~(DS1337_BIT_A2IE | DS1337_BIT_A1IE);
+-	result = ds1307->write_block_data(ds1307->client, 0, 7, buf);
++	result = ds1307->write_block_data(ds1307->client,
++		ds1307->offset, 7, buf);
+ 	if (result < 0) {
+ 		dev_err(dev, "%s error %d\n", "write", result);
+ 		return result;
+@@ -632,9 +636,12 @@ static int __devinit ds1307_probe(struct
+ 	if (!(ds1307 = kzalloc(sizeof(struct ds1307), GFP_KERNEL)))
+ 		return -ENOMEM;
+ 
+-	ds1307->client = client;
+ 	i2c_set_clientdata(client, ds1307);
+-	ds1307->type = id->driver_data;
++
++	ds1307->client	= client;
++	ds1307->type	= id->driver_data;
++	ds1307->offset	= 0;
++
+ 	buf = ds1307->regs;
+ 	if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_I2C_BLOCK)) {
+ 		ds1307->read_block_data = i2c_smbus_read_i2c_block_data;
+@@ -751,6 +758,9 @@ static int __devinit ds1307_probe(struct
+ 						  hour);
  		}
- 
-@@ -825,6 +838,7 @@ read_rtc:
+ 		break;
++	case ds_1388:
++		ds1307->offset = 1; /* Seconds starts at 1 */
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -814,6 +824,7 @@ read_rtc:
+ 	case rx_8025:
  	case ds_1337:
  	case ds_1339:
- 	case ds_1388:
-+	case ds_3231:
++	case ds_1388:
  		break;
  	}
  
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from Joakim.Tjernlund@transmode.se are
 
-linux-next.patch
-rtc-rtc-ds1307-add-ds3231.patch
+rtc-rtc-ds1307-add-ds1388.patch
 
