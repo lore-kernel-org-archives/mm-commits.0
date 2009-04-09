@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + initramfs-fix-initramfs-to-work-with-hardlinked-init.patch added to -mm tree
-Date: Thu, 09 Apr 2009 16:25:36 -0700
-Message-ID: <200904092325.n39NPaLK020690@imap1.linux-foundation.org>
+Subject: + shmem-fix-division-by-zero.patch added to -mm tree
+Date: Thu, 09 Apr 2009 16:36:19 -0700
+Message-ID: <200904092336.n39NaJ6R025260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761869AbZDIX2s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 19:28:48 -0400
+	by vger.kernel.org with ESMTP id S937376AbZDIXjb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 19:39:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rmrobert@vmware.com, dhowells@redhat.com, hpa@zytor.com, lethal@linux-sh.org
+Cc: yur@emcraft.com, hugh@veritas.com, paulus@samba.org
 
 
 The patch titled
-     initramfs: fix initramfs to work with hardlinked init
+     shmem: fix division by zero
 has been added to the -mm tree.  Its filename is
-     initramfs-fix-initramfs-to-work-with-hardlinked-init.patch
+     shmem-fix-division-by-zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: initramfs: fix initramfs to work with hardlinked init
-From: Randy Robertson <rmrobert@vmware.com>
+Subject: shmem: fix division by zero
+From: Yuri Tikhonov <yur@emcraft.com>
 
-Change cb6ff208076b5f434db1b8c983429269d719cef5 ("NOMMU: Support XIP on
-initramfs") seems to have broken booting from initramfs with /sbin/init
-being a hardlink.
+Fix a division by zero which we have in shmem_truncate_range() and
+shmem_unuse_inode() when using big PAGE_SIZE values (e.g.  256kB on
+ppc44x).
 
-It seems like the logic required for XIP on nommu, i.e.  ftruncate to
-reported cpio header file size (body_len) is broken for hardlinks, which
-have a reported size of 0, and the truncate thus nukes the contents of the
-file (in my case busybox), making boot impossible and ending with runaway
-loop modprobe binfmt-0000 - and of course 0000 is not a valid binary
-format.
+With 256kB PAGE_SIZE, the ENTRIES_PER_PAGEPAGE constant becomes too large
+(0x1.0000.0000) on a 32-bit kernel, so this patch just changes its type
+from 'unsigned long' to 'unsigned long long'.
 
-My fix is to only call ftruncate if size is non-zero which fixes things
-for me, but I'm not certain whether this will break XIP for those files on
-nommu systems, although I would guess not.
+Hugh: reverted its unsigned long longs in shmem_truncate_range() and
+shmem_getpage(): the pagecache index cannot be more than an unsigned long,
+so the divisions by zero occurred in unreached code.  It's a pity we need
+any ULL arithmetic here, but I found no pretty way to avoid it.
 
-Signed-off-by: Randy Robertson <rmrobert@vmware.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Yuri Tikhonov <yur@emcraft.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/initramfs.c~initramfs-fix-initramfs-to-work-with-hardlinked-init init/initramfs.c
---- a/init/initramfs.c~initramfs-fix-initramfs-to-work-with-hardlinked-init
-+++ a/init/initramfs.c
-@@ -310,7 +310,8 @@ static int __init do_name(void)
- 			if (wfd >= 0) {
- 				sys_fchown(wfd, uid, gid);
- 				sys_fchmod(wfd, mode);
--				sys_ftruncate(wfd, body_len);
-+				if (body_len)
-+					sys_ftruncate(wfd, body_len);
- 				vcollected = kstrdup(collected, GFP_KERNEL);
- 				state = CopyFile;
- 			}
+diff -puN mm/shmem.c~shmem-fix-division-by-zero mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-division-by-zero
++++ a/mm/shmem.c
+@@ -66,7 +66,7 @@ static struct vfsmount *shm_mnt;
+ #include <asm/pgtable.h>
+ 
+ #define ENTRIES_PER_PAGE (PAGE_CACHE_SIZE/sizeof(unsigned long))
+-#define ENTRIES_PER_PAGEPAGE (ENTRIES_PER_PAGE*ENTRIES_PER_PAGE)
++#define ENTRIES_PER_PAGEPAGE ((unsigned long long)ENTRIES_PER_PAGE*ENTRIES_PER_PAGE)
+ #define BLOCKS_PER_PAGE  (PAGE_CACHE_SIZE/512)
+ 
+ #define SHMEM_MAX_INDEX  (SHMEM_NR_DIRECT + (ENTRIES_PER_PAGEPAGE/2) * (ENTRIES_PER_PAGE+1))
 _
 
-Patches currently in -mm which might be from rmrobert@vmware.com are
+Patches currently in -mm which might be from yur@emcraft.com are
 
-initramfs-fix-initramfs-to-work-with-hardlinked-init.patch
+shmem-fix-division-by-zero.patch
+shmem-respect-max_lfs_filesize.patch
+powerpc-allow-256kb-pages-with-shmem.patch
 
