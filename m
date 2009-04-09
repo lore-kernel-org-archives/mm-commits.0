@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-x86-support-for-rtc-efi.patch added to -mm tree
-Date: Thu, 09 Apr 2009 16:18:06 -0700
-Message-ID: <200904092318.n39NI69m017437@imap1.linux-foundation.org>
+Subject: + initramfs-fix-initramfs-to-work-with-hardlinked-init.patch added to -mm tree
+Date: Thu, 09 Apr 2009 16:25:36 -0700
+Message-ID: <200904092325.n39NPaLK020690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52367 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937364AbZDIXYA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 19:24:00 -0400
+	by vger.kernel.org with ESMTP id S1761869AbZDIX2s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 19:28:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bmaly@redhat.com, a.zummo@towertech.it, dannf@hp.com, david-b@pacbell.net, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: rmrobert@vmware.com, dhowells@redhat.com, hpa@zytor.com, lethal@linux-sh.org
 
 
 The patch titled
-     rtc: add x86 support for rtc-efi
+     initramfs: fix initramfs to work with hardlinked init
 has been added to the -mm tree.  Its filename is
-     rtc-add-x86-support-for-rtc-efi.patch
+     initramfs-fix-initramfs-to-work-with-hardlinked-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add x86 support for rtc-efi
-From: Brian Maly <bmaly@redhat.com>
+Subject: initramfs: fix initramfs to work with hardlinked init
+From: Randy Robertson <rmrobert@vmware.com>
 
-Add support for rtc-efi (RTC Class Driver for EFI-based systems) to x86.
+Change cb6ff208076b5f434db1b8c983429269d719cef5 ("NOMMU: Support XIP on
+initramfs") seems to have broken booting from initramfs with /sbin/init
+being a hardlink.
 
-This patch has been tested and works perfectly on every x86 EFI system I
-could find, though all have been EL64 systems.  I would appreciate any
-testing feedback from EL32 systems from anyone that has one and can test.
+It seems like the logic required for XIP on nommu, i.e.  ftruncate to
+reported cpio header file size (body_len) is broken for hardlinks, which
+have a reported size of 0, and the truncate thus nukes the contents of the
+file (in my case busybox), making boot impossible and ending with runaway
+loop modprobe binfmt-0000 - and of course 0000 is not a valid binary
+format.
 
-Signed-off-by: Brian Maly <bmaly@redhat.com>
-Acked-by: dann frazier <dannf@hp.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+My fix is to only call ftruncate if size is non-zero which fixes things
+for me, but I'm not certain whether this will break XIP for those files on
+nommu systems, although I would guess not.
+
+Signed-off-by: Randy Robertson <rmrobert@vmware.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/time_32.c |   19 +++++++++++++++++++
- arch/x86/kernel/time_64.c |   18 ++++++++++++++++++
- drivers/rtc/Kconfig       |    2 +-
- 3 files changed, 38 insertions(+), 1 deletion(-)
+ init/initramfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/time_32.c~rtc-add-x86-support-for-rtc-efi arch/x86/kernel/time_32.c
---- a/arch/x86/kernel/time_32.c~rtc-add-x86-support-for-rtc-efi
-+++ a/arch/x86/kernel/time_32.c
-@@ -32,6 +32,7 @@
- #include <linux/interrupt.h>
- #include <linux/time.h>
- #include <linux/mca.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/setup.h>
- #include <asm/hpet.h>
-@@ -135,3 +136,21 @@ void __init time_init(void)
- 	tsc_init();
- 	late_time_init = choose_time_init();
- }
-+
-+
-+#ifdef CONFIG_RTC_DRV_EFI
-+static struct platform_device rtc_efi_dev = {
-+	.name = "rtc-efi",
-+	.id = -1,
-+};
-+
-+static int __init rtc_init(void)
-+{
-+	if (platform_device_register(&rtc_efi_dev) < 0)
-+		printk(KERN_ERR "unable to register rtc device...\n");
-+
-+	/* not necessarily an error */
-+	return 0;
-+}
-+module_init(rtc_init);
-+#endif
-diff -puN arch/x86/kernel/time_64.c~rtc-add-x86-support-for-rtc-efi arch/x86/kernel/time_64.c
---- a/arch/x86/kernel/time_64.c~rtc-add-x86-support-for-rtc-efi
-+++ a/arch/x86/kernel/time_64.c
-@@ -18,6 +18,7 @@
- #include <linux/time.h>
- #include <linux/mca.h>
- #include <linux/nmi.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/i8253.h>
- #include <asm/hpet.h>
-@@ -133,3 +134,20 @@ void __init time_init(void)
- 
- 	late_time_init = choose_time_init();
- }
-+
-+#ifdef CONFIG_RTC_DRV_EFI
-+static struct platform_device rtc_efi_dev = {
-+	.name = "rtc-efi",
-+	.id = -1,
-+};
-+
-+static int __init rtc_init(void)
-+{
-+	if (platform_device_register(&rtc_efi_dev) < 0)
-+		printk(KERN_ERR "unable to register rtc device...\n");
-+
-+	/* not necessarily an error */
-+	return 0;
-+}
-+module_init(rtc_init);
-+#endif
-diff -puN drivers/rtc/Kconfig~rtc-add-x86-support-for-rtc-efi drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-x86-support-for-rtc-efi
-+++ a/drivers/rtc/Kconfig
-@@ -455,7 +455,7 @@ config RTC_DRV_DS1742
- 
- config RTC_DRV_EFI
- 	tristate "EFI RTC"
--	depends on IA64
-+	depends on EFI
- 	help
- 	  If you say yes here you will get support for the EFI
- 	  Real Time Clock.
+diff -puN init/initramfs.c~initramfs-fix-initramfs-to-work-with-hardlinked-init init/initramfs.c
+--- a/init/initramfs.c~initramfs-fix-initramfs-to-work-with-hardlinked-init
++++ a/init/initramfs.c
+@@ -310,7 +310,8 @@ static int __init do_name(void)
+ 			if (wfd >= 0) {
+ 				sys_fchown(wfd, uid, gid);
+ 				sys_fchmod(wfd, mode);
+-				sys_ftruncate(wfd, body_len);
++				if (body_len)
++					sys_ftruncate(wfd, body_len);
+ 				vcollected = kstrdup(collected, GFP_KERNEL);
+ 				state = CopyFile;
+ 			}
 _
 
-Patches currently in -mm which might be from bmaly@redhat.com are
+Patches currently in -mm which might be from rmrobert@vmware.com are
 
-rtc-add-x86-support-for-rtc-efi.patch
+initramfs-fix-initramfs-to-work-with-hardlinked-init.patch
 
