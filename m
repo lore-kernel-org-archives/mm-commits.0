@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sa1100fb-fix-color-component-length-for-pseudocolor-modes.patch added to -mm tree
-Date: Thu, 09 Apr 2009 12:29:36 -0700
-Message-ID: <200904091929.n39JTatY016990@imap1.linux-foundation.org>
+Subject: + maintainers-fix-email-address.patch added to -mm tree
+Date: Thu, 09 Apr 2009 12:37:16 -0700
+Message-ID: <200904091937.n39JbG7S020240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765427AbZDITdG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 15:33:06 -0400
+	by vger.kernel.org with ESMTP id S1758929AbZDITjh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 15:39:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: spock@gentoo.org, krzysztof.h1@poczta.fm, rmk@arm.linux.org.uk
+Cc: randy.dunlap@oracle.com, andreas.herrmann3@amd.com
 
 
 The patch titled
-     sa1100fb: fix color component length for pseudocolor modes
+     MAINTAINERS: fix Andreas's email address
 has been added to the -mm tree.  Its filename is
-     sa1100fb-fix-color-component-length-for-pseudocolor-modes.patch
+     maintainers-fix-email-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sa1100fb: fix color component length for pseudocolor modes
-From: Michal Januszewski <spock@gentoo.org>
+Subject: MAINTAINERS: fix Andreas's email address
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-sa1100fb incorrectly sets the length of the color fields to 8 bits for
-PSEUDOCOLOR modes for which only 4 bits are used per pixel.  Fix this by
-setting the length to 4 bits for these modes.
+Correct typo in email address.
 
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andreas Herrmann <andreas.herrmann3@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sa1100fb.c |   15 ++++++++++-----
- drivers/video/sa1100fb.h |    7 ++++---
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/sa1100fb.c~sa1100fb-fix-color-component-length-for-pseudocolor-modes drivers/video/sa1100fb.c
---- a/drivers/video/sa1100fb.c~sa1100fb-fix-color-component-length-for-pseudocolor-modes
-+++ a/drivers/video/sa1100fb.c
-@@ -199,16 +199,20 @@
- extern void (*sa1100fb_backlight_power)(int on);
- extern void (*sa1100fb_lcd_power)(int on);
+diff -puN MAINTAINERS~maintainers-fix-email-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-email-address
++++ a/MAINTAINERS
+@@ -380,7 +380,7 @@ S:	Supported
  
--/*
-- * IMHO this looks wrong.  In 8BPP, length should be 8.
-- */
--static struct sa1100fb_rgb rgb_8 = {
-+static struct sa1100fb_rgb rgb_4 = {
- 	.red	= { .offset = 0,  .length = 4, },
- 	.green	= { .offset = 0,  .length = 4, },
- 	.blue	= { .offset = 0,  .length = 4, },
- 	.transp	= { .offset = 0,  .length = 0, },
- };
+ AMD MICROCODE UPDATE SUPPORT
+ P:      Andreas Herrmann
+-M:      andeas.herrmann3@amd.com
++M:      andreas.herrmann3@amd.com
+ L:      amd64-microcode@amd64.org
+ S:      Supported
  
-+static struct sa1100fb_rgb rgb_8 = {
-+	.red	= { .offset = 0,  .length = 8, },
-+	.green	= { .offset = 0,  .length = 8, },
-+	.blue	= { .offset = 0,  .length = 8, },
-+	.transp	= { .offset = 0,  .length = 0, },
-+};
-+
- static struct sa1100fb_rgb def_rgb_16 = {
- 	.red	= { .offset = 11, .length = 5, },
- 	.green	= { .offset = 5,  .length = 6, },
-@@ -613,7 +617,7 @@ sa1100fb_check_var(struct fb_var_screeni
- 	DPRINTK("var->bits_per_pixel=%d\n", var->bits_per_pixel);
- 	switch (var->bits_per_pixel) {
- 	case 4:
--		rgbidx = RGB_8;
-+		rgbidx = RGB_4;
- 		break;
- 	case 8:
- 		rgbidx = RGB_8;
-@@ -1382,6 +1386,7 @@ static struct sa1100fb_info * __init sa1
- 	fbi->fb.monspecs	= monspecs;
- 	fbi->fb.pseudo_palette	= (fbi + 1);
- 
-+	fbi->rgb[RGB_4]		= &rgb_4;
- 	fbi->rgb[RGB_8]		= &rgb_8;
- 	fbi->rgb[RGB_16]	= &def_rgb_16;
- 
-diff -puN drivers/video/sa1100fb.h~sa1100fb-fix-color-component-length-for-pseudocolor-modes drivers/video/sa1100fb.h
---- a/drivers/video/sa1100fb.h~sa1100fb-fix-color-component-length-for-pseudocolor-modes
-+++ a/drivers/video/sa1100fb.h
-@@ -57,9 +57,10 @@ struct sa1100fb_lcd_reg {
- 	unsigned long lccr3;
- };
- 
--#define RGB_8	(0)
--#define RGB_16	(1)
--#define NR_RGB	2
-+#define RGB_4	(0)
-+#define RGB_8	(1)
-+#define RGB_16	(2)
-+#define NR_RGB	3
- 
- struct sa1100fb_info {
- 	struct fb_info		fb;
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+origin.patch
+maintainers-fix-email-address.patch
 linux-next.patch
-fbdev-fix-color-component-field-length-documentation.patch
-uvesafb-fix-color-component-length-for-pseudocolor-modes.patch
-s3fb-fix-color-component-length-for-pseudocolor-modes.patch
-sa1100fb-fix-color-component-length-for-pseudocolor-modes.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
+qla2x-fix-printk-format-warnings.patch
+cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
+cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix-fix.patch
+alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization-fix.patch
+linuxpps-core-support.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
