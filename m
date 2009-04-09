@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-generated-logo-sources-depend-on-scripts-pnmtologo.patch added to -mm tree
-Date: Thu, 09 Apr 2009 14:05:52 -0700
-Message-ID: <200904092105.n39L5qwH025738@imap1.linux-foundation.org>
+Subject: + include-linux-fiemaph-include-typesh-now-that-its-exported.patch added to -mm tree
+Date: Thu, 09 Apr 2009 14:17:30 -0700
+Message-ID: <200904092117.n39LHUiS030744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762622AbZDIVIs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:08:48 -0400
+	by vger.kernel.org with ESMTP id S1755171AbZDIVUE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:20:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, Geert.Uytterhoeven@sonycom.com, krzysztof.h1@poczta.fm
+Cc: sandeen@redhat.com, sam@ravnborg.org
 
 
 The patch titled
-     fbdev: generated logo sources depend on scripts/pnmtologo
+     include/linux/fiemap.h: include types.h now that it's exported
 has been added to the -mm tree.  Its filename is
-     fbdev-generated-logo-sources-depend-on-scripts-pnmtologo.patch
+     include-linux-fiemaph-include-typesh-now-that-its-exported.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: generated logo sources depend on scripts/pnmtologo
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: include/linux/fiemap.h: include types.h now that it's exported
+From: Eric Sandeen <sandeen@redhat.com>
 
-The generated logo sources are not automatically regenerated if
-scripts/pnmtologo.c has changed. Add the missing dependency to fix this.
+Include <linux/types.h> in fiemap.h.  Sam Ravnborg pointed out that this
+was missing in this newly-exported header which uses the __u32 and __u64
+types.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Tested-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/logo/Makefile |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ include/linux/fiemap.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/logo/Makefile~fbdev-generated-logo-sources-depend-on-scripts-pnmtologo drivers/video/logo/Makefile
---- a/drivers/video/logo/Makefile~fbdev-generated-logo-sources-depend-on-scripts-pnmtologo
-+++ a/drivers/video/logo/Makefile
-@@ -37,22 +37,24 @@ extra-y += $(call logo-cfiles,_clut224,p
- # Gray 256
- extra-y += $(call logo-cfiles,_gray256,pgm)
+diff -puN include/linux/fiemap.h~include-linux-fiemaph-include-typesh-now-that-its-exported include/linux/fiemap.h
+--- a/include/linux/fiemap.h~include-linux-fiemaph-include-typesh-now-that-its-exported
++++ a/include/linux/fiemap.h
+@@ -11,6 +11,8 @@
+ #ifndef _LINUX_FIEMAP_H
+ #define _LINUX_FIEMAP_H
  
-+pnmtologo := scripts/pnmtologo
++#include <linux/types.h>
 +
- # Create commands like "pnmtologo -t mono -n logo_mac_mono -o ..."
- quiet_cmd_logo = LOGO    $@
--	cmd_logo = scripts/pnmtologo \
-+	cmd_logo = $(pnmtologo) \
- 			-t $(patsubst $*_%,%,$(notdir $(basename $<))) \
- 			-n $(notdir $(basename $<)) -o $@ $<
- 
--$(obj)/%_mono.c: $(src)/%_mono.pbm FORCE
-+$(obj)/%_mono.c: $(src)/%_mono.pbm $(pnmtologo) FORCE
- 	$(call if_changed,logo)
- 
--$(obj)/%_vga16.c: $(src)/%_vga16.ppm FORCE
-+$(obj)/%_vga16.c: $(src)/%_vga16.ppm $(pnmtologo) FORCE
- 	$(call if_changed,logo)
- 
--$(obj)/%_clut224.c: $(src)/%_clut224.ppm FORCE
-+$(obj)/%_clut224.c: $(src)/%_clut224.ppm $(pnmtologo) FORCE
- 	$(call if_changed,logo)
- 
--$(obj)/%_gray256.c: $(src)/%_gray256.pgm FORCE
-+$(obj)/%_gray256.c: $(src)/%_gray256.pgm $(pnmtologo) FORCE
- 	$(call if_changed,logo)
- 
- # Files generated that shall be removed upon make clean
+ struct fiemap_extent {
+ 	__u64 fe_logical;  /* logical offset in bytes for the start of
+ 			    * the extent from the beginning of the file */
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
-kernel-kallsymsc-replace-deprecated-__initcall-with-device_initcall-and-fix-whitespace.patch
-setlocalversion-use-git-svn-instead-of-git-svn.patch
-fbdev-generated-logo-sources-depend-on-scripts-pnmtologo.patch
-fbdev-move-logo-externs-to-header-file.patch
+include-linux-fiemaph-include-typesh-now-that-its-exported.patch
 
