@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-fix-division-by-zero.patch added to -mm tree
-Date: Thu, 09 Apr 2009 16:36:19 -0700
-Message-ID: <200904092336.n39NaJ6R025260@imap1.linux-foundation.org>
+Subject: + powerpc-allow-256kb-pages-with-shmem.patch added to -mm tree
+Date: Thu, 09 Apr 2009 16:36:23 -0700
+Message-ID: <200904092336.n39NaNLG025326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937376AbZDIXjb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 19:39:31 -0400
+	by vger.kernel.org with ESMTP id S1754017AbZDIXja (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 19:39:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yur@emcraft.com, hugh@veritas.com, paulus@samba.org
+Cc: hugh@veritas.com, paulus@samba.org, yur@emcraft.com
 
 
 The patch titled
-     shmem: fix division by zero
+     powerpc: allow 256kB pages with SHMEM
 has been added to the -mm tree.  Its filename is
-     shmem-fix-division-by-zero.patch
+     powerpc-allow-256kb-pages-with-shmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem: fix division by zero
-From: Yuri Tikhonov <yur@emcraft.com>
+Subject: powerpc: allow 256kB pages with SHMEM
+From: Hugh Dickins <hugh@veritas.com>
 
-Fix a division by zero which we have in shmem_truncate_range() and
-shmem_unuse_inode() when using big PAGE_SIZE values (e.g.  256kB on
-ppc44x).
+Now that shmem's divisions by zero and SHMEM_MAX_BYTES are fixed,
+let powerpc 256kB pages coexist with CONFIG_SHMEM again.
 
-With 256kB PAGE_SIZE, the ENTRIES_PER_PAGEPAGE constant becomes too large
-(0x1.0000.0000) on a 32-bit kernel, so this patch just changes its type
-from 'unsigned long' to 'unsigned long long'.
-
-Hugh: reverted its unsigned long longs in shmem_truncate_range() and
-shmem_getpage(): the pagecache index cannot be more than an unsigned long,
-so the divisions by zero occurred in unreached code.  It's a pity we need
-any ULL arithmetic here, but I found no pretty way to avoid it.
-
-Signed-off-by: Yuri Tikhonov <yur@emcraft.com>
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Yuri Tikhonov <yur@emcraft.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
+ arch/powerpc/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~shmem-fix-division-by-zero mm/shmem.c
---- a/mm/shmem.c~shmem-fix-division-by-zero
-+++ a/mm/shmem.c
-@@ -66,7 +66,7 @@ static struct vfsmount *shm_mnt;
- #include <asm/pgtable.h>
+diff -puN arch/powerpc/Kconfig~powerpc-allow-256kb-pages-with-shmem arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~powerpc-allow-256kb-pages-with-shmem
++++ a/arch/powerpc/Kconfig
+@@ -462,7 +462,7 @@ config PPC_64K_PAGES
  
- #define ENTRIES_PER_PAGE (PAGE_CACHE_SIZE/sizeof(unsigned long))
--#define ENTRIES_PER_PAGEPAGE (ENTRIES_PER_PAGE*ENTRIES_PER_PAGE)
-+#define ENTRIES_PER_PAGEPAGE ((unsigned long long)ENTRIES_PER_PAGE*ENTRIES_PER_PAGE)
- #define BLOCKS_PER_PAGE  (PAGE_CACHE_SIZE/512)
+ config PPC_256K_PAGES
+ 	bool "256k page size" if 44x
+-	depends on !STDBINUTILS && (!SHMEM || BROKEN)
++	depends on !STDBINUTILS
+ 	help
+ 	  Make the page size 256k.
  
- #define SHMEM_MAX_INDEX  (SHMEM_NR_DIRECT + (ENTRIES_PER_PAGEPAGE/2) * (ENTRIES_PER_PAGE+1))
 _
 
-Patches currently in -mm which might be from yur@emcraft.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
+clocksource-pass-clocksource-to-read-callback.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
 shmem-fix-division-by-zero.patch
 shmem-respect-max_lfs_filesize.patch
 powerpc-allow-256kb-pages-with-shmem.patch
+mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
+getrusage-fill-ru_maxrss-value.patch
+prio_tree-debugging-patch.patch
 
