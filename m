@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch added to -mm tree
-Date: Thu, 09 Apr 2009 14:25:58 -0700
-Message-ID: <200904092125.n39LPwE7001870@imap1.linux-foundation.org>
+Subject: + update-nsigtrap-in-asm-generic-siginfoh.patch added to -mm tree
+Date: Thu, 09 Apr 2009 14:29:56 -0700
+Message-ID: <200904092129.n39LTuOC003649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37266 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934556AbZDIV23 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:28:29 -0400
+	by vger.kernel.org with ESMTP id S1755479AbZDIVcf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2009 17:32:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca, avi@redhat.com
+Cc: andi@firstfloor.org, ak@linux.intel.com, srinivasa@in.ibm.com
 
 
 The patch titled
-     kvm: expand on "help" info to specify kvm intel and amd module names
+     asm-generic/siginfo.h: update NSIGTRAP definition
 has been added to the -mm tree.  Its filename is
-     kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch
+     update-nsigtrap-in-asm-generic-siginfoh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm: expand on "help" info to specify kvm intel and amd module names
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: asm-generic/siginfo.h: update NSIGTRAP definition
+From: Andi Kleen <andi@firstfloor.org>
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: Avi Kivity <avi@redhat.com>
+Impact: (nearly) trivial
+
+The patch
+
+commit da654b74bda14c45a7d98c731bf3c1a43b6b74e2
+Author: Srinivasa Ds <srinivasa@in.ibm.com>
+Date:   Tue Sep 23 15:23:52 2008 +0530
+
+    signals: demultiplexing SIGTRAP signal
+
+forgot to update the NSIGTRAP define in asm-generic/siginfo.h to the new
+number of sigtrap subcodes.  Nothing in the tree seems to use it, but
+presumably something in user space might.  So update it.
+
+Cc: Srinivasa Ds <srinivasa@in.ibm.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/Kconfig |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/asm-generic/siginfo.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kvm/Kconfig~kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names arch/x86/kvm/Kconfig
---- a/arch/x86/kvm/Kconfig~kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names
-+++ a/arch/x86/kvm/Kconfig
-@@ -50,6 +50,9 @@ config KVM_INTEL
- 	  Provides support for KVM on Intel processors equipped with the VT
- 	  extensions.
+diff -puN include/asm-generic/siginfo.h~update-nsigtrap-in-asm-generic-siginfoh include/asm-generic/siginfo.h
+--- a/include/asm-generic/siginfo.h~update-nsigtrap-in-asm-generic-siginfoh
++++ a/include/asm-generic/siginfo.h
+@@ -201,7 +201,7 @@ typedef struct siginfo {
+ #define TRAP_TRACE	(__SI_FAULT|2)	/* process trace trap */
+ #define TRAP_BRANCH     (__SI_FAULT|3)  /* process taken branch trap */
+ #define TRAP_HWBKPT     (__SI_FAULT|4)  /* hardware breakpoint/watchpoint */
+-#define NSIGTRAP	2
++#define NSIGTRAP	4
  
-+	  To compile this as a module, choose M here: the module
-+	  will be called kvm-intel.
-+
- config KVM_AMD
- 	tristate "KVM for AMD processors support"
- 	depends on KVM
-@@ -57,6 +60,9 @@ config KVM_AMD
- 	  Provides support for KVM on AMD processors equipped with the AMD-V
- 	  (SVM) extensions.
- 
-+	  To compile this as a module, choose M here: the module
-+	  will be called kvm-amd.
-+
- config KVM_TRACE
- 	bool "KVM trace support"
- 	depends on KVM && SYSFS
+ /*
+  * SIGCHLD si_codes
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
-kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch
+x86-simplify-highmem-related-kconfig-entries.patch
+update-nsigtrap-in-asm-generic-siginfoh.patch
 
