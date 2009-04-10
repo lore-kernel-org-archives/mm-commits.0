@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ncpfs-use-memdup_user.patch added to -mm tree
-Date: Thu, 09 Apr 2009 22:35:44 -0700
-Message-ID: <200904100535.n3A5ZifC015144@imap1.linux-foundation.org>
+Subject: + xattr-use-memdup_user.patch added to -mm tree
+Date: Thu, 09 Apr 2009 22:35:36 -0700
+Message-ID: <200904100535.n3A5ZanB015088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57827 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45350 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935931AbZDJFhm (ORCPT
+	by vger.kernel.org with ESMTP id S1758899AbZDJFi3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 01:37:42 -0400
+	Fri, 10 Apr 2009 01:38:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, petr@vandrovec.name
+Cc: lizf@cn.fujitsu.com, agruen@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ncpfs: use memdup_user()
+     xattr: use memdup_user()
 has been added to the -mm tree.  Its filename is
-     ncpfs-use-memdup_user.patch
+     xattr-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ncpfs: use memdup_user()
+Subject: xattr: use memdup_user()
 From: Li Zefan <lizf@cn.fujitsu.com>
 
 Remove open-coded memdup_user().
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Petr Vandrovec <petr@vandrovec.name>
+Cc: Andreas Gruenbacher <agruen@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ fs/xattr.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN fs/ncpfs/ioctl.c~ncpfs-use-memdup_user fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~ncpfs-use-memdup_user
-+++ a/fs/ncpfs/ioctl.c
-@@ -660,13 +660,10 @@ outrel:			
- 			if (user.object_name_len > NCP_OBJECT_NAME_MAX_LEN)
- 				return -ENOMEM;
- 			if (user.object_name_len) {
--				newname = kmalloc(user.object_name_len, GFP_USER);
--				if (!newname)
--					return -ENOMEM;
--				if (copy_from_user(newname, user.object_name, user.object_name_len)) {
--					kfree(newname);
--					return -EFAULT;
--				}
-+				newname = memdup_user(user.object_name,
-+						      user.object_name_len);
-+				if (IS_ERR(newname))
-+					return PTR_ERR(newname);
- 			} else {
- 				newname = NULL;
- 			}
-@@ -760,13 +757,9 @@ outrel:			
- 			if (user.len > NCP_PRIVATE_DATA_MAX_LEN)
- 				return -ENOMEM;
- 			if (user.len) {
--				new = kmalloc(user.len, GFP_USER);
--				if (!new)
--					return -ENOMEM;
--				if (copy_from_user(new, user.data, user.len)) {
--					kfree(new);
--					return -EFAULT;
--				}
-+				new = memdup_user(user.data, user.len);
-+				if (IS_ERR(new))
-+					return PTR_ERR(new);
- 			} else {
- 				new = NULL;
- 			}
+diff -puN fs/xattr.c~xattr-use-memdup_user fs/xattr.c
+--- a/fs/xattr.c~xattr-use-memdup_user
++++ a/fs/xattr.c
+@@ -237,13 +237,9 @@ setxattr(struct dentry *d, const char __
+ 	if (size) {
+ 		if (size > XATTR_SIZE_MAX)
+ 			return -E2BIG;
+-		kvalue = kmalloc(size, GFP_KERNEL);
+-		if (!kvalue)
+-			return -ENOMEM;
+-		if (copy_from_user(kvalue, value, size)) {
+-			kfree(kvalue);
+-			return -EFAULT;
+-		}
++		kvalue = memdup_user(value, size);
++		if (IS_ERR(kvalue))
++			return PTR_ERR(kvalue);
+ 	}
+ 
+ 	error = vfs_setxattr(d, kname, kvalue, size, flags);
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
