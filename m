@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch added to -mm tree
-Date: Fri, 10 Apr 2009 14:56:22 -0700
-Message-ID: <200904102156.n3ALuNJF010183@imap1.linux-foundation.org>
+Subject: + mtd-update-sysfs-documentation.patch added to -mm tree
+Date: Fri, 10 Apr 2009 15:06:25 -0700
+Message-ID: <200904102206.n3AM6PL2014452@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752051AbZDJV7T (ORCPT
+	by vger.kernel.org with ESMTP id S1752051AbZDJWI1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 17:59:19 -0400
+	Fri, 10 Apr 2009 18:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, ebiederm@xmission.com
+Cc: kpc.mtd@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     procfs: make errno values consistent when open pident vs exit(2) race occurs
+     mtd: update sysfs documentation
 has been added to the -mm tree.  Its filename is
-     procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+     mtd-update-sysfs-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,152 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: make errno values consistent when open pident vs exit(2) race occurs
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mtd: update sysfs documentation
+From: Kevin Cernekee <kpc.mtd@gmail.com>
 
-proc_pident_instantiate() has following call flow.
-
-proc_pident_lookup()
-  proc_pident_instantiate()
-    proc_pid_make_inode()
-
-And, proc_pident_lookup() has following error handling.
-
-	const struct pid_entry *p, *last;
-	error = ERR_PTR(-ENOENT);
-	if (!task)
-		goto out_no_task;
-
-Then, proc_pident_instantiate should return ENOENT too when racing against
-exit(2) occur.
-
-EINAL has two bad reason.
-  - it implies caller is wrong. bad the race isn't caller's mistake.
-  - man 2 open don't explain EINVAL. user often don't handle it.
-
-Note: Other proc_pid_make_inode() caller already use ENOENT properly.
-
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Kevin Cernekee <kpc.mtd@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-class-mtd |  125 ++++++++++++++++++++
+ 1 file changed, 125 insertions(+)
 
-diff -puN fs/proc/base.c~procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs fs/proc/base.c
---- a/fs/proc/base.c~procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs
-+++ a/fs/proc/base.c
-@@ -1953,7 +1953,7 @@ static struct dentry *proc_pident_instan
- 	const struct pid_entry *p = ptr;
- 	struct inode *inode;
- 	struct proc_inode *ei;
--	struct dentry *error = ERR_PTR(-EINVAL);
-+	struct dentry *error = ERR_PTR(-ENOENT);
- 
- 	inode = proc_pid_make_inode(dir->i_sb, task);
- 	if (!inode)
+diff -puN /dev/null Documentation/ABI/testing/sysfs-class-mtd
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-class-mtd
+@@ -0,0 +1,125 @@
++What:		/sys/class/mtd/
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		The mtd/ class subdirectory belongs to the MTD subsystem
++		(MTD core).
++
++What:		/sys/class/mtd/mtdX/
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		The /sys/class/mtd/mtd{0,1,2,3,...} directories correspond
++		to each /dev/mtdX character device.  These may represent
++		physical/simulated flash devices, partitions on a flash
++		device, or concatenated flash devices.  They exist regardless
++		of whether CONFIG_MTD_CHAR is actually enabled.
++
++What:		/sys/class/mtd/mtdXro/
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		These directories provide the corresponding read-only device
++		nodes for /sys/class/mtd/mtdX/ .  They are only created
++		(for the benefit of udev) if CONFIG_MTD_CHAR is enabled.
++
++What:		/sys/class/mtd/mtdX/dev
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		Major and minor numbers of the character device corresponding
++		to this MTD device (in <major>:<minor> format).  This is the
++		read-write device so <minor> will be even.
++
++What:		/sys/class/mtd/mtdXro/dev
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		Major and minor numbers of the character device corresponding
++		to the read-only variant of thie MTD device (in
++		<major>:<minor> format).  In this case <minor> will be odd.
++
++What:		/sys/class/mtd/mtdX/erasesize
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		"Major" erase size for the device.  If numeraseregions is
++		zero, this is the eraseblock size for the entire device.
++		Otherwise, the MEMGETREGIONCOUNT/MEMGETREGIONINFO ioctls
++		can be used to determine the actual eraseblock layout.
++
++What:		/sys/class/mtd/mtdX/flags
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		A hexadecimal value representing the device flags, ORed
++		together:
++
++		0x0400: MTD_WRITEABLE - device is writable
++		0x0800: MTD_BIT_WRITEABLE - single bits can be flipped
++		0x1000: MTD_NO_ERASE - no erase necessary
++		0x2000: MTD_POWERUP_LOCK - always locked after reset
++
++What:		/sys/class/mtd/mtdX/name
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		A human-readable ASCII name for the device or partition.
++		This will match the name in /proc/mtd .
++
++What:		/sys/class/mtd/mtdX/numeraseregions
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		For devices that have variable eraseblock sizes, this
++		provides the total number of erase regions.  Otherwise,
++		it will read back as zero.
++
++What:		/sys/class/mtd/mtdX/oobsize
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		Number of OOB bytes per page.
++
++What:		/sys/class/mtd/mtdX/size
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		Total size of the device/partition, in bytes.
++
++What:		/sys/class/mtd/mtdX/type
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		One of the following ASCII strings, representing the device
++		type:
++
++		absent, ram, rom, nor, nand, dataflash, ubi, unknown
++
++What:		/sys/class/mtd/mtdX/writesize
++Date:		April 2009
++KernelVersion:	2.6.29
++Contact:	linux-mtd@lists.infradead.org
++Description:
++		Minimal writable flash unit size.  This will always be
++		a positive integer.
++
++		In the case of NOR flash it is 1 (even though individual
++		bits can be cleared).
++
++		In the case of NAND flash it is one NAND page (or a
++		half page, or a quarter page).
++
++		In the case of ECC NOR, it is the ECC block size.
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from kpc.mtd@gmail.com are
 
-origin.patch
-mm-point-the-unevictable_lru-config-option-at-the-documentation.patch
-mm-reformat-the-unevictable-lru-documentation.patch
-procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
-mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+mtd-update-sysfs-documentation.patch
+mtd-add-memerase64-ioctl-for-4gib-devices.patch
+mtd-compat_ioctl-cleanup.patch
+mtd-add-oob-ioctls-for-4gib-devices.patch
 
