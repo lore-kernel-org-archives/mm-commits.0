@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch added to -mm tree
-Date: Fri, 10 Apr 2009 16:39:06 -0700
-Message-ID: <200904102339.n3ANd6wR021102@imap1.linux-foundation.org>
+Subject: + readahead-remove-one-unnecessary-radix-tree-lookup.patch added to -mm tree
+Date: Fri, 10 Apr 2009 16:39:10 -0700
+Message-ID: <200904102339.n3ANdAG3021164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33553 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753824AbZDJXls (ORCPT
+	by vger.kernel.org with ESMTP id S1753210AbZDJXlx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 19:41:48 -0400
+	Fri, 10 Apr 2009 19:41:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, npiggin@suse.de, torvalds@linux-foundation.org, yinghan@google.com
+Cc: fengguang.wu@intel.com, xcf@ustc.edu.cn, yinghan@google.com
 
 
 The patch titled
-     readahead: move max_sane_readahead() calls into force_page_cache_readahead()
+     readahead: remove one unnecessary radix tree lookup
 has been added to the -mm tree.  Its filename is
-     readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
+     readahead-remove-one-unnecessary-radix-tree-lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: move max_sane_readahead() calls into force_page_cache_readahead()
+Subject: readahead: remove one unnecessary radix tree lookup
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Impact: code simplification.
+(hit_readahead_marker != 0) means the page at @offset is present, so we
+can search for non-present page starting from @offset+1.
 
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Reported-by: Xu Chenfeng <xcf@ustc.edu.cn>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c   |    2 +-
- mm/filemap.c   |    3 +--
- mm/madvise.c   |    3 +--
- mm/readahead.c |    1 +
- 4 files changed, 4 insertions(+), 5 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/fadvise.c~readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead mm/fadvise.c
---- a/mm/fadvise.c~readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead
-+++ a/mm/fadvise.c
-@@ -101,7 +101,7 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, lof
- 		
- 		ret = force_page_cache_readahead(mapping, file,
- 				start_index,
--				max_sane_readahead(nrpages));
-+				nrpages);
- 		if (ret > 0)
- 			ret = 0;
- 		break;
-diff -puN mm/filemap.c~readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead mm/filemap.c
---- a/mm/filemap.c~readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead
-+++ a/mm/filemap.c
-@@ -1389,8 +1389,7 @@ do_readahead(struct address_space *mappi
- 	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
- 		return -EINVAL;
- 
--	force_page_cache_readahead(mapping, filp, index,
--					max_sane_readahead(nr));
-+	force_page_cache_readahead(mapping, filp, index, nr);
- 	return 0;
- }
- 
-diff -puN mm/madvise.c~readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead mm/madvise.c
---- a/mm/madvise.c~readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead
-+++ a/mm/madvise.c
-@@ -123,8 +123,7 @@ static long madvise_willneed(struct vm_a
- 		end = vma->vm_end;
- 	end = ((end - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
- 
--	force_page_cache_readahead(file->f_mapping,
--			file, start, max_sane_readahead(end - start));
-+	force_page_cache_readahead(file->f_mapping, file, start, end - start);
- 	return 0;
- }
- 
-diff -puN mm/readahead.c~readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead mm/readahead.c
---- a/mm/readahead.c~readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead
+diff -puN mm/readahead.c~readahead-remove-one-unnecessary-radix-tree-lookup mm/readahead.c
+--- a/mm/readahead.c~readahead-remove-one-unnecessary-radix-tree-lookup
 +++ a/mm/readahead.c
-@@ -210,6 +210,7 @@ int force_page_cache_readahead(struct ad
- 	if (unlikely(!mapping->a_ops->readpage && !mapping->a_ops->readpages))
- 		return -EINVAL;
+@@ -395,7 +395,7 @@ ondemand_readahead(struct address_space 
+ 		pgoff_t start;
  
-+	nr_to_read = max_sane_readahead(nr_to_read);
- 	while (nr_to_read) {
- 		int err;
+ 		rcu_read_lock();
+-		start = radix_tree_next_hole(&mapping->page_tree, offset,max+1);
++		start = radix_tree_next_hole(&mapping->page_tree, offset+1,max);
+ 		rcu_read_unlock();
  
+ 		if (!start || start - offset > max)
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
