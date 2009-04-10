@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dynamic-debug-remove-pr_fmt-from-dynamic_dev_dbg-printk.patch added to -mm tree
-Date: Fri, 10 Apr 2009 14:42:35 -0700
-Message-ID: <200904102142.n3ALgZvg004325@imap1.linux-foundation.org>
+Subject: + ata-fix-obviously-wrong-comment.patch added to -mm tree
+Date: Fri, 10 Apr 2009 14:43:13 -0700
+Message-ID: <200904102143.n3ALhD0q004615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41124 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753181AbZDJVpN (ORCPT
+	by vger.kernel.org with ESMTP id S1753941AbZDJVqK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 17:45:13 -0400
+	Fri, 10 Apr 2009 17:46:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbaron@redhat.com, gnb@sgi.com, greg@kroah.com
+Cc: vegard.nossum@gmail.com, arjan@linux.intel.com, jgarzik@redhat.com
 
 
 The patch titled
-     dynamic debug: remove pr_fmt() from dynamic_dev_dbg() printk
+     ata: fix obviously wrong comment
 has been added to the -mm tree.  Its filename is
-     dynamic-debug-remove-pr_fmt-from-dynamic_dev_dbg-printk.patch
+     ata-fix-obviously-wrong-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dynamic debug: remove pr_fmt() from dynamic_dev_dbg() printk
-From: Jason Baron <jbaron@redhat.com>
+Subject: ata: fix obviously wrong comment
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-When pr_fmt() was added to the pr_debug() code, we added it not only to
-the dynamic_pr_debug() function, but also to the dynamic_dev_dbg()
-funciton.  However, dev_dbg() doesn't make use of pr_fmt(), so neither
-should dynamic_dev_dbg().
+Also remove the now-useless debug printouts which are supposed to tell us
+when the scan starts and ends.
 
-Signed-off-by: Jason Baron <jbaron@redhat.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Greg Banks <gnb@sgi.com>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dynamic_debug.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/libata-core.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/dynamic_debug.h~dynamic-debug-remove-pr_fmt-from-dynamic_dev_dbg-printk include/linux/dynamic_debug.h
---- a/include/linux/dynamic_debug.h~dynamic-debug-remove-pr_fmt-from-dynamic_dev_dbg-printk
-+++ a/include/linux/dynamic_debug.h
-@@ -70,7 +70,7 @@ extern int ddebug_remove_module(char *mo
- 		DEBUG_HASH2, __LINE__, _DPRINTK_FLAGS_DEFAULT };	\
- 	if (__dynamic_dbg_enabled(descriptor))				\
- 			dev_printk(KERN_DEBUG, dev,			\
--					KBUILD_MODNAME ": " pr_fmt(fmt),\
-+					KBUILD_MODNAME ": " fmt,	\
- 					##__VA_ARGS__);			\
- 	} while (0)
+diff -puN drivers/ata/libata-core.c~ata-fix-obviously-wrong-comment drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~ata-fix-obviously-wrong-comment
++++ a/drivers/ata/libata-core.c
+@@ -6121,13 +6121,11 @@ int ata_host_register(struct ata_host *h
+ 			ata_port_printk(ap, KERN_INFO, "DUMMY\n");
+ 	}
  
+-	/* perform each probe synchronously */
+-	DPRINTK("probe begin\n");
++	/* perform each probe asynchronously */
+ 	for (i = 0; i < host->n_ports; i++) {
+ 		struct ata_port *ap = host->ports[i];
+ 		async_schedule(async_port_probe, ap);
+ 	}
+-	DPRINTK("probe end\n");
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from jbaron@redhat.com are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
 origin.patch
-dynamic-debug-resurrect-old-pr_debug-semantics-as-pr_devel.patch
-dynamic-debug-remove-pr_fmt-from-dynamic_dev_dbg-printk.patch
+ata-fix-obviously-wrong-comment.patch
 
