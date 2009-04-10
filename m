@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-consolidate-init_mm-definition-fix.patch added to -mm tree
-Date: Thu, 09 Apr 2009 21:40:52 -0700
-Message-ID: <200904100440.n3A4eqpT024423@imap1.linux-foundation.org>
+Subject: + jbd-update-locking-coments.patch added to -mm tree
+Date: Thu, 09 Apr 2009 21:41:54 -0700
+Message-ID: <200904100441.n3A4fspd024831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751996AbZDJEnO (ORCPT
+	by vger.kernel.org with ESMTP id S1753412AbZDJEnm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 00:43:14 -0400
+	Fri, 10 Apr 2009 00:43:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, vapier.adi@gmail.com, xiyou.wangcong@gmail.com
+Cc: jack@suse.cz, tammy000@gmail.com
 
 
 The patch titled
-     mm-consolidate-init_mm-definition-fix
+     jbd: update locking coments
 has been added to the -mm tree.  Its filename is
-     mm-consolidate-init_mm-definition-fix.patch
+     jbd-update-locking-coments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-consolidate-init_mm-definition-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: jbd: update locking coments
+From: Jan Kara <jack@suse.cz>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Americo Wang <xiyou.wangcong@gmail.com>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
+Update information about locking in JBD revoke code.
+
+Reported-by: Lin Tan <tammy000@gmail.com>.
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/init-mm.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/jbd/revoke.c |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN mm/init-mm.c~mm-consolidate-init_mm-definition-fix mm/init-mm.c
---- a/mm/init-mm.c~mm-consolidate-init_mm-definition-fix
-+++ a/mm/init-mm.c
-@@ -1,4 +1,11 @@
- #include <linux/mm_types.h>
-+#include <linux/rbtree.h>
-+#include <linux/rwsem.h>
-+#include <linux/spinlock.h>
-+#include <linux/list.h>
-+#include <linux/cpumask.h>
-+
-+#include <asm/atomic.h>
- #include <asm/pgtable.h>
+diff -puN fs/jbd/revoke.c~jbd-update-locking-coments fs/jbd/revoke.c
+--- a/fs/jbd/revoke.c~jbd-update-locking-coments
++++ a/fs/jbd/revoke.c
+@@ -55,6 +55,25 @@
+  *			need do nothing.
+  * RevokeValid set, Revoked set:
+  *			buffer has been revoked.
++ *
++ * Locking rules:
++ * We keep two hash tables of revoke records. One hashtable belongs to the
++ * running transaction (is pointed to by journal->j_revoke), the other one
++ * belongs to the committing transaction. Accesses to the second hash table
++ * happen only from the kjournald and no other thread touches this table.  Also
++ * journal_switch_revoke_table() which switches which hashtable belongs to the
++ * running and which to the committing transaction is called only from
++ * kjournald. Therefore we need no locks when accessing the hashtable belonging
++ * to the committing transaction.
++ *
++ * All users operating on the hash table belonging to the running transaction
++ * have a handle to the transaction. Therefore they are safe from kjournald
++ * switching hash tables under them. For operations on the lists of entries in
++ * the hash table j_revoke_lock is used.
++ *
++ * Finally, also replay code uses the hash tables but at this moment noone else
++ * can touch them (filesystem isn't mounted yet) and hence no locking is
++ * needed.
+  */
  
- struct mm_struct init_mm = {
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-hfs-fix-memory-leak-when-unmounting-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-mm-consolidate-init_mm-definition-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-flat-fix-data-sections-alignment.patch
-radeonfb-backlight-shutoff-flashes-momentarily-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-
+ #ifndef __KERNEL__
+@@ -402,8 +421,6 @@ int journal_revoke(handle_t *handle, uns
+  * the second time we would still have a pending revoke to cancel.  So,
+  * do not trust the Revoked bit on buffers unless RevokeValid is also
+  * set.
+- *
+- * The caller must have the journal locked.
+  */
+ int journal_cancel_revoke(handle_t *handle, struct journal_head *jh)
+ {
+@@ -481,10 +498,7 @@ void journal_switch_revoke_table(journal
+ /*
+  * Write revoke records to the journal for all entries in the current
+  * revoke hash, deleting the entries as we go.
+- *
+- * Called with the journal lock held.
+  */
