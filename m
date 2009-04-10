@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-sequential-mmap-readahead.patch added to -mm tree
-Date: Fri, 10 Apr 2009 16:39:20 -0700
-Message-ID: <200904102339.n3ANdL0L021316@imap1.linux-foundation.org>
+Subject: + readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch added to -mm tree
+Date: Fri, 10 Apr 2009 16:39:24 -0700
+Message-ID: <200904102339.n3ANdOjI021319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753062AbZDJXmU (ORCPT
+	by vger.kernel.org with ESMTP id S1753418AbZDJXmS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 19:42:20 -0400
+	Fri, 10 Apr 2009 19:42:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, npiggin@suse.de, torvalds@linux-foundation.org, ying
 
 
 The patch titled
-     readahead: sequential mmap readahead
+     readahead: enforce full readahead size on async mmap readahead
 has been added to the -mm tree.  Its filename is
-     readahead-sequential-mmap-readahead.patch
+     readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: sequential mmap readahead
+Subject: readahead: enforce full readahead size on async mmap readahead
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Auto-detect sequential mmap reads and do readahead for them.
+We need this in one particular case and two more general ones.
 
-The sequential mmap readahead will be triggered when
-- sync readahead: it's a major fault and (prev_offset == offset-1);
-- async readahead: minor fault on PG_readahead page with valid readahead state.
+Now we do async readahead for sequential mmap reads, and do it with the
+help of PG_readahead.  For normal reads, PG_readahead is the sufficient
+condition to do a sequential readahead.  But unfortunately, for mmap
+reads, there is a tiny nuisance:
 
-The benefits of doing readahead instead of read-around:
-- less I/O wait thanks to async readahead
-- double real I/O size and no more cache hits
+[11736.998347] readahead-init0(process: sh/23926, file: sda1/w3m, offset=0:4503599627370495, ra=0+4-3) = 4
+[11737.014985] readahead-around(process: w3m/23926, file: sda1/w3m, offset=0:0, ra=290+32-0) = 17
+[11737.019488] readahead-around(process: w3m/23926, file: sda1/w3m, offset=0:0, ra=118+32-0) = 32
+[11737.024921] readahead-interleaved(process: w3m/23926, file: sda1/w3m, offset=0:2, ra=4+6-6) = 6
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 ~~~~~~~~~~~~~
 
-The single stream case is improved a little.
-For 100,000 sequential mmap reads:
+An unfavorably small readahead.  The original dumb read-around size could
+be more efficient.
 
-                                    user       system    cpu        total
-(1-1)  plain -mm, 128KB readaround: 3.224      2.554     48.40%     11.838
-(1-2)  plain -mm, 256KB readaround: 3.170      2.392     46.20%     11.976
-(2)  patched -mm, 128KB readahead:  3.117      2.448     47.33%     11.607
+That happened because ld-linux.so does a read(832) in L1 before mmap(),
+which triggers a 4-page readahead, with the second page tagged
+PG_readahead.
 
-The patched (2) has smallest total time, since it has no cache hit overheads
-and less I/O block time(thanks to async readahead). Here the I/O size
-makes no much difference, since there's only one single stream.
+L0: open("/lib/libc.so.6", O_RDONLY)        = 3
+L1: read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\340\342"..., 832) = 832
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+L2: fstat(3, {st_mode=S_IFREG|0755, st_size=1420624, ...}) = 0
+L3: mmap(NULL, 3527256, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fac6e51d000
+L4: mprotect(0x7fac6e671000, 2097152, PROT_NONE) = 0
+L5: mmap(0x7fac6e871000, 20480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x154000) = 0x7fac6e871000
+L6: mmap(0x7fac6e876000, 16984, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fac6e876000
+L7: close(3)                                = 0
 
-Note that (1-1)'s real I/O size is 64KB and (1-2)'s real I/O size is 128KB,
-since the half of the read-around pages will be readahead cache hits.
+In general, the PG_readahead flag will also be hit in cases
 
-This is going to make _real_ differences for _concurrent_ IO streams.
+- sequential reads
 
-Cc: Nick Piggin <npiggin@suse.de>
+- clustered random reads
+
+A full readahead size is desirable in both cases.
+
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -74,19 +85,19 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/filemap.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~readahead-sequential-mmap-readahead mm/filemap.c
---- a/mm/filemap.c~readahead-sequential-mmap-readahead
+diff -puN mm/filemap.c~readahead-enforce-full-readahead-size-on-async-mmap-readahead mm/filemap.c
+--- a/mm/filemap.c~readahead-enforce-full-readahead-size-on-async-mmap-readahead
 +++ a/mm/filemap.c
-@@ -1471,7 +1471,8 @@ static void do_sync_mmap_readahead(struc
- 	if (VM_RandomReadHint(vma))
- 		return;
+@@ -1515,7 +1515,8 @@ static void do_async_mmap_readahead(stru
+ 	if (ra->mmap_miss > 0)
+ 		ra->mmap_miss--;
+ 	if (PageReadahead(page))
+-		page_cache_async_readahead(mapping, ra, file, page, offset, 1);
++		page_cache_async_readahead(mapping, ra, file,
++					   page, offset, ra->ra_pages);
+ }
  
--	if (VM_SequentialReadHint(vma)) {
-+	if (VM_SequentialReadHint(vma) ||
-+			offset - 1 == (ra->prev_pos >> PAGE_CACHE_SHIFT)) {
- 		page_cache_sync_readahead(mapping, ra, file, offset, 1);
- 		return;
- 	}
+ /**
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
