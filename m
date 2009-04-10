@@ -1,83 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] timers-add-missing-kernel-doc.patch removed from -mm tree
-Date: Fri, 10 Apr 2009 13:09:24 -0700
-Message-ID: <200904102009.n3AK9OZW029845@imap1.linux-foundation.org>
+Subject: [to-be-updated] rtc-add-x86-support-for-rtc-efi.patch removed from -mm tree
+Date: Fri, 10 Apr 2009 13:52:13 -0700
+Message-ID: <200904102052.n3AKqEEa015518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48883 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33854 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756516AbZDJUNo (ORCPT
+	by vger.kernel.org with ESMTP id S1750736AbZDJU6v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 16:13:44 -0400
+	Fri, 10 Apr 2009 16:58:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, johannes@sipsolutions.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: bmaly@redhat.com, a.zummo@towertech.it, dannf@hp.com, david-b@pacbell.net, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timers: add missing kernel-doc
+     rtc: add x86 support for rtc-efi
 has been removed from the -mm tree.  Its filename was
-     timers-add-missing-kernel-doc.patch
+     rtc-add-x86-support-for-rtc-efi.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timers: add missing kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: rtc: add x86 support for rtc-efi
+From: Brian Maly <bmaly@redhat.com>
 
-Add missing kernel-doc parameter notation and change function name to its
-new name:
+Add support for rtc-efi (RTC Class Driver for EFI-based systems) to x86.
 
-Warning(kernel/timer.c:543): No description found for parameter 'name'
-Warning(kernel/timer.c:543): No description found for parameter 'key'
+This patch has been tested and works perfectly on every x86 EFI system I
+could find, though all have been EL64 systems.  I would appreciate any
+testing feedback from EL32 systems from anyone that has one and can test.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Brian Maly <bmaly@redhat.com>
+Acked-by: dann frazier <dannf@hp.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/x86/kernel/time_32.c |   19 +++++++++++++++++++
+ arch/x86/kernel/time_64.c |   18 ++++++++++++++++++
+ drivers/rtc/Kconfig       |    2 +-
+ 3 files changed, 38 insertions(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~timers-add-missing-kernel-doc kernel/timer.c
---- a/kernel/timer.c~timers-add-missing-kernel-doc
-+++ a/kernel/timer.c
-@@ -531,10 +531,13 @@ static void __init_timer(struct timer_li
- }
+diff -puN arch/x86/kernel/time_32.c~rtc-add-x86-support-for-rtc-efi arch/x86/kernel/time_32.c
+--- a/arch/x86/kernel/time_32.c~rtc-add-x86-support-for-rtc-efi
++++ a/arch/x86/kernel/time_32.c
+@@ -32,6 +32,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/time.h>
+ #include <linux/mca.h>
++#include <linux/platform_device.h>
  
- /**
-- * init_timer - initialize a timer.
-+ * init_timer_key - initialize a timer
-  * @timer: the timer to be initialized
-+ * @name: name of the timer
-+ * @key: lockdep class key of the fake lock used for tracking timer
-+ *       sync lock dependencies
-  *
-- * init_timer() must be done to a timer prior calling *any* of the
-+ * init_timer_key() must be done to a timer prior calling *any* of the
-  * other timer functions.
-  */
- void init_timer_key(struct timer_list *timer,
+ #include <asm/setup.h>
+ #include <asm/hpet.h>
+@@ -135,3 +136,21 @@ void __init time_init(void)
+ 	tsc_init();
+ 	late_time_init = choose_time_init();
+ }
++
++
++#ifdef CONFIG_RTC_DRV_EFI
++static struct platform_device rtc_efi_dev = {
++	.name = "rtc-efi",
++	.id = -1,
++};
++
++static int __init rtc_init(void)
++{
++	if (platform_device_register(&rtc_efi_dev) < 0)
++		printk(KERN_ERR "unable to register rtc device...\n");
++
++	/* not necessarily an error */
++	return 0;
++}
++module_init(rtc_init);
++#endif
+diff -puN arch/x86/kernel/time_64.c~rtc-add-x86-support-for-rtc-efi arch/x86/kernel/time_64.c
+--- a/arch/x86/kernel/time_64.c~rtc-add-x86-support-for-rtc-efi
++++ a/arch/x86/kernel/time_64.c
+@@ -18,6 +18,7 @@
+ #include <linux/time.h>
+ #include <linux/mca.h>
+ #include <linux/nmi.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/i8253.h>
+ #include <asm/hpet.h>
+@@ -133,3 +134,20 @@ void __init time_init(void)
+ 
+ 	late_time_init = choose_time_init();
+ }
++
++#ifdef CONFIG_RTC_DRV_EFI
++static struct platform_device rtc_efi_dev = {
++	.name = "rtc-efi",
++	.id = -1,
++};
++
++static int __init rtc_init(void)
++{
++	if (platform_device_register(&rtc_efi_dev) < 0)
++		printk(KERN_ERR "unable to register rtc device...\n");
++
++	/* not necessarily an error */
++	return 0;
++}
++module_init(rtc_init);
++#endif
+diff -puN drivers/rtc/Kconfig~rtc-add-x86-support-for-rtc-efi drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-x86-support-for-rtc-efi
++++ a/drivers/rtc/Kconfig
+@@ -455,7 +455,7 @@ config RTC_DRV_DS1742
+ 
+ config RTC_DRV_EFI
+ 	tristate "EFI RTC"
+-	depends on IA64
++	depends on EFI
+ 	help
+ 	  If you say yes here you will get support for the EFI
+ 	  Real Time Clock.
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bmaly@redhat.com are
 
-origin.patch
-maintainers-fix-email-address.patch
-linux-next.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-filemap-fix-kernel-doc-warnings.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
-shmem-respect-max_lfs_filesize-fix.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+rtc-add-x86-support-for-rtc-efi.patch
 
