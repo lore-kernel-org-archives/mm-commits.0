@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch added to -mm tree
-Date: Fri, 10 Apr 2009 16:39:08 -0700
-Message-ID: <200904102339.n3ANd83Y021153@imap1.linux-foundation.org>
+Subject: + readahead-sequential-mmap-readahead.patch added to -mm tree
+Date: Fri, 10 Apr 2009 16:39:20 -0700
+Message-ID: <200904102339.n3ANdL0L021316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40705 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753062AbZDJXmQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753062AbZDJXmU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 19:42:16 -0400
+	Fri, 10 Apr 2009 19:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, npiggin@suse.de, torvalds@linux-foundation.org, ying
 
 
 The patch titled
-     readahead: apply max_sane_readahead() limit in ondemand_readahead()
+     readahead: sequential mmap readahead
 has been added to the -mm tree.  Its filename is
-     readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
+     readahead-sequential-mmap-readahead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: apply max_sane_readahead() limit in ondemand_readahead()
+Subject: readahead: sequential mmap readahead
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Just in case someone aggressively sets a huge readahead size.
+Auto-detect sequential mmap reads and do readahead for them.
+
+The sequential mmap readahead will be triggered when
+- sync readahead: it's a major fault and (prev_offset == offset-1);
+- async readahead: minor fault on PG_readahead page with valid readahead state.
+
+The benefits of doing readahead instead of read-around:
+- less I/O wait thanks to async readahead
+- double real I/O size and no more cache hits
+
+The single stream case is improved a little.
+For 100,000 sequential mmap reads:
+
+                                    user       system    cpu        total
+(1-1)  plain -mm, 128KB readaround: 3.224      2.554     48.40%     11.838
+(1-2)  plain -mm, 256KB readaround: 3.170      2.392     46.20%     11.976
+(2)  patched -mm, 128KB readahead:  3.117      2.448     47.33%     11.607
+
+The patched (2) has smallest total time, since it has no cache hit overheads
+and less I/O block time(thanks to async readahead). Here the I/O size
+makes no much difference, since there's only one single stream.
+
+Note that (1-1)'s real I/O size is 64KB and (1-2)'s real I/O size is 128KB,
+since the half of the read-around pages will be readahead cache hits.
+
+This is going to make _real_ differences for _concurrent_ IO streams.
 
 Cc: Nick Piggin <npiggin@suse.de>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
@@ -46,21 +71,22 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~readahead-apply-max_sane_readahead-limit-in-ondemand_readahead mm/readahead.c
---- a/mm/readahead.c~readahead-apply-max_sane_readahead-limit-in-ondemand_readahead
-+++ a/mm/readahead.c
-@@ -357,7 +357,7 @@ ondemand_readahead(struct address_space 
- 		   bool hit_readahead_marker, pgoff_t offset,
- 		   unsigned long req_size)
- {
--	int	max = ra->ra_pages;	/* max readahead pages */
-+	unsigned long max = max_sane_readahead(ra->ra_pages);
- 	pgoff_t prev_offset;
- 	int	sequential;
+diff -puN mm/filemap.c~readahead-sequential-mmap-readahead mm/filemap.c
+--- a/mm/filemap.c~readahead-sequential-mmap-readahead
++++ a/mm/filemap.c
+@@ -1471,7 +1471,8 @@ static void do_sync_mmap_readahead(struc
+ 	if (VM_RandomReadHint(vma))
+ 		return;
  
+-	if (VM_SequentialReadHint(vma)) {
++	if (VM_SequentialReadHint(vma) ||
++			offset - 1 == (ra->prev_pos >> PAGE_CACHE_SHIFT)) {
+ 		page_cache_sync_readahead(mapping, ra, file, offset, 1);
+ 		return;
+ 	}
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
