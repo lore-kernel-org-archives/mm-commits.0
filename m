@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm.patch added to -mm tree
-Date: Thu, 09 Apr 2009 22:32:14 -0700
-Message-ID: <200904100532.n3A5WEDh013635@imap1.linux-foundation.org>
+Subject: + sysfs-use-memdup_user.patch added to -mm tree
+Date: Thu, 09 Apr 2009 22:35:40 -0700
+Message-ID: <200904100535.n3A5ZeTw015132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760456AbZDJFdf (ORCPT
+	by vger.kernel.org with ESMTP id S935780AbZDJFhc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 01:33:35 -0400
+	Fri, 10 Apr 2009 01:37:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael@ellerman.id.au
+Cc: lizf@cn.fujitsu.com, greg@kroah.com
 
 
 The patch titled
-     mm: add documentation describing what tsk->active_mm means vs tsk->mm
+     sysfs: use memdup_user()
 has been added to the -mm tree.  Its filename is
-     mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm.patch
+     sysfs-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add documentation describing what tsk->active_mm means vs tsk->mm
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: sysfs: use memdup_user()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-I'm sure everyone knows this, but I didn't, so I googled it, and found a
-nice explanation from Linus.  Might be worth sticking in Documentation.
+Remove open-coded memdup_user().
 
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/00-INDEX      |    2 
- Documentation/vm/active_mm.txt |   83 +++++++++++++++++++++++++++++++
- 2 files changed, 85 insertions(+)
+ fs/sysfs/bin.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/vm/00-INDEX~mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm Documentation/vm/00-INDEX
---- a/Documentation/vm/00-INDEX~mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm
-+++ a/Documentation/vm/00-INDEX
-@@ -1,5 +1,7 @@
- 00-INDEX
- 	- this file.
-+active_mm.txt
-+	- An explanation from Linus about tsk->active_mm vs tsk->mm.
- balance
- 	- various information on memory balancing.
- hugetlbpage.txt
-diff -puN /dev/null Documentation/vm/active_mm.txt
---- /dev/null
-+++ a/Documentation/vm/active_mm.txt
-@@ -0,0 +1,83 @@
-+List:       linux-kernel
-+Subject:    Re: active_mm
-+From:       Linus Torvalds <torvalds () transmeta ! com>
-+Date:       1999-07-30 21:36:24
-+
-+Cc'd to linux-kernel, because I don't write explanations all that often,
-+and when I do I feel better about more people reading them.
-+
-+On Fri, 30 Jul 1999, David Mosberger wrote:
-+>
-+> Is there a brief description someplace on how "mm" vs. "active_mm" in
-+> the task_struct are supposed to be used?  (My apologies if this was
-+> discussed on the mailing lists---I just returned from vacation and
-+> wasn't able to follow linux-kernel for a while).
-+
-+Basically, the new setup is:
-+
-+ - we have "real address spaces" and "anonymous address spaces". The
-+   difference is that an anonymous address space doesn't care about the
-+   user-level page tables at all, so when we do a context switch into an
-+   anonymous address space we just leave the previous address space
-+   active.
-+
-+   The obvious use for a "anonymous address space" is any thread that
-+   doesn't need any user mappings - all kernel threads basically fall into
-+   this category, but even "real" threads can temporarily say that for
-+   some amount of time they are not going to be interested in user space,
-+   and that the scheduler might as well try to avoid wasting time on
-+   switching the VM state around. Currently only the old-style bdflush
-+   sync does that.
-+
-+ - "tsk->mm" points to the "real address space". For an anonymous process,
-+   tsk->mm will be NULL, for the logical reason that an anonymous process
-+   really doesn't _have_ a real address space at all.
-+
-+ - however, we obviously need to keep track of which address space we
-+   "stole" for such an anonymous user. For that, we have "tsk->active_mm",
-+   which shows what the currently active address space is.
-+
-+   The rule is that for a process with a real address space (ie tsk->mm is
-+   non-NULL) the active_mm obviously always has to be the same as the real
-+   one.
-+
-+   For a anonymous process, tsk->mm == NULL, and tsk->active_mm is the
-+   "borrowed" mm while the anonymous process is running. When the
-+   anonymous process gets scheduled away, the borrowed address space is
-+   returned and cleared.
-+
-+To support all that, the "struct mm_struct" now has two counters: a
-+"mm_users" counter that is how many "real address space users" there are,
-+and a "mm_count" counter that is the number of "lazy" users (ie anonymous
-+users) plus one if there are any real users.
-+
-+Usually there is at least one real user, but it could be that the real
-+user exited on another CPU while a lazy user was still active, so you do
-+actually get cases where you have a address space that is _only_ used by
-+lazy users. That is often a short-lived state, because once that thread
-+gets scheduled away in favour of a real thread, the "zombie" mm gets
-+released because "mm_users" becomes zero.
-+
-+Also, a new rule is that _nobody_ ever has "init_mm" as a real MM any
-+more. "init_mm" should be considered just a "lazy context when no other
-+context is available", and in fact it is mainly used just at bootup when
-+no real VM has yet been created. So code that used to check
-+
-+	if (current->mm == &init_mm)
-+
-+should generally just do
-+
-+	if (!current->mm)
-+
-+instead (which makes more sense anyway - the test is basically one of "do
-+we have a user context", and is generally done by the page fault handler
-+and things like that).
-+
-+Anyway, I put a pre-patch-2.3.13-1 on ftp.kernel.org just a moment ago,
-+because it slightly changes the interfaces to accomodate the alpha (who
-+would have thought it, but the alpha actually ends up having one of the
-+ugliest context switch codes - unlike the other architectures where the MM
-+and register state is separate, the alpha PALcode joins the two, and you
-+need to switch both together).
-+
-+(From http://marc.info/?l=linux-kernel&m=93337278602211&w=2)
+diff -puN fs/sysfs/bin.c~sysfs-use-memdup_user fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-use-memdup_user
++++ a/fs/sysfs/bin.c
+@@ -157,14 +157,9 @@ static ssize_t write(struct file *file, 
+ 			count = size - offs;
+ 	}
+ 
+-	temp = kmalloc(count, GFP_KERNEL);
+-	if (!temp)
+-		return -ENOMEM;
+-
+-	if (copy_from_user(temp, userbuf, count)) {
+-		count = -EFAULT;
+-		goto out_free;
+-	}
++	temp = memdup_user(userbuf, count);
++	if (IS_ERR(temp))
++		return PTR_ERR(temp);
+ 
+ 	mutex_lock(&bb->mutex);
+ 
+@@ -176,8 +171,6 @@ static ssize_t write(struct file *file, 
+ 	if (count > 0)
+ 		*off = offs + count;
+ 
+-out_free:
+-	kfree(temp);
+ 	return count;
+ }
+ 
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-linux-next.patch
-dynamic-debug-resurrect-old-pr_debug-semantics-as-pr_devel.patch
-mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm.patch
+documentation-sysctl-nettxt-fix-a-typo.patch
+cls_cgroup-remove-unneeded-cgroup_lock.patch
+devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
+xattr-use-memdup_user.patch
+btrfs-use-memdup_user.patch
+sysfs-use-memdup_user.patch
+xfs-use-memdup_user.patch
+ncpfs-use-memdup_user.patch
+ecryptfs-use-memdup_user.patch
 
