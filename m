@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-respect-max_lfs_filesize-fix.patch added to -mm tree
-Date: Fri, 10 Apr 2009 12:58:46 -0700
-Message-ID: <200904101958.n3AJwkng025243@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 10 Apr 2009 13:07:41 -0700
+Message-ID: <200904102007.n3AK7fdi029071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50649 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759104AbZDJUCg (ORCPT
+	by vger.kernel.org with ESMTP id S1756693AbZDJUIT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 16:02:36 -0400
+	Fri, 10 Apr 2009 16:08:19 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n3AK7g3Z023604
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 10 Apr 2009 13:08:18 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hugh@veritas.com, paulus@samba.org, randy.dunlap@oracle.com, yur@emcraft.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     shmem-respect-max_lfs_filesize-fix
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     shmem-respect-max_lfs_filesize-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +38,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem-respect-max_lfs_filesize-fix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-/usr/src/25/arch/x86/Makefile:82: stack protector enabled but no compiler support
-mm/shmem.c: In function 'shmem_file_setup':
-mm/shmem.c:2622: error: 'PAGE_CACHE_SIZE' undeclared (first use in this function)
-mm/shmem.c:2622: error: (Each undeclared identifier is reported only once
-mm/shmem.c:2622: error: for each function it appears in.)
-
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Yuri Tikhonov <yur@emcraft.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ide/ide-disk.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize-fix mm/shmem.c
---- a/mm/shmem.c~shmem-respect-max_lfs_filesize-fix
-+++ a/mm/shmem.c
-@@ -24,6 +24,7 @@
- #include <linux/init.h>
- #include <linux/vfs.h>
- #include <linux/mount.h>
-+#include <linux/pagemap.h>
- #include <linux/file.h>
- #include <linux/mm.h>
- #include <linux/module.h>
+diff -puN drivers/ide/ide-disk.c~linux-next-git-rejects drivers/ide/ide-disk.c
+--- a/drivers/ide/ide-disk.c~linux-next-git-rejects
++++ a/drivers/ide/ide-disk.c
+@@ -110,18 +110,6 @@ static ide_startstop_t __ide_do_rw_disk(
+ 			tf->lbam   = (u8)(block >>  8);
+ 			tf->lbah   = (u8)(block >> 16);
+ 			tf->device = ATA_LBA;
+-<<<<<<< HEAD:drivers/ide/ide-disk.c
+-
+-			tf = &cmd.hob;
+-			tf->nsect = (nsectors >> 8) & 0xff;
+-			tf->lbal  = (u8)(block >> 24);
+-			if (sizeof(block) != 4) {
+-				tf->lbam = (u8)((u64)block >> 32);
+-				tf->lbah = (u8)((u64)block >> 40);
+-			}
+-
+-=======
+-
+ 			tf = &cmd.hob;
+ 			tf->nsect = (nsectors >> 8) & 0xff;
+ 			tf->lbal  = (u8)(block >> 24);
+@@ -130,7 +118,6 @@ static ide_startstop_t __ide_do_rw_disk(
+ 				tf->lbah = (u8)((u64)block >> 40);
+ 			}
+ 
+->>>>>>> FETCH_HEAD:drivers/ide/ide-disk.c
+ 			cmd.valid.out.hob = IDE_VALID_OUT_HOB;
+ 			cmd.valid.in.hob  = IDE_VALID_IN_HOB;
+ 			cmd.tf_flags |= IDE_TFLAG_LBA48;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +84,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 toshiba_acpi-add-full-hotkey-support-fix.patch
