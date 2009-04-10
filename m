@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-documentation.patch added to -mm tree
-Date: Fri, 10 Apr 2009 15:24:32 -0700
-Message-ID: <200904102224.n3AMOWWo022214@imap1.linux-foundation.org>
+Subject: + pci-docbooks-add-fix-pci-kernel-doc.patch added to -mm tree
+Date: Fri, 10 Apr 2009 15:28:22 -0700
+Message-ID: <200904102228.n3AMSNlV023770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50021 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763452AbZDJW0x (ORCPT
+	by vger.kernel.org with ESMTP id S1752015AbZDJWaQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 18:26:53 -0400
+	Fri, 10 Apr 2009 18:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bharata@linux.vnet.ibm.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: randy.dunlap@oracle.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     memcg: fix documentation
+     pci: docbooks: add/fix PCI kernel-doc
 has been added to the -mm tree.  Its filename is
-     memcg-fix-documentation.patch
+     pci-docbooks-add-fix-pci-kernel-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,165 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix documentation
-From: Bharata B Rao <bharata@linux.vnet.ibm.com>
+Subject: pci: docbooks: add/fix PCI kernel-doc
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The description about various statistics from memory.stat is not accurate
-and confusing at times.
+Add drivers/pci/*.c source files to DocBook/kernel-api.tmpl and update
+those pci/*.c source files that need kernel-doc fixes.
 
-Correct this along with a few other minor cleanups.
-
-Signed-off-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   53 ++++++++++++++++-------------
- 1 file changed, 31 insertions(+), 22 deletions(-)
+ Documentation/DocBook/kernel-api.tmpl |    6 +++++-
+ drivers/pci/access.c                  |    4 ++--
+ drivers/pci/htirq.c                   |    1 +
+ drivers/pci/pci-sysfs.c               |   12 ++++++++----
+ drivers/pci/slot.c                    |    4 ++--
+ 5 files changed, 18 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-fix-documentation Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-fix-documentation
-+++ a/Documentation/cgroups/memory.txt
-@@ -6,15 +6,14 @@ used here with the memory controller tha
+diff -puN Documentation/DocBook/kernel-api.tmpl~pci-docbooks-add-fix-pci-kernel-doc Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~pci-docbooks-add-fix-pci-kernel-doc
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -190,16 +190,20 @@ X!Ekernel/module.c
+ !Edrivers/pci/pci.c
+ !Edrivers/pci/pci-driver.c
+ !Edrivers/pci/remove.c
+-!Edrivers/pci/pci-acpi.c
+ !Edrivers/pci/search.c
+ !Edrivers/pci/msi.c
+ !Edrivers/pci/bus.c
++!Edrivers/pci/access.c
++!Edrivers/pci/irq.c
++!Edrivers/pci/htirq.c
+ <!-- FIXME: Removed for now since no structured comments in source
+ X!Edrivers/pci/hotplug.c
+ -->
+ !Edrivers/pci/probe.c
++!Edrivers/pci/slot.c
+ !Edrivers/pci/rom.c
+ !Edrivers/pci/iov.c
++!Idrivers/pci/pci-sysfs.c
+      </sect1>
+      <sect1><title>PCI Hotplug Support Library</title>
+ !Edrivers/pci/hotplug/pci_hotplug_core.c
+diff -puN drivers/pci/access.c~pci-docbooks-add-fix-pci-kernel-doc drivers/pci/access.c
+--- a/drivers/pci/access.c~pci-docbooks-add-fix-pci-kernel-doc
++++ a/drivers/pci/access.c
+@@ -87,8 +87,8 @@ EXPORT_SYMBOL(pci_read_vpd);
+  * pci_write_vpd - Write entry to Vital Product Data
+  * @dev:	pci device struct
+  * @pos:	offset in vpd space
+- * @count:	number of bytes to read
+- * @val:	value to write
++ * @count:	number of bytes to write
++ * @buf:	buffer containing write data
+  *
+  */
+ ssize_t pci_write_vpd(struct pci_dev *dev, loff_t pos, size_t count, const void *buf)
+diff -puN drivers/pci/htirq.c~pci-docbooks-add-fix-pci-kernel-doc drivers/pci/htirq.c
+--- a/drivers/pci/htirq.c~pci-docbooks-add-fix-pci-kernel-doc
++++ a/drivers/pci/htirq.c
+@@ -158,6 +158,7 @@ int ht_create_irq(struct pci_dev *dev, i
  
- Salient features
+ /**
+  * ht_destroy_irq - destroy an irq created with ht_create_irq
++ * @irq: irq to be destroyed
+  *
+  * This reverses ht_create_irq removing the specified irq from
+  * existence.  The irq should be free before this happens.
+diff -puN drivers/pci/pci-sysfs.c~pci-docbooks-add-fix-pci-kernel-doc drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~pci-docbooks-add-fix-pci-kernel-doc
++++ a/drivers/pci/pci-sysfs.c
+@@ -492,6 +492,7 @@ write_vpd_attr(struct kobject *kobj, str
+ /**
+  * pci_read_legacy_io - read byte(s) from legacy I/O port space
+  * @kobj: kobject corresponding to file to read from
++ * @bin_attr: struct bin_attribute for this file
+  * @buf: buffer to store results
+  * @off: offset into legacy I/O port space
+  * @count: number of bytes to read
+@@ -517,6 +518,7 @@ pci_read_legacy_io(struct kobject *kobj,
+ /**
+  * pci_write_legacy_io - write byte(s) to legacy I/O port space
+  * @kobj: kobject corresponding to file to read from
++ * @bin_attr: struct bin_attribute for this file
+  * @buf: buffer containing value to be written
+  * @off: offset into legacy I/O port space
+  * @count: number of bytes to write
+@@ -733,9 +735,9 @@ pci_mmap_resource_wc(struct kobject *kob
  
--a. Enable control of both RSS (mapped) and Page Cache (unmapped) pages
-+a. Enable control of Anonymous, Page Cache (mapped and unmapped) and
-+   Swap Cache memory pages.
- b. The infrastructure allows easy addition of other types of memory to control
- c. Provides *zero overhead* for non memory controller users
- d. Provides a double LRU: global memory pressure causes reclaim from the
-    global LRU; a cgroup on hitting a limit, reclaims from the per
-    cgroup LRU
+ /**
+  * pci_remove_resource_files - cleanup resource files
+- * @dev: dev to cleanup
++ * @pdev: dev to cleanup
+  *
+- * If we created resource files for @dev, remove them from sysfs and
++ * If we created resource files for @pdev, remove them from sysfs and
+  * free their resources.
+  */
+ static void
+@@ -793,9 +795,9 @@ static int pci_create_attr(struct pci_de
  
--NOTE: Swap Cache (unmapped) is not accounted now.
--
- Benefits and Purpose of the memory controller
+ /**
+  * pci_create_resource_files - create resource files in sysfs for @dev
+- * @dev: dev in question
++ * @pdev: dev in question
+  *
+- * Walk the resources in @dev creating files for each resource available.
++ * Walk the resources in @pdev creating files for each resource available.
+  */
+ static int pci_create_resource_files(struct pci_dev *pdev)
+ {
+@@ -829,6 +831,7 @@ void __weak pci_remove_resource_files(st
+ /**
+  * pci_write_rom - used to enable access to the PCI ROM display
+  * @kobj: kernel object handle
++ * @bin_attr: struct bin_attribute for this file
+  * @buf: user input
+  * @off: file offset
+  * @count: number of byte in input
+@@ -852,6 +855,7 @@ pci_write_rom(struct kobject *kobj, stru
+ /**
+  * pci_read_rom - read a PCI ROM
+  * @kobj: kernel object handle
++ * @bin_attr: struct bin_attribute for this file
+  * @buf: where to put the data we read from the ROM
+  * @off: file offset
+  * @count: number of bytes to read
+diff -puN drivers/pci/slot.c~pci-docbooks-add-fix-pci-kernel-doc drivers/pci/slot.c
+--- a/drivers/pci/slot.c~pci-docbooks-add-fix-pci-kernel-doc
++++ a/drivers/pci/slot.c
+@@ -264,8 +264,8 @@ EXPORT_SYMBOL_GPL(pci_create_slot);
  
- The memory controller isolates the memory behaviour of a group of tasks
-@@ -290,34 +289,44 @@ will be charged as a new owner of it.
-   moved to the parent. If you want to avoid that, force_empty will be useful.
- 
- 5.2 stat file
--  memory.stat file includes following statistics (now)
--	cache			- # of pages from page-cache and shmem.
--	rss			- # of pages from anonymous memory.
--	pgpgin			- # of event of charging
--	pgpgout			- # of event of uncharging
--	active_anon		- # of pages on active lru of anon, shmem.
--	inactive_anon 		- # of pages on active lru of anon, shmem
--	active_file		- # of pages on active lru of file-cache
--	inactive_file		- # of pages on inactive lru of file cache
--	unevictable		- # of pages cannot be reclaimed.(mlocked etc)
--
--	Below is depend on CONFIG_DEBUG_VM.
--	inactive_ratio		- VM internal parameter. (see mm/page_alloc.c)
--	recent_rotated_anon	- VM internal parameter. (see mm/vmscan.c)
--	recent_rotated_file	- VM internal parameter. (see mm/vmscan.c)
--	recent_scanned_anon 	- VM internal parameter. (see mm/vmscan.c)
--	recent_scanned_file 	- VM internal parameter. (see mm/vmscan.c)
- 
--  Memo:
-+memory.stat file includes following statistics
-+
-+cache		- # of bytes of page cache memory.
-+rss		- # of bytes of anonymous and swap cache memory.
-+pgpgin		- # of pages paged in (equivalent to # of charging events).
-+pgpgout		- # of pages paged out (equivalent to # of uncharging events).
-+active_anon	- # of bytes of anonymous and  swap cache memory on active
-+		  lru list.
-+inactive_anon	- # of bytes of anonymous memory and swap cache memory on
-+		  inactive lru list.
-+active_file	- # of bytes of file-backed memory on active lru list.
-+inactive_file	- # of bytes of file-backed memory on inactive lru list.
-+unevictable	- # of bytes of memory that cannot be reclaimed (mlocked etc).
-+
-+The following additional stats are dependent on CONFIG_DEBUG_VM.
-+
-+inactive_ratio		- VM internal parameter. (see mm/page_alloc.c)
-+recent_rotated_anon	- VM internal parameter. (see mm/vmscan.c)
-+recent_rotated_file	- VM internal parameter. (see mm/vmscan.c)
-+recent_scanned_anon	- VM internal parameter. (see mm/vmscan.c)
-+recent_scanned_file	- VM internal parameter. (see mm/vmscan.c)
-+
-+Memo:
- 	recent_rotated means recent frequency of lru rotation.
- 	recent_scanned means recent # of scans to lru.
- 	showing for better debug please see the code for meanings.
- 
-+Note:
-+	Only anonymous and swap cache memory is listed as part of 'rss' stat.
-+	This should not be confused with the true 'resident set size' or the
-+	amount of physical memory used by the cgroup. Per-cgroup rss
-+	accounting is not done yet.
- 
- 5.3 swappiness
-   Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
- 
--  Following cgroup's swapiness can't be changed.
-+  Following cgroups' swapiness can't be changed.
-   - root cgroup (uses /proc/sys/vm/swappiness).
-   - a cgroup which uses hierarchy and it has child cgroup.
-   - a cgroup which uses hierarchy and not the root of hierarchy.
+ /**
+  * pci_renumber_slot - update %struct pci_slot -> number
+- * @slot - %struct pci_slot to update
+- * @slot_nr - new number for slot
++ * @slot: &struct pci_slot to update
++ * @slot_nr: new number for slot
+  *
+  * The primary purpose of this interface is to allow callers who earlier
+  * created a placeholder slot in pci_create_slot() by passing a -1 as
 _
 
-Patches currently in -mm which might be from bharata@linux.vnet.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-memcg-fix-documentation.patch
+maintainers-fix-email-address.patch
+linux-next.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pci-docbooks-add-fix-pci-kernel-doc.patch
+qla2x-fix-printk-format-warnings.patch
+filemap-fix-kernel-doc-warnings.patch
+shmem-respect-max_lfs_filesize-fix.patch
+shmem-respect-max_lfs_filesize-fix-fix.patch
+cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
+alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
+linuxpps-core-support.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
