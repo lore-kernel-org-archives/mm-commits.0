@@ -1,114 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [failures] radeonfb-backlight-shutoff-flashes-momentarily-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 10 Apr 2009 01:47:16 -0700
-Message-ID: <200904100847.n3A8lGHQ031401@imap1.linux-foundation.org>
+Subject: [to-be-updated] sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch removed from -mm tree
+Date: Fri, 10 Apr 2009 02:19:20 -0700
+Message-ID: <200904100919.n3A9JKAG012581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753869AbZDJIuU (ORCPT
+	by vger.kernel.org with ESMTP id S1755182AbZDJJWK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 04:50:20 -0400
+	Fri, 10 Apr 2009 05:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, krzysztof.h1@poczta.fm, michel@daenzer.net, rtdrury@earthlink.net, mm-commits@vger.kernel.org
+To: ebiederm@aristanetworks.com, a.p.zijlstra@chello.nl, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radeonfb-backlight-shutoff-flashes-momentarily-checkpatch-fixes
+     sysctl: don't take the use count of multiple heads at a time.
 has been removed from the -mm tree.  Its filename was
-     radeonfb-backlight-shutoff-flashes-momentarily-checkpatch-fixes.patch
+     sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeonfb-backlight-shutoff-flashes-momentarily-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysctl: don't take the use count of multiple heads at a time.
+From: Eric Biederman <ebiederm@aristanetworks.com>
 
-ERROR: trailing whitespace
-#34: FILE: drivers/video/aty/radeon_backlight.c:105:
-+^I^Iif(rinfo->family != CHIP_FAMILY_RV350 $
+The problem: There is a class of deadlocks that we currently have in the
+kernel that lockdep does not recognize.  
 
-ERROR: space required before the open parenthesis '('
-#34: FILE: drivers/video/aty/radeon_backlight.c:105:
-+		if(rinfo->family != CHIP_FAMILY_RV350 
+In particular with the network stack we can have:
 
-total: 2 errors, 0 warnings, 11 lines checked
+rtnl_lock();                         use_table();
+unregister_netdevice();              rtnl_lock();
+unregister_sysctl_table();           ....
+wait_for_completion();               rtnl_lock();
+....                                 unuse_table()
+rtnl_unlock();                       complete();
 
-./patches/radeonfb-backlight-shutoff-flashes-momentarily.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
 
-Please run checkpatch prior to sending patches
 
-Cc: "Robert T. Drury" <rtdrury@earthlink.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Michel Daenzer <michel@daenzer.net>
-Cc: Robert Drury <rtdrury@earthlink.net>
+Where we never make it to the lines labled ....
+
+My patch following patches treats the sysctl use count as a read/writer
+lock for purposes of lockdep.
+
+The code works but I'm not certain I have plugged into lockdep quite
+correctly.
+
+
+This patch:
+
+The current code works fine, and is actually not buggy but it does prevent
+enabling the use of lockdep to check refcounting vs lock holding ordering
+problems.  So since we can ensure that we are only hold a single
+sysctl_head at a time.  Allowing lockdep to complain.
+
+Signed-off-by: Eric Biederman <ebiederm@aristanetworks.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/radeon_backlight.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/proc_sysctl.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/aty/radeon_backlight.c~radeonfb-backlight-shutoff-flashes-momentarily-checkpatch-fixes drivers/video/aty/radeon_backlight.c
---- a/drivers/video/aty/radeon_backlight.c~radeonfb-backlight-shutoff-flashes-momentarily-checkpatch-fixes
-+++ a/drivers/video/aty/radeon_backlight.c
-@@ -102,7 +102,7 @@ static int radeon_bl_update_status(struc
- 		if (rinfo->is_mobility || rinfo->is_IGP)
- 			OUTPLLP(PIXCLKS_CNTL, 0, ~PIXCLK_LVDS_ALWAYS_ONb);
- 		lvds_gen_cntl &= ~(LVDS_BL_MOD_LEVEL_MASK);
--		if(rinfo->family != CHIP_FAMILY_RV350 
-+		if (rinfo->family != CHIP_FAMILY_RV350
- 			|| !machine_is_compatible("PowerBook5,3"))
- 				lvds_gen_cntl &= ~LVDS_BL_MOD_EN;
- 		lvds_gen_cntl |= (radeon_bl_get_level_brightness(pdata, 0) <<
+diff -puN fs/proc/proc_sysctl.c~sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time
++++ a/fs/proc/proc_sysctl.c
+@@ -79,7 +79,6 @@ static struct dentry *proc_sys_lookup(st
+ {
+ 	struct ctl_table_header *head = grab_header(dir);
+ 	struct ctl_table *table = PROC_I(dir)->sysctl_entry;
+-	struct ctl_table_header *h = NULL;
+ 	struct qstr *name = &dentry->d_name;
+ 	struct ctl_table *p;
+ 	struct inode *inode;
+@@ -97,10 +96,11 @@ static struct dentry *proc_sys_lookup(st
+ 
+ 	p = find_in_table(table, name);
+ 	if (!p) {
+-		for (h = sysctl_head_next(NULL); h; h = sysctl_head_next(h)) {
+-			if (h->attached_to != table)
++		sysctl_head_finish(head);
++		for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
++			if (head->attached_to != table)
+ 				continue;
+-			p = find_in_table(h->attached_by, name);
++			p = find_in_table(head->attached_by, name);
+ 			if (p)
+ 				break;
+ 		}
+@@ -110,9 +110,7 @@ static struct dentry *proc_sys_lookup(st
+ 		goto out;
+ 
+ 	err = ERR_PTR(-ENOMEM);
+-	inode = proc_sys_make_inode(dir->i_sb, h ? h : head, p);
+-	if (h)
+-		sysctl_head_finish(h);
++	inode = proc_sys_make_inode(dir->i_sb, head, p);
+ 
+ 	if (!inode)
+ 		goto out;
+@@ -243,7 +241,6 @@ static int proc_sys_readdir(struct file 
+ 	struct inode *inode = dentry->d_inode;
+ 	struct ctl_table_header *head = grab_header(inode);
+ 	struct ctl_table *table = PROC_I(inode)->sysctl_entry;
+-	struct ctl_table_header *h = NULL;
+ 	unsigned long pos;
+ 	int ret = -EINVAL;
+ 
+@@ -277,14 +274,13 @@ static int proc_sys_readdir(struct file 
+ 	if (ret)
+ 		goto out;
+ 
+-	for (h = sysctl_head_next(NULL); h; h = sysctl_head_next(h)) {
+-		if (h->attached_to != table)
++	sysctl_head_finish(head);
++	for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
++		if (head->attached_to != table)
+ 			continue;
+-		ret = scan(h, h->attached_by, &pos, filp, dirent, filldir);
+-		if (ret) {
+-			sysctl_head_finish(h);
++		ret = scan(head, head->attached_by, &pos, filp, dirent, filldir);
++		if (ret)
+ 			break;
+-		}
+ 	}
+ 	ret = 1;
+ out:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebiederm@aristanetworks.com are
 
-origin.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
+sysctl-dont-take-the-use-count-of-multiple-heads-at-a-time.patch
+sysctl-lockdep-support-for-sysctl-reference-counting.patch
 sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-hfs-fix-memory-leak-when-unmounting-fix.patch
-memcg-remove-warning-when-config_debug_vm=n-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-mm-consolidate-init_mm-definition-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-flat-fix-data-sections-alignment.patch
-radeonfb-backlight-shutoff-flashes-momentarily-checkpatch-fixes.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
