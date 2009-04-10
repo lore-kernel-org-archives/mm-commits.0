@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-warning-when-config_debug_vm=n-fix.patch added to -mm tree
-Date: Thu, 09 Apr 2009 22:25:23 -0700
-Message-ID: <200904100525.n3A5PNO5010775@imap1.linux-foundation.org>
+Subject: + mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm.patch added to -mm tree
+Date: Thu, 09 Apr 2009 22:32:14 -0700
+Message-ID: <200904100532.n3A5WEDh013635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46101 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756071AbZDJF1x (ORCPT
+	by vger.kernel.org with ESMTP id S1760456AbZDJFdf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 01:27:53 -0400
+	Fri, 10 Apr 2009 01:33:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: michael@ellerman.id.au
 
 
 The patch titled
-     memcg-remove-warning-when-config_debug_vm=n-fix
+     mm: add documentation describing what tsk->active_mm means vs tsk->mm
 has been added to the -mm tree.  Its filename is
-     memcg-remove-warning-when-config_debug_vm=n-fix.patch
+     mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-remove-warning-when-config_debug_vm=n-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: add documentation describing what tsk->active_mm means vs tsk->mm
+From: Michael Ellerman <michael@ellerman.id.au>
 
-simplify as suggested by Balbir.
+I'm sure everyone knows this, but I didn't, so I googled it, and found a
+nice explanation from Linus.  Might be worth sticking in Documentation.
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ Documentation/vm/00-INDEX      |    2 
+ Documentation/vm/active_mm.txt |   83 +++++++++++++++++++++++++++++++
+ 2 files changed, 85 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n-fix
-+++ a/mm/memcontrol.c
-@@ -314,14 +314,13 @@ static struct mem_cgroup *try_get_mem_cg
- 	return mem;
- }
- 
--#ifdef CONFIG_DEBUG_VM
- static bool mem_cgroup_is_obsolete(struct mem_cgroup *mem)
- {
- 	if (!mem)
- 		return true;
- 	return css_is_removed(&mem->css);
- }
--#endif
+diff -puN Documentation/vm/00-INDEX~mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm Documentation/vm/00-INDEX
+--- a/Documentation/vm/00-INDEX~mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm
++++ a/Documentation/vm/00-INDEX
+@@ -1,5 +1,7 @@
+ 00-INDEX
+ 	- this file.
++active_mm.txt
++	- An explanation from Linus about tsk->active_mm vs tsk->mm.
+ balance
+ 	- various information on memory balancing.
+ hugetlbpage.txt
+diff -puN /dev/null Documentation/vm/active_mm.txt
+--- /dev/null
++++ a/Documentation/vm/active_mm.txt
+@@ -0,0 +1,83 @@
++List:       linux-kernel
++Subject:    Re: active_mm
++From:       Linus Torvalds <torvalds () transmeta ! com>
++Date:       1999-07-30 21:36:24
 +
- 
- /*
-  * Call callback function against all cgroup under hierarchy tree.
-@@ -933,7 +932,7 @@ static int __mem_cgroup_try_charge(struc
- 	if (unlikely(!mem))
- 		return 0;
- 
--	VM_BUG_ON(mem_cgroup_is_obsolete(mem));
-+	VM_BUG_ON(!mem || mem_cgroup_is_obsolete(mem));
- 
- 	while (1) {
- 		int ret;
++Cc'd to linux-kernel, because I don't write explanations all that often,
++and when I do I feel better about more people reading them.
++
++On Fri, 30 Jul 1999, David Mosberger wrote:
++>
++> Is there a brief description someplace on how "mm" vs. "active_mm" in
++> the task_struct are supposed to be used?  (My apologies if this was
++> discussed on the mailing lists---I just returned from vacation and
++> wasn't able to follow linux-kernel for a while).
++
++Basically, the new setup is:
++
++ - we have "real address spaces" and "anonymous address spaces". The
++   difference is that an anonymous address space doesn't care about the
++   user-level page tables at all, so when we do a context switch into an
++   anonymous address space we just leave the previous address space
++   active.
++
++   The obvious use for a "anonymous address space" is any thread that
++   doesn't need any user mappings - all kernel threads basically fall into
++   this category, but even "real" threads can temporarily say that for
++   some amount of time they are not going to be interested in user space,
++   and that the scheduler might as well try to avoid wasting time on
++   switching the VM state around. Currently only the old-style bdflush
++   sync does that.
++
++ - "tsk->mm" points to the "real address space". For an anonymous process,
++   tsk->mm will be NULL, for the logical reason that an anonymous process
++   really doesn't _have_ a real address space at all.
++
++ - however, we obviously need to keep track of which address space we
++   "stole" for such an anonymous user. For that, we have "tsk->active_mm",
++   which shows what the currently active address space is.
++
++   The rule is that for a process with a real address space (ie tsk->mm is
++   non-NULL) the active_mm obviously always has to be the same as the real
++   one.
++
++   For a anonymous process, tsk->mm == NULL, and tsk->active_mm is the
++   "borrowed" mm while the anonymous process is running. When the
++   anonymous process gets scheduled away, the borrowed address space is
++   returned and cleared.
++
++To support all that, the "struct mm_struct" now has two counters: a
++"mm_users" counter that is how many "real address space users" there are,
++and a "mm_count" counter that is the number of "lazy" users (ie anonymous
++users) plus one if there are any real users.
++
++Usually there is at least one real user, but it could be that the real
++user exited on another CPU while a lazy user was still active, so you do
++actually get cases where you have a address space that is _only_ used by
++lazy users. That is often a short-lived state, because once that thread
++gets scheduled away in favour of a real thread, the "zombie" mm gets
++released because "mm_users" becomes zero.
++
++Also, a new rule is that _nobody_ ever has "init_mm" as a real MM any
++more. "init_mm" should be considered just a "lazy context when no other
++context is available", and in fact it is mainly used just at bootup when
++no real VM has yet been created. So code that used to check
++
++	if (current->mm == &init_mm)
++
++should generally just do
++
++	if (!current->mm)
++
++instead (which makes more sense anyway - the test is basically one of "do
++we have a user context", and is generally done by the page fault handler
++and things like that).
++
++Anyway, I put a pre-patch-2.3.13-1 on ftp.kernel.org just a moment ago,
++because it slightly changes the interfaces to accomodate the alpha (who
++would have thought it, but the alpha actually ends up having one of the
++ugliest context switch codes - unlike the other architectures where the MM
++and register state is separate, the alpha PALcode joins the two, and you
++need to switch both together).
++
++(From http://marc.info/?l=linux-kernel&m=93337278602211&w=2)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from michael@ellerman.id.au are
 
-origin.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-sysctl-lockdep-support-for-sysctl-reference-counting-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-hfs-fix-memory-leak-when-unmounting-fix.patch
-memcg-remove-warning-when-config_debug_vm=n-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-mm-consolidate-init_mm-definition-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-flat-fix-data-sections-alignment.patch
-radeonfb-backlight-shutoff-flashes-momentarily-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+dynamic-debug-resurrect-old-pr_debug-semantics-as-pr_devel.patch
+mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm.patch
 
