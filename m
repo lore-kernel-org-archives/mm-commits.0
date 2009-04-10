@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-use-memdup_user.patch added to -mm tree
-Date: Thu, 09 Apr 2009 22:35:46 -0700
-Message-ID: <200904100535.n3A5ZkZX015173@imap1.linux-foundation.org>
+Subject: + readhead-make-mmap_miss-an-unsigned-int.patch added to -mm tree
+Date: Fri, 10 Apr 2009 00:10:00 -0700
+Message-ID: <200904100710.n3A7A0MY022641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35550 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758670AbZDJFih (ORCPT
+	by vger.kernel.org with ESMTP id S937829AbZDJHLx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 01:38:37 -0400
+	Fri, 10 Apr 2009 03:11:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, kirkland@canonical.com, tyhicks@linux.vnet.ibm.com
+Cc: fengguang.wu@intel.com, yinghan@google.com
 
 
 The patch titled
-     ecryptfs: use memdup_user()
+     readhead: make mmap_miss an unsigned int
 has been added to the -mm tree.  Its filename is
-     ecryptfs-use-memdup_user.patch
+     readhead-make-mmap_miss-an-unsigned-int.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: use memdup_user()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: readhead: make mmap_miss an unsigned int
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Remove open-coded memdup_user().
+This makes the performance impact of possible mmap_miss wrap around to be
+temporary and tolerable: i.e.  MMAP_LOTSAMISS=100 extra readarounds.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
-Cc: Dustin Kirkland <kirkland@canonical.com>
+Otherwise if ever mmap_miss wraps around to negative, it takes INT_MAX
+cache misses to bring it back to normal state.  During the time mmap
+readaround will be _enabled_ for whatever wild random workload.  That's
+almost permanent performance impact.
+
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/miscdev.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/miscdev.c~ecryptfs-use-memdup_user fs/ecryptfs/miscdev.c
---- a/fs/ecryptfs/miscdev.c~ecryptfs-use-memdup_user
-+++ a/fs/ecryptfs/miscdev.c
-@@ -418,18 +418,13 @@ ecryptfs_miscdev_write(struct file *file
+diff -puN include/linux/fs.h~readhead-make-mmap_miss-an-unsigned-int include/linux/fs.h
+--- a/include/linux/fs.h~readhead-make-mmap_miss-an-unsigned-int
++++ a/include/linux/fs.h
+@@ -824,7 +824,7 @@ struct file_ra_state {
+ 					   there are only # of pages ahead */
  
- 	if (count == 0)
- 		goto out;
--	data = kmalloc(count, GFP_KERNEL);
--	if (!data) {
--		printk(KERN_ERR "%s: Out of memory whilst attempting to "
--		       "kmalloc([%zd], GFP_KERNEL)\n", __func__, count);
-+
-+	data = memdup_user(buf, count);
-+	if (IS_ERR(data)) {
-+		printk(KERN_ERR "%s: memdup_user returned error [%ld]\n",
-+		       __func__, PTR_ERR(data));
- 		goto out;
- 	}
--	rc = copy_from_user(data, buf, count);
--	if (rc) {
--		printk(KERN_ERR "%s: copy_from_user returned error [%d]\n",
--		       __func__, rc);
--		goto out_free;
--	}
- 	sz = count;
- 	i = 0;
- 	switch (data[i++]) {
+ 	unsigned int ra_pages;		/* Maximum readahead window */
+-	int mmap_miss;			/* Cache miss stat for mmap accesses */
++	unsigned int mmap_miss;		/* Cache miss stat for mmap accesses */
+ 	loff_t prev_pos;		/* Cache last read() position */
+ };
+ 
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-documentation-sysctl-nettxt-fix-a-typo.patch
-cls_cgroup-remove-unneeded-cgroup_lock.patch
-devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
-xattr-use-memdup_user.patch
-btrfs-use-memdup_user.patch
-sysfs-use-memdup_user.patch
-xfs-use-memdup_user.patch
-ncpfs-use-memdup_user.patch
-ecryptfs-use-memdup_user.patch
+linux-next.patch
+readhead-make-mmap_miss-an-unsigned-int.patch
 
