@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-consolidate-common-fstatat-code-into-vfs_fstatat.patch added to -mm tree
-Date: Fri, 10 Apr 2009 14:39:46 -0700
-Message-ID: <200904102139.n3ALdkwY003150@imap1.linux-foundation.org>
+Subject: + pca953x-support-gpiolib-gpio-naming.patch added to -mm tree
+Date: Fri, 10 Apr 2009 14:38:41 -0700
+Message-ID: <200904102138.n3ALcfBK002657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756293AbZDJVm0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753865AbZDJVnK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 17:42:26 -0400
+	Fri, 10 Apr 2009 17:43:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: green@linuxhacker.ru, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: dsilvers@simtec.co.uk, bgardner@wabtec.com, david-b@pacbell.net, khali@linux-fr.org
 
 
 The patch titled
-     vfs: consolidate common fstatat code into vfs_fstatat
+     pca953x: support GPIOLIB GPIO naming
 has been added to the -mm tree.  Its filename is
-     vfs-consolidate-common-fstatat-code-into-vfs_fstatat.patch
+     pca953x-support-gpiolib-gpio-naming.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,272 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: consolidate common fstatat code into vfs_fstatat
-From: Oleg Drokin <green@linuxhacker.ru>
+Subject: pca953x: support GPIOLIB GPIO naming
+From: Daniel Silverstone <dsilvers@simtec.co.uk>
 
-Separate out common *fstatat functionality into a single function
-instead of duplicating it all over the code.
+Add support to the PCA953x driver to use the GPIOLIB naming facility for
+GPIOs.
 
-Signed-off-by: Oleg Drokin <green@linuxhacker.ru>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Daniel Silverstone <dsilvers@simtec.co.uk>
+Cc: Ben Gardner <bgardner@wabtec.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/sys_oabi-compat.c |   19 ++-------
- arch/s390/kernel/compat_linux.c   |   18 ++-------
- arch/sparc/kernel/sys_sparc32.c   |   19 ++-------
- arch/x86/ia32/sys_ia32.c          |   19 ++-------
- fs/compat.c                       |   19 ++-------
- fs/stat.c                         |   56 ++++++++++++++--------------
- include/linux/fs.h                |    1 
- 7 files changed, 54 insertions(+), 97 deletions(-)
+ drivers/gpio/pca953x.c      |    4 ++++
+ include/linux/i2c/pca953x.h |    1 +
+ 2 files changed, 5 insertions(+)
 
-diff -puN arch/arm/kernel/sys_oabi-compat.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat arch/arm/kernel/sys_oabi-compat.c
---- a/arch/arm/kernel/sys_oabi-compat.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat
-+++ a/arch/arm/kernel/sys_oabi-compat.c
-@@ -176,21 +176,12 @@ asmlinkage long sys_oabi_fstatat64(int d
- 				   int flag)
- {
- 	struct kstat stat;
--	int error = -EINVAL;
-+	int error;
+diff -puN drivers/gpio/pca953x.c~pca953x-support-gpiolib-gpio-naming drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~pca953x-support-gpiolib-gpio-naming
++++ a/drivers/gpio/pca953x.c
+@@ -50,6 +50,7 @@ struct pca953x_chip {
  
--	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
--		goto out;
--
--	if (flag & AT_SYMLINK_NOFOLLOW)
--		error = vfs_lstat_fd(dfd, filename, &stat);
--	else
--		error = vfs_stat_fd(dfd, filename, &stat);
--
--	if (!error)
--	error = cp_oldabi_stat64(&stat, statbuf);
--
--out:
--	return error;
-+	error = vfs_fstatat(dfd, filename, &stat, flag);
-+	if (error)
-+		return error;
-+	return cp_oldabi_stat64(&stat, statbuf);
+ 	struct i2c_client *client;
+ 	struct gpio_chip gpio_chip;
++	char **names;
+ };
+ 
+ static int pca953x_write_reg(struct pca953x_chip *chip, int reg, uint16_t val)
+@@ -192,6 +193,7 @@ static void pca953x_setup_gpio(struct pc
+ 	gc->label = chip->client->name;
+ 	gc->dev = &chip->client->dev;
+ 	gc->owner = THIS_MODULE;
++	gc->names = chip->names;
  }
  
- struct oabi_flock64 {
-diff -puN arch/s390/kernel/compat_linux.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat arch/s390/kernel/compat_linux.c
---- a/arch/s390/kernel/compat_linux.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat
-+++ a/arch/s390/kernel/compat_linux.c
-@@ -702,20 +702,12 @@ asmlinkage long sys32_fstatat64(unsigned
- 				struct stat64_emu31 __user* statbuf, int flag)
- {
- 	struct kstat stat;
--	int error = -EINVAL;
-+	int error;
+ static int __devinit pca953x_probe(struct i2c_client *client,
+@@ -215,6 +217,8 @@ static int __devinit pca953x_probe(struc
  
--	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
--		goto out;
--
--	if (flag & AT_SYMLINK_NOFOLLOW)
--		error = vfs_lstat_fd(dfd, filename, &stat);
--	else
--		error = vfs_stat_fd(dfd, filename, &stat);
--
--	if (!error)
--		error = cp_stat64(statbuf, &stat);
--out:
--	return error;
-+	error = vfs_fstatat(dfd, filename, &stat, flag);
-+	if (error)
-+		return error;
-+	return cp_stat64(statbuf, &stat);
- }
+ 	chip->gpio_start = pdata->gpio_base;
  
- /*
-diff -puN arch/sparc/kernel/sys_sparc32.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat arch/sparc/kernel/sys_sparc32.c
---- a/arch/sparc/kernel/sys_sparc32.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat
-+++ a/arch/sparc/kernel/sys_sparc32.c
-@@ -206,21 +206,12 @@ asmlinkage long compat_sys_fstatat64(uns
- 		struct compat_stat64 __user * statbuf, int flag)
- {
- 	struct kstat stat;
--	int error = -EINVAL;
--
--	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
--		goto out;
--
--	if (flag & AT_SYMLINK_NOFOLLOW)
--		error = vfs_lstat_fd(dfd, filename, &stat);
--	else
--		error = vfs_stat_fd(dfd, filename, &stat);
--
--	if (!error)
--		error = cp_compat_stat64(&stat, statbuf);
-+	int error;
- 
--out:
--	return error;
-+	error = vfs_fstatat(dfd, filename, &stat, flag);
-+	if (error)
-+		return error;
-+	return cp_compat_stat64(&stat, statbuf);
- }
- 
- asmlinkage long compat_sys_sysfs(int option, u32 arg1, u32 arg2)
-diff -puN arch/x86/ia32/sys_ia32.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat arch/x86/ia32/sys_ia32.c
---- a/arch/x86/ia32/sys_ia32.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat
-+++ a/arch/x86/ia32/sys_ia32.c
-@@ -129,21 +129,12 @@ asmlinkage long sys32_fstatat(unsigned i
- 			      struct stat64 __user *statbuf, int flag)
- {
- 	struct kstat stat;
--	int error = -EINVAL;
-+	int error;
- 
--	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
--		goto out;
--
--	if (flag & AT_SYMLINK_NOFOLLOW)
--		error = vfs_lstat_fd(dfd, filename, &stat);
--	else
--		error = vfs_stat_fd(dfd, filename, &stat);
--
--	if (!error)
--		error = cp_stat64(statbuf, &stat);
--
--out:
--	return error;
-+	error = vfs_fstatat(dfd, filename, &stat, flag);
-+	if (error)
-+		return error;
-+	return cp_stat64(statbuf, &stat);
- }
- 
- /*
-diff -puN fs/compat.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat fs/compat.c
---- a/fs/compat.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat
-+++ a/fs/compat.c
-@@ -204,21 +204,12 @@ asmlinkage long compat_sys_newfstatat(un
- 		struct compat_stat __user *statbuf, int flag)
- {
- 	struct kstat stat;
--	int error = -EINVAL;
--
--	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
--		goto out;
--
--	if (flag & AT_SYMLINK_NOFOLLOW)
--		error = vfs_lstat_fd(dfd, filename, &stat);
--	else
--		error = vfs_stat_fd(dfd, filename, &stat);
--
--	if (!error)
--		error = cp_compat_stat(&stat, statbuf);
-+	int error;
- 
--out:
--	return error;
-+	error = vfs_fstatat(dfd, filename, &stat, flag);
-+	if (error)
-+		return error;
-+	return cp_compat_stat(&stat, statbuf);
- }
- #endif
- 
-diff -puN fs/stat.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat fs/stat.c
---- a/fs/stat.c~vfs-consolidate-common-fstatat-code-into-vfs_fstatat
-+++ a/fs/stat.c
-@@ -109,6 +109,24 @@ int vfs_fstat(unsigned int fd, struct ks
- 
- EXPORT_SYMBOL(vfs_fstat);
- 
-+int vfs_fstatat(int dfd, char __user *filename, struct kstat *stat, int flag)
-+{
-+	int error = -EINVAL;
++	chip->names = pdata->names;
 +
-+	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
-+		goto out;
-+
-+	if (flag & AT_SYMLINK_NOFOLLOW)
-+		error = vfs_lstat_fd(dfd, filename, stat);
-+	else
-+		error = vfs_stat_fd(dfd, filename, stat);
-+out:
-+	return error;
-+}
-+
-+EXPORT_SYMBOL(vfs_fstatat);
-+
-+
- #ifdef __ARCH_WANT_OLD_STAT
- 
- /*
-@@ -264,21 +282,12 @@ SYSCALL_DEFINE4(newfstatat, int, dfd, ch
- 		struct stat __user *, statbuf, int, flag)
- {
- 	struct kstat stat;
--	int error = -EINVAL;
--
--	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
--		goto out;
--
--	if (flag & AT_SYMLINK_NOFOLLOW)
--		error = vfs_lstat_fd(dfd, filename, &stat);
--	else
--		error = vfs_stat_fd(dfd, filename, &stat);
--
--	if (!error)
--		error = cp_new_stat(&stat, statbuf);
-+	int error;
- 
--out:
--	return error;
-+	error = vfs_fstatat(dfd, filename, &stat, flag);
-+	if (error)
-+		return error;
-+	return cp_new_stat(&stat, statbuf);
- }
- #endif
- 
-@@ -404,21 +413,12 @@ SYSCALL_DEFINE4(fstatat64, int, dfd, cha
- 		struct stat64 __user *, statbuf, int, flag)
- {
- 	struct kstat stat;
--	int error = -EINVAL;
--
--	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
--		goto out;
--
--	if (flag & AT_SYMLINK_NOFOLLOW)
--		error = vfs_lstat_fd(dfd, filename, &stat);
--	else
--		error = vfs_stat_fd(dfd, filename, &stat);
--
--	if (!error)
--		error = cp_new_stat64(&stat, statbuf);
-+	int error;
- 
--out:
--	return error;
-+	error = vfs_fstatat(dfd, filename, &stat, flag);
-+	if (error)
-+		return error;
-+	return cp_new_stat64(&stat, statbuf);
- }
- #endif /* __ARCH_WANT_STAT64 */
- 
-diff -puN include/linux/fs.h~vfs-consolidate-common-fstatat-code-into-vfs_fstatat include/linux/fs.h
---- a/include/linux/fs.h~vfs-consolidate-common-fstatat-code-into-vfs_fstatat
-+++ a/include/linux/fs.h
-@@ -2248,6 +2248,7 @@ extern int vfs_lstat(char __user *, stru
- extern int vfs_stat_fd(int dfd, char __user *, struct kstat *);
- extern int vfs_lstat_fd(int dfd, char __user *, struct kstat *);
- extern int vfs_fstat(unsigned int, struct kstat *);
-+extern int vfs_fstatat(int , char __user *, struct kstat *, int);
- 
- extern int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
- 		    unsigned long arg);
+ 	/* initialize cached registers from their original values.
+ 	 * we can't share this chip with another i2c master.
+ 	 */
+diff -puN include/linux/i2c/pca953x.h~pca953x-support-gpiolib-gpio-naming include/linux/i2c/pca953x.h
+--- a/include/linux/i2c/pca953x.h~pca953x-support-gpiolib-gpio-naming
++++ a/include/linux/i2c/pca953x.h
+@@ -15,4 +15,5 @@ struct pca953x_platform_data {
+ 	int		(*teardown)(struct i2c_client *client,
+ 				unsigned gpio, unsigned ngpio,
+ 				void *context);
++	char		**names;
+ };
 _
 
-Patches currently in -mm which might be from green@linuxhacker.ru are
+Patches currently in -mm which might be from dsilvers@simtec.co.uk are
 
-vfs-consolidate-common-fstatat-code-into-vfs_fstatat.patch
+pca953x-support-gpiolib-gpio-naming.patch
 
