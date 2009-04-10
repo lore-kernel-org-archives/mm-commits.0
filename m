@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch added to -mm tree
-Date: Fri, 10 Apr 2009 12:30:21 -0700
-Message-ID: <200904101930.n3AJULm3013270@imap1.linux-foundation.org>
+Subject: + shmem-respect-max_lfs_filesize-fix.patch added to -mm tree
+Date: Fri, 10 Apr 2009 12:58:46 -0700
+Message-ID: <200904101958.n3AJwkng025243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935608AbZDJTgO (ORCPT
+	by vger.kernel.org with ESMTP id S1759104AbZDJUCg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 15:36:14 -0400
+	Fri, 10 Apr 2009 16:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, efault@gmx.de, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com
+Cc: akpm@linux-foundation.org, hugh@veritas.com, paulus@samba.org, randy.dunlap@oracle.com, yur@emcraft.com
 
 
 The patch titled
-     arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid using work_on_cpu()
+     shmem-respect-max_lfs_filesize-fix
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+     shmem-respect-max_lfs_filesize-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid using work_on_cpu()
+Subject: shmem-respect-max_lfs_filesize-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Atttempting to rid us of the problematic work_on_cpu().  Just use
-smp_call_fuction_single() here.
+/usr/src/25/arch/x86/Makefile:82: stack protector enabled but no compiler support
+mm/shmem.c: In function 'shmem_file_setup':
+mm/shmem.c:2622: error: 'PAGE_CACHE_SIZE' undeclared (first use in this function)
+mm/shmem.c:2622: error: (Each undeclared identifier is reported only once
+mm/shmem.c:2622: error: for each function it appears in.)
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mike Galbraith <efault@gmx.de>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Yuri Tikhonov <yur@emcraft.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   24 ++++++++-----------
- 1 file changed, 11 insertions(+), 13 deletions(-)
+ mm/shmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu
-+++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -153,7 +153,8 @@ struct drv_cmd {
- 	u32 val;
- };
- 
--static long do_drv_read(void *_cmd)
-+/* Called via smp_call_function_single(), on the target CPU */
-+static void do_drv_read(void *_cmd)
- {
- 	struct drv_cmd *cmd = _cmd;
- 	u32 h;
-@@ -170,10 +171,10 @@ static long do_drv_read(void *_cmd)
- 	default:
- 		break;
- 	}
--	return 0;
- }
- 
--static long do_drv_write(void *_cmd)
-+/* Called via smp_call_function_single(), on the target CPU */
-+static void do_drv_write(void *_cmd)
- {
- 	struct drv_cmd *cmd = _cmd;
- 	u32 lo, hi;
-@@ -192,23 +193,21 @@ static long do_drv_write(void *_cmd)
- 	default:
- 		break;
- 	}
--	return 0;
- }
- 
- static void drv_read(struct drv_cmd *cmd)
- {
- 	cmd->val = 0;
- 
--	work_on_cpu(cpumask_any(cmd->mask), do_drv_read, cmd);
-+	smp_call_function_single(cpumask_any(cmd->mask), do_drv_read, cmd, 1);
- }
- 
- static void drv_write(struct drv_cmd *cmd)
- {
--	unsigned int i;
-+	unsigned int cpu;
- 
--	for_each_cpu(i, cmd->mask) {
--		work_on_cpu(i, do_drv_write, cmd);
--	}
-+	for_each_cpu(cpu, cmd->mask)
-+		smp_call_function_single(cpu, do_drv_write, cmd, 1);
- }
- 
- static u32 get_cur_val(const struct cpumask *mask)
-@@ -253,14 +252,13 @@ struct perf_pair {
- };
- 
- 
--static long read_measured_perf_ctrs(void *_cur)
-+/* Called via smp_call_function_single(), on the target CPU */
-+static void read_measured_perf_ctrs(void *_cur)
- {
- 	struct perf_pair *cur = _cur;
- 
- 	rdmsr(MSR_IA32_APERF, cur->aperf.split.lo, cur->aperf.split.hi);
- 	rdmsr(MSR_IA32_MPERF, cur->mperf.split.lo, cur->mperf.split.hi);
--
--	return 0;
- }
- 
- /*
-@@ -283,7 +281,7 @@ static unsigned int get_measured_perf(st
- 	unsigned int perf_percent;
- 	unsigned int retval;
- 
--	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &readin))
-+	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &cur, 1))
- 		return 0;
- 
- 	cur.aperf.whole = readin.aperf.whole -
+diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize-fix mm/shmem.c
+--- a/mm/shmem.c~shmem-respect-max_lfs_filesize-fix
++++ a/mm/shmem.c
+@@ -24,6 +24,7 @@
+ #include <linux/init.h>
+ #include <linux/vfs.h>
+ #include <linux/mount.h>
++#include <linux/pagemap.h>
+ #include <linux/file.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -161,6 +91,7 @@ libfs-make-simple_read_from_buffer-conventional.patch
 xtensa-add-flat-support-checkpatch-fixes.patch
 hfs-fix-memory-leak-when-unmounting-fix.patch
 memcg-remove-warning-when-config_debug_vm=n-fix.patch
+shmem-respect-max_lfs_filesize-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
 mm-consolidate-init_mm-definition-fix.patch
