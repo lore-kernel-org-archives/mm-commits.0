@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-update-locking-coments.patch added to -mm tree
-Date: Thu, 09 Apr 2009 21:41:54 -0700
-Message-ID: <200904100441.n3A4fspd024831@imap1.linux-foundation.org>
+Subject: + rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch added to -mm tree
+Date: Thu, 09 Apr 2009 21:43:00 -0700
+Message-ID: <200904100443.n3A4h0PQ025255@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33368 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753412AbZDJEnm (ORCPT
+	by vger.kernel.org with ESMTP id S1752464AbZDJEpf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 00:43:42 -0400
+	Fri, 10 Apr 2009 00:45:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, tammy000@gmail.com
+Cc: error27@gmail.com, davem@davemloft.net, dhowells@redhat.com
 
 
 The patch titled
-     jbd: update locking coments
+     RxRPC: fix error handling for rxrpc_alloc_connection()
 has been added to the -mm tree.  Its filename is
-     jbd-update-locking-coments.patch
+     rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: update locking coments
-From: Jan Kara <jack@suse.cz>
+Subject: RxRPC: fix error handling for rxrpc_alloc_connection()
+From: Dan Carpenter <error27@gmail.com>
 
-Update information about locking in JBD revoke code.
+rxrpc_alloc_connection() doesn't return an error code on failure, it just
+returns NULL.  IS_ERR(NULL) is false.
 
-Reported-by: Lin Tan <tammy000@gmail.com>.
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/revoke.c |   24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ net/rxrpc/ar-connection.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/jbd/revoke.c~jbd-update-locking-coments fs/jbd/revoke.c
---- a/fs/jbd/revoke.c~jbd-update-locking-coments
-+++ a/fs/jbd/revoke.c
-@@ -55,6 +55,25 @@
-  *			need do nothing.
-  * RevokeValid set, Revoked set:
-  *			buffer has been revoked.
-+ *
-+ * Locking rules:
-+ * We keep two hash tables of revoke records. One hashtable belongs to the
-+ * running transaction (is pointed to by journal->j_revoke), the other one
-+ * belongs to the committing transaction. Accesses to the second hash table
-+ * happen only from the kjournald and no other thread touches this table.  Also
-+ * journal_switch_revoke_table() which switches which hashtable belongs to the
-+ * running and which to the committing transaction is called only from
-+ * kjournald. Therefore we need no locks when accessing the hashtable belonging
-+ * to the committing transaction.
-+ *
-+ * All users operating on the hash table belonging to the running transaction
-+ * have a handle to the transaction. Therefore they are safe from kjournald
-+ * switching hash tables under them. For operations on the lists of entries in
-+ * the hash table j_revoke_lock is used.
-+ *
-+ * Finally, also replay code uses the hash tables but at this moment noone else
-+ * can touch them (filesystem isn't mounted yet) and hence no locking is
-+ * needed.
-  */
+diff -puN net/rxrpc/ar-connection.c~rxrpc-fix-error-handling-for-rxrpc_alloc_connection net/rxrpc/ar-connection.c
+--- a/net/rxrpc/ar-connection.c~rxrpc-fix-error-handling-for-rxrpc_alloc_connection
++++ a/net/rxrpc/ar-connection.c
+@@ -343,9 +343,9 @@ static int rxrpc_connect_exclusive(struc
+ 		/* not yet present - create a candidate for a new connection
+ 		 * and then redo the check */
+ 		conn = rxrpc_alloc_connection(gfp);
+-		if (IS_ERR(conn)) {
+-			_leave(" = %ld", PTR_ERR(conn));
+-			return PTR_ERR(conn);
++		if (!conn) {
++			_leave(" = -ENOMEM");
++			return -ENOMEM;
+ 		}
  
- #ifndef __KERNEL__
-@@ -402,8 +421,6 @@ int journal_revoke(handle_t *handle, uns
-  * the second time we would still have a pending revoke to cancel.  So,
-  * do not trust the Revoked bit on buffers unless RevokeValid is also
-  * set.
-- *
-- * The caller must have the journal locked.
-  */
- int journal_cancel_revoke(handle_t *handle, struct journal_head *jh)
- {
-@@ -481,10 +498,7 @@ void journal_switch_revoke_table(journal
- /*
-  * Write revoke records to the journal for all entries in the current
-  * revoke hash, deleting the entries as we go.
-- *
-- * Called with the journal lock held.
-  */
+ 		conn->trans = trans;
+@@ -508,9 +508,9 @@ int rxrpc_connect_call(struct rxrpc_sock
+ 		/* not yet present - create a candidate for a new connection and then
+ 		 * redo the check */
+ 		candidate = rxrpc_alloc_connection(gfp);
+-		if (IS_ERR(candidate)) {
+-			_leave(" = %ld", PTR_ERR(candidate));
+-			return PTR_ERR(candidate);
++		if (!candidate) {
++			_leave(" = -ENOMEM");
++			return -ENOMEM;
+ 		}
+ 
+ 		candidate->trans = trans;
+_
+
+Patches currently in -mm which might be from error27@gmail.com are
+
+origin.patch
+linux-next.patch
+rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
+
