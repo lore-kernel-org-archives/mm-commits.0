@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred.patch added to -mm tree
-Date: Fri, 10 Apr 2009 16:03:33 -0700
-Message-ID: <200904102303.n3AN3XsG006170@imap1.linux-foundation.org>
+Subject: + scsi-a4000-correct-driver-unregistration-in-case-of-failure.patch added to -mm tree
+Date: Fri, 10 Apr 2009 16:05:54 -0700
+Message-ID: <200904102305.n3AN5sbU007175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40989 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751758AbZDJXGu (ORCPT
+	by vger.kernel.org with ESMTP id S1753634AbZDJXJt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 19:06:50 -0400
+	Fri, 10 Apr 2009 19:09:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jon-hunter@ti.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
+Cc: geert@linux-m68k.org, James.Bottomley@HansenPartnership.com, gregkh@suse.de, tom.leiming@gmail.com
 
 
 The patch titled
-     timers: allow deferrable timers for intervals tv2-tv5 to be deferred
+     scsi: a4000: correct driver unregistration in case of failure
 has been added to the -mm tree.  Its filename is
-     timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred.patch
+     scsi-a4000-correct-driver-unregistration-in-case-of-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timers: allow deferrable timers for intervals tv2-tv5 to be deferred
-From: Jon Hunter <jon-hunter@ti.com>
+Subject: scsi: a4000: correct driver unregistration in case of failure
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-In the current kernel implementation only kernel timers for time interval
-tv1 are being deferred.  This patch allows any timer that is configured as
-deferrable to be defer regardless of time interval.
+commit 7a192ec334cab9fafe3a8665a65af398b0e24730 ("platform driver: fix
+incorrect use of 'platform_bus_type' with 'struct device_driver') turned a
+driver_UNregister into platform_driver_REGISTER.  Correct this to
+platform_driver_UNregister.
 
-This patch was previously discussed in
-http://marc.info/?l=linux-kernel&m=123196343531966&w=2 and was acked by
-Venki Pallipadi, the author of the original deferrable timer patch.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ming Lei <tom.leiming@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/scsi/a4000t.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred kernel/timer.c
---- a/kernel/timer.c~timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred
-+++ a/kernel/timer.c
-@@ -1015,6 +1015,9 @@ cascade:
- 		index = slot = timer_jiffies & TVN_MASK;
- 		do {
- 			list_for_each_entry(nte, varp->vec + slot, entry) {
-+				if (tbase_get_deferrable(nte->base))
-+					continue;
-+
- 				found = 1;
- 				if (time_before(nte->expires, expires))
- 					expires = nte->expires;
+diff -puN drivers/scsi/a4000t.c~scsi-a4000-correct-driver-unregistration-in-case-of-failure drivers/scsi/a4000t.c
+--- a/drivers/scsi/a4000t.c~scsi-a4000-correct-driver-unregistration-in-case-of-failure
++++ a/drivers/scsi/a4000t.c
+@@ -129,7 +129,7 @@ static int __init a4000t_scsi_init(void)
+ 	a4000t_scsi_device = platform_device_register_simple("a4000t-scsi",
+ 			-1, NULL, 0);
+ 	if (IS_ERR(a4000t_scsi_device)) {
+-		platform_driver_register(&a4000t_scsi_driver);
++		platform_driver_unregister(&a4000t_scsi_driver);
+ 		return PTR_ERR(a4000t_scsi_device);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from jon-hunter@ti.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred.patch
+origin.patch
+linux-next.patch
+drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch
+agnx-make-input-parameters-const.patch
+at24-make-input-buffers-of-at24_write-const.patch
+at25-make-input-buffers-of-at25_write-const.patch
+revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
+scsi-a4000-correct-driver-unregistration-in-case-of-failure.patch
+m68k-count-can-reach-51-not-50.patch
+flat-fix-data-sections-alignment.patch
 
