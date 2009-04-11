@@ -1,147 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: + bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch added to -mm tree
-Date: Fri, 10 Apr 2009 19:44:43 -0700
-Message-ID: <200904110244.n3B2ih01001942@imap1.linux-foundation.org>
+Subject: [folded] toshiba_acpi-add-full-hotkey-support-fix.patch removed from -mm tree
+Date: Fri, 10 Apr 2009 23:14:41 -0700
+Message-ID: <200904110614.n3B6EfMl025413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755528AbZDKCps (ORCPT
+	by vger.kernel.org with ESMTP id S1754868AbZDKGRq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 22:45:48 -0400
+	Sat, 11 Apr 2009 02:17:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: brian.haley@hp.com
+To: akpm@linux-foundation.org, lenb@kernel.org, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bonding: fix zero address hole bug in arp_ip_target list
-has been added to the -mm tree.  Its filename is
-     bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch
+     toshiba_acpi-add-full-hotkey-support-fix
+has been removed from the -mm tree.  Its filename was
+     toshiba_acpi-add-full-hotkey-support-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into toshiba_acpi-add-full-hotkey-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bonding: fix zero address hole bug in arp_ip_target list
-From: Brian Haley <brian.haley@hp.com>
+Subject: toshiba_acpi-add-full-hotkey-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a zero address hole bug in the bonding arp_ip_target list that was
-causing the bond to ignore ARP replies.
+drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_setup_keyboard':
+drivers/platform/x86/toshiba_acpi.c:853: warning: passing argument 3 of 'acpi_install_notify_handler' from incompatible pointer type
+drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_exit':
+drivers/platform/x86/toshiba_acpi.c:902: warning: passing argument 3 of 'acpi_remove_notify_handler' from incompatible pointer type
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13006
-
-Instead of just setting the array entry to zero, we now copy any
-additional entries down one slot, putting the zero entry at the end.  With
-this change we can now have all the loops that walk the array stop when
-they hit a zero since there will be no addresses after it.
-
-Signed-off-by: Brian Haley <brian.haley@hp.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/networking/bonding.txt |    2 +-
- drivers/net/bonding/bond_main.c      |    5 ++---
- drivers/net/bonding/bond_sysfs.c     |   14 ++++++++------
- 3 files changed, 11 insertions(+), 10 deletions(-)
+ drivers/platform/x86/toshiba_acpi.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/networking/bonding.txt~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list Documentation/networking/bonding.txt
---- a/Documentation/networking/bonding.txt~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
-+++ a/Documentation/networking/bonding.txt
-@@ -1242,7 +1242,7 @@ monitoring is enabled, and vice-versa.
- To add ARP targets:
- # echo +192.168.0.100 > /sys/class/net/bond0/bonding/arp_ip_target
- # echo +192.168.0.101 > /sys/class/net/bond0/bonding/arp_ip_target
--	NOTE:  up to 10 target addresses may be specified.
-+	NOTE:  up to 16 target addresses may be specified.
+diff -puN drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-add-full-hotkey-support-fix drivers/platform/x86/toshiba_acpi.c
+--- a/drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-add-full-hotkey-support-fix
++++ a/drivers/platform/x86/toshiba_acpi.c
+@@ -791,7 +791,7 @@ static int toshiba_acpi_setkeycode(struc
+ 	return -EINVAL;
+ }
  
- To remove an ARP target:
- # echo -192.168.0.100 > /sys/class/net/bond0/bonding/arp_ip_target
-diff -puN drivers/net/bonding/bond_main.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list drivers/net/bonding/bond_main.c
---- a/drivers/net/bonding/bond_main.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
-+++ a/drivers/net/bonding/bond_main.c
-@@ -2570,7 +2570,7 @@ static void bond_arp_send_all(struct bon
+-static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
++static void toshiba_acpi_notify(acpi_handle handle, u32 event, void *context)
+ {
+ 	u32 hci_result, value;
+ 	struct key_entry *key;
+@@ -849,7 +849,7 @@ static int toshiba_acpi_setup_keyboard(c
+ 		return -ENODEV;
+ 	}
  
- 	for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
- 		if (!targets[i])
--			continue;
-+			break;
- 		pr_debug("basa: target %x\n", targets[i]);
- 		if (list_empty(&bond->vlan_list)) {
- 			pr_debug("basa: empty vlan: arp_send\n");
-@@ -2677,7 +2677,6 @@ static void bond_validate_arp(struct bon
- 	int i;
- 	__be32 *targets = bond->params.arp_targets;
- 
--	targets = bond->params.arp_targets;
- 	for (i = 0; (i < BOND_MAX_ARP_TARGETS) && targets[i]; i++) {
- 		pr_debug("bva: sip %pI4 tip %pI4 t[%d] %pI4 bhti(tip) %d\n",
- 			&sip, &tip, i, &targets[i], bond_has_this_ip(bond, tip));
-@@ -3303,7 +3302,7 @@ static void bond_info_show_master(struct
- 
- 		for(i = 0; (i < BOND_MAX_ARP_TARGETS) ;i++) {
- 			if (!bond->params.arp_targets[i])
--				continue;
-+				break;
- 			if (printed)
- 				seq_printf(seq, ",");
- 			seq_printf(seq, " %pI4", &bond->params.arp_targets[i]);
-diff -puN drivers/net/bonding/bond_sysfs.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list drivers/net/bonding/bond_sysfs.c
---- a/drivers/net/bonding/bond_sysfs.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
-+++ a/drivers/net/bonding/bond_sysfs.c
-@@ -684,17 +684,15 @@ static ssize_t bonding_store_arp_targets
- 			goto out;
- 		}
- 		/* look for an empty slot to put the target in, and check for dupes */
--		for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
-+		for (i = 0; (i < BOND_MAX_ARP_TARGETS) && !done; i++) {
- 			if (targets[i] == newtarget) { /* duplicate */
- 				printk(KERN_ERR DRV_NAME
- 				       ": %s: ARP target %pI4 is already present\n",
- 				       bond->dev->name, &newtarget);
--				if (done)
--					targets[i] = 0;
- 				ret = -EINVAL;
- 				goto out;
- 			}
--			if (targets[i] == 0 && !done) {
-+			if (targets[i] == 0) {
- 				printk(KERN_INFO DRV_NAME
- 				       ": %s: adding ARP target %pI4.\n",
- 				       bond->dev->name, &newtarget);
-@@ -720,12 +718,16 @@ static ssize_t bonding_store_arp_targets
- 			goto out;
- 		}
- 
--		for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
-+		for (i = 0; (i < BOND_MAX_ARP_TARGETS) && !done; i++) {
- 			if (targets[i] == newtarget) {
-+				int j;
- 				printk(KERN_INFO DRV_NAME
- 				       ": %s: removing ARP target %pI4.\n",
- 				       bond->dev->name, &newtarget);
--				targets[i] = 0;
-+				for (j = i; (j < (BOND_MAX_ARP_TARGETS-1)) && targets[j+1]; j++)
-+					targets[j] = targets[j+1];
-+
-+				targets[j] = 0;
- 				done = 1;
- 			}
- 		}
+-	status = acpi_install_notify_handler (handle, ACPI_DEVICE_NOTIFY,
++	status = acpi_install_notify_handler(handle, ACPI_DEVICE_NOTIFY,
+ 					      toshiba_acpi_notify, NULL);
+ 	if (ACPI_FAILURE(status)) {
+ 		printk(MY_INFO "Unable to install hotkey notification\n");
 _
 
-Patches currently in -mm which might be from brian.haley@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch
+origin.patch
+revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+toshiba_acpi-add-full-hotkey-support.patch
+toshiba_acpi-add-full-hotkey-support-fix.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mips-cacheflush-system-call-not-returning-einval-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+hfs-fix-memory-leak-when-unmounting-fix.patch
+memcg-remove-warning-when-config_debug_vm=n-fix.patch
+shmem-respect-max_lfs_filesize-fix.patch
+shmem-respect-max_lfs_filesize-fix-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+readahead-introduce-context-readahead-algorithm-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+flat-fix-data-sections-alignment.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
