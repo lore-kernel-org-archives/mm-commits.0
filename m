@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-record-mmap-read-around-states-in-file_ra_state.patch added to -mm tree
-Date: Fri, 10 Apr 2009 16:40:30 -0700
-Message-ID: <200904102340.n3ANeUVF021809@imap1.linux-foundation.org>
+Subject: + gru-dump-chiplet-state-update.patch added to -mm tree
+Date: Fri, 10 Apr 2009 17:20:49 -0700
+Message-ID: <200904110020.n3B0KnDP006306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751259AbZDJXn4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751179AbZDKAWB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 19:43:56 -0400
+	Fri, 10 Apr 2009 20:22:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, npiggin@suse.de, torvalds@linux-foundation.org, wfg@mail.ustc.edu.cn, yinghan@google.com
+Cc: steiner@sgi.com
 
 
 The patch titled
-     readahead: record mmap read-around states in file_ra_state
+     gru-dump-chiplet-state-update
 has been added to the -mm tree.  Its filename is
-     readahead-record-mmap-read-around-states-in-file_ra_state.patch
+     gru-dump-chiplet-state-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,142 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: record mmap read-around states in file_ra_state
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: gru-dump-chiplet-state-update
+From: Jack Steiner <steiner@sgi.com>
 
-Mmap read-around now shares the same code style and data structure with
-readahead code.
+Updated per comments received from Andrew
 
-This also removes do_page_cache_readahead().  Its last user, mmap
-read-around, has been changed to call ra_submit().
-
-The no-readahead-if-congested logic is dumped by the way.  Users will be
-pretty sensitive about the slow loading of executables.  So it's
-unfavorable to disabled mmap read-around on a congested queue.
-
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Ying Han <yinghan@google.com>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    5 +++--
- mm/filemap.c       |   12 +++++++-----
- mm/readahead.c     |   23 ++---------------------
- 3 files changed, 12 insertions(+), 28 deletions(-)
+ drivers/misc/sgi-gru/grukdump.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state include/linux/mm.h
---- a/include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state
-+++ a/include/linux/mm.h
-@@ -1181,8 +1181,6 @@ void task_dirty_inc(struct task_struct *
- #define VM_MAX_READAHEAD	128	/* kbytes */
- #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
+diff -puN drivers/misc/sgi-gru/grukdump.c~gru-dump-chiplet-state-update drivers/misc/sgi-gru/grukdump.c
+--- a/drivers/misc/sgi-gru/grukdump.c~gru-dump-chiplet-state-update
++++ a/drivers/misc/sgi-gru/grukdump.c
+@@ -15,6 +15,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/uaccess.h>
+ #include <linux/delay.h>
++#include <linux/bitops.h>
+ #include <asm/uv/uv_hub.h>
+ #include "gru.h"
+ #include "grutables.h"
+@@ -25,7 +26,7 @@
  
--int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
--			pgoff_t offset, unsigned long nr_to_read);
- int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
- 			pgoff_t offset, unsigned long nr_to_read);
- 
-@@ -1200,6 +1198,9 @@ void page_cache_async_readahead(struct a
- 				unsigned long size);
- 
- unsigned long max_sane_readahead(unsigned long nr);
-+unsigned long ra_submit(struct file_ra_state *ra,
-+		        struct address_space *mapping,
-+			struct file *filp);
- 
- /* Do stack extension */
- extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
-diff -puN mm/filemap.c~readahead-record-mmap-read-around-states-in-file_ra_state mm/filemap.c
---- a/mm/filemap.c~readahead-record-mmap-read-around-states-in-file_ra_state
-+++ a/mm/filemap.c
-@@ -1487,13 +1487,15 @@ static void do_sync_mmap_readahead(struc
- 	if (ra->mmap_miss > MMAP_LOTSAMISS)
- 		return;
- 
-+	/*
-+	 * mmap read-around
-+	 */
- 	ra_pages = max_sane_readahead(ra->ra_pages);
- 	if (ra_pages) {
--		pgoff_t start = 0;
--
--		if (offset > ra_pages / 2)
--			start = offset - ra_pages / 2;
--		do_page_cache_readahead(mapping, file, start, ra_pages);
-+		ra->start = max_t(long, 0, offset - ra_pages/2);
-+		ra->size = ra_pages;
-+		ra->async_size = 0;
-+		ra_submit(ra, mapping, file);
- 	}
- }
- 
-diff -puN mm/readahead.c~readahead-record-mmap-read-around-states-in-file_ra_state mm/readahead.c
---- a/mm/readahead.c~readahead-record-mmap-read-around-states-in-file_ra_state
-+++ a/mm/readahead.c
-@@ -133,15 +133,12 @@ out:
- }
- 
- /*
-- * do_page_cache_readahead actually reads a chunk of disk.  It allocates all
-+ * __do_page_cache_readahead() actually reads a chunk of disk.  It allocates all
-  * the pages first, then submits them all for I/O. This avoids the very bad
-  * behaviour which would occur if page allocations are causing VM writeback.
-  * We really don't want to intermingle reads and writes like that.
-  *
-  * Returns the number of pages requested, or the maximum amount of I/O allowed.
-- *
-- * do_page_cache_readahead() returns -1 if it encountered request queue
-- * congestion.
-  */
- static int
- __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
-@@ -232,22 +229,6 @@ int force_page_cache_readahead(struct ad
- }
- 
- /*
-- * This version skips the IO if the queue is read-congested, and will tell the
-- * block layer to abandon the readahead if request allocation would block.
-- *
-- * force_page_cache_readahead() will ignore queue congestion and will block on
-- * request queues.
-- */
--int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
--			pgoff_t offset, unsigned long nr_to_read)
--{
--	if (bdi_read_congested(mapping->backing_dev_info))
--		return -1;
--
--	return __do_page_cache_readahead(mapping, filp, offset, nr_to_read, 0);
--}
--
--/*
-  * Given a desired number of PAGE_CACHE_SIZE readahead pages, return a
-  * sensible upper limit.
-  */
-@@ -260,7 +241,7 @@ unsigned long max_sane_readahead(unsigne
- /*
-  * Submit IO for the read-ahead request in file_ra_state.
-  */
--static unsigned long ra_submit(struct file_ra_state *ra,
-+unsigned long ra_submit(struct file_ra_state *ra,
- 		       struct address_space *mapping, struct file *filp)
+ static int gru_user_copy_handle(void __user **dp, void *s)
  {
- 	int actual;
+-	if (copy_to_user(*(void __user **)dp, s, GRU_HANDLE_BYTES))
++	if (copy_to_user(dp, s, GRU_HANDLE_BYTES))
+ 		return -1;
+ 	*dp += GRU_HANDLE_BYTES;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from steiner@sgi.com are
 
-linux-next.patch
-readahead-make-mmap_miss-an-unsigned-int.patch
-readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
-readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
-readahead-remove-one-unnecessary-radix-tree-lookup.patch
-readahead-increase-interleaved-readahead-size.patch
-readahead-remove-sync-async-readahead-call-dependency.patch
-readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
-readahead-sequential-mmap-readahead.patch
-readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
+gru-bug-fixes-for-gru-exception-handling.patch
+gru-dump-chiplet-state.patch
+gru-dump-chiplet-state-update.patch
+gru-dynamic-allocation-of-kernel-contexts.patch
+gru-change-context-load-and-unload.patch
+gru-support-cch_allocate-for-kernel-threads.patch
+gru-change-resource-assignment-for-kernel-threads.patch
+gru-support-contexts-with-zero-dsrs-or-cbrs.patch
+gru-fix-handling-of-mesq-failures.patch
+gru-check-context-state-on-reload.patch
+gru-support-instruction-completion-interrupts.patch
+gru-support-for-asynchronous-gru-instructions.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+gru-update-gru-kernel-self-tests.patch
+gru-update-to-rev-09-of-gru-spec.patch
 
