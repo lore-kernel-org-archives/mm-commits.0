@@ -1,80 +1,278 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-respect-max_lfs_filesize-fix-2.patch added to -mm tree
-Date: Sat, 11 Apr 2009 02:07:09 -0700
-Message-ID: <200904110925.n3B9PkA9008177@imap1.linux-foundation.org>
+Subject: [obsolete] revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch removed from -mm tree
+Date: Sat, 11 Apr 2009 11:23:33 -0700
+Message-ID: <200904111823.n3BINX49009270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32871 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752335AbZDKJ3o (ORCPT
+	by vger.kernel.org with ESMTP id S1752499AbZDKS23 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 11 Apr 2009 05:29:44 -0400
+	Sat, 11 Apr 2009 14:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hugh@veritas.com, paulus@samba.org, randy.dunlap@oracle.com, yur@emcraft.com
+To: akpm@linux-foundation.org, arvidjaar@mail.ru, geert@linux-m68k.org, krzysztof.h1@poczta.fm, righi.andrea@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shmem-respect-max_lfs_filesize-fix-2
-has been added to the -mm tree.  Its filename is
-     shmem-respect-max_lfs_filesize-fix-2.patch
+     revert "fbmem: fix fb_info->lock and mm->mmap_sem circular locking dependency"
+has been removed from the -mm tree.  Its filename was
+     revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem-respect-max_lfs_filesize-fix-2
+Subject: revert "fbmem: fix fb_info->lock and mm->mmap_sem circular locking dependency"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc64:
+Revert
 
-mm/shmem.c: In function `shmem_truncate_range':
-mm/shmem.c:571: warning: comparison of distinct pointer types lacks a cast
-mm/shmem.c:579: warning: comparison of distinct pointer types lacks a cast
-mm/shmem.c: In function `shmem_getpage':
-mm/shmem.c:1218: warning: comparison of distinct pointer types lacks a cast
-mm/shmem.c:1218: warning: comparison of distinct pointer types lacks a cast
-mm/shmem.c:1218: warning: comparison of distinct pointer types lacks a cast
-mm/shmem.c: In function `shmem_fill_super':
-mm/shmem.c:2341: warning: comparison of distinct pointer types lacks a cast
-mm/shmem.c: In function `shmem_file_setup':
-mm/shmem.c:2622: warning: comparison of distinct pointer types lacks a cast
-mm/shmem.c:2622: warning: comparison of distinct pointer types lacks a cast
-mm/shmem.c:2622: warning: comparison of distinct pointer types lacks a cast
+    commit 66c1ca019078220dc1bf968f2bb18421100ef147
+    Author: Andrea Righi <righi.andrea@gmail.com>
+    Date:   Tue Mar 31 15:25:18 2009 -0700
 
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Yuri Tikhonov <yur@emcraft.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+        fbmem: fix fb_info->lock and mm->mmap_sem circular locking dependency
+
+Since it caused Xfbmem failures.
+
+This will re-introduce the circular locking dependency fb_info->lock =>
+mm->mmap_sem => fb_info->lock.  Krzysztof will work on an alternative fix.
+
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Andrea Righi <righi.andrea@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/backlight.c |    3 -
+ drivers/video/backlight/lcd.c       |    3 -
+ drivers/video/console/fbcon.c       |   71 +++-----------------------
+ drivers/video/fbmem.c               |   11 +++-
+ 4 files changed, 19 insertions(+), 69 deletions(-)
 
-diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize-fix-2 mm/shmem.c
---- a/mm/shmem.c~shmem-respect-max_lfs_filesize-fix-2
-+++ a/mm/shmem.c
-@@ -83,7 +83,7 @@ static struct vfsmount *shm_mnt;
- #define SHMSWP_MAX_INDEX (SHMEM_NR_DIRECT + (ENTRIES_PER_PAGEPAGE/2) * (ENTRIES_PER_PAGE+1))
- #define SHMSWP_MAX_BYTES (SHMSWP_MAX_INDEX << PAGE_CACHE_SHIFT)
+diff -puN drivers/video/backlight/backlight.c~revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency
++++ a/drivers/video/backlight/backlight.c
+@@ -35,8 +35,6 @@ static int fb_notifier_callback(struct n
+ 		return 0;
  
--#define SHMEM_MAX_BYTES  min(SHMSWP_MAX_BYTES, (unsigned long long)MAX_LFS_FILESIZE)
-+#define SHMEM_MAX_BYTES  min_t(unsigned long long, SHMSWP_MAX_BYTES, MAX_LFS_FILESIZE)
- #define SHMEM_MAX_INDEX  ((unsigned long)((SHMEM_MAX_BYTES+1) >> PAGE_CACHE_SHIFT))
+ 	bd = container_of(self, struct backlight_device, fb_notif);
+-	if (!lock_fb_info(evdata->info))
+-		return -ENODEV;
+ 	mutex_lock(&bd->ops_lock);
+ 	if (bd->ops)
+ 		if (!bd->ops->check_fb ||
+@@ -49,7 +47,6 @@ static int fb_notifier_callback(struct n
+ 			backlight_update_status(bd);
+ 		}
+ 	mutex_unlock(&bd->ops_lock);
+-	unlock_fb_info(evdata->info);
+ 	return 0;
+ }
  
- #define BLOCKS_PER_PAGE  (PAGE_CACHE_SIZE/512)
+diff -puN drivers/video/backlight/lcd.c~revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency
++++ a/drivers/video/backlight/lcd.c
+@@ -40,8 +40,6 @@ static int fb_notifier_callback(struct n
+ 	if (!ld->ops)
+ 		return 0;
+ 
+-	if (!lock_fb_info(evdata->info))
+-		return -ENODEV;
+ 	mutex_lock(&ld->ops_lock);
+ 	if (!ld->ops->check_fb || ld->ops->check_fb(ld, evdata->info)) {
+ 		if (event == FB_EVENT_BLANK) {
+@@ -53,7 +51,6 @@ static int fb_notifier_callback(struct n
+ 		}
+ 	}
+ 	mutex_unlock(&ld->ops_lock);
+-	unlock_fb_info(evdata->info);
+ 	return 0;
+ }
+ 
+diff -puN drivers/video/console/fbcon.c~revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency
++++ a/drivers/video/console/fbcon.c
+@@ -2954,11 +2954,8 @@ static int fbcon_fb_unbind(int idx)
+ 
+ static int fbcon_fb_unregistered(struct fb_info *info)
+ {
+-	int i, idx;
++	int i, idx = info->node;
+ 
+-	if (!lock_fb_info(info))
+-		return -ENODEV;
+-	idx = info->node;
+ 	for (i = first_fb_vc; i <= last_fb_vc; i++) {
+ 		if (con2fb_map[i] == idx)
+ 			con2fb_map[i] = -1;
+@@ -2982,14 +2979,13 @@ static int fbcon_fb_unregistered(struct 
+ 		}
+ 	}
+ 
+-	if (primary_device == idx)
+-		primary_device = -1;
+-
+-	unlock_fb_info(info);
+-
+ 	if (!num_registered_fb)
+ 		unregister_con_driver(&fb_con);
+ 
++
++	if (primary_device == idx)
++		primary_device = -1;
++
+ 	return 0;
+ }
+ 
+@@ -3025,13 +3021,9 @@ static inline void fbcon_select_primary(
+ 
+ static int fbcon_fb_registered(struct fb_info *info)
+ {
+-	int ret = 0, i, idx;
++	int ret = 0, i, idx = info->node;
+ 
+-	if (!lock_fb_info(info))
+-		return -ENODEV;
+-	idx = info->node;
+ 	fbcon_select_primary(info);
+-	unlock_fb_info(info);
+ 
+ 	if (info_idx == -1) {
+ 		for (i = first_fb_vc; i <= last_fb_vc; i++) {
+@@ -3140,7 +3132,7 @@ static int fbcon_event_notify(struct not
+ 	struct fb_videomode *mode;
+ 	struct fb_con2fbmap *con2fb;
+ 	struct fb_blit_caps *caps;
+-	int idx, ret = 0;
++	int ret = 0;
+ 
+ 	/*
+ 	 * ignore all events except driver registration and deregistration
+@@ -3152,54 +3144,23 @@ static int fbcon_event_notify(struct not
+ 
+ 	switch(action) {
+ 	case FB_EVENT_SUSPEND:
+-		if (!lock_fb_info(info)) {
+-			ret = -ENODEV;
+-			goto done;
+-		}
+ 		fbcon_suspended(info);
+-		unlock_fb_info(info);
+ 		break;
+ 	case FB_EVENT_RESUME:
+-		if (!lock_fb_info(info)) {
+-			ret = -ENODEV;
+-			goto done;
+-		}
+ 		fbcon_resumed(info);
+-		unlock_fb_info(info);
+ 		break;
+ 	case FB_EVENT_MODE_CHANGE:
+-		if (!lock_fb_info(info)) {
+-			ret = -ENODEV;
+-			goto done;
+-		}
+ 		fbcon_modechanged(info);
+-		unlock_fb_info(info);
+ 		break;
+ 	case FB_EVENT_MODE_CHANGE_ALL:
+-		if (!lock_fb_info(info)) {
+-			ret = -ENODEV;
+-			goto done;
+-		}
+ 		fbcon_set_all_vcs(info);
+-		unlock_fb_info(info);
+ 		break;
+ 	case FB_EVENT_MODE_DELETE:
+ 		mode = event->data;
+-		if (!lock_fb_info(info)) {
+-			ret = -ENODEV;
+-			goto done;
+-		}
+ 		ret = fbcon_mode_deleted(info, mode);
+-		unlock_fb_info(info);
+ 		break;
+ 	case FB_EVENT_FB_UNBIND:
+-		if (!lock_fb_info(info)) {
+-			ret = -ENODEV;
+-			goto done;
+-		}
+-		idx = info->node;
+-		unlock_fb_info(info);
+-		ret = fbcon_fb_unbind(idx);
++		ret = fbcon_fb_unbind(info->node);
+ 		break;
+ 	case FB_EVENT_FB_REGISTERED:
+ 		ret = fbcon_fb_registered(info);
+@@ -3217,31 +3178,17 @@ static int fbcon_event_notify(struct not
+ 		con2fb->framebuffer = con2fb_map[con2fb->console - 1];
+ 		break;
+ 	case FB_EVENT_BLANK:
+-		if (!lock_fb_info(info)) {
+-			ret = -ENODEV;
+-			goto done;
+-		}
+ 		fbcon_fb_blanked(info, *(int *)event->data);
+-		unlock_fb_info(info);
+ 		break;
+ 	case FB_EVENT_NEW_MODELIST:
+-		if (!lock_fb_info(info)) {
+-			ret = -ENODEV;
+-			goto done;
+-		}
+ 		fbcon_new_modelist(info);
+-		unlock_fb_info(info);
+ 		break;
+ 	case FB_EVENT_GET_REQ:
+ 		caps = event->data;
+-		if (!lock_fb_info(info)) {
+-			ret = -ENODEV;
+-			goto done;
+-		}
+ 		fbcon_get_requirement(info, caps);
+-		unlock_fb_info(info);
+ 		break;
+ 	}
++
+ done:
+ 	return ret;
+ }
+diff -puN drivers/video/fbmem.c~revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency
++++ a/drivers/video/fbmem.c
+@@ -1097,8 +1097,13 @@ static long do_fb_ioctl(struct fb_info *
+ 			return -EINVAL;
+ 		con2fb.framebuffer = -1;
+ 		event.data = &con2fb;
++
++		if (!lock_fb_info(info))
++			return -ENODEV;
+ 		event.info = info;
+ 		fb_notifier_call_chain(FB_EVENT_GET_CONSOLE_MAP, &event);
++		unlock_fb_info(info);
++
+ 		ret = copy_to_user(argp, &con2fb, sizeof(con2fb)) ? -EFAULT : 0;
+ 		break;
+ 	case FBIOPUT_CON2FBMAP:
+@@ -1115,8 +1120,12 @@ static long do_fb_ioctl(struct fb_info *
+ 			break;
+ 		}
+ 		event.data = &con2fb;
++		if (!lock_fb_info(info))
++			return -ENODEV;
+ 		event.info = info;
+-		ret = fb_notifier_call_chain(FB_EVENT_SET_CONSOLE_MAP, &event);
++		ret = fb_notifier_call_chain(FB_EVENT_SET_CONSOLE_MAP,
++					      &event);
++		unlock_fb_info(info);
+ 		break;
+ 	case FBIOBLANK:
+ 		if (!lock_fb_info(info))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
