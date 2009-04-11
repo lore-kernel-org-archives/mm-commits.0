@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-introduce-context-readahead-algorithm.patch added to -mm tree
-Date: Fri, 10 Apr 2009 17:17:54 -0700
-Message-ID: <200904110017.n3B0HtaK005084@imap1.linux-foundation.org>
+Subject: + gru-dynamic-allocation-of-kernel-contexts-update.patch added to -mm tree
+Date: Fri, 10 Apr 2009 17:22:52 -0700
+Message-ID: <200904110022.n3B0MqM4007195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752089AbZDKAW1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753840AbZDKAYA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 20:22:27 -0400
+	Fri, 10 Apr 2009 20:24:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, jens.axboe@oracle.com, jmoyer@redhat.com, nickpiggin@yahoo.com.au, vst@vlnb.net, yinghan@google.com
+Cc: steiner@sgi.com
 
 
 The patch titled
-     readahead: introduce context readahead algorithm
+     gru-dynamic-allocation-of-kernel-contexts-update
 has been added to the -mm tree.  Its filename is
-     readahead-introduce-context-readahead-algorithm.patch
+     gru-dynamic-allocation-of-kernel-contexts-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,194 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: introduce context readahead algorithm
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: gru-dynamic-allocation-of-kernel-contexts-update
+From: Jack Steiner <steiner@sgi.com>
 
-Introduce page cache context based readahead algorithm.  This is to better
-support concurrent read streams in general.
+Added fixes from Andrew.
 
-RATIONALE
----------
-
-The current readahead algorithm detects interleaved reads in a _passive_
-way.  Given a sequence of interleaved streams
-1,1001,2,1002,3,4,1003,5,1004,1005,6,...  By checking for (offset ==
-prev_offset + 1), it will discover the sequentialness between 3,4 and
-between 1004,1005, and start doing sequential readahead for the individual
-streams since page 4 and page 1005.
-
-The context readahead algorithm guarantees to discover the sequentialness
-no matter how the streams are interleaved.  For the above example, it will
-start sequential readahead since page 2 and 1002.
-
-The trick is to poke for page @offset-1 in the page cache when it has no
-other clues on the sequentialness of request @offset: if the current
-request belongs to a sequential stream, that stream must have accessed
-page @offset-1 recently, and the page will still be cached now.  So if
-page @offset-1 is there, we can take request @offset as a sequential
-access.
-
-BENEFITS
---------
-
-- strictly interleaved reads  i.e. 1,1001,2,1002,3,1003,...
-  the current readahead will take them as silly random reads;
-  the context readahead will take them as two sequential streams.
-
-- seeky _column_ iterations on a huge matrix
-  Yes it can be regard as _massively_ interleaved streams!
-  Context readahead could transform the 1-page IOs (@offset+@size):
-	0+1, 1000+1, 2000+1, 3000+1, ...,
-	1+1, 1001+1, 2001+1, 3001+1, ...,
-	2+1, 1002+1, 2002+1, 3002+1, ...
-  into larger sized IOs:
-	0+1, 1000+1, 2000+1, 3000+1, ...,
-	1+4, 1001+4, 2001+4, 3001+4, ...,
-	5+8, 1005+8, 2005+8, 3005+8, ...
-
-- cooperative IO processes   i.e. NFS and SCST
-  They create a thread pool, farming off (sequential) IO requests to different
-  threads which will be performing interleaved IO.
-
-  It was not easy (or possible) to reliably tell from file->f_ra all
-  those cooperative processes working on the same sequential stream, since
-  they will have different file->f_ra instances.  And NFSD's file->f_ra is
-  particularly unusable, since their file objects are dynamically created
-  for each request.  The nfsd does have code trying to restore the f_ra
-  bits, but not satisfactory.
-
-  The new scheme is to detect the sequential pattern via looking up the
-  page cache, which provides one single and consistent view of the pages
-  recently accessed.  That makes sequential detection for cooperative
-  processes possible.
-
-USER REPORT
------------
-
-Vladislav recommends the addition of context readahead as a result of his SCST
-benchmarks. It leads to 6%~40% performance gains in various cases and achieves
-equal performance in others.                http://lkml.org/lkml/2009/3/19/239
-
-OVERHEADS
----------
-
-In theory, it introduces one extra page cache lookup per random read.  However
-the below benchmark shows context readahead to be slightly faster, wondering..
-
-Randomly reading 200MB amount of data on a sparse file, repeat 20 times for
-each block size. The average throughputs are:
-
-                       	original ra	context ra	gain
- 4K random reads:	 65.561MB/s	 65.648MB/s	+0.1%
-16K random reads:	124.767MB/s	124.951MB/s	+0.1%
-64K random reads: 	162.123MB/s	162.278MB/s	+0.1%
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Tested-by: Vladislav Bolkhovitin <vst@vlnb.net>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Ying Han <yinghan@google.com>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   60 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+ drivers/misc/sgi-gru/grumain.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/readahead.c~readahead-introduce-context-readahead-algorithm mm/readahead.c
---- a/mm/readahead.c~readahead-introduce-context-readahead-algorithm
-+++ a/mm/readahead.c
-@@ -330,6 +330,59 @@ static unsigned long get_next_ra_size(st
-  */
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts-update drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts-update
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -804,8 +804,9 @@ again:
  
- /*
-+ * Count continuously cached pages from @offset-1 to @offset-@max,
-+ * this count is a conservative estimation of
-+ * 	- length of the sequential read sequence, or
-+ * 	- thrashing threshold in memory tight systems
-+ */
-+static unsigned long count_history_pages(struct address_space *mapping,
-+					 struct file_ra_state *ra,
-+					 pgoff_t offset, unsigned long max)
-+{
-+	pgoff_t head;
-+
-+	rcu_read_lock();
-+	head = radix_tree_prev_hole(&mapping->page_tree, offset - 1, max);
-+	rcu_read_unlock();
-+
-+	return offset - 1 - head;
-+}
-+
-+/*
-+ * page cache context based read-ahead
-+ */
-+static int try_context_readahead(struct address_space *mapping,
-+				 struct file_ra_state *ra,
-+				 pgoff_t offset,
-+				 unsigned long req_size,
-+				 unsigned long max)
-+{
-+	unsigned long size;
-+
-+	size = count_history_pages(mapping, ra, offset, max);
-+
-+	/*
-+	 * no history pages:
-+	 * it could be a random read
-+	 */
-+	if (!size)
-+		return 0;
-+
-+	/*
-+	 * starts from beginning of file:
-+	 * it is a strong indication of long-run stream (or whole-file-read)
-+	 */
-+	if (size >= offset)
-+		size *= 2;
-+
-+	ra->start = offset;
-+	ra->size = get_init_ra_size(size + req_size, max);
-+	ra->async_size = ra->size;
-+
-+	return 1;
-+}
-+
-+/*
-  * A minimal readahead algorithm for trivial sequential/random reads.
-  */
- static unsigned long
-@@ -395,6 +448,13 @@ ondemand_readahead(struct address_space 
- 		goto initial_readahead;
+ 	if (!gts->ts_gru) {
+ 		if (!gru_assign_gru_context(gts, blade_id)) {
+-			mutex_unlock(&gts->ts_ctxlock);
+ 			preempt_enable();
++			mutex_unlock(&gts->ts_ctxlock);
++			set_current_state(TASK_INTERRUPTIBLE);
+ 			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
+ 			blade_id = uv_numa_blade_id();
+ 			if (gts->ts_steal_jiffies + GRU_STEAL_DELAY < jiffies)
+@@ -819,8 +820,8 @@ again:
+ 				vma->vm_page_prot);
+ 	}
  
- 	/*
-+	 * Query the page cache and look for the traces(cached history pages)
-+	 * that a sequential stream would leave behind.
-+	 */
-+	if (try_context_readahead(mapping, ra, offset, req_size, max))
-+		goto readit;
-+
-+	/*
- 	 * standalone, small random read
- 	 * Read as is, and do not pollute the readahead state.
- 	 */
+-	mutex_unlock(&gts->ts_ctxlock);
+ 	preempt_enable();
++	mutex_unlock(&gts->ts_ctxlock);
+ 
+ 	return VM_FAULT_NOPAGE;
+ }
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from steiner@sgi.com are
 
-linux-next.patch
-readahead-make-mmap_miss-an-unsigned-int.patch
-readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
-readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
-readahead-remove-one-unnecessary-radix-tree-lookup.patch
-readahead-increase-interleaved-readahead-size.patch
-readahead-remove-sync-async-readahead-call-dependency.patch
-readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
-readahead-sequential-mmap-readahead.patch
-readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-radix-tree-add-radix_tree_prev_hole.patch
-readahead-move-the-random-read-case-to-bottom.patch
-readahead-introduce-context-readahead-algorithm.patch
-readahead-introduce-context-readahead-algorithm-fix.patch
+gru-bug-fixes-for-gru-exception-handling.patch
+gru-dump-chiplet-state.patch
+gru-dump-chiplet-state-update.patch
+gru-dynamic-allocation-of-kernel-contexts.patch
+gru-dynamic-allocation-of-kernel-contexts-update.patch
+gru-change-context-load-and-unload.patch
+gru-support-cch_allocate-for-kernel-threads.patch
+gru-change-resource-assignment-for-kernel-threads.patch
+gru-support-contexts-with-zero-dsrs-or-cbrs.patch
+gru-fix-handling-of-mesq-failures.patch
+gru-check-context-state-on-reload.patch
+gru-support-instruction-completion-interrupts.patch
+gru-support-for-asynchronous-gru-instructions.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+gru-update-gru-kernel-self-tests.patch
+gru-update-to-rev-09-of-gru-spec.patch
 
