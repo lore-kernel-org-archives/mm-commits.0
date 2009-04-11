@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch added to -mm tree
-Date: Fri, 10 Apr 2009 17:26:04 -0700
-Message-ID: <200904110026.n3B0Q4G0008572@imap1.linux-foundation.org>
+Subject: + bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch added to -mm tree
+Date: Fri, 10 Apr 2009 19:44:43 -0700
+Message-ID: <200904110244.n3B2ih01001942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752681AbZDKAcM (ORCPT
+	by vger.kernel.org with ESMTP id S1755528AbZDKCps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Apr 2009 20:32:12 -0400
+	Fri, 10 Apr 2009 22:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rgetz@blackfin.uclinux.org, mingo@elte.hu, mpm@selenic.com, randy.dunlap@oracle.com, tglx@linutronix.de, tytso@mit.edu
+Cc: brian.haley@hp.com
 
 
 The patch titled
-     irqs: add IRQF_SAMPLE_RANDOM to the feature-removal-schedule.txt (deprecated) list
+     bonding: fix zero address hole bug in arp_ip_target list
 has been added to the -mm tree.  Its filename is
-     irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+     bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irqs: add IRQF_SAMPLE_RANDOM to the feature-removal-schedule.txt (deprecated) list
-From: Robin Getz <rgetz@blackfin.uclinux.org>
+Subject: bonding: fix zero address hole bug in arp_ip_target list
+From: Brian Haley <brian.haley@hp.com>
 
-This adds IRQF_SAMPLE_RANDOM to the feature-removal (deprecated) list
-since most of the IRQF_SAMPLE_RANDOM users are technically bogus as
-entropy sources in the kernel's current entropy model.
+Fix a zero address hole bug in the bonding arp_ip_target list that was
+causing the bond to ignore ARP replies.
 
-This was discussed on the lkml the past few days, which started here:
-http://lkml.org/lkml/2009/4/6/283
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13006
 
-Signed-off-by: Robin Getz <rgetz@blackfin.uclinux.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Instead of just setting the array entry to zero, we now copy any
+additional entries down one slot, putting the zero entry at the end.  With
+this change we can now have all the loops that walk the array stop when
+they hit a zero since there will be no addresses after it.
+
+Signed-off-by: Brian Haley <brian.haley@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ Documentation/networking/bonding.txt |    2 +-
+ drivers/net/bonding/bond_main.c      |    5 ++---
+ drivers/net/bonding/bond_sysfs.c     |   14 ++++++++------
+ 3 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -6,6 +6,20 @@ be removed from this file.
+diff -puN Documentation/networking/bonding.txt~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list Documentation/networking/bonding.txt
+--- a/Documentation/networking/bonding.txt~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
++++ a/Documentation/networking/bonding.txt
+@@ -1242,7 +1242,7 @@ monitoring is enabled, and vice-versa.
+ To add ARP targets:
+ # echo +192.168.0.100 > /sys/class/net/bond0/bonding/arp_ip_target
+ # echo +192.168.0.101 > /sys/class/net/bond0/bonding/arp_ip_target
+-	NOTE:  up to 10 target addresses may be specified.
++	NOTE:  up to 16 target addresses may be specified.
  
- ---------------------------
+ To remove an ARP target:
+ # echo -192.168.0.100 > /sys/class/net/bond0/bonding/arp_ip_target
+diff -puN drivers/net/bonding/bond_main.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list drivers/net/bonding/bond_main.c
+--- a/drivers/net/bonding/bond_main.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
++++ a/drivers/net/bonding/bond_main.c
+@@ -2570,7 +2570,7 @@ static void bond_arp_send_all(struct bon
  
-+What:	IRQF_SAMPLE_RANDOM
-+Check:	IRQF_SAMPLE_RANDOM
-+When:	July 2009
-+
-+Why:	Many of IRQF_SAMPLE_RANDOM users are technically bogus as entropy
-+	sources in the kernel's current entropy model. To resolve this, every
-+	input point to the kernel's entropy pool needs to better document the
-+	type of entropy source it actually is. This will be replaced with
-+	additional add_*_randomness functions in drivers/char/random.c
-+
-+Who:	Robin Getz <rgetz@blackfin.uclinux.org> & Matt Mackall <mpm@selenic.com>
-+
-+---------------------------
-+
- What:	The ieee80211_regdom module parameter
- When:	March 2010 / desktop catchup
+ 	for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
+ 		if (!targets[i])
+-			continue;
++			break;
+ 		pr_debug("basa: target %x\n", targets[i]);
+ 		if (list_empty(&bond->vlan_list)) {
+ 			pr_debug("basa: empty vlan: arp_send\n");
+@@ -2677,7 +2677,6 @@ static void bond_validate_arp(struct bon
+ 	int i;
+ 	__be32 *targets = bond->params.arp_targets;
  
+-	targets = bond->params.arp_targets;
+ 	for (i = 0; (i < BOND_MAX_ARP_TARGETS) && targets[i]; i++) {
+ 		pr_debug("bva: sip %pI4 tip %pI4 t[%d] %pI4 bhti(tip) %d\n",
+ 			&sip, &tip, i, &targets[i], bond_has_this_ip(bond, tip));
+@@ -3303,7 +3302,7 @@ static void bond_info_show_master(struct
+ 
+ 		for(i = 0; (i < BOND_MAX_ARP_TARGETS) ;i++) {
+ 			if (!bond->params.arp_targets[i])
+-				continue;
++				break;
+ 			if (printed)
+ 				seq_printf(seq, ",");
+ 			seq_printf(seq, " %pI4", &bond->params.arp_targets[i]);
+diff -puN drivers/net/bonding/bond_sysfs.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list drivers/net/bonding/bond_sysfs.c
+--- a/drivers/net/bonding/bond_sysfs.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
++++ a/drivers/net/bonding/bond_sysfs.c
+@@ -684,17 +684,15 @@ static ssize_t bonding_store_arp_targets
+ 			goto out;
+ 		}
+ 		/* look for an empty slot to put the target in, and check for dupes */
+-		for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
++		for (i = 0; (i < BOND_MAX_ARP_TARGETS) && !done; i++) {
+ 			if (targets[i] == newtarget) { /* duplicate */
+ 				printk(KERN_ERR DRV_NAME
+ 				       ": %s: ARP target %pI4 is already present\n",
+ 				       bond->dev->name, &newtarget);
+-				if (done)
+-					targets[i] = 0;
+ 				ret = -EINVAL;
+ 				goto out;
+ 			}
+-			if (targets[i] == 0 && !done) {
++			if (targets[i] == 0) {
+ 				printk(KERN_INFO DRV_NAME
+ 				       ": %s: adding ARP target %pI4.\n",
+ 				       bond->dev->name, &newtarget);
+@@ -720,12 +718,16 @@ static ssize_t bonding_store_arp_targets
+ 			goto out;
+ 		}
+ 
+-		for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
++		for (i = 0; (i < BOND_MAX_ARP_TARGETS) && !done; i++) {
+ 			if (targets[i] == newtarget) {
++				int j;
+ 				printk(KERN_INFO DRV_NAME
+ 				       ": %s: removing ARP target %pI4.\n",
+ 				       bond->dev->name, &newtarget);
+-				targets[i] = 0;
++				for (j = i; (j < (BOND_MAX_ARP_TARGETS-1)) && targets[j+1]; j++)
++					targets[j] = targets[j+1];
++
++				targets[j] = 0;
+ 				done = 1;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from rgetz@blackfin.uclinux.org are
+Patches currently in -mm which might be from brian.haley@hp.com are
 
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch
 
