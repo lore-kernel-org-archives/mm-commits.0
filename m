@@ -1,66 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] toshiba_acpi-add-full-hotkey-support-fix.patch removed from -mm tree
-Date: Fri, 10 Apr 2009 23:14:41 -0700
-Message-ID: <200904110614.n3B6EfMl025413@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix.patch added to -mm tree
+Date: Fri, 10 Apr 2009 23:50:27 -0700
+Message-ID: <200904110650.n3B6oRjP007973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754868AbZDKGRq (ORCPT
+	by vger.kernel.org with ESMTP id S1751754AbZDKGxS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 11 Apr 2009 02:17:46 -0400
+	Sat, 11 Apr 2009 02:53:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lenb@kernel.org, mjg@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jaswinder@kernel.org, len.brown@intel.com
 
 
 The patch titled
-     toshiba_acpi-add-full-hotkey-support-fix
-has been removed from the -mm tree.  Its filename was
-     toshiba_acpi-add-full-hotkey-support-fix.patch
+     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix
+has been added to the -mm tree.  Its filename is
+     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix.patch
 
-This patch was dropped because it was folded into toshiba_acpi-add-full-hotkey-support.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: toshiba_acpi-add-full-hotkey-support-fix
+Subject: arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_setup_keyboard':
-drivers/platform/x86/toshiba_acpi.c:853: warning: passing argument 3 of 'acpi_install_notify_handler' from incompatible pointer type
-drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_exit':
-drivers/platform/x86/toshiba_acpi.c:902: warning: passing argument 3 of 'acpi_remove_notify_handler' from incompatible pointer type
+doh
 
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/toshiba_acpi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-add-full-hotkey-support-fix drivers/platform/x86/toshiba_acpi.c
---- a/drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-add-full-hotkey-support-fix
-+++ a/drivers/platform/x86/toshiba_acpi.c
-@@ -791,7 +791,7 @@ static int toshiba_acpi_setkeycode(struc
- 	return -EINVAL;
- }
+diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix
++++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -197,7 +197,7 @@ static void do_drv_write(void *_cmd)
  
--static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
-+static void toshiba_acpi_notify(acpi_handle handle, u32 event, void *context)
+ static void drv_read(struct drv_cmd *cmd)
  {
- 	u32 hci_result, value;
- 	struct key_entry *key;
-@@ -849,7 +849,7 @@ static int toshiba_acpi_setup_keyboard(c
- 		return -ENODEV;
- 	}
+-	int target_cpu;		/* The CPU on which to perform thr rdmsr() */
++	int target_cpu;		/* The CPU on which to perform the rdmsr() */
+ 	int this_cpu;
  
--	status = acpi_install_notify_handler (handle, ACPI_DEVICE_NOTIFY,
-+	status = acpi_install_notify_handler(handle, ACPI_DEVICE_NOTIFY,
- 					      toshiba_acpi_notify, NULL);
- 	if (ACPI_FAILURE(status)) {
- 		printk(MY_INFO "Unable to install hotkey notification\n");
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,9 +71,9 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 toshiba_acpi-add-full-hotkey-support.patch
-toshiba_acpi-add-full-hotkey-support-fix.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix.patch
 early-platform-driver-v3.patch
 clocksource-pass-clocksource-to-read-callback.patch
 input-bcm5974-declare-alignment-usage.patch
