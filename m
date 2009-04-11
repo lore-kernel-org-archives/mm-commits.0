@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix.patch added to -mm tree
-Date: Fri, 10 Apr 2009 23:50:27 -0700
-Message-ID: <200904110650.n3B6oRjP007973@imap1.linux-foundation.org>
+Subject: + vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch added to -mm tree
+Date: Fri, 10 Apr 2009 23:36:39 -0700
+Message-ID: <200904110655.n3B6tEBL009978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751754AbZDKGxS (ORCPT
+	by vger.kernel.org with ESMTP id S1752646AbZDKG5v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 11 Apr 2009 02:53:18 -0400
+	Sat, 11 Apr 2009 02:57:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jaswinder@kernel.org, len.brown@intel.com
+Cc: akpm@linux-foundation.org, green@linuxhacker.ru, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix
+     vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix.patch
+     vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix
+Subject: vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-doh
-
-Cc: Len Brown <len.brown@intel.com>
-Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Oleg Drokin <green@linuxhacker.ru>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    2 +-
+ fs/compat.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix
-+++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -197,7 +197,7 @@ static void do_drv_write(void *_cmd)
+diff -puN fs/compat.c~vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix fs/compat.c
+--- a/fs/compat.c~vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix
++++ a/fs/compat.c
+@@ -183,7 +183,7 @@ asmlinkage long compat_sys_newstat(char 
+ 	struct kstat stat;
+ 	int error;
  
- static void drv_read(struct drv_cmd *cmd)
- {
--	int target_cpu;		/* The CPU on which to perform thr rdmsr() */
-+	int target_cpu;		/* The CPU on which to perform the rdmsr() */
- 	int this_cpu;
- 
- 	/*
+-	error = = vfs_stat(filename, &stat);
++	error = vfs_stat(filename, &stat);
+ 	if (error)
+ 		return error;
+ 	return cp_compat_stat(&stat, statbuf);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +86,7 @@ drivers-net-82596c-suppress-warnings.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
+vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
 xtensa-add-flat-support-checkpatch-fixes.patch
 hfs-fix-memory-leak-when-unmounting-fix.patch
 memcg-remove-warning-when-config_debug_vm=n-fix.patch
