@@ -1,348 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2009-04-11-02-07 uploaded
-Date: Sat, 11 Apr 2009 02:07:44 -0700
-Message-ID: <200904110926.n3B9QLu6008396@imap1.linux-foundation.org>
+Subject: + shmem-respect-max_lfs_filesize-fix-2.patch added to -mm tree
+Date: Sat, 11 Apr 2009 02:07:09 -0700
+Message-ID: <200904110925.n3B9PkA9008177@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750950AbZDKJ1A (ORCPT
+	by vger.kernel.org with ESMTP id S1752335AbZDKJ3o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 11 Apr 2009 05:27:00 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n3B9QLNs006740
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 11 Apr 2009 02:26:57 -0700
-Received: from localhost.localdomain (localhost [127.0.0.1])
-	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id n3B9QLu6008396
-	for <mm-commits@vger.kernel.org>; Sat, 11 Apr 2009 02:26:21 -0700
+	Sat, 11 Apr 2009 05:29:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hugh@veritas.com, paulus@samba.org, randy.dunlap@oracle.com, yur@emcraft.com
 
-The mm-of-the-moment snapshot 2009-04-11-02-07 has been uploaded to
 
-   http://userweb.kernel.org/~akpm/mmotm/
+The patch titled
+     shmem-respect-max_lfs_filesize-fix-2
+has been added to the -mm tree.  Its filename is
+     shmem-respect-max_lfs_filesize-fix-2.patch
 
-and will soon be available at
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-   git://git.zen-sources.org/zen/mmotm.git
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-It contains the following patches against 2.6.30-rc1:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: shmem-respect-max_lfs_filesize-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
+
+sparc64:
+
+mm/shmem.c: In function `shmem_truncate_range':
+mm/shmem.c:571: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:579: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c: In function `shmem_getpage':
+mm/shmem.c:1218: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:1218: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:1218: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c: In function `shmem_fill_super':
+mm/shmem.c:2341: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c: In function `shmem_file_setup':
+mm/shmem.c:2622: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:2622: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:2622: warning: comparison of distinct pointer types lacks a cast
+
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Yuri Tikhonov <yur@emcraft.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize-fix-2 mm/shmem.c
+--- a/mm/shmem.c~shmem-respect-max_lfs_filesize-fix-2
++++ a/mm/shmem.c
+@@ -83,7 +83,7 @@ static struct vfsmount *shm_mnt;
+ #define SHMSWP_MAX_INDEX (SHMEM_NR_DIRECT + (ENTRIES_PER_PAGEPAGE/2) * (ENTRIES_PER_PAGE+1))
+ #define SHMSWP_MAX_BYTES (SHMSWP_MAX_INDEX << PAGE_CACHE_SHIFT)
+ 
+-#define SHMEM_MAX_BYTES  min(SHMSWP_MAX_BYTES, (unsigned long long)MAX_LFS_FILESIZE)
++#define SHMEM_MAX_BYTES  min_t(unsigned long long, SHMSWP_MAX_BYTES, MAX_LFS_FILESIZE)
+ #define SHMEM_MAX_INDEX  ((unsigned long)((SHMEM_MAX_BYTES+1) >> PAGE_CACHE_SHIFT))
+ 
+ #define BLOCKS_PER_PAGE  (PAGE_CACHE_SIZE/512)
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-move-the-scan_unevictable_pages-sysctl-to-the-vm-table.patch
-maintainers-switch-maintainer-of-the-hso-driver.patch
-maintainers-fix-email-address.patch
-documentation-sysctl-nettxt-fix-a-typo.patch
-hp_accel-remove-unused-include-versionh.patch
-init-initramfs-fix-warning-with-config_blk_dev_ram=n.patch
 revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
 i2c-too-much-compiler-noise.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
-acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
 toshiba_acpi-add-full-hotkey-support.patch
-dell-laptop-fix-uninitialized-wrong-return-value.patch
-dell-wmi-support-additional-keys.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix.patch
-x86-simplify-highmem-related-kconfig-entries.patch
-x86-enable-gart-iommu-only-after-setting-up-protection-methods.patch
-agpgart-detected-ali-m-chipset-with-m1621.patch
-btrfs-use-memdup_user.patch
-pcmcia-pccard-deadlock-fix.patch
 early-platform-driver-v3.patch
-synchronize-device-shutdown.patch
-dynamic-debug-resurrect-old-pr_debug-semantics-as-pr_devel.patch
-dynamic-debug-remove-pr_fmt-from-dynamic_dev_dbg-printk.patch
-sysfs-use-memdup_user.patch
-drm-fix-lock_test_with_return-macro.patch
-radio-mr800c-missing-mutex-include.patch
-uvcvideo-prevent-information-loss-with-removing-implicit-casting.patch
 clocksource-pass-clocksource-to-read-callback.patch
-clocksource-add-enable-and-disable-callbacks.patch
-clocksource-sanity-check-sysfs-clocksource-changes.patch
-kernel-time-tick-broadcastc-tick_broadcast_device-can-become-static.patch
-timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred.patch
-time-move-calc_load-call-out-from-xtime_lock-protection.patch
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
-input-mouse-alpsc-handle-touchpoints-buttons-correctly.patch
-input-ads7846c-sparse-lock-annotation.patch
-input-bcm5974-prepare-for-a-new-trackpad-header-type.patch
-input-bcm5974-add-quad-finger-tapping.patch
-input-bcm5974-add-support-for-the-macbook-5-unibody.patch
-input-bcm5974-augmented-debug-information.patch
 input-bcm5974-declare-alignment-usage.patch
-input-allow-certain-ev_abs-events-to-bypass-all-filtering.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-add-a-detailed-multi-touch-finger-data-report-protocol-rev2.patch
-drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch
-ads7846-pin-change-interrupt-support.patch
 input-keyboard-introduce-lm8323-driver.patch
-uinput-flush-all-pending-ff-effects-before-destroying-device.patch
-input-ads7846-introduce-platform-specific-way-to-synchronize-sampling.patch
-input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-input-documentation-abi-testing-game_device-sysfs-interface-document-game_device-interface-added-to-xpad-driver.patch
-input-elantechc-provide-a-workaround-for-jumpy-cursor-on-firmware-234.patch
-input-elantechc-make-sure-touchpad-is-really-in-absolute-mode.patch
-serios-async-shutdown.patch
-kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
-kernel-kallsymsc-replace-deprecated-__initcall-with-device_initcall-and-fix-whitespace.patch
-setlocalversion-use-git-svn-instead-of-git-svn.patch
-kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch
-ata-fix-obviously-wrong-comment.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon.patch
-mips-cacheflush-system-call-not-returning-einval.patch
 mips-cacheflush-system-call-not-returning-einval-checkpatch-fixes.patch
-mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch
-mmc-some-microsd-cards-are-not-recognized-by-pcixx12-sda-controller.patch
-mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
 mtd-flex-onenand-support.patch
-mtd-onenand-add-bbt_wait-unlock_all-as-replaceable-for-some-platform.patch
-mtd-plat_nand-add-platform-probe-remove-callbacks.patch
-mtd-plat_nand-allow-platform-to-set-partitions.patch
-mtd-update-sysfs-documentation.patch
-mtd-add-memerase64-ioctl-for-4gib-devices.patch
-mtd-compat_ioctl-cleanup.patch
-mtd-add-oob-ioctls-for-4gib-devices.patch
-uwb-event_size-should-be-signed.patch
-cls_cgroup-remove-unneeded-cgroup_lock.patch
-sunrpc-align-cache_clean-works-timer.patch
-irda-new-blackfin-on-chip-sir-irda-driver.patch
 misdn-l1oip-reduce-stack-memory-footprint.patch
-sfc-modify-allocation-error-message.patch
 drivers-net-82596c-suppress-warnings.patch
-de2104x-support-for-systems-lacking-cache-coherence.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-3x59x-fix-pci-resource-management.patch
-pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-pci-docbooks-add-fix-pci-kernel-doc.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-sg_io-dont-perform-unneeded-copy-in-compat-code.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-qla2x-fix-printk-format-warnings.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-sd-async-shutdown.patch
-w35und-remove-unused-code-from-wbsoft_configure_filter.patch
-agnx-make-input-parameters-const.patch
-usb-imx_udc-fix-leak-in-imx_ep_alloc_request.patch
-cleanup-usb_serial_port-update-struct-comments.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-improve-comment-describing-fget_light.patch
 libfs-make-simple_read_from_buffer-conventional.patch
-fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch
-xattr-use-memdup_user.patch
-vfs-consolidate-common-fstatat-code-into-vfs_fstatat.patch
-vfs-kill-vfs_stat_fd-vfs_lstat_fd.patch
 vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
-xfs-use-memdup_user.patch
 xtensa-add-flat-support-checkpatch-fixes.patch
-xtensa-variant-specific-code.patch
-xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-s6000-dma-engine-support.patch
-xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
-xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver-fix.patch
-xtensa-s6105-specific-configuration-for-s6gmac.patch
-xtensa-enable-s6gmac-in-s6105_defconfig.patch
-xtensa-add-m41t62-rtc-to-s6105-platform.patch
-xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
-mm.patch
-fbdev-fix-color-component-field-length-documentation.patch
-uvesafb-fix-color-component-length-for-pseudocolor-modes.patch
-efifb-exit-if-framebuffer-address-is-invalid.patch
-sht15-humidity-sensor-driver.patch
-hfs-fix-memory-leak-when-unmounting.patch
 hfs-fix-memory-leak-when-unmounting-fix.patch
-aio-remove-init_kioctx.patch
-namespaces-move-get_mq-inside-ifdef-config_sysctl.patch
-s3fb-fix-color-component-length-for-pseudocolor-modes.patch
-sa1100fb-fix-color-component-length-for-pseudocolor-modes.patch
-sisfb-fix-color-component-length-for-pseudocolor-modes.patch
-drivers-video-aty-radeon_basec-fix-typo-in-comment.patch
-include-linux-fiemaph-include-typesh-now-that-its-exported.patch
-filemap-fix-kernel-doc-warnings.patch
-cirrusfb-do-not-allow-unsupported-pixel-depth.patch
-update-nsigtrap-in-asm-generic-siginfoh.patch
-spi-spi_write_then_read-bugfixes.patch
-res_counter-update-documentation.patch
-include-video-cyblafbh-remove-it-its-unused.patch
-sysrq-remove-duplicated-include.patch
-mm-point-the-unevictable_lru-config-option-at-the-documentation.patch
-mm-reformat-the-unevictable-lru-documentation.patch
-maintainers-bluesmoke-devel-list-is-moderated-for-non-subscribers.patch
-ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch
-initramfs-fix-initramfs-to-work-with-hardlinked-init.patch
-mm-document-get_user_pages_fast.patch
-jbd-update-locking-coments.patch
-at24-make-input-buffers-of-at24_write-const.patch
-at25-make-input-buffers-of-at25_write-const.patch
-kernel-sysc-clean-up-sys_shutdown-exit-path.patch
-memcg-remove-warning-when-config_debug_vm=n.patch
 memcg-remove-warning-when-config_debug_vm=n-fix.patch
-mm-add-documentation-describing-what-tsk-active_mm-means-vs-tsk-mm.patch
-intelfb-support-i854.patch
-shmem-fix-division-by-zero.patch
-shmem-respect-max_lfs_filesize.patch
 shmem-respect-max_lfs_filesize-fix.patch
 shmem-respect-max_lfs_filesize-fix-fix.patch
 shmem-respect-max_lfs_filesize-fix-2.patch
-powerpc-allow-256kb-pages-with-shmem.patch
-ext2-fix-data-corruption-for-racing-writes.patch
-replace-all-dma_nbit_mask-macro-with-dma_bit_maskn.patch
-memcg-fix-documentation.patch
-doc-use-correct-debugfs-mountpoint.patch
-mm-disable-preemption-in-apply_to_pte_range.patch
-rtc-add-ds1685-ds1687-rtc-driver.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
-ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port.patch
-input-introduce-a-tougher-i8042reset.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
-bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch
-skge-fix-occasional-bug-during-mtu-change.patch
-procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
-scsi-a4000-correct-driver-unregistration-in-case-of-failure.patch
-scsi-mpt-suppress-debugobjects-warning.patch
-mm-consolidate-init_mm-definition.patch
 mm-consolidate-init_mm-definition-fix.patch
-readahead-make-mmap_miss-an-unsigned-int.patch
-readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
-readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
-readahead-remove-one-unnecessary-radix-tree-lookup.patch
-readahead-increase-interleaved-readahead-size.patch
-readahead-remove-sync-async-readahead-call-dependency.patch
-readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
-readahead-sequential-mmap-readahead.patch
-readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
 readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-radix-tree-add-radix_tree_prev_hole.patch
-readahead-move-the-random-read-case-to-bottom.patch
-readahead-introduce-context-readahead-algorithm.patch
 readahead-introduce-context-readahead-algorithm-fix.patch
-mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
-frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
-printk-add-support-for-the-of-hh-length-modifier.patch
-getrusage-fill-ru_maxrss-value.patch
-sgi-xpc-update-sgi-xp-xpc-xpnet-maintainer.patch
-sgi-xpc-prevent-false-heartbeat-failures.patch
-sgi-xpc-implement-opencomplete-messaging.patch
-sgi-xp-clean-up-numerous-globals.patch
-softirq-introduce-statistics-for-softirq.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
 flat-fix-data-sections-alignment.patch
-ncpfs-use-memdup_user.patch
-pci-use-pci_ioremap_bar-in-drivers-serial.patch
-kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
-serial_txx9-use-container_of-instead-of-direct-cast.patch
-icom-converting-space-to-tabs.patch
-serial-8250c-irq-handling-race-and-spurious-iir-read.patch
-ecryptfs-use-memdup_user.patch
-rtc-rtc-ds1742-nvram-attribute-fix.patch
-rtc-rtc-ds1307-add-ds1388.patch
-rtc-rtc-ds1307-add-ds3231.patch
-rtc-make-rtc_update_irq-callable-with-irqs-enabled.patch
-pca953x-support-gpiolib-gpio-naming.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
-fbdev-generated-logo-sources-depend-on-scripts-pnmtologo.patch
-fbdev-move-logo-externs-to-header-file.patch
-ext2-do-not-update-mtime-of-a-moved-directory.patch
-ext3-fix-chain-verification-in-ext3_get_blocks.patch
-hfsplus-identify-journal-info-block-in-volume-header.patch
-hfsplus-fix-journal-detection.patch
-ufs-sector_t-cannot-be-negative.patch
-reiserfs-fix-printk-format-warning.patch
-quota-remove-obsolete-comments-in-fs-quota-makefile.patch
-devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
-cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
-cpusets-update-tasks-page-slab-spread-flags-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time.patch
-ipmi-fix-platform-return-check.patch
-ipmi-test-for-event-buffer-before-using.patch
-ipmi-fix-statistics-counting-issues.patch
-ipmi-add-console-oops-catcher.patch
-ipmi-add-oem-message-handling.patch
-char-isicom-fix-build-warning.patch
-edac-fix-local-pci_write_bits32.patch
-edac-use-to_delayed_work.patch
-gru-bug-fixes-for-gru-exception-handling.patch
-gru-dump-chiplet-state.patch
-gru-dump-chiplet-state-update.patch
-gru-dynamic-allocation-of-kernel-contexts.patch
-gru-dynamic-allocation-of-kernel-contexts-update.patch
-gru-change-context-load-and-unload.patch
-gru-support-cch_allocate-for-kernel-threads.patch
-gru-change-resource-assignment-for-kernel-threads.patch
-gru-support-contexts-with-zero-dsrs-or-cbrs.patch
-gru-fix-handling-of-mesq-failures.patch
-gru-check-context-state-on-reload.patch
-gru-support-instruction-completion-interrupts.patch
-gru-support-for-asynchronous-gru-instructions.patch
 gru-support-for-asynchronous-gru-instructions-fix.patch
-gru-update-gru-kernel-self-tests.patch
-gru-update-gru-kernel-self-tests-fix.patch
-gru-update-to-rev-09-of-gru-spec.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-linuxpps-core-support.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4-vfs-add-super_operationssync_inodes-2.patch
-reiser4-export-remove_from_page_cache.patch
 reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
 reiser4.patch
-reiser4-adjust-to-the-new-aops.patch
-reiser4-adjust-to-the-new-aops-fixup.patch
-reiser4-remove-simple_prepare_write-usage.patch
 reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
-reiser4-update-names-of-quota-methods.patch
-reiser4-use-set_page_dirty_notag.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
 shrink_slab-handle-bad-shrinkers.patch
-keep-track-of-network-interface-renaming.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+
