@@ -1,77 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-remove-warning-when-config_debug_vm=n-fix.patch removed from -mm tree
-Date: Mon, 13 Apr 2009 14:35:47 -0700
-Message-ID: <200904132135.n3DLZmJg022526@imap1.linux-foundation.org>
+Subject: [folded] hfs-fix-memory-leak-when-unmounting-fix.patch removed from -mm tree
+Date: Mon, 13 Apr 2009 14:35:02 -0700
+Message-ID: <200904132135.n3DLZ2EB022228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47559 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751084AbZDMVhj (ORCPT
+	by vger.kernel.org with ESMTP id S1751226AbZDMVh4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Apr 2009 17:37:39 -0400
+	Mon, 13 Apr 2009 17:37:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, anderson@redhat.com, eugeneteo@kernel.sg, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-remove-warning-when-config_debug_vm=n-fix
+     hfs-fix-memory-leak-when-unmounting-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-warning-when-config_debug_vm=n-fix.patch
+     hfs-fix-memory-leak-when-unmounting-fix.patch
 
-This patch was dropped because it was folded into memcg-remove-warning-when-config_debug_vm=n.patch
+This patch was dropped because it was folded into hfs-fix-memory-leak-when-unmounting.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-remove-warning-when-config_debug_vm=n-fix
+Subject: hfs-fix-memory-leak-when-unmounting-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-simplify as suggested by Balbir.
+- free_pages(0) is legal
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+- the comment was a bit obvious ;)
+
+Cc: Dave Anderson <anderson@redhat.com>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/hfs/mdb.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n-fix
-+++ a/mm/memcontrol.c
-@@ -314,14 +314,13 @@ static struct mem_cgroup *try_get_mem_cg
- 	return mem;
+diff -puN fs/hfs/mdb.c~hfs-fix-memory-leak-when-unmounting-fix fs/hfs/mdb.c
+--- a/fs/hfs/mdb.c~hfs-fix-memory-leak-when-unmounting-fix
++++ a/fs/hfs/mdb.c
+@@ -349,10 +349,7 @@ void hfs_mdb_put(struct super_block *sb)
+ 	if (HFS_SB(sb)->nls_disk)
+ 		unload_nls(HFS_SB(sb)->nls_disk);
+ 
+-	/* free the bitmap page(s) */
+-	if (HFS_SB(sb)->bitmap)
+-		free_pages((unsigned long)HFS_SB(sb)->bitmap, PAGE_SIZE < 8192 ? 1 : 0);
+-
++	free_pages((unsigned long)HFS_SB(sb)->bitmap, PAGE_SIZE < 8192 ? 1 : 0);
+ 	kfree(HFS_SB(sb));
+ 	sb->s_fs_info = NULL;
  }
- 
--#ifdef CONFIG_DEBUG_VM
- static bool mem_cgroup_is_obsolete(struct mem_cgroup *mem)
- {
- 	if (!mem)
- 		return true;
- 	return css_is_removed(&mem->css);
- }
--#endif
-+
- 
- /*
-  * Call callback function against all cgroup under hierarchy tree.
-@@ -933,7 +932,7 @@ static int __mem_cgroup_try_charge(struc
- 	if (unlikely(!mem))
- 		return 0;
- 
--	VM_BUG_ON(mem_cgroup_is_obsolete(mem));
-+	VM_BUG_ON(!mem || mem_cgroup_is_obsolete(mem));
- 
- 	while (1) {
- 		int ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 hfs-fix-memory-leak-when-unmounting.patch
-memcg-remove-warning-when-config_debug_vm=n.patch
+hfs-fix-memory-leak-when-unmounting-fix.patch
 memcg-remove-warning-when-config_debug_vm=n-fix.patch
 shmem-respect-max_lfs_filesize-fix.patch
 shmem-respect-max_lfs_filesize-fix-fix.patch
