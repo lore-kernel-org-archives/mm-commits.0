@@ -1,53 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded] shmem-respect-max_lfs_filesize-fix-fix.patch removed from -mm tree
-Date: Mon, 13 Apr 2009 14:36:19 -0700
-Message-ID: <200904132136.n3DLaJZx022751@imap1.linux-foundation.org>
+Subject: [folded] shmem-respect-max_lfs_filesize-fix-2.patch removed from -mm tree
+Date: Mon, 13 Apr 2009 14:36:22 -0700
+Message-ID: <200904132136.n3DLaMXK022802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39298 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33534 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751239AbZDMVkg (ORCPT
+	by vger.kernel.org with ESMTP id S1752080AbZDMVks (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Apr 2009 17:40:36 -0400
+	Mon, 13 Apr 2009 17:40:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hugh@veritas.com, paulus@samba.org, randy.dunlap@oracle.com, yur@emcraft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shmem-respect-max_lfs_filesize-fix-fix
+     shmem-respect-max_lfs_filesize-fix-2
 has been removed from the -mm tree.  Its filename was
-     shmem-respect-max_lfs_filesize-fix-fix.patch
+     shmem-respect-max_lfs_filesize-fix-2.patch
 
 This patch was dropped because it was folded into shmem-respect-max_lfs_filesize.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem-respect-max_lfs_filesize-fix-fix
+Subject: shmem-respect-max_lfs_filesize-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
+
+sparc64:
+
+mm/shmem.c: In function `shmem_truncate_range':
+mm/shmem.c:571: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:579: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c: In function `shmem_getpage':
+mm/shmem.c:1218: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:1218: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:1218: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c: In function `shmem_fill_super':
+mm/shmem.c:2341: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c: In function `shmem_file_setup':
+mm/shmem.c:2622: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:2622: warning: comparison of distinct pointer types lacks a cast
+mm/shmem.c:2622: warning: comparison of distinct pointer types lacks a cast
 
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Yuri Tikhonov <yur@emcraft.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize-fix-fix mm/shmem.c
---- a/mm/shmem.c~shmem-respect-max_lfs_filesize-fix-fix
+diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize-fix-2 mm/shmem.c
+--- a/mm/shmem.c~shmem-respect-max_lfs_filesize-fix-2
 +++ a/mm/shmem.c
-@@ -44,7 +44,6 @@ static struct vfsmount *shm_mnt;
- #include <linux/exportfs.h>
- #include <linux/generic_acl.h>
- #include <linux/mman.h>
--#include <linux/pagemap.h>
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/backing-dev.h>
+@@ -83,7 +83,7 @@ static struct vfsmount *shm_mnt;
+ #define SHMSWP_MAX_INDEX (SHMEM_NR_DIRECT + (ENTRIES_PER_PAGEPAGE/2) * (ENTRIES_PER_PAGE+1))
+ #define SHMSWP_MAX_BYTES (SHMSWP_MAX_INDEX << PAGE_CACHE_SHIFT)
+ 
+-#define SHMEM_MAX_BYTES  min(SHMSWP_MAX_BYTES, (unsigned long long)MAX_LFS_FILESIZE)
++#define SHMEM_MAX_BYTES  min_t(unsigned long long, SHMSWP_MAX_BYTES, MAX_LFS_FILESIZE)
+ #define SHMEM_MAX_INDEX  ((unsigned long)((SHMEM_MAX_BYTES+1) >> PAGE_CACHE_SHIFT))
+ 
+ #define BLOCKS_PER_PAGE  (PAGE_CACHE_SIZE/512)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -56,7 +73,6 @@ origin.patch
 hfs-fix-memory-leak-when-unmounting.patch
 memcg-remove-warning-when-config_debug_vm=n.patch
 shmem-respect-max_lfs_filesize.patch
-shmem-respect-max_lfs_filesize-fix-fix.patch
 shmem-respect-max_lfs_filesize-fix-2.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
