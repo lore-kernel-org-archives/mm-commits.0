@@ -1,96 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-dont-open-code-smp_call_function_many.patch added to -mm tree
-Date: Mon, 13 Apr 2009 11:52:41 -0700
-Message-ID: <200904131852.n3DIqfZ1013992@imap1.linux-foundation.org>
+Subject: [folded] memcg-remove-warning-when-config_debug_vm=n-fix.patch removed from -mm tree
+Date: Mon, 13 Apr 2009 14:35:47 -0700
+Message-ID: <200904132135.n3DLZmJg022526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752940AbZDMS7t (ORCPT
+	by vger.kernel.org with ESMTP id S1751084AbZDMVhj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Apr 2009 14:59:49 -0400
+	Mon, 13 Apr 2009 17:37:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, efault@gmx.de, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, torvalds@linux-foundation.org, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: don't open-code smp_call_function_many()
-has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-dont-open-code-smp_call_function_many.patch
+     memcg-remove-warning-when-config_debug_vm=n-fix
+has been removed from the -mm tree.  Its filename was
+     memcg-remove-warning-when-config_debug_vm=n-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into memcg-remove-warning-when-config_debug_vm=n.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: don't open-code smp_call_function_many()
+Subject: memcg-remove-warning-when-config_debug_vm=n-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mike Galbraith <efault@gmx.de>
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+simplify as suggested by Balbir.
+
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-dont-open-code-smp_call_function_many arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-dont-open-code-smp_call_function_many
-+++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -153,7 +153,7 @@ struct drv_cmd {
- 	u32 val;
- };
- 
--/* Called via smp_call_function_single(), on the target CPU */
-+/* Called via smp_call_function(), on the target CPU */
- static void do_drv_read(void *_cmd)
- {
- 	struct drv_cmd *cmd = _cmd;
-@@ -173,7 +173,7 @@ static void do_drv_read(void *_cmd)
- 	}
+diff -puN mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n-fix
++++ a/mm/memcontrol.c
+@@ -314,14 +314,13 @@ static struct mem_cgroup *try_get_mem_cg
+ 	return mem;
  }
  
--/* Called via smp_call_function_single(), on the target CPU */
-+/* Called via smp_call_function(), on the target CPU */
- static void do_drv_write(void *_cmd)
+-#ifdef CONFIG_DEBUG_VM
+ static bool mem_cgroup_is_obsolete(struct mem_cgroup *mem)
  {
- 	struct drv_cmd *cmd = _cmd;
-@@ -217,10 +217,7 @@ static void drv_read(struct drv_cmd *cmd
- 
- static void drv_write(struct drv_cmd *cmd)
- {
--	unsigned int cpu;
--
--	for_each_cpu(cpu, cmd->mask)
--		smp_call_function_single(cpu, do_drv_write, cmd, 1);
-+	smp_call_function_many(cmd->mask, do_drv_write, cmd, 1);
+ 	if (!mem)
+ 		return true;
+ 	return css_is_removed(&mem->css);
  }
+-#endif
++
  
- static u32 get_cur_val(const struct cpumask *mask)
+ /*
+  * Call callback function against all cgroup under hierarchy tree.
+@@ -933,7 +932,7 @@ static int __mem_cgroup_try_charge(struc
+ 	if (unlikely(!mem))
+ 		return 0;
+ 
+-	VM_BUG_ON(mem_cgroup_is_obsolete(mem));
++	VM_BUG_ON(!mem || mem_cgroup_is_obsolete(mem));
+ 
+ 	while (1) {
+ 		int ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+hfs-fix-memory-leak-when-unmounting.patch
+memcg-remove-warning-when-config_debug_vm=n.patch
+memcg-remove-warning-when-config_debug_vm=n-fix.patch
+shmem-respect-max_lfs_filesize-fix.patch
+shmem-respect-max_lfs_filesize-fix-fix.patch
+shmem-respect-max_lfs_filesize-fix-2.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
 linux-next-git-rejects.patch
@@ -117,11 +102,6 @@ raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
 xtensa-add-flat-support-checkpatch-fixes.patch
-hfs-fix-memory-leak-when-unmounting-fix.patch
-memcg-remove-warning-when-config_debug_vm=n-fix.patch
-shmem-respect-max_lfs_filesize-fix.patch
-shmem-respect-max_lfs_filesize-fix-fix.patch
-shmem-respect-max_lfs_filesize-fix-2.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
 mm-consolidate-init_mm-definition-fix.patch
