@@ -1,68 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hfs-fix-memory-leak-when-unmounting-fix.patch removed from -mm tree
-Date: Mon, 13 Apr 2009 14:35:02 -0700
-Message-ID: <200904132135.n3DLZ2EB022228@imap1.linux-foundation.org>
+Subject: [folded] shmem-respect-max_lfs_filesize-fix.patch removed from -mm tree
+Date: Mon, 13 Apr 2009 14:36:15 -0700
+Message-ID: <200904132136.n3DLaFoc022728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751226AbZDMVh4 (ORCPT
+	by vger.kernel.org with ESMTP id S1750836AbZDMVk3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Apr 2009 17:37:56 -0400
+	Mon, 13 Apr 2009 17:40:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anderson@redhat.com, eugeneteo@kernel.sg, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hugh@veritas.com, paulus@samba.org, randy.dunlap@oracle.com, yur@emcraft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hfs-fix-memory-leak-when-unmounting-fix
+     shmem-respect-max_lfs_filesize-fix
 has been removed from the -mm tree.  Its filename was
-     hfs-fix-memory-leak-when-unmounting-fix.patch
+     shmem-respect-max_lfs_filesize-fix.patch
 
-This patch was dropped because it was folded into hfs-fix-memory-leak-when-unmounting.patch
+This patch was dropped because it was folded into shmem-respect-max_lfs_filesize.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfs-fix-memory-leak-when-unmounting-fix
+Subject: shmem-respect-max_lfs_filesize-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- free_pages(0) is legal
+rch/x86/Makefile:82: stack protector enabled but no compiler support
+mm/shmem.c: In function 'shmem_file_setup':
+mm/shmem.c:2622: error: 'PAGE_CACHE_SIZE' undeclared (first use in this function)
+mm/shmem.c:2622: error: (Each undeclared identifier is reported only once
+mm/shmem.c:2622: error: for each function it appears in.)
 
-- the comment was a bit obvious ;)
-
-Cc: Dave Anderson <anderson@redhat.com>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Yuri Tikhonov <yur@emcraft.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/mdb.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/shmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/hfs/mdb.c~hfs-fix-memory-leak-when-unmounting-fix fs/hfs/mdb.c
---- a/fs/hfs/mdb.c~hfs-fix-memory-leak-when-unmounting-fix
-+++ a/fs/hfs/mdb.c
-@@ -349,10 +349,7 @@ void hfs_mdb_put(struct super_block *sb)
- 	if (HFS_SB(sb)->nls_disk)
- 		unload_nls(HFS_SB(sb)->nls_disk);
- 
--	/* free the bitmap page(s) */
--	if (HFS_SB(sb)->bitmap)
--		free_pages((unsigned long)HFS_SB(sb)->bitmap, PAGE_SIZE < 8192 ? 1 : 0);
--
-+	free_pages((unsigned long)HFS_SB(sb)->bitmap, PAGE_SIZE < 8192 ? 1 : 0);
- 	kfree(HFS_SB(sb));
- 	sb->s_fs_info = NULL;
- }
+diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize-fix mm/shmem.c
+--- a/mm/shmem.c~shmem-respect-max_lfs_filesize-fix
++++ a/mm/shmem.c
+@@ -24,6 +24,7 @@
+ #include <linux/init.h>
+ #include <linux/vfs.h>
+ #include <linux/mount.h>
++#include <linux/pagemap.h>
+ #include <linux/file.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 hfs-fix-memory-leak-when-unmounting.patch
-hfs-fix-memory-leak-when-unmounting-fix.patch
-memcg-remove-warning-when-config_debug_vm=n-fix.patch
+memcg-remove-warning-when-config_debug_vm=n.patch
+shmem-respect-max_lfs_filesize.patch
 shmem-respect-max_lfs_filesize-fix.patch
 shmem-respect-max_lfs_filesize-fix-fix.patch
 shmem-respect-max_lfs_filesize-fix-2.patch
