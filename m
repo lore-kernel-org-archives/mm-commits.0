@@ -1,59 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [folded] shmem-respect-max_lfs_filesize-fix.patch removed from -mm tree
-Date: Mon, 13 Apr 2009 14:36:15 -0700
-Message-ID: <200904132136.n3DLaFoc022728@imap1.linux-foundation.org>
+Subject: [folded] shmem-respect-max_lfs_filesize-fix-fix.patch removed from -mm tree
+Date: Mon, 13 Apr 2009 14:36:19 -0700
+Message-ID: <200904132136.n3DLaJZx022751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42314 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750836AbZDMVk3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751239AbZDMVkg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Apr 2009 17:40:29 -0400
+	Mon, 13 Apr 2009 17:40:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hugh@veritas.com, paulus@samba.org, randy.dunlap@oracle.com, yur@emcraft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shmem-respect-max_lfs_filesize-fix
+     shmem-respect-max_lfs_filesize-fix-fix
 has been removed from the -mm tree.  Its filename was
-     shmem-respect-max_lfs_filesize-fix.patch
+     shmem-respect-max_lfs_filesize-fix-fix.patch
 
 This patch was dropped because it was folded into shmem-respect-max_lfs_filesize.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem-respect-max_lfs_filesize-fix
+Subject: shmem-respect-max_lfs_filesize-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-rch/x86/Makefile:82: stack protector enabled but no compiler support
-mm/shmem.c: In function 'shmem_file_setup':
-mm/shmem.c:2622: error: 'PAGE_CACHE_SIZE' undeclared (first use in this function)
-mm/shmem.c:2622: error: (Each undeclared identifier is reported only once
-mm/shmem.c:2622: error: for each function it appears in.)
 
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Yuri Tikhonov <yur@emcraft.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Yuri Tikhonov <yur@emcraft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/shmem.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize-fix mm/shmem.c
---- a/mm/shmem.c~shmem-respect-max_lfs_filesize-fix
+diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize-fix-fix mm/shmem.c
+--- a/mm/shmem.c~shmem-respect-max_lfs_filesize-fix-fix
 +++ a/mm/shmem.c
-@@ -24,6 +24,7 @@
- #include <linux/init.h>
- #include <linux/vfs.h>
- #include <linux/mount.h>
-+#include <linux/pagemap.h>
- #include <linux/file.h>
- #include <linux/mm.h>
- #include <linux/module.h>
+@@ -44,7 +44,6 @@ static struct vfsmount *shm_mnt;
+ #include <linux/exportfs.h>
+ #include <linux/generic_acl.h>
+ #include <linux/mman.h>
+-#include <linux/pagemap.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+ #include <linux/backing-dev.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +56,6 @@ origin.patch
 hfs-fix-memory-leak-when-unmounting.patch
 memcg-remove-warning-when-config_debug_vm=n.patch
 shmem-respect-max_lfs_filesize.patch
-shmem-respect-max_lfs_filesize-fix.patch
 shmem-respect-max_lfs_filesize-fix-fix.patch
 shmem-respect-max_lfs_filesize-fix-2.patch
 i2c-too-much-compiler-noise.patch
