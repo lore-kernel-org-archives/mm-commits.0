@@ -1,139 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-bluesmoke-devel-list-is-moderated-for-non-subscribers.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:49:33 -0700
-Message-ID: <200904141949.n3EJnXII019677@imap1.linux-foundation.org>
+Subject: [merged] sisfb-fix-color-component-length-for-pseudocolor-modes.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:49:04 -0700
+Message-ID: <200904141949.n3EJn4Hg019366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753039AbZDNTvu (ORCPT
+	by vger.kernel.org with ESMTP id S1752844AbZDNTvo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:51:50 -0400
+	Tue, 14 Apr 2009 15:51:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: spock@gentoo.org, krzysztof.h1@wp.pl, thomas@winischhofer.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: bluesmoke-devel list is moderated for non-subscribers
+     sisfb: fix color component length for pseudocolor modes
 has been removed from the -mm tree.  Its filename was
-     maintainers-bluesmoke-devel-list-is-moderated-for-non-subscribers.patch
+     sisfb-fix-color-component-length-for-pseudocolor-modes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: bluesmoke-devel list is moderated for non-subscribers
-From: Jean Delvare <khali@linux-fr.org>
+Subject: sisfb: fix color component length for pseudocolor modes
+From: Michal Januszewski <spock@gentoo.org>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Doug Thompson <dougthompson@xmission.com>
+sisfb incorrectly sets the length of the color fields to 6 bits
+for PSEUDOCOLOR modes, even though 8 bits are always used per pixel.
+Fix this by setting the length to 8.
+
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/video/sis/sis_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-bluesmoke-devel-list-is-moderated-for-non-subscribers MAINTAINERS
---- a/MAINTAINERS~maintainers-bluesmoke-devel-list-is-moderated-for-non-subscribers
-+++ a/MAINTAINERS
-@@ -1894,7 +1894,7 @@ F:	fs/ecryptfs/
- EDAC-CORE
- P:	Doug Thompson
- M:	dougthompson@xmission.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Supported
- F:	Documentation/edac.txt
-@@ -1906,7 +1906,7 @@ P:	Mark Gross
- P:	Doug Thompson
- M:	mark.gross@intel.com
- M:	dougthompson@xmission.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
- F:	drivers/edac/e752x_edac.c
-@@ -1914,7 +1914,7 @@ F:	drivers/edac/e752x_edac.c
- EDAC-E7XXX
- P:	Doug Thompson
- M:	dougthompson@xmission.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
- F:	drivers/edac/e7xxx_edac.c
-@@ -1922,7 +1922,7 @@ F:	drivers/edac/e7xxx_edac.c
- EDAC-I82443BXGX
- P:	Tim Small
- M:	tim@buttersideup.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
- F:	drivers/edac/i82443bxgx_edac.c
-@@ -1930,7 +1930,7 @@ F:	drivers/edac/i82443bxgx_edac.c
- EDAC-I3000
- P:	Jason Uhlenkott
- M:	juhlenko@akamai.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
- F:	drivers/edac/i3000_edac.c
-@@ -1938,7 +1938,7 @@ F:	drivers/edac/i3000_edac.c
- EDAC-I5000
- P:	Doug Thompson
- M:	dougthompson@xmission.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
- F:	drivers/edac/i5000_edac.c
-@@ -1946,7 +1946,7 @@ F:	drivers/edac/i5000_edac.c
- EDAC-I5400
- P:	Mauro Carvalho Chehab
- M:	mchehab@redhat.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
- F:	drivers/edac/i5400_edac.c
-@@ -1956,7 +1956,7 @@ P:	Ranganathan Desikan
- P:	Arvind R.
- M:	rdesikan@jetzbroadband.com
- M:	arvind@acarlab.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
- F:	drivers/edac/i82975x_edac.c
-@@ -1964,7 +1964,7 @@ F:	drivers/edac/i82975x_edac.c
- EDAC-PASEMI
- P:	Egor Martovetsky
- M:	egor@pasemi.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
- F:	drivers/edac/pasemi_edac.c
-@@ -1972,7 +1972,7 @@ F:	drivers/edac/pasemi_edac.c
- EDAC-R82600
- P:	Tim Small
- M:	tim@buttersideup.com
--L:	bluesmoke-devel@lists.sourceforge.net
-+L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
- F:	drivers/edac/r82600_edac.c
+diff -puN drivers/video/sis/sis_main.c~sisfb-fix-color-component-length-for-pseudocolor-modes drivers/video/sis/sis_main.c
+--- a/drivers/video/sis/sis_main.c~sisfb-fix-color-component-length-for-pseudocolor-modes
++++ a/drivers/video/sis/sis_main.c
+@@ -1129,7 +1129,7 @@ sisfb_bpp_to_var(struct sis_video_info *
+ 	switch(var->bits_per_pixel) {
+ 	case 8:
+ 		var->red.offset = var->green.offset = var->blue.offset = 0;
+-		var->red.length = var->green.length = var->blue.length = 6;
++		var->red.length = var->green.length = var->blue.length = 8;
+ 		break;
+ 	case 16:
+ 		var->red.offset = 11;
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from spock@gentoo.org are
 
 origin.patch
 linux-next.patch
-dell-laptop-fix-uninitialized-wrong-return-value.patch
-pca953x-support-gpiolib-gpio-naming.patch
 
