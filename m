@@ -1,58 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-remove-warning-when-config_debug_vm=n.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:49:50 -0700
-Message-ID: <200904141949.n3EJnoqb019826@imap1.linux-foundation.org>
+Subject: [merged] ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:49:35 -0700
+Message-ID: <200904141949.n3EJnZA6019732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753076AbZDNTwB (ORCPT
+	by vger.kernel.org with ESMTP id S1753924AbZDNTwc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:52:01 -0400
+	Tue, 14 Apr 2009 15:52:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: remove warning when CONFIG_DEBUG_VM=n
+     ptrace: fix exit_ptrace() vs ptrace_traceme() race
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-warning-when-config_debug_vm=n.patch
+     ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove warning when CONFIG_DEBUG_VM=n
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: ptrace: fix exit_ptrace() vs ptrace_traceme() race
+From: Oleg Nesterov <oleg@redhat.com>
 
-mm/memcontrol.c:318: warning: `mem_cgroup_is_obsolete' defined but not used
+Pointed out by Roland.  The bug was recently introduced by me in
+"forget_original_parent: split out the un-ptrace part", commit
+39c626ae47c469abdfd30c6e42eff884931380d6.
 
-[akpm@linux-foundation.org: simplify as suggested by Balbir]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Since that patch we have a window after exit_ptrace() drops tasklist and
+before forget_original_parent() takes it again.  In this window the child
+can do ptrace(PTRACE_TRACEME) and nobody can untrace this child after
+that.
+
+Change ptrace_traceme() to not attach to the exiting ->real_parent.  We
+don't report the error in this case, we pretend we attach right before
+->real_parent calls exit_ptrace() which should untrace us anyway.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/ptrace.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n
-+++ a/mm/memcontrol.c
-@@ -932,7 +932,7 @@ static int __mem_cgroup_try_charge(struc
- 	if (unlikely(!mem))
- 		return 0;
+diff -puN kernel/ptrace.c~ptrace-fix-exit_ptrace-vs-ptrace_traceme-race kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-fix-exit_ptrace-vs-ptrace_traceme-race
++++ a/kernel/ptrace.c
+@@ -604,10 +604,11 @@ repeat:
+ 		ret = security_ptrace_traceme(current->parent);
  
--	VM_BUG_ON(mem_cgroup_is_obsolete(mem));
-+	VM_BUG_ON(!mem || mem_cgroup_is_obsolete(mem));
- 
- 	while (1) {
- 		int ret;
+ 		/*
+-		 * Set the ptrace bit in the process ptrace flags.
+-		 * Then link us on our parent's ptraced list.
++		 * Check PF_EXITING to ensure ->real_parent has not passed
++		 * exit_ptrace(). Otherwise we don't report the error but
++		 * pretend ->real_parent untraces us right after return.
+ 		 */
+-		if (!ret) {
++		if (!ret && !(current->real_parent->flags & PF_EXITING)) {
+ 			current->ptrace |= PT_PTRACED;
+ 			__ptrace_link(current, current->real_parent);
+ 		}
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+getrusage-fill-ru_maxrss-value.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+signals-tracehook_notify_jctl-change.patch
 
