@@ -1,108 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] input-ads7846-introduce-platform-specific-way-to-synchronize-sampling.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:50:43 -0700
-Message-ID: <200904141950.n3EJohP8020300@imap1.linux-foundation.org>
+Subject: [merged] bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:50:56 -0700
+Message-ID: <200904141950.n3EJouBm020440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754745AbZDNTyJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752033AbZDNTzH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:54:09 -0400
+	Tue, 14 Apr 2009 15:55:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.miao@marvell.com, david-b@pacbell.net, dtor@mail.ru, mm-commits@vger.kernel.org
+To: brian.haley@hp.com, stable@kernel.org, steve@astutenetworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: ads7846: introduce platform specific way to synchronize sampling
+     bonding: fix zero address hole bug in arp_ip_target list
 has been removed from the -mm tree.  Its filename was
-     input-ads7846-introduce-platform-specific-way-to-synchronize-sampling.patch
+     bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: ads7846: introduce platform specific way to synchronize sampling
-From: Eric Miao <eric.miao@marvell.com>
+Subject: bonding: fix zero address hole bug in arp_ip_target list
+From: Brian Haley <brian.haley@hp.com>
 
-Noises can be introduced when LCD signals are being driven, some platforms
-provide a signal to assist the synchronization of this sampling procedure.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13006
 
-Signed-off-by: Eric Miao <eric.miao@marvell.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Fix a zero address hole bug in the bonding arp_ip_target list that was
+causing the bond to ignore ARP replies (bugz 13006).  Instead of just
+setting the array entry to zero, we now copy any additional entries down
+one slot, putting the zero entry at the end.  With this change we can now
+have all the loops that walk the array stop when they hit a zero since
+there will be no addresses after it.
+
+Changes are based in part on code fragment provided in kernel
+bugzilla 13006 by Steve Howard <steve@astutenetworks.com>
+
+Signed-off-by: Brian Haley <brian.haley@hp.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/ads7846.c |   10 ++++++++++
- include/linux/spi/ads7846.h         |    2 ++
- 2 files changed, 12 insertions(+)
+ Documentation/networking/bonding.txt |    2 +-
+ drivers/net/bonding/bond_main.c      |    5 ++---
+ drivers/net/bonding/bond_sysfs.c     |   14 ++++++++------
+ 3 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN drivers/input/touchscreen/ads7846.c~input-ads7846-introduce-platform-specific-way-to-synchronize-sampling drivers/input/touchscreen/ads7846.c
---- a/drivers/input/touchscreen/ads7846.c~input-ads7846-introduce-platform-specific-way-to-synchronize-sampling
-+++ a/drivers/input/touchscreen/ads7846.c
-@@ -127,6 +127,8 @@ struct ads7846 {
- 	void			(*filter_cleanup)(void *data);
- 	int			(*get_pendown_state)(void);
- 	int			gpio_pendown;
+diff -puN Documentation/networking/bonding.txt~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list Documentation/networking/bonding.txt
+--- a/Documentation/networking/bonding.txt~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
++++ a/Documentation/networking/bonding.txt
+@@ -1242,7 +1242,7 @@ monitoring is enabled, and vice-versa.
+ To add ARP targets:
+ # echo +192.168.0.100 > /sys/class/net/bond0/bonding/arp_ip_target
+ # echo +192.168.0.101 > /sys/class/net/bond0/bonding/arp_ip_target
+-	NOTE:  up to 10 target addresses may be specified.
++	NOTE:  up to 16 target addresses may be specified.
+ 
+ To remove an ARP target:
+ # echo -192.168.0.100 > /sys/class/net/bond0/bonding/arp_ip_target
+diff -puN drivers/net/bonding/bond_main.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list drivers/net/bonding/bond_main.c
+--- a/drivers/net/bonding/bond_main.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
++++ a/drivers/net/bonding/bond_main.c
+@@ -2570,7 +2570,7 @@ static void bond_arp_send_all(struct bon
+ 
+ 	for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
+ 		if (!targets[i])
+-			continue;
++			break;
+ 		pr_debug("basa: target %x\n", targets[i]);
+ 		if (list_empty(&bond->vlan_list)) {
+ 			pr_debug("basa: empty vlan: arp_send\n");
+@@ -2677,7 +2677,6 @@ static void bond_validate_arp(struct bon
+ 	int i;
+ 	__be32 *targets = bond->params.arp_targets;
+ 
+-	targets = bond->params.arp_targets;
+ 	for (i = 0; (i < BOND_MAX_ARP_TARGETS) && targets[i]; i++) {
+ 		pr_debug("bva: sip %pI4 tip %pI4 t[%d] %pI4 bhti(tip) %d\n",
+ 			&sip, &tip, i, &targets[i], bond_has_this_ip(bond, tip));
+@@ -3303,7 +3302,7 @@ static void bond_info_show_master(struct
+ 
+ 		for(i = 0; (i < BOND_MAX_ARP_TARGETS) ;i++) {
+ 			if (!bond->params.arp_targets[i])
+-				continue;
++				break;
+ 			if (printed)
+ 				seq_printf(seq, ",");
+ 			seq_printf(seq, " %pI4", &bond->params.arp_targets[i]);
+diff -puN drivers/net/bonding/bond_sysfs.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list drivers/net/bonding/bond_sysfs.c
+--- a/drivers/net/bonding/bond_sysfs.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
++++ a/drivers/net/bonding/bond_sysfs.c
+@@ -684,17 +684,15 @@ static ssize_t bonding_store_arp_targets
+ 			goto out;
+ 		}
+ 		/* look for an empty slot to put the target in, and check for dupes */
+-		for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
++		for (i = 0; (i < BOND_MAX_ARP_TARGETS) && !done; i++) {
+ 			if (targets[i] == newtarget) { /* duplicate */
+ 				printk(KERN_ERR DRV_NAME
+ 				       ": %s: ARP target %pI4 is already present\n",
+ 				       bond->dev->name, &newtarget);
+-				if (done)
+-					targets[i] = 0;
+ 				ret = -EINVAL;
+ 				goto out;
+ 			}
+-			if (targets[i] == 0 && !done) {
++			if (targets[i] == 0) {
+ 				printk(KERN_INFO DRV_NAME
+ 				       ": %s: adding ARP target %pI4.\n",
+ 				       bond->dev->name, &newtarget);
+@@ -720,12 +718,16 @@ static ssize_t bonding_store_arp_targets
+ 			goto out;
+ 		}
+ 
+-		for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
++		for (i = 0; (i < BOND_MAX_ARP_TARGETS) && !done; i++) {
+ 			if (targets[i] == newtarget) {
++				int j;
+ 				printk(KERN_INFO DRV_NAME
+ 				       ": %s: removing ARP target %pI4.\n",
+ 				       bond->dev->name, &newtarget);
+-				targets[i] = 0;
++				for (j = i; (j < (BOND_MAX_ARP_TARGETS-1)) && targets[j+1]; j++)
++					targets[j] = targets[j+1];
 +
-+	void			(*wait_for_sync)(void);
- };
- 
- /* leave chip selected when we're done, for quicker re-select? */
-@@ -511,6 +513,10 @@ static int get_pendown_state(struct ads7
- 	return !gpio_get_value(ts->gpio_pendown);
- }
- 
-+static void null_wait_for_sync(void)
-+{
-+}
-+
- /*
-  * PENIRQ only kicks the timer.  The timer only reissues the SPI transfer,
-  * to retrieve touchscreen status.
-@@ -686,6 +692,7 @@ static void ads7846_rx_val(void *ads)
- 	default:
- 		BUG();
- 	}
-+	ts->wait_for_sync();
- 	status = spi_async(ts->spi, m);
- 	if (status)
- 		dev_err(&ts->spi->dev, "spi_async --> %d\n",
-@@ -723,6 +730,7 @@ static enum hrtimer_restart ads7846_time
- 	} else {
- 		/* pen is still down, continue with the measurement */
- 		ts->msg_idx = 0;
-+		ts->wait_for_sync();
- 		status = spi_async(ts->spi, &ts->msg[0]);
- 		if (status)
- 			dev_err(&ts->spi->dev, "spi_async --> %d\n", status);
-@@ -949,6 +957,8 @@ static int __devinit ads7846_probe(struc
- 		ts->penirq_recheck_delay_usecs =
- 				pdata->penirq_recheck_delay_usecs;
- 
-+	ts->wait_for_sync = (pdata->wait_for_sync) ? : null_wait_for_sync;
-+
- 	snprintf(ts->phys, sizeof(ts->phys), "%s/input0", dev_name(&spi->dev));
- 
- 	input_dev->name = "ADS784x Touchscreen";
-diff -puN include/linux/spi/ads7846.h~input-ads7846-introduce-platform-specific-way-to-synchronize-sampling include/linux/spi/ads7846.h
---- a/include/linux/spi/ads7846.h~input-ads7846-introduce-platform-specific-way-to-synchronize-sampling
-+++ a/include/linux/spi/ads7846.h
-@@ -51,5 +51,7 @@ struct ads7846_platform_data {
- 				 void **filter_data);
- 	int	(*filter)	(void *filter_data, int data_idx, int *val);
- 	void	(*filter_cleanup)(void *filter_data);
-+
-+	void	(*wait_for_sync)(void);
- };
- 
++				targets[j] = 0;
+ 				done = 1;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from eric.miao@marvell.com are
+Patches currently in -mm which might be from brian.haley@hp.com are
 
-origin.patch
 linux-next.patch
 
