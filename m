@@ -1,92 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-use-to_delayed_work.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:50:25 -0700
-Message-ID: <200904141950.n3EJoPJA020181@imap1.linux-foundation.org>
+Subject: [merged] setlocalversion-use-git-svn-instead-of-git-svn.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:50:48 -0700
+Message-ID: <200904141950.n3EJomZY020358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57215 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753904AbZDNTwc (ORCPT
+	by vger.kernel.org with ESMTP id S1754145AbZDNTxh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:52:32 -0400
+	Tue, 14 Apr 2009 15:53:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: jacmet@sunsite.dk, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: use to_delayed_work()
+     setlocalversion: use git svn instead of git-svn
 has been removed from the -mm tree.  Its filename was
-     edac-use-to_delayed_work.patch
+     setlocalversion-use-git-svn-instead-of-git-svn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: use to_delayed_work()
-From: Jean Delvare <khali@linux-fr.org>
+Subject: setlocalversion: use git svn instead of git-svn
+From: Peter Korsgaard <jacmet@sunsite.dk>
 
-The edac-core driver includes code which assumes that the work_struct
-which is included in every delayed_work is the first member of that
-structure.  This is currently the case but might change in the future, so
-use to_delayed_work() instead, which doesn't make such an assumption.
+Use the correct git <subcmd> syntax instead of the deprecated git-<subcmd>.
 
-linux-2.6.30-rc1 has the to_delayed_work() function that will allow this
-patch to work
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_device.c |    2 +-
- drivers/edac/edac_mc.c     |    2 +-
- drivers/edac/edac_pci.c    |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ scripts/setlocalversion |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/edac_device.c~edac-use-to_delayed_work drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~edac-use-to_delayed_work
-+++ a/drivers/edac/edac_device.c
-@@ -389,7 +389,7 @@ static void del_edac_device_from_global_
-  */
- static void edac_device_workq_function(struct work_struct *work_req)
- {
--	struct delayed_work *d_work = (struct delayed_work *)work_req;
-+	struct delayed_work *d_work = to_delayed_work(work_req);
- 	struct edac_device_ctl_info *edac_dev = to_edac_device_ctl_work(d_work);
+diff -puN scripts/setlocalversion~setlocalversion-use-git-svn-instead-of-git-svn scripts/setlocalversion
+--- a/scripts/setlocalversion~setlocalversion-use-git-svn-instead-of-git-svn
++++ a/scripts/setlocalversion
+@@ -21,7 +21,7 @@ if head=`git rev-parse --verify --short 
  
- 	mutex_lock(&device_ctls_mutex);
-diff -puN drivers/edac/edac_mc.c~edac-use-to_delayed_work drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edac-use-to_delayed_work
-+++ a/drivers/edac/edac_mc.c
-@@ -260,7 +260,7 @@ static int edac_mc_assert_error_check_an
-  */
- static void edac_mc_workq_function(struct work_struct *work_req)
- {
--	struct delayed_work *d_work = (struct delayed_work *)work_req;
-+	struct delayed_work *d_work = to_delayed_work(work_req);
- 	struct mem_ctl_info *mci = to_edac_mem_ctl_work(d_work);
+ 	# Is this git on svn?
+ 	if git config --get svn-remote.svn.url >/dev/null; then
+-	        printf -- '-svn%s' "`git-svn find-rev $head`"
++	        printf -- '-svn%s' "`git svn find-rev $head`"
+ 	fi
  
- 	mutex_lock(&mem_ctls_mutex);
-diff -puN drivers/edac/edac_pci.c~edac-use-to_delayed_work drivers/edac/edac_pci.c
---- a/drivers/edac/edac_pci.c~edac-use-to_delayed_work
-+++ a/drivers/edac/edac_pci.c
-@@ -233,7 +233,7 @@ EXPORT_SYMBOL_GPL(edac_pci_find);
-  */
- static void edac_pci_workq_function(struct work_struct *work_req)
- {
--	struct delayed_work *d_work = (struct delayed_work *)work_req;
-+	struct delayed_work *d_work = to_delayed_work(work_req);
- 	struct edac_pci_ctl_info *pci = to_edac_pci_ctl_work(d_work);
- 	int msec;
- 	unsigned long delay;
+ 	# Are there uncommitted changes?
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from jacmet@sunsite.dk are
 
 origin.patch
 linux-next.patch
-dell-laptop-fix-uninitialized-wrong-return-value.patch
-pca953x-support-gpiolib-gpio-naming.patch
 
