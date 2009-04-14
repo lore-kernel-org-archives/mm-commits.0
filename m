@@ -1,186 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ext2-fix-data-corruption-for-racing-writes.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:50:03 -0700
-Message-ID: <200904141950.n3EJo3o4019944@imap1.linux-foundation.org>
+Subject: [merged] dynamic-debug-resurrect-old-pr_debug-semantics-as-pr_devel.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:50:41 -0700
+Message-ID: <200904141950.n3EJofTX020279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751056AbZDNTyo (ORCPT
+	by vger.kernel.org with ESMTP id S1754338AbZDNTyw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:54:44 -0400
+	Tue, 14 Apr 2009 15:54:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, cmm@us.ibm.com, linux-ext4@vger.kernel.org, nickpiggin@yahoo.com.au, yinghan@google.com, mm-commits@vger.kernel.org
+To: michael@ellerman.id.au, gnb@sgi.com, greg@kroah.com, jbaron@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2: fix data corruption for racing writes
+     dynamic debug: resurrect old pr_debug() semantics as pr_devel()
 has been removed from the -mm tree.  Its filename was
-     ext2-fix-data-corruption-for-racing-writes.patch
+     dynamic-debug-resurrect-old-pr_debug-semantics-as-pr_devel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2: fix data corruption for racing writes
-From: Jan Kara <jack@suse.cz>
+Subject: dynamic debug: resurrect old pr_debug() semantics as pr_devel()
+From: Michael Ellerman <michael@ellerman.id.au>
 
-If two writers allocating blocks to file race with each other (e.g. 
-because writepages races with ordinary write or two writepages race with
-each other), ext2_getblock() can be called on the same inode in parallel. 
-Before we are going to allocate new blocks, we have to recheck the block
-chain we have obtained so far without holding truncate_mutex.  Otherwise
-we could overwrite the indirect block pointer set by the other writer
-leading to data loss.
+pr_debug() used to produce zero code unless DEBUG was #defined.  This is
+now no longer the case in practice[1].
 
-The below test program by Ying is able to reproduce the data loss with ext2
-on in BRD in a few minutes if the machine is under memory pressure:
+There are places where it's useful to have debugging printks, but we don't
+want them to generate any code in production kernels.
 
-long kMemSize  = 50 << 20;
-int kPageSize = 4096;
+So add a new macro, pr_devel(), for _devel_opment, to provide the old
+semantics, ie.  if the programmer doesn't explicitly enable debugging, no
+code is produced.
 
-int main(int argc, char **argv) {
-	int status;
-	int count = 0;
-	int i;
-	char *fname = "/mnt/test.mmap";
-	char *mem;
-	unlink(fname);
-	int fd = open(fname, O_CREAT | O_EXCL | O_RDWR, 0600);
-	status = ftruncate(fd, kMemSize);
-	mem = mmap(0, kMemSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	// Fill the memory with 1s.
-	memset(mem, 1, kMemSize);
-	sleep(2);
-	for (i = 0; i < kMemSize; i++) {
-		int byte_good = mem[i] != 0;
-		if (!byte_good && ((i % kPageSize) == 0)) {
-			//printf("%d ", i / kPageSize);
-			count++;
-		}
-	}
-	munmap(mem, kMemSize);
-	close(fd);
-	unlink(fname);
+[1]: You can turn CONFIG_DYNAMIC_DEBUG off, but it's enabled in at least
+     one distro kernel, so it's not really a solution.
 
-	if (count > 0) {
-		printf("Running %d bad page\n", count);
-		return 1;
-	}
-	return 0;
-}
-
-Cc: Ying Han <yinghan@google.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Greg Banks <gnb@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/inode.c |   44 +++++++++++++++++++++++++++++++++-----------
- 1 file changed, 33 insertions(+), 11 deletions(-)
+ include/linux/kernel.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/ext2/inode.c~ext2-fix-data-corruption-for-racing-writes fs/ext2/inode.c
---- a/fs/ext2/inode.c~ext2-fix-data-corruption-for-racing-writes
-+++ a/fs/ext2/inode.c
-@@ -590,9 +590,8 @@ static int ext2_get_blocks(struct inode 
+diff -puN include/linux/kernel.h~dynamic-debug-resurrect-old-pr_debug-semantics-as-pr_devel include/linux/kernel.h
+--- a/include/linux/kernel.h~dynamic-debug-resurrect-old-pr_debug-semantics-as-pr_devel
++++ a/include/linux/kernel.h
+@@ -377,6 +377,15 @@ static inline char *pack_hex_byte(char *
+ #define pr_cont(fmt, ...) \
+ 	printk(KERN_CONT fmt, ##__VA_ARGS__)
  
- 	if (depth == 0)
- 		return (err);
--reread:
--	partial = ext2_get_branch(inode, depth, offsets, chain, &err);
- 
-+	partial = ext2_get_branch(inode, depth, offsets, chain, &err);
- 	/* Simplest case - block found, no allocation needed */
- 	if (!partial) {
- 		first_block = le32_to_cpu(chain[depth - 1].key);
-@@ -602,15 +601,16 @@ reread:
- 		while (count < maxblocks && count <= blocks_to_boundary) {
- 			ext2_fsblk_t blk;
- 
--			if (!verify_chain(chain, partial)) {
-+			if (!verify_chain(chain, chain + depth - 1)) {
- 				/*
- 				 * Indirect block might be removed by
- 				 * truncate while we were reading it.
- 				 * Handling of that case: forget what we've
- 				 * got now, go to reread.
- 				 */
-+				err = -EAGAIN;
- 				count = 0;
--				goto changed;
-+				break;
- 			}
- 			blk = le32_to_cpu(*(chain[depth-1].p + count));
- 			if (blk == first_block + count)
-@@ -618,7 +618,8 @@ reread:
- 			else
- 				break;
- 		}
--		goto got_it;
-+		if (err != -EAGAIN)
-+			goto got_it;
- 	}
- 
- 	/* Next simple case - plain lookup or failed read of indirect block */
-@@ -626,6 +627,33 @@ reread:
- 		goto cleanup;
- 
- 	mutex_lock(&ei->truncate_mutex);
-+	/*
-+	 * If the indirect block is missing while we are reading
-+	 * the chain(ext3_get_branch() returns -EAGAIN err), or
-+	 * if the chain has been changed after we grab the semaphore,
-+	 * (either because another process truncated this branch, or
-+	 * another get_block allocated this branch) re-grab the chain to see if
-+	 * the request block has been allocated or not.
-+	 *
-+	 * Since we already block the truncate/other get_block
-+	 * at this point, we will have the current copy of the chain when we
-+	 * splice the branch into the tree.
-+	 */
-+	if (err == -EAGAIN || !verify_chain(chain, partial)) {
-+		while (partial > chain) {
-+			brelse(partial->bh);
-+			partial--;
-+		}
-+		partial = ext2_get_branch(inode, depth, offsets, chain, &err);
-+		if (!partial) {
-+			count++;
-+			mutex_unlock(&ei->truncate_mutex);
-+			if (err)
-+				goto cleanup;
-+			clear_buffer_new(bh_result);
-+			goto got_it;
-+		}
-+	}
- 
- 	/*
- 	 * Okay, we need to do block allocation.  Lazily initialize the block
-@@ -683,12 +711,6 @@ cleanup:
- 		partial--;
- 	}
- 	return err;
--changed:
--	while (partial > chain) {
--		brelse(partial->bh);
--		partial--;
--	}
--	goto reread;
- }
- 
- int ext2_get_block(struct inode *inode, sector_t iblock, struct buffer_head *bh_result, int create)
++/* pr_devel() should produce zero code unless DEBUG is defined */
++#ifdef DEBUG
++#define pr_devel(fmt, ...) \
++	printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#else
++#define pr_devel(fmt, ...) \
++	({ if (0) printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__); 0; })
++#endif
++
+ /* If you are writing a driver, please use dev_dbg instead */
+ #if defined(DEBUG)
+ #define pr_debug(fmt, ...) \
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from michael@ellerman.id.au are
 
 origin.patch
 linux-next.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
-ext2-do-not-update-mtime-of-a-moved-directory.patch
-ext3-fix-chain-verification-in-ext3_get_blocks.patch
-reiser4-update-names-of-quota-methods.patch
 
