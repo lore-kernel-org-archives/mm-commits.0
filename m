@@ -1,140 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:50:56 -0700
-Message-ID: <200904141950.n3EJouBm020440@imap1.linux-foundation.org>
+Subject: [merged] ext2-fix-data-corruption-for-racing-writes.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:50:03 -0700
+Message-ID: <200904141950.n3EJo3o4019944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752033AbZDNTzH (ORCPT
+	by vger.kernel.org with ESMTP id S1751056AbZDNTyo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:55:07 -0400
+	Tue, 14 Apr 2009 15:54:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brian.haley@hp.com, stable@kernel.org, steve@astutenetworks.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, cmm@us.ibm.com, linux-ext4@vger.kernel.org, nickpiggin@yahoo.com.au, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bonding: fix zero address hole bug in arp_ip_target list
+     ext2: fix data corruption for racing writes
 has been removed from the -mm tree.  Its filename was
-     bonding-fix-zero-address-hole-bug-in-arp_ip_target-list.patch
+     ext2-fix-data-corruption-for-racing-writes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bonding: fix zero address hole bug in arp_ip_target list
-From: Brian Haley <brian.haley@hp.com>
+Subject: ext2: fix data corruption for racing writes
+From: Jan Kara <jack@suse.cz>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13006
+If two writers allocating blocks to file race with each other (e.g. 
+because writepages races with ordinary write or two writepages race with
+each other), ext2_getblock() can be called on the same inode in parallel. 
+Before we are going to allocate new blocks, we have to recheck the block
+chain we have obtained so far without holding truncate_mutex.  Otherwise
+we could overwrite the indirect block pointer set by the other writer
+leading to data loss.
 
-Fix a zero address hole bug in the bonding arp_ip_target list that was
-causing the bond to ignore ARP replies (bugz 13006).  Instead of just
-setting the array entry to zero, we now copy any additional entries down
-one slot, putting the zero entry at the end.  With this change we can now
-have all the loops that walk the array stop when they hit a zero since
-there will be no addresses after it.
+The below test program by Ying is able to reproduce the data loss with ext2
+on in BRD in a few minutes if the machine is under memory pressure:
 
-Changes are based in part on code fragment provided in kernel
-bugzilla 13006 by Steve Howard <steve@astutenetworks.com>
+long kMemSize  = 50 << 20;
+int kPageSize = 4096;
 
-Signed-off-by: Brian Haley <brian.haley@hp.com>
-Cc: <stable@kernel.org>
+int main(int argc, char **argv) {
+	int status;
+	int count = 0;
+	int i;
+	char *fname = "/mnt/test.mmap";
+	char *mem;
+	unlink(fname);
+	int fd = open(fname, O_CREAT | O_EXCL | O_RDWR, 0600);
+	status = ftruncate(fd, kMemSize);
+	mem = mmap(0, kMemSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	// Fill the memory with 1s.
+	memset(mem, 1, kMemSize);
+	sleep(2);
+	for (i = 0; i < kMemSize; i++) {
+		int byte_good = mem[i] != 0;
+		if (!byte_good && ((i % kPageSize) == 0)) {
+			//printf("%d ", i / kPageSize);
+			count++;
+		}
+	}
+	munmap(mem, kMemSize);
+	close(fd);
+	unlink(fname);
+
+	if (count > 0) {
+		printf("Running %d bad page\n", count);
+		return 1;
+	}
+	return 0;
+}
+
+Cc: Ying Han <yinghan@google.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/networking/bonding.txt |    2 +-
- drivers/net/bonding/bond_main.c      |    5 ++---
- drivers/net/bonding/bond_sysfs.c     |   14 ++++++++------
- 3 files changed, 11 insertions(+), 10 deletions(-)
+ fs/ext2/inode.c |   44 +++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 33 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/networking/bonding.txt~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list Documentation/networking/bonding.txt
---- a/Documentation/networking/bonding.txt~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
-+++ a/Documentation/networking/bonding.txt
-@@ -1242,7 +1242,7 @@ monitoring is enabled, and vice-versa.
- To add ARP targets:
- # echo +192.168.0.100 > /sys/class/net/bond0/bonding/arp_ip_target
- # echo +192.168.0.101 > /sys/class/net/bond0/bonding/arp_ip_target
--	NOTE:  up to 10 target addresses may be specified.
-+	NOTE:  up to 16 target addresses may be specified.
+diff -puN fs/ext2/inode.c~ext2-fix-data-corruption-for-racing-writes fs/ext2/inode.c
+--- a/fs/ext2/inode.c~ext2-fix-data-corruption-for-racing-writes
++++ a/fs/ext2/inode.c
+@@ -590,9 +590,8 @@ static int ext2_get_blocks(struct inode 
  
- To remove an ARP target:
- # echo -192.168.0.100 > /sys/class/net/bond0/bonding/arp_ip_target
-diff -puN drivers/net/bonding/bond_main.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list drivers/net/bonding/bond_main.c
---- a/drivers/net/bonding/bond_main.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
-+++ a/drivers/net/bonding/bond_main.c
-@@ -2570,7 +2570,7 @@ static void bond_arp_send_all(struct bon
+ 	if (depth == 0)
+ 		return (err);
+-reread:
+-	partial = ext2_get_branch(inode, depth, offsets, chain, &err);
  
- 	for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
- 		if (!targets[i])
--			continue;
-+			break;
- 		pr_debug("basa: target %x\n", targets[i]);
- 		if (list_empty(&bond->vlan_list)) {
- 			pr_debug("basa: empty vlan: arp_send\n");
-@@ -2677,7 +2677,6 @@ static void bond_validate_arp(struct bon
- 	int i;
- 	__be32 *targets = bond->params.arp_targets;
++	partial = ext2_get_branch(inode, depth, offsets, chain, &err);
+ 	/* Simplest case - block found, no allocation needed */
+ 	if (!partial) {
+ 		first_block = le32_to_cpu(chain[depth - 1].key);
+@@ -602,15 +601,16 @@ reread:
+ 		while (count < maxblocks && count <= blocks_to_boundary) {
+ 			ext2_fsblk_t blk;
  
--	targets = bond->params.arp_targets;
- 	for (i = 0; (i < BOND_MAX_ARP_TARGETS) && targets[i]; i++) {
- 		pr_debug("bva: sip %pI4 tip %pI4 t[%d] %pI4 bhti(tip) %d\n",
- 			&sip, &tip, i, &targets[i], bond_has_this_ip(bond, tip));
-@@ -3303,7 +3302,7 @@ static void bond_info_show_master(struct
- 
- 		for(i = 0; (i < BOND_MAX_ARP_TARGETS) ;i++) {
- 			if (!bond->params.arp_targets[i])
--				continue;
+-			if (!verify_chain(chain, partial)) {
++			if (!verify_chain(chain, chain + depth - 1)) {
+ 				/*
+ 				 * Indirect block might be removed by
+ 				 * truncate while we were reading it.
+ 				 * Handling of that case: forget what we've
+ 				 * got now, go to reread.
+ 				 */
++				err = -EAGAIN;
+ 				count = 0;
+-				goto changed;
 +				break;
- 			if (printed)
- 				seq_printf(seq, ",");
- 			seq_printf(seq, " %pI4", &bond->params.arp_targets[i]);
-diff -puN drivers/net/bonding/bond_sysfs.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list drivers/net/bonding/bond_sysfs.c
---- a/drivers/net/bonding/bond_sysfs.c~bonding-fix-zero-address-hole-bug-in-arp_ip_target-list
-+++ a/drivers/net/bonding/bond_sysfs.c
-@@ -684,17 +684,15 @@ static ssize_t bonding_store_arp_targets
- 			goto out;
- 		}
- 		/* look for an empty slot to put the target in, and check for dupes */
--		for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
-+		for (i = 0; (i < BOND_MAX_ARP_TARGETS) && !done; i++) {
- 			if (targets[i] == newtarget) { /* duplicate */
- 				printk(KERN_ERR DRV_NAME
- 				       ": %s: ARP target %pI4 is already present\n",
- 				       bond->dev->name, &newtarget);
--				if (done)
--					targets[i] = 0;
- 				ret = -EINVAL;
- 				goto out;
  			}
--			if (targets[i] == 0 && !done) {
-+			if (targets[i] == 0) {
- 				printk(KERN_INFO DRV_NAME
- 				       ": %s: adding ARP target %pI4.\n",
- 				       bond->dev->name, &newtarget);
-@@ -720,12 +718,16 @@ static ssize_t bonding_store_arp_targets
- 			goto out;
+ 			blk = le32_to_cpu(*(chain[depth-1].p + count));
+ 			if (blk == first_block + count)
+@@ -618,7 +618,8 @@ reread:
+ 			else
+ 				break;
  		}
+-		goto got_it;
++		if (err != -EAGAIN)
++			goto got_it;
+ 	}
  
--		for (i = 0; (i < BOND_MAX_ARP_TARGETS); i++) {
-+		for (i = 0; (i < BOND_MAX_ARP_TARGETS) && !done; i++) {
- 			if (targets[i] == newtarget) {
-+				int j;
- 				printk(KERN_INFO DRV_NAME
- 				       ": %s: removing ARP target %pI4.\n",
- 				       bond->dev->name, &newtarget);
--				targets[i] = 0;
-+				for (j = i; (j < (BOND_MAX_ARP_TARGETS-1)) && targets[j+1]; j++)
-+					targets[j] = targets[j+1];
-+
-+				targets[j] = 0;
- 				done = 1;
- 			}
- 		}
+ 	/* Next simple case - plain lookup or failed read of indirect block */
+@@ -626,6 +627,33 @@ reread:
+ 		goto cleanup;
+ 
+ 	mutex_lock(&ei->truncate_mutex);
++	/*
++	 * If the indirect block is missing while we are reading
++	 * the chain(ext3_get_branch() returns -EAGAIN err), or
++	 * if the chain has been changed after we grab the semaphore,
++	 * (either because another process truncated this branch, or
++	 * another get_block allocated this branch) re-grab the chain to see if
++	 * the request block has been allocated or not.
++	 *
++	 * Since we already block the truncate/other get_block
++	 * at this point, we will have the current copy of the chain when we
++	 * splice the branch into the tree.
++	 */
++	if (err == -EAGAIN || !verify_chain(chain, partial)) {
++		while (partial > chain) {
++			brelse(partial->bh);
++			partial--;
++		}
++		partial = ext2_get_branch(inode, depth, offsets, chain, &err);
++		if (!partial) {
++			count++;
++			mutex_unlock(&ei->truncate_mutex);
++			if (err)
++				goto cleanup;
++			clear_buffer_new(bh_result);
++			goto got_it;
++		}
++	}
+ 
+ 	/*
+ 	 * Okay, we need to do block allocation.  Lazily initialize the block
+@@ -683,12 +711,6 @@ cleanup:
+ 		partial--;
+ 	}
+ 	return err;
+-changed:
+-	while (partial > chain) {
+-		brelse(partial->bh);
+-		partial--;
+-	}
+-	goto reread;
+ }
+ 
+ int ext2_get_block(struct inode *inode, sector_t iblock, struct buffer_head *bh_result, int create)
 _
 
-Patches currently in -mm which might be from brian.haley@hp.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
+origin.patch
 linux-next.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
+ext2-do-not-update-mtime-of-a-moved-directory.patch
+ext3-fix-chain-verification-in-ext3_get_blocks.patch
+reiser4-update-names-of-quota-methods.patch
 
