@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asiliantfb-add-missing-return-statement.patch added to -mm tree
-Date: Tue, 14 Apr 2009 15:57:06 -0700
-Message-ID: <200904142257.n3EMv6bl010283@imap1.linux-foundation.org>
+Subject: + leds-change-the-license-information.patch added to -mm tree
+Date: Tue, 14 Apr 2009 15:59:31 -0700
+Message-ID: <200904142259.n3EMxV9I011470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753304AbZDNW7U (ORCPT
+	by vger.kernel.org with ESMTP id S1751446AbZDNXCW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 18:59:20 -0400
+	Tue, 14 Apr 2009 19:02:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vlada.peric@gmail.com, dilinger@debian.org
+Cc: chammoru@gmail.com, q1.kim@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     asiliantfb: add missing return statement
+     leds: change the license information
 has been added to the -mm tree.  Its filename is
-     asiliantfb-add-missing-return-statement.patch
+     leds-change-the-license-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asiliantfb: add missing return statement
-From: Vlada Peric <vlada.peric@gmail.com>
+Subject: leds: change the license information
+From: Kim Kyuwon <chammoru@gmail.com>
 
-Commit 032220ba (asiliantfb: fix cmap memory leaks) changed the function
-init_asiliant from void to int, resulting in the following compile warning:
+Change the license to 'GPL v2'
 
-drivers/video/asiliantfb.c: In function `init_asiliant':
-drivers/video/asiliantfb.c:536: warning: control reaches end of
-non-void function
-
-Fix the warning by returning 0.
-
-Signed-off-by: Vlada Peric <vlada.peric@gmail.com>
-Cc: Andres Salomon <dilinger@debian.org>
+Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/asiliantfb.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/leds/leds-bd2802.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/asiliantfb.c~asiliantfb-add-missing-return-statement drivers/video/asiliantfb.c
---- a/drivers/video/asiliantfb.c~asiliantfb-add-missing-return-statement
-+++ a/drivers/video/asiliantfb.c
-@@ -533,6 +533,7 @@ static int __devinit init_asiliant(struc
+diff -puN drivers/leds/leds-bd2802.c~leds-change-the-license-information drivers/leds/leds-bd2802.c
+--- a/drivers/leds/leds-bd2802.c~leds-change-the-license-information
++++ a/drivers/leds/leds-bd2802.c
+@@ -756,4 +756,4 @@ module_exit(bd2802_exit);
  
- 	writeb(0xff, mmio_base + 0x78c);
- 	chips_hw_init(p);
-+	return 0;
- }
- 
- static int __devinit
+ MODULE_AUTHOR("Kim Kyuwon <q1.kim@samsung.com>");
+ MODULE_DESCRIPTION("BD2802 LED driver");
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from vlada.peric@gmail.com are
+Patches currently in -mm which might be from chammoru@gmail.com are
 
-asiliantfb-add-missing-return-statement.patch
+leds-fix-led-bd2802-errors-while-resuming.patch
+leds-change-the-license-information.patch
+leds-add-the-sysfs-interface-into-the-leds-bd2802-driver-for-changing-wave-pattern-and-led-current.patch
 
