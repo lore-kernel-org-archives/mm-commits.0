@@ -1,85 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-move-the-scan_unevictable_pages-sysctl-to-the-vm-table.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:48:21 -0700
-Message-ID: <200904141948.n3EJmLvt018999@imap1.linux-foundation.org>
+Subject: [merged] memcg-remove-warning-when-config_debug_vm=n.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:49:50 -0700
+Message-ID: <200904141949.n3EJnoqb019826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42119 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36329 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752062AbZDNTwj (ORCPT
+	by vger.kernel.org with ESMTP id S1753076AbZDNTwB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:52:39 -0400
+	Tue, 14 Apr 2009 15:52:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterz@infradead.org, a.p.zijlstra@chello.nl, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: move the scan_unevictable_pages sysctl to the vm table
+     memcg: remove warning when CONFIG_DEBUG_VM=n
 has been removed from the -mm tree.  Its filename was
-     mm-move-the-scan_unevictable_pages-sysctl-to-the-vm-table.patch
+     memcg-remove-warning-when-config_debug_vm=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: move the scan_unevictable_pages sysctl to the vm table
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: memcg: remove warning when CONFIG_DEBUG_VM=n
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-vm knobs should go in the vm table.  Probably too late for
-randomize_va_space though.
+mm/memcontrol.c:318: warning: `mem_cgroup_is_obsolete' defined but not used
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+[akpm@linux-foundation.org: simplify as suggested by Balbir]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~mm-move-the-scan_unevictable_pages-sysctl-to-the-vm-table kernel/sysctl.c
---- a/kernel/sysctl.c~mm-move-the-scan_unevictable_pages-sysctl-to-the-vm-table
-+++ a/kernel/sysctl.c
-@@ -902,16 +902,6 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler   = &proc_dointvec,
- 	},
- #endif
--#ifdef CONFIG_UNEVICTABLE_LRU
--	{
--		.ctl_name	= CTL_UNNUMBERED,
--		.procname	= "scan_unevictable_pages",
--		.data		= &scan_unevictable_pages,
--		.maxlen		= sizeof(scan_unevictable_pages),
--		.mode		= 0644,
--		.proc_handler	= &scan_unevictable_handler,
--	},
--#endif
- #ifdef CONFIG_SLOW_WORK
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
-@@ -1302,6 +1292,16 @@ static struct ctl_table vm_table[] = {
- 		.extra2		= &one,
- 	},
- #endif
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "scan_unevictable_pages",
-+		.data		= &scan_unevictable_pages,
-+		.maxlen		= sizeof(scan_unevictable_pages),
-+		.mode		= 0644,
-+		.proc_handler	= &scan_unevictable_handler,
-+	},
-+#endif
- /*
-  * NOTE: do not add new entries to this table unless you have read
-  * Documentation/sysctl/ctl_unnumbered.txt
+diff -puN mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-warning-when-config_debug_vm=n
++++ a/mm/memcontrol.c
+@@ -932,7 +932,7 @@ static int __mem_cgroup_try_charge(struc
+ 	if (unlikely(!mem))
+ 		return 0;
+ 
+-	VM_BUG_ON(mem_cgroup_is_obsolete(mem));
++	VM_BUG_ON(!mem || mem_cgroup_is_obsolete(mem));
+ 
+ 	while (1) {
+ 		int ret;
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
 
