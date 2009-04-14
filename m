@@ -1,64 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-point-the-unevictable_lru-config-option-at-the-documentation.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:49:28 -0700
-Message-ID: <200904141949.n3EJnSP6019652@imap1.linux-foundation.org>
+Subject: [merged] hfs-fix-memory-leak-when-unmounting.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:48:51 -0700
+Message-ID: <200904141948.n3EJmptB019234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753993AbZDNTxd (ORCPT
+	by vger.kernel.org with ESMTP id S1753838AbZDNTwa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:53:33 -0400
+	Tue, 14 Apr 2009 15:52:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: anderson@redhat.com, eugeneteo@kernel.sg, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: point the UNEVICTABLE_LRU config option at the documentation
+     hfs: fix memory leak when unmounting
 has been removed from the -mm tree.  Its filename was
-     mm-point-the-unevictable_lru-config-option-at-the-documentation.patch
+     hfs-fix-memory-leak-when-unmounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: point the UNEVICTABLE_LRU config option at the documentation
-From: David Howells <dhowells@redhat.com>
+Subject: hfs: fix memory leak when unmounting
+From: Dave Anderson <anderson@redhat.com>
 
-Point the UNEVICTABLE_LRU config option at the documentation describing
-the option.
+When an HFS filesystem is unmounted, it leaks a 2-page bitmap.  Also,
+under extreme memory pressure, it's possible that hfs_releasepage() may
+use a tree pointer that has not been initialized, and if so, the release
+request should just be rejected.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+[akpm@linux-foundation.org: free_pages(0) is legal, remove obvious comment]
+Signed-off-by: Dave Anderson <anderson@redhat.com>
+Tested-by: Eugene Teo <eugeneteo@kernel.sg>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/hfs/inode.c |    4 ++++
+ fs/hfs/mdb.c   |    1 +
+ 2 files changed, 5 insertions(+)
 
-diff -puN mm/Kconfig~mm-point-the-unevictable_lru-config-option-at-the-documentation mm/Kconfig
---- a/mm/Kconfig~mm-point-the-unevictable_lru-config-option-at-the-documentation
-+++ a/mm/Kconfig
-@@ -213,6 +213,8 @@ config UNEVICTABLE_LRU
- 	  will use one page flag and increase the code size a little,
- 	  say Y unless you know what you are doing.
- 
-+	  See Documentation/vm/unevictable-lru.txt for more information.
+diff -puN fs/hfs/inode.c~hfs-fix-memory-leak-when-unmounting fs/hfs/inode.c
+--- a/fs/hfs/inode.c~hfs-fix-memory-leak-when-unmounting
++++ a/fs/hfs/inode.c
+@@ -70,6 +70,10 @@ static int hfs_releasepage(struct page *
+ 		BUG();
+ 		return 0;
+ 	}
 +
- config HAVE_MLOCK
- 	bool
- 	default y if MMU=y
++	if (!tree)
++		return 0;
++
+ 	if (tree->node_size >= PAGE_CACHE_SIZE) {
+ 		nidx = page->index >> (tree->node_size_shift - PAGE_CACHE_SHIFT);
+ 		spin_lock(&tree->hash_lock);
+diff -puN fs/hfs/mdb.c~hfs-fix-memory-leak-when-unmounting fs/hfs/mdb.c
+--- a/fs/hfs/mdb.c~hfs-fix-memory-leak-when-unmounting
++++ a/fs/hfs/mdb.c
+@@ -349,6 +349,7 @@ void hfs_mdb_put(struct super_block *sb)
+ 	if (HFS_SB(sb)->nls_disk)
+ 		unload_nls(HFS_SB(sb)->nls_disk);
+ 
++	free_pages((unsigned long)HFS_SB(sb)->bitmap, PAGE_SIZE < 8192 ? 1 : 0);
+ 	kfree(HFS_SB(sb));
+ 	sb->s_fs_info = NULL;
+ }
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from anderson@redhat.com are
 
 origin.patch
-rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
-frv-duplicate-output_buffer-of-e03.patch
-flat-fix-data-sections-alignment.patch
-mutex-subsystem-synchro-test-module.patch
 
