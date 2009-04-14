@@ -1,58 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] filemap-fix-kernel-doc-warnings.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:49:12 -0700
-Message-ID: <200904141949.n3EJnC8j019431@imap1.linux-foundation.org>
+Subject: [merged] maintainers-fix-email-address.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:48:27 -0700
+Message-ID: <200904141948.n3EJmRAZ019059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753393AbZDNTui (ORCPT
+	by vger.kernel.org with ESMTP id S1752530AbZDNTuc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:50:38 -0400
+	Tue, 14 Apr 2009 15:50:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, andreas.herrmann3@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     filemap: fix kernel-doc warnings
+     MAINTAINERS: fix Andreas's email address
 has been removed from the -mm tree.  Its filename was
-     filemap-fix-kernel-doc-warnings.patch
+     maintainers-fix-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: filemap: fix kernel-doc warnings
+Subject: MAINTAINERS: fix Andreas's email address
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix filemap.c kernel-doc warnings:
-
-Warning(mm/filemap.c:575): No description found for parameter 'page'
-Warning(mm/filemap.c:575): No description found for parameter 'waiter'
+Correct typo in email address.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andreas Herrmann <andreas.herrmann3@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~filemap-fix-kernel-doc-warnings mm/filemap.c
---- a/mm/filemap.c~filemap-fix-kernel-doc-warnings
-+++ a/mm/filemap.c
-@@ -567,8 +567,8 @@ EXPORT_SYMBOL(wait_on_page_bit);
+diff -puN MAINTAINERS~maintainers-fix-email-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-email-address
++++ a/MAINTAINERS
+@@ -461,7 +461,7 @@ F:	arch/x86/include/asm/amd_iommu*.h
  
- /**
-  * add_page_wait_queue - Add an arbitrary waiter to a page's wait queue
-- * @page - Page defining the wait queue of interest
-- * @waiter - Waiter to add to the queue
-+ * @page: Page defining the wait queue of interest
-+ * @waiter: Waiter to add to the queue
-  *
-  * Add an arbitrary @waiter to the wait queue for the nominated @page.
-  */
+ AMD MICROCODE UPDATE SUPPORT
+ P:	Andreas Herrmann
+-M:	andeas.herrmann3@amd.com
++M:      andreas.herrmann3@amd.com
+ L:	amd64-microcode@amd64.org
+ S:	Supported
+ F:	arch/x86/kernel/microcode_amd.c
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
