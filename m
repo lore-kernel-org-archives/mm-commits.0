@@ -1,85 +1,136 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: mmotm 2009-04-10-02-21 uploaded - forkbombed by work_for_cpu
-Date: Mon, 13 Apr 2009 17:31:13 -0700
-Message-ID: <20090413173113.24a61442.akpm@linux-foundation.org>
-References: <200904100922.n3A9MOIV013828@imap1.linux-foundation.org>
-	<4609.1239456126@turing-police.cc.vt.edu>
-	<alpine.LFD.2.00.0904130847500.4583@localhost.localdomain>
-	<20090413171853.GA4601@elte.hu>
-	<20090413102749.4ca3a217.akpm@linux-foundation.org>
-	<alpine.LFD.2.00.0904131648290.26713@localhost.localdomain>
+From: akpm@linux-foundation.org
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:40:30 -0700
+Message-ID: <200904141940.n3EJeVLt015403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751848AbZDNAh5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752028AbZDNTlY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Apr 2009 20:37:57 -0400
-In-Reply-To: <alpine.LFD.2.00.0904131648290.26713@localhost.localdomain>
+	Tue, 14 Apr 2009 15:41:24 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n3EJeVIm021221
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 14 Apr 2009 12:41:07 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Valdis.Kletnieks@vt.edu, Mike Travis <travis@sgi.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, mm-commits@vger.kernel.org, Rusty Russell <rusty@rustcorp.com.au>, Dave Jones <davej@redhat.com>, Len Brown <lenb@kernel.org>
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
-On Mon, 13 Apr 2009 16:50:45 -0700 (PDT) Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> 
-> 
-> So I applied this (commit 01599fca6758d2cd133e78f87426fc851c9ea725: 
-> "cpufreq: use smp_call_function_[single|many]() in acpi-cpufreq.c"), but 
-> just realized - because of a compiler warning - that this looks 
-> suspicious:
-> 
-> On Mon, 13 Apr 2009, Andrew Morton wrote:
-> > @@ -283,7 +280,7 @@ static unsigned int get_measured_perf(st
-> >  	unsigned int perf_percent;
-> >  	unsigned int retval;
-> >  
-> > -	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &readin))
-> > +	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &cur, 1))
-> >  		return 0;
-> >  
-> >  	cur.aperf.whole = readin.aperf.whole -
-> 
-> How and why did that "read_measured_perf_ctrs, &readin" become 
-> "read_measured_perf_ctrs, &cur" when the work_on_cpu() was converted to 
-> "smp_call_function_single()"?
-> 
-> Looks like a bug. But such an odd one that I wonder whether there was some 
-> thought behind it? Andrew? 
-> 
+The patch titled
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-<scratches head>
+This patch was dropped because it is obsolete
 
-OK, the acpi tree went and had conflicting changes merged into it after
-I'd written the patch:
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
-@@ -281,52 +279,57 @@ static long read_measured_perf_ctrs(void
- static unsigned int get_measured_perf(struct cpufreq_policy *policy,
- 				      unsigned int cpu)
- {
--	struct perf_cur cur;
-+	struct perf_pair readin, cur;
- 	unsigned int perf_percent;
- 	unsigned int retval;
+------------------------------------------------------
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/ide/ide-disk.c |   13 -------------
+ firmware/WHENCE        |    4 ----
+ 2 files changed, 17 deletions(-)
+
+diff -puN drivers/ide/ide-disk.c~linux-next-git-rejects drivers/ide/ide-disk.c
+--- a/drivers/ide/ide-disk.c~linux-next-git-rejects
++++ a/drivers/ide/ide-disk.c
+@@ -110,18 +110,6 @@ static ide_startstop_t __ide_do_rw_disk(
+ 			tf->lbam   = (u8)(block >>  8);
+ 			tf->lbah   = (u8)(block >> 16);
+ 			tf->device = ATA_LBA;
+-<<<<<<< HEAD:drivers/ide/ide-disk.c
+-
+-			tf = &cmd.hob;
+-			tf->nsect = (nsectors >> 8) & 0xff;
+-			tf->lbal  = (u8)(block >> 24);
+-			if (sizeof(block) != 4) {
+-				tf->lbam = (u8)((u64)block >> 32);
+-				tf->lbah = (u8)((u64)block >> 40);
+-			}
+-
+-=======
+-
+ 			tf = &cmd.hob;
+ 			tf->nsect = (nsectors >> 8) & 0xff;
+ 			tf->lbal  = (u8)(block >> 24);
+@@ -130,7 +118,6 @@ static ide_startstop_t __ide_do_rw_disk(
+ 				tf->lbah = (u8)((u64)block >> 40);
+ 			}
  
--	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &cur))
-+	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &readin))
- 		return 0;
+->>>>>>> FETCH_HEAD:drivers/ide/ide-disk.c
+ 			cmd.valid.out.hob = IDE_VALID_OUT_HOB;
+ 			cmd.valid.in.hob  = IDE_VALID_IN_HOB;
+ 			cmd.tf_flags |= IDE_TFLAG_LBA48;
+diff -puN firmware/WHENCE~linux-next-git-rejects firmware/WHENCE
+--- a/firmware/WHENCE~linux-next-git-rejects
++++ a/firmware/WHENCE
+@@ -646,9 +646,5 @@ Licence: Allegedly GPLv2+, but no source
  
-+	cur.aperf.whole = readin.aperf.whole -
-+				per_cpu(drv_data, cpu)->saved_aperf;
-+	cur.mperf.whole = readin.mperf.whole -
-+				per_cpu(drv_data, cpu)->saved_mperf;
-+	per_cpu(drv_data, cpu)->saved_aperf = readin.aperf.whole;
-+	per_cpu(drv_data, cpu)->saved_mperf = readin.mperf.whole;
-+
+ Found in hex form in kernel source, with the following comment:
+    Copyright (c) 1998-2002 by Paul Davis <pbd@op.net>
+-<<<<<<< HEAD:firmware/WHENCE
+-=======
+-
+->>>>>>> FETCH_HEAD:firmware/WHENCE
+ 
+ --------------------------------------------------------------------------
+_
 
-and it appears that I incorrectly reverted part of
-18b2646fe3babeb40b34a0c1751e0bf5adfdc64c while fixing the resulting
-rejects.
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-Switching it to `readin' looks correct.
+origin.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+toshiba_acpi-add-full-hotkey-support.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-fix.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-dont-open-code-smp_call_function_many.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mips-cacheflush-system-call-not-returning-einval-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+readahead-introduce-context-readahead-algorithm-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+flat-fix-data-sections-alignment.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+
