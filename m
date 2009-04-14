@@ -1,91 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:50:46 -0700
-Message-ID: <200904141950.n3EJokUK020355@imap1.linux-foundation.org>
+Subject: [merged] shmem-respect-max_lfs_filesize.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:50:00 -0700
+Message-ID: <200904141950.n3EJo0FI019916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754172AbZDNTxk (ORCPT
+	by vger.kernel.org with ESMTP id S1752709AbZDNTyi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:53:40 -0400
+	Tue, 14 Apr 2009 15:54:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: hugh@veritas.com, paulus@samba.org, randy.dunlap@oracle.com, yur@emcraft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: make it possible for the linker to discard local symbols from vmlinux
+     shmem: respect MAX_LFS_FILESIZE
 has been removed from the -mm tree.  Its filename was
-     kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
+     shmem-respect-max_lfs_filesize.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: make it possible for the linker to discard local symbols from vmlinux
-From: David Howells <dhowells@redhat.com>
+Subject: shmem: respect MAX_LFS_FILESIZE
+From: Hugh Dickins <hugh@veritas.com>
 
-Make it possible for the linker to discard local symbols from vmlinux as
-they cause vmlinux to balloon when CONFIG_KALLSYMS=y and they cause
-dump_stack() and get_wchan() to produce useless information under some
-circumstances.
+SHMEM_MAX_BYTES was derived from the maximum size of its triple-indirect
+swap vector, forgetting to take the MAX_LFS_FILESIZE limit into account. 
+Never mind 256kB pages, even 8kB pages on 32-bit kernels allowed files to
+grow slightly bigger than that supposed maximum.
 
-With this we add a config option (CONFIG_STRIP_ASM_SYMS) that will cause
-the build to supply -X to the linker to tell it to strip temporary local
-symbols.
+Fix this by using the min of both (at build time not run time).  And it
+happens that this calculation is good as far as 8MB pages on 32-bit or
+16MB pages on 64-bit: though SHMSWP_MAX_INDEX gets truncated before that,
+it's truncated to such large numbers that we don't need to care.
 
-This doesn't seem to cause gdb any problems.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+[akpm@linux-foundation.org: it needs pagemap.h]
+[akpm@linux-foundation.org: fix sparc64 min() warnings]
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Yuri Tikhonov <yur@emcraft.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile     |    4 ++++
- init/Kconfig |    8 ++++++++
- 2 files changed, 12 insertions(+)
+ mm/shmem.c |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN Makefile~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux Makefile
---- a/Makefile~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux
-+++ a/Makefile
-@@ -591,6 +591,10 @@ LDFLAGS_BUILD_ID = $(patsubst -Wl$(comma
- LDFLAGS_MODULE += $(LDFLAGS_BUILD_ID)
- LDFLAGS_vmlinux += $(LDFLAGS_BUILD_ID)
+diff -puN mm/shmem.c~shmem-respect-max_lfs_filesize mm/shmem.c
+--- a/mm/shmem.c~shmem-respect-max_lfs_filesize
++++ a/mm/shmem.c
+@@ -24,6 +24,7 @@
+ #include <linux/init.h>
+ #include <linux/vfs.h>
+ #include <linux/mount.h>
++#include <linux/pagemap.h>
+ #include <linux/file.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
+@@ -43,7 +44,6 @@ static struct vfsmount *shm_mnt;
+ #include <linux/exportfs.h>
+ #include <linux/generic_acl.h>
+ #include <linux/mman.h>
+-#include <linux/pagemap.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+ #include <linux/backing-dev.h>
+@@ -65,13 +65,28 @@ static struct vfsmount *shm_mnt;
+ #include <asm/div64.h>
+ #include <asm/pgtable.h>
  
-+ifeq ($(CONFIG_STRIP_ASM_SYMS),y)
-+LDFLAGS_vmlinux	+= -X
-+endif
++/*
++ * The maximum size of a shmem/tmpfs file is limited by the maximum size of
++ * its triple-indirect swap vector - see illustration at shmem_swp_entry().
++ *
++ * With 4kB page size, maximum file size is just over 2TB on a 32-bit kernel,
++ * but one eighth of that on a 64-bit kernel.  With 8kB page size, maximum
++ * file size is just over 4TB on a 64-bit kernel, but 16TB on a 32-bit kernel,
++ * MAX_LFS_FILESIZE being then more restrictive than swap vector layout.
++ *
++ * We use / and * instead of shifts in the definitions below, so that the swap
++ * vector can be tested with small even values (e.g. 20) for ENTRIES_PER_PAGE.
++ */
+ #define ENTRIES_PER_PAGE (PAGE_CACHE_SIZE/sizeof(unsigned long))
+ #define ENTRIES_PER_PAGEPAGE ((unsigned long long)ENTRIES_PER_PAGE*ENTRIES_PER_PAGE)
+-#define BLOCKS_PER_PAGE  (PAGE_CACHE_SIZE/512)
+ 
+-#define SHMEM_MAX_INDEX  (SHMEM_NR_DIRECT + (ENTRIES_PER_PAGEPAGE/2) * (ENTRIES_PER_PAGE+1))
+-#define SHMEM_MAX_BYTES  ((unsigned long long)SHMEM_MAX_INDEX << PAGE_CACHE_SHIFT)
++#define SHMSWP_MAX_INDEX (SHMEM_NR_DIRECT + (ENTRIES_PER_PAGEPAGE/2) * (ENTRIES_PER_PAGE+1))
++#define SHMSWP_MAX_BYTES (SHMSWP_MAX_INDEX << PAGE_CACHE_SHIFT)
+ 
++#define SHMEM_MAX_BYTES  min_t(unsigned long long, SHMSWP_MAX_BYTES, MAX_LFS_FILESIZE)
++#define SHMEM_MAX_INDEX  ((unsigned long)((SHMEM_MAX_BYTES+1) >> PAGE_CACHE_SHIFT))
 +
- # Default kernel image to build when no specific target is given.
- # KBUILD_IMAGE may be overruled on the command line or
- # set in the environment
-diff -puN init/Kconfig~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux init/Kconfig
---- a/init/Kconfig~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux
-+++ a/init/Kconfig
-@@ -740,6 +740,14 @@ config KALLSYMS_EXTRA_PASS
- 	   you wait for kallsyms to be fixed.
++#define BLOCKS_PER_PAGE  (PAGE_CACHE_SIZE/512)
+ #define VM_ACCT(size)    (PAGE_CACHE_ALIGN(size) >> PAGE_SHIFT)
  
+ /* info->flags needs VM_flags to handle pagein/truncate races efficiently */
+@@ -2581,7 +2596,7 @@ int shmem_unuse(swp_entry_t entry, struc
+ #define shmem_get_inode(sb, mode, dev, flags)	ramfs_get_inode(sb, mode, dev)
+ #define shmem_acct_size(flags, size)		0
+ #define shmem_unacct_size(flags, size)		do {} while (0)
+-#define SHMEM_MAX_BYTES				LLONG_MAX
++#define SHMEM_MAX_BYTES				MAX_LFS_FILESIZE
  
-+config STRIP_ASM_SYMS
-+	bool "Strip assembler-generated symbols during link"
-+	default n
-+	help
-+	  Strip internal assembler-generated symbols during a link (symbols
-+	  that look like '.Lxxx') so they don't pollute the output of
-+	  get_wchan() and suchlike.
-+
- config HOTPLUG
- 	bool "Support for hot-pluggable devices" if EMBEDDED
- 	default y
+ #endif /* CONFIG_SHMEM */
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
-frv-duplicate-output_buffer-of-e03.patch
-flat-fix-data-sections-alignment.patch
-mutex-subsystem-synchro-test-module.patch
+clocksource-pass-clocksource-to-read-callback.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
+powerpc-allow-256kb-pages-with-shmem.patch
+getrusage-fill-ru_maxrss-value.patch
+prio_tree-debugging-patch.patch
 
