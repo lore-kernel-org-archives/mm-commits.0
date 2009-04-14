@@ -1,79 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:49:35 -0700
-Message-ID: <200904141949.n3EJnZA6019732@imap1.linux-foundation.org>
+Subject: [merged] uvesafb-fix-color-component-length-for-pseudocolor-modes.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:48:44 -0700
+Message-ID: <200904141948.n3EJmiuW019199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753924AbZDNTwc (ORCPT
+	by vger.kernel.org with ESMTP id S1752904AbZDNTwJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:52:32 -0400
+	Tue, 14 Apr 2009 15:52:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: spock@gentoo.org, geert.uytterhoeven@gmail.com, krzysztof.h1@poczta.fm, syrjala@sci.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: fix exit_ptrace() vs ptrace_traceme() race
+     uvesafb: fix color component length for pseudocolor modes
 has been removed from the -mm tree.  Its filename was
-     ptrace-fix-exit_ptrace-vs-ptrace_traceme-race.patch
+     uvesafb-fix-color-component-length-for-pseudocolor-modes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: fix exit_ptrace() vs ptrace_traceme() race
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: uvesafb: fix color component length for pseudocolor modes
+From: Michal Januszewski <spock@gentoo.org>
 
-Pointed out by Roland.  The bug was recently introduced by me in
-"forget_original_parent: split out the un-ptrace part", commit
-39c626ae47c469abdfd30c6e42eff884931380d6.
+uvesafb incorrectly sets the length of the color fields to 6 bits for
+PSEUDOCOLOR modes, even though 8 bits are always used per pixel.  Fix this
+by setting the length to 8.
 
-Since that patch we have a window after exit_ptrace() drops tasklist and
-before forget_original_parent() takes it again.  In this window the child
-can do ptrace(PTRACE_TRACEME) and nobody can untrace this child after
-that.
+The switch of the DAC width from the default 6 bits to 8 bits is retained
+and tracked internally in the driver, but never exposed to userspace.
 
-Change ptrace_traceme() to not attach to the exiting ->real_parent.  We
-don't report the error in this case, we pretend we attach right before
-->real_parent calls exit_ptrace() which should untrace us anyway.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Acked-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: <syrjala@sci.fi>
+Cc: Geert Uytterhoeven <geert.uytterhoeven@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/video/uvesafb.c |   35 ++++++++++-------------------------
+ 1 file changed, 10 insertions(+), 25 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-fix-exit_ptrace-vs-ptrace_traceme-race kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-fix-exit_ptrace-vs-ptrace_traceme-race
-+++ a/kernel/ptrace.c
-@@ -604,10 +604,11 @@ repeat:
- 		ret = security_ptrace_traceme(current->parent);
+diff -puN drivers/video/uvesafb.c~uvesafb-fix-color-component-length-for-pseudocolor-modes drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~uvesafb-fix-color-component-length-for-pseudocolor-modes
++++ a/drivers/video/uvesafb.c
+@@ -55,6 +55,7 @@ static u16 maxvf	__devinitdata; /* maxim
+ static u16 maxhf	__devinitdata; /* maximum horizontal frequency */
+ static u16 vbemode	__devinitdata; /* force use of a specific VBE mode */
+ static char *mode_option __devinitdata;
++static u8  dac_width	= 6;
  
- 		/*
--		 * Set the ptrace bit in the process ptrace flags.
--		 * Then link us on our parent's ptraced list.
-+		 * Check PF_EXITING to ensure ->real_parent has not passed
-+		 * exit_ptrace(). Otherwise we don't report the error but
-+		 * pretend ->real_parent untraces us right after return.
- 		 */
--		if (!ret) {
-+		if (!ret && !(current->real_parent->flags & PF_EXITING)) {
- 			current->ptrace |= PT_PTRACED;
- 			__ptrace_link(current, current->real_parent);
+ static struct uvesafb_ktask *uvfb_tasks[UVESAFB_TASKS_MAX];
+ static DEFINE_MUTEX(uvfb_lock);
+@@ -303,22 +304,10 @@ static void uvesafb_setup_var(struct fb_
+ 		var->blue.offset   = 0;
+ 		var->transp.offset = 0;
+ 
+-		/*
+-		 * We're assuming that we can switch the DAC to 8 bits. If
+-		 * this proves to be incorrect, we'll update the fields
+-		 * later in set_par().
+-		 */
+-		if (par->vbe_ib.capabilities & VBE_CAP_CAN_SWITCH_DAC) {
+-			var->red.length    = 8;
+-			var->green.length  = 8;
+-			var->blue.length   = 8;
+-			var->transp.length = 0;
+-		} else {
+-			var->red.length    = 6;
+-			var->green.length  = 6;
+-			var->blue.length   = 6;
+-			var->transp.length = 0;
+-		}
++		var->red.length    = 8;
++		var->green.length  = 8;
++		var->blue.length   = 8;
++		var->transp.length = 0;
+ 	}
+ }
+ 
+@@ -1006,7 +995,7 @@ static int uvesafb_setcolreg(unsigned re
+ 		struct fb_info *info)
+ {
+ 	struct uvesafb_pal_entry entry;
+-	int shift = 16 - info->var.green.length;
++	int shift = 16 - dac_width;
+ 	int err = 0;
+ 
+ 	if (regno >= info->cmap.len)
+@@ -1055,7 +1044,7 @@ static int uvesafb_setcolreg(unsigned re
+ static int uvesafb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
+ {
+ 	struct uvesafb_pal_entry *entries;
+-	int shift = 16 - info->var.green.length;
++	int shift = 16 - dac_width;
+ 	int i, err = 0;
+ 
+ 	if (info->var.bits_per_pixel == 8) {
+@@ -1317,13 +1306,9 @@ setmode:
+ 		err = uvesafb_exec(task);
+ 		if (err || (task->t.regs.eax & 0xffff) != 0x004f ||
+ 		    ((task->t.regs.ebx & 0xff00) >> 8) != 8) {
+-			/*
+-			 * We've failed to set the DAC palette format -
+-			 * time to correct var.
+-			 */
+-			info->var.red.length    = 6;
+-			info->var.green.length  = 6;
+-			info->var.blue.length   = 6;
++			dac_width = 6;
++		} else {
++			dac_width = 8;
  		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from spock@gentoo.org are
 
 origin.patch
-getrusage-fill-ru_maxrss-value.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-signals-tracehook_notify_jctl-change.patch
+linux-next.patch
 
