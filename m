@@ -1,109 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fbdev-fix-color-component-field-length-documentation.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:48:40 -0700
-Message-ID: <200904141948.n3EJmet0019147@imap1.linux-foundation.org>
+Subject: [merged] s3fb-fix-color-component-length-for-pseudocolor-modes.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:48:59 -0700
+Message-ID: <200904141948.n3EJmxng019317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51775 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56317 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752120AbZDNTwG (ORCPT
+	by vger.kernel.org with ESMTP id S1754435AbZDNTv4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:52:06 -0400
+	Tue, 14 Apr 2009 15:51:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: spock@gentoo.org, geert.uytterhoeven@gmail.com, krzysztof.h1@poczta.fm, syrjala@sci.fi, mm-commits@vger.kernel.org
+To: spock@gentoo.org, krzysztof.h1@poczta.fm, santiago@crfreenet.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: fix color component field length documentation
+     s3fb: fix color component length for pseudocolor modes
 has been removed from the -mm tree.  Its filename was
-     fbdev-fix-color-component-field-length-documentation.patch
+     s3fb-fix-color-component-length-for-pseudocolor-modes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: fix color component field length documentation
+Subject: s3fb: fix color component length for pseudocolor modes
 From: Michal Januszewski <spock@gentoo.org>
 
-The documentation about the meaning of the color component bitfield
-lengths in pseudocolor modes is inconsistent.  Fix it, so that it
-indicates the correct interpretation everywhere, i.e.  that 1 << length is
-the number of palette entries.
+s3fb incorrectly sets the length of the color fields to 6 bits for
+PSEUDOCOLOR modes, even though 8 or 4 bits are used per pixel.  Fix this
+by setting the length to 8 or 4, respectively.
 
 Signed-off-by: Michal Januszewski <spock@gentoo.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: <syrjala@sci.fi>
-Acked-by: Geert Uytterhoeven <geert.uytterhoeven@gmail.com>
+Acked-by: Ondrej Zajicek <santiago@crfreenet.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/skeletonfb.c |    8 +++++---
- drivers/video/vfb.c        |   11 +++++++----
- include/linux/fb.h         |    8 ++++++--
- 3 files changed, 18 insertions(+), 9 deletions(-)
+ drivers/video/s3fb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/skeletonfb.c~fbdev-fix-color-component-field-length-documentation drivers/video/skeletonfb.c
---- a/drivers/video/skeletonfb.c~fbdev-fix-color-component-field-length-documentation
-+++ a/drivers/video/skeletonfb.c
-@@ -308,9 +308,11 @@ static int xxxfb_setcolreg(unsigned regn
-      *   color depth = SUM(var->{color}.length)
-      *
-      * Pseudocolor:
--     *    var->{color}.offset is 0
--     *    var->{color}.length contains width of DAC or the number of unique
--     *                        colors available (color depth)
-+     *    var->{color}.offset is 0 unless the palette index takes less than
-+     *                        bits_per_pixel bits and is stored in the upper
-+     *                        bits of the pixel value
-+     *    var->{color}.length is set so that 1 << length is the number of
-+     *                        available palette entries
-      *    pseudo_palette is not used
-      *    RAMDAC[X] is programmed to (red, green, blue)
-      *    color depth = var->{color}.length
-diff -puN drivers/video/vfb.c~fbdev-fix-color-component-field-length-documentation drivers/video/vfb.c
---- a/drivers/video/vfb.c~fbdev-fix-color-component-field-length-documentation
-+++ a/drivers/video/vfb.c
-@@ -318,13 +318,16 @@ static int vfb_setcolreg(u_int regno, u_
- 	 *   {hardwarespecific} contains width of RAMDAC
- 	 *   cmap[X] is programmed to (X << red.offset) | (X << green.offset) | (X << blue.offset)
- 	 *   RAMDAC[X] is programmed to (red, green, blue)
--	 * 
-+	 *
- 	 * Pseudocolor:
--	 *    uses offset = 0 && length = RAMDAC register width.
--	 *    var->{color}.offset is 0
--	 *    var->{color}.length contains widht of DAC
-+	 *    var->{color}.offset is 0 unless the palette index takes less than
-+	 *                        bits_per_pixel bits and is stored in the upper
-+	 *                        bits of the pixel value
-+	 *    var->{color}.length is set so that 1 << length is the number of available
-+	 *                        palette entries
- 	 *    cmap is not used
- 	 *    RAMDAC[X] is programmed to (red, green, blue)
-+	 *
- 	 * Truecolor:
- 	 *    does not use DAC. Usually 3 are present.
- 	 *    var->{color}.offset contains start of bitfield
-diff -puN include/linux/fb.h~fbdev-fix-color-component-field-length-documentation include/linux/fb.h
---- a/include/linux/fb.h~fbdev-fix-color-component-field-length-documentation
-+++ a/include/linux/fb.h
-@@ -173,8 +173,12 @@ struct fb_fix_screeninfo {
- /* Interpretation of offset for color fields: All offsets are from the right,
-  * inside a "pixel" value, which is exactly 'bits_per_pixel' wide (means: you
-  * can use the offset as right argument to <<). A pixel afterwards is a bit
-- * stream and is written to video memory as that unmodified. This implies
-- * big-endian byte order if bits_per_pixel is greater than 8.
-+ * stream and is written to video memory as that unmodified.
-+ *
-+ * For pseudocolor: offset and length should be the same for all color
-+ * components. Offset specifies the position of the least significant bit
-+ * of the pallette index in a pixel value. Length indicates the number
-+ * of available palette entries (i.e. # of entries = 1 << length).
-  */
- struct fb_bitfield {
- 	__u32 offset;			/* beginning of bitfield	*/
+diff -puN drivers/video/s3fb.c~s3fb-fix-color-component-length-for-pseudocolor-modes drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~s3fb-fix-color-component-length-for-pseudocolor-modes
++++ a/drivers/video/s3fb.c
+@@ -45,11 +45,11 @@ struct s3fb_info {
+ static const struct svga_fb_format s3fb_formats[] = {
+ 	{ 0,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
+ 		FB_TYPE_TEXT, FB_AUX_TEXT_SVGA_STEP4,	FB_VISUAL_PSEUDOCOLOR, 8, 16},
+-	{ 4,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
++	{ 4,  {0, 4, 0},  {0, 4, 0},  {0, 4, 0}, {0, 0, 0}, 0,
+ 		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_PSEUDOCOLOR, 8, 16},
+-	{ 4,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 1,
++	{ 4,  {0, 4, 0},  {0, 4, 0},  {0, 4, 0}, {0, 0, 0}, 1,
+ 		FB_TYPE_INTERLEAVED_PLANES, 1,		FB_VISUAL_PSEUDOCOLOR, 8, 16},
+-	{ 8,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
++	{ 8,  {0, 8, 0},  {0, 8, 0},  {0, 8, 0}, {0, 0, 0}, 0,
+ 		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_PSEUDOCOLOR, 4, 8},
+ 	{16,  {10, 5, 0}, {5, 5, 0},  {0, 5, 0}, {0, 0, 0}, 0,
+ 		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 2, 4},
 _
 
 Patches currently in -mm which might be from spock@gentoo.org are
