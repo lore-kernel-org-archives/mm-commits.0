@@ -1,512 +1,333 @@
 From: akpm@linux-foundation.org
-Subject: [merged] early-platform-driver-v3.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:50:38 -0700
-Message-ID: <200904141950.n3EJocmR020271@imap1.linux-foundation.org>
+Subject: [merged] replace-all-dma_nbit_mask-macro-with-dma_bit_maskn.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:50:06 -0700
+Message-ID: <200904141950.n3EJo6X0019999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752379AbZDNTzo (ORCPT
+	by vger.kernel.org with ESMTP id S1751715AbZDNT4A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:55:44 -0400
+	Tue, 14 Apr 2009 15:56:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: damm@igel.co.jp, david-b@pacbell.net, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: yanghy@cn.fujitsu.com, James.Bottomley@HansenPartnership.com, davem@davemloft.net, greg@kroah.com, rmk@arm.linux.org.uk, tiwai@suse.de, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     early platform driver V3
+     Replace all DMA_nBIT_MASK macro with DMA_BIT_MASK(n)
 has been removed from the -mm tree.  Its filename was
-     early-platform-driver-v3.patch
+     replace-all-dma_nbit_mask-macro-with-dma_bit_maskn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: early platform driver V3
-From: Magnus Damm <damm@igel.co.jp>
+Subject: Replace all DMA_nBIT_MASK macro with DMA_BIT_MASK(n)
+From: Yang Hongyang <yanghy@cn.fujitsu.com>
 
-V3 of the early platform driver implementation.
+This is the second go through of the old DMA_nBIT_MASK macro,and there're not
+so many of them left,so I put them into one patch.I hope this is the last round.
+After this the definition of the old DMA_nBIT_MASK macro could be removed.
 
-Platform drivers are great for embedded platforms because we can separate
-driver configuration from the actual driver.  So base addresses,
-interrupts and other configuration can be kept with the processor or board
-code, and the platform driver can be reused by many different platforms.
-
-For early devices we have nothing today.  For instance, to configure early
-timers and early serial ports we cannot use platform devices.  This
-because the setup order during boot.  Timers are needed before the
-platform driver core code is available.  The same goes for early printk
-support.  Early in this case means before initcalls.
-
-These early drivers today have their configuration either hard coded or
-they receive it using some special configuration method.  This is working
-quite well, but if we want to support both regular kernel modules and
-early devices then we need to have two ways of configuring the same
-driver.  A single way would be better.
-
-The early platform driver patch is basically a set of functions that allow
-drivers to register themselves and architecture code to locate them and
-probe.  Registration happens through early_param().  The time for the
-probe is decided by the architecture code.
-
-See Documentation/driver-model/platform.txt for more details.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Yang Hongyang <yanghy@cn.fujitsu.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Tejun Heo <htejun@gmail.com>
-
-
-On Wed, 11 Feb 2009 14:40:43 -0800
-David Brownell <david-b@pacbell.net> wrote:
-
-> On Wednesday 11 February 2009, akpm@linux-foundation.org wrote:
-> > +6. Inside the early platform driver probe()
-> > +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> > +The driver code needs to take special care during early boot, especially
-> > +when it comes to memory allocation and interrupt registration. The code
-> > +in the probe() function can use is_early_platform_device() to check if
-> > +it is called at early platform device or at the regular platform device
-> > +time. The early serial driver performs register_console() at this point.
-> 
-> What does "take special care" mean, exactly?
-> What should probe() do when that new predicate
-> returns true?  Or false?
-> 
-> Please spell it out ... this is trying to help
-> a funky kernel state be more widely used, so it
-> shouldn't sow confusion.
-> 
-> Specifically, I think IRQs are unusable at this
-> time.  But ... how about kmalloc?  Or workqueues?
-> (At a quick glance, I think they might work.)
-> 
-> I'd assume ioremap() is working by then, else
-> there'd really be no point in this ...
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/driver-model/platform.txt |   59 +++++
- drivers/base/platform.c                 |  239 ++++++++++++++++++++++
- include/linux/init.h                    |    1 
- include/linux/platform_device.h         |   42 +++
- init/main.c                             |    7 
- 5 files changed, 347 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/usb-musb.c      |    8 ++++----
+ arch/ia64/kernel/pci-swiotlb.c      |    2 +-
+ drivers/atm/solos-pci.c             |    2 +-
+ drivers/block/cciss.c               |    2 +-
+ drivers/net/atl1c/atl1c_main.c      |    4 ++--
+ drivers/net/benet/be_main.c         |    4 ++--
+ drivers/net/jme.c                   |    8 ++++----
+ drivers/net/wireless/ath9k/pci.c    |    4 ++--
+ drivers/net/wireless/p54/p54pci.c   |    4 ++--
+ drivers/scsi/3w-9xxx.c              |    8 ++++----
+ drivers/scsi/aacraid/aachba.c       |    2 +-
+ drivers/scsi/mpt2sas/mpt2sas_base.c |   10 +++++-----
+ drivers/staging/b3dfg/b3dfg.c       |    2 +-
+ drivers/usb/otg/nop-usb-xceiv.c     |    4 ++--
+ sound/pci/hda/hda_intel.c           |    8 ++++----
+ 15 files changed, 36 insertions(+), 36 deletions(-)
 
-diff -puN Documentation/driver-model/platform.txt~early-platform-driver-v3 Documentation/driver-model/platform.txt
---- a/Documentation/driver-model/platform.txt~early-platform-driver-v3
-+++ a/Documentation/driver-model/platform.txt
-@@ -169,3 +169,62 @@ three different ways to find such a matc
-       be probed later if another device registers.  (Which is OK, since
-       this interface is only for use with non-hotpluggable devices.)
+diff -puN arch/arm/mach-omap2/usb-musb.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn arch/arm/mach-omap2/usb-musb.c
+--- a/arch/arm/mach-omap2/usb-musb.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/arch/arm/mach-omap2/usb-musb.c
+@@ -131,14 +131,14 @@ static struct musb_hdrc_platform_data mu
+ 	.power		= 50,			/* up to 100 mA */
+ };
  
-+
-+Early Platform Devices and Drivers
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The early platform interfaces provide platform data to platform device
-+drivers early on during the system boot. The code is built on top of the
-+early_param() command line parsing and can be executed very early on.
-+
-+Example: "earlyprintk" class early serial console in 6 steps
-+
-+1. Registering early platform device data
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The architecture code registers platform device data using the function
-+early_platform_add_devices(). In the case of early serial console this
-+should be hardware configuration for the serial port. Devices registered
-+at this point will later on be matched against early platform drivers.
-+
-+2. Parsing kernel command line
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The architecture code calls parse_early_param() to parse the kernel
-+command line. This will execute all matching early_param() callbacks.
-+User specified early platform devices will be registered at this point.
-+For the early serial console case the user can specify port on the
-+kernel command line as "earlyprintk=serial.0" where "earlyprintk" is
-+the class string, "serial" is the name of the platfrom driver and
-+0 is the platform device id. If the id is -1 then the dot and the
-+id can be omitted.
-+
-+3. Installing early platform drivers belonging to a certain class
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The architecture code may optionally force registration of all early
-+platform drivers belonging to a certain class using the function
-+early_platform_driver_register_all(). User specified devices from
-+step 2 have priority over these. This step is omitted by the serial
-+driver example since the early serial driver code should be disabled
-+unless the user has specified port on the kernel command line.
-+
-+4. Early platform driver registration
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+Compiled-in platform drivers making use of early_platform_init() are
-+automatically registered during step 2 or 3. The serial driver example
-+should use early_platform_init("earlyprintk", &platform_driver).
-+
-+5. Probing of early platform drivers belonging to a certain class
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The architecture code calls early_platform_driver_probe() to match
-+registered early platform devices associated with a certain class with
-+registered early platform drivers. Matched devices will get probed().
-+This step can be executed at any point during the early boot. As soon
-+as possible may be good for the serial port case.
-+
-+6. Inside the early platform driver probe()
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The driver code needs to take special care during early boot, especially
-+when it comes to memory allocation and interrupt registration. The code
-+in the probe() function can use is_early_platform_device() to check if
-+it is called at early platform device or at the regular platform device
-+time. The early serial driver performs register_console() at this point.
-+
-+For further information, see <linux/platform_device.h>.
-diff -puN drivers/base/platform.c~early-platform-driver-v3 drivers/base/platform.c
---- a/drivers/base/platform.c~early-platform-driver-v3
-+++ a/drivers/base/platform.c
-@@ -990,6 +990,8 @@ int __init platform_bus_init(void)
+-static u64 musb_dmamask = DMA_32BIT_MASK;
++static u64 musb_dmamask = DMA_BIT_MASK(32);
+ 
+ static struct platform_device musb_device = {
+ 	.name		= "musb_hdrc",
+ 	.id		= -1,
+ 	.dev = {
+ 		.dma_mask		= &musb_dmamask,
+-		.coherent_dma_mask	= DMA_32BIT_MASK,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
+ 		.platform_data		= &musb_plat,
+ 	},
+ 	.num_resources	= ARRAY_SIZE(musb_resources),
+@@ -146,14 +146,14 @@ static struct platform_device musb_devic
+ };
+ 
+ #ifdef CONFIG_NOP_USB_XCEIV
+-static u64 nop_xceiv_dmamask = DMA_32BIT_MASK;
++static u64 nop_xceiv_dmamask = DMA_BIT_MASK(32);
+ 
+ static struct platform_device nop_xceiv_device = {
+ 	.name		= "nop_usb_xceiv",
+ 	.id		= -1,
+ 	.dev = {
+ 		.dma_mask		= &nop_xceiv_dmamask,
+-		.coherent_dma_mask	= DMA_32BIT_MASK,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
+ 		.platform_data		= NULL,
+ 	},
+ };
+diff -puN arch/ia64/kernel/pci-swiotlb.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn arch/ia64/kernel/pci-swiotlb.c
+--- a/arch/ia64/kernel/pci-swiotlb.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/arch/ia64/kernel/pci-swiotlb.c
+@@ -16,7 +16,7 @@ EXPORT_SYMBOL(swiotlb);
+ static void *ia64_swiotlb_alloc_coherent(struct device *dev, size_t size,
+ 					 dma_addr_t *dma_handle, gfp_t gfp)
  {
- 	int error;
- 
-+	early_platform_cleanup();
-+
- 	error = device_register(&platform_bus);
- 	if (error)
- 		return error;
-@@ -1020,3 +1022,240 @@ u64 dma_get_required_mask(struct device 
+-	if (dev->coherent_dma_mask != DMA_64BIT_MASK)
++	if (dev->coherent_dma_mask != DMA_BIT_MASK(64))
+ 		gfp |= GFP_DMA;
+ 	return swiotlb_alloc_coherent(dev, size, dma_handle, gfp);
  }
- EXPORT_SYMBOL_GPL(dma_get_required_mask);
- #endif
-+
-+static __initdata LIST_HEAD(early_platform_driver_list);
-+static __initdata LIST_HEAD(early_platform_device_list);
-+
-+/**
-+ * early_platform_driver_register
-+ * @edrv: early_platform driver structure
-+ * @buf: string passed from early_param()
-+ */
-+int __init early_platform_driver_register(struct early_platform_driver *epdrv,
-+					  char *buf)
-+{
-+	unsigned long index;
-+	int n;
-+
-+	/* Simply add the driver to the end of the global list.
-+	 * Drivers will by default be put on the list in compiled-in order.
-+	 */
-+	if (!epdrv->list.next) {
-+		INIT_LIST_HEAD(&epdrv->list);
-+		list_add_tail(&epdrv->list, &early_platform_driver_list);
-+	}
-+
-+	/* If the user has specified device then make sure the driver
-+	 * gets prioritized. The driver of the last device specified on
-+	 * command line will be put first on the list.
-+	 */
-+	n = strlen(epdrv->pdrv->driver.name);
-+	if (buf && !strncmp(buf, epdrv->pdrv->driver.name, n)) {
-+		list_move(&epdrv->list, &early_platform_driver_list);
-+
-+		if (!strcmp(buf, epdrv->pdrv->driver.name))
-+			epdrv->requested_id = -1;
-+		else if (buf[n] == '.' && strict_strtoul(&buf[n + 1], 10,
-+							 &index) == 0)
-+			epdrv->requested_id = index;
-+		else
-+			epdrv->requested_id = EARLY_PLATFORM_ID_ERROR;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * early_platform_add_devices - add a numbers of early platform devices
-+ * @devs: array of early platform devices to add
-+ * @num: number of early platform devices in array
-+ */
-+void __init early_platform_add_devices(struct platform_device **devs, int num)
-+{
-+	struct device *dev;
-+	int i;
-+
-+	/* simply add the devices to list */
-+	for (i = 0; i < num; i++) {
-+		dev = &devs[i]->dev;
-+
-+		if (!dev->devres_head.next) {
-+			INIT_LIST_HEAD(&dev->devres_head);
-+			list_add_tail(&dev->devres_head,
-+				      &early_platform_device_list);
-+		}
-+	}
-+}
-+
-+/**
-+ * early_platform_driver_register_all
-+ * @class_str: string to identify early platform driver class
-+ */
-+void __init early_platform_driver_register_all(char *class_str)
-+{
-+	/* The "class_str" parameter may or may not be present on the kernel
-+	 * command line. If it is present then there may be more than one
-+	 * matching parameter.
-+	 *
-+	 * Since we register our early platform drivers using early_param()
-+	 * we need to make sure that they also get registered in the case
-+	 * when the parameter is missing from the kernel command line.
-+	 *
-+	 * We use parse_early_options() to make sure the early_param() gets
-+	 * called at least once. The early_param() may be called more than
-+	 * once since the name of the preferred device may be specified on
-+	 * the kernel command line. early_platform_driver_register() handles
-+	 * this case for us.
-+	 */
-+	parse_early_options(class_str);
-+}
-+
-+/**
-+ * early_platform_match
-+ * @edrv: early platform driver structure
-+ * @id: id to match against
-+ */
-+static  __init struct platform_device *
-+early_platform_match(struct early_platform_driver *epdrv, int id)
-+{
-+	struct platform_device *pd;
-+
-+	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
-+		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
-+			if (pd->id == id)
-+				return pd;
-+
-+	return NULL;
-+}
-+
-+/**
-+ * early_platform_left
-+ * @edrv: early platform driver structure
-+ * @id: return true if id or above exists
-+ */
-+static  __init int early_platform_left(struct early_platform_driver *epdrv,
-+				       int id)
-+{
-+	struct platform_device *pd;
-+
-+	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
-+		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
-+			if (pd->id >= id)
-+				return 1;
-+
-+	return 0;
-+}
-+
-+/**
-+ * early_platform_driver_probe_id
-+ * @class_str: string to identify early platform driver class
-+ * @id: id to match against
-+ * @nr_probe: number of platform devices to successfully probe before exiting
-+ */
-+static int __init early_platform_driver_probe_id(char *class_str,
-+						 int id,
-+						 int nr_probe)
-+{
-+	struct early_platform_driver *epdrv;
-+	struct platform_device *match;
-+	int match_id;
-+	int n = 0;
-+	int left = 0;
-+
-+	list_for_each_entry(epdrv, &early_platform_driver_list, list) {
-+		/* only use drivers matching our class_str */
-+		if (strcmp(class_str, epdrv->class_str))
-+			continue;
-+
-+		if (id == -2) {
-+			match_id = epdrv->requested_id;
-+			left = 1;
-+
-+		} else {
-+			match_id = id;
-+			left += early_platform_left(epdrv, id);
-+
-+			/* skip requested id */
-+			switch (epdrv->requested_id) {
-+			case EARLY_PLATFORM_ID_ERROR:
-+			case EARLY_PLATFORM_ID_UNSET:
-+				break;
-+			default:
-+				if (epdrv->requested_id == id)
-+					match_id = EARLY_PLATFORM_ID_UNSET;
-+			}
-+		}
-+
-+		switch (match_id) {
-+		case EARLY_PLATFORM_ID_ERROR:
-+			pr_warning("%s: unable to parse %s parameter\n",
-+				   class_str, epdrv->pdrv->driver.name);
-+			/* fall-through */
-+		case EARLY_PLATFORM_ID_UNSET:
-+			match = NULL;
-+			break;
-+		default:
-+			match = early_platform_match(epdrv, match_id);
-+		}
-+
-+		if (match) {
-+			if (epdrv->pdrv->probe(match))
-+				pr_warning("%s: unable to probe %s early.\n",
-+					   class_str, match->name);
-+			else
-+				n++;
-+		}
-+
-+		if (n >= nr_probe)
-+			break;
-+	}
-+
-+	if (left)
-+		return n;
-+	else
-+		return -ENODEV;
-+}
-+
-+/**
-+ * early_platform_driver_probe
-+ * @class_str: string to identify early platform driver class
-+ * @nr_probe: number of platform devices to successfully probe before exiting
-+ * @user_only: only probe user specified early platform devices
-+ */
-+int __init early_platform_driver_probe(char *class_str,
-+				       int nr_probe,
-+				       int user_only)
-+{
-+	int k, n, i;
-+
-+	n = 0;
-+	for (i = -2; n < nr_probe; i++) {
-+		k = early_platform_driver_probe_id(class_str, i, nr_probe - n);
-+
-+		if (k < 0)
-+			break;
-+
-+		n += k;
-+
-+		if (user_only)
-+			break;
-+	}
-+
-+	return n;
-+}
-+
-+/**
-+ * early_platform_cleanup - clean up early platform code
-+ */
-+void __init early_platform_cleanup(void)
-+{
-+	struct platform_device *pd, *pd2;
-+
-+	/* clean up the devres list used to chain devices */
-+	list_for_each_entry_safe(pd, pd2, &early_platform_device_list,
-+				 dev.devres_head) {
-+		list_del(&pd->dev.devres_head);
-+		memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
-+	}
-+}
-+
-diff -puN include/linux/init.h~early-platform-driver-v3 include/linux/init.h
---- a/include/linux/init.h~early-platform-driver-v3
-+++ a/include/linux/init.h
-@@ -248,6 +248,7 @@ struct obs_kernel_param {
+diff -puN drivers/atm/solos-pci.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/atm/solos-pci.c
+--- a/drivers/atm/solos-pci.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/atm/solos-pci.c
+@@ -1059,7 +1059,7 @@ static int fpga_probe(struct pci_dev *de
+ 		goto out;
+ 	}
  
- /* Relies on boot_command_line being set */
- void __init parse_early_param(void);
-+void __init parse_early_options(char *cmdline);
- #endif /* __ASSEMBLY__ */
+-	err = pci_set_dma_mask(dev, DMA_32BIT_MASK);
++	err = pci_set_dma_mask(dev, DMA_BIT_MASK(32));
+ 	if (err) {
+ 		dev_warn(&dev->dev, "Failed to set 32-bit DMA mask\n");
+ 		goto out;
+diff -puN drivers/block/cciss.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/block/cciss.c
+--- a/drivers/block/cciss.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/block/cciss.c
+@@ -3505,7 +3505,7 @@ static __devinit int cciss_message(struc
+ 	/* The Inbound Post Queue only accepts 32-bit physical addresses for the
+ 	   CCISS commands, so they must be allocated from the lower 4GiB of
+ 	   memory. */
+-	err = pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK);
++	err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+ 	if (err) {
+ 		iounmap(vaddr);
+ 		return -ENOMEM;
+diff -puN drivers/net/atl1c/atl1c_main.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/net/atl1c/atl1c_main.c
+--- a/drivers/net/atl1c/atl1c_main.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/net/atl1c/atl1c_main.c
+@@ -2532,8 +2532,8 @@ static int __devinit atl1c_probe(struct 
+ 	 * various kernel subsystems to support the mechanics required by a
+ 	 * fixed-high-32-bit system.
+ 	 */
+-	if ((pci_set_dma_mask(pdev, DMA_32BIT_MASK) != 0) ||
+-	    (pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK) != 0)) {
++	if ((pci_set_dma_mask(pdev, DMA_BIT_MASK(32)) != 0) ||
++	    (pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32)) != 0)) {
+ 		dev_err(&pdev->dev, "No usable DMA configuration,aborting\n");
+ 		goto err_dma;
+ 	}
+diff -puN drivers/net/benet/be_main.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/net/benet/be_main.c
+--- a/drivers/net/benet/be_main.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/net/benet/be_main.c
+@@ -1821,11 +1821,11 @@ static int __devinit be_probe(struct pci
  
- /**
-diff -puN include/linux/platform_device.h~early-platform-driver-v3 include/linux/platform_device.h
---- a/include/linux/platform_device.h~early-platform-driver-v3
-+++ a/include/linux/platform_device.h
-@@ -77,4 +77,46 @@ extern int platform_driver_probe(struct 
- #define platform_get_drvdata(_dev)	dev_get_drvdata(&(_dev)->dev)
- #define platform_set_drvdata(_dev,data)	dev_set_drvdata(&(_dev)->dev, (data))
+ 	be_msix_enable(adapter);
  
-+/* early platform driver interface */
-+struct early_platform_driver {
-+	const char *class_str;
-+	struct platform_driver *pdrv;
-+	struct list_head list;
-+	int requested_id;
-+};
-+
-+#define EARLY_PLATFORM_ID_UNSET -2
-+#define EARLY_PLATFORM_ID_ERROR -3
-+
-+extern int early_platform_driver_register(struct early_platform_driver *epdrv,
-+					  char *buf);
-+extern void early_platform_add_devices(struct platform_device **devs, int num);
-+
-+static inline int is_early_platform_device(struct platform_device *pdev)
-+{
-+	return !pdev->dev.driver;
-+}
-+
-+extern void early_platform_driver_register_all(char *class_str);
-+extern int early_platform_driver_probe(char *class_str,
-+				       int nr_probe, int user_only);
-+extern void early_platform_cleanup(void);
-+
-+
-+#ifndef MODULE
-+#define early_platform_init(class_string, platform_driver)		\
-+static __initdata struct early_platform_driver early_driver = {		\
-+	.class_str = class_string,					\
-+	.pdrv = platform_driver,					\
-+	.requested_id = EARLY_PLATFORM_ID_UNSET,			\
-+};									\
-+static int __init early_platform_driver_setup_func(char *buf)		\
-+{									\
-+	return early_platform_driver_register(&early_driver, buf);	\
-+}									\
-+early_param(class_string, early_platform_driver_setup_func)
-+#else /* MODULE */
-+#define early_platform_init(class_string, platform_driver)
-+#endif /* MODULE */
-+
- #endif /* _PLATFORM_DEVICE_H_ */
-diff -puN init/main.c~early-platform-driver-v3 init/main.c
---- a/init/main.c~early-platform-driver-v3
-+++ a/init/main.c
-@@ -493,6 +493,11 @@ static int __init do_early_param(char *p
- 	return 0;
- }
- 
-+void __init parse_early_options(char *cmdline)
-+{
-+	parse_args("early options", cmdline, NULL, 0, do_early_param);
-+}
-+
- /* Arch code calls this early on, or if not, just before other parsing. */
- void __init parse_early_param(void)
+-	status = pci_set_dma_mask(pdev, DMA_64BIT_MASK);
++	status = pci_set_dma_mask(pdev, DMA_BIT_MASK(64));
+ 	if (!status) {
+ 		netdev->features |= NETIF_F_HIGHDMA;
+ 	} else {
+-		status = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
++		status = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+ 		if (status) {
+ 			dev_err(&pdev->dev, "Could not set PCI DMA Mask\n");
+ 			goto free_netdev;
+diff -puN drivers/net/jme.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/net/jme.c
+--- a/drivers/net/jme.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/net/jme.c
+@@ -2591,13 +2591,13 @@ static int
+ jme_pci_dma64(struct pci_dev *pdev)
  {
-@@ -504,7 +509,7 @@ void __init parse_early_param(void)
+ 	if (pdev->device == PCI_DEVICE_ID_JMICRON_JMC250 &&
+-	    !pci_set_dma_mask(pdev, DMA_64BIT_MASK))
+-		if (!pci_set_consistent_dma_mask(pdev, DMA_64BIT_MASK))
++	    !pci_set_dma_mask(pdev, DMA_BIT_MASK(64)))
++		if (!pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64)))
+ 			return 1;
  
- 	/* All fall through to do_early_param. */
- 	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
--	parse_args("early options", tmp_cmdline, NULL, 0, do_early_param);
-+	parse_early_options(tmp_cmdline);
- 	done = 1;
- }
+ 	if (pdev->device == PCI_DEVICE_ID_JMICRON_JMC250 &&
+-	    !pci_set_dma_mask(pdev, DMA_40BIT_MASK))
+-		if (!pci_set_consistent_dma_mask(pdev, DMA_40BIT_MASK))
++	    !pci_set_dma_mask(pdev, DMA_BIT_MASK(40)))
++		if (!pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(40)))
+ 			return 1;
  
+ 	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(32)))
+diff -puN drivers/net/wireless/ath9k/pci.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/net/wireless/ath9k/pci.c
+--- a/drivers/net/wireless/ath9k/pci.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/net/wireless/ath9k/pci.c
+@@ -93,14 +93,14 @@ static int ath_pci_probe(struct pci_dev 
+ 	if (pci_enable_device(pdev))
+ 		return -EIO;
+ 
+-	ret =  pci_set_dma_mask(pdev, DMA_32BIT_MASK);
++	ret =  pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+ 
+ 	if (ret) {
+ 		printk(KERN_ERR "ath9k: 32-bit DMA not available\n");
+ 		goto bad;
+ 	}
+ 
+-	ret = pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK);
++	ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+ 
+ 	if (ret) {
+ 		printk(KERN_ERR "ath9k: 32-bit DMA consistent "
+diff -puN drivers/net/wireless/p54/p54pci.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/net/wireless/p54/p54pci.c
+--- a/drivers/net/wireless/p54/p54pci.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/net/wireless/p54/p54pci.c
+@@ -492,8 +492,8 @@ static int __devinit p54p_probe(struct p
+ 		goto err_disable_dev;
+ 	}
+ 
+-	if (pci_set_dma_mask(pdev, DMA_32BIT_MASK) ||
+-	    pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK)) {
++	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32)) ||
++	    pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32))) {
+ 		dev_err(&pdev->dev, "No suitable DMA available\n");
+ 		goto err_free_reg;
+ 	}
+diff -puN drivers/scsi/3w-9xxx.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/scsi/3w-9xxx.c
+--- a/drivers/scsi/3w-9xxx.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/scsi/3w-9xxx.c
+@@ -2234,10 +2234,10 @@ static int twa_resume(struct pci_dev *pd
+ 	pci_set_master(pdev);
+ 	pci_try_set_mwi(pdev);
+ 
+-	if (pci_set_dma_mask(pdev, DMA_64BIT_MASK)
+-	    || pci_set_consistent_dma_mask(pdev, DMA_64BIT_MASK))
+-		if (pci_set_dma_mask(pdev, DMA_32BIT_MASK)
+-		    || pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK)) {
++	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(64))
++	    || pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64)))
++		if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32))
++		    || pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32))) {
+ 			TW_PRINTK(host, TW_DRIVER, 0x40, "Failed to set dma mask during resume");
+ 			retval = -ENODEV;
+ 			goto out_disable_device;
+diff -puN drivers/scsi/aacraid/aachba.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/scsi/aacraid/aachba.c
+--- a/drivers/scsi/aacraid/aachba.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/scsi/aacraid/aachba.c
+@@ -1378,7 +1378,7 @@ int aac_get_adapter_info(struct aac_dev*
+ 	if (dev->nondasd_support && !dev->in_reset)
+ 		printk(KERN_INFO "%s%d: Non-DASD support enabled.\n",dev->name, dev->id);
+ 
+-	if (dma_get_required_mask(&dev->pdev->dev) > DMA_32BIT_MASK)
++	if (dma_get_required_mask(&dev->pdev->dev) > DMA_BIT_MASK(32))
+ 		dev->needs_dac = 1;
+ 	dev->dac_support = 0;
+ 	if ((sizeof(dma_addr_t) > 4) && dev->needs_dac &&
+diff -puN drivers/scsi/mpt2sas/mpt2sas_base.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/scsi/mpt2sas/mpt2sas_base.c
+--- a/drivers/scsi/mpt2sas/mpt2sas_base.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/scsi/mpt2sas/mpt2sas_base.c
+@@ -855,9 +855,9 @@ _base_config_dma_addressing(struct MPT2S
+ 	if (sizeof(dma_addr_t) > 4) {
+ 		const uint64_t required_mask =
+ 		    dma_get_required_mask(&pdev->dev);
+-		if ((required_mask > DMA_32BIT_MASK) && !pci_set_dma_mask(pdev,
+-		    DMA_64BIT_MASK) && !pci_set_consistent_dma_mask(pdev,
+-		    DMA_64BIT_MASK)) {
++		if ((required_mask > DMA_BIT_MASK(32)) && !pci_set_dma_mask(pdev,
++		    DMA_BIT_MASK(64)) && !pci_set_consistent_dma_mask(pdev,
++		    DMA_BIT_MASK(64))) {
+ 			ioc->base_add_sg_single = &_base_add_sg_single_64;
+ 			ioc->sge_size = sizeof(Mpi2SGESimple64_t);
+ 			desc = "64";
+@@ -865,8 +865,8 @@ _base_config_dma_addressing(struct MPT2S
+ 		}
+ 	}
+ 
+-	if (!pci_set_dma_mask(pdev, DMA_32BIT_MASK)
+-	    && !pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK)) {
++	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(32))
++	    && !pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32))) {
+ 		ioc->base_add_sg_single = &_base_add_sg_single_32;
+ 		ioc->sge_size = sizeof(Mpi2SGESimple32_t);
+ 		desc = "32";
+diff -puN drivers/staging/b3dfg/b3dfg.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/staging/b3dfg/b3dfg.c
+--- a/drivers/staging/b3dfg/b3dfg.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/staging/b3dfg/b3dfg.c
+@@ -1000,7 +1000,7 @@ static int __devinit b3dfg_probe(struct 
+ 
+ 	pci_set_master(pdev);
+ 
+-	r = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
++	r = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+ 	if (r) {
+ 		dev_err(&pdev->dev, "no usable DMA configuration\n");
+ 		goto err_free_res;
+diff -puN drivers/usb/otg/nop-usb-xceiv.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn drivers/usb/otg/nop-usb-xceiv.c
+--- a/drivers/usb/otg/nop-usb-xceiv.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/drivers/usb/otg/nop-usb-xceiv.c
+@@ -36,14 +36,14 @@ struct nop_usb_xceiv {
+ 	struct device		*dev;
+ };
+ 
+-static u64 nop_xceiv_dmamask = DMA_32BIT_MASK;
++static u64 nop_xceiv_dmamask = DMA_BIT_MASK(32);
+ 
+ static struct platform_device nop_xceiv_device = {
+ 	.name           = "nop_usb_xceiv",
+ 	.id             = -1,
+ 	.dev = {
+ 		.dma_mask               = &nop_xceiv_dmamask,
+-		.coherent_dma_mask      = DMA_32BIT_MASK,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
+ 		.platform_data          = NULL,
+ 	},
+ };
+diff -puN sound/pci/hda/hda_intel.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~replace-all-dma_nbit_mask-macro-with-dma_bit_maskn
++++ a/sound/pci/hda/hda_intel.c
+@@ -2260,11 +2260,11 @@ static int __devinit azx_create(struct s
+ 		gcap &= ~0x01;
+ 
+ 	/* allow 64bit DMA address if supported by H/W */
+-	if ((gcap & 0x01) && !pci_set_dma_mask(pci, DMA_64BIT_MASK))
+-		pci_set_consistent_dma_mask(pci, DMA_64BIT_MASK);
++	if ((gcap & 0x01) && !pci_set_dma_mask(pci, DMA_BIT_MASK(64)))
++		pci_set_consistent_dma_mask(pci, DMA_BIT_MASK(64));
+ 	else {
+-		pci_set_dma_mask(pci, DMA_32BIT_MASK);
+-		pci_set_consistent_dma_mask(pci, DMA_32BIT_MASK);
++		pci_set_dma_mask(pci, DMA_BIT_MASK(32));
++		pci_set_consistent_dma_mask(pci, DMA_BIT_MASK(32));
+ 	}
+ 
+ 	/* read number of streams from GCAP register instead of using
 _
 
-Patches currently in -mm which might be from damm@igel.co.jp are
+Patches currently in -mm which might be from yanghy@cn.fujitsu.com are
 
-linux-next.patch
-clocksource-pass-clocksource-to-read-callback.patch
-clocksource-add-enable-and-disable-callbacks.patch
+origin.patch
 
