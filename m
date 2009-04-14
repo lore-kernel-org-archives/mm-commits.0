@@ -1,86 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cx88-dsp-fixing-64bit-math-on-32bit-kernels.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:50:27 -0700
-Message-ID: <200904141950.n3EJoRY3020184@imap1.linux-foundation.org>
+Subject: [merged] kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:50:46 -0700
+Message-ID: <200904141950.n3EJokUK020355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39827 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43535 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752752AbZDNTwo (ORCPT
+	by vger.kernel.org with ESMTP id S1754172AbZDNTxk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:52:44 -0400
+	Tue, 14 Apr 2009 15:53:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sustmidown@centrum.cz, mchehab@redhat.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cx88-dsp: fixing 64bit math on 32bit kernels
+     kbuild: make it possible for the linker to discard local symbols from vmlinux
 has been removed from the -mm tree.  Its filename was
-     cx88-dsp-fixing-64bit-math-on-32bit-kernels.patch
+     kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cx88-dsp: fixing 64bit math on 32bit kernels
-From: Miroslav Sustek <sustmidown@centrum.cz>
+Subject: kbuild: make it possible for the linker to discard local symbols from vmlinux
+From: David Howells <dhowells@redhat.com>
 
+Make it possible for the linker to discard local symbols from vmlinux as
+they cause vmlinux to balloon when CONFIG_KALLSYMS=y and they cause
+dump_stack() and get_wchan() to produce useless information under some
+circumstances.
 
-Some gcc versions report the missing of __divdi3
+With this we add a config option (CONFIG_STRIP_ASM_SYMS) that will cause
+the build to supply -X to the linker to tell it to strip temporary local
+symbols.
 
-[mchehab.redhat.com: CodingStyle fixes]
-Signed-off-by: Miroslav Sustek <sustmidown@centrum.cz>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+This doesn't seem to cause gdb any problems.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx88/cx88-dsp.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ Makefile     |    4 ++++
+ init/Kconfig |    8 ++++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN drivers/media/video/cx88/cx88-dsp.c~cx88-dsp-fixing-64bit-math-on-32bit-kernels drivers/media/video/cx88/cx88-dsp.c
---- a/drivers/media/video/cx88/cx88-dsp.c~cx88-dsp-fixing-64bit-math-on-32bit-kernels
-+++ a/drivers/media/video/cx88/cx88-dsp.c
-@@ -22,6 +22,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/jiffies.h>
-+#include <asm/div64.h>
+diff -puN Makefile~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux Makefile
+--- a/Makefile~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux
++++ a/Makefile
+@@ -591,6 +591,10 @@ LDFLAGS_BUILD_ID = $(patsubst -Wl$(comma
+ LDFLAGS_MODULE += $(LDFLAGS_BUILD_ID)
+ LDFLAGS_vmlinux += $(LDFLAGS_BUILD_ID)
  
- #include "cx88.h"
- #include "cx88-reg.h"
-@@ -100,13 +101,25 @@ static u32 int_goertzel(s16 x[], u32 N, 
- 	s32 s_prev2 = 0;
- 	s32 coeff = 2*int_cos(freq);
- 	u32 i;
++ifeq ($(CONFIG_STRIP_ASM_SYMS),y)
++LDFLAGS_vmlinux	+= -X
++endif
 +
-+	u64 tmp;
-+	u32 divisor;
-+
- 	for (i = 0; i < N; i++) {
- 		s32 s = x[i] + ((s64)coeff*s_prev/32768) - s_prev2;
- 		s_prev2 = s_prev;
- 		s_prev = s;
- 	}
--	return (u32)(((s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
--		      (s64)coeff*s_prev2*s_prev/32768)/N/N);
-+
-+	tmp = (s64)s_prev2 * s_prev2 + (s64)s_prev * s_prev -
-+		      (s64)coeff * s_prev2 * s_prev / 32768;
-+
-+	/* XXX: N must be low enough so that N*N fits in s32.
-+	 * Else we need two divisions. */
-+	divisor = N * N;
-+	do_div(tmp, divisor);
-+
-+	return (u32) tmp;
- }
+ # Default kernel image to build when no specific target is given.
+ # KBUILD_IMAGE may be overruled on the command line or
+ # set in the environment
+diff -puN init/Kconfig~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux init/Kconfig
+--- a/init/Kconfig~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux
++++ a/init/Kconfig
+@@ -740,6 +740,14 @@ config KALLSYMS_EXTRA_PASS
+ 	   you wait for kallsyms to be fixed.
  
- static u32 freq_magnitude(s16 x[], u32 N, u32 freq)
+ 
++config STRIP_ASM_SYMS
++	bool "Strip assembler-generated symbols during link"
++	default n
++	help
++	  Strip internal assembler-generated symbols during a link (symbols
++	  that look like '.Lxxx') so they don't pollute the output of
++	  get_wchan() and suchlike.
++
+ config HOTPLUG
+ 	bool "Support for hot-pluggable devices" if EMBEDDED
+ 	default y
 _
 
-Patches currently in -mm which might be from sustmidown@centrum.cz are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-linux-next.patch
+origin.patch
+rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
+frv-duplicate-output_buffer-of-e03.patch
+flat-fix-data-sections-alignment.patch
+mutex-subsystem-synchro-test-module.patch
 
