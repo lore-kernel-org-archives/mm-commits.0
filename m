@@ -1,105 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-sysc-clean-up-sys_shutdown-exit-path.patch removed from -mm tree
-Date: Tue, 14 Apr 2009 12:49:48 -0700
-Message-ID: <200904141949.n3EJnm11019822@imap1.linux-foundation.org>
+Subject: [merged] fbdev-fix-color-component-field-length-documentation.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 12:48:40 -0700
+Message-ID: <200904141948.n3EJmet0019147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754242AbZDNTvy (ORCPT
+	by vger.kernel.org with ESMTP id S1752120AbZDNTwG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:51:54 -0400
+	Tue, 14 Apr 2009 15:52:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: spock@gentoo.org, geert.uytterhoeven@gmail.com, krzysztof.h1@poczta.fm, syrjala@sci.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/sys.c: clean up sys_shutdown exit path
+     fbdev: fix color component field length documentation
 has been removed from the -mm tree.  Its filename was
-     kernel-sysc-clean-up-sys_shutdown-exit-path.patch
+     fbdev-fix-color-component-field-length-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/sys.c: clean up sys_shutdown exit path
-From: Andi Kleen <andi@firstfloor.org>
+Subject: fbdev: fix color component field length documentation
+From: Michal Januszewski <spock@gentoo.org>
 
-Impact: cleanup, fix
+The documentation about the meaning of the color component bitfield
+lengths in pseudocolor modes is inconsistent.  Fix it, so that it
+indicates the correct interpretation everywhere, i.e.  that 1 << length is
+the number of palette entries.
 
-Clean up sys_shutdown() exit path.  Factor out common code.  Return
-correct error code instead of always 0 on failure.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Acked-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: <syrjala@sci.fi>
+Acked-by: Geert Uytterhoeven <geert.uytterhoeven@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ drivers/video/skeletonfb.c |    8 +++++---
+ drivers/video/vfb.c        |   11 +++++++----
+ include/linux/fb.h         |    8 ++++++--
+ 3 files changed, 18 insertions(+), 9 deletions(-)
 
-diff -puN kernel/sys.c~kernel-sysc-clean-up-sys_shutdown-exit-path kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-clean-up-sys_shutdown-exit-path
-+++ a/kernel/sys.c
-@@ -360,6 +360,7 @@ SYSCALL_DEFINE4(reboot, int, magic1, int
- 		void __user *, arg)
- {
- 	char buffer[256];
-+	int ret = 0;
- 
- 	/* We only trust the superuser with rebooting the system. */
- 	if (!capable(CAP_SYS_BOOT))
-@@ -397,7 +398,7 @@ SYSCALL_DEFINE4(reboot, int, magic1, int
- 		kernel_halt();
- 		unlock_kernel();
- 		do_exit(0);
--		break;
-+		panic("cannot halt");
- 
- 	case LINUX_REBOOT_CMD_POWER_OFF:
- 		kernel_power_off();
-@@ -417,29 +418,22 @@ SYSCALL_DEFINE4(reboot, int, magic1, int
- 
- #ifdef CONFIG_KEXEC
- 	case LINUX_REBOOT_CMD_KEXEC:
--		{
--			int ret;
--			ret = kernel_kexec();
--			unlock_kernel();
--			return ret;
--		}
-+		ret = kernel_kexec();
-+		break;
- #endif
- 
- #ifdef CONFIG_HIBERNATION
- 	case LINUX_REBOOT_CMD_SW_SUSPEND:
--		{
--			int ret = hibernate();
--			unlock_kernel();
--			return ret;
--		}
-+		ret = hibernate();
-+		break;
- #endif
- 
- 	default:
--		unlock_kernel();
--		return -EINVAL;
-+		ret = -EINVAL;
-+		break;
- 	}
- 	unlock_kernel();
--	return 0;
-+	return ret;
- }
- 
- static void deferred_cad(struct work_struct *dummy)
+diff -puN drivers/video/skeletonfb.c~fbdev-fix-color-component-field-length-documentation drivers/video/skeletonfb.c
+--- a/drivers/video/skeletonfb.c~fbdev-fix-color-component-field-length-documentation
++++ a/drivers/video/skeletonfb.c
+@@ -308,9 +308,11 @@ static int xxxfb_setcolreg(unsigned regn
+      *   color depth = SUM(var->{color}.length)
+      *
+      * Pseudocolor:
+-     *    var->{color}.offset is 0
+-     *    var->{color}.length contains width of DAC or the number of unique
+-     *                        colors available (color depth)
++     *    var->{color}.offset is 0 unless the palette index takes less than
++     *                        bits_per_pixel bits and is stored in the upper
++     *                        bits of the pixel value
++     *    var->{color}.length is set so that 1 << length is the number of
++     *                        available palette entries
+      *    pseudo_palette is not used
+      *    RAMDAC[X] is programmed to (red, green, blue)
+      *    color depth = var->{color}.length
+diff -puN drivers/video/vfb.c~fbdev-fix-color-component-field-length-documentation drivers/video/vfb.c
+--- a/drivers/video/vfb.c~fbdev-fix-color-component-field-length-documentation
++++ a/drivers/video/vfb.c
+@@ -318,13 +318,16 @@ static int vfb_setcolreg(u_int regno, u_
+ 	 *   {hardwarespecific} contains width of RAMDAC
+ 	 *   cmap[X] is programmed to (X << red.offset) | (X << green.offset) | (X << blue.offset)
+ 	 *   RAMDAC[X] is programmed to (red, green, blue)
+-	 * 
++	 *
+ 	 * Pseudocolor:
+-	 *    uses offset = 0 && length = RAMDAC register width.
+-	 *    var->{color}.offset is 0
+-	 *    var->{color}.length contains widht of DAC
++	 *    var->{color}.offset is 0 unless the palette index takes less than
++	 *                        bits_per_pixel bits and is stored in the upper
++	 *                        bits of the pixel value
++	 *    var->{color}.length is set so that 1 << length is the number of available
++	 *                        palette entries
+ 	 *    cmap is not used
+ 	 *    RAMDAC[X] is programmed to (red, green, blue)
++	 *
+ 	 * Truecolor:
+ 	 *    does not use DAC. Usually 3 are present.
+ 	 *    var->{color}.offset contains start of bitfield
+diff -puN include/linux/fb.h~fbdev-fix-color-component-field-length-documentation include/linux/fb.h
+--- a/include/linux/fb.h~fbdev-fix-color-component-field-length-documentation
++++ a/include/linux/fb.h
+@@ -173,8 +173,12 @@ struct fb_fix_screeninfo {
+ /* Interpretation of offset for color fields: All offsets are from the right,
+  * inside a "pixel" value, which is exactly 'bits_per_pixel' wide (means: you
+  * can use the offset as right argument to <<). A pixel afterwards is a bit
+- * stream and is written to video memory as that unmodified. This implies
+- * big-endian byte order if bits_per_pixel is greater than 8.
++ * stream and is written to video memory as that unmodified.
++ *
++ * For pseudocolor: offset and length should be the same for all color
++ * components. Offset specifies the position of the least significant bit
++ * of the pallette index in a pixel value. Length indicates the number
++ * of available palette entries (i.e. # of entries = 1 << length).
+  */
+ struct fb_bitfield {
+ 	__u32 offset;			/* beginning of bitfield	*/
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from spock@gentoo.org are
 
 origin.patch
-x86-simplify-highmem-related-kconfig-entries.patch
+linux-next.patch
 
