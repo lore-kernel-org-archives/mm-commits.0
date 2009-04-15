@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pci-hotplug-ibmphp_corec-fix-warning-due-to-missing-module_exit.patch added to -mm tree
-Date: Wed, 15 Apr 2009 14:24:08 -0700
-Message-ID: <200904152124.n3FLO88p008621@imap1.linux-foundation.org>
+Subject: + drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning.patch added to -mm tree
+Date: Wed, 15 Apr 2009 14:32:44 -0700
+Message-ID: <200904152132.n3FLWiTi012793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753895AbZDOV0a (ORCPT
+	by vger.kernel.org with ESMTP id S1752855AbZDOVev (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Apr 2009 17:26:30 -0400
+	Wed, 15 Apr 2009 17:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: helight.xu@gmail.com, jbarnes@virtuousgeek.org
+Cc: helight.xu@gmail.com, rolandd@cisco.com
 
 
 The patch titled
-     drivers/pci/hotplug/ibmphp_core.c: fix warning due to missing module_exit()
+     drivers/infiniband/hw/nes/nes_cm.c: fix unused var warning
 has been added to the -mm tree.  Its filename is
-     drivers-pci-hotplug-ibmphp_corec-fix-warning-due-to-missing-module_exit.patch
+     drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/pci/hotplug/ibmphp_core.c: fix warning due to missing module_exit()
+Subject: drivers/infiniband/hw/nes/nes_cm.c: fix unused var warning
 From: Zhenwen Xu <helight.xu@gmail.com>
 
-drivers/pci/hotplug/ibmphp_core.c:1414: warning: `ibmphp_exit' defined but not used
+drivers/infiniband/hw/nes/nes_cm.c:862: warning: unused variable `tmp_addr'
+
+The 'tmp_addr' is defined for debug, so it should be defined in
+CONFIG_INFINIBAND_NES_DEBUG
 
 Signed-off-by: Zhenwen Xu <helight.xu@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/ibmphp_core.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/nes/nes_cm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/hotplug/ibmphp_core.c~drivers-pci-hotplug-ibmphp_corec-fix-warning-due-to-missing-module_exit drivers/pci/hotplug/ibmphp_core.c
---- a/drivers/pci/hotplug/ibmphp_core.c~drivers-pci-hotplug-ibmphp_corec-fix-warning-due-to-missing-module_exit
-+++ a/drivers/pci/hotplug/ibmphp_core.c
-@@ -1419,3 +1419,4 @@ static void __exit ibmphp_exit(void)
- }
- 
- module_init(ibmphp_init);
-+module_exit(ibmphp_exit);
-_
-
-Patches currently in -mm which might be from helight.xu@gmail.com are
-
-drivers-mtd-nand-cafe_nandc-fix-irq-handler-return-type.patch
-drivers-pci-hotplug-ibmphp_corec-fix-warning-due-to-missing-module_exit.patch
-
+diff -puN drivers/infiniband/hw/nes/nes_cm.c~drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning drivers/infiniband/hw/nes/nes_cm.c
+--- a/drivers/infiniband/hw/nes/nes_cm.c~drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning
++++ a/drivers/infiniband/hw/nes/nes_cm.c
+@@ -854,8 +854,9 @@ static struct nes_cm_listener *find_list
+ {
+ 	unsigned long flags;
+ 	struct nes_cm_listener *listen_node;
++#ifdef CONFIG_INFINIBAND_NES_DEBUG
+ 	__be32 tmp_addr = cpu_to_be32(dst_addr);
