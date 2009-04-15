@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-mtd-in-mtd_release-is-unused-without-config_mtd_char.patch added to -mm tree
-Date: Tue, 14 Apr 2009 17:09:05 -0700
-Message-ID: <200904150009.n3F095J1011993@imap1.linux-foundation.org>
+Subject: + readahead-introduce-context-readahead-algorithm-update.patch added to -mm tree
+Date: Tue, 14 Apr 2009 17:16:00 -0700
+Message-ID: <200904150016.n3F0G0Qa015337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751949AbZDOAK7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751912AbZDOATt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 20:10:59 -0400
+	Tue, 14 Apr 2009 20:19:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, dwmw2@infradead.org
+Cc: fengguang.wu@intel.com, jens.axboe@oracle.com, jmoyer@redhat.com, vst@vlnb.net
 
 
 The patch titled
-     mtd: mtd in mtd_release is unused without CONFIG_MTD_CHAR
+     readahead: introduce context readahead algorithm
 has been added to the -mm tree.  Its filename is
-     mtd-mtd-in-mtd_release-is-unused-without-config_mtd_char.patch
+     readahead-introduce-context-readahead-algorithm-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: mtd in mtd_release is unused without CONFIG_MTD_CHAR
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: readahead: introduce context readahead algorithm
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-drivers/mtd/mtdcore.c: In function 'mtd_release':
-drivers/mtd/mtdcore.c:51: warning: unused variable 'mtd'
+Introduce page cache context based readahead algorithm.
+This is to better support concurrent read streams in general.
 
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
+RATIONALE
+---------
+The current readahead algorithm detects interleaved reads in a _passive_ way.
+Given a sequence of interleaved streams 1,1001,2,1002,3,4,1003,5,1004,1005,6,...
+By checking for (offset == prev_offset + 1), it will discover the sequentialness
+between 3,4 and between 1004,1005, and start doing sequential readahead for the
+individual streams since page 4 and page 1005.
+
+The context readahead algorithm guarantees to discover the sequentialness no
+matter how the streams are interleaved. For the above example, it will start
+sequential readahead since page 2 and 1002.
+
+The trick is to poke for page @offset-1 in the page cache when it has no other
+clues on the sequentialness of request @offset: if the current requenst belongs
+to a sequential stream, that stream must have accessed page @offset-1 recently,
+and the page will still be cached now. So if page @offset-1 is there, we can
+take request @offset as a sequential access.
+
+BENEFICIARIES
+-------------
+- strictly interleaved reads  i.e. 1,1001,2,1002,3,1003,...
+  the current readahead will take them as silly random reads;
+  the context readahead will take them as two sequential streams.
+
+- cooperative IO processes   i.e. NFS and SCST
+  They create a thread pool, farming off (sequential) IO requests to different
+  threads which will be performing interleaved IO.
+
+  It was not easy(or possible) to reliably tell from file->f_ra all those
+  cooperative processes working on the same sequential stream, since they will
+  have different file->f_ra instances. And NFSD's file->f_ra is particularly
+  unusable, since their file objects are dynamically created for each request.
+  The nfsd does have code trying to restore the f_ra bits, but not satisfactory.
+
+  The new scheme is to detect the sequential pattern via looking up the page
+  cache, which provides one single and consistent view of the pages recently
+  accessed. That makes sequential detection for cooperative processes possible.
+
+USER REPORT
+-----------
+Vladislav recommends the addition of context readahead as a result of his SCST
+benchmarks. It leads to 6%~40% performance gains in various cases and achieves
+equal performance in others.                http://lkml.org/lkml/2009/3/19/239
+
+OVERHEADS
+---------
+In theory, it introduces one extra page cache lookup per random read.  However
+the below benchmark shows context readahead to be slightly faster, wondering..
+
+Randomly reading 200MB amount of data on a sparse file, repeat 20 times for
+each block size. The average throughputs are:
+
+                       	original ra	context ra	gain
+ 4K random reads:	 65.561MB/s	 65.648MB/s	+0.1%
+16K random reads:	124.767MB/s	124.951MB/s	+0.1%
+64K random reads: 	162.123MB/s	162.278MB/s	+0.1%
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Tested-by: Vladislav Bolkhovitin <vst@vlnb.net>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdcore.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/readahead.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mtd/mtdcore.c~mtd-mtd-in-mtd_release-is-unused-without-config_mtd_char drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~mtd-mtd-in-mtd_release-is-unused-without-config_mtd_char
-+++ a/drivers/mtd/mtdcore.c
-@@ -48,11 +48,11 @@ static LIST_HEAD(mtd_notifiers);
+diff -puN mm/readahead.c~readahead-introduce-context-readahead-algorithm-update mm/readahead.c
+--- a/mm/readahead.c~readahead-introduce-context-readahead-algorithm-update
++++ a/mm/readahead.c
+@@ -330,14 +330,14 @@ static unsigned long get_next_ra_size(st
   */
- static void mtd_release(struct device *dev)
+ 
+ /*
+- * Count continuously cached pages from @offset-1 to @offset-@max,
++ * Count contiguously cached pages from @offset-1 to @offset-@max,
+  * this count is a conservative estimation of
+  * 	- length of the sequential read sequence, or
+  * 	- thrashing threshold in memory tight systems
+  */
+-static unsigned long count_history_pages(struct address_space *mapping,
+-					 struct file_ra_state *ra,
+-					 pgoff_t offset, unsigned long max)
++static pgoff_t count_history_pages(struct address_space *mapping,
++				   struct file_ra_state *ra,
++				   pgoff_t offset, unsigned long max)
  {
--	struct mtd_info *mtd = dev_to_mtd(dev);
-+	dev_t index = MTD_DEVT(dev_to_mtd(dev));
+ 	pgoff_t head;
  
- 	/* remove /dev/mtdXro node if needed */
--	if (MTD_DEVT(mtd->index))
--		device_destroy(mtd_class, MTD_DEVT(mtd->index) + 1);
-+	if (index)
-+		device_destroy(mtd_class, index + 1);
- }
+@@ -357,7 +357,7 @@ static int try_context_readahead(struct 
+ 				 unsigned long req_size,
+ 				 unsigned long max)
+ {
+-	unsigned long size;
++	pgoff_t size;
  
- static ssize_t mtd_type_show(struct device *dev,
+ 	size = count_history_pages(mapping, ra, offset, max);
+ 
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay.patch
-pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay-fix.patch
-arm-compilation-fix-sys_oabi-compatc.patch
-mtd-mtd-in-mtd_release-is-unused-without-config_mtd_char.patch
+linux-next.patch
+readahead-make-mmap_miss-an-unsigned-int.patch
+readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
+readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
+readahead-remove-one-unnecessary-radix-tree-lookup.patch
+readahead-increase-interleaved-readahead-size.patch
+readahead-remove-sync-async-readahead-call-dependency.patch
+readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
+readahead-sequential-mmap-readahead.patch
+readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
+radix-tree-add-radix_tree_prev_hole.patch
+readahead-move-the-random-read-case-to-bottom.patch
+readahead-introduce-context-readahead-algorithm.patch
+readahead-introduce-context-readahead-algorithm-update.patch
+readahead-introduce-context-readahead-algorithm-fix.patch
 
