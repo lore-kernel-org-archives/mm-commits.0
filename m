@@ -1,116 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-introduce-context-readahead-algorithm-update.patch added to -mm tree
-Date: Tue, 14 Apr 2009 17:16:00 -0700
-Message-ID: <200904150016.n3F0G0Qa015337@imap1.linux-foundation.org>
+Subject: [obsolete] readahead-introduce-context-readahead-algorithm-fix.patch removed from -mm tree
+Date: Tue, 14 Apr 2009 17:16:08 -0700
+Message-ID: <200904150016.n3F0G9I8015390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42919 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751912AbZDOATt (ORCPT
+	by vger.kernel.org with ESMTP id S1750839AbZDOAUx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 20:19:49 -0400
+	Tue, 14 Apr 2009 20:20:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, jens.axboe@oracle.com, jmoyer@redhat.com, vst@vlnb.net
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, jens.axboe@oracle.com, jmoyer@redhat.com, nickpiggin@yahoo.com.au, vst@vlnb.net, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: introduce context readahead algorithm
-has been added to the -mm tree.  Its filename is
-     readahead-introduce-context-readahead-algorithm-update.patch
+     readahead-introduce-context-readahead-algorithm-fix
+has been removed from the -mm tree.  Its filename was
+     readahead-introduce-context-readahead-algorithm-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: introduce context readahead algorithm
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: readahead-introduce-context-readahead-algorithm-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Introduce page cache context based readahead algorithm.
-This is to better support concurrent read streams in general.
+fix spelling in comment
 
-RATIONALE
----------
-The current readahead algorithm detects interleaved reads in a _passive_ way.
-Given a sequence of interleaved streams 1,1001,2,1002,3,4,1003,5,1004,1005,6,...
-By checking for (offset == prev_offset + 1), it will discover the sequentialness
-between 3,4 and between 1004,1005, and start doing sequential readahead for the
-individual streams since page 4 and page 1005.
-
-The context readahead algorithm guarantees to discover the sequentialness no
-matter how the streams are interleaved. For the above example, it will start
-sequential readahead since page 2 and 1002.
-
-The trick is to poke for page @offset-1 in the page cache when it has no other
-clues on the sequentialness of request @offset: if the current requenst belongs
-to a sequential stream, that stream must have accessed page @offset-1 recently,
-and the page will still be cached now. So if page @offset-1 is there, we can
-take request @offset as a sequential access.
-
-BENEFICIARIES
--------------
-- strictly interleaved reads  i.e. 1,1001,2,1002,3,1003,...
-  the current readahead will take them as silly random reads;
-  the context readahead will take them as two sequential streams.
-
-- cooperative IO processes   i.e. NFS and SCST
-  They create a thread pool, farming off (sequential) IO requests to different
-  threads which will be performing interleaved IO.
-
-  It was not easy(or possible) to reliably tell from file->f_ra all those
-  cooperative processes working on the same sequential stream, since they will
-  have different file->f_ra instances. And NFSD's file->f_ra is particularly
-  unusable, since their file objects are dynamically created for each request.
-  The nfsd does have code trying to restore the f_ra bits, but not satisfactory.
-
-  The new scheme is to detect the sequential pattern via looking up the page
-  cache, which provides one single and consistent view of the pages recently
-  accessed. That makes sequential detection for cooperative processes possible.
-
-USER REPORT
------------
-Vladislav recommends the addition of context readahead as a result of his SCST
-benchmarks. It leads to 6%~40% performance gains in various cases and achieves
-equal performance in others.                http://lkml.org/lkml/2009/3/19/239
-
-OVERHEADS
----------
-In theory, it introduces one extra page cache lookup per random read.  However
-the below benchmark shows context readahead to be slightly faster, wondering..
-
-Randomly reading 200MB amount of data on a sparse file, repeat 20 times for
-each block size. The average throughputs are:
-
-                       	original ra	context ra	gain
- 4K random reads:	 65.561MB/s	 65.648MB/s	+0.1%
-16K random reads:	124.767MB/s	124.951MB/s	+0.1%
-64K random reads: 	162.123MB/s	162.278MB/s	+0.1%
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
-Tested-by: Vladislav Bolkhovitin <vst@vlnb.net>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Vladislav Bolkhovitin <vst@vlnb.net>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~readahead-introduce-context-readahead-algorithm-update mm/readahead.c
---- a/mm/readahead.c~readahead-introduce-context-readahead-algorithm-update
+diff -puN mm/readahead.c~readahead-introduce-context-readahead-algorithm-fix mm/readahead.c
+--- a/mm/readahead.c~readahead-introduce-context-readahead-algorithm-fix
 +++ a/mm/readahead.c
-@@ -330,14 +330,14 @@ static unsigned long get_next_ra_size(st
+@@ -330,7 +330,7 @@ static unsigned long get_next_ra_size(st
   */
  
  /*
@@ -119,43 +53,52 @@ diff -puN mm/readahead.c~readahead-introduce-context-readahead-algorithm-update 
   * this count is a conservative estimation of
   * 	- length of the sequential read sequence, or
   * 	- thrashing threshold in memory tight systems
-  */
--static unsigned long count_history_pages(struct address_space *mapping,
--					 struct file_ra_state *ra,
--					 pgoff_t offset, unsigned long max)
-+static pgoff_t count_history_pages(struct address_space *mapping,
-+				   struct file_ra_state *ra,
-+				   pgoff_t offset, unsigned long max)
- {
- 	pgoff_t head;
- 
-@@ -357,7 +357,7 @@ static int try_context_readahead(struct 
- 				 unsigned long req_size,
- 				 unsigned long max)
- {
--	unsigned long size;
-+	pgoff_t size;
- 
- 	size = count_history_pages(mapping, ra, offset, max);
- 
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay-fix.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-readahead-make-mmap_miss-an-unsigned-int.patch
-readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
-readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
-readahead-remove-one-unnecessary-radix-tree-lookup.patch
-readahead-increase-interleaved-readahead-size.patch
-readahead-remove-sync-async-readahead-call-dependency.patch
-readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
-readahead-sequential-mmap-readahead.patch
-readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-radix-tree-add-radix_tree_prev_hole.patch
-readahead-move-the-random-read-case-to-bottom.patch
-readahead-introduce-context-readahead-algorithm.patch
-readahead-introduce-context-readahead-algorithm-update.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mips-cacheflush-system-call-not-returning-einval-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
+xtensa-add-flat-support-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
 readahead-introduce-context-readahead-algorithm-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
