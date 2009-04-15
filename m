@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + otus-zdusbc-additional-usb-idnetifier.patch added to -mm tree
-Date: Tue, 14 Apr 2009 16:58:33 -0700
-Message-ID: <200904142358.n3ENwXBD006943@imap1.linux-foundation.org>
+Subject: + arm-compilation-fix-sys_oabi-compatc.patch added to -mm tree
+Date: Tue, 14 Apr 2009 17:06:51 -0700
+Message-ID: <200904150006.n3F06p2P010973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756168AbZDOAAN (ORCPT
+	by vger.kernel.org with ESMTP id S1752169AbZDOAJZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Apr 2009 20:00:13 -0400
+	Tue, 14 Apr 2009 20:09:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dnax88@gmail.com, greg@kroah.com
+Cc: den@openvz.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     otus/zdusb.c: additional USB idnetifier
+     arm: compilation fix for sys_oabi-compat.c
 has been added to the -mm tree.  Its filename is
-     otus-zdusbc-additional-usb-idnetifier.patch
+     arm-compilation-fix-sys_oabi-compatc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: otus/zdusb.c: additional USB idnetifier
-From: Daniele Napolitano <dnax88@gmail.com>
+Subject: arm: compilation fix for sys_oabi-compat.c
+From: "Denis V. Lunev" <den@openvz.org>
 
-Provide support for WN111v2 USB 802.11n adapter.
+kmalloc/GFP_KERNEL declaration were not available here.
 
-Signed-off-by: Daniele Napolitano <dnax88@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Russel King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/otus/zdusb.c |    3 ++-
- drivers/staging/otus/zdusb.h |    4 ++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ arch/arm/kernel/sys_oabi-compat.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/staging/otus/zdusb.c~otus-zdusbc-additional-usb-idnetifier drivers/staging/otus/zdusb.c
---- a/drivers/staging/otus/zdusb.c~otus-zdusbc-additional-usb-idnetifier
-+++ a/drivers/staging/otus/zdusb.c
-@@ -48,7 +48,8 @@ static const char driver_name[] = "Otus"
- static struct usb_device_id zd1221_ids [] = {
- 	{ USB_DEVICE(VENDOR_ATHR, PRODUCT_AR9170) },
-         { USB_DEVICE(VENDOR_DLINK, PRODUCT_DWA160A) },
--	{ USB_DEVICE(0x0846, 0x9010) },
-+	{ USB_DEVICE(VENDOR_NETGEAR, PRODUCT_WNDA3100) },
-+	{ USB_DEVICE(VENDOR_NETGEAR, PRODUCT_WN111v2) },
- 	{ }					/* Terminating entry */
- };
+diff -puN arch/arm/kernel/sys_oabi-compat.c~arm-compilation-fix-sys_oabi-compatc arch/arm/kernel/sys_oabi-compat.c
+--- a/arch/arm/kernel/sys_oabi-compat.c~arm-compilation-fix-sys_oabi-compatc
++++ a/arch/arm/kernel/sys_oabi-compat.c
+@@ -83,6 +83,7 @@
+ #include <linux/net.h>
+ #include <linux/ipc.h>
+ #include <linux/uaccess.h>
++#include <linux/slab.h>
  
-diff -puN drivers/staging/otus/zdusb.h~otus-zdusbc-additional-usb-idnetifier drivers/staging/otus/zdusb.h
---- a/drivers/staging/otus/zdusb.h~otus-zdusbc-additional-usb-idnetifier
-+++ a/drivers/staging/otus/zdusb.h
-@@ -40,4 +40,8 @@
- #define VENDOR_DLINK            0x07D1  //Dlink
- #define PRODUCT_DWA160A         0x3C10
- 
-+#define	VENDOR_NETGEAR		0x0846	/* NetGear */
-+#define	PRODUCT_WNDA3100	0x9010
-+#define	PRODUCT_WN111v2		0x9001
-+
- #endif
+ struct oldabi_stat64 {
+ 	unsigned long long st_dev;
 _
 
-Patches currently in -mm which might be from dnax88@gmail.com are
+Patches currently in -mm which might be from den@openvz.org are
 
-linux-next.patch
-otus-zdusbc-additional-usb-idnetifier.patch
+arm-compilation-fix-sys_oabi-compatc.patch
 
