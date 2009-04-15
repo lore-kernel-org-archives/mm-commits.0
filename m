@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch added to -mm tree
-Date: Wed, 15 Apr 2009 14:45:22 -0700
-Message-ID: <200904152145.n3FLjM40019032@imap1.linux-foundation.org>
+Subject: + hugetlbfs-return-negative-error-code-for-bad-mount-option.patch added to -mm tree
+Date: Wed, 15 Apr 2009 15:02:09 -0700
+Message-ID: <200904152202.n3FM29VD027144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753349AbZDOVs1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751424AbZDOWIa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Apr 2009 17:48:27 -0400
+	Wed, 15 Apr 2009 18:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, randy.dunlap@oracle.com
+Cc: akinobu.mita@gmail.com, stable@kernel.org, wli@holomorphy.com
 
 
 The patch titled
-     cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix
+     hugetlbfs: return negative error code for bad mount option
 has been added to the -mm tree.  Its filename is
-     cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
+     hugetlbfs-return-negative-error-code-for-bad-mount-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix
-From: Andres Salomon <dilinger@queued.net>
+Subject: hugetlbfs: return negative error code for bad mount option
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Force GPIO_CS553X to select GPIOLIB, which it makes use of.
+This fixes the following BUG:
 
-akpm: still doesn't work though.  Randy said:
+# mount -o size=MM -t hugetlbfs none /huge
+hugetlbfs: Bad value 'MM' for mount option 'size=MM'
+------------[ cut here ]------------
+kernel BUG at fs/super.c:996!
 
-: When PCI is not enabled:
-: 
-: drivers/gpio/cs553x-gpio.c: In function 'cs553x_gpio_probe':
-: drivers/gpio/cs553x-gpio.c:176: error: implicit declaration of function 'pci_enable_device_io'
-: drivers/gpio/cs553x-gpio.c:182: error: implicit declaration of function 'pci_request_region'
-: drivers/gpio/cs553x-gpio.c:207: error: implicit declaration of function 'pci_release_region'
-: 
-: I guess that OLPC needs an additional dependency on PCI ??
+Due to
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+	BUG_ON(!mnt->mnt_sb);
+
+in vfs_kern_mount().
+
+Also, remove unused #include <linux/quotaops.h>
+
+Cc: William Irwin <wli@holomorphy.com>
+Cc: <stable@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/hugetlbfs/inode.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix
-+++ a/drivers/gpio/Kconfig
-@@ -148,6 +148,7 @@ comment "PCI GPIO expanders:"
- config GPIO_CS553X
- 	tristate "AMD cs5535/cs5536 GPIO support"
- 	depends on PCI && !CS5535_GPIO && !MGEODE_LX
-+	select GPIOLIB
- 	help
- 	  The AMD cs5535 and cs5536 southbridges support 28 GPIO pins that
- 	  can be used for quite a number of things.  The cs553x is found on
+diff -puN fs/hugetlbfs/inode.c~hugetlbfs-return-negative-error-code-for-bad-mount-option fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-return-negative-error-code-for-bad-mount-option
++++ a/fs/hugetlbfs/inode.c
+@@ -26,7 +26,6 @@
+ #include <linux/pagevec.h>
+ #include <linux/parser.h>
+ #include <linux/mman.h>
+-#include <linux/quotaops.h>
+ #include <linux/slab.h>
+ #include <linux/dnotify.h>
+ #include <linux/statfs.h>
+@@ -842,7 +841,7 @@ hugetlbfs_parse_options(char *options, s
+ bad_val:
+  	printk(KERN_ERR "hugetlbfs: Bad value '%s' for mount option '%s'\n",
+ 	       args[0].from, p);
+- 	return 1;
++ 	return -EINVAL;
+ }
+ 
+ static int
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
-cs553x-gpio-add-amd-cs5535-cs5536-gpio-driver-support-fix.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
+hugetlbfs-return-negative-error-code-for-bad-mount-option.patch
 
