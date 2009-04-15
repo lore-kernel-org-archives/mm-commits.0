@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-add-cpc925-memory-controller-driver-cleanup.patch added to -mm tree
-Date: Wed, 15 Apr 2009 15:27:42 -0700
-Message-ID: <200904152227.n3FMRg7I007099@imap1.linux-foundation.org>
+Subject: + edac-cpc925-mc-platform-device-setup.patch added to -mm tree
+Date: Wed, 15 Apr 2009 15:27:48 -0700
+Message-ID: <200904152227.n3FMRmdm007192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41070 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756164AbZDOWci (ORCPT
+	by vger.kernel.org with ESMTP id S1751897AbZDOWcn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Apr 2009 18:32:38 -0400
+	Wed, 15 Apr 2009 18:32:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, galak@gate.crashing.org, michael@ellerman.id.au, norsk5@yahoo.com, paulus@samba.org, qingtao.cao@windriver.com
+Cc: qingtao.cao@windriver.com, benh@kernel.crashing.org, galak@gate.crashing.org, michael@ellerman.id.au, norsk5@yahoo.com, paulus@samba.org
 
 
 The patch titled
-     edac-add-cpc925-memory-controller-driver-cleanup
+     edac: cpc925 MC platform device setup
 has been added to the -mm tree.  Its filename is
-     edac-add-cpc925-memory-controller-driver-cleanup.patch
+     edac-cpc925-mc-platform-device-setup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,151 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac-add-cpc925-memory-controller-driver-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: edac: cpc925 MC platform device setup
+From: Harry Ciao <qingtao.cao@windriver.com>
 
-restrict the scope.
+Fix up the number of cells for the values of CPC925 Memory Controller,
+and setup related platform device during system booting up, against
+which CPC925 Memory Controller EDAC driver would be matched.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
 Cc: Doug Thompson <norsk5@yahoo.com>
-Cc: Harry Ciao <qingtao.cao@windriver.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
 Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/cpc925_edac.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/powerpc/kernel/prom_init.c      |   33 +++++++++++++
+ arch/powerpc/platforms/maple/setup.c |   59 +++++++++++++++++++++++++
+ 2 files changed, 92 insertions(+)
 
-diff -puN drivers/edac/cpc925_edac.c~edac-add-cpc925-memory-controller-driver-cleanup drivers/edac/cpc925_edac.c
---- a/drivers/edac/cpc925_edac.c~edac-add-cpc925-memory-controller-driver-cleanup
-+++ a/drivers/edac/cpc925_edac.c
-@@ -291,9 +291,6 @@ struct cpc925_dev_info {
- 	void (*check)(struct edac_device_ctl_info *edac_dev);
+diff -puN arch/powerpc/kernel/prom_init.c~edac-cpc925-mc-platform-device-setup arch/powerpc/kernel/prom_init.c
+--- a/arch/powerpc/kernel/prom_init.c~edac-cpc925-mc-platform-device-setup
++++ a/arch/powerpc/kernel/prom_init.c
+@@ -1947,8 +1947,40 @@ static void __init fixup_device_tree_map
+ 	prom_setprop(isa, name, "ranges",
+ 			isa_ranges, sizeof(isa_ranges));
+ }
++
++#define CPC925_MC_START		0xf8000000
++#define CPC925_MC_LENGTH	0x1000000
++/* The values for memory-controller don't have right number of cells */
++static void __init fixup_device_tree_maple_memory_controller(void)
++{
++	phandle mc;
++	u32 mc_reg[4];
++	char *name = "/hostbridge@f8000000";
++
++	mc = call_prom("finddevice", 1, 1, ADDR(name));
++	if (!PHANDLE_VALID(mc))
++		return;
++
++	if (prom_getproplen(mc, "reg") != 8)
++		return;
++
++	if (prom_getprop(mc, "reg", mc_reg, sizeof(mc_reg)) == PROM_ERROR)
++		return;
++
++	if (mc_reg[0] != CPC925_MC_START || mc_reg[1] != CPC925_MC_LENGTH)
++		return;
++
++	prom_printf("Fixing up bogus hostbridge on Maple...\n");
++
++	mc_reg[0] = 0x0;
++	mc_reg[1] = CPC925_MC_START;
++	mc_reg[2] = 0x0;
++	mc_reg[3] = CPC925_MC_LENGTH;
++	prom_setprop(mc, name, "reg", mc_reg, sizeof(mc_reg));
++}
+ #else
+ #define fixup_device_tree_maple()
++#define fixup_device_tree_maple_memory_controller()
+ #endif
+ 
+ #ifdef CONFIG_PPC_CHRP
+@@ -2189,6 +2221,7 @@ static void __init fixup_device_tree_efi
+ static void __init fixup_device_tree(void)
+ {
+ 	fixup_device_tree_maple();
++	fixup_device_tree_maple_memory_controller();
+ 	fixup_device_tree_chrp();
+ 	fixup_device_tree_pmac();
+ 	fixup_device_tree_efika();
+diff -puN arch/powerpc/platforms/maple/setup.c~edac-cpc925-mc-platform-device-setup arch/powerpc/platforms/maple/setup.c
+--- a/arch/powerpc/platforms/maple/setup.c~edac-cpc925-mc-platform-device-setup
++++ a/arch/powerpc/platforms/maple/setup.c
+@@ -335,3 +335,62 @@ define_machine(maple) {
+ 	.progress		= maple_progress,
+ 	.power_save		= power4_idle,
  };
- 
--
--static int edac_mc_idx;
--
- /* Get total memory size from Open Firmware DTB */
- static void get_total_mem(struct cpc925_mc_pdata *pdata)
- {
-@@ -866,6 +863,7 @@ static int cpc925_mc_get_channels(void _
- 
- static int __devinit cpc925_probe(struct platform_device *pdev)
- {
-+	static int edac_mc_idx;
- 	struct mem_ctl_info *mci;
- 	void __iomem *vbase;
- 	struct cpc925_mc_pdata *pdata;
++
++#ifdef CONFIG_EDAC
++/*
++ * Register a platform device for CPC925 memory controller on
++ * Motorola ATCA-6101 blade.
++ */
++#define MAPLE_CPC925_MODEL	"Motorola,ATCA-6101"
++static int __init maple_cpc925_edac_setup(void)
++{
++	struct platform_device *pdev;
++	struct device_node *np = NULL;
++	struct resource r;
++	const unsigned char *model;
++	int ret;
++
++	np = of_find_node_by_path("/");
++	if (!np) {
++		printk(KERN_ERR "%s: Unable to get root node\n", __func__);
++		return -ENODEV;
++	}
++
++	model = (const unsigned char *)of_get_property(np, "model", NULL);
++	if (!model) {
++		printk(KERN_ERR "%s: Unabel to get model info\n", __func__);
++		return -ENODEV;
++	}
++
++	ret = strcmp(model, MAPLE_CPC925_MODEL);
++	of_node_put(np);
++
++	if (ret != 0)
++		return 0;
++
++	np = of_find_node_by_type(NULL, "memory-controller");
++	if (!np) {
++		printk(KERN_ERR "%s: Unable to find memory-controller node\n",
++			__func__);
++		return -ENODEV;
++	}
++
++	ret = of_address_to_resource(np, 0, &r);
++	of_node_put(np);
++
++	if (ret < 0) {
++		printk(KERN_ERR "%s: Unable to get memory-controller reg\n",
++			__func__);
++		return -ENODEV;
++	}
++
++	pdev = platform_device_register_simple("cpc925_edac", 0, &r, 1);
++	if (IS_ERR(pdev))
++		return PTR_ERR(pdev);
++
++	printk(KERN_INFO "%s: CPC925 platform device created\n", __func__);
++
++	return 0;
++}
++machine_device_initcall(maple, maple_cpc925_edac_setup);
++#endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from qingtao.cao@windriver.com are
 
-origin.patch
-pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay-fix.patch
-clocksource-pass-clocksource-to-read-callback.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mips-cacheflush-system-call-not-returning-einval-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
-xtensa-add-flat-support-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mtd-mtd-in-mtd_release-is-unused-without-config_mtd_char-fix.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
+edac-add-cpc925-memory-controller-driver.patch
 edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index.patch
 edac-add-edac_device_alloc_index-cleanup.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+edac-cpc925-mc-platform-device-setup.patch
 
