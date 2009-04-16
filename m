@@ -1,184 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch removed from -mm tree
-Date: Thu, 16 Apr 2009 13:09:43 -0700
-Message-ID: <200904162009.n3GK9hNc022143@imap1.linux-foundation.org>
+Subject: [merged] skge-fix-occasional-bug-during-mtu-change.patch removed from -mm tree
+Date: Thu, 16 Apr 2009 13:09:51 -0700
+Message-ID: <200904162009.n3GK9pf4022231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35317 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50002 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752838AbZDPUNd (ORCPT
+	by vger.kernel.org with ESMTP id S1751413AbZDPUNS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 16:13:33 -0400
+	Thu, 16 Apr 2009 16:13:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, mm-commits@vger.kernel.org
+To: mschmidt@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
+     skge: fix occasional BUG during MTU change
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+     skge-fix-occasional-bug-during-mtu-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: skge: fix occasional BUG during MTU change
+From: Michal Schmidt <mschmidt@redhat.com>
 
-We can use smp_call_fuction_single() here, which is faster and simpler
-than work_n_cpu().
+The BUG_ON(skge->tx_ring.to_use != skge->tx_ring.to_clean) in skge_up()
+was sometimes observed when setting MTU.
 
-Someone ought to test this ;)
+skge_down() disables the TX queue, but then reenables it by mistake via
+skge_tx_clean().
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>
+Fix it by moving the waking of the queue from skge_tx_clean() to the other
+caller.  And to make sure start_xmit is not in progress on another CPU,
+skge_down() should call netif_tx_disable().
+
+The bug was reported to me by Jiri Jilek whose Debian system sometimes
+failed to boot.  He tested the patch and the bug did not happen anymore.
+
+Signed-off-by: Michal Schmidt <mschmidt@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/cstate.c |   36 +++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ drivers/net/skge.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu arch/x86/kernel/acpi/cstate.c
---- a/arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu
-+++ a/arch/x86/kernel/acpi/cstate.c
-@@ -53,6 +53,12 @@ struct cstate_entry {
- };
- static struct cstate_entry *cpu_cstate_entry;	/* per CPU ptr */
+diff -puN drivers/net/skge.c~skge-fix-occasional-bug-during-mtu-change drivers/net/skge.c
+--- a/drivers/net/skge.c~skge-fix-occasional-bug-during-mtu-change
++++ a/drivers/net/skge.c
+@@ -2674,7 +2674,7 @@ static int skge_down(struct net_device *
+ 	if (netif_msg_ifdown(skge))
+ 		printk(KERN_INFO PFX "%s: disabling interface\n", dev->name);
  
-+/* Used for the cross-CPU calls */
-+struct acpi_processor_cx_cross_cpu {
-+	struct acpi_processor_cx *cx;
-+	long retval;
-+};
-+
- static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
+-	netif_stop_queue(dev);
++	netif_tx_disable(dev);
  
- #define MWAIT_SUBSTATE_MASK	(0xf)
-@@ -67,10 +73,10 @@ static short mwait_supported[ACPI_PROCES
- 
- #define NATIVE_CSTATE_BEYOND_HALT	(2)
- 
--static long acpi_processor_ffh_cstate_probe_cpu(void *_cx)
-+static void acpi_processor_ffh_cstate_probe_cpu(void *_cxcc)
- {
--	struct acpi_processor_cx *cx = _cx;
--	long retval;
-+	struct acpi_processor_cx_cross_cpu *cxcc = _cxcc;
-+	struct acpi_processor_cx *cx = cxcc->cx;
- 	unsigned int eax, ebx, ecx, edx;
- 	unsigned int edx_part;
- 	unsigned int cstate_type; /* C-state type and not ACPI C-state type */
-@@ -84,16 +90,16 @@ static long acpi_processor_ffh_cstate_pr
- 	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
- 	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
- 
--	retval = 0;
-+	cxcc->retval = 0;
- 	if (num_cstate_subtype < (cx->address & MWAIT_SUBSTATE_MASK)) {
--		retval = -1;
-+		cxcc->retval = -1;
- 		goto out;
+ 	if (hw->chip_id == CHIP_ID_GENESIS && hw->phy_type == SK_PHY_XMAC)
+ 		del_timer_sync(&skge->link_timer);
+@@ -2881,7 +2881,6 @@ static void skge_tx_clean(struct net_dev
  	}
  
- 	/* mwait ecx extensions INTERRUPT_BREAK should be supported for C2/C3 */
- 	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
- 	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK)) {
--		retval = -1;
-+		cxcc->retval = -1;
- 		goto out;
- 	}
- 
-@@ -107,7 +113,7 @@ static long acpi_processor_ffh_cstate_pr
- 			ACPI_CX_DESC_LEN, "ACPI FFH INTEL MWAIT 0x%x",
- 			cx->address);
- out:
--	return retval;
-+	return;
+ 	skge->tx_ring.to_clean = e;
+-	netif_wake_queue(dev);
  }
  
- int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-@@ -115,6 +121,7 @@ int acpi_processor_ffh_cstate_probe(unsi
- {
- 	struct cstate_entry *percpu_entry;
- 	struct cpuinfo_x86 *c = &cpu_data(cpu);
-+	struct acpi_processor_cx_cross_cpu cxcc = { .cx = cx, };
- 	long retval;
+ static void skge_tx_timeout(struct net_device *dev)
+@@ -2893,6 +2892,7 @@ static void skge_tx_timeout(struct net_d
  
- 	if (!cpu_cstate_entry || c->cpuid_level < CPUID_MWAIT_LEAF)
-@@ -127,13 +134,18 @@ int acpi_processor_ffh_cstate_probe(unsi
- 	percpu_entry->states[cx->index].eax = 0;
- 	percpu_entry->states[cx->index].ecx = 0;
- 
--	/* Make sure we are running on right CPU */
-+	/* Run acpi_processor_ffh_cstate_probe_cpu() on the target CPU */
- 
--	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
-+	retval = smp_call_function_single(cpu,
-+				acpi_processor_ffh_cstate_probe_cpu, cx, 1);
- 	if (retval == 0) {
--		/* Use the hint in CST */
--		percpu_entry->states[cx->index].eax = cx->address;
--		percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
-+		retval = cxcc.retval;
-+		if (retval == 0) {
-+			/* Use the hint in CST */
-+			percpu_entry->states[cx->index].eax = cx->address;
-+			percpu_entry->states[cx->index].ecx =
-+					MWAIT_ECX_INTERRUPT_BREAK;
-+		}
- 	}
- 	return retval;
+ 	skge_write8(skge->hw, Q_ADDR(txqaddr[skge->port], Q_CSR), CSR_STOP);
+ 	skge_tx_clean(dev);
++	netif_wake_queue(dev);
  }
+ 
+ static int skge_change_mtu(struct net_device *dev, int new_mtu)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mschmidt@redhat.com are
 
 origin.patch
-pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay-fix.patch
-clocksource-pass-clocksource-to-read-callback.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mips-cacheflush-system-call-not-returning-einval-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mtd-mtd-in-mtd_release-is-unused-without-config_mtd_char-fix.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
