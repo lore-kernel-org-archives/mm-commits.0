@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-kobject-dont-block-for-each-kobject_uevent.patch added to -mm tree
-Date: Thu, 16 Apr 2009 14:09:02 -0700
-Message-ID: <200904162109.n3GL92aM018616@imap1.linux-foundation.org>
+Subject: + mm-pass-correct-mm-when-growing-stack.patch added to -mm tree
+Date: Thu, 16 Apr 2009 14:09:05 -0700
+Message-ID: <200904162109.n3GL95bT018619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752888AbZDPVMS (ORCPT
+	by vger.kernel.org with ESMTP id S1754615AbZDPVMh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 17:12:18 -0400
+	Thu, 16 Apr 2009 17:12:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, arjan@linux.intel.com, gregkh@suse.de, penguin-kernel@i-love.sakura.ne.jp
+Cc: hugh@veritas.com, penguin-kernel@i-love.sakura.ne.jp, stable@kernel.org
 
 
 The patch titled
-     revert "kobject: don't block for each kobject_uevent"
+     mm: pass correct mm when growing stack
 has been added to the -mm tree.  Its filename is
-     revert-kobject-dont-block-for-each-kobject_uevent.patch
+     mm-pass-correct-mm-when-growing-stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "kobject: don't block for each kobject_uevent"
+Subject: mm: pass correct mm when growing stack
 From: Hugh Dickins <hugh@veritas.com>
 
-Revert f520360d93cdc37de5d972dac4bf3bdef6a7f6a7 "kobject: don't block for
-each kobject_uevent".
+Tetsuo Handa reports seeing the WARN_ON(current->mm == NULL) in
+security_vm_enough_memory(), when do_execve() is touching the target mm's
+stack, to set up its args and environment.
 
-Tetsuo Handa, running a kernel with CONFIG_DEBUG_PAGEALLOC=y and
-CONFIG_UEVENT_HELPER_PATH=/sbin/hotplug, has been hitting RCU detected CPU
-stalls: it's been spinning in the loop where do_execve() counts up the
-args (but why wasn't fixup_exception working?  dunno).
-
-The recent change, switching kobject_uevent_env() from UMH_WAIT_EXEC to
-UMH_NO_WAIT, is broken: the exec uses args on the local stack here, and an
-env which is kfreed as soon as call_usermodehelper() returns.  It very
-much needs to wait for the exec to be done.
-
-Or keep the UMH_NO_WAIT, and complicate the code to allocate and free
-these resources correctly?  No, as GregKH pointed out when making the
-commit, CONFIG_UEVENT_HELPER_PATH="" is a much better optimization -
-though some distros are still saying /sbin/hotplug in their .config, yet
-with no such binary in their initrd or their root.
+Yes, a UMH_NO_WAIT or UMH_WAIT_PROC call_usermodehelper() spawns an
+mm-less kernel thread to do the exec.  And in any case, that
+vm_enough_memory check when growing stack ought to be done on the target
+mm, not on the execer's mm (though apart from the warning, it only makes a
+slight tweak to OVERCOMMIT_NEVER behaviour).
 
 Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: <stable@kernel.org>		[2.6.28.x, 2.6.29.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject_uevent.c |    2 +-
+ mm/mmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/kobject_uevent.c~revert-kobject-dont-block-for-each-kobject_uevent lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~revert-kobject-dont-block-for-each-kobject_uevent
-+++ a/lib/kobject_uevent.c
-@@ -258,7 +258,7 @@ int kobject_uevent_env(struct kobject *k
- 			goto exit;
+diff -puN mm/mmap.c~mm-pass-correct-mm-when-growing-stack mm/mmap.c
+--- a/mm/mmap.c~mm-pass-correct-mm-when-growing-stack
++++ a/mm/mmap.c
+@@ -1575,7 +1575,7 @@ static int acct_stack_growth(struct vm_a
+ 	 * Overcommit..  This must be the final test, as it will
+ 	 * update security statistics.
+ 	 */
+-	if (security_vm_enough_memory(grow))
++	if (security_vm_enough_memory_mm(mm, grow))
+ 		return -ENOMEM;
  
- 		retval = call_usermodehelper(argv[0], argv,
--					     env->envp, UMH_NO_WAIT);
-+					     env->envp, UMH_WAIT_EXEC);
- 	}
- 
- exit:
+ 	/* Ok, everything looks good - let it rip */
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
