@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-z85c30-bcm1480-loops-reach-1.patch added to -mm tree
-Date: Thu, 16 Apr 2009 14:11:37 -0700
-Message-ID: <200904162111.n3GLBb3M019869@imap1.linux-foundation.org>
+Subject: + microblaze-iowrite-upon-timeout.patch added to -mm tree
+Date: Thu, 16 Apr 2009 14:12:40 -0700
+Message-ID: <200904162112.n3GLCe9X020379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40845 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751916AbZDPVOE (ORCPT
+	by vger.kernel.org with ESMTP id S1752888AbZDPVOO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 17:14:04 -0400
+	Thu, 16 Apr 2009 17:14:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, macro@linux-mips.org
+Cc: roel.kluin@gmail.com, monstr@monstr.eu
 
 
 The patch titled
-     serial: Z85C30: BCM1480: loops reach -1
+     microblaze: iowrite upon timeout
 has been added to the -mm tree.  Its filename is
-     serial-z85c30-bcm1480-loops-reach-1.patch
+     microblaze-iowrite-upon-timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: Z85C30: BCM1480: loops reach -1
+Subject: microblaze: iowrite upon timeout
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With a postfix decrement 'loops' reaches -1, which is subsequently
-returned.  In drivers/serial/zs.c, line 1137 it is considered as a boolean
-with 0 as failure:
-
-if (zs_transmit_drain(zport, irq))
-                write_zsdata(zport, ch);
-
-so to use it as such loops should end at 0 after the loop rather than -1.
-This also fixes similar loops in other functions.
+retries reaches -1, so the iowrite occurrs upon timeout.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/sb1250-duart.c |    6 +++---
- drivers/serial/zs.c           |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ arch/microblaze/kernel/early_printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/sb1250-duart.c~serial-z85c30-bcm1480-loops-reach-1 drivers/serial/sb1250-duart.c
---- a/drivers/serial/sb1250-duart.c~serial-z85c30-bcm1480-loops-reach-1
-+++ a/drivers/serial/sb1250-duart.c
-@@ -204,7 +204,7 @@ static int sbd_receive_drain(struct sbd_
- {
- 	int loops = 10000;
+diff -puN arch/microblaze/kernel/early_printk.c~microblaze-iowrite-upon-timeout arch/microblaze/kernel/early_printk.c
+--- a/arch/microblaze/kernel/early_printk.c~microblaze-iowrite-upon-timeout
++++ a/arch/microblaze/kernel/early_printk.c
+@@ -36,7 +36,7 @@ static void early_printk_putc(char c)
  
--	while (sbd_receive_ready(sport) && loops--)
-+	while (sbd_receive_ready(sport) && --loops)
- 		read_sbdchn(sport, R_DUART_RX_HOLD);
- 	return loops;
- }
-@@ -218,7 +218,7 @@ static int __maybe_unused sbd_transmit_d
- {
- 	int loops = 10000;
+ 	unsigned retries = 10000;
+ 	/* read status bit - 0x8 offset */
+-	while (retries-- && (in_be32(base_addr + 8) & (1 << 3)))
++	while (--retries && (in_be32(base_addr + 8) & (1 << 3)))
+ 		;
  
--	while (!sbd_transmit_ready(sport) && loops--)
-+	while (!sbd_transmit_ready(sport) && --loops)
- 		udelay(2);
- 	return loops;
- }
-@@ -232,7 +232,7 @@ static int sbd_line_drain(struct sbd_por
- {
- 	int loops = 10000;
- 
--	while (!sbd_transmit_empty(sport) && loops--)
-+	while (!sbd_transmit_empty(sport) && --loops)
- 		udelay(2);
- 	return loops;
- }
-diff -puN drivers/serial/zs.c~serial-z85c30-bcm1480-loops-reach-1 drivers/serial/zs.c
---- a/drivers/serial/zs.c~serial-z85c30-bcm1480-loops-reach-1
-+++ a/drivers/serial/zs.c
-@@ -231,7 +231,7 @@ static int zs_receive_drain(struct zs_po
- {
- 	int loops = 10000;
- 
--	while ((read_zsreg(zport, R0) & Rx_CH_AV) && loops--)
-+	while ((read_zsreg(zport, R0) & Rx_CH_AV) && --loops)
- 		read_zsdata(zport);
- 	return loops;
- }
-@@ -241,7 +241,7 @@ static int zs_transmit_drain(struct zs_p
- 	struct zs_scc *scc = zport->scc;
- 	int loops = 10000;
- 
--	while (!(read_zsreg(zport, R0) & Tx_BUF_EMP) && loops--) {
-+	while (!(read_zsreg(zport, R0) & Tx_BUF_EMP) && --loops) {
- 		zs_spin_unlock_cond_irq(&scc->zlock, irq);
- 		udelay(2);
- 		zs_spin_lock_cond_irq(&scc->zlock, irq);
-@@ -254,7 +254,7 @@ static int zs_line_drain(struct zs_port 
- 	struct zs_scc *scc = zport->scc;
- 	int loops = 10000;
- 
--	while (!(read_zsreg(zport, R1) & ALL_SNT) && loops--) {
-+	while (!(read_zsreg(zport, R1) & ALL_SNT) && --loops) {
- 		zs_spin_unlock_cond_irq(&scc->zlock, irq);
- 		udelay(2);
- 		zs_spin_lock_cond_irq(&scc->zlock, irq);
+ 	/* Only attempt the iowrite if we didn't timeout */
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -124,6 +66,7 @@ Patches currently in -mm which might be from roel.kluin@gmail.com are
 linux-next.patch
 drm-fix-lock_test_with_return-macro.patch
 pata-rb532-cf-platform_get_irq-failure-ignored.patch
+microblaze-iowrite-upon-timeout.patch
 uwb-event_size-should-be-signed.patch
 scsi-ncr53c8xx-div-reaches-1.patch
 scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
