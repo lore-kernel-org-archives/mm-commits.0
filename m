@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin.patch added to -mm tree
-Date: Thu, 16 Apr 2009 14:47:05 -0700
-Message-ID: <200904162147.n3GLl5FO004724@imap1.linux-foundation.org>
+Subject: + time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch added to -mm tree
+Date: Thu, 16 Apr 2009 15:43:54 -0700
+Message-ID: <200904162243.n3GMhsQV032221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751975AbZDPVuh (ORCPT
+	by vger.kernel.org with ESMTP id S1756780AbZDPWs0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 17:50:37 -0400
+	Thu, 16 Apr 2009 18:48:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chombourger@gmail.com, sam@ravnborg.org, stable@kernel.org
+Cc: johnstul@us.ibm.com, elendil@planet.nl, schwidefsky@de.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     scripts/mod/modpost.c: fix Module.markers permission error under cygwin
+     time: avoid possible endless loop when using jiffies clocksource and ONESHOT mode clockevent
 has been added to the -mm tree.  Its filename is
-     scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin.patch
+     time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/mod/modpost.c: fix Module.markers permission error under cygwin
-From: Cedric Hombourger <chombourger@gmail.com>
+Subject: time: avoid possible endless loop when using jiffies clocksource and ONESHOT mode clockevent
+From: john stultz <johnstul@us.ibm.com>
 
-While building the kernel, we end-up calling modpost with -K and -M
-options for the same file (Modules.markers).  This is resulting in
-modpost's main function calling read_markers() and then write_markers() on
-the same file.
+Avoid an endless loop issue by requiring that a highres valid clocksource
+be installed before we call tick_periodic() in a loop when using ONESHOT
+mode.  The result is we will only increment jiffies once per interrupt
+until a continuous hardware clocksource is available.
 
-We then have read_markers() mmap'ing the file, and writer_markers()
-opening that same file for writing.
+Without this, we can run into a endless loop, where each cycle through the
+loop, jiffies is updated which increments time by tick_period or more (due
+to clock steering), which can cause the event programming to think the
+next event was before the newly incremented time and fail causing
+tick_periodic() to be called again and the whole process loops forever.
 
-The issue is that read_markers() exits without munmap'ing the file and is
-as a matter holding a reference on Modules.markers.  When write_markers()
-is opening that very same file for writing, we still have a reference on
-it and cygwin (Windows?) is then making fopen() fail with EPERM.
-
-Calling release_file() before exiting read_markers() clears that reference
-(and memory leak) and fopen() then succeeds.
-
-Tested on both cygwin (1.3.22) and Linux.  Also ran modpost within
-valgrind on Linux to make sure that the munmap'ed file was not accessed
-after read_markers()
-
-Signed-off-by: Cedric Hombourger <chombourger@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: <stable@kernel.org>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Frans Pop <elendil@planet.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/time/tick-common.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN scripts/mod/modpost.c~scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin
-+++ a/scripts/mod/modpost.c
-@@ -2008,6 +2008,7 @@ static void read_markers(const char *fna
- 		if (!mod->skip)
- 			add_marker(mod, marker, fmt);
+diff -puN kernel/time/tick-common.c~avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent
++++ a/kernel/time/tick-common.c
+@@ -94,7 +94,17 @@ void tick_handle_periodic(struct clock_e
+ 	for (;;) {
+ 		if (!clockevents_program_event(dev, next, ktime_get()))
+ 			return;
+-		tick_periodic(cpu);
++		/*
++		 * Have to be careful here. If we're in oneshot mode,
++		 * before we call tick_periodic() in a loop, we need
++		 * to be sure we're using a real hardware clocksource.
++		 * Otherwise we could get trapped in an infinite
++		 * loop, as the tick_periodic() increments jiffies,
++		 * when then will increment time, posibly causing
++		 * the loop to trigger again and again.
++		 */
++		if (timekeeping_valid_for_hres())
++			tick_periodic(cpu);
+ 		next = ktime_add(next, tick_period);
  	}
-+	release_file(file, size);
- 	return;
- fail:
- 	fatal("parse error in markers list file\n");
+ }
 _
 
-Patches currently in -mm which might be from chombourger@gmail.com are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-add-enable-and-disable-callbacks.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
+time-move-calc_load-call-out-from-xtime_lock-protection.patch
+time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
 
