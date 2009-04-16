@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch added to -mm tree
-Date: Thu, 16 Apr 2009 16:04:43 -0700
-Message-ID: <200904162304.n3GN4iSk009957@imap1.linux-foundation.org>
+Subject: + spi-documentation-emphasise-spi_mastersetup-semantics.patch added to -mm tree
+Date: Thu, 16 Apr 2009 16:18:48 -0700
+Message-ID: <200904162318.n3GNImin016674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754161AbZDPXPJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751751AbZDPXUj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 19:15:09 -0400
+	Thu, 16 Apr 2009 19:20:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, cooloney@kernel.org, geert@linux-m68k.org, ink@jurassic.park.msu.ru, lethal@linux-sh.org, magnus.damm@gmail.com, rmk@arm.linux.org.uk, rth@twiddle.net, starvik@axis.com, takata@linux-m32r.org, zippel@linux-m68k.org
+Cc: dbrownell@users.sourceforge.net
 
 
 The patch titled
-     time: create arch_gettimeoffset infrastructure for use in the generic timekeeping core.
+     spi: documentation: emphasise spi_master.setup() semantics
 has been added to the -mm tree.  Its filename is
-     time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
+     spi-documentation-emphasise-spi_mastersetup-semantics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: time: create arch_gettimeoffset infrastructure for use in the generic timekeeping core.
-From: john stultz <johnstul@us.ibm.com>
+Subject: spi: documentation: emphasise spi_master.setup() semantics
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Some arches don't supply their own clocksource.  This is mainly the case
-in architectures that get their inter-tick times by reading the counter on
-their interval timer.  Since these timers wrap every tick, they're not
-really useful as clocksources.  Wrapping them to act like one is possible
-but not very efficient.  So we provide a callout these arches can
-implement for use with the jiffies clocksource to provide finer then tick
-granular time.
+This is a doc-only patch which I hope will reduce the number of spi_master
+controller driver patches starting out with a common implementation bug. 
+(As in: almost every spi_master driver I see starts out with its version
+of this bug.  Sigh.)
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Magnus Damm <magnus.damm@gmail.com>
+It just re-emphasizes that the setup() method may be called for one device
+while a transfer is active on another ...  which means that most driver
+implementations shouldn't touch any registers.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/time.h      |   15 +++++++++++++++
- kernel/time/timekeeping.c |    7 +++++++
- 2 files changed, 22 insertions(+)
+ Documentation/spi/spi-summary |    6 ++++++
+ include/linux/spi/spi.h       |    7 ++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/time.h~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core include/linux/time.h
---- a/include/linux/time.h~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core
-+++ a/include/linux/time.h
-@@ -113,6 +113,21 @@ struct timespec current_kernel_time(void
- #define CURRENT_TIME		(current_kernel_time())
- #define CURRENT_TIME_SEC	((struct timespec) { get_seconds(), 0 })
- 
-+/* Some architectures do not supply their own clocksource.
-+ * This is mainly the case in architectures that get their
-+ * inter-tick times by reading the counter on their interval
-+ * timer. Since these timers wrap every tick, they're not really
-+ * useful as clocksources. Wrapping them to act like one is possible
-+ * but not very efficient. So we provide a callout these arches
-+ * can implement for use with the jiffies clocksource to provide
-+ * finer then tick granular time.
-+ */
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
-+extern u32 arch_gettimeoffset(void);
-+#else
-+#define arch_gettimeoffset() (0)
-+#endif
+diff -puN Documentation/spi/spi-summary~spi-documentation-emphasise-spi_mastersetup-semantics Documentation/spi/spi-summary
+--- a/Documentation/spi/spi-summary~spi-documentation-emphasise-spi_mastersetup-semantics
++++ a/Documentation/spi/spi-summary
+@@ -511,10 +511,16 @@ SPI MASTER METHODS
+ 	This sets up the device clock rate, SPI mode, and word sizes.
+ 	Drivers may change the defaults provided by board_info, and then
+ 	call spi_setup(spi) to invoke this routine.  It may sleep.
 +
- extern void do_gettimeofday(struct timeval *tv);
- extern int do_settimeofday(struct timespec *tv);
- extern int do_sys_settimeofday(struct timespec *tv, struct timezone *tz);
-diff -puN kernel/time/timekeeping.c~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core
-+++ a/kernel/time/timekeeping.c
-@@ -77,6 +77,10 @@ static void clocksource_forward_now(void
- 	clock->cycle_last = cycle_now;
+ 	Unless each SPI slave has its own configuration registers, don't
+ 	change them right away ... otherwise drivers could corrupt I/O
+ 	that's in progress for other SPI devices.
  
- 	nsec = cyc2ns(clock, cycle_delta);
++		** BUG ALERT:  for some reason the first version of
++		** many spi_master drivers seems to get this wrong.
++		** When you code setup(), ASSUME that the controller
++		** is actively processing transfers for another device.
 +
-+	/* If arch requires, add in gettimeoffset() */
-+	nsec += arch_gettimeoffset();
-+
- 	timespec_add_ns(&xtime, nsec);
+     master->transfer(struct spi_device *spi, struct spi_message *message)
+     	This must not sleep.  Its responsibility is arrange that the
+ 	transfer happens and its complete() callback is issued.  The two
+diff -puN include/linux/spi/spi.h~spi-documentation-emphasise-spi_mastersetup-semantics include/linux/spi/spi.h
+--- a/include/linux/spi/spi.h~spi-documentation-emphasise-spi_mastersetup-semantics
++++ a/include/linux/spi/spi.h
+@@ -245,7 +245,12 @@ struct spi_master {
+ 	 */
+ 	u16			dma_alignment;
  
- 	nsec = ((s64)cycle_delta * clock->mult_orig) >> clock->shift;
-@@ -111,6 +115,9 @@ void getnstimeofday(struct timespec *ts)
- 		/* convert to nanoseconds: */
- 		nsecs = cyc2ns(clock, cycle_delta);
+-	/* setup mode and clock, etc (spi driver may call many times) */
++	/* Setup mode and clock, etc (spi driver may call many times).
++	 *
++	 * IMPORTANT:  this may be called when transfers to another
++	 * device are active.  DO NOT UPDATE SHARED REGISTERS in ways
++	 * which could break those transfers.
++	 */
+ 	int			(*setup)(struct spi_device *spi);
  
-+		/* If arch requires, add in gettimeoffset() */
-+		nsecs += arch_gettimeoffset();
-+
- 	} while (read_seqretry(&xtime_lock, seq));
- 
- 	timespec_add_ns(ts, nsecs);
+ 	/* bidirectional bulk transfers
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-clocksource-pass-clocksource-to-read-callback.patch
-clocksource-add-enable-and-disable-callbacks.patch
-clocksource-sanity-check-sysfs-clocksource-changes.patch
-time-move-calc_load-call-out-from-xtime_lock-protection.patch
-time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
-time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
-time-sh-convert-to-use-arch_getoffset-infrastructure.patch
+linux-next.patch
+spi-documentation-emphasise-spi_mastersetup-semantics.patch
+rtc-rtc-ds1307-add-ds3231.patch
 
