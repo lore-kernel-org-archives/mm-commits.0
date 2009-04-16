@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-pass-correct-mm-when-growing-stack.patch added to -mm tree
-Date: Thu, 16 Apr 2009 14:09:05 -0700
-Message-ID: <200904162109.n3GL95bT018619@imap1.linux-foundation.org>
+Subject: + serial-z85c30-bcm1480-loops-reach-1.patch added to -mm tree
+Date: Thu, 16 Apr 2009 14:11:37 -0700
+Message-ID: <200904162111.n3GLBb3M019869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754615AbZDPVMh (ORCPT
+	by vger.kernel.org with ESMTP id S1751916AbZDPVOE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 17:12:37 -0400
+	Thu, 16 Apr 2009 17:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, penguin-kernel@i-love.sakura.ne.jp, stable@kernel.org
+Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, macro@linux-mips.org
 
 
 The patch titled
-     mm: pass correct mm when growing stack
+     serial: Z85C30: BCM1480: loops reach -1
 has been added to the -mm tree.  Its filename is
-     mm-pass-correct-mm-when-growing-stack.patch
+     serial-z85c30-bcm1480-loops-reach-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: pass correct mm when growing stack
-From: Hugh Dickins <hugh@veritas.com>
+Subject: serial: Z85C30: BCM1480: loops reach -1
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Tetsuo Handa reports seeing the WARN_ON(current->mm == NULL) in
-security_vm_enough_memory(), when do_execve() is touching the target mm's
-stack, to set up its args and environment.
+With a postfix decrement 'loops' reaches -1, which is subsequently
+returned.  In drivers/serial/zs.c, line 1137 it is considered as a boolean
+with 0 as failure:
 
-Yes, a UMH_NO_WAIT or UMH_WAIT_PROC call_usermodehelper() spawns an
-mm-less kernel thread to do the exec.  And in any case, that
-vm_enough_memory check when growing stack ought to be done on the target
-mm, not on the execer's mm (though apart from the warning, it only makes a
-slight tweak to OVERCOMMIT_NEVER behaviour).
+if (zs_transmit_drain(zport, irq))
+                write_zsdata(zport, ch);
 
-Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: <stable@kernel.org>		[2.6.28.x, 2.6.29.x]
+so to use it as such loops should end at 0 after the loop rather than -1.
+This also fixes similar loops in other functions.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/sb1250-duart.c |    6 +++---
+ drivers/serial/zs.c           |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/mmap.c~mm-pass-correct-mm-when-growing-stack mm/mmap.c
---- a/mm/mmap.c~mm-pass-correct-mm-when-growing-stack
-+++ a/mm/mmap.c
-@@ -1575,7 +1575,7 @@ static int acct_stack_growth(struct vm_a
- 	 * Overcommit..  This must be the final test, as it will
- 	 * update security statistics.
- 	 */
--	if (security_vm_enough_memory(grow))
-+	if (security_vm_enough_memory_mm(mm, grow))
- 		return -ENOMEM;
+diff -puN drivers/serial/sb1250-duart.c~serial-z85c30-bcm1480-loops-reach-1 drivers/serial/sb1250-duart.c
+--- a/drivers/serial/sb1250-duart.c~serial-z85c30-bcm1480-loops-reach-1
++++ a/drivers/serial/sb1250-duart.c
+@@ -204,7 +204,7 @@ static int sbd_receive_drain(struct sbd_
+ {
+ 	int loops = 10000;
  
- 	/* Ok, everything looks good - let it rip */
+-	while (sbd_receive_ready(sport) && loops--)
++	while (sbd_receive_ready(sport) && --loops)
+ 		read_sbdchn(sport, R_DUART_RX_HOLD);
+ 	return loops;
+ }
+@@ -218,7 +218,7 @@ static int __maybe_unused sbd_transmit_d
+ {
+ 	int loops = 10000;
+ 
+-	while (!sbd_transmit_ready(sport) && loops--)
++	while (!sbd_transmit_ready(sport) && --loops)
+ 		udelay(2);
+ 	return loops;
+ }
+@@ -232,7 +232,7 @@ static int sbd_line_drain(struct sbd_por
+ {
+ 	int loops = 10000;
+ 
+-	while (!sbd_transmit_empty(sport) && loops--)
++	while (!sbd_transmit_empty(sport) && --loops)
+ 		udelay(2);
+ 	return loops;
+ }
+diff -puN drivers/serial/zs.c~serial-z85c30-bcm1480-loops-reach-1 drivers/serial/zs.c
+--- a/drivers/serial/zs.c~serial-z85c30-bcm1480-loops-reach-1
++++ a/drivers/serial/zs.c
+@@ -231,7 +231,7 @@ static int zs_receive_drain(struct zs_po
+ {
+ 	int loops = 10000;
+ 
+-	while ((read_zsreg(zport, R0) & Rx_CH_AV) && loops--)
++	while ((read_zsreg(zport, R0) & Rx_CH_AV) && --loops)
+ 		read_zsdata(zport);
+ 	return loops;
+ }
+@@ -241,7 +241,7 @@ static int zs_transmit_drain(struct zs_p
+ 	struct zs_scc *scc = zport->scc;
+ 	int loops = 10000;
+ 
+-	while (!(read_zsreg(zport, R0) & Tx_BUF_EMP) && loops--) {
++	while (!(read_zsreg(zport, R0) & Tx_BUF_EMP) && --loops) {
+ 		zs_spin_unlock_cond_irq(&scc->zlock, irq);
+ 		udelay(2);
+ 		zs_spin_lock_cond_irq(&scc->zlock, irq);
+@@ -254,7 +254,7 @@ static int zs_line_drain(struct zs_port 
+ 	struct zs_scc *scc = zport->scc;
+ 	int loops = 10000;
+ 
+-	while (!(read_zsreg(zport, R1) & ALL_SNT) && loops--) {
++	while (!(read_zsreg(zport, R1) & ALL_SNT) && --loops) {
+ 		zs_spin_unlock_cond_irq(&scc->zlock, irq);
+ 		udelay(2);
+ 		zs_spin_lock_cond_irq(&scc->zlock, irq);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-origin.patch
-clocksource-pass-clocksource-to-read-callback.patch
-revert-kobject-dont-block-for-each-kobject_uevent.patch
-mm-pass-correct-mm-when-growing-stack.patch
-mm-disable-preemption-in-apply_to_pte_range.patch
-getrusage-fill-ru_maxrss-value.patch
-prio_tree-debugging-patch.patch
+linux-next.patch
+drm-fix-lock_test_with_return-macro.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+uwb-event_size-should-be-signed.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+bfin_5xx-misplaced-parentheses.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+ufs-sector_t-cannot-be-negative.patch
 
