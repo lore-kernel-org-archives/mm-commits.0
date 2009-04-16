@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + time-sh-convert-to-use-arch_getoffset-infrastructure.patch added to -mm tree
-Date: Thu, 16 Apr 2009 16:04:47 -0700
-Message-ID: <200904162304.n3GN4lDi009966@imap1.linux-foundation.org>
+Subject: + crisv10-change-serial-driver-proc-usage.patch added to -mm tree
+Date: Thu, 16 Apr 2009 16:09:49 -0700
+Message-ID: <200904162309.n3GN9n9F012386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38975 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58850 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754283AbZDPXHI (ORCPT
+	by vger.kernel.org with ESMTP id S1754161AbZDPXNb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 19:07:08 -0400
+	Thu, 16 Apr 2009 19:13:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, lethal@linux-sh.org
+Cc: Jesper.Nilsson@axis.com, adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     time: sh: convert to use arch_getoffset() infrastructure
+     CRISv10: fix serial driver proc-usage
 has been added to the -mm tree.  Its filename is
-     time-sh-convert-to-use-arch_getoffset-infrastructure.patch
+     crisv10-change-serial-driver-proc-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,248 +34,304 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: time: sh: convert to use arch_getoffset() infrastructure
-From: john stultz <johnstul@us.ibm.com>
+Subject: CRISv10: fix serial driver proc-usage
+From: Jesper Nilsson <Jesper.Nilsson@axis.com>
 
-Convert sh to use GENERIC_TIME via the arch_getoffset() infrastructure.
+drivers/serial/crisv10.c:4428: error: unknown field 'read_proc' specified in initializer
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+Commit 0f043a81ebe84be3576667f04fdda481609e3816 ("proc tty: remove struct
+tty_operations::read_proc") removes the read_proc entry from struct
+tty_operations.
+
+Rework the proc handling in the CRISv10 serial driver to use proc_fops
+instead.
+
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/Kconfig                    |    6 ++
- arch/sh/include/asm/timer.h        |    4 -
- arch/sh/kernel/time_32.c           |   63 ++-------------------------
- arch/sh/kernel/time_64.c           |   53 ----------------------
- arch/sh/kernel/timers/timer-cmt.c  |    2 
- arch/sh/kernel/timers/timer-mtu2.c |    2 
- 6 files changed, 16 insertions(+), 114 deletions(-)
+ drivers/serial/crisv10.c |  175 ++++++++++++++++---------------------
+ 1 file changed, 79 insertions(+), 96 deletions(-)
 
-diff -puN arch/sh/Kconfig~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/Kconfig
---- a/arch/sh/Kconfig~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/Kconfig
-@@ -74,7 +74,7 @@ config GENERIC_IOMAP
- 	bool
+diff -puN drivers/serial/crisv10.c~crisv10-change-serial-driver-proc-usage drivers/serial/crisv10.c
+--- a/drivers/serial/crisv10.c~crisv10-change-serial-driver-proc-usage
++++ a/drivers/serial/crisv10.c
+@@ -23,16 +23,18 @@ static char *serial_version = "$Revision
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+-#include <asm/uaccess.h>
+ #include <linux/kernel.h>
+ #include <linux/mutex.h>
+ #include <linux/bitops.h>
++#include <linux/seq_file.h>
++#include <linux/delay.h>
++#include <linux/module.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
  
- config GENERIC_TIME
--	def_bool n
-+	def_bool y
+-#include <asm/io.h>
+ #include <asm/irq.h>
+ #include <asm/dma.h>
+ #include <asm/system.h>
+-#include <linux/delay.h>
  
- config GENERIC_CLOCKEVENTS
- 	def_bool n
-@@ -451,6 +451,10 @@ config SH_TMU
- 	help
- 	  This enables the use of the TMU as the system timer.
+ #include <arch/svinto.h>
  
-+config ARCH_USES_GETTIMEOFFSET
-+	def_bool y
-+	depends on !SH_TMU
+@@ -456,7 +458,6 @@ static struct e100_serial rs_table[] = {
+ 
+ #define NR_PORTS (sizeof(rs_table)/sizeof(struct e100_serial))
+ 
+-static struct ktermios *serial_termios[NR_PORTS];
+ #ifdef CONFIG_ETRAX_SERIAL_FAST_TIMER
+ static struct fast_timer fast_timers[NR_PORTS];
+ #endif
+@@ -4257,151 +4258,132 @@ rs_open(struct tty_struct *tty, struct f
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PROC_FS
+ /*
+  * /proc fs routines....
+  */
+ 
+-static int line_info(char *buf, struct e100_serial *info)
++static void seq_line_info(struct seq_file *m, struct e100_serial *info)
+ {
+-	char	stat_buf[30];
+-	int	ret;
+ 	unsigned long tmp;
+ 
+-	ret = sprintf(buf, "%d: uart:E100 port:%lX irq:%d",
+-		      info->line, (unsigned long)info->ioport, info->irq);
++	seq_printf(m, "%d: uart:E100 port:%lX irq:%d",
++		   info->line, (unsigned long)info->ioport, info->irq);
+ 
+ 	if (!info->ioport || (info->type == PORT_UNKNOWN)) {
+-		ret += sprintf(buf+ret, "\n");
+-		return ret;
++		seq_printf(m, "\n");
++		return;
+ 	}
+ 
+-	stat_buf[0] = 0;
+-	stat_buf[1] = 0;
+-	if (!E100_RTS_GET(info))
+-		strcat(stat_buf, "|RTS");
+-	if (!E100_CTS_GET(info))
+-		strcat(stat_buf, "|CTS");
+-	if (!E100_DTR_GET(info))
+-		strcat(stat_buf, "|DTR");
+-	if (!E100_DSR_GET(info))
+-		strcat(stat_buf, "|DSR");
+-	if (!E100_CD_GET(info))
+-		strcat(stat_buf, "|CD");
+-	if (!E100_RI_GET(info))
+-		strcat(stat_buf, "|RI");
+-
+-	ret += sprintf(buf+ret, " baud:%d", info->baud);
+-
+-	ret += sprintf(buf+ret, " tx:%lu rx:%lu",
++	seq_printf(m, " baud:%d", info->baud);
++	seq_printf(m, " tx:%lu rx:%lu",
+ 		       (unsigned long)info->icount.tx,
+ 		       (unsigned long)info->icount.rx);
+ 	tmp = CIRC_CNT(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE);
+-	if (tmp) {
+-		ret += sprintf(buf+ret, " tx_pend:%lu/%lu",
+-			       (unsigned long)tmp,
+-			       (unsigned long)SERIAL_XMIT_SIZE);
+-	}
+-
+-	ret += sprintf(buf+ret, " rx_pend:%lu/%lu",
+-		       (unsigned long)info->recv_cnt,
+-		       (unsigned long)info->max_recv_cnt);
++	if (tmp)
++		seq_printf(m, " tx_pend:%lu/%lu",
++			   (unsigned long)tmp,
++			   (unsigned long)SERIAL_XMIT_SIZE);
 +
- config SH_CMT
- 	bool "CMT timer support"
- 	depends on SYS_SUPPORTS_CMT && CPU_SH2
-diff -puN arch/sh/include/asm/timer.h~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/include/asm/timer.h
---- a/arch/sh/include/asm/timer.h~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/include/asm/timer.h
-@@ -9,7 +9,7 @@ struct sys_timer_ops {
- 	int (*init)(void);
- 	int (*start)(void);
- 	int (*stop)(void);
--#ifndef CONFIG_GENERIC_TIME
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
- 	unsigned long (*get_offset)(void);
++	seq_printf(m, " rx_pend:%lu/%lu",
++		   (unsigned long)info->recv_cnt,
++		   (unsigned long)info->max_recv_cnt);
+ 
+ #if 1
+ 	if (info->port.tty) {
+-
+ 		if (info->port.tty->stopped)
+-			ret += sprintf(buf+ret, " stopped:%i",
+-				       (int)info->port.tty->stopped);
++			seq_printf(m, " stopped:%i",
++				   (int)info->port.tty->stopped);
+ 		if (info->port.tty->hw_stopped)
+-			ret += sprintf(buf+ret, " hw_stopped:%i",
+-				       (int)info->port.tty->hw_stopped);
++			seq_printf(m, " hw_stopped:%i",
++				   (int)info->port.tty->hw_stopped);
+ 	}
+ 
+ 	{
+ 		unsigned char rstat = info->ioport[REG_STATUS];
+-		if (rstat & IO_MASK(R_SERIAL0_STATUS, xoff_detect) )
+-			ret += sprintf(buf+ret, " xoff_detect:1");
++		if (rstat & IO_MASK(R_SERIAL0_STATUS, xoff_detect))
++			seq_printf(m, " xoff_detect:1");
+ 	}
+ 
  #endif
- };
-@@ -26,7 +26,7 @@ struct sys_timer {
- extern struct sys_timer tmu_timer, cmt_timer, mtu2_timer;
- extern struct sys_timer *sys_timer;
  
--#ifndef CONFIG_GENERIC_TIME
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
- static inline unsigned long get_timer_offset(void)
- {
- 	return sys_timer->ops->get_offset();
-diff -puN arch/sh/kernel/time_32.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/time_32.c
---- a/arch/sh/kernel/time_32.c~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/kernel/time_32.c
-@@ -44,65 +44,12 @@ static int null_rtc_set_time(const time_
- void (*rtc_sh_get_time)(struct timespec *) = null_rtc_get_time;
- int (*rtc_sh_set_time)(const time_t) = null_rtc_set_time;
+-
+-
+-
+ 	if (info->icount.frame)
+-		ret += sprintf(buf+ret, " fe:%lu",
+-			       (unsigned long)info->icount.frame);
++		seq_printf(m, " fe:%lu", (unsigned long)info->icount.frame);
  
--#ifndef CONFIG_GENERIC_TIME
--void do_gettimeofday(struct timeval *tv)
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
-+u32 arch_gettimeoffset(void)
- {
--	unsigned long flags;
--	unsigned long seq;
--	unsigned long usec, sec;
--
--	do {
--		/*
--		 * Turn off IRQs when grabbing xtime_lock, so that
--		 * the sys_timer get_offset code doesn't have to handle it.
--		 */
--		seq = read_seqbegin_irqsave(&xtime_lock, flags);
--		usec = get_timer_offset();
--		sec = xtime.tv_sec;
--		usec += xtime.tv_nsec / NSEC_PER_USEC;
--	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
--
--	while (usec >= 1000000) {
--		usec -= 1000000;
--		sec++;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
--}
--EXPORT_SYMBOL(do_gettimeofday);
--
--int do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--	/*
--	 * This is revolting. We need to set "xtime" correctly. However, the
--	 * value in this location is the value at the most recent update of
--	 * wall time.  Discover what correction gettimeofday() would have
--	 * made, and then undo it!
--	 */
--	nsec -= get_timer_offset() * NSEC_PER_USEC;
--
--	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--
--	return 0;
-+	return get_timer_offset() * 1000;
- }
--EXPORT_SYMBOL(do_settimeofday);
--#endif /* !CONFIG_GENERIC_TIME */
-+#endif /* CONFIG_ARCH_USES_GETTIMEOFFSET */
+ 	if (info->icount.parity)
+-		ret += sprintf(buf+ret, " pe:%lu",
+-			       (unsigned long)info->icount.parity);
++		seq_printf(m, " pe:%lu", (unsigned long)info->icount.parity);
  
- /* last time the RTC clock got updated */
- static long last_rtc_update;
-@@ -200,7 +147,7 @@ struct clocksource clocksource_sh = {
- 	.name		= "SuperH",
- };
+ 	if (info->icount.brk)
+-		ret += sprintf(buf+ret, " brk:%lu",
+-			       (unsigned long)info->icount.brk);
++		seq_printf(m, " brk:%lu", (unsigned long)info->icount.brk);
  
--#ifdef CONFIG_GENERIC_TIME
-+#ifndef CONFIG_ARCH_USES_GETTIMEOFFSET
- unsigned long long sched_clock(void)
- {
- 	unsigned long long cycles;
-diff -puN arch/sh/kernel/time_64.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/time_64.c
---- a/arch/sh/kernel/time_64.c~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/kernel/time_64.c
-@@ -144,59 +144,10 @@ static unsigned long usecs_since_tick(vo
- 	return result;
+ 	if (info->icount.overrun)
+-		ret += sprintf(buf+ret, " oe:%lu",
+-			       (unsigned long)info->icount.overrun);
++		seq_printf(m, " oe:%lu", (unsigned long)info->icount.overrun);
+ 
+ 	/*
+ 	 * Last thing is the RS-232 status lines
+ 	 */
+-	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
+-	return ret;
++	if (!E100_RTS_GET(info))
++		seq_puts(m, "|RTS");
++	if (!E100_CTS_GET(info))
++		seq_puts(m, "|CTS");
++	if (!E100_DTR_GET(info))
++		seq_puts(m, "|DTR");
++	if (!E100_DSR_GET(info))
++		seq_puts(m, "|DSR");
++	if (!E100_CD_GET(info))
++		seq_puts(m, "|CD");
++	if (!E100_RI_GET(info))
++		seq_puts(m, "|RI");
++	seq_puts(m, "\n");
  }
  
--void do_gettimeofday(struct timeval *tv)
-+u32 arch_gettimeoffset(void)
+-int rs_read_proc(char *page, char **start, off_t off, int count,
+-		 int *eof, void *data)
++
++static int crisv10_proc_show(struct seq_file *m, void *v)
  {
--	unsigned long flags;
--	unsigned long seq;
--	unsigned long usec, sec;
--
--	do {
--		seq = read_seqbegin_irqsave(&xtime_lock, flags);
--		usec = usecs_since_tick();
--		sec = xtime.tv_sec;
--		usec += xtime.tv_nsec / 1000;
--	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
--
--	while (usec >= 1000000) {
--		usec -= 1000000;
--		sec++;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
--}
--EXPORT_SYMBOL(do_gettimeofday);
--
--int do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--	/*
--	 * This is revolting. We need to set "xtime" correctly. However, the
--	 * value in this location is the value at the most recent update of
--	 * wall time.  Discover what correction gettimeofday() would have
--	 * made, and then undo it!
--	 */
--	nsec -= 1000 * usecs_since_tick();
--
--	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--
--	return 0;
-+	return usecs_since_tick() * 1000;
- }
--EXPORT_SYMBOL(do_settimeofday);
+-	int i, len = 0, l;
+-	off_t	begin = 0;
++	int i;
++
++	seq_printf(m, "serinfo:1.0 driver:%s\n", serial_version);
  
- /* Dummy RTC ops */
- static void null_rtc_get_time(struct timespec *tv)
-diff -puN arch/sh/kernel/timers/timer-cmt.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/timers/timer-cmt.c
---- a/arch/sh/kernel/timers/timer-cmt.c~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/kernel/timers/timer-cmt.c
-@@ -177,7 +177,7 @@ static struct sys_timer_ops cmt_timer_op
- 	.init		= cmt_timer_init,
- 	.start		= cmt_timer_start,
- 	.stop		= cmt_timer_stop,
--#ifndef CONFIG_GENERIC_TIME
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
- 	.get_offset	= cmt_timer_get_offset,
+-	len += sprintf(page, "serinfo:1.0 driver:%s\n",
+-		       serial_version);
+-	for (i = 0; i < NR_PORTS && len < 4000; i++) {
++	for (i = 0; i < NR_PORTS; i++) {
+ 		if (!rs_table[i].enabled)
+ 			continue;
+-		l = line_info(page + len, &rs_table[i]);
+-		len += l;
+-		if (len+begin > off+count)
+-			goto done;
+-		if (len+begin < off) {
+-			begin += len;
+-			len = 0;
+-		}
++		seq_line_info(m, &rs_table[i]);
+ 	}
+ #ifdef DEBUG_LOG_INCLUDED
+ 	for (i = 0; i < debug_log_pos; i++) {
+-		len += sprintf(page + len, "%-4i %lu.%lu ", i, debug_log[i].time, timer_data_to_ns(debug_log[i].timer_data));
+-		len += sprintf(page + len, debug_log[i].string, debug_log[i].value);
+-		if (len+begin > off+count)
+-			goto done;
+-		if (len+begin < off) {
+-			begin += len;
+-			len = 0;
+-		}
++		seq_printf(m, "%-4i %lu.%lu ",
++			 i, debug_log[i].time,
++			 timer_data_to_ns(debug_log[i].timer_data));
++		seq_printf(m, debug_log[i].string, debug_log[i].value);
+ 	}
+-	len += sprintf(page + len, "debug_log %i/%i  %li bytes\n",
+-		       i, DEBUG_LOG_SIZE, begin+len);
++	seq_printf(m, "debug_log %i/%i\n", i, DEBUG_LOG_SIZE);
+ 	debug_log_pos = 0;
  #endif
++	return 0;
++}
+ 
+-	*eof = 1;
+-done:
+-	if (off >= len+begin)
+-		return 0;
+-	*start = page + (off-begin);
+-	return ((count < begin+len-off) ? count : begin+len-off);
++static int crisv10_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, crisv10_proc_show, NULL);
+ }
+ 
++static const struct file_operations crisv10_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= crisv10_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++#endif
++
++
+ /* Finally, routines used to initialize the serial driver. */
+ 
+-static void
+-show_serial_version(void)
++static void show_serial_version(void)
+ {
+ 	printk(KERN_INFO
+-	       "ETRAX 100LX serial-driver %s, (c) 2000-2004 Axis Communications AB\r\n",
++	       "ETRAX 100LX serial-driver %s, "
++	       "(c) 2000-2004 Axis Communications AB\r\n",
+ 	       &serial_version[11]); /* "$Revision: x.yy" */
+ }
+ 
+@@ -4425,13 +4407,14 @@ static const struct tty_operations rs_op
+ 	.break_ctl = rs_break,
+ 	.send_xchar = rs_send_xchar,
+ 	.wait_until_sent = rs_wait_until_sent,
+-	.read_proc = rs_read_proc,
+ 	.tiocmget = rs_tiocmget,
+-	.tiocmset = rs_tiocmset
++	.tiocmset = rs_tiocmset,
++#ifdef CONFIG_PROC_FS
++	.proc_fops = &crisv10_proc_fops,
++#endif
  };
-diff -puN arch/sh/kernel/timers/timer-mtu2.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/timers/timer-mtu2.c
---- a/arch/sh/kernel/timers/timer-mtu2.c~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/kernel/timers/timer-mtu2.c
-@@ -191,7 +191,7 @@ struct sys_timer_ops mtu2_timer_ops = {
- 	.init		= mtu2_timer_init,
- 	.start		= mtu2_timer_start,
- 	.stop		= mtu2_timer_stop,
--#ifndef CONFIG_GENERIC_TIME
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
- 	.get_offset	= mtu2_timer_get_offset,
- #endif
- };
+ 
+-static int __init
+-rs_init(void)
++static int __init rs_init(void)
+ {
+ 	int i;
+ 	struct e100_serial *info;
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from Jesper.Nilsson@axis.com are
 
-clocksource-pass-clocksource-to-read-callback.patch
-clocksource-add-enable-and-disable-callbacks.patch
-clocksource-sanity-check-sysfs-clocksource-changes.patch
-time-move-calc_load-call-out-from-xtime_lock-protection.patch
-time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
-time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
-time-sh-convert-to-use-arch_getoffset-infrastructure.patch
+crisv10-change-serial-driver-proc-usage.patch
 
