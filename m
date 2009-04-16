@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + crisv10-change-serial-driver-proc-usage.patch added to -mm tree
-Date: Thu, 16 Apr 2009 16:09:49 -0700
-Message-ID: <200904162309.n3GN9n9F012386@imap1.linux-foundation.org>
+Subject: + time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch added to -mm tree
+Date: Thu, 16 Apr 2009 16:04:43 -0700
+Message-ID: <200904162304.n3GN4iSk009957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754161AbZDPXNb (ORCPT
+	by vger.kernel.org with ESMTP id S1754161AbZDPXPJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 19:13:31 -0400
+	Thu, 16 Apr 2009 19:15:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Jesper.Nilsson@axis.com, adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, jesper.nilsson@axis.com, starvik@axis.com
+Cc: johnstul@us.ibm.com, cooloney@kernel.org, geert@linux-m68k.org, ink@jurassic.park.msu.ru, lethal@linux-sh.org, magnus.damm@gmail.com, rmk@arm.linux.org.uk, rth@twiddle.net, starvik@axis.com, takata@linux-m32r.org, zippel@linux-m68k.org
 
 
 The patch titled
-     CRISv10: fix serial driver proc-usage
+     time: create arch_gettimeoffset infrastructure for use in the generic timekeeping core.
 has been added to the -mm tree.  Its filename is
-     crisv10-change-serial-driver-proc-usage.patch
+     time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,304 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CRISv10: fix serial driver proc-usage
-From: Jesper Nilsson <Jesper.Nilsson@axis.com>
+Subject: time: create arch_gettimeoffset infrastructure for use in the generic timekeeping core.
+From: john stultz <johnstul@us.ibm.com>
 
-drivers/serial/crisv10.c:4428: error: unknown field 'read_proc' specified in initializer
+Some arches don't supply their own clocksource.  This is mainly the case
+in architectures that get their inter-tick times by reading the counter on
+their interval timer.  Since these timers wrap every tick, they're not
+really useful as clocksources.  Wrapping them to act like one is possible
+but not very efficient.  So we provide a callout these arches can
+implement for use with the jiffies clocksource to provide finer then tick
+granular time.
 
-Commit 0f043a81ebe84be3576667f04fdda481609e3816 ("proc tty: remove struct
-tty_operations::read_proc") removes the read_proc entry from struct
-tty_operations.
-
-Rework the proc handling in the CRISv10 serial driver to use proc_fops
-instead.
-
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bryan Wu <cooloney@kernel.org>
 Cc: Mikael Starvik <starvik@axis.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Magnus Damm <magnus.damm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/crisv10.c |  175 ++++++++++++++++---------------------
- 1 file changed, 79 insertions(+), 96 deletions(-)
+ include/linux/time.h      |   15 +++++++++++++++
+ kernel/time/timekeeping.c |    7 +++++++
+ 2 files changed, 22 insertions(+)
 
-diff -puN drivers/serial/crisv10.c~crisv10-change-serial-driver-proc-usage drivers/serial/crisv10.c
---- a/drivers/serial/crisv10.c~crisv10-change-serial-driver-proc-usage
-+++ a/drivers/serial/crisv10.c
-@@ -23,16 +23,18 @@ static char *serial_version = "$Revision
- #include <linux/mm.h>
- #include <linux/slab.h>
- #include <linux/init.h>
--#include <asm/uaccess.h>
- #include <linux/kernel.h>
- #include <linux/mutex.h>
- #include <linux/bitops.h>
-+#include <linux/seq_file.h>
-+#include <linux/delay.h>
-+#include <linux/module.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
+diff -puN include/linux/time.h~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core include/linux/time.h
+--- a/include/linux/time.h~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core
++++ a/include/linux/time.h
+@@ -113,6 +113,21 @@ struct timespec current_kernel_time(void
+ #define CURRENT_TIME		(current_kernel_time())
+ #define CURRENT_TIME_SEC	((struct timespec) { get_seconds(), 0 })
  
--#include <asm/io.h>
- #include <asm/irq.h>
- #include <asm/dma.h>
- #include <asm/system.h>
--#include <linux/delay.h>
- 
- #include <arch/svinto.h>
- 
-@@ -456,7 +458,6 @@ static struct e100_serial rs_table[] = {
- 
- #define NR_PORTS (sizeof(rs_table)/sizeof(struct e100_serial))
- 
--static struct ktermios *serial_termios[NR_PORTS];
- #ifdef CONFIG_ETRAX_SERIAL_FAST_TIMER
- static struct fast_timer fast_timers[NR_PORTS];
- #endif
-@@ -4257,151 +4258,132 @@ rs_open(struct tty_struct *tty, struct f
- 	return 0;
- }
- 
-+#ifdef CONFIG_PROC_FS
- /*
-  * /proc fs routines....
-  */
- 
--static int line_info(char *buf, struct e100_serial *info)
-+static void seq_line_info(struct seq_file *m, struct e100_serial *info)
- {
--	char	stat_buf[30];
--	int	ret;
- 	unsigned long tmp;
- 
--	ret = sprintf(buf, "%d: uart:E100 port:%lX irq:%d",
--		      info->line, (unsigned long)info->ioport, info->irq);
-+	seq_printf(m, "%d: uart:E100 port:%lX irq:%d",
-+		   info->line, (unsigned long)info->ioport, info->irq);
- 
- 	if (!info->ioport || (info->type == PORT_UNKNOWN)) {
--		ret += sprintf(buf+ret, "\n");
--		return ret;
-+		seq_printf(m, "\n");
-+		return;
- 	}
- 
--	stat_buf[0] = 0;
--	stat_buf[1] = 0;
--	if (!E100_RTS_GET(info))
--		strcat(stat_buf, "|RTS");
--	if (!E100_CTS_GET(info))
--		strcat(stat_buf, "|CTS");
--	if (!E100_DTR_GET(info))
--		strcat(stat_buf, "|DTR");
--	if (!E100_DSR_GET(info))
--		strcat(stat_buf, "|DSR");
--	if (!E100_CD_GET(info))
--		strcat(stat_buf, "|CD");
--	if (!E100_RI_GET(info))
--		strcat(stat_buf, "|RI");
--
--	ret += sprintf(buf+ret, " baud:%d", info->baud);
--
--	ret += sprintf(buf+ret, " tx:%lu rx:%lu",
-+	seq_printf(m, " baud:%d", info->baud);
-+	seq_printf(m, " tx:%lu rx:%lu",
- 		       (unsigned long)info->icount.tx,
- 		       (unsigned long)info->icount.rx);
- 	tmp = CIRC_CNT(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE);
--	if (tmp) {
--		ret += sprintf(buf+ret, " tx_pend:%lu/%lu",
--			       (unsigned long)tmp,
--			       (unsigned long)SERIAL_XMIT_SIZE);
--	}
--
--	ret += sprintf(buf+ret, " rx_pend:%lu/%lu",
--		       (unsigned long)info->recv_cnt,
--		       (unsigned long)info->max_recv_cnt);
-+	if (tmp)
-+		seq_printf(m, " tx_pend:%lu/%lu",
-+			   (unsigned long)tmp,
-+			   (unsigned long)SERIAL_XMIT_SIZE);
-+
-+	seq_printf(m, " rx_pend:%lu/%lu",
-+		   (unsigned long)info->recv_cnt,
-+		   (unsigned long)info->max_recv_cnt);
- 
- #if 1
- 	if (info->port.tty) {
--
- 		if (info->port.tty->stopped)
--			ret += sprintf(buf+ret, " stopped:%i",
--				       (int)info->port.tty->stopped);
-+			seq_printf(m, " stopped:%i",
-+				   (int)info->port.tty->stopped);
- 		if (info->port.tty->hw_stopped)
--			ret += sprintf(buf+ret, " hw_stopped:%i",
--				       (int)info->port.tty->hw_stopped);
-+			seq_printf(m, " hw_stopped:%i",
-+				   (int)info->port.tty->hw_stopped);
- 	}
- 
- 	{
- 		unsigned char rstat = info->ioport[REG_STATUS];
--		if (rstat & IO_MASK(R_SERIAL0_STATUS, xoff_detect) )
--			ret += sprintf(buf+ret, " xoff_detect:1");
-+		if (rstat & IO_MASK(R_SERIAL0_STATUS, xoff_detect))
-+			seq_printf(m, " xoff_detect:1");
- 	}
- 
- #endif
- 
--
--
--
- 	if (info->icount.frame)
--		ret += sprintf(buf+ret, " fe:%lu",
--			       (unsigned long)info->icount.frame);
-+		seq_printf(m, " fe:%lu", (unsigned long)info->icount.frame);
- 
- 	if (info->icount.parity)
--		ret += sprintf(buf+ret, " pe:%lu",
--			       (unsigned long)info->icount.parity);
-+		seq_printf(m, " pe:%lu", (unsigned long)info->icount.parity);
- 
- 	if (info->icount.brk)
--		ret += sprintf(buf+ret, " brk:%lu",
--			       (unsigned long)info->icount.brk);
-+		seq_printf(m, " brk:%lu", (unsigned long)info->icount.brk);
- 
- 	if (info->icount.overrun)
--		ret += sprintf(buf+ret, " oe:%lu",
--			       (unsigned long)info->icount.overrun);
-+		seq_printf(m, " oe:%lu", (unsigned long)info->icount.overrun);
- 
- 	/*
- 	 * Last thing is the RS-232 status lines
- 	 */
--	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
--	return ret;
-+	if (!E100_RTS_GET(info))
-+		seq_puts(m, "|RTS");
-+	if (!E100_CTS_GET(info))
-+		seq_puts(m, "|CTS");
-+	if (!E100_DTR_GET(info))
-+		seq_puts(m, "|DTR");
-+	if (!E100_DSR_GET(info))
-+		seq_puts(m, "|DSR");
-+	if (!E100_CD_GET(info))
-+		seq_puts(m, "|CD");
-+	if (!E100_RI_GET(info))
-+		seq_puts(m, "|RI");
-+	seq_puts(m, "\n");
- }
- 
--int rs_read_proc(char *page, char **start, off_t off, int count,
--		 int *eof, void *data)
-+
-+static int crisv10_proc_show(struct seq_file *m, void *v)
- {
--	int i, len = 0, l;
--	off_t	begin = 0;
-+	int i;
-+
-+	seq_printf(m, "serinfo:1.0 driver:%s\n", serial_version);
- 
--	len += sprintf(page, "serinfo:1.0 driver:%s\n",
--		       serial_version);
--	for (i = 0; i < NR_PORTS && len < 4000; i++) {
-+	for (i = 0; i < NR_PORTS; i++) {
- 		if (!rs_table[i].enabled)
- 			continue;
--		l = line_info(page + len, &rs_table[i]);
--		len += l;
--		if (len+begin > off+count)
--			goto done;
--		if (len+begin < off) {
--			begin += len;
--			len = 0;
--		}
-+		seq_line_info(m, &rs_table[i]);
- 	}
- #ifdef DEBUG_LOG_INCLUDED
- 	for (i = 0; i < debug_log_pos; i++) {
--		len += sprintf(page + len, "%-4i %lu.%lu ", i, debug_log[i].time, timer_data_to_ns(debug_log[i].timer_data));
--		len += sprintf(page + len, debug_log[i].string, debug_log[i].value);
--		if (len+begin > off+count)
--			goto done;
--		if (len+begin < off) {
--			begin += len;
--			len = 0;
--		}
-+		seq_printf(m, "%-4i %lu.%lu ",
-+			 i, debug_log[i].time,
-+			 timer_data_to_ns(debug_log[i].timer_data));
-+		seq_printf(m, debug_log[i].string, debug_log[i].value);
- 	}
--	len += sprintf(page + len, "debug_log %i/%i  %li bytes\n",
--		       i, DEBUG_LOG_SIZE, begin+len);
-+	seq_printf(m, "debug_log %i/%i\n", i, DEBUG_LOG_SIZE);
- 	debug_log_pos = 0;
- #endif
-+	return 0;
-+}
- 
--	*eof = 1;
--done:
--	if (off >= len+begin)
--		return 0;
--	*start = page + (off-begin);
--	return ((count < begin+len-off) ? count : begin+len-off);
-+static int crisv10_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, crisv10_proc_show, NULL);
- }
- 
-+static const struct file_operations crisv10_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= crisv10_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
++/* Some architectures do not supply their own clocksource.
++ * This is mainly the case in architectures that get their
++ * inter-tick times by reading the counter on their interval
++ * timer. Since these timers wrap every tick, they're not really
++ * useful as clocksources. Wrapping them to act like one is possible
++ * but not very efficient. So we provide a callout these arches
++ * can implement for use with the jiffies clocksource to provide
++ * finer then tick granular time.
++ */
++#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
++extern u32 arch_gettimeoffset(void);
++#else
++#define arch_gettimeoffset() (0)
 +#endif
 +
+ extern void do_gettimeofday(struct timeval *tv);
+ extern int do_settimeofday(struct timespec *tv);
+ extern int do_sys_settimeofday(struct timespec *tv, struct timezone *tz);
+diff -puN kernel/time/timekeeping.c~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core
++++ a/kernel/time/timekeeping.c
+@@ -77,6 +77,10 @@ static void clocksource_forward_now(void
+ 	clock->cycle_last = cycle_now;
+ 
+ 	nsec = cyc2ns(clock, cycle_delta);
 +
- /* Finally, routines used to initialize the serial driver. */
++	/* If arch requires, add in gettimeoffset() */
++	nsec += arch_gettimeoffset();
++
+ 	timespec_add_ns(&xtime, nsec);
  
--static void
--show_serial_version(void)
-+static void show_serial_version(void)
- {
- 	printk(KERN_INFO
--	       "ETRAX 100LX serial-driver %s, (c) 2000-2004 Axis Communications AB\r\n",
-+	       "ETRAX 100LX serial-driver %s, "
-+	       "(c) 2000-2004 Axis Communications AB\r\n",
- 	       &serial_version[11]); /* "$Revision: x.yy" */
- }
+ 	nsec = ((s64)cycle_delta * clock->mult_orig) >> clock->shift;
+@@ -111,6 +115,9 @@ void getnstimeofday(struct timespec *ts)
+ 		/* convert to nanoseconds: */
+ 		nsecs = cyc2ns(clock, cycle_delta);
  
-@@ -4425,13 +4407,14 @@ static const struct tty_operations rs_op
- 	.break_ctl = rs_break,
- 	.send_xchar = rs_send_xchar,
- 	.wait_until_sent = rs_wait_until_sent,
--	.read_proc = rs_read_proc,
- 	.tiocmget = rs_tiocmget,
--	.tiocmset = rs_tiocmset
-+	.tiocmset = rs_tiocmset,
-+#ifdef CONFIG_PROC_FS
-+	.proc_fops = &crisv10_proc_fops,
-+#endif
- };
++		/* If arch requires, add in gettimeoffset() */
++		nsecs += arch_gettimeoffset();
++
+ 	} while (read_seqretry(&xtime_lock, seq));
  
--static int __init
--rs_init(void)
-+static int __init rs_init(void)
- {
- 	int i;
- 	struct e100_serial *info;
+ 	timespec_add_ns(ts, nsecs);
 _
 
-Patches currently in -mm which might be from Jesper.Nilsson@axis.com are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-crisv10-change-serial-driver-proc-usage.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-add-enable-and-disable-callbacks.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
+time-move-calc_load-call-out-from-xtime_lock-protection.patch
+time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
+time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
+time-sh-convert-to-use-arch_getoffset-infrastructure.patch
 
