@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-enforce-full-sync-mmap-readahead-size.patch added to -mm tree
-Date: Thu, 16 Apr 2009 16:00:44 -0700
-Message-ID: <200904162300.n3GN0jnG007988@imap1.linux-foundation.org>
+Subject: + time-sh-convert-to-use-arch_getoffset-infrastructure.patch added to -mm tree
+Date: Thu, 16 Apr 2009 16:04:47 -0700
+Message-ID: <200904162304.n3GN4lDi009966@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754775AbZDPXCW (ORCPT
+	by vger.kernel.org with ESMTP id S1754283AbZDPXHI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 19:02:22 -0400
+	Thu, 16 Apr 2009 19:07:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com
+Cc: johnstul@us.ibm.com, lethal@linux-sh.org
 
 
 The patch titled
-     readahead: enforce full sync mmap readahead size
+     time: sh: convert to use arch_getoffset() infrastructure
 has been added to the -mm tree.  Its filename is
-     readahead-enforce-full-sync-mmap-readahead-size.patch
+     time-sh-convert-to-use-arch_getoffset-infrastructure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,248 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: enforce full sync mmap readahead size
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: time: sh: convert to use arch_getoffset() infrastructure
+From: john stultz <johnstul@us.ibm.com>
 
-Now that we do readahead for sequential mmap reads, here is a simple
-evaluation of the impacts, and one further optimization.
+Convert sh to use GENERIC_TIME via the arch_getoffset() infrastructure.
 
-It's an NFS-root debian desktop system, readahead size = 60 pages.
-The numbers are grabbed after a fresh boot into console.
-
-approach        pgmajfault      RA miss ratio   mmap IO count   avg IO size(pages)
-   A            383             31.6%           383             11
-   B            225             32.4%           390             11
-   C            224             32.6%           307             13
-
-case A: mmap sync/async readahead disabled
-case B: mmap sync/async readahead enabled, with enforced full async readahead size
-case C: mmap sync/async readahead enabled, with enforced full sync/async readahead size
-or:
-A = vanilla 2.6.30-rc1
-B = A plus mmap readahead
-C = B plus this patch
-
-The numbers show that
-- there are good possibilities for random mmap reads to trigger readahead
-- 'pgmajfault' is reduced by 1/3, due to the _async_ nature of readahead
-- case C can further reduce IO count by 1/4
-- readahead miss ratios are not quite affected
-
-The theory is
-- readahead is _good_ for clustered random reads, and can perform
-  _better_ than readaround because they could be _async_.
-- async readahead size is guaranteed to be larger than readaround
-  size, and they are _async_, hence will mostly behave better
-However for B
-- sync readahead size could be smaller than readaround size, hence may
-  make things worse by produce more smaller IOs
-which will be fixed by this patch.
-
-Final conclusion:
-- mmap readahead reduced major faults by 1/3 and no obvious overheads;
-- mmap io can be further reduced by 1/4 with this patch.
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sh/Kconfig                    |    6 ++
+ arch/sh/include/asm/timer.h        |    4 -
+ arch/sh/kernel/time_32.c           |   63 ++-------------------------
+ arch/sh/kernel/time_64.c           |   53 ----------------------
+ arch/sh/kernel/timers/timer-cmt.c  |    2 
+ arch/sh/kernel/timers/timer-mtu2.c |    2 
+ 6 files changed, 16 insertions(+), 114 deletions(-)
 
-diff -puN mm/filemap.c~readahead-enforce-full-sync-mmap-readahead-size mm/filemap.c
---- a/mm/filemap.c~readahead-enforce-full-sync-mmap-readahead-size
-+++ a/mm/filemap.c
-@@ -1471,7 +1471,8 @@ static void do_sync_mmap_readahead(struc
+diff -puN arch/sh/Kconfig~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/Kconfig
+--- a/arch/sh/Kconfig~time-sh-convert-to-use-arch_getoffset-infrastructure
++++ a/arch/sh/Kconfig
+@@ -74,7 +74,7 @@ config GENERIC_IOMAP
+ 	bool
  
- 	if (VM_SequentialReadHint(vma) ||
- 			offset - 1 == (ra->prev_pos >> PAGE_CACHE_SHIFT)) {
--		page_cache_sync_readahead(mapping, ra, file, offset, 1);
-+		page_cache_sync_readahead(mapping, ra, file, offset,
-+					  ra->ra_pages);
- 		return;
- 	}
+ config GENERIC_TIME
+-	def_bool n
++	def_bool y
  
+ config GENERIC_CLOCKEVENTS
+ 	def_bool n
+@@ -451,6 +451,10 @@ config SH_TMU
+ 	help
+ 	  This enables the use of the TMU as the system timer.
+ 
++config ARCH_USES_GETTIMEOFFSET
++	def_bool y
++	depends on !SH_TMU
++
+ config SH_CMT
+ 	bool "CMT timer support"
+ 	depends on SYS_SUPPORTS_CMT && CPU_SH2
+diff -puN arch/sh/include/asm/timer.h~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/include/asm/timer.h
+--- a/arch/sh/include/asm/timer.h~time-sh-convert-to-use-arch_getoffset-infrastructure
++++ a/arch/sh/include/asm/timer.h
+@@ -9,7 +9,7 @@ struct sys_timer_ops {
+ 	int (*init)(void);
+ 	int (*start)(void);
+ 	int (*stop)(void);
+-#ifndef CONFIG_GENERIC_TIME
++#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
+ 	unsigned long (*get_offset)(void);
+ #endif
+ };
+@@ -26,7 +26,7 @@ struct sys_timer {
+ extern struct sys_timer tmu_timer, cmt_timer, mtu2_timer;
+ extern struct sys_timer *sys_timer;
+ 
+-#ifndef CONFIG_GENERIC_TIME
++#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
+ static inline unsigned long get_timer_offset(void)
+ {
+ 	return sys_timer->ops->get_offset();
+diff -puN arch/sh/kernel/time_32.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/time_32.c
+--- a/arch/sh/kernel/time_32.c~time-sh-convert-to-use-arch_getoffset-infrastructure
++++ a/arch/sh/kernel/time_32.c
+@@ -44,65 +44,12 @@ static int null_rtc_set_time(const time_
+ void (*rtc_sh_get_time)(struct timespec *) = null_rtc_get_time;
+ int (*rtc_sh_set_time)(const time_t) = null_rtc_set_time;
+ 
+-#ifndef CONFIG_GENERIC_TIME
+-void do_gettimeofday(struct timeval *tv)
++#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
++u32 arch_gettimeoffset(void)
+ {
+-	unsigned long flags;
+-	unsigned long seq;
+-	unsigned long usec, sec;
+-
+-	do {
+-		/*
+-		 * Turn off IRQs when grabbing xtime_lock, so that
+-		 * the sys_timer get_offset code doesn't have to handle it.
+-		 */
+-		seq = read_seqbegin_irqsave(&xtime_lock, flags);
+-		usec = get_timer_offset();
+-		sec = xtime.tv_sec;
+-		usec += xtime.tv_nsec / NSEC_PER_USEC;
+-	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
+-
+-	while (usec >= 1000000) {
+-		usec -= 1000000;
+-		sec++;
+-	}
+-
+-	tv->tv_sec = sec;
+-	tv->tv_usec = usec;
+-}
+-EXPORT_SYMBOL(do_gettimeofday);
+-
+-int do_settimeofday(struct timespec *tv)
+-{
+-	time_t wtm_sec, sec = tv->tv_sec;
+-	long wtm_nsec, nsec = tv->tv_nsec;
+-
+-	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
+-		return -EINVAL;
+-
+-	write_seqlock_irq(&xtime_lock);
+-	/*
+-	 * This is revolting. We need to set "xtime" correctly. However, the
+-	 * value in this location is the value at the most recent update of
+-	 * wall time.  Discover what correction gettimeofday() would have
+-	 * made, and then undo it!
+-	 */
+-	nsec -= get_timer_offset() * NSEC_PER_USEC;
+-
+-	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
+-	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
+-
+-	set_normalized_timespec(&xtime, sec, nsec);
+-	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
+-
+-	ntp_clear();
+-	write_sequnlock_irq(&xtime_lock);
+-	clock_was_set();
+-
+-	return 0;
++	return get_timer_offset() * 1000;
+ }
+-EXPORT_SYMBOL(do_settimeofday);
+-#endif /* !CONFIG_GENERIC_TIME */
++#endif /* CONFIG_ARCH_USES_GETTIMEOFFSET */
+ 
+ /* last time the RTC clock got updated */
+ static long last_rtc_update;
+@@ -200,7 +147,7 @@ struct clocksource clocksource_sh = {
+ 	.name		= "SuperH",
+ };
+ 
+-#ifdef CONFIG_GENERIC_TIME
++#ifndef CONFIG_ARCH_USES_GETTIMEOFFSET
+ unsigned long long sched_clock(void)
+ {
+ 	unsigned long long cycles;
+diff -puN arch/sh/kernel/time_64.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/time_64.c
+--- a/arch/sh/kernel/time_64.c~time-sh-convert-to-use-arch_getoffset-infrastructure
++++ a/arch/sh/kernel/time_64.c
+@@ -144,59 +144,10 @@ static unsigned long usecs_since_tick(vo
+ 	return result;
+ }
+ 
+-void do_gettimeofday(struct timeval *tv)
++u32 arch_gettimeoffset(void)
+ {
+-	unsigned long flags;
+-	unsigned long seq;
+-	unsigned long usec, sec;
+-
+-	do {
+-		seq = read_seqbegin_irqsave(&xtime_lock, flags);
+-		usec = usecs_since_tick();
+-		sec = xtime.tv_sec;
+-		usec += xtime.tv_nsec / 1000;
+-	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
+-
+-	while (usec >= 1000000) {
+-		usec -= 1000000;
+-		sec++;
+-	}
+-
+-	tv->tv_sec = sec;
+-	tv->tv_usec = usec;
+-}
+-EXPORT_SYMBOL(do_gettimeofday);
+-
+-int do_settimeofday(struct timespec *tv)
+-{
+-	time_t wtm_sec, sec = tv->tv_sec;
+-	long wtm_nsec, nsec = tv->tv_nsec;
+-
+-	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
+-		return -EINVAL;
+-
+-	write_seqlock_irq(&xtime_lock);
+-	/*
+-	 * This is revolting. We need to set "xtime" correctly. However, the
+-	 * value in this location is the value at the most recent update of
+-	 * wall time.  Discover what correction gettimeofday() would have
+-	 * made, and then undo it!
+-	 */
+-	nsec -= 1000 * usecs_since_tick();
+-
+-	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
+-	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
+-
+-	set_normalized_timespec(&xtime, sec, nsec);
+-	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
+-
+-	ntp_clear();
+-	write_sequnlock_irq(&xtime_lock);
+-	clock_was_set();
+-
+-	return 0;
++	return usecs_since_tick() * 1000;
+ }
+-EXPORT_SYMBOL(do_settimeofday);
+ 
+ /* Dummy RTC ops */
+ static void null_rtc_get_time(struct timespec *tv)
+diff -puN arch/sh/kernel/timers/timer-cmt.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/timers/timer-cmt.c
+--- a/arch/sh/kernel/timers/timer-cmt.c~time-sh-convert-to-use-arch_getoffset-infrastructure
++++ a/arch/sh/kernel/timers/timer-cmt.c
+@@ -177,7 +177,7 @@ static struct sys_timer_ops cmt_timer_op
+ 	.init		= cmt_timer_init,
+ 	.start		= cmt_timer_start,
+ 	.stop		= cmt_timer_stop,
+-#ifndef CONFIG_GENERIC_TIME
++#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
+ 	.get_offset	= cmt_timer_get_offset,
+ #endif
+ };
+diff -puN arch/sh/kernel/timers/timer-mtu2.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/timers/timer-mtu2.c
+--- a/arch/sh/kernel/timers/timer-mtu2.c~time-sh-convert-to-use-arch_getoffset-infrastructure
++++ a/arch/sh/kernel/timers/timer-mtu2.c
+@@ -191,7 +191,7 @@ struct sys_timer_ops mtu2_timer_ops = {
+ 	.init		= mtu2_timer_init,
+ 	.start		= mtu2_timer_start,
+ 	.stop		= mtu2_timer_stop,
+-#ifndef CONFIG_GENERIC_TIME
++#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
+ 	.get_offset	= mtu2_timer_get_offset,
+ #endif
+ };
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-origin.patch
-linux-next.patch
-readahead-make-mmap_miss-an-unsigned-int.patch
-readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
-readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
-readahead-remove-one-unnecessary-radix-tree-lookup.patch
-readahead-increase-interleaved-readahead-size.patch
-readahead-remove-sync-async-readahead-call-dependency.patch
-readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
-readahead-sequential-mmap-readahead.patch
-readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-radix-tree-add-radix_tree_prev_hole.patch
-readahead-move-the-random-read-case-to-bottom.patch
-readahead-introduce-context-readahead-algorithm.patch
-readahead-introduce-context-readahead-algorithm-update.patch
-readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
-readahead-enforce-full-sync-mmap-readahead-size.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-add-enable-and-disable-callbacks.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
+time-move-calc_load-call-out-from-xtime_lock-protection.patch
+time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
+time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
+time-sh-convert-to-use-arch_getoffset-infrastructure.patch
 
