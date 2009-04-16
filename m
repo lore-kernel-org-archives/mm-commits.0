@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-count-reaches-1.patch added to -mm tree
-Date: Thu, 16 Apr 2009 14:13:47 -0700
-Message-ID: <200904162113.n3GLDlHX020942@imap1.linux-foundation.org>
+Subject: + block-include-empty-disks-in-proc-diskstats.patch added to -mm tree
+Date: Thu, 16 Apr 2009 14:41:16 -0700
+Message-ID: <200904162141.n3GLfGhr001883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33515 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753655AbZDPVP5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753221AbZDPVpw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 17:15:57 -0400
+	Thu, 16 Apr 2009 17:45:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, airlied@linux.ie, eric@anholt.net
+Cc: tj@kernel.org, jens.axboe@oracle.com, solemnwarning@solemnwarning.no-ip.org, stable@kernel.org
 
 
 The patch titled
-     drm: count reaches -1
+     block: include empty disks in /proc/diskstats
 has been added to the -mm tree.  Its filename is
-     drm-count-reaches-1.patch
+     block-include-empty-disks-in-proc-diskstats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: count reaches -1
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: block: include empty disks in /proc/diskstats
+From: Tejun Heo <tj@kernel.org>
 
-With a postfix decrement in the test count will reach -1 rather than 0,
-subsequent tests fail.
+/proc/diskstats used to show stats for all disks whether they're
+zero-sized or not and their non-zero partitions.  Commit
+074a7aca7afa6f230104e8e65eba3420263714a5 ("block: move stats from disk to
+part0") accidentally changed the behavior such that it doesn't print out
+zero sized disks.  This patch implements DISK_PITER_INCL_EMPTY_PART0 flag
+to partition iterator and uses it in diskstats_show() such that empty
+part0 is shown in /proc/diskstats.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Eric Anholt <eric@anholt.net>
+Reported and bisectd by Dianel Collins.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Daniel Collins <solemnwarning@solemnwarning.no-ip.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/via/via_dma.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ block/genhd.c         |   12 ++++++++----
+ include/linux/genhd.h |    1 +
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/gpu/drm/via/via_dma.c~drm-count-reaches-1 drivers/gpu/drm/via/via_dma.c
---- a/drivers/gpu/drm/via/via_dma.c~drm-count-reaches-1
-+++ a/drivers/gpu/drm/via/via_dma.c
-@@ -481,11 +481,13 @@ static int via_wait_idle(drm_via_private
- {
- 	int count = 10000000;
+diff -puN block/genhd.c~block-include-empty-disks-in-proc-diskstats block/genhd.c
+--- a/block/genhd.c~block-include-empty-disks-in-proc-diskstats
++++ a/block/genhd.c
+@@ -98,7 +98,7 @@ void disk_part_iter_init(struct disk_par
  
--	while (!(VIA_READ(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY) && count--);
-+	while (!(VIA_READ(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY) && --count)
-+		;
+ 	if (flags & DISK_PITER_REVERSE)
+ 		piter->idx = ptbl->len - 1;
+-	else if (flags & DISK_PITER_INCL_PART0)
++	else if (flags & (DISK_PITER_INCL_PART0 | DISK_PITER_INCL_EMPTY_PART0))
+ 		piter->idx = 0;
+ 	else
+ 		piter->idx = 1;
+@@ -134,7 +134,8 @@ struct hd_struct *disk_part_iter_next(st
+ 	/* determine iteration parameters */
+ 	if (piter->flags & DISK_PITER_REVERSE) {
+ 		inc = -1;
+-		if (piter->flags & DISK_PITER_INCL_PART0)
++		if (piter->flags & (DISK_PITER_INCL_PART0 |
++				    DISK_PITER_INCL_EMPTY_PART0))
+ 			end = -1;
+ 		else
+ 			end = 0;
+@@ -150,7 +151,10 @@ struct hd_struct *disk_part_iter_next(st
+ 		part = rcu_dereference(ptbl->part[piter->idx]);
+ 		if (!part)
+ 			continue;
+-		if (!(piter->flags & DISK_PITER_INCL_EMPTY) && !part->nr_sects)
++		if (!part->nr_sects &&
++		    !(piter->flags & DISK_PITER_INCL_EMPTY) &&
++		    !(piter->flags & DISK_PITER_INCL_EMPTY_PART0 &&
++		      piter->idx == 0))
+ 			continue;
  
--	while (count-- && (VIA_READ(VIA_REG_STATUS) &
-+	while (count && (VIA_READ(VIA_REG_STATUS) &
- 			   (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY |
--			    VIA_3D_ENG_BUSY))) ;
-+			    VIA_3D_ENG_BUSY)))
-+		--count;
- 	return count;
- }
+ 		get_device(part_to_dev(part));
+@@ -1011,7 +1015,7 @@ static int diskstats_show(struct seq_fil
+ 				"\n\n");
+ 	*/
+  
+-	disk_part_iter_init(&piter, gp, DISK_PITER_INCL_PART0);
++	disk_part_iter_init(&piter, gp, DISK_PITER_INCL_EMPTY_PART0);
+ 	while ((hd = disk_part_iter_next(&piter))) {
+ 		cpu = part_stat_lock();
+ 		part_round_stats(cpu, hd);
+diff -puN include/linux/genhd.h~block-include-empty-disks-in-proc-diskstats include/linux/genhd.h
+--- a/include/linux/genhd.h~block-include-empty-disks-in-proc-diskstats
++++ a/include/linux/genhd.h
+@@ -214,6 +214,7 @@ static inline void disk_put_part(struct 
+ #define DISK_PITER_REVERSE	(1 << 0) /* iterate in the reverse direction */
+ #define DISK_PITER_INCL_EMPTY	(1 << 1) /* include 0-sized parts */
+ #define DISK_PITER_INCL_PART0	(1 << 2) /* include partition 0 */
++#define DISK_PITER_INCL_EMPTY_PART0 (1 << 3) /* include empty partition 0 */
  
-@@ -705,7 +707,7 @@ static int via_cmdbuf_size(struct drm_de
- 	switch (d_siz->func) {
- 	case VIA_CMDBUF_SPACE:
- 		while (((tmp_size = via_cmdbuf_space(dev_priv)) < d_siz->size)
--		       && count--) {
-+		       && --count) {
- 			if (!d_siz->wait) {
- 				break;
- 			}
-@@ -717,7 +719,7 @@ static int via_cmdbuf_size(struct drm_de
- 		break;
- 	case VIA_CMDBUF_LAG:
- 		while (((tmp_size = via_cmdbuf_lag(dev_priv)) > d_siz->size)
--		       && count--) {
-+		       && --count) {
- 			if (!d_siz->wait) {
- 				break;
- 			}
+ struct disk_part_iter {
+ 	struct gendisk		*disk;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 linux-next.patch
-drm-fix-lock_test_with_return-macro.patch
-drm-count-reaches-1.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-microblaze-iowrite-upon-timeout.patch
-uwb-event_size-should-be-signed.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-bfin_5xx-misplaced-parentheses.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-ufs-sector_t-cannot-be-negative.patch
+pata_legacy-fix-no-device-fail-path.patch
+block-include-empty-disks-in-proc-diskstats.patch
 
