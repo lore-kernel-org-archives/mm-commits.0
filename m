@@ -1,71 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] otus-zdusbc-additional-usb-idnetifier.patch removed from -mm tree
-Date: Thu, 16 Apr 2009 13:09:47 -0700
-Message-ID: <200904162009.n3GK9lt6022221@imap1.linux-foundation.org>
+Subject: [merged] uio-add-module_device_table.patch removed from -mm tree
+Date: Thu, 16 Apr 2009 13:09:49 -0700
+Message-ID: <200904162009.n3GK9ni7022224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57097 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751228AbZDPUL7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751294AbZDPUMP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 16:11:59 -0400
+	Thu, 16 Apr 2009 16:12:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dnax88@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: hjk@linutronix.de, greg@kroah.com, vinkronald@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     otus/zdusb.c: additional USB idnetifier
+     uio: add MODULE_DEVICE_TABLE
 has been removed from the -mm tree.  Its filename was
-     otus-zdusbc-additional-usb-idnetifier.patch
+     uio-add-module_device_table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: otus/zdusb.c: additional USB idnetifier
-From: Daniele Napolitano <dnax88@gmail.com>
+Subject: uio: add MODULE_DEVICE_TABLE
+From: "Hans J. Koch" <hjk@linutronix.de>
 
-Provide support for WN111v2 USB 802.11n adapter.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13059
 
-Signed-off-by: Daniele Napolitano <dnax88@gmail.com>
+drivers/uio/uio_cif.c misses a MODULE_DEVICE_TABLE, this fixes it.
+
+Signed-off-by: Hans J. Koch <hjk@linutronix.de>
+Reported-by: <vinkronald@hotmail.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/otus/zdusb.c |    3 ++-
- drivers/staging/otus/zdusb.h |    4 ++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ drivers/uio/uio_cif.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/staging/otus/zdusb.c~otus-zdusbc-additional-usb-idnetifier drivers/staging/otus/zdusb.c
---- a/drivers/staging/otus/zdusb.c~otus-zdusbc-additional-usb-idnetifier
-+++ a/drivers/staging/otus/zdusb.c
-@@ -48,7 +48,8 @@ static const char driver_name[] = "Otus"
- static struct usb_device_id zd1221_ids [] = {
- 	{ USB_DEVICE(VENDOR_ATHR, PRODUCT_AR9170) },
-         { USB_DEVICE(VENDOR_DLINK, PRODUCT_DWA160A) },
--	{ USB_DEVICE(0x0846, 0x9010) },
-+	{ USB_DEVICE(VENDOR_NETGEAR, PRODUCT_WNDA3100) },
-+	{ USB_DEVICE(VENDOR_NETGEAR, PRODUCT_WN111v2) },
- 	{ }					/* Terminating entry */
- };
+diff -puN drivers/uio/uio_cif.c~uio-add-module_device_table drivers/uio/uio_cif.c
+--- a/drivers/uio/uio_cif.c~uio-add-module_device_table
++++ a/drivers/uio/uio_cif.c
+@@ -147,5 +147,6 @@ static void __exit hilscher_exit_module(
+ module_init(hilscher_init_module);
+ module_exit(hilscher_exit_module);
  
-diff -puN drivers/staging/otus/zdusb.h~otus-zdusbc-additional-usb-idnetifier drivers/staging/otus/zdusb.h
---- a/drivers/staging/otus/zdusb.h~otus-zdusbc-additional-usb-idnetifier
-+++ a/drivers/staging/otus/zdusb.h
-@@ -40,4 +40,8 @@
- #define VENDOR_DLINK            0x07D1  //Dlink
- #define PRODUCT_DWA160A         0x3C10
- 
-+#define	VENDOR_NETGEAR		0x0846	/* NetGear */
-+#define	PRODUCT_WNDA3100	0x9010
-+#define	PRODUCT_WN111v2		0x9001
-+
- #endif
++MODULE_DEVICE_TABLE(pci, hilscher_pci_ids);
+ MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Hans J. Koch, Benedikt Spranger");
 _
 
-Patches currently in -mm which might be from dnax88@gmail.com are
+Patches currently in -mm which might be from hjk@linutronix.de are
 
 linux-next.patch
 
