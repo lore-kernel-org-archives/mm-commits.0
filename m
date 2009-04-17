@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isofs-cleanup-mount-option-processing.patch added to -mm tree
-Date: Thu, 16 Apr 2009 17:03:50 -0700
-Message-ID: <200904170003.n3H03oKp006164@imap1.linux-foundation.org>
+Subject: + isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch added to -mm tree
+Date: Thu, 16 Apr 2009 17:03:46 -0700
+Message-ID: <200904170003.n3H03kBu006092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38541 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757325AbZDQAFc (ORCPT
+	by vger.kernel.org with ESMTP id S1758702AbZDQAGx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 20:05:32 -0400
+	Thu, 16 Apr 2009 20:06:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: jack@suse.cz, Hans-Joachim.Baader@cjt.de
 
 
 The patch titled
-     isofs: cleanup mount option processing
+     isofs: let mode and dmode mount options override rock ridge mode setting
 has been added to the -mm tree.  Its filename is
-     isofs-cleanup-mount-option-processing.patch
+     isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,210 +34,190 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isofs: cleanup mount option processing
+Subject: isofs: let mode and dmode mount options override rock ridge mode setting
 From: Jan Kara <jack@suse.cz>
 
-Remove unused variables from isofs_sb_info (used to be some mount
-options), unify variables for option to use 0/1 (some options used
-'y'/'n'), use bit fields for option flags in superblock.
+So far, permissions set via 'mode' and/or 'dmode' mount options were
+effective only if the medium had no rock ridge extensions (or was mounted
+without them).  Add 'overriderockmode' mount option to indicate that these
+options should override permissions set in rock ridge extensions.  Maybe
+this should be default but the current behavior is there since mount
+options were created so I think we should not change how they behave.
 
+Cc: <Hans-Joachim.Baader@cjt.de>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/dir.c   |    5 +---
- fs/isofs/inode.c |   48 ++++++++++++++++++++++-----------------------
- fs/isofs/isofs.h |   28 +++++++++++---------------
- fs/isofs/namei.c |    4 +--
- 4 files changed, 40 insertions(+), 45 deletions(-)
+ Documentation/filesystems/isofs.txt |    9 +++-
+ fs/isofs/inode.c                    |   50 +++++++++++++++++++-------
+ fs/isofs/isofs.h                    |    3 +
+ 3 files changed, 48 insertions(+), 14 deletions(-)
 
-diff -puN fs/isofs/dir.c~isofs-cleanup-mount-option-processing fs/isofs/dir.c
---- a/fs/isofs/dir.c~isofs-cleanup-mount-option-processing
-+++ a/fs/isofs/dir.c
-@@ -195,9 +195,8 @@ static int do_isofs_readdir(struct inode
- 		 * Do not report hidden files if so instructed, or associated
- 		 * files unless instructed to do so
- 		 */
--		if ((sbi->s_hide == 'y' &&
--				(de->flags[-sbi->s_high_sierra] & 1)) ||
--				(sbi->s_showassoc =='n' &&
-+		if ((sbi->s_hide && (de->flags[-sbi->s_high_sierra] & 1)) ||
-+		    (!sbi->s_showassoc &&
- 				(de->flags[-sbi->s_high_sierra] & 4))) {
- 			filp->f_pos += de_len;
- 			continue;
-diff -puN fs/isofs/inode.c~isofs-cleanup-mount-option-processing fs/isofs/inode.c
---- a/fs/isofs/inode.c~isofs-cleanup-mount-option-processing
+diff -puN Documentation/filesystems/isofs.txt~isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting Documentation/filesystems/isofs.txt
+--- a/Documentation/filesystems/isofs.txt~isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting
++++ a/Documentation/filesystems/isofs.txt
+@@ -23,8 +23,13 @@ Mount options unique to the isofs filesy
+   map=off       Do not map non-Rock Ridge filenames to lower case
+   map=normal    Map non-Rock Ridge filenames to lower case
+   map=acorn     As map=normal but also apply Acorn extensions if present
+-  mode=xxx      Sets the permissions on files to xxx
+-  dmode=xxx     Sets the permissions on directories to xxx
++  mode=xxx      Sets the permissions on files to xxx unless Rock Ridge
++		extensions set the permissions otherwise
++  dmode=xxx     Sets the permissions on directories to xxx unless Rock Ridge
++		extensions set the permissions otherwise
++  overriderockperm Set permissions on files and directories according to
++		'mode' and 'dmode' even though Rock Ridge extensions are
++		present.
+   nojoliet      Ignore Joliet extensions if they are present.
+   norock        Ignore Rock Ridge extensions if they are present.
+   hide		Completely strip hidden files from the file system.
+diff -puN fs/isofs/inode.c~isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting fs/isofs/inode.c
+--- a/fs/isofs/inode.c~isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting
 +++ a/fs/isofs/inode.c
-@@ -136,24 +136,24 @@ static const struct dentry_operations is
- };
- 
- struct iso9660_options{
--	char map;
--	char rock;
-+	unsigned int rock:1;
-+	unsigned int cruft:1;
-+	unsigned int hide:1;
-+	unsigned int showassoc:1;
-+	unsigned int nocompress:1;
-+	unsigned int overriderockperm:1;
-+	unsigned int uid_set:1;
-+	unsigned int gid_set:1;
-+	unsigned int utf8:1;
-+	unsigned char map;
- 	char joliet;
--	char cruft;
--	char hide;
--	char showassoc;
--	char nocompress;
--	char overriderockperm;
+@@ -143,6 +143,7 @@ struct iso9660_options{
+ 	char hide;
+ 	char showassoc;
+ 	char nocompress;
++	char overriderockperm;
  	unsigned char check;
  	unsigned int blocksize;
  	mode_t fmode;
- 	mode_t dmode;
--	char uid_set;
--	char gid_set;
- 	gid_t gid;
- 	uid_t uid;
- 	char *iocharset;
--	unsigned char utf8;
- 	/* LVE */
- 	s32 session;
- 	s32 sbsector;
-@@ -358,11 +358,11 @@ static int parse_options(char *options, 
- 	int option;
+@@ -307,7 +308,7 @@ enum {
+ 	Opt_block, Opt_check_r, Opt_check_s, Opt_cruft, Opt_gid, Opt_ignore,
+ 	Opt_iocharset, Opt_map_a, Opt_map_n, Opt_map_o, Opt_mode, Opt_nojoliet,
+ 	Opt_norock, Opt_sb, Opt_session, Opt_uid, Opt_unhide, Opt_utf8, Opt_err,
+-	Opt_nocompress, Opt_hide, Opt_showassoc, Opt_dmode,
++	Opt_nocompress, Opt_hide, Opt_showassoc, Opt_dmode, Opt_overriderockperm,
+ };
  
- 	popt->map = 'n';
--	popt->rock = 'y';
--	popt->joliet = 'y';
--	popt->cruft = 'n';
--	popt->hide = 'n';
--	popt->showassoc = 'n';
-+	popt->rock = 1;
-+	popt->joliet = 1;
-+	popt->cruft = 0;
-+	popt->hide = 0;
-+	popt->showassoc = 0;
+ static const match_table_t tokens = {
+@@ -335,6 +336,7 @@ static const match_table_t tokens = {
+ 	{Opt_gid, "gid=%u"},
+ 	{Opt_mode, "mode=%u"},
+ 	{Opt_dmode, "dmode=%u"},
++	{Opt_overriderockperm, "overriderockperm"},
+ 	{Opt_block, "block=%u"},
+ 	{Opt_ignore, "conv=binary"},
+ 	{Opt_ignore, "conv=b"},
+@@ -362,16 +364,12 @@ static int parse_options(char *options, 
  	popt->check = 'u';		/* unset */
  	popt->nocompress = 0;
  	popt->blocksize = 1024;
-@@ -390,20 +390,20 @@ static int parse_options(char *options, 
- 		token = match_token(p, tokens, args);
- 		switch (token) {
- 		case Opt_norock:
--			popt->rock = 'n';
-+			popt->rock = 0;
+-	popt->fmode = popt->dmode = S_IRUGO | S_IXUGO; /*
+-					 * r-x for all.  The disc could
+-					 * be shared with DOS machines so
+-					 * virtually anything could be
+-					 * a valid executable.
+-					 */
++	popt->fmode = popt->dmode = ISOFS_INVALID_MODE;
+ 	popt->gid = 0;
+ 	popt->uid = 0;
+ 	popt->iocharset = NULL;
+ 	popt->utf8 = 0;
++	popt->overriderockperm = 0;
+ 	popt->session=-1;
+ 	popt->sbsector=-1;
+ 	if (!options)
+@@ -461,6 +459,9 @@ static int parse_options(char *options, 
+ 				return 0;
+ 			popt->dmode = option;
  			break;
- 		case Opt_nojoliet:
--			popt->joliet = 'n';
-+			popt->joliet = 0;
- 			break;
- 		case Opt_hide:
--			popt->hide = 'y';
-+			popt->hide = 1;
- 			break;
- 		case Opt_unhide:
- 		case Opt_showassoc:
--			popt->showassoc = 'y';
-+			popt->showassoc = 1;
- 			break;
- 		case Opt_cruft:
--			popt->cruft = 'y';
-+			popt->cruft = 1;
- 			break;
- 		case Opt_utf8:
- 			popt->utf8 = 1;
-@@ -652,7 +652,7 @@ static int isofs_fill_super(struct super
- 					goto out_freebh;
- 
- 				sbi->s_high_sierra = 1;
--				opt.rock = 'n';
-+				opt.rock = 0;
- 				h_pri = (struct hs_primary_descriptor *)vdp;
- 				goto root_found;
- 			}
-@@ -675,7 +675,7 @@ static int isofs_fill_super(struct super
- 
- root_found:
- 
--	if (joliet_level && (pri == NULL || opt.rock == 'n')) {
-+	if (joliet_level && (pri == NULL || !opt.rock)) {
- 		/* This is the case of Joliet with the norock mount flag.
- 		 * A disc with both Joliet and Rock Ridge is handled later
- 		 */
-@@ -804,7 +804,7 @@ root_found:
- 	s->s_op = &isofs_sops;
- 	s->s_export_op = &isofs_export_ops;
- 	sbi->s_mapping = opt.map;
--	sbi->s_rock = (opt.rock == 'y' ? 2 : 0);
-+	sbi->s_rock = (opt.rock ? 2 : 0);
- 	sbi->s_rock_offset = -1; /* initial offset, will guess until SP is found*/
- 	sbi->s_cruft = opt.cruft;
- 	sbi->s_hide = opt.hide;
-@@ -1310,7 +1310,7 @@ static int isofs_read_inode(struct inode
- 	 * this CDROM was mounted with the cruft option.
++		case Opt_overriderockperm:
++			popt->overriderockperm = 1;
++			break;
+ 		case Opt_block:
+ 			if (match_int(&args[0], &option))
+ 				return 0;
+@@ -806,13 +807,20 @@ root_found:
+ 	sbi->s_gid = opt.gid;
+ 	sbi->s_utf8 = opt.utf8;
+ 	sbi->s_nocompress = opt.nocompress;
++	sbi->s_overriderockperm = opt.overriderockperm;
+ 	/*
+ 	 * It would be incredibly stupid to allow people to mark every file
+ 	 * on the disk as suid, so we merely allow them to set the default
+ 	 * permissions.
  	 */
+-	sbi->s_fmode = opt.fmode & 0777;
+-	sbi->s_dmode = opt.dmode & 0777;
++	if (opt.fmode != ISOFS_INVALID_MODE)
++		sbi->s_fmode = opt.fmode & 0777;
++	else
++		sbi->s_fmode = ISOFS_INVALID_MODE;
++	if (opt.dmode != ISOFS_INVALID_MODE)
++		sbi->s_dmode = opt.dmode & 0777;
++	else
++		sbi->s_dmode = ISOFS_INVALID_MODE;
  
--	if (sbi->s_cruft == 'y')
-+	if (sbi->s_cruft)
- 		inode->i_size &= 0x00ffffff;
+ 	/*
+ 	 * Read the root inode, which _may_ result in changing
+@@ -1256,7 +1264,10 @@ static int isofs_read_inode(struct inode
+ 	ei->i_file_format = isofs_file_normal;
  
- 	if (de->interleave[0]) {
-diff -puN fs/isofs/isofs.h~isofs-cleanup-mount-option-processing fs/isofs/isofs.h
---- a/fs/isofs/isofs.h~isofs-cleanup-mount-option-processing
+ 	if (de->flags[-high_sierra] & 2) {
+-		inode->i_mode = sbi->s_dmode | S_IFDIR;
++		if (sbi->s_dmode != ISOFS_INVALID_MODE)
++			inode->i_mode = S_IFDIR | sbi->s_dmode;
++		else
++			inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO;
+ 		inode->i_nlink = 1;	/*
+ 					 * Set to 1.  We know there are 2, but
+ 					 * the find utility tries to optimize
+@@ -1265,8 +1276,16 @@ static int isofs_read_inode(struct inode
+ 					 * do it the hard way.
+ 					 */
+ 	} else {
+-		/* Everybody gets to read the file. */
+-		inode->i_mode = sbi->s_fmode | S_IFREG;
++		if (sbi->s_fmode != ISOFS_INVALID_MODE) {
++			inode->i_mode = S_IFREG | sbi->s_fmode;
++		} else {
++			/*
++			 * Set default permissions: r-x for all.  The disc
++			 * could be shared with DOS machines so virtually
++			 * anything could be a valid executable.
++			 */
++			inode->i_mode = S_IFREG | S_IRUGO | S_IXUGO;
++		}
+ 		inode->i_nlink = 1;
+ 	}
+ 	inode->i_uid = sbi->s_uid;
+@@ -1344,6 +1363,13 @@ static int isofs_read_inode(struct inode
+ 		test_and_set_uid(&inode->i_uid, sbi->s_uid);
+ 		test_and_set_gid(&inode->i_gid, sbi->s_gid);
+ 	}
++	/* Now set final access rights if overriding rock ridge setting */
++	if (S_ISDIR(inode->i_mode) && sbi->s_overriderockperm &&
++	    sbi->s_dmode != ISOFS_INVALID_MODE)
++		inode->i_mode = S_IFDIR | sbi->s_dmode;
++	if (S_ISREG(inode->i_mode) && sbi->s_overriderockperm &&
++	    sbi->s_fmode != ISOFS_INVALID_MODE)
++		inode->i_mode = S_IFREG | sbi->s_fmode;
+ 
+ 	/* Install the inode operations vector */
+ 	if (S_ISREG(inode->i_mode)) {
+diff -puN fs/isofs/isofs.h~isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting fs/isofs/isofs.h
+--- a/fs/isofs/isofs.h~isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting
 +++ a/fs/isofs/isofs.h
-@@ -35,24 +35,20 @@ struct isofs_sb_info {
- 	unsigned long s_log_zone_size;
- 	unsigned long s_max_size;
- 	
--	unsigned char s_high_sierra; /* A simple flag */
--	unsigned char s_mapping;
- 	int           s_rock_offset; /* offset of SUSP fields within SU area */
--	unsigned char s_rock;
- 	unsigned char s_joliet_level;
--	unsigned char s_utf8;
--	unsigned char s_cruft; /* Broken disks with high
--				  byte of length containing
--				  junk */
--	unsigned char s_unhide;
--	unsigned char s_nosuid;
--	unsigned char s_nodev;
--	unsigned char s_nocompress;
--	unsigned char s_hide;
--	unsigned char s_showassoc;
--	unsigned char s_overriderockperm;
--	unsigned char s_uid_set;
--	unsigned char s_gid_set;
-+	unsigned char s_mapping;
-+	unsigned int  s_high_sierra:1;
-+	unsigned int  s_rock:2;
-+	unsigned int  s_utf8:1;
-+	unsigned int  s_cruft:1; /* Broken disks with high byte of length
-+				  * containing junk */
-+	unsigned int  s_nocompress:1;
-+	unsigned int  s_hide:1;
-+	unsigned int  s_showassoc:1;
-+	unsigned int  s_overriderockperm:1;
-+	unsigned int  s_uid_set:1;
-+	unsigned int  s_gid_set:1;
+@@ -50,6 +50,7 @@ struct isofs_sb_info {
+ 	unsigned char s_nocompress;
+ 	unsigned char s_hide;
+ 	unsigned char s_showassoc;
++	unsigned char s_overriderockperm;
  
  	mode_t s_fmode;
  	mode_t s_dmode;
-diff -puN fs/isofs/namei.c~isofs-cleanup-mount-option-processing fs/isofs/namei.c
---- a/fs/isofs/namei.c~isofs-cleanup-mount-option-processing
-+++ a/fs/isofs/namei.c
-@@ -142,9 +142,9 @@ isofs_find_entry(struct inode *dir, stru
- 		 */
- 		match = 0;
- 		if (dlen > 0 &&
--			(sbi->s_hide =='n' ||
-+			(!sbi->s_hide ||
- 				(!(de->flags[-sbi->s_high_sierra] & 1))) &&
--			(sbi->s_showassoc =='y' ||
-+			(sbi->s_showassoc ||
- 				(!(de->flags[-sbi->s_high_sierra] & 4)))) {
- 			match = (isofs_cmp(dentry, dpnt, dlen) == 0);
- 		}
+@@ -58,6 +59,8 @@ struct isofs_sb_info {
+ 	struct nls_table *s_nls_iocharset; /* Native language support table */
+ };
+ 
++#define ISOFS_INVALID_MODE ((mode_t) -1)
++
+ static inline struct isofs_sb_info *ISOFS_SB(struct super_block *sb)
+ {
+ 	return sb->s_fs_info;
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
