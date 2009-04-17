@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isofs-fix-setting-of-uid-and-gid-to-0.patch added to -mm tree
-Date: Thu, 16 Apr 2009 17:03:48 -0700
-Message-ID: <200904170003.n3H03mhj006161@imap1.linux-foundation.org>
+Subject: + hda_intelc-consolidate-bitfields.patch added to -mm tree
+Date: Thu, 16 Apr 2009 17:06:46 -0700
+Message-ID: <200904170006.n3H06krE007559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757819AbZDQAG6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752339AbZDQAJf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Apr 2009 20:06:58 -0400
+	Thu, 16 Apr 2009 20:09:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, Hans-Joachim.Baader@cjt.de
+Cc: joe@perches.com, tiwai@suse.de
 
 
 The patch titled
-     isofs: fix setting of uid and gid to 0
+     hda_intel.c: consolidate bitfields
 has been added to the -mm tree.  Its filename is
-     isofs-fix-setting-of-uid-and-gid-to-0.patch
+     hda_intelc-consolidate-bitfields.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isofs: fix setting of uid and gid to 0
-From: Jan Kara <jack@suse.cz>
+Subject: hda_intel.c: consolidate bitfields
+From: Joe Perches <joe@perches.com>
 
-isofs allows setting of default uid and gid of files but value 0 was used
-to indicate that user did not specify any uid/gid mount option.  Since
-this option also overrides uid/gid set in Rock Ridge extension, it makes
-sense to allow forcing uid/gid 0.  Fix option processing to allow this.
+Commit fa00e046b41663cbda9b1affc0594669e5f14219 ("hda_intel: fix
+unexpected ring buffer positions") added a new bitfield not adjacent to
+other bitfields in the same struct.  Move the new one.
 
-Cc: <Hans-Joachim.Baader@cjt.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/inode.c |   26 ++++++++++++--------------
- fs/isofs/isofs.h |    2 ++
- 2 files changed, 14 insertions(+), 14 deletions(-)
+ sound/pci/hda/hda_intel.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/isofs/inode.c~isofs-fix-setting-of-uid-and-gid-to-0 fs/isofs/inode.c
---- a/fs/isofs/inode.c~isofs-fix-setting-of-uid-and-gid-to-0
-+++ a/fs/isofs/inode.c
-@@ -148,6 +148,8 @@ struct iso9660_options{
- 	unsigned int blocksize;
- 	mode_t fmode;
- 	mode_t dmode;
-+	char uid_set;
-+	char gid_set;
- 	gid_t gid;
- 	uid_t uid;
- 	char *iocharset;
-@@ -365,6 +367,8 @@ static int parse_options(char *options, 
- 	popt->nocompress = 0;
- 	popt->blocksize = 1024;
- 	popt->fmode = popt->dmode = ISOFS_INVALID_MODE;
-+	popt->uid_set = 0;
-+	popt->gid_set = 0;
- 	popt->gid = 0;
- 	popt->uid = 0;
- 	popt->iocharset = NULL;
-@@ -443,11 +447,13 @@ static int parse_options(char *options, 
- 			if (match_int(&args[0], &option))
- 				return 0;
- 			popt->uid = option;
-+			popt->uid_set = 1;
- 			break;
- 		case Opt_gid:
- 			if (match_int(&args[0], &option))
- 				return 0;
- 			popt->gid = option;
-+			popt->gid_set = 1;
- 			break;
- 		case Opt_mode:
- 			if (match_int(&args[0], &option))
-@@ -805,6 +811,8 @@ root_found:
- 	sbi->s_showassoc = opt.showassoc;
- 	sbi->s_uid = opt.uid;
- 	sbi->s_gid = opt.gid;
-+	sbi->s_uid_set = opt.uid_set;
-+	sbi->s_gid_set = opt.gid_set;
- 	sbi->s_utf8 = opt.utf8;
- 	sbi->s_nocompress = opt.nocompress;
- 	sbi->s_overriderockperm = opt.overriderockperm;
-@@ -1098,18 +1106,6 @@ static const struct address_space_operat
- 	.bmap = _isofs_bmap
- };
+diff -puN sound/pci/hda/hda_intel.c~hda_intelc-consolidate-bitfields sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~hda_intelc-consolidate-bitfields
++++ a/sound/pci/hda/hda_intel.c
+@@ -312,7 +312,6 @@ struct azx_dev {
+ 	unsigned int period_bytes; /* size of the period in bytes */
+ 	unsigned int frags;	/* number for period in the play buffer */
+ 	unsigned int fifo_size;	/* FIFO size */
+-	unsigned int start_flag: 1;	/* stream full start flag */
+ 	unsigned long start_jiffies;	/* start + minimum jiffies */
+ 	unsigned long min_jiffies;	/* minimum jiffies before position is valid */
  
--static inline void test_and_set_uid(uid_t *p, uid_t value)
--{
--	if (value)
--		*p = value;
--}
--
--static inline void test_and_set_gid(gid_t *p, gid_t value)
--{
--        if (value)
--                *p = value;
--}
--
- static int isofs_read_level3_size(struct inode *inode)
- {
- 	unsigned long bufsize = ISOFS_BUFFER_SIZE(inode);
-@@ -1360,8 +1356,10 @@ static int isofs_read_inode(struct inode
- 	if (!high_sierra) {
- 		parse_rock_ridge_inode(de, inode);
- 		/* if we want uid/gid set, override the rock ridge setting */
--		test_and_set_uid(&inode->i_uid, sbi->s_uid);
--		test_and_set_gid(&inode->i_gid, sbi->s_gid);
-+		if (sbi->s_uid_set)
-+			inode->i_uid = sbi->s_uid;
-+		if (sbi->s_gid_set)
-+			inode->i_gid = sbi->s_gid;
- 	}
- 	/* Now set final access rights if overriding rock ridge setting */
- 	if (S_ISDIR(inode->i_mode) && sbi->s_overriderockperm &&
-diff -puN fs/isofs/isofs.h~isofs-fix-setting-of-uid-and-gid-to-0 fs/isofs/isofs.h
---- a/fs/isofs/isofs.h~isofs-fix-setting-of-uid-and-gid-to-0
-+++ a/fs/isofs/isofs.h
-@@ -51,6 +51,8 @@ struct isofs_sb_info {
- 	unsigned char s_hide;
- 	unsigned char s_showassoc;
- 	unsigned char s_overriderockperm;
-+	unsigned char s_uid_set;
-+	unsigned char s_gid_set;
- 
- 	mode_t s_fmode;
- 	mode_t s_dmode;
+@@ -333,6 +332,7 @@ struct azx_dev {
+ 	unsigned int opened :1;
+ 	unsigned int running :1;
+ 	unsigned int irq_pending :1;
++	unsigned int start_flag: 1;	/* stream full start flag */
+ 	/*
+ 	 * For VIA:
+ 	 *  A flag to ensure DMA position is 0
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from joe@perches.com are
 
-origin.patch
 linux-next.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
-ext2-do-not-update-mtime-of-a-moved-directory.patch
-ext3-fix-chain-verification-in-ext3_get_blocks.patch
-isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch
-isofs-fix-setting-of-uid-and-gid-to-0.patch
-isofs-cleanup-mount-option-processing.patch
-reiser4-update-names-of-quota-methods.patch
+hda_intelc-consolidate-bitfields.patch
 
