@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clean-up-get_user_pages_fast-documentation.patch added to -mm tree
-Date: Fri, 17 Apr 2009 11:25:30 -0700
-Message-ID: <200904171825.n3HIPVCX024655@imap1.linux-foundation.org>
+Subject: + rtc-cmos-fix-printk-output.patch added to -mm tree
+Date: Fri, 17 Apr 2009 11:27:36 -0700
+Message-ID: <200904171827.n3HIRaEd025583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756950AbZDQS2g (ORCPT
+	by vger.kernel.org with ESMTP id S1753349AbZDQSaG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Apr 2009 14:28:36 -0400
+	Fri, 17 Apr 2009 14:30:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nickpiggin@yahoo.com.au, andy.grover@oracle.com, npiggin@suse.de
+Cc: khc@pm.waw.pl, david-b@pacbell.net
 
 
 The patch titled
-     mm: clean up get_user_pages_fast() documentation
+     rtc-cmos: fix printk output
 has been added to the -mm tree.  Its filename is
-     mm-clean-up-get_user_pages_fast-documentation.patch
+     rtc-cmos-fix-printk-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,163 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: clean up get_user_pages_fast() documentation
-From: Nick Piggin <nickpiggin@yahoo.com.au>
+Subject: rtc-cmos: fix printk output
+From: Krzysztof Halasa <khc@pm.waw.pl>
 
-Move more documentation for get_user_pages_fast into the new kerneldoc comment.
-Add some comments for get_user_pages as well.
+With no IRQ available/defined, RTC-CMOS driver prints something like:
+	rtc0: alarms up to one no, y3k, 114 bytes nvram
+                              ^^^^
+I guess the following is a bit easier to understand:
+	rtc0: no alarms, y3k, 114 bytes nvram
 
-Also, move get_user_pages_fast declaration up to get_user_pages. It wasn't
-there initially because it was once a static inline function.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Andy Grover <andy.grover@oracle.com>
+Signed-off-by: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   20 ++++-------------
- mm/memory.c        |   50 +++++++++++++++++++++++++++++++++++++++++++
- mm/util.c          |   16 ++++++++++---
- 3 files changed, 67 insertions(+), 19 deletions(-)
+ drivers/rtc/rtc-cmos.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mm.h~mm-clean-up-get_user_pages_fast-documentation include/linux/mm.h
---- a/include/linux/mm.h~mm-clean-up-get_user_pages_fast-documentation
-+++ a/include/linux/mm.h
-@@ -825,8 +825,11 @@ static inline int handle_mm_fault(struct
- extern int make_pages_present(unsigned long addr, unsigned long end);
- extern int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write);
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-fix-printk-output drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-fix-printk-output
++++ a/drivers/rtc/rtc-cmos.c
+@@ -797,17 +797,15 @@ cmos_do_probe(struct device *dev, struct
+ 		goto cleanup2;
+ 	}
  
--int get_user_pages(struct task_struct *tsk, struct mm_struct *mm, unsigned long start,
--		int len, int write, int force, struct page **pages, struct vm_area_struct **vmas);
-+int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
-+			unsigned long start, int len,int write, int force,
-+			struct page **pages, struct vm_area_struct **vmas);
-+int get_user_pages_fast(unsigned long start, int nr_pages, int write,
-+			struct page **pages);
+-	pr_info("%s: alarms up to one %s%s, %zd bytes nvram%s\n",
+-			dev_name(&cmos_rtc.rtc->dev),
+-			is_valid_irq(rtc_irq)
+-				?  (cmos_rtc.mon_alrm
+-					? "year"
+-					: (cmos_rtc.day_alrm
+-						? "month" : "day"))
+-				: "no",
+-			cmos_rtc.century ? ", y3k" : "",
+-			nvram.size,
+-			is_hpet_enabled() ? ", hpet irqs" : "");
++	pr_info("%s: %s%s, %zd bytes nvram%s\n",
++		dev_name(&cmos_rtc.rtc->dev),
++		!is_valid_irq(rtc_irq) ? "no alarms" :
++			cmos_rtc.mon_alrm ? "alarms up to one year" :
++			cmos_rtc.day_alrm ? "alarms up to one month" :
++			"alarms up to one day",
++		cmos_rtc.century ? ", y3k" : "",
++		nvram.size,
++		is_hpet_enabled() ? ", hpet irqs" : "");
  
- extern int try_to_release_page(struct page * page, gfp_t gfp_mask);
- extern void do_invalidatepage(struct page *page, unsigned long offset);
-@@ -851,19 +854,6 @@ extern int mprotect_fixup(struct vm_area
- 			  unsigned long end, unsigned long newflags);
+ 	return 0;
  
- /*
-- * get_user_pages_fast provides equivalent functionality to get_user_pages,
-- * operating on current and current->mm (force=0 and doesn't return any vmas).
-- *
-- * get_user_pages_fast may take mmap_sem and page tables, so no assumptions
-- * can be made about locking. get_user_pages_fast is to be implemented in a
-- * way that is advantageous (vs get_user_pages()) when the user memory area is
-- * already faulted in and present in ptes. However if the pages have to be
-- * faulted in, it may turn out to be slightly slower).
-- */
--int get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			struct page **pages);
--
--/*
-  * A callback you can register to apply pressure to ageable caches.
-  *
-  * 'shrink' is passed a count 'nr_to_scan' and a 'gfpmask'.  It should
-diff -puN mm/memory.c~mm-clean-up-get_user_pages_fast-documentation mm/memory.c
---- a/mm/memory.c~mm-clean-up-get_user_pages_fast-documentation
-+++ a/mm/memory.c
-@@ -1360,6 +1360,56 @@ int __get_user_pages(struct task_struct 
- 	return i;
- }
- 
-+/**
-+ * get_user_pages() - pin user pages in memory
-+ * @tsk:	task_struct of target task
-+ * @mm:		mm_struct of target mm
-+ * @start:	starting user address
-+ * @len:	number of pages from start to pin
-+ * @write:	whether pages will be written to by the caller
-+ * @force:	whether to force write access even if user mapping is
-+ *		readonly. This will result in the page being COWed even
-+ *		in MAP_SHARED mappings. You do not want this.
-+ * @pages:	array that receives pointers to the pages pinned.
-+ *		Should be at least nr_pages long. Or NULL, if caller
-+ *		only intends to ensure the pages are faulted in.
-+ * @vmas:	array of pointers to vmas corresponding to each page.
-+ *		Or NULL if the caller does not require them.
-+ *
-+ * Returns number of pages pinned. This may be fewer than the number
-+ * requested. If len is 0 or negative, returns 0. If no pages
-+ * were pinned, returns -errno. Each page returned must be released
-+ * with a put_page() call when it is finished with. vmas will only
-+ * remain valid while mmap_sem is held.
-+ *
-+ * Must be called with mmap_sem held for read or write.
-+ *
-+ * get_user_pages walks a process's page tables and takes a reference to
-+ * each struct page that each user address corresponds to at a given
-+ * instant. That is, it takes the page that would be accessed if a user
-+ * thread accesses the given user virtual address at that instant.
-+ *
-+ * This does not guarantee that the page exists in the user mappings when
-+ * get_user_pages returns, and there may even be a completely different
-+ * page there in some cases (eg. if mmapped pagecache has been invalidated
-+ * and subsequently re faulted). However it does guarantee that the page
-+ * won't be freed completely. And mostly callers simply care that the page
-+ * contains data that was valid *at some point in time*. Typically, an IO
-+ * or similar operation cannot guarantee anything stronger anyway because
-+ * locks can't be held over the syscall boundary.
-+ *
-+ * If write=0, the page must not be written to. If the page is written to,
-+ * set_page_dirty (or set_page_dirty_lock, as appropriate) must be called
-+ * after the page is finished with, and before put_page is called.
-+ *
-+ * get_user_pages is typically used for fewer-copy IO operations, to get a
-+ * handle on the memory by some means other than accesses via the user virtual
-+ * addresses. The pages may be submitted for DMA to devices or accessed via
-+ * their kernel linear mapping (via the kmap APIs). Care should be taken to
-+ * use the correct cache flushing APIs.
-+ *
-+ * See also get_user_pages_fast, for performance critical applications.
-+ */
- int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		unsigned long start, int len, int write, int force,
- 		struct page **pages, struct vm_area_struct **vmas)
-diff -puN mm/util.c~mm-clean-up-get_user_pages_fast-documentation mm/util.c
---- a/mm/util.c~mm-clean-up-get_user_pages_fast-documentation
-+++ a/mm/util.c
-@@ -231,13 +231,21 @@ void arch_pick_mmap_layout(struct mm_str
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long.
-  *
-- * Attempt to pin user pages in memory without taking mm->mmap_sem.
-- * If not successful, it will fall back to taking the lock and
-- * calling get_user_pages().
-- *
-  * Returns number of pages pinned. This may be fewer than the number
-  * requested. If nr_pages is 0 or negative, returns 0. If no pages
-  * were pinned, returns -errno.
-+ *
-+ * get_user_pages_fast provides equivalent functionality to get_user_pages,
-+ * operating on current and current->mm, with force=0 and vma=NULL. However
-+ * unlike get_user_pages, it must be called without mmap_sem held.
-+ *
-+ * get_user_pages_fast may take mmap_sem and page table locks, so no
-+ * assumptions can be made about lack of locking. get_user_pages_fast is to be
-+ * implemented in a way that is advantageous (vs get_user_pages()) when the
-+ * user memory area is already faulted in and present in ptes. However if the
-+ * pages have to be faulted in, it may turn out to be slightly slower so
-+ * callers need to carefully consider what to use. On many architectures,
-+ * get_user_pages_fast simply falls back to get_user_pages.
-  */
- int __attribute__((weak)) get_user_pages_fast(unsigned long start,
- 				int nr_pages, int write, struct page **pages)
 _
 
-Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+Patches currently in -mm which might be from khc@pm.waw.pl are
 
-mm-disable-preemption-in-apply_to_pte_range.patch
-radix-tree-add-radix_tree_prev_hole.patch
-readahead-move-the-random-read-case-to-bottom.patch
-readahead-introduce-context-readahead-algorithm.patch
-mm-clean-up-get_user_pages_fast-documentation.patch
-cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
-cpusets-update-tasks-page-slab-spread-flags-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4.patch
+rtc-cmos-fix-printk-output.patch
 
