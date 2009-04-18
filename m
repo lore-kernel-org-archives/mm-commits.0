@@ -1,65 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] pxa2xx_spi-fix-kernel-freeze-regression.patch removed from -mm tree
-Date: Sat, 18 Apr 2009 10:59:45 -0700
-Message-ID: <200904181759.n3IHxjQ2001367@imap1.linux-foundation.org>
+Subject: + smack-check-for-smack-xattr-validity-in-smack_inode_setxattr.patch added to -mm tree
+Date: Sat, 18 Apr 2009 14:25:33 -0700
+Message-ID: <200904182125.n3ILPXfq004557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752857AbZDRSN7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752655AbZDRV2k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Apr 2009 14:13:59 -0400
+	Sat, 18 Apr 2009 17:28:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drwyrm@gmail.com, dbrownell@users.sourceforge.net, eric.miao@marvell.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: etienne.basset@numericable.fr, casey@schaufler-ca.com, jmorris@namei.org
 
 
 The patch titled
-     pxa2xx_spi: fix kernel freeze regression
-has been removed from the -mm tree.  Its filename was
-     pxa2xx_spi-fix-kernel-freeze-regression.patch
+     Smack: check for SMACK xattr validity in smack_inode_setxattr
+has been added to the -mm tree.  Its filename is
+     smack-check-for-smack-xattr-validity-in-smack_inode_setxattr.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pxa2xx_spi: fix kernel freeze regression
-From: Daniel Ribeiro <drwyrm@gmail.com>
+Subject: Smack: check for SMACK xattr validity in smack_inode_setxattr
+From: Etienne Basset <etienne.basset@numericable.fr>
 
-a7bb3909b3293d503211d7f6af8ed62c1644b686 ("spi: pxa2xx_spi: introduce
-chipselect GPIO to simplify the common cases") introduced a serious
-regression in the PXA SPI driver, for boards not using that new mechanism.
- On one board this caused a kernel frees on system startup.
+Move checks for SMACK xattr validity from smack_inode_post_setxattr (which
+cannot return an error to the user) to smack_inode_setxattr (which can
+return an error).
 
-Fix is trivial:  correct typo on pxa2xx-spi.c cs_deassert.
-
-Signed-off-by: Daniel Ribeiro <drwyrm@gmail.com>
-Acked-by: Eric Miao <eric.miao@marvell.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Etienne Basset <etienne.basset@numericable.fr>
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/pxa2xx_spi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ security/smack/smack_lsm.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-fix-kernel-freeze-regression drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-fix-kernel-freeze-regression
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -182,7 +182,7 @@ static void cs_assert(struct driver_data
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	if (chip->cs_control) {
--		chip->cs_control(PXA2XX_CS_ASSERT);
-+		chip->cs_control(PXA2XX_CS_DEASSERT);
+diff -puN security/smack/smack_lsm.c~smack-check-for-smack-xattr-validity-in-smack_inode_setxattr security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-check-for-smack-xattr-validity-in-smack_inode_setxattr
++++ a/security/smack/smack_lsm.c
+@@ -675,8 +675,12 @@ static int smack_inode_setxattr(struct d
+ 	    strcmp(name, XATTR_NAME_SMACKIPOUT) == 0) {
+ 		if (!capable(CAP_MAC_ADMIN))
+ 			rc = -EPERM;
+-		/* a label cannot be void and cannot begin with '-' */
+-		if (size == 0 || (size > 0 && ((char *)value)[0] == '-'))
++		/*
++		 * check label validity here so import wont fail on
++		 * post_setxattr
++		 */
++		if (size == 0 || size >= SMK_LABELLEN ||
++		    smk_import(value, size) == NULL)
+ 			rc = -EINVAL;
+ 	} else
+ 		rc = cap_inode_setxattr(dentry, name, value, size, flags);
+@@ -713,9 +717,6 @@ static void smack_inode_post_setxattr(st
+ 	if (strcmp(name, XATTR_NAME_SMACK))
  		return;
- 	}
  
-_
-
-Patches currently in -mm which might be from drwyrm@gmail.com are
-
-pxa2xx_spi-fix-kernel-freeze-regression.patch
-pxa2xx_spi-restore-drcmr-on-resume.patch
-linux-next.patch
-
+-	if (size >= SMK_LABELLEN)
+-		return;
