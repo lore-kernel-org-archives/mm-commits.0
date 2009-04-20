@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch added to -mm tree
-Date: Mon, 20 Apr 2009 17:14:05 -0700
-Message-ID: <200904210014.n3L0E5J4023817@imap1.linux-foundation.org>
+Subject: + ksm-add-page_wrprotect-write-protecting-page.patch added to -mm tree
+Date: Mon, 20 Apr 2009 16:32:44 -0700
+Message-ID: <200904202332.n3KNWjZ8002785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50757 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754822AbZDUART (ORCPT
+	by vger.kernel.org with ESMTP id S1752890AbZDUAS5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Apr 2009 20:17:19 -0400
+	Mon, 20 Apr 2009 20:18:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, eric@anholt.net, hannes@hanneseder.net, linux@youmustbejoking.demon.co.uk
+Cc: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     drivers/gpu/drm/i915/intel_fb.c: remove sysrq-g handler
+     ksm: add page_wrprotect(): write protecting page
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+     ksm-add-page_wrprotect-write-protecting-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,223 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/intel_fb.c: remove sysrq-g handler
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ksm: add page_wrprotect(): write protecting page
+From: Izik Eidus <ieidus@redhat.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13130
+This patch add new function called page_wrprotect(), page_wrprotect() is
+used to take a page and mark all the pte that point into it as readonly.
 
-Just remove this sysrq handler - it's doing various bad things from
-hardirq context and clearly isn't used much at all.
+The function is working by walking the rmap of the page, and setting each
+pte realted to the page as readonly.
 
-Reported-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Hannes Eder <hannes@hanneseder.net>
+The odirect_sync parameter is used to protect against possible races with
+odirect while we are marking the pte as readonly, as noted by Andrea
+Arcanglei:
+
+"While thinking at get_user_pages_fast I figured another worse way things
+can go wrong with ksm and o_direct: think a thread writing constantly to
+the last 512bytes of a page, while another thread read and writes to/from
+the first 512bytes of the page.  We can lose O_DIRECT reads, the very
+moment we mark any pte wrprotected..."
+
+Signed-off-by: Izik Eidus <ieidus@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_fb.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ include/linux/rmap.h |   11 +++
+ mm/rmap.c            |  139 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 150 insertions(+)
 
-diff -puN drivers/gpu/drm/i915/intel_fb.c~drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler drivers/gpu/drm/i915/intel_fb.c
---- a/drivers/gpu/drm/i915/intel_fb.c~drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler
-+++ a/drivers/gpu/drm/i915/intel_fb.c
-@@ -31,7 +31,6 @@
- #include <linux/mm.h>
- #include <linux/tty.h>
- #include <linux/slab.h>
--#include <linux/sysrq.h>
- #include <linux/delay.h>
- #include <linux/fb.h>
- #include <linux/init.h>
-@@ -857,17 +856,6 @@ void intelfb_restore(void)
- 	drm_crtc_helper_set_config(&kernelfb_mode);
+diff -puN include/linux/rmap.h~ksm-add-page_wrprotect-write-protecting-page include/linux/rmap.h
+--- a/include/linux/rmap.h~ksm-add-page_wrprotect-write-protecting-page
++++ a/include/linux/rmap.h
+@@ -118,6 +118,10 @@ static inline int try_to_munlock(struct 
+ }
+ #endif
+ 
++#if defined(CONFIG_KSM) || defined(CONFIG_KSM_MODULE)
++int page_wrprotect(struct page *page, int *odirect_sync, int count_offset);
++#endif
++
+ #else	/* !CONFIG_MMU */
+ 
+ #define anon_vma_init()		do {} while (0)
+@@ -132,6 +136,13 @@ static inline int page_mkclean(struct pa
+ 	return 0;
  }
  
--static void intelfb_sysrq(int dummy1, struct tty_struct *dummy3)
--{
--        intelfb_restore();
--}
--
--static struct sysrq_key_op sysrq_intelfb_restore_op = {
--        .handler = intelfb_sysrq,
--        .help_msg = "force-fb(G)",
--        .action_msg = "Restore framebuffer console",
--};
--
- int intelfb_probe(struct drm_device *dev)
- {
- 	int ret;
-@@ -898,8 +886,6 @@ int intelfb_probe(struct drm_device *dev
- 		ret = intelfb_single_fb_probe(dev);
- 	}
++#if defined(CONFIG_KSM) || defined(CONFIG_KSM_MODULE)
++static inline int page_wrprotect(struct page *page, int *odirect_sync,
++				 int count_offset)
++{
++	return 0;
++}
++#endif
  
--	register_sysrq_key('g', &sysrq_intelfb_restore_op);
--
- 	return ret;
+ #endif	/* CONFIG_MMU */
+ 
+diff -puN mm/rmap.c~ksm-add-page_wrprotect-write-protecting-page mm/rmap.c
+--- a/mm/rmap.c~ksm-add-page_wrprotect-write-protecting-page
++++ a/mm/rmap.c
+@@ -585,6 +585,145 @@ int page_mkclean(struct page *page)
  }
- EXPORT_SYMBOL(intelfb_probe);
+ EXPORT_SYMBOL_GPL(page_mkclean);
+ 
++#if defined(CONFIG_KSM) || defined(CONFIG_KSM_MODULE)
++
++static int page_wrprotect_one(struct page *page, struct vm_area_struct *vma,
++			      int *odirect_sync, int count_offset)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned long address;
++	pte_t *pte;
++	spinlock_t *ptl;
++	int ret = 0;
++
++	address = vma_address(page, vma);
++	if (address == -EFAULT)
++		goto out;
++
++	pte = page_check_address(page, mm, address, &ptl, 0);
++	if (!pte)
++		goto out;
++
++	if (pte_write(*pte)) {
++		pte_t entry;
++
++		flush_cache_page(vma, address, pte_pfn(*pte));
++		/*
++		 * Ok this is tricky, when get_user_pages_fast() run it doesnt
++		 * take any lock, therefore the check that we are going to make
++		 * with the pagecount against the mapcount is racey and
++		 * O_DIRECT can happen right after the check.
++		 * So we clear the pte and flush the tlb before the check
++		 * this assure us that no O_DIRECT can happen after the check
++		 * or in the middle of the check.
++		 */
++		entry = ptep_clear_flush(vma, address, pte);
++		/*
++		 * Check that no O_DIRECT or similar I/O is in progress on the
++		 * page
++		 */
++		if ((page_mapcount(page) + count_offset) != page_count(page)) {
++			*odirect_sync = 0;
++			set_pte_at_notify(mm, address, pte, entry);
++			goto out_unlock;
++		}
++		entry = pte_wrprotect(entry);
++		set_pte_at_notify(mm, address, pte, entry);
++	}
++	ret = 1;
++
++out_unlock:
++	pte_unmap_unlock(pte, ptl);
++out:
++	return ret;
++}
++
++static int page_wrprotect_file(struct page *page, int *odirect_sync,
++			       int count_offset)
++{
++	struct address_space *mapping;
++	struct prio_tree_iter iter;
++	struct vm_area_struct *vma;
++	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	int ret = 0;
++
++	mapping = page_mapping(page);
++	if (!mapping)
++		return ret;
++
++	spin_lock(&mapping->i_mmap_lock);
++
++	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff)
++		ret += page_wrprotect_one(page, vma, odirect_sync,
++					  count_offset);
++
++	spin_unlock(&mapping->i_mmap_lock);
++
++	return ret;
++}
++
++static int page_wrprotect_anon(struct page *page, int *odirect_sync,
++			       int count_offset)
++{
++	struct vm_area_struct *vma;
++	struct anon_vma *anon_vma;
++	int ret = 0;
++
++	anon_vma = page_lock_anon_vma(page);
++	if (!anon_vma)
++		return ret;
++
++	/*
++	 * If the page is inside the swap cache, its _count number was
++	 * increased by one, therefore we have to increase count_offset by one.
++	 */
++	if (PageSwapCache(page))
++		count_offset++;
++
++	list_for_each_entry(vma, &anon_vma->head, anon_vma_node)
++		ret += page_wrprotect_one(page, vma, odirect_sync,
++					  count_offset);
++
++	page_unlock_anon_vma(anon_vma);
++
++	return ret;
++}
++
++/**
++ * page_wrprotect - set all ptes pointing to a page as readonly
++ * @page:         the page to set as readonly
++ * @odirect_sync: boolean value that is set to 0 when some of the ptes were not
++ *                marked as readonly beacuse page_wrprotect_one() was not able
++ *                to mark this ptes as readonly without opening window to a race
++ *                with odirect
++ * @count_offset: number of times page_wrprotect() caller had called get_page()
++ *                on the page
++ *
++ * returns the number of ptes which were marked as readonly.
++ * (ptes that were readonly before this function was called are counted as well)
++ */
++int page_wrprotect(struct page *page, int *odirect_sync, int count_offset)
++{
++	int ret = 0;
++
++	/*
++	 * Page lock is needed for anon pages for the PageSwapCache check,
++	 * and for page_mapping for filebacked pages
++	 */
++	BUG_ON(!PageLocked(page));
++
++	*odirect_sync = 1;
++	if (PageAnon(page))
++		ret = page_wrprotect_anon(page, odirect_sync, count_offset);
++	else
++		ret = page_wrprotect_file(page, odirect_sync, count_offset);
++
++	return ret;
++}
++EXPORT_SYMBOL(page_wrprotect);
++
++#endif
++
+ /**
+  * __page_set_anon_rmap - setup new anonymous rmap
+  * @page:	the page to add the mapping to
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ieidus@redhat.com are
 
-origin.patch
-pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay-fix.patch
-clocksource-pass-clocksource-to-read-callback.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+ksm-mmu_notifiers-add-set_pte_at_notify.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
 
