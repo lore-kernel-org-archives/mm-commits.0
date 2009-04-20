@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-fix-build-due-to-include-tangle.patch added to -mm tree
-Date: Mon, 20 Apr 2009 15:37:02 -0700
-Message-ID: <200904202237.n3KMb2JQ005654@imap1.linux-foundation.org>
+Subject: + vmscanmemcg-reintroduce-sc-may_swap.patch added to -mm tree
+Date: Mon, 20 Apr 2009 15:42:36 -0700
+Message-ID: <200904202242.n3KMgaeF008539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54909 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38721 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756354AbZDTWj0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753450AbZDTWqZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Apr 2009 18:39:26 -0400
+	Mon, 20 Apr 2009 18:46:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yamahata@valinux.co.jp, tony.luck@intel.com
+Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     ia64: fix build due to include tangle
+     vmscan,memcg: reintroduce sc->may_swap
 has been added to the -mm tree.  Its filename is
-     ia64-fix-build-due-to-include-tangle.patch
+     vmscanmemcg-reintroduce-sc-may_swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: fix build due to include tangle
-From: Isaku Yamahata <yamahata@valinux.co.jp>
+Subject: vmscan,memcg: reintroduce sc->may_swap
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Fix the following compilation error caused by recursive inclusion of
-kernel.h which defines BUILD_BUG_ON().
+a6dc60f8975ad96d162915e07703a4439c80dcf0 ("vmscan: rename sc.may_swap to
+may_unmap") removed the may_swap flag, but memcg had used it as a flag for
+"we need to use swap?", as the name indicate.
 
-In this case, the case it catches will be caught by the case
-CONFIG_PARAVIRT=n, so removing it would not hurt compile time check very
-much.  So fix the breakage by removing it.
+And in the current implementation, memcg cannot reclaim mapped file caches
+when mem+swap hits the limit.
 
-  CC      arch/ia64/kernel/asm-offsets.s
-In file included from include/linux/bitops.h:17,
-                 from include/linux/kernel.h:15,
-                 from include/linux/sched.h:52,
-                 from arch/ia64/kernel/asm-offsets.c:9:
-arch/ia64/include/asm/bitops.h: In function 'set_bit':
-arch/ia64/include/asm/bitops.h:47: error: implicit declaration of function 'BUILD_BUG_ON'
+re-introduce may_swap flag and handle it at get_scan_ratio().  This patch
+doesn't influence any scan_control users other than memcg.
 
-Signed-off-by: Isaku Yamahata <yamahata@valinux.co.jp>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/paravirt_privop.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/vmscan.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/include/asm/paravirt_privop.h~ia64-fix-build-due-to-include-tangle arch/ia64/include/asm/paravirt_privop.h
---- a/arch/ia64/include/asm/paravirt_privop.h~ia64-fix-build-due-to-include-tangle
-+++ a/arch/ia64/include/asm/paravirt_privop.h
-@@ -445,7 +445,6 @@ paravirt_set_rr0_to_rr4(unsigned long va
- 		register unsigned long ia64_intri_res asm ("r8");	\
- 		register unsigned long __reg asm ("r8") = (reg);	\
- 									\
--		BUILD_BUG_ON(!__builtin_constant_p(reg));		\
- 		asm volatile (paravirt_alt_bundle(__PARAVIRT_BR,	\
- 						  PARAVIRT_TYPE(GETREG) \
- 						  + (reg))		\
-@@ -464,7 +463,6 @@ paravirt_set_rr0_to_rr4(unsigned long va
- 		register unsigned long ia64_clobber1 asm ("r8");	\
- 		register unsigned long ia64_clobber2 asm ("r9");	\
- 									\
--		BUILD_BUG_ON(!__builtin_constant_p(reg));		\
- 		asm volatile (paravirt_alt_bundle(__PARAVIRT_BR,	\
- 						  PARAVIRT_TYPE(SETREG) \
- 						  + (reg))		\
+diff -puN mm/vmscan.c~vmscanmemcg-reintroduce-sc-may_swap mm/vmscan.c
+--- a/mm/vmscan.c~vmscanmemcg-reintroduce-sc-may_swap
++++ a/mm/vmscan.c
+@@ -63,6 +63,9 @@ struct scan_control {
+ 	/* Can mapped pages be reclaimed? */
+ 	int may_unmap;
+ 
++	/* Can pages be swapped as part of reclaim? */
++	int may_swap;
++
+ 	/* This context's SWAP_CLUSTER_MAX. If freeing memory for
+ 	 * suspend, we effectively ignore SWAP_CLUSTER_MAX.
+ 	 * In this context, it doesn't matter that we scan the
+@@ -1380,7 +1383,7 @@ static void get_scan_ratio(struct zone *
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+ 
+ 	/* If we have no swap space, do not bother scanning anon pages. */
+-	if (nr_swap_pages <= 0) {
++	if (!sc->may_swap || (nr_swap_pages <= 0)) {
+ 		percent[0] = 0;
+ 		percent[1] = 100;
+ 		return;
+@@ -1697,6 +1700,7 @@ unsigned long try_to_free_pages(struct z
+ 		.may_writepage = !laptop_mode,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.may_unmap = 1,
++		.may_swap = 1,
+ 		.swappiness = vm_swappiness,
+ 		.order = order,
+ 		.mem_cgroup = NULL,
+@@ -1717,6 +1721,7 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	struct scan_control sc = {
+ 		.may_writepage = !laptop_mode,
+ 		.may_unmap = 1,
++		.may_swap = !noswap,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = swappiness,
+ 		.order = 0,
+@@ -1726,9 +1731,6 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	};
+ 	struct zonelist *zonelist;
+ 
+-	if (noswap)
+-		sc.may_unmap = 0;
+-
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+ 	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
+@@ -1767,6 +1769,7 @@ static unsigned long balance_pgdat(pg_da
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+ 		.may_unmap = 1,
++		.may_swap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = vm_swappiness,
+ 		.order = order,
+@@ -2298,6 +2301,7 @@ static int __zone_reclaim(struct zone *z
+ 	struct scan_control sc = {
+ 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
+ 		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
++		.may_swap = 1,
+ 		.swap_cluster_max = max_t(unsigned long, nr_pages,
+ 					SWAP_CLUSTER_MAX),
+ 		.gfp_mask = gfp_mask,
 _
 
-Patches currently in -mm which might be from yamahata@valinux.co.jp are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-ia64-fix-build-due-to-include-tangle.patch
+origin.patch
+memcg-use-rcu_dereference-to-access-mm-owner.patch
+vmscanmemcg-reintroduce-sc-may_swap.patch
+procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
