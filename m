@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-hwmon-coretempc-enable-the-intel-atom.patch added to -mm tree
-Date: Tue, 21 Apr 2009 15:47:36 -0700
-Message-ID: <200904212247.n3LMla4K021656@imap1.linux-foundation.org>
+Subject: + mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch added to -mm tree
+Date: Tue, 21 Apr 2009 15:53:37 -0700
+Message-ID: <200904212253.n3LMrc3J024614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752486AbZDUWtg (ORCPT
+	by vger.kernel.org with ESMTP id S1752486AbZDUW5L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 18:49:36 -0400
+	Tue, 21 Apr 2009 18:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael.riepe@googlemail.com, arjan@infradead.org
+Cc: hartleys@visionengravers.com, a.p.zijlstra@chello.nl, hannes@cmpxchg.org, hsweeten@visionengravers.com
 
 
 The patch titled
-     drivers/hwmon/coretemp.c: enable the Intel Atom
+     mm/page-writeback.c: dirty limit type should be unsigned long
 has been added to the -mm tree.  Its filename is
-     drivers-hwmon-coretempc-enable-the-intel-atom.patch
+     mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,69 +26,89 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hwmon/coretemp.c: enable the Intel Atom
-=46rom: Michael Riepe <michael.riepe@googlemail.com>
+Subject: mm/page-writeback.c: dirty limit type should be unsigned long
+From: "H Hartley Sweeten" <hartleys@visionengravers.com>
 
-Enable the coretemp driver on an Intel Atom.
+get_dirty_limits() calls clip_bdi_dirty_limit() and task_dirty_limit()
+with variable pbdi_dirty as one of the arguments.  This variable is an
+unsigned long * but both functions expect it to be a long *.  This causes
+the following sparse warnings:
 
-I'm not sure if the readings are correct, however - on my 330, the driv=
-er
-reports values between 27 and 41 =B0C (with core1 being about 8=B0C hot=
-ter
-than core0, given the same load).  Maybe the maximum temperature of 100=
- =B0C
-is wrong for Atom CPUs.
+  warning: incorrect type in argument 3 (different signedness)
+     expected long *pbdi_dirty
+     got unsigned long *pbdi_dirty
+  warning: incorrect type in argument 2 (different signedness)
+     expected long *pdirty
+     got unsigned long *pbdi_dirty
 
-Michael "Tired" Riepe <michael.riepe@googlemail.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Fix the warnings by changing the long * to unsigned long * in both
+functions.
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/coretemp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page-writeback.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/hwmon/coretemp.c~drivers-hwmon-coretempc-enable-the-i=
-ntel-atom drivers/hwmon/coretemp.c
---- a/drivers/hwmon/coretemp.c~drivers-hwmon-coretempc-enable-the-intel=
--atom
-+++ a/drivers/hwmon/coretemp.c
-@@ -185,7 +185,7 @@ static int __devinit adjust_tjmax(struct
- 		}
- 	}
-=20
--	if (ismobile) {
-+	if (ismobile || c->x86_model =3D=3D 0x1c) {
-=20
- 		err =3D rdmsr_safe_on_cpu(id, 0xee, &eax, &edx);
- 		if (err) {
-@@ -417,7 +417,7 @@ static int __init coretemp_init(void)
- 		if ((c->cpuid_level < 0) || (c->x86 !=3D 0x6) ||
- 		    !((c->x86_model =3D=3D 0xe) || (c->x86_model =3D=3D 0xf) ||
- 			(c->x86_model =3D=3D 0x16) || (c->x86_model =3D=3D 0x17) ||
--			(c->x86_model =3D=3D 0x1A))) {
-+			(c->x86_model =3D=3D 0x1A) || (c->x86_model =3D=3D 0x1c))) {
-=20
- 			/* supported CPU not found, but report the unknown
- 			   family 6 CPU */
+diff -puN mm/page-writeback.c~mm-page-writebackc-dirty-limit-type-should-be-unsigned-long mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page-writebackc-dirty-limit-type-should-be-unsigned-long
++++ a/mm/page-writeback.c
+@@ -265,18 +265,19 @@ static void bdi_writeout_fraction(struct
+  * This avoids exceeding the total dirty_limit when the floating averages
+  * fluctuate too quickly.
+  */
+-static void
+-clip_bdi_dirty_limit(struct backing_dev_info *bdi, long dirty, long *pbdi_dirty)
++static void clip_bdi_dirty_limit(struct backing_dev_info *bdi,
++		unsigned long dirty, unsigned long *pbdi_dirty)
+ {
+-	long avail_dirty;
++	unsigned long avail_dirty;
+ 
+-	avail_dirty = dirty -
+-		(global_page_state(NR_FILE_DIRTY) +
++	avail_dirty = global_page_state(NR_FILE_DIRTY) +
+ 		 global_page_state(NR_WRITEBACK) +
+ 		 global_page_state(NR_UNSTABLE_NFS) +
+-		 global_page_state(NR_WRITEBACK_TEMP));
++		 global_page_state(NR_WRITEBACK_TEMP);
+ 
+-	if (avail_dirty < 0)
++	if (avail_dirty < dirty)
++		avail_dirty = dirty - avail_dirty;
++	else
+ 		avail_dirty = 0;
+ 
+ 	avail_dirty += bdi_stat(bdi, BDI_RECLAIMABLE) +
+@@ -299,10 +300,10 @@ static inline void task_dirties_fraction
+  *
+  *   dirty -= (dirty/8) * p_{t}
+  */
+-static void task_dirty_limit(struct task_struct *tsk, long *pdirty)
++static void task_dirty_limit(struct task_struct *tsk, unsigned long *pdirty)
+ {
+ 	long numerator, denominator;
+-	long dirty = *pdirty;
++	unsigned long dirty = *pdirty;
+ 	u64 inv = dirty >> 3;
+ 
+ 	task_dirties_fraction(tsk, &numerator, &denominator);
 _
 
-Patches currently in -mm which might be from michael.riepe@googlemail.c=
-om are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
-drivers-hwmon-coretempc-enable-the-intel-atom.patch
+origin.patch
+linux-next.patch
+mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
