@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch added to -mm tree
-Date: Tue, 21 Apr 2009 13:14:12 -0700
-Message-ID: <200904212014.n3LKECD8008990@imap1.linux-foundation.org>
+Subject: + drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 21 Apr 2009 13:15:26 -0700
+Message-ID: <200904212015.n3LKFQnX009724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751161AbZDUUPc (ORCPT
+	by vger.kernel.org with ESMTP id S1751650AbZDUURm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 16:15:32 -0400
+	Tue, 21 Apr 2009 16:17:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrianosf@uol.com.br
+Cc: akpm@linux-foundation.org, adrianosf@uol.com.br
 
 
 The patch titled
-     drivers/char/mem.c: memory_open() cleanup: lookup minor device number from devlist
+     drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
+     drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,154 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/mem.c: memory_open() cleanup: lookup minor device number from devlist
-From: Adriano dos Santos Fernandes <adrianosf@uol.com.br>
+Subject: drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-memory_open() ignores devlist and does a switch for each item, duplicating
-code and conditional definitions.
+ERROR: space required after that ',' (ctx:VxV)
+#82: FILE: drivers/char/mem.c:885:
++	{11,"kmsg",    S_IRUGO | S_IWUSR,           &kmsg_fops, NULL},
+ 	   ^
 
-Clean it up by adding backing_dev_info to devlist and use it to lookup for
-the minor device.
+ERROR: space required after that ',' (ctx:VxV)
+#87: FILE: drivers/char/mem.c:887:
++	{12,"oldmem",    S_IRUSR | S_IWUSR | S_IRGRP, &oldmem_fops, NULL},
+ 	   ^
 
-Signed-off-by: Adriano dos Santos Fernandes <adrianosf@uol.com.br>
+ERROR: "foo * bar" should be "foo *bar"
+#94: FILE: drivers/char/mem.c:891:
++static int memory_open(struct inode * inode, struct file * filp)
+
+ERROR: space required after that ',' (ctx:VxV)
+#119: FILE: drivers/char/mem.c:914:
++			ret = filp->f_op->open(inode,filp);
+ 			                            ^
+
+total: 4 errors, 0 warnings, 134 lines checked
+
+./patches/drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Adriano dos Santos Fernandes <adrianosf@uol.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |  115 ++++++++++++++++---------------------------
- 1 file changed, 45 insertions(+), 70 deletions(-)
+ drivers/char/mem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist drivers/char/mem.c
---- a/drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist
+diff -puN drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes drivers/char/mem.c
+--- a/drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes
 +++ a/drivers/char/mem.c
-@@ -861,59 +861,58 @@ static const struct file_operations kmsg
- 	.write =	kmsg_write,
+@@ -888,7 +888,7 @@ static const struct {
+ #endif
  };
  
 -static int memory_open(struct inode * inode, struct file * filp)
--{
--	int ret = 0;
--
--	lock_kernel();
--	switch (iminor(inode)) {
--		case 1:
--			filp->f_op = &mem_fops;
--			filp->f_mapping->backing_dev_info =
--				&directly_mappable_cdev_bdi;
--			break;
-+static const struct {
-+	unsigned int		minor;
-+	char			*name;
-+	umode_t			mode;
-+	const struct file_operations	*fops;
-+	struct backing_dev_info	*dev_info;
-+} devlist[] = { /* list of minor devices */
-+	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops,
-+		&directly_mappable_cdev_bdi},
- #ifdef CONFIG_DEVKMEM
--		case 2:
--			filp->f_op = &kmem_fops;
--			filp->f_mapping->backing_dev_info =
--				&directly_mappable_cdev_bdi;
--			break;
-+	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops,
-+		&directly_mappable_cdev_bdi},
- #endif
--		case 3:
--			filp->f_op = &null_fops;
--			break;
-+	{3, "null",    S_IRUGO | S_IWUGO,           &null_fops, NULL},
- #ifdef CONFIG_DEVPORT
--		case 4:
--			filp->f_op = &port_fops;
--			break;
-+	{4, "port",    S_IRUSR | S_IWUSR | S_IRGRP, &port_fops, NULL},
- #endif
--		case 5:
--			filp->f_mapping->backing_dev_info = &zero_bdi;
--			filp->f_op = &zero_fops;
--			break;
--		case 7:
--			filp->f_op = &full_fops;
--			break;
--		case 8:
--			filp->f_op = &random_fops;
--			break;
--		case 9:
--			filp->f_op = &urandom_fops;
--			break;
--		case 11:
--			filp->f_op = &kmsg_fops;
--			break;
-+	{5, "zero",    S_IRUGO | S_IWUGO,           &zero_fops, &zero_bdi},
-+	{7, "full",    S_IRUGO | S_IWUGO,           &full_fops, NULL},
-+	{8, "random",  S_IRUGO | S_IWUSR,           &random_fops, NULL},
-+	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops, NULL},
-+	{11,"kmsg",    S_IRUGO | S_IWUSR,           &kmsg_fops, NULL},
- #ifdef CONFIG_CRASH_DUMP
--		case 12:
--			filp->f_op = &oldmem_fops;
--			break;
-+	{12,"oldmem",    S_IRUSR | S_IWUSR | S_IRGRP, &oldmem_fops, NULL},
- #endif
--		default:
--			unlock_kernel();
--			return -ENXIO;
-+};
-+
-+static int memory_open(struct inode * inode, struct file * filp)
-+{
-+	int ret = 0;
-+	int i;
-+
-+	lock_kernel();
-+
-+	for (i = 0; i < ARRAY_SIZE(devlist); i++) {
-+		if (devlist[i].minor == iminor(inode)) {
-+			filp->f_op = devlist[i].fops;
-+			if (devlist[i].dev_info) {
-+				filp->f_mapping->backing_dev_info =
-+					devlist[i].dev_info;
-+			}
-+
-+			break;
-+		}
- 	}
--	if (filp->f_op && filp->f_op->open)
--		ret = filp->f_op->open(inode,filp);
-+
-+	if (i == ARRAY_SIZE(devlist))
-+		ret = -ENXIO;
-+	else
-+		if (filp->f_op && filp->f_op->open)
-+			ret = filp->f_op->open(inode,filp);
-+
++static int memory_open(struct inode *inode, struct file *filp)
+ {
+ 	int ret = 0;
+ 	int i;
+@@ -911,7 +911,7 @@ static int memory_open(struct inode * in
+ 		ret = -ENXIO;
+ 	else
+ 		if (filp->f_op && filp->f_op->open)
+-			ret = filp->f_op->open(inode,filp);
++			ret = filp->f_op->open(inode, filp);
+ 
  	unlock_kernel();
  	return ret;
- }
-@@ -922,30 +921,6 @@ static const struct file_operations memo
- 	.open		= memory_open,	/* just a selector for the real open */
- };
- 
--static const struct {
--	unsigned int		minor;
--	char			*name;
--	umode_t			mode;
--	const struct file_operations	*fops;
--} devlist[] = { /* list of minor devices */
--	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops},
--#ifdef CONFIG_DEVKMEM
--	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops},
--#endif
--	{3, "null",    S_IRUGO | S_IWUGO,           &null_fops},
--#ifdef CONFIG_DEVPORT
--	{4, "port",    S_IRUSR | S_IWUSR | S_IRGRP, &port_fops},
--#endif
--	{5, "zero",    S_IRUGO | S_IWUGO,           &zero_fops},
--	{7, "full",    S_IRUGO | S_IWUGO,           &full_fops},
--	{8, "random",  S_IRUGO | S_IWUSR,           &random_fops},
--	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops},
--	{11,"kmsg",    S_IRUGO | S_IWUSR,           &kmsg_fops},
--#ifdef CONFIG_CRASH_DUMP
--	{12,"oldmem",    S_IRUSR | S_IWUSR | S_IRGRP, &oldmem_fops},
--#endif
--};
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay.patch
+clocksource-pass-clocksource-to-read-callback.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+
