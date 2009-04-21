@@ -1,114 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch added to -mm tree
-Date: Tue, 21 Apr 2009 15:53:37 -0700
-Message-ID: <200904212253.n3LMrc3J024614@imap1.linux-foundation.org>
+Subject: [to-be-updated] drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505.patch removed from -mm tree
+Date: Tue, 21 Apr 2009 16:33:55 -0700
+Message-ID: <200904212333.n3LNXtv2012380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752486AbZDUW5L (ORCPT
+	by vger.kernel.org with ESMTP id S1751644AbZDUXic (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 18:57:11 -0400
+	Tue, 21 Apr 2009 19:38:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, a.p.zijlstra@chello.nl, hannes@cmpxchg.org, hsweeten@visionengravers.com
+To: vaka@newmail.ru, hermann-pitton@arcor.de, mchehab@infradead.org, mkrufky@linuxtv.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/page-writeback.c: dirty limit type should be unsigned long
-has been added to the -mm tree.  Its filename is
-     mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
+     drivers/media/video/saa7134: add tuner support for AverMedia Studio 505
+has been removed from the -mm tree.  Its filename was
+     drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page-writeback.c: dirty limit type should be unsigned long
-From: "H Hartley Sweeten" <hartleys@visionengravers.com>
+Subject: drivers/media/video/saa7134: add tuner support for AverMedia Studio 505
+From: Vasiliy Temnikov <vaka@newmail.ru>
 
-get_dirty_limits() calls clip_bdi_dirty_limit() and task_dirty_limit()
-with variable pbdi_dirty as one of the arguments.  This variable is an
-unsigned long * but both functions expect it to be a long *.  This causes
-the following sparse warnings:
+Add tuner support AverMedia AverTV Studio 505.
 
-  warning: incorrect type in argument 3 (different signedness)
-     expected long *pbdi_dirty
-     got unsigned long *pbdi_dirty
-  warning: incorrect type in argument 2 (different signedness)
-     expected long *pdirty
-     got unsigned long *pbdi_dirty
-
-Fix the warnings by changing the long * to unsigned long * in both
-functions.
-
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hermann Pitton <hermann-pitton@arcor.de>
+Cc: Michael Krufky <mkrufky@linuxtv.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ Documentation/video4linux/CARDLIST.saa7134  |    1 
+ drivers/media/video/saa7134/saa7134-cards.c |   43 ++++++++++++++++++
+ drivers/media/video/saa7134/saa7134-input.c |    1 
+ drivers/media/video/saa7134/saa7134-video.c |    2 
+ drivers/media/video/saa7134/saa7134.h       |    1 
+ 5 files changed, 47 insertions(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-page-writebackc-dirty-limit-type-should-be-unsigned-long mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page-writebackc-dirty-limit-type-should-be-unsigned-long
-+++ a/mm/page-writeback.c
-@@ -265,18 +265,19 @@ static void bdi_writeout_fraction(struct
-  * This avoids exceeding the total dirty_limit when the floating averages
-  * fluctuate too quickly.
-  */
--static void
--clip_bdi_dirty_limit(struct backing_dev_info *bdi, long dirty, long *pbdi_dirty)
-+static void clip_bdi_dirty_limit(struct backing_dev_info *bdi,
-+		unsigned long dirty, unsigned long *pbdi_dirty)
- {
--	long avail_dirty;
-+	unsigned long avail_dirty;
- 
--	avail_dirty = dirty -
--		(global_page_state(NR_FILE_DIRTY) +
-+	avail_dirty = global_page_state(NR_FILE_DIRTY) +
- 		 global_page_state(NR_WRITEBACK) +
- 		 global_page_state(NR_UNSTABLE_NFS) +
--		 global_page_state(NR_WRITEBACK_TEMP));
-+		 global_page_state(NR_WRITEBACK_TEMP);
- 
--	if (avail_dirty < 0)
-+	if (avail_dirty < dirty)
-+		avail_dirty = dirty - avail_dirty;
-+	else
- 		avail_dirty = 0;
- 
- 	avail_dirty += bdi_stat(bdi, BDI_RECLAIMABLE) +
-@@ -299,10 +300,10 @@ static inline void task_dirties_fraction
-  *
-  *   dirty -= (dirty/8) * p_{t}
-  */
--static void task_dirty_limit(struct task_struct *tsk, long *pdirty)
-+static void task_dirty_limit(struct task_struct *tsk, unsigned long *pdirty)
- {
- 	long numerator, denominator;
--	long dirty = *pdirty;
-+	unsigned long dirty = *pdirty;
- 	u64 inv = dirty >> 3;
- 
- 	task_dirties_fraction(tsk, &numerator, &denominator);
+diff -puN Documentation/video4linux/CARDLIST.saa7134~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 Documentation/video4linux/CARDLIST.saa7134
+--- a/Documentation/video4linux/CARDLIST.saa7134~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
++++ a/Documentation/video4linux/CARDLIST.saa7134
+@@ -156,3 +156,4 @@
+ 155 -> Hauppauge WinTV-HVR1120 ATSC/QAM-Hybrid  [0070:6706,0070:6708]
+ 156 -> Hauppauge WinTV-HVR1110r3                [0070:6707,0070:6709,0070:670a]
+ 157 -> Avermedia AVerTV Studio 507UA            [1461:a11b]
++158 -> AverMedia AverTV Studio 505              [1461:a115]
+diff -puN drivers/media/video/saa7134/saa7134-cards.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-cards.c
+--- a/drivers/media/video/saa7134/saa7134-cards.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
++++ a/drivers/media/video/saa7134/saa7134-cards.c
+@@ -1364,6 +1364,42 @@ struct saa7134_board saa7134_boards[] = 
+ 			.amux = LINE1,
+ 		},
+ 	},
++	[SAA7134_BOARD_AVERMEDIA_STUDIO_505] = {
++		/* Vasiliy Temnikov <vaka@newmail.ru> */
++		.name           = "AverMedia AverTV Studio 505",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr	= ADDR_UNSET,
++		.radio_addr	= ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = LINE2,
++			.tv   = 1,
++		},{
++			.name = name_comp1,
++			.vmux = 0,
++			.amux = LINE2,
++		},{
++			.name = name_comp2,
++			.vmux = 3,
++			.amux = LINE2,
++		},{
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE2,
++		}},
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++		.mute = {
++			.name = name_mute,
++			.amux = LINE1,
++		},
++	},
+ 	[SAA7134_BOARD_UPMOST_PURPLE_TV] = {
+ 		.name           = "UPMOST PURPLE TV",
+ 		.audio_clock    = 0x00187de7,
+@@ -5049,6 +5085,12 @@ struct pci_device_id saa7134_pci_tbl[] =
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+ 		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0xa115,
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_STUDIO_505,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
+ 		.subdevice    = 0x2108,
+ 		.driver_data  = SAA7134_BOARD_AVERMEDIA_305,
+ 	},{
+@@ -6144,6 +6186,7 @@ int saa7134_board_init1(struct saa7134_d
+ 	case SAA7134_BOARD_KWORLD_VSTREAM_XPERT:
+ 	case SAA7134_BOARD_KWORLD_XPERT:
+ 	case SAA7134_BOARD_AVERMEDIA_STUDIO_305:
++	case SAA7134_BOARD_AVERMEDIA_STUDIO_505:
+ 	case SAA7134_BOARD_AVERMEDIA_305:
+ 	case SAA7134_BOARD_AVERMEDIA_STUDIO_307:
+ 	case SAA7134_BOARD_AVERMEDIA_307:
+diff -puN drivers/media/video/saa7134/saa7134-input.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-input.c
+--- a/drivers/media/video/saa7134/saa7134-input.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
++++ a/drivers/media/video/saa7134/saa7134-input.c
+@@ -445,6 +445,7 @@ int saa7134_input_init1(struct saa7134_d
+ 	case SAA7134_BOARD_AVERMEDIA_305:
+ 	case SAA7134_BOARD_AVERMEDIA_307:
+ 	case SAA7134_BOARD_AVERMEDIA_STUDIO_305:
++	case SAA7134_BOARD_AVERMEDIA_STUDIO_505:
+ 	case SAA7134_BOARD_AVERMEDIA_STUDIO_307:
+ 	case SAA7134_BOARD_AVERMEDIA_STUDIO_507:
+ 	case SAA7134_BOARD_AVERMEDIA_STUDIO_507UA:
+diff -puN drivers/media/video/saa7134/saa7134-video.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-video.c
+--- a/drivers/media/video/saa7134/saa7134-video.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
++++ a/drivers/media/video/saa7134/saa7134-video.c
+@@ -39,7 +39,7 @@ static unsigned int gbuffers      = 8;
+ static unsigned int noninterlaced; /* 0 */
+ static unsigned int gbufsize      = 720*576*4;
+ static unsigned int gbufsize_max  = 720*576*4;
+-static char secam[] = "--";
++static char secam[] = "dk";
+ module_param(video_debug, int, 0644);
+ MODULE_PARM_DESC(video_debug,"enable debug messages [video]");
+ module_param(gbuffers, int, 0444);
+diff -puN drivers/media/video/saa7134/saa7134.h~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134.h
+--- a/drivers/media/video/saa7134/saa7134.h~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
++++ a/drivers/media/video/saa7134/saa7134.h
+@@ -159,6 +159,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_AVERMEDIA_DVD_EZMAKER 33
+ #define SAA7134_BOARD_NOVAC_PRIMETV7133 34
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_305 35
++#define SAA7134_BOARD_AVERMEDIA_STUDIO_505 158
+ #define SAA7134_BOARD_UPMOST_PURPLE_TV 36
+ #define SAA7134_BOARD_ITEMS_MTV005     37
+ #define SAA7134_BOARD_CINERGY200       38
 _
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from vaka@newmail.ru are
 
-origin.patch
-linux-next.patch
-mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
+drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505.patch
 
