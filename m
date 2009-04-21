@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch added to -mm tree
-Date: Tue, 21 Apr 2009 12:48:30 -0700
-Message-ID: <200904211948.n3LJmUXU028474@imap1.linux-foundation.org>
+Subject: + drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch added to -mm tree
+Date: Tue, 21 Apr 2009 13:14:12 -0700
+Message-ID: <200904212014.n3LKECD8008990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33844 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756658AbZDUTuh (ORCPT
+	by vger.kernel.org with ESMTP id S1751161AbZDUUPc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 15:50:37 -0400
+	Tue, 21 Apr 2009 16:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cebbert@redhat.com, alan@lxorguk.ukuu.org.uk
+Cc: adrianosf@uol.com.br
 
 
 The patch titled
-     serial: add parameter to force skipping the test for the TXEN bug
+     drivers/char/mem.c: memory_open() cleanup: lookup minor device number from devlist
 has been added to the -mm tree.  Its filename is
-     serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
+     drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,154 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: add parameter to force skipping the test for the TXEN bug
-From: Chuck Ebbert <cebbert@redhat.com>
+Subject: drivers/char/mem.c: memory_open() cleanup: lookup minor device number from devlist
+From: Adriano dos Santos Fernandes <adrianosf@uol.com.br>
 
-Allow users to force skipping the TXEN test at init time. Applies
-to all serial ports. Intended for debugging only.
+memory_open() ignores devlist and does a switch for each item, duplicating
+code and conditional definitions.
 
-Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Clean it up by adding backing_dev_info to devlist and use it to lookup for
+the minor device.
+
+Signed-off-by: Adriano dos Santos Fernandes <adrianosf@uol.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/char/mem.c |  115 ++++++++++++++++---------------------------
+ 1 file changed, 45 insertions(+), 70 deletions(-)
 
-diff -puN drivers/serial/8250.c~serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug
-+++ a/drivers/serial/8250.c
-@@ -64,6 +64,8 @@ static int serial_index(struct uart_port
- 	return (serial8250_reg.minor - 64) + port->line;
+diff -puN drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist drivers/char/mem.c
+--- a/drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist
++++ a/drivers/char/mem.c
+@@ -861,59 +861,58 @@ static const struct file_operations kmsg
+ 	.write =	kmsg_write,
+ };
+ 
+-static int memory_open(struct inode * inode, struct file * filp)
+-{
+-	int ret = 0;
+-
+-	lock_kernel();
+-	switch (iminor(inode)) {
+-		case 1:
+-			filp->f_op = &mem_fops;
+-			filp->f_mapping->backing_dev_info =
+-				&directly_mappable_cdev_bdi;
+-			break;
++static const struct {
++	unsigned int		minor;
++	char			*name;
++	umode_t			mode;
++	const struct file_operations	*fops;
++	struct backing_dev_info	*dev_info;
++} devlist[] = { /* list of minor devices */
++	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops,
++		&directly_mappable_cdev_bdi},
+ #ifdef CONFIG_DEVKMEM
+-		case 2:
+-			filp->f_op = &kmem_fops;
+-			filp->f_mapping->backing_dev_info =
+-				&directly_mappable_cdev_bdi;
+-			break;
++	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops,
++		&directly_mappable_cdev_bdi},
+ #endif
+-		case 3:
+-			filp->f_op = &null_fops;
+-			break;
++	{3, "null",    S_IRUGO | S_IWUGO,           &null_fops, NULL},
+ #ifdef CONFIG_DEVPORT
+-		case 4:
+-			filp->f_op = &port_fops;
+-			break;
++	{4, "port",    S_IRUSR | S_IWUSR | S_IRGRP, &port_fops, NULL},
+ #endif
+-		case 5:
+-			filp->f_mapping->backing_dev_info = &zero_bdi;
+-			filp->f_op = &zero_fops;
+-			break;
+-		case 7:
+-			filp->f_op = &full_fops;
+-			break;
+-		case 8:
+-			filp->f_op = &random_fops;
+-			break;
+-		case 9:
+-			filp->f_op = &urandom_fops;
+-			break;
+-		case 11:
+-			filp->f_op = &kmsg_fops;
+-			break;
++	{5, "zero",    S_IRUGO | S_IWUGO,           &zero_fops, &zero_bdi},
++	{7, "full",    S_IRUGO | S_IWUGO,           &full_fops, NULL},
++	{8, "random",  S_IRUGO | S_IWUSR,           &random_fops, NULL},
++	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops, NULL},
++	{11,"kmsg",    S_IRUGO | S_IWUSR,           &kmsg_fops, NULL},
+ #ifdef CONFIG_CRASH_DUMP
+-		case 12:
+-			filp->f_op = &oldmem_fops;
+-			break;
++	{12,"oldmem",    S_IRUSR | S_IWUSR | S_IRGRP, &oldmem_fops, NULL},
+ #endif
+-		default:
+-			unlock_kernel();
+-			return -ENXIO;
++};
++
++static int memory_open(struct inode * inode, struct file * filp)
++{
++	int ret = 0;
++	int i;
++
++	lock_kernel();
++
++	for (i = 0; i < ARRAY_SIZE(devlist); i++) {
++		if (devlist[i].minor == iminor(inode)) {
++			filp->f_op = devlist[i].fops;
++			if (devlist[i].dev_info) {
++				filp->f_mapping->backing_dev_info =
++					devlist[i].dev_info;
++			}
++
++			break;
++		}
+ 	}
+-	if (filp->f_op && filp->f_op->open)
+-		ret = filp->f_op->open(inode,filp);
++
++	if (i == ARRAY_SIZE(devlist))
++		ret = -ENXIO;
++	else
++		if (filp->f_op && filp->f_op->open)
++			ret = filp->f_op->open(inode,filp);
++
+ 	unlock_kernel();
+ 	return ret;
  }
+@@ -922,30 +921,6 @@ static const struct file_operations memo
+ 	.open		= memory_open,	/* just a selector for the real open */
+ };
  
-+static unsigned int skip_txen_test; /* force skip of txen test at init time */
-+
- /*
-  * Debugging.
-  */
-@@ -2092,7 +2094,7 @@ static int serial8250_startup(struct uar
- 	   is variable. So, let's just don't test if we receive
- 	   TX irq. This way, we'll never enable UART_BUG_TXEN.
- 	 */
--	if (up->port.flags & UPF_NO_TXEN_TEST)
-+	if (skip_txen_test || up->port.flags & UPF_NO_TXEN_TEST)
- 		goto dont_test_tx_en;
- 
- 	/*
-@@ -3218,6 +3220,9 @@ MODULE_PARM_DESC(share_irqs, "Share IRQs
- module_param(nr_uarts, uint, 0644);
- MODULE_PARM_DESC(nr_uarts, "Maximum number of UARTs supported. (1-" __MODULE_STRING(CONFIG_SERIAL_8250_NR_UARTS) ")");
- 
-+module_param(skip_txen_test, uint, 0644);
-+MODULE_PARM_DESC(skip_txen_test, "Skip checking for the TXEN bug at init time");
-+
- #ifdef CONFIG_SERIAL_8250_RSA
- module_param_array(probe_rsa, ulong, &probe_rsa_count, 0444);
- MODULE_PARM_DESC(probe_rsa, "Probe I/O ports for RSA");
-_
-
-Patches currently in -mm which might be from cebbert@redhat.com are
-
-linux-next.patch
-serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
-
+-static const struct {
+-	unsigned int		minor;
+-	char			*name;
+-	umode_t			mode;
+-	const struct file_operations	*fops;
+-} devlist[] = { /* list of minor devices */
+-	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops},
+-#ifdef CONFIG_DEVKMEM
+-	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops},
+-#endif
+-	{3, "null",    S_IRUGO | S_IWUGO,           &null_fops},
+-#ifdef CONFIG_DEVPORT
+-	{4, "port",    S_IRUSR | S_IWUSR | S_IRGRP, &port_fops},
+-#endif
+-	{5, "zero",    S_IRUGO | S_IWUGO,           &zero_fops},
+-	{7, "full",    S_IRUGO | S_IWUGO,           &full_fops},
+-	{8, "random",  S_IRUGO | S_IWUSR,           &random_fops},
+-	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops},
+-	{11,"kmsg",    S_IRUGO | S_IWUSR,           &kmsg_fops},
+-#ifdef CONFIG_CRASH_DUMP
+-	{12,"oldmem",    S_IRUSR | S_IWUSR | S_IRGRP, &oldmem_fops},
+-#endif
+-};
