@@ -1,256 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-add-page_wrprotect-write-protecting-page.patch added to -mm tree
-Date: Mon, 20 Apr 2009 16:32:44 -0700
-Message-ID: <200904202332.n3KNWjZ8002785@imap1.linux-foundation.org>
+Subject: [merged] ia64-fix-build-due-to-include-tangle.patch removed from -mm tree
+Date: Tue, 21 Apr 2009 11:08:21 -0700
+Message-ID: <200904211808.n3LI8LY3010058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752890AbZDUAS5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751272AbZDUSKa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Apr 2009 20:18:57 -0400
+	Tue, 21 Apr 2009 14:10:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au
+To: yamahata@valinux.co.jp, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: add page_wrprotect(): write protecting page
-has been added to the -mm tree.  Its filename is
-     ksm-add-page_wrprotect-write-protecting-page.patch
+     ia64: fix build due to include tangle
+has been removed from the -mm tree.  Its filename was
+     ia64-fix-build-due-to-include-tangle.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: add page_wrprotect(): write protecting page
-From: Izik Eidus <ieidus@redhat.com>
+Subject: ia64: fix build due to include tangle
+From: Isaku Yamahata <yamahata@valinux.co.jp>
 
-This patch add new function called page_wrprotect(), page_wrprotect() is
-used to take a page and mark all the pte that point into it as readonly.
+Fix the following compilation error caused by recursive inclusion of
+kernel.h which defines BUILD_BUG_ON().
 
-The function is working by walking the rmap of the page, and setting each
-pte realted to the page as readonly.
+In this case, the case it catches will be caught by the case
+CONFIG_PARAVIRT=n, so removing it would not hurt compile time check very
+much.  So fix the breakage by removing it.
 
-The odirect_sync parameter is used to protect against possible races with
-odirect while we are marking the pte as readonly, as noted by Andrea
-Arcanglei:
+  CC      arch/ia64/kernel/asm-offsets.s
+In file included from include/linux/bitops.h:17,
+                 from include/linux/kernel.h:15,
+                 from include/linux/sched.h:52,
+                 from arch/ia64/kernel/asm-offsets.c:9:
+arch/ia64/include/asm/bitops.h: In function 'set_bit':
+arch/ia64/include/asm/bitops.h:47: error: implicit declaration of function 'BUILD_BUG_ON'
 
-"While thinking at get_user_pages_fast I figured another worse way things
-can go wrong with ksm and o_direct: think a thread writing constantly to
-the last 512bytes of a page, while another thread read and writes to/from
-the first 512bytes of the page.  We can lose O_DIRECT reads, the very
-moment we mark any pte wrprotected..."
-
-Signed-off-by: Izik Eidus <ieidus@redhat.com>
-Cc: Chris Wright <chrisw@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Isaku Yamahata <yamahata@valinux.co.jp>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   11 +++
- mm/rmap.c            |  139 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 150 insertions(+)
+ arch/ia64/include/asm/paravirt_privop.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/rmap.h~ksm-add-page_wrprotect-write-protecting-page include/linux/rmap.h
---- a/include/linux/rmap.h~ksm-add-page_wrprotect-write-protecting-page
-+++ a/include/linux/rmap.h
-@@ -118,6 +118,10 @@ static inline int try_to_munlock(struct 
- }
- #endif
- 
-+#if defined(CONFIG_KSM) || defined(CONFIG_KSM_MODULE)
-+int page_wrprotect(struct page *page, int *odirect_sync, int count_offset);
-+#endif
-+
- #else	/* !CONFIG_MMU */
- 
- #define anon_vma_init()		do {} while (0)
-@@ -132,6 +136,13 @@ static inline int page_mkclean(struct pa
- 	return 0;
- }
- 
-+#if defined(CONFIG_KSM) || defined(CONFIG_KSM_MODULE)
-+static inline int page_wrprotect(struct page *page, int *odirect_sync,
-+				 int count_offset)
-+{
-+	return 0;
-+}
-+#endif
- 
- #endif	/* CONFIG_MMU */
- 
-diff -puN mm/rmap.c~ksm-add-page_wrprotect-write-protecting-page mm/rmap.c
---- a/mm/rmap.c~ksm-add-page_wrprotect-write-protecting-page
-+++ a/mm/rmap.c
-@@ -585,6 +585,145 @@ int page_mkclean(struct page *page)
- }
- EXPORT_SYMBOL_GPL(page_mkclean);
- 
-+#if defined(CONFIG_KSM) || defined(CONFIG_KSM_MODULE)
-+
-+static int page_wrprotect_one(struct page *page, struct vm_area_struct *vma,
-+			      int *odirect_sync, int count_offset)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	unsigned long address;
-+	pte_t *pte;
-+	spinlock_t *ptl;
-+	int ret = 0;
-+
-+	address = vma_address(page, vma);
-+	if (address == -EFAULT)
-+		goto out;
-+
-+	pte = page_check_address(page, mm, address, &ptl, 0);
-+	if (!pte)
-+		goto out;
-+
-+	if (pte_write(*pte)) {
-+		pte_t entry;
-+
-+		flush_cache_page(vma, address, pte_pfn(*pte));
-+		/*
-+		 * Ok this is tricky, when get_user_pages_fast() run it doesnt
-+		 * take any lock, therefore the check that we are going to make
-+		 * with the pagecount against the mapcount is racey and
-+		 * O_DIRECT can happen right after the check.
-+		 * So we clear the pte and flush the tlb before the check
-+		 * this assure us that no O_DIRECT can happen after the check
-+		 * or in the middle of the check.
-+		 */
-+		entry = ptep_clear_flush(vma, address, pte);
-+		/*
-+		 * Check that no O_DIRECT or similar I/O is in progress on the
-+		 * page
-+		 */
-+		if ((page_mapcount(page) + count_offset) != page_count(page)) {
-+			*odirect_sync = 0;
-+			set_pte_at_notify(mm, address, pte, entry);
-+			goto out_unlock;
-+		}
-+		entry = pte_wrprotect(entry);
-+		set_pte_at_notify(mm, address, pte, entry);
-+	}
-+	ret = 1;
-+
-+out_unlock:
-+	pte_unmap_unlock(pte, ptl);
-+out:
-+	return ret;
-+}
-+
-+static int page_wrprotect_file(struct page *page, int *odirect_sync,
-+			       int count_offset)
-+{
-+	struct address_space *mapping;
-+	struct prio_tree_iter iter;
-+	struct vm_area_struct *vma;
-+	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
-+	int ret = 0;
-+
-+	mapping = page_mapping(page);
-+	if (!mapping)
-+		return ret;
-+
-+	spin_lock(&mapping->i_mmap_lock);
-+
-+	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff)
-+		ret += page_wrprotect_one(page, vma, odirect_sync,
-+					  count_offset);
-+
-+	spin_unlock(&mapping->i_mmap_lock);
-+
-+	return ret;
-+}
-+
-+static int page_wrprotect_anon(struct page *page, int *odirect_sync,
-+			       int count_offset)
-+{
-+	struct vm_area_struct *vma;
-+	struct anon_vma *anon_vma;
-+	int ret = 0;
-+
-+	anon_vma = page_lock_anon_vma(page);
-+	if (!anon_vma)
-+		return ret;
-+
-+	/*
-+	 * If the page is inside the swap cache, its _count number was
-+	 * increased by one, therefore we have to increase count_offset by one.
-+	 */
-+	if (PageSwapCache(page))
-+		count_offset++;
-+
-+	list_for_each_entry(vma, &anon_vma->head, anon_vma_node)
-+		ret += page_wrprotect_one(page, vma, odirect_sync,
-+					  count_offset);
-+
-+	page_unlock_anon_vma(anon_vma);
-+
-+	return ret;
-+}
-+
-+/**
-+ * page_wrprotect - set all ptes pointing to a page as readonly
-+ * @page:         the page to set as readonly
-+ * @odirect_sync: boolean value that is set to 0 when some of the ptes were not
-+ *                marked as readonly beacuse page_wrprotect_one() was not able
-+ *                to mark this ptes as readonly without opening window to a race
-+ *                with odirect
-+ * @count_offset: number of times page_wrprotect() caller had called get_page()
-+ *                on the page
-+ *
-+ * returns the number of ptes which were marked as readonly.
-+ * (ptes that were readonly before this function was called are counted as well)
-+ */
-+int page_wrprotect(struct page *page, int *odirect_sync, int count_offset)
-+{
-+	int ret = 0;
-+
-+	/*
-+	 * Page lock is needed for anon pages for the PageSwapCache check,
-+	 * and for page_mapping for filebacked pages
-+	 */
-+	BUG_ON(!PageLocked(page));
-+
-+	*odirect_sync = 1;
-+	if (PageAnon(page))
-+		ret = page_wrprotect_anon(page, odirect_sync, count_offset);
-+	else
-+		ret = page_wrprotect_file(page, odirect_sync, count_offset);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(page_wrprotect);
-+
-+#endif
-+
- /**
-  * __page_set_anon_rmap - setup new anonymous rmap
-  * @page:	the page to add the mapping to
+diff -puN arch/ia64/include/asm/paravirt_privop.h~ia64-fix-build-due-to-include-tangle arch/ia64/include/asm/paravirt_privop.h
+--- a/arch/ia64/include/asm/paravirt_privop.h~ia64-fix-build-due-to-include-tangle
++++ a/arch/ia64/include/asm/paravirt_privop.h
+@@ -445,7 +445,6 @@ paravirt_set_rr0_to_rr4(unsigned long va
+ 		register unsigned long ia64_intri_res asm ("r8");	\
+ 		register unsigned long __reg asm ("r8") = (reg);	\
+ 									\
+-		BUILD_BUG_ON(!__builtin_constant_p(reg));		\
+ 		asm volatile (paravirt_alt_bundle(__PARAVIRT_BR,	\
+ 						  PARAVIRT_TYPE(GETREG) \
+ 						  + (reg))		\
+@@ -464,7 +463,6 @@ paravirt_set_rr0_to_rr4(unsigned long va
+ 		register unsigned long ia64_clobber1 asm ("r8");	\
+ 		register unsigned long ia64_clobber2 asm ("r9");	\
+ 									\
+-		BUILD_BUG_ON(!__builtin_constant_p(reg));		\
+ 		asm volatile (paravirt_alt_bundle(__PARAVIRT_BR,	\
+ 						  PARAVIRT_TYPE(SETREG) \
+ 						  + (reg))		\
 _
 
-Patches currently in -mm which might be from ieidus@redhat.com are
+Patches currently in -mm which might be from yamahata@valinux.co.jp are
 
 linux-next.patch
-ksm-mmu_notifiers-add-set_pte_at_notify.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
-ksm-add-page_wrprotect-write-protecting-page.patch
-ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
-ksm-add-ksm-kernel-shared-memory-driver.patch
 
