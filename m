@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch added to -mm tree
-Date: Tue, 21 Apr 2009 13:36:46 -0700
-Message-ID: <200904212036.n3LKaksP020510@imap1.linux-foundation.org>
+Subject: + vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch added to -mm tree
+Date: Tue, 21 Apr 2009 13:40:18 -0700
+Message-ID: <200904212040.n3LKeIZF022400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752393AbZDUUla (ORCPT
+	by vger.kernel.org with ESMTP id S1755510AbZDUUqa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 16:41:30 -0400
+	Tue, 21 Apr 2009 16:46:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, riel@redhat.com
+Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, Minchan.kim@gmail.com, a.p.zijlstra@chello.nl, apw@shadowen.org, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     ksm: fix unsafe pte fetching
+     vmscan: low order lumpy reclaim also should use PAGEOUT_IO_SYNC
 has been added to the -mm tree.  Its filename is
-     ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+     vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: fix unsafe pte fetching
-From: Izik Eidus <ieidus@redhat.com>
+Subject: vmscan: low order lumpy reclaim also should use PAGEOUT_IO_SYNC
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-is_present_pte() was called inside ksm without anything protecting that
-pmd, pud, and pte would go away under our feets.
+commit 33c120ed2843090e2bd316de1588b8bf8b96cbde (more aggressively use
+lumpy reclaim) change lumpy reclaim using condition.  But it was not
+sufficient.
 
-This patch fix this problem by making sure that down_read(mmap_sem) will
-be used beacuse calling to is_present_pte()
+Lumpy reclaim doesn't only mean "isolate the neighbor page", but it also
+should perform does synchronous pageout.
 
-Signed-off-by: Izik Eidus <ieidus@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Chris Wright <chrisw@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Acked-by: Rik van Riel <riel@redhat.com>
+Minchan.kim@gmail.com said:
+
+Andy added synchronous lumpy reclaim with
+c661b078fd62abe06fd11fab4ac5e4eeafe26b6d.  At that time, lumpy reclaim is
+not agressive.  His intension is just for high-order users.(above
+PAGE_ALLOC_COSTLY_ORDER).  
+
+After some time, Rik added aggressive lumpy reclaim with
+33c120ed2843090e2bd316de1588b8bf8b96cbde.  His intention was to do lumpy
+reclaim when high-order users and trouble getting a small set of
+contiguous pages.  
+
+So we also have to add synchronous pageout for small set of contiguous
+pages.
+
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <Minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching mm/ksm.c
---- a/mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching
-+++ a/mm/ksm.c
-@@ -783,8 +783,8 @@ static int is_zapped_item(struct rmap_it
- 	struct vm_area_struct *vma;
+diff -puN mm/vmscan.c~vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync
++++ a/mm/vmscan.c
+@@ -1059,6 +1059,19 @@ static unsigned long shrink_inactive_lis
+ 	unsigned long nr_scanned = 0;
+ 	unsigned long nr_reclaimed = 0;
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
++	int lumpy_reclaim = 0;
++
++	/*
++	 * If we need a large contiguous chunk of memory, or have
++	 * trouble getting a small set of contiguous pages, we
++	 * will reclaim both active and inactive pages.
++	 *
++	 * We use the same threshold as pageout congestion_wait below.
++	 */
++	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
++		lumpy_reclaim = 1;
++	else if (sc->order && priority < DEF_PRIORITY - 2)
++		lumpy_reclaim = 1;
  
- 	cond_resched();
-+	down_read(&rmap_item->mm->mmap_sem);
- 	if (is_present_pte(rmap_item->mm, rmap_item->address)) {
--		down_read(&rmap_item->mm->mmap_sem);
- 		vma = find_vma(rmap_item->mm, rmap_item->address);
- 		if (vma && !vma->vm_file) {
- 			BUG_ON(vma->vm_flags & VM_SHARED);
-@@ -792,8 +792,8 @@ static int is_zapped_item(struct rmap_it
- 					     rmap_item->address,
- 					     1, 0, 0, page, NULL);
- 		}
--		up_read(&rmap_item->mm->mmap_sem);
- 	}
-+	up_read(&rmap_item->mm->mmap_sem);
+ 	pagevec_init(&pvec, 1);
  
- 	if (ret != 1)
- 		return 1;
-@@ -979,13 +979,15 @@ static struct tree_item *unstable_tree_s
- 		rmap_item = tree_item->rmap_item;
- 		BUG_ON(!rmap_item);
+@@ -1071,19 +1084,7 @@ static unsigned long shrink_inactive_lis
+ 		unsigned long nr_freed;
+ 		unsigned long nr_active;
+ 		unsigned int count[NR_LRU_LISTS] = { 0, };
+-		int mode = ISOLATE_INACTIVE;
+-
+-		/*
+-		 * If we need a large contiguous chunk of memory, or have
+-		 * trouble getting a small set of contiguous pages, we
+-		 * will reclaim both active and inactive pages.
+-		 *
+-		 * We use the same threshold as pageout congestion_wait below.
+-		 */
+-		if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
+-			mode = ISOLATE_BOTH;
+-		else if (sc->order && priority < DEF_PRIORITY - 2)
+-			mode = ISOLATE_BOTH;
++		int mode = lumpy_reclaim ? ISOLATE_BOTH : ISOLATE_INACTIVE;
  
-+		down_read(&rmap_item->mm->mmap_sem);
- 		/*
- 		 * We dont want to swap in pages
+ 		nr_taken = sc->isolate_pages(sc->swap_cluster_max,
+ 			     &page_list, &nr_scan, sc->order, mode,
+@@ -1120,7 +1121,7 @@ static unsigned long shrink_inactive_lis
+ 		 * but that should be acceptable to the caller
  		 */
--		if (!is_present_pte(rmap_item->mm, rmap_item->address))
-+		if (!is_present_pte(rmap_item->mm, rmap_item->address)) {
-+			up_read(&rmap_item->mm->mmap_sem);
- 			return NULL;
-+		}
+ 		if (nr_freed < nr_taken && !current_is_kswapd() &&
+-					sc->order > PAGE_ALLOC_COSTLY_ORDER) {
++		    lumpy_reclaim) {
+ 			congestion_wait(WRITE, HZ/10);
  
--		down_read(&rmap_item->mm->mmap_sem);
- 		ret = get_user_pages(current, rmap_item->mm, rmap_item->address,
- 				     1, 0, 0, page2, NULL);
- 		up_read(&rmap_item->mm->mmap_sem);
-@@ -1344,9 +1346,9 @@ static int ksm_scan_start(struct ksm_sca
- 		 * If the page is swapped out or in swap cache, we don't want to
- 		 * scan it (it is just for performance).
- 		 */
-+		down_read(&slot->mm->mmap_sem);
- 		if (is_present_pte(slot->mm, slot->addr +
- 				   ksm_scan->page_index * PAGE_SIZE)) {
--			down_read(&slot->mm->mmap_sem);
- 			val = get_user_pages(current, slot->mm, slot->addr +
- 					     ksm_scan->page_index * PAGE_SIZE ,
- 					      1, 0, 0, page, NULL);
-@@ -1356,6 +1358,8 @@ static int ksm_scan_start(struct ksm_sca
- 					cmp_and_merge_page(ksm_scan, page[0]);
- 				put_page(page[0]);
- 			}
-+		} else {
-+			up_read(&slot->mm->mmap_sem);
- 		}
- 		scan_npages--;
- 	}
+ 			/*
 _
 
-Patches currently in -mm which might be from ieidus@redhat.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-linux-next.patch
-ksm-mmu_notifiers-add-set_pte_at_notify.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
-ksm-add-page_wrprotect-write-protecting-page.patch
-ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
-ksm-add-ksm-kernel-shared-memory-driver.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+origin.patch
+memcg-use-rcu_dereference-to-access-mm-owner.patch
+vmscanmemcg-reintroduce-sc-may_swap.patch
+procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+memcg-add-file-based-rss-accounting.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
