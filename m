@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-mmu_notifiers-add-set_pte_at_notify.patch added to -mm tree
-Date: Mon, 20 Apr 2009 16:44:00 -0700
-Message-ID: <200904202344.n3KNi1uP008495@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch added to -mm tree
+Date: Mon, 20 Apr 2009 17:14:05 -0700
+Message-ID: <200904210014.n3L0E5J4023817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41836 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752311AbZDUAAi (ORCPT
+	by vger.kernel.org with ESMTP id S1754822AbZDUART (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Apr 2009 20:00:38 -0400
+	Mon, 20 Apr 2009 20:17:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, airlied@linux.ie, eric@anholt.net, hannes@hanneseder.net, linux@youmustbejoking.demon.co.uk
 
 
 The patch titled
-     ksm: MMU_NOTIFIERS: add set_pte_at_notify()
+     drivers/gpu/drm/i915/intel_fb.c: remove sysrq-g handler
 has been added to the -mm tree.  Its filename is
-     ksm-mmu_notifiers-add-set_pte_at_notify.patch
+     drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,325 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: MMU_NOTIFIERS: add set_pte_at_notify()
-From: Izik Eidus <ieidus@redhat.com>
+Subject: drivers/gpu/drm/i915/intel_fb.c: remove sysrq-g handler
+From: Andrew Morton <akpm@linux-foundation.org>
 
-KSM is a linux driver that allows dynamicly sharing identical memory pages
-between one or more processes.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13130
 
-Unlike tradtional page sharing that is made at the allocation of the
-memory, ksm do it dynamicly after the memory was created.  Memory is
-periodically scanned; identical pages are identified and merged.
+Just remove this sysrq handler - it's doing various bad things from
+hardirq context and clearly isn't used much at all.
 
-The sharing is made in a transparent way to the procsess that use it.
-
-Ksm is highly important for hypervisors (kvm), where in production
-enviorments there might be many copys of the same data data among the host
-memory.  This kind of data can be similar kernels, librarys, cache, and
-so on.
-
-Even though ksm was wrote for kvm, any userspace application that want to
-use it to share its data can try it.
-
-Ksm may be useful for any application that might have similar (page
-aligment) data strctures among the memory, ksm will find this data merge
-it to one copy, and even if it will be changed and thereforew copy on
-writed, ksm will merge it again as soon as it will be identical again.
-
-Another reason to consider using ksm is the fact that it might simplify
-alot the userspace code of application that want to use shared private
-data, instead that the application will mange shared area, ksm will do
-this for the application, and even write to this data will be allowed
-without any synchinization acts from the application.
-
-Ksm was designed to be a loadable module that doesn't change the VM code of
-linux.
-
-
-Description of the ksm interface:
-
-Ksm interface is splited into two areas;
-
-Administration sysfs interface - interface that is avaible thanks to sysfs
-to control the ksm cpu timing, maximum allocation of kernel pages and
-statics.
-
-This interface is avaible at /sys/kernel/mm/ksm/ and its fields are:
-
-kernel_pages_allocated - information about how many kernel pagesksm have
-allocated, this pages are not swappabke, and each page like that is used
-by ksm to share pages with identical content.
-
-pages_shared - how many pages were shared by ksm
-
-run - set to 1 when you want ksm to run, 0 when no
-
-max_kernel_pages - set the maximum amount of kernel pages to be allocated
-by ksm, set 0 for unlimited.
-
-pages_to_scan - how many pages to scan before ksm will sleep
-
-sleep - how much usecs ksm will sleep.
-
-
-The interface for applications that want their memory to be scanned by
-ksm: This interface is built around ioctls when application want its
-memory to be scanned it will do something like that:
-
-static int ksm_register_memory(unsigned long phys_ram_size,
-                               unsigned long phys_ram_base)
-{
-    int fd;
-    int ksm_fd;
-    int r = 1;
-    struct ksm_memory_region ksm_region;
-
-    fd = open("/dev/ksm", O_RDWR | O_TRUNC, (mode_t)0600);
-    if (fd == -1)
-        goto out;
-
-    ksm_fd = ioctl(fd, KSM_CREATE_SHARED_MEMORY_AREA);
-    if (ksm_fd == -1)
-        goto out_free;
-
-    ksm_region.npages = phys_ram_size / TARGET_PAGE_SIZE;
-    ksm_region.addr = phys_ram_base;
-    r = ioctl(ksm_fd, KSM_REGISTER_MEMORY_REGION, &ksm_region);
-    if (r)
-        goto out_free1;
-
-    return r;
-
-out_free1:
-    close(ksm_fd);
-out_free:
-    close(fd);
-out:
-    return r;
-}
-
-This ioctls are:
-
-KSM_GET_API_VERSION:
-Give the userspace the api version of the module.
-
-KSM_CREATE_SHARED_MEMORY_AREA:
-Create shared memory reagion fd, that latter allow the user to register
-the memory region to scan by using:
-KSM_REGISTER_MEMORY_REGION and KSM_REMOVE_MEMORY_REGION
-
-KSM_REGISTER_MEMORY_REGION:
-Register userspace virtual address range to be scanned by ksm.
-This ioctl is using the ksm_memory_region structure:
-ksm_memory_region:
-__u32 npages;
-         number of pages to share inside this memory region.
-__u32 pad;
-__u64 addr:
-        the begining of the virtual address of this region.
-__u64 reserved_bits;
-        reserved bits for future usage.
-
-KSM_REMOVE_MEMORY_REGION:
-Remove memory region from ksm.
-
-
-Testing ksm:
-
-The following steps should allow you to test ksm and play with it:
-
-1) First patch your kernel with this patchs.
-
-2) Patch avi kvm-git tree:
-   (git.kernel.org/pub/scm/linux/kernel/git/avi/kvm.git) with the patchs
-   from:
-   http://lkml.org/lkml/2009/3/30/534
-
-3) Patch kvm-userspace tree:
-   git.kernel.org/pub/scm/virt/kvm/kvm-userspace.git with the patchs from:
-   http://lkml.org/lkml/2009/3/30/538 
-
-4) try to do:
-   echo 300 > /sys/kernel/mm/ksm/pages_to_scan
-   echo 10000 > /sys/kernel/mm/ksm/sleep
-   echo 1 > /sys/kernel/mm/ksm/run 
-   (Or any other numbers...)
-
-
-
-This patch:
-
-Add a set_pte_at_notify() macro.
-
-This macro allow setting the pte in the shadow page tables directly
-instead of flushing the shadow page table entry and then get vmexit in
-order to set it.
-
-This function is optimzation for kvm/users of mmu_notifiers for COW pages,
-it is useful for kvm when ksm is used beacuse it allow kvm not to have to
-recive VMEXIT and only then map the shared page into the mmu shadow pages,
-but instead map it directly at the same time linux map the page into the
-host page table.
-
-This mmu notifer macro is working by calling to callback that will map
-directly the physical page into the shadow page tables.
-
-(users of mmu_notifiers that didnt implement the set_pte_at_notify()
-call back will just recive the mmu_notifier_invalidate_page callback)
-
-Signed-off-by: Izik Eidus <ieidus@redhat.com>
-Cc: Chris Wright <chrisw@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Reported-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Cc: Eric Anholt <eric@anholt.net>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Hannes Eder <hannes@hanneseder.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   34 +++++++++++++++++++++++++++++++++
- mm/memory.c                  |   10 +++++++--
- mm/mmu_notifier.c            |   20 +++++++++++++++++++
- 3 files changed, 62 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/i915/intel_fb.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN include/linux/mmu_notifier.h~ksm-mmu_notifiers-add-set_pte_at_notify include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~ksm-mmu_notifiers-add-set_pte_at_notify
-+++ a/include/linux/mmu_notifier.h
-@@ -62,6 +62,15 @@ struct mmu_notifier_ops {
- 				 unsigned long address);
- 
- 	/*
-+	* change_pte is called in cases that pte mapping into page is changed
-+	* for example when ksm mapped pte to point into a new shared page.
-+	*/
-+	void (*change_pte)(struct mmu_notifier *mn,
-+			   struct mm_struct *mm,
-+			   unsigned long address,
-+			   pte_t pte);
-+
-+	/*
- 	 * Before this is invoked any secondary MMU is still ok to
- 	 * read/write to the page previously pointed to by the Linux
- 	 * pte because the page hasn't been freed yet and it won't be
-@@ -154,6 +163,8 @@ extern void __mmu_notifier_mm_destroy(st
- extern void __mmu_notifier_release(struct mm_struct *mm);
- extern int __mmu_notifier_clear_flush_young(struct mm_struct *mm,
- 					  unsigned long address);
-+extern void __mmu_notifier_change_pte(struct mm_struct *mm,
-+				      unsigned long address, pte_t pte);
- extern void __mmu_notifier_invalidate_page(struct mm_struct *mm,
- 					  unsigned long address);
- extern void __mmu_notifier_invalidate_range_start(struct mm_struct *mm,
-@@ -175,6 +186,13 @@ static inline int mmu_notifier_clear_flu
- 	return 0;
+diff -puN drivers/gpu/drm/i915/intel_fb.c~drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler drivers/gpu/drm/i915/intel_fb.c
+--- a/drivers/gpu/drm/i915/intel_fb.c~drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler
++++ a/drivers/gpu/drm/i915/intel_fb.c
+@@ -31,7 +31,6 @@
+ #include <linux/mm.h>
+ #include <linux/tty.h>
+ #include <linux/slab.h>
+-#include <linux/sysrq.h>
+ #include <linux/delay.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+@@ -857,17 +856,6 @@ void intelfb_restore(void)
+ 	drm_crtc_helper_set_config(&kernelfb_mode);
  }
  
-+static inline void mmu_notifier_change_pte(struct mm_struct *mm,
-+					   unsigned long address, pte_t pte)
-+{
-+	if (mm_has_notifiers(mm))
-+		__mmu_notifier_change_pte(mm, address, pte);
-+}
-+
- static inline void mmu_notifier_invalidate_page(struct mm_struct *mm,
- 					  unsigned long address)
+-static void intelfb_sysrq(int dummy1, struct tty_struct *dummy3)
+-{
+-        intelfb_restore();
+-}
+-
+-static struct sysrq_key_op sysrq_intelfb_restore_op = {
+-        .handler = intelfb_sysrq,
+-        .help_msg = "force-fb(G)",
+-        .action_msg = "Restore framebuffer console",
+-};
+-
+ int intelfb_probe(struct drm_device *dev)
  {
-@@ -236,6 +254,16 @@ static inline void mmu_notifier_mm_destr
- 	__young;							\
- })
+ 	int ret;
+@@ -898,8 +886,6 @@ int intelfb_probe(struct drm_device *dev
+ 		ret = intelfb_single_fb_probe(dev);
+ 	}
  
-+#define set_pte_at_notify(__mm, __address, __ptep, __pte)		\
-+({									\
-+	struct mm_struct *___mm = __mm;					\
-+	unsigned long ___address = __address;				\
-+	pte_t ___pte = __pte;						\
-+									\
-+	set_pte_at(__mm, __address, __ptep, ___pte);			\
-+	mmu_notifier_change_pte(___mm, ___address, ___pte);		\
-+})
-+
- #else /* CONFIG_MMU_NOTIFIER */
- 
- static inline void mmu_notifier_release(struct mm_struct *mm)
-@@ -248,6 +276,11 @@ static inline int mmu_notifier_clear_flu
- 	return 0;
+-	register_sysrq_key('g', &sysrq_intelfb_restore_op);
+-
+ 	return ret;
  }
- 
-+static inline void mmu_notifier_change_pte(struct mm_struct *mm,
-+					   unsigned long address, pte_t pte)
-+{
-+}
-+
- static inline void mmu_notifier_invalidate_page(struct mm_struct *mm,
- 					  unsigned long address)
- {
-@@ -273,6 +306,7 @@ static inline void mmu_notifier_mm_destr
- 
- #define ptep_clear_flush_young_notify ptep_clear_flush_young
- #define ptep_clear_flush_notify ptep_clear_flush
-+#define set_pte_at_notify set_pte_at
- 
- #endif /* CONFIG_MMU_NOTIFIER */
- 
-diff -puN mm/memory.c~ksm-mmu_notifiers-add-set_pte_at_notify mm/memory.c
---- a/mm/memory.c~ksm-mmu_notifiers-add-set_pte_at_notify
-+++ a/mm/memory.c
-@@ -2114,9 +2114,15 @@ gotten:
- 		 * seen in the presence of one thread doing SMC and another
- 		 * thread doing COW.
- 		 */
--		ptep_clear_flush_notify(vma, address, page_table);
-+		ptep_clear_flush(vma, address, page_table);
- 		page_add_new_anon_rmap(new_page, vma, address);
--		set_pte_at(mm, address, page_table, entry);
-+		/*
-+		 * We call here the notify macro beacuse in cases of using
-+		 * secondary mmu page table like kvm shadow page, tables we want
-+		 * the new page to be mapped directly into the secondary page
-+		 * table
-+		 */
-+		set_pte_at_notify(mm, address, page_table, entry);
- 		update_mmu_cache(vma, address, entry);
- 		if (old_page) {
- 			/*
-diff -puN mm/mmu_notifier.c~ksm-mmu_notifiers-add-set_pte_at_notify mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~ksm-mmu_notifiers-add-set_pte_at_notify
-+++ a/mm/mmu_notifier.c
-@@ -99,6 +99,26 @@ int __mmu_notifier_clear_flush_young(str
- 	return young;
- }
- 
-+void __mmu_notifier_change_pte(struct mm_struct *mm, unsigned long address,
-+			       pte_t pte)
-+{
-+	struct mmu_notifier *mn;
-+	struct hlist_node *n;
-+
-+	rcu_read_lock();
-+	hlist_for_each_entry_rcu(mn, n, &mm->mmu_notifier_mm->list, hlist) {
-+		if (mn->ops->change_pte)
-+			mn->ops->change_pte(mn, mm, address, pte);
-+		/*
-+		 * some drivers dont have change_pte and therefor we must call
-+		 * for invalidate_page in that case
-+		 */
-+		else if (mn->ops->invalidate_page)
-+			mn->ops->invalidate_page(mn, mm, address);
-+	}
-+	rcu_read_unlock();
-+}
-+
- void __mmu_notifier_invalidate_page(struct mm_struct *mm,
- 					  unsigned long address)
- {
+ EXPORT_SYMBOL(intelfb_probe);
 _
 
-Patches currently in -mm which might be from ieidus@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay-fix.patch
+clocksource-pass-clocksource-to-read-callback.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-ksm-mmu_notifiers-add-set_pte_at_notify.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
-ksm-add-page_wrprotect-write-protecting-page.patch
-ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
-ksm-add-ksm-kernel-shared-memory-driver.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
 ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
 
