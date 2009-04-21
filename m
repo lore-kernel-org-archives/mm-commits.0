@@ -1,144 +1,354 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch added to -mm tree
-Date: Tue, 21 Apr 2009 14:49:01 -0700
-Message-ID: <200904212207.n3LM7kro001705@imap1.linux-foundation.org>
+Subject: mmotm 2009-04-21-15-00 uploaded
+Date: Tue, 21 Apr 2009 15:00:17 -0700
+Message-ID: <200904212219.n3LMJ2O7007301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751056AbZDUWKJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751956AbZDUWUI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 18:10:09 -0400
+	Tue, 21 Apr 2009 18:20:08 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n3LMJ2CS009448
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 21 Apr 2009 15:19:38 -0700
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id n3LMJ2O7007301
+	for <mm-commits@vger.kernel.org>; Tue, 21 Apr 2009 15:19:02 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, len.brown@intel.com, mjg59@srcf.ucam.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2009-04-21-15-00 has been uploaded to
 
-The patch titled
-     drivers/platform/x86/toshiba_acpi.c: fix acpi_install_notify_handler() arg
-has been added to the -mm tree.  Its filename is
-     drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+and will soon be available at
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+   git://git.zen-sources.org/zen/mmotm.git
 
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: drivers/platform/x86/toshiba_acpi.c: fix acpi_install_notify_handler() arg
-From: Andrew Morton <akpm@linux-foundation.org>
-
-drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_setup_keyboard':
-drivers/platform/x86/toshiba_acpi.c:854: warning: passing argument 3 of 'acpi_install_notify_handler' from incompatible pointer type
-drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_exit':
-drivers/platform/x86/toshiba_acpi.c:903: warning: passing argument 3 of 'acpi_remove_notify_handler' from incompatible pointer type
-
-Fix this, and make toshiba_acpi_notify()'s argument names match up with the
-acpi_notify_handler() declaration.
-
-Cc: Len Brown <len.brown@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/platform/x86/toshiba_acpi.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
-
-diff -puN drivers/platform/x86/toshiba_acpi.c~drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg drivers/platform/x86/toshiba_acpi.c
---- a/drivers/platform/x86/toshiba_acpi.c~drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg
-+++ a/drivers/platform/x86/toshiba_acpi.c
-@@ -792,24 +792,25 @@ static int toshiba_acpi_setkeycode(struc
- 	return -EINVAL;
- }
- 
--static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
-+static void toshiba_acpi_notify(acpi_handle device, u32 value, void *context)
- {
--	u32 hci_result, value;
-+	u32 hci_result;
- 	struct key_entry *key;
- 
--	if (event != 0x80)
-+	if (value != 0x80)
- 		return;
- 	do {
--		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
-+		u32 val;
-+		hci_read1(HCI_SYSTEM_EVENT, &val, &hci_result);
- 		if (hci_result == HCI_SUCCESS) {
--			if (value == 0x100)
-+			if (val == 0x100)
- 				continue;
--			else if (value & 0x80) {
-+			else if (val & 0x80) {
- 				key = toshiba_acpi_get_entry_by_scancode
--					(value & ~0x80);
-+					(val & ~0x80);
- 				if (!key) {
- 					printk(MY_INFO "Unknown key %x\n",
--					       value & ~0x80);
-+					       val & ~0x80);
- 					continue;
- 				}
- 				input_report_key(toshiba_acpi.hotkey_dev,
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+It contains the following patches against 2.6.30-rc2:
 
 origin.patch
+asiliantfb-add-missing-return-statement.patch
 pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay.patch
 clocksource-pass-clocksource-to-read-callback.patch
+clocksource-add-enable-and-disable-callbacks.patch
+ipmi-fix-platform-return-check.patch
+ipmi-test-for-event-buffer-before-using.patch
+ipmi-fix-statistics-counting-issues.patch
+ipmi-add-oem-message-handling.patch
+hugetlbfs-return-negative-error-code-for-bad-mount-option.patch
+memcg-use-rcu_dereference-to-access-mm-owner.patch
+drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch
+pxa2xx_spi-restore-drcmr-on-resume.patch
+maintainers-remove-include-asm-suspend-file-patterns.patch
+maintainers-update-kmemtrace-pattern-after-file-rename.patch
+spi-pxa2xx-limit-reaches-1.patch
+add-matt-mackall-to-embedded-maintainers.patch
+maintainers-add-a-more-searchable-string-for-the-h8300-architecture.patch
+spi-documentation-emphasise-spi_mastersetup-semantics.patch
+rtc-cmos-fix-printk-output.patch
+frv-insert-pci-root-bus-resources-for-the-mb93090-devel-motherboard.patch
+uml-kill-a-kconfig-warning.patch
+sgi-xp-sgi-gru-allow-modules-to-load-on-non-uv-systems.patch
+scsi-mpt-suppress-debugobjects-warning.patch
+edac-ppc-mpc85xx-fix-mc-err-detect.patch
+vmscanmemcg-reintroduce-sc-may_swap.patch
+bfin_5xx-misplaced-parentheses.patch
+ibft-fix-the-display-of-a-few-fields-in-the-nic-attribute-structure-in-sysfs.patch
+mm-fix-pageref-leak-in-do_swap_page.patch
 i2c-too-much-compiler-noise.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
+acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
+dell-laptop-fix-uninitialized-wrong-return-value.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+x86-simplify-highmem-related-kconfig-entries.patch
+x86-enable-gart-iommu-only-after-setting-up-protection-methods.patch
 arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+agpgart-detected-ali-m-chipset-with-m1621.patch
+btrfs-use-memdup_user.patch
+pcmcia-pccard-deadlock-fix.patch
+synchronize-device-shutdown.patch
+sysfs-use-memdup_user.patch
+doc-add-documentation-for-debugfs.patch
+drm-fix-lock_test_with_return-macro.patch
 drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+radio-mr800c-missing-mutex-include.patch
+uvcvideo-prevent-information-loss-with-removing-implicit-casting.patch
+drivers-media-dvb-frontends-stv0900_privh-remove-broken-unused-macro.patch
+drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
+kernel-time-tick-broadcastc-tick_broadcast_device-can-become-static.patch
+timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred.patch
+time-move-calc_load-call-out-from-xtime_lock-protection.patch
+time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
+time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
+time-sh-convert-to-use-arch_getoffset-infrastructure.patch
+drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+input-mouse-alpsc-handle-touchpoints-buttons-correctly.patch
+input-ads7846c-sparse-lock-annotation.patch
+input-bcm5974-prepare-for-a-new-trackpad-header-type.patch
+input-bcm5974-add-quad-finger-tapping.patch
+input-bcm5974-add-support-for-the-macbook-5-unibody.patch
+input-bcm5974-augmented-debug-information.patch
 input-bcm5974-declare-alignment-usage.patch
+input-allow-certain-ev_abs-events-to-bypass-all-filtering.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-add-a-detailed-multi-touch-finger-data-report-protocol-rev2.patch
+ads7846-pin-change-interrupt-support.patch
 input-keyboard-introduce-lm8323-driver.patch
+uinput-flush-all-pending-ff-effects-before-destroying-device.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+input-documentation-abi-testing-game_device-sysfs-interface-document-game_device-interface-added-to-xpad-driver.patch
+serios-async-shutdown.patch
+kernel-kallsymsc-replace-deprecated-__initcall-with-device_initcall-and-fix-whitespace.patch
+kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch
+leds-fix-led-bd2802-errors-while-resuming.patch
+leds-change-the-license-information.patch
+leds-add-the-sysfs-interface-into-the-leds-bd2802-driver-for-changing-wave-pattern-and-led-current.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon.patch
+microblaze-iowrite-upon-timeout.patch
+mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch
+mmc-some-microsd-cards-are-not-recognized-by-pcixx12-sda-controller.patch
+mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
 mtd-flex-onenand-support.patch
+mtd-onenand-add-bbt_wait-unlock_all-as-replaceable-for-some-platform.patch
+mtd-plat_nand-add-platform-probe-remove-callbacks.patch
+mtd-plat_nand-allow-platform-to-set-partitions.patch
+mtd-update-sysfs-documentation.patch
+mtd-add-memerase64-ioctl-for-4gib-devices.patch
+mtd-compat_ioctl-cleanup.patch
+mtd-add-oob-ioctls-for-4gib-devices.patch
+mtd-delete-final-remnants-of-mtd-ioctls-from-fs-compat_ioctlc.patch
+uwb-event_size-should-be-signed.patch
+cls_cgroup-remove-unneeded-cgroup_lock.patch
+sunrpc-align-cache_clean-works-timer.patch
+irda-new-blackfin-on-chip-sir-irda-driver.patch
 misdn-l1oip-reduce-stack-memory-footprint.patch
+sfc-modify-allocation-error-message.patch
 drivers-net-82596c-suppress-warnings.patch
+de2104x-support-for-systems-lacking-cache-coherence.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+pci-docbooks-add-fix-pci-kernel-doc.patch
+clocksource-sh_cmt-clocksource-support.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+sg_io-dont-perform-unneeded-copy-in-compat-code.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+qla2x-fix-printk-format-warnings.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+sd-async-shutdown.patch
+w35und-remove-unused-code-from-wbsoft_configure_filter.patch
+staging-stlc45xx-replace-print_mac-with-%pm.patch
+usb-imx_udc-fix-leak-in-imx_ep_alloc_request.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-improve-comment-describing-fget_light.patch
 libfs-make-simple_read_from_buffer-conventional.patch
+fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch
+xattr-use-memdup_user.patch
+vfs-consolidate-common-fstatat-code-into-vfs_fstatat.patch
+vfs-kill-vfs_stat_fd-vfs_lstat_fd.patch
 vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
+xfs-use-memdup_user.patch
+xtensa-variant-specific-code.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-s6000-dma-engine-support.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+xtensa-add-m41t62-rtc-to-s6105-platform.patch
+xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
+mm.patch
+pagemap-require-aligned-length-non-null-reads-of-proc-pid-pagemap.patch
+memcg-fix-mem_cgroup_shrink_usage.patch
+vgacon-return-the-upper-half-of-512-character-fonts.patch
+fbdev-fix-fillrect-for-24bpp-modes.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
+rtc-add-ds1685-ds1687-rtc-driver.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch
+crisv10-change-serial-driver-proc-usage.patch
+ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port.patch
+drivers-media-video-saa5249c-fix-use-after-free-and-leak.patch
+drivers-media-video-saa5246ac-fix-use-after-free.patch
+scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin.patch
+drivers-mtd-nand-cafe_nandc-fix-irq-handler-return-type.patch
+mtd-fix-timeout-in-m25p80-driver.patch
+rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
+drivers-pci-hotplug-ibmphp_corec-fix-warning-due-to-missing-module_exit.patch
+procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+scsi-a4000-correct-driver-unregistration-in-case-of-failure.patch
+squashfs-fix-breakage-when-pagesize-blocksize.patch
 squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+w35und-unregister-device-from-the-ieee80211-stack-upon-disconnect.patch
+drivers-usb-serial-ti_usb_3410_5052c-ti_usb-returns-eio-when-reopening-the-device.patch
+mm-consolidate-init_mm-definition.patch
 mm-consolidate-init_mm-definition-fix.patch
+readahead-make-mmap_miss-an-unsigned-int.patch
+readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
+readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
+readahead-remove-one-unnecessary-radix-tree-lookup.patch
+readahead-increase-interleaved-readahead-size.patch
+readahead-remove-sync-async-readahead-call-dependency.patch
+readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
+readahead-sequential-mmap-readahead.patch
+readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
 readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+radix-tree-add-radix_tree_prev_hole.patch
+readahead-move-the-random-read-case-to-bottom.patch
+readahead-introduce-context-readahead-algorithm.patch
+readahead-introduce-context-readahead-algorithm-update.patch
+readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
+readahead-enforce-full-sync-mmap-readahead-size.patch
+mm-close-page_mkwrite-races-try-3.patch
+mm-clean-up-get_user_pages_fast-documentation.patch
 mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+ksm-mmu_notifiers-add-set_pte_at_notify.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
 ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+utsnameh-make-new_utsname-fields-use-the-proper-length-constant.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+getrusage-fill-ru_maxrss-value.patch
+documentation-rbtreetxt-fix-errors-in-sample-code.patch
+softirq-introduce-statistics-for-softirq.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 flat-fix-data-sections-alignment.patch
+ncpfs-use-memdup_user.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+icom-converting-space-to-tabs.patch
+serial-8250c-irq-handling-race-and-spurious-iir-read.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
+spi_bfin5xx-limit-reaches-1.patch
+spi-move-common-spi_setup-functionality-into-core.patch
+spi-move-more-spi_setup-functionality-into-core.patch
+ecryptfs-use-memdup_user.patch
+rtc-rtc-ds1742-nvram-attribute-fix.patch
+rtc-rtc-ds1307-add-ds1388.patch
+rtc-rtc-ds1307-add-ds3231.patch
+rtc-add-stand-alone-driver-for-rx8025-chip.patch
 rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch
+rtc-make-rtc_update_irq-callable-with-irqs-enabled.patch
+pca953x-support-gpiolib-gpio-naming.patch
+fbdev-generated-logo-sources-depend-on-scripts-pnmtologo.patch
+fbdev-move-logo-externs-to-header-file.patch
+ext2-do-not-update-mtime-of-a-moved-directory.patch
+ext3-fix-chain-verification-in-ext3_get_blocks.patch
+isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch
+isofs-fix-setting-of-uid-and-gid-to-0.patch
+isofs-cleanup-mount-option-processing.patch
+hfsplus-identify-journal-info-block-in-volume-header.patch
+hfsplus-fix-journal-detection.patch
+ufs-sector_t-cannot-be-negative.patch
+reiserfs-fix-printk-format-warning.patch
+devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
+memcg-add-file-based-rss-accounting.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
 drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-isicom-fix-build-warning.patch
+char-cyclades-load-firmware-even-on-ze.patch
+char-cyclades-dont-kill-fw.patch
+char-cyclades-remove-spurious-check-in-isr.patch
+synclink_gt-add-receive-pio-mode.patch
+edac-add-cpc925-memory-controller-driver.patch
 edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index.patch
 edac-add-edac_device_alloc_index-cleanup.patch
+edac-cpc925-mc-platform-device-setup.patch
+edac-cpc925-mc-platform-device-setup-v3.patch
+gru-bug-fixes-for-gru-exception-handling.patch
+gru-dump-chiplet-state.patch
+gru-dump-chiplet-state-update.patch
+gru-dynamic-allocation-of-kernel-contexts.patch
+gru-dynamic-allocation-of-kernel-contexts-update.patch
+gru-change-context-load-and-unload.patch
+gru-support-cch_allocate-for-kernel-threads.patch
+gru-change-resource-assignment-for-kernel-threads.patch
+gru-support-contexts-with-zero-dsrs-or-cbrs.patch
+gru-fix-handling-of-mesq-failures.patch
+gru-check-context-state-on-reload.patch
+gru-support-instruction-completion-interrupts.patch
+gru-support-for-asynchronous-gru-instructions.patch
 gru-support-for-asynchronous-gru-instructions-fix.patch
+gru-update-gru-kernel-self-tests.patch
+gru-update-gru-kernel-self-tests-fix.patch
+gru-update-to-rev-09-of-gru-spec.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+linuxpps-core-support.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
+vfs-take-2add-set_page_dirty_notag.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
 reiser4.patch
+reiser4-adjust-to-the-new-aops.patch
+reiser4-adjust-to-the-new-aops-fixup.patch
+reiser4-remove-simple_prepare_write-usage.patch
 reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
+reiser4-update-names-of-quota-methods.patch
+reiser4-use-set_page_dirty_notag.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+releasing-resources-with-children.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-
