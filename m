@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-require-aligned-length-non-null-reads-of-proc-pid-pagemap.patch added to -mm tree
-Date: Tue, 21 Apr 2009 12:21:16 -0700
-Message-ID: <200904211921.n3LJLGdf014631@imap1.linux-foundation.org>
+Subject: + mm-fix-pageref-leak-in-do_swap_page.patch added to -mm tree
+Date: Tue, 21 Apr 2009 12:45:43 -0700
+Message-ID: <200904211945.n3LJjhkS027153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51919 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756108AbZDUT01 (ORCPT
+	by vger.kernel.org with ESMTP id S1756070AbZDUTsr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 15:26:27 -0400
+	Tue, 21 Apr 2009 15:48:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: v.mayatskih@gmail.com, adobriyan@gmail.com, mpm@selenic.com, stable@kernel.org, ttuttle@google.com
+Cc: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com
 
 
 The patch titled
-     pagemap: require aligned-length, non-null reads of /proc/pid/pagemap
+     mm: fix pageref leak in do_swap_page()
 has been added to the -mm tree.  Its filename is
-     pagemap-require-aligned-length-non-null-reads-of-proc-pid-pagemap.patch
+     mm-fix-pageref-leak-in-do_swap_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: require aligned-length, non-null reads of /proc/pid/pagemap
-From: Vitaly Mayatskikh <v.mayatskih@gmail.com>
+Subject: mm: fix pageref leak in do_swap_page()
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-The intention of commit aae8679b0ebcaa92f99c1c3cb0cd651594a43915
-("pagemap: fix bug in add_to_pagemap, require aligned-length reads of
-/proc/pid/pagemap") was to force reads of /proc/pid/pagemap to be a
-multiple of 8 bytes, but now it allows to read 0 bytes, which actually
-puts some data to user's buffer.  According to POSIX, if count is zero,
-read() should return zero and has no other results.
+By the time the memory cgroup code is notified about a swapin we
+already hold a reference on the fault page.
 
-Signed-off-by: Vitaly Mayatskikh <v.mayatskih@gmail.com>
-Cc: Thomas Tuttle <ttuttle@google.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <stable@kernel.org>
+If the cgroup callback fails make sure to unlock AND release the page
+reference which was taken by lookup_swap_cach(), or we leak the reference.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-require-aligned-length-non-null-reads-of-proc-pid-pagemap fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-require-aligned-length-non-null-reads-of-proc-pid-pagemap
-+++ a/fs/proc/task_mmu.c
-@@ -665,6 +665,10 @@ static ssize_t pagemap_read(struct file 
- 		goto out_task;
+diff -puN mm/memory.c~mm-fix-pageref-leak-in-do_swap_page mm/memory.c
+--- a/mm/memory.c~mm-fix-pageref-leak-in-do_swap_page
++++ a/mm/memory.c
+@@ -2458,8 +2458,7 @@ static int do_swap_page(struct mm_struct
  
- 	ret = 0;
-+
-+	if (!count)
-+		goto out_task;
-+
- 	mm = get_task_mm(task);
- 	if (!mm)
- 		goto out_task;
+ 	if (mem_cgroup_try_charge_swapin(mm, page, GFP_KERNEL, &ptr)) {
+ 		ret = VM_FAULT_OOM;
+-		unlock_page(page);
+-		goto out;
++		goto out_page;
+ 	}
+ 
+ 	/*
+@@ -2521,6 +2520,7 @@ out:
+ out_nomap:
+ 	mem_cgroup_cancel_charge_swapin(ptr);
+ 	pte_unmap_unlock(page_table, ptl);
++out_page:
+ 	unlock_page(page);
+ 	page_cache_release(page);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from v.mayatskih@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-pagemap-require-aligned-length-non-null-reads-of-proc-pid-pagemap.patch
+vmscanmemcg-reintroduce-sc-may_swap.patch
+mm-fix-pageref-leak-in-do_swap_page.patch
+linux-next.patch
 
