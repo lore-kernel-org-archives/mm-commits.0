@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch added to -mm tree
-Date: Tue, 21 Apr 2009 14:38:29 -0700
-Message-ID: <200904212157.n3LLvELE028824@imap1.linux-foundation.org>
+Subject: + drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch added to -mm tree
+Date: Tue, 21 Apr 2009 14:49:01 -0700
+Message-ID: <200904212207.n3LM7kro001705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756007AbZDUWDc (ORCPT
+	by vger.kernel.org with ESMTP id S1751056AbZDUWKJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 18:03:32 -0400
+	Tue, 21 Apr 2009 18:10:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org, matthias.fuchs@esd.eu, rda@emcraft.com, sposelenov@emcraft.com, wg@grandegger.com, yur@emcraft.com
+Cc: akpm@linux-foundation.org, len.brown@intel.com, mjg59@srcf.ucam.org
 
 
 The patch titled
-     rtc-add-stand-alone-driver-for-rx8025-chip-is-broken
+     drivers/platform/x86/toshiba_acpi.c: fix acpi_install_notify_handler() arg
 has been added to the -mm tree.  Its filename is
-     rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch
+     drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-add-stand-alone-driver-for-rx8025-chip-is-broken
+Subject: drivers/platform/x86/toshiba_acpi.c: fix acpi_install_notify_handler() arg
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Dmitry Rakhchev <rda@emcraft.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Matthias Fuchs <matthias.fuchs@esd.eu>
-Cc: Sergei Poselenov <sposelenov@emcraft.com>
-Cc: Wolfgang Grandegger <wg@grandegger.com>
-Cc: Yuri Tikhonov <yur@emcraft.com>
+drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_setup_keyboard':
+drivers/platform/x86/toshiba_acpi.c:854: warning: passing argument 3 of 'acpi_install_notify_handler' from incompatible pointer type
+drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_exit':
+drivers/platform/x86/toshiba_acpi.c:903: warning: passing argument 3 of 'acpi_remove_notify_handler' from incompatible pointer type
+
+Fix this, and make toshiba_acpi_notify()'s argument names match up with the
+acpi_notify_handler() declaration.
+
+Cc: Len Brown <len.brown@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/platform/x86/toshiba_acpi.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-stand-alone-driver-for-rx8025-chip-is-broken drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-stand-alone-driver-for-rx8025-chip-is-broken
-+++ a/drivers/rtc/Kconfig
-@@ -310,6 +310,7 @@ config RTC_DRV_RX8581
+diff -puN drivers/platform/x86/toshiba_acpi.c~drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg drivers/platform/x86/toshiba_acpi.c
+--- a/drivers/platform/x86/toshiba_acpi.c~drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg
++++ a/drivers/platform/x86/toshiba_acpi.c
+@@ -792,24 +792,25 @@ static int toshiba_acpi_setkeycode(struc
+ 	return -EINVAL;
+ }
  
- config RTC_DRV_RX8025
- 	tristate "Epson RX-8025SA/NB"
-+	depends on BROKEN
- 	help
- 	  If you say yes here you get support for the Epson
- 	  RX-8025SA/NB RTC chips.
+-static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
++static void toshiba_acpi_notify(acpi_handle device, u32 value, void *context)
+ {
+-	u32 hci_result, value;
++	u32 hci_result;
+ 	struct key_entry *key;
+ 
+-	if (event != 0x80)
++	if (value != 0x80)
+ 		return;
+ 	do {
+-		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++		u32 val;
++		hci_read1(HCI_SYSTEM_EVENT, &val, &hci_result);
+ 		if (hci_result == HCI_SUCCESS) {
+-			if (value == 0x100)
++			if (val == 0x100)
+ 				continue;
+-			else if (value & 0x80) {
++			else if (val & 0x80) {
+ 				key = toshiba_acpi_get_entry_by_scancode
+-					(value & ~0x80);
++					(val & ~0x80);
+ 				if (!key) {
+ 					printk(MY_INFO "Unknown key %x\n",
+-					       value & ~0x80);
++					       val & ~0x80);
+ 					continue;
+ 				}
+ 				input_report_key(toshiba_acpi.hotkey_dev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +116,7 @@ raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch
 squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
 mm-consolidate-init_mm-definition-fix.patch
 readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
