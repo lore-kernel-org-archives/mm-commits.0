@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch added to -mm tree
-Date: Tue, 21 Apr 2009 14:20:15 -0700
-Message-ID: <200904212139.n3LLd0cv019599@imap1.linux-foundation.org>
+Subject: + rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch added to -mm tree
+Date: Tue, 21 Apr 2009 14:38:29 -0700
+Message-ID: <200904212157.n3LLvELE028824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752211AbZDUVmg (ORCPT
+	by vger.kernel.org with ESMTP id S1756007AbZDUWDc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 17:42:36 -0400
+	Tue, 21 Apr 2009 18:03:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, yinghai@kernel.org
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org, matthias.fuchs@esd.eu, rda@emcraft.com, sposelenov@emcraft.com, wg@grandegger.com, yur@emcraft.com
 
 
 The patch titled
-     arch/x86/kernel/apic/io_apic.c: conditionally compile eoi_ioapic_irq() 
+     rtc-add-stand-alone-driver-for-rx8025-chip-is-broken
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+     rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/apic/io_apic.c: conditionally compile eoi_ioapic_irq() 
+Subject: rtc-add-stand-alone-driver-for-rx8025-chip-is-broken
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allnoconfig:
-
-arch/x86/kernel/apic/io_apic.c:2543: warning: 'eoi_ioapic_irq' defined but not used
-
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Dmitry Rakhchev <rda@emcraft.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Matthias Fuchs <matthias.fuchs@esd.eu>
+Cc: Sergei Poselenov <sposelenov@emcraft.com>
+Cc: Wolfgang Grandegger <wg@grandegger.com>
+Cc: Yuri Tikhonov <yur@emcraft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apic/io_apic.c |   67 +++++++++++++++----------------
- 1 file changed, 34 insertions(+), 33 deletions(-)
+ drivers/rtc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/apic/io_apic.c~arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq arch/x86/kernel/apic/io_apic.c
---- a/arch/x86/kernel/apic/io_apic.c~arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq
-+++ a/arch/x86/kernel/apic/io_apic.c
-@@ -2520,39 +2520,6 @@ static void irq_complete_move(struct irq
- static inline void irq_complete_move(struct irq_desc **descp) {}
- #endif
+diff -puN drivers/rtc/Kconfig~rtc-add-stand-alone-driver-for-rx8025-chip-is-broken drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-stand-alone-driver-for-rx8025-chip-is-broken
++++ a/drivers/rtc/Kconfig
+@@ -310,6 +310,7 @@ config RTC_DRV_RX8581
  
--static void __eoi_ioapic_irq(unsigned int irq, struct irq_cfg *cfg)
--{
--	int apic, pin;
--	struct irq_pin_list *entry;
--
--	entry = cfg->irq_2_pin;
--	for (;;) {
--
--		if (!entry)
--			break;
--
--		apic = entry->apic;
--		pin = entry->pin;
--		io_apic_eoi(apic, pin);
--		entry = entry->next;
--	}
--}
--
--static void
--eoi_ioapic_irq(struct irq_desc *desc)
--{
--	struct irq_cfg *cfg;
--	unsigned long flags;
--	unsigned int irq;
--
--	irq = desc->irq;
--	cfg = desc->chip_data;
--
--	spin_lock_irqsave(&ioapic_lock, flags);
--	__eoi_ioapic_irq(irq, cfg);
--	spin_unlock_irqrestore(&ioapic_lock, flags);
--}
--
- static void ack_apic_edge(unsigned int irq)
- {
- 	struct irq_desc *desc = irq_to_desc(irq);
-@@ -2662,6 +2629,40 @@ static void ack_apic_level(unsigned int 
- }
- 
- #ifdef CONFIG_INTR_REMAP
-+
-+static void __eoi_ioapic_irq(unsigned int irq, struct irq_cfg *cfg)
-+{
-+	int apic, pin;
-+	struct irq_pin_list *entry;
-+
-+	entry = cfg->irq_2_pin;
-+	for (;;) {
-+
-+		if (!entry)
-+			break;
-+
-+		apic = entry->apic;
-+		pin = entry->pin;
-+		io_apic_eoi(apic, pin);
-+		entry = entry->next;
-+	}
-+}
-+
-+static void
-+eoi_ioapic_irq(struct irq_desc *desc)
-+{
-+	struct irq_cfg *cfg;
-+	unsigned long flags;
-+	unsigned int irq;
-+
-+	irq = desc->irq;
-+	cfg = desc->chip_data;
-+
-+	spin_lock_irqsave(&ioapic_lock, flags);
-+	__eoi_ioapic_irq(irq, cfg);
-+	spin_unlock_irqrestore(&ioapic_lock, flags);
-+}
-+
- static void ir_ack_apic_edge(unsigned int irq)
- {
- 	ack_APIC_irq();
+ config RTC_DRV_RX8025
+ 	tristate "Epson RX-8025SA/NB"
++	depends on BROKEN
+ 	help
+ 	  If you say yes here you get support for the Epson
+ 	  RX-8025SA/NB RTC chips.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -167,6 +96,7 @@ ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
 flat-fix-data-sections-alignment.patch
+rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch
 drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
 edac-add-cpc925-memory-controller-driver-cleanup.patch
 edac-add-edac_device_alloc_index-cleanup.patch
