@@ -1,77 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sgi-xp-sgi-gru-allow-modules-to-load-on-non-uv-systems.patch removed from -mm tree
-Date: Wed, 22 Apr 2009 11:30:46 -0700
-Message-ID: <200904221830.n3MIUkas006364@imap1.linux-foundation.org>
+Subject: [merged] xfs-use-memdup_user.patch removed from -mm tree
+Date: Wed, 22 Apr 2009 11:31:18 -0700
+Message-ID: <200904221831.n3MIVIwD006662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46020 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751406AbZDVStw (ORCPT
+	by vger.kernel.org with ESMTP id S1752266AbZDVSwK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Apr 2009 14:49:52 -0400
+	Wed, 22 Apr 2009 14:52:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holt@sgi.com, mingo@elte.hu, steiner@sgi.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, felixb@sgi.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp/sgi-gru: allow modules to load on non-uv systems
+     xfs: use memdup_user()
 has been removed from the -mm tree.  Its filename was
-     sgi-xp-sgi-gru-allow-modules-to-load-on-non-uv-systems.patch
+     xfs-use-memdup_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp/sgi-gru: allow modules to load on non-uv systems
-From: Robin Holt <holt@sgi.com>
+Subject: xfs: use memdup_user()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-For an upcoming distro release, we need to have the xp kernel module
-loadable even when not on UV equipment.  The xpc module will not load. 
-This will allow one set of modules dependent upon xp to work on either UV
-or non-UV equipment.
+Remove open-coded memdup_user().
 
-Signed-off-by: Robin Holt <holt@sgi.com>
-Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Felix Blyakher <felixb@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufile.c |    2 +-
- drivers/misc/sgi-xp/xp_main.c  |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl.c   |   23 +++++++----------------
+ fs/xfs/linux-2.6/xfs_ioctl32.c |   12 ++++--------
+ 2 files changed, 11 insertions(+), 24 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufile.c~sgi-xp-sgi-gru-allow-modules-to-load-on-non-uv-systems drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~sgi-xp-sgi-gru-allow-modules-to-load-on-non-uv-systems
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -375,7 +375,7 @@ static int __init gru_init(void)
- 	void *gru_start_vaddr;
+diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~xfs-use-memdup_user fs/xfs/linux-2.6/xfs_ioctl.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl.c~xfs-use-memdup_user
++++ a/fs/xfs/linux-2.6/xfs_ioctl.c
+@@ -489,17 +489,12 @@ xfs_attrmulti_attr_set(
+ 	if (len > XATTR_SIZE_MAX)
+ 		return EINVAL;
  
- 	if (!is_uv_system())
--		return -ENODEV;
-+		return 0;
+-	kbuf = kmalloc(len, GFP_KERNEL);
+-	if (!kbuf)
+-		return ENOMEM;
+-
+-	if (copy_from_user(kbuf, ubuf, len))
+-		goto out_kfree;
++	kbuf = memdup_user(ubuf, len);
++	if (IS_ERR(kbuf))
++		return PTR_ERR(kbuf);
  
- #if defined CONFIG_IA64
- 	gru_start_paddr = 0xd000000000UL; /* ZZZZZZZZZZZZZZZZZZZ fixme */
-diff -puN drivers/misc/sgi-xp/xp_main.c~sgi-xp-sgi-gru-allow-modules-to-load-on-non-uv-systems drivers/misc/sgi-xp/xp_main.c
---- a/drivers/misc/sgi-xp/xp_main.c~sgi-xp-sgi-gru-allow-modules-to-load-on-non-uv-systems
-+++ a/drivers/misc/sgi-xp/xp_main.c
-@@ -248,19 +248,19 @@ xp_init(void)
- 	enum xp_retval ret;
- 	int ch_number;
+ 	error = xfs_attr_set(XFS_I(inode), name, kbuf, len, flags);
  
-+	/* initialize the connection registration mutex */
-+	for (ch_number = 0; ch_number < XPC_MAX_NCHANNELS; ch_number++)
-+		mutex_init(&xpc_registrations[ch_number].mutex);
-+
- 	if (is_shub())
- 		ret = xp_init_sn2();
- 	else if (is_uv())
- 		ret = xp_init_uv();
- 	else
--		ret = xpUnsupported;
-+		ret = 0;
+- out_kfree:
+-	kfree(kbuf);
+ 	return error;
+ }
  
- 	if (ret != xpSuccess)
--		return -ENODEV;
+@@ -540,20 +535,16 @@ xfs_attrmulti_by_handle(
+ 	if (!size || size > 16 * PAGE_SIZE)
+ 		goto out_dput;
+ 
+-	error = ENOMEM;
+-	ops = kmalloc(size, GFP_KERNEL);
+-	if (!ops)
++	ops = memdup_user(am_hreq.ops, size);
++	if (IS_ERR(ops)) {
++		error = PTR_ERR(ops);
+ 		goto out_dput;
+-
+-	error = EFAULT;
+-	if (copy_from_user(ops, am_hreq.ops, size))
+-		goto out_kfree_ops;
++	}
+ 
+ 	attr_name = kmalloc(MAXNAMELEN, GFP_KERNEL);
+ 	if (!attr_name)
+ 		goto out_kfree_ops;
+ 
+-
+ 	error = 0;
+ 	for (i = 0; i < am_hreq.opcount; i++) {
+ 		ops[i].am_error = strncpy_from_user(attr_name,
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~xfs-use-memdup_user fs/xfs/linux-2.6/xfs_ioctl32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~xfs-use-memdup_user
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -427,20 +427,16 @@ xfs_compat_attrmulti_by_handle(
+ 	if (!size || size > 16 * PAGE_SIZE)
+ 		goto out_dput;
+ 
+-	error = ENOMEM;
+-	ops = kmalloc(size, GFP_KERNEL);
+-	if (!ops)
++	ops = memdup_user(compat_ptr(am_hreq.ops), size);
++	if (IS_ERR(ops)) {
++		error = PTR_ERR(ops);
+ 		goto out_dput;
+-
+-	error = EFAULT;
+-	if (copy_from_user(ops, compat_ptr(am_hreq.ops), size))
+-		goto out_kfree_ops;
++	}
+ 
+ 	attr_name = kmalloc(MAXNAMELEN, GFP_KERNEL);
+ 	if (!attr_name)
+ 		goto out_kfree_ops;
+ 
