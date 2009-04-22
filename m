@@ -1,53 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] char-cyclades-remove-spurious-check-in-isr.patch removed from -mm tree
-Date: Wed, 22 Apr 2009 11:31:36 -0700
-Message-ID: <200904221831.n3MIVavU006849@imap1.linux-foundation.org>
+Subject: [merged] uml-kill-a-kconfig-warning.patch removed from -mm tree
+Date: Wed, 22 Apr 2009 11:30:42 -0700
+Message-ID: <200904221830.n3MIUgsc006334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753462AbZDVSeJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754128AbZDVSeS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Apr 2009 14:34:09 -0400
+	Wed, 22 Apr 2009 14:34:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jdike@addtoit.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char: cyclades, remove spurious check in ISR
+     uml: kill a kconfig warning
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-remove-spurious-check-in-isr.patch
+     uml-kill-a-kconfig-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: cyclades, remove spurious check in ISR
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: uml: kill a kconfig warning
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-No need to check if dev_id is NULL, it never is.
+Got this warning from Kconfig:
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+   boolean symbol INPUT tested for 'm'? test forced to 'n'
+
+because INPUT is tristate, not bool.
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    8 --------
- 1 file changed, 8 deletions(-)
+ arch/um/Kconfig.rest |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-remove-spurious-check-in-isr drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-remove-spurious-check-in-isr
-+++ a/drivers/char/cyclades.c
-@@ -1737,14 +1737,6 @@ static irqreturn_t cyz_interrupt(int irq
- {
- 	struct cyclades_card *cinfo = dev_id;
+diff -puN arch/um/Kconfig.rest~uml-kill-a-kconfig-warning arch/um/Kconfig.rest
+--- a/arch/um/Kconfig.rest~uml-kill-a-kconfig-warning
++++ a/arch/um/Kconfig.rest
+@@ -36,7 +36,7 @@ source "drivers/leds/Kconfig"
  
--	if (unlikely(cinfo == NULL)) {
--#ifdef CY_DEBUG_INTERRUPTS
--		printk(KERN_DEBUG "cyz_interrupt: spurious interrupt %d\n",
--									irq);
--#endif
--		return IRQ_NONE;	/* spurious interrupt */
--	}
+ #This is just to shut up some Kconfig warnings, so no prompt.
+ config INPUT
+-	bool
++	tristate
+ 	default n
+ 
+ source "arch/um/Kconfig.debug"
+_
+
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+
+mm-consolidate-init_mm-definition.patch
+mm-consolidate-init_mm-definition-fix.patch
+
