@@ -1,159 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505.patch removed from -mm tree
-Date: Tue, 21 Apr 2009 16:33:55 -0700
-Message-ID: <200904212333.n3LNXtv2012380@imap1.linux-foundation.org>
+Subject: + ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch added to -mm tree
+Date: Tue, 21 Apr 2009 18:53:48 -0700
+Message-ID: <200904220153.n3M1rmlU017587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751644AbZDUXic (ORCPT
+	by vger.kernel.org with ESMTP id S1753040AbZDVB6m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 19:38:32 -0400
+	Tue, 21 Apr 2009 21:58:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vaka@newmail.ru, hermann-pitton@arcor.de, mchehab@infradead.org, mkrufky@linuxtv.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh@veritas.com, ieidus@redhat.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     drivers/media/video/saa7134: add tuner support for AverMedia Studio 505
-has been removed from the -mm tree.  Its filename was
-     drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505.patch
+     ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
+has been added to the -mm tree.  Its filename is
+     ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/saa7134: add tuner support for AverMedia Studio 505
-From: Vasiliy Temnikov <vaka@newmail.ru>
+Subject: ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add tuner support AverMedia AverTV Studio 505.
+In file included from include/linux/suspend.h:8,
+                 from arch/x86/kernel/asm-offsets_32.c:11,
+                 from arch/x86/kernel/asm-offsets.c:2:
+include/linux/mm.h: In function 'get_pte':
+include/linux/mm.h:906: error: implicit declaration of function 'kmap_atomic_pte'
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hermann Pitton <hermann-pitton@arcor.de>
-Cc: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/video4linux/CARDLIST.saa7134  |    1 
- drivers/media/video/saa7134/saa7134-cards.c |   43 ++++++++++++++++++
- drivers/media/video/saa7134/saa7134-input.c |    1 
- drivers/media/video/saa7134/saa7134-video.c |    2 
- drivers/media/video/saa7134/saa7134.h       |    1 
- 5 files changed, 47 insertions(+), 1 deletion(-)
+ include/linux/mm.h |   25 +------------------------
+ mm/util.c          |   26 ++++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 24 deletions(-)
 
-diff -puN Documentation/video4linux/CARDLIST.saa7134~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 Documentation/video4linux/CARDLIST.saa7134
---- a/Documentation/video4linux/CARDLIST.saa7134~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/Documentation/video4linux/CARDLIST.saa7134
-@@ -156,3 +156,4 @@
- 155 -> Hauppauge WinTV-HVR1120 ATSC/QAM-Hybrid  [0070:6706,0070:6708]
- 156 -> Hauppauge WinTV-HVR1110r3                [0070:6707,0070:6709,0070:670a]
- 157 -> Avermedia AVerTV Studio 507UA            [1461:a11b]
-+158 -> AverMedia AverTV Studio 505              [1461:a115]
-diff -puN drivers/media/video/saa7134/saa7134-cards.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-cards.c
---- a/drivers/media/video/saa7134/saa7134-cards.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/drivers/media/video/saa7134/saa7134-cards.c
-@@ -1364,6 +1364,42 @@ struct saa7134_board saa7134_boards[] = 
- 			.amux = LINE1,
- 		},
- 	},
-+	[SAA7134_BOARD_AVERMEDIA_STUDIO_505] = {
-+		/* Vasiliy Temnikov <vaka@newmail.ru> */
-+		.name           = "AverMedia AverTV Studio 505",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
-+		.radio_type     = UNSET,
-+		.tuner_addr	= ADDR_UNSET,
-+		.radio_addr	= ADDR_UNSET,
-+		.tda9887_conf   = TDA9887_PRESENT,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = LINE2,
-+			.tv   = 1,
-+		},{
-+			.name = name_comp1,
-+			.vmux = 0,
-+			.amux = LINE2,
-+		},{
-+			.name = name_comp2,
-+			.vmux = 3,
-+			.amux = LINE2,
-+		},{
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE2,
-+		}},
-+		.radio = {
-+			.name = name_radio,
-+			.amux = LINE2,
-+		},
-+		.mute = {
-+			.name = name_mute,
-+			.amux = LINE1,
-+		},
-+	},
- 	[SAA7134_BOARD_UPMOST_PURPLE_TV] = {
- 		.name           = "UPMOST PURPLE TV",
- 		.audio_clock    = 0x00187de7,
-@@ -5049,6 +5085,12 @@ struct pci_device_id saa7134_pci_tbl[] =
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
- 		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+		.subdevice    = 0xa115,
-+		.driver_data  = SAA7134_BOARD_AVERMEDIA_STUDIO_505,
-+	},{
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
-+		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
- 		.subdevice    = 0x2108,
- 		.driver_data  = SAA7134_BOARD_AVERMEDIA_305,
- 	},{
-@@ -6144,6 +6186,7 @@ int saa7134_board_init1(struct saa7134_d
- 	case SAA7134_BOARD_KWORLD_VSTREAM_XPERT:
- 	case SAA7134_BOARD_KWORLD_XPERT:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_305:
-+	case SAA7134_BOARD_AVERMEDIA_STUDIO_505:
- 	case SAA7134_BOARD_AVERMEDIA_305:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_307:
- 	case SAA7134_BOARD_AVERMEDIA_307:
-diff -puN drivers/media/video/saa7134/saa7134-input.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-input.c
---- a/drivers/media/video/saa7134/saa7134-input.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/drivers/media/video/saa7134/saa7134-input.c
-@@ -445,6 +445,7 @@ int saa7134_input_init1(struct saa7134_d
- 	case SAA7134_BOARD_AVERMEDIA_305:
- 	case SAA7134_BOARD_AVERMEDIA_307:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_305:
-+	case SAA7134_BOARD_AVERMEDIA_STUDIO_505:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_307:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_507:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_507UA:
-diff -puN drivers/media/video/saa7134/saa7134-video.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-video.c
---- a/drivers/media/video/saa7134/saa7134-video.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/drivers/media/video/saa7134/saa7134-video.c
-@@ -39,7 +39,7 @@ static unsigned int gbuffers      = 8;
- static unsigned int noninterlaced; /* 0 */
- static unsigned int gbufsize      = 720*576*4;
- static unsigned int gbufsize_max  = 720*576*4;
--static char secam[] = "--";
-+static char secam[] = "dk";
- module_param(video_debug, int, 0644);
- MODULE_PARM_DESC(video_debug,"enable debug messages [video]");
- module_param(gbuffers, int, 0444);
-diff -puN drivers/media/video/saa7134/saa7134.h~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134.h
---- a/drivers/media/video/saa7134/saa7134.h~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/drivers/media/video/saa7134/saa7134.h
-@@ -159,6 +159,7 @@ struct saa7134_format {
- #define SAA7134_BOARD_AVERMEDIA_DVD_EZMAKER 33
- #define SAA7134_BOARD_NOVAC_PRIMETV7133 34
- #define SAA7134_BOARD_AVERMEDIA_STUDIO_305 35
-+#define SAA7134_BOARD_AVERMEDIA_STUDIO_505 158
- #define SAA7134_BOARD_UPMOST_PURPLE_TV 36
- #define SAA7134_BOARD_ITEMS_MTV005     37
- #define SAA7134_BOARD_CINERGY200       38
+diff -puN include/linux/mm.h~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix include/linux/mm.h
+--- a/include/linux/mm.h~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
++++ a/include/linux/mm.h
+@@ -883,30 +883,7 @@ extern void unregister_shrinker(struct s
+ int vma_wants_writenotify(struct vm_area_struct *vma);
+ 
+ extern pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl);
+-
+-static inline pte_t *get_pte(struct mm_struct *mm, unsigned long addr)
+-{
+-	pgd_t *pgd;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-	pte_t *ptep = NULL;
+-
+-	pgd = pgd_offset(mm, addr);
+-	if (!pgd_present(*pgd))
+-		goto out;
+-
+-	pud = pud_offset(pgd, addr);
+-	if (!pud_present(*pud))
+-		goto out;
+-
+-	pmd = pmd_offset(pud, addr);
+-	if (!pmd_present(*pmd))
+-		goto out;
+-
+-	ptep = pte_offset_map(pmd, addr);
+-out:
+-	return ptep;
+-}
++extern pte_t *get_pte(struct mm_struct *mm, unsigned long addr);
+ 
+ #ifdef __PAGETABLE_PUD_FOLDED
+ static inline int __pud_alloc(struct mm_struct *mm, pgd_t *pgd,
+diff -puN mm/util.c~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix mm/util.c
+--- a/mm/util.c~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
++++ a/mm/util.c
+@@ -1,4 +1,5 @@
+ #include <linux/mm.h>
++#include <linux/highmem.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/module.h>
+@@ -264,6 +265,31 @@ int __attribute__((weak)) get_user_pages
+ }
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ 
++pte_t *get_pte(struct mm_struct *mm, unsigned long addr)
++{
++	pgd_t *pgd;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *ptep = NULL;
++
++	pgd = pgd_offset(mm, addr);
++	if (!pgd_present(*pgd))
++		goto out;
++
++	pud = pud_offset(pgd, addr);
++	if (!pud_present(*pud))
++		goto out;
++
++	pmd = pmd_offset(pud, addr);
++	if (!pmd_present(*pmd))
++		goto out;
++
++	ptep = pte_offset_map(pmd, addr);
++out:
++	return ptep;
++}
++EXPORT_SYMBOL_GPL(get_pte);
++
+ /* Tracepoints definitions. */
+ EXPORT_TRACEPOINT_SYMBOL(kmalloc);
+ EXPORT_TRACEPOINT_SYMBOL(kmem_cache_alloc);
 _
 
-Patches currently in -mm which might be from vaka@newmail.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505.patch
+origin.patch
+pxafb-lcsr1-is-unused-without-config_fb_pxa_overlay.patch
+clocksource-pass-clocksource-to-read-callback.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+vfs-kill-vfs_stat_fd-vfs_lstat_fd-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+flat-fix-data-sections-alignment.patch
+rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
