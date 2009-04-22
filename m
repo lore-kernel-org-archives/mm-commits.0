@@ -1,84 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] w35und-unregister-device-from-the-ieee80211-stack-upon-disconnect.patch removed from -mm tree
-Date: Wed, 22 Apr 2009 11:31:24 -0700
-Message-ID: <200904221831.n3MIVOnl006748@imap1.linux-foundation.org>
+Subject: [merged] vmscanmemcg-reintroduce-sc-may_swap.patch removed from -mm tree
+Date: Wed, 22 Apr 2009 11:30:55 -0700
+Message-ID: <200904221830.n3MIUtdY006461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43496 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751576AbZDVSfF (ORCPT
+	by vger.kernel.org with ESMTP id S1753462AbZDVSfX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Apr 2009 14:35:05 -0400
+	Wed, 22 Apr 2009 14:35:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, luoyi.ly@gmail.com, pavel@ucw.cz, sandro.bonazzola@gmail.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w35und: unregister device from the ieee80211 stack upon ->disconnect()
+     vmscan,memcg: reintroduce sc->may_swap
 has been removed from the -mm tree.  Its filename was
-     w35und-unregister-device-from-the-ieee80211-stack-upon-disconnect.patch
+     vmscanmemcg-reintroduce-sc-may_swap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w35und: unregister device from the ieee80211 stack upon ->disconnect()
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: vmscan,memcg: reintroduce sc->may_swap
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Impact: fix module removal
+a6dc60f8975ad96d162915e07703a4439c80dcf0 ("vmscan: rename sc.may_swap to
+may_unmap") removed the may_swap flag, but memcg had used it as a flag for
+"we need to use swap?", as the name indicate.
 
-This patch fixes an oops when the w35und module is removed from the
-kernel and added back.
+And in the current implementation, memcg cannot reclaim mapped file caches
+when mem+swap hits the limit.
 
-Reported-by: luoyi <luoyi.ly@gmail.com>
-Tested-by: Sandro Bonazzola <sandro.bonazzola@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+re-introduce may_swap flag and handle it at get_scan_ratio().  This patch
+doesn't influence any scan_control users other than memcg.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/winbond/wbusb.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/staging/winbond/wbusb.c~w35und-unregister-device-from-the-ieee80211-stack-upon-disconnect drivers/staging/winbond/wbusb.c
---- a/drivers/staging/winbond/wbusb.c~w35und-unregister-device-from-the-ieee80211-stack-upon-disconnect
-+++ a/drivers/staging/winbond/wbusb.c
-@@ -368,7 +368,7 @@ static int wb35_probe(struct usb_interfa
- 	if (err)
- 		goto error_free_hw;
+diff -puN mm/vmscan.c~vmscanmemcg-reintroduce-sc-may_swap mm/vmscan.c
+--- a/mm/vmscan.c~vmscanmemcg-reintroduce-sc-may_swap
++++ a/mm/vmscan.c
+@@ -63,6 +63,9 @@ struct scan_control {
+ 	/* Can mapped pages be reclaimed? */
+ 	int may_unmap;
  
--	usb_set_intfdata(intf, priv);
-+	usb_set_intfdata(intf, dev);
- 
- 	return 0;
- 
-@@ -397,10 +397,15 @@ static void wb35_hw_halt(struct wbsoft_p
- 
- static void wb35_disconnect(struct usb_interface *intf)
- {
--	struct wbsoft_priv *priv = usb_get_intfdata(intf);
-+	struct ieee80211_hw *hw = usb_get_intfdata(intf);
-+	struct wbsoft_priv *priv = hw->priv;
- 
- 	wb35_hw_halt(priv);
- 
-+	ieee80211_stop_queues(hw);
-+	ieee80211_unregister_hw(hw);
-+	ieee80211_free_hw(hw);
++	/* Can pages be swapped as part of reclaim? */
++	int may_swap;
 +
- 	usb_set_intfdata(intf, NULL);
- 	usb_put_dev(interface_to_usbdev(intf));
- }
+ 	/* This context's SWAP_CLUSTER_MAX. If freeing memory for
+ 	 * suspend, we effectively ignore SWAP_CLUSTER_MAX.
+ 	 * In this context, it doesn't matter that we scan the
+@@ -1380,7 +1383,7 @@ static void get_scan_ratio(struct zone *
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+ 
+ 	/* If we have no swap space, do not bother scanning anon pages. */
+-	if (nr_swap_pages <= 0) {
++	if (!sc->may_swap || (nr_swap_pages <= 0)) {
+ 		percent[0] = 0;
+ 		percent[1] = 100;
+ 		return;
+@@ -1697,6 +1700,7 @@ unsigned long try_to_free_pages(struct z
+ 		.may_writepage = !laptop_mode,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.may_unmap = 1,
++		.may_swap = 1,
+ 		.swappiness = vm_swappiness,
+ 		.order = order,
+ 		.mem_cgroup = NULL,
+@@ -1717,6 +1721,7 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	struct scan_control sc = {
+ 		.may_writepage = !laptop_mode,
+ 		.may_unmap = 1,
++		.may_swap = !noswap,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = swappiness,
+ 		.order = 0,
+@@ -1726,9 +1731,6 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	};
+ 	struct zonelist *zonelist;
+ 
+-	if (noswap)
+-		sc.may_unmap = 0;
+-
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+ 	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
+@@ -1767,6 +1769,7 @@ static unsigned long balance_pgdat(pg_da
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+ 		.may_unmap = 1,
++		.may_swap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = vm_swappiness,
+ 		.order = order,
+@@ -2298,6 +2301,7 @@ static int __zone_reclaim(struct zone *z
+ 	struct scan_control sc = {
+ 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
+ 		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
++		.may_swap = 1,
+ 		.swap_cluster_max = max_t(unsigned long, nr_pages,
+ 					SWAP_CLUSTER_MAX),
+ 		.gfp_mask = gfp_mask,
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-linux-next.patch
-cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
-cpusets-update-tasks-page-slab-spread-flags-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time.patch
-slab-leaks3-default-y.patch
+memcg-fix-mem_cgroup_shrink_usage.patch
+procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+memcg-add-file-based-rss-accounting.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
