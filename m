@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nand-minor-davinci_nand-cleanup.patch added to -mm tree
-Date: Tue, 21 Apr 2009 20:37:27 -0700
-Message-ID: <200904220337.n3M3bRLj004671@imap1.linux-foundation.org>
+Subject: + mtd-nand-dont-walk-past-end-of-oobfree.patch added to -mm tree
+Date: Tue, 21 Apr 2009 20:37:25 -0700
+Message-ID: <200904220337.n3M3bPN1004603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752339AbZDVDkN (ORCPT
+	by vger.kernel.org with ESMTP id S1752495AbZDVDlL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Apr 2009 23:40:13 -0400
+	Tue, 21 Apr 2009 23:41:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, dwmw2@infradead.org
+Cc: dbrownell@users.sourceforge.net, dwmw2@infradead.org, nsnehaprabha@ti.com
 
 
 The patch titled
-     mtd: nand: minor davinci_nand cleanup
+     mtd: nand: don't walk past end of oobfree[]
 has been added to the -mm tree.  Its filename is
-     mtd-nand-minor-davinci_nand-cleanup.patch
+     mtd-nand-dont-walk-past-end-of-oobfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,99 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: nand: minor davinci_nand cleanup
+Subject: mtd: nand: don't walk past end of oobfree[]
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Make the DaVinci NAND driver require platform_data with board-specific
-configuration.  We can't actually do any kind of sane job of configuring
-it otherwise.
-
-Also fix the comment about picking the "best" ECC mode.
-
-We can't do those any more; that relied on knowing what kind of CPU we're
-using (they don't all support 4-bit ECC), and current policy is that
-drivers not have cpu_is_*() checks.
+Resolve issue noted by Sneha: when computing oobavail from the list of
+free areas in the OOB, don't assume there will always be an unused slot at
+the end.  With ECC_HW_SYNDROME and 4KB page chips, it's fairly likely
+there *won't* be one.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: "Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>"
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/davinci_nand.c |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+ drivers/mtd/nand/nand_base.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/davinci_nand.c~mtd-nand-minor-davinci_nand-cleanup drivers/mtd/nand/davinci_nand.c
---- a/drivers/mtd/nand/davinci_nand.c~mtd-nand-minor-davinci_nand-cleanup
-+++ a/drivers/mtd/nand/davinci_nand.c
-@@ -306,6 +306,10 @@ static int __init nand_davinci_probe(str
- 	uint32_t			val;
- 	nand_ecc_modes_t		ecc_mode;
- 
-+	/* insist on board-specific configuration */
-+	if (!pdata)
-+		return -ENODEV;
-+
- 	/* which external chipselect will we be managing? */
- 	if (pdev->id < 0 || pdev->id > 3)
- 		return -ENODEV;
-@@ -351,7 +355,7 @@ static int __init nand_davinci_probe(str
- 	info->chip.select_chip	= nand_davinci_select_chip;
- 
- 	/* options such as NAND_USE_FLASH_BBT or 16-bit widths */
--	info->chip.options	= pdata ? pdata->options : 0;
-+	info->chip.options	= pdata->options;
- 
- 	info->ioaddr		= (uint32_t __force) vaddr;
- 
-@@ -360,14 +364,8 @@ static int __init nand_davinci_probe(str
- 	info->mask_chipsel	= pdata->mask_chipsel;
- 
- 	/* use nandboot-capable ALE/CLE masks by default */
--	if (pdata && pdata->mask_ale)
--		info->mask_ale	= pdata->mask_cle;
--	else
--		info->mask_ale	= MASK_ALE;
--	if (pdata && pdata->mask_cle)
--		info->mask_cle	= pdata->mask_cle;
--	else
--		info->mask_cle	= MASK_CLE;
-+	info->mask_ale		= pdata->mask_cle ? : MASK_ALE;
-+	info->mask_cle		= pdata->mask_cle ? : MASK_CLE;
- 
- 	/* Set address of hardware control function */
- 	info->chip.cmd_ctrl	= nand_davinci_hwcontrol;
-@@ -377,11 +375,8 @@ static int __init nand_davinci_probe(str
- 	info->chip.read_buf     = nand_davinci_read_buf;
- 	info->chip.write_buf    = nand_davinci_write_buf;
- 
--	/* use board-specific ECC config; else, the best available */
--	if (pdata)
--		ecc_mode = pdata->ecc_mode;
--	else
--		ecc_mode = NAND_ECC_HW;
-+	/* Use board-specific ECC config */
-+	ecc_mode		= pdata->ecc_mode;
- 
- 	switch (ecc_mode) {
- 	case NAND_ECC_NONE:
-@@ -469,7 +464,7 @@ static int __init nand_davinci_probe(str
- 			info->mtd.name = master_name;
- 		}
- 
--		if (mtd_parts_nb <= 0 && pdata) {
-+		if (mtd_parts_nb <= 0) {
- 			mtd_parts = pdata->parts;
- 			mtd_parts_nb = pdata->nr_parts;
- 		}
-@@ -482,7 +477,7 @@ static int __init nand_davinci_probe(str
- 				info->partitioned = true;
- 		}
- 
--	} else if (pdata && pdata->nr_parts) {
-+	} else if (pdata->nr_parts) {
- 		dev_warn(&pdev->dev, "ignoring %d default partitions on %s\n",
- 				pdata->nr_parts, info->mtd.name);
- 	}
+diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-dont-walk-past-end-of-oobfree drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~mtd-nand-dont-walk-past-end-of-oobfree
++++ a/drivers/mtd/nand/nand_base.c
+@@ -2756,7 +2756,8 @@ int nand_scan_tail(struct mtd_info *mtd)
+ 	 * the out of band area
+ 	 */
+ 	chip->ecc.layout->oobavail = 0;
+-	for (i = 0; chip->ecc.layout->oobfree[i].length; i++)
++	for (i = 0; chip->ecc.layout->oobfree[i].length
++			&& i < ARRAY_SIZE(chip->ecc.layout->oobfree); i++)
+ 		chip->ecc.layout->oobavail +=
+ 			chip->ecc.layout->oobfree[i].length;
+ 	mtd->oobavail = chip->ecc.layout->oobavail;
 _
 
 Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
