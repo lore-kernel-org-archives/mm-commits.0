@@ -1,128 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscanmemcg-reintroduce-sc-may_swap.patch removed from -mm tree
-Date: Wed, 22 Apr 2009 11:30:55 -0700
-Message-ID: <200904221830.n3MIUtdY006461@imap1.linux-foundation.org>
+Subject: [merged] vfs-kill-vfs_stat_fd-vfs_lstat_fd.patch removed from -mm tree
+Date: Wed, 22 Apr 2009 11:31:14 -0700
+Message-ID: <200904221831.n3MIVEjF006652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753462AbZDVSfX (ORCPT
+	by vger.kernel.org with ESMTP id S1752824AbZDVSfQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Apr 2009 14:35:23 -0400
+	Wed, 22 Apr 2009 14:35:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: hch@infradead.org, green@linuxhacker.ru, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan,memcg: reintroduce sc->may_swap
+     vfs: kill vfs_stat_fd / vfs_lstat_fd
 has been removed from the -mm tree.  Its filename was
-     vmscanmemcg-reintroduce-sc-may_swap.patch
+     vfs-kill-vfs_stat_fd-vfs_lstat_fd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan,memcg: reintroduce sc->may_swap
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: vfs: kill vfs_stat_fd / vfs_lstat_fd
+From: Christoph Hellwig <hch@infradead.org>
 
-a6dc60f8975ad96d162915e07703a4439c80dcf0 ("vmscan: rename sc.may_swap to
-may_unmap") removed the may_swap flag, but memcg had used it as a flag for
-"we need to use swap?", as the name indicate.
+There's really no reason to keep vfs_stat_fd and vfs_lstat_fd with Oleg's
+vfs_fstatat.  Use vfs_fstatat for the few cases having the directory fd,
+and switch all others to vfs_stat / vfs_lstat.
 
-And in the current implementation, memcg cannot reclaim mapped file caches
-when mem+swap hits the limit.
-
-re-introduce may_swap flag and handle it at get_scan_ratio().  This patch
-doesn't influence any scan_control users other than memcg.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Oleg Drokin <green@linuxhacker.ru>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/compat.c        |   18 ++++---
+ fs/stat.c          |  105 +++++++++++++++++--------------------------
+ include/linux/fs.h |    2 
+ 3 files changed, 52 insertions(+), 73 deletions(-)
 
-diff -puN mm/vmscan.c~vmscanmemcg-reintroduce-sc-may_swap mm/vmscan.c
---- a/mm/vmscan.c~vmscanmemcg-reintroduce-sc-may_swap
-+++ a/mm/vmscan.c
-@@ -63,6 +63,9 @@ struct scan_control {
- 	/* Can mapped pages be reclaimed? */
- 	int may_unmap;
+diff -puN fs/compat.c~vfs-kill-vfs_stat_fd-vfs_lstat_fd fs/compat.c
+--- a/fs/compat.c~vfs-kill-vfs_stat_fd-vfs_lstat_fd
++++ a/fs/compat.c
+@@ -181,22 +181,24 @@ asmlinkage long compat_sys_newstat(char 
+ 		struct compat_stat __user *statbuf)
+ {
+ 	struct kstat stat;
+-	int error = vfs_stat_fd(AT_FDCWD, filename, &stat);
++	int error;
  
-+	/* Can pages be swapped as part of reclaim? */
-+	int may_swap;
-+
- 	/* This context's SWAP_CLUSTER_MAX. If freeing memory for
- 	 * suspend, we effectively ignore SWAP_CLUSTER_MAX.
- 	 * In this context, it doesn't matter that we scan the
-@@ -1380,7 +1383,7 @@ static void get_scan_ratio(struct zone *
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+-	if (!error)
+-		error = cp_compat_stat(&stat, statbuf);
+-	return error;
++	error = = vfs_stat(filename, &stat);
++	if (error)
++		return error;
++	return cp_compat_stat(&stat, statbuf);
+ }
  
- 	/* If we have no swap space, do not bother scanning anon pages. */
--	if (nr_swap_pages <= 0) {
-+	if (!sc->may_swap || (nr_swap_pages <= 0)) {
- 		percent[0] = 0;
- 		percent[1] = 100;
- 		return;
-@@ -1697,6 +1700,7 @@ unsigned long try_to_free_pages(struct z
- 		.may_writepage = !laptop_mode,
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.may_unmap = 1,
-+		.may_swap = 1,
- 		.swappiness = vm_swappiness,
- 		.order = order,
- 		.mem_cgroup = NULL,
-@@ -1717,6 +1721,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
- 		.may_unmap = 1,
-+		.may_swap = !noswap,
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.swappiness = swappiness,
- 		.order = 0,
-@@ -1726,9 +1731,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 	};
- 	struct zonelist *zonelist;
+ asmlinkage long compat_sys_newlstat(char __user * filename,
+ 		struct compat_stat __user *statbuf)
+ {
+ 	struct kstat stat;
+-	int error = vfs_lstat_fd(AT_FDCWD, filename, &stat);
++	int error;
  
--	if (noswap)
--		sc.may_unmap = 0;
+-	if (!error)
+-		error = cp_compat_stat(&stat, statbuf);
+-	return error;
++	error = vfs_lstat(filename, &stat);
++	if (error)
++		return error;
++	return cp_compat_stat(&stat, statbuf);
+ }
+ 
+ #ifndef __ARCH_WANT_STAT64
+diff -puN fs/stat.c~vfs-kill-vfs_stat_fd-vfs_lstat_fd fs/stat.c
+--- a/fs/stat.c~vfs-kill-vfs_stat_fd-vfs_lstat_fd
++++ a/fs/stat.c
+@@ -55,46 +55,6 @@ int vfs_getattr(struct vfsmount *mnt, st
+ 
+ EXPORT_SYMBOL(vfs_getattr);
+ 
+-int vfs_stat_fd(int dfd, char __user *name, struct kstat *stat)
+-{
+-	struct path path;
+-	int error;
 -
- 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
- 	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
-@@ -1767,6 +1769,7 @@ static unsigned long balance_pgdat(pg_da
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
- 		.may_unmap = 1,
-+		.may_swap = 1,
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.swappiness = vm_swappiness,
- 		.order = order,
-@@ -2298,6 +2301,7 @@ static int __zone_reclaim(struct zone *z
- 	struct scan_control sc = {
- 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
- 		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
-+		.may_swap = 1,
- 		.swap_cluster_max = max_t(unsigned long, nr_pages,
- 					SWAP_CLUSTER_MAX),
- 		.gfp_mask = gfp_mask,
+-	error = user_path_at(dfd, name, LOOKUP_FOLLOW, &path);
+-	if (!error) {
+-		error = vfs_getattr(path.mnt, path.dentry, stat);
+-		path_put(&path);
+-	}
+-	return error;
+-}
+-
+-int vfs_stat(char __user *name, struct kstat *stat)
+-{
+-	return vfs_stat_fd(AT_FDCWD, name, stat);
+-}
+-
+-EXPORT_SYMBOL(vfs_stat);
+-
+-int vfs_lstat_fd(int dfd, char __user *name, struct kstat *stat)
+-{
+-	struct path path;
+-	int error;
+-
+-	error = user_path_at(dfd, name, 0, &path);
+-	if (!error) {
+-		error = vfs_getattr(path.mnt, path.dentry, stat);
+-		path_put(&path);
+-	}
+-	return error;
+-}
+-
+-int vfs_lstat(char __user *name, struct kstat *stat)
+-{
+-	return vfs_lstat_fd(AT_FDCWD, name, stat);
+-}
+-
+-EXPORT_SYMBOL(vfs_lstat);
+-
+ int vfs_fstat(unsigned int fd, struct kstat *stat)
+ {
+ 	struct file *f = fget(fd);
+@@ -106,26 +66,43 @@ int vfs_fstat(unsigned int fd, struct ks
+ 	}
+ 	return error;
+ }
+-
+ EXPORT_SYMBOL(vfs_fstat);
+ 
+ int vfs_fstatat(int dfd, char __user *filename, struct kstat *stat, int flag)
+ {
++	struct path path;
+ 	int error = -EINVAL;
++	int lookup_flags = 0;
+ 
+ 	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
+ 		goto out;
+ 
+-	if (flag & AT_SYMLINK_NOFOLLOW)
+-		error = vfs_lstat_fd(dfd, filename, stat);
+-	else
+-		error = vfs_stat_fd(dfd, filename, stat);
++	if (!(flag & AT_SYMLINK_NOFOLLOW))
++		lookup_flags |= LOOKUP_FOLLOW;
++
++	error = user_path_at(dfd, filename, lookup_flags, &path);
++	if (error)
++		goto out;
++
++	error = vfs_getattr(path.mnt, path.dentry, stat);
++	path_put(&path);
+ out:
+ 	return error;
+ }
+-
+ EXPORT_SYMBOL(vfs_fstatat);
+ 
++int vfs_stat(char __user *name, struct kstat *stat)
++{
++	return vfs_fstatat(AT_FDCWD, name, stat, 0);
++}
++EXPORT_SYMBOL(vfs_stat);
++
++int vfs_lstat(char __user *name, struct kstat *stat)
++{
++	return vfs_fstatat(AT_FDCWD, name, stat, AT_SYMLINK_NOFOLLOW);
++}
++EXPORT_SYMBOL(vfs_lstat);
++
+ 
+ #ifdef __ARCH_WANT_OLD_STAT
+ 
+@@ -173,23 +150,25 @@ static int cp_old_stat(struct kstat *sta
+ SYSCALL_DEFINE2(stat, char __user *, filename, struct __old_kernel_stat __user *, statbuf)
+ {
+ 	struct kstat stat;
+-	int error = vfs_stat_fd(AT_FDCWD, filename, &stat);
++	int error;
+ 
+-	if (!error)
+-		error = cp_old_stat(&stat, statbuf);
++	error = vfs_stat(filename, &stat);
++	if (error)
++		return error;
+ 
+-	return error;
++	return cp_old_stat(&stat, statbuf);
+ }
+ 
+ SYSCALL_DEFINE2(lstat, char __user *, filename, struct __old_kernel_stat __user *, statbuf)
+ {
+ 	struct kstat stat;
+-	int error = vfs_lstat_fd(AT_FDCWD, filename, &stat);
++	int error;
+ 
+-	if (!error)
+-		error = cp_old_stat(&stat, statbuf);
++	error = vfs_lstat(filename, &stat);
++	if (error)
++		return error;
+ 
+-	return error;
++	return cp_old_stat(&stat, statbuf);
+ }
+ 
+ SYSCALL_DEFINE2(fstat, unsigned int, fd, struct __old_kernel_stat __user *, statbuf)
+@@ -258,23 +237,23 @@ static int cp_new_stat(struct kstat *sta
+ SYSCALL_DEFINE2(newstat, char __user *, filename, struct stat __user *, statbuf)
+ {
+ 	struct kstat stat;
+-	int error = vfs_stat_fd(AT_FDCWD, filename, &stat);
+-
+-	if (!error)
+-		error = cp_new_stat(&stat, statbuf);
++	int error = vfs_stat(filename, &stat);
+ 
+-	return error;
++	if (error)
++		return error;
++	return cp_new_stat(&stat, statbuf);
+ }
+ 
+ SYSCALL_DEFINE2(newlstat, char __user *, filename, struct stat __user *, statbuf)
+ {
+ 	struct kstat stat;
+-	int error = vfs_lstat_fd(AT_FDCWD, filename, &stat);
++	int error;
+ 
+-	if (!error)
+-		error = cp_new_stat(&stat, statbuf);
++	error = vfs_lstat(filename, &stat);
++	if (error)
++		return error;
+ 
+-	return error;
++	return cp_new_stat(&stat, statbuf);
+ }
+ 
+ #if !defined(__ARCH_WANT_STAT64) || defined(__ARCH_WANT_SYS_NEWFSTATAT)
+diff -puN include/linux/fs.h~vfs-kill-vfs_stat_fd-vfs_lstat_fd include/linux/fs.h
+--- a/include/linux/fs.h~vfs-kill-vfs_stat_fd-vfs_lstat_fd
++++ a/include/linux/fs.h
+@@ -2299,8 +2299,6 @@ extern int vfs_readdir(struct file *, fi
+ 
+ extern int vfs_stat(char __user *, struct kstat *);
+ extern int vfs_lstat(char __user *, struct kstat *);
+-extern int vfs_stat_fd(int dfd, char __user *, struct kstat *);
+-extern int vfs_lstat_fd(int dfd, char __user *, struct kstat *);
+ extern int vfs_fstat(unsigned int, struct kstat *);
+ extern int vfs_fstatat(int , char __user *, struct kstat *, int);
+ 
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from hch@infradead.org are
 
-memcg-fix-mem_cgroup_shrink_usage.patch
-procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-memcg-add-file-based-rss-accounting.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+linux-next.patch
+linuxpps-core-support.patch
 
