@@ -1,85 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] staging-stlc45xx-replace-print_mac-with-%pm.patch removed from -mm tree
-Date: Wed, 22 Apr 2009 11:31:07 -0700
-Message-ID: <200904221831.n3MIV7Pb006563@imap1.linux-foundation.org>
+Subject: [merged] sysfs-use-memdup_user.patch removed from -mm tree
+Date: Wed, 22 Apr 2009 11:31:03 -0700
+Message-ID: <200904221831.n3MIV3SQ006555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44381 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753279AbZDVSdg (ORCPT
+	by vger.kernel.org with ESMTP id S1753291AbZDVSdh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Apr 2009 14:33:36 -0400
+	Wed, 22 Apr 2009 14:33:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.beregalov@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     stlc45xx: replace print_mac with %pM
+     sysfs: use memdup_user()
 has been removed from the -mm tree.  Its filename was
-     staging-stlc45xx-replace-print_mac-with-%pm.patch
+     sysfs-use-memdup_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stlc45xx: replace print_mac with %pM
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: sysfs: use memdup_user()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+Remove open-coded memdup_user().
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/stlc45xx/stlc45xx.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/sysfs/bin.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/staging/stlc45xx/stlc45xx.c~staging-stlc45xx-replace-print_mac-with-%pm drivers/staging/stlc45xx/stlc45xx.c
---- a/drivers/staging/stlc45xx/stlc45xx.c~staging-stlc45xx-replace-print_mac-with-%pm
-+++ a/drivers/staging/stlc45xx/stlc45xx.c
-@@ -1787,7 +1787,6 @@ static int stlc45xx_tx_pspoll(struct stl
- 	int payload_len, padding, i;
- 	struct s_lm_data_out *data;
- 	struct txbuffer *entry;
--	DECLARE_MAC_BUF(mac);
- 	struct sk_buff *skb;
- 	char *payload;
- 	u16 fc;
-@@ -1813,8 +1812,8 @@ static int stlc45xx_tx_pspoll(struct stl
- 	memcpy(pspoll->addr1, stlc->bssid, ETH_ALEN);
- 	memcpy(pspoll->addr2, stlc->mac_addr, ETH_ALEN);
+diff -puN fs/sysfs/bin.c~sysfs-use-memdup_user fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-use-memdup_user
++++ a/fs/sysfs/bin.c
+@@ -157,14 +157,9 @@ static ssize_t write(struct file *file, 
+ 			count = size - offs;
+ 	}
  
--	stlc45xx_debug(DEBUG_PSM, "sending PS-Poll frame to %s (powersave %d, "
--		       "fc 0x%x, aid %d)", print_mac(mac, pspoll->addr1),
-+	stlc45xx_debug(DEBUG_PSM, "sending PS-Poll frame to %pM (powersave %d, "
-+		       "fc 0x%x, aid %d)", pspoll->addr1,
- 		       powersave, fc, stlc->aid);
+-	temp = kmalloc(count, GFP_KERNEL);
+-	if (!temp)
+-		return -ENOMEM;
+-
+-	if (copy_from_user(temp, userbuf, count)) {
+-		count = -EFAULT;
+-		goto out_free;
+-	}
++	temp = memdup_user(userbuf, count);
++	if (IS_ERR(temp))
++		return PTR_ERR(temp);
  
- 	spin_lock_bh(&stlc->tx_lock);
-@@ -1903,7 +1902,6 @@ static int stlc45xx_tx_nullfunc(struct s
- 	int payload_len, padding, i;
- 	struct s_lm_data_out *data;
- 	struct txbuffer *entry;
--	DECLARE_MAC_BUF(mac);
- 	struct sk_buff *skb;
- 	char *payload;
- 	u16 fc;
-@@ -1928,9 +1926,8 @@ static int stlc45xx_tx_nullfunc(struct s
- 	memcpy(nullfunc->addr2, stlc->mac_addr, ETH_ALEN);
- 	memcpy(nullfunc->addr3, stlc->bssid, ETH_ALEN);
+ 	mutex_lock(&bb->mutex);
  
--	stlc45xx_debug(DEBUG_PSM, "sending Null frame to %s (powersave %d, "
--		       "fc 0x%x)",
--		       print_mac(mac, nullfunc->addr1), powersave, fc);
-+	stlc45xx_debug(DEBUG_PSM, "sending Null frame to %pM (powersave %d, "
-+		       "fc 0x%x)", nullfunc->addr1, powersave, fc);
+@@ -176,8 +171,6 @@ static ssize_t write(struct file *file, 
+ 	if (count > 0)
+ 		*off = offs + count;
  
- 	spin_lock_bh(&stlc->tx_lock);
+-out_free:
+-	kfree(temp);
+ 	return count;
+ }
  
 _
 
-Patches currently in -mm which might be from a.beregalov@gmail.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 linux-next.patch
+cls_cgroup-remove-unneeded-cgroup_lock.patch
+devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
 
