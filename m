@@ -1,118 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch removed from -mm tree
-Date: Wed, 22 Apr 2009 11:30:18 -0700
-Message-ID: <200904221830.n3MIUIQ4006089@imap1.linux-foundation.org>
+Subject: [merged] spi-pxa2xx-limit-reaches-1.patch removed from -mm tree
+Date: Wed, 22 Apr 2009 11:30:27 -0700
+Message-ID: <200904221830.n3MIURU9006184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39881 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753876AbZDVSgY (ORCPT
+	by vger.kernel.org with ESMTP id S1753868AbZDVSgQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Apr 2009 14:36:24 -0400
+	Wed, 22 Apr 2009 14:36:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, dmitry.torokhov@gmail.com, elendil@planet.nl, geert@linux-m68k.org, grundler@parisc-linux.org, kyle@mcmartin.ca, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, david-b@pacbell.net, eric.miao@marvell.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/input/serio/hp_sdc.c: fix crash when removing hp_sdc module
+     spi: pxa2xx: limit reaches -1
 has been removed from the -mm tree.  Its filename was
-     drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch
+     spi-pxa2xx-limit-reaches-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/input/serio/hp_sdc.c: fix crash when removing hp_sdc module
-From: Helge Deller <deller@gmx.de>
+Subject: spi: pxa2xx: limit reaches -1
+From: Roel Kluin <roel.kluin@gmail.com>
 
-On parisc machines, which don't have HIL, removing the hp_sdc module
-panics the kernel.  Fix this by returning early in hp_sdc_exit() if no HP
-SDC controller was found.
+On line 944 the return value of flush() is considered as a boolean,
+but limit reaches -1 upon timeout which evaluates to true.
 
-Add functionality to probe for the hp_sdc_mlc kernel module (which takes
-care of the upper layer HIL functionality on parisc) after two seconds. 
-This is needed to get all the other HIL drivers (keyboard / mouse/ ..)
-drivers automatically loaded by udev later as well.
+On 540, 594, 720 the same occurs for wait_ssp_rx_stall()
+On 536 the same occurs for wait_dma_channel_stop()
 
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Frans Pop <elendil@planet.nl>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Eric Miao <eric.miao@marvell.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/hp_sdc.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ drivers/spi/pxa2xx_spi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/input/serio/hp_sdc.c~drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module drivers/input/serio/hp_sdc.c
---- a/drivers/input/serio/hp_sdc.c~drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module
-+++ a/drivers/input/serio/hp_sdc.c
-@@ -819,6 +819,7 @@ static const struct parisc_device_id hp_
- MODULE_DEVICE_TABLE(parisc, hp_sdc_tbl);
+diff -puN drivers/spi/pxa2xx_spi.c~spi-pxa2xx-limit-reaches-1 drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~spi-pxa2xx-limit-reaches-1
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -213,7 +213,7 @@ static int flush(struct driver_data *drv
+ 		while (read_SSSR(reg) & SSSR_RNE) {
+ 			read_SSDR(reg);
+ 		}
+-	} while ((read_SSSR(reg) & SSSR_BSY) && limit--);
++	} while ((read_SSSR(reg) & SSSR_BSY) && --limit);
+ 	write_SSSR(SSSR_ROR, reg);
  
- static int __init hp_sdc_init_hppa(struct parisc_device *d);
-+static struct delayed_work moduleloader_work;
- 
- static struct parisc_driver hp_sdc_driver = {
- 	.name =		"hp_sdc",
-@@ -930,8 +931,15 @@ static int __init hp_sdc_init(void)
- 
- #if defined(__hppa__)
- 
-+static void request_module_delayed(struct work_struct *work)
-+{
-+	request_module("hp_sdc_mlc");
-+}
-+
- static int __init hp_sdc_init_hppa(struct parisc_device *d)
+ 	return limit;
+@@ -484,7 +484,7 @@ static int wait_ssp_rx_stall(void const 
  {
-+	int ret;
-+
- 	if (!d)
- 		return 1;
- 	if (hp_sdc.dev != NULL)
-@@ -944,13 +952,26 @@ static int __init hp_sdc_init_hppa(struc
- 	hp_sdc.data_io		= d->hpa.start + 0x800;
- 	hp_sdc.status_io	= d->hpa.start + 0x801;
+ 	unsigned long limit = loops_per_jiffy << 1;
  
--	return hp_sdc_init();
-+	INIT_DELAYED_WORK(&moduleloader_work, request_module_delayed);
-+
-+	ret = hp_sdc_init();
-+	/* after sucessfull initialization give SDC some time to settle
-+	 * and then load the hp_sdc_mlc upper layer driver */
-+	if (!ret)
-+		schedule_delayed_work(&moduleloader_work,
-+			msecs_to_jiffies(2000));
-+
-+	return ret;
- }
+-	while ((read_SSSR(ioaddr) & SSSR_BSY) && limit--)
++	while ((read_SSSR(ioaddr) & SSSR_BSY) && --limit)
+ 		cpu_relax();
  
- #endif /* __hppa__ */
- 
- static void hp_sdc_exit(void)
+ 	return limit;
+@@ -494,7 +494,7 @@ static int wait_dma_channel_stop(int cha
  {
-+	/* do nothing if we don't have a SDC */
-+	if (!hp_sdc.dev)
-+		return;
-+
- 	write_lock_irq(&hp_sdc.lock);
+ 	unsigned long limit = loops_per_jiffy << 1;
  
- 	/* Turn off all maskable "sub-function" irq's. */
-@@ -969,6 +990,7 @@ static void hp_sdc_exit(void)
- 	tasklet_kill(&hp_sdc.task);
+-	while (!(DCSR(channel) & DCSR_STOPSTATE) && limit--)
++	while (!(DCSR(channel) & DCSR_STOPSTATE) && --limit)
+ 		cpu_relax();
  
- #if defined(__hppa__)
-+	cancel_delayed_work_sync(&moduleloader_work);
- 	if (unregister_parisc_driver(&hp_sdc_driver))
- 		printk(KERN_WARNING PREFIX "Error unregistering HP SDC");
- #endif
+ 	return limit;
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+linux-next.patch
+drm-fix-lock_test_with_return-macro.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+microblaze-iowrite-upon-timeout.patch
+uwb-event_size-should-be-signed.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+spi_bfin5xx-limit-reaches-1.patch
+ufs-sector_t-cannot-be-negative.patch
 
