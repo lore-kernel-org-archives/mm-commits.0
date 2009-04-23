@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-stand-alone-driver-for-rx8025-chip-fix.patch added to -mm tree
-Date: Thu, 23 Apr 2009 14:43:57 -0700
-Message-ID: <200904232143.n3NLhvNL031516@imap1.linux-foundation.org>
+Subject: + page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:07:24 -0700
+Message-ID: <200904232307.n3NN7OZ9009286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754763AbZDWVuu (ORCPT
+	by vger.kernel.org with ESMTP id S1752874AbZDWXMh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 17:50:50 -0400
+	Thu, 23 Apr 2009 19:12:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wg@grandegger.com, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org, matthias.fuchs@esd.eu, rda@emcraft.com, sposelenov@emcraft.com, yur@emcraft.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
 
 
 The patch titled
-     rtc-add-stand-alone-driver-for-rx8025-chip-fix
+     page-allocator-do-not-sanity-check-order-in-the-fast-path-fix
 has been added to the -mm tree.  Its filename is
-     rtc-add-stand-alone-driver-for-rx8025-chip-fix.patch
+     page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-add-stand-alone-driver-for-rx8025-chip-fix
-From: Wolfgang Grandegger <wg@grandegger.com>
+Subject: page-allocator-do-not-sanity-check-order-in-the-fast-path-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Wolfgang Grandegger <wg@grandegger.com>
-Cc: Sergei Poselenov <sposelenov@emcraft.com>
-Cc: Yuri Tikhonov <yur@emcraft.com>
-Cc: Dmitry Rakhchev <rda@emcraft.com>
-Cc: Matthias Fuchs <matthias.fuchs@esd.eu>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx8025.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-rx8025.c~rtc-add-stand-alone-driver-for-rx8025-chip-fix drivers/rtc/rtc-rx8025.c
---- a/drivers/rtc/rtc-rx8025.c~rtc-add-stand-alone-driver-for-rx8025-chip-fix
-+++ a/drivers/rtc/rtc-rx8025.c
-@@ -6,7 +6,7 @@
-  * Copyright (C) 2005 by Digi International Inc.
-  * All rights reserved.
-  *
-- * Modify by fengjh at rising.com.cn
-+ * Modified by fengjh at rising.com.cn
-  * <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>
-  * 2006.11
-  *
-@@ -321,7 +321,7 @@ static int rx8025_read_alarm(struct devi
- 	u8 ctrl2, ald[2];
- 	int err;
+diff -puN mm/page_alloc.c~page-allocator-do-not-sanity-check-order-in-the-fast-path-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-do-not-sanity-check-order-in-the-fast-path-fix
++++ a/mm/page_alloc.c
+@@ -1405,7 +1405,8 @@ get_page_from_freelist(gfp_t gfp_mask, n
  
--	if (client->irq == NO_IRQ)
-+	if (client->irq <= 0)
- 		return -EINVAL;
+ 	classzone_idx = zone_idx(preferred_zone);
  
- 	err = rx8025_read_regs(client, RX8025_REG_ALDMIN, 2, ald);
-@@ -366,7 +366,7 @@ static int rx8025_set_alarm(struct devic
- 	u8 ald[2];
- 	int err;
+-	VM_BUG_ON(order >= MAX_ORDER);
++	if (WARN_ON_ONCE(order >= MAX_ORDER))
++		return NULL;
  
--	if (client->irq == NO_IRQ)
-+	if (client->irq <= 0)
- 		return -EINVAL;
- 
- 	/* Hardware alarm precision is 1 minute! */
-@@ -430,7 +430,7 @@ static int rx8025_irq_set_state(struct d
- 	int ctrl1;
- 	int err;
- 
--	if (client->irq == NO_IRQ)
-+	if (client->irq <= 0)
- 		return -ENXIO;
- 
- 	ctrl1 = rx8025->ctrl1 & ~RX8025_BIT_CTRL1_CT;
-@@ -604,7 +604,7 @@ static int __devinit rx8025_probe(struct
- 		goto errout_free;
- 	}
- 
--	if (client->irq != NO_IRQ) {
-+	if (client->irq > 0) {
- 		dev_info(&client->dev, "IRQ %d supplied\n", client->irq);
- 		err = request_irq(client->irq, rx8025_irq,
- 				  0, "rx8025", client);
-@@ -624,7 +624,7 @@ static int __devinit rx8025_probe(struct
- 	return 0;
- 
- errout_irq:
--	if (client->irq != NO_IRQ)
-+	if (client->irq > 0)
- 		free_irq(client->irq, client);
- 
- errout_reg:
-@@ -644,7 +644,7 @@ static int __devexit rx8025_remove(struc
- 	struct rx8025_data *rx8025 = i2c_get_clientdata(client);
- 	struct mutex *lock = &rx8025->rtc->ops_lock;
- 
--	if (client->irq != NO_IRQ) {
-+	if (client->irq > 0) {
- 		mutex_lock(lock);
- 		rx8025->exiting = 1;
- 		mutex_unlock(lock);
+ zonelist_scan:
+ 	/*
 _
 
-Patches currently in -mm which might be from wg@grandegger.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-add-stand-alone-driver-for-rx8025-chip.patch
-rtc-add-stand-alone-driver-for-rx8025-chip-fix.patch
-rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+block-turn-some-buggy-macros-into-c-functions.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
