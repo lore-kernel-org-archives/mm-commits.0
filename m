@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + diskstats-fix-discard-request-accounting.patch added to -mm tree
-Date: Thu, 23 Apr 2009 13:13:04 -0700
-Message-ID: <200904232013.n3NKD4PP017241@imap1.linux-foundation.org>
+Subject: + drivers-scsi-ncr_d700c-fix-irq-handler-return-type.patch added to -mm tree
+Date: Thu, 23 Apr 2009 13:24:53 -0700
+Message-ID: <200904232024.n3NKOr9O023246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751056AbZDWUQc (ORCPT
+	by vger.kernel.org with ESMTP id S1753187AbZDWU1M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 16:16:32 -0400
+	Thu, 23 Apr 2009 16:27:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: knikanth@suse.de, dwmw2@infradead.org, jens.axboe@oracle.com
+Cc: helight.xu@gmail.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     diskstats: fix discard request accounting
+     drivers/scsi/NCR_D700.c: fix IRQ handler return type
 has been added to the -mm tree.  Its filename is
-     diskstats-fix-discard-request-accounting.patch
+     drivers-scsi-ncr_d700c-fix-irq-handler-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: diskstats: fix discard request accounting
-From: Nikanth Karthikesan <knikanth@suse.de>
+Subject: drivers/scsi/NCR_D700.c: fix IRQ handler return type
+From: Zhenwen Xu <helight.xu@gmail.com>
 
-When 2 discard requests are merged, the stats gets updated, but we do not
-update statistics normally when a discard request is issued or completed. 
-For example the in_flight counter would be decremented when 2 discard
-requests are merged, but it was not at all incremented when they were
-issued, and in_flight counter will not be decremented, when they are
-completed as well.
+drivers/scsi/NCR_D700.c: In function `NCR_D700_probe':
+drivers/scsi/NCR_D700.c:322: warning: passing argument 2 of `request_irq' from incompatible pointer type
+drivers/scsi/NCR_D700.c:322: warning: passing argument 2 of `request_irq' from incompatible pointer type
+drivers/scsi/NCR_D700.c:322: warning: passing argument 2 of `request_irq' from incompatible pointer type
 
-This patch fixes this by adding discard requests to the statistics.
-
-Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Zhenwen Xu <helight.xu@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c       |    4 ++--
- include/linux/blkdev.h |    4 +++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/scsi/NCR_D700.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/blk-core.c~diskstats-fix-discard-request-accounting block/blk-core.c
---- a/block/blk-core.c~diskstats-fix-discard-request-accounting
-+++ a/block/blk-core.c
-@@ -68,7 +68,7 @@ static void drive_stat_acct(struct reque
- 	int rw = rq_data_dir(rq);
- 	int cpu;
+diff -puN drivers/scsi/NCR_D700.c~drivers-scsi-ncr_d700c-fix-irq-handler-return-type drivers/scsi/NCR_D700.c
+--- a/drivers/scsi/NCR_D700.c~drivers-scsi-ncr_d700c-fix-irq-handler-return-type
++++ a/drivers/scsi/NCR_D700.c
+@@ -224,7 +224,7 @@ NCR_D700_probe_one(struct NCR_D700_priva
+ 	return ret;
+ }
  
--	if (!blk_fs_request(rq) || !blk_do_io_stat(rq))
-+	if (!rq_accountable(rq) || !blk_do_io_stat(rq))
- 		return;
- 
- 	cpu = part_stat_lock();
-@@ -1700,7 +1700,7 @@ static void blk_account_io_done(struct r
- 	 * IO on queueing nor completion.  Accounting the containing
- 	 * request is enough.
- 	 */
--	if (blk_fs_request(req) && req != &req->q->bar_rq) {
-+	if (rq_accountable(req) && req != &req->q->bar_rq) {
- 		unsigned long duration = jiffies - req->start_time;
- 		const int rw = rq_data_dir(req);
- 		struct hd_struct *part;
-diff -puN include/linux/blkdev.h~diskstats-fix-discard-request-accounting include/linux/blkdev.h
---- a/include/linux/blkdev.h~diskstats-fix-discard-request-accounting
-+++ a/include/linux/blkdev.h
-@@ -670,7 +670,9 @@ static inline void blk_clear_queue_full(
- 	(REQ_NOMERGE | REQ_STARTED | REQ_HARDBARRIER | REQ_SOFTBARRIER)
- #define rq_mergeable(rq)	\
- 	(!((rq)->cmd_flags & RQ_NOMERGE_FLAGS) && \
--	 (blk_discard_rq(rq) || blk_fs_request((rq))))
-+	 (blk_discard_rq(rq) || blk_fs_request(rq)))
-+#define rq_accountable(rq)	\
-+	(blk_discard_rq(rq) || blk_fs_request(rq))
- 
- /*
-  * q->prep_rq_fn return values
+-static int
++static irqreturn_t
+ NCR_D700_intr(int irq, void *data)
+ {
+ 	struct NCR_D700_private *p = (struct NCR_D700_private *)data;
 _
 
-Patches currently in -mm which might be from knikanth@suse.de are
+Patches currently in -mm which might be from helight.xu@gmail.com are
 
-linux-next.patch
-diskstats-fix-discard-request-accounting.patch
-block-turn-some-buggy-macros-into-c-functions.patch
+drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning.patch
+drivers-mtd-nand-cafe_nandc-fix-irq-handler-return-type.patch
+drivers-pci-hotplug-ibmphp_corec-fix-warning-due-to-missing-module_exit.patch
+drivers-scsi-ncr_d700c-fix-irq-handler-return-type.patch
 
