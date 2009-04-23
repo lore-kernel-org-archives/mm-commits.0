@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch added to -mm tree
-Date: Wed, 22 Apr 2009 18:44:13 -0700
-Message-ID: <200904230144.n3N1iDJI002043@imap1.linux-foundation.org>
+Subject: + scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y.patch added to -mm tree
+Date: Wed, 22 Apr 2009 21:38:16 -0700
+Message-ID: <200904230438.n3N4cGP0025245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751764AbZDWBt4 (ORCPT
+	by vger.kernel.org with ESMTP id S1750710AbZDWElQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Apr 2009 21:49:56 -0400
+	Thu, 23 Apr 2009 00:41:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, Minchan.kim@gmail.com, a.p.zijlstra@chello.nl, apw@shadowen.org, mel@csn.ul.ie, riel@redhat.com
+Cc: dave@linux.vnet.ibm.com, James.Bottomley@HansenPartnership.com, viro@zeniv.linux.org.uk, willy@linux.intel.com
 
 
 The patch titled
-     vmscan: low order lumpy reclaim also should use PAGEOUT_IO_SYNC
+     scsi: fix sign extension with 1.5TB usb-storage LBD=y
 has been added to the -mm tree.  Its filename is
-     vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+     scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: low order lumpy reclaim also should use PAGEOUT_IO_SYNC
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: scsi: fix sign extension with 1.5TB usb-storage LBD=y
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-Commit 33c120ed2843090e2bd316de1588b8bf8b96cbde ("more aggressively use
-lumpy reclaim") increased how aggressive lumpy reclaim was by isolating
-both active and inactive pages for asynchronous lumpy reclaim on
-costly-high-order pages and for cheap-high-order when memory pressure is
-high.  However, if the system is under heavy pressure and there are dirty
-pages, asynchronous IO may not be sufficient to reclaim a suitable page in
-time.
+Shifting an unsigned char implicitly casts it to a signed int.  This
+caused 'lba' to sign-extend and Linux would then try READ CAPACITY 16
+which was not supported by at least one drive.  Using the
+get_unaligned_be*() helpers keeps us from having to worry about how the
+extension might occur.
 
-This patch causes the caller to enter synchronous lumpy reclaim for
-costly-high-order pages and for cheap-high-order pages when under memory
-pressure.
-
-
-Minchan.kim@gmail.com said:
-
-Andy added synchronous lumpy reclaim with
-c661b078fd62abe06fd11fab4ac5e4eeafe26b6d.  At that time, lumpy reclaim is
-not agressive.  His intension is just for high-order users.(above
-PAGE_ALLOC_COSTLY_ORDER).  
-
-After some time, Rik added aggressive lumpy reclaim with
-33c120ed2843090e2bd316de1588b8bf8b96cbde.  His intention was to do lumpy
-reclaim when high-order users and trouble getting a small set of
-contiguous pages.  
-
-So we also have to add synchronous pageout for small set of contiguous
-pages.
-
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <Minchan.kim@gmail.com>
-Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ drivers/scsi/sd.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync mm/vmscan.c
---- a/mm/vmscan.c~vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync
-+++ a/mm/vmscan.c
-@@ -1059,6 +1059,19 @@ static unsigned long shrink_inactive_lis
- 	unsigned long nr_scanned = 0;
- 	unsigned long nr_reclaimed = 0;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
-+	int lumpy_reclaim = 0;
-+
-+	/*
-+	 * If we need a large contiguous chunk of memory, or have
-+	 * trouble getting a small set of contiguous pages, we
-+	 * will reclaim both active and inactive pages.
-+	 *
-+	 * We use the same threshold as pageout congestion_wait below.
-+	 */
-+	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
-+		lumpy_reclaim = 1;
-+	else if (sc->order && priority < DEF_PRIORITY - 2)
-+		lumpy_reclaim = 1;
+diff -puN drivers/scsi/sd.c~scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y
++++ a/drivers/scsi/sd.c
+@@ -50,6 +50,7 @@
+ #include <linux/string_helpers.h>
+ #include <linux/async.h>
+ #include <asm/uaccess.h>
++#include <asm/unaligned.h>
  
- 	pagevec_init(&pvec, 1);
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_cmnd.h>
+@@ -1345,12 +1346,8 @@ static int read_capacity_16(struct scsi_
+ 		return -EINVAL;
+ 	}
  
-@@ -1071,19 +1084,7 @@ static unsigned long shrink_inactive_lis
- 		unsigned long nr_freed;
- 		unsigned long nr_active;
- 		unsigned int count[NR_LRU_LISTS] = { 0, };
--		int mode = ISOLATE_INACTIVE;
--
--		/*
--		 * If we need a large contiguous chunk of memory, or have
--		 * trouble getting a small set of contiguous pages, we
--		 * will reclaim both active and inactive pages.
--		 *
--		 * We use the same threshold as pageout congestion_wait below.
--		 */
--		if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
--			mode = ISOLATE_BOTH;
--		else if (sc->order && priority < DEF_PRIORITY - 2)
--			mode = ISOLATE_BOTH;
-+		int mode = lumpy_reclaim ? ISOLATE_BOTH : ISOLATE_INACTIVE;
+-	sector_size =	(buffer[8] << 24) | (buffer[9] << 16) |
+-			(buffer[10] << 8) | buffer[11];
+-	lba =  (((u64)buffer[0] << 56) | ((u64)buffer[1] << 48) |
+-		((u64)buffer[2] << 40) | ((u64)buffer[3] << 32) |
+-		((u64)buffer[4] << 24) | ((u64)buffer[5] << 16) |
+-		((u64)buffer[6] << 8) | (u64)buffer[7]);
++	sector_size = get_unaligned_be32(&buffer[8]);
++	lba = get_unaligned_be64(&buffer[0]);
  
- 		nr_taken = sc->isolate_pages(sc->swap_cluster_max,
- 			     &page_list, &nr_scan, sc->order, mode,
-@@ -1120,7 +1121,7 @@ static unsigned long shrink_inactive_lis
- 		 * but that should be acceptable to the caller
- 		 */
- 		if (nr_freed < nr_taken && !current_is_kswapd() &&
--					sc->order > PAGE_ALLOC_COSTLY_ORDER) {
-+		    lumpy_reclaim) {
- 			congestion_wait(WRITE, HZ/10);
+ 	sd_read_protection_type(sdkp, buffer);
  
- 			/*
+@@ -1401,10 +1398,8 @@ static int read_capacity_10(struct scsi_
+ 		return -EINVAL;
+ 	}
+ 
+-	sector_size =	(buffer[4] << 24) | (buffer[5] << 16) |
+-			(buffer[6] << 8) | buffer[7];
+-	lba =	(buffer[0] << 24) | (buffer[1] << 16) |
+-		(buffer[2] << 8) | buffer[3];
++	sector_size = get_unaligned_be32(&buffer[4]);
++	lba = get_unaligned_be32(&buffer[0]);
+ 
+ 	if ((sizeof(sdkp->capacity) == 4) && (lba == 0xffffffff)) {
+ 		sd_printk(KERN_ERR, sdkp, "Too big for this kernel. Use a "
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
-memcg-fix-mem_cgroup_shrink_usage.patch
-procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-memcg-add-file-based-rss-accounting.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+linux-next.patch
+scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y.patch
 
