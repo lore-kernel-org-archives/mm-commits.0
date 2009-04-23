@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-inline-__rmqueue_fallback.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:08:06 -0700
-Message-ID: <200904232308.n3NN86e3009680@imap1.linux-foundation.org>
+Subject: + page-allocator-calculate-the-migratetype-for-allocation-only-once.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:07:49 -0700
+Message-ID: <200904232307.n3NN7nKD009499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758552AbZDWXNL (ORCPT
+	by vger.kernel.org with ESMTP id S1755523AbZDWXNE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:13:11 -0400
+	Thu, 23 Apr 2009 19:13:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.v
 
 
 The patch titled
-     page allocator: inline __rmqueue_fallback()
+     page allocator: calculate the migratetype for allocation only once
 has been added to the -mm tree.  Its filename is
-     page-allocator-inline-__rmqueue_fallback.patch
+     page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: inline __rmqueue_fallback()
+Subject: page allocator: calculate the migratetype for allocation only once
 From: Mel Gorman <mel@csn.ul.ie>
 
-__rmqueue_fallback() is in the slow path but has only one call site. 
-Because there is only one call-site, this function can then be inlined
-without causing text bloat.  On an x86-based config, it made no difference
-as the savings were padded out by NOP instructions.  Milage varies but
-text will either decrease in size or remain static.
+GFP mask is converted into a migratetype when deciding which pagelist to
+take a page from.  However, it is happening multiple times per allocation,
+at least once per zone traversed.  Calculate it once.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Christoph Lameter <cl@linux-foundation.org>
@@ -53,23 +51,174 @@ Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   43 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 26 insertions(+), 17 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-inline-__rmqueue_fallback mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-inline-__rmqueue_fallback
+diff -puN mm/page_alloc.c~page-allocator-calculate-the-migratetype-for-allocation-only-once mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-calculate-the-migratetype-for-allocation-only-once
 +++ a/mm/page_alloc.c
-@@ -775,8 +775,8 @@ static int move_freepages_block(struct z
+@@ -1065,13 +1065,13 @@ void split_page(struct page *page, unsig
+  * or two.
+  */
+ static struct page *buffered_rmqueue(struct zone *preferred_zone,
+-			struct zone *zone, int order, gfp_t gfp_flags)
++			struct zone *zone, int order, gfp_t gfp_flags,
++			int migratetype)
+ {
+ 	unsigned long flags;
+ 	struct page *page;
+ 	int cold = !!(gfp_flags & __GFP_COLD);
+ 	int cpu;
+-	int migratetype = allocflags_to_migratetype(gfp_flags);
+ 
+ again:
+ 	cpu  = get_cpu();
+@@ -1393,7 +1393,7 @@ static void zlc_mark_zone_full(struct zo
+ static struct page *
+ get_page_from_freelist(gfp_t gfp_mask, nodemask_t *nodemask, unsigned int order,
+ 		struct zonelist *zonelist, int high_zoneidx, int alloc_flags,
+-		struct zone *preferred_zone)
++		struct zone *preferred_zone, int migratetype)
+ {
+ 	struct zoneref *z;
+ 	struct page *page = NULL;
+@@ -1436,7 +1436,8 @@ zonelist_scan:
+ 			}
+ 		}
+ 
+-		page = buffered_rmqueue(preferred_zone, zone, order, gfp_mask);
++		page = buffered_rmqueue(preferred_zone, zone, order,
++						gfp_mask, migratetype);
+ 		if (page)
+ 			break;
+ this_zone_full:
+@@ -1498,7 +1499,8 @@ should_alloc_retry(gfp_t gfp_mask, unsig
+ static inline struct page *
+ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
+ 	struct zonelist *zonelist, enum zone_type high_zoneidx,
+-	nodemask_t *nodemask, struct zone *preferred_zone)
++	nodemask_t *nodemask, struct zone *preferred_zone,
++	int migratetype)
+ {
+ 	struct page *page;
+ 
+@@ -1516,7 +1518,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask,
+ 		order, zonelist, high_zoneidx,
+ 		ALLOC_WMARK_HIGH|ALLOC_CPUSET,
+-		preferred_zone);
++		preferred_zone, migratetype);
+ 	if (page)
+ 		goto out;
+ 
+@@ -1537,7 +1539,7 @@ static inline struct page *
+ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
+ 	struct zonelist *zonelist, enum zone_type high_zoneidx,
+ 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
+-	unsigned long *did_some_progress)
++	int migratetype, unsigned long *did_some_progress)
+ {
+ 	struct page *page = NULL;
+ 	struct reclaim_state reclaim_state;
+@@ -1570,7 +1572,8 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
+ 	if (likely(*did_some_progress))
+ 		page = get_page_from_freelist(gfp_mask, nodemask, order,
+ 					zonelist, high_zoneidx,
+-					alloc_flags, preferred_zone);
++					alloc_flags, preferred_zone,
++					migratetype);
+ 	return page;
  }
  
- /* Remove an element from the buddy allocator from the fallback list */
--static struct page *__rmqueue_fallback(struct zone *zone, int order,
--						int start_migratetype)
-+static inline struct page *
-+__rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+@@ -1590,14 +1593,15 @@ is_allocation_high_priority(struct task_
+ static inline struct page *
+ __alloc_pages_high_priority(gfp_t gfp_mask, unsigned int order,
+ 	struct zonelist *zonelist, enum zone_type high_zoneidx,
+-	nodemask_t *nodemask, struct zone *preferred_zone)
++	nodemask_t *nodemask, struct zone *preferred_zone,
++	int migratetype)
  {
- 	struct free_area * area;
- 	int current_order;
+ 	struct page *page;
+ 
+ 	do {
+ 		page = get_page_from_freelist(gfp_mask, nodemask, order,
+ 			zonelist, high_zoneidx, ALLOC_NO_WATERMARKS,
+-			preferred_zone);
++			preferred_zone, migratetype);
+ 
+ 		if (!page && gfp_mask & __GFP_NOFAIL)
+ 			congestion_wait(WRITE, HZ/50);
+@@ -1620,7 +1624,8 @@ void wake_all_kswapd(unsigned int order,
+ static inline struct page *
+ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
+ 	struct zonelist *zonelist, enum zone_type high_zoneidx,
+-	nodemask_t *nodemask, struct zone *preferred_zone)
++	nodemask_t *nodemask, struct zone *preferred_zone,
++	int migratetype)
+ {
+ 	const gfp_t wait = gfp_mask & __GFP_WAIT;
+ 	struct page *page = NULL;
+@@ -1671,7 +1676,8 @@ restart:
+ 	 */
+ 	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
+ 						high_zoneidx, alloc_flags,
+-						preferred_zone);
++						preferred_zone,
++						migratetype);
+ 	if (page)
+ 		goto got_pg;
+ 
+@@ -1681,7 +1687,8 @@ rebalance:
+ 		/* Do not dip into emergency reserves if specified */
+ 		if (!(gfp_mask & __GFP_NOMEMALLOC)) {
+ 			page = __alloc_pages_high_priority(gfp_mask, order,
+-				zonelist, high_zoneidx, nodemask, preferred_zone);
++				zonelist, high_zoneidx, nodemask, preferred_zone,
++				migratetype);
+ 			if (page)
+ 				goto got_pg;
+ 		}
+@@ -1699,7 +1706,7 @@ rebalance:
+ 					zonelist, high_zoneidx,
+ 					nodemask,
+ 					alloc_flags, preferred_zone,
+-					&did_some_progress);
++					migratetype, &did_some_progress);
+ 	if (page)
+ 		goto got_pg;
+ 
+@@ -1711,7 +1718,8 @@ rebalance:
+ 		if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
+ 			page = __alloc_pages_may_oom(gfp_mask, order,
+ 					zonelist, high_zoneidx,
+-					nodemask, preferred_zone);
++					nodemask, preferred_zone,
++					migratetype);
+ 			if (page)
+ 				goto got_pg;
+ 
+@@ -1758,6 +1766,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+ 	struct zone *preferred_zone;
+ 	struct page *page;
++	int migratetype = allocflags_to_migratetype(gfp_mask);
+ 
+ 	lockdep_trace_alloc(gfp_mask);
+ 
+@@ -1782,11 +1791,11 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	/* First allocation attempt */
+ 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
+ 			zonelist, high_zoneidx, ALLOC_WMARK_LOW|ALLOC_CPUSET,
+-			preferred_zone);
++			preferred_zone, migratetype);
+ 	if (unlikely(!page))
+ 		page = __alloc_pages_slowpath(gfp_mask, order,
+ 				zonelist, high_zoneidx, nodemask,
+-				preferred_zone);
++				preferred_zone, migratetype);
+ 
+ 	return page;
+ }
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
