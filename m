@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:08:12 -0700
-Message-ID: <200904232308.n3NN8CT7009742@imap1.linux-foundation.org>
+Subject: + page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:08:26 -0700
+Message-ID: <200904232308.n3NN8QC7009869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760661AbZDWXNa (ORCPT
+	by vger.kernel.org with ESMTP id S1757325AbZDWXNp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:13:30 -0400
+	Thu, 23 Apr 2009 19:13:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
+Cc: cl@linux-foundation.org, a.p.zijlstra@chello.nl, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
 
 
 The patch titled
-     page allocator: do not disable interrupts in free_page_mlock()
+     page allocator: use a pre-calculated value instead of num_online_nodes() in fast paths
 has been added to the -mm tree.  Its filename is
-     page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+     page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,170 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: do not disable interrupts in free_page_mlock()
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: page allocator: use a pre-calculated value instead of num_online_nodes() in fast paths
+From: Christoph Lameter <cl@linux-foundation.org>
 
-free_page_mlock() tests and clears PG_mlocked using locked versions of the
-bit operations.  If set, it disables interrupts to update counters and
-this happens on every page free even though interrupts are disabled very
-shortly afterwards a second time.  This is wasteful.
+num_online_nodes() is called in a number of places but most often by the
+page allocator when deciding whether the zonelist needs to be filtered
+based on cpusets or the zonelist cache.  This is actually a heavy function
+and touches a number of cache lines.
 
-This patch splits what free_page_mlock() does.  The bit check is still
-made.  However, the update of counters is delayed until the interrupts are
-disabled and the non-lock version for clearing the bit is used.  One
-potential weirdness with this split is that the counters do not get
-updated if the bad_page() check is triggered but a system showing bad
-pages is getting screwed already.
+This patch stores the number of online nodes at boot time and updates the
+value when nodes get onlined and offlined.  The value is then used in a
+number of important paths in place of num_online_nodes().
 
+Signed-off-by: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |   11 +++--------
- mm/page_alloc.c |    8 +++++++-
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ include/linux/nodemask.h |   15 ++++++++++++++-
+ mm/hugetlb.c             |    4 ++--
+ mm/page_alloc.c          |   10 ++++++----
+ mm/slub.c                |    2 +-
+ net/sunrpc/svc.c         |    2 +-
+ 5 files changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN mm/internal.h~page-allocator-do-not-disable-interrupts-in-free_page_mlock mm/internal.h
---- a/mm/internal.h~page-allocator-do-not-disable-interrupts-in-free_page_mlock
-+++ a/mm/internal.h
-@@ -157,14 +157,9 @@ static inline void mlock_migrate_page(st
-  */
- static inline void free_page_mlock(struct page *page)
- {
--	if (unlikely(TestClearPageMlocked(page))) {
--		unsigned long flags;
+diff -puN include/linux/nodemask.h~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths include/linux/nodemask.h
+--- a/include/linux/nodemask.h~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
++++ a/include/linux/nodemask.h
+@@ -408,6 +408,19 @@ static inline int num_node_state(enum no
+ #define next_online_node(nid)	next_node((nid), node_states[N_ONLINE])
+ 
+ extern int nr_node_ids;
++extern int nr_online_nodes;
++
++static inline void node_set_online(int nid)
++{
++	node_set_state(nid, N_ONLINE);
++	nr_online_nodes = num_node_state(N_ONLINE);
++}
++
++static inline void node_set_offline(int nid)
++{
++	node_clear_state(nid, N_ONLINE);
++	nr_online_nodes = num_node_state(N_ONLINE);
++}
+ #else
+ 
+ static inline int node_state(int node, enum node_states state)
+@@ -434,7 +447,7 @@ static inline int num_node_state(enum no
+ #define first_online_node	0
+ #define next_online_node(nid)	(MAX_NUMNODES)
+ #define nr_node_ids		1
 -
--		local_irq_save(flags);
--		__dec_zone_page_state(page, NR_MLOCK);
--		__count_vm_event(UNEVICTABLE_MLOCKFREED);
--		local_irq_restore(flags);
--	}
-+	__ClearPageMlocked(page);
-+	__dec_zone_page_state(page, NR_MLOCK);
-+	__count_vm_event(UNEVICTABLE_MLOCKFREED);
++#define nr_online_nodes		1
+ #endif
+ 
+ #define node_online_map 	node_states[N_ONLINE]
+diff -puN mm/hugetlb.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths mm/hugetlb.c
+--- a/mm/hugetlb.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
++++ a/mm/hugetlb.c
+@@ -875,7 +875,7 @@ static void return_unused_surplus_pages(
+ 	 * can no longer free unreserved surplus pages. This occurs when
+ 	 * the nodes with surplus pages have no free pages.
+ 	 */
+-	unsigned long remaining_iterations = num_online_nodes();
++	unsigned long remaining_iterations = nr_online_nodes;
+ 
+ 	/* Uncommit the reservation */
+ 	h->resv_huge_pages -= unused_resv_pages;
+@@ -904,7 +904,7 @@ static void return_unused_surplus_pages(
+ 			h->surplus_huge_pages--;
+ 			h->surplus_huge_pages_node[nid]--;
+ 			nr_pages--;
+-			remaining_iterations = num_online_nodes();
++			remaining_iterations = nr_online_nodes;
+ 		}
+ 	}
+ }
+diff -puN mm/page_alloc.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
++++ a/mm/page_alloc.c
+@@ -165,7 +165,9 @@ static unsigned long __meminitdata dma_r
+ 
+ #if MAX_NUMNODES > 1
+ int nr_node_ids __read_mostly = MAX_NUMNODES;
++int nr_online_nodes __read_mostly = 1;
+ EXPORT_SYMBOL(nr_node_ids);
++EXPORT_SYMBOL(nr_online_nodes);
+ #endif
+ 
+ int page_group_by_mobility_disabled __read_mostly;
+@@ -1467,7 +1469,7 @@ this_zone_full:
+ 		if (NUMA_BUILD)
+ 			zlc_mark_zone_full(zonelist, z);
+ try_next_zone:
+-		if (NUMA_BUILD && !did_zlc_setup && num_online_nodes() > 1) {
++		if (NUMA_BUILD && !did_zlc_setup && nr_online_nodes > 1) {
+ 			/*
+ 			 * we do zlc_setup after the first zone is tried but only
+ 			 * if there are multiple nodes make it worthwhile
+@@ -2266,7 +2268,7 @@ int numa_zonelist_order_handler(ctl_tabl
  }
  
- #else /* CONFIG_HAVE_MLOCKED_PAGE_BIT */
-diff -puN mm/page_alloc.c~page-allocator-do-not-disable-interrupts-in-free_page_mlock mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-do-not-disable-interrupts-in-free_page_mlock
-+++ a/mm/page_alloc.c
-@@ -499,7 +499,6 @@ static inline void __free_one_page(struc
  
- static inline int free_pages_check(struct page *page)
+-#define MAX_NODE_LOAD (num_online_nodes())
++#define MAX_NODE_LOAD (nr_online_nodes)
+ static int node_load[MAX_NUMNODES];
+ 
+ /**
+@@ -2475,7 +2477,7 @@ static void build_zonelists(pg_data_t *p
+ 
+ 	/* NUMA-aware ordering of nodes */
+ 	local_node = pgdat->node_id;
+-	load = num_online_nodes();
++	load = nr_online_nodes;
+ 	prev_node = local_node;
+ 	nodes_clear(used_mask);
+ 
+@@ -2626,7 +2628,7 @@ void build_all_zonelists(void)
+ 
+ 	printk("Built %i zonelists in %s order, mobility grouping %s.  "
+ 		"Total pages: %ld\n",
+-			num_online_nodes(),
++			nr_online_nodes,
+ 			zonelist_order_name[current_zonelist_order],
+ 			page_group_by_mobility_disabled ? "off" : "on",
+ 			vm_total_pages);
+diff -puN mm/slub.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths mm/slub.c
+--- a/mm/slub.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
++++ a/mm/slub.c
+@@ -3714,7 +3714,7 @@ static int list_locations(struct kmem_ca
+ 						 to_cpumask(l->cpus));
+ 		}
+ 
+-		if (num_online_nodes() > 1 && !nodes_empty(l->nodes) &&
++		if (nr_online_nodes > 1 && !nodes_empty(l->nodes) &&
+ 				len < PAGE_SIZE - 60) {
+ 			len += sprintf(buf + len, " nodes=");
+ 			len += nodelist_scnprintf(buf + len, PAGE_SIZE - len - 50,
+diff -puN net/sunrpc/svc.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
++++ a/net/sunrpc/svc.c
+@@ -124,7 +124,7 @@ svc_pool_map_choose_mode(void)
  {
--	free_page_mlock(page);
- 	if (unlikely(page_mapcount(page) |
- 		(page->mapping != NULL)  |
- 		(page_count(page) != 0)  |
-@@ -556,6 +555,7 @@ static void __free_pages_ok(struct page 
- 	unsigned long flags;
- 	int i;
- 	int bad = 0;
-+	int clearMlocked = PageMlocked(page);
+ 	unsigned int node;
  
- 	for (i = 0 ; i < (1 << order) ; ++i)
- 		bad += free_pages_check(page + i);
-@@ -571,6 +571,8 @@ static void __free_pages_ok(struct page 
- 	kernel_map_pages(page, 1 << order, 0);
- 
- 	local_irq_save(flags);
-+	if (unlikely(clearMlocked))
-+		free_page_mlock(page);
- 	__count_vm_events(PGFREE, 1 << order);
- 	free_one_page(page_zone(page), page, order,
- 					get_pageblock_migratetype(page));
-@@ -1017,6 +1019,7 @@ static void free_hot_cold_page(struct pa
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
- 	unsigned long flags;
-+	int clearMlocked = PageMlocked(page);
- 
- 	if (PageAnon(page))
- 		page->mapping = NULL;
-@@ -1032,7 +1035,10 @@ static void free_hot_cold_page(struct pa
- 
- 	pcp = &zone_pcp(zone, get_cpu())->pcp;
- 	local_irq_save(flags);
-+	if (unlikely(clearMlocked))
-+		free_page_mlock(page);
- 	__count_vm_event(PGFREE);
-+
- 	if (cold)
- 		list_add_tail(&page->lru, &pcp->list);
- 	else
+-	if (num_online_nodes() > 1) {
++	if (nr_online_nodes > 1) {
+ 		/*
+ 		 * Actually have multiple NUMA nodes,
+ 		 * so split pools on NUMA node boundaries
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from cl@linux-foundation.org are
 
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+linux-next.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
 page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
@@ -159,6 +221,6 @@ page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
 page-allocator-update-nr_free_pages-only-as-necessary.patch
 page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
 page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+reiser4.patch
+slab-leaks3-default-y.patch
 
