@@ -1,182 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-docbooks-add-fix-pci-kernel-doc.patch removed from -mm tree
-Date: Thu, 23 Apr 2009 12:25:09 -0700
-Message-ID: <200904231925.n3NJP9YR025139@imap1.linux-foundation.org>
+Subject: [merged] scsi-a4000-correct-driver-unregistration-in-case-of-failure.patch removed from -mm tree
+Date: Thu, 23 Apr 2009 12:25:14 -0700
+Message-ID: <200904231925.n3NJPEW7025224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760399AbZDWT1R (ORCPT
+	by vger.kernel.org with ESMTP id S1752713AbZDWT22 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 15:27:17 -0400
+	Thu, 23 Apr 2009 15:28:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, James.Bottomley@HansenPartnership.com, gregkh@suse.de, tom.leiming@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: docbooks: add/fix PCI kernel-doc
+     scsi: a4000: correct driver unregistration in case of failure
 has been removed from the -mm tree.  Its filename was
-     pci-docbooks-add-fix-pci-kernel-doc.patch
+     scsi-a4000-correct-driver-unregistration-in-case-of-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: docbooks: add/fix PCI kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: scsi: a4000: correct driver unregistration in case of failure
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Add drivers/pci/*.c source files to DocBook/kernel-api.tmpl and update
-those pci/*.c source files that need kernel-doc fixes.
+commit 7a192ec334cab9fafe3a8665a65af398b0e24730 ("platform driver: fix
+incorrect use of 'platform_bus_type' with 'struct device_driver') turned a
+driver_UNregister into platform_driver_REGISTER.  Correct this to
+platform_driver_UNregister.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ming Lei <tom.leiming@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-api.tmpl |    6 +++++-
- drivers/pci/access.c                  |    4 ++--
- drivers/pci/htirq.c                   |    1 +
- drivers/pci/pci-sysfs.c               |   12 ++++++++----
- drivers/pci/slot.c                    |    4 ++--
- 5 files changed, 18 insertions(+), 9 deletions(-)
+ drivers/scsi/a4000t.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/kernel-api.tmpl~pci-docbooks-add-fix-pci-kernel-doc Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~pci-docbooks-add-fix-pci-kernel-doc
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -190,16 +190,20 @@ X!Ekernel/module.c
- !Edrivers/pci/pci.c
- !Edrivers/pci/pci-driver.c
- !Edrivers/pci/remove.c
--!Edrivers/pci/pci-acpi.c
- !Edrivers/pci/search.c
- !Edrivers/pci/msi.c
- !Edrivers/pci/bus.c
-+!Edrivers/pci/access.c
-+!Edrivers/pci/irq.c
-+!Edrivers/pci/htirq.c
- <!-- FIXME: Removed for now since no structured comments in source
- X!Edrivers/pci/hotplug.c
- -->
- !Edrivers/pci/probe.c
-+!Edrivers/pci/slot.c
- !Edrivers/pci/rom.c
- !Edrivers/pci/iov.c
-+!Idrivers/pci/pci-sysfs.c
-      </sect1>
-      <sect1><title>PCI Hotplug Support Library</title>
- !Edrivers/pci/hotplug/pci_hotplug_core.c
-diff -puN drivers/pci/access.c~pci-docbooks-add-fix-pci-kernel-doc drivers/pci/access.c
---- a/drivers/pci/access.c~pci-docbooks-add-fix-pci-kernel-doc
-+++ a/drivers/pci/access.c
-@@ -87,8 +87,8 @@ EXPORT_SYMBOL(pci_read_vpd);
-  * pci_write_vpd - Write entry to Vital Product Data
-  * @dev:	pci device struct
-  * @pos:	offset in vpd space
-- * @count:	number of bytes to read
-- * @val:	value to write
-+ * @count:	number of bytes to write
-+ * @buf:	buffer containing write data
-  *
-  */
- ssize_t pci_write_vpd(struct pci_dev *dev, loff_t pos, size_t count, const void *buf)
-diff -puN drivers/pci/htirq.c~pci-docbooks-add-fix-pci-kernel-doc drivers/pci/htirq.c
---- a/drivers/pci/htirq.c~pci-docbooks-add-fix-pci-kernel-doc
-+++ a/drivers/pci/htirq.c
-@@ -158,6 +158,7 @@ int ht_create_irq(struct pci_dev *dev, i
+diff -puN drivers/scsi/a4000t.c~scsi-a4000-correct-driver-unregistration-in-case-of-failure drivers/scsi/a4000t.c
+--- a/drivers/scsi/a4000t.c~scsi-a4000-correct-driver-unregistration-in-case-of-failure
++++ a/drivers/scsi/a4000t.c
+@@ -129,7 +129,7 @@ static int __init a4000t_scsi_init(void)
+ 	a4000t_scsi_device = platform_device_register_simple("a4000t-scsi",
+ 			-1, NULL, 0);
+ 	if (IS_ERR(a4000t_scsi_device)) {
+-		platform_driver_register(&a4000t_scsi_driver);
++		platform_driver_unregister(&a4000t_scsi_driver);
+ 		return PTR_ERR(a4000t_scsi_device);
+ 	}
  
- /**
-  * ht_destroy_irq - destroy an irq created with ht_create_irq
-+ * @irq: irq to be destroyed
-  *
-  * This reverses ht_create_irq removing the specified irq from
-  * existence.  The irq should be free before this happens.
-diff -puN drivers/pci/pci-sysfs.c~pci-docbooks-add-fix-pci-kernel-doc drivers/pci/pci-sysfs.c
---- a/drivers/pci/pci-sysfs.c~pci-docbooks-add-fix-pci-kernel-doc
-+++ a/drivers/pci/pci-sysfs.c
-@@ -492,6 +492,7 @@ write_vpd_attr(struct kobject *kobj, str
- /**
-  * pci_read_legacy_io - read byte(s) from legacy I/O port space
-  * @kobj: kobject corresponding to file to read from
-+ * @bin_attr: struct bin_attribute for this file
-  * @buf: buffer to store results
-  * @off: offset into legacy I/O port space
-  * @count: number of bytes to read
-@@ -517,6 +518,7 @@ pci_read_legacy_io(struct kobject *kobj,
- /**
-  * pci_write_legacy_io - write byte(s) to legacy I/O port space
-  * @kobj: kobject corresponding to file to read from
-+ * @bin_attr: struct bin_attribute for this file
-  * @buf: buffer containing value to be written
-  * @off: offset into legacy I/O port space
-  * @count: number of bytes to write
-@@ -733,9 +735,9 @@ pci_mmap_resource_wc(struct kobject *kob
- 
- /**
-  * pci_remove_resource_files - cleanup resource files
-- * @dev: dev to cleanup
-+ * @pdev: dev to cleanup
-  *
-- * If we created resource files for @dev, remove them from sysfs and
-+ * If we created resource files for @pdev, remove them from sysfs and
-  * free their resources.
-  */
- static void
-@@ -793,9 +795,9 @@ static int pci_create_attr(struct pci_de
- 
- /**
-  * pci_create_resource_files - create resource files in sysfs for @dev
-- * @dev: dev in question
-+ * @pdev: dev in question
-  *
-- * Walk the resources in @dev creating files for each resource available.
-+ * Walk the resources in @pdev creating files for each resource available.
-  */
- static int pci_create_resource_files(struct pci_dev *pdev)
- {
-@@ -829,6 +831,7 @@ void __weak pci_remove_resource_files(st
- /**
-  * pci_write_rom - used to enable access to the PCI ROM display
-  * @kobj: kernel object handle
-+ * @bin_attr: struct bin_attribute for this file
-  * @buf: user input
-  * @off: file offset
-  * @count: number of byte in input
-@@ -852,6 +855,7 @@ pci_write_rom(struct kobject *kobj, stru
- /**
-  * pci_read_rom - read a PCI ROM
-  * @kobj: kernel object handle
-+ * @bin_attr: struct bin_attribute for this file
-  * @buf: where to put the data we read from the ROM
-  * @off: file offset
-  * @count: number of bytes to read
-diff -puN drivers/pci/slot.c~pci-docbooks-add-fix-pci-kernel-doc drivers/pci/slot.c
---- a/drivers/pci/slot.c~pci-docbooks-add-fix-pci-kernel-doc
-+++ a/drivers/pci/slot.c
-@@ -264,8 +264,8 @@ EXPORT_SYMBOL_GPL(pci_create_slot);
- 
- /**
-  * pci_renumber_slot - update %struct pci_slot -> number
-- * @slot - %struct pci_slot to update
-- * @slot_nr - new number for slot
-+ * @slot: &struct pci_slot to update
-+ * @slot_nr: new number for slot
-  *
-  * The primary purpose of this interface is to allow callers who earlier
-  * created a placeholder slot in pci_create_slot() by passing a -1 as
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 linux-next.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
+time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
+m68k-count-can-reach-51-not-50.patch
 kmap_types-make-most-arches-use-generic-header-file.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+flat-fix-data-sections-alignment.patch
 
