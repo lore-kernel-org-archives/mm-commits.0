@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:07:39 -0700
-Message-ID: <200904232307.n3NN7d3i009402@imap1.linux-foundation.org>
+Subject: + page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:07:46 -0700
+Message-ID: <200904232307.n3NN7kEF009492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754700AbZDWXM7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753585AbZDWXM6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:12:59 -0400
+	Thu, 23 Apr 2009 19:12:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
 
 
 The patch titled
-     page allocator: move check for disabled anti-fragmentation out of fastpath
+     page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix
 has been added to the -mm tree.  Its filename is
-     page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+     page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: move check for disabled anti-fragmentation out of fastpath
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On low-memory systems, anti-fragmentation gets disabled as there is
-nothing it can do and it would just incur overhead shuffling pages between
-lists constantly.  Currently the check is made in the free page fast path
-for every page.  This patch moves it to a slow path.  On machines with low
-memory, there will be small amount of additional overhead as pages get
-shuffled between lists but it should quickly settle.
+nuke the (void) thing while we're there.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 ---
- mm/page_alloc.c        |    4 ++++
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/mmzone.h~page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath include/linux/mmzone.h
---- a/include/linux/mmzone.h~page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath
-+++ a/include/linux/mmzone.h
-@@ -50,9 +50,6 @@ extern int page_group_by_mobility_disabl
- 
- static inline int get_pageblock_migratetype(struct page *page)
- {
--	if (unlikely(page_group_by_mobility_disabled))
--		return MIGRATE_UNMOVABLE;
--
- 	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
- }
- 
-diff -puN mm/page_alloc.c~page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath
+diff -puN mm/page_alloc.c~page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix
 +++ a/mm/page_alloc.c
-@@ -172,6 +172,10 @@ int page_group_by_mobility_disabled __re
+@@ -1775,8 +1775,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 		return NULL;
  
- static void set_pageblock_migratetype(struct page *page, int migratetype)
- {
-+
-+	if (unlikely(page_group_by_mobility_disabled))
-+		migratetype = MIGRATE_UNMOVABLE;
-+
- 	set_pageblock_flags_group(page, (unsigned long)migratetype,
- 					PB_migrate, PB_migrate_end);
- }
+ 	/* The preferred zone is used for statistics later */
+-	(void)first_zones_zonelist(zonelist, high_zoneidx, nodemask,
+-							&preferred_zone);
++	first_zones_zonelist(zonelist, high_zoneidx, nodemask, &preferred_zone);
+ 	if (!preferred_zone)
+ 		return NULL;
+ 
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+block-turn-some-buggy-macros-into-c-functions.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
-page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
-page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
-page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
 page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
-page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
 page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-inline-__rmqueue_smallest.patch
-page-allocator-inline-buffered_rmqueue.patch
-page-allocator-inline-__rmqueue_fallback.patch
-page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
-page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
-page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
-page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
-page-allocator-update-nr_free_pages-only-as-necessary.patch
-page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
