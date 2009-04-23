@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:07:56 -0700
-Message-ID: <200904232307.n3NN7uKG009584@imap1.linux-foundation.org>
+Subject: + page-allocator-inline-buffered_rmqueue.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:08:04 -0700
+Message-ID: <200904232308.n3NN85It009677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758806AbZDWXNN (ORCPT
+	by vger.kernel.org with ESMTP id S1755554AbZDWXNR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:13:13 -0400
+	Thu, 23 Apr 2009 19:13:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.v
 
 
 The patch titled
-     page allocator: remove a branch by assuming __GFP_HIGH == ALLOC_HIGH
+     page allocator: inline buffered_rmqueue()
 has been added to the -mm tree.  Its filename is
-     page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+     page-allocator-inline-buffered_rmqueue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: remove a branch by assuming __GFP_HIGH == ALLOC_HIGH
+Subject: page allocator: inline buffered_rmqueue()
 From: Mel Gorman <mel@csn.ul.ie>
 
-Allocations that specify __GFP_HIGH get the ALLOC_HIGH flag.  If these
-flags are equal to each other, we can eliminate a branch.
+buffered_rmqueue() is in the fast path so inline it.  Because it only has
+one call site, this function can then be inlined without causing text
+bloat.  On an x86-based config, it made no difference as the savings were
+padded out by NOP instructions.  Milage varies but text will either
+decrease in size or remain static.
 
-[akpm@linux-foundation.org: Suggested the hack]
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high
+diff -puN mm/page_alloc.c~page-allocator-inline-buffered_rmqueue mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-inline-buffered_rmqueue
 +++ a/mm/page_alloc.c
-@@ -1619,14 +1619,16 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 	int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
- 	const gfp_t wait = gfp_mask & __GFP_WAIT;
- 
-+	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
-+	BUILD_BUG_ON(__GFP_HIGH != ALLOC_HIGH);
-+
- 	/*
- 	 * The caller may dip into page reserves a bit more if the caller
- 	 * cannot run direct reclaim, or if the caller has realtime scheduling
- 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
- 	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
- 	 */
--	if (gfp_mask & __GFP_HIGH)
--		alloc_flags |= ALLOC_HIGH;
-+	alloc_flags |= (gfp_mask & __GFP_HIGH);
- 
- 	if (!wait) {
- 		alloc_flags |= ALLOC_HARDER;
+@@ -1076,7 +1076,8 @@ void split_page(struct page *page, unsig
+  * we cheat by calling it from here, in the order > 0 path.  Saves a branch
+  * or two.
+  */
+-static struct page *buffered_rmqueue(struct zone *preferred_zone,
++static inline
++struct page *buffered_rmqueue(struct zone *preferred_zone,
+ 			struct zone *zone, int order, gfp_t gfp_flags,
+ 			int migratetype)
+ {
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
