@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-inline-__rmqueue_smallest.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:08:00 -0700
-Message-ID: <200904232308.n3NN80nu009595@imap1.linux-foundation.org>
+Subject: + page-allocator-do-not-sanity-check-order-in-the-fast-path.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:07:21 -0700
+Message-ID: <200904232307.n3NN7LPM009251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34006 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755010AbZDWXNH (ORCPT
+	by vger.kernel.org with ESMTP id S1755083AbZDWXNB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:13:07 -0400
+	Thu, 23 Apr 2009 19:13:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.v
 
 
 The patch titled
-     page allocator: inline __rmqueue_smallest()
+     page allocator: do not sanity check order in the fast path
 has been added to the -mm tree.  Its filename is
-     page-allocator-inline-__rmqueue_smallest.patch
+     page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: inline __rmqueue_smallest()
+Subject: page allocator: do not sanity check order in the fast path
 From: Mel Gorman <mel@csn.ul.ie>
 
-Inline __rmqueue_smallest by altering flow very slightly so that there is
-only one call site.  Because there is only one call-site, this function
-can then be inlined without causing text bloat.  On an x86-based config,
-this patch reduces text by 16 bytes.
+No user of the allocator API should be passing in an order >= MAX_ORDER
+but we check for it on each and every allocation.  Delete this check and
+make it a VM_BUG_ON check further down the call path.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ include/linux/gfp.h |    6 ------
+ mm/page_alloc.c     |    2 ++
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-inline-__rmqueue_smallest mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-inline-__rmqueue_smallest
+diff -puN include/linux/gfp.h~page-allocator-do-not-sanity-check-order-in-the-fast-path include/linux/gfp.h
+--- a/include/linux/gfp.h~page-allocator-do-not-sanity-check-order-in-the-fast-path
++++ a/include/linux/gfp.h
+@@ -182,9 +182,6 @@ __alloc_pages(gfp_t gfp_mask, unsigned i
+ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+ 						unsigned int order)
+ {
+-	if (unlikely(order >= MAX_ORDER))
+-		return NULL;
+-
+ 	/* Unknown node is current node */
+ 	if (nid < 0)
+ 		nid = numa_node_id();
+@@ -198,9 +195,6 @@ extern struct page *alloc_pages_current(
+ static inline struct page *
+ alloc_pages(gfp_t gfp_mask, unsigned int order)
+ {
+-	if (unlikely(order >= MAX_ORDER))
+-		return NULL;
+-
+ 	return alloc_pages_current(gfp_mask, order);
+ }
+ extern struct page *alloc_page_vma(gfp_t gfp_mask,
+diff -puN mm/page_alloc.c~page-allocator-do-not-sanity-check-order-in-the-fast-path mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-do-not-sanity-check-order-in-the-fast-path
 +++ a/mm/page_alloc.c
-@@ -665,7 +665,8 @@ static int prep_new_page(struct page *pa
-  * Go through the free lists for the given migratetype and remove
-  * the smallest available page from the freelists
-  */
--static struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
-+static inline
-+struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
- 						int migratetype)
- {
- 	unsigned int current_order;
-@@ -835,8 +836,7 @@ static struct page *__rmqueue_fallback(s
- 		}
- 	}
+@@ -1405,6 +1405,8 @@ get_page_from_freelist(gfp_t gfp_mask, n
  
--	/* Use MIGRATE_RESERVE rather than fail an allocation */
--	return __rmqueue_smallest(zone, order, MIGRATE_RESERVE);
-+	return NULL;
- }
+ 	classzone_idx = zone_idx(preferred_zone);
  
- /*
-@@ -848,11 +848,23 @@ static struct page *__rmqueue(struct zon
- {
- 	struct page *page;
- 
-+retry_reserve:
- 	page = __rmqueue_smallest(zone, order, migratetype);
- 
--	if (unlikely(!page))
-+	if (unlikely(!page) && migratetype != MIGRATE_RESERVE) {
- 		page = __rmqueue_fallback(zone, order, migratetype);
- 
-+		/*
-+		 * Use MIGRATE_RESERVE rather than fail an allocation. goto
-+		 * is used because __rmqueue_smallest is an inline function
-+		 * and we want just one call site
-+		 */
-+		if (!page) {
-+			migratetype = MIGRATE_RESERVE;
-+			goto retry_reserve;
-+		}
-+	}
++	VM_BUG_ON(order >= MAX_ORDER);
 +
- 	return page;
- }
- 
+ zonelist_scan:
+ 	/*
+ 	 * Scan zonelist, looking for a zone with enough free.
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
