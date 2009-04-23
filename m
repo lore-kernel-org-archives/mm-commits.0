@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:08:19 -0700
-Message-ID: <200904232308.n3NN8KYN009781@imap1.linux-foundation.org>
+Subject: + page-allocator-update-nr_free_pages-only-as-necessary.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:08:21 -0700
+Message-ID: <200904232308.n3NN8MI4009832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54205 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760752AbZDWXN3 (ORCPT
+	by vger.kernel.org with ESMTP id S1760761AbZDWXNi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:13:29 -0400
+	Thu, 23 Apr 2009 19:13:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.v
 
 
 The patch titled
-     page allocator: use allocation flags as an index to the zone watermark
+     page allocator: update NR_FREE_PAGES only as necessary
 has been added to the -mm tree.  Its filename is
-     page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+     page-allocator-update-nr_free_pages-only-as-necessary.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: use allocation flags as an index to the zone watermark
+Subject: page allocator: update NR_FREE_PAGES only as necessary
 From: Mel Gorman <mel@csn.ul.ie>
 
-ALLOC_WMARK_MIN, ALLOC_WMARK_LOW and ALLOC_WMARK_HIGH determin whether
-pages_min, pages_low or pages_high is used as the zone watermark when
-allocating the pages.  Two branches in the allocator hotpath determine
-which watermark to use.  This patch uses the flags as an array index and
-places the three watermarks in a union with an array so it can be offset. 
-This means the flags can be used as an array index and reduces the
-branches taken.
+When pages are being freed to the buddy allocator, the zone NR_FREE_PAGES
+counter must be updated.  In the case of bulk per-cpu page freeing, it's
+updated once per page.  This retouches cache lines more than necessary. 
+Update the counters one per per-cpu bulk free.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -55,65 +52,75 @@ Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    8 +++++++-
- mm/page_alloc.c        |   20 ++++++++++----------
- 2 files changed, 17 insertions(+), 11 deletions(-)
+ mm/page_alloc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mmzone.h~page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark include/linux/mmzone.h
---- a/include/linux/mmzone.h~page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark
-+++ a/include/linux/mmzone.h
-@@ -275,7 +275,13 @@ struct zone_reclaim_stat {
- 
- struct zone {
- 	/* Fields commonly accessed by the page allocator */
--	unsigned long		pages_min, pages_low, pages_high;
-+	union {
-+		struct {
-+			unsigned long	pages_min, pages_low, pages_high;
-+		};
-+		unsigned long pages_mark[3];
-+	};
-+
- 	/*
- 	 * We don't know if the memory that we're going to allocate will be freeable
- 	 * or/and it will be released eventually, so to avoid totally wasting several
-diff -puN mm/page_alloc.c~page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark
+diff -puN mm/page_alloc.c~page-allocator-update-nr_free_pages-only-as-necessary mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-update-nr_free_pages-only-as-necessary
 +++ a/mm/page_alloc.c
-@@ -1154,10 +1154,15 @@ failed:
- 	return NULL;
+@@ -460,7 +460,6 @@ static inline void __free_one_page(struc
+ 		int migratetype)
+ {
+ 	unsigned long page_idx;
+-	int order_size = 1 << order;
+ 
+ 	if (unlikely(PageCompound(page)))
+ 		if (unlikely(destroy_compound_page(page, order)))
+@@ -470,10 +469,9 @@ static inline void __free_one_page(struc
+ 
+ 	page_idx = page_to_pfn(page) & ((1 << MAX_ORDER) - 1);
+ 
+-	VM_BUG_ON(page_idx & (order_size - 1));
++	VM_BUG_ON(page_idx & ((1 << order) - 1));
+ 	VM_BUG_ON(bad_range(zone, page));
+ 
+-	__mod_zone_page_state(zone, NR_FREE_PAGES, order_size);
+ 	while (order < MAX_ORDER-1) {
+ 		unsigned long combined_idx;
+ 		struct page *buddy;
+@@ -528,6 +526,8 @@ static void free_pages_bulk(struct zone 
+ 	spin_lock(&zone->lock);
+ 	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
+ 	zone->pages_scanned = 0;
++
++	__mod_zone_page_state(zone, NR_FREE_PAGES, count);
+ 	while (count--) {
+ 		struct page *page;
+ 
+@@ -546,6 +546,8 @@ static void free_one_page(struct zone *z
+ 	spin_lock(&zone->lock);
+ 	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
+ 	zone->pages_scanned = 0;
++
++	__mod_zone_page_state(zone, NR_FREE_PAGES, 1 << order);
+ 	__free_one_page(page, zone, order, migratetype);
+ 	spin_unlock(&zone->lock);
  }
+@@ -690,7 +692,6 @@ struct page *__rmqueue_smallest(struct z
+ 		list_del(&page->lru);
+ 		rmv_page_order(page);
+ 		area->nr_free--;
+-		__mod_zone_page_state(zone, NR_FREE_PAGES, - (1UL << order));
+ 		expand(zone, page, order, current_order, area, migratetype);
+ 		return page;
+ 	}
+@@ -830,8 +831,6 @@ __rmqueue_fallback(struct zone *zone, in
+ 			/* Remove the page from the freelists */
+ 			list_del(&page->lru);
+ 			rmv_page_order(page);
+-			__mod_zone_page_state(zone, NR_FREE_PAGES,
+-							-(1UL << order));
  
--#define ALLOC_NO_WATERMARKS	0x01 /* don't check watermarks at all */
--#define ALLOC_WMARK_MIN		0x02 /* use pages_min watermark */
--#define ALLOC_WMARK_LOW		0x04 /* use pages_low watermark */
--#define ALLOC_WMARK_HIGH	0x08 /* use pages_high watermark */
-+/* The WMARK bits are used as an index zone->pages_mark */
-+#define ALLOC_WMARK_MIN		0x00 /* use pages_min watermark */
-+#define ALLOC_WMARK_LOW		0x01 /* use pages_low watermark */
-+#define ALLOC_WMARK_HIGH	0x02 /* use pages_high watermark */
-+#define ALLOC_NO_WATERMARKS	0x04 /* don't check watermarks at all */
-+
-+/* Mask to get the watermark bits */
-+#define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
-+
- #define ALLOC_HARDER		0x10 /* try to alloc harder */
- #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
- #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
-@@ -1445,12 +1450,7 @@ zonelist_scan:
- 
- 		if (!(alloc_flags & ALLOC_NO_WATERMARKS)) {
- 			unsigned long mark;
--			if (alloc_flags & ALLOC_WMARK_MIN)
--				mark = zone->pages_min;
--			else if (alloc_flags & ALLOC_WMARK_LOW)
--				mark = zone->pages_low;
--			else
--				mark = zone->pages_high;
-+			mark = zone->pages_mark[alloc_flags & ALLOC_WMARK_MASK];
- 			if (!zone_watermark_ok(zone, order, mark,
- 				    classzone_idx, alloc_flags)) {
- 				if (!zone_reclaim_mode ||
+ 			if (current_order == pageblock_order)
+ 				set_pageblock_migratetype(page,
+@@ -904,6 +903,7 @@ static int rmqueue_bulk(struct zone *zon
+ 		set_page_private(page, migratetype);
+ 		list = &page->lru;
+ 	}
++	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+ 	spin_unlock(&zone->lock);
+ 	return i;
+ }
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
