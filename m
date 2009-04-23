@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-plx9060-casts-cleanup.patch added to -mm tree
-Date: Thu, 23 Apr 2009 14:32:19 -0700
-Message-ID: <200904232132.n3NLWKjr025537@imap1.linux-foundation.org>
+Subject: + char-cyclades-fix-nports-handling.patch added to -mm tree
+Date: Thu, 23 Apr 2009 14:32:28 -0700
+Message-ID: <200904232132.n3NLWSb4025629@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44183 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755744AbZDWVe7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757644AbZDWVfJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 17:34:59 -0400
+	Thu, 23 Apr 2009 17:35:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, khc@pm.waw.pl
 
 
 The patch titled
-     char: cyclades, plx9060 casts cleanup
+     char: cyclades, fix nports handling
 has been added to the -mm tree.  Its filename is
-     char-cyclades-plx9060-casts-cleanup.patch
+     char-cyclades-fix-nports-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: cyclades, plx9060 casts cleanup
+Subject: char: cyclades, fix nports handling
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Remove ugly all-over-the-code casts of ctl_addr to 9060 space.  Add an
-union to the cyclades_card structure, which contains a pointer to both
-9050 and 9060 spaces.
+Set up ports right after FW load so that we won't allocate maximal (64)
+ports when we use few.
 
-The 9050 space layout is unknown, so let it still as a void __iomem
-pointer.
+Also remove reading of nports in irq context, since we know it from
+initialisation now.
+
+This also fixes a tty ports unregistration on some fail paths and for Ze
+which registered 64 and unregistered real port count.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Krzysztof Halasa <khc@pm.waw.pl>
@@ -50,228 +52,194 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c  |   65 ++++++++++++++++++-------------------
- include/linux/cyclades.h |   23 +++++++------
- 2 files changed, 46 insertions(+), 42 deletions(-)
+ drivers/char/cyclades.c |   58 +++++++++++---------------------------
+ 1 file changed, 17 insertions(+), 41 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-plx9060-casts-cleanup drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-plx9060-casts-cleanup
+diff -puN drivers/char/cyclades.c~char-cyclades-fix-nports-handling drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-fix-nports-handling
 +++ a/drivers/char/cyclades.c
-@@ -666,12 +666,10 @@ static void cy_send_xchar(struct tty_str
- #define IS_CYC_Z(card) ((card).num_chips == (unsigned int)-1)
+@@ -604,7 +604,6 @@
  
- #define Z_FPGA_CHECK(card) \
--	((readl(&((struct RUNTIME_9060 __iomem *) \
--		((card).ctl_addr))->init_ctrl) & (1<<17)) != 0)
-+	((readl(&(card).ctl_addr.p9060->init_ctrl) & (1<<17)) != 0)
+ #define NR_PORTS	256
  
--#define ISZLOADED(card)	(((ZO_V1 == readl(&((struct RUNTIME_9060 __iomem *) \
--			((card).ctl_addr))->mail_box_0)) || \
--			Z_FPGA_CHECK(card)) && \
-+#define ISZLOADED(card)	(((ZO_V1 == readl(&(card).ctl_addr.p9060->mail_box_0)) \
-+			|| Z_FPGA_CHECK(card)) && \
- 			(ZFIRM_ID == readl(&((struct FIRM_ID __iomem *) \
- 			((card).base_addr+ID_ADDRESS))->signature)))
+-#define ZE_V1_NPORTS	64
+ #define ZO_V1	0
+ #define ZO_V2	1
+ #define ZE_V1	2
+@@ -1777,7 +1776,6 @@ static void cyz_poll(unsigned long arg)
+ 	struct tty_struct *tty;
+ 	struct FIRM_ID __iomem *firm_id;
+ 	struct ZFW_CTRL __iomem *zfw_ctrl;
+-	struct BOARD_CTRL __iomem *board_ctrl;
+ 	struct BUF_CTRL __iomem *buf_ctrl;
+ 	unsigned long expires = jiffies + HZ;
+ 	unsigned int port, card;
+@@ -1793,11 +1791,9 @@ static void cyz_poll(unsigned long arg)
+ 		firm_id = cinfo->base_addr + ID_ADDRESS;
+ 		zfw_ctrl = cinfo->base_addr +
+ 				(readl(&firm_id->zfwctrl_addr) & 0xfffff);
+-		board_ctrl = &(zfw_ctrl->board_ctrl);
  
-@@ -1400,14 +1398,12 @@ cyz_fetch_msg(struct cyclades_card *cinf
- 	zfw_ctrl = cinfo->base_addr + (readl(&firm_id->zfwctrl_addr) & 0xfffff);
- 	board_ctrl = &zfw_ctrl->board_ctrl;
- 
--	loc_doorbell = readl(&((struct RUNTIME_9060 __iomem *)
--				  (cinfo->ctl_addr))->loc_doorbell);
-+	loc_doorbell = readl(&cinfo->ctl_addr.p9060->loc_doorbell);
- 	if (loc_doorbell) {
- 		*cmd = (char)(0xff & loc_doorbell);
- 		*channel = readl(&board_ctrl->fwcmd_channel);
- 		*param = (__u32) readl(&board_ctrl->fwcmd_param);
--		cy_writel(&((struct RUNTIME_9060 __iomem *)(cinfo->ctl_addr))->
--			  loc_doorbell, 0xffffffff);
-+		cy_writel(&cinfo->ctl_addr.p9060->loc_doorbell, 0xffffffff);
- 		return 1;
- 	}
- 	return 0;
-@@ -1431,8 +1427,7 @@ cyz_issue_cmd(struct cyclades_card *cinf
- 	board_ctrl = &zfw_ctrl->board_ctrl;
- 
- 	index = 0;
--	pci_doorbell =
--	    &((struct RUNTIME_9060 __iomem *)(cinfo->ctl_addr))->pci_doorbell;
-+	pci_doorbell = &cinfo->ctl_addr.p9060->pci_doorbell;
- 	while ((readl(pci_doorbell) & 0xff) != 0) {
- 		if (index++ == 1000)
- 			return (int)(readl(pci_doorbell) & 0xff);
-@@ -1635,8 +1630,7 @@ static void cyz_handle_cmd(struct cyclad
- 	zfw_ctrl = cinfo->base_addr + (readl(&firm_id->zfwctrl_addr) & 0xfffff);
- 	board_ctrl = &zfw_ctrl->board_ctrl;
- 	fw_ver = readl(&board_ctrl->fw_version);
--	hw_ver = readl(&((struct RUNTIME_9060 __iomem *)(cinfo->ctl_addr))->
--			mail_box_0);
-+	hw_ver = readl(&cinfo->ctl_addr.p9060->mail_box_0);
- 
- 	while (cyz_fetch_msg(cinfo, &channel, &cmd, &param) == 1) {
- 		special_count = 0;
-@@ -2394,8 +2388,8 @@ static int cy_open(struct tty_struct *tt
- 		struct FIRM_ID __iomem *firm_id = cinfo->base_addr + ID_ADDRESS;
- 
- 		if (!ISZLOADED(*cinfo)) {
--			if (((ZE_V1 == readl(&((struct RUNTIME_9060 __iomem *)
--					 (cinfo->ctl_addr))->mail_box_0)) &&
-+			if (((ZE_V1 == readl(&cinfo->ctl_addr.p9060->
-+							mail_box_0)) &&
- 					Z_FPGA_CHECK(*cinfo)) &&
- 					(ZFIRM_HLT == readl(
- 						&firm_id->signature))) {
-@@ -2417,6 +2411,7 @@ static int cy_open(struct tty_struct *tt
+ 	/* Skip first polling cycle to avoid racing conditions with the FW */
+ 		if (!cinfo->intr_enabled) {
+-			cinfo->nports = (int)readl(&board_ctrl->n_channel);
+ 			cinfo->intr_enabled = 1;
+ 			continue;
+ 		}
+@@ -2413,16 +2409,8 @@ static int cy_open(struct tty_struct *tt
+ 		   interrupts should be enabled as soon as the first open
+ 		   happens to one of its ports. */
  			if (!cinfo->intr_enabled) {
- 				struct ZFW_CTRL __iomem *zfw_ctrl;
- 				struct BOARD_CTRL __iomem *board_ctrl;
-+				u16 intr;
+-				struct ZFW_CTRL __iomem *zfw_ctrl;
+-				struct BOARD_CTRL __iomem *board_ctrl;
+ 				u16 intr;
  
- 				zfw_ctrl = cinfo->base_addr +
- 					(readl(&firm_id->zfwctrl_addr) &
-@@ -2425,8 +2420,10 @@ static int cy_open(struct tty_struct *tt
- 				board_ctrl = &zfw_ctrl->board_ctrl;
- 
+-				zfw_ctrl = cinfo->base_addr +
+-					(readl(&firm_id->zfwctrl_addr) &
+-					 0xfffff);
+-
+-				board_ctrl = &zfw_ctrl->board_ctrl;
+-
  				/* Enable interrupts on the PLX chip */
--				cy_writew(cinfo->ctl_addr + 0x68,
--					readw(cinfo->ctl_addr + 0x68) | 0x0900);
-+				intr = readw(&cinfo->ctl_addr.p9060->
-+						intr_ctrl_stat) | 0x0900;
-+				cy_writew(&cinfo->ctl_addr.p9060->
-+						intr_ctrl_stat, intr);
- 				/* Enable interrupts on the FW */
- 				retval = cyz_issue_cmd(cinfo, 0,
- 						C_CM_IRQ_ENBL, 0L);
-@@ -4347,8 +4344,7 @@ static int __devinit cy_init_card(struct
+ 				intr = readw(&cinfo->ctl_addr.p9060->
+ 						intr_ctrl_stat) | 0x0900;
+@@ -2435,8 +2423,6 @@ static int cy_open(struct tty_struct *tt
+ 					printk(KERN_ERR "cyc:IRQ enable retval "
+ 						"was %x\n", retval);
+ 				}
+-				cinfo->nports =
+-					(int)readl(&board_ctrl->n_channel);
+ 				cinfo->intr_enabled = 1;
+ 			}
+ 		}
+@@ -4340,30 +4326,20 @@ static void cy_hangup(struct tty_struct 
+ static int __devinit cy_init_card(struct cyclades_card *cinfo)
+ {
+ 	struct cyclades_port *info;
+-	unsigned int nports, port;
++	unsigned int port;
+ 	unsigned short chip_number;
+-	int uninitialized_var(index);
+ 
  	spin_lock_init(&cinfo->card_lock);
++	cinfo->intr_enabled = 0;
  
- 	if (IS_CYC_Z(*cinfo)) {	/* Cyclades-Z */
--		mailbox = readl(&((struct RUNTIME_9060 __iomem *)
--				     cinfo->ctl_addr)->mail_box_0);
-+		mailbox = readl(&cinfo->ctl_addr.p9060->mail_box_0);
- 		nports = (mailbox == ZE_V1) ? ZE_V1_NPORTS : 8;
- 		cinfo->intr_enabled = 0;
- 		cinfo->nports = 0;	/* Will be correctly set later, after
-@@ -4613,7 +4609,7 @@ static int __init cy_detect_isa(void)
+-	if (cy_is_Z(cinfo)) {	/* Cyclades-Z */
+-		nports = (cinfo->hw_ver == ZE_V1) ? ZE_V1_NPORTS : 8;
+-		cinfo->intr_enabled = 0;
+-		cinfo->nports = 0;	/* Will be correctly set later, after
+-					   Z FW is loaded */
+-	} else {
+-		index = cinfo->bus_index;
+-		nports = cinfo->nports = CyPORTS_PER_CHIP * cinfo->num_chips;
+-	}
+-
+-	cinfo->ports = kzalloc(sizeof(*cinfo->ports) * nports, GFP_KERNEL);
++	cinfo->ports = kcalloc(cinfo->nports, sizeof(*cinfo->ports),
++			GFP_KERNEL);
+ 	if (cinfo->ports == NULL) {
+ 		printk(KERN_ERR "Cyclades: cannot allocate ports\n");
+-		cinfo->nports = 0;
+ 		return -ENOMEM;
+ 	}
  
- 		/* set cy_card */
- 		cy_card[j].base_addr = cy_isa_address;
--		cy_card[j].ctl_addr = NULL;
-+		cy_card[j].ctl_addr.p9050 = NULL;
+-	for (port = cinfo->first_line; port < cinfo->first_line + nports;
++	for (port = cinfo->first_line; port < cinfo->first_line + cinfo->nports;
+ 			port++) {
+ 		info = &cinfo->ports[port - cinfo->first_line];
+ 		tty_port_init(&info->port);
+@@ -4388,6 +4364,7 @@ static int __devinit cy_init_card(struct
+ 				cyz_rx_restart, (unsigned long)info);
+ #endif
+ 		} else {
++			int index = cinfo->bus_index;
+ 			info->type = PORT_CIRRUS;
+ 			info->xmit_fifo_size = CyMAX_CHAR_FIFO;
+ 			info->cor1 = CyPARITY_NONE | Cy_1_STOP | Cy_8_BITS;
+@@ -4615,7 +4592,8 @@ static int __init cy_detect_isa(void)
  		cy_card[j].irq = (int)cy_isa_irq;
  		cy_card[j].bus_index = 0;
  		cy_card[j].first_line = cy_next_channel;
-@@ -5013,7 +5009,8 @@ static int __devinit cy_pci_probe(struct
+-		cy_card[j].num_chips = cy_isa_nchan / 4;
++		cy_card[j].num_chips = cy_isa_nchan / CyPORTS_PER_CHIP;
++		cy_card[j].nports = cy_isa_nchan;
+ 		if (cy_init_card(&cy_card[j])) {
+ 			cy_card[j].base_addr = NULL;
+ 			free_irq(cy_isa_irq, &cy_card[j]);
+@@ -4771,7 +4749,7 @@ static int __devinit cyz_load_fw(struct 
+ 	struct CUSTOM_REG __iomem *cust = base_addr;
+ 	struct ZFW_CTRL __iomem *pt_zfwctrl;
+ 	void __iomem *tmp;
+-	u32 mailbox, status;
++	u32 mailbox, status, nchan;
+ 	unsigned int i;
+ 	int retval;
+ 
+@@ -4892,11 +4870,11 @@ static int __devinit cyz_load_fw(struct 
+ 			base_addr + ID_ADDRESS, readl(&fid->zfwctrl_addr),
+ 			base_addr + readl(&fid->zfwctrl_addr));
+ 
++	nchan = readl(&pt_zfwctrl->board_ctrl.n_channel);
+ 	dev_info(&pdev->dev, "Cyclades-Z FW loaded: version = %x, ports = %u\n",
+-		readl(&pt_zfwctrl->board_ctrl.fw_version),
+-		readl(&pt_zfwctrl->board_ctrl.n_channel));
++		readl(&pt_zfwctrl->board_ctrl.fw_version), nchan);
+ 
+-	if (readl(&pt_zfwctrl->board_ctrl.n_channel) == 0) {
++	if (nchan == 0) {
+ 		dev_warn(&pdev->dev, "no Cyclades-Z ports were found. Please "
+ 			"check the connection between the Z host card and the "
+ 			"serial expanders.\n");
+@@ -4922,7 +4900,7 @@ static int __devinit cyz_load_fw(struct 
+ 	cy_writel(&ctl_addr->intr_ctrl_stat, readl(&ctl_addr->intr_ctrl_stat) |
+ 			0x00030800UL);
+ 
+-	return 0;
++	return nchan;
+ err_rel:
+ 	release_firmware(fw);
+ err:
+@@ -5027,12 +5005,8 @@ static int __devinit cy_pci_probe(struct
+ 
+ 		if (mailbox == ZE_V1) {
+ 			card_name = "Cyclades-Ze";
+-
+-			nchan = ZE_V1_NPORTS;
+ 		} else {
+ 			card_name = "Cyclades-8Zo";
+-			nchan = 8;
+-
+ #ifdef CY_PCI_DEBUG
+ 			if (mailbox == ZO_V1) {
+ 				cy_writel(&ctl_addr->loc_addr_base, WIN_CREG);
+@@ -5057,8 +5031,9 @@ static int __devinit cy_pci_probe(struct
  		}
  
- 		/* Disable interrupts on the PLX before resetting it */
--		cy_writew(addr0 + 0x68, readw(addr0 + 0x68) & ~0x0900);
-+		cy_writew(&ctl_addr->intr_ctrl_stat,
-+				readw(&ctl_addr->intr_ctrl_stat) & ~0x0900);
+ 		retval = cyz_load_fw(pdev, addr2, addr0, irq);
+-		if (retval)
++		if (retval <= 0)
+ 			goto err_unmap;
++		nchan = retval;
+ 	}
  
- 		plx_init(pdev, irq, addr0);
- 
-@@ -5109,7 +5106,7 @@ static int __devinit cy_pci_probe(struct
- 
- 	/* set cy_card */
- 	cy_card[card_no].base_addr = addr2;
--	cy_card[card_no].ctl_addr = addr0;
-+	cy_card[card_no].ctl_addr.p9050 = addr0;
+ 	if ((cy_next_channel + nchan) > NR_PORTS) {
+@@ -5088,7 +5063,7 @@ static int __devinit cy_pci_probe(struct
+ 			dev_err(&pdev->dev, "could not allocate IRQ\n");
+ 			goto err_unmap;
+ 		}
+-		cy_card[card_no].num_chips = nchan / 4;
++		cy_card[card_no].num_chips = nchan / CyPORTS_PER_CHIP;
+ 	} else {
+ 		cy_card[card_no].hw_ver = mailbox;
+ 		cy_card[card_no].num_chips = (unsigned int)-1;
+@@ -5112,6 +5087,7 @@ static int __devinit cy_pci_probe(struct
  	cy_card[card_no].irq = irq;
  	cy_card[card_no].bus_index = 1;
  	cy_card[card_no].first_line = cy_next_channel;
-@@ -5125,17 +5122,20 @@ static int __devinit cy_pci_probe(struct
- 		plx_ver = readb(addr2 + CyPLX_VER) & 0x0f;
- 		switch (plx_ver) {
- 		case PLX_9050:
--
- 			cy_writeb(addr0 + 0x4c, 0x43);
- 			break;
- 
- 		case PLX_9060:
- 		case PLX_9080:
- 		default:	/* Old boards, use PLX_9060 */
--			plx_init(pdev, irq, addr0);
--			cy_writew(addr0 + 0x68, readw(addr0 + 0x68) | 0x0900);
-+		{
-+			struct RUNTIME_9060 __iomem *ctl_addr = addr0;
-+			plx_init(pdev, irq, ctl_addr);
-+			cy_writew(&ctl_addr->intr_ctrl_stat,
-+				readw(&ctl_addr->intr_ctrl_stat) | 0x0900);
- 			break;
- 		}
-+		}
- 	}
- 
- 	dev_info(&pdev->dev, "%s/PCI #%d found: %d channels starting from "
-@@ -5168,17 +5168,18 @@ static void __devexit cy_pci_remove(stru
- 	/* non-Z with old PLX */
- 	if (!IS_CYC_Z(*cinfo) && (readb(cinfo->base_addr + CyPLX_VER) & 0x0f) ==
- 			PLX_9050)
--		cy_writeb(cinfo->ctl_addr + 0x4c, 0);
-+		cy_writeb(cinfo->ctl_addr.p9050 + 0x4c, 0);
- 	else
- #ifndef CONFIG_CYZ_INTR
- 		if (!IS_CYC_Z(*cinfo))
- #endif
--		cy_writew(cinfo->ctl_addr + 0x68,
--				readw(cinfo->ctl_addr + 0x68) & ~0x0900);
-+		cy_writew(&cinfo->ctl_addr.p9060->intr_ctrl_stat,
-+			readw(&cinfo->ctl_addr.p9060->intr_ctrl_stat) &
-+			~0x0900);
- 
- 	iounmap(cinfo->base_addr);
--	if (cinfo->ctl_addr)
--		iounmap(cinfo->ctl_addr);
-+	if (cinfo->ctl_addr.p9050)
-+		iounmap(cinfo->ctl_addr.p9050);
- 	if (cinfo->irq
- #ifndef CONFIG_CYZ_INTR
- 		&& !IS_CYC_Z(*cinfo)
-@@ -5373,8 +5374,8 @@ static void __exit cy_cleanup_module(voi
- 			/* clear interrupt */
- 			cy_writeb(card->base_addr + Cy_ClrIntr, 0);
- 			iounmap(card->base_addr);
--			if (card->ctl_addr)
--				iounmap(card->ctl_addr);
-+			if (card->ctl_addr.p9050)
-+				iounmap(card->ctl_addr.p9050);
- 			if (card->irq
- #ifndef CONFIG_CYZ_INTR
- 				&& !IS_CYC_Z(*card)
-diff -puN include/linux/cyclades.h~char-cyclades-plx9060-casts-cleanup include/linux/cyclades.h
---- a/include/linux/cyclades.h~char-cyclades-plx9060-casts-cleanup
-+++ a/include/linux/cyclades.h
-@@ -507,16 +507,19 @@ struct ZFW_CTRL {
- 
- /* Per card data structure */
- struct cyclades_card {
--    void __iomem *base_addr;
--    void __iomem *ctl_addr;
--    int irq;
--    unsigned int num_chips;	/* 0 if card absent, -1 if Z/PCI, else Y */
--    unsigned int first_line;	/* minor number of first channel on card */
--    unsigned int nports;	/* Number of ports in the card */
--    int bus_index;		/* address shift - 0 for ISA, 1 for PCI */
--    int intr_enabled;		/* FW Interrupt flag - 0 disabled, 1 enabled */
--    spinlock_t card_lock;
--    struct cyclades_port *ports;
-+	void __iomem *base_addr;
-+	union {
-+		void __iomem *p9050;
-+		struct RUNTIME_9060 __iomem *p9060;
-+	} ctl_addr;
-+	int irq;
-+	unsigned int num_chips;	/* 0 if card absent, -1 if Z/PCI, else Y */
-+	unsigned int first_line;	/* minor number of first channel on card */
-+	unsigned int nports;	/* Number of ports in the card */
-+	int bus_index;		/* address shift - 0 for ISA, 1 for PCI */
-+	int intr_enabled;		/* FW Interrupt flag - 0 disabled, 1 enabled */
-+	spinlock_t card_lock;
-+	struct cyclades_port *ports;
- };
- 
- /***************************************
++	cy_card[card_no].nports = nchan;
+ 	retval = cy_init_card(&cy_card[card_no]);
+ 	if (retval)
+ 		goto err_null;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
