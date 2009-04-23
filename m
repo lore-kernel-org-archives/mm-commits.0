@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:07:43 -0700
-Message-ID: <200904232307.n3NN7iwn009489@imap1.linux-foundation.org>
+Subject: + page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:07:56 -0700
+Message-ID: <200904232307.n3NN7uKG009584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759585AbZDWXNP (ORCPT
+	by vger.kernel.org with ESMTP id S1758806AbZDWXNN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:13:15 -0400
+	Thu, 23 Apr 2009 19:13:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.v
 
 
 The patch titled
-     page allocator: calculate the preferred zone for allocation only once
+     page allocator: remove a branch by assuming __GFP_HIGH == ALLOC_HIGH
 has been added to the -mm tree.  Its filename is
-     page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+     page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: calculate the preferred zone for allocation only once
+Subject: page allocator: remove a branch by assuming __GFP_HIGH == ALLOC_HIGH
 From: Mel Gorman <mel@csn.ul.ie>
 
-get_page_from_freelist() can be called multiple times for an allocation. 
-Part of this calculates the preferred_zone which is the first usable zone
-in the zonelist but the zone depends on the GFP flags specified at the
-beginning of the allocation call.  This patch calculates preferred_zone
-once.  It's safe to do this because if preferred_zone is NULL at the start
-of the call, no amount of direct reclaim or other actions will change the
-fact the allocation will fail.
+Allocations that specify __GFP_HIGH get the ALLOC_HIGH flag.  If these
+flags are equal to each other, we can eliminate a branch.
 
+[akpm@linux-foundation.org: Suggested the hack]
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -55,173 +51,31 @@ Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   54 +++++++++++++++++++++++++++-------------------
- 1 file changed, 32 insertions(+), 22 deletions(-)
+ mm/page_alloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-calculate-the-preferred-zone-for-allocation-only-once mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-calculate-the-preferred-zone-for-allocation-only-once
+diff -puN mm/page_alloc.c~page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high
 +++ a/mm/page_alloc.c
-@@ -1392,23 +1392,17 @@ static void zlc_mark_zone_full(struct zo
-  */
- static struct page *
- get_page_from_freelist(gfp_t gfp_mask, nodemask_t *nodemask, unsigned int order,
--		struct zonelist *zonelist, int high_zoneidx, int alloc_flags)
-+		struct zonelist *zonelist, int high_zoneidx, int alloc_flags,
-+		struct zone *preferred_zone)
- {
- 	struct zoneref *z;
- 	struct page *page = NULL;
- 	int classzone_idx;
--	struct zone *zone, *preferred_zone;
-+	struct zone *zone;
- 	nodemask_t *allowednodes = NULL;/* zonelist_cache approximation */
- 	int zlc_active = 0;		/* set if using zonelist_cache */
- 	int did_zlc_setup = 0;		/* just call zlc_setup() one time */
- 
--	(void)first_zones_zonelist(zonelist, high_zoneidx, nodemask,
--							&preferred_zone);
--	if (!preferred_zone)
--		return NULL;
--
--	classzone_idx = zone_idx(preferred_zone);
--
- 	if (WARN_ON_ONCE(order >= MAX_ORDER))
- 		return NULL;
- 
-@@ -1504,7 +1498,7 @@ should_alloc_retry(gfp_t gfp_mask, unsig
- static inline struct page *
- __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask)
-+	nodemask_t *nodemask, struct zone *preferred_zone)
- {
- 	struct page *page;
- 
-@@ -1521,7 +1515,8 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	 */
- 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask,
- 		order, zonelist, high_zoneidx,
--		ALLOC_WMARK_HIGH|ALLOC_CPUSET);
-+		ALLOC_WMARK_HIGH|ALLOC_CPUSET,
-+		preferred_zone);
- 	if (page)
- 		goto out;
- 
-@@ -1541,7 +1536,8 @@ out:
- static inline struct page *
- __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, int alloc_flags, unsigned long *did_some_progress)
-+	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
-+	unsigned long *did_some_progress)
- {
- 	struct page *page = NULL;
- 	struct reclaim_state reclaim_state;
-@@ -1573,7 +1569,8 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- 
- 	if (likely(*did_some_progress))
- 		page = get_page_from_freelist(gfp_mask, nodemask, order,
--					zonelist, high_zoneidx, alloc_flags);
-+					zonelist, high_zoneidx,
-+					alloc_flags, preferred_zone);
- 	return page;
- }
- 
-@@ -1593,13 +1590,14 @@ is_allocation_high_priority(struct task_
- static inline struct page *
- __alloc_pages_high_priority(gfp_t gfp_mask, unsigned int order,
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask)
-+	nodemask_t *nodemask, struct zone *preferred_zone)
- {
- 	struct page *page;
- 
- 	do {
- 		page = get_page_from_freelist(gfp_mask, nodemask, order,
--			zonelist, high_zoneidx, ALLOC_NO_WATERMARKS);
-+			zonelist, high_zoneidx, ALLOC_NO_WATERMARKS,
-+			preferred_zone);
- 
- 		if (!page && gfp_mask & __GFP_NOFAIL)
- 			congestion_wait(WRITE, HZ/50);
-@@ -1622,7 +1620,7 @@ void wake_all_kswapd(unsigned int order,
- static inline struct page *
- __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask)
-+	nodemask_t *nodemask, struct zone *preferred_zone)
- {
+@@ -1619,14 +1619,16 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
  	const gfp_t wait = gfp_mask & __GFP_WAIT;
- 	struct page *page = NULL;
-@@ -1672,7 +1670,8 @@ restart:
- 	 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
- 	 */
- 	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
--						high_zoneidx, alloc_flags);
-+						high_zoneidx, alloc_flags,
-+						preferred_zone);
- 	if (page)
- 		goto got_pg;
  
-@@ -1682,7 +1681,7 @@ rebalance:
- 		/* Do not dip into emergency reserves if specified */
- 		if (!(gfp_mask & __GFP_NOMEMALLOC)) {
- 			page = __alloc_pages_high_priority(gfp_mask, order,
--				zonelist, high_zoneidx, nodemask);
-+				zonelist, high_zoneidx, nodemask, preferred_zone);
- 			if (page)
- 				goto got_pg;
- 		}
-@@ -1699,7 +1698,8 @@ rebalance:
- 	page = __alloc_pages_direct_reclaim(gfp_mask, order,
- 					zonelist, high_zoneidx,
- 					nodemask,
--					alloc_flags, &did_some_progress);
-+					alloc_flags, preferred_zone,
-+					&did_some_progress);
- 	if (page)
- 		goto got_pg;
- 
-@@ -1711,7 +1711,7 @@ rebalance:
- 		if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
- 			page = __alloc_pages_may_oom(gfp_mask, order,
- 					zonelist, high_zoneidx,
--					nodemask);
-+					nodemask, preferred_zone);
- 			if (page)
- 				goto got_pg;
- 
-@@ -1756,6 +1756,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 			struct zonelist *zonelist, nodemask_t *nodemask)
- {
- 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
-+	struct zone *preferred_zone;
- 	struct page *page;
- 
- 	lockdep_trace_alloc(gfp_mask);
-@@ -1773,11 +1774,20 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	if (unlikely(!zonelist->_zonerefs->zone))
- 		return NULL;
- 
-+	/* The preferred zone is used for statistics later */
-+	(void)first_zones_zonelist(zonelist, high_zoneidx, nodemask,
-+							&preferred_zone);
-+	if (!preferred_zone)
-+		return NULL;
++	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
++	BUILD_BUG_ON(__GFP_HIGH != ALLOC_HIGH);
 +
-+	/* First allocation attempt */
- 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
--			zonelist, high_zoneidx, ALLOC_WMARK_LOW|ALLOC_CPUSET);
-+			zonelist, high_zoneidx, ALLOC_WMARK_LOW|ALLOC_CPUSET,
-+			preferred_zone);
- 	if (unlikely(!page))
- 		page = __alloc_pages_slowpath(gfp_mask, order,
--				zonelist, high_zoneidx, nodemask);
-+				zonelist, high_zoneidx, nodemask,
-+				preferred_zone);
+ 	/*
+ 	 * The caller may dip into page reserves a bit more if the caller
+ 	 * cannot run direct reclaim, or if the caller has realtime scheduling
+ 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+ 	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
+ 	 */
+-	if (gfp_mask & __GFP_HIGH)
+-		alloc_flags |= ALLOC_HIGH;
++	alloc_flags |= (gfp_mask & __GFP_HIGH);
  
- 	return page;
- }
+ 	if (!wait) {
+ 		alloc_flags |= ALLOC_HARDER;
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
