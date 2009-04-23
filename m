@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:07:18 -0700
-Message-ID: <200904232307.n3NN7I38009200@imap1.linux-foundation.org>
+Subject: + page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:07:30 -0700
+Message-ID: <200904232307.n3NN7VHO009314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55708 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753200AbZDWXMo (ORCPT
+	by vger.kernel.org with ESMTP id S1753006AbZDWXMn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:12:44 -0400
+	Thu, 23 Apr 2009 19:12:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.v
 
 
 The patch titled
-     page allocator: replace __alloc_pages_internal() with __alloc_pages_nodemask()
+     page allocator: check only once if the zonelist is suitable for the allocation
 has been added to the -mm tree.  Its filename is
-     page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+     page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: replace __alloc_pages_internal() with __alloc_pages_nodemask()
+Subject: page allocator: check only once if the zonelist is suitable for the allocation
 From: Mel Gorman <mel@csn.ul.ie>
 
-The start of a large patch series to clean up and optimise the page
-allocator.
-
-The performance improvements are in a wide range depending on the exact
-machine but the results I've seen so fair are approximately;
-
-kernbench:	0	to	 0.12% (elapsed time)
-		0.49%	to	 3.20% (sys time)
-aim9:		-4%	to	30% (for page_test and brk_test)
-tbench:		-1%	to	 4%
-hackbench:	-2.5%	to	 3.45% (mostly within the noise though)
-netperf-udp	-1.34%  to	 4.06% (varies between machines a bit)
-netperf-tcp	-0.44%  to	 5.22% (varies between machines a bit)
-
-I haven't sysbench figures at hand, but previously they were within the
--0.5% to 2% range.
-
-On netperf, the client and server were bound to opposite number CPUs to
-maximise the problems with cache line bouncing of the struct pages so I
-expect different people to report different results for netperf depending
-on their exact machine and how they ran the test (different machines, same
-cpus client/server, shared cache but two threads client/server, different
-socket client/server etc).
-
-I also measured the vmlinux sizes for a single x86-based config with
-CONFIG_DEBUG_INFO enabled but not CONFIG_DEBUG_VM.  The core of the
-.config is based on the Debian Lenny kernel config so I expect it to be
-reasonably typical.
-
-
-This patch:
-
-__alloc_pages_internal is the core page allocator function but essentially
-it is an alias of __alloc_pages_nodemask.  Naming a publicly available and
-exported function "internal" is also a big ugly.  This patch renames
-__alloc_pages_internal() to __alloc_pages_nodemask() and deletes the old
-nodemask function.
-
-Warning - This patch renames an exported symbol.  No kernel driver is
-affected by external drivers calling __alloc_pages_internal() should
-change the call to __alloc_pages_nodemask() without any alteration of
-parameters.
+It is possible with __GFP_THISNODE that no zones are suitable.  This patch
+makes sure the check is only made once.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
@@ -90,61 +50,32 @@ Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   12 ++----------
- mm/page_alloc.c     |    4 ++--
- 2 files changed, 4 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/gfp.h~page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask include/linux/gfp.h
---- a/include/linux/gfp.h~page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask
-+++ a/include/linux/gfp.h
-@@ -169,24 +169,16 @@ static inline void arch_alloc_page(struc
- #endif
- 
- struct page *
--__alloc_pages_internal(gfp_t gfp_mask, unsigned int order,
-+__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
- 		       struct zonelist *zonelist, nodemask_t *nodemask);
- 
- static inline struct page *
- __alloc_pages(gfp_t gfp_mask, unsigned int order,
- 		struct zonelist *zonelist)
- {
--	return __alloc_pages_internal(gfp_mask, order, zonelist, NULL);
-+	return __alloc_pages_nodemask(gfp_mask, order, zonelist, NULL);
- }
- 
--static inline struct page *
--__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
--		struct zonelist *zonelist, nodemask_t *nodemask)
--{
--	return __alloc_pages_internal(gfp_mask, order, zonelist, nodemask);
--}
--
--
- static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
- 						unsigned int order)
- {
-diff -puN mm/page_alloc.c~page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask
+diff -puN mm/page_alloc.c~page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation
 +++ a/mm/page_alloc.c
-@@ -1462,7 +1462,7 @@ try_next_zone:
-  * This is the 'heart' of the zoned buddy allocator.
-  */
- struct page *
--__alloc_pages_internal(gfp_t gfp_mask, unsigned int order,
-+__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
- 			struct zonelist *zonelist, nodemask_t *nodemask)
- {
- 	const gfp_t wait = gfp_mask & __GFP_WAIT;
-@@ -1671,7 +1671,7 @@ nopage:
- got_pg:
- 	return page;
- }
--EXPORT_SYMBOL(__alloc_pages_internal);
-+EXPORT_SYMBOL(__alloc_pages_nodemask);
+@@ -1487,9 +1487,8 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	if (should_fail_alloc_page(gfp_mask, order))
+ 		return NULL;
  
- /*
-  * Common helper functions.
+-restart:
+-	z = zonelist->_zonerefs;  /* the list of zones suitable for gfp_mask */
+-
++	/* the list of zones suitable for gfp_mask */
++	z = zonelist->_zonerefs;
+ 	if (unlikely(!z->zone)) {
+ 		/*
+ 		 * Happens if we have an empty zonelist as a result of
+@@ -1498,6 +1497,7 @@ restart:
+ 		return NULL;
+ 	}
+ 
++restart:
+ 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
+ 			zonelist, high_zoneidx, ALLOC_WMARK_LOW|ALLOC_CPUSET);
+ 	if (page)
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
