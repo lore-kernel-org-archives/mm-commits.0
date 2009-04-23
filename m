@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:08:08 -0700
-Message-ID: <200904232308.n3NN89xL009685@imap1.linux-foundation.org>
+Subject: + page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:08:19 -0700
+Message-ID: <200904232308.n3NN8KYN009781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57750 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756493AbZDWXNQ (ORCPT
+	by vger.kernel.org with ESMTP id S1760752AbZDWXN3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:13:16 -0400
+	Thu, 23 Apr 2009 19:13:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.v
 
 
 The patch titled
-     page allocator: do not call get_pageblock_migratetype() more than necessary
+     page allocator: use allocation flags as an index to the zone watermark
 has been added to the -mm tree.  Its filename is
-     page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+     page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: do not call get_pageblock_migratetype() more than necessary
+Subject: page allocator: use allocation flags as an index to the zone watermark
 From: Mel Gorman <mel@csn.ul.ie>
 
-get_pageblock_migratetype() is potentially called twice for every page
-free.  Once, when being freed to the pcp lists and once when being freed
-back to buddy.  When freeing from the pcp lists, it is known what the
-pageblock type was at the time of free so use it rather than rechecking. 
-In low memory situations under memory pressure, this might skew
-anti-fragmentation slightly but the interference is minimal and decisions
-that are fragmenting memory are being made anyway.
+ALLOC_WMARK_MIN, ALLOC_WMARK_LOW and ALLOC_WMARK_HIGH determin whether
+pages_min, pages_low or pages_high is used as the zone watermark when
+allocating the pages.  Two branches in the allocator hotpath determine
+which watermark to use.  This patch uses the flags as an array index and
+places the three watermarks in a union with an array so it can be offset. 
+This means the flags can be used as an array index and reduces the
+branches taken.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -55,65 +55,65 @@ Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ include/linux/mmzone.h |    8 +++++++-
+ mm/page_alloc.c        |   20 ++++++++++----------
+ 2 files changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary
-+++ a/mm/page_alloc.c
-@@ -456,16 +456,18 @@ static inline int page_is_buddy(struct p
-  */
+diff -puN include/linux/mmzone.h~page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark include/linux/mmzone.h
+--- a/include/linux/mmzone.h~page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark
++++ a/include/linux/mmzone.h
+@@ -275,7 +275,13 @@ struct zone_reclaim_stat {
  
- static inline void __free_one_page(struct page *page,
--		struct zone *zone, unsigned int order)
-+		struct zone *zone, unsigned int order,
-+		int migratetype)
- {
- 	unsigned long page_idx;
- 	int order_size = 1 << order;
--	int migratetype = get_pageblock_migratetype(page);
- 
- 	if (unlikely(PageCompound(page)))
- 		if (unlikely(destroy_compound_page(page, order)))
- 			return;
- 
-+	VM_BUG_ON(migratetype == -1);
+ struct zone {
+ 	/* Fields commonly accessed by the page allocator */
+-	unsigned long		pages_min, pages_low, pages_high;
++	union {
++		struct {
++			unsigned long	pages_min, pages_low, pages_high;
++		};
++		unsigned long pages_mark[3];
++	};
 +
- 	page_idx = page_to_pfn(page) & ((1 << MAX_ORDER) - 1);
- 
- 	VM_BUG_ON(page_idx & (order_size - 1));
-@@ -534,17 +536,18 @@ static void free_pages_bulk(struct zone 
- 		page = list_entry(list->prev, struct page, lru);
- 		/* have to delete it as __free_one_page list manipulates */
- 		list_del(&page->lru);
--		__free_one_page(page, zone, order);
-+		__free_one_page(page, zone, order, page_private(page));
- 	}
- 	spin_unlock(&zone->lock);
+ 	/*
+ 	 * We don't know if the memory that we're going to allocate will be freeable
+ 	 * or/and it will be released eventually, so to avoid totally wasting several
+diff -puN mm/page_alloc.c~page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark
++++ a/mm/page_alloc.c
+@@ -1154,10 +1154,15 @@ failed:
+ 	return NULL;
  }
  
--static void free_one_page(struct zone *zone, struct page *page, int order)
-+static void free_one_page(struct zone *zone, struct page *page, int order,
-+				int migratetype)
- {
- 	spin_lock(&zone->lock);
- 	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
- 	zone->pages_scanned = 0;
--	__free_one_page(page, zone, order);
-+	__free_one_page(page, zone, order, migratetype);
- 	spin_unlock(&zone->lock);
- }
+-#define ALLOC_NO_WATERMARKS	0x01 /* don't check watermarks at all */
+-#define ALLOC_WMARK_MIN		0x02 /* use pages_min watermark */
+-#define ALLOC_WMARK_LOW		0x04 /* use pages_low watermark */
+-#define ALLOC_WMARK_HIGH	0x08 /* use pages_high watermark */
++/* The WMARK bits are used as an index zone->pages_mark */
++#define ALLOC_WMARK_MIN		0x00 /* use pages_min watermark */
++#define ALLOC_WMARK_LOW		0x01 /* use pages_low watermark */
++#define ALLOC_WMARK_HIGH	0x02 /* use pages_high watermark */
++#define ALLOC_NO_WATERMARKS	0x04 /* don't check watermarks at all */
++
++/* Mask to get the watermark bits */
++#define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
++
+ #define ALLOC_HARDER		0x10 /* try to alloc harder */
+ #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
+ #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
+@@ -1445,12 +1450,7 @@ zonelist_scan:
  
-@@ -569,7 +572,8 @@ static void __free_pages_ok(struct page 
- 
- 	local_irq_save(flags);
- 	__count_vm_events(PGFREE, 1 << order);
--	free_one_page(page_zone(page), page, order);
-+	free_one_page(page_zone(page), page, order,
-+					get_pageblock_migratetype(page));
- 	local_irq_restore(flags);
- }
- 
+ 		if (!(alloc_flags & ALLOC_NO_WATERMARKS)) {
+ 			unsigned long mark;
+-			if (alloc_flags & ALLOC_WMARK_MIN)
+-				mark = zone->pages_min;
+-			else if (alloc_flags & ALLOC_WMARK_LOW)
+-				mark = zone->pages_low;
+-			else
+-				mark = zone->pages_high;
++			mark = zone->pages_mark[alloc_flags & ALLOC_WMARK_MASK];
+ 			if (!zone_watermark_ok(zone, order, mark,
+ 				    classzone_idx, alloc_flags)) {
+ 				if (!zone_reclaim_mode ||
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
