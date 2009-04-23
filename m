@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-florian-has-moved.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:24:11 -0700
-Message-ID: <200904232324.n3NNOBY3017901@imap1.linux-foundation.org>
+Subject: + net-sunrpc-svc_xprtc-needs-svcsockh.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:23:15 -0700
+Message-ID: <200904232323.n3NNNFr5017484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38774 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49371 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759218AbZDWXZh (ORCPT
+	by vger.kernel.org with ESMTP id S1760877AbZDWX0N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:25:37 -0400
+	Thu, 23 Apr 2009 19:26:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: florian@openwrt.org
+Cc: hartleys@visionengravers.com, davem@davemloft.net, hsweeten@visionengravers.com, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     MAINTAINERS: Florian has moved
+     net/sunrpc/svc_xprt.c: needs svcsock.h
 has been added to the -mm tree.  Its filename is
-     maintainers-florian-has-moved.patch
+     net-sunrpc-svc_xprtc-needs-svcsockh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Florian has moved
-From: Florian Fainelli <florian@openwrt.org>
+Subject: net/sunrpc/svc_xprt.c: needs svcsock.h
+From: "H Hartley Sweeten" <hartleys@visionengravers.com>
 
-I will finish school soon, so replace my student address with this one.
+sparse reports the following in net/sunrpc/svc_xprt.c:
 
-Signed-off-by: Florian Fainelli <florian@openwrt.org>
+  warning: symbol 'svc_recv' was not declared. Should it be static?
+  warning: symbol 'svc_drop' was not declared. Should it be static?
+  warning: symbol 'svc_send' was not declared. Should it be static?
+  warning: symbol 'svc_close_all' was not declared. Should it be static?
+
+The .c file should include the .h file which contains the declarations for
+the functions whcich it defines.
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/sunrpc/svc_xprt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-florian-has-moved MAINTAINERS
---- a/MAINTAINERS~maintainers-florian-has-moved
-+++ a/MAINTAINERS
-@@ -4683,13 +4683,13 @@ F:	kernel/rcutorture.c
+diff -puN net/sunrpc/svc_xprt.c~net-sunrpc-svc_xprtc-needs-svcsockh net/sunrpc/svc_xprt.c
+--- a/net/sunrpc/svc_xprt.c~net-sunrpc-svc_xprtc-needs-svcsockh
++++ a/net/sunrpc/svc_xprt.c
+@@ -11,6 +11,7 @@
+ #include <net/sock.h>
+ #include <linux/sunrpc/stats.h>
+ #include <linux/sunrpc/svc_xprt.h>
++#include <linux/sunrpc/svcsock.h>
  
- RDC R-321X SoC
- P:	Florian Fainelli
--M:	florian.fainelli@telecomint.eu
-+M:	florian@openwrt.org
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
+ #define RPCDBG_FACILITY	RPCDBG_SVCXPRT
  
- RDC R6040 FAST ETHERNET DRIVER
- P:	Florian Fainelli
--M:	florian.fainelli@telecomint.eu
-+M:	florian@openwrt.org
- L:	netdev@vger.kernel.org
- S:	Maintained
- F:	drivers/net/r6040.c
 _
 
-Patches currently in -mm which might be from florian@openwrt.org are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-maintainers-florian-has-moved.patch
+linux-next.patch
+net-sunrpc-svc_xprtc-needs-svcsockh.patch
+mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
 
