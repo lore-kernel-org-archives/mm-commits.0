@@ -1,492 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-update-the-asb2303-defconfig.patch added to -mm tree
-Date: Thu, 23 Apr 2009 14:34:48 -0700
-Message-ID: <200904232134.n3NLYmlt026797@imap1.linux-foundation.org>
+Subject: [obsolete] rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch removed from -mm tree
+Date: Thu, 23 Apr 2009 14:44:07 -0700
+Message-ID: <200904232144.n3NLi7Ws031603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39858 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760503AbZDWVgV (ORCPT
+	by vger.kernel.org with ESMTP id S1752698AbZDWVur (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 17:36:21 -0400
+	Thu, 23 Apr 2009 17:50:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org, matthias.fuchs@esd.eu, rda@emcraft.com, sposelenov@emcraft.com, wg@grandegger.com, yur@emcraf
 
 
 The patch titled
-     mn10300: update the ASB2303 defconfig
-has been added to the -mm tree.  Its filename is
-     mn10300-update-the-asb2303-defconfig.patch
+     rtc-add-stand-alone-driver-for-rx8025-chip-is-broken
+has been removed from the -mm tree.  Its filename was
+     rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: update the ASB2303 defconfig
-From: David Howells <dhowells@redhat.com>
+Subject: rtc-add-stand-alone-driver-for-rx8025-chip-is-broken
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Update the defconfig for the ASB2303 evaluation board.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Dmitry Rakhchev <rda@emcraft.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Matthias Fuchs <matthias.fuchs@esd.eu>
+Cc: Sergei Poselenov <sposelenov@emcraft.com>
+Cc: Wolfgang Grandegger <wg@grandegger.com>
+Cc: Yuri Tikhonov <yur@emcraft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/configs/asb2303_defconfig |  160 +++++++++++++----------
- 1 file changed, 94 insertions(+), 66 deletions(-)
+ drivers/rtc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/mn10300/configs/asb2303_defconfig~mn10300-update-the-asb2303-defconfig arch/mn10300/configs/asb2303_defconfig
---- a/arch/mn10300/configs/asb2303_defconfig~mn10300-update-the-asb2303-defconfig
-+++ a/arch/mn10300/configs/asb2303_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.25-rc2
--# Tue Feb 19 18:52:24 2008
-+# Linux kernel version: 2.6.30-rc2
-+# Sat Apr 18 11:13:22 2009
- #
- CONFIG_MN10300=y
- CONFIG_AM33=y
-@@ -18,7 +18,6 @@ CONFIG_GENERIC_TIME=y
- CONFIG_GENERIC_BUG=y
- CONFIG_QUICKLIST=y
- CONFIG_ARCH_HAS_ILOG2_U32=y
--# CONFIG_ARCH_SUPPORTS_AOUT is not set
- CONFIG_GENERIC_HARDIRQS=y
- # CONFIG_HOTPLUG_CPU is not set
- CONFIG_HZ=1000
-@@ -40,52 +39,58 @@ CONFIG_BSD_PROCESS_ACCT=y
- # CONFIG_BSD_PROCESS_ACCT_V3 is not set
- # CONFIG_TASKSTATS is not set
- # CONFIG_AUDIT is not set
-+
-+#
-+# RCU Subsystem
-+#
-+CONFIG_CLASSIC_RCU=y
-+# CONFIG_TREE_RCU is not set
-+# CONFIG_PREEMPT_RCU is not set
-+# CONFIG_TREE_RCU_TRACE is not set
-+# CONFIG_PREEMPT_RCU_TRACE is not set
- # CONFIG_IKCONFIG is not set
- CONFIG_LOG_BUF_SHIFT=14
--# CONFIG_CGROUPS is not set
- # CONFIG_GROUP_SCHED is not set
--# CONFIG_USER_SCHED is not set
--# CONFIG_CGROUP_SCHED is not set
--# CONFIG_SYSFS_DEPRECATED is not set
-+# CONFIG_CGROUPS is not set
-+# CONFIG_SYSFS_DEPRECATED_V2 is not set
- # CONFIG_RELAY is not set
- # CONFIG_NAMESPACES is not set
- # CONFIG_BLK_DEV_INITRD is not set
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
- CONFIG_SYSCTL=y
-+CONFIG_ANON_INODES=y
- CONFIG_EMBEDDED=y
- CONFIG_SYSCTL_SYSCALL=y
- # CONFIG_KALLSYMS is not set
-+CONFIG_STRIP_ASM_SYMS=y
- # CONFIG_HOTPLUG is not set
- CONFIG_PRINTK=y
- CONFIG_BUG=y
- CONFIG_ELF_CORE=y
--CONFIG_COMPAT_BRK=y
- CONFIG_BASE_FULL=y
- CONFIG_FUTEX=y
--CONFIG_ANON_INODES=y
- CONFIG_EPOLL=y
- CONFIG_SIGNALFD=y
- CONFIG_TIMERFD=y
- CONFIG_EVENTFD=y
- CONFIG_SHMEM=y
-+CONFIG_AIO=y
- # CONFIG_VM_EVENT_COUNTERS is not set
-+CONFIG_COMPAT_BRK=y
- CONFIG_SLAB=y
- # CONFIG_SLUB is not set
- # CONFIG_SLOB is not set
- CONFIG_PROFILING=y
- # CONFIG_MARKERS is not set
--CONFIG_OPROFILE=y
--# CONFIG_HAVE_OPROFILE is not set
--# CONFIG_HAVE_KPROBES is not set
--# CONFIG_PROC_PAGE_MONITOR is not set
-+CONFIG_HAVE_OPROFILE=y
-+# CONFIG_SLOW_WORK is not set
-+# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
- CONFIG_SLABINFO=y
- CONFIG_RT_MUTEXES=y
--# CONFIG_TINY_SHMEM is not set
- CONFIG_BASE_SMALL=0
- # CONFIG_MODULES is not set
- # CONFIG_BLOCK is not set
--CONFIG_CLASSIC_RCU=y
--# CONFIG_PREEMPT_RCU is not set
-+# CONFIG_FREEZER is not set
+diff -puN drivers/rtc/Kconfig~rtc-add-stand-alone-driver-for-rx8025-chip-is-broken drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-stand-alone-driver-for-rx8025-chip-is-broken
++++ a/drivers/rtc/Kconfig
+@@ -310,6 +310,7 @@ config RTC_DRV_RX8581
  
- #
- # Matsushita MN10300 system setup
-@@ -107,7 +112,6 @@ CONFIG_INTERRUPT_VECTOR_BASE=0x90000000
- CONFIG_KERNEL_TEXT_ADDRESS=0x90001000
- CONFIG_KERNEL_ZIMAGE_BASE_ADDRESS=0x90700000
- CONFIG_PREEMPT=y
--CONFIG_PREEMPT_BKL=y
- CONFIG_MN10300_CURRENT_IN_E2=y
- CONFIG_MN10300_USING_JTAG=y
- CONFIG_MN10300_RTC=y
-@@ -135,13 +139,15 @@ CONFIG_FLATMEM_MANUAL=y
- # CONFIG_SPARSEMEM_MANUAL is not set
- CONFIG_FLATMEM=y
- CONFIG_FLAT_NODE_MEM_MAP=y
--# CONFIG_SPARSEMEM_STATIC is not set
--# CONFIG_SPARSEMEM_VMEMMAP_ENABLE is not set
-+CONFIG_PAGEFLAGS_EXTENDED=y
- CONFIG_SPLIT_PTLOCK_CPUS=4
--# CONFIG_RESOURCES_64BIT is not set
-+# CONFIG_PHYS_ADDR_T_64BIT is not set
- CONFIG_ZONE_DMA_FLAG=0
- CONFIG_NR_QUICK=1
- CONFIG_VIRT_TO_BUS=y
-+CONFIG_UNEVICTABLE_LRU=y
-+CONFIG_HAVE_MLOCK=y
-+CONFIG_HAVE_MLOCKED_PAGE_BIT=y
- 
- #
- # Power management options
-@@ -152,11 +158,9 @@ CONFIG_VIRT_TO_BUS=y
- # Executable formats
- #
- CONFIG_BINFMT_ELF=y
-+# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
-+# CONFIG_HAVE_AOUT is not set
- # CONFIG_BINFMT_MISC is not set
--
--#
--# Networking
--#
- CONFIG_NET=y
- 
- #
-@@ -194,8 +198,6 @@ CONFIG_TCP_CONG_CUBIC=y
- CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_TCP_MD5SIG is not set
- # CONFIG_IPV6 is not set
--# CONFIG_INET6_XFRM_TUNNEL is not set
--# CONFIG_INET6_TUNNEL is not set
- # CONFIG_NETWORK_SECMARK is not set
- # CONFIG_NETFILTER is not set
- # CONFIG_IP_DCCP is not set
-@@ -203,6 +205,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_TIPC is not set
- # CONFIG_ATM is not set
- # CONFIG_BRIDGE is not set
-+# CONFIG_NET_DSA is not set
- # CONFIG_VLAN_8021Q is not set
- # CONFIG_DECNET is not set
- # CONFIG_LLC2 is not set
-@@ -212,7 +215,9 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_LAPB is not set
- # CONFIG_ECONET is not set
- # CONFIG_WAN_ROUTER is not set
-+# CONFIG_PHONET is not set
- # CONFIG_NET_SCHED is not set
-+# CONFIG_DCB is not set
- 
- #
- # Network testing
-@@ -223,14 +228,8 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_IRDA is not set
- # CONFIG_BT is not set
- # CONFIG_AF_RXRPC is not set
--
--#
--# Wireless
--#
--# CONFIG_CFG80211 is not set
--# CONFIG_WIRELESS_EXT is not set
--# CONFIG_MAC80211 is not set
--# CONFIG_IEEE80211 is not set
-+# CONFIG_WIRELESS is not set
-+# CONFIG_WIMAX is not set
- # CONFIG_RFKILL is not set
- # CONFIG_NET_9P is not set
- 
-@@ -255,6 +254,7 @@ CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
- CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED=y
- # CONFIG_MTD_REDBOOT_PARTS_READONLY is not set
- # CONFIG_MTD_CMDLINE_PARTS is not set
-+# CONFIG_MTD_AR7_PARTS is not set
- 
- #
- # User Modules And Translation Layers
-@@ -297,9 +297,7 @@ CONFIG_MTD_CFI_UTIL=y
- #
- # CONFIG_MTD_COMPLEX_MAPPINGS is not set
- CONFIG_MTD_PHYSMAP=y
--CONFIG_MTD_PHYSMAP_START=0x8000000
--CONFIG_MTD_PHYSMAP_LEN=0x0
--CONFIG_MTD_PHYSMAP_BANKWIDTH=2
-+# CONFIG_MTD_PHYSMAP_COMPAT is not set
- # CONFIG_MTD_PLATRAM is not set
- 
- #
-@@ -319,14 +317,23 @@ CONFIG_MTD_PHYSMAP_BANKWIDTH=2
- # CONFIG_MTD_ONENAND is not set
- 
- #
-+# LPDDR flash memory drivers
-+#
-+# CONFIG_MTD_LPDDR is not set
-+
-+#
- # UBI - Unsorted block images
- #
- # CONFIG_MTD_UBI is not set
- # CONFIG_PARPORT is not set
- CONFIG_MISC_DEVICES=y
--# CONFIG_EEPROM_93CX6 is not set
- # CONFIG_ENCLOSURE_SERVICES is not set
--# CONFIG_HAVE_IDE is not set
-+# CONFIG_C2PORT is not set
-+
-+#
-+# EEPROM support
-+#
-+# CONFIG_EEPROM_93CX6 is not set
- 
- #
- # SCSI device support
-@@ -334,7 +341,7 @@ CONFIG_MISC_DEVICES=y
- # CONFIG_SCSI_DMA is not set
- # CONFIG_SCSI_NETLINK is not set
- CONFIG_NETDEVICES=y
--# CONFIG_NETDEVICES_MULTIQUEUE is not set
-+CONFIG_COMPAT_NET_DEV_OPS=y
- # CONFIG_DUMMY is not set
- # CONFIG_BONDING is not set
- # CONFIG_MACVLAN is not set
-@@ -345,10 +352,15 @@ CONFIG_NETDEVICES=y
- CONFIG_NET_ETHERNET=y
- CONFIG_MII=y
- CONFIG_SMC91X=y
-+# CONFIG_ETHOC is not set
-+# CONFIG_DNET is not set
- # CONFIG_IBM_NEW_EMAC_ZMII is not set
- # CONFIG_IBM_NEW_EMAC_RGMII is not set
- # CONFIG_IBM_NEW_EMAC_TAH is not set
- # CONFIG_IBM_NEW_EMAC_EMAC4 is not set
-+# CONFIG_IBM_NEW_EMAC_NO_FLOW_CTRL is not set
-+# CONFIG_IBM_NEW_EMAC_MAL_CLR_ICINTSTAT is not set
-+# CONFIG_IBM_NEW_EMAC_MAL_COMMON_ERR is not set
- # CONFIG_B44 is not set
- # CONFIG_NETDEV_1000 is not set
- # CONFIG_NETDEV_10000 is not set
-@@ -358,6 +370,10 @@ CONFIG_SMC91X=y
- #
- # CONFIG_WLAN_PRE80211 is not set
- # CONFIG_WLAN_80211 is not set
-+
-+#
-+# Enable WiMAX (Networking options) to see the WiMAX drivers
-+#
- # CONFIG_WAN is not set
- # CONFIG_PPP is not set
- # CONFIG_SLIP is not set
-@@ -382,6 +398,7 @@ CONFIG_SMC91X=y
- # Character devices
- #
- # CONFIG_VT is not set
-+CONFIG_DEVKMEM=y
- # CONFIG_SERIAL_NONSTANDARD is not set
- 
- #
-@@ -403,6 +420,7 @@ CONFIG_SERIAL_8250_SHARE_IRQ=y
- CONFIG_SERIAL_CORE=y
- CONFIG_SERIAL_CORE_CONSOLE=y
- CONFIG_UNIX98_PTYS=y
-+# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
- CONFIG_LEGACY_PTYS=y
- CONFIG_LEGACY_PTY_COUNT=256
- # CONFIG_IPMI_HANDLER is not set
-@@ -411,34 +429,43 @@ CONFIG_RTC=y
- # CONFIG_R3964 is not set
- # CONFIG_TCG_TPM is not set
- # CONFIG_I2C is not set
--
--#
--# SPI support
--#
- # CONFIG_SPI is not set
--# CONFIG_SPI_MASTER is not set
- # CONFIG_W1 is not set
- # CONFIG_POWER_SUPPLY is not set
- # CONFIG_HWMON is not set
- # CONFIG_THERMAL is not set
-+# CONFIG_THERMAL_HWMON is not set
- # CONFIG_WATCHDOG is not set
-+CONFIG_SSB_POSSIBLE=y
- 
- #
- # Sonics Silicon Backplane
- #
--CONFIG_SSB_POSSIBLE=y
- # CONFIG_SSB is not set
- 
- #
- # Multifunction device drivers
- #
-+# CONFIG_MFD_CORE is not set
- # CONFIG_MFD_SM501 is not set
-+# CONFIG_HTC_PASIC3 is not set
-+# CONFIG_MFD_TMIO is not set
-+# CONFIG_REGULATOR is not set
- 
- #
- # Multimedia devices
- #
-+
-+#
-+# Multimedia core support
-+#
- # CONFIG_VIDEO_DEV is not set
- # CONFIG_DVB_CORE is not set
-+# CONFIG_VIDEO_MEDIA is not set
-+
-+#
-+# Multimedia drivers
-+#
- # CONFIG_DAB is not set
- 
- #
-@@ -453,21 +480,17 @@ CONFIG_SSB_POSSIBLE=y
- # Display device support
- #
- # CONFIG_DISPLAY_SUPPORT is not set
--
--#
--# Sound
--#
- # CONFIG_SOUND is not set
- # CONFIG_USB_SUPPORT is not set
- # CONFIG_MMC is not set
- # CONFIG_MEMSTICK is not set
- # CONFIG_NEW_LEDS is not set
-+# CONFIG_ACCESSIBILITY is not set
- # CONFIG_RTC_CLASS is not set
--
--#
--# Userspace I/O
--#
-+# CONFIG_DMADEVICES is not set
-+# CONFIG_AUXDISPLAY is not set
- # CONFIG_UIO is not set
-+# CONFIG_STAGING is not set
- 
- #
- # File systems
-@@ -481,20 +504,23 @@ CONFIG_INOTIFY_USER=y
- # CONFIG_FUSE_FS is not set
- 
- #
-+# Caches
-+#
-+# CONFIG_FSCACHE is not set
-+
-+#
- # Pseudo filesystems
- #
- CONFIG_PROC_FS=y
- CONFIG_PROC_KCORE=y
- CONFIG_PROC_SYSCTL=y
-+# CONFIG_PROC_PAGE_MONITOR is not set
- CONFIG_SYSFS=y
- CONFIG_TMPFS=y
- # CONFIG_TMPFS_POSIX_ACL is not set
- # CONFIG_HUGETLB_PAGE is not set
- # CONFIG_CONFIGFS_FS is not set
--
--#
--# Miscellaneous filesystems
--#
-+CONFIG_MISC_FILESYSTEMS=y
- CONFIG_JFFS2_FS=y
- CONFIG_JFFS2_FS_DEBUG=0
- CONFIG_JFFS2_FS_WRITEBUFFER=y
-@@ -506,19 +532,17 @@ CONFIG_JFFS2_ZLIB=y
- # CONFIG_JFFS2_LZO is not set
- CONFIG_JFFS2_RTIME=y
- # CONFIG_JFFS2_RUBIN is not set
-+# CONFIG_ROMFS_FS is not set
- CONFIG_NETWORK_FILESYSTEMS=y
- CONFIG_NFS_FS=y
- CONFIG_NFS_V3=y
- # CONFIG_NFS_V3_ACL is not set
- # CONFIG_NFS_V4 is not set
--# CONFIG_NFS_DIRECTIO is not set
--# CONFIG_NFSD is not set
- CONFIG_ROOT_NFS=y
- CONFIG_LOCKD=y
- CONFIG_LOCKD_V4=y
- CONFIG_NFS_COMMON=y
- CONFIG_SUNRPC=y
--# CONFIG_SUNRPC_BIND34 is not set
- # CONFIG_RPCSEC_GSS_KRB5 is not set
- # CONFIG_RPCSEC_GSS_SPKM3 is not set
- # CONFIG_SMB_FS is not set
-@@ -535,12 +559,16 @@ CONFIG_SUNRPC=y
- # CONFIG_PRINTK_TIME is not set
- CONFIG_ENABLE_WARN_DEPRECATED=y
- CONFIG_ENABLE_MUST_CHECK=y
-+CONFIG_FRAME_WARN=1024
- CONFIG_MAGIC_SYSRQ=y
- # CONFIG_UNUSED_SYMBOLS is not set
- # CONFIG_DEBUG_FS is not set
- # CONFIG_HEADERS_CHECK is not set
- # CONFIG_DEBUG_KERNEL is not set
- # CONFIG_DEBUG_BUGVERBOSE is not set
-+# CONFIG_DEBUG_MEMORY_INIT is not set
-+# CONFIG_RCU_CPU_STALL_DETECTOR is not set
-+# CONFIG_SYSCTL_SYSCALL_CHECK is not set
- # CONFIG_SAMPLES is not set
- 
- #
-@@ -548,26 +576,26 @@ CONFIG_MAGIC_SYSRQ=y
- #
- # CONFIG_KEYS is not set
- # CONFIG_SECURITY is not set
-+# CONFIG_SECURITYFS is not set
- # CONFIG_SECURITY_FILE_CAPABILITIES is not set
- # CONFIG_CRYPTO is not set
-+# CONFIG_BINARY_PRINTF is not set
- 
- #
- # Library routines
- #
- CONFIG_BITREVERSE=y
-+CONFIG_GENERIC_FIND_LAST_BIT=y
- # CONFIG_CRC_CCITT is not set
- # CONFIG_CRC16 is not set
-+# CONFIG_CRC_T10DIF is not set
- # CONFIG_CRC_ITU_T is not set
- CONFIG_CRC32=y
- # CONFIG_CRC7 is not set
- # CONFIG_LIBCRC32C is not set
- CONFIG_ZLIB_INFLATE=y
- CONFIG_ZLIB_DEFLATE=y
--CONFIG_PLIST=y
- CONFIG_HAS_IOMEM=y
- CONFIG_HAS_IOPORT=y
- CONFIG_HAS_DMA=y
+ config RTC_DRV_RX8025
+ 	tristate "Epson RX-8025SA/NB"
++	depends on BROKEN
+ 	help
+ 	  If you say yes here you get support for the Epson
+ 	  RX-8025SA/NB RTC chips.
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+block-turn-some-buggy-macros-into-c-functions.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+rtc-add-stand-alone-driver-for-rx8025-chip-is-broken.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+
