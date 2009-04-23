@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y.patch added to -mm tree
-Date: Wed, 22 Apr 2009 21:38:16 -0700
-Message-ID: <200904230438.n3N4cGP0025245@imap1.linux-foundation.org>
+Subject: + autofs4-fix-incorect-return-in-autofs4_mount_busy.patch added to -mm tree
+Date: Thu, 23 Apr 2009 00:49:39 -0700
+Message-ID: <200904230749.n3N7nd0P025458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750710AbZDWElQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757051AbZDWHvL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 00:41:16 -0400
+	Thu, 23 Apr 2009 03:51:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, James.Bottomley@HansenPartnership.com, viro@zeniv.linux.org.uk, willy@linux.intel.com
+Cc: raven@themaw.net
 
 
 The patch titled
-     scsi: fix sign extension with 1.5TB usb-storage LBD=y
+     autofs4: fix incorrect return in autofs4_mount_busy()
 has been added to the -mm tree.  Its filename is
-     scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y.patch
+     autofs4-fix-incorect-return-in-autofs4_mount_busy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: fix sign extension with 1.5TB usb-storage LBD=y
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: autofs4: fix incorrect return in autofs4_mount_busy()
+From: Ian Kent <raven@themaw.net>
 
-Shifting an unsigned char implicitly casts it to a signed int.  This
-caused 'lba' to sign-extend and Linux would then try READ CAPACITY 16
-which was not supported by at least one drive.  Using the
-get_unaligned_be*() helpers keeps us from having to worry about how the
-extension might occur.
+Addresses ??496766.
 
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Fix an obvious incorrect return status in autofs4_mount_busy().
+
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sd.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ fs/autofs4/expire.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/sd.c~scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y
-+++ a/drivers/scsi/sd.c
-@@ -50,6 +50,7 @@
- #include <linux/string_helpers.h>
- #include <linux/async.h>
- #include <asm/uaccess.h>
-+#include <asm/unaligned.h>
- 
- #include <scsi/scsi.h>
- #include <scsi/scsi_cmnd.h>
-@@ -1345,12 +1346,8 @@ static int read_capacity_16(struct scsi_
- 		return -EINVAL;
+diff -puN fs/autofs4/expire.c~autofs4-fix-incorect-return-in-autofs4_mount_busy fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs4-fix-incorect-return-in-autofs4_mount_busy
++++ a/fs/autofs4/expire.c
+@@ -70,8 +70,10 @@ static int autofs4_mount_busy(struct vfs
+ 		 * Otherwise it's an offset mount and we need to check
+ 		 * if we can umount its mount, if there is one.
+ 		 */
+-		if (!d_mountpoint(dentry))
++		if (!d_mountpoint(dentry)) {
++			status = 0;
+ 			goto done;
++		}
  	}
  
--	sector_size =	(buffer[8] << 24) | (buffer[9] << 16) |
--			(buffer[10] << 8) | buffer[11];
--	lba =  (((u64)buffer[0] << 56) | ((u64)buffer[1] << 48) |
--		((u64)buffer[2] << 40) | ((u64)buffer[3] << 32) |
--		((u64)buffer[4] << 24) | ((u64)buffer[5] << 16) |
--		((u64)buffer[6] << 8) | (u64)buffer[7]);
-+	sector_size = get_unaligned_be32(&buffer[8]);
-+	lba = get_unaligned_be64(&buffer[0]);
- 
- 	sd_read_protection_type(sdkp, buffer);
- 
-@@ -1401,10 +1398,8 @@ static int read_capacity_10(struct scsi_
- 		return -EINVAL;
- 	}
- 
--	sector_size =	(buffer[4] << 24) | (buffer[5] << 16) |
--			(buffer[6] << 8) | buffer[7];
--	lba =	(buffer[0] << 24) | (buffer[1] << 16) |
--		(buffer[2] << 8) | buffer[3];
-+	sector_size = get_unaligned_be32(&buffer[4]);
-+	lba = get_unaligned_be32(&buffer[0]);
- 
- 	if ((sizeof(sdkp->capacity) == 4) && (lba == 0xffffffff)) {
- 		sd_printk(KERN_ERR, sdkp, "Too big for this kernel. Use a "
+ 	/* Update the expiry counter if fs is busy */
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
-linux-next.patch
-scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y.patch
+autofs4-fix-incorect-return-in-autofs4_mount_busy.patch
 
