@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:08:26 -0700
-Message-ID: <200904232308.n3NN8QC7009869@imap1.linux-foundation.org>
+Subject: + page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:07:52 -0700
+Message-ID: <200904232307.n3NN7r3p009578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757325AbZDWXNp (ORCPT
+	by vger.kernel.org with ESMTP id S1760790AbZDWXNk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:13:45 -0400
+	Thu, 23 Apr 2009 19:13:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cl@linux-foundation.org, a.p.zijlstra@chello.nl, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
+Cc: a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, neilb@suse.de, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
 
 
 The patch titled
-     page allocator: use a pre-calculated value instead of num_online_nodes() in fast paths
+     page allocator: calculate the alloc_flags for allocation only once
 has been added to the -mm tree.  Its filename is
-     page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+     page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,167 +34,184 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: use a pre-calculated value instead of num_online_nodes() in fast paths
-From: Christoph Lameter <cl@linux-foundation.org>
+Subject: page allocator: calculate the alloc_flags for allocation only once
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-num_online_nodes() is called in a number of places but most often by the
-page allocator when deciding whether the zonelist needs to be filtered
-based on cpusets or the zonelist cache.  This is actually a heavy function
-and touches a number of cache lines.
+Factor out the mapping between GFP and alloc_flags only once.  Once
+factored out, it only needs to be calculated once but some care must be
+taken.
 
-This patch stores the number of online nodes at boot time and updates the
-value when nodes get onlined and offlined.  The value is then used in a
-number of important paths in place of num_online_nodes().
+[neilb@suse.de says]
+As the test:
 
-Signed-off-by: Christoph Lameter <cl@linux-foundation.org>
+-       if (((p->flags & PF_MEMALLOC) || unlikely(test_thread_flag(TIF_MEMDIE)))
+-                       && !in_interrupt()) {
+-               if (!(gfp_mask & __GFP_NOMEMALLOC)) {
+
+has been replaced with a slightly weaker one:
+
++       if (alloc_flags & ALLOC_NO_WATERMARKS) {
+
+Without care, this would allow recursion into the allocator via direct
+reclaim.  This patch ensures we do not recurse when PF_MEMALLOC is set but
+TF_MEMDIE callers are now allowed to directly reclaim where they would
+have been prevented in the past.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |   15 ++++++++++++++-
- mm/hugetlb.c             |    4 ++--
- mm/page_alloc.c          |   10 ++++++----
- mm/slub.c                |    2 +-
- net/sunrpc/svc.c         |    2 +-
- 5 files changed, 24 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   94 ++++++++++++++++++++++++----------------------
+ 1 file changed, 50 insertions(+), 44 deletions(-)
 
-diff -puN include/linux/nodemask.h~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths include/linux/nodemask.h
---- a/include/linux/nodemask.h~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
-+++ a/include/linux/nodemask.h
-@@ -408,6 +408,19 @@ static inline int num_node_state(enum no
- #define next_online_node(nid)	next_node((nid), node_states[N_ONLINE])
- 
- extern int nr_node_ids;
-+extern int nr_online_nodes;
-+
-+static inline void node_set_online(int nid)
-+{
-+	node_set_state(nid, N_ONLINE);
-+	nr_online_nodes = num_node_state(N_ONLINE);
-+}
-+
-+static inline void node_set_offline(int nid)
-+{
-+	node_clear_state(nid, N_ONLINE);
-+	nr_online_nodes = num_node_state(N_ONLINE);
-+}
- #else
- 
- static inline int node_state(int node, enum node_states state)
-@@ -434,7 +447,7 @@ static inline int num_node_state(enum no
- #define first_online_node	0
- #define next_online_node(nid)	(MAX_NUMNODES)
- #define nr_node_ids		1
--
-+#define nr_online_nodes		1
- #endif
- 
- #define node_online_map 	node_states[N_ONLINE]
-diff -puN mm/hugetlb.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths mm/hugetlb.c
---- a/mm/hugetlb.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
-+++ a/mm/hugetlb.c
-@@ -875,7 +875,7 @@ static void return_unused_surplus_pages(
- 	 * can no longer free unreserved surplus pages. This occurs when
- 	 * the nodes with surplus pages have no free pages.
- 	 */
--	unsigned long remaining_iterations = num_online_nodes();
-+	unsigned long remaining_iterations = nr_online_nodes;
- 
- 	/* Uncommit the reservation */
- 	h->resv_huge_pages -= unused_resv_pages;
-@@ -904,7 +904,7 @@ static void return_unused_surplus_pages(
- 			h->surplus_huge_pages--;
- 			h->surplus_huge_pages_node[nid]--;
- 			nr_pages--;
--			remaining_iterations = num_online_nodes();
-+			remaining_iterations = nr_online_nodes;
- 		}
- 	}
- }
-diff -puN mm/page_alloc.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
+diff -puN mm/page_alloc.c~page-allocator-calculate-the-alloc_flags-for-allocation-only-once mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-calculate-the-alloc_flags-for-allocation-only-once
 +++ a/mm/page_alloc.c
-@@ -165,7 +165,9 @@ static unsigned long __meminitdata dma_r
- 
- #if MAX_NUMNODES > 1
- int nr_node_ids __read_mostly = MAX_NUMNODES;
-+int nr_online_nodes __read_mostly = 1;
- EXPORT_SYMBOL(nr_node_ids);
-+EXPORT_SYMBOL(nr_online_nodes);
- #endif
- 
- int page_group_by_mobility_disabled __read_mostly;
-@@ -1467,7 +1469,7 @@ this_zone_full:
- 		if (NUMA_BUILD)
- 			zlc_mark_zone_full(zonelist, z);
- try_next_zone:
--		if (NUMA_BUILD && !did_zlc_setup && num_online_nodes() > 1) {
-+		if (NUMA_BUILD && !did_zlc_setup && nr_online_nodes > 1) {
- 			/*
- 			 * we do zlc_setup after the first zone is tried but only
- 			 * if there are multiple nodes make it worthwhile
-@@ -2266,7 +2268,7 @@ int numa_zonelist_order_handler(ctl_tabl
+@@ -1577,15 +1577,6 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
+ 	return page;
  }
  
+-static inline int
+-is_allocation_high_priority(struct task_struct *p, gfp_t gfp_mask)
+-{
+-	if (((p->flags & PF_MEMALLOC) || unlikely(test_thread_flag(TIF_MEMDIE)))
+-			&& !in_interrupt())
+-		return 1;
+-	return 0;
+-}
+-
+ /*
+  * This is called in the allocator slow-path if the allocation request is of
+  * sufficient urgency to ignore watermarks and take other desperate measures
+@@ -1621,6 +1612,42 @@ void wake_all_kswapd(unsigned int order,
+ 		wakeup_kswapd(zone, order);
+ }
  
--#define MAX_NODE_LOAD (num_online_nodes())
-+#define MAX_NODE_LOAD (nr_online_nodes)
- static int node_load[MAX_NUMNODES];
++static inline int
++gfp_to_alloc_flags(gfp_t gfp_mask)
++{
++	struct task_struct *p = current;
++	int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
++	const gfp_t wait = gfp_mask & __GFP_WAIT;
++
++	/*
++	 * The caller may dip into page reserves a bit more if the caller
++	 * cannot run direct reclaim, or if the caller has realtime scheduling
++	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
++	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
++	 */
++	if (gfp_mask & __GFP_HIGH)
++		alloc_flags |= ALLOC_HIGH;
++
++	if (!wait) {
++		alloc_flags |= ALLOC_HARDER;
++		/*
++		 * Ignore cpuset if GFP_ATOMIC (!wait) rather than fail alloc.
++		 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
++		 */
++		alloc_flags &= ~ALLOC_CPUSET;
++	} else if (unlikely(rt_task(p)))
++		alloc_flags |= ALLOC_HARDER;
++
++	if (likely(!(gfp_mask & __GFP_NOMEMALLOC))) {
++		if (!in_interrupt() &&
++		    ((p->flags & PF_MEMALLOC) ||
++		     unlikely(test_thread_flag(TIF_MEMDIE))))
++			alloc_flags |= ALLOC_NO_WATERMARKS;
++	}
++
++	return alloc_flags;
++}
++
+ static inline struct page *
+ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
+ 	struct zonelist *zonelist, enum zone_type high_zoneidx,
+@@ -1651,56 +1678,35 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	 * OK, we're below the kswapd watermark and have kicked background
+ 	 * reclaim. Now things get more complex, so set up alloc_flags according
+ 	 * to how we want to proceed.
+-	 *
+-	 * The caller may dip into page reserves a bit more if the caller
+-	 * cannot run direct reclaim, or if the caller has realtime scheduling
+-	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+-	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
+ 	 */
+-	alloc_flags = ALLOC_WMARK_MIN;
+-	if ((unlikely(rt_task(p)) && !in_interrupt()) || !wait)
+-		alloc_flags |= ALLOC_HARDER;
+-	if (gfp_mask & __GFP_HIGH)
+-		alloc_flags |= ALLOC_HIGH;
+-	if (wait)
+-		alloc_flags |= ALLOC_CPUSET;
++	alloc_flags = gfp_to_alloc_flags(gfp_mask);
  
- /**
-@@ -2475,7 +2477,7 @@ static void build_zonelists(pg_data_t *p
+ restart:
+-	/*
+-	 * Go through the zonelist again. Let __GFP_HIGH and allocations
+-	 * coming from realtime tasks go deeper into reserves.
+-	 *
+-	 * This is the last chance, in general, before the goto nopage.
+-	 * Ignore cpuset if GFP_ATOMIC (!wait) rather than fail alloc.
+-	 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
+-	 */
++	/* This is the last chance, in general, before the goto nopage. */
+ 	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
+-						high_zoneidx, alloc_flags,
+-						preferred_zone,
+-						migratetype);
++			high_zoneidx, alloc_flags & ~ALLOC_NO_WATERMARKS,
++			preferred_zone, migratetype);
+ 	if (page)
+ 		goto got_pg;
  
- 	/* NUMA-aware ordering of nodes */
- 	local_node = pgdat->node_id;
--	load = num_online_nodes();
-+	load = nr_online_nodes;
- 	prev_node = local_node;
- 	nodes_clear(used_mask);
+ rebalance:
+ 	/* Allocate without watermarks if the context allows */
+-	if (is_allocation_high_priority(p, gfp_mask)) {
+-		/* Do not dip into emergency reserves if specified */
+-		if (!(gfp_mask & __GFP_NOMEMALLOC)) {
+-			page = __alloc_pages_high_priority(gfp_mask, order,
+-				zonelist, high_zoneidx, nodemask, preferred_zone,
+-				migratetype);
+-			if (page)
+-				goto got_pg;
+-		}
+-
+-		/* Ensure no recursion into the allocator */
+-		goto nopage;
++	if (alloc_flags & ALLOC_NO_WATERMARKS) {
++		page = __alloc_pages_high_priority(gfp_mask, order,
++				zonelist, high_zoneidx, nodemask,
++				preferred_zone, migratetype);
++		if (page)
++			goto got_pg;
+ 	}
  
-@@ -2626,7 +2628,7 @@ void build_all_zonelists(void)
+ 	/* Atomic allocations - we can't balance anything */
+ 	if (!wait)
+ 		goto nopage;
  
- 	printk("Built %i zonelists in %s order, mobility grouping %s.  "
- 		"Total pages: %ld\n",
--			num_online_nodes(),
-+			nr_online_nodes,
- 			zonelist_order_name[current_zonelist_order],
- 			page_group_by_mobility_disabled ? "off" : "on",
- 			vm_total_pages);
-diff -puN mm/slub.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths mm/slub.c
---- a/mm/slub.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
-+++ a/mm/slub.c
-@@ -3714,7 +3714,7 @@ static int list_locations(struct kmem_ca
- 						 to_cpumask(l->cpus));
- 		}
- 
--		if (num_online_nodes() > 1 && !nodes_empty(l->nodes) &&
-+		if (nr_online_nodes > 1 && !nodes_empty(l->nodes) &&
- 				len < PAGE_SIZE - 60) {
- 			len += sprintf(buf + len, " nodes=");
- 			len += nodelist_scnprintf(buf + len, PAGE_SIZE - len - 50,
-diff -puN net/sunrpc/svc.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths
-+++ a/net/sunrpc/svc.c
-@@ -124,7 +124,7 @@ svc_pool_map_choose_mode(void)
- {
- 	unsigned int node;
- 
--	if (num_online_nodes() > 1) {
-+	if (nr_online_nodes > 1) {
- 		/*
- 		 * Actually have multiple NUMA nodes,
- 		 * so split pools on NUMA node boundaries
++	/* Avoid recursion of direct reclaim */
++	if (p->flags & PF_MEMALLOC)
++		goto nopage;
++
+ 	/* Try direct reclaim and then allocating */
+ 	page = __alloc_pages_direct_reclaim(gfp_mask, order,
+ 					zonelist, high_zoneidx,
 _
 
-Patches currently in -mm which might be from cl@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
+lockdep-dont-print-lockdep-taint-message-for-lockdep.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
 cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
 cpusets-update-tasks-page-slab-spread-flags-in-time.patch
 cpusetmm-update-tasks-mems_allowed-in-time.patch
@@ -221,6 +238,10 @@ page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
 page-allocator-update-nr_free_pages-only-as-necessary.patch
 page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
 page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-reiser4.patch
-slab-leaks3-default-y.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+rb_tree-make-clear-distinction-between-two-different-cases-in-rb_erase.patch
+rb_tree-remove-redundant-if-condition-in-rb_erase.patch
+documentation-rbtreetxt-fix-errors-in-sample-code.patch
 
