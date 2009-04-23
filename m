@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-pxac-timeouts-off-by-1.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:35:21 -0700
-Message-ID: <200904232335.n3NNZL2Q023665@imap1.linux-foundation.org>
+Subject: + atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:37:11 -0700
+Message-ID: <200904232337.n3NNbCN0024562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35528 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751929AbZDWXjZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753698AbZDWXjj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:39:25 -0400
+	Thu, 23 Apr 2009 19:39:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, ben-linux@fluff.org, khali@linux-fr.org, mike@compulab.co.il, w.sang@pengutronix.de
+Cc: jblunck@suse.de, npiggin@suse.de, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     i2c-pxa.c: timeouts off by 1
+     atomic: only take lock when the counter drops to zero on UP as well
 has been added to the -mm tree.  Its filename is
-     i2c-pxac-timeouts-off-by-1.patch
+     atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c-pxa.c: timeouts off by 1
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: atomic: only take lock when the counter drops to zero on UP as well
+From: Jan Blunck <jblunck@suse.de>
 
-With `while (timeout--)' timeout reaches -1 after the loop, so the tests
-below are off by one.
+_atomic_dec_and_lock() should not unconditionally take the lock before
+calling atomic_dec_and_test() in the UP case.  For consistency reasons it
+should behave exactly like in the SMP case.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Mike Rapoport <mike@compulab.co.il>
+Besides that this works around the problem that with CONFIG_DEBUG_SPINLOCK
+this spins in __spin_lock_debug() if the lock is already taken even if the
+counter doesn't drop to 0.
+
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-pxa.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/dec_and_lock.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-pxa.c~i2c-pxac-timeouts-off-by-1 drivers/i2c/busses/i2c-pxa.c
---- a/drivers/i2c/busses/i2c-pxa.c~i2c-pxac-timeouts-off-by-1
-+++ a/drivers/i2c/busses/i2c-pxa.c
-@@ -265,10 +265,10 @@ static int i2c_pxa_wait_bus_not_busy(str
- 		show_state(i2c);
- 	}
- 
--	if (timeout <= 0)
-+	if (timeout < 0)
- 		show_state(i2c);
- 
--	return timeout <= 0 ? I2C_RETRY : 0;
-+	return timeout < 0 ? I2C_RETRY : 0;
- }
- 
- static int i2c_pxa_wait_master(struct pxa_i2c *i2c)
-@@ -612,7 +612,7 @@ static int i2c_pxa_pio_set_master(struct
- 		show_state(i2c);
- 	}
- 
--	if (timeout <= 0) {
-+	if (timeout < 0) {
- 		show_state(i2c);
- 		dev_err(&i2c->adap.dev,
- 			"i2c_pxa: timeout waiting for bus free\n");
+diff -puN lib/dec_and_lock.c~atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well lib/dec_and_lock.c
+--- a/lib/dec_and_lock.c~atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well
++++ a/lib/dec_and_lock.c
+@@ -19,11 +19,10 @@
+  */
+ int _atomic_dec_and_lock(atomic_t *atomic, spinlock_t *lock)
+ {
+-#ifdef CONFIG_SMP
+ 	/* Subtract 1 from counter unless that drops it to 0 (ie. it was 1) */
+ 	if (atomic_add_unless(atomic, -1, 1))
+ 		return 0;
+-#endif
++
+ 	/* Otherwise do it the slow way */
+ 	spin_lock(lock);
+ 	if (atomic_dec_and_test(atomic))
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from jblunck@suse.de are
 
-linux-next.patch
-i2c-pxac-timeouts-off-by-1.patch
-drm-fix-lock_test_with_return-macro.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-microblaze-iowrite-upon-timeout.patch
-uwb-event_size-should-be-signed.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-ufs-sector_t-cannot-be-negative.patch
+atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well.patch
 
