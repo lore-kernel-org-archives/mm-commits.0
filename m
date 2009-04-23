@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-update-nr_free_pages-only-as-necessary.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:08:21 -0700
-Message-ID: <200904232308.n3NN8MI4009832@imap1.linux-foundation.org>
+Subject: + page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:08:12 -0700
+Message-ID: <200904232308.n3NN8CT7009742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760761AbZDWXNi (ORCPT
+	by vger.kernel.org with ESMTP id S1760661AbZDWXNa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:13:38 -0400
+	Thu, 23 Apr 2009 19:13:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.v
 
 
 The patch titled
-     page allocator: update NR_FREE_PAGES only as necessary
+     page allocator: do not disable interrupts in free_page_mlock()
 has been added to the -mm tree.  Its filename is
-     page-allocator-update-nr_free_pages-only-as-necessary.patch
+     page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: update NR_FREE_PAGES only as necessary
+Subject: page allocator: do not disable interrupts in free_page_mlock()
 From: Mel Gorman <mel@csn.ul.ie>
 
-When pages are being freed to the buddy allocator, the zone NR_FREE_PAGES
-counter must be updated.  In the case of bulk per-cpu page freeing, it's
-updated once per page.  This retouches cache lines more than necessary. 
-Update the counters one per per-cpu bulk free.
+free_page_mlock() tests and clears PG_mlocked using locked versions of the
+bit operations.  If set, it disables interrupts to update counters and
+this happens on every page free even though interrupts are disabled very
+shortly afterwards a second time.  This is wasteful.
+
+This patch splits what free_page_mlock() does.  The bit check is still
+made.  However, the update of counters is delayed until the interrupts are
+disabled and the non-lock version for clearing the bit is used.  One
+potential weirdness with this split is that the counters do not get
+updated if the bad_page() check is triggered but a system showing bad
+pages is getting screwed already.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/internal.h   |   11 +++--------
+ mm/page_alloc.c |    8 +++++++-
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-update-nr_free_pages-only-as-necessary mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-update-nr_free_pages-only-as-necessary
-+++ a/mm/page_alloc.c
-@@ -460,7 +460,6 @@ static inline void __free_one_page(struc
- 		int migratetype)
+diff -puN mm/internal.h~page-allocator-do-not-disable-interrupts-in-free_page_mlock mm/internal.h
+--- a/mm/internal.h~page-allocator-do-not-disable-interrupts-in-free_page_mlock
++++ a/mm/internal.h
+@@ -157,14 +157,9 @@ static inline void mlock_migrate_page(st
+  */
+ static inline void free_page_mlock(struct page *page)
  {
- 	unsigned long page_idx;
--	int order_size = 1 << order;
- 
- 	if (unlikely(PageCompound(page)))
- 		if (unlikely(destroy_compound_page(page, order)))
-@@ -470,10 +469,9 @@ static inline void __free_one_page(struc
- 
- 	page_idx = page_to_pfn(page) & ((1 << MAX_ORDER) - 1);
- 
--	VM_BUG_ON(page_idx & (order_size - 1));
-+	VM_BUG_ON(page_idx & ((1 << order) - 1));
- 	VM_BUG_ON(bad_range(zone, page));
- 
--	__mod_zone_page_state(zone, NR_FREE_PAGES, order_size);
- 	while (order < MAX_ORDER-1) {
- 		unsigned long combined_idx;
- 		struct page *buddy;
-@@ -528,6 +526,8 @@ static void free_pages_bulk(struct zone 
- 	spin_lock(&zone->lock);
- 	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
- 	zone->pages_scanned = 0;
-+
-+	__mod_zone_page_state(zone, NR_FREE_PAGES, count);
- 	while (count--) {
- 		struct page *page;
- 
-@@ -546,6 +546,8 @@ static void free_one_page(struct zone *z
- 	spin_lock(&zone->lock);
- 	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
- 	zone->pages_scanned = 0;
-+
-+	__mod_zone_page_state(zone, NR_FREE_PAGES, 1 << order);
- 	__free_one_page(page, zone, order, migratetype);
- 	spin_unlock(&zone->lock);
+-	if (unlikely(TestClearPageMlocked(page))) {
+-		unsigned long flags;
+-
+-		local_irq_save(flags);
+-		__dec_zone_page_state(page, NR_MLOCK);
+-		__count_vm_event(UNEVICTABLE_MLOCKFREED);
+-		local_irq_restore(flags);
+-	}
++	__ClearPageMlocked(page);
++	__dec_zone_page_state(page, NR_MLOCK);
++	__count_vm_event(UNEVICTABLE_MLOCKFREED);
  }
-@@ -690,7 +692,6 @@ struct page *__rmqueue_smallest(struct z
- 		list_del(&page->lru);
- 		rmv_page_order(page);
- 		area->nr_free--;
--		__mod_zone_page_state(zone, NR_FREE_PAGES, - (1UL << order));
- 		expand(zone, page, order, current_order, area, migratetype);
- 		return page;
- 	}
-@@ -830,8 +831,6 @@ __rmqueue_fallback(struct zone *zone, in
- 			/* Remove the page from the freelists */
- 			list_del(&page->lru);
- 			rmv_page_order(page);
--			__mod_zone_page_state(zone, NR_FREE_PAGES,
--							-(1UL << order));
  
- 			if (current_order == pageblock_order)
- 				set_pageblock_migratetype(page,
-@@ -904,6 +903,7 @@ static int rmqueue_bulk(struct zone *zon
- 		set_page_private(page, migratetype);
- 		list = &page->lru;
- 	}
-+	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
- 	spin_unlock(&zone->lock);
- 	return i;
- }
+ #else /* CONFIG_HAVE_MLOCKED_PAGE_BIT */
+diff -puN mm/page_alloc.c~page-allocator-do-not-disable-interrupts-in-free_page_mlock mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-do-not-disable-interrupts-in-free_page_mlock
++++ a/mm/page_alloc.c
+@@ -499,7 +499,6 @@ static inline void __free_one_page(struc
+ 
+ static inline int free_pages_check(struct page *page)
+ {
+-	free_page_mlock(page);
+ 	if (unlikely(page_mapcount(page) |
+ 		(page->mapping != NULL)  |
+ 		(page_count(page) != 0)  |
+@@ -556,6 +555,7 @@ static void __free_pages_ok(struct page 
+ 	unsigned long flags;
+ 	int i;
+ 	int bad = 0;
++	int clearMlocked = PageMlocked(page);
+ 
+ 	for (i = 0 ; i < (1 << order) ; ++i)
+ 		bad += free_pages_check(page + i);
+@@ -571,6 +571,8 @@ static void __free_pages_ok(struct page 
+ 	kernel_map_pages(page, 1 << order, 0);
+ 
+ 	local_irq_save(flags);
++	if (unlikely(clearMlocked))
++		free_page_mlock(page);
+ 	__count_vm_events(PGFREE, 1 << order);
+ 	free_one_page(page_zone(page), page, order,
+ 					get_pageblock_migratetype(page));
+@@ -1017,6 +1019,7 @@ static void free_hot_cold_page(struct pa
+ 	struct zone *zone = page_zone(page);
+ 	struct per_cpu_pages *pcp;
+ 	unsigned long flags;
++	int clearMlocked = PageMlocked(page);
+ 
+ 	if (PageAnon(page))
+ 		page->mapping = NULL;
+@@ -1032,7 +1035,10 @@ static void free_hot_cold_page(struct pa
+ 
+ 	pcp = &zone_pcp(zone, get_cpu())->pcp;
+ 	local_irq_save(flags);
++	if (unlikely(clearMlocked))
++		free_page_mlock(page);
+ 	__count_vm_event(PGFREE);
++
+ 	if (cold)
+ 		list_add_tail(&page->lru, &pcp->list);
+ 	else
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
