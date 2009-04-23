@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-svc_xprtc-needs-svcsockh.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:23:15 -0700
-Message-ID: <200904232323.n3NNNFr5017484@imap1.linux-foundation.org>
+Subject: + page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:08:23 -0700
+Message-ID: <200904232308.n3NN8OvX009866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760877AbZDWX0N (ORCPT
+	by vger.kernel.org with ESMTP id S1755320AbZDWX1C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:26:13 -0400
+	Thu, 23 Apr 2009 19:27:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, davem@davemloft.net, hsweeten@visionengravers.com, trond.myklebust@fys.uio.no
+Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
 
 
 The patch titled
-     net/sunrpc/svc_xprt.c: needs svcsock.h
+     page allocator: get the pageblock migratetype without disabling interrupts
 has been added to the -mm tree.  Its filename is
-     net-sunrpc-svc_xprtc-needs-svcsockh.patch
+     page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/sunrpc/svc_xprt.c: needs svcsock.h
-From: "H Hartley Sweeten" <hartleys@visionengravers.com>
+Subject: page allocator: get the pageblock migratetype without disabling interrupts
+From: Mel Gorman <mel@csn.ul.ie>
 
-sparse reports the following in net/sunrpc/svc_xprt.c:
+Local interrupts are disabled when freeing pages to the PCP list.  Part of
+that free checks what the migratetype of the pageblock the page is in but
+it checks this with interrupts disabled and interupts should never be
+disabled longer than necessary.  This patch checks the pagetype with
+interrupts enabled with the impact that it is possible a page is freed to
+the wrong list when a pageblock changes type.  As that block is now
+already considered mixed from an anti-fragmentation perspective, it's not
+of vital importance.
 
-  warning: symbol 'svc_recv' was not declared. Should it be static?
-  warning: symbol 'svc_drop' was not declared. Should it be static?
-  warning: symbol 'svc_send' was not declared. Should it be static?
-  warning: symbol 'svc_close_all' was not declared. Should it be static?
-
-The .c file should include the .h file which contains the declarations for
-the functions whcich it defines.
-
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svc_xprt.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sunrpc/svc_xprt.c~net-sunrpc-svc_xprtc-needs-svcsockh net/sunrpc/svc_xprt.c
---- a/net/sunrpc/svc_xprt.c~net-sunrpc-svc_xprtc-needs-svcsockh
-+++ a/net/sunrpc/svc_xprt.c
-@@ -11,6 +11,7 @@
- #include <net/sock.h>
- #include <linux/sunrpc/stats.h>
- #include <linux/sunrpc/svc_xprt.h>
-+#include <linux/sunrpc/svcsock.h>
+diff -puN mm/page_alloc.c~page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts
++++ a/mm/page_alloc.c
+@@ -1034,6 +1034,7 @@ static void free_hot_cold_page(struct pa
+ 	kernel_map_pages(page, 1, 0);
  
- #define RPCDBG_FACILITY	RPCDBG_SVCXPRT
- 
+ 	pcp = &zone_pcp(zone, get_cpu())->pcp;
++	set_page_private(page, get_pageblock_migratetype(page));
+ 	local_irq_save(flags);
+ 	if (unlikely(clearMlocked))
+ 		free_page_mlock(page);
+@@ -1043,7 +1044,6 @@ static void free_hot_cold_page(struct pa
+ 		list_add_tail(&page->lru, &pcp->list);
+ 	else
+ 		list_add(&page->lru, &pcp->list);
+-	set_page_private(page, get_pageblock_migratetype(page));
+ 	pcp->count++;
+ 	if (pcp->count >= pcp->high) {
+ 		free_pages_bulk(zone, pcp->batch, &pcp->list, 0);
 _
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-linux-next.patch
-net-sunrpc-svc_xprtc-needs-svcsockh.patch
-mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
