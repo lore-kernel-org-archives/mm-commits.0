@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch added to -mm tree
-Date: Thu, 23 Apr 2009 16:07:30 -0700
-Message-ID: <200904232307.n3NN7VHO009314@imap1.linux-foundation.org>
+Subject: + page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch added to -mm tree
+Date: Thu, 23 Apr 2009 16:07:39 -0700
+Message-ID: <200904232307.n3NN7d3i009402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32779 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753006AbZDWXMn (ORCPT
+	by vger.kernel.org with ESMTP id S1754700AbZDWXM7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Apr 2009 19:12:43 -0400
+	Thu, 23 Apr 2009 19:12:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.v
 
 
 The patch titled
-     page allocator: check only once if the zonelist is suitable for the allocation
+     page allocator: move check for disabled anti-fragmentation out of fastpath
 has been added to the -mm tree.  Its filename is
-     page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+     page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: check only once if the zonelist is suitable for the allocation
+Subject: page allocator: move check for disabled anti-fragmentation out of fastpath
 From: Mel Gorman <mel@csn.ul.ie>
 
-It is possible with __GFP_THISNODE that no zones are suitable.  This patch
-makes sure the check is only made once.
+On low-memory systems, anti-fragmentation gets disabled as there is
+nothing it can do and it would just incur overhead shuffling pages between
+lists constantly.  Currently the check is made in the free page fast path
+for every page.  This patch moves it to a slow path.  On machines with low
+memory, there will be small amount of additional overhead as pages get
+shuffled between lists but it should quickly settle.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    3 ---
+ mm/page_alloc.c        |    4 ++++
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation
-+++ a/mm/page_alloc.c
-@@ -1487,9 +1487,8 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	if (should_fail_alloc_page(gfp_mask, order))
- 		return NULL;
+diff -puN include/linux/mmzone.h~page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath include/linux/mmzone.h
+--- a/include/linux/mmzone.h~page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath
++++ a/include/linux/mmzone.h
+@@ -50,9 +50,6 @@ extern int page_group_by_mobility_disabl
  
--restart:
--	z = zonelist->_zonerefs;  /* the list of zones suitable for gfp_mask */
+ static inline int get_pageblock_migratetype(struct page *page)
+ {
+-	if (unlikely(page_group_by_mobility_disabled))
+-		return MIGRATE_UNMOVABLE;
 -
-+	/* the list of zones suitable for gfp_mask */
-+	z = zonelist->_zonerefs;
- 	if (unlikely(!z->zone)) {
- 		/*
- 		 * Happens if we have an empty zonelist as a result of
-@@ -1498,6 +1497,7 @@ restart:
- 		return NULL;
- 	}
+ 	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
+ }
  
-+restart:
- 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
- 			zonelist, high_zoneidx, ALLOC_WMARK_LOW|ALLOC_CPUSET);
- 	if (page)
+diff -puN mm/page_alloc.c~page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath
++++ a/mm/page_alloc.c
+@@ -172,6 +172,10 @@ int page_group_by_mobility_disabled __re
+ 
+ static void set_pageblock_migratetype(struct page *page, int migratetype)
+ {
++
++	if (unlikely(page_group_by_mobility_disabled))
++		migratetype = MIGRATE_UNMOVABLE;
++
+ 	set_pageblock_flags_group(page, (unsigned long)migratetype,
+ 					PB_migrate, PB_migrate_end);
+ }
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
