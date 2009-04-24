@@ -1,70 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] microblaze-iowrite-upon-timeout.patch removed from -mm tree
-Date: Fri, 24 Apr 2009 12:27:54 -0700
-Message-ID: <200904241927.n3OJRsnC015970@imap1.linux-foundation.org>
+Subject: [merged] slow-work-delete-timers-properly.patch removed from -mm tree
+Date: Fri, 24 Apr 2009 12:27:57 -0700
+Message-ID: <200904241927.n3OJRvsU015993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752109AbZDXT3l (ORCPT
+	by vger.kernel.org with ESMTP id S1752723AbZDXTaA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Apr 2009 15:29:41 -0400
+	Fri, 24 Apr 2009 15:30:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, monstr@monstr.eu, mm-commits@vger.kernel.org
+To: corbet@lwn.net, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     microblaze: iowrite upon timeout
+     slow-work: delete timers properly
 has been removed from the -mm tree.  Its filename was
-     microblaze-iowrite-upon-timeout.patch
+     slow-work-delete-timers-properly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: microblaze: iowrite upon timeout
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: slow-work: delete timers properly
+From: Jonathan Corbet <corbet@lwn.net>
 
-retries reaches -1, so the iowrite occurrs upon timeout.
+Slow-work deletes its timer as soon as the first user unregisters, even
+though other users could be active.  At the same time, it never seems to
+delete slow_work_oom_timer.  Arrange for both to happen in the shutdown
+path.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Michal Simek <monstr@monstr.eu>
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/early_printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/slow-work.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/microblaze/kernel/early_printk.c~microblaze-iowrite-upon-timeout arch/microblaze/kernel/early_printk.c
---- a/arch/microblaze/kernel/early_printk.c~microblaze-iowrite-upon-timeout
-+++ a/arch/microblaze/kernel/early_printk.c
-@@ -36,7 +36,7 @@ static void early_printk_putc(char c)
+diff -puN kernel/slow-work.c~slow-work-delete-timers-properly kernel/slow-work.c
+--- a/kernel/slow-work.c~slow-work-delete-timers-properly
++++ a/kernel/slow-work.c
+@@ -609,14 +609,14 @@ void slow_work_unregister_user(void)
+ 	if (slow_work_user_count == 0) {
+ 		printk(KERN_NOTICE "Slow work thread pool: Shutting down\n");
+ 		slow_work_threads_should_exit = true;
++		del_timer_sync(&slow_work_cull_timer);
++		del_timer_sync(&slow_work_oom_timer);
+ 		wake_up_all(&slow_work_thread_wq);
+ 		wait_for_completion(&slow_work_last_thread_exited);
+ 		printk(KERN_NOTICE "Slow work thread pool:"
+ 		       " Shut down complete\n");
+ 	}
  
- 	unsigned retries = 10000;
- 	/* read status bit - 0x8 offset */
--	while (retries-- && (in_be32(base_addr + 8) & (1 << 3)))
-+	while (--retries && (in_be32(base_addr + 8) & (1 << 3)))
- 		;
- 
- 	/* Only attempt the iowrite if we didn't timeout */
-_
-
-Patches currently in -mm which might be from roel.kluin@gmail.com are
-
-origin.patch
-linux-next.patch
-i2c-pxac-timeouts-off-by-1.patch
-drm-fix-lock_test_with_return-macro.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-uwb-event_size-should-be-signed.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-ufs-sector_t-cannot-be-negative.patch
-
+-	del_timer_sync(&slow_work_cull_timer);
