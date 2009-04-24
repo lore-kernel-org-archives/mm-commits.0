@@ -1,356 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 24 Apr 2009 12:26:00 -0700
-Message-ID: <200904241926.n3OJQ09O014983@imap1.linux-foundation.org>
+Subject: [alternative-merged] drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch removed from -mm tree
+Date: Fri, 24 Apr 2009 12:27:26 -0700
+Message-ID: <200904241927.n3OJRQ68015728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43797 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751212AbZDXT0h (ORCPT
+	by vger.kernel.org with ESMTP id S1751917AbZDXT3Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Apr 2009 15:26:37 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n3OJQ0ii006438
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2009 12:26:36 -0700
+	Fri, 24 Apr 2009 15:29:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, len.brown@intel.com, mjg59@srcf.ucam.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     drivers/platform/x86/toshiba_acpi.c: fix acpi_install_notify_handler() arg
+has been removed from the -mm tree.  Its filename was
+     drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: drivers/platform/x86/toshiba_acpi.c: fix acpi_install_notify_handler() arg
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_setup_keyboard':
+drivers/platform/x86/toshiba_acpi.c:854: warning: passing argument 3 of 'acpi_install_notify_handler' from incompatible pointer type
+drivers/platform/x86/toshiba_acpi.c: In function 'toshiba_acpi_exit':
+drivers/platform/x86/toshiba_acpi.c:903: warning: passing argument 3 of 'acpi_remove_notify_handler' from incompatible pointer type
+
+Fix this, and make toshiba_acpi_notify()'s argument names match up with the
+acpi_notify_handler() declaration.
+
+Cc: Len Brown <len.brown@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kvm/kvm-ia64.c        |   21 -----------
- arch/x86/kvm/mmu.c              |    4 --
- drivers/usb/serial/cypress_m8.c |    8 ----
- drivers/usb/serial/option.c     |    4 --
- drivers/usb/serial/sierra.c     |   44 -----------------------
- drivers/usb/serial/usb-serial.c |   57 ------------------------------
- fs/exec.c                       |    4 --
- include/linux/kvm.h             |    3 -
- 8 files changed, 145 deletions(-)
+ drivers/platform/x86/toshiba_acpi.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN arch/ia64/kvm/kvm-ia64.c~linux-next-git-rejects arch/ia64/kvm/kvm-ia64.c
---- a/arch/ia64/kvm/kvm-ia64.c~linux-next-git-rejects
-+++ a/arch/ia64/kvm/kvm-ia64.c
-@@ -661,16 +661,6 @@ again:
- 		goto out;
- 	}
- 
--<<<<<<< HEAD:arch/ia64/kvm/kvm-ia64.c
--	/*
--	 * down_read() may sleep and return with interrupts enabled
--	 */
--	down_read(&vcpu->kvm->slots_lock);
--
--	preempt_disable();
--	local_irq_disable();
--
--=======
- 	preempt_disable();
- 	local_irq_disable();
- 
-@@ -678,7 +668,6 @@ again:
- 	host_ctx = kvm_get_host_context(vcpu);
- 	guest_ctx = kvm_get_guest_context(vcpu);
- 
-->>>>>>> FETCH_HEAD:arch/ia64/kvm/kvm-ia64.c
- 	vcpu->guest_mode = 1;
- 
- 	r = kvm_vcpu_pre_transition(vcpu);
-@@ -687,15 +676,6 @@ again:
- 
- 	up_read(&vcpu->kvm->slots_lock);
- 	kvm_guest_enter();
--<<<<<<< HEAD:arch/ia64/kvm/kvm-ia64.c
--	r = vti_vcpu_run(vcpu, kvm_run);
--	if (r < 0) {
--		local_irq_enable();
--		preempt_enable();
--		kvm_run->exit_reason = KVM_EXIT_FAIL_ENTRY;
--		goto out;
--	}
--=======
- 
- 	/*
- 	 * Transition to the guest
-@@ -703,7 +683,6 @@ again:
- 	kvm_vmm_info->tramp_entry(host_ctx, guest_ctx);
- 
- 	kvm_vcpu_post_transition(vcpu);
-->>>>>>> FETCH_HEAD:arch/ia64/kvm/kvm-ia64.c
- 
- 	vcpu->arch.launched = 1;
- 	vcpu->guest_mode = 0;
-diff -puN arch/x86/kvm/mmu.c~linux-next-git-rejects arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~linux-next-git-rejects
-+++ a/arch/x86/kvm/mmu.c
-@@ -1241,10 +1241,6 @@ static struct kvm_mmu_page *kvm_mmu_get_
- 	pgprintk("%s: adding gfn %lx role %x\n", __func__, gfn, role.word);
- 	sp->gfn = gfn;
- 	sp->role = role;
--<<<<<<< HEAD:arch/x86/kvm/mmu.c
--	sp->global = 0;
--=======
-->>>>>>> FETCH_HEAD:arch/x86/kvm/mmu.c
- 	hlist_add_head(&sp->hash_link, bucket);
- 	if (!direct) {
- 		if (rmap_write_protect(vcpu->kvm, gfn))
-diff -puN drivers/usb/serial/cypress_m8.c~linux-next-git-rejects drivers/usb/serial/cypress_m8.c
---- a/drivers/usb/serial/cypress_m8.c~linux-next-git-rejects
-+++ a/drivers/usb/serial/cypress_m8.c
-@@ -659,15 +659,7 @@ static int cypress_open(struct tty_struc
- 	priv->rx_flags = 0;
- 	spin_unlock_irqrestore(&priv->lock, flags);
- 
--<<<<<<< HEAD:drivers/usb/serial/cypress_m8.c
--	/* raise both lines and set termios */
--	spin_lock_irqsave(&priv->lock, flags);
--	priv->line_control = CONTROL_DTR | CONTROL_RTS;
--	priv->cmd_ctrl = 1;
--	spin_unlock_irqrestore(&priv->lock, flags);
--=======
- 	/* Set termios */
-->>>>>>> FETCH_HEAD:drivers/usb/serial/cypress_m8.c
- 	result = cypress_write(tty, port, NULL, 0);
- 
- 	if (result) {
-diff -puN drivers/usb/serial/option.c~linux-next-git-rejects drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~linux-next-git-rejects
-+++ a/drivers/usb/serial/option.c
-@@ -949,11 +949,7 @@ static int option_open(struct tty_struct
- 				usb_pipeout(urb->pipe), 0); */
- 	}
- 
--<<<<<<< HEAD:drivers/usb/serial/option.c
--	option_send_setup(tty, port);
--=======
- 	option_send_setup(port);
-->>>>>>> FETCH_HEAD:drivers/usb/serial/option.c
- 
- 	return 0;
+diff -puN drivers/platform/x86/toshiba_acpi.c~drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg drivers/platform/x86/toshiba_acpi.c
+--- a/drivers/platform/x86/toshiba_acpi.c~drivers-platform-x86-toshiba_acpic-fix-acpi_install_notify_handler-arg
++++ a/drivers/platform/x86/toshiba_acpi.c
+@@ -792,24 +792,25 @@ static int toshiba_acpi_setkeycode(struc
+ 	return -EINVAL;
  }
-diff -puN drivers/usb/serial/sierra.c~linux-next-git-rejects drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~linux-next-git-rejects
-+++ a/drivers/usb/serial/sierra.c
-@@ -251,40 +251,6 @@ static int sierra_send_setup(struct usb_
  
- 	portdata = usb_get_serial_port_data(port);
- 
--<<<<<<< HEAD:drivers/usb/serial/sierra.c
--	if (tty) {
--		int val = 0;
--		if (portdata->dtr_state)
--			val |= 0x01;
--		if (portdata->rts_state)
--			val |= 0x02;
--
--		/* If composite device then properly report interface */
--		if (serial->num_ports == 1) {
--			interface = sierra_calc_interface(serial);
--
--			/* Control message is sent only to interfaces with
--			 * interrupt_in endpoints
--			 */
--			if (port->interrupt_in_urb) {
--				/* send control message */
--				return usb_control_msg(serial->dev,
--					usb_rcvctrlpipe(serial->dev, 0),
--					0x22, 0x21, val, interface,
--					NULL, 0, USB_CTRL_SET_TIMEOUT);
--			}
--		}
--
--		/* Otherwise the need to do non-composite mapping */
--		else {
--			if (port->bulk_out_endpointAddress == 2)
--				interface = 0;
--			else if (port->bulk_out_endpointAddress == 4)
--				interface = 1;
--			else if (port->bulk_out_endpointAddress == 5)
--				interface = 2;
--
--=======
- 	if (portdata->dtr_state)
- 		val |= 0x01;
- 	if (portdata->rts_state)
-@@ -299,15 +265,10 @@ static int sierra_send_setup(struct usb_
- 		 */
- 		if (port->interrupt_in_urb) {
- 			/* send control message */
-->>>>>>> FETCH_HEAD:drivers/usb/serial/sierra.c
- 			return usb_control_msg(serial->dev,
- 				usb_rcvctrlpipe(serial->dev, 0),
- 				0x22, 0x21, val, interface,
- 				NULL, 0, USB_CTRL_SET_TIMEOUT);
--<<<<<<< HEAD:drivers/usb/serial/sierra.c
--
--		}
--=======
- 		}
- 	}
- 
-@@ -325,7 +286,6 @@ static int sierra_send_setup(struct usb_
- 			0x22, 0x21, val, interface,
- 			NULL, 0, USB_CTRL_SET_TIMEOUT);
- 
-->>>>>>> FETCH_HEAD:drivers/usb/serial/sierra.c
- 	}
- 
- 	return 0;
-@@ -635,11 +595,7 @@ static int sierra_open(struct tty_struct
- 		}
- 	}
- 
--<<<<<<< HEAD:drivers/usb/serial/sierra.c
--	sierra_send_setup(tty, port);
--=======
- 	sierra_send_setup(port);
-->>>>>>> FETCH_HEAD:drivers/usb/serial/sierra.c
- 
- 	/* start up the interrupt endpoint if we have one */
- 	if (port->interrupt_in_urb) {
-diff -puN drivers/usb/serial/usb-serial.c~linux-next-git-rejects drivers/usb/serial/usb-serial.c
---- a/drivers/usb/serial/usb-serial.c~linux-next-git-rejects
-+++ a/drivers/usb/serial/usb-serial.c
-@@ -263,16 +263,8 @@ bailout_serial_put:
- 
- static void serial_do_down(struct usb_serial_port *port)
+-static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
++static void toshiba_acpi_notify(acpi_handle device, u32 value, void *context)
  {
--<<<<<<< HEAD:drivers/usb/serial/usb-serial.c
--	struct usb_serial_port *port = tty->driver_data;
--	struct usb_serial *serial;
--	struct module *owner;
--	int count;
--=======
--	struct usb_serial_driver *drv = port->serial->type;
- 	/* The console is magical, do not hang up the console hardware
- 	   or there will be tears */
-->>>>>>> FETCH_HEAD:drivers/usb/serial/usb-serial.c
+-	u32 hci_result, value;
++	u32 hci_result;
+ 	struct key_entry *key;
  
- 	if (port->console)
+-	if (event != 0x80)
++	if (value != 0x80)
  		return;
-@@ -291,56 +283,8 @@ static void serial_close(struct tty_stru
- 
- 	dbg("%s - port %d", __func__, port->number);
- 
--<<<<<<< HEAD:drivers/usb/serial/usb-serial.c
--	mutex_lock(&port->mutex);
--	serial = port->serial;
--	owner = serial->type->driver.owner;
--=======
-->>>>>>> FETCH_HEAD:drivers/usb/serial/usb-serial.c
--
- 	if (tty_port_close_start(&port->port, tty, filp) == 0)
- 		return;
--<<<<<<< HEAD:drivers/usb/serial/usb-serial.c
--	}
--
--	if (port->port.count == 1)
--		/* only call the device specific close if this
--		 * port is being closed by the last owner. Ensure we do
--		 * this before we drop the port count. The call is protected
--		 * by the port mutex
--		 */
--		serial->type->close(tty, port, filp);
--
--	if (port->port.count == (port->console ? 2 : 1)) {
--		struct tty_struct *tty = tty_port_tty_get(&port->port);
--		if (tty) {
--			/* We must do this before we drop the port count to
--			   zero. */
--			if (tty->driver_data)
--				tty->driver_data = NULL;
--			tty_port_tty_set(&port->port, NULL);
--			tty_kref_put(tty);
--		}
--	}
--
--	--port->port.count;
--	count = port->port.count;
--	mutex_unlock(&port->mutex);
--	put_device(&port->dev);
--
--	/* Mustn't dereference port any more */
--	if (count == 0) {
--		mutex_lock(&serial->disc_mutex);
--		if (!serial->disconnected)
--			usb_autopm_put_interface(serial->interface);
--		mutex_unlock(&serial->disc_mutex);
--	}
--	usb_serial_put(serial);
--
--	/* Mustn't dereference serial any more */
--	if (count == 0)
--		module_put(owner);
--=======
- 
- 	serial_do_down(port);		
- 	tty_port_close_end(&port->port, tty);
-@@ -354,7 +298,6 @@ static void serial_hangup(struct tty_str
- 	serial_do_down(port);
- 	tty_port_hangup(&port->port);
- 	usb_serial_put(port->serial);
-->>>>>>> FETCH_HEAD:drivers/usb/serial/usb-serial.c
- }
- 
- static int serial_write(struct tty_struct *tty, const unsigned char *buf,
-diff -puN fs/exec.c~linux-next-git-rejects fs/exec.c
---- a/fs/exec.c~linux-next-git-rejects
-+++ a/fs/exec.c
-@@ -1043,11 +1043,7 @@ int check_unsafe_exec(struct linux_binpr
- 		if (t->fs == p->fs)
- 			n_fs++;
- 	}
--<<<<<<< HEAD:fs/exec.c
- 	rcu_read_unlock();
--=======
--	rcu_read_lock();
-->>>>>>> FETCH_HEAD:fs/exec.c
- 
- 	if (p->fs->users > n_fs) {
- 		bprm->unsafe |= LSM_UNSAFE_SHARE;
-diff -puN include/linux/kvm.h~linux-next-git-rejects include/linux/kvm.h
---- a/include/linux/kvm.h~linux-next-git-rejects
-+++ a/include/linux/kvm.h
-@@ -409,13 +409,10 @@ struct kvm_trace_rec {
- #ifdef __KVM_HAVE_DEVICE_ASSIGNMENT
- #define KVM_CAP_DEVICE_DEASSIGNMENT 27
- #endif
--<<<<<<< HEAD:include/linux/kvm.h
--=======
- #ifdef __KVM_HAVE_MSIX
- #define KVM_CAP_DEVICE_MSIX 28
- #endif
- #define KVM_CAP_ASSIGN_DEV_IRQ 29
-->>>>>>> FETCH_HEAD:include/linux/kvm.h
- /* Another bug in KVM_SET_USER_MEMORY_REGION fixed: */
- #define KVM_CAP_JOIN_MEMORY_REGIONS_WORKS 30
- 
+ 	do {
+-		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++		u32 val;
++		hci_read1(HCI_SYSTEM_EVENT, &val, &hci_result);
+ 		if (hci_result == HCI_SUCCESS) {
+-			if (value == 0x100)
++			if (val == 0x100)
+ 				continue;
+-			else if (value & 0x80) {
++			else if (val & 0x80) {
+ 				key = toshiba_acpi_get_entry_by_scancode
+-					(value & ~0x80);
++					(val & ~0x80);
+ 				if (!key) {
+ 					printk(MY_INFO "Unknown key %x\n",
+-					       value & ~0x80);
++					       val & ~0x80);
+ 					continue;
+ 				}
+ 				input_report_key(toshiba_acpi.hotkey_dev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
