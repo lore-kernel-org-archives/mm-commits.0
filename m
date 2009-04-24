@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-exception-table-sorting.patch added to -mm tree
-Date: Fri, 24 Apr 2009 13:12:45 -0700
-Message-ID: <200904242012.n3OKCj7X006330@imap1.linux-foundation.org>
+Subject: + alpha-binfmt_aout-fix.patch added to -mm tree
+Date: Fri, 24 Apr 2009 13:12:50 -0700
+Message-ID: <200904242012.n3OKCoU0006409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753062AbZDXUPL (ORCPT
+	by vger.kernel.org with ESMTP id S1754728AbZDXUP1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Apr 2009 16:15:11 -0400
+	Fri, 24 Apr 2009 16:15:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ink@jurassic.park.msu.ru, rth@twiddle.net, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     alpha: exception table sorting
+     alpha: binfmt_aout fix
 has been added to the -mm tree.  Its filename is
-     alpha-exception-table-sorting.patch
+     alpha-binfmt_aout-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: exception table sorting
+Subject: alpha: binfmt_aout fix
 From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Exception fixups for sections other than .text (like one in futex_init())
-break the natural ordering of fixup entries, so sorting is required.
+This fixes the problem introduced by commit 3bfacef412 (get rid of
+special-casing the /sbin/loader on alpha): osf/1 ecoff binary segfaults
+when binfmt_aout built as module.  That happens because aout binary
+handler gets on the top of the binfmt list due to late registration, and
+kernel attempts to execute the binary without preparatory work that must
+be done by binfmt_loader.
 
-Without that the result of the exception table search depends on phase of
-the moon.
+Fixed by changing the registration order of the default binfmt handlers
+using list_add_tail() and introducing insert_binfmt() function which
+places new handler on the top of the binfmt list.  This might be generally
+useful for installing arch-specific frontends for default handlers or just
+for overriding them.
 
 Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
@@ -49,83 +56,95 @@ Cc: Richard Henderson <rth@twiddle.net
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/uaccess.h |    2 +
- arch/alpha/mm/extable.c          |   40 ++++++++++++++++++++++++++++-
- 2 files changed, 41 insertions(+), 1 deletion(-)
+ arch/alpha/kernel/Makefile        |    6 +++++-
+ arch/alpha/kernel/binfmt_loader.c |    2 +-
+ fs/exec.c                         |    7 ++++---
+ include/linux/binfmts.h           |   14 +++++++++++++-
+ 4 files changed, 23 insertions(+), 6 deletions(-)
 
-diff -puN arch/alpha/include/asm/uaccess.h~alpha-exception-table-sorting arch/alpha/include/asm/uaccess.h
---- a/arch/alpha/include/asm/uaccess.h~alpha-exception-table-sorting
-+++ a/arch/alpha/include/asm/uaccess.h
-@@ -507,5 +507,7 @@ struct exception_table_entry
- 	(pc) + (_fixup)->fixup.bits.nextinsn;			\
- })
+diff -puN arch/alpha/kernel/Makefile~alpha-binfmt_aout-fix arch/alpha/kernel/Makefile
+--- a/arch/alpha/kernel/Makefile~alpha-binfmt_aout-fix
++++ a/arch/alpha/kernel/Makefile
+@@ -8,7 +8,7 @@ EXTRA_CFLAGS	:= -Werror -Wno-sign-compar
  
-+#define ARCH_HAS_SORT_EXTABLE
-+#define ARCH_HAS_SEARCH_EXTABLE
+ obj-y    := entry.o traps.o process.o init_task.o osf_sys.o irq.o \
+ 	    irq_alpha.o signal.o setup.o ptrace.o time.o \
+-	    alpha_ksyms.o systbls.o err_common.o io.o binfmt_loader.o
++	    alpha_ksyms.o systbls.o err_common.o io.o
  
- #endif /* __ALPHA_UACCESS_H */
-diff -puN arch/alpha/mm/extable.c~alpha-exception-table-sorting arch/alpha/mm/extable.c
---- a/arch/alpha/mm/extable.c~alpha-exception-table-sorting
-+++ a/arch/alpha/mm/extable.c
-@@ -3,11 +3,49 @@
-  */
+ obj-$(CONFIG_VGA_HOSE)	+= console.o
+ obj-$(CONFIG_SMP)	+= smp.o
+@@ -43,6 +43,10 @@ else
+ # Misc support
+ obj-$(CONFIG_ALPHA_SRM)		+= srmcons.o
  
- #include <linux/module.h>
-+#include <linux/sort.h>
- #include <asm/uaccess.h>
++ifdef CONFIG_BINFMT_AOUT
++obj-y	+= binfmt_loader.o
++endif
++
+ # Core logic support
+ obj-$(CONFIG_ALPHA_APECS)	+= core_apecs.o
+ obj-$(CONFIG_ALPHA_CIA)		+= core_cia.o
+diff -puN arch/alpha/kernel/binfmt_loader.c~alpha-binfmt_aout-fix arch/alpha/kernel/binfmt_loader.c
+--- a/arch/alpha/kernel/binfmt_loader.c~alpha-binfmt_aout-fix
++++ a/arch/alpha/kernel/binfmt_loader.c
+@@ -46,6 +46,6 @@ static struct linux_binfmt loader_format
  
-+static inline unsigned long ex_to_addr(const struct exception_table_entry *x)
-+{
-+	return (unsigned long)&x->insn + x->insn;
-+}
-+
-+static void swap_ex(void *a, void *b, int size)
-+{
-+	struct exception_table_entry *ex_a = a, *ex_b = b;
-+	unsigned long addr_a = ex_to_addr(ex_a), addr_b = ex_to_addr(ex_b);
-+	unsigned int t = ex_a->fixup.unit;
-+
-+	ex_a->fixup.unit = ex_b->fixup.unit;
-+	ex_b->fixup.unit = t;
-+	ex_a->insn = (int)(addr_b - (unsigned long)&ex_a->insn);
-+	ex_b->insn = (int)(addr_a - (unsigned long)&ex_b->insn);
-+}
-+
-+/*
-+ * The exception table needs to be sorted so that the binary
-+ * search that we use to find entries in it works properly.
-+ * This is used both for the kernel exception table and for
-+ * the exception tables of modules that get loaded.
-+ */
-+static int cmp_ex(const void *a, const void *b)
-+{
-+	const struct exception_table_entry *x = a, *y = b;
-+
-+	/* avoid overflow */
-+	if (ex_to_addr(x) > ex_to_addr(y))
-+		return 1;
-+	if (ex_to_addr(x) < ex_to_addr(y))
-+		return -1;
-+	return 0;
-+}
-+
- void sort_extable(struct exception_table_entry *start,
- 		  struct exception_table_entry *finish)
+ static int __init init_loader_binfmt(void)
  {
-+	sort(start, finish - start, sizeof(struct exception_table_entry),
-+	     cmp_ex, swap_ex);
+-	return register_binfmt(&loader_format);
++	return insert_binfmt(&loader_format);
+ }
+ arch_initcall(init_loader_binfmt);
+diff -puN fs/exec.c~alpha-binfmt_aout-fix fs/exec.c
+--- a/fs/exec.c~alpha-binfmt_aout-fix
++++ a/fs/exec.c
+@@ -69,17 +69,18 @@ int suid_dumpable = 0;
+ static LIST_HEAD(formats);
+ static DEFINE_RWLOCK(binfmt_lock);
+ 
+-int register_binfmt(struct linux_binfmt * fmt)
++int __register_binfmt(struct linux_binfmt * fmt, int insert)
+ {
+ 	if (!fmt)
+ 		return -EINVAL;
+ 	write_lock(&binfmt_lock);
+-	list_add(&fmt->lh, &formats);
++	insert ? list_add(&fmt->lh, &formats) :
++		 list_add_tail(&fmt->lh, &formats);
+ 	write_unlock(&binfmt_lock);
+ 	return 0;	
  }
  
- const struct exception_table_entry *
-@@ -20,7 +58,7 @@ search_extable(const struct exception_ta
- 		unsigned long mid_value;
+-EXPORT_SYMBOL(register_binfmt);
++EXPORT_SYMBOL(__register_binfmt);
  
- 		mid = (last - first) / 2 + first;
--		mid_value = (unsigned long)&mid->insn + mid->insn;
-+		mid_value = ex_to_addr(mid);
-                 if (mid_value == value)
-                         return mid;
-                 else if (mid_value < value)
+ void unregister_binfmt(struct linux_binfmt * fmt)
+ {
+diff -puN include/linux/binfmts.h~alpha-binfmt_aout-fix include/linux/binfmts.h
+--- a/include/linux/binfmts.h~alpha-binfmt_aout-fix
++++ a/include/linux/binfmts.h
+@@ -82,7 +82,19 @@ struct linux_binfmt {
+ 	int hasvdso;
+ };
+ 
+-extern int register_binfmt(struct linux_binfmt *);
++extern int __register_binfmt(struct linux_binfmt *fmt, int insert);
++
++/* Registration of default binfmt handlers */
++static inline int register_binfmt(struct linux_binfmt *fmt)
++{
++	return __register_binfmt(fmt, 0);
++}
++/* Same as above, but adds a new binfmt at the top of the list */
++static inline int insert_binfmt(struct linux_binfmt *fmt)
++{
++	return __register_binfmt(fmt, 1);
++}
++
+ extern void unregister_binfmt(struct linux_binfmt *);
+ 
+ extern int prepare_binprm(struct linux_binprm *);
 _
 
 Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
