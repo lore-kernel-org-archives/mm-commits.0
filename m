@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-binfmt_aout-fix.patch added to -mm tree
-Date: Fri, 24 Apr 2009 13:12:50 -0700
-Message-ID: <200904242012.n3OKCoU0006409@imap1.linux-foundation.org>
+Subject: + alpha-futex-implementation.patch added to -mm tree
+Date: Fri, 24 Apr 2009 13:12:47 -0700
+Message-ID: <200904242012.n3OKCljf006350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60701 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754728AbZDXUP1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752262AbZDXUPs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Apr 2009 16:15:27 -0400
+	Fri, 24 Apr 2009 16:15:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ink@jurassic.park.msu.ru, rth@twiddle.net, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     alpha: binfmt_aout fix
+     alpha: futex implementation
 has been added to the -mm tree.  Its filename is
-     alpha-binfmt_aout-fix.patch
+     alpha-futex-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,21 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: binfmt_aout fix
+Subject: alpha: futex implementation
 From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-
-This fixes the problem introduced by commit 3bfacef412 (get rid of
-special-casing the /sbin/loader on alpha): osf/1 ecoff binary segfaults
-when binfmt_aout built as module.  That happens because aout binary
-handler gets on the top of the binfmt list due to late registration, and
-kernel attempts to execute the binary without preparatory work that must
-be done by binfmt_loader.
-
-Fixed by changing the registration order of the default binfmt handlers
-using list_add_tail() and introducing insert_binfmt() function which
-places new handler on the top of the binfmt list.  This might be generally
-useful for installing arch-specific frontends for default handlers or just
-for overriding them.
 
 Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
@@ -56,95 +43,151 @@ Cc: Richard Henderson <rth@twiddle.net
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/Makefile        |    6 +++++-
- arch/alpha/kernel/binfmt_loader.c |    2 +-
- fs/exec.c                         |    7 ++++---
- include/linux/binfmts.h           |   14 +++++++++++++-
- 4 files changed, 23 insertions(+), 6 deletions(-)
+ arch/alpha/include/asm/barrier.h |    2 
+ arch/alpha/include/asm/futex.h   |  118 ++++++++++++++++++++++++++++-
+ 2 files changed, 116 insertions(+), 4 deletions(-)
 
-diff -puN arch/alpha/kernel/Makefile~alpha-binfmt_aout-fix arch/alpha/kernel/Makefile
---- a/arch/alpha/kernel/Makefile~alpha-binfmt_aout-fix
-+++ a/arch/alpha/kernel/Makefile
-@@ -8,7 +8,7 @@ EXTRA_CFLAGS	:= -Werror -Wno-sign-compar
+diff -puN arch/alpha/include/asm/barrier.h~alpha-futex-implementation arch/alpha/include/asm/barrier.h
+--- a/arch/alpha/include/asm/barrier.h~alpha-futex-implementation
++++ a/arch/alpha/include/asm/barrier.h
+@@ -16,11 +16,13 @@ __asm__ __volatile__("wmb": : :"memory")
+ __asm__ __volatile__("mb": : :"memory")
  
- obj-y    := entry.o traps.o process.o init_task.o osf_sys.o irq.o \
- 	    irq_alpha.o signal.o setup.o ptrace.o time.o \
--	    alpha_ksyms.o systbls.o err_common.o io.o binfmt_loader.o
-+	    alpha_ksyms.o systbls.o err_common.o io.o
+ #ifdef CONFIG_SMP
++#define __ASM_SMP_MB	"\tmb\n"
+ #define smp_mb()	mb()
+ #define smp_rmb()	rmb()
+ #define smp_wmb()	wmb()
+ #define smp_read_barrier_depends()	read_barrier_depends()
+ #else
++#define __ASM_SMP_MB
+ #define smp_mb()	barrier()
+ #define smp_rmb()	barrier()
+ #define smp_wmb()	barrier()
+diff -puN arch/alpha/include/asm/futex.h~alpha-futex-implementation arch/alpha/include/asm/futex.h
+--- a/arch/alpha/include/asm/futex.h~alpha-futex-implementation
++++ a/arch/alpha/include/asm/futex.h
+@@ -1,6 +1,116 @@
+-#ifndef _ASM_FUTEX_H
+-#define _ASM_FUTEX_H
++#ifndef _ASM_ALPHA_FUTEX_H
++#define _ASM_ALPHA_FUTEX_H
  
- obj-$(CONFIG_VGA_HOSE)	+= console.o
- obj-$(CONFIG_SMP)	+= smp.o
-@@ -43,6 +43,10 @@ else
- # Misc support
- obj-$(CONFIG_ALPHA_SRM)		+= srmcons.o
+-#include <asm-generic/futex.h>
++#ifdef __KERNEL__
  
-+ifdef CONFIG_BINFMT_AOUT
-+obj-y	+= binfmt_loader.o
-+endif
+-#endif
++#include <linux/futex.h>
++#include <linux/uaccess.h>
++#include <asm/errno.h>
++#include <asm/barrier.h>
 +
- # Core logic support
- obj-$(CONFIG_ALPHA_APECS)	+= core_apecs.o
- obj-$(CONFIG_ALPHA_CIA)		+= core_cia.o
-diff -puN arch/alpha/kernel/binfmt_loader.c~alpha-binfmt_aout-fix arch/alpha/kernel/binfmt_loader.c
---- a/arch/alpha/kernel/binfmt_loader.c~alpha-binfmt_aout-fix
-+++ a/arch/alpha/kernel/binfmt_loader.c
-@@ -46,6 +46,6 @@ static struct linux_binfmt loader_format
- 
- static int __init init_loader_binfmt(void)
- {
--	return register_binfmt(&loader_format);
-+	return insert_binfmt(&loader_format);
- }
- arch_initcall(init_loader_binfmt);
-diff -puN fs/exec.c~alpha-binfmt_aout-fix fs/exec.c
---- a/fs/exec.c~alpha-binfmt_aout-fix
-+++ a/fs/exec.c
-@@ -69,17 +69,18 @@ int suid_dumpable = 0;
- static LIST_HEAD(formats);
- static DEFINE_RWLOCK(binfmt_lock);
- 
--int register_binfmt(struct linux_binfmt * fmt)
-+int __register_binfmt(struct linux_binfmt * fmt, int insert)
- {
- 	if (!fmt)
- 		return -EINVAL;
- 	write_lock(&binfmt_lock);
--	list_add(&fmt->lh, &formats);
-+	insert ? list_add(&fmt->lh, &formats) :
-+		 list_add_tail(&fmt->lh, &formats);
- 	write_unlock(&binfmt_lock);
- 	return 0;	
- }
- 
--EXPORT_SYMBOL(register_binfmt);
-+EXPORT_SYMBOL(__register_binfmt);
- 
- void unregister_binfmt(struct linux_binfmt * fmt)
- {
-diff -puN include/linux/binfmts.h~alpha-binfmt_aout-fix include/linux/binfmts.h
---- a/include/linux/binfmts.h~alpha-binfmt_aout-fix
-+++ a/include/linux/binfmts.h
-@@ -82,7 +82,19 @@ struct linux_binfmt {
- 	int hasvdso;
- };
- 
--extern int register_binfmt(struct linux_binfmt *);
-+extern int __register_binfmt(struct linux_binfmt *fmt, int insert);
++#define __futex_atomic_op(insn, ret, oldval, uaddr, oparg)	\
++	__asm__ __volatile__(					\
++		__ASM_SMP_MB					\
++	"1:	ldl_l	%0,0(%2)\n"				\
++		insn						\
++	"2:	stl_c	%1,0(%2)\n"				\
++	"	beq	%1,4f\n"				\
++	"	mov	$31,%1\n"				\
++	"3:	.subsection 2\n"				\
++	"4:	br	1b\n"					\
++	"	.previous\n"					\
++	"	.section __ex_table,\"a\"\n"			\
++	"	.long	1b-.\n"					\
++	"	lda	$31,3b-1b(%1)\n"			\
++	"	.long	2b-.\n"					\
++	"	lda	$31,3b-2b(%1)\n"			\
++	"	.previous\n"					\
++	:	"=&r" (oldval), "=&r"(ret)			\
++	:	"r" (uaddr), "r"(oparg)				\
++	:	"memory")
 +
-+/* Registration of default binfmt handlers */
-+static inline int register_binfmt(struct linux_binfmt *fmt)
++static inline int futex_atomic_op_inuser (int encoded_op, int __user *uaddr)
 +{
-+	return __register_binfmt(fmt, 0);
-+}
-+/* Same as above, but adds a new binfmt at the top of the list */
-+static inline int insert_binfmt(struct linux_binfmt *fmt)
-+{
-+	return __register_binfmt(fmt, 1);
++	int op = (encoded_op >> 28) & 7;
++	int cmp = (encoded_op >> 24) & 15;
++	int oparg = (encoded_op << 8) >> 20;
++	int cmparg = (encoded_op << 20) >> 20;
++	int oldval = 0, ret;
++	if (encoded_op & (FUTEX_OP_OPARG_SHIFT << 28))
++		oparg = 1 << oparg;
++
++	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(int)))
++		return -EFAULT;
++
++	pagefault_disable();
++
++	switch (op) {
++	case FUTEX_OP_SET:
++		__futex_atomic_op("mov %3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	case FUTEX_OP_ADD:
++		__futex_atomic_op("addl %0,%3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	case FUTEX_OP_OR:
++		__futex_atomic_op("or %0,%3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	case FUTEX_OP_ANDN:
++		__futex_atomic_op("andnot %0,%3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	case FUTEX_OP_XOR:
++		__futex_atomic_op("xor %0,%3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	default:
++		ret = -ENOSYS;
++	}
++
++	pagefault_enable();
++
++	if (!ret) {
++		switch (cmp) {
++		case FUTEX_OP_CMP_EQ: ret = (oldval == cmparg); break;
++		case FUTEX_OP_CMP_NE: ret = (oldval != cmparg); break;
++		case FUTEX_OP_CMP_LT: ret = (oldval < cmparg); break;
++		case FUTEX_OP_CMP_GE: ret = (oldval >= cmparg); break;
++		case FUTEX_OP_CMP_LE: ret = (oldval <= cmparg); break;
++		case FUTEX_OP_CMP_GT: ret = (oldval > cmparg); break;
++		default: ret = -ENOSYS;
++		}
++	}
++	return ret;
 +}
 +
- extern void unregister_binfmt(struct linux_binfmt *);
- 
- extern int prepare_binprm(struct linux_binprm *);
++static inline int
++futex_atomic_cmpxchg_inatomic(int __user *uaddr, int oldval, int newval)
++{
++	int prev, cmp;
++
++	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(int)))
++		return -EFAULT;
++
++	__asm__ __volatile__ (
++		__ASM_SMP_MB
++	"1:	ldl_l	%0,0(%2)\n"
++	"	cmpeq	%0,%3,%1\n"
++	"	beq	%1,3f\n"
++	"	mov	%4,%1\n"
++	"2:	stl_c	%1,0(%2)\n"
++	"	beq	%1,4f\n"
++	"3:	.subsection 2\n"
++	"4:	br	1b\n"
++	"	.previous\n"
++	"	.section __ex_table,\"a\"\n"
++	"	.long	1b-.\n"
++	"	lda	$31,3b-1b(%0)\n"
++	"	.long	2b-.\n"
++	"	lda	$31,3b-2b(%0)\n"
++	"	.previous\n"
++	:	"=&r"(prev), "=&r"(cmp)
++	:	"r"(uaddr), "r"((long)oldval), "r"(newval)
++	:	"memory");
++
++	return prev;
++}
++
++#endif /* __KERNEL__ */
++#endif /* _ASM_ALPHA_FUTEX_H */
 _
 
 Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
