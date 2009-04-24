@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rewrite-some-tests-with-is_power_of_2-for-clarity.patch added to -mm tree
-Date: Fri, 24 Apr 2009 13:08:15 -0700
-Message-ID: <200904242008.n3OK8FwE003998@imap1.linux-foundation.org>
+Subject: + ntfs-use-is_power_of_2-function-for-clarity.patch added to -mm tree
+Date: Fri, 24 Apr 2009 13:09:41 -0700
+Message-ID: <200904242009.n3OK9fPN004735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33194 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752244AbZDXULB (ORCPT
+	by vger.kernel.org with ESMTP id S1755517AbZDXUL2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Apr 2009 16:11:01 -0400
+	Fri, 24 Apr 2009 16:11:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca, hannes@cmpxchg.org, matthew@wil.cx, penberg@cs.helsinki.fi
+Cc: rpjday@crashcourse.ca, aia21@cantab.net
 
 
 The patch titled
-     mm: rewrite some tests with is_power_of_2() for clarity.
+     ntfs: use is_power_of_2() function for clarity.
 has been added to the -mm tree.  Its filename is
-     mm-rewrite-some-tests-with-is_power_of_2-for-clarity.patch
+     ntfs-use-is_power_of_2-function-for-clarity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: rewrite some tests with is_power_of_2() for clarity.
+Subject: ntfs: use is_power_of_2() function for clarity.
 From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Replace some conditional tests with the semantically clearer call to
-is_power_of_2().
-
 Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    3 ++-
- mm/dmapool.c |    5 +++--
- mm/slub.c    |    3 ++-
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ fs/ntfs/inode.c   |    3 ++-
+ fs/ntfs/logfile.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/bootmem.c~mm-rewrite-some-tests-with-is_power_of_2-for-clarity mm/bootmem.c
---- a/mm/bootmem.c~mm-rewrite-some-tests-with-is_power_of_2-for-clarity
-+++ a/mm/bootmem.c
-@@ -12,6 +12,7 @@
- #include <linux/pfn.h>
- #include <linux/bootmem.h>
- #include <linux/module.h>
-+#include <linux/log2.h>
- 
- #include <asm/bug.h>
- #include <asm/io.h>
-@@ -438,7 +439,7 @@ static void * __init alloc_bootmem_core(
- 		align, goal, limit);
- 
- 	BUG_ON(!size);
--	BUG_ON(align & (align - 1));
-+	BUG_ON(!is_power_of_2(align));
- 	BUG_ON(limit && goal + size > limit);
- 
- 	if (!bdata->node_bootmem_map)
-diff -puN mm/dmapool.c~mm-rewrite-some-tests-with-is_power_of_2-for-clarity mm/dmapool.c
---- a/mm/dmapool.c~mm-rewrite-some-tests-with-is_power_of_2-for-clarity
-+++ a/mm/dmapool.c
-@@ -36,6 +36,7 @@
- #include <linux/string.h>
- #include <linux/types.h>
- #include <linux/wait.h>
-+#include <linux/log2.h>
- 
- #if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_SLUB_DEBUG_ON)
- #define DMAPOOL_DEBUG 1
-@@ -135,7 +136,7 @@ struct dma_pool *dma_pool_create(const c
- 
- 	if (align == 0) {
- 		align = 1;
--	} else if (align & (align - 1)) {
-+	} else if (!is_power_of_2(align)) {
- 		return NULL;
- 	}
- 
-@@ -152,7 +153,7 @@ struct dma_pool *dma_pool_create(const c
- 
- 	if (!boundary) {
- 		boundary = allocation;
--	} else if ((boundary < size) || (boundary & (boundary - 1))) {
-+	} else if ((boundary < size) || !is_power_of_2(boundary)) {
- 		return NULL;
- 	}
- 
-diff -puN mm/slub.c~mm-rewrite-some-tests-with-is_power_of_2-for-clarity mm/slub.c
---- a/mm/slub.c~mm-rewrite-some-tests-with-is_power_of_2-for-clarity
-+++ a/mm/slub.c
+diff -puN fs/ntfs/inode.c~ntfs-use-is_power_of_2-function-for-clarity fs/ntfs/inode.c
+--- a/fs/ntfs/inode.c~ntfs-use-is_power_of_2-function-for-clarity
++++ a/fs/ntfs/inode.c
 @@ -27,6 +27,7 @@
- #include <linux/memory.h>
- #include <linux/math64.h>
- #include <linux/fault-inject.h>
+ #include <linux/pagemap.h>
+ #include <linux/quotaops.h>
+ #include <linux/slab.h>
 +#include <linux/log2.h>
  
- /*
-  * Lock order:
-@@ -3060,7 +3061,7 @@ void __init kmem_cache_init(void)
- 	 * around with ARCH_KMALLOC_MINALIGN
- 	 */
- 	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 256 ||
--		(KMALLOC_MIN_SIZE & (KMALLOC_MIN_SIZE - 1)));
-+		(!is_power_of_2(KMALLOC_MIN_SIZE)));
+ #include "aops.h"
+ #include "attrib.h"
+@@ -1570,7 +1571,7 @@ static int ntfs_read_locked_index_inode(
+ 	ntfs_debug("Index collation rule is 0x%x.",
+ 			le32_to_cpu(ir->collation_rule));
+ 	ni->itype.index.block_size = le32_to_cpu(ir->index_block_size);
+-	if (ni->itype.index.block_size & (ni->itype.index.block_size - 1)) {
++	if (!is_power_of_2(ni->itype.index.block_size)) {
+ 		ntfs_error(vi->i_sb, "Index block size (%u) is not a power of "
+ 				"two.", ni->itype.index.block_size);
+ 		goto unm_err_out;
+diff -puN fs/ntfs/logfile.c~ntfs-use-is_power_of_2-function-for-clarity fs/ntfs/logfile.c
+--- a/fs/ntfs/logfile.c~ntfs-use-is_power_of_2-function-for-clarity
++++ a/fs/ntfs/logfile.c
+@@ -26,6 +26,7 @@
+ #include <linux/highmem.h>
+ #include <linux/buffer_head.h>
+ #include <linux/bitops.h>
++#include <linux/log2.h>
  
- 	for (i = 8; i < KMALLOC_MIN_SIZE; i += 8)
- 		size_index[(i - 1) / 8] = KMALLOC_SHIFT_LOW;
+ #include "attrib.h"
+ #include "aops.h"
+@@ -65,7 +66,7 @@ static bool ntfs_check_restart_page_head
+ 			logfile_log_page_size < NTFS_BLOCK_SIZE ||
+ 			logfile_system_page_size &
+ 			(logfile_system_page_size - 1) ||
+-			logfile_log_page_size & (logfile_log_page_size - 1)) {
++			!is_power_of_2(logfile_log_page_size)) {
+ 		ntfs_error(vi->i_sb, "$LogFile uses unsupported page size.");
+ 		return false;
+ 	}
 _
 
 Patches currently in -mm which might be from rpjday@crashcourse.ca are
@@ -129,4 +94,6 @@ origin.patch
 linux-next.patch
 kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch
 mm-rewrite-some-tests-with-is_power_of_2-for-clarity.patch
+kernel-kfifoc-replace-conditional-test-with-is_power_of_2.patch
+ntfs-use-is_power_of_2-function-for-clarity.patch
 
