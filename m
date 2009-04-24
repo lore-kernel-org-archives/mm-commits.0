@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch added to -mm tree
-Date: Fri, 24 Apr 2009 13:16:36 -0700
-Message-ID: <200904242016.n3OKGa2N008295@imap1.linux-foundation.org>
+Subject: + net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n.patch added to -mm tree
+Date: Fri, 24 Apr 2009 15:26:02 -0700
+Message-ID: <200904242244.n3OMipvN018777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754818AbZDXUTi (ORCPT
+	by vger.kernel.org with ESMTP id S1753642AbZDXWuW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Apr 2009 16:19:38 -0400
+	Fri, 24 Apr 2009 18:50:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, IvDoorn@gmail.com, Larry.Finger@lwfinger.net, davem@davemloft.net, hmh@hmh.eng.br, linville@tuxdriver.com, mb@bu3sch.de
 
 
 The patch titled
-     rtc: make rtc_update_irq callable with irqs enabled
+     net/rfkill/rfkill.c: fix build with CONFIG_RFKILL_LEDS=n
 has been added to the -mm tree.  Its filename is
-     rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
+     net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,157 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: make rtc_update_irq callable with irqs enabled
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: net/rfkill/rfkill.c: fix build with CONFIG_RFKILL_LEDS=n
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The rtc_update_irq() might be called with irqs enabled, if a interrupt
-handler was registered without IRQF_DISABLED.  Use
-spin_lock_irqsave/spin_unlock_irqrestore instead of spin_lock/spin_unlock.
+net/rfkill/rfkill.c: In function 'update_rfkill_state':
+net/rfkill/rfkill.c:99: error: implicit declaration of function 'rfkill_led_trigger'
 
-Also update kerneldoc and drivers which do extra work to follow the
-current interface spec, as suggestted by David Brownell.
+Caused by
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+: commit 492301fb5d12e4a77a1010ad2b6f1ed306014123
+: Author: Larry Finger <Larry.Finger@lwfinger.net>
+: Date:   Thu Apr 9 22:14:19 2009 -0500
+: 
+:     rfkill: Fix broken rfkill LED in 2.6.30-rc1
+
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Ivo van Doorn <IvDoorn@gmail.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c  |   12 +++++++-----
- drivers/rtc/rtc-dev.c    |    6 ++----
- drivers/rtc/rtc-ds1305.c |    3 ---
- drivers/rtc/rtc-ds1307.c |    5 -----
- drivers/rtc/rtc-ds1374.c |    5 -----
- drivers/rtc/rtc-test.c   |    2 --
- 6 files changed, 9 insertions(+), 24 deletions(-)
+ net/rfkill/rfkill.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/rtc/interface.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/interface.c
-@@ -371,19 +371,21 @@ EXPORT_SYMBOL_GPL(rtc_update_irq_enable)
-  * @rtc: the rtc device
-  * @num: how many irqs are being reported (usually one)
-  * @events: mask of RTC_IRQF with one or more of RTC_PF, RTC_AF, RTC_UF
-- * Context: in_interrupt(), irqs blocked
-+ * Context: any
-  */
- void rtc_update_irq(struct rtc_device *rtc,
- 		unsigned long num, unsigned long events)
- {
--	spin_lock(&rtc->irq_lock);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&rtc->irq_lock, flags);
- 	rtc->irq_data = (rtc->irq_data + (num << 8)) | events;
--	spin_unlock(&rtc->irq_lock);
-+	spin_unlock_irqrestore(&rtc->irq_lock, flags);
+diff -puN net/rfkill/rfkill.c~net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n net/rfkill/rfkill.c
+--- a/net/rfkill/rfkill.c~net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n
++++ a/net/rfkill/rfkill.c
+@@ -75,6 +75,11 @@ static void rfkill_led_trigger_activate(
  
--	spin_lock(&rtc->irq_task_lock);
-+	spin_lock_irqsave(&rtc->irq_task_lock, flags);
- 	if (rtc->irq_task)
- 		rtc->irq_task->func(rtc->irq_task->private_data);
--	spin_unlock(&rtc->irq_task_lock);
-+	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
- 
- 	wake_up_interruptible(&rtc->irq_queue);
- 	kill_fasync(&rtc->async_queue, SIGIO, POLL_IN);
-diff -puN drivers/rtc/rtc-dev.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-dev.c
-@@ -60,8 +60,7 @@ static void rtc_uie_task(struct work_str
- 
- 	err = rtc_read_time(rtc, &tm);
- 
--	local_irq_disable();
--	spin_lock(&rtc->irq_lock);
-+	spin_lock_irq(&rtc->irq_lock);
- 	if (rtc->stop_uie_polling || err) {
- 		rtc->uie_task_active = 0;
- 	} else if (rtc->oldsecs != tm.tm_sec) {
-@@ -74,10 +73,9 @@ static void rtc_uie_task(struct work_str
- 	} else if (schedule_work(&rtc->uie_task) == 0) {
- 		rtc->uie_task_active = 0;
- 	}
--	spin_unlock(&rtc->irq_lock);
-+	spin_unlock_irq(&rtc->irq_lock);
- 	if (num)
- 		rtc_update_irq(rtc, num, RTC_UF | RTC_IRQF);
--	local_irq_enable();
+ 	rfkill_led_trigger(rfkill, rfkill->state);
  }
- static void rtc_uie_timer(unsigned long data)
- {
-diff -puN drivers/rtc/rtc-ds1305.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-ds1305.c
---- a/drivers/rtc/rtc-ds1305.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-ds1305.c
-@@ -499,10 +499,7 @@ static void ds1305_work(struct work_stru
- 	if (!test_bit(FLAG_EXITING, &ds1305->flags))
- 		enable_irq(spi->irq);
++#else
++static inline void rfkill_led_trigger(struct rfkill *rfkill,
++					enum rfkill_state state)
++{
++}
+ #endif /* CONFIG_RFKILL_LEDS */
  
--	/* rtc_update_irq() requires an IRQ-disabled context */
--	local_irq_disable();
- 	rtc_update_irq(ds1305->rtc, 1, RTC_AF | RTC_IRQF);
--	local_irq_enable();
- }
- 
- /*
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -267,12 +267,7 @@ static void ds1307_work(struct work_stru
- 		control &= ~DS1337_BIT_A1IE;
- 		i2c_smbus_write_byte_data(client, DS1337_REG_CONTROL, control);
- 
--		/* rtc_update_irq() assumes that it is called
--		 * from IRQ-disabled context.
--		 */
--		local_irq_disable();
- 		rtc_update_irq(ds1307->rtc, 1, RTC_AF | RTC_IRQF);
--		local_irq_enable();
- 	}
- 
- out:
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -296,12 +296,7 @@ static void ds1374_work(struct work_stru
- 		control &= ~(DS1374_REG_CR_WACE | DS1374_REG_CR_AIE);
- 		i2c_smbus_write_byte_data(client, DS1374_REG_CR, control);
- 
--		/* rtc_update_irq() assumes that it is called
--		 * from IRQ-disabled context.
--		 */
--		local_irq_disable();
- 		rtc_update_irq(ds1374->rtc, 1, RTC_AF | RTC_IRQF);
--		local_irq_enable();
- 	}
- 
- out:
-diff -puN drivers/rtc/rtc-test.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-test.c
---- a/drivers/rtc/rtc-test.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-test.c
-@@ -93,7 +93,6 @@ static ssize_t test_irq_store(struct dev
- 	struct rtc_device *rtc = platform_get_drvdata(plat_dev);
- 
- 	retval = count;
--	local_irq_disable();
- 	if (strncmp(buf, "tick", 4) == 0)
- 		rtc_update_irq(rtc, 1, RTC_PF | RTC_IRQF);
- 	else if (strncmp(buf, "alarm", 5) == 0)
-@@ -102,7 +101,6 @@ static ssize_t test_irq_store(struct dev
- 		rtc_update_irq(rtc, 1, RTC_UF | RTC_IRQF);
- 	else
- 		retval = -EINVAL;
--	local_irq_enable();
- 
- 	return retval;
- }
+ static void rfkill_uevent(struct rfkill *rfkill)
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
-serial_txx9-use-container_of-instead-of-direct-cast.patch
-rtc-rtc-ds1742-nvram-attribute-fix.patch
-rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+block-turn-some-buggy-macros-into-c-functions.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
