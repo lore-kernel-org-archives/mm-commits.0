@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + v4l-dvb-cimax2c-fix-typo.patch added to -mm tree
-Date: Mon, 27 Apr 2009 12:10:29 -0700
-Message-ID: <200904271910.n3RJATUb005546@imap1.linux-foundation.org>
+Subject: + mg_disk-fix-locking.patch added to -mm tree
+Date: Mon, 27 Apr 2009 12:07:25 -0700
+Message-ID: <200904271907.n3RJ7PmR003892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757066AbZD0TOA (ORCPT
+	by vger.kernel.org with ESMTP id S932442AbZD0TK5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Apr 2009 15:14:00 -0400
+	Mon, 27 Apr 2009 15:10:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, aospan@netup.ru, liplianin@netup.ru, mchehab@infradead.org
+Cc: tj@kernel.org, donari75@gmail.com, jens.axboe@oracle.com
 
 
 The patch titled
-     V4L/DVB: cimax2.c: fix &/&& typo
+     mg_disk: fix locking
 has been added to the -mm tree.  Its filename is
-     v4l-dvb-cimax2c-fix-typo.patch
+     mg_disk-fix-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: V4L/DVB: cimax2.c: fix &/&& typo
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: mg_disk: fix locking
+From: Tejun Heo <tj@kernel.org>
 
-binary/logical and typo
+IRQ and timeout handlers call functions which expect locked queue lock
+without locking it.  Fix it.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Abylay Ospan <aospan@netup.ru>
-Cc: Igor M. Liplianin <liplianin@netup.ru>
+While at it, convert 0s used as null pointer constant to NULLs.
+
+[ Impact: fix locking, cleanup ]
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: unsik Kim <donari75@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx23885/cimax2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/mg_disk.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/video/cx23885/cimax2.c~v4l-dvb-cimax2c-fix-typo drivers/media/video/cx23885/cimax2.c
---- a/drivers/media/video/cx23885/cimax2.c~v4l-dvb-cimax2c-fix-typo
-+++ a/drivers/media/video/cx23885/cimax2.c
-@@ -312,7 +312,7 @@ static void netup_read_ci_status(struct 
- 		"TS config = %02x\n", __func__, state->ci_i2c_addr, 0, buf[0],
- 		buf[32]);
+diff -puN drivers/block/mg_disk.c~mg_disk-fix-locking drivers/block/mg_disk.c
+--- a/drivers/block/mg_disk.c~mg_disk-fix-locking
++++ a/drivers/block/mg_disk.c
+@@ -160,11 +160,16 @@ static irqreturn_t mg_irq(int irq, void 
+ 	struct mg_host *host = dev_id;
+ 	void (*handler)(struct mg_host *) = host->mg_do_intr;
  
--	if (buf[0] && 1)
-+	if (buf[0] & 1)
- 		state->status = DVB_CA_EN50221_POLL_CAM_PRESENT |
- 			DVB_CA_EN50221_POLL_CAM_READY;
- 	else
+-	host->mg_do_intr = 0;
++	spin_lock(&host->lock);
++
++	host->mg_do_intr = NULL;
+ 	del_timer(&host->timer);
+ 	if (!handler)
+ 		handler = mg_unexpected_intr;
+ 	handler(host);
++
++	spin_unlock(&host->lock);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -319,7 +324,7 @@ static void mg_read(struct request *req)
+ 
+ 	remains = req->nr_sectors;
+ 
+-	if (mg_out(host, req->sector, req->nr_sectors, MG_CMD_RD, 0) !=
++	if (mg_out(host, req->sector, req->nr_sectors, MG_CMD_RD, NULL) !=
+ 			MG_ERR_NONE)
+ 		mg_bad_rw_intr(host);
+ 
+@@ -363,7 +368,7 @@ static void mg_write(struct request *req
+ 
+ 	remains = req->nr_sectors;
+ 
+-	if (mg_out(host, req->sector, req->nr_sectors, MG_CMD_WR, 0) !=
++	if (mg_out(host, req->sector, req->nr_sectors, MG_CMD_WR, NULL) !=
+ 			MG_ERR_NONE) {
+ 		mg_bad_rw_intr(host);
+ 		return;
+@@ -521,9 +526,11 @@ void mg_times_out(unsigned long data)
+ 	char *name;
+ 	struct request *req;
+ 
++	spin_lock_irq(&host->lock);
++
+ 	req = elv_next_request(host->breq);
+ 	if (!req)
+-		return;
++		goto out_unlock;
+ 
+ 	host->mg_do_intr = NULL;
+ 
+@@ -534,6 +541,8 @@ void mg_times_out(unsigned long data)
+ 	mg_bad_rw_intr(host);
+ 
+ 	mg_request(host->breq);
++out_unlock:
++	spin_unlock_irq(&host->lock);
+ }
+ 
+ static void mg_request_poll(struct request_queue *q)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
 linux-next.patch
-i2c-pxac-timeouts-off-by-1.patch
-drm-fix-lock_test_with_return-macro.patch
-v4l-dvb-cimax2c-fix-typo.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-uwb-event_size-should-be-signed.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-ufs-sector_t-cannot-be-negative.patch
+mg_disk-fix-locking.patch
 
