@@ -1,68 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] romfs-advance-destination-buffer-pointer-when-reading-from-a-blockdev.patch removed from -mm tree
-Date: Mon, 27 Apr 2009 11:17:38 -0700
-Message-ID: <200904271817.n3RIHcID009893@imap1.linux-foundation.org>
+Subject: + fbdev-add-video-modes-for-resolutions-and-timings-of-pal-rgb.patch added to -mm tree
+Date: Mon, 27 Apr 2009 11:53:30 -0700
+Message-ID: <200904271853.n3RIrUvk028908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57351 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756377AbZD0SUc (ORCPT
+	by vger.kernel.org with ESMTP id S1751019AbZD0S4w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Apr 2009 14:20:32 -0400
+	Mon, 27 Apr 2009 14:56:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, dwmw2@infradead.org, monstr@monstr.eu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: paulepanter@users.sourceforge.net, krzysztof.h1@poczta.fm, sparkie@lowbyte.de
 
 
 The patch titled
-     romfs: advance destination buffer pointer when reading from a blockdev
-has been removed from the -mm tree.  Its filename was
-     romfs-advance-destination-buffer-pointer-when-reading-from-a-blockdev.patch
+     fbdev: add video modes for resolutions and timings of PAL RGB
+has been added to the -mm tree.  Its filename is
+     fbdev-add-video-modes-for-resolutions-and-timings-of-pal-rgb.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: romfs: advance destination buffer pointer when reading from a blockdev
-From: David Howells <dhowells@redhat.com>
+Subject: fbdev: add video modes for resolutions and timings of PAL RGB
+From: Paul Menzel <paulepanter@users.sourceforge.net>
 
-RomFS should advance the destination buffer pointer when reading data from
-a blockdev source (the data may be split over multiple blocks, each
-requiring its own sb_read() call).  Without this, all the data is copied
-to the beginning of the output buffer.
+This patch was taken from vga-sync-field version 0.0.3 [1][2].
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Tested-by: Michal Simek <monstr@monstr.eu>
-Cc: David Woodhouse <dwmw2@infradead.org>
+[1] http://lowbyte.de/vga-sync-fields/vga-sync-fields-0.0.3.tgz
+[2] http://git.hellersdorfer-jugendchor.de/?p=3Dvga2scart.git;a=3Dcommit;h=
+=3Dc5c8ed6c51fc9879dbf38d8b91d5db6f4300ea03
+
+Signed-off-by: Thomas Hilber <sparkie@lowbyte.de>
+Signed-off-by: Paul Menzel <paulepanter@users.sourceforge.net>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/storage.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/modedb.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN fs/romfs/storage.c~romfs-advance-destination-buffer-pointer-when-reading-from-a-blockdev fs/romfs/storage.c
---- a/fs/romfs/storage.c~romfs-advance-destination-buffer-pointer-when-reading-from-a-blockdev
-+++ a/fs/romfs/storage.c
-@@ -120,6 +120,7 @@ static int romfs_blk_read(struct super_b
- 			return -EIO;
- 		memcpy(buf, bh->b_data + offset, segment);
- 		brelse(bh);
-+		buf += segment;
- 		buflen -= segment;
- 		pos += segment;
- 	}
+diff -puN drivers/video/modedb.c~fbdev-add-video-modes-for-resolutions-and-timings-of-pal-rgb drivers/video/modedb.c
+--- a/drivers/video/modedb.c~fbdev-add-video-modes-for-resolutions-and-timings-of-pal-rgb
++++ a/drivers/video/modedb.c
+@@ -264,6 +264,14 @@ static const struct fb_videomode modedb[
+ 	/* 1280x800, 60 Hz, 47.403 kHz hsync, WXGA 16:10 aspect ratio */
+ 	NULL, 60, 1280, 800, 12048, 200, 64, 24, 1, 136, 3,
+ 	0, FB_VMODE_NONINTERLACED
++    }, {
++       /* 720x576i @ 50 Hz, 15.625 kHz hsync (PAL RGB) */
++       NULL, 50, 720, 576, 74074, 64, 16, 39, 5, 64, 5,=20
++       0, FB_VMODE_INTERLACED
++    }, {
++       /* 800x520i @ 50 Hz, 15.625 kHz hsync (PAL RGB) */
++       NULL, 50, 800, 520, 58823, 144, 64, 72, 28, 80, 5,=20
++       0, FB_VMODE_INTERLACED
+     },
+ };
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from paulepanter@users.sourceforge.net are
 
-origin.patch
-rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
-frv-duplicate-output_buffer-of-e03.patch
-slow_work_thread-should-do-the-exclusive-wait.patch
-rework-fix-is_single_threaded.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-flat-fix-data-sections-alignment.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
-mutex-subsystem-synchro-test-module.patch
+fbdev-add-video-modes-for-resolutions-and-timings-of-pal-rgb.patch
 
