@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + frv-dont-turn-on-tif_syscall_trace-unconditionally-in-syscall-prologue.patch added to -mm tree
-Date: Mon, 27 Apr 2009 12:54:48 -0700
-Message-ID: <200904271954.n3RJsmwQ028728@imap1.linux-foundation.org>
+Subject: + frv-utrace-implement-tif_notify_resume.patch added to -mm tree
+Date: Mon, 27 Apr 2009 12:54:46 -0700
+Message-ID: <200904271954.n3RJsksZ028725@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48920 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758295AbZD0T4s (ORCPT
+	by vger.kernel.org with ESMTP id S1756833AbZD0T5A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Apr 2009 15:56:48 -0400
+	Mon, 27 Apr 2009 15:57:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dhowells@redhat.com, roland@redhat.com
 
 
 The patch titled
-     frv: don't turn on TIF_SYSCALL_TRACE unconditionally in syscall prologue
+     frv: utrace: implement TIF_NOTIFY_RESUME
 has been added to the -mm tree.  Its filename is
-     frv-dont-turn-on-tif_syscall_trace-unconditionally-in-syscall-prologue.patch
+     frv-utrace-implement-tif_notify_resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: don't turn on TIF_SYSCALL_TRACE unconditionally in syscall prologue
+Subject: frv: utrace: implement TIF_NOTIFY_RESUME
 From: David Howells <dhowells@redhat.com>
 
-Don't turn on TIF_SYSCALL_TRACE unconditionally in syscall prologue in
-FRV's entry.S.  This was originally for debugging stuff and should have
-been removed a long time ago.
+Implement the TIF_NOTIFY_RESUME thread flag, making it call
+do_notify_resume() which then clears it.  This will be added to later by
+utrace.
+
+Also discard TIF_IRET as that's not used by FRV.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/entry.S |    1 -
- 1 file changed, 1 deletion(-)
+ arch/frv/include/asm/thread_info.h |   10 +++++-----
+ arch/frv/kernel/signal.c           |    5 +++++
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN arch/frv/kernel/entry.S~frv-dont-turn-on-tif_syscall_trace-unconditionally-in-syscall-prologue arch/frv/kernel/entry.S
---- a/arch/frv/kernel/entry.S~frv-dont-turn-on-tif_syscall_trace-unconditionally-in-syscall-prologue
-+++ a/arch/frv/kernel/entry.S
-@@ -886,7 +886,6 @@ system_call:
- 	bnc		icc0,#0,__syscall_badsys
+diff -puN arch/frv/include/asm/thread_info.h~frv-utrace-implement-tif_notify_resume arch/frv/include/asm/thread_info.h
+--- a/arch/frv/include/asm/thread_info.h~frv-utrace-implement-tif_notify_resume
++++ a/arch/frv/include/asm/thread_info.h
+@@ -109,20 +109,20 @@ register struct thread_info *__current_t
+  * - other flags in MSW
+  */
+ #define TIF_SYSCALL_TRACE	0	/* syscall trace active */
+-#define TIF_SIGPENDING		1	/* signal pending */
+-#define TIF_NEED_RESCHED	2	/* rescheduling necessary */
+-#define TIF_SINGLESTEP		3	/* restore singlestep on return to user mode */
+-#define TIF_IRET		4	/* return with iret */
++#define TIF_NOTIFY_RESUME	1	/* callback before returning to user */
++#define TIF_SIGPENDING		2	/* signal pending */
++#define TIF_NEED_RESCHED	3	/* rescheduling necessary */
++#define TIF_SINGLESTEP		4	/* restore singlestep on return to user mode */
+ #define TIF_RESTORE_SIGMASK	5	/* restore signal mask in do_signal() */
+ #define TIF_POLLING_NRFLAG	16	/* true if poll_idle() is polling TIF_NEED_RESCHED */
+ #define TIF_MEMDIE		17	/* OOM killer killed process */
+ #define TIF_FREEZE		18	/* freezing for suspend */
  
- 	ldi		@(gr15,#TI_FLAGS),gr4
--	ori		gr4,#_TIF_SYSCALL_TRACE,gr4
- 	andicc		gr4,#_TIF_SYSCALL_TRACE,gr0,icc0
- 	bne		icc0,#0,__syscall_trace_entry
+ #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
++#define _TIF_NOTIFY_RESUME	(1 << TIF_NOTIFY_RESUME)
+ #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
+ #define _TIF_NEED_RESCHED	(1 << TIF_NEED_RESCHED)
+ #define _TIF_SINGLESTEP		(1 << TIF_SINGLESTEP)
+-#define _TIF_IRET		(1 << TIF_IRET)
+ #define _TIF_RESTORE_SIGMASK	(1 << TIF_RESTORE_SIGMASK)
+ #define _TIF_POLLING_NRFLAG	(1 << TIF_POLLING_NRFLAG)
+ #define _TIF_FREEZE		(1 << TIF_FREEZE)
+diff -puN arch/frv/kernel/signal.c~frv-utrace-implement-tif_notify_resume arch/frv/kernel/signal.c
+--- a/arch/frv/kernel/signal.c~frv-utrace-implement-tif_notify_resume
++++ a/arch/frv/kernel/signal.c
+@@ -564,4 +564,9 @@ asmlinkage void do_notify_resume(__u32 t
+ 	if (thread_info_flags & (_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK))
+ 		do_signal();
  
++	/* deal with notification on about to resume userspace execution */
++	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
++		clear_thread_flag(TIF_NOTIFY_RESUME);
++	}
++
+ } /* end do_notify_resume() */
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
