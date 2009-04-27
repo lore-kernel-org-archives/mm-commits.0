@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-try_get_mem_cgroup_from_swapcache.patch added to -mm tree
-Date: Mon, 27 Apr 2009 12:15:51 -0700
-Message-ID: <200904271915.n3RJFpUI008332@imap1.linux-foundation.org>
+Subject: + mfd-pcf50633-gpioc-add-module_license.patch added to -mm tree
+Date: Mon, 27 Apr 2009 12:19:01 -0700
+Message-ID: <200904271919.n3RJJ1q3009953@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36393 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753715AbZD0TSa (ORCPT
+	by vger.kernel.org with ESMTP id S1757117AbZD0TYR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Apr 2009 15:18:30 -0400
+	Mon, 27 Apr 2009 15:24:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: bunk@kernel.org, andy@openmoko.com, balajirrao@openmoko.org, sameo@openedhand.com
 
 
 The patch titled
-     memcg: fix try_get_mem_cgroup_from_swapcache()
+     mfd/pcf50633-gpio.c: add MODULE_LICENSE
 has been added to the -mm tree.  Its filename is
-     memcg-fix-try_get_mem_cgroup_from_swapcache.patch
+     mfd-pcf50633-gpioc-add-module_license.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix try_get_mem_cgroup_from_swapcache()
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: mfd/pcf50633-gpio.c: add MODULE_LICENSE
+From: Adrian Bunk <bunk@kernel.org>
 
-This is a bugfix for commit 3c776e64660028236313f0e54f3a9945764422df
-("memcg: charge swapcache to proper memcg").
+Add the missing MODULE_LICENSE("GPL").
 
-Used bit of swapcache is solid under page lock, but considering
-move_account, pc->mem_cgroup is not.
-
-We need lock_page_cgroup() anyway.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Balaji Rao <balajirrao@openmoko.org>
+Cc: Andy Green <andy@openmoko.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/mfd/pcf50633-gpio.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-fix-try_get_mem_cgroup_from_swapcache mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-try_get_mem_cgroup_from_swapcache
-+++ a/mm/memcontrol.c
-@@ -1024,9 +1024,7 @@ static struct mem_cgroup *try_get_mem_cg
- 		return NULL;
+diff -puN drivers/mfd/pcf50633-gpio.c~mfd-pcf50633-gpioc-add-module_license drivers/mfd/pcf50633-gpio.c
+--- a/drivers/mfd/pcf50633-gpio.c~mfd-pcf50633-gpioc-add-module_license
++++ a/drivers/mfd/pcf50633-gpio.c
+@@ -15,6 +15,7 @@
+  */
  
- 	pc = lookup_page_cgroup(page);
--	/*
--	 * Used bit of swapcache is solid under page lock.
--	 */
-+	lock_page_cgroup(pc);
- 	if (PageCgroupUsed(pc)) {
- 		mem = pc->mem_cgroup;
- 		if (mem && !css_tryget(&mem->css))
-@@ -1040,6 +1038,7 @@ static struct mem_cgroup *try_get_mem_cg
- 			mem = NULL;
- 		rcu_read_unlock();
- 	}
-+	unlock_page_cgroup(pc);
- 	return mem;
+ #include <linux/kernel.h>
++#include <linux/module.h>
+ 
+ #include <linux/mfd/pcf50633/core.h>
+ #include <linux/mfd/pcf50633/gpio.h>
+@@ -116,3 +117,5 @@ int pcf50633_gpio_power_supply_set(struc
+ 	return pcf50633_reg_set_bit_mask(pcf, reg, mask, val);
  }
- 
+ EXPORT_SYMBOL_GPL(pcf50633_gpio_power_supply_set);
++
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-memcg-fix-try_get_mem_cgroup_from_swapcache.patch
-memcg-fix-mem_cgroup_shrink_usage.patch
-memcg-add-file-based-rss-accounting.patch
+linux-next.patch
+mfd-pcf50633-gpioc-add-module_license.patch
+reiser4.patch
 
