@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch added to -mm tree
-Date: Mon, 27 Apr 2009 13:18:24 -0700
-Message-ID: <200904272018.n3RKIOWP008716@imap1.linux-foundation.org>
+Subject: + leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch added to -mm tree
+Date: Mon, 27 Apr 2009 15:03:49 -0700
+Message-ID: <200904272222.n3RMMgWq009212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53553 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752366AbZD0UUv (ORCPT
+	by vger.kernel.org with ESMTP id S1756403AbZD0W0f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Apr 2009 16:20:51 -0400
+	Mon, 27 Apr 2009 18:26:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, roland@redhat.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, grant.likely@secretlab.ca, rpurdie@linux.intel.com, smaclennan@pikatech.com, tpiepho@freescale.com
 
 
 The patch titled
-     ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix
+     leds: of_register_platform_driver() doesn't exist on sparc64
 has been added to the -mm tree.  Its filename is
-     ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+     leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: leds: of_register_platform_driver() doesn't exist on sparc64
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On 04/23, Roland McGrath wrote:
->
-> > tracehook_unsafe_exec() doesn't need task_lock(), remove the old comment.
->
-> Please make it instead say that cred_exec_mutex is held by the caller
-> through the exec.
+drivers/leds/leds-gpio.c: In function `gpio_led_init':
+drivers/leds/leds-gpio.c:295: error: implicit declaration of function `of_register_platform_driver'
+drivers/leds/leds-gpio.c: In function `gpio_led_exit':
+drivers/leds/leds-gpio.c:311: error: implicit declaration of function `of_unregister_platform_driver'
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+So fix this by disabling CONFIG_LEDS_GPIO_OF on non-powerpc architectures.
+
+Cc: Sean MacLennan <smaclennan@pikatech.com>
+Cc: Trent Piepho <tpiepho@freescale.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Richard Purdie <rpurdie@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/leds/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/tracehook.h~ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix include/linux/tracehook.h
---- a/include/linux/tracehook.h~ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix
-+++ a/include/linux/tracehook.h
-@@ -142,6 +142,8 @@ static inline void tracehook_report_sysc
-  * @task:		current task doing exec
-  *
-  * Return %LSM_UNSAFE_* bits applied to an exec because of tracing.
-+ *
-+ * task->cred_exec_mutex is held by the caller through the do_execve().
-  */
- static inline int tracehook_unsafe_exec(struct task_struct *task)
- {
+diff -puN drivers/leds/Kconfig~leds-of_register_platform_driver-doesnt-exist-on-sparc64 drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-of_register_platform_driver-doesnt-exist-on-sparc64
++++ a/drivers/leds/Kconfig
+@@ -139,6 +139,7 @@ config LEDS_GPIO_PLATFORM
+ config LEDS_GPIO_OF
+ 	bool "OpenFirmware platform device bindings for GPIO LEDs"
+ 	depends on LEDS_GPIO && OF_DEVICE
++	depends on POWERPC
+ 	default y
+ 	help
+ 	  Let the leds-gpio driver drive LEDs which have been defined as
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-slow_work_thread-should-do-the-exclusive-wait.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-ptrace-remove-pt_dtrace-from-arch-h8300.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
-ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
-ptrace-remove-pt_dtrace-from-arch-m32r.patch
-ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
-copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-signals-tracehook_notify_jctl-change.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+forcedeth-add-clock-gating-feature-checkpatch-fixes.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+block-turn-some-buggy-macros-into-c-functions.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-close-page_mkwrite-races-try-3-fix.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
 
