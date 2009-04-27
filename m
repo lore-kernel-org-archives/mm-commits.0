@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + fbdev-add-video-modes-for-resolutions-and-timings-of-pal-rgb.patch added to -mm tree
-Date: Mon, 27 Apr 2009 11:53:30 -0700
-Message-ID: <200904271853.n3RIrUvk028908@imap1.linux-foundation.org>
+Date: Mon, 27 Apr 2009 11:55:12 -0700
+Message-ID: <200904271855.n3RItCVu029825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47232 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751019AbZD0S4w (ORCPT
+	by vger.kernel.org with ESMTP id S1752563AbZD0S6f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Apr 2009 14:56:52 -0400
+	Mon, 27 Apr 2009 14:58:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -61,11 +61,11 @@ diff -puN drivers/video/modedb.c~fbdev-add-video-modes-for-resolutions-and-timin
  	0, FB_VMODE_NONINTERLACED
 +    }, {
 +       /* 720x576i @ 50 Hz, 15.625 kHz hsync (PAL RGB) */
-+       NULL, 50, 720, 576, 74074, 64, 16, 39, 5, 64, 5,=20
++       NULL, 50, 720, 576, 74074, 64, 16, 39, 5, 64, 5,
 +       0, FB_VMODE_INTERLACED
 +    }, {
 +       /* 800x520i @ 50 Hz, 15.625 kHz hsync (PAL RGB) */
-+       NULL, 50, 800, 520, 58823, 144, 64, 72, 28, 80, 5,=20
++       NULL, 50, 800, 520, 58823, 144, 64, 72, 28, 80, 5,
 +       0, FB_VMODE_INTERLACED
      },
  };
