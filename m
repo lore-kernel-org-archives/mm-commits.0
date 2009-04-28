@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-kpagecount-kpageflags-code-cleanup.patch added to -mm tree
-Date: Tue, 28 Apr 2009 14:32:59 -0700
-Message-ID: <200904282132.n3SLWxuZ022763@imap1.linux-foundation.org>
+Subject: + mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch added to -mm tree
+Date: Tue, 28 Apr 2009 14:32:57 -0700
+Message-ID: <200904282132.n3SLWvSm022760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40959 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754093AbZD1VhY (ORCPT
+	by vger.kernel.org with ESMTP id S1754158AbZD1Vhc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 17:37:24 -0400
+	Tue, 28 Apr 2009 17:37:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.mot
 
 
 The patch titled
-     proc: kpagecount/kpageflags code cleanup
+     mm: introduce PageHuge() for testing huge/gigantic pages
 has been added to the -mm tree.  Its filename is
-     proc-kpagecount-kpageflags-code-cleanup.patch
+     mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: kpagecount/kpageflags code cleanup
+Subject: mm: introduce PageHuge() for testing huge/gigantic pages
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Move increments of pfn/out to bottom of the loop.
+Introduce PageHuge(), which identifies huge/gigantic pages by their
+dedicated compound destructor functions.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -47,66 +48,84 @@ Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ include/linux/mm.h |   24 ++++++++++++++++++++++++
+ mm/hugetlb.c       |    2 +-
+ mm/page_alloc.c    |   11 ++++++++++-
+ 3 files changed, 35 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/page.c~proc-kpagecount-kpageflags-code-cleanup fs/proc/page.c
---- a/fs/proc/page.c~proc-kpagecount-kpageflags-code-cleanup
-+++ a/fs/proc/page.c
-@@ -32,20 +32,22 @@ static ssize_t kpagecount_read(struct fi
- 		return -EINVAL;
+diff -puN include/linux/mm.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages
++++ a/include/linux/mm.h
+@@ -354,6 +354,30 @@ static inline void set_compound_order(st
+ 	page[1].lru.prev = (void *)order;
+ }
  
- 	while (count > 0) {
--		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
--		pfn++;
-+		else
-+			ppage = NULL;
- 		if (!ppage)
- 			pcount = 0;
- 		else
- 			pcount = page_mapcount(ppage);
++#ifdef CONFIG_HUGETLBFS
++void free_huge_page(struct page *page);
++void free_gigantic_page(struct page *page);
++
++static inline int PageHuge(struct page *page)
++{
++	compound_page_dtor *dtor;
++
++	if (!PageCompound(page))
++		return 0;
++
++	page = compound_head(page);
++	dtor = get_compound_page_dtor(page);
++
++	return  dtor == free_huge_page ||
++		dtor == free_gigantic_page;
++}
++#else
++static inline int PageHuge(struct page *page)
++{
++	return 0;
++}
++#endif
++
+ /*
+  * Multiple processes may "see" the same page. E.g. for untouched
+  * mappings of /dev/null, all processes see the same page full of
+diff -puN mm/hugetlb.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages
++++ a/mm/hugetlb.c
+@@ -550,7 +550,7 @@ struct hstate *size_to_hstate(unsigned l
+ 	return NULL;
+ }
  
--		if (put_user(pcount, out++)) {
-+		if (put_user(pcount, out)) {
- 			ret = -EFAULT;
- 			break;
- 		}
+-static void free_huge_page(struct page *page)
++void free_huge_page(struct page *page)
+ {
+ 	/*
+ 	 * Can't pass hstate in here because it is called from the
+diff -puN mm/page_alloc.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages
++++ a/mm/page_alloc.c
+@@ -305,13 +305,22 @@ void prep_compound_page(struct page *pag
+ }
  
-+		pfn++;
-+		out++;
- 		count -= KPMSIZE;
- 	}
+ #ifdef CONFIG_HUGETLBFS
++/*
++ * This (duplicated) destructor function distinguishes gigantic pages from
++ * normal compound pages.
++ */
++void free_gigantic_page(struct page *page)
++{
++	__free_pages_ok(page, compound_order(page));
++}
++
+ void prep_compound_gigantic_page(struct page *page, unsigned long order)
+ {
+ 	int i;
+ 	int nr_pages = 1 << order;
+ 	struct page *p = page + 1;
  
-@@ -98,10 +100,10 @@ static ssize_t kpageflags_read(struct fi
- 		return -EINVAL;
- 
- 	while (count > 0) {
--		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
--		pfn++;
-+		else
-+			ppage = NULL;
- 		if (!ppage)
- 			kflags = 0;
- 		else
-@@ -119,11 +121,13 @@ static ssize_t kpageflags_read(struct fi
- 			kpf_copy_bit(kflags, KPF_RECLAIM, PG_reclaim) |
- 			kpf_copy_bit(kflags, KPF_BUDDY, PG_buddy);
- 
--		if (put_user(uflags, out++)) {
-+		if (put_user(uflags, out)) {
- 			ret = -EFAULT;
- 			break;
- 		}
- 
-+		pfn++;
-+		out++;
- 		count -= KPMSIZE;
- 	}
- 
+-	set_compound_page_dtor(page, free_compound_page);
++	set_compound_page_dtor(page, free_gigantic_page);
+ 	set_compound_order(page, order);
+ 	__SetPageHead(page);
+ 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
