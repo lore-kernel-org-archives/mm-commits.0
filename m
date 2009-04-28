@@ -1,51 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning.patch removed from -mm tree
-Date: Tue, 28 Apr 2009 12:21:11 -0700
-Message-ID: <200904281921.n3SJLBEA018579@imap1.linux-foundation.org>
+Subject: [merged] 8390p-fix-build-breakage.patch removed from -mm tree
+Date: Tue, 28 Apr 2009 12:25:29 -0700
+Message-ID: <200904281925.n3SJPTLJ020840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34363 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754534AbZD1TXa (ORCPT
+	by vger.kernel.org with ESMTP id S1752337AbZD1T0r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 15:23:30 -0400
+	Tue, 28 Apr 2009 15:26:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: helight.xu@gmail.com, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: a.beregalov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/infiniband/hw/nes/nes_cm.c: fix unused var warning
+     8390p: fix build breakage
 has been removed from the -mm tree.  Its filename was
-     drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning.patch
+     8390p-fix-build-breakage.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/infiniband/hw/nes/nes_cm.c: fix unused var warning
-From: Zhenwen Xu <helight.xu@gmail.com>
+Subject: 8390p: fix build breakage
+From: Alexander Beregalov <a.beregalov@gmail.com>
 
-drivers/infiniband/hw/nes/nes_cm.c:862: warning: unused variable `tmp_addr'
+Fix this build error caused by 362b76edb789
+"8390p: Get rid of init_module/cleanup_module"
 
-The 'tmp_addr' is defined for debug, so it should be defined in
-CONFIG_INFINIBAND_NES_DEBUG
+drivers/net/8390p.c:94:19: error: invalid suffix "p_init_module" on integer constant
+drivers/net/8390p.c:94: error: expected identifier or '(' before numeric constant
+drivers/net/8390p.c:99:20: error: invalid suffix "p_cleanup_module" on integer constant
 
-Signed-off-by: Zhenwen Xu <helight.xu@gmail.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/nes/nes_cm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/8390p.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/infiniband/hw/nes/nes_cm.c~drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning drivers/infiniband/hw/nes/nes_cm.c
---- a/drivers/infiniband/hw/nes/nes_cm.c~drivers-infiniband-hw-nes-nes_cmc-fix-unused-var-warning
-+++ a/drivers/infiniband/hw/nes/nes_cm.c
-@@ -854,8 +854,9 @@ static struct nes_cm_listener *find_list
+diff -puN drivers/net/8390p.c~8390p-fix-build-breakage drivers/net/8390p.c
+--- a/drivers/net/8390p.c~8390p-fix-build-breakage
++++ a/drivers/net/8390p.c
+@@ -91,15 +91,15 @@ void NS8390p_init(struct net_device *dev
+ }
+ EXPORT_SYMBOL(NS8390p_init);
+ 
+-static int __init 8390p_init_module(void)
++static int __init NS8390p_init_module(void)
  {
- 	unsigned long flags;
- 	struct nes_cm_listener *listen_node;
-+#ifdef CONFIG_INFINIBAND_NES_DEBUG
- 	__be32 tmp_addr = cpu_to_be32(dst_addr);
+ 	return 0;
+ }
+ 
+-static void __exit 8390p_cleanup_module(void)
++static void __exit NS8390p_cleanup_module(void)
+ {
+ }
+ 
+-module_init(8390p_init_module);
+-module_exit(8390p_cleanup_module);
++module_init(NS8390p_init_module);
++module_exit(NS8390p_cleanup_module);
+ MODULE_LICENSE("GPL");
+_
+
+Patches currently in -mm which might be from a.beregalov@gmail.com are
+
+origin.patch
+linux-next.patch
+
