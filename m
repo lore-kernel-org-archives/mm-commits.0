@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-committed_as-underfolow-on-large-nr_cpus-environment.patch added to -mm tree
-Date: Tue, 28 Apr 2009 12:57:38 -0700
-Message-ID: <200904281957.n3SJvcKv005163@imap1.linux-foundation.org>
+Subject: + fsnotify-generic-notification-queue-and-waitq.patch added to -mm tree
+Date: Tue, 28 Apr 2009 13:28:10 -0700
+Message-ID: <200904282028.n3SKSAvB021121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40674 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751296AbZD1UDE (ORCPT
+	by vger.kernel.org with ESMTP id S1755097AbZD1Ubx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 16:03:04 -0400
+	Tue, 28 Apr 2009 16:31:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, dave@linux.vnet.ibm.com, ebmunson@us.ibm.com, mel@csn.ul.ie, stable@kernel.org
+Cc: eparis@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     mm: fix Committed_AS underfolow on large NR_CPUS environment
+     fsnotify: generic notification queue and waitq
 has been added to the -mm tree.  Its filename is
-     mm-fix-committed_as-underfolow-on-large-nr_cpus-environment.patch
+     fsnotify-generic-notification-queue-and-waitq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,265 +34,434 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix Committed_AS underfolow on large NR_CPUS environment
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: fsnotify: generic notification queue and waitq
+From: Eric Paris <eparis@redhat.com>
 
-The Committed_AS field can underflow in certain situations:
+inotify needs to do asyc notification in which event information is stored
+on a queue until the listener is ready to receive it.  This patch
+implements a generic notification queue for inotify (and later fanotify)
+to store events to be sent at a later time.
 
->         # while true; do cat /proc/meminfo  | grep _AS; sleep 1; done | uniq -c
->               1 Committed_AS: 18446744073709323392 kB
->              11 Committed_AS: 18446744073709455488 kB
->               6 Committed_AS:    35136 kB
->               5 Committed_AS: 18446744073709454400 kB
->               7 Committed_AS:    35904 kB
->               3 Committed_AS: 18446744073709453248 kB
->               2 Committed_AS:    34752 kB
->               9 Committed_AS: 18446744073709453248 kB
->               8 Committed_AS:    34752 kB
->               3 Committed_AS: 18446744073709320960 kB
->               7 Committed_AS: 18446744073709454080 kB
->               3 Committed_AS: 18446744073709320960 kB
->               5 Committed_AS: 18446744073709454080 kB
->               6 Committed_AS: 18446744073709320960 kB
-
-Because NR_CPUS can be greater than 1000 and meminfo_proc_show() does
-not check for underflow.
-
-But NR_CPUS proportional isn't good calculation.  In general,
-possibility of lock contention is proportional to the number of online
-cpus, not theorical maximum cpus (NR_CPUS).
-
-The current kernel has generic percpu-counter stuff.  using it is right
-way.  it makes code simplify and percpu_counter_read_positive() don't
-make underflow issue.
-
-Reported-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Eric B Munson <ebmunson@us.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: <stable@kernel.org>		[All kernel versions]
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c    |    2 -
- include/linux/mman.h |    9 ++------
- mm/mmap.c            |   12 +++++-----
- mm/nommu.c           |   13 ++++++-----
- mm/swap.c            |   46 -----------------------------------------
- 5 files changed, 17 insertions(+), 65 deletions(-)
+ fs/notify/fsnotify.h             |    9 +
+ fs/notify/group.c                |    9 +
+ fs/notify/notification.c         |  230 ++++++++++++++++++++++++++++-
+ include/linux/fsnotify_backend.h |   37 ++++
+ 4 files changed, 278 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/meminfo.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
-+++ a/fs/proc/meminfo.c
-@@ -35,7 +35,7 @@ static int meminfo_proc_show(struct seq_
- #define K(x) ((x) << (PAGE_SHIFT - 10))
- 	si_meminfo(&i);
- 	si_swapinfo(&i);
--	committed = atomic_long_read(&vm_committed_space);
-+	committed = percpu_counter_read_positive(&vm_committed_as);
- 	allowed = ((totalram_pages - hugetlb_total_pages())
- 		* sysctl_overcommit_ratio / 100) + total_swap_pages;
+diff -puN fs/notify/fsnotify.h~fsnotify-generic-notification-queue-and-waitq fs/notify/fsnotify.h
+--- a/fs/notify/fsnotify.h~fsnotify-generic-notification-queue-and-waitq
++++ a/fs/notify/fsnotify.h
+@@ -13,8 +13,12 @@ extern struct list_head fsnotify_groups;
+ /* all bitwise OR of all event types (FS_*) for all fsnotify_groups */
+ extern __u32 fsnotify_mask;
  
-diff -puN include/linux/mman.h~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment include/linux/mman.h
---- a/include/linux/mman.h~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
-+++ a/include/linux/mman.h
-@@ -12,21 +12,18 @@
- 
- #ifdef __KERNEL__
- #include <linux/mm.h>
-+#include <linux/percpu_counter.h>
- 
- #include <asm/atomic.h>
- 
- extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
--extern atomic_long_t vm_committed_space;
-+extern struct percpu_counter vm_committed_as;
- 
--#ifdef CONFIG_SMP
--extern void vm_acct_memory(long pages);
--#else
- static inline void vm_acct_memory(long pages)
++/* destroy all events sitting in this groups notification queue */
++extern void fsnotify_flush_notify(struct fsnotify_group *group);
++
+ /* final kfree of a group */
+ extern void fsnotify_final_destroy_group(struct fsnotify_group *group);
++
+ /* run the list of all marks associated with inode and flag them to be freed */
+ extern void fsnotify_clear_marks_by_inode(struct inode *inode);
+ /*
+@@ -22,4 +26,9 @@ extern void fsnotify_clear_marks_by_inod
+  * about events that happen to its children.
+  */
+ extern void __fsnotify_update_child_dentry_flags(struct inode *inode);
++
++/* allocate and destroy and event holder to attach events to notification/access queues */
++extern struct fsnotify_event_holder *fsnotify_alloc_event_holder(void);
++extern void fsnotify_destroy_event_holder(struct fsnotify_event_holder *holder);
++
+ #endif	/* __FS_NOTIFY_FSNOTIFY_H_ */
+diff -puN fs/notify/group.c~fsnotify-generic-notification-queue-and-waitq fs/notify/group.c
+--- a/fs/notify/group.c~fsnotify-generic-notification-queue-and-waitq
++++ a/fs/notify/group.c
+@@ -91,6 +91,9 @@ static void fsnotify_get_group(struct fs
+  */
+ void fsnotify_final_destroy_group(struct fsnotify_group *group)
  {
--	atomic_long_add(pages, &vm_committed_space);
-+	percpu_counter_add(&vm_committed_as, pages);
++	/* clear the notification queue of all events */
++	fsnotify_flush_notify(group);
++
+ 	if (group->ops->free_group_priv)
+ 		group->ops->free_group_priv(group);
+ 
+@@ -214,6 +217,12 @@ struct fsnotify_group *fsnotify_obtain_g
+ 	group->group_num = group_num;
+ 	group->mask = mask;
+ 
++	mutex_init(&group->notification_mutex);
++	INIT_LIST_HEAD(&group->notification_list);
++	init_waitqueue_head(&group->notification_waitq);
++	group->q_len = 0;
++	group->max_events = UINT_MAX;
++
+ 	spin_lock_init(&group->mark_lock);
+ 	atomic_set(&group->num_marks, 0);
+ 	INIT_LIST_HEAD(&group->mark_entries);
+diff -puN fs/notify/notification.c~fsnotify-generic-notification-queue-and-waitq fs/notify/notification.c
+--- a/fs/notify/notification.c~fsnotify-generic-notification-queue-and-waitq
++++ a/fs/notify/notification.c
+@@ -16,6 +16,21 @@
+  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++/*
++ * Basic idea behind the notification queue: An fsnotify group (like inotify)
++ * sends the userspace notification about events asyncronously some time after
++ * the event happened.  When inotify gets an event it will need to add that
++ * event to the group notify queue.  Since a single event might need to be on
++ * multiple group's notification queues we can't add the event directly to each
++ * queue and instead add a small "event_holder" to each queue.  This event_holder
++ * has a pointer back to the original event.  Since the majority of events are
++ * going to end up on one, and only one, notification queue we embed one
++ * event_holder into each event.  This means we have a single allocation instead
++ * of always needing two.  If the embedded event_holder is already in use by
++ * another group a new event_holder (from fsnotify_event_holder_cachep) will be
++ * allocated and used.
++ */
++
+ #include <linux/fs.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -33,6 +48,21 @@
+ #include "fsnotify.h"
+ 
+ static struct kmem_cache *fsnotify_event_cachep;
++static struct kmem_cache *fsnotify_event_holder_cachep;
++/*
++ * This is a magic event we send when the q is too full.  Since it doesn't
++ * hold real event information we just keep one system wide and use it any time
++ * it is needed.  It's refcnt is set 1 at kernel init time and will never
++ * get set to 0 so it will never get 'freed'
++ */
++static struct fsnotify_event q_overflow_event;
++
++/* return true if the notify queue is empty, false otherwise */
++bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group)
++{
++	BUG_ON(!mutex_is_locked(&group->notification_mutex));
++	return list_empty(&group->notification_list) ? true : false;
++}
+ 
+ void fsnotify_get_event(struct fsnotify_event *event)
+ {
+@@ -52,19 +82,176 @@ void fsnotify_put_event(struct fsnotify_
+ 	}
  }
--#endif
  
- static inline void vm_unacct_memory(long pages)
++struct fsnotify_event_holder *fsnotify_alloc_event_holder(void)
++{
++	return kmem_cache_alloc(fsnotify_event_holder_cachep, GFP_KERNEL);
++}
++
++void fsnotify_destroy_event_holder(struct fsnotify_event_holder *holder)
++{
++	kmem_cache_free(fsnotify_event_holder_cachep, holder);
++}
++
+ /*
+- * Allocate a new event which will be sent to each group's handle_event function
+- * if the group was interested in this particular event.
++ * check if 2 events contain the same information.
+  */
+-struct fsnotify_event *fsnotify_create_event(struct inode *to_tell, __u32 mask,
+-					     void *data, int data_type)
++static bool event_compare(struct fsnotify_event *old, struct fsnotify_event *new)
++{
++	if ((old->mask == new->mask) &&
++	    (old->to_tell == new->to_tell) &&
++	    (old->data_type == new->data_type)) {
++		switch (old->data_type) {
++		case (FSNOTIFY_EVENT_INODE):
++			if (old->inode == new->inode)
++				return true;
++			break;
++		case (FSNOTIFY_EVENT_PATH):
++			if ((old->path.mnt == new->path.mnt) &&
++			    (old->path.dentry == new->path.dentry))
++				return true;
++		case (FSNOTIFY_EVENT_NONE):
++			return true;
++		};
++	}
++	return false;
++}
++
++/*
++ * Add an event to the group notification queue.  The group can later pull this
++ * event off the queue to deal with.  If the event is successfully added to the
++ * group's notification queue, a reference is taken on event.
++ */
++int fsnotify_add_notify_event(struct fsnotify_group *group, struct fsnotify_event *event)
++{
++	struct fsnotify_event_holder *holder = NULL;
++	struct list_head *list = &group->notification_list;
++	struct fsnotify_event_holder *last_holder;
++	struct fsnotify_event *last_event;
++
++	/*
++	 * There is one fsnotify_event_holder embedded inside each fsnotify_event.
++	 * Check if we expect to be able to use that holder.  If not alloc a new
++	 * holder.
++	 * For the overflow event it's possible that something will use the in
++	 * event holder before we get the lock so we may need to jump back and
++	 * alloc a new holder, this can't happen for most events...
++	 */
++	if (!list_empty(&event->holder.event_list)) {
++alloc_holder:
++		holder = fsnotify_alloc_event_holder();
++		if (!holder)
++			return -ENOMEM;
++	}
++
++	mutex_lock(&group->notification_mutex);
++
++	if (group->q_len >= group->max_events)
++		event = &q_overflow_event;
++
++	spin_lock(&event->lock);
++
++	if (list_empty(&event->holder.event_list)) {
++		if (unlikely(holder))
++			fsnotify_destroy_event_holder(holder);
++		holder = &event->holder;
++	} else if (unlikely(!holder)) {
++		/* between the time we checked above and got the lock the in
++		 * event holder was used, go back and get a new one */
++		spin_unlock(&event->lock);
++		mutex_unlock(&group->notification_mutex);
++		goto alloc_holder;
++	}
++
++	if (!list_empty(list)) {
++		last_holder = list_entry(list->prev, struct fsnotify_event_holder, event_list);
++		last_event = last_holder->event;
++		if (event_compare(last_event, event)) {
++			spin_unlock(&event->lock);
++			mutex_unlock(&group->notification_mutex);
++			if (holder != &event->holder)
++				fsnotify_destroy_event_holder(holder);
++			return 0;
++		}
++	}
++
++	group->q_len++;
++	holder->event = event;
++
++	fsnotify_get_event(event);
++	list_add_tail(&holder->event_list, list);
++	spin_unlock(&event->lock);
++	mutex_unlock(&group->notification_mutex);
++
++	wake_up(&group->notification_waitq);
++	return 0;
++}
++
++/*
++ * Remove and return the first event from the notification list.  There is a
++ * reference held on this event since it was on the list.  It is the responsibility
++ * of the caller to drop this reference.
++ */
++struct fsnotify_event *fsnotify_remove_notify_event(struct fsnotify_group *group)
  {
-diff -puN mm/mmap.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment mm/mmap.c
---- a/mm/mmap.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
-+++ a/mm/mmap.c
-@@ -85,7 +85,7 @@ EXPORT_SYMBOL(vm_get_page_prot);
- int sysctl_overcommit_memory = OVERCOMMIT_GUESS;  /* heuristic overcommit */
- int sysctl_overcommit_ratio = 50;	/* default is 50% */
- int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
--atomic_long_t vm_committed_space = ATOMIC_LONG_INIT(0);
-+struct percpu_counter vm_committed_as;
+ 	struct fsnotify_event *event;
++	struct fsnotify_event_holder *holder;
+ 
+-	event = kmem_cache_alloc(fsnotify_event_cachep, GFP_KERNEL);
+-	if (!event)
+-		return NULL;
++	BUG_ON(!mutex_is_locked(&group->notification_mutex));
+ 
++	holder = list_first_entry(&group->notification_list, struct fsnotify_event_holder, event_list);
++
++	event = holder->event;
++
++	spin_lock(&event->lock);
++	holder->event = NULL;
++	list_del_init(&holder->event_list);
++	spin_unlock(&event->lock);
++
++	/* event == holder means we are referenced through the in event holder */
++	if (holder != &event->holder)
++		fsnotify_destroy_event_holder(holder);
++
++	group->q_len--;
++
++	return event;
++}
++
++/*
++ * This will not remove the event, that must be done with fsnotify_remove_notify_event()
++ */
++struct fsnotify_event *fsnotify_peek_notify_event(struct fsnotify_group *group)
++{
++	struct fsnotify_event *event;
++	struct fsnotify_event_holder *holder;
++
++	BUG_ON(!mutex_is_locked(&group->notification_mutex));
++
++	holder = list_first_entry(&group->notification_list, struct fsnotify_event_holder, event_list);
++	event = holder->event;
++
++	return event;
++}
++
++/*
++ * Called when a group is being torn down to clean up any outstanding
++ * event notifications.
++ */
++void fsnotify_flush_notify(struct fsnotify_group *group)
++{
++	struct fsnotify_event *event;
++
++	mutex_lock(&group->notification_mutex);
++	while (!fsnotify_notify_queue_is_empty(group)) {
++		event = fsnotify_remove_notify_event(group);
++		fsnotify_put_event(event); /* matches fsnotify_add_notify_event */
++	}
++	mutex_unlock(&group->notification_mutex);
++}
++
++static void initialize_event(struct fsnotify_event *event)
++{
++	event->holder.event = NULL;
++	INIT_LIST_HEAD(&event->holder.event_list);
+ 	atomic_set(&event->refcnt, 1);
+ 
+ 	spin_lock_init(&event->lock);
+@@ -72,7 +259,32 @@ struct fsnotify_event *fsnotify_create_e
+ 	event->path.dentry = NULL;
+ 	event->path.mnt = NULL;
+ 	event->inode = NULL;
++	event->data_type = FSNOTIFY_EVENT_NONE;
++
++	event->to_tell = NULL;
++}
++
++/*
++ * fsnotify_create_event - Allocate a new event which will be sent to each
++ * group's handle_event function if the group was interested in this
++ * particular event.
++ *
++ * @to_tell the inode which is supposed to receive the event (sometimes a
++ *	parent of the inode to which the event happened.
++ * @mask what actually happened.
++ * @data pointer to the object which was actually affected
++ * @data_type flag indication if the data is a file, path, inode, nothing...
++ */
++struct fsnotify_event *fsnotify_create_event(struct inode *to_tell, __u32 mask,
++					     void *data, int data_type)
++{
++	struct fsnotify_event *event;
+ 
++	event = kmem_cache_alloc(fsnotify_event_cachep, GFP_KERNEL);
++	if (!event)
++		return NULL;
++
++	initialize_event(event);
+ 	event->to_tell = to_tell;
+ 
+ 	switch (data_type) {
+@@ -114,6 +326,10 @@ struct fsnotify_event *fsnotify_create_e
+ __init int fsnotify_notification_init(void)
+ {
+ 	fsnotify_event_cachep = KMEM_CACHE(fsnotify_event, SLAB_PANIC);
++	fsnotify_event_holder_cachep = KMEM_CACHE(fsnotify_event_holder, SLAB_PANIC);
++
++	initialize_event(&q_overflow_event);
++	q_overflow_event.mask = FS_Q_OVERFLOW;
+ 
+ 	return 0;
+ }
+diff -puN include/linux/fsnotify_backend.h~fsnotify-generic-notification-queue-and-waitq include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fsnotify-generic-notification-queue-and-waitq
++++ a/include/linux/fsnotify_backend.h
+@@ -119,6 +119,13 @@ struct fsnotify_group {
+ 
+ 	const struct fsnotify_ops *ops;	/* how this group handles things */
+ 
++	/* needed to send notification to userspace */
++	struct mutex notification_mutex;	/* protect the notification_list */
++	struct list_head notification_list;	/* list of event_holder this group needs to send to userspace */
++	wait_queue_head_t notification_waitq;	/* read() on the notification file blocks on this waitq */
++	unsigned int q_len;			/* events on the queue */
++	unsigned int max_events;		/* maximum events allowed on the list */
++
+ 	/* stores all fastapth entries assoc with this group so they can be cleaned on unregister */
+ 	spinlock_t mark_lock;		/* protect mark_entries list */
+ 	atomic_t num_marks;		/* 1 for each mark entry and 1 for not being
+@@ -136,11 +143,32 @@ struct fsnotify_group {
+ };
  
  /*
-  * Check that a process has enough memory to allocate a new virtual
-@@ -179,11 +179,7 @@ int __vm_enough_memory(struct mm_struct 
- 	if (mm)
- 		allowed -= mm->total_vm / 32;
- 
--	/*
--	 * cast `allowed' as a signed long because vm_committed_space
--	 * sometimes has a negative value
--	 */
--	if (atomic_long_read(&vm_committed_space) < (long)allowed)
-+	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
- 		return 0;
- error:
- 	vm_unacct_memory(pages);
-@@ -2481,4 +2477,8 @@ void mm_drop_all_locks(struct mm_struct 
-  */
- void __init mmap_init(void)
- {
-+	int ret;
++ * A single event can be queued in multiple group->notification_lists.
++ *
++ * each group->notification_list will point to an event_holder which in turns points
++ * to the actual event that needs to be sent to userspace.
++ *
++ * Seemed cheaper to create a refcnt'd event and a small holder for every group
++ * than create a different event for every group
++ *
++ */
++struct fsnotify_event_holder {
++	struct fsnotify_event *event;
++	struct list_head event_list;
++};
 +
-+	ret = percpu_counter_init(&vm_committed_as, 0);
-+	VM_BUG_ON(ret);
- }
-diff -puN mm/nommu.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment mm/nommu.c
---- a/mm/nommu.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
-+++ a/mm/nommu.c
-@@ -62,7 +62,7 @@ void *high_memory;
- struct page *mem_map;
- unsigned long max_mapnr;
- unsigned long num_physpages;
--atomic_long_t vm_committed_space = ATOMIC_LONG_INIT(0);
-+struct percpu_counter vm_committed_as;
- int sysctl_overcommit_memory = OVERCOMMIT_GUESS; /* heuristic overcommit */
- int sysctl_overcommit_ratio = 50; /* default is 50% */
- int sysctl_max_map_count = DEFAULT_MAX_MAP_COUNT;
-@@ -463,6 +463,10 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
++/*
+  * all of the information about the original object we want to now send to
+  * a group.  If you want to carry more info from the accessing task to the
+  * listener this structure is where you need to be adding fields.
   */
- void __init mmap_init(void)
- {
-+	int ret;
+ struct fsnotify_event {
++	/*
++	 * If we create an event we are also likely going to need a holder
++	 * to link to a group.  So embed one holder in the event.  Means only
++	 * one allocation for the common case where we only have one group
++	 */
++	struct fsnotify_event_holder holder;
+ 	spinlock_t lock;	/* protection for the associated event_holder and private_list */
+ 	/* to_tell may ONLY be dereferenced during handle_event(). */
+ 	struct inode *to_tell;	/* either the inode the event happened to or its parent */
+@@ -264,6 +292,15 @@ extern void fsnotify_put_event(struct fs
+ extern struct fsnotify_event_private_data *fsnotify_get_priv_from_event(struct fsnotify_group *group,
+ 									struct fsnotify_event *event);
+ 
++/* attach the event to the group notification queue */
++extern int fsnotify_add_notify_event(struct fsnotify_group *group, struct fsnotify_event *event);
++/* true if the group notification queue is empty */
++extern bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group);
++/* return, but do not dequeue the first event on the notification queue */
++extern struct fsnotify_event *fsnotify_peek_notify_event(struct fsnotify_group *group);
++/* reutnr AND dequeue the first event on the notification queue */
++extern struct fsnotify_event *fsnotify_remove_notify_event(struct fsnotify_group *group);
 +
-+	ret = percpu_counter_init(&vm_committed_as, 0);
-+	VM_BUG_ON(ret);
- 	vm_region_jar = KMEM_CACHE(vm_region, SLAB_PANIC);
- }
+ /* functions used to manipulate the marks attached to inodes */
  
-@@ -1847,12 +1851,9 @@ int __vm_enough_memory(struct mm_struct 
- 	if (mm)
- 		allowed -= mm->total_vm / 32;
- 
--	/*
--	 * cast `allowed' as a signed long because vm_committed_space
--	 * sometimes has a negative value
--	 */
--	if (atomic_long_read(&vm_committed_space) < (long)allowed)
-+	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
- 		return 0;
-+
- error:
- 	vm_unacct_memory(pages);
- 
-diff -puN mm/swap.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment mm/swap.c
---- a/mm/swap.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
-+++ a/mm/swap.c
-@@ -491,49 +491,6 @@ unsigned pagevec_lookup_tag(struct pagev
- 
- EXPORT_SYMBOL(pagevec_lookup_tag);
- 
--#ifdef CONFIG_SMP
--/*
-- * We tolerate a little inaccuracy to avoid ping-ponging the counter between
-- * CPUs
-- */
--#define ACCT_THRESHOLD	max(16, NR_CPUS * 2)
--
--static DEFINE_PER_CPU(long, committed_space);
--
--void vm_acct_memory(long pages)
--{
--	long *local;
--
--	preempt_disable();
--	local = &__get_cpu_var(committed_space);
--	*local += pages;
--	if (*local > ACCT_THRESHOLD || *local < -ACCT_THRESHOLD) {
--		atomic_long_add(*local, &vm_committed_space);
--		*local = 0;
--	}
--	preempt_enable();
--}
--
--#ifdef CONFIG_HOTPLUG_CPU
--
--/* Drop the CPU's cached committed space back into the central pool. */
--static int cpu_swap_callback(struct notifier_block *nfb,
--			     unsigned long action,
--			     void *hcpu)
--{
--	long *committed;
--
--	committed = &per_cpu(committed_space, (long)hcpu);
--	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
--		atomic_long_add(*committed, &vm_committed_space);
--		*committed = 0;
--		drain_cpu_pagevecs((long)hcpu);
--	}
--	return NOTIFY_OK;
--}
--#endif /* CONFIG_HOTPLUG_CPU */
--#endif /* CONFIG_SMP */
--
- /*
-  * Perform any setup for the swap system
-  */
-@@ -554,7 +511,4 @@ void __init swap_setup(void)
- 	 * Right now other parts of the system means that we
- 	 * _really_ don't want to cluster much more
- 	 */
--#ifdef CONFIG_HOTPLUG_CPU
--	hotcpu_notifier(cpu_swap_callback, 0);
--#endif
- }
+ /* run all marks associated with an inode and update inode->i_fsnotify_mask */
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from eparis@redhat.com are
 
-memcg-fix-mem_cgroup_shrink_usage.patch
-mm-fix-committed_as-underfolow-on-large-nr_cpus-environment.patch
-procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
-page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
-page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
-page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
-page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-inline-__rmqueue_smallest.patch
-page-allocator-inline-buffered_rmqueue.patch
-page-allocator-inline-__rmqueue_fallback.patch
-page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
-page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
-page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
-page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
-page-allocator-update-nr_free_pages-only-as-necessary.patch
-page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
-page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-page-allocator-move-free_page_mlock-to-page_allocc.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-memcg-add-file-based-rss-accounting.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+linux-next.patch
+mutex-add-atomic_dec_and_mutex_lock.patch
+fsnotify-unified-filesystem-notification-backend.patch
+fsnotify-add-marks-to-inodes-so-groups-can-interpret-how-to-handle-those-inodes.patch
+fsnotify-parent-event-notification.patch
+dnotify-reimplement-dnotify-using-fsnotify.patch
+fsnotify-generic-notification-queue-and-waitq.patch
+fsnotify-include-pathnames-with-entries-when-possible.patch
+fsnotify-add-correlations-between-events.patch
+fsnotify-allow-groups-to-add-private-data-to-events.patch
+fsnotify-fsnotify-marks-on-inodes-pin-them-in-core.patch
+fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch
+inotify-reimplement-inotify-using-fsnotify.patch
 
