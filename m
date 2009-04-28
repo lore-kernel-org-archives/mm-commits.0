@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-restrict-syntax-for-private-and-public.patch added to -mm tree
-Date: Tue, 28 Apr 2009 15:23:36 -0700
-Message-ID: <200904282223.n3SMNblV016955@imap1.linux-foundation.org>
+Subject: + cgroups-make-messages-more-readable.patch added to -mm tree
+Date: Tue, 28 Apr 2009 15:22:40 -0700
+Message-ID: <200904282222.n3SMMeB2016513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59774 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753079AbZD1WZI (ORCPT
+	by vger.kernel.org with ESMTP id S1752802AbZD1WZ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 18:25:08 -0400
+	Tue, 28 Apr 2009 18:25:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     kernel-doc: restrict syntax for private: and public:
+     cgroups: make messages more readable
 has been added to the -mm tree.  Its filename is
-     kernel-doc-restrict-syntax-for-private-and-public.patch
+     cgroups-make-messages-more-readable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: restrict syntax for private: and public:
+Subject: cgroups: make messages more readable
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-scripts/kernel-doc can (incorrectly) delete struct members that are
-surrounded by /* ...  */ <struct members> /* ...  */ if there is a /*
-private: */ comment in there somewhere also.
-
-Fix that by making the "/* private:" only allow whitespace between /* and
-"private:", not anything/everything in the world.
-
-This fixes some erroneous kernel-doc warnings that popped up while
-processing include/linux/usb/composite.h.
+Fix some cgroup messages to read better.
+Update MAINTAINERS to include mm/*cgroup* files.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-doc-nano-HOWTO.txt |    7 +++++--
- scripts/kernel-doc                      |    7 ++++---
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ MAINTAINERS      |    1 +
+ mm/page_cgroup.c |   14 +++++++-------
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/kernel-doc-nano-HOWTO.txt~kernel-doc-restrict-syntax-for-private-and-public Documentation/kernel-doc-nano-HOWTO.txt
---- a/Documentation/kernel-doc-nano-HOWTO.txt~kernel-doc-restrict-syntax-for-private-and-public
-+++ a/Documentation/kernel-doc-nano-HOWTO.txt
-@@ -269,7 +269,10 @@ Use the argument mechanism to document m
+diff -puN MAINTAINERS~cgroups-make-messages-more-readable MAINTAINERS
+--- a/MAINTAINERS~cgroups-make-messages-more-readable
++++ a/MAINTAINERS
+@@ -1522,6 +1522,7 @@ L:	containers@lists.linux-foundation.org
+ S:	Maintained
+ F:	include/linux/cgroup*
+ F:	kernel/cgroup*
++F:	mm/*cgroup*
  
- Inside a struct description, you can use the "private:" and "public:"
- comment tags.  Structure fields that are inside a "private:" area
--are not listed in the generated output documentation.
-+are not listed in the generated output documentation.  The "private:"
-+and "public:" tags must begin immediately following a "/*" comment
-+marker.  They may optionally include comments between the ":" and the
-+ending "*/" marker.
+ CORETEMP HARDWARE MONITORING DRIVER
+ P:	Rudolf Marek
+diff -puN mm/page_cgroup.c~cgroups-make-messages-more-readable mm/page_cgroup.c
+--- a/mm/page_cgroup.c~cgroups-make-messages-more-readable
++++ a/mm/page_cgroup.c
+@@ -83,12 +83,12 @@ void __init page_cgroup_init(void)
+ 			goto fail;
+ 	}
+ 	printk(KERN_INFO "allocated %ld bytes of page_cgroup\n", total_usage);
+-	printk(KERN_INFO "please try cgroup_disable=memory option if you"
+-	" don't want\n");
++	printk(KERN_INFO "please try 'cgroup_disable=memory' option if you"
++	" don't want memory cgroups\n");
+ 	return;
+ fail:
+-	printk(KERN_CRIT "allocation of page_cgroup was failed.\n");
+-	printk(KERN_CRIT "please try cgroup_disable=memory boot option\n");
++	printk(KERN_CRIT "allocation of page_cgroup failed.\n");
++	printk(KERN_CRIT "please try 'cgroup_disable=memory' boot option\n");
+ 	panic("Out of memory");
+ }
  
- Example:
+@@ -257,14 +257,14 @@ void __init page_cgroup_init(void)
+ 		fail = init_section_page_cgroup(pfn);
+ 	}
+ 	if (fail) {
+-		printk(KERN_CRIT "try cgroup_disable=memory boot option\n");
++		printk(KERN_CRIT "try 'cgroup_disable=memory' boot option\n");
+ 		panic("Out of memory");
+ 	} else {
+ 		hotplug_memory_notifier(page_cgroup_callback, 0);
+ 	}
+ 	printk(KERN_INFO "allocated %ld bytes of page_cgroup\n", total_usage);
+-	printk(KERN_INFO "please try cgroup_disable=memory option if you don't"
+-	" want\n");
++	printk(KERN_INFO "please try 'cgroup_disable=memory' option if you don't"
++	" want memory cgroups\n");
+ }
  
-@@ -283,7 +286,7 @@ Example:
- struct my_struct {
-     int a;
-     int b;
--/* private: */
-+/* private: internal use only */
-     int c;
- };
- 
-diff -puN scripts/kernel-doc~kernel-doc-restrict-syntax-for-private-and-public scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-restrict-syntax-for-private-and-public
-+++ a/scripts/kernel-doc
-@@ -1411,7 +1411,8 @@ sub dump_struct($$) {
-     my $file = shift;
-     my $nested;
- 
--    if ($x =~/(struct|union)\s+(\w+)\s*{(.*)}/) {
-+    if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
-+	#my $decl_type = $1;
- 	$declaration_name = $2;
- 	my $members = $3;
- 
-@@ -1420,8 +1421,8 @@ sub dump_struct($$) {
- 	$nested = $1;
- 
- 	# ignore members marked private:
--	$members =~ s/\/\*.*?private:.*?public:.*?\*\///gos;
--	$members =~ s/\/\*.*?private:.*//gos;
-+	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gos;
-+	$members =~ s/\/\*\s*private:.*//gos;
- 	# strip comments:
- 	$members =~ s/\/\*.*?\*\///gos;
- 	$nested =~ s/\/\*.*?\*\///gos;
+ void __meminit pgdat_page_cgroup_init(struct pglist_data *pgdat)
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -115,7 +111,6 @@ input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interf
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 qla2x-fix-printk-format-warnings.patch
-kernel-doc-restrict-syntax-for-private-and-public.patch
 lockd-fix-file_locking=n-build-error.patch
 kmap_types-make-most-arches-use-generic-header-file.patch
 irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
