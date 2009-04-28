@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-documentation-9-more-exported-page-flags.patch added to -mm tree
-Date: Tue, 28 Apr 2009 14:32:55 -0700
-Message-ID: <200904282132.n3SLWtp1022755@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-printk-format-warning.patch added to -mm tree
+Date: Tue, 28 Apr 2009 15:04:24 -0700
+Message-ID: <200904282204.n3SM4OAR006844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754232AbZD1Vhe (ORCPT
+	by vger.kernel.org with ESMTP id S1752002AbZD1WGn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 17:37:34 -0400
+	Tue, 28 Apr 2009 18:06:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mpm@selenic.com
+Cc: randy.dunlap@oracle.com, kirkland@canonical.com, tyhicks@linux.vnet.ibm.com
 
 
 The patch titled
-     pagemap: documentation 9 more exported page flags
+     ecryptfs: fix printk format warning
 has been added to the -mm tree.  Its filename is
-     pagemap-documentation-9-more-exported-page-flags.patch
+     ecryptfs-fix-printk-format-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: documentation 9 more exported page flags
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: ecryptfs: fix printk format warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Also add short descriptions for all of the 20 exported page flags.
+fs/ecryptfs/inode.c:670: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
+Cc: Dustin Kirkland <kirkland@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |   62 +++++++++++++++++++++++++++++++++
- 1 file changed, 62 insertions(+)
+ fs/ecryptfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/pagemap.txt~pagemap-documentation-9-more-exported-page-flags Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~pagemap-documentation-9-more-exported-page-flags
-+++ a/Documentation/vm/pagemap.txt
-@@ -49,6 +49,68 @@ There are three components to pagemap:
-      8. WRITEBACK
-      9. RECLAIM
-     10. BUDDY
-+    11. MMAP
-+    12. ANON
-+    13. SWAPCACHE
-+    14. SWAPBACKED
-+    15. COMPOUND_HEAD
-+    16. COMPOUND_TAIL
-+    17. UNEVICTABLE
-+    18. HWPOISON
-+    19. NOPAGE
-+
-+Short descriptions to the page flags:
-+
-+ 0. LOCKED
-+    page is being locked for exclusive access, eg. by undergoing read/write IO
-+
-+ 7. SLAB
-+    page is managed by the SLAB/SLOB/SLUB/SLQB kernel memory allocator
-+    When compound page is used, SLUB/SLQB will only set this flag on the head
-+    page; SLOB will not flag it at all.
-+
-+10. BUDDY
-+    a free memory block managed by the buddy system allocator
-+    The buddy system organizes free memory in blocks of various orders.
-+    An order N block has 2^N physically contiguous pages, with the BUDDY flag
-+    set for and _only_ for the first page.
-+
-+15. COMPOUND_HEAD
-+16. COMPOUND_TAIL
-+    A compound page with order N consists of 2^N physically contiguous pages.
-+    A compound page with order 2 takes the form of "HTTT", where H donates its
-+    head page and T donates its tail page(s).  The major consumers of compound
-+    pages are hugeTLB pages (Documentation/vm/hugetlbpage.txt), the SLUB etc.
-+    memory allocators and various device drivers. However in this interface,
-+    only huge/giga pages are made visible to end users.
-+
-+18. HWPOISON
-+    hardware detected memory corruption on this page: don't touch the data!
-+
-+19. NOPAGE
-+    no page frame exists at the requested address
-+
-+    [IO related page flags]
-+ 1. ERROR     IO error occurred
-+ 3. UPTODATE  page has up-to-date data
-+              ie. for file backed page: (in-memory data revision >= on-disk one)
-+ 4. DIRTY     page has been written to, hence contains new data
-+              ie. for file backed page: (in-memory data revision >  on-disk one)
-+ 8. WRITEBACK page is being synced to disk
-+
-+    [LRU related page flags]
-+ 5. LRU         page is in one of the LRU lists
-+ 6. ACTIVE      page is in the active LRU list
-+17. UNEVICTABLE page is in the unevictable (non-)LRU list
-+                It is somehow pinned and not a candidate for LRU page reclaims,
-+		eg. ramfs pages, shmctl(SHM_LOCK) and mlock() memory segments
-+ 2. REFERENCED  page has been referenced since last LRU list enqueue/requeue
-+ 9. RECLAIM     page will be reclaimed soon after its pageout IO completed
-+11. MMAP        a memory mapped page
-+12. ANON        a memory mapped page that is not part of a file
-+13. SWAPCACHE   page is mapped to swap space, ie. has an associated swap entry
-+14. SWAPBACKED  page is backed by swap/RAM
-+
- 
- Using pagemap to do something useful:
- 
+diff -puN fs/ecryptfs/inode.c~ecryptfs-fix-printk-format-warning fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-fix-printk-format-warning
++++ a/fs/ecryptfs/inode.c
+@@ -667,7 +667,7 @@ ecryptfs_readlink(struct dentry *dentry,
+ 	lower_buf = kmalloc(lower_bufsiz, GFP_KERNEL);
+ 	if (lower_buf == NULL) {
+ 		printk(KERN_ERR "%s: Out of memory whilst attempting to "
+-		       "kmalloc [%d] bytes\n", __func__, lower_bufsiz);
++		       "kmalloc [%zd] bytes\n", __func__, lower_bufsiz);
+ 		rc = -ENOMEM;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+origin.patch
 linux-next.patch
-readahead-make-mmap_miss-an-unsigned-int.patch
-readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
-readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
-readahead-remove-one-unnecessary-radix-tree-lookup.patch
-readahead-increase-interleaved-readahead-size.patch
-readahead-remove-sync-async-readahead-call-dependency.patch
-readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
-readahead-sequential-mmap-readahead.patch
-readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-radix-tree-add-radix_tree_prev_hole.patch
-readahead-move-the-random-read-case-to-bottom.patch
-readahead-introduce-context-readahead-algorithm.patch
-readahead-introduce-context-readahead-algorithm-update.patch
-readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
-readahead-enforce-full-sync-mmap-readahead-size.patch
-pagemap-document-clarifications.patch
-pagemap-documentation-9-more-exported-page-flags.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
+ecryptfs-fix-printk-format-warning.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+qla2x-fix-printk-format-warnings.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+linuxpps-core-support.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
