@@ -1,445 +1,379 @@
 From: akpm@linux-foundation.org
-Subject: + fsnotify-parent-event-notification.patch added to -mm tree
-Date: Tue, 28 Apr 2009 13:28:04 -0700
-Message-ID: <200904282028.n3SKS44J021034@imap1.linux-foundation.org>
+Subject: mmotm 2009-04-28-16-31 uploaded
+Date: Tue, 28 Apr 2009 16:31:52 -0700
+Message-ID: <200904282350.n3SNolqS030280@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753239AbZD1Ubj (ORCPT
+	by vger.kernel.org with ESMTP id S1753373AbZD1Xvy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 16:31:39 -0400
+	Tue, 28 Apr 2009 19:51:54 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n3SNoljs019775
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2009 16:51:23 -0700
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id n3SNolqS030280
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2009 16:50:47 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: eparis@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2009-04-28-16-31 has been uploaded to
 
-The patch titled
-     fsnotify: parent event notification
-has been added to the -mm tree.  Its filename is
-     fsnotify-parent-event-notification.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+and will soon be available at
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+   git://git.zen-sources.org/zen/mmotm.git
 
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+It contains the following patches against 2.6.30-rc3:
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: fsnotify: parent event notification
-From: Eric Paris <eparis@redhat.com>
-
-inotify and dnotify both use a similar parent notification mechanism.  We
-add a generic parent notification mechanism to fsnotify for both of these
-to use.  This new machanism also adds the dentry flag optimization which
-exists for inotify to dnotify.
-
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/notify/fsnotify.c             |   91 +++++++++++++++++++++++++++++
- fs/notify/fsnotify.h             |    5 +
- fs/notify/inode_mark.c           |   17 +++++
- include/linux/dcache.h           |    3 
- include/linux/fsnotify.h         |   34 +++++++---
- include/linux/fsnotify_backend.h |   64 ++++++++++++++++++++
- 6 files changed, 204 insertions(+), 10 deletions(-)
-
-diff -puN fs/notify/fsnotify.c~fsnotify-parent-event-notification fs/notify/fsnotify.c
---- a/fs/notify/fsnotify.c~fsnotify-parent-event-notification
-+++ a/fs/notify/fsnotify.c
-@@ -35,6 +35,97 @@ void __fsnotify_inode_delete(struct inod
- EXPORT_SYMBOL_GPL(__fsnotify_inode_delete);
- 
- /*
-+ * Given an inode, first check if we care what happens to our children.  Inotify
-+ * and dnotify both tell their parents about events.  If we care about any event
-+ * on a child we run all of our children and set a dentry flag saying that the
-+ * parent cares.  Thus when an event happens on a child it can quickly tell if
-+ * if there is a need to find a parent and send the event to the parent.
-+ */
-+void __fsnotify_update_child_dentry_flags(struct inode *inode)
-+{
-+	struct dentry *alias;
-+	int watched;
-+
-+	if (!S_ISDIR(inode->i_mode))
-+		return;
-+
-+	/* determine if the children should tell inode about their events */
-+	watched = fsnotify_inode_watches_children(inode);
-+
-+	spin_lock(&dcache_lock);
-+	/* run all of the dentries associated with this inode.  Since this is a
-+	 * directory, there damn well better only be one item on this list */
-+	list_for_each_entry(alias, &inode->i_dentry, d_alias) {
-+		struct dentry *child;
-+
-+		/* run all of the children of the original inode and fix their
-+		 * d_flags to indicate parental interest (their parent is the
-+		 * original inode) */
-+		list_for_each_entry(child, &alias->d_subdirs, d_u.d_child) {
-+			if (!child->d_inode)
-+				continue;
-+
-+			spin_lock(&child->d_lock);
-+			if (watched)
-+				child->d_flags |= DCACHE_FSNOTIFY_PARENT_WATCHED;
-+			else
-+				child->d_flags &= ~DCACHE_FSNOTIFY_PARENT_WATCHED;
-+			spin_unlock(&child->d_lock);
-+		}
-+	}
-+	spin_unlock(&dcache_lock);
-+}
-+
-+/* Notify this dentry's parent about a child's events. */
-+void __fsnotify_parent(struct dentry *dentry, __u32 mask)
-+{
-+	struct dentry *parent;
-+	struct inode *p_inode;
-+	bool send = false;
-+	bool should_update_children = false;
-+
-+	if (!(dentry->d_flags | DCACHE_FSNOTIFY_PARENT_WATCHED))
-+		return;
-+
-+	spin_lock(&dentry->d_lock);
-+	parent = dentry->d_parent;
-+	p_inode = parent->d_inode;
-+
-+	if (fsnotify_inode_watches_children(p_inode)) {
-+		if (p_inode->i_fsnotify_mask & mask) {
-+			dget(parent);
-+			send = true;
-+		}
-+	} else {
-+		/*
-+		 * The parent doesn't care about events on it's children but
-+		 * at least one child thought it did.  We need to run all the
-+		 * children and update their d_flags to let them know p_inode
-+		 * doesn't care about them any more.
-+		 */
-+		dget(parent);
-+		should_update_children = true;
-+	}
-+
-+	spin_unlock(&dentry->d_lock);
-+
-+	if (send) {
-+		/* we are notifying a parent so come up with the new mask which
-+		 * specifies these are events which came from a child. */
-+		mask |= FS_EVENT_ON_CHILD;
-+
-+		fsnotify(p_inode, mask, dentry->d_inode, FSNOTIFY_EVENT_INODE);
-+		dput(parent);
-+	}
-+
-+	if (unlikely(should_update_children)) {
-+		__fsnotify_update_child_dentry_flags(p_inode);
-+		dput(parent);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(__fsnotify_parent);
-+
-+/*
-  * This is the main call to fsnotify.  The VFS calls into hook specific functions
-  * in linux/fsnotify.h.  Those functions then in turn call here.  Here will call
-  * out to all of the registered fsnotify_group.  Those groups can then use the
-diff -puN fs/notify/fsnotify.h~fsnotify-parent-event-notification fs/notify/fsnotify.h
---- a/fs/notify/fsnotify.h~fsnotify-parent-event-notification
-+++ a/fs/notify/fsnotify.h
-@@ -17,4 +17,9 @@ extern __u32 fsnotify_mask;
- extern void fsnotify_final_destroy_group(struct fsnotify_group *group);
- /* run the list of all marks associated with inode and flag them to be freed */
- extern void fsnotify_clear_marks_by_inode(struct inode *inode);
-+/*
-+ * update the dentry->d_flags of all of inode's children to indicate if inode cares
-+ * about events that happen to its children.
-+ */
-+extern void __fsnotify_update_child_dentry_flags(struct inode *inode);
- #endif	/* __FS_NOTIFY_FSNOTIFY_H_ */
-diff -puN fs/notify/inode_mark.c~fsnotify-parent-event-notification fs/notify/inode_mark.c
---- a/fs/notify/inode_mark.c~fsnotify-parent-event-notification
-+++ a/fs/notify/inode_mark.c
-@@ -131,6 +131,8 @@ void fsnotify_recalc_inode_mask(struct i
- 	spin_lock(&inode->i_lock);
- 	fsnotify_recalc_inode_mask_locked(inode);
- 	spin_unlock(&inode->i_lock);
-+
-+	__fsnotify_update_child_dentry_flags(inode);
- }
- 
- /*
-@@ -190,6 +192,19 @@ void fsnotify_destroy_mark_by_entry(stru
- 	group->ops->freeing_mark(entry, group);
- 
- 	/*
-+	 * __fsnotify_update_child_dentry_flags(inode);
-+	 *
-+	 * I really want to call that, but we can't, we have no idea if the inode
-+	 * still exists the second we drop the entry->lock.
-+	 *
-+	 * The next time an event arrive to this inode from one of it's children
-+	 * __fsnotify_parent will see that the inode doesn't care about it's
-+	 * children and will update all of these flags then.  So really this
-+	 * is just a lazy update (and could be a perf win...)
-+	 */
-+
-+
-+	/*
- 	 * it's possible that this group tried to destroy itself, but this
- 	 * this mark was simultaneously being freed by inode.  If that's the
- 	 * case, we finish freeing the group here.
-@@ -323,6 +338,8 @@ int fsnotify_add_mark(struct fsnotify_ma
- 	if (lentry) {
- 		ret = -EEXIST;
- 		fsnotify_put_mark(lentry);
-+	} else {
-+		__fsnotify_update_child_dentry_flags(inode);
- 	}
- 
- 	return ret;
-diff -puN include/linux/dcache.h~fsnotify-parent-event-notification include/linux/dcache.h
---- a/include/linux/dcache.h~fsnotify-parent-event-notification
-+++ a/include/linux/dcache.h
-@@ -180,7 +180,8 @@ d_iput:		no		no		no       yes
- #define DCACHE_REFERENCED	0x0008  /* Recently used, don't discard. */
- #define DCACHE_UNHASHED		0x0010	
- 
--#define DCACHE_INOTIFY_PARENT_WATCHED	0x0020 /* Parent inode is watched */
-+#define DCACHE_INOTIFY_PARENT_WATCHED	0x0020 /* Parent inode is watched by inotify */
-+#define DCACHE_FSNOTIFY_PARENT_WATCHED	0x0040 /* Parent inode is watched by some fsnotify listener */
- 
- #define DCACHE_COOKIE		0x0040	/* For use by dcookie subsystem */
- 
-diff -puN include/linux/fsnotify.h~fsnotify-parent-event-notification include/linux/fsnotify.h
---- a/include/linux/fsnotify.h~fsnotify-parent-event-notification
-+++ a/include/linux/fsnotify.h
-@@ -23,15 +23,31 @@
- static inline void fsnotify_d_instantiate(struct dentry *entry,
- 						struct inode *inode)
- {
-+	__fsnotify_d_instantiate(entry, inode);
-+
- 	inotify_d_instantiate(entry, inode);
- }
- 
-+/* Notify this dentry's parent about a child's events. */
-+static inline void fsnotify_parent(struct dentry *dentry, __u32 mask)
-+{
-+	__fsnotify_parent(dentry, mask);
-+
-+	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
-+}
-+
- /*
-  * fsnotify_d_move - entry has been moved
-  * Called with dcache_lock and entry->d_lock held.
-  */
- static inline void fsnotify_d_move(struct dentry *entry)
- {
-+	/*
-+	 * On move we need to update entry->d_flags to indicate if the new parent
-+	 * cares about events from this entry.
-+	 */
-+	__fsnotify_update_dcache_flags(entry);
-+
- 	inotify_d_move(entry);
- }
- 
-@@ -117,7 +133,8 @@ static inline void fsnotify_nameremove(s
- 	if (isdir)
- 		mask |= FS_IN_ISDIR;
- 	dnotify_parent(dentry, DN_DELETE);
--	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
-+
-+	fsnotify_parent(dentry, mask);
- }
- 
- /*
-@@ -187,9 +204,9 @@ static inline void fsnotify_access(struc
- 		mask |= FS_IN_ISDIR;
- 
- 	dnotify_parent(dentry, DN_ACCESS);
--	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
- 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
- 
-+	fsnotify_parent(dentry, mask);
- 	fsnotify(inode, mask, inode, FSNOTIFY_EVENT_INODE);
- }
- 
-@@ -205,9 +222,9 @@ static inline void fsnotify_modify(struc
- 		mask |= FS_IN_ISDIR;
- 
- 	dnotify_parent(dentry, DN_MODIFY);
--	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
- 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
- 
-+	fsnotify_parent(dentry, mask);
- 	fsnotify(inode, mask, inode, FSNOTIFY_EVENT_INODE);
- }
- 
-@@ -222,9 +239,9 @@ static inline void fsnotify_open(struct 
- 	if (S_ISDIR(inode->i_mode))
- 		mask |= FS_IN_ISDIR;
- 
--	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
- 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
- 
-+	fsnotify_parent(dentry, mask);
- 	fsnotify(inode, mask, inode, FSNOTIFY_EVENT_INODE);
- }
- 
-@@ -235,16 +252,15 @@ static inline void fsnotify_close(struct
- {
- 	struct dentry *dentry = file->f_path.dentry;
- 	struct inode *inode = dentry->d_inode;
--	const char *name = dentry->d_name.name;
- 	fmode_t mode = file->f_mode;
- 	__u32 mask = (mode & FMODE_WRITE) ? FS_CLOSE_WRITE : FS_CLOSE_NOWRITE;
- 
- 	if (S_ISDIR(inode->i_mode))
- 		mask |= FS_IN_ISDIR;
- 
--	inotify_dentry_parent_queue_event(dentry, mask, 0, name);
- 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
- 
-+	fsnotify_parent(dentry, mask);
- 	fsnotify(inode, mask, file, FSNOTIFY_EVENT_FILE);
- }
- 
-@@ -259,9 +275,9 @@ static inline void fsnotify_xattr(struct
- 	if (S_ISDIR(inode->i_mode))
- 		mask |= FS_IN_ISDIR;
- 
--	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
- 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
- 
-+	fsnotify_parent(dentry, mask);
- 	fsnotify(inode, mask, inode, FSNOTIFY_EVENT_INODE);
- }
- 
-@@ -310,8 +326,8 @@ static inline void fsnotify_change(struc
- 		if (S_ISDIR(inode->i_mode))
- 			in_mask |= FS_IN_ISDIR;
- 		inotify_inode_queue_event(inode, in_mask, 0, NULL, NULL);
--		inotify_dentry_parent_queue_event(dentry, in_mask, 0,
--						  dentry->d_name.name);
-+
-+		fsnotify_parent(dentry, in_mask);
- 		fsnotify(inode, in_mask, inode, FSNOTIFY_EVENT_INODE);
- 	}
- }
-diff -puN include/linux/fsnotify_backend.h~fsnotify-parent-event-notification include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-parent-event-notification
-+++ a/include/linux/fsnotify_backend.h
-@@ -46,6 +46,17 @@
- #define FS_DN_RENAME		0x10000000	/* file renamed */
- #define FS_DN_MULTISHOT		0x20000000	/* dnotify multishot */
- 
-+/* This inode cares about things that happen to its children.  Always set for
-+ * dnotify and inotify. */
-+#define FS_EVENT_ON_CHILD	0x08000000
-+
-+/* This is a list of all events that may get sent to a parernt based on fs event
-+ * happening to inodes inside that directory */
-+#define FS_EVENTS_POSS_ON_CHILD   (FS_ACCESS | FS_MODIFY | FS_ATTRIB |\
-+				   FS_CLOSE_WRITE | FS_CLOSE_NOWRITE | FS_OPEN |\
-+				   FS_MOVED_FROM | FS_MOVED_TO | FS_CREATE |\
-+				   FS_DELETE)
-+
- struct fsnotify_group;
- struct fsnotify_event;
- struct fsnotify_mark_entry;
-@@ -183,8 +194,52 @@ struct fsnotify_mark_entry {
- 
- /* main fsnotify call to send events */
- extern void fsnotify(struct inode *to_tell, __u32 mask, void *data, int data_is);
-+extern void __fsnotify_parent(struct dentry *dentry, __u32 mask);
- extern void __fsnotify_inode_delete(struct inode *inode);
- 
-+static inline int fsnotify_inode_watches_children(struct inode *inode)
-+{
-+	/* FS_EVENT_ON_CHILD is set if the inode may care */
-+	if (!(inode->i_fsnotify_mask & FS_EVENT_ON_CHILD))
-+		return 0;
-+	/* this inode might care about child events, does it care about the
-+	 * specific set of events that can happen on a child? */
-+	return inode->i_fsnotify_mask & FS_EVENTS_POSS_ON_CHILD;
-+}
-+
-+/*
-+ * Update the dentry with a flag indicating the interest of its parent to receive
-+ * filesystem events when those events happens to this dentry->d_inode.
-+ */
-+static inline void __fsnotify_update_dcache_flags(struct dentry *dentry)
-+{
-+	struct dentry *parent;
-+
-+	assert_spin_locked(&dcache_lock);
-+	assert_spin_locked(&dentry->d_lock);
-+
-+	parent = dentry->d_parent;
-+	if (fsnotify_inode_watches_children(parent->d_inode))
-+		dentry->d_flags |= DCACHE_FSNOTIFY_PARENT_WATCHED;
-+	else
-+		dentry->d_flags &= ~DCACHE_FSNOTIFY_PARENT_WATCHED;
-+}
-+
-+/*
-+ * fsnotify_d_instantiate - instantiate a dentry for inode
-+ * Called with dcache_lock held.
-+ */
-+static inline void __fsnotify_d_instantiate(struct dentry *dentry, struct inode *inode)
-+{
-+	if (!inode)
-+		return;
-+
-+	assert_spin_locked(&dcache_lock);
-+
-+	spin_lock(&dentry->d_lock);
-+	__fsnotify_update_dcache_flags(dentry);
-+	spin_unlock(&dentry->d_lock);
-+}
- 
- /* called from fsnotify listeners, such as fanotify or dnotify */
- 
-@@ -230,9 +285,18 @@ extern struct fsnotify_event *fsnotify_c
- static inline void fsnotify(struct inode *to_tell, __u32 mask, void *data, int data_is)
- {}
- 
-+static inline void __fsnotify_parent(struct dentry *dentry, __u32 mask)
-+{}
-+
- static inline void __fsnotify_inode_delete(struct inode *inode)
- {}
- 
-+static inline void __fsnotify_update_dcache_flags(struct dentry *dentry)
-+{}
-+
-+static inline void __fsnotify_d_instantiate(struct dentry *dentry, struct inode *inode)
-+{}
-+
- #endif	/* CONFIG_FSNOTIFY */
- 
- #endif	/* __KERNEL __ */
-_
-
-Patches currently in -mm which might be from eparis@redhat.com are
-
+origin.patch
+mm-fix-pageref-leak-in-do_swap_page.patch
+autofs4-fix-incorect-return-in-autofs4_mount_busy.patch
+maintainers-florian-has-moved.patch
+memcg-fix-try_get_mem_cgroup_from_swapcache.patch
+ibft-fix-the-display-of-a-few-fields-in-the-nic-attribute-structure-in-sysfs.patch
+i2c-too-much-compiler-noise.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n.patch
+acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
+dell-laptop-fix-uninitialized-wrong-return-value.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+x86-simplify-highmem-related-kconfig-entries.patch
+x86-enable-gart-iommu-only-after-setting-up-protection-methods.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+agpgart-detected-ali-m-chipset-with-m1621.patch
+arm-mach-l7200-fix-spelling-of-sys_clock_off.patch
+i2c-pxac-timeouts-off-by-1.patch
+pcmcia-pccard-deadlock-fix.patch
+synchronize-device-shutdown.patch
+doc-add-documentation-for-debugfs.patch
+drm-fix-lock_test_with_return-macro.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+intelfb-fix-spelling-of-clock.patch
+drm-simplify-kcalloc-call-to-kzalloc.patch
+radio-mr800c-missing-mutex-include.patch
+uvcvideo-prevent-information-loss-with-removing-implicit-casting.patch
+drivers-media-dvb-frontends-stv0900_privh-remove-broken-unused-macro.patch
+v4l-dvb-cimax2c-fix-typo.patch
+ecryptfs-fix-printk-format-warning.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
+kernel-time-tick-broadcastc-tick_broadcast_device-can-become-static.patch
+timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred.patch
+time-move-calc_load-call-out-from-xtime_lock-protection.patch
+time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
+time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
+time-sh-convert-to-use-arch_getoffset-infrastructure.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+input-mouse-alpsc-handle-touchpoints-buttons-correctly.patch
+input-ads7846c-sparse-lock-annotation.patch
+input-bcm5974-prepare-for-a-new-trackpad-header-type.patch
+input-bcm5974-add-quad-finger-tapping.patch
+input-bcm5974-add-support-for-the-macbook-5-unibody.patch
+input-bcm5974-augmented-debug-information.patch
+input-bcm5974-declare-alignment-usage.patch
+input-allow-certain-ev_abs-events-to-bypass-all-filtering.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-add-a-detailed-multi-touch-finger-data-report-protocol-rev2.patch
+ads7846-pin-change-interrupt-support.patch
+input-keyboard-introduce-lm8323-driver.patch
+uinput-flush-all-pending-ff-effects-before-destroying-device.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+input-documentation-abi-testing-game_device-sysfs-interface-document-game_device-interface-added-to-xpad-driver.patch
+serios-async-shutdown.patch
+kernel-kallsymsc-replace-deprecated-__initcall-with-device_initcall-and-fix-whitespace.patch
+kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch
+leds-fix-led-bd2802-errors-while-resuming.patch
+leds-change-the-license-information.patch
+leds-add-the-sysfs-interface-into-the-leds-bd2802-driver-for-changing-wave-pattern-and-led-current.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+mfd-mark-wm8350-mask-revision-as-readable-to-match-silicon.patch
+mfd-pcf50633-gpioc-add-module_license.patch
+mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch
+mmc-some-microsd-cards-are-not-recognized-by-pcixx12-sda-controller.patch
+mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
+omap-hsmmc-do-not-enable-buffer-ready-interrupt-if-using-dma.patch
+mtd-flex-onenand-support.patch
+mtd-onenand-add-bbt_wait-unlock_all-as-replaceable-for-some-platform.patch
+mtd-plat_nand-add-platform-probe-remove-callbacks.patch
+mtd-plat_nand-allow-platform-to-set-partitions.patch
+mtd-update-sysfs-documentation.patch
+mtd-add-memerase64-ioctl-for-4gib-devices.patch
+mtd-compat_ioctl-cleanup.patch
+mtd-add-oob-ioctls-for-4gib-devices.patch
+mtd-delete-final-remnants-of-mtd-ioctls-from-fs-compat_ioctlc.patch
+mtd-nand-dont-walk-past-end-of-oobfree.patch
+mtd-nand-minor-davinci_nand-cleanup.patch
+mtd-nand-davinci_nand-4-bit-ecc-for-smallpage.patch
+uwb-event_size-should-be-signed.patch
+cls_cgroup-remove-unneeded-cgroup_lock.patch
+sunrpc-align-cache_clean-works-timer.patch
+net-sunrpc-svc_xprtc-needs-svcsockh.patch
+irda-new-blackfin-on-chip-sir-irda-driver.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+sfc-modify-allocation-error-message.patch
+drivers-net-82596c-suppress-warnings.patch
+de2104x-support-for-systems-lacking-cache-coherence.patch
+forcedeth-add-clock-gating-feature.patch
+forcedeth-add-clock-gating-feature-checkpatch-fixes.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+sg_io-dont-perform-unneeded-copy-in-compat-code.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+qla2x-fix-printk-format-warnings.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+sd-async-shutdown.patch
+usb-imx_udc-fix-leak-in-imx_ep_alloc_request.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-improve-comment-describing-fget_light.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch
+xtensa-variant-specific-code.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-s6000-dma-engine-support.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+xtensa-add-m41t62-rtc-to-s6105-platform.patch
+xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
+mm.patch
+pagemap-require-aligned-length-non-null-reads-of-proc-pid-pagemap.patch
+memcg-fix-mem_cgroup_shrink_usage.patch
+vgacon-return-the-upper-half-of-512-character-fonts.patch
+eliminate-thousands-of-warnings-in-warn_on-with-gcc-32-build.patch
+alpha-titan-and-marvel-build-fixes.patch
+alpha-exception-table-sorting.patch
+alpha-futex-implementation.patch
+alpha-binfmt_aout-fix.patch
+of-make-of_unregister_platform_driver-common-code.patch
+mm-fix-committed_as-underfolow-on-large-nr_cpus-environment.patch
+m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith.patch
+kernel-doc-restrict-syntax-for-private-and-public.patch
+ptrace-s-parent-real_parent-in-binfmt_elf_fdpicc.patch
+fbdev-fix-fillrect-for-24bpp-modes.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
+rtc-add-ds1685-ds1687-rtc-driver.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mg_disk-fix-locking.patch
+cpufreq-fix-timer-teardown-in-conservative-governor-2630-rc2.patch
+cpufreq-fix-timer-teardown-in-ondemand-governor.patch
+crisv10-change-serial-driver-proc-usage.patch
+ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
+mtd-fix-timeout-in-m25p80-driver.patch
+rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
+lockd-fix-file_locking=n-build-error.patch
+drivers-pci-hotplug-ibmphp_corec-fix-warning-due-to-missing-module_exit.patch
+procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+drivers-scsi-ncr_d700c-fix-irq-handler-return-type.patch
+squashfs-fix-breakage-when-pagesize-blocksize.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+drivers-usb-serial-ti_usb_3410_5052c-ti_usb-returns-eio-when-reopening-the-device.patch
+mm-consolidate-init_mm-definition.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-make-mmap_miss-an-unsigned-int.patch
+readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
+readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
+readahead-remove-one-unnecessary-radix-tree-lookup.patch
+readahead-increase-interleaved-readahead-size.patch
+readahead-remove-sync-async-readahead-call-dependency.patch
+readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
+readahead-sequential-mmap-readahead.patch
+readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+radix-tree-add-radix_tree_prev_hole.patch
+readahead-move-the-random-read-case-to-bottom.patch
+readahead-introduce-context-readahead-algorithm.patch
+readahead-introduce-context-readahead-algorithm-update.patch
+readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
+readahead-enforce-full-sync-mmap-readahead-size.patch
+mm-close-page_mkwrite-races-try-3.patch
+mm-close-page_mkwrite-races-try-3-update.patch
+mm-close-page_mkwrite-races-try-3-fix.patch
+mm-close-page_mkwrite-races-try-3-fix-fix.patch
+mm-clean-up-get_user_pages_fast-documentation.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
+ksm-mmu_notifiers-add-set_pte_at_notify.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
+pagemap-document-clarifications.patch
+pagemap-documentation-9-more-exported-page-flags.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
+frv-remove-in-kernel-strace-code.patch
+frv-implement-tif_notify_resume.patch
+frv-dont-turn-on-tif_syscall_trace-unconditionally-in-syscall-prologue.patch
+frv-implement-new-style-ptrace.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+utsnameh-make-new_utsname-fields-use-the-proper-length-constant.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well.patch
+kernel-kfifoc-replace-conditional-test-with-is_power_of_2.patch
+ntfs-use-is_power_of_2-function-for-clarity.patch
+getrusage-fill-ru_maxrss-value.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+rb_tree-make-clear-distinction-between-two-different-cases-in-rb_erase.patch
+rb_tree-remove-redundant-if-condition-in-rb_erase.patch
+documentation-rbtreetxt-fix-errors-in-sample-code.patch
+softirq-introduce-statistics-for-softirq.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+drivers-hwmon-coretempc-enable-the-intel-atom.patch
+flat-fix-data-sections-alignment.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+icom-converting-space-to-tabs.patch
+serial-8250c-irq-handling-race-and-spurious-iir-read.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+jsm-remove-unused-spinlock.patch
+serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
+spi_bfin5xx-limit-reaches-1.patch
+spi-move-common-spi_setup-functionality-into-core.patch
+spi-move-more-spi_setup-functionality-into-core.patch
+rtc-rtc-ds1742-nvram-attribute-fix.patch
+rtc-rtc-ds1307-add-ds1388.patch
+rtc-rtc-ds1307-add-ds3231.patch
+rtc-add-stand-alone-driver-for-rx8025-chip.patch
+rtc-add-stand-alone-driver-for-rx8025-chip-fix.patch
+rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
+pca953x-support-gpiolib-gpio-naming.patch
+fbdev-generated-logo-sources-depend-on-scripts-pnmtologo.patch
+fbdev-move-logo-externs-to-header-file.patch
+fbdev-add-video-modes-for-resolutions-and-timings-of-pal-rgb.patch
+documentation-fb-vesafbtxt-fix-typo.patch
+ext2-do-not-update-mtime-of-a-moved-directory.patch
+ext3-fix-chain-verification-in-ext3_get_blocks.patch
+isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch
+isofs-fix-setting-of-uid-and-gid-to-0.patch
+isofs-cleanup-mount-option-processing.patch
+hfsplus-identify-journal-info-block-in-volume-header.patch
+hfsplus-fix-journal-detection.patch
+ufs-sector_t-cannot-be-negative.patch
+cgroups-make-messages-more-readable.patch
+devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
+memcg-add-file-based-rss-accounting.patch
+ptrace-remove-pt_dtrace-from-arch-h8300.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+ptrace-remove-pt_dtrace-from-arch-m32r.patch
+ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-isicom-fix-build-warning.patch
+char-cyclades-plx9060-casts-cleanup.patch
+char-cyclades-cache-hw-version.patch
+char-cyclades-convert-macros-to-inlines.patch
+char-cyclades-remove-typedefs.patch
+char-cyclades-fix-nports-handling.patch
+char-cyclades-remove-unused-variables.patch
+edac-add-cpc925-memory-controller-driver.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-cpc925-mc-platform-device-setup.patch
+edac-cpc925-mc-platform-device-setup-v3.patch
+gru-bug-fixes-for-gru-exception-handling.patch
+gru-dump-chiplet-state.patch
+gru-dump-chiplet-state-update.patch
+gru-dynamic-allocation-of-kernel-contexts.patch
+gru-dynamic-allocation-of-kernel-contexts-update.patch
+gru-change-context-load-and-unload.patch
+gru-support-cch_allocate-for-kernel-threads.patch
+gru-change-resource-assignment-for-kernel-threads.patch
+gru-support-contexts-with-zero-dsrs-or-cbrs.patch
+gru-fix-handling-of-mesq-failures.patch
+gru-check-context-state-on-reload.patch
+gru-support-instruction-completion-interrupts.patch
+gru-support-for-asynchronous-gru-instructions.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+gru-update-gru-kernel-self-tests.patch
+gru-update-gru-kernel-self-tests-fix.patch
+gru-update-to-rev-09-of-gru-spec.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+linuxpps-core-support.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
 mutex-add-atomic_dec_and_mutex_lock.patch
 fsnotify-unified-filesystem-notification-backend.patch
 fsnotify-add-marks-to-inodes-so-groups-can-interpret-how-to-handle-those-inodes.patch
@@ -452,4 +386,35 @@ fsnotify-allow-groups-to-add-private-data-to-events.patch
 fsnotify-fsnotify-marks-on-inodes-pin-them-in-core.patch
 fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch
 inotify-reimplement-inotify-using-fsnotify.patch
-
+vfs-take-2add-set_page_dirty_notag.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-adjust-to-the-new-aops.patch
+reiser4-adjust-to-the-new-aops-fixup.patch
+reiser4-remove-simple_prepare_write-usage.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
+reiser4-update-names-of-quota-methods.patch
+reiser4-use-set_page_dirty_notag.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+releasing-resources-with-children.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
