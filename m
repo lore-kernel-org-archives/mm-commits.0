@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith.patch added to -mm tree
-Date: Tue, 28 Apr 2009 15:22:02 -0700
-Message-ID: <200904282222.n3SMM2vE016174@imap1.linux-foundation.org>
+Subject: + kernel-doc-restrict-syntax-for-private-and-public.patch added to -mm tree
+Date: Tue, 28 Apr 2009 15:23:36 -0700
+Message-ID: <200904282223.n3SMNblV016955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751104AbZD1WXt (ORCPT
+	by vger.kernel.org with ESMTP id S1753079AbZD1WZI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 18:23:49 -0400
+	Tue, 28 Apr 2009 18:25:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     m68k: arch/m68k/kernel/sun3-head.S needs <linux/init.h>
+     kernel-doc: restrict syntax for private: and public:
 has been added to the -mm tree.  Its filename is
-     m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith.patch
+     kernel-doc-restrict-syntax-for-private-and-public.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: arch/m68k/kernel/sun3-head.S needs <linux/init.h>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: kernel-doc: restrict syntax for private: and public:
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-| arch/m68k/kernel/sun3-head.S: Assembler messages:
-| arch/m68k/kernel/sun3-head.S:32: Error: Unknown operator -- statement `__head' ignored
+scripts/kernel-doc can (incorrectly) delete struct members that are
+surrounded by /* ...  */ <struct members> /* ...  */ if there is a /*
+private: */ comment in there somewhere also.
 
-Introduced by commit 6f335cab0431d5df4995bcd4fd952d4c746d5a86 ("m68k:
-convert to use __HEAD and HEAD_TEXT macros."), which started using __HEAD
-without adding the appropriate include.
+Fix that by making the "/* private:" only allow whitespace between /* and
+"private:", not anything/everything in the world.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+This fixes some erroneous kernel-doc warnings that popped up while
+processing include/linux/usb/composite.h.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/sun3-head.S |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/kernel-doc-nano-HOWTO.txt |    7 +++++--
+ scripts/kernel-doc                      |    7 ++++---
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN arch/m68k/kernel/sun3-head.S~m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith arch/m68k/kernel/sun3-head.S
---- a/arch/m68k/kernel/sun3-head.S~m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith
-+++ a/arch/m68k/kernel/sun3-head.S
-@@ -1,4 +1,5 @@
- #include <linux/linkage.h>
-+#include <linux/init.h>
+diff -puN Documentation/kernel-doc-nano-HOWTO.txt~kernel-doc-restrict-syntax-for-private-and-public Documentation/kernel-doc-nano-HOWTO.txt
+--- a/Documentation/kernel-doc-nano-HOWTO.txt~kernel-doc-restrict-syntax-for-private-and-public
++++ a/Documentation/kernel-doc-nano-HOWTO.txt
+@@ -269,7 +269,10 @@ Use the argument mechanism to document m
  
- #include <asm/entry.h>
- #include <asm/page.h>
+ Inside a struct description, you can use the "private:" and "public:"
+ comment tags.  Structure fields that are inside a "private:" area
+-are not listed in the generated output documentation.
++are not listed in the generated output documentation.  The "private:"
++and "public:" tags must begin immediately following a "/*" comment
++marker.  They may optionally include comments between the ":" and the
++ending "*/" marker.
+ 
+ Example:
+ 
+@@ -283,7 +286,7 @@ Example:
+ struct my_struct {
+     int a;
+     int b;
+-/* private: */
++/* private: internal use only */
+     int c;
+ };
+ 
+diff -puN scripts/kernel-doc~kernel-doc-restrict-syntax-for-private-and-public scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-restrict-syntax-for-private-and-public
++++ a/scripts/kernel-doc
+@@ -1411,7 +1411,8 @@ sub dump_struct($$) {
+     my $file = shift;
+     my $nested;
+ 
+-    if ($x =~/(struct|union)\s+(\w+)\s*{(.*)}/) {
++    if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
++	#my $decl_type = $1;
+ 	$declaration_name = $2;
+ 	my $members = $3;
+ 
+@@ -1420,8 +1421,8 @@ sub dump_struct($$) {
+ 	$nested = $1;
+ 
+ 	# ignore members marked private:
+-	$members =~ s/\/\*.*?private:.*?public:.*?\*\///gos;
+-	$members =~ s/\/\*.*?private:.*//gos;
++	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gos;
++	$members =~ s/\/\*\s*private:.*//gos;
+ 	# strip comments:
+ 	$members =~ s/\/\*.*?\*\///gos;
+ 	$nested =~ s/\/\*.*?\*\///gos;
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
-m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith.patch
-m68k-count-can-reach-51-not-50.patch
+ecryptfs-fix-printk-format-warning.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+qla2x-fix-printk-format-warnings.patch
+kernel-doc-restrict-syntax-for-private-and-public.patch
+lockd-fix-file_locking=n-build-error.patch
 kmap_types-make-most-arches-use-generic-header-file.patch
-flat-fix-data-sections-alignment.patch
-ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+cgroups-make-messages-more-readable.patch
+linuxpps-core-support.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
