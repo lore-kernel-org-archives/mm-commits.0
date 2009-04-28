@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch added to -mm tree
-Date: Tue, 28 Apr 2009 15:21:27 -0700
-Message-ID: <200904282221.n3SMLSh9015850@imap1.linux-foundation.org>
+Subject: + ptrace-s-parent-real_parent-in-binfmt_elf_fdpicc.patch added to -mm tree
+Date: Tue, 28 Apr 2009 15:49:14 -0700
+Message-ID: <200904282249.n3SMnEN5030421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46052 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751150AbZD1W2Q (ORCPT
+	by vger.kernel.org with ESMTP id S1753596AbZD1Wwi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 18:28:16 -0400
+	Tue, 28 Apr 2009 18:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, menage@google.com, miaox@cn.fujitsu.com, mingo@elte.hu, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi, rientjes@google.com, y-goto@jp.fujitsu.com
+Cc: oleg@redhat.com, dhowells@redhat.com, gerg@snapgear.com, roland@redhat.com
 
 
 The patch titled
-     cpusetmm-update-tasks-mems_allowed-in-time-cleanup
+     ptrace: s/parent/real_parent/ in binfmt_elf_fdpic.c
 has been added to the -mm tree.  Its filename is
-     cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+     ptrace-s-parent-real_parent-in-binfmt_elf_fdpicc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusetmm-update-tasks-mems_allowed-in-time-cleanup
-From: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Subject: ptrace: s/parent/real_parent/ in binfmt_elf_fdpic.c
+From: Oleg Nesterov <oleg@redhat.com>
 
-I don't think the function name 'mpol_new_mempolicy' is descriptive enough
-to differentiate it from mpol_new().
+->real_parent is the parent. ->parent may be the tracer.
 
-This function applies cpuset set context, usually constraining nodes to
-those allowed by the cpuset.  However, when the 'RELATIVE_NODES flag is
-set, it also translates the nodes.  So I settled on 'mpol_set_nodemask()',
-because the comment block for mpol_new() mentions that we need to call
-this function to "set nodes".
-
-Some additional minor line length, whitespace and typo cleanup.
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ fs/binfmt_elf_fdpic.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~cpusetmm-update-tasks-mems_allowed-in-time-cleanup mm/mempolicy.c
---- a/mm/mempolicy.c~cpusetmm-update-tasks-mems_allowed-in-time-cleanup
-+++ a/mm/mempolicy.c
-@@ -181,15 +181,17 @@ static int mpol_new_bind(struct mempolic
- 	pol->v.nodes = *nodes;
- 	return 0;
- }
-+
- /*
-- * This function is called after mpol_new().  mpol_new() has already validated
-- * the nodes parameter with respect to the policy mode and flags.  But, we
-- * need to handle an empty nodemaks with MPOL_PREFERRED here.
-+ * mpol_set_nodemask is called after mpol_new() to set up the nodemask, if
-+ * any, for the new policy.  mpol_new() has already validated the nodes
-+ * parameter with respect to the policy mode and flags.  But, we need to
-+ * handle an empty nodemask with MPOL_PREFERRED here.
-  *
-- * We use task's alloc_lock to protect task's mems_allowed and mempolicy.
-- * so this function should be called with task's alloc_lock held.
-+ * Must be called holding task's alloc_lock to protect task's mems_allowed
-+ * and mempolicy.  May also be called holding the mmap_semaphore for write.
-  */
--static int mpol_new_mempolicy(struct mempolicy *pol, const nodemask_t *nodes)
-+static int mpol_set_nodemask(struct mempolicy *pol, const nodemask_t *nodes)
- {
- 	nodemask_t cpuset_context_nmask;
- 	int ret;
-@@ -220,8 +222,10 @@ static int mpol_new_mempolicy(struct mem
- 	return ret;
- }
+diff -puN fs/binfmt_elf_fdpic.c~ptrace-s-parent-real_parent-in-binfmt_elf_fdpicc fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~ptrace-s-parent-real_parent-in-binfmt_elf_fdpicc
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1388,7 +1388,7 @@ static void fill_prstatus(struct elf_prs
+ 	prstatus->pr_sigpend = p->pending.signal.sig[0];
+ 	prstatus->pr_sighold = p->blocked.sig[0];
+ 	prstatus->pr_pid = task_pid_vnr(p);
+-	prstatus->pr_ppid = task_pid_vnr(p->parent);
++	prstatus->pr_ppid = task_pid_vnr(p->real_parent);
+ 	prstatus->pr_pgrp = task_pgrp_vnr(p);
+ 	prstatus->pr_sid = task_session_vnr(p);
+ 	if (thread_group_leader(p)) {
+@@ -1433,7 +1433,7 @@ static int fill_psinfo(struct elf_prpsin
+ 	psinfo->pr_psargs[len] = 0;
  
--/* This function just creates a new policy, does some check and simple
-- * initializtion. You must invoke mpol_new_mempolicy to set nodes */
-+/*
-+ * This function just creates a new policy, does some check and simple
-+ * initialization. You must invoke mpol_set_nodemask() to set nodes.
-+ */
- static struct mempolicy *mpol_new(unsigned short mode, unsigned short flags,
- 				  nodemask_t *nodes)
- {
-@@ -631,7 +635,7 @@ static long do_set_mempolicy(unsigned sh
- 	if (mm)
- 		down_write(&mm->mmap_sem);
- 	task_lock(current);
--	ret = mpol_new_mempolicy(new, nodes);
-+	ret = mpol_set_nodemask(new, nodes);
- 	if (ret) {
- 		task_unlock(current);
- 		if (mm)
-@@ -1012,7 +1016,7 @@ static long do_mbind(unsigned long start
- 	}
- 	down_write(&mm->mmap_sem);
- 	task_lock(current);
--	err = mpol_new_mempolicy(new, nmask);
-+	err = mpol_set_nodemask(new, nmask);
- 	task_unlock(current);
- 	if (err) {
- 		up_write(&mm->mmap_sem);
-@@ -1907,7 +1911,7 @@ void mpol_shared_policy_init(struct shar
- 		}
+ 	psinfo->pr_pid = task_pid_vnr(p);
+-	psinfo->pr_ppid = task_pid_vnr(p->parent);
++	psinfo->pr_ppid = task_pid_vnr(p->real_parent);
+ 	psinfo->pr_pgrp = task_pgrp_vnr(p);
+ 	psinfo->pr_sid = task_session_vnr(p);
  
- 		task_lock(current);
--		ret = mpol_new_mempolicy(new, &mpol->w.user_nodemask);
-+		ret = mpol_set_nodemask(new, &mpol->w.user_nodemask);
- 		task_unlock(current);
- 		mpol_put(mpol);	/* drop our ref on sb mpol */
- 		if (ret) {
-@@ -2138,7 +2142,7 @@ int mpol_parse_str(char *str, struct mem
- 		int ret;
- 
- 		task_lock(current);
--		ret = mpol_new_mempolicy(new, &nodes);
-+		ret = mpol_set_nodemask(new, &nodes);
- 		task_unlock(current);
- 		if (ret)
- 			err = 1;
 _
 
-Patches currently in -mm which might be from lee.schermerhorn@hp.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
-cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+origin.patch
+linux-next.patch
+ptrace-s-parent-real_parent-in-binfmt_elf_fdpicc.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+getrusage-fill-ru_maxrss-value.patch
+ptrace-remove-pt_dtrace-from-arch-h8300.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+ptrace-remove-pt_dtrace-from-arch-m32r.patch
+ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+signals-tracehook_notify_jctl-change.patch
 
