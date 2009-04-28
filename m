@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lockd-fix-file_locking=n-build-error.patch added to -mm tree
-Date: Tue, 28 Apr 2009 15:19:01 -0700
-Message-ID: <200904282219.n3SMJ1B9014558@imap1.linux-foundation.org>
+Subject: + m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith.patch added to -mm tree
+Date: Tue, 28 Apr 2009 15:22:02 -0700
+Message-ID: <200904282222.n3SMM2vE016174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753079AbZD1WVn (ORCPT
+	by vger.kernel.org with ESMTP id S1751104AbZD1WXt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 18:21:43 -0400
+	Tue, 28 Apr 2009 18:23:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: geert@linux-m68k.org
 
 
 The patch titled
-     lockd: fix FILE_LOCKING=n build error
+     m68k: arch/m68k/kernel/sun3-head.S needs <linux/init.h>
 has been added to the -mm tree.  Its filename is
-     lockd-fix-file_locking=n-build-error.patch
+     m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockd: fix FILE_LOCKING=n build error
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: m68k: arch/m68k/kernel/sun3-head.S needs <linux/init.h>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-lockd/svclock.c is missing a header file <linux/fs.h>.
+| arch/m68k/kernel/sun3-head.S: Assembler messages:
+| arch/m68k/kernel/sun3-head.S:32: Error: Unknown operator -- statement `__head' ignored
 
-<linux/fs.h> is missing a definition of locks_release_private()
-for the config case of FILE_LOCKING=n, causing a build error:
+Introduced by commit 6f335cab0431d5df4995bcd4fd952d4c746d5a86 ("m68k:
+convert to use __HEAD and HEAD_TEXT macros."), which started using __HEAD
+without adding the appropriate include.
 
-fs/lockd/svclock.c:330: error: implicit declaration of function 'locks_release_private'
-
-lockd without FILE_LOCKING doesn't make sense, so make LOCKD and LOCKD_V4
-depend on FILE_LOCKING, and make NFS depend on FILE_LOCKING.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Bruce Fields <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig     |    2 ++
- fs/nfs/Kconfig |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ arch/m68k/kernel/sun3-head.S |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/Kconfig~lockd-fix-file_locking=n-build-error fs/Kconfig
---- a/fs/Kconfig~lockd-fix-file_locking=n-build-error
-+++ a/fs/Kconfig
-@@ -226,10 +226,12 @@ source "fs/nfsd/Kconfig"
+diff -puN arch/m68k/kernel/sun3-head.S~m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith arch/m68k/kernel/sun3-head.S
+--- a/arch/m68k/kernel/sun3-head.S~m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith
++++ a/arch/m68k/kernel/sun3-head.S
+@@ -1,4 +1,5 @@
+ #include <linux/linkage.h>
++#include <linux/init.h>
  
- config LOCKD
- 	tristate
-+	depends on FILE_LOCKING
- 
- config LOCKD_V4
- 	bool
- 	depends on NFSD_V3 || NFS_V3
-+	depends on FILE_LOCKING
- 	default y
- 
- config EXPORTFS
-diff -puN fs/nfs/Kconfig~lockd-fix-file_locking=n-build-error fs/nfs/Kconfig
---- a/fs/nfs/Kconfig~lockd-fix-file_locking=n-build-error
-+++ a/fs/nfs/Kconfig
-@@ -1,6 +1,6 @@
- config NFS_FS
- 	tristate "NFS client support"
--	depends on INET
-+	depends on INET && FILE_LOCKING
- 	select LOCKD
- 	select SUNRPC
- 	select NFS_ACL_SUPPORT if NFS_V3_ACL
+ #include <asm/entry.h>
+ #include <asm/page.h>
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
 linux-next.patch
-ecryptfs-fix-printk-format-warning.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-lockd-fix-file_locking=n-build-error.patch
+time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
+m68k-arch-m68k-kernel-sun3-heads-needs-linux-inith.patch
+m68k-count-can-reach-51-not-50.patch
 kmap_types-make-most-arches-use-generic-header-file.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+flat-fix-data-sections-alignment.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
 
