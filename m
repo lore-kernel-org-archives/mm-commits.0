@@ -1,190 +1,427 @@
 From: akpm@linux-foundation.org
-Subject: + fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch added to -mm tree
-Date: Tue, 28 Apr 2009 13:28:21 -0700
-Message-ID: <200904282028.n3SKSLnL021238@imap1.linux-foundation.org>
+Subject: [to-be-updated] frv-utrace-remove-in-kernel-strace-code.patch removed from -mm tree
+Date: Tue, 28 Apr 2009 13:39:08 -0700
+Message-ID: <200904282039.n3SKd8E4026842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751747AbZD1UjA (ORCPT
+	by vger.kernel.org with ESMTP id S1752182AbZD1UlP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 16:39:00 -0400
+	Tue, 28 Apr 2009 16:41:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: eparis@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk
+To: dhowells@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsnotify: handle filesystem unmounts with fsnotify marks
-has been added to the -mm tree.  Its filename is
-     fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch
+     frv: utrace: remove in-kernel strace code
+has been removed from the -mm tree.  Its filename was
+     frv-utrace-remove-in-kernel-strace-code.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsnotify: handle filesystem unmounts with fsnotify marks
-From: Eric Paris <eparis@redhat.com>
+Subject: frv: utrace: remove in-kernel strace code
+From: David Howells <dhowells@redhat.com>
 
-When an fs is unmounted with an fsnotify mark entry attached to one of its
-inodes we need to destroy that mark entry and we also (like inotify) send
-an unmount event.
+Remove in-kernel strace code from the FRV arch as it's not really needed
+any more.
 
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c                       |    1 
- fs/notify/inode_mark.c           |   72 +++++++++++++++++++++++++++++
- include/linux/fsnotify_backend.h |    4 +
- 3 files changed, 77 insertions(+)
+ arch/frv/kernel/ptrace.c |  379 -------------------------------------
+ 1 file changed, 379 deletions(-)
 
-diff -puN fs/inode.c~fsnotify-handle-filesystem-unmounts-with-fsnotify-marks fs/inode.c
---- a/fs/inode.c~fsnotify-handle-filesystem-unmounts-with-fsnotify-marks
-+++ a/fs/inode.c
-@@ -408,6 +408,7 @@ int invalidate_inodes(struct super_block
- 	mutex_lock(&iprune_mutex);
- 	spin_lock(&inode_lock);
- 	inotify_unmount_inodes(&sb->s_inodes);
-+	fsnotify_unmount_inodes(&sb->s_inodes);
- 	busy = invalidate_list(&sb->s_inodes, &throw_away);
- 	spin_unlock(&inode_lock);
- 
-diff -puN fs/notify/inode_mark.c~fsnotify-handle-filesystem-unmounts-with-fsnotify-marks fs/notify/inode_mark.c
---- a/fs/notify/inode_mark.c~fsnotify-handle-filesystem-unmounts-with-fsnotify-marks
-+++ a/fs/notify/inode_mark.c
-@@ -89,6 +89,7 @@
- #include <linux/mutex.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
-+#include <linux/writeback.h> /* for inode_lock */
- 
- #include <asm/atomic.h>
- 
-@@ -351,3 +352,74 @@ int fsnotify_add_mark(struct fsnotify_ma
- 
+diff -puN arch/frv/kernel/ptrace.c~frv-utrace-remove-in-kernel-strace-code arch/frv/kernel/ptrace.c
+--- a/arch/frv/kernel/ptrace.c~frv-utrace-remove-in-kernel-strace-code
++++ a/arch/frv/kernel/ptrace.c
+@@ -306,387 +306,8 @@ long arch_ptrace(struct task_struct *chi
  	return ret;
  }
-+
-+/**
-+ * fsnotify_unmount_inodes - an sb is unmounting.  handle any watched inodes.
-+ * @list: list of inodes being unmounted (sb->s_inodes)
-+ *
-+ * Called with inode_lock held, protecting the unmounting super block's list
-+ * of inodes, and with iprune_mutex held, keeping shrink_icache_memory() at bay.
-+ * We temporarily drop inode_lock, however, and CAN block.
-+ */
-+void fsnotify_unmount_inodes(struct list_head *list)
-+{
-+	struct inode *inode, *next_i, *need_iput = NULL;
-+
-+	list_for_each_entry_safe(inode, next_i, list, i_sb_list) {
-+		struct inode *need_iput_tmp;
-+
-+		/*
-+		 * We cannot __iget() an inode in state I_CLEAR, I_FREEING,
-+		 * I_WILL_FREE, or I_NEW which is fine because by that point
-+		 * the inode cannot have any associated watches.
-+		 */
-+		if (inode->i_state & (I_CLEAR|I_FREEING|I_WILL_FREE|I_NEW))
-+			continue;
-+
-+		/*
-+		 * If i_count is zero, the inode cannot have any watches and
-+		 * doing an __iget/iput with MS_ACTIVE clear would actually
-+		 * evict all inodes with zero i_count from icache which is
-+		 * unnecessarily violent and may in fact be illegal to do.
-+		 */
-+		if (!atomic_read(&inode->i_count))
-+			continue;
-+
-+		need_iput_tmp = need_iput;
-+		need_iput = NULL;
-+
-+		/* In case fsnotify_inode_delete() drops a reference. */
-+		if (inode != need_iput_tmp)
-+			__iget(inode);
-+		else
-+			need_iput_tmp = NULL;
-+
-+		/* In case the dropping of a reference would nuke next_i. */
-+		if ((&next_i->i_sb_list != list) &&
-+		    atomic_read(&next_i->i_count) &&
-+		    !(next_i->i_state & (I_CLEAR | I_FREEING | I_WILL_FREE))) {
-+			__iget(next_i);
-+			need_iput = next_i;
-+		}
-+
-+		/*
-+		 * We can safely drop inode_lock here because we hold
-+		 * references on both inode and next_i.  Also no new inodes
-+		 * will be added since the umount has begun.  Finally,
-+		 * iprune_mutex keeps shrink_icache_memory() away.
-+		 */
-+		spin_unlock(&inode_lock);
-+
-+		if (need_iput_tmp)
-+			iput(need_iput_tmp);
-+
-+		/* for each watch, send FS_UNMOUNT and then remove it */
-+		fsnotify(inode, FS_UNMOUNT, inode, FSNOTIFY_EVENT_INODE, NULL, 0);
-+
-+		fsnotify_inode_delete(inode);
-+
-+		iput(inode);
-+
-+		spin_lock(&inode_lock);
-+	}
-+}
-diff -puN include/linux/fsnotify_backend.h~fsnotify-handle-filesystem-unmounts-with-fsnotify-marks include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-handle-filesystem-unmounts-with-fsnotify-marks
-+++ a/include/linux/fsnotify_backend.h
-@@ -337,6 +337,7 @@ extern void fsnotify_destroy_mark_by_ent
- extern void fsnotify_clear_marks_by_group(struct fsnotify_group *group);
- extern void fsnotify_get_mark(struct fsnotify_mark_entry *entry);
- extern void fsnotify_put_mark(struct fsnotify_mark_entry *entry);
-+extern void fsnotify_unmount_inodes(struct list_head *list);
  
- /* put here because inotify does some weird stuff when destroying watches */
- extern struct fsnotify_event *fsnotify_create_event(struct inode *to_tell, __u32 mask,
-@@ -366,6 +367,9 @@ static inline u32 fsnotify_get_cookie(vo
- 	return 0;
- }
- 
-+static inline void fsnotify_unmount_inodes(struct list_head *list)
-+{}
-+
- #endif	/* CONFIG_FSNOTIFY */
- 
- #endif	/* __KERNEL __ */
-_
-
-Patches currently in -mm which might be from eparis@redhat.com are
-
-linux-next.patch
-mutex-add-atomic_dec_and_mutex_lock.patch
-fsnotify-unified-filesystem-notification-backend.patch
-fsnotify-add-marks-to-inodes-so-groups-can-interpret-how-to-handle-those-inodes.patch
-fsnotify-parent-event-notification.patch
-dnotify-reimplement-dnotify-using-fsnotify.patch
-fsnotify-generic-notification-queue-and-waitq.patch
-fsnotify-include-pathnames-with-entries-when-possible.patch
-fsnotify-add-correlations-between-events.patch
-fsnotify-allow-groups-to-add-private-data-to-events.patch
-fsnotify-fsnotify-marks-on-inodes-pin-them-in-core.patch
-fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch
-inotify-reimplement-inotify-using-fsnotify.patch
-
+-int __nongprelbss kstrace;
+-
+-static const struct {
+-	const char	*name;
+-	unsigned	argmask;
+-} __syscall_name_table[NR_syscalls] = {
+-	[0]	= { "restart_syscall"			},
+-	[1]	= { "exit",		0x000001	},
+-	[2]	= { "fork",		0xffffff	},
+-	[3]	= { "read",		0x000141	},
+-	[4]	= { "write",		0x000141	},
+-	[5]	= { "open",		0x000235	},
+-	[6]	= { "close",		0x000001	},
+-	[7]	= { "waitpid",		0x000141	},
+-	[8]	= { "creat",		0x000025	},
+-	[9]	= { "link",		0x000055	},
+-	[10]	= { "unlink",		0x000005	},
+-	[11]	= { "execve",		0x000445	},
+-	[12]	= { "chdir",		0x000005	},
+-	[13]	= { "time",		0x000004	},
+-	[14]	= { "mknod",		0x000325	},
+-	[15]	= { "chmod",		0x000025	},
+-	[16]	= { "lchown",		0x000025	},
+-	[17]	= { "break" },
+-	[18]	= { "oldstat",		0x000045	},
+-	[19]	= { "lseek",		0x000131	},
+-	[20]	= { "getpid",		0xffffff	},
+-	[21]	= { "mount",		0x043555	},
+-	[22]	= { "umount",		0x000005	},
+-	[23]	= { "setuid",		0x000001	},
+-	[24]	= { "getuid",		0xffffff	},
+-	[25]	= { "stime",		0x000004	},
+-	[26]	= { "ptrace",		0x004413	},
+-	[27]	= { "alarm",		0x000001	},
+-	[28]	= { "oldfstat",		0x000041	},
+-	[29]	= { "pause",		0xffffff	},
+-	[30]	= { "utime",		0x000045	},
+-	[31]	= { "stty" },
+-	[32]	= { "gtty" },
+-	[33]	= { "access",		0x000025	},
+-	[34]	= { "nice",		0x000001	},
+-	[35]	= { "ftime" },
+-	[36]	= { "sync",		0xffffff	},
+-	[37]	= { "kill",		0x000011	},
+-	[38]	= { "rename",		0x000055	},
+-	[39]	= { "mkdir",		0x000025	},
+-	[40]	= { "rmdir",		0x000005	},
+-	[41]	= { "dup",		0x000001	},
+-	[42]	= { "pipe",		0x000004	},
+-	[43]	= { "times",		0x000004	},
+-	[44]	= { "prof" },
+-	[45]	= { "brk",		0x000004	},
+-	[46]	= { "setgid",		0x000001	},
+-	[47]	= { "getgid",		0xffffff	},
+-	[48]	= { "signal",		0x000041	},
+-	[49]	= { "geteuid",		0xffffff	},
+-	[50]	= { "getegid",		0xffffff	},
+-	[51]	= { "acct",		0x000005	},
+-	[52]	= { "umount2",		0x000035	},
+-	[53]	= { "lock" },
+-	[54]	= { "ioctl",		0x000331	},
+-	[55]	= { "fcntl",		0x000331	},
+-	[56]	= { "mpx" },
+-	[57]	= { "setpgid",		0x000011	},
+-	[58]	= { "ulimit" },
+-	[60]	= { "umask",		0x000002	},
+-	[61]	= { "chroot",		0x000005	},
+-	[62]	= { "ustat",		0x000043	},
+-	[63]	= { "dup2",		0x000011	},
+-	[64]	= { "getppid",		0xffffff	},
+-	[65]	= { "getpgrp",		0xffffff	},
+-	[66]	= { "setsid",		0xffffff	},
+-	[67]	= { "sigaction" },
+-	[68]	= { "sgetmask" },
+-	[69]	= { "ssetmask" },
+-	[70]	= { "setreuid" },
+-	[71]	= { "setregid" },
+-	[72]	= { "sigsuspend" },
+-	[73]	= { "sigpending" },
+-	[74]	= { "sethostname" },
+-	[75]	= { "setrlimit" },
+-	[76]	= { "getrlimit" },
+-	[77]	= { "getrusage" },
+-	[78]	= { "gettimeofday" },
+-	[79]	= { "settimeofday" },
+-	[80]	= { "getgroups" },
+-	[81]	= { "setgroups" },
+-	[82]	= { "select" },
+-	[83]	= { "symlink" },
+-	[84]	= { "oldlstat" },
+-	[85]	= { "readlink" },
+-	[86]	= { "uselib" },
+-	[87]	= { "swapon" },
+-	[88]	= { "reboot" },
+-	[89]	= { "readdir" },
+-	[91]	= { "munmap",		0x000034	},
+-	[92]	= { "truncate" },
+-	[93]	= { "ftruncate" },
+-	[94]	= { "fchmod" },
+-	[95]	= { "fchown" },
+-	[96]	= { "getpriority" },
+-	[97]	= { "setpriority" },
+-	[99]	= { "statfs" },
+-	[100]	= { "fstatfs" },
+-	[102]	= { "socketcall" },
+-	[103]	= { "syslog" },
+-	[104]	= { "setitimer" },
+-	[105]	= { "getitimer" },
+-	[106]	= { "stat" },
+-	[107]	= { "lstat" },
+-	[108]	= { "fstat" },
+-	[111]	= { "vhangup" },
+-	[114]	= { "wait4" },
+-	[115]	= { "swapoff" },
+-	[116]	= { "sysinfo" },
+-	[117]	= { "ipc" },
+-	[118]	= { "fsync" },
+-	[119]	= { "sigreturn" },
+-	[120]	= { "clone" },
+-	[121]	= { "setdomainname" },
+-	[122]	= { "uname" },
+-	[123]	= { "modify_ldt" },
+-	[123]	= { "cacheflush" },
+-	[124]	= { "adjtimex" },
+-	[125]	= { "mprotect" },
+-	[126]	= { "sigprocmask" },
+-	[127]	= { "create_module" },
+-	[128]	= { "init_module" },
+-	[129]	= { "delete_module" },
+-	[130]	= { "get_kernel_syms" },
+-	[131]	= { "quotactl" },
+-	[132]	= { "getpgid" },
+-	[133]	= { "fchdir" },
+-	[134]	= { "bdflush" },
+-	[135]	= { "sysfs" },
+-	[136]	= { "personality" },
+-	[137]	= { "afs_syscall" },
+-	[138]	= { "setfsuid" },
+-	[139]	= { "setfsgid" },
+-	[140]	= { "_llseek",			0x014331	},
+-	[141]	= { "getdents" },
+-	[142]	= { "_newselect",		0x000141	},
+-	[143]	= { "flock" },
+-	[144]	= { "msync" },
+-	[145]	= { "readv" },
+-	[146]	= { "writev" },
+-	[147]	= { "getsid",			0x000001	},
+-	[148]	= { "fdatasync",		0x000001	},
+-	[149]	= { "_sysctl",			0x000004	},
+-	[150]	= { "mlock" },
+-	[151]	= { "munlock" },
+-	[152]	= { "mlockall" },
+-	[153]	= { "munlockall" },
+-	[154]	= { "sched_setparam" },
+-	[155]	= { "sched_getparam" },
+-	[156]	= { "sched_setscheduler" },
+-	[157]	= { "sched_getscheduler" },
+-	[158]	= { "sched_yield" },
+-	[159]	= { "sched_get_priority_max" },
+-	[160]	= { "sched_get_priority_min" },
+-	[161]	= { "sched_rr_get_interval" },
+-	[162]	= { "nanosleep",		0x000044	},
+-	[163]	= { "mremap" },
+-	[164]	= { "setresuid" },
+-	[165]	= { "getresuid" },
+-	[166]	= { "vm86" },
+-	[167]	= { "query_module" },
+-	[168]	= { "poll" },
+-	[169]	= { "nfsservctl" },
+-	[170]	= { "setresgid" },
+-	[171]	= { "getresgid" },
+-	[172]	= { "prctl",			0x333331	},
+-	[173]	= { "rt_sigreturn",		0xffffff	},
+-	[174]	= { "rt_sigaction",		0x001441	},
+-	[175]	= { "rt_sigprocmask",		0x001441	},
+-	[176]	= { "rt_sigpending",		0x000014	},
+-	[177]	= { "rt_sigtimedwait",		0x001444	},
+-	[178]	= { "rt_sigqueueinfo",		0x000411	},
+-	[179]	= { "rt_sigsuspend",		0x000014	},
+-	[180]	= { "pread",			0x003341	},
+-	[181]	= { "pwrite",			0x003341	},
+-	[182]	= { "chown",			0x000115	},
+-	[183]	= { "getcwd" },
+-	[184]	= { "capget" },
+-	[185]	= { "capset" },
+-	[186]	= { "sigaltstack" },
+-	[187]	= { "sendfile" },
+-	[188]	= { "getpmsg" },
+-	[189]	= { "putpmsg" },
+-	[190]	= { "vfork",			0xffffff	},
+-	[191]	= { "ugetrlimit" },
+-	[192]	= { "mmap2",			0x313314	},
+-	[193]	= { "truncate64" },
+-	[194]	= { "ftruncate64" },
+-	[195]	= { "stat64",			0x000045	},
+-	[196]	= { "lstat64",			0x000045	},
+-	[197]	= { "fstat64",			0x000041	},
+-	[198]	= { "lchown32" },
+-	[199]	= { "getuid32",			0xffffff	},
+-	[200]	= { "getgid32",			0xffffff	},
+-	[201]	= { "geteuid32",		0xffffff	},
+-	[202]	= { "getegid32",		0xffffff	},
+-	[203]	= { "setreuid32" },
+-	[204]	= { "setregid32" },
+-	[205]	= { "getgroups32" },
+-	[206]	= { "setgroups32" },
+-	[207]	= { "fchown32" },
+-	[208]	= { "setresuid32" },
+-	[209]	= { "getresuid32" },
+-	[210]	= { "setresgid32" },
+-	[211]	= { "getresgid32" },
+-	[212]	= { "chown32" },
+-	[213]	= { "setuid32" },
+-	[214]	= { "setgid32" },
+-	[215]	= { "setfsuid32" },
+-	[216]	= { "setfsgid32" },
+-	[217]	= { "pivot_root" },
+-	[218]	= { "mincore" },
+-	[219]	= { "madvise" },
+-	[220]	= { "getdents64" },
+-	[221]	= { "fcntl64" },
+-	[223]	= { "security" },
+-	[224]	= { "gettid" },
+-	[225]	= { "readahead" },
+-	[226]	= { "setxattr" },
+-	[227]	= { "lsetxattr" },
+-	[228]	= { "fsetxattr" },
+-	[229]	= { "getxattr" },
+-	[230]	= { "lgetxattr" },
+-	[231]	= { "fgetxattr" },
+-	[232]	= { "listxattr" },
+-	[233]	= { "llistxattr" },
+-	[234]	= { "flistxattr" },
+-	[235]	= { "removexattr" },
+-	[236]	= { "lremovexattr" },
+-	[237]	= { "fremovexattr" },
+-	[238]	= { "tkill" },
+-	[239]	= { "sendfile64" },
+-	[240]	= { "futex" },
+-	[241]	= { "sched_setaffinity" },
+-	[242]	= { "sched_getaffinity" },
+-	[243]	= { "set_thread_area" },
+-	[244]	= { "get_thread_area" },
+-	[245]	= { "io_setup" },
+-	[246]	= { "io_destroy" },
+-	[247]	= { "io_getevents" },
+-	[248]	= { "io_submit" },
+-	[249]	= { "io_cancel" },
+-	[250]	= { "fadvise64" },
+-	[252]	= { "exit_group",		0x000001	},
+-	[253]	= { "lookup_dcookie" },
+-	[254]	= { "epoll_create" },
+-	[255]	= { "epoll_ctl" },
+-	[256]	= { "epoll_wait" },
+-	[257]	= { "remap_file_pages" },
+-	[258]	= { "set_tid_address" },
+-	[259]	= { "timer_create" },
+-	[260]	= { "timer_settime" },
+-	[261]	= { "timer_gettime" },
+-	[262]	= { "timer_getoverrun" },
+-	[263]	= { "timer_delete" },
+-	[264]	= { "clock_settime" },
+-	[265]	= { "clock_gettime" },
+-	[266]	= { "clock_getres" },
+-	[267]	= { "clock_nanosleep" },
+-	[268]	= { "statfs64" },
+-	[269]	= { "fstatfs64" },
+-	[270]	= { "tgkill" },
+-	[271]	= { "utimes" },
+-	[272]	= { "fadvise64_64" },
+-	[273]	= { "vserver" },
+-	[274]	= { "mbind" },
+-	[275]	= { "get_mempolicy" },
+-	[276]	= { "set_mempolicy" },
+-	[277]	= { "mq_open" },
+-	[278]	= { "mq_unlink" },
+-	[279]	= { "mq_timedsend" },
+-	[280]	= { "mq_timedreceive" },
+-	[281]	= { "mq_notify" },
+-	[282]	= { "mq_getsetattr" },
+-	[283]	= { "sys_kexec_load" },
+-};
+-
+ asmlinkage void do_syscall_trace(int leaving)
+ {
+-#if 0
+-	unsigned long *argp;
+-	const char *name;
+-	unsigned argmask;
+-	char buffer[16];
+-
+-	if (!kstrace)
+-		return;
+-
+-	if (!current->mm)
+-		return;
+-
+-	if (__frame->gr7 == __NR_close)
+-		return;
+-
+-#if 0
+-	if (__frame->gr7 != __NR_mmap2 &&
+-	    __frame->gr7 != __NR_vfork &&
+-	    __frame->gr7 != __NR_execve &&
+-	    __frame->gr7 != __NR_exit)
+-		return;
+-#endif
+-
+-	argmask = 0;
+-	name = NULL;
+-	if (__frame->gr7 < NR_syscalls) {
+-		name = __syscall_name_table[__frame->gr7].name;
+-		argmask = __syscall_name_table[__frame->gr7].argmask;
+-	}
+-	if (!name) {
+-		sprintf(buffer, "sys_%lx", __frame->gr7);
+-		name = buffer;
+-	}
+-
+-	if (!leaving) {
+-		if (!argmask) {
+-			printk(KERN_CRIT "[%d] %s(%lx,%lx,%lx,%lx,%lx,%lx)\n",
+-			       current->pid,
+-			       name,
+-			       __frame->gr8,
+-			       __frame->gr9,
+-			       __frame->gr10,
+-			       __frame->gr11,
+-			       __frame->gr12,
+-			       __frame->gr13);
+-		}
+-		else if (argmask == 0xffffff) {
+-			printk(KERN_CRIT "[%d] %s()\n",
+-			       current->pid,
+-			       name);
+-		}
+-		else {
+-			printk(KERN_CRIT "[%d] %s(",
+-			       current->pid,
+-			       name);
+-
+-			argp = &__frame->gr8;
+-
+-			do {
+-				switch (argmask & 0xf) {
+-				case 1:
+-					printk("%ld", (long) *argp);
+-					break;
+-				case 2:
+-					printk("%lo", *argp);
+-					break;
+-				case 3:
+-					printk("%lx", *argp);
+-					break;
+-				case 4:
+-					printk("%p", (void *) *argp);
+-					break;
+-				case 5:
+-					printk("\"%s\"", (char *) *argp);
+-					break;
+-				}
+-
+-				argp++;
+-				argmask >>= 4;
+-				if (argmask)
+-					printk(",");
+-
+-			} while (argmask);
+-
+-			printk(")\n");
+-		}
+-	}
+-	else {
+-		if ((int)__frame->gr8 > -4096 && (int)__frame->gr8 < 4096)
+-			printk(KERN_CRIT "[%d] %s() = %ld\n", current->pid, name, __frame->gr8);
+-		else
+-			printk(KERN_CRIT "[%d] %s() = %lx\n", current->pid, name, __frame->gr8);
+-	}
+-	return;
+-#endif
