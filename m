@@ -1,129 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] block-turn-some-buggy-macros-into-c-functions.patch removed from -mm tree
-Date: Tue, 28 Apr 2009 12:24:58 -0700
-Message-ID: <200904281924.n3SJOw3Z020508@imap1.linux-foundation.org>
+Subject: [merged] scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y.patch removed from -mm tree
+Date: Tue, 28 Apr 2009 12:25:38 -0700
+Message-ID: <200904281925.n3SJPcdt020934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43391 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756185AbZD1T2S (ORCPT
+	by vger.kernel.org with ESMTP id S1755828AbZD1T2o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 15:28:18 -0400
+	Tue, 28 Apr 2009 15:28:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, jens.axboe@oracle.com, knikanth@suse.de, mm-commits@vger.kernel.org
+To: dave@linux.vnet.ibm.com, James.Bottomley@HansenPartnership.com, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block: turn some buggy macros into C functions
+     scsi: fix sign extension with 1.5TB usb-storage LBD=y
 has been removed from the -mm tree.  Its filename was
-     block-turn-some-buggy-macros-into-c-functions.patch
+     scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: turn some buggy macros into C functions
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi: fix sign extension with 1.5TB usb-storage LBD=y
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-please fill in the comments?
+Shifting an unsigned char implicitly casts it to a signed int.  This
+caused 'lba' to sign-extend and Linux would then try READ CAPACITY 16
+which was not supported by at least one drive.  Using the
+get_unaligned_be*() helpers keeps us from having to worry about how the
+extension might occur.
 
-Cc: Nikanth Karthikesan <knikanth@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/blkdev.h |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ drivers/scsi/sd.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/blkdev.h~block-turn-some-buggy-macros-into-c-functions include/linux/blkdev.h
---- a/include/linux/blkdev.h~block-turn-some-buggy-macros-into-c-functions
-+++ a/include/linux/blkdev.h
-@@ -668,11 +668,23 @@ static inline void blk_clear_queue_full(
-  */
- #define RQ_NOMERGE_FLAGS	\
- 	(REQ_NOMERGE | REQ_STARTED | REQ_HARDBARRIER | REQ_SOFTBARRIER)
--#define rq_mergeable(rq)	\
--	(!((rq)->cmd_flags & RQ_NOMERGE_FLAGS) && \
--	 (blk_discard_rq(rq) || blk_fs_request(rq)))
--#define rq_accountable(rq)	\
--	(blk_discard_rq(rq) || blk_fs_request(rq))
-+
-+/*
-+ * nice comment goes here
-+ */
-+static inline bool rq_mergeable(const struct request *rq)
-+{
-+	return !((rq)->cmd_flags & RQ_NOMERGE_FLAGS) &&
-+		(blk_discard_rq(rq) || blk_fs_request(rq));
-+}
-+
-+/*
-+ * here too
-+ */
-+static inline bool rq_accountable(const struct request *rq)
-+{
-+	return blk_discard_rq(rq) || blk_fs_request(rq);
-+}
+diff -puN drivers/scsi/sd.c~scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~scsi-fix-sign-extension-with-15tb-usb-storage-lbd=y
++++ a/drivers/scsi/sd.c
+@@ -50,6 +50,7 @@
+ #include <linux/string_helpers.h>
+ #include <linux/async.h>
+ #include <asm/uaccess.h>
++#include <asm/unaligned.h>
  
- /*
-  * q->prep_rq_fn return values
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_cmnd.h>
+@@ -1345,12 +1346,8 @@ static int read_capacity_16(struct scsi_
+ 		return -EINVAL;
+ 	}
+ 
+-	sector_size =	(buffer[8] << 24) | (buffer[9] << 16) |
+-			(buffer[10] << 8) | buffer[11];
+-	lba =  (((u64)buffer[0] << 56) | ((u64)buffer[1] << 48) |
+-		((u64)buffer[2] << 40) | ((u64)buffer[3] << 32) |
+-		((u64)buffer[4] << 24) | ((u64)buffer[5] << 16) |
+-		((u64)buffer[6] << 8) | (u64)buffer[7]);
++	sector_size = get_unaligned_be32(&buffer[8]);
++	lba = get_unaligned_be64(&buffer[0]);
+ 
+ 	sd_read_protection_type(sdkp, buffer);
+ 
+@@ -1401,10 +1398,8 @@ static int read_capacity_10(struct scsi_
+ 		return -EINVAL;
+ 	}
+ 
+-	sector_size =	(buffer[4] << 24) | (buffer[5] << 16) |
+-			(buffer[6] << 8) | buffer[7];
+-	lba =	(buffer[0] << 24) | (buffer[1] << 16) |
+-		(buffer[2] << 8) | buffer[3];
++	sector_size = get_unaligned_be32(&buffer[4]);
++	lba = get_unaligned_be32(&buffer[0]);
+ 
+ 	if ((sizeof(sdkp->capacity) == 4) && (lba == 0xffffffff)) {
+ 		sd_printk(KERN_ERR, sdkp, "Too big for this kernel. Use a "
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
-origin.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-forcedeth-add-clock-gating-feature-checkpatch-fixes.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-block-turn-some-buggy-macros-into-c-functions.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-close-page_mkwrite-races-try-3-fix.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
 page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
 page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
 
