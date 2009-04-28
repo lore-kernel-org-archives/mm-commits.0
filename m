@@ -1,75 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin.patch removed from -mm tree
-Date: Tue, 28 Apr 2009 12:25:36 -0700
-Message-ID: <200904281925.n3SJPaF0020931@imap1.linux-foundation.org>
+Subject: + kthreads-simplify-the-startup-synchronization.patch added to -mm tree
+Date: Tue, 28 Apr 2009 12:48:59 -0700
+Message-ID: <200904281949.n3SJn018000620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39825 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757790AbZD1T3O (ORCPT
+	by vger.kernel.org with ESMTP id S1753413AbZD1Tyt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 15:29:14 -0400
+	Tue, 28 Apr 2009 15:54:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chombourger@gmail.com, sam@ravnborg.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@redhat.com, ebiederm@xmission.com, hch@lst.de, mingo@elte.hu, rusty@rustcorp.com.au, vgusev@openvz.org, xemul@openvz.org
 
 
 The patch titled
-     scripts/mod/modpost.c: fix Module.markers permission error under cygwin
-has been removed from the -mm tree.  Its filename was
-     scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin.patch
+     kthreads: simplify the startup synchronization
+has been added to the -mm tree.  Its filename is
+     kthreads-simplify-the-startup-synchronization.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/mod/modpost.c: fix Module.markers permission error under cygwin
-From: Cedric Hombourger <chombourger@gmail.com>
+Subject: kthreads: simplify the startup synchronization
+From: Oleg Nesterov <oleg@redhat.com>
 
-While building the kernel, we end-up calling modpost with -K and -M
-options for the same file (Modules.markers).  This is resulting in
-modpost's main function calling read_markers() and then write_markers() on
-the same file.
+We use two completions two create the kernel thread, this is a bit ugly. 
+kthread() wakes up create_kthread() via ->started, then create_kthread()
+wakes up the caller kthread_create() via ->done.  But kthread() does not
+need to wait for kthread(), it can just return.  Instead kthread() itself
+can wake up the caller of kthread_create().
 
-We then have read_markers() mmap'ing the file, and writer_markers()
-opening that same file for writing.
+Kill kthread_create_info->started, ->done is enough.  This improves the
+scalability a bit and sijmplifies the code.
 
-The issue is that read_markers() exits without munmap'ing the file and is
-as a matter holding a reference on Modules.markers.  When write_markers()
-is opening that very same file for writing, we still have a reference on
-it and cygwin (Windows?) is then making fopen() fail with EPERM.
+The only problem if kernel_thread() fails, in that case create_kthread()
+must do complete(&create->done).
 
-Calling release_file() before exiting read_markers() clears that reference
-(and memory leak) and fopen() then succeeds.
-
-Tested on both cygwin (1.3.22) and Linux.  Also ran modpost within
-valgrind on Linux to make sure that the munmap'ed file was not accessed
-after read_markers()
-
-Signed-off-by: Cedric Hombourger <chombourger@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Vitaliy Gusev <vgusev@openvz.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kthread.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN scripts/mod/modpost.c~scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~scripts-mod-modpostc-fix-modulemarkers-permission-error-under-cygwin
-+++ a/scripts/mod/modpost.c
-@@ -2008,6 +2008,7 @@ static void read_markers(const char *fna
- 		if (!mod->skip)
- 			add_marker(mod, marker, fmt);
- 	}
-+	release_file(file, size);
- 	return;
- fail:
- 	fatal("parse error in markers list file\n");
+diff -puN kernel/kthread.c~kthreads-simplify-the-startup-synchronization kernel/kthread.c
+--- a/kernel/kthread.c~kthreads-simplify-the-startup-synchronization
++++ a/kernel/kthread.c
+@@ -27,7 +27,6 @@ struct kthread_create_info
+ 	/* Information passed to kthread() from kthreadd. */
+ 	int (*threadfn)(void *data);
+ 	void *data;
+-	struct completion started;
+ 
+ 	/* Result passed back to kthread_create() from kthreadd. */
+ 	struct task_struct *result;
+@@ -75,7 +74,7 @@ static int kthread(void *_create)
+ 	/* OK, tell user we're spawned, wait for stop or wakeup */
+ 	__set_current_state(TASK_UNINTERRUPTIBLE);
+ 	create->result = current;
+-	complete(&create->started);
++	complete(&create->done);
+ 	schedule();
+ 
+ 	if (!kthread_should_stop())
+@@ -95,11 +94,10 @@ static void create_kthread(struct kthrea
+ 
+ 	/* We want our own signal handler (we take no signals by default). */
+ 	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
+-	if (pid < 0)
++	if (pid < 0) {
+ 		create->result = ERR_PTR(pid);
+-	else
+-		wait_for_completion(&create->started);
+-	complete(&create->done);
++		complete(&create->done);
++	}
+ }
+ 
+ /**
+@@ -130,7 +128,6 @@ struct task_struct *kthread_create(int (
+ 
+ 	create.threadfn = threadfn;
+ 	create.data = data;
+-	init_completion(&create.started);
+ 	init_completion(&create.done);
+ 
+ 	spin_lock(&kthread_create_lock);
 _
 
-Patches currently in -mm which might be from chombourger@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+origin.patch
 linux-next.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+getrusage-fill-ru_maxrss-value.patch
+ptrace-remove-pt_dtrace-from-arch-h8300.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+ptrace-remove-pt_dtrace-from-arch-m32r.patch
+ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+signals-tracehook_notify_jctl-change.patch
 
