@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-make-messages-more-readable.patch added to -mm tree
-Date: Tue, 28 Apr 2009 15:22:40 -0700
-Message-ID: <200904282222.n3SMMeB2016513@imap1.linux-foundation.org>
+Subject: + cpusetmm-update-tasks-mems_allowed-in-time-fix.patch added to -mm tree
+Date: Tue, 28 Apr 2009 15:21:23 -0700
+Message-ID: <200904282221.n3SMLOi5015830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59774 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752802AbZD1WZ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753023AbZD1W15 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 18:25:26 -0400
+	Tue, 28 Apr 2009 18:27:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, lizf@cn.fujitsu.com, menage@google.com
+Cc: lee.schermerhorn@hp.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, menage@google.com, miaox@cn.fujitsu.com, mingo@elte.hu, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi, rientjes@google.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     cgroups: make messages more readable
+     cpusetmm-update-tasks-mems_allowed-in-time-fix
 has been added to the -mm tree.  Its filename is
-     cgroups-make-messages-more-readable.patch
+     cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: make messages more readable
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cpusetmm-update-tasks-mems_allowed-in-time-fix
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Fix some cgroup messages to read better.
-Update MAINTAINERS to include mm/*cgroup* files.
+The rework of mpol_new() to extract the adjusting of the node mask to
+apply cpuset and mpol flags "context" breaks set_mempolicy() and mbind()
+with MPOL_PREFERRED and a NULL nodemask--i.e., explicit local allocation. 
+Fix this by adding the check for MPOL_PREFERRED and empty node mask to
+mpol_new_mpolicy().
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Remove the now unneeded 'nodes = NULL' from mpol_new().
+
+Note that mpol_new_mempolicy() is always called with a non-NULL 'nodes'
+parameter now that it has been removed from mpol_new().  Therefore, we
+don't need to test nodes for NULL before testing it for 'empty'.  However,
+just to be extra paranoid, add a VM_BUG_ON() to verify this assumption.
+
+Tested on x86_64 with numactl-2.0.3-rc2+ regression test.
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS      |    1 +
- mm/page_cgroup.c |   14 +++++++-------
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ mm/mempolicy.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~cgroups-make-messages-more-readable MAINTAINERS
---- a/MAINTAINERS~cgroups-make-messages-more-readable
-+++ a/MAINTAINERS
-@@ -1522,6 +1522,7 @@ L:	containers@lists.linux-foundation.org
- S:	Maintained
- F:	include/linux/cgroup*
- F:	kernel/cgroup*
-+F:	mm/*cgroup*
- 
- CORETEMP HARDWARE MONITORING DRIVER
- P:	Rudolf Marek
-diff -puN mm/page_cgroup.c~cgroups-make-messages-more-readable mm/page_cgroup.c
---- a/mm/page_cgroup.c~cgroups-make-messages-more-readable
-+++ a/mm/page_cgroup.c
-@@ -83,12 +83,12 @@ void __init page_cgroup_init(void)
- 			goto fail;
- 	}
- 	printk(KERN_INFO "allocated %ld bytes of page_cgroup\n", total_usage);
--	printk(KERN_INFO "please try cgroup_disable=memory option if you"
--	" don't want\n");
-+	printk(KERN_INFO "please try 'cgroup_disable=memory' option if you"
-+	" don't want memory cgroups\n");
- 	return;
- fail:
--	printk(KERN_CRIT "allocation of page_cgroup was failed.\n");
--	printk(KERN_CRIT "please try cgroup_disable=memory boot option\n");
-+	printk(KERN_CRIT "allocation of page_cgroup failed.\n");
-+	printk(KERN_CRIT "please try 'cgroup_disable=memory' boot option\n");
- 	panic("Out of memory");
+diff -puN mm/mempolicy.c~cpusetmm-update-tasks-mems_allowed-in-time-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~cpusetmm-update-tasks-mems_allowed-in-time-fix
++++ a/mm/mempolicy.c
+@@ -182,8 +182,9 @@ static int mpol_new_bind(struct mempolic
+ 	return 0;
  }
+ /*
+- * This function is called after mpol_new(). The parameter -- nodes needn't
+- * been check because mpol_new() has done it. Maybe this implement is ugly.
++ * This function is called after mpol_new().  mpol_new() has already validated
++ * the nodes parameter with respect to the policy mode and flags.  But, we
++ * need to handle an empty nodemaks with MPOL_PREFERRED here.
+  *
+  * We use task's alloc_lock to protect task's mems_allowed and mempolicy.
+  * so this function should be called with task's alloc_lock held.
+@@ -197,7 +198,10 @@ static int mpol_new_mempolicy(struct mem
+ 	if (pol == NULL)
+ 		return 0;
  
-@@ -257,14 +257,14 @@ void __init page_cgroup_init(void)
- 		fail = init_section_page_cgroup(pfn);
- 	}
- 	if (fail) {
--		printk(KERN_CRIT "try cgroup_disable=memory boot option\n");
-+		printk(KERN_CRIT "try 'cgroup_disable=memory' boot option\n");
- 		panic("Out of memory");
- 	} else {
- 		hotplug_memory_notifier(page_cgroup_callback, 0);
- 	}
- 	printk(KERN_INFO "allocated %ld bytes of page_cgroup\n", total_usage);
--	printk(KERN_INFO "please try cgroup_disable=memory option if you don't"
--	" want\n");
-+	printk(KERN_INFO "please try 'cgroup_disable=memory' option if you don't"
-+	" want memory cgroups\n");
- }
- 
- void __meminit pgdat_page_cgroup_init(struct pglist_data *pgdat)
+-	if (nodes) {
++	VM_BUG_ON(!nodes);
++	if (pol->mode == MPOL_PREFERRED && nodes_empty(*nodes))
++		nodes = NULL;	/* explicit local allocation */
++	else {
+ 		if (pol->flags & MPOL_F_RELATIVE_NODES)
+ 			mpol_relative_nodemask(&cpuset_context_nmask, nodes,
+ 					       &cpuset_current_mems_allowed);
+@@ -243,7 +247,6 @@ static struct mempolicy *mpol_new(unsign
+ 			if (((flags & MPOL_F_STATIC_NODES) ||
+ 			     (flags & MPOL_F_RELATIVE_NODES)))
+ 				return ERR_PTR(-EINVAL);
+-			nodes = NULL;	/* flag local alloc */
+ 		}
+ 	} else if (nodes_empty(*nodes))
+ 		return ERR_PTR(-EINVAL);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
-origin.patch
-linux-next.patch
-ecryptfs-fix-printk-format-warning.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-lockd-fix-file_locking=n-build-error.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-cgroups-make-messages-more-readable.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
 
