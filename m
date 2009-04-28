@@ -1,35 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] frv-utrace-implement-tracehooks.patch removed from -mm tree
-Date: Tue, 28 Apr 2009 13:39:25 -0700
-Message-ID: <200904282039.n3SKdQ6v026989@imap1.linux-foundation.org>
+Subject: + frv-implement-new-style-ptrace.patch added to -mm tree
+Date: Tue, 28 Apr 2009 13:38:54 -0700
+Message-ID: <200904282038.n3SKcs9g026728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752773AbZD1Ule (ORCPT
+	by vger.kernel.org with ESMTP id S1752927AbZD1Ulf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 16:41:34 -0400
+	Tue, 28 Apr 2009 16:41:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com, oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     frv: utrace: implement tracehooks
-has been removed from the -mm tree.  Its filename was
-     frv-utrace-implement-tracehooks.patch
+     frv: implement new-style ptrace
+has been added to the -mm tree.  Its filename is
+     frv-implement-new-style-ptrace.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: utrace: implement tracehooks
+Subject: frv: implement new-style ptrace
 From: David Howells <dhowells@redhat.com>
 
-Implement the tracehooks stuff for ptrace on FRV.
+Implement the new-style ptrace for FRV, including adding appropriate
+tracehooks.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -43,8 +55,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  arch/frv/kernel/signal.c       |    5 
  7 files changed, 367 insertions(+), 164 deletions(-)
 
-diff -puN arch/frv/Kconfig~frv-utrace-implement-tracehooks arch/frv/Kconfig
---- a/arch/frv/Kconfig~frv-utrace-implement-tracehooks
+diff -puN arch/frv/Kconfig~frv-implement-new-style-ptrace arch/frv/Kconfig
+--- a/arch/frv/Kconfig~frv-implement-new-style-ptrace
 +++ a/arch/frv/Kconfig
 @@ -6,6 +6,7 @@ config FRV
  	bool
@@ -54,8 +66,8 @@ diff -puN arch/frv/Kconfig~frv-utrace-implement-tracehooks arch/frv/Kconfig
  
  config ZONE_DMA
  	bool
-diff -puN arch/frv/include/asm/elf.h~frv-utrace-implement-tracehooks arch/frv/include/asm/elf.h
---- a/arch/frv/include/asm/elf.h~frv-utrace-implement-tracehooks
+diff -puN arch/frv/include/asm/elf.h~frv-implement-new-style-ptrace arch/frv/include/asm/elf.h
+--- a/arch/frv/include/asm/elf.h~frv-implement-new-style-ptrace
 +++ a/arch/frv/include/asm/elf.h
 @@ -116,6 +116,7 @@ do {											\
  } while(0)
@@ -65,8 +77,8 @@ diff -puN arch/frv/include/asm/elf.h~frv-utrace-implement-tracehooks arch/frv/in
  #define ELF_FDPIC_CORE_EFLAGS	EF_FRV_FDPIC
  #define ELF_EXEC_PAGESIZE	16384
  
-diff -puN arch/frv/include/asm/ptrace.h~frv-utrace-implement-tracehooks arch/frv/include/asm/ptrace.h
---- a/arch/frv/include/asm/ptrace.h~frv-utrace-implement-tracehooks
+diff -puN arch/frv/include/asm/ptrace.h~frv-implement-new-style-ptrace arch/frv/include/asm/ptrace.h
+--- a/arch/frv/include/asm/ptrace.h~frv-implement-new-style-ptrace
 +++ a/arch/frv/include/asm/ptrace.h
 @@ -65,6 +65,8 @@
  #ifdef __KERNEL__
@@ -88,7 +100,7 @@ diff -puN arch/frv/include/asm/ptrace.h~frv-utrace-implement-tracehooks arch/frv
  #define profile_pc(regs) ((regs)->pc)
 -#endif
 +
-+#define task_pt_regs(task) (task->thread.frame0)
++#define task_pt_regs(task) ((task)->thread.frame0)
 +
 +#define arch_has_single_step()	(1)
 +extern void user_enable_single_step(struct task_struct *);
@@ -224,8 +236,8 @@ diff -puN /dev/null arch/frv/include/asm/syscall.h
 +}
 +
 +#endif /* _ASM_SYSCALL_H */
-diff -puN arch/frv/kernel/entry.S~frv-utrace-implement-tracehooks arch/frv/kernel/entry.S
---- a/arch/frv/kernel/entry.S~frv-utrace-implement-tracehooks
+diff -puN arch/frv/kernel/entry.S~frv-implement-new-style-ptrace arch/frv/kernel/entry.S
+--- a/arch/frv/kernel/entry.S~frv-implement-new-style-ptrace
 +++ a/arch/frv/kernel/entry.S
 @@ -1149,11 +1149,10 @@ __entry_work_notifysig:
  	# perform syscall entry tracing
@@ -256,8 +268,8 @@ diff -puN arch/frv/kernel/entry.S~frv-utrace-implement-tracehooks arch/frv/kerne
  	bra		__entry_resume_userspace
  
  __syscall_badsys:
-diff -puN arch/frv/kernel/ptrace.c~frv-utrace-implement-tracehooks arch/frv/kernel/ptrace.c
---- a/arch/frv/kernel/ptrace.c~frv-utrace-implement-tracehooks
+diff -puN arch/frv/kernel/ptrace.c~frv-implement-new-style-ptrace arch/frv/kernel/ptrace.c
+--- a/arch/frv/kernel/ptrace.c~frv-implement-new-style-ptrace
 +++ a/arch/frv/kernel/ptrace.c
 @@ -19,6 +19,9 @@
  #include <linux/user.h>
@@ -329,7 +341,7 @@ diff -puN arch/frv/kernel/ptrace.c~frv-utrace-implement-tracehooks arch/frv/kern
 +
 +	/* set the general regs */
 +	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-+				 iregs, offs_gr1, sizeof(*iregs));
++				 &iregs->gr[1], offs_gr1, sizeof(*iregs));
 +	if (ret < 0)
 +		return ret;
 +
@@ -708,8 +720,8 @@ diff -puN arch/frv/kernel/ptrace.c~frv-utrace-implement-tracehooks arch/frv/kern
 +	__frame->__status |= REG__STATUS_SYSC_EXIT;
 +	tracehook_report_syscall_exit(__frame, 0);
  }
-diff -puN arch/frv/kernel/signal.c~frv-utrace-implement-tracehooks arch/frv/kernel/signal.c
---- a/arch/frv/kernel/signal.c~frv-utrace-implement-tracehooks
+diff -puN arch/frv/kernel/signal.c~frv-implement-new-style-ptrace arch/frv/kernel/signal.c
+--- a/arch/frv/kernel/signal.c~frv-implement-new-style-ptrace
 +++ a/arch/frv/kernel/signal.c
 @@ -21,6 +21,7 @@
  #include <linux/unistd.h>
@@ -747,6 +759,8 @@ frv-remove-in-kernel-strace-code.patch
 frv-implement-tif_notify_resume.patch
 frv-dont-turn-on-tif_syscall_trace-unconditionally-in-syscall-prologue.patch
 frv-implement-new-style-ptrace.patch
+frv-utrace-remove-in-kernel-strace-code.patch
+frv-utrace-implement-tif_notify_resume.patch
 frv-utrace-implement-tracehooks.patch
 frv-duplicate-output_buffer-of-e03.patch
 slow_work_thread-should-do-the-exclusive-wait.patch
