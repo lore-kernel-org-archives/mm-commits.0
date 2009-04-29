@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintf-introduce-%pf.patch added to -mm tree
-Date: Wed, 29 Apr 2009 08:37:10 -0700
-Message-ID: <200904291537.n3TFbA4t011662@imap1.linux-foundation.org>
+Subject: + eliminate-thousands-of-warnings-in-warn_on-with-gcc-32-build-fix.patch added to -mm tree
+Date: Wed, 29 Apr 2009 08:41:02 -0700
+Message-ID: <200904291541.n3TFf29O013726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44171 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51458 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753373AbZD2Pl5 (ORCPT
+	by vger.kernel.org with ESMTP id S1757238AbZD2Por (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Apr 2009 11:41:57 -0400
+	Wed, 29 Apr 2009 11:44:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fweisbec@gmail.com, lizf@cn.fujitsu.com, mingo@elte.hu, rostedt@goodmis.org, tzanussi@gmail.com, vapier.adi@gmail.com, zhaolei@cn.fujitsu.com
+Cc: hugh@veritas.com, ak@linux.intel.com, arjan@linux.intel.com, hannes@cmpxchg.org, jesper.nilsson@axis.com
 
 
 The patch titled
-     vsprintf: introduce %pf
+     eliminate-thousands-of-warnings-in-warn_on-with-gcc-32-build fix
 has been added to the -mm tree.  Its filename is
-     vsprintf-introduce-%pf.patch
+     eliminate-thousands-of-warnings-in-warn_on-with-gcc-32-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vsprintf: introduce %pf
-From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: eliminate-thousands-of-warnings-in-warn_on-with-gcc-32-build fix
+From: Hugh Dickins <hugh@veritas.com>
 
-A format which could let us to print a pure function name has been
-suggested by Andrew Morton some monthes ago.
+Fix oopsing WARN_ON!
 
-The current %pF is very convenient to print a function symbol, but often
-we only want to print the name of the function, without its asm offset.
-
-That's what does %pf in this patch.  The lowecase f has been chosen for
-its intuitive sense of a weak kind of %pF
-
-The support for this new format would be welcome for the tracing tree
-where the need to print pure function names is often needed and also on
-other parts:
-
-$ git-grep -E "kallsyms_lookup\(.+?\)"
-arch/blackfin/kernel/traps.c:   symname = kallsyms_lookup(address, &symsize, &offset, &modname, namebuf);
-arch/powerpc/xmon/xmon.c:               name = kallsyms_lookup(pc, &size, &offset, NULL, tmpstr);
-arch/sh/kernel/cpu/sh5/unwind.c:        sym = kallsyms_lookup(pc, NULL, &offset, NULL, namebuf);
-arch/x86/kernel/ftrace.c:       kallsyms_lookup((unsigned long) syscall, NULL, NULL, NULL, str);
-kernel/kprobes.c:               sym = kallsyms_lookup((unsigned long)p->addr, NULL,
-kernel/lockdep.c:       return kallsyms_lookup((unsigned long)key, NULL, NULL, NULL, str);
-kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, NULL, str);
-kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, NULL, str);
-kernel/trace/ftrace.c:  kallsyms_lookup((unsigned long)rec->ops->func, NULL, NULL, NULL, str);
-kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, NULL, str);
-kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, NULL, str);
-kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, &modname, str);
-kernel/trace/ftrace.c:  kallsyms_lookup(*ptr, NULL, NULL, NULL, str);
-kernel/trace/trace_functions.c: kallsyms_lookup(ip, NULL, NULL, NULL, str);
-kernel/trace/trace_output.c:    kallsyms_lookup(address, NULL, NULL, NULL, str);
-
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Mike Frysinger <vapier.adi@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Zhaolei <zhaolei@cn.fujitsu.com>
-Cc: Tom Zanussi <tzanussi@gmail.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ kernel/panic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/vsprintf.c~vsprintf-introduce-%pf lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-introduce-%pf
-+++ a/lib/vsprintf.c
-@@ -573,12 +573,15 @@ static char *string(char *buf, char *end
- }
+diff -puN kernel/panic.c~eliminate-thousands-of-warnings-in-warn_on-with-gcc-32-build-fix kernel/panic.c
+--- a/kernel/panic.c~eliminate-thousands-of-warnings-in-warn_on-with-gcc-32-build-fix
++++ a/kernel/panic.c
+@@ -356,7 +356,7 @@ void warn_slowpath_fmt(const char *file,
+ 	if (board)
+ 		printk(KERN_WARNING "Hardware name: %s\n", board);
  
- static char *symbol_string(char *buf, char *end, void *ptr,
--				struct printf_spec spec)
-+				struct printf_spec spec, char ext)
- {
- 	unsigned long value = (unsigned long) ptr;
- #ifdef CONFIG_KALLSYMS
- 	char sym[KSYM_SYMBOL_LEN];
--	sprint_symbol(sym, value);
-+	if (ext != 'f')
-+		sprint_symbol(sym, value);
-+	else
-+		kallsyms_lookup(value, NULL, NULL, NULL, sym);
- 	return string(buf, end, sym, spec);
- #else
- 	spec.field_width = 2*sizeof(void *);
-@@ -690,7 +693,8 @@ static char *ip4_addr_string(char *buf, 
-  *
-  * Right now we handle:
-  *
-- * - 'F' For symbolic function descriptor pointers
-+ * - 'F' For symbolic function descriptor pointers with offset
-+ * - 'f' For simple symbolic function names without offset
-  * - 'S' For symbolic direct pointers
-  * - 'R' For a struct resource pointer, it prints the range of
-  *       addresses (not the name nor the flags)
-@@ -713,10 +717,11 @@ static char *pointer(const char *fmt, ch
- 
- 	switch (*fmt) {
- 	case 'F':
-+	case 'f':
- 		ptr = dereference_function_descriptor(ptr);
- 		/* Fallthrough */
- 	case 'S':
--		return symbol_string(buf, end, ptr, spec);
-+		return symbol_string(buf, end, ptr, spec, *fmt);
- 	case 'R':
- 		return resource_string(buf, end, ptr, spec);
- 	case 'm':
-@@ -943,7 +948,8 @@ qualifier:
-  *
-  * This function follows C99 vsnprintf, but has some extensions:
-  * %pS output the name of a text symbol
-- * %pF output the name of a function pointer
-+ * %pF output the name of a function pointer with its offset
-+ * %pf output the name of a function pointer without its offset
-  * %pR output the address range in a struct resource
-  *
-  * The return value is the number of characters which would
-@@ -1391,7 +1397,8 @@ EXPORT_SYMBOL_GPL(vbin_printf);
-  *
-  * The format follows C99 vsnprintf, but has some extensions:
-  * %pS output the name of a text symbol
-- * %pF output the name of a function pointer
-+ * %pF output the name of a function pointer with its offset
-+ * %pf output the name of a function pointer without its offset
-  * %pR output the address range in a struct resource
-  * %n is ignored
-  *
+-	if (*fmt) {
++	if (fmt) {
+ 		va_start(args, fmt);
+ 		vprintk(fmt, args);
+ 		va_end(args);
 _
 
-Patches currently in -mm which might be from fweisbec@gmail.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-vsprintf-introduce-%pf.patch
 linux-next.patch
+eliminate-thousands-of-warnings-in-warn_on-with-gcc-32-build-fix.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
+ksm-mmu_notifiers-add-set_pte_at_notify.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+getrusage-fill-ru_maxrss-value.patch
+prio_tree-debugging-patch.patch
 
