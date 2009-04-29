@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch added to -mm tree
-Date: Wed, 29 Apr 2009 14:48:27 -0700
-Message-ID: <200904292148.n3TLmR6Z012896@imap1.linux-foundation.org>
+Subject: + ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch added to -mm tree
+Date: Wed, 29 Apr 2009 14:50:15 -0700
+Message-ID: <200904292150.n3TLoF4d013908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35286 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752548AbZD2Vt7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753840AbZD2Vv7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Apr 2009 17:49:59 -0400
+	Wed, 29 Apr 2009 17:51:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, dhowells@redhat.com, roland@redhat.com
+Cc: oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     elf_core_dump: use rcu_read_lock() to access ->real_parent
+     ptrace: do not use task->ptrace directly in core kernel
 has been added to the -mm tree.  Its filename is
-     elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
+     ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: elf_core_dump: use rcu_read_lock() to access ->real_parent
+Subject: ptrace: do not use task->ptrace directly in core kernel
 From: Oleg Nesterov <oleg@redhat.com>
 
-In theory it is not safe to dereference ->parent/real_parent without
-tasklist or rcu lock, we can race with re-parenting.
+No functional changes.
+
+- Nobody except ptrace.c & co should use ptrace flags directly, we have
+  task_ptrace() for that.
+
+- No need to specially check PT_PTRACED, we must not have other PT_ bits
+  set without PT_PTRACED. And no need to know this flag exists.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c       |    8 ++++++--
- fs/binfmt_elf_fdpic.c |    8 ++++++--
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ kernel/exit.c   |    6 +++---
+ kernel/fork.c   |    2 +-
+ kernel/signal.c |   10 +++++-----
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN fs/binfmt_elf.c~elf_core_dump-use-rcu_read_lock-to-access-real_parent fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~elf_core_dump-use-rcu_read_lock-to-access-real_parent
-+++ a/fs/binfmt_elf.c
-@@ -1340,8 +1340,10 @@ static void fill_prstatus(struct elf_prs
- 	prstatus->pr_info.si_signo = prstatus->pr_cursig = signr;
- 	prstatus->pr_sigpend = p->pending.signal.sig[0];
- 	prstatus->pr_sighold = p->blocked.sig[0];
-+	rcu_read_lock();
-+	prstatus->pr_ppid = task_pid_vnr(rcu_dereference(p->real_parent));
-+	rcu_read_unlock();
- 	prstatus->pr_pid = task_pid_vnr(p);
--	prstatus->pr_ppid = task_pid_vnr(p->real_parent);
- 	prstatus->pr_pgrp = task_pgrp_vnr(p);
- 	prstatus->pr_sid = task_session_vnr(p);
- 	if (thread_group_leader(p)) {
-@@ -1382,8 +1384,10 @@ static int fill_psinfo(struct elf_prpsin
- 			psinfo->pr_psargs[i] = ' ';
- 	psinfo->pr_psargs[len] = 0;
+diff -puN kernel/exit.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel kernel/exit.c
+--- a/kernel/exit.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel
++++ a/kernel/exit.c
+@@ -753,7 +753,7 @@ static void reparent_thread(struct task_
+ 	p->exit_signal = SIGCHLD;
  
-+	rcu_read_lock();
-+	psinfo->pr_ppid = task_pid_vnr(rcu_dereference(p->real_parent));
-+	rcu_read_unlock();
- 	psinfo->pr_pid = task_pid_vnr(p);
--	psinfo->pr_ppid = task_pid_vnr(p->real_parent);
- 	psinfo->pr_pgrp = task_pgrp_vnr(p);
- 	psinfo->pr_sid = task_session_vnr(p);
+ 	/* If it has exited notify the new parent about this child's death. */
+-	if (!p->ptrace &&
++	if (!task_ptrace(p) &&
+ 	    p->exit_state == EXIT_ZOMBIE && thread_group_empty(p)) {
+ 		do_notify_parent(p, p->exit_signal);
+ 		if (task_detached(p)) {
+@@ -778,7 +778,7 @@ static void forget_original_parent(struc
+ 	list_for_each_entry_safe(p, n, &father->children, sibling) {
+ 		p->real_parent = reaper;
+ 		if (p->parent == father) {
+-			BUG_ON(p->ptrace);
++			BUG_ON(task_ptrace(p));
+ 			p->parent = p->real_parent;
+ 		}
+ 		reparent_thread(father, p, &dead_children);
+@@ -1484,7 +1484,7 @@ static int wait_consider_task(struct tas
+ 			*notask_error = ret;
+ 	}
  
-diff -puN fs/binfmt_elf_fdpic.c~elf_core_dump-use-rcu_read_lock-to-access-real_parent fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~elf_core_dump-use-rcu_read_lock-to-access-real_parent
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1387,8 +1387,10 @@ static void fill_prstatus(struct elf_prs
- 	prstatus->pr_info.si_signo = prstatus->pr_cursig = signr;
- 	prstatus->pr_sigpend = p->pending.signal.sig[0];
- 	prstatus->pr_sighold = p->blocked.sig[0];
-+	rcu_read_lock();
-+	prstatus->pr_ppid = task_pid_vnr(rcu_dereference(p->real_parent));
-+	rcu_read_unlock();
- 	prstatus->pr_pid = task_pid_vnr(p);
--	prstatus->pr_ppid = task_pid_vnr(p->real_parent);
- 	prstatus->pr_pgrp = task_pgrp_vnr(p);
- 	prstatus->pr_sid = task_session_vnr(p);
- 	if (thread_group_leader(p)) {
-@@ -1432,8 +1434,10 @@ static int fill_psinfo(struct elf_prpsin
- 			psinfo->pr_psargs[i] = ' ';
- 	psinfo->pr_psargs[len] = 0;
+-	if (likely(!ptrace) && unlikely(p->ptrace)) {
++	if (likely(!ptrace) && unlikely(task_ptrace(p))) {
+ 		/*
+ 		 * This child is hidden by ptrace.
+ 		 * We aren't allowed to see it now, but eventually we will.
+diff -puN kernel/fork.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel kernel/fork.c
+--- a/kernel/fork.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel
++++ a/kernel/fork.c
+@@ -1089,7 +1089,7 @@ static struct task_struct *copy_process(
+ #ifdef CONFIG_DEBUG_MUTEXES
+ 	p->blocked_on = NULL; /* not blocked yet */
+ #endif
+-	if (unlikely(current->ptrace))
++	if (unlikely(task_ptrace(current)))
+ 		ptrace_fork(p, clone_flags);
  
-+	rcu_read_lock();
-+	psinfo->pr_ppid = task_pid_vnr(rcu_dereference(p->real_parent));
-+	rcu_read_unlock();
- 	psinfo->pr_pid = task_pid_vnr(p);
--	psinfo->pr_ppid = task_pid_vnr(p->real_parent);
- 	psinfo->pr_pgrp = task_pgrp_vnr(p);
- 	psinfo->pr_sid = task_session_vnr(p);
+ 	/* Perform scheduler related setup. Assign this task to a CPU. */
+diff -puN kernel/signal.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel kernel/signal.c
+--- a/kernel/signal.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel
++++ a/kernel/signal.c
+@@ -1400,7 +1400,7 @@ int do_notify_parent(struct task_struct 
+  	/* do_notify_parent_cldstop should have been called instead.  */
+  	BUG_ON(task_is_stopped_or_traced(tsk));
  
+-	BUG_ON(!tsk->ptrace &&
++	BUG_ON(!task_ptrace(tsk) &&
+ 	       (tsk->group_leader != tsk || !thread_group_empty(tsk)));
+ 
+ 	info.si_signo = sig;
+@@ -1439,7 +1439,7 @@ int do_notify_parent(struct task_struct 
+ 
+ 	psig = tsk->parent->sighand;
+ 	spin_lock_irqsave(&psig->siglock, flags);
+-	if (!tsk->ptrace && sig == SIGCHLD &&
++	if (!task_ptrace(tsk) && sig == SIGCHLD &&
+ 	    (psig->action[SIGCHLD-1].sa.sa_handler == SIG_IGN ||
+ 	     (psig->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT))) {
+ 		/*
+@@ -1476,7 +1476,7 @@ static void do_notify_parent_cldstop(str
+ 	struct task_struct *parent;
+ 	struct sighand_struct *sighand;
+ 
+-	if (tsk->ptrace & PT_PTRACED)
++	if (task_ptrace(tsk))
+ 		parent = tsk->parent;
+ 	else {
+ 		tsk = tsk->group_leader;
+@@ -1525,7 +1525,7 @@ static void do_notify_parent_cldstop(str
+ 
+ static inline int may_ptrace_stop(void)
+ {
+-	if (!likely(current->ptrace & PT_PTRACED))
++	if (!likely(task_ptrace(current)))
+ 		return 0;
+ 	/*
+ 	 * Are we in the middle of do_coredump?
+@@ -1743,7 +1743,7 @@ static int do_signal_stop(int signr)
+ static int ptrace_signal(int signr, siginfo_t *info,
+ 			 struct pt_regs *regs, void *cookie)
+ {
+-	if (!(current->ptrace & PT_PTRACED))
++	if (!task_ptrace(current))
+ 		return signr;
+ 
+ 	ptrace_signal_deliver(regs, cookie);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -122,6 +163,7 @@ ptrace-remove-pt_dtrace-from-arch-m32r.patch
 ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
 ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
 ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
 copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
 elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
 kthreads-simplify-the-startup-synchronization.patch
