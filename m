@@ -1,242 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] char-cyclades-fix-nports-handling.patch removed from -mm tree
-Date: Wed, 29 Apr 2009 12:18:11 -0700
-Message-ID: <200904291918.n3TJIBCO030964@imap1.linux-foundation.org>
+Subject: [merged] net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n.patch removed from -mm tree
+Date: Wed, 29 Apr 2009 12:17:30 -0700
+Message-ID: <200904291917.n3TJHUxw030572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755206AbZD2TUX (ORCPT
+	by vger.kernel.org with ESMTP id S1753312AbZD2TVV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Apr 2009 15:20:23 -0400
+	Wed, 29 Apr 2009 15:21:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, khc@pm.waw.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, IvDoorn@gmail.com, Larry.Finger@lwfinger.net, davem@davemloft.net, hmh@hmh.eng.br, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char: cyclades, fix nports handling
+     net/rfkill/rfkill.c: fix build with CONFIG_RFKILL_LEDS=n
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-fix-nports-handling.patch
+     net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: cyclades, fix nports handling
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: net/rfkill/rfkill.c: fix build with CONFIG_RFKILL_LEDS=n
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Set up ports right after FW load so that we won't allocate maximal (64)
-ports when we use few.
+net/rfkill/rfkill.c: In function 'update_rfkill_state':
+net/rfkill/rfkill.c:99: error: implicit declaration of function 'rfkill_led_trigger'
 
-Also remove reading of nports in irq context, since we know it from
-initialisation now.
+Caused by
 
-This also fixes a tty ports unregistration on some fail paths and for Ze
-which registered 64 and unregistered real port count.
+: commit 492301fb5d12e4a77a1010ad2b6f1ed306014123
+: Author: Larry Finger <Larry.Finger@lwfinger.net>
+: Date:   Thu Apr 9 22:14:19 2009 -0500
+: 
+:     rfkill: Fix broken rfkill LED in 2.6.30-rc1
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Ivo van Doorn <IvDoorn@gmail.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   58 +++++++++++---------------------------
- 1 file changed, 17 insertions(+), 41 deletions(-)
+ net/rfkill/rfkill.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-fix-nports-handling drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-fix-nports-handling
-+++ a/drivers/char/cyclades.c
-@@ -604,7 +604,6 @@
+diff -puN net/rfkill/rfkill.c~net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n net/rfkill/rfkill.c
+--- a/net/rfkill/rfkill.c~net-rfkill-rfkillc-fix-build-with-config_rfkill_leds=n
++++ a/net/rfkill/rfkill.c
+@@ -75,6 +75,11 @@ static void rfkill_led_trigger_activate(
  
- #define NR_PORTS	256
+ 	rfkill_led_trigger(rfkill, rfkill->state);
+ }
++#else
++static inline void rfkill_led_trigger(struct rfkill *rfkill,
++					enum rfkill_state state)
++{
++}
+ #endif /* CONFIG_RFKILL_LEDS */
  
--#define ZE_V1_NPORTS	64
- #define ZO_V1	0
- #define ZO_V2	1
- #define ZE_V1	2
-@@ -1777,7 +1776,6 @@ static void cyz_poll(unsigned long arg)
- 	struct tty_struct *tty;
- 	struct FIRM_ID __iomem *firm_id;
- 	struct ZFW_CTRL __iomem *zfw_ctrl;
--	struct BOARD_CTRL __iomem *board_ctrl;
- 	struct BUF_CTRL __iomem *buf_ctrl;
- 	unsigned long expires = jiffies + HZ;
- 	unsigned int port, card;
-@@ -1793,11 +1791,9 @@ static void cyz_poll(unsigned long arg)
- 		firm_id = cinfo->base_addr + ID_ADDRESS;
- 		zfw_ctrl = cinfo->base_addr +
- 				(readl(&firm_id->zfwctrl_addr) & 0xfffff);
--		board_ctrl = &(zfw_ctrl->board_ctrl);
- 
- 	/* Skip first polling cycle to avoid racing conditions with the FW */
- 		if (!cinfo->intr_enabled) {
--			cinfo->nports = (int)readl(&board_ctrl->n_channel);
- 			cinfo->intr_enabled = 1;
- 			continue;
- 		}
-@@ -2413,16 +2409,8 @@ static int cy_open(struct tty_struct *tt
- 		   interrupts should be enabled as soon as the first open
- 		   happens to one of its ports. */
- 			if (!cinfo->intr_enabled) {
--				struct ZFW_CTRL __iomem *zfw_ctrl;
--				struct BOARD_CTRL __iomem *board_ctrl;
- 				u16 intr;
- 
--				zfw_ctrl = cinfo->base_addr +
--					(readl(&firm_id->zfwctrl_addr) &
--					 0xfffff);
--
--				board_ctrl = &zfw_ctrl->board_ctrl;
--
- 				/* Enable interrupts on the PLX chip */
- 				intr = readw(&cinfo->ctl_addr.p9060->
- 						intr_ctrl_stat) | 0x0900;
-@@ -2435,8 +2423,6 @@ static int cy_open(struct tty_struct *tt
- 					printk(KERN_ERR "cyc:IRQ enable retval "
- 						"was %x\n", retval);
- 				}
--				cinfo->nports =
--					(int)readl(&board_ctrl->n_channel);
- 				cinfo->intr_enabled = 1;
- 			}
- 		}
-@@ -4340,30 +4326,20 @@ static void cy_hangup(struct tty_struct 
- static int __devinit cy_init_card(struct cyclades_card *cinfo)
- {
- 	struct cyclades_port *info;
--	unsigned int nports, port;
-+	unsigned int port;
- 	unsigned short chip_number;
--	int uninitialized_var(index);
- 
- 	spin_lock_init(&cinfo->card_lock);
-+	cinfo->intr_enabled = 0;
- 
--	if (cy_is_Z(cinfo)) {	/* Cyclades-Z */
--		nports = (cinfo->hw_ver == ZE_V1) ? ZE_V1_NPORTS : 8;
--		cinfo->intr_enabled = 0;
--		cinfo->nports = 0;	/* Will be correctly set later, after
--					   Z FW is loaded */
--	} else {
--		index = cinfo->bus_index;
--		nports = cinfo->nports = CyPORTS_PER_CHIP * cinfo->num_chips;
--	}
--
--	cinfo->ports = kzalloc(sizeof(*cinfo->ports) * nports, GFP_KERNEL);
-+	cinfo->ports = kcalloc(cinfo->nports, sizeof(*cinfo->ports),
-+			GFP_KERNEL);
- 	if (cinfo->ports == NULL) {
- 		printk(KERN_ERR "Cyclades: cannot allocate ports\n");
--		cinfo->nports = 0;
- 		return -ENOMEM;
- 	}
- 
--	for (port = cinfo->first_line; port < cinfo->first_line + nports;
-+	for (port = cinfo->first_line; port < cinfo->first_line + cinfo->nports;
- 			port++) {
- 		info = &cinfo->ports[port - cinfo->first_line];
- 		tty_port_init(&info->port);
-@@ -4388,6 +4364,7 @@ static int __devinit cy_init_card(struct
- 				cyz_rx_restart, (unsigned long)info);
- #endif
- 		} else {
-+			int index = cinfo->bus_index;
- 			info->type = PORT_CIRRUS;
- 			info->xmit_fifo_size = CyMAX_CHAR_FIFO;
- 			info->cor1 = CyPARITY_NONE | Cy_1_STOP | Cy_8_BITS;
-@@ -4615,7 +4592,8 @@ static int __init cy_detect_isa(void)
- 		cy_card[j].irq = (int)cy_isa_irq;
- 		cy_card[j].bus_index = 0;
- 		cy_card[j].first_line = cy_next_channel;
--		cy_card[j].num_chips = cy_isa_nchan / 4;
-+		cy_card[j].num_chips = cy_isa_nchan / CyPORTS_PER_CHIP;
-+		cy_card[j].nports = cy_isa_nchan;
- 		if (cy_init_card(&cy_card[j])) {
- 			cy_card[j].base_addr = NULL;
- 			free_irq(cy_isa_irq, &cy_card[j]);
-@@ -4771,7 +4749,7 @@ static int __devinit cyz_load_fw(struct 
- 	struct CUSTOM_REG __iomem *cust = base_addr;
- 	struct ZFW_CTRL __iomem *pt_zfwctrl;
- 	void __iomem *tmp;
--	u32 mailbox, status;
-+	u32 mailbox, status, nchan;
- 	unsigned int i;
- 	int retval;
- 
-@@ -4892,11 +4870,11 @@ static int __devinit cyz_load_fw(struct 
- 			base_addr + ID_ADDRESS, readl(&fid->zfwctrl_addr),
- 			base_addr + readl(&fid->zfwctrl_addr));
- 
-+	nchan = readl(&pt_zfwctrl->board_ctrl.n_channel);
- 	dev_info(&pdev->dev, "Cyclades-Z FW loaded: version = %x, ports = %u\n",
--		readl(&pt_zfwctrl->board_ctrl.fw_version),
--		readl(&pt_zfwctrl->board_ctrl.n_channel));
-+		readl(&pt_zfwctrl->board_ctrl.fw_version), nchan);
- 
--	if (readl(&pt_zfwctrl->board_ctrl.n_channel) == 0) {
-+	if (nchan == 0) {
- 		dev_warn(&pdev->dev, "no Cyclades-Z ports were found. Please "
- 			"check the connection between the Z host card and the "
- 			"serial expanders.\n");
-@@ -4922,7 +4900,7 @@ static int __devinit cyz_load_fw(struct 
- 	cy_writel(&ctl_addr->intr_ctrl_stat, readl(&ctl_addr->intr_ctrl_stat) |
- 			0x00030800UL);
- 
--	return 0;
-+	return nchan;
- err_rel:
- 	release_firmware(fw);
- err:
-@@ -5027,12 +5005,8 @@ static int __devinit cy_pci_probe(struct
- 
- 		if (mailbox == ZE_V1) {
- 			card_name = "Cyclades-Ze";
--
--			nchan = ZE_V1_NPORTS;
- 		} else {
- 			card_name = "Cyclades-8Zo";
--			nchan = 8;
--
- #ifdef CY_PCI_DEBUG
- 			if (mailbox == ZO_V1) {
- 				cy_writel(&ctl_addr->loc_addr_base, WIN_CREG);
-@@ -5057,8 +5031,9 @@ static int __devinit cy_pci_probe(struct
- 		}
- 
- 		retval = cyz_load_fw(pdev, addr2, addr0, irq);
--		if (retval)
-+		if (retval <= 0)
- 			goto err_unmap;
-+		nchan = retval;
- 	}
- 
- 	if ((cy_next_channel + nchan) > NR_PORTS) {
-@@ -5088,7 +5063,7 @@ static int __devinit cy_pci_probe(struct
- 			dev_err(&pdev->dev, "could not allocate IRQ\n");
- 			goto err_unmap;
- 		}
--		cy_card[card_no].num_chips = nchan / 4;
-+		cy_card[card_no].num_chips = nchan / CyPORTS_PER_CHIP;
- 	} else {
- 		cy_card[card_no].hw_ver = mailbox;
- 		cy_card[card_no].num_chips = (unsigned int)-1;
-@@ -5112,6 +5087,7 @@ static int __devinit cy_pci_probe(struct
- 	cy_card[card_no].irq = irq;
- 	cy_card[card_no].bus_index = 1;
- 	cy_card[card_no].first_line = cy_next_channel;
-+	cy_card[card_no].nports = nchan;
- 	retval = cy_init_card(&cy_card[card_no]);
- 	if (retval)
- 		goto err_null;
+ static void rfkill_uevent(struct rfkill *rfkill)
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-close-page_mkwrite-races-try-3.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-icom-converting-space-to-tabs.patch
-char-isicom-fix-build-warning.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+forcedeth-add-clock-gating-feature-checkpatch-fixes.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
