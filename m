@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-ptrace-entry.patch added to -mm tree
-Date: Tue, 28 Apr 2009 20:29:26 -0700
-Message-ID: <200904290329.n3T3TQbL013975@imap1.linux-foundation.org>
+Subject: + atomic-fix-atomic_long_cmpxchg-xchg-for-64-bit-architectures.patch added to -mm tree
+Date: Wed, 29 Apr 2009 08:24:53 -0700
+Message-ID: <200904291524.n3TFOrUx005147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41931 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751403AbZD2Ddr (ORCPT
+	by vger.kernel.org with ESMTP id S1754989AbZD2P1T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Apr 2009 23:33:47 -0400
+	Wed, 29 Apr 2009 11:27:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, joe@perches.com, oleg@redhat.com, roland@redhat.com
+Cc: heiko.carstens@de.ibm.com, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     MAINTAINERS: add ptrace entry
+     atomic: fix atomic_long_cmpxchg/xchg for 64 bit architectures
 has been added to the -mm tree.  Its filename is
-     maintainers-add-ptrace-entry.patch
+     atomic-fix-atomic_long_cmpxchg-xchg-for-64-bit-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add ptrace entry
-From: Christoph Hellwig <hch@lst.de>
+Subject: atomic: fix atomic_long_cmpxchg/xchg for 64 bit architectures
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-Add Roland and Oleg as formal ptrace maintainers, they've been doing the
-job for a while.
+On a linux-next allyesconfig build:
 
-Includes the file patterns requested by Joe.
+kernel/trace/ring_buffer.c:1726:
+	warning: passing argument 1 of 'atomic_cmpxchg' from incompatible pointer type
+linux-next/arch/s390/include/asm/atomic.h:112:
+	note: expected 'struct atomic_t *' but argument is of type 'struct atomic64_t *'
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Joe Perches <joe@perches.com>
+atomic_long_cmpxchg and atomic_long_xchg are incorrectly defined for 64
+bit architectures.  They should be mapped to the atomic64_* variants.
+
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/asm-generic/atomic.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-ptrace-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-add-ptrace-entry
-+++ a/MAINTAINERS
-@@ -4521,6 +4521,19 @@ M:	jim@jtan.com
- L:	cbe-oss-dev@ozlabs.org
- S:	Maintained
+diff -puN include/asm-generic/atomic.h~atomic-fix-atomic_long_cmpxchg-xchg-for-64-bit-architectures include/asm-generic/atomic.h
+--- a/include/asm-generic/atomic.h~atomic-fix-atomic_long_cmpxchg-xchg-for-64-bit-architectures
++++ a/include/asm-generic/atomic.h
+@@ -132,9 +132,9 @@ static inline long atomic_long_add_unles
+ #define atomic_long_inc_not_zero(l) atomic64_inc_not_zero((atomic64_t *)(l))
  
-+PTRACE SUPPORT
-+P:	Roland McGrath
-+M:	roland@redhat.com
-+P:	Oleg Nesterov
-+M:	oleg@redhat.com
-+L:	linux-kernel@vger.kernel.org
-+S:	Maintained
-+F:	include/asm-generic/syscall.h
-+F:	include/linux/ptrace.h
-+F:	include/linux/regset.h
-+F:	include/linux/tracehook.h
-+F:	kernel/ptrace.c
-+
- PVRUSB2 VIDEO4LINUX DRIVER
- P:	Mike Isely
- M:	isely@pobox.com
+ #define atomic_long_cmpxchg(l, old, new) \
+-	(atomic_cmpxchg((atomic64_t *)(l), (old), (new)))
++	(atomic64_cmpxchg((atomic64_t *)(l), (old), (new)))
+ #define atomic_long_xchg(v, new) \
+-	(atomic_xchg((atomic64_t *)(l), (new)))
++	(atomic64_xchg((atomic64_t *)(l), (new)))
+ 
+ #else  /*  BITS_PER_LONG == 64  */
+ 
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
-maintainers-add-ptrace-entry.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-mutex-add-atomic_dec_and_mutex_lock.patch
-fsnotify-unified-filesystem-notification-backend.patch
-fsnotify-add-marks-to-inodes-so-groups-can-interpret-how-to-handle-those-inodes.patch
-fsnotify-parent-event-notification.patch
-dnotify-reimplement-dnotify-using-fsnotify.patch
-fsnotify-generic-notification-queue-and-waitq.patch
-fsnotify-include-pathnames-with-entries-when-possible.patch
-fsnotify-add-correlations-between-events.patch
-fsnotify-allow-groups-to-add-private-data-to-events.patch
-fsnotify-fsnotify-marks-on-inodes-pin-them-in-core.patch
-fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch
-inotify-reimplement-inotify-using-fsnotify.patch
+atomic-fix-atomic_long_cmpxchg-xchg-for-64-bit-architectures.patch
+linux-next.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
 
