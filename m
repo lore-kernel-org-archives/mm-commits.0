@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + do_wait-do-take-security_task_wait-into-account.patch added to -mm tree
-Date: Wed, 29 Apr 2009 15:27:53 -0700
-Message-ID: <200904292227.n3TMRrOb001378@imap1.linux-foundation.org>
+Subject: + memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch added to -mm tree
+Date: Wed, 29 Apr 2009 15:33:23 -0700
+Message-ID: <200904292233.n3TMXNCg004308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42739 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761622AbZD2WdE (ORCPT
+	by vger.kernel.org with ESMTP id S1763011AbZD2Wkn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Apr 2009 18:33:04 -0400
+	Wed, 29 Apr 2009 18:40:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, eparis@parisplace.org, jmorris@namei.org, roland@redhat.com
+Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.cn, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, yamamoto@valinux.co.jp
 
 
 The patch titled
-     do_wait: do take security_task_wait() into account
+     memcg: fix mem_cgroup_update_mapped_file_stat oops
 has been added to the -mm tree.  Its filename is
-     do_wait-do-take-security_task_wait-into-account.patch
+     memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_wait: do take security_task_wait() into account
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: memcg: fix mem_cgroup_update_mapped_file_stat oops
+From: Hugh Dickins <hugh@veritas.com>
 
-I was never able to understand what should we actually do when
-security_task_wait() fails, but the current code doesn't look right.
+CONFIG_SPARSEMEM=y CONFIG_CGROUP_MEM_RES_CTLR=y cgroup_disable=memory
+bootup is oopsing in mem_cgroup_update_mapped_file_stat().  !SPARSEMEM is
+fine because its lookup_page_cgroup() contains an explicit check for NULL
+node_page_cgroup, but the SPARSEMEM version was missing a check for NULL
+section->page_cgroup.
 
-If ->task_wait() returns the error, we update *notask_error correctly. 
-But then we either reap the child (despite the fact this was forbidden) or
-clear *notask_error (and hide the securiy policy problems).
+Should go in as a fix to memcg-add-file-based-rss-accounting.patch but
+it's curious that's the first thing to suffer from this divergence.
 
-This patch assumes that "stolen by ptrace" doesn't matter.  If selinux
-denies the child we should ignore it but make sure we report -EACCESS
-instead of -ECHLD if there are no other eligible children.
+Perhaps this is the wrong fix, and there should be an explicit
+mem_cgroup_disable() check somewhere else; but it would then seem
+dangerous that SPARSEMEM and !SPARSEMEM diverge in this way, and there are
+lots of lookup_page_cgroup NULL tests around.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.cn>
+Cc: Paul Menage <menage@google.com>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_cgroup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/exit.c~do_wait-do-take-security_task_wait-into-account kernel/exit.c
---- a/kernel/exit.c~do_wait-do-take-security_task_wait-into-account
-+++ a/kernel/exit.c
-@@ -1482,6 +1482,7 @@ static int wait_consider_task(struct tas
- 		 */
- 		if (*notask_error)
- 			*notask_error = ret;
-+		return 0;
- 	}
+diff -puN mm/page_cgroup.c~memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops
++++ a/mm/page_cgroup.c
+@@ -99,6 +99,8 @@ struct page_cgroup *lookup_page_cgroup(s
+ 	unsigned long pfn = page_to_pfn(page);
+ 	struct mem_section *section = __pfn_to_section(pfn);
  
- 	if (likely(!ptrace) && unlikely(task_ptrace(p))) {
++	if (!section->page_cgroup)
++		return NULL;
+ 	return section->page_cgroup + pfn;
+ }
+ 
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-maintainers-add-ptrace-entry.patch
 linux-next.patch
-ptrace-selinux_bprm_committed_creds-simplify-__wake_up_parent-code-and-s-parent-real_parent.patch
-ptrace-s-parent-real_parent-in-binfmt_elf_fdpicc.patch
-slow_work_thread-should-do-the-exclusive-wait.patch
-rework-fix-is_single_threaded.patch
+eliminate-thousands-of-warnings-with-gcc-32-build.patch
+eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
+integrity-nfsd-imbalance-bug-fix.patch
+ksm-mmu_notifiers-add-set_pte_at_notify.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
 getrusage-fill-ru_maxrss-value.patch
-ptrace-remove-pt_dtrace-from-arch-h8300.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
-ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
-ptrace-remove-pt_dtrace-from-arch-m32r.patch
-ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
-ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
-do_wait-do-take-security_task_wait-into-account.patch
-copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
-elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-signals-tracehook_notify_jctl-change.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+prio_tree-debugging-patch.patch
 
