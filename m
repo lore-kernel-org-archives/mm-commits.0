@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] poll-avoid-extra-wakeups-in-select-poll.patch removed from -mm tree
-Date: Wed, 29 Apr 2009 13:57:22 -0700
-Message-ID: <200904292057.n3TKvMv9018486@imap1.linux-foundation.org>
+Subject: + poll-avoid-extra-wakeups-in-select-poll.patch added to -mm tree
+Date: Wed, 29 Apr 2009 14:01:02 -0700
+Message-ID: <200904292101.n3TL12CI020461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49865 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752867AbZD2VAS (ORCPT
+	by vger.kernel.org with ESMTP id S1754026AbZD2VEO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Apr 2009 17:00:18 -0400
+	Wed, 29 Apr 2009 17:04:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, ak@linux.intel.com, andi@firstfloor.org, cl@linux-foundation.org, davem@davemloft.net, davidel@xmailserver.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dada1@cosmosbay.com, ak@linux.intel.com, davem@davemloft.net, davidel@xmailserver.org, mingo@elte.hu
 
 
 The patch titled
      poll: avoid extra wakeups in select/poll
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      poll-avoid-extra-wakeups-in-select-poll.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -45,16 +55,14 @@ on some setups, and work performed by sofirq handlers.
 Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
 Acked-by: David S. Miller <davem@davemloft.net>
 Acked-by: Andi Kleen <ak@linux.intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c          |   33 +++++++++++++++++++++++++++++----
+ fs/select.c          |   40 ++++++++++++++++++++++++++++++++++++----
  include/linux/poll.h |    3 +++
- 2 files changed, 32 insertions(+), 4 deletions(-)
+ 2 files changed, 39 insertions(+), 4 deletions(-)
 
 diff -puN fs/select.c~poll-avoid-extra-wakeups-in-select-poll fs/select.c
 --- a/fs/select.c~poll-avoid-extra-wakeups-in-select-poll
@@ -93,20 +101,33 @@ diff -puN fs/select.c~poll-avoid-extra-wakeups-in-select-poll fs/select.c
  	init_waitqueue_func_entry(&entry->wait, pollwake);
  	entry->wait.private = pwq;
  	add_wait_queue(wait_address, &entry->wait);
-@@ -418,20 +429,31 @@ int do_select(int n, fd_set_bits *fds, s
+@@ -362,6 +373,18 @@ get_max:
+ #define POLLOUT_SET (POLLWRBAND | POLLWRNORM | POLLOUT | POLLERR)
+ #define POLLEX_SET (POLLPRI)
+ 
++static inline void wait_key_set(poll_table *wait, unsigned long in,
++				unsigned long out, unsigned long bit)
++{
++	if (wait) {
++		wait->key = POLLEX_SET;
++		if (in & bit)
++			wait->key |= POLLIN_SET;
++		if (out & bit)
++			wait->key |= POLLOUT_SET;
++	}
++}
++
+ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ {
+ 	ktime_t expire, *to = NULL;
+@@ -418,20 +441,25 @@ int do_select(int n, fd_set_bits *fds, s
  				if (file) {
  					f_op = file->f_op;
  					mask = DEFAULT_POLLMASK;
 -					if (f_op && f_op->poll)
 -						mask = (*f_op->poll)(file, retval ? NULL : wait);
 +					if (f_op && f_op->poll) {
-+						if (wait) {
-+							wait->key = POLLEX_SET;
-+							if (in & bit)
-+								wait->key |= POLLIN_SET;
-+							if (out & bit)
-+								wait->key |= POLLOUT_SET;
-+						}
++						wait_key_set(wait, in, out, bit);
 +						mask = (*f_op->poll)(file, wait);
 +					}
  					fput_light(file, fput_needed);
@@ -127,14 +148,15 @@ diff -puN fs/select.c~poll-avoid-extra-wakeups-in-select-poll fs/select.c
  					}
  				}
  			}
-@@ -685,8 +707,11 @@ static inline unsigned int do_pollfd(str
+@@ -685,8 +713,12 @@ static inline unsigned int do_pollfd(str
  		mask = POLLNVAL;
  		if (file != NULL) {
  			mask = DEFAULT_POLLMASK;
 -			if (file->f_op && file->f_op->poll)
 +			if (file->f_op && file->f_op->poll) {
 +				if (pwait)
-+					pwait->key = pollfd->events | POLLERR | POLLHUP;
++					pwait->key = pollfd->events |
++							POLLERR | POLLHUP;
  				mask = file->f_op->poll(file, pwait);
 +			}
  			/* Mask out unneeded events. */
@@ -155,7 +177,7 @@ diff -puN include/linux/poll.h~poll-avoid-extra-wakeups-in-select-poll include/l
  static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
  {
  	pt->qproc = qproc;
-+	pt->key = ~0UL; /* all events enabled */
++	pt->key   = ~0UL; /* all events enabled */
  }
  
  struct poll_table_entry {
