@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + poll-avoid-extra-wakeups-in-select-poll.patch added to -mm tree
-Date: Wed, 29 Apr 2009 14:01:02 -0700
-Message-ID: <200904292101.n3TL12CI020461@imap1.linux-foundation.org>
+Subject: + integrity-nfsd-imbalance-bug-fix.patch added to -mm tree
+Date: Wed, 29 Apr 2009 14:18:49 -0700
+Message-ID: <200904292118.n3TLInIv029741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39255 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754026AbZD2VEO (ORCPT
+	by vger.kernel.org with ESMTP id S1756406AbZD2VVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Apr 2009 17:04:14 -0400
+	Wed, 29 Apr 2009 17:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, ak@linux.intel.com, davem@davemloft.net, davidel@xmailserver.org, mingo@elte.hu
+Cc: zohar@linux.vnet.ibm.com, hooanon05@yahoo.co.jp, hugh@veritas.com, jmorris@namei.org, neilb@suse.de, safford@watson.ibm.com, zohar@us.ibm.com
 
 
 The patch titled
-     poll: avoid extra wakeups in select/poll
+     integrity: nfsd imbalance bug fix
 has been added to the -mm tree.  Its filename is
-     poll-avoid-extra-wakeups-in-select-poll.patch
+     integrity-nfsd-imbalance-bug-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,166 +34,175 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: poll: avoid extra wakeups in select/poll
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: integrity: nfsd imbalance bug fix
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
 
-After introduction of keyed wakeups Davide Libenzi did on epoll, we are
-able to avoid spurious wakeups in poll()/select() code too.
+The number of calls to ima_path_check()/ima_file_free() should be
+balanced.  An extra call to fput(), indicates the file could have been
+accessed without first being measured.
 
-For example, typical use of poll()/select() is to wait for incoming
-network frames on many sockets.  But TX completion for UDP/TCP frames call
-sock_wfree() which in turn schedules thread.
+An nfsd exported file is opened/closed by the kernel
+causing an integrity imbalance message.
 
-When scheduled, thread does a full scan of all polled fds and can sleep
-again, because nothing is really available.  If number of fds is large,
-this cause significant load.
+- rename and export opencount_get to ima_opencount_get
+- replace ima_shm_check calls with ima_opencount_get
+- add call to increment opencount for files opened by nfsd.
+- add call to measure exported files in nfsd_permission().
+- export ima_path_check
 
-This patch makes select()/poll() aware of keyed wakeups and useless
-wakeups are avoided.  This reduces number of context switches by about 50%
-on some setups, and work performed by sofirq handlers.
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: david safford <safford@watson.ibm.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: "J. R. Okajima" <hooanon05@yahoo.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c          |   40 ++++++++++++++++++++++++++++++++++++----
- include/linux/poll.h |    3 +++
- 2 files changed, 39 insertions(+), 4 deletions(-)
+ fs/nfsd/vfs.c                     |    9 +++++++++
+ include/linux/ima.h               |    4 ++--
+ ipc/shm.c                         |    4 ++--
+ mm/shmem.c                        |    2 +-
+ security/integrity/ima/ima_main.c |   25 ++++++++++++-------------
+ 5 files changed, 26 insertions(+), 18 deletions(-)
 
-diff -puN fs/select.c~poll-avoid-extra-wakeups-in-select-poll fs/select.c
---- a/fs/select.c~poll-avoid-extra-wakeups-in-select-poll
-+++ a/fs/select.c
-@@ -168,7 +168,7 @@ static struct poll_table_entry *poll_get
- 	return table->entry++;
+diff -puN fs/nfsd/vfs.c~integrity-nfsd-imbalance-bug-fix fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~integrity-nfsd-imbalance-bug-fix
++++ a/fs/nfsd/vfs.c
+@@ -55,6 +55,7 @@
+ #include <linux/security.h>
+ #endif /* CONFIG_NFSD_V4 */
+ #include <linux/jhash.h>
++#include <linux/ima.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -735,6 +736,8 @@ nfsd_open(struct svc_rqst *rqstp, struct
+ 			    flags, cred);
+ 	if (IS_ERR(*filp))
+ 		host_err = PTR_ERR(*filp);
++	else
++		ima_opencount_get(*filp);
+ out_nfserr:
+ 	err = nfserrno(host_err);
+ out:
+@@ -2096,7 +2099,13 @@ nfsd_permission(struct svc_rqst *rqstp, 
+ 	if (err == -EACCES && S_ISREG(inode->i_mode) &&
+ 	    acc == (NFSD_MAY_READ | NFSD_MAY_OWNER_OVERRIDE))
+ 		err = inode_permission(inode, MAY_EXEC);
++	if (err)
++		goto nfsd_out;
+ 
++	err = ima_path_check(&exp->ex_path,
++			     acc & (MAY_READ | MAY_WRITE | MAY_EXEC));
++	return err;
++nfsd_out:
+ 	return err? nfserrno(err) : 0;
  }
  
--static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
-+static int __pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
- {
- 	struct poll_wqueues *pwq = wait->private;
- 	DECLARE_WAITQUEUE(dummy_wait, pwq->polling_task);
-@@ -194,6 +194,16 @@ static int pollwake(wait_queue_t *wait, 
- 	return default_wake_function(&dummy_wait, mode, sync, key);
+diff -puN include/linux/ima.h~integrity-nfsd-imbalance-bug-fix include/linux/ima.h
+--- a/include/linux/ima.h~integrity-nfsd-imbalance-bug-fix
++++ a/include/linux/ima.h
+@@ -20,7 +20,7 @@ extern void ima_inode_free(struct inode 
+ extern int ima_path_check(struct path *path, int mask);
+ extern void ima_file_free(struct file *file);
+ extern int ima_file_mmap(struct file *file, unsigned long prot);
+-extern void ima_shm_check(struct file *file);
++extern void ima_opencount_get(struct file *file);
+ 
+ #else
+ static inline int ima_bprm_check(struct linux_binprm *bprm)
+@@ -53,7 +53,7 @@ static inline int ima_file_mmap(struct f
+ 	return 0;
  }
  
-+static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
-+{
-+	struct poll_table_entry *entry;
-+
-+	entry = container_of(wait, struct poll_table_entry, wait);
-+	if (key && !((unsigned long)key & entry->key))
-+		return 0;
-+	return __pollwake(wait, mode, sync, key);
-+}
-+
- /* Add a new entry */
- static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
- 				poll_table *p)
-@@ -205,6 +215,7 @@ static void __pollwait(struct file *filp
- 	get_file(filp);
- 	entry->filp = filp;
- 	entry->wait_address = wait_address;
-+	entry->key = p->key;
- 	init_waitqueue_func_entry(&entry->wait, pollwake);
- 	entry->wait.private = pwq;
- 	add_wait_queue(wait_address, &entry->wait);
-@@ -362,6 +373,18 @@ get_max:
- #define POLLOUT_SET (POLLWRBAND | POLLWRNORM | POLLOUT | POLLERR)
- #define POLLEX_SET (POLLPRI)
- 
-+static inline void wait_key_set(poll_table *wait, unsigned long in,
-+				unsigned long out, unsigned long bit)
-+{
-+	if (wait) {
-+		wait->key = POLLEX_SET;
-+		if (in & bit)
-+			wait->key |= POLLIN_SET;
-+		if (out & bit)
-+			wait->key |= POLLOUT_SET;
-+	}
-+}
-+
- int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+-static inline void ima_shm_check(struct file *file)
++static inline void ima_opencount_get(struct file *file)
  {
- 	ktime_t expire, *to = NULL;
-@@ -418,20 +441,25 @@ int do_select(int n, fd_set_bits *fds, s
- 				if (file) {
- 					f_op = file->f_op;
- 					mask = DEFAULT_POLLMASK;
--					if (f_op && f_op->poll)
--						mask = (*f_op->poll)(file, retval ? NULL : wait);
-+					if (f_op && f_op->poll) {
-+						wait_key_set(wait, in, out, bit);
-+						mask = (*f_op->poll)(file, wait);
-+					}
- 					fput_light(file, fput_needed);
- 					if ((mask & POLLIN_SET) && (in & bit)) {
- 						res_in |= bit;
- 						retval++;
-+						wait = NULL;
- 					}
- 					if ((mask & POLLOUT_SET) && (out & bit)) {
- 						res_out |= bit;
- 						retval++;
-+						wait = NULL;
- 					}
- 					if ((mask & POLLEX_SET) && (ex & bit)) {
- 						res_ex |= bit;
- 						retval++;
-+						wait = NULL;
- 					}
- 				}
- 			}
-@@ -685,8 +713,12 @@ static inline unsigned int do_pollfd(str
- 		mask = POLLNVAL;
- 		if (file != NULL) {
- 			mask = DEFAULT_POLLMASK;
--			if (file->f_op && file->f_op->poll)
-+			if (file->f_op && file->f_op->poll) {
-+				if (pwait)
-+					pwait->key = pollfd->events |
-+							POLLERR | POLLHUP;
- 				mask = file->f_op->poll(file, pwait);
-+			}
- 			/* Mask out unneeded events. */
- 			mask &= pollfd->events | POLLERR | POLLHUP;
- 			fput_light(file, fput_needed);
-diff -puN include/linux/poll.h~poll-avoid-extra-wakeups-in-select-poll include/linux/poll.h
---- a/include/linux/poll.h~poll-avoid-extra-wakeups-in-select-poll
-+++ a/include/linux/poll.h
-@@ -32,6 +32,7 @@ typedef void (*poll_queue_proc)(struct f
+ 	return;
+ }
+diff -puN ipc/shm.c~integrity-nfsd-imbalance-bug-fix ipc/shm.c
+--- a/ipc/shm.c~integrity-nfsd-imbalance-bug-fix
++++ a/ipc/shm.c
+@@ -384,7 +384,7 @@ static int newseg(struct ipc_namespace *
+ 	error = PTR_ERR(file);
+ 	if (IS_ERR(file))
+ 		goto no_file;
+-	ima_shm_check(file);
++	ima_opencount_get(file);
  
- typedef struct poll_table_struct {
- 	poll_queue_proc qproc;
-+	unsigned long key;
- } poll_table;
+ 	id = ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
+ 	if (id < 0) {
+@@ -891,7 +891,7 @@ long do_shmat(int shmid, char __user *sh
+ 	file = alloc_file(path.mnt, path.dentry, f_mode, &shm_file_operations);
+ 	if (!file)
+ 		goto out_free;
+-	ima_shm_check(file);
++	ima_opencount_get(file);
  
- static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
-@@ -43,10 +44,12 @@ static inline void poll_wait(struct file
- static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
- {
- 	pt->qproc = qproc;
-+	pt->key   = ~0UL; /* all events enabled */
+ 	file->private_data = sfd;
+ 	file->f_mapping = shp->shm_file->f_mapping;
+diff -puN mm/shmem.c~integrity-nfsd-imbalance-bug-fix mm/shmem.c
+--- a/mm/shmem.c~integrity-nfsd-imbalance-bug-fix
++++ a/mm/shmem.c
+@@ -2684,7 +2684,7 @@ int shmem_zero_setup(struct vm_area_stru
+ 	if (IS_ERR(file))
+ 		return PTR_ERR(file);
+ 
+-	ima_shm_check(file);
++	ima_opencount_get(file);
+ 	if (vma->vm_file)
+ 		fput(vma->vm_file);
+ 	vma->vm_file = file;
+diff -puN security/integrity/ima/ima_main.c~integrity-nfsd-imbalance-bug-fix security/integrity/ima/ima_main.c
+--- a/security/integrity/ima/ima_main.c~integrity-nfsd-imbalance-bug-fix
++++ a/security/integrity/ima/ima_main.c
+@@ -206,6 +206,7 @@ out:
+ 	kref_put(&iint->refcount, iint_free);
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(ima_path_check);
+ 
+ static int process_measurement(struct file *file, const unsigned char *filename,
+ 			       int mask, int function)
+@@ -234,7 +235,16 @@ out:
+ 	return rc;
  }
  
- struct poll_table_entry {
- 	struct file *filp;
-+	unsigned long key;
- 	wait_queue_t wait;
- 	wait_queue_head_t *wait_address;
- };
-_
-
-Patches currently in -mm which might be from dada1@cosmosbay.com are
-
-origin.patch
-linux-next.patch
-poll-avoid-extra-wakeups-in-select-poll.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-
+-static void opencount_get(struct file *file)
++/*
++ * ima_opencount_get - incr opencount for files opened by the kernel
++ *
++ * - IPC shm and shmat create/fput a file.
++ * - nfsd opens/closes exported files.
++ *
++ * Increment the opencount for these files to prevent unnecessary
++ * imbalance messages.
++ */
++void ima_opencount_get(struct file *file)
+ {
+ 	struct inode *inode = file->f_dentry->d_inode;
+ 	struct ima_iint_cache *iint;
+@@ -248,6 +258,7 @@ static void opencount_get(struct file *f
+ 	iint->opencount++;
+ 	mutex_unlock(&iint->mutex);
+ }
++EXPORT_SYMBOL_GPL(ima_opencount_get);
+ 
+ /**
+  * ima_file_mmap - based on policy, collect/store measurement.
+@@ -272,18 +283,6 @@ int ima_file_mmap(struct file *file, uns
+ 	return 0;
+ }
+ 
+-/*
+- * ima_shm_check - IPC shm and shmat create/fput a file
+- *
+- * Maintain the opencount for these files to prevent unnecessary
+- * imbalance messages.
+- */
+-void ima_shm_check(struct file *file)
+-{
+-	opencount_get(file);
+-	return;
+-}
