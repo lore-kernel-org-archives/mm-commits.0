@@ -1,31 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-close-page_mkwrite-races-try-3-fix-fix.patch removed from -mm tree
-Date: Wed, 29 Apr 2009 08:25:38 -0700
-Message-ID: <200904291525.n3TFPc62005637@imap1.linux-foundation.org>
+Subject: [folded] mm-close-page_mkwrite-races-try-3-fix.patch removed from -mm tree
+Date: Wed, 29 Apr 2009 08:25:35 -0700
+Message-ID: <200904291525.n3TFPZvk005628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753039AbZD2P2m (ORCPT
+	by vger.kernel.org with ESMTP id S1754569AbZD2P3J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Apr 2009 11:28:42 -0400
+	Wed, 29 Apr 2009 11:29:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, npiggin@suse.de, sage@newdream.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-close-page_mkwrite-races-try-3-fix-fix
+     mm-close-page_mkwrite-races-try-3-fix
 has been removed from the -mm tree.  Its filename was
-     mm-close-page_mkwrite-races-try-3-fix-fix.patch
+     mm-close-page_mkwrite-races-try-3-fix.patch
 
 This patch was dropped because it was folded into mm-close-page_mkwrite-races-try-3.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-close-page_mkwrite-races-try-3-fix-fix
+Subject: mm-close-page_mkwrite-races-try-3-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+try to go oops less.
 
 Cc: Nick Piggin <npiggin@suse.de>
 Cc: Sage Weil <sage@newdream.net>
@@ -34,48 +36,38 @@ Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/memory.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-close-page_mkwrite-races-try-3-fix-fix mm/memory.c
---- a/mm/memory.c~mm-close-page_mkwrite-races-try-3-fix-fix
+diff -puN mm/memory.c~mm-close-page_mkwrite-races-try-3-fix mm/memory.c
+--- a/mm/memory.c~mm-close-page_mkwrite-races-try-3-fix
 +++ a/mm/memory.c
-@@ -2126,8 +2126,13 @@ unlock:
+@@ -2126,7 +2126,8 @@ unlock:
  			set_page_dirty(dirty_page);
  			unlock_page(dirty_page);
  			page_cache_release(dirty_page);
--			if (mapping)
-+			if (mapping)	{
-+				/*
-+				 * Some device drivers do not set page.mapping
-+				 * but still dirty their pages
-+				 */
- 				balance_dirty_pages_ratelimited(mapping);
-+			}
+-			balance_dirty_pages_ratelimited(mapping);
++			if (mapping)
++				balance_dirty_pages_ratelimited(mapping);
  		}
  
  		/* file_update_time outside page_lock */
-@@ -2768,8 +2773,13 @@ out:
+@@ -2767,7 +2768,7 @@ out:
  			page_mkwrite = 1;
  		unlock_page(dirty_page);
  		put_page(dirty_page);
--		if (page_mkwrite && mapping)
-+		if (page_mkwrite && mapping) {
-+			/*
-+			 * Some device drivers do not set page.mapping but still
-+			 * dirty their pages
-+			 */
+-		if (page_mkwrite)
++		if (page_mkwrite && mapping)
  			balance_dirty_pages_ratelimited(mapping);
-+		}
  
  		/* file_update_time outside page_lock */
- 		if (vma->vm_file)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mm-close-page_mkwrite-races-try-3.patch
+mm-close-page_mkwrite-races-try-3-fix.patch
 mm-close-page_mkwrite-races-try-3-fix-fix.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
