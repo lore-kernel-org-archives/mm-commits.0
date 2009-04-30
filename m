@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mpc52xx_psc_spi-convert-to-cs_control-callback.patch added to -mm tree
-Date: Thu, 30 Apr 2009 15:46:49 -0700
-Message-ID: <200904302246.n3UMkn0B005052@imap1.linux-foundation.org>
+Subject: + oom-prevent-livelock-when-oom_kill_allocating_task-is-set.patch added to -mm tree
+Date: Thu, 30 Apr 2009 15:50:14 -0700
+Message-ID: <200904302250.n3UMoEUd006948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55155 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750909AbZD3WuR (ORCPT
+	by vger.kernel.org with ESMTP id S1755257AbZD3WwK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Apr 2009 18:50:17 -0400
+	Thu, 30 Apr 2009 18:52:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca
+Cc: rientjes@google.com, npiggin@suse.de
 
 
 The patch titled
-     mpc52xx_psc_spi: convert to cs_control callback
+     oom: prevent livelock when oom_kill_allocating_task is set
 has been added to the -mm tree.  Its filename is
-     mpc52xx_psc_spi-convert-to-cs_control-callback.patch
+     oom-prevent-livelock-when-oom_kill_allocating_task-is-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mpc52xx_psc_spi: convert to cs_control callback
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: oom: prevent livelock when oom_kill_allocating_task is set
+From: David Rientjes <rientjes@google.com>
 
-mpc52xx_psc_spi driver is the last user of the legacy activate_cs and
-deactivate_cs callbacks, so convert the driver to the cs_control hook and
-remove the legacy callbacks from fsl_spi_platform_data struct.
+When /proc/sys/vm/oom_kill_allocating_task is set for large systems that
+want to avoid the lengthy tasklist scan, it's possible to livelock if
+current is ineligible for oom kill.  This normally happens when it is set
+to OOM_DISABLE, but is also possible if any threads are sharing the same
+->mm with a different tgid.
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+So change __out_of_memory() to fall back to the full task-list scan if it
+was unable to kill `current'.
+
+Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/mpc52xx_psc_spi.c |   22 +++++++++-------------
- include/linux/fsl_devices.h   |    4 ----
- 2 files changed, 9 insertions(+), 17 deletions(-)
+ mm/oom_kill.c |   44 +++++++++++++++++++++-----------------------
+ 1 file changed, 21 insertions(+), 23 deletions(-)
 
-diff -puN drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-convert-to-cs_control-callback drivers/spi/mpc52xx_psc_spi.c
---- a/drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-convert-to-cs_control-callback
-+++ a/drivers/spi/mpc52xx_psc_spi.c
-@@ -13,6 +13,7 @@
- 
- #include <linux/module.h>
- #include <linux/init.h>
-+#include <linux/types.h>
- #include <linux/errno.h>
- #include <linux/interrupt.h>
- #include <linux/of_platform.h>
-@@ -30,8 +31,7 @@
- 
- struct mpc52xx_psc_spi {
- 	/* fsl_spi_platform data */
--	void (*activate_cs)(u8, u8);
--	void (*deactivate_cs)(u8, u8);
-+	void (*cs_control)(struct spi_device *spi, bool on);
- 	u32 sysclk;
- 
- 	/* driver internal data */
-@@ -111,18 +111,16 @@ static void mpc52xx_psc_spi_activate_cs(
- 	out_be16((u16 __iomem *)&psc->ccr, ccr);
- 	mps->bits_per_word = cs->bits_per_word;
- 
--	if (mps->activate_cs)
--		mps->activate_cs(spi->chip_select,
--				(spi->mode & SPI_CS_HIGH) ? 1 : 0);
-+	if (mps->cs_control)
-+		mps->cs_control(spi, (spi->mode & SPI_CS_HIGH) ? 1 : 0);
- }
- 
- static void mpc52xx_psc_spi_deactivate_cs(struct spi_device *spi)
+diff -puN mm/oom_kill.c~oom-prevent-livelock-when-oom_kill_allocating_task-is-set mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-prevent-livelock-when-oom_kill_allocating_task-is-set
++++ a/mm/oom_kill.c
+@@ -514,34 +514,32 @@ void clear_zonelist_oom(struct zonelist 
+  */
+ static void __out_of_memory(gfp_t gfp_mask, int order)
  {
- 	struct mpc52xx_psc_spi *mps = spi_master_get_devdata(spi->master);
+-	if (sysctl_oom_kill_allocating_task) {
+-		oom_kill_process(current, gfp_mask, order, 0, NULL,
+-				"Out of memory (oom_kill_allocating_task)");
+-
+-	} else {
+-		unsigned long points;
+-		struct task_struct *p;
++	struct task_struct *p;
++	unsigned long points;
  
--	if (mps->deactivate_cs)
--		mps->deactivate_cs(spi->chip_select,
--				(spi->mode & SPI_CS_HIGH) ? 1 : 0);
-+	if (mps->cs_control)
-+		mps->cs_control(spi, (spi->mode & SPI_CS_HIGH) ? 0 : 1);
++	if (sysctl_oom_kill_allocating_task)
++		if (!oom_kill_process(current, gfp_mask, order, 0, NULL,
++				"Out of memory (oom_kill_allocating_task)"))
++			return;
+ retry:
+-		/*
+-		 * Rambo mode: Shoot down a process and hope it solves whatever
+-		 * issues we may have.
+-		 */
+-		p = select_bad_process(&points, NULL);
++	/*
++	 * Rambo mode: Shoot down a process and hope it solves whatever
++	 * issues we may have.
++	 */
++	p = select_bad_process(&points, NULL);
+ 
+-		if (PTR_ERR(p) == -1UL)
+-			return;
++	if (PTR_ERR(p) == -1UL)
++		return;
+ 
+-		/* Found nothing?!?! Either we hang forever, or we panic. */
+-		if (!p) {
+-			read_unlock(&tasklist_lock);
+-			panic("Out of memory and no killable processes...\n");
+-		}
+-
+-		if (oom_kill_process(p, gfp_mask, order, points, NULL,
+-				     "Out of memory"))
+-			goto retry;
++	/* Found nothing?!?! Either we hang forever, or we panic. */
++	if (!p) {
++		read_unlock(&tasklist_lock);
++		panic("Out of memory and no killable processes...\n");
+ 	}
++
++	if (oom_kill_process(p, gfp_mask, order, points, NULL,
++			     "Out of memory"))
++		goto retry;
  }
  
- #define MPC52xx_PSC_BUFSIZE (MPC52xx_PSC_RFNUM_MASK + 1)
-@@ -382,15 +380,13 @@ static int __init mpc52xx_psc_spi_do_pro
- 	mps->irq = irq;
- 	if (pdata == NULL) {
- 		dev_warn(dev, "probe called without platform data, no "
--				"(de)activate_cs function will be called\n");
--		mps->activate_cs = NULL;
--		mps->deactivate_cs = NULL;
-+				"cs_control function will be called\n");
-+		mps->cs_control = NULL;
- 		mps->sysclk = 0;
- 		master->bus_num = bus_num;
- 		master->num_chipselect = 255;
- 	} else {
--		mps->activate_cs = pdata->activate_cs;
--		mps->deactivate_cs = pdata->deactivate_cs;
-+		mps->cs_control = pdata->cs_control;
- 		mps->sysclk = pdata->sysclk;
- 		master->bus_num = pdata->bus_num;
- 		master->num_chipselect = pdata->max_chipselect;
-diff -puN include/linux/fsl_devices.h~mpc52xx_psc_spi-convert-to-cs_control-callback include/linux/fsl_devices.h
---- a/include/linux/fsl_devices.h~mpc52xx_psc_spi-convert-to-cs_control-callback
-+++ a/include/linux/fsl_devices.h
-@@ -79,10 +79,6 @@ struct fsl_spi_platform_data {
- 	u16	max_chipselect;
- 	void	(*cs_control)(struct spi_device *spi, bool on);
- 	u32	sysclk;
+ /*
+_
+
+Patches currently in -mm which might be from rientjes@google.com are
+
+memcg-fix-mem_cgroup_shrink_usage.patch
+mm-prevent-divide-error-for-small-values-of-vm_dirty_bytes.patch
+linux-next.patch
+oom-prevent-livelock-when-oom_kill_allocating_task-is-set.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+
