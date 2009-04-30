@@ -1,89 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uvcvideo-prevent-information-loss-with-removing-implicit-casting.patch removed from -mm tree
-Date: Thu, 30 Apr 2009 11:44:13 -0700
-Message-ID: <200904301844.n3UIiDsc002337@imap1.linux-foundation.org>
+Subject: [merged] mutex-add-atomic_dec_and_mutex_lock.patch removed from -mm tree
+Date: Thu, 30 Apr 2009 11:44:24 -0700
+Message-ID: <200904301844.n3UIiO97002437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763357AbZD3Sr1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756252AbZD3Stu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Apr 2009 14:47:27 -0400
+	Thu, 30 Apr 2009 14:49:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nm127@freemail.hu, laurent.pinchart@skynet.be, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: eparis@redhat.com, a.p.zijlstra@chello.nl, hch@lst.de, mingo@elte.hu, paulus@samba.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uvcvideo: prevent information loss with removing implicit casting
+     mutex: add atomic_dec_and_mutex_lock
 has been removed from the -mm tree.  Its filename was
-     uvcvideo-prevent-information-loss-with-removing-implicit-casting.p=
-atch
+     mutex-add-atomic_dec_and_mutex_lock.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uvcvideo: prevent information loss with removing implicit cast=
-ing
-=46rom: N=E9meth M=E1rton <nm127@freemail.hu>
+Subject: mutex: add atomic_dec_and_mutex_lock
+From: Eric Paris <eparis@redhat.com>
 
-The uvcvideo driver supports only one input, which is input 0.  For all
-other input index the return value shall be EINVAL.  This patch fixes t=
-he
-problem when the value 0x80000000 was incorrectly casted and treated as=
- a
-zero value.
+Much like the atomic_dec_and_lock() function in which we take and hold a
+spin_lock if we drop the atomic to 0 this function takes and holds the
+mutex if we dec the atomic to 0.
 
-The patch was tested with v4l-test 0.10 [2] with CNF7129 webcam found o=
-n
-EeePC 901.
-
-References:
-[1] V4L2 API specification, revision 0.24
-    http://v4l2spec.bytesex.org/spec/r11217.htm
-
-[2] v4l-test: Test environment for Video For Linux Two API
-    http://v4l-test.sourceforge.net/
-
-Signed-off-by: N=E9meth M=E1rton <nm127@freemail.hu>
-Acked-by: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/uvc/uvc_v4l2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mutex.h |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN drivers/media/video/uvc/uvc_v4l2.c~uvcvideo-prevent-informati=
-on-loss-with-removing-implicit-casting drivers/media/video/uvc/uvc_v4l2=
-=2Ec
---- a/drivers/media/video/uvc/uvc_v4l2.c~uvcvideo-prevent-information-l=
-oss-with-removing-implicit-casting
-+++ a/drivers/media/video/uvc/uvc_v4l2.c
-@@ -648,7 +648,7 @@ static long uvc_v4l2_do_ioctl(struct fil
-=20
- 	case VIDIOC_S_INPUT:
- 	{
--		u8 input =3D *(u32 *)arg + 1;
-+		u32 input =3D *(u32 *)arg + 1;
-=20
- 		if ((ret =3D uvc_acquire_privileges(handle)) < 0)
- 			return ret;
+diff -puN include/linux/mutex.h~mutex-add-atomic_dec_and_mutex_lock include/linux/mutex.h
+--- a/include/linux/mutex.h~mutex-add-atomic_dec_and_mutex_lock
++++ a/include/linux/mutex.h
+@@ -151,4 +151,27 @@ extern int __must_check mutex_lock_killa
+ extern int mutex_trylock(struct mutex *lock);
+ extern void mutex_unlock(struct mutex *lock);
+ 
++/**
++ * atomic_dec_and_mutex_lock - return holding mutex if we dec to 0
++ * @cnt: the atomic which we are to dec
++ * @lock: the mutex to return holding if we dec to 0
++ *
++ * return true and hold lock if we dec to 0, return false otherwise
++ */
++static inline int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock)
++{
++	/* dec if we can't possibly hit 0 */
++	if (atomic_add_unless(cnt, -1, 1))
++		return 0;
++	/* we might hit 0, so take the lock */
++	mutex_lock(lock);
++	if (!atomic_dec_and_test(cnt)) {
++		/* when we actually did the dec, we didn't hit 0 */
++		mutex_unlock(lock);
++		return 0;
++	}
++	/* we hit 0, and we hold the lock */
++	return 1;
++}
++
+ #endif
 _
 
-Patches currently in -mm which might be from nm127@freemail.hu are
+Patches currently in -mm which might be from eparis@redhat.com are
 
 linux-next.patch
+mutex-add-atomic_dec_and_mutex_lock-fix.patch
+fsnotify-unified-filesystem-notification-backend.patch
+fsnotify-add-marks-to-inodes-so-groups-can-interpret-how-to-handle-those-inodes.patch
+fsnotify-parent-event-notification.patch
+dnotify-reimplement-dnotify-using-fsnotify.patch
+fsnotify-generic-notification-queue-and-waitq.patch
+fsnotify-include-pathnames-with-entries-when-possible.patch
+fsnotify-add-correlations-between-events.patch
+fsnotify-allow-groups-to-add-private-data-to-events.patch
+fsnotify-fsnotify-marks-on-inodes-pin-them-in-core.patch
+fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch
+inotify-reimplement-inotify-using-fsnotify.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
