@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fiemap-fix-problem-with-setting-fiemap_extent_last.patch added to -mm tree
-Date: Thu, 30 Apr 2009 15:41:05 -0700
-Message-ID: <200904302241.n3UMf5IL001855__13554.4342374944$1241131719$gmane$org@imap1.linux-foundation.org>
+Subject: + mpc52xx_psc_spi-convert-to-cs_control-callback.patch added to -mm tree
+Date: Thu, 30 Apr 2009 15:46:49 -0700
+Message-ID: <200904302246.n3UMkn0B005052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60814 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55155 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752029AbZD3WsT (ORCPT
+	by vger.kernel.org with ESMTP id S1750909AbZD3WuR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Apr 2009 18:48:19 -0400
+	Thu, 30 Apr 2009 18:50:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbacik@redhat.com, Joel.Becker@oracle.com, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, mfasheh@suse.com, sandeen@redhat.com, stable@kernel.org, swhiteho@redhat.com, xfs-masters@oss.sgi.com
+Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca
 
 
 The patch titled
-     fiemap: fix problem with setting FIEMAP_EXTENT_LAST
+     mpc52xx_psc_spi: convert to cs_control callback
 has been added to the -mm tree.  Its filename is
-     fiemap-fix-problem-with-setting-fiemap_extent_last.patch
+     mpc52xx_psc_spi-convert-to-cs_control-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,135 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fiemap: fix problem with setting FIEMAP_EXTENT_LAST
-From: Josef Bacik <jbacik@redhat.com>
+Subject: mpc52xx_psc_spi: convert to cs_control callback
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Fix a problem where the generic block based fiemap stuff would not
-properly set FIEMAP_EXTENT_LAST on the last extent.  I've reworked things
-to keep track if we go past the EOF, and mark the last extent properly. 
-The problem was reported by and tested by Eric Sandeen.
+mpc52xx_psc_spi driver is the last user of the legacy activate_cs and
+deactivate_cs callbacks, so convert the driver to the cs_control hook and
+remove the legacy callbacks from fsl_spi_platform_data struct.
 
-Tested-by: Eric Sandeen <sandeen@redhat.com>
-Signed-off-by: Josef Bacik <jbacik@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: <xfs-masters@oss.sgi.com>
-Cc: <linux-btrfs@vger.kernel.org>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <Joel.Becker@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ioctl.c |   75 +++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 55 insertions(+), 20 deletions(-)
+ drivers/spi/mpc52xx_psc_spi.c |   22 +++++++++-------------
+ include/linux/fsl_devices.h   |    4 ----
+ 2 files changed, 9 insertions(+), 17 deletions(-)
 
-diff -puN fs/ioctl.c~fiemap-fix-problem-with-setting-fiemap_extent_last fs/ioctl.c
---- a/fs/ioctl.c~fiemap-fix-problem-with-setting-fiemap_extent_last
-+++ a/fs/ioctl.c
-@@ -258,7 +258,7 @@ int __generic_block_fiemap(struct inode 
- 	long long length = 0, map_len = 0;
- 	u64 logical = 0, phys = 0, size = 0;
- 	u32 flags = FIEMAP_EXTENT_MERGED;
--	int ret = 0;
-+	int ret = 0, past_eof = 0, whole_file = 0;
+diff -puN drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-convert-to-cs_control-callback drivers/spi/mpc52xx_psc_spi.c
+--- a/drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-convert-to-cs_control-callback
++++ a/drivers/spi/mpc52xx_psc_spi.c
+@@ -13,6 +13,7 @@
  
- 	if ((ret = fiemap_check_flags(fieinfo, FIEMAP_FLAG_SYNC)))
- 		return ret;
-@@ -266,6 +266,9 @@ int __generic_block_fiemap(struct inode 
- 	start_blk = logical_to_blk(inode, start);
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
+ #include <linux/of_platform.h>
+@@ -30,8 +31,7 @@
  
- 	length = (long long)min_t(u64, len, i_size_read(inode));
-+	if (length < len)
-+		whole_file = 1;
-+
- 	map_len = length;
+ struct mpc52xx_psc_spi {
+ 	/* fsl_spi_platform data */
+-	void (*activate_cs)(u8, u8);
+-	void (*deactivate_cs)(u8, u8);
++	void (*cs_control)(struct spi_device *spi, bool on);
+ 	u32 sysclk;
  
- 	do {
-@@ -282,11 +285,26 @@ int __generic_block_fiemap(struct inode 
+ 	/* driver internal data */
+@@ -111,18 +111,16 @@ static void mpc52xx_psc_spi_activate_cs(
+ 	out_be16((u16 __iomem *)&psc->ccr, ccr);
+ 	mps->bits_per_word = cs->bits_per_word;
  
- 		/* HOLE */
- 		if (!buffer_mapped(&tmp)) {
-+			length -= blk_to_logical(inode, 1);
-+			start_blk++;
-+
-+			/*
-+			 * we want to handle the case where there is an
-+			 * allocated block at the front of the file, and then
-+			 * nothing but holes up to the end of the file properly,
-+			 * to make sure that extent at the front gets properly
-+			 * marked with FIEMAP_EXTENT_LAST
-+			 */
-+			if (!past_eof &&
-+			    blk_to_logical(inode, start_blk) >=
-+			    blk_to_logical(inode, 0)+i_size_read(inode))
-+				past_eof = 1;
-+
- 			/*
- 			 * first hole after going past the EOF, this is our
- 			 * last extent
- 			 */
--			if (length <= 0) {
-+			if (past_eof && size) {
- 				flags = FIEMAP_EXTENT_MERGED|FIEMAP_EXTENT_LAST;
- 				ret = fiemap_fill_next_extent(fieinfo, logical,
- 							      phys, size,
-@@ -294,15 +312,37 @@ int __generic_block_fiemap(struct inode 
- 				break;
- 			}
+-	if (mps->activate_cs)
+-		mps->activate_cs(spi->chip_select,
+-				(spi->mode & SPI_CS_HIGH) ? 1 : 0);
++	if (mps->cs_control)
++		mps->cs_control(spi, (spi->mode & SPI_CS_HIGH) ? 1 : 0);
+ }
  
--			length -= blk_to_logical(inode, 1);
--
- 			/* if we have holes up to/past EOF then we're done */
--			if (length <= 0)
-+			if (length <= 0 || past_eof)
- 				break;
--
--			start_blk++;
- 		} else {
--			if (length <= 0 && size) {
-+			/*
-+			 * we have gone over the length of what we wanted to
-+			 * map, and it wasn't the entire file, so add the extent
-+			 * we got last time and exit.
-+			 *
-+			 * This is for the case where say we want to map all the
-+			 * way up to the second to the last block in a file, but
-+			 * the last block is a hole, making the second to last
-+			 * block FIEMAP_EXTENT_LAST.  In this case we want to
-+			 * see if there is a hole after the second to last block
-+			 * so we can mark it properly.  If we found data after
-+			 * we exceeded the length we were requesting, then we
-+			 * are good to go, just add the extent to the fieinfo
-+			 * and break
-+			 */
-+			if (length <= 0 && !whole_file) {
-+				ret = fiemap_fill_next_extent(fieinfo, logical,
-+							      phys, size,
-+							      flags);
-+				break;
-+			}
-+
-+			/*
-+			 * if size != 0 then we know we already have an extent
-+			 * to add, so add it.
-+			 */
-+			if (size) {
- 				ret = fiemap_fill_next_extent(fieinfo, logical,
- 							      phys, size,
- 							      flags);
-@@ -319,19 +359,14 @@ int __generic_block_fiemap(struct inode 
- 			start_blk += logical_to_blk(inode, size);
+ static void mpc52xx_psc_spi_deactivate_cs(struct spi_device *spi)
+ {
+ 	struct mpc52xx_psc_spi *mps = spi_master_get_devdata(spi->master);
  
- 			/*
--			 * if we are past the EOF we need to loop again to see
--			 * if there is a hole so we can mark this extent as the
--			 * last one, and if not keep mapping things until we
--			 * find a hole, or we run out of slots in the extent
--			 * array
-+			 * If we are past the EOF, then we need to make sure as
-+			 * soon as we find a hole that the last extent we found
-+			 * is marked with FIEMAP_EXTENT_LAST
- 			 */
--			if (length <= 0)
--				continue;
+-	if (mps->deactivate_cs)
+-		mps->deactivate_cs(spi->chip_select,
+-				(spi->mode & SPI_CS_HIGH) ? 1 : 0);
++	if (mps->cs_control)
++		mps->cs_control(spi, (spi->mode & SPI_CS_HIGH) ? 0 : 1);
+ }
+ 
+ #define MPC52xx_PSC_BUFSIZE (MPC52xx_PSC_RFNUM_MASK + 1)
+@@ -382,15 +380,13 @@ static int __init mpc52xx_psc_spi_do_pro
+ 	mps->irq = irq;
+ 	if (pdata == NULL) {
+ 		dev_warn(dev, "probe called without platform data, no "
+-				"(de)activate_cs function will be called\n");
+-		mps->activate_cs = NULL;
+-		mps->deactivate_cs = NULL;
++				"cs_control function will be called\n");
++		mps->cs_control = NULL;
+ 		mps->sysclk = 0;
+ 		master->bus_num = bus_num;
+ 		master->num_chipselect = 255;
+ 	} else {
+-		mps->activate_cs = pdata->activate_cs;
+-		mps->deactivate_cs = pdata->deactivate_cs;
++		mps->cs_control = pdata->cs_control;
+ 		mps->sysclk = pdata->sysclk;
+ 		master->bus_num = pdata->bus_num;
+ 		master->num_chipselect = pdata->max_chipselect;
+diff -puN include/linux/fsl_devices.h~mpc52xx_psc_spi-convert-to-cs_control-callback include/linux/fsl_devices.h
+--- a/include/linux/fsl_devices.h~mpc52xx_psc_spi-convert-to-cs_control-callback
++++ a/include/linux/fsl_devices.h
+@@ -79,10 +79,6 @@ struct fsl_spi_platform_data {
+ 	u16	max_chipselect;
+ 	void	(*cs_control)(struct spi_device *spi, bool on);
+ 	u32	sysclk;
