@@ -1,67 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - mm-only-inotify-switch-kernel_event-to-gfp_kernel.patch removed from -mm tree
-Date: Thu, 30 Apr 2009 15:48:41 -0700
-Message-ID: <200904302307.n3UN7eFu016468@imap1.linux-foundation.org>
+Subject: + dmar-stupid-hack.patch added to -mm tree
+Date: Thu, 30 Apr 2009 16:13:29 -0700
+Message-ID: <200904302332.n3UNWQ5l030068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754778AbZD3XMf (ORCPT
+	by vger.kernel.org with ESMTP id S1750981AbZD3Xex (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Apr 2009 19:12:35 -0400
+	Thu, 30 Apr 2009 19:34:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, eparis@redhat.com, fengguang.wu@intel.com, mpm@selenic.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, David.Woodhouse@intel.com, fenghua.yu@intel.com, weidong@intel.com
 
 
 The patch titled
-     mm-only: inotify: switch kernel_event() to GFP_KERNEL
-has been removed from the -mm tree.  Its filename was
-     mm-only-inotify-switch-kernel_event-to-gfp_kernel.patch
+     dmar-stupid-hack
+has been added to the -mm tree.  Its filename is
+     dmar-stupid-hack.patch
 
-This patch was dropped because blah, inotify-reimplement-inotify-using-fsnotify.patch screwed this up
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-only: inotify: switch kernel_event() to GFP_KERNEL
+Subject: dmar-stupid-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-A placeholder to remember that we need to fix this for real.  Will cause
-lockdep warnings.
+dumb fix for a link error
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Weidong Han <weidong@intel.com>
+Cc: David Woodhouse <David.Woodhouse@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_user.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/intel-iommu.c |    1 -
+ init/main.c               |    2 ++
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/notify/inotify/inotify_user.c~mm-only-inotify-switch-kernel_event-to-gfp_kernel fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~mm-only-inotify-switch-kernel_event-to-gfp_kernel
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -189,7 +189,7 @@ static struct inotify_kernel_event * ker
- {
- 	struct inotify_kernel_event *kevent;
+diff -puN init/main.c~dmar-stupid-hack init/main.c
+--- a/init/main.c~dmar-stupid-hack
++++ a/init/main.c
+@@ -78,6 +78,8 @@
+ #include <asm/smp.h>
+ #endif
  
--	kevent = kmem_cache_alloc(event_cachep, GFP_NOFS);
-+	kevent = kmem_cache_alloc(event_cachep, GFP_KERNEL);
- 	if (unlikely(!kevent))
- 		return NULL;
++int iommu_pass_through;
++
+ static int kernel_init(void *);
  
-@@ -220,7 +220,7 @@ static struct inotify_kernel_event * ker
- 				rem = 0;
- 		}
+ extern void init_IRQ(void);
+diff -puN drivers/pci/intel-iommu.c~dmar-stupid-hack drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~dmar-stupid-hack
++++ a/drivers/pci/intel-iommu.c
+@@ -288,7 +288,6 @@ int dmar_disabled = 1;
+ static int __initdata dmar_map_gfx = 1;
+ static int dmar_forcedac;
+ static int intel_iommu_strict;
+-int iommu_pass_through;
  
--		kevent->name = kmalloc(len + rem, GFP_NOFS);
-+		kevent->name = kmalloc(len + rem, GFP_KERNEL);
- 		if (unlikely(!kevent->name)) {
- 			kmem_cache_free(event_cachep, kevent);
- 			return NULL;
+ #define DUMMY_DEVICE_DOMAIN_INFO ((struct device_domain_info *)(-1))
+ static DEFINE_SPINLOCK(device_domain_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,5 +128,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-mm-only-inotify-switch-kernel_event-to-gfp_kernel.patch
+dmar-stupid-hack.patch
 
