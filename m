@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dmar-stupid-hack.patch added to -mm tree
-Date: Thu, 30 Apr 2009 16:13:29 -0700
-Message-ID: <200904302332.n3UNWQ5l030068@imap1.linux-foundation.org>
+Subject: + mtd-fix-timeout-in-m25p80-driver-fix.patch added to -mm tree
+Date: Thu, 30 Apr 2009 16:42:48 -0700
+Message-ID: <200905010001.n4101kM6014061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49482 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750981AbZD3Xex (ORCPT
+	by vger.kernel.org with ESMTP id S1763478AbZEAAFR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Apr 2009 19:34:53 -0400
+	Thu, 30 Apr 2009 20:05:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, David.Woodhouse@intel.com, fenghua.yu@intel.com, weidong@intel.com
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org, sfalco@harris.com, tbm@cyrius.com, zero@colonel-panic.org
 
 
 The patch titled
-     dmar-stupid-hack
+     mtd-fix-timeout-in-m25p80-driver-fix
 has been added to the -mm tree.  Its filename is
-     dmar-stupid-hack.patch
+     mtd-fix-timeout-in-m25p80-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmar-stupid-hack
+Subject: mtd-fix-timeout-in-m25p80-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-dumb fix for a link error
+fix merge snafu
 
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Weidong Han <weidong@intel.com>
-Cc: David Woodhouse <David.Woodhouse@intel.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Martin Michlmayr <tbm@cyrius.com>
+Cc: Peter Horton <zero@colonel-panic.org>
+Cc: Steven A. Falco <sfalco@harris.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |    1 -
- init/main.c               |    2 ++
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/mtd/devices/m25p80.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/main.c~dmar-stupid-hack init/main.c
---- a/init/main.c~dmar-stupid-hack
-+++ a/init/main.c
-@@ -78,6 +78,8 @@
- #include <asm/smp.h>
- #endif
+diff -puN drivers/mtd/devices/m25p80.c~mtd-fix-timeout-in-m25p80-driver-fix drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~mtd-fix-timeout-in-m25p80-driver-fix
++++ a/drivers/mtd/devices/m25p80.c
+@@ -54,7 +54,7 @@
+ #define	SR_SRWD			0x80	/* SR write protect */
  
-+int iommu_pass_through;
-+
- static int kernel_init(void *);
+ /* Define max times to check status register before we give up. */
+-#define	MAX_READY_WAIT_COUNT	(10 * HZ) /* eg. M25P128 specs 6s max sector erase */
++#define	MAX_READY_WAIT_JIFFIES	(10 * HZ) /* eg. M25P128 specs 6s max sector erase */
+ #define	CMD_SIZE		4
  
- extern void init_IRQ(void);
-diff -puN drivers/pci/intel-iommu.c~dmar-stupid-hack drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~dmar-stupid-hack
-+++ a/drivers/pci/intel-iommu.c
-@@ -288,7 +288,6 @@ int dmar_disabled = 1;
- static int __initdata dmar_map_gfx = 1;
- static int dmar_forcedac;
- static int intel_iommu_strict;
--int iommu_pass_through;
- 
- #define DUMMY_DEVICE_DOMAIN_INFO ((struct device_domain_info *)(-1))
- static DEFINE_SPINLOCK(device_domain_lock);
+ #ifdef CONFIG_M25PXX_USE_FAST_READ
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +70,7 @@ vmscan-avoid-multiplication-overflow-in-shrink_zone.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
+dmar-stupid-hack.patch
 i-need-old-gcc.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
 arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
@@ -90,6 +80,7 @@ input-keyboard-introduce-lm8323-driver.patch
 drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
 mtd-flex-onenand-support.patch
+mtd-fix-timeout-in-m25p80-driver-fix.patch
 misdn-l1oip-reduce-stack-memory-footprint.patch
 drivers-net-82596c-suppress-warnings.patch
 forcedeth-add-clock-gating-feature-checkpatch-fixes.patch
@@ -128,5 +119,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-dmar-stupid-hack.patch
 
