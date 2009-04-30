@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive.patch added to -mm tree
-Date: Thu, 30 Apr 2009 14:22:30 -0700
-Message-ID: <200904302122.n3ULMVSV023479@imap1.linux-foundation.org>
+Subject: + mm-only-inotify-switch-kernel_event-to-gfp_kernel.patch added to -mm tree
+Date: Thu, 30 Apr 2009 14:23:56 -0700
+Message-ID: <200904302123.n3ULNukW024248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40629 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48776 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757711AbZD3V1E (ORCPT
+	by vger.kernel.org with ESMTP id S1761219AbZD3V1X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Apr 2009 17:27:04 -0400
+	Thu, 30 Apr 2009 17:27:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, clameter@sgi.com, eparis@redhat.com, mpm@selenic.com, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, clameter@sgi.com, eparis@redhat.com, fengguang.wu@intel.com, mpm@selenic.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     inotify: use GFP_NOFS in kernel_event() to work around a lockdep false-positive
+     mm-only: inotify: switch kernel_event() to GFP_KERNEL
 has been added to the -mm tree.  Its filename is
-     inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive.patch
+     mm-only-inotify-switch-kernel_event-to-gfp_kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inotify: use GFP_NOFS in kernel_event() to work around a lockdep false-positive
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: mm-only: inotify: switch kernel_event() to GFP_KERNEL
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There is what we believe to be a false positive reported by lockdep.
-
-inotify_inode_queue_event() => take inotify_mutex => kernel_event() =>
-kmalloc() => SLOB => alloc_pages_node() => page reclaim => slab reclaim =>
-dcache reclaim => inotify_inode_is_dead => take inotify_mutex => deadlock
-
-The plan is to fix this via lockdep annotation, but that is proving to be
-quite involved.
-
-The patch flips the allocation over to GFP_NFS to shut the warning up, for
-the 2.6.30 release.
-
-Hopefully we will fix this for real in 2.6.31.  I'll queue a patch in -mm
-to switch it back to GFP_KERNEL so we don't forget.
-
-
-[ 2668.325318]
-[ 2668.325322] =================================
-[ 2668.327448] [ INFO: inconsistent lock state ]
-[ 2668.327448] 2.6.30-rc2-next-20090417 #203
-[ 2668.327448] ---------------------------------
-[ 2668.327448] inconsistent {RECLAIM_FS-ON-W} -> {IN-RECLAIM_FS-W} usage.
-[ 2668.327448] kswapd0/380 [HC0[0]:SC0[0]:HE1:SE1] takes:
-[ 2668.327448]  (&inode->inotify_mutex){+.+.?.}, at: [<ffffffff8112f1b5>] inotify_inode_is_dead+0x35/0xb0
-[ 2668.327448] {RECLAIM_FS-ON-W} state was registered at:
-[ 2668.327448]   [<ffffffff81079188>] mark_held_locks+0x68/0x90
-[ 2668.327448]   [<ffffffff810792a5>] lockdep_trace_alloc+0xf5/0x100
-[ 2668.327448]   [<ffffffff810f5261>] __kmalloc_node+0x31/0x1e0
-[ 2668.327448]   [<ffffffff81130652>] kernel_event+0xe2/0x190
-[ 2668.327448]   [<ffffffff81130826>] inotify_dev_queue_event+0x126/0x230
-[ 2668.327448]   [<ffffffff8112f096>] inotify_inode_queue_event+0xc6/0x110
-[ 2668.327448]   [<ffffffff8110444d>] vfs_create+0xcd/0x140
-[ 2668.327448]   [<ffffffff8110825d>] do_filp_open+0x88d/0xa20
-[ 2668.327448]   [<ffffffff810f6b68>] do_sys_open+0x98/0x140
-[ 2668.327448]   [<ffffffff810f6c50>] sys_open+0x20/0x30
-[ 2668.327448]   [<ffffffff8100c272>] system_call_fastpath+0x16/0x1b
-[ 2668.327448]   [<ffffffffffffffff>] 0xffffffffffffffff
-[ 2668.327448] irq event stamp: 690455
-[ 2668.327448] hardirqs last  enabled at (690455): [<ffffffff81564fe4>] _spin_unlock_irqrestore+0x44/0x80
-[ 2668.327448] hardirqs last disabled at (690454): [<ffffffff81565372>] _spin_lock_irqsave+0x32/0xa0
-[ 2668.327448] softirqs last  enabled at (690178): [<ffffffff81052282>] __do_softirq+0x202/0x220
-[ 2668.327448] softirqs last disabled at (690157): [<ffffffff8100d50c>] call_softirq+0x1c/0x50
-[ 2668.327448]
-[ 2668.327448] other info that might help us debug this:
-[ 2668.327448] 2 locks held by kswapd0/380:
-[ 2668.327448]  #0:  (shrinker_rwsem){++++..}, at: [<ffffffff810d0bd7>] shrink_slab+0x37/0x180
-[ 2668.327448]  #1:  (&type->s_umount_key#17){++++..}, at: [<ffffffff8110cfbf>] shrink_dcache_memory+0x11f/0x1e0
-[ 2668.327448]
-[ 2668.327448] stack backtrace:
-[ 2668.327448] Pid: 380, comm: kswapd0 Not tainted 2.6.30-rc2-next-20090417 #203
-[ 2668.327448] Call Trace:
-[ 2668.327448]  [<ffffffff810789ef>] print_usage_bug+0x19f/0x200
-[ 2668.327448]  [<ffffffff81018bff>] ? save_stack_trace+0x2f/0x50
-[ 2668.327448]  [<ffffffff81078f0b>] mark_lock+0x4bb/0x6d0
-[ 2668.327448]  [<ffffffff810799e0>] ? check_usage_forwards+0x0/0xc0
-[ 2668.327448]  [<ffffffff8107b142>] __lock_acquire+0xc62/0x1ae0
-[ 2668.327448]  [<ffffffff810f478c>] ? slob_free+0x10c/0x370
-[ 2668.327448]  [<ffffffff8107c0a1>] lock_acquire+0xe1/0x120
-[ 2668.327448]  [<ffffffff8112f1b5>] ? inotify_inode_is_dead+0x35/0xb0
-[ 2668.327448]  [<ffffffff81562d43>] mutex_lock_nested+0x63/0x420
-[ 2668.327448]  [<ffffffff8112f1b5>] ? inotify_inode_is_dead+0x35/0xb0
-[ 2668.327448]  [<ffffffff8112f1b5>] ? inotify_inode_is_dead+0x35/0xb0
-[ 2668.327448]  [<ffffffff81012fe9>] ? sched_clock+0x9/0x10
-[ 2668.327448]  [<ffffffff81077165>] ? lock_release_holdtime+0x35/0x1c0
-[ 2668.327448]  [<ffffffff8112f1b5>] inotify_inode_is_dead+0x35/0xb0
-[ 2668.327448]  [<ffffffff8110c9dc>] dentry_iput+0xbc/0xe0
-[ 2668.327448]  [<ffffffff8110cb23>] d_kill+0x33/0x60
-[ 2668.327448]  [<ffffffff8110ce23>] __shrink_dcache_sb+0x2d3/0x350
-[ 2668.327448]  [<ffffffff8110cffa>] shrink_dcache_memory+0x15a/0x1e0
-[ 2668.327448]  [<ffffffff810d0cc5>] shrink_slab+0x125/0x180
-[ 2668.327448]  [<ffffffff810d1540>] kswapd+0x560/0x7a0
-[ 2668.327448]  [<ffffffff810ce160>] ? isolate_pages_global+0x0/0x2c0
-[ 2668.327448]  [<ffffffff81065a30>] ? autoremove_wake_function+0x0/0x40
-[ 2668.327448]  [<ffffffff8107953d>] ? trace_hardirqs_on+0xd/0x10
-[ 2668.327448]  [<ffffffff810d0fe0>] ? kswapd+0x0/0x7a0
-[ 2668.327448]  [<ffffffff8106555b>] kthread+0x5b/0xa0
-[ 2668.327448]  [<ffffffff8100d40a>] child_rip+0xa/0x20
-[ 2668.327448]  [<ffffffff8100cdd0>] ? restore_args+0x0/0x30
-[ 2668.327448]  [<ffffffff81065500>] ? kthread+0x0/0xa0
-[ 2668.327448]  [<ffffffff8100d400>] ? child_rip+0x0/0x20
+A placeholder to remember that we need to fix this for real.  Will cause
+lockdep warnings.
 
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Matt Mackall <mpm@selenic.com>
 Cc: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Eric Paris <eparis@redhat.com>
-Cc; Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_user.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/notify/inotify/inotify_user.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/inotify/inotify_user.c~inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive
+diff -puN fs/notify/inotify/inotify_user.c~mm-only-inotify-switch-kernel_event-to-gfp_kernel fs/notify/inotify/inotify_user.c
+--- a/fs/notify/inotify/inotify_user.c~mm-only-inotify-switch-kernel_event-to-gfp_kernel
 +++ a/fs/notify/inotify/inotify_user.c
+@@ -189,7 +189,7 @@ static struct inotify_kernel_event * ker
+ {
+ 	struct inotify_kernel_event *kevent;
+ 
+-	kevent = kmem_cache_alloc(event_cachep, GFP_NOFS);
++	kevent = kmem_cache_alloc(event_cachep, GFP_KERNEL);
+ 	if (unlikely(!kevent))
+ 		return NULL;
+ 
 @@ -220,7 +220,7 @@ static struct inotify_kernel_event * ker
  				rem = 0;
  		}
  
--		kevent->name = kmalloc(len + rem, GFP_KERNEL);
-+		kevent->name = kmalloc(len + rem, GFP_NOFS);
+-		kevent->name = kmalloc(len + rem, GFP_NOFS);
++		kevent->name = kmalloc(len + rem, GFP_KERNEL);
  		if (unlikely(!kevent->name)) {
  			kmem_cache_free(event_cachep, kevent);
  			return NULL;
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-close-page_mkwrite-races-try-3.patch
 vmscan-avoid-multiplication-overflow-in-shrink_zone.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive.patch
-readahead-make-mmap_miss-an-unsigned-int.patch
-readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
-readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
-readahead-remove-one-unnecessary-radix-tree-lookup.patch
-readahead-increase-interleaved-readahead-size.patch
-readahead-remove-sync-async-readahead-call-dependency.patch
-readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
-readahead-sequential-mmap-readahead.patch
-readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-radix-tree-add-radix_tree_prev_hole.patch
-readahead-move-the-random-read-case-to-bottom.patch
-readahead-introduce-context-readahead-algorithm.patch
-readahead-introduce-context-readahead-algorithm-update.patch
-readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
-readahead-enforce-full-sync-mmap-readahead-size.patch
-pagemap-document-clarifications.patch
-pagemap-documentation-9-more-exported-page-flags.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+forcedeth-add-clock-gating-feature-checkpatch-fixes.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+mutex-add-atomic_dec_and_mutex_lock-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+mm-only-inotify-switch-kernel_event-to-gfp_kernel.patch
 
