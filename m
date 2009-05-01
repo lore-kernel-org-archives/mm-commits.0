@@ -1,171 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mutex-add-atomic_dec_and_mutex_lock-fix.patch removed from -mm tree
-Date: Fri, 01 May 2009 13:14:22 -0700
-Message-ID: <200905012014.n41KEMF4024529@imap1.linux-foundation.org>
+Subject: [merged] vsprintf-introduce-%pf.patch removed from -mm tree
+Date: Fri, 01 May 2009 13:14:16 -0700
+Message-ID: <200905012014.n41KEGYZ024432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41746 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765471AbZEAUTn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:19:43 -0400
+	by vger.kernel.org with ESMTP id S1765565AbZEAUTs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:19:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, eparis@redhat.com, hch@lst.de, mingo@elte.hu, paulus@samba.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: fweisbec@gmail.com, 20090415154817.GC5989@nowhere, lizf@cn.fujitsu.com, mingo@elte.hu, rostedt@goodmis.org, tzanussi@gmail.com, vapier.adi@gmail.com, zhaolei@cn.fujitsu.com, mm-commit
 
 
 The patch titled
-     mutex-add-atomic_dec_and_mutex_lock-fix
+     vsprintf: introduce %pf format specifier
 has been removed from the -mm tree.  Its filename was
-     mutex-add-atomic_dec_and_mutex_lock-fix.patch
+     vsprintf-introduce-%pf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mutex-add-atomic_dec_and_mutex_lock-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vsprintf: introduce %pf format specifier
+From: Frederic Weisbecker <fweisbec@gmail.com>
 
-include/linux/mutex.h:136: warning: 'mutex_lock' declared inline after being called
-include/linux/mutex.h:136: warning: previous declaration of 'mutex_lock' was here
+A format which could let us to print a pure function name has been
+suggested by Andrew Morton some monthes ago.
 
-uninline it.
+The current %pF is very convenient to print a function symbol, but often
+we only want to print the name of the function, without its asm offset.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Eric Paris <eparis@redhat.com>
+That's what does %pf in this patch.  The lowecase f has been chosen for
+its intuitive sense of a weak kind of %pF
+
+The support for this new format would be welcome for the tracing tree
+where the need to print pure function names is often needed and also on
+other parts:
+
+$ git-grep -E "kallsyms_lookup\(.+?\)"
+arch/blackfin/kernel/traps.c:   symname = kallsyms_lookup(address, &symsize, &offset, &modname, namebuf);
+arch/powerpc/xmon/xmon.c:               name = kallsyms_lookup(pc, &size, &offset, NULL, tmpstr);
+arch/sh/kernel/cpu/sh5/unwind.c:        sym = kallsyms_lookup(pc, NULL, &offset, NULL, namebuf);
+arch/x86/kernel/ftrace.c:       kallsyms_lookup((unsigned long) syscall, NULL, NULL, NULL, str);
+kernel/kprobes.c:               sym = kallsyms_lookup((unsigned long)p->addr, NULL,
+kernel/lockdep.c:       return kallsyms_lookup((unsigned long)key, NULL, NULL, NULL, str);
+kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, NULL, str);
+kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, NULL, str);
+kernel/trace/ftrace.c:  kallsyms_lookup((unsigned long)rec->ops->func, NULL, NULL, NULL, str);
+kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, NULL, str);
+kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, NULL, str);
+kernel/trace/ftrace.c:  kallsyms_lookup(rec->ip, NULL, NULL, &modname, str);
+kernel/trace/ftrace.c:  kallsyms_lookup(*ptr, NULL, NULL, NULL, str);
+kernel/trace/trace_functions.c: kallsyms_lookup(ip, NULL, NULL, NULL, str);
+kernel/trace/trace_output.c:    kallsyms_lookup(address, NULL, NULL, NULL, str);
+
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Mike Frysinger <vapier.adi@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Zhaolei <zhaolei@cn.fujitsu.com>
+Cc: Tom Zanussi <tzanussi@gmail.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mutex.h |   24 +-----------------------
- kernel/mutex.c        |   25 ++++++++++++++++++++++++-
- 2 files changed, 25 insertions(+), 24 deletions(-)
+ lib/vsprintf.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mutex.h~mutex-add-atomic_dec_and_mutex_lock-fix include/linux/mutex.h
---- a/include/linux/mutex.h~mutex-add-atomic_dec_and_mutex_lock-fix
-+++ a/include/linux/mutex.h
-@@ -150,28 +150,6 @@ extern int __must_check mutex_lock_killa
-  */
- extern int mutex_trylock(struct mutex *lock);
- extern void mutex_unlock(struct mutex *lock);
--
--/**
-- * atomic_dec_and_mutex_lock - return holding mutex if we dec to 0
-- * @cnt: the atomic which we are to dec
-- * @lock: the mutex to return holding if we dec to 0
-- *
-- * return true and hold lock if we dec to 0, return false otherwise
-- */
--static inline int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock)
--{
--	/* dec if we can't possibly hit 0 */
--	if (atomic_add_unless(cnt, -1, 1))
--		return 0;
--	/* we might hit 0, so take the lock */
--	mutex_lock(lock);
--	if (!atomic_dec_and_test(cnt)) {
--		/* when we actually did the dec, we didn't hit 0 */
--		mutex_unlock(lock);
--		return 0;
--	}
--	/* we hit 0, and we hold the lock */
--	return 1;
--}
-+extern int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock);
- 
- #endif
-diff -puN kernel/mutex.c~mutex-add-atomic_dec_and_mutex_lock-fix kernel/mutex.c
---- a/kernel/mutex.c~mutex-add-atomic_dec_and_mutex_lock-fix
-+++ a/kernel/mutex.c
-@@ -473,5 +473,28 @@ int __sched mutex_trylock(struct mutex *
- 
- 	return ret;
+diff -puN lib/vsprintf.c~vsprintf-introduce-%pf lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-introduce-%pf
++++ a/lib/vsprintf.c
+@@ -573,12 +573,15 @@ static char *string(char *buf, char *end
  }
--
- EXPORT_SYMBOL(mutex_trylock);
-+
-+/**
-+ * atomic_dec_and_mutex_lock - return holding mutex if we dec to 0
-+ * @cnt: the atomic which we are to dec
-+ * @lock: the mutex to return holding if we dec to 0
-+ *
-+ * return true and hold lock if we dec to 0, return false otherwise
-+ */
-+int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock)
-+{
-+	/* dec if we can't possibly hit 0 */
-+	if (atomic_add_unless(cnt, -1, 1))
-+		return 0;
-+	/* we might hit 0, so take the lock */
-+	mutex_lock(lock);
-+	if (!atomic_dec_and_test(cnt)) {
-+		/* when we actually did the dec, we didn't hit 0 */
-+		mutex_unlock(lock);
-+		return 0;
-+	}
-+	/* we hit 0, and we hold the lock */
-+	return 1;
-+}
-+EXPORT_SYMBOL(atomic_dec_and_mutex_lock);
+ 
+ static char *symbol_string(char *buf, char *end, void *ptr,
+-				struct printf_spec spec)
++				struct printf_spec spec, char ext)
+ {
+ 	unsigned long value = (unsigned long) ptr;
+ #ifdef CONFIG_KALLSYMS
+ 	char sym[KSYM_SYMBOL_LEN];
+-	sprint_symbol(sym, value);
++	if (ext != 'f')
++		sprint_symbol(sym, value);
++	else
++		kallsyms_lookup(value, NULL, NULL, NULL, sym);
+ 	return string(buf, end, sym, spec);
+ #else
+ 	spec.field_width = 2*sizeof(void *);
+@@ -690,7 +693,8 @@ static char *ip4_addr_string(char *buf, 
+  *
+  * Right now we handle:
+  *
+- * - 'F' For symbolic function descriptor pointers
++ * - 'F' For symbolic function descriptor pointers with offset
++ * - 'f' For simple symbolic function names without offset
+  * - 'S' For symbolic direct pointers
+  * - 'R' For a struct resource pointer, it prints the range of
+  *       addresses (not the name nor the flags)
+@@ -713,10 +717,11 @@ static char *pointer(const char *fmt, ch
+ 
+ 	switch (*fmt) {
+ 	case 'F':
++	case 'f':
+ 		ptr = dereference_function_descriptor(ptr);
+ 		/* Fallthrough */
+ 	case 'S':
+-		return symbol_string(buf, end, ptr, spec);
++		return symbol_string(buf, end, ptr, spec, *fmt);
+ 	case 'R':
+ 		return resource_string(buf, end, ptr, spec);
+ 	case 'm':
+@@ -943,7 +948,8 @@ qualifier:
+  *
+  * This function follows C99 vsnprintf, but has some extensions:
+  * %pS output the name of a text symbol
+- * %pF output the name of a function pointer
++ * %pF output the name of a function pointer with its offset
++ * %pf output the name of a function pointer without its offset
+  * %pR output the address range in a struct resource
+  *
+  * The return value is the number of characters which would
+@@ -1391,7 +1397,8 @@ EXPORT_SYMBOL_GPL(vbin_printf);
+  *
+  * The format follows C99 vsnprintf, but has some extensions:
+  * %pS output the name of a text symbol
+- * %pF output the name of a function pointer
++ * %pF output the name of a function pointer with its offset
++ * %pf output the name of a function pointer without its offset
+  * %pR output the address range in a struct resource
+  * %n is ignored
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
-mm-close-page_mkwrite-races-try-3.patch
-vmscan-avoid-multiplication-overflow-in-shrink_zone.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-dmar-stupid-hack.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-mtd-fix-timeout-in-m25p80-driver-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-forcedeth-add-clock-gating-feature-checkpatch-fixes.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
