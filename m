@@ -1,186 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-expand-i_mutex-to-enclose-lookup_one_len.patch added to -mm tree
-Date: Fri, 01 May 2009 12:56:33 -0700
-Message-ID: <200905011956.n41JuXRG013872@imap1.linux-foundation.org>
+Subject: [merged] ptrace-selinux_bprm_committed_creds-simplify-__wake_up_parent-code-and-s-parent-real_parent.patch removed from -mm tree
+Date: Fri, 01 May 2009 13:14:12 -0700
+Message-ID: <200905012014.n41KEDT4024427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37724 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756081AbZEAUA1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:00:27 -0400
+	by vger.kernel.org with ESMTP id S1754601AbZEAUTb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:19:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, a.beregalov@gmail.com, david@unsolicited.net, viro@ftp.linux.org.uk
+To: oleg@redhat.com, dhowells@redhat.com, eparis@parisplace.org, jmorris@namei.org, roland@redhat.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: expand i_mutex to enclose lookup_one_len
-has been added to the -mm tree.  Its filename is
-     reiserfs-expand-i_mutex-to-enclose-lookup_one_len.patch
+     ptrace: selinux_bprm_committed_creds: simplify __wake_up_parent() code and s/parent/real_parent/
+has been removed from the -mm tree.  Its filename was
+     ptrace-selinux_bprm_committed_creds-simplify-__wake_up_parent-code-and-s-parent-real_parent.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: expand i_mutex to enclose lookup_one_len
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: ptrace: selinux_bprm_committed_creds: simplify __wake_up_parent() code and s/parent/real_parent/
+From: Oleg Nesterov <oleg@redhat.com>
 
-2.6.30-rc3 introduced some sanity checks in the VFS code to avoid NFS bugs
-by ensuring that lookup_one_len is always called under i_mutex.
+selinux_bprm_committed_creds() should wake up ->real_parent, not ->parent.
 
-This patch expands the i_mutex locking to enclose lookup_one_len.  This
-was always required, but not not enforced in the reiserfs code since it
-does locking around the xattr interactions with the xattr_sem.
+We shouldn't worry about the tracer if current is ptraced, exec() must not
+succeed if the tracer has no rights to trace this task after cred
+changing.  But we should notify ->real_parent which is, well, real parent.
 
-This is obvious enough, and it survived an overnight 50 thread ACL test.
+Also, we don't need _irq to take tasklist, and we don't need parent's
+->siglock to wake_up_interruptible(real_parent->signal->wait_chldexit). 
+Since we hold tasklist, real_parent->signal must be stable.  Otherwise
+spin_lock(siglock) is not safe too and can't help anyway.
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Cc: Al Viro <viro@ftp.linux.org.uk>
-Tested-by: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: David <david@unsolicited.net>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/xattr.c |   32 ++++++++++++++------------------
- 1 file changed, 14 insertions(+), 18 deletions(-)
+ security/selinux/hooks.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN fs/reiserfs/xattr.c~reiserfs-expand-i_mutex-to-enclose-lookup_one_len fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~reiserfs-expand-i_mutex-to-enclose-lookup_one_len
-+++ a/fs/reiserfs/xattr.c
-@@ -120,25 +120,20 @@ static struct dentry *lookup_or_create_d
- 	struct dentry *dentry;
- 	BUG_ON(!parent);
+diff -puN security/selinux/hooks.c~ptrace-selinux_bprm_committed_creds-simplify-__wake_up_parent-code-and-s-parent-real_parent security/selinux/hooks.c
+--- a/security/selinux/hooks.c~ptrace-selinux_bprm_committed_creds-simplify-__wake_up_parent-code-and-s-parent-real_parent
++++ a/security/selinux/hooks.c
+@@ -2375,10 +2375,8 @@ static void selinux_bprm_committed_creds
+ {
+ 	const struct task_security_struct *tsec = current_security();
+ 	struct itimerval itimer;
+-	struct sighand_struct *psig;
+ 	u32 osid, sid;
+ 	int rc, i;
+-	unsigned long flags;
  
-+	mutex_lock_nested(&parent->d_inode->i_mutex, I_MUTEX_XATTR);
- 	dentry = lookup_one_len(name, parent, strlen(name));
--	if (IS_ERR(dentry))
--		return dentry;
--	else if (!dentry->d_inode) {
-+	if (!IS_ERR(dentry) && !dentry->d_inode) {
- 		int err = -ENODATA;
+ 	osid = tsec->osid;
+ 	sid = tsec->sid;
+@@ -2408,12 +2406,9 @@ static void selinux_bprm_committed_creds
  
--		if (xattr_may_create(flags)) {
--			mutex_lock_nested(&parent->d_inode->i_mutex,
--					  I_MUTEX_XATTR);
-+		if (xattr_may_create(flags))
- 			err = xattr_mkdir(parent->d_inode, dentry, 0700);
--			mutex_unlock(&parent->d_inode->i_mutex);
--		}
- 
- 		if (err) {
- 			dput(dentry);
- 			dentry = ERR_PTR(err);
- 		}
- 	}
--
-+	mutex_unlock(&parent->d_inode->i_mutex);
- 	return dentry;
+ 	/* Wake up the parent if it is waiting so that it can recheck
+ 	 * wait permission to the new task SID. */
+-	read_lock_irq(&tasklist_lock);
+-	psig = current->parent->sighand;
+-	spin_lock_irqsave(&psig->siglock, flags);
+-	wake_up_interruptible(&current->parent->signal->wait_chldexit);
+-	spin_unlock_irqrestore(&psig->siglock, flags);
+-	read_unlock_irq(&tasklist_lock);
++	read_lock(&tasklist_lock);
++	wake_up_interruptible(&current->real_parent->signal->wait_chldexit);
++	read_unlock(&tasklist_lock);
  }
  
-@@ -184,6 +179,7 @@ fill_with_dentries(void *buf, const char
- {
- 	struct reiserfs_dentry_buf *dbuf = buf;
- 	struct dentry *dentry;
-+	WARN_ON_ONCE(!mutex_is_locked(&dbuf->xadir->d_inode->i_mutex));
- 
- 	if (dbuf->count == ARRAY_SIZE(dbuf->dentries))
- 		return -ENOSPC;
-@@ -349,6 +345,7 @@ static struct dentry *xattr_lookup(struc
- 	if (IS_ERR(xadir))
- 		return ERR_CAST(xadir);
- 
-+	mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
- 	xafile = lookup_one_len(name, xadir, strlen(name));
- 	if (IS_ERR(xafile)) {
- 		err = PTR_ERR(xafile);
-@@ -360,18 +357,15 @@ static struct dentry *xattr_lookup(struc
- 
- 	if (!xafile->d_inode) {
- 		err = -ENODATA;
--		if (xattr_may_create(flags)) {
--			mutex_lock_nested(&xadir->d_inode->i_mutex,
--					  I_MUTEX_XATTR);
-+		if (xattr_may_create(flags))
- 			err = xattr_create(xadir->d_inode, xafile,
- 					      0700|S_IFREG);
--			mutex_unlock(&xadir->d_inode->i_mutex);
--		}
- 	}
- 
- 	if (err)
- 		dput(xafile);
- out:
-+	mutex_unlock(&xadir->d_inode->i_mutex);
- 	dput(xadir);
- 	if (err)
- 		return ERR_PTR(err);
-@@ -435,6 +429,7 @@ static int lookup_and_delete_xattr(struc
- 	if (IS_ERR(xadir))
- 		return PTR_ERR(xadir);
- 
-+	mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
- 	dentry = lookup_one_len(name, xadir, strlen(name));
- 	if (IS_ERR(dentry)) {
- 		err = PTR_ERR(dentry);
-@@ -442,14 +437,13 @@ static int lookup_and_delete_xattr(struc
- 	}
- 
- 	if (dentry->d_inode) {
--		mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
- 		err = xattr_unlink(xadir->d_inode, dentry);
--		mutex_unlock(&xadir->d_inode->i_mutex);
- 		update_ctime(inode);
- 	}
- 
- 	dput(dentry);
- out_dput:
-+	mutex_unlock(&xadir->d_inode->i_mutex);
- 	dput(xadir);
- 	return err;
- }
-@@ -906,9 +900,9 @@ static int create_privroot(struct dentry
- {
- 	int err;
- 	struct inode *inode = dentry->d_parent->d_inode;
--	mutex_lock_nested(&inode->i_mutex, I_MUTEX_XATTR);
-+	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
-+
- 	err = xattr_mkdir(inode, dentry, 0700);
--	mutex_unlock(&inode->i_mutex);
- 	if (err) {
- 		dput(dentry);
- 		dentry = NULL;
-@@ -980,6 +974,7 @@ int reiserfs_xattr_init(struct super_blo
- 	/* If we don't have the privroot located yet - go find it */
- 	if (!REISERFS_SB(s)->priv_root) {
- 		struct dentry *dentry;
-+		mutex_lock_nested(&s->s_root->d_inode->i_mutex, I_MUTEX_CHILD);
- 		dentry = lookup_one_len(PRIVROOT_NAME, s->s_root,
- 					strlen(PRIVROOT_NAME));
- 		if (!IS_ERR(dentry)) {
-@@ -993,6 +988,7 @@ int reiserfs_xattr_init(struct super_blo
- 			}
- 		} else
- 			err = PTR_ERR(dentry);
-+		mutex_unlock(&s->s_root->d_inode->i_mutex);
- 
- 		if (!err && dentry) {
- 			s->s_root->d_op = &xattr_lookup_poison_ops;
+ /* superblock security operations */
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-reiserfs-expand-i_mutex-to-enclose-lookup_one_len.patch
+maintainers-add-ptrace-entry.patch
+ptrace-s-parent-real_parent-in-binfmt_elf_fdpicc.patch
 linux-next.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+getrusage-fill-ru_maxrss-value.patch
+ptrace-remove-pt_dtrace-from-arch-h8300.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+ptrace-remove-pt_dtrace-from-arch-m32r.patch
+ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
+copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
+elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
+signals-split-do_tkill.patch
+signals-implement-sys_rt_tgsigqueueinfo.patch
+x86-hookup-sys_rt_tgsigqueueinfo.patch
+signals-tracehook_notify_jctl-change.patch
 
