@@ -1,90 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] do_wait-do-take-security_task_wait-into-account.patch removed from -mm tree
-Date: Fri, 01 May 2009 13:14:19 -0700
-Message-ID: <200905012014.n41KEJ1P024503@imap1.linux-foundation.org>
+Subject: [merged] mutex-add-atomic_dec_and_mutex_lock-fix.patch removed from -mm tree
+Date: Fri, 01 May 2009 13:14:22 -0700
+Message-ID: <200905012014.n41KEMF4024529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761618AbZEAUT3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:19:29 -0400
+	by vger.kernel.org with ESMTP id S1765471AbZEAUTn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:19:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, eparis@parisplace.org, jmorris@namei.org, roland@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, eparis@redhat.com, hch@lst.de, mingo@elte.hu, paulus@samba.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_wait: do take security_task_wait() into account
+     mutex-add-atomic_dec_and_mutex_lock-fix
 has been removed from the -mm tree.  Its filename was
-     do_wait-do-take-security_task_wait-into-account.patch
+     mutex-add-atomic_dec_and_mutex_lock-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_wait: do take security_task_wait() into account
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: mutex-add-atomic_dec_and_mutex_lock-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I was never able to understand what should we actually do when
-security_task_wait() fails, but the current code doesn't look right.
+include/linux/mutex.h:136: warning: 'mutex_lock' declared inline after being called
+include/linux/mutex.h:136: warning: previous declaration of 'mutex_lock' was here
 
-If ->task_wait() returns the error, we update *notask_error correctly. 
-But then we either reap the child (despite the fact this was forbidden) or
-clear *notask_error (and hide the securiy policy problems).
+uninline it.
 
-This patch assumes that "stolen by ptrace" doesn't matter.  If selinux
-denies the child we should ignore it but make sure we report -EACCESS
-instead of -ECHLD if there are no other eligible children.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mutex.h |   24 +-----------------------
+ kernel/mutex.c        |   25 ++++++++++++++++++++++++-
+ 2 files changed, 25 insertions(+), 24 deletions(-)
 
-diff -puN kernel/exit.c~do_wait-do-take-security_task_wait-into-account kernel/exit.c
---- a/kernel/exit.c~do_wait-do-take-security_task_wait-into-account
-+++ a/kernel/exit.c
-@@ -1482,6 +1482,7 @@ static int wait_consider_task(struct tas
- 		 */
- 		if (*notask_error)
- 			*notask_error = ret;
-+		return 0;
- 	}
+diff -puN include/linux/mutex.h~mutex-add-atomic_dec_and_mutex_lock-fix include/linux/mutex.h
+--- a/include/linux/mutex.h~mutex-add-atomic_dec_and_mutex_lock-fix
++++ a/include/linux/mutex.h
+@@ -150,28 +150,6 @@ extern int __must_check mutex_lock_killa
+  */
+ extern int mutex_trylock(struct mutex *lock);
+ extern void mutex_unlock(struct mutex *lock);
+-
+-/**
+- * atomic_dec_and_mutex_lock - return holding mutex if we dec to 0
+- * @cnt: the atomic which we are to dec
+- * @lock: the mutex to return holding if we dec to 0
+- *
+- * return true and hold lock if we dec to 0, return false otherwise
+- */
+-static inline int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock)
+-{
+-	/* dec if we can't possibly hit 0 */
+-	if (atomic_add_unless(cnt, -1, 1))
+-		return 0;
+-	/* we might hit 0, so take the lock */
+-	mutex_lock(lock);
+-	if (!atomic_dec_and_test(cnt)) {
+-		/* when we actually did the dec, we didn't hit 0 */
+-		mutex_unlock(lock);
+-		return 0;
+-	}
+-	/* we hit 0, and we hold the lock */
+-	return 1;
+-}
++extern int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock);
  
- 	if (likely(!ptrace) && unlikely(task_ptrace(p))) {
+ #endif
+diff -puN kernel/mutex.c~mutex-add-atomic_dec_and_mutex_lock-fix kernel/mutex.c
+--- a/kernel/mutex.c~mutex-add-atomic_dec_and_mutex_lock-fix
++++ a/kernel/mutex.c
+@@ -473,5 +473,28 @@ int __sched mutex_trylock(struct mutex *
+ 
+ 	return ret;
+ }
+-
+ EXPORT_SYMBOL(mutex_trylock);
++
++/**
++ * atomic_dec_and_mutex_lock - return holding mutex if we dec to 0
++ * @cnt: the atomic which we are to dec
++ * @lock: the mutex to return holding if we dec to 0
++ *
++ * return true and hold lock if we dec to 0, return false otherwise
++ */
++int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock)
++{
++	/* dec if we can't possibly hit 0 */
++	if (atomic_add_unless(cnt, -1, 1))
++		return 0;
++	/* we might hit 0, so take the lock */
++	mutex_lock(lock);
++	if (!atomic_dec_and_test(cnt)) {
++		/* when we actually did the dec, we didn't hit 0 */
++		mutex_unlock(lock);
++		return 0;
++	}
++	/* we hit 0, and we hold the lock */
++	return 1;
++}
++EXPORT_SYMBOL(atomic_dec_and_mutex_lock);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-maintainers-add-ptrace-entry.patch
-ptrace-s-parent-real_parent-in-binfmt_elf_fdpicc.patch
+mm-close-page_mkwrite-races-try-3.patch
+vmscan-avoid-multiplication-overflow-in-shrink_zone.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-slow_work_thread-should-do-the-exclusive-wait.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-ptrace-remove-pt_dtrace-from-arch-h8300.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
-ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
-ptrace-remove-pt_dtrace-from-arch-m32r.patch
-ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
-ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
-copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
-elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-signals-tracehook_notify_jctl-change.patch
+next-remove-localversion.patch
+dmar-stupid-hack.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+mtd-fix-timeout-in-m25p80-driver-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+forcedeth-add-clock-gating-feature-checkpatch-fixes.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
