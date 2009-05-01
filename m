@@ -1,109 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: + inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix.patch added to -mm tree
-Date: Fri, 01 May 2009 13:27:14 -0700
-Message-ID: <200905012027.n41KREUT032231@imap1.linux-foundation.org>
+Subject: [to-be-updated] fbdev-fix-fillrect-for-24bpp-modes.patch removed from -mm tree
+Date: Fri, 01 May 2009 15:04:43 -0700
+Message-ID: <200905012204.n41M4iqT025415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58987 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755281AbZEAUc7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:32:59 -0400
+	by vger.kernel.org with ESMTP id S1753174AbZEAWGg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 18:06:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: eparis@redhat.com, a.p.zijlstra@chello.nl, clameter@sgi.com, fengguang.wu@intel.com, mpm@selenic.com, viro@zeniv.linux.org.uk
+To: spock@gentoo.org, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make inotify event handles use GFP_NOFS
-has been added to the -mm tree.  Its filename is
-     inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix.patch
+     fbdev: fix fillrect for 24bpp modes
+has been removed from the -mm tree.  Its filename was
+     fbdev-fix-fillrect-for-24bpp-modes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make inotify event handles use GFP_NOFS
-From: Eric Paris <eparis@redhat.com>
+Subject: fbdev: fix fillrect for 24bpp modes
+From: Michal Januszewski <spock@gentoo.org>
 
-I think this is a bandaide to shut up lockdep.  I could either figure out
-lockdep classes and figure out how to reclassify inotify locks since I
-believe Nick is correct when he says inotify watches pin the inode in core
-so memory pressure can't evict it.  I don't want to do that as I think the
-real fix is my next generation fsnotify which does zero allocations under
-locks and so everything can be GFP_KERNEL.  I'm posting this as it is
-clearly safe and should fix the issue.
+The software fillrect routines do not work properly when the number of
+pixels per machine word is not an integer.  To see that, run the following
+command on a fbdev console with a 24bpp video mode, using a
+non-accelerated driver such as (u)vesafb:
 
-http://marc.info/?l=linux-kernel&m=123617147432377&w=2
+  reset ; echo -e '\e[41mtest\e[K'
 
-includes a lockdep warning that shows while we are reclaiming FS memory
-and inode may get evicted which generates an IN_IGNORED message.  Half
-of that code path already used GFP_NOFS but a second allocation to store
-the filename was using GFP_KERNEL.  As a precaution I also moved the
-audit handle_event code path to use GFP_NOFS.
+The expected result is 'test' displayed on a line with red background. 
+Instead of that, 'test' has a red background, but the rest of the line
+(rendered using fillrect()) contains a distored colorful pattern.
 
-This is much the same as the precaution in f04b30de3c82528 which did
-something similar.
+This patch fixes the problem by correctly computing rotation shifts.  It
+has been tested in a 24bpp mode on 32- and 64-bit little-endian machines.
 
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Acked-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditfilter.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/cfbfillrect.c |   38 +++++++++++++++++-----------------
+ drivers/video/fb_draw.h     |    8 +++----
+ drivers/video/sysfillrect.c |   32 ++++++++++++++++------------
+ 3 files changed, 41 insertions(+), 37 deletions(-)
 
-diff -puN kernel/auditfilter.c~inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix kernel/auditfilter.c
---- a/kernel/auditfilter.c~inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix
-+++ a/kernel/auditfilter.c
-@@ -1028,7 +1028,7 @@ static void audit_update_watch(struct au
+diff -puN drivers/video/cfbfillrect.c~fbdev-fix-fillrect-for-24bpp-modes drivers/video/cfbfillrect.c
+--- a/drivers/video/cfbfillrect.c~fbdev-fix-fillrect-for-24bpp-modes
++++ a/drivers/video/cfbfillrect.c
+@@ -9,10 +9,6 @@
+  *
+  * NOTES:
+  *
+- *  The code for depths like 24 that don't have integer number of pixels per
+- *  long is broken and needs to be fixed. For now I turned these types of
+- *  mode off.
+- *
+  *  Also need to add code to deal with cards endians that are different than
+  *  the native cpu endians. I also need to deal with MSB position in the word.
+  *
+@@ -139,7 +135,7 @@ bitfill_unaligned(struct fb_info *p, uns
  
- 		if (audit_enabled) {
- 			struct audit_buffer *ab;
--			ab = audit_log_start(NULL, GFP_KERNEL,
-+			ab = audit_log_start(NULL, GFP_NOFS,
- 				AUDIT_CONFIG_CHANGE);
- 			audit_log_format(ab, "auid=%u ses=%u",
- 				audit_get_loginuid(current),
-@@ -1067,7 +1067,7 @@ static void audit_remove_parent_watches(
- 			e = container_of(r, struct audit_entry, rule);
- 			if (audit_enabled) {
- 				struct audit_buffer *ab;
--				ab = audit_log_start(NULL, GFP_KERNEL,
-+				ab = audit_log_start(NULL, GFP_NOFS,
- 					AUDIT_CONFIG_CHANGE);
- 				audit_log_format(ab, "auid=%u ses=%u",
- 					audit_get_loginuid(current),
+ 		// Trailing bits
+ 		if (last)
+-			FB_WRITEL(comp(pat, FB_READL(dst), first), dst);
++			FB_WRITEL(comp(pat, FB_READL(dst), last), dst);
+ 	}
+ }
+ 
+@@ -281,7 +277,7 @@ bitfill_unaligned_rev(struct fb_info *p,
+ 
+ void cfb_fillrect(struct fb_info *p, const struct fb_fillrect *rect)
+ {
+-	unsigned long pat, fg;
++	unsigned long pat, pat2, fg;
+ 	unsigned long width = rect->width, height = rect->height;
+ 	int bits = BITS_PER_LONG, bytes = bits >> 3;
+ 	u32 bpp = p->var.bits_per_pixel;
+@@ -297,7 +293,7 @@ void cfb_fillrect(struct fb_info *p, con
+ 	else
+ 		fg = rect->color;
+ 
+-	pat = pixel_to_pat( bpp, fg);
++	pat = pixel_to_pat(bpp, fg);
+ 
+ 	dst = (unsigned long __iomem *)((unsigned long)p->screen_base & ~(bytes-1));
+ 	dst_idx = ((unsigned long)p->screen_base & (bytes - 1))*8;
+@@ -333,17 +329,16 @@ void cfb_fillrect(struct fb_info *p, con
+ 			dst_idx += p->fix.line_length*8;
+ 		}
+ 	} else {
+-		int right;
+-		int r;
+-		int rot = (left-dst_idx) % bpp;
++		int right, r;
+ 		void (*fill_op)(struct fb_info *p, unsigned long __iomem *dst,
+ 				int dst_idx, unsigned long pat, int left,
+ 				int right, unsigned n, int bits) = NULL;
+-
+-		/* rotate pattern to correct start position */
+-		pat = pat << rot | pat >> (bpp-rot);
+-
+-		right = bpp-left;
++#ifdef __LITTLE_ENDIAN
++		right = left;
++		left = bpp - right;
++#else
++		right = bpp - left;
++#endif
+ 		switch (rect->rop) {
+ 		case ROP_XOR:
+ 			fill_op = bitfill_unaligned_rev;
+@@ -357,12 +352,17 @@ void cfb_fillrect(struct fb_info *p, con
+ 			break;
+ 		}
+ 		while (height--) {
+-			dst += dst_idx >> (ffs(bits) - 1);
++			dst += dst_idx / bits;
+ 			dst_idx &= (bits - 1);
+-			fill_op(p, dst, dst_idx, pat, left, right,
++			r = dst_idx % bpp;
++			/* rotate pattern to the correct start position */
++#ifdef __LITTLE_ENDIAN
++			pat2 = pat << r | pat >> (bpp-r);
++#else
++			pat2 = pat << (bpp-r) | pat >> r;
++#endif
++			fill_op(p, dst, dst_idx, pat2, left, right,
+ 				width*bpp, bits);
+-			r = (p->fix.line_length*8) % bpp;
+-			pat = pat << (bpp-r) | pat >> r;
+ 			dst_idx += p->fix.line_length*8;
+ 		}
+ 	}
+diff -puN drivers/video/fb_draw.h~fbdev-fix-fillrect-for-24bpp-modes drivers/video/fb_draw.h
+--- a/drivers/video/fb_draw.h~fbdev-fix-fillrect-for-24bpp-modes
++++ a/drivers/video/fb_draw.h
+@@ -33,11 +33,11 @@ pixel_to_pat( u32 bpp, u32 pixel)
+ 	case 8:
+ 		return 0x0101010101010101ul*pixel;
+ 	case 12:
+-		return 0x0001001001001001ul*pixel;
++		return 0x1001001001001001ul*pixel;
+ 	case 16:
+ 		return 0x0001000100010001ul*pixel;
+ 	case 24:
+-		return 0x0000000001000001ul*pixel;
++		return 0x0001000001000001ul*pixel;
+ 	case 32:
+ 		return 0x0000000100000001ul*pixel;
+ 	default:
+@@ -58,11 +58,11 @@ pixel_to_pat( u32 bpp, u32 pixel)
+ 	case 8:
+ 		return 0x01010101ul*pixel;
+ 	case 12:
+-		return 0x00001001ul*pixel;
++		return 0x01001001ul*pixel;
+ 	case 16:
+ 		return 0x00010001ul*pixel;
+ 	case 24:
+-		return 0x00000001ul*pixel;
++		return 0x01000001ul*pixel;
+ 	case 32:
+ 		return 0x00000001ul*pixel;
+ 	default:
+diff -puN drivers/video/sysfillrect.c~fbdev-fix-fillrect-for-24bpp-modes drivers/video/sysfillrect.c
+--- a/drivers/video/sysfillrect.c~fbdev-fix-fillrect-for-24bpp-modes
++++ a/drivers/video/sysfillrect.c
+@@ -124,7 +124,7 @@ bitfill_unaligned(struct fb_info *p, uns
+ 
+ 		/* Trailing bits */
+ 		if (last)
+-			*dst = comp(pat, *dst, first);
++			*dst = comp(pat, *dst, last);
+ 	}
+ }
+ 
+@@ -242,7 +242,7 @@ bitfill_unaligned_rev(struct fb_info *p,
+ 
+ void sys_fillrect(struct fb_info *p, const struct fb_fillrect *rect)
+ {
+-	unsigned long pat, fg;
++	unsigned long pat, pat2, fg;
+ 	unsigned long width = rect->width, height = rect->height;
+ 	int bits = BITS_PER_LONG, bytes = bits >> 3;
+ 	u32 bpp = p->var.bits_per_pixel;
+@@ -292,17 +292,16 @@ void sys_fillrect(struct fb_info *p, con
+ 			dst_idx += p->fix.line_length*8;
+ 		}
+ 	} else {
+-		int right;
+-		int r;
+-		int rot = (left-dst_idx) % bpp;
++		int right, r;
+ 		void (*fill_op)(struct fb_info *p, unsigned long *dst,
+ 				int dst_idx, unsigned long pat, int left,
+ 				int right, unsigned n, int bits) = NULL;
+-
+-		/* rotate pattern to correct start position */
+-		pat = pat << rot | pat >> (bpp-rot);
+-
+-		right = bpp-left;
++#ifdef __LITTLE_ENDIAN
++		right = left;
++		left = bpp - right;
++#else
++		right = bpp - left;
++#endif
+ 		switch (rect->rop) {
+ 		case ROP_XOR:
+ 			fill_op = bitfill_unaligned_rev;
+@@ -317,12 +316,17 @@ void sys_fillrect(struct fb_info *p, con
+ 			break;
+ 		}
+ 		while (height--) {
+-			dst += dst_idx >> (ffs(bits) - 1);
++			dst += dst_idx / bits;
+ 			dst_idx &= (bits - 1);
+-			fill_op(p, dst, dst_idx, pat, left, right,
++			r = dst_idx % bpp;
++			/* rotate pattern to the correct start position */
++#ifdef __LITTLE_ENDIAN
++			pat2 = pat << r | pat >> (bpp-r);
++#else
++			pat2 = pat << (bpp-r) | pat >> r;
++#endif
++			fill_op(p, dst, dst_idx, pat2, left, right,
+ 				width*bpp, bits);
+-			r = (p->fix.line_length*8) % bpp;
+-			pat = pat << (bpp-r) | pat >> r;
+ 			dst_idx += p->fix.line_length*8;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from spock@gentoo.org are
 
-inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive.patch
-inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix.patch
 linux-next.patch
-fsnotify-unified-filesystem-notification-backend.patch
-fsnotify-add-marks-to-inodes-so-groups-can-interpret-how-to-handle-those-inodes.patch
-fsnotify-parent-event-notification.patch
-dnotify-reimplement-dnotify-using-fsnotify.patch
-fsnotify-generic-notification-queue-and-waitq.patch
-fsnotify-include-pathnames-with-entries-when-possible.patch
-fsnotify-add-correlations-between-events.patch
-fsnotify-allow-groups-to-add-private-data-to-events.patch
-fsnotify-fsnotify-marks-on-inodes-pin-them-in-core.patch
-fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch
-inotify-reimplement-inotify-using-fsnotify.patch
+fbdev-fix-fillrect-for-24bpp-modes.patch
 
