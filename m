@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drbd-add-major-number-to-majorh.patch added to -mm tree
-Date: Fri, 01 May 2009 02:09:00 -0700
-Message-ID: <200905010909.n41990Vi030179@imap1.linux-foundation.org>
+Subject: + reiserfs-expand-i_mutex-to-enclose-lookup_one_len.patch added to -mm tree
+Date: Fri, 01 May 2009 12:56:33 -0700
+Message-ID: <200905011956.n41JuXRG013872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37746 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753559AbZEAJLT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 05:11:19 -0400
+	by vger.kernel.org with ESMTP id S1756081AbZEAUA1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:00:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipp.reisner@linbit.com, lars.ellenberg@linbit.com
+Cc: jeffm@suse.com, a.beregalov@gmail.com, david@unsolicited.net, viro@ftp.linux.org.uk
 
 
 The patch titled
-     drbd: add major number to major.h
+     reiserfs: expand i_mutex to enclose lookup_one_len
 has been added to the -mm tree.  Its filename is
-     drbd-add-major-number-to-majorh.patch
+     reiserfs-expand-i_mutex-to-enclose-lookup_one_len.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,154 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drbd: add major number to major.h
-From: Philipp Reisner <philipp.reisner@linbit.com>
+Subject: reiserfs: expand i_mutex to enclose lookup_one_len
+From: Jeff Mahoney <jeffm@suse.com>
 
-Since we have had a LANANA major number for years, and it is documented in
-devices.txt, I think that this first patch can go upstream.
+2.6.30-rc3 introduced some sanity checks in the VFS code to avoid NFS bugs
+by ensuring that lookup_one_len is always called under i_mutex.
 
-Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
-Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+This patch expands the i_mutex locking to enclose lookup_one_len.  This
+was always required, but not not enforced in the reiserfs code since it
+does locking around the xattr interactions with the xattr_sem.
+
+This is obvious enough, and it survived an overnight 50 thread ACL test.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Tested-by: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: David <david@unsolicited.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/major.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/reiserfs/xattr.c |   32 ++++++++++++++------------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/major.h~drbd-add-major-number-to-majorh include/linux/major.h
---- a/include/linux/major.h~drbd-add-major-number-to-majorh
-+++ a/include/linux/major.h
-@@ -145,6 +145,7 @@
- #define UNIX98_PTY_MAJOR_COUNT	8
- #define UNIX98_PTY_SLAVE_MAJOR	(UNIX98_PTY_MASTER_MAJOR+UNIX98_PTY_MAJOR_COUNT)
+diff -puN fs/reiserfs/xattr.c~reiserfs-expand-i_mutex-to-enclose-lookup_one_len fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-expand-i_mutex-to-enclose-lookup_one_len
++++ a/fs/reiserfs/xattr.c
+@@ -120,25 +120,20 @@ static struct dentry *lookup_or_create_d
+ 	struct dentry *dentry;
+ 	BUG_ON(!parent);
  
-+#define DRBD_MAJOR		147
- #define RTF_MAJOR		150
- #define RAW_MAJOR		162
++	mutex_lock_nested(&parent->d_inode->i_mutex, I_MUTEX_XATTR);
+ 	dentry = lookup_one_len(name, parent, strlen(name));
+-	if (IS_ERR(dentry))
+-		return dentry;
+-	else if (!dentry->d_inode) {
++	if (!IS_ERR(dentry) && !dentry->d_inode) {
+ 		int err = -ENODATA;
  
+-		if (xattr_may_create(flags)) {
+-			mutex_lock_nested(&parent->d_inode->i_mutex,
+-					  I_MUTEX_XATTR);
++		if (xattr_may_create(flags))
+ 			err = xattr_mkdir(parent->d_inode, dentry, 0700);
+-			mutex_unlock(&parent->d_inode->i_mutex);
+-		}
+ 
+ 		if (err) {
+ 			dput(dentry);
+ 			dentry = ERR_PTR(err);
+ 		}
+ 	}
+-
++	mutex_unlock(&parent->d_inode->i_mutex);
+ 	return dentry;
+ }
+ 
+@@ -184,6 +179,7 @@ fill_with_dentries(void *buf, const char
+ {
+ 	struct reiserfs_dentry_buf *dbuf = buf;
+ 	struct dentry *dentry;
++	WARN_ON_ONCE(!mutex_is_locked(&dbuf->xadir->d_inode->i_mutex));
+ 
+ 	if (dbuf->count == ARRAY_SIZE(dbuf->dentries))
+ 		return -ENOSPC;
+@@ -349,6 +345,7 @@ static struct dentry *xattr_lookup(struc
+ 	if (IS_ERR(xadir))
+ 		return ERR_CAST(xadir);
+ 
++	mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
+ 	xafile = lookup_one_len(name, xadir, strlen(name));
+ 	if (IS_ERR(xafile)) {
+ 		err = PTR_ERR(xafile);
+@@ -360,18 +357,15 @@ static struct dentry *xattr_lookup(struc
+ 
+ 	if (!xafile->d_inode) {
+ 		err = -ENODATA;
+-		if (xattr_may_create(flags)) {
+-			mutex_lock_nested(&xadir->d_inode->i_mutex,
+-					  I_MUTEX_XATTR);
++		if (xattr_may_create(flags))
+ 			err = xattr_create(xadir->d_inode, xafile,
+ 					      0700|S_IFREG);
+-			mutex_unlock(&xadir->d_inode->i_mutex);
+-		}
+ 	}
+ 
+ 	if (err)
+ 		dput(xafile);
+ out:
++	mutex_unlock(&xadir->d_inode->i_mutex);
+ 	dput(xadir);
+ 	if (err)
+ 		return ERR_PTR(err);
+@@ -435,6 +429,7 @@ static int lookup_and_delete_xattr(struc
+ 	if (IS_ERR(xadir))
+ 		return PTR_ERR(xadir);
+ 
++	mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
+ 	dentry = lookup_one_len(name, xadir, strlen(name));
+ 	if (IS_ERR(dentry)) {
+ 		err = PTR_ERR(dentry);
+@@ -442,14 +437,13 @@ static int lookup_and_delete_xattr(struc
+ 	}
+ 
+ 	if (dentry->d_inode) {
+-		mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
+ 		err = xattr_unlink(xadir->d_inode, dentry);
+-		mutex_unlock(&xadir->d_inode->i_mutex);
+ 		update_ctime(inode);
+ 	}
+ 
+ 	dput(dentry);
+ out_dput:
++	mutex_unlock(&xadir->d_inode->i_mutex);
+ 	dput(xadir);
+ 	return err;
+ }
+@@ -906,9 +900,9 @@ static int create_privroot(struct dentry
+ {
+ 	int err;
+ 	struct inode *inode = dentry->d_parent->d_inode;
+-	mutex_lock_nested(&inode->i_mutex, I_MUTEX_XATTR);
++	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
++
+ 	err = xattr_mkdir(inode, dentry, 0700);
+-	mutex_unlock(&inode->i_mutex);
+ 	if (err) {
+ 		dput(dentry);
+ 		dentry = NULL;
+@@ -980,6 +974,7 @@ int reiserfs_xattr_init(struct super_blo
+ 	/* If we don't have the privroot located yet - go find it */
+ 	if (!REISERFS_SB(s)->priv_root) {
+ 		struct dentry *dentry;
++		mutex_lock_nested(&s->s_root->d_inode->i_mutex, I_MUTEX_CHILD);
+ 		dentry = lookup_one_len(PRIVROOT_NAME, s->s_root,
+ 					strlen(PRIVROOT_NAME));
+ 		if (!IS_ERR(dentry)) {
+@@ -993,6 +988,7 @@ int reiserfs_xattr_init(struct super_blo
+ 			}
+ 		} else
+ 			err = PTR_ERR(dentry);
++		mutex_unlock(&s->s_root->d_inode->i_mutex);
+ 
+ 		if (!err && dentry) {
+ 			s->s_root->d_op = &xattr_lookup_poison_ops;
 _
 
-Patches currently in -mm which might be from philipp.reisner@linbit.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-drbd-add-major-number-to-majorh.patch
+reiserfs-expand-i_mutex-to-enclose-lookup_one_len.patch
+linux-next.patch
 
