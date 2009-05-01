@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-evict-use-once-pages-first-v3.patch added to -mm tree
-Date: Fri, 01 May 2009 15:33:08 -0700
-Message-ID: <200905012233.n41MX839009884@imap1.linux-foundation.org>
+Subject: + mm-alloc_large_system_hash-check-order.patch added to -mm tree
+Date: Fri, 01 May 2009 15:44:09 -0700
+Message-ID: <200905012244.n41Mi9L5016459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46827 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753805AbZEAWhp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 18:37:45 -0400
+	by vger.kernel.org with ESMTP id S1754476AbZEAWsz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 18:48:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, elladan@eskimo.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, peterz@infradead.org
+Cc: hugh@veritas.com, cl@linux.com, dada1@cosmosbay.com, davem@davemloft.net, mel@csn.ul.ie
 
 
 The patch titled
-     vmscan: evict use-once pages first
+     mm: alloc_large_system_hash check order
 has been added to the -mm tree.  Its filename is
-     vmscan-evict-use-once-pages-first-v3.patch
+     mm-alloc_large_system_hash-check-order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,141 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: evict use-once pages first
-From: Rik van Riel <riel@redhat.com>
+Subject: mm: alloc_large_system_hash check order
+From: Hugh Dickins <hugh@veritas.com>
 
-When the file LRU lists are dominated by streaming IO pages, evict those
-pages first, before considering evicting other pages.
+On an x86_64 with 4GB ram, tcp_init()'s call to alloc_large_system_hash(),
+to allocate tcp_hashinfo.ehash, is now triggering an mmotm WARN_ON_ONCE on
+order >= MAX_ORDER - it's hoping for order 11.  alloc_large_system_hash()
+had better make its own check on the order.
 
-This should be safe from deadlocks or performance problems
-because only three things can happen to an inactive file page:
-
-1) referenced twice and promoted to the active list
-2) evicted by the pageout code
-3) under IO, after which it will get evicted or promoted
-
-The pages freed in this way can either be reused for streaming IO, or
-allocated for something else.  If the pages are used for streaming IO,
-this pageout pattern continues.  Otherwise, we will fall back to the
-normal pageout pattern.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Elladan <elladan@eskimo.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 ++++++
- mm/memcontrol.c            |   11 ++++++++++
- mm/vmscan.c                |   38 ++++++++++++++++++++++++++++++++++-
- 3 files changed, 55 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~vmscan-evict-use-once-pages-first-v3 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~vmscan-evict-use-once-pages-first-v3
-+++ a/include/linux/memcontrol.h
-@@ -94,6 +94,7 @@ extern void mem_cgroup_note_reclaim_prio
- extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
- 							int priority);
- int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg);
-+int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg);
- unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
- 				       struct zone *zone,
- 				       enum lru_list lru);
-@@ -239,6 +240,12 @@ mem_cgroup_inactive_anon_is_low(struct m
- 	return 1;
- }
- 
-+static inline int
-+mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg)
-+{
-+	return 1;
-+}
+diff -puN mm/page_alloc.c~mm-alloc_large_system_hash-check-order mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-alloc_large_system_hash-check-order
++++ a/mm/page_alloc.c
+@@ -4562,7 +4562,10 @@ void *__init alloc_large_system_hash(con
+ 			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
+ 		else {
+ 			unsigned long order = get_order(size);
+-			table = (void*) __get_free_pages(GFP_ATOMIC, order);
 +
- static inline unsigned long
- mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg, struct zone *zone,
- 			 enum lru_list lru)
-diff -puN mm/memcontrol.c~vmscan-evict-use-once-pages-first-v3 mm/memcontrol.c
---- a/mm/memcontrol.c~vmscan-evict-use-once-pages-first-v3
-+++ a/mm/memcontrol.c
-@@ -578,6 +578,17 @@ int mem_cgroup_inactive_anon_is_low(stru
- 	return 0;
- }
- 
-+int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg)
-+{
-+	unsigned long active;
-+	unsigned long inactive;
-+
-+	inactive = mem_cgroup_get_local_zonestat(memcg, LRU_INACTIVE_FILE);
-+	active = mem_cgroup_get_local_zonestat(memcg, LRU_ACTIVE_FILE);
-+
-+	return (active > inactive);
-+}
-+
- unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
- 				       struct zone *zone,
- 				       enum lru_list lru)
-diff -puN mm/vmscan.c~vmscan-evict-use-once-pages-first-v3 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-evict-use-once-pages-first-v3
-+++ a/mm/vmscan.c
-@@ -1349,12 +1349,48 @@ static int inactive_anon_is_low(struct z
- 	return low;
- }
- 
-+static int inactive_file_is_low_global(struct zone *zone)
-+{
-+	unsigned long active, inactive;
-+
-+	active = zone_page_state(zone, NR_ACTIVE_FILE);
-+	inactive = zone_page_state(zone, NR_INACTIVE_FILE);
-+
-+	return (active > inactive);
-+}
-+
-+/**
-+ * inactive_file_is_low - check if file pages need to be deactivated
-+ * @zone: zone to check
-+ * @sc:   scan control of this context
-+ *
-+ * When the system is doing streaming IO, memory pressure here
-+ * ensures that active file pages get deactivated, until more
-+ * than half of the file pages are on the inactive list.
-+ *
-+ * Once we get to that situation, protect the system's working
-+ * set from being evicted by disabling active file page aging.
-+ *
-+ * This uses a different ratio than the anonymous pages, because
-+ * the page cache uses a use-once replacement algorithm.
-+ */
-+static int inactive_file_is_low(struct zone *zone, struct scan_control *sc)
-+{
-+	int low;
-+
-+	if (scanning_global_lru(sc))
-+		low = inactive_file_is_low_global(zone);
-+	else
-+		low = mem_cgroup_inactive_file_is_low(sc->mem_cgroup);
-+	return low;
-+}
-+
- static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
- 	struct zone *zone, struct scan_control *sc, int priority)
- {
- 	int file = is_file_lru(lru);
- 
--	if (lru == LRU_ACTIVE_FILE) {
-+	if (lru == LRU_ACTIVE_FILE && inactive_file_is_low(zone, sc)) {
- 		shrink_active_list(nr_to_scan, zone, sc, priority, file);
- 		return 0;
- 	}
++			if (order < MAX_ORDER)
++				table = (void *)__get_free_pages(GFP_ATOMIC,
++								order);
+ 			/*
+ 			 * If bucketsize is not a power-of-two, we may free
+ 			 * some pages at the end of hash table.
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-vmscan-avoid-multiplication-overflow-in-shrink_zone.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+linux-next.patch
+eliminate-thousands-of-warnings-with-gcc-32-build.patch
+eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
+integrity-nfsd-imbalance-bug-fix.patch
+ksm-mmu_notifiers-add-set_pte_at_notify.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
 ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
-vmscan-evict-use-once-pages-first-v3.patch
+ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+mm-alloc_large_system_hash-check-order.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+getrusage-fill-ru_maxrss-value.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+prio_tree-debugging-patch.patch
+use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic-v2.patch
 
