@@ -1,24 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fbdev-fix-fillrect-for-24bpp-modes.patch removed from -mm tree
-Date: Fri, 01 May 2009 15:04:43 -0700
-Message-ID: <200905012204.n41M4iqT025415@imap1.linux-foundation.org>
+Subject: + fbdev-fix-fillrect-for-24bpp-modes.patch added to -mm tree
+Date: Fri, 01 May 2009 15:05:26 -0700
+Message-ID: <200905012205.n41M5QCt025870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753174AbZEAWGg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 18:06:36 -0400
+	by vger.kernel.org with ESMTP id S1753533AbZEAWHQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 18:07:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: spock@gentoo.org, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: spock@gentoo.org, krzysztof.h1@wp.pl
 
 
 The patch titled
      fbdev: fix fillrect for 24bpp modes
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      fbdev-fix-fillrect-for-24bpp-modes.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -41,14 +51,14 @@ This patch fixes the problem by correctly computing rotation shifts.  It
 has been tested in a 24bpp mode on 32- and 64-bit little-endian machines.
 
 Signed-off-by: Michal Januszewski <spock@gentoo.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cfbfillrect.c |   38 +++++++++++++++++-----------------
- drivers/video/fb_draw.h     |    8 +++----
- drivers/video/sysfillrect.c |   32 ++++++++++++++++------------
- 3 files changed, 41 insertions(+), 37 deletions(-)
+ drivers/video/cfbfillrect.c |   36 +++++++++++++++-------------------
+ drivers/video/fb_draw.h     |   21 ++++++++++++++++---
+ drivers/video/sysfillrect.c |   30 ++++++++++++++--------------
+ 3 files changed, 48 insertions(+), 39 deletions(-)
 
 diff -puN drivers/video/cfbfillrect.c~fbdev-fix-fillrect-for-24bpp-modes drivers/video/cfbfillrect.c
 --- a/drivers/video/cfbfillrect.c~fbdev-fix-fillrect-for-24bpp-modes
@@ -116,7 +126,13 @@ diff -puN drivers/video/cfbfillrect.c~fbdev-fix-fillrect-for-24bpp-modes drivers
  		switch (rect->rop) {
  		case ROP_XOR:
  			fill_op = bitfill_unaligned_rev;
-@@ -357,12 +352,17 @@ void cfb_fillrect(struct fb_info *p, con
+@@ -352,17 +347,18 @@ void cfb_fillrect(struct fb_info *p, con
+ 			fill_op = bitfill_unaligned;
+ 			break;
+ 		default:
+-			printk( KERN_ERR "cfb_fillrect(): unknown rop, defaulting to ROP_COPY\n");
++			printk(KERN_ERR "cfb_fillrect(): unknown rop, defaulting to ROP_COPY\n");
+ 			fill_op = bitfill_unaligned;
  			break;
  		}
  		while (height--) {
@@ -126,11 +142,7 @@ diff -puN drivers/video/cfbfillrect.c~fbdev-fix-fillrect-for-24bpp-modes drivers
 -			fill_op(p, dst, dst_idx, pat, left, right,
 +			r = dst_idx % bpp;
 +			/* rotate pattern to the correct start position */
-+#ifdef __LITTLE_ENDIAN
-+			pat2 = pat << r | pat >> (bpp-r);
-+#else
-+			pat2 = pat << (bpp-r) | pat >> r;
-+#endif
++			pat2 = le_long_to_cpu(rolx(cpu_to_le_long(pat), r, bpp));
 +			fill_op(p, dst, dst_idx, pat2, left, right,
  				width*bpp, bits);
 -			r = (p->fix.line_length*8) % bpp;
@@ -169,6 +181,24 @@ diff -puN drivers/video/fb_draw.h~fbdev-fix-fillrect-for-24bpp-modes drivers/vid
  	case 32:
  		return 0x00000001ul*pixel;
  	default:
+@@ -167,4 +167,17 @@ static inline unsigned long fb_rev_pixel
+ 
+ #endif  /* CONFIG_FB_CFB_REV_PIXELS_IN_BYTE */
+ 
++#define cpu_to_le_long _cpu_to_le_long(BITS_PER_LONG)
++#define _cpu_to_le_long(x) __cpu_to_le_long(x)
++#define __cpu_to_le_long(x) cpu_to_le##x
++
++#define le_long_to_cpu _le_long_to_cpu(BITS_PER_LONG)
++#define _le_long_to_cpu(x) __le_long_to_cpu(x)
++#define __le_long_to_cpu(x) le##x##_to_cpu
++
++static inline unsigned long rolx(unsigned long word, unsigned int shift, unsigned int x)
++{
++	return (word << shift) | (word >> (x - shift));
++}
++
+ #endif /* FB_DRAW_H */
 diff -puN drivers/video/sysfillrect.c~fbdev-fix-fillrect-for-24bpp-modes drivers/video/sysfillrect.c
 --- a/drivers/video/sysfillrect.c~fbdev-fix-fillrect-for-24bpp-modes
 +++ a/drivers/video/sysfillrect.c
@@ -215,7 +245,14 @@ diff -puN drivers/video/sysfillrect.c~fbdev-fix-fillrect-for-24bpp-modes drivers
  		switch (rect->rop) {
  		case ROP_XOR:
  			fill_op = bitfill_unaligned_rev;
-@@ -317,12 +316,17 @@ void sys_fillrect(struct fb_info *p, con
+@@ -311,18 +310,19 @@ void sys_fillrect(struct fb_info *p, con
+ 			fill_op = bitfill_unaligned;
+ 			break;
+ 		default:
+-			printk(KERN_ERR "cfb_fillrect(): unknown rop, "
++			printk(KERN_ERR "sys_fillrect(): unknown rop, "
+ 				"defaulting to ROP_COPY\n");
+ 			fill_op = bitfill_unaligned;
  			break;
  		}
  		while (height--) {
@@ -225,11 +262,7 @@ diff -puN drivers/video/sysfillrect.c~fbdev-fix-fillrect-for-24bpp-modes drivers
 -			fill_op(p, dst, dst_idx, pat, left, right,
 +			r = dst_idx % bpp;
 +			/* rotate pattern to the correct start position */
-+#ifdef __LITTLE_ENDIAN
-+			pat2 = pat << r | pat >> (bpp-r);
-+#else
-+			pat2 = pat << (bpp-r) | pat >> r;
-+#endif
++			pat2 = le_long_to_cpu(rolx(cpu_to_le_long(pat), r, bpp));
 +			fill_op(p, dst, dst_idx, pat2, left, right,
  				width*bpp, bits);
 -			r = (p->fix.line_length*8) % bpp;
