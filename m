@@ -1,84 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-selinux_bprm_committed_creds-simplify-__wake_up_parent-code-and-s-parent-real_parent.patch removed from -mm tree
-Date: Fri, 01 May 2009 13:14:12 -0700
-Message-ID: <200905012014.n41KEDT4024427@imap1.linux-foundation.org>
+Subject: [merged] do_wait-do-take-security_task_wait-into-account.patch removed from -mm tree
+Date: Fri, 01 May 2009 13:14:19 -0700
+Message-ID: <200905012014.n41KEJ1P024503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51010 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754601AbZEAUTb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:19:31 -0400
+	by vger.kernel.org with ESMTP id S1761618AbZEAUT3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2009 16:19:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, dhowells@redhat.com, eparis@parisplace.org, jmorris@namei.org, roland@redhat.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: oleg@redhat.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, eparis@parisplace.org, jmorris@namei.org, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: selinux_bprm_committed_creds: simplify __wake_up_parent() code and s/parent/real_parent/
+     do_wait: do take security_task_wait() into account
 has been removed from the -mm tree.  Its filename was
-     ptrace-selinux_bprm_committed_creds-simplify-__wake_up_parent-code-and-s-parent-real_parent.patch
+     do_wait-do-take-security_task_wait-into-account.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: selinux_bprm_committed_creds: simplify __wake_up_parent() code and s/parent/real_parent/
+Subject: do_wait: do take security_task_wait() into account
 From: Oleg Nesterov <oleg@redhat.com>
 
-selinux_bprm_committed_creds() should wake up ->real_parent, not ->parent.
+I was never able to understand what should we actually do when
+security_task_wait() fails, but the current code doesn't look right.
 
-We shouldn't worry about the tracer if current is ptraced, exec() must not
-succeed if the tracer has no rights to trace this task after cred
-changing.  But we should notify ->real_parent which is, well, real parent.
+If ->task_wait() returns the error, we update *notask_error correctly. 
+But then we either reap the child (despite the fact this was forbidden) or
+clear *notask_error (and hide the securiy policy problems).
 
-Also, we don't need _irq to take tasklist, and we don't need parent's
-->siglock to wake_up_interruptible(real_parent->signal->wait_chldexit). 
-Since we hold tasklist, real_parent->signal must be stable.  Otherwise
-spin_lock(siglock) is not safe too and can't help anyway.
+This patch assumes that "stolen by ptrace" doesn't matter.  If selinux
+denies the child we should ignore it but make sure we report -EACCESS
+instead of -ECHLD if there are no other eligible children.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Eric Paris <eparis@parisplace.org>
 Cc: James Morris <jmorris@namei.org>
 Cc: Roland McGrath <roland@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ kernel/exit.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN security/selinux/hooks.c~ptrace-selinux_bprm_committed_creds-simplify-__wake_up_parent-code-and-s-parent-real_parent security/selinux/hooks.c
---- a/security/selinux/hooks.c~ptrace-selinux_bprm_committed_creds-simplify-__wake_up_parent-code-and-s-parent-real_parent
-+++ a/security/selinux/hooks.c
-@@ -2375,10 +2375,8 @@ static void selinux_bprm_committed_creds
- {
- 	const struct task_security_struct *tsec = current_security();
- 	struct itimerval itimer;
--	struct sighand_struct *psig;
- 	u32 osid, sid;
- 	int rc, i;
--	unsigned long flags;
+diff -puN kernel/exit.c~do_wait-do-take-security_task_wait-into-account kernel/exit.c
+--- a/kernel/exit.c~do_wait-do-take-security_task_wait-into-account
++++ a/kernel/exit.c
+@@ -1482,6 +1482,7 @@ static int wait_consider_task(struct tas
+ 		 */
+ 		if (*notask_error)
+ 			*notask_error = ret;
++		return 0;
+ 	}
  
- 	osid = tsec->osid;
- 	sid = tsec->sid;
-@@ -2408,12 +2406,9 @@ static void selinux_bprm_committed_creds
- 
- 	/* Wake up the parent if it is waiting so that it can recheck
- 	 * wait permission to the new task SID. */
--	read_lock_irq(&tasklist_lock);
--	psig = current->parent->sighand;
--	spin_lock_irqsave(&psig->siglock, flags);
--	wake_up_interruptible(&current->parent->signal->wait_chldexit);
--	spin_unlock_irqrestore(&psig->siglock, flags);
--	read_unlock_irq(&tasklist_lock);
-+	read_lock(&tasklist_lock);
-+	wake_up_interruptible(&current->real_parent->signal->wait_chldexit);
-+	read_unlock(&tasklist_lock);
- }
- 
- /* superblock security operations */
+ 	if (likely(!ptrace) && unlikely(task_ptrace(p))) {
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
