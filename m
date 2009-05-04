@@ -1,68 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vgacon-return-the-upper-half-of-512-character-fonts.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:13:13 -0700
-Message-ID: <200905042013.n44KDD3V022390@imap1.linux-foundation.org>
+Subject: [merged] atomic-fix-atomic_long_cmpxchg-xchg-for-64-bit-architectures.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:12:38 -0700
+Message-ID: <200905042012.n44KCc72021984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36874 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753399AbZEDUPl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:15:41 -0400
+	by vger.kernel.org with ESMTP id S1751041AbZEDUP6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:15:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefan.bader@canonical.com, ubuntuLp-ugeuder@sneakemail.com, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, mathieu.desnoyers@polymtl.ca, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vgacon: return the upper half of 512 character fonts
+     atomic: fix atomic_long_cmpxchg/xchg for 64 bit architectures
 has been removed from the -mm tree.  Its filename was
-     vgacon-return-the-upper-half-of-512-character-fonts.patch
+     atomic-fix-atomic_long_cmpxchg-xchg-for-64-bit-architectures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vgacon: return the upper half of 512 character fonts
-From: Stefan Bader <stefan.bader@canonical.com>
+Subject: atomic: fix atomic_long_cmpxchg/xchg for 64 bit architectures
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-Uwe Geuder noted that he gets random bitmaps on a text console if he tried
-to type extended characters (like the e acute).  For him everything above
-unicode 0xa0 was corrupted.
+On a linux-next allyesconfig build:
 
-After some digging there seems to be a little culprit in vgacon since the
-beginning of ages (well git).  The function vgacon_font_get will store the
-number of characters correctly in font->charcount but then calls to
-vgacon_do_font_op(..., 0, 0).  Which means only the lower 256 characters
-are actually stored to the fontdata.  The rest is left untouched.  So the
-next time that saved data is used, the garbled font appears.  This happens
-on every switch between text consoles.
+kernel/trace/ring_buffer.c:1726:
+	warning: passing argument 1 of 'atomic_cmpxchg' from incompatible pointer type
+linux-next/arch/s390/include/asm/atomic.h:112:
+	note: expected 'struct atomic_t *' but argument is of type 'struct atomic64_t *'
 
-Addresses https://bugs.launchpad.net/ubuntu/+source/linux/+bug/355057
+atomic_long_cmpxchg and atomic_long_xchg are incorrectly defined for 64
+bit architectures.  They should be mapped to the atomic64_* variants.
 
-Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
-Tested-by: Uwe Geuder <ubuntuLp-ugeuder@sneakemail.com>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/vgacon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/atomic.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/console/vgacon.c~vgacon-return-the-upper-half-of-512-character-fonts drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~vgacon-return-the-upper-half-of-512-character-fonts
-+++ a/drivers/video/console/vgacon.c
-@@ -1282,7 +1282,7 @@ static int vgacon_font_get(struct vc_dat
- 	font->charcount = vga_512_chars ? 512 : 256;
- 	if (!font->data)
- 		return 0;
--	return vgacon_do_font_op(&state, font->data, 0, 0);
-+	return vgacon_do_font_op(&state, font->data, 0, vga_512_chars);
- }
+diff -puN include/asm-generic/atomic.h~atomic-fix-atomic_long_cmpxchg-xchg-for-64-bit-architectures include/asm-generic/atomic.h
+--- a/include/asm-generic/atomic.h~atomic-fix-atomic_long_cmpxchg-xchg-for-64-bit-architectures
++++ a/include/asm-generic/atomic.h
+@@ -132,9 +132,9 @@ static inline long atomic_long_add_unles
+ #define atomic_long_inc_not_zero(l) atomic64_inc_not_zero((atomic64_t *)(l))
  
- #else
+ #define atomic_long_cmpxchg(l, old, new) \
+-	(atomic_cmpxchg((atomic64_t *)(l), (old), (new)))
++	(atomic64_cmpxchg((atomic64_t *)(l), (old), (new)))
+ #define atomic_long_xchg(v, new) \
+-	(atomic_xchg((atomic64_t *)(l), (new)))
++	(atomic64_xchg((atomic64_t *)(l), (new)))
+ 
+ #else  /*  BITS_PER_LONG == 64  */
+ 
 _
 
-Patches currently in -mm which might be from stefan.bader@canonical.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
+linux-next.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
 
