@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-put_cpu_no_resched.patch added to -mm tree
-Date: Mon, 04 May 2009 15:55:31 -0700
-Message-ID: <200905042255.n44MtVjk025987@imap1.linux-foundation.org>
+Subject: + isdn-get_free_devid-failure-ignored.patch added to -mm tree
+Date: Mon, 04 May 2009 15:58:12 -0700
+Message-ID: <200905042258.n44MwCPr027658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48023 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751491AbZEDW73 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 18:59:29 -0400
+	by vger.kernel.org with ESMTP id S1751515AbZEDW74 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 18:59:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, Trond.Myklebust@netapp.com, bfields@fieldses.org, mingo@elte.hu, tony.luck@intel.com
+Cc: roel.kluin@gmail.com, Karsten-Keil@t-online.de
 
 
 The patch titled
-     remove put_cpu_no_resched()
+     isdn: get_free_devid() failure ignored
 has been added to the -mm tree.  Its filename is
-     remove-put_cpu_no_resched.patch
+     isdn-get_free_devid-failure-ignored.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove put_cpu_no_resched()
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: isdn: get_free_devid() failure ignored
+From: Roel Kluin <roel.kluin@gmail.com>
 
-put_cpu_no_resched() is an optimization of put_cpu() which unfortunately
-can cause high latencies.
+dev->id is unsigned so a get_free_devid() error is ignored.
 
-The nfs iostats code uses put_cpu_no_resched() in a code sequence where a
-reschedule request caused by an interrupt between the get_cpu() and the
-put_cpu_no_resched() can delay the reschedule for at least HZ.
-
-The other users of put_cpu_no_resched() optimize correctly in interrupt
-code, but there is no real harm in using the put_cpu() function which is
-an alias for preempt_enable().  The extra check of the preemmpt count is
-not as critical as the potential source of missing a reschedule.
-
-Debugged in the preempt-rt tree and verified in mainline.
-
-Impact: remove a high latency source
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Karsten Keil <Karsten-Keil@t-online.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |    2 +-
- fs/nfs/iostat.h            |    4 ++--
- include/linux/smp.h        |    1 -
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/isdn/mISDN/core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~remove-put_cpu_no_resched arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~remove-put_cpu_no_resched
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -5595,7 +5595,7 @@ pfm_interrupt_handler(int irq, void *arg
- 		(*pfm_alt_intr_handler->handler)(irq, arg, regs);
- 	}
- 
--	put_cpu_no_resched();
-+	put_cpu();
- 	return IRQ_HANDLED;
+diff -puN drivers/isdn/mISDN/core.c~isdn-get_free_devid-failure-ignored drivers/isdn/mISDN/core.c
+--- a/drivers/isdn/mISDN/core.c~isdn-get_free_devid-failure-ignored
++++ a/drivers/isdn/mISDN/core.c
+@@ -214,7 +214,7 @@ get_free_devid(void)
+ 		if (!test_and_set_bit(i, (u_long *)&device_ids))
+ 			break;
+ 	if (i > MAX_DEVICE_ID)
+-		return -1;
++		return -EBUSY;
+ 	return i;
  }
  
-diff -puN fs/nfs/iostat.h~remove-put_cpu_no_resched fs/nfs/iostat.h
---- a/fs/nfs/iostat.h~remove-put_cpu_no_resched
-+++ a/fs/nfs/iostat.h
-@@ -31,7 +31,7 @@ static inline void nfs_inc_server_stats(
- 	cpu = get_cpu();
- 	iostats = per_cpu_ptr(server->io_stats, cpu);
- 	iostats->events[stat]++;
--	put_cpu_no_resched();
-+	put_cpu();
- }
+@@ -224,10 +224,10 @@ mISDN_register_device(struct mISDNdevice
+ {
+ 	int	err;
  
- static inline void nfs_inc_stats(const struct inode *inode,
-@@ -50,7 +50,7 @@ static inline void nfs_add_server_stats(
- 	cpu = get_cpu();
- 	iostats = per_cpu_ptr(server->io_stats, cpu);
- 	iostats->bytes[stat] += addend;
--	put_cpu_no_resched();
-+	put_cpu();
- }
+-	dev->id = get_free_devid();
+-	err = -EBUSY;
+-	if (dev->id < 0)
++	err = get_free_devid();
++	if (err < 0)
+ 		goto error1;
++	dev->id = err;
  
- static inline void nfs_add_stats(const struct inode *inode,
-diff -puN include/linux/smp.h~remove-put_cpu_no_resched include/linux/smp.h
---- a/include/linux/smp.h~remove-put_cpu_no_resched
-+++ a/include/linux/smp.h
-@@ -177,7 +177,6 @@ static inline void init_call_single_data
- 
- #define get_cpu()		({ preempt_disable(); smp_processor_id(); })
- #define put_cpu()		preempt_enable()
--#define put_cpu_no_resched()	preempt_enable_no_resched()
- 
- /*
-  * Callback to arch code if there's nosmp or maxcpus=0 on the
+ 	device_initialize(&dev->dev);
+ 	if (name && name[0])
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-x86-simplify-highmem-related-kconfig-entries.patch
-x86-enable-gart-iommu-only-after-setting-up-protection-methods.patch
-avr32-remove-obsolete-hw_interrupt_type.patch
-kernel-time-tick-broadcastc-tick_broadcast_device-can-become-static.patch
-timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred.patch
-time-move-calc_load-call-out-from-xtime_lock-protection.patch
-time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
-clockevent-export-register_device-and-delta2ns.patch
-clocksource-sanity-check-sysfs-clocksource-changes.patch
-ia64-remove-obsolete-no_irq_type.patch
-ia64-remove-obsolete-irq_desc_t-typedef.patch
-ia64-remove-obsolete-hw_interrupt_type.patch
-drivers-mfd-remove-obsolete-irq_desc_t-typedef.patch
-parisc-remove-obsolete-hw_interrupt_type.patch
-revert-genirq-assert-that-irq-handlers-are-indeed-running-in-hardirq-context.patch
-alpha-remove-obsolete-hw_interrupt_type.patch
-m32r-remove-obsolete-hw_interrupt_type.patch
-um-remove-obsolete-hw_interrupt_type.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-remove-put_cpu_no_resched.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
+i2c-pxac-timeouts-off-by-1.patch
+drm-fix-lock_test_with_return-macro.patch
+v4l-dvb-cimax2c-fix-typo.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+uwb-event_size-should-be-signed.patch
+isdn-get_free_devid-failure-ignored.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+spi_bfin5xx-limit-reaches-1.patch
+ufs-sector_t-cannot-be-negative.patch
 
