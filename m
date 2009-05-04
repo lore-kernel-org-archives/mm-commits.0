@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-ses-check-name-in-enclosure_component_register-v2.patch added to -mm tree
-Date: Mon, 04 May 2009 14:09:09 -0700
-Message-ID: <200905042109.n44L99J0024793@imap1.linux-foundation.org>
+Subject: + clockevent-export-register_device-and-delta2ns.patch added to -mm tree
+Date: Mon, 04 May 2009 14:24:06 -0700
+Message-ID: <200905042124.n44LO6gu001609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751866AbZEDVMq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 17:12:46 -0400
+	by vger.kernel.org with ESMTP id S1751515AbZEDV2J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 17:28:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, James.Bottomley@HansenPartnership.com
+Cc: damm@igel.co.jp, johnstul@us.ibm.com, lethal@linux-sh.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     scsi: ses check name in enclosure_component_register()
+     clockevent: export register_device and delta2ns
 has been added to the -mm tree.  Its filename is
-     scsi-ses-check-name-in-enclosure_component_register-v2.patch
+     clockevent-export-register_device-and-delta2ns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: ses check name in enclosure_component_register()
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: clockevent: export register_device and delta2ns
+From: Magnus Damm <damm@igel.co.jp>
 
-dev_set_name will use sprintf to copy the name.  need to check if the name
-does valid.
+Export the following symbols using EXPORT_SYMBOL_GPL:
+ - clockevent_delta2ns
+ - clockevents_register_device
 
-Otherwise the code will error from device_add() later.
+This allows us to build SuperH clockevent and clocksource drivers as
+modules, see drivers/clocksource/sh_*.c
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/enclosure.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/time/clockevents.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/misc/enclosure.c~scsi-ses-check-name-in-enclosure_component_register-v2 drivers/misc/enclosure.c
---- a/drivers/misc/enclosure.c~scsi-ses-check-name-in-enclosure_component_register-v2
-+++ a/drivers/misc/enclosure.c
-@@ -119,7 +119,7 @@ enclosure_register(struct device *dev, c
- 	edev->edev.class = &enclosure_class;
- 	edev->edev.parent = get_device(dev);
- 	edev->cb = cb;
--	dev_set_name(&edev->edev, name);
-+	dev_set_name(&edev->edev, "%s", name);
- 	err = device_register(&edev->edev);
- 	if (err)
- 		goto err;
-@@ -255,8 +255,8 @@ enclosure_component_register(struct encl
- 	ecomp->number = number;
- 	cdev = &ecomp->cdev;
- 	cdev->parent = get_device(&edev->edev);
--	if (name)
--		dev_set_name(cdev, name);
-+	if (name && name[0])
-+		dev_set_name(cdev, "%s", name);
- 	else
- 		dev_set_name(cdev, "%u", number);
+diff -puN kernel/time/clockevents.c~clockevent-export-register_device-and-delta2ns kernel/time/clockevents.c
+--- a/kernel/time/clockevents.c~clockevent-export-register_device-and-delta2ns
++++ a/kernel/time/clockevents.c
+@@ -54,6 +54,7 @@ unsigned long clockevent_delta2ns(unsign
  
+ 	return (unsigned long) clc;
+ }
++EXPORT_SYMBOL_GPL(clockevent_delta2ns);
+ 
+ /**
+  * clockevents_set_mode - set the operating mode of a clock event device
+@@ -187,6 +188,7 @@ void clockevents_register_device(struct 
+ 
+ 	spin_unlock(&clockevents_lock);
+ }
++EXPORT_SYMBOL_GPL(clockevents_register_device);
+ 
+ /*
+  * Noop handler when we shut down an event device
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from damm@igel.co.jp are
 
 linux-next.patch
-arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
-scsi-ses-check-name-in-enclosure_component_register-v2.patch
+clockevent-export-register_device-and-delta2ns.patch
 
