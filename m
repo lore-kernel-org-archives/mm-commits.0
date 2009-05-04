@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nsproxy-extract-create_nsproxy.patch added to -mm tree
-Date: Mon, 04 May 2009 16:43:21 -0700
-Message-ID: <200905042343.n44NhL3l023294@imap1.linux-foundation.org>
+Subject: + dcache-extrace-and-use-d_unlinked.patch added to -mm tree
+Date: Mon, 04 May 2009 16:44:18 -0700
+Message-ID: <200905042344.n44NiIo8023863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752515AbZEDXqQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:46:16 -0400
+	by vger.kernel.org with ESMTP id S1751283AbZEDXqr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:46:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, ebiederm@xmission.com, serue@us.ibm.com, xemul@openvz.org
+Cc: adobriyan@gmail.com, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     nsproxy: extract create_nsproxy()
+     dcache: extrace and use d_unlinked()
 has been added to the -mm tree.  Its filename is
-     nsproxy-extract-create_nsproxy.patch
+     dcache-extrace-and-use-d_unlinked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nsproxy: extract create_nsproxy()
+Subject: dcache: extrace and use d_unlinked()
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
-clone_nsproxy() does useless copying of old nsproxy -- every pointer will
-be rewritten to new ns or to old ns.  Remove copying, rename
-clone_nsproxy(), create_nsproxy() will be used by C/R code to create fresh
-nsproxy on restart.
+d_unlinked() will be used in middle-term to ban checkpointing when opened
+but unlinked file is detected, and in long term, to detect such situation
+and special case on it.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/nsproxy.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ fs/dcache.c            |    7 +++----
+ fs/namespace.c         |    8 ++++----
+ include/linux/dcache.h |    5 +++++
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN kernel/nsproxy.c~nsproxy-extract-create_nsproxy kernel/nsproxy.c
---- a/kernel/nsproxy.c~nsproxy-extract-create_nsproxy
-+++ a/kernel/nsproxy.c
-@@ -26,19 +26,14 @@ static struct kmem_cache *nsproxy_cachep
+diff -puN fs/dcache.c~dcache-extrace-and-use-d_unlinked fs/dcache.c
+--- a/fs/dcache.c~dcache-extrace-and-use-d_unlinked
++++ a/fs/dcache.c
+@@ -1910,7 +1910,7 @@ char *__d_path(const struct path *path, 
  
- struct nsproxy init_nsproxy = INIT_NSPROXY(init_nsproxy);
+ 	spin_lock(&vfsmount_lock);
+ 	prepend(&end, &buflen, "\0", 1);
+-	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
++	if (d_unlinked(dentry) &&
+ 		(prepend(&end, &buflen, " (deleted)", 10) != 0))
+ 			goto Elong;
  
--/*
-- * creates a copy of "orig" with refcount 1.
-- */
--static inline struct nsproxy *clone_nsproxy(struct nsproxy *orig)
-+static inline struct nsproxy *create_nsproxy(void)
- {
--	struct nsproxy *ns;
-+	struct nsproxy *nsproxy;
+@@ -2035,7 +2035,7 @@ char *dentry_path(struct dentry *dentry,
  
--	ns = kmem_cache_alloc(nsproxy_cachep, GFP_KERNEL);
--	if (ns) {
--		memcpy(ns, orig, sizeof(struct nsproxy));
--		atomic_set(&ns->count, 1);
--	}
--	return ns;
-+	nsproxy = kmem_cache_alloc(nsproxy_cachep, GFP_KERNEL);
-+	if (nsproxy)
-+		atomic_set(&nsproxy->count, 1);
-+	return nsproxy;
+ 	spin_lock(&dcache_lock);
+ 	prepend(&end, &buflen, "\0", 1);
+-	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
++	if (d_unlinked(dentry) &&
+ 		(prepend(&end, &buflen, "//deleted", 9) != 0))
+ 			goto Elong;
+ 	if (buflen < 1)
+@@ -2097,9 +2097,8 @@ SYSCALL_DEFINE2(getcwd, char __user *, b
+ 	read_unlock(&current->fs->lock);
+ 
+ 	error = -ENOENT;
+-	/* Has the current directory has been unlinked? */
+ 	spin_lock(&dcache_lock);
+-	if (IS_ROOT(pwd.dentry) || !d_unhashed(pwd.dentry)) {
++	if (!d_unlinked(pwd.dentry)) {
+ 		unsigned long len;
+ 		struct path tmp = root;
+ 		char * cwd;
+diff -puN fs/namespace.c~dcache-extrace-and-use-d_unlinked fs/namespace.c
+--- a/fs/namespace.c~dcache-extrace-and-use-d_unlinked
++++ a/fs/namespace.c
+@@ -1415,7 +1415,7 @@ static int graft_tree(struct vfsmount *m
+ 		goto out_unlock;
+ 
+ 	err = -ENOENT;
+-	if (IS_ROOT(path->dentry) || !d_unhashed(path->dentry))
++	if (!d_unlinked(path->dentry))
+ 		err = attach_recursive_mnt(mnt, path, NULL);
+ out_unlock:
+ 	mutex_unlock(&path->dentry->d_inode->i_mutex);
+@@ -1597,7 +1597,7 @@ static int do_move_mount(struct path *pa
+ 	if (IS_DEADDIR(path->dentry->d_inode))
+ 		goto out1;
+ 
+-	if (!IS_ROOT(path->dentry) && d_unhashed(path->dentry))
++	if (d_unlinked(path->dentry))
+ 		goto out1;
+ 
+ 	err = -EINVAL;
+@@ -2160,9 +2160,9 @@ SYSCALL_DEFINE2(pivot_root, const char _
+ 	error = -ENOENT;
+ 	if (IS_DEADDIR(new.dentry->d_inode))
+ 		goto out2;
+-	if (d_unhashed(new.dentry) && !IS_ROOT(new.dentry))
++	if (d_unlinked(new.dentry))
+ 		goto out2;
+-	if (d_unhashed(old.dentry) && !IS_ROOT(old.dentry))
++	if (d_unlinked(old.dentry))
+ 		goto out2;
+ 	error = -EBUSY;
+ 	if (new.mnt == root.mnt ||
+diff -puN include/linux/dcache.h~dcache-extrace-and-use-d_unlinked include/linux/dcache.h
+--- a/include/linux/dcache.h~dcache-extrace-and-use-d_unlinked
++++ a/include/linux/dcache.h
+@@ -351,6 +351,11 @@ static inline int d_unhashed(struct dent
+ 	return (dentry->d_flags & DCACHE_UNHASHED);
  }
  
- /*
-@@ -52,7 +47,7 @@ static struct nsproxy *create_new_namesp
- 	struct nsproxy *new_nsp;
- 	int err;
- 
--	new_nsp = clone_nsproxy(tsk->nsproxy);
-+	new_nsp = create_nsproxy();
- 	if (!new_nsp)
- 		return ERR_PTR(-ENOMEM);
- 
++static inline int d_unlinked(struct dentry *dentry)
++{
++	return d_unhashed(dentry) && !IS_ROOT(dentry);
++}
++
+ static inline struct dentry *dget_parent(struct dentry *dentry)
+ {
+ 	struct dentry *ret;
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 fs-remove-sparse-errors-in-proc_devtreec.patch
+dcache-extrace-and-use-d_unlinked.patch
 procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
 mm-consolidate-init_mm-definition.patch
 mm-consolidate-init_mm-definition-fix.patch
