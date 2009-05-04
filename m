@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch added to -mm tree
-Date: Mon, 04 May 2009 16:37:55 -0700
-Message-ID: <200905042337.n44NbtmZ019866@imap1.linux-foundation.org>
+Subject: + utsns-extract-creeate_uts_ns.patch added to -mm tree
+Date: Mon, 04 May 2009 16:39:25 -0700
+Message-ID: <200905042339.n44NdPQI020804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754328AbZEDXkD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:40:03 -0400
+	by vger.kernel.org with ESMTP id S1754328AbZEDXl1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:41:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, roland@redhat.com
+Cc: adobriyan@gmail.com, serue@us.ibm.com
 
 
 The patch titled
-     allow_signal: kill the bogus ->mm check, add a note about CLONE_SIGHAND
+     utsns: extract creeate_uts_ns()
 has been added to the -mm tree.  Its filename is
-     allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
+     utsns-extract-creeate_uts_ns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: allow_signal: kill the bogus ->mm check, add a note about CLONE_SIGHAND
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: utsns: extract creeate_uts_ns()
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-allow_signal() checks ->mm == NULL.  Not sure why.  Perhaps to make sure
-current is the kernel thread.  But this helper must not be used unless we
-are the kernel thread, kill this check.
+create_uts_ns() will be used by C/R to create fresh uts_ns.
 
-Also, document the fact that the CLONE_SIGHAND kthread must not use
-allow_signal(), unless the caller really wants to change the parent's
-->sighand->action as well.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ kernel/utsname.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand kernel/exit.c
---- a/kernel/exit.c~allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand
-+++ a/kernel/exit.c
-@@ -370,9 +370,8 @@ static void set_special_pids(struct pid 
+diff -puN kernel/utsname.c~utsns-extract-creeate_uts_ns kernel/utsname.c
+--- a/kernel/utsname.c~utsns-extract-creeate_uts_ns
++++ a/kernel/utsname.c
+@@ -15,6 +15,16 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ 
++static struct uts_namespace *create_uts_ns(void)
++{
++	struct uts_namespace *uts_ns;
++
++	uts_ns = kmalloc(sizeof(struct uts_namespace), GFP_KERNEL);
++	if (uts_ns)
++		kref_init(&uts_ns->kref);
++	return uts_ns;
++}
++
+ /*
+  * Clone a new ns copying an original utsname, setting refcount to 1
+  * @old_ns: namespace to clone
+@@ -24,14 +34,13 @@ static struct uts_namespace *clone_uts_n
+ {
+ 	struct uts_namespace *ns;
+ 
+-	ns = kmalloc(sizeof(struct uts_namespace), GFP_KERNEL);
++	ns = create_uts_ns();
+ 	if (!ns)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	down_read(&uts_sem);
+ 	memcpy(&ns->name, &old_ns->name, sizeof(ns->name));
+ 	up_read(&uts_sem);
+-	kref_init(&ns->kref);
+ 	return ns;
  }
  
- /*
-- * Let kernel threads use this to say that they
-- * allow a certain signal (since daemonize() will
-- * have disabled all of them by default).
-+ * Let kernel threads use this to say that they allow a certain signal.
-+ * Must not be used if kthread was cloned with CLONE_SIGHAND.
-  */
- int allow_signal(int sig)
- {
-@@ -380,14 +379,14 @@ int allow_signal(int sig)
- 		return -EINVAL;
- 
- 	spin_lock_irq(&current->sighand->siglock);
-+	/* This is only needed for daemonize()'ed kthreads */
- 	sigdelset(&current->blocked, sig);
--	if (!current->mm) {
--		/* Kernel threads handle their own signals.
--		   Let the signal code know it'll be handled, so
--		   that they don't get converted to SIGKILL or
--		   just silently dropped */
--		current->sighand->action[(sig)-1].sa.sa_handler = (void __user *)2;
--	}
-+	/*
-+	 * Kernel threads handle their own signals. Let the signal code
-+	 * know it'll be handled, so that they don't get converted to
-+	 * SIGKILL or just silently dropped.
-+	 */
-+	current->sighand->action[(sig)-1].sa.sa_handler = (void __user *)2;
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
- 	return 0;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-linux-next.patch
-rcu_sched_grace_period-kill-the-bogus-flush_signals.patch
-drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal.patch
-slow_work_thread-should-do-the-exclusive-wait.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
-ptrace-remove-pt_dtrace-from-arch-h8300.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
-ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
-ptrace-remove-pt_dtrace-from-arch-m32r.patch
-ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
-ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
-copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
-elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core-kill-exclude_xtrace-logic.patch
+fs-remove-sparse-errors-in-proc_devtreec.patch
+procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+mm-consolidate-init_mm-definition.patch
+mm-consolidate-init_mm-definition-fix.patch
+pagemap-document-clarifications.patch
+pagemap-documentation-9-more-exported-page-flags.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+utsns-extract-creeate_uts_ns.patch
+ipcns-1-2-remove-useless-get-put-while-clone_newipc.patch
+ipcns-2-2-extract-create_ipc_ns.patch
+pidns-1-2-make-create_pid_namespace-accept-parent-pidns.patch
+pidns-2-2-rewrite-copy_pid_ns.patch
 
