@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-get_free_devid-failure-ignored.patch added to -mm tree
-Date: Mon, 04 May 2009 15:58:12 -0700
-Message-ID: <200905042258.n44MwCPr027658@imap1.linux-foundation.org>
+Subject: + wis-sony-tunerc-typo.patch added to -mm tree
+Date: Mon, 04 May 2009 15:59:14 -0700
+Message-ID: <200905042259.n44MxEBQ028291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751515AbZEDW74 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 18:59:56 -0400
+	by vger.kernel.org with ESMTP id S1753248AbZEDXAt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:00:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, Karsten-Keil@t-online.de
+Cc: roel.kluin@gmail.com, greg@kroah.com
 
 
 The patch titled
-     isdn: get_free_devid() failure ignored
+     wis-sony-tuner.c: &&/|| typo?
 has been added to the -mm tree.  Its filename is
-     isdn-get_free_devid-failure-ignored.patch
+     wis-sony-tunerc-typo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: get_free_devid() failure ignored
+Subject: wis-sony-tuner.c: &&/|| typo?
 From: Roel Kluin <roel.kluin@gmail.com>
 
-dev->id is unsigned so a get_free_devid() error is ignored.
+Fix &&/|| typo
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Karsten Keil <Karsten-Keil@t-online.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/mISDN/core.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/staging/go7007/wis-sony-tuner.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/mISDN/core.c~isdn-get_free_devid-failure-ignored drivers/isdn/mISDN/core.c
---- a/drivers/isdn/mISDN/core.c~isdn-get_free_devid-failure-ignored
-+++ a/drivers/isdn/mISDN/core.c
-@@ -214,7 +214,7 @@ get_free_devid(void)
- 		if (!test_and_set_bit(i, (u_long *)&device_ids))
- 			break;
- 	if (i > MAX_DEVICE_ID)
--		return -1;
-+		return -EBUSY;
- 	return i;
- }
+diff -puN drivers/staging/go7007/wis-sony-tuner.c~wis-sony-tunerc-typo drivers/staging/go7007/wis-sony-tuner.c
+--- a/drivers/staging/go7007/wis-sony-tuner.c~wis-sony-tunerc-typo
++++ a/drivers/staging/go7007/wis-sony-tuner.c
+@@ -370,7 +370,7 @@ static int set_if(struct i2c_client *cli
+ 	i2c_transfer(client->adapter, &msg, 1);
  
-@@ -224,10 +224,10 @@ mISDN_register_device(struct mISDNdevice
- {
- 	int	err;
- 
--	dev->id = get_free_devid();
--	err = -EBUSY;
--	if (dev->id < 0)
-+	err = get_free_devid();
-+	if (err < 0)
- 		goto error1;
-+	dev->id = err;
- 
- 	device_initialize(&dev->dev);
- 	if (name && name[0])
+ 	/* Select MPX mode if not forced by the user */
+-	if (force_mpx_mode >= 0 || force_mpx_mode < MPX_NUM_MODES)
++	if (force_mpx_mode >= 0 && force_mpx_mode < MPX_NUM_MODES)
+ 		t->mpxmode = force_mpx_mode;
+ 	else
+ 		t->mpxmode = default_mpx_mode;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -92,4 +78,5 @@ m68k-count-can-reach-51-not-50.patch
 serial-z85c30-bcm1480-loops-reach-1.patch
 spi_bfin5xx-limit-reaches-1.patch
 ufs-sector_t-cannot-be-negative.patch
+wis-sony-tunerc-typo.patch
 
