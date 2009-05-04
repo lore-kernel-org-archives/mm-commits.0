@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-make-create_pid_namespace-accept-parent-pidns.patch added to -mm tree
-Date: Mon, 04 May 2009 16:41:57 -0700
-Message-ID: <200905042341.n44Nfveq022397@imap1.linux-foundation.org>
+Subject: + pidns-rewrite-copy_pid_ns.patch added to -mm tree
+Date: Mon, 04 May 2009 16:42:05 -0700
+Message-ID: <200905042342.n44Ng5xE022502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44138 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752515AbZEDXor (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:44:47 -0400
+	by vger.kernel.org with ESMTP id S1751283AbZEDXpE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:45:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adobriyan@gmail.com, ebiederm@xmission.com, serue@us.ibm.com, xemul@openvz.o
 
 
 The patch titled
-     pidns: make create_pid_namespace() accept parent pidns
+     pidns: rewrite copy_pid_ns()
 has been added to the -mm tree.  Its filename is
-     pidns-make-create_pid_namespace-accept-parent-pidns.patch
+     pidns-rewrite-copy_pid_ns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pidns: make create_pid_namespace() accept parent pidns
+Subject: pidns: rewrite copy_pid_ns()
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
-create_pid_namespace() creates everything, but caller has to assign parent
-pidns by hand, which is unnatural.  At the moment of call new ->level has
-to be taken from somewhere and parent pidns is already available.
+copy_pid_ns() is a perfect example of a case where unwinding leads to more
+code and makes it less clear.  Watch the diffstat.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
@@ -47,43 +46,39 @@ Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/pid_namespace.c |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
-diff -puN kernel/pid_namespace.c~pidns-make-create_pid_namespace-accept-parent-pidns kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-make-create_pid_namespace-accept-parent-pidns
+diff -puN kernel/pid_namespace.c~pidns-rewrite-copy_pid_ns kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-rewrite-copy_pid_ns
 +++ a/kernel/pid_namespace.c
-@@ -67,9 +67,10 @@ err_alloc:
- 	return NULL;
+@@ -116,23 +116,11 @@ static void destroy_pid_namespace(struct
+ 
+ struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *old_ns)
+ {
+-	struct pid_namespace *new_ns;
+-
+-	BUG_ON(!old_ns);
+-	new_ns = get_pid_ns(old_ns);
+ 	if (!(flags & CLONE_NEWPID))
+-		goto out;
+-
+-	new_ns = ERR_PTR(-EINVAL);
++		return get_pid_ns(old_ns);
+ 	if (flags & CLONE_THREAD)
+-		goto out_put;
+-
+-	new_ns = create_pid_namespace(old_ns);
+-
+-out_put:
+-	put_pid_ns(old_ns);
+-out:
+-	return new_ns;
++		return ERR_PTR(-EINVAL);
++	return create_pid_namespace(old_ns);
  }
  
--static struct pid_namespace *create_pid_namespace(unsigned int level)
-+static struct pid_namespace *create_pid_namespace(struct pid_namespace *parent_pid_ns)
- {
- 	struct pid_namespace *ns;
-+	unsigned int level = parent_pid_ns->level + 1;
- 	int i;
- 
- 	ns = kmem_cache_zalloc(pid_ns_cachep, GFP_KERNEL);
-@@ -86,6 +87,7 @@ static struct pid_namespace *create_pid_
- 
- 	kref_init(&ns->kref);
- 	ns->level = level;
-+	ns->parent = get_pid_ns(parent_pid_ns);
- 
- 	set_bit(0, ns->pidmap[0].page);
- 	atomic_set(&ns->pidmap[0].nr_free, BITS_PER_PAGE - 1);
-@@ -125,9 +127,7 @@ struct pid_namespace *copy_pid_ns(unsign
- 	if (flags & CLONE_THREAD)
- 		goto out_put;
- 
--	new_ns = create_pid_namespace(old_ns->level + 1);
--	if (!IS_ERR(new_ns))
--		new_ns->parent = get_pid_ns(old_ns);
-+	new_ns = create_pid_namespace(old_ns);
- 
- out_put:
- 	put_pid_ns(old_ns);
+ void free_pid_ns(struct kref *kref)
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
@@ -102,7 +97,7 @@ softirq-introduce-statistics-for-softirq.patch
 proc-export-statistics-for-softirq-to-proc.patch
 proc-update-document-for-proc-softirqs-and-proc-stat.patch
 pidns-make-create_pid_namespace-accept-parent-pidns.patch
-pidns-2-2-rewrite-copy_pid_ns.patch
+pidns-rewrite-copy_pid_ns.patch
 utsns-extract-creeate_uts_ns.patch
 ipcns-remove-useless-get-put-while-clone_newipc.patch
 ipcns-extract-create_ipc_ns.patch
