@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-remove-obsolete-hw_interrupt_type.patch added to -mm tree
-Date: Mon, 04 May 2009 15:05:49 -0700
-Message-ID: <200905042205.n44M5oba027591@imap1.linux-foundation.org>
+Subject: + drivers-mfd-remove-obsolete-irq_desc_t-typedef.patch added to -mm tree
+Date: Mon, 04 May 2009 15:05:44 -0700
+Message-ID: <200905042205.n44M5kQ9027501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35344 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757302AbZEDWIY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 18:08:24 -0400
+	by vger.kernel.org with ESMTP id S1754021AbZEDWIn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 18:08:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, skinnemoen@atmel.com
+Cc: tglx@linutronix.de, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     avr32: remove obsolete hw_interrupt_type
+     drivers/mfd: remove obsolete irq_desc_t typedef
 has been added to the -mm tree.  Its filename is
-     avr32-remove-obsolete-hw_interrupt_type.patch
+     drivers-mfd-remove-obsolete-irq_desc_t-typedef.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: avr32: remove obsolete hw_interrupt_type
+Subject: drivers/mfd: remove obsolete irq_desc_t typedef
 From: Thomas Gleixner <tglx@linutronix.de>
 
 The defines and typedefs (hw_interrupt_type, no_irq_type, irq_desc_t) have
@@ -45,30 +45,28 @@ hit mainline we can remove the defines and typedefs finally.
 
 Impact: cleanup
 
-Convert the last remaining users to struct irq_chip and remove the
-define.
+Convert the last remaining users and remove the typedef.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Haavard Skinnemoen <skinnemoen@atmel.com>
-
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/include/asm/hw_irq.h |    2 +-
+ drivers/mfd/twl4030-irq.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/avr32/include/asm/hw_irq.h~avr32-remove-obsolete-hw_interrupt_type arch/avr32/include/asm/hw_irq.h
---- a/arch/avr32/include/asm/hw_irq.h~avr32-remove-obsolete-hw_interrupt_type
-+++ a/arch/avr32/include/asm/hw_irq.h
-@@ -1,7 +1,7 @@
- #ifndef __ASM_AVR32_HW_IRQ_H
- #define __ASM_AVR32_HW_IRQ_H
- 
--static inline void hw_resend_irq(struct hw_interrupt_type *h, unsigned int i)
-+static inline void hw_resend_irq(struct irq_chip *h, unsigned int i)
+diff -puN drivers/mfd/twl4030-irq.c~drivers-mfd-remove-obsolete-irq_desc_t-typedef drivers/mfd/twl4030-irq.c
+--- a/drivers/mfd/twl4030-irq.c~drivers-mfd-remove-obsolete-irq_desc_t-typedef
++++ a/drivers/mfd/twl4030-irq.c
+@@ -255,7 +255,7 @@ static int twl4030_irq_thread(void *data
+  * thread.  All we do here is acknowledge and mask the interrupt and wakeup
+  * the kernel thread.
+  */
+-static void handle_twl4030_pih(unsigned int irq, irq_desc_t *desc)
++static void handle_twl4030_pih(unsigned int irq, struct irq_desc *desc)
  {
- 	/* Nothing to do */
- }
+ 	/* Acknowledge, clear *AND* mask the interrupt... */
+ 	desc->chip->ack(irq);
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
