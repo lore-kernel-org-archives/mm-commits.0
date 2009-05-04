@@ -1,243 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] time-sh-convert-to-use-arch_getoffset-infrastructure.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:13:50 -0700
-Message-ID: <200905042013.n44KDoMH022820@imap1.linux-foundation.org>
+Subject: [merged] alpha-binfmt_aout-fix.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:13:24 -0700
+Message-ID: <200905042013.n44KDOS5022507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751041AbZEDUQC (ORCPT
+	by vger.kernel.org with ESMTP id S1753618AbZEDUQC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:16:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, rth@twiddle.net, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: sh: convert to use arch_getoffset() infrastructure
+     alpha: binfmt_aout fix
 has been removed from the -mm tree.  Its filename was
-     time-sh-convert-to-use-arch_getoffset-infrastructure.patch
+     alpha-binfmt_aout-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: time: sh: convert to use arch_getoffset() infrastructure
-From: john stultz <johnstul@us.ibm.com>
+Subject: alpha: binfmt_aout fix
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Convert sh to use GENERIC_TIME via the arch_getoffset() infrastructure.
+This fixes the problem introduced by commit 3bfacef412 (get rid of
+special-casing the /sbin/loader on alpha): osf/1 ecoff binary segfaults
+when binfmt_aout built as module.  That happens because aout binary
+handler gets on the top of the binfmt list due to late registration, and
+kernel attempts to execute the binary without preparatory work that must
+be done by binfmt_loader.
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+Fixed by changing the registration order of the default binfmt handlers
+using list_add_tail() and introducing insert_binfmt() function which
+places new handler on the top of the binfmt list.  This might be generally
+useful for installing arch-specific frontends for default handlers or just
+for overriding them.
+
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Richard Henderson <rth@twiddle.net
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/Kconfig                    |    2 
- arch/sh/include/asm/timer.h        |    4 -
- arch/sh/kernel/time_32.c           |   63 ++-------------------------
- arch/sh/kernel/time_64.c           |   53 ----------------------
- arch/sh/kernel/timers/timer-mtu2.c |    2 
- 5 files changed, 11 insertions(+), 113 deletions(-)
+ arch/alpha/kernel/Makefile        |    6 +++++-
+ arch/alpha/kernel/binfmt_loader.c |    2 +-
+ fs/exec.c                         |    7 ++++---
+ include/linux/binfmts.h           |   14 +++++++++++++-
+ 4 files changed, 23 insertions(+), 6 deletions(-)
 
-diff -puN arch/sh/Kconfig~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/Kconfig
---- a/arch/sh/Kconfig~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/Kconfig
-@@ -75,7 +75,7 @@ config GENERIC_IOMAP
- 	bool
+diff -puN arch/alpha/kernel/Makefile~alpha-binfmt_aout-fix arch/alpha/kernel/Makefile
+--- a/arch/alpha/kernel/Makefile~alpha-binfmt_aout-fix
++++ a/arch/alpha/kernel/Makefile
+@@ -8,7 +8,7 @@ EXTRA_CFLAGS	:= -Werror -Wno-sign-compar
  
- config GENERIC_TIME
--	def_bool n
-+	def_bool y
+ obj-y    := entry.o traps.o process.o init_task.o osf_sys.o irq.o \
+ 	    irq_alpha.o signal.o setup.o ptrace.o time.o \
+-	    alpha_ksyms.o systbls.o err_common.o io.o binfmt_loader.o
++	    alpha_ksyms.o systbls.o err_common.o io.o
  
- config GENERIC_CLOCKEVENTS
- 	def_bool n
-diff -puN arch/sh/include/asm/timer.h~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/include/asm/timer.h
---- a/arch/sh/include/asm/timer.h~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/include/asm/timer.h
-@@ -9,7 +9,7 @@ struct sys_timer_ops {
- 	int (*init)(void);
- 	int (*start)(void);
- 	int (*stop)(void);
--#ifndef CONFIG_GENERIC_TIME
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
- 	unsigned long (*get_offset)(void);
- #endif
- };
-@@ -26,7 +26,7 @@ struct sys_timer {
- extern struct sys_timer tmu_timer, mtu2_timer;
- extern struct sys_timer *sys_timer;
+ obj-$(CONFIG_VGA_HOSE)	+= console.o
+ obj-$(CONFIG_SMP)	+= smp.o
+@@ -43,6 +43,10 @@ else
+ # Misc support
+ obj-$(CONFIG_ALPHA_SRM)		+= srmcons.o
  
--#ifndef CONFIG_GENERIC_TIME
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
- static inline unsigned long get_timer_offset(void)
++ifdef CONFIG_BINFMT_AOUT
++obj-y	+= binfmt_loader.o
++endif
++
+ # Core logic support
+ obj-$(CONFIG_ALPHA_APECS)	+= core_apecs.o
+ obj-$(CONFIG_ALPHA_CIA)		+= core_cia.o
+diff -puN arch/alpha/kernel/binfmt_loader.c~alpha-binfmt_aout-fix arch/alpha/kernel/binfmt_loader.c
+--- a/arch/alpha/kernel/binfmt_loader.c~alpha-binfmt_aout-fix
++++ a/arch/alpha/kernel/binfmt_loader.c
+@@ -46,6 +46,6 @@ static struct linux_binfmt loader_format
+ 
+ static int __init init_loader_binfmt(void)
  {
- 	return sys_timer->ops->get_offset();
-diff -puN arch/sh/kernel/time_32.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/time_32.c
---- a/arch/sh/kernel/time_32.c~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/kernel/time_32.c
-@@ -83,65 +83,12 @@ static int __init rtc_generic_init(void)
+-	return register_binfmt(&loader_format);
++	return insert_binfmt(&loader_format);
  }
- module_init(rtc_generic_init);
+ arch_initcall(init_loader_binfmt);
+diff -puN fs/exec.c~alpha-binfmt_aout-fix fs/exec.c
+--- a/fs/exec.c~alpha-binfmt_aout-fix
++++ a/fs/exec.c
+@@ -69,17 +69,18 @@ int suid_dumpable = 0;
+ static LIST_HEAD(formats);
+ static DEFINE_RWLOCK(binfmt_lock);
  
--#ifndef CONFIG_GENERIC_TIME
--void do_gettimeofday(struct timeval *tv)
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
-+u32 arch_gettimeoffset(void)
+-int register_binfmt(struct linux_binfmt * fmt)
++int __register_binfmt(struct linux_binfmt * fmt, int insert)
  {
--	unsigned long flags;
--	unsigned long seq;
--	unsigned long usec, sec;
--
--	do {
--		/*
--		 * Turn off IRQs when grabbing xtime_lock, so that
--		 * the sys_timer get_offset code doesn't have to handle it.
--		 */
--		seq = read_seqbegin_irqsave(&xtime_lock, flags);
--		usec = get_timer_offset();
--		sec = xtime.tv_sec;
--		usec += xtime.tv_nsec / NSEC_PER_USEC;
--	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
--
--	while (usec >= 1000000) {
--		usec -= 1000000;
--		sec++;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
--}
--EXPORT_SYMBOL(do_gettimeofday);
--
--int do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--	/*
--	 * This is revolting. We need to set "xtime" correctly. However, the
--	 * value in this location is the value at the most recent update of
--	 * wall time.  Discover what correction gettimeofday() would have
--	 * made, and then undo it!
--	 */
--	nsec -= get_timer_offset() * NSEC_PER_USEC;
--
--	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--
--	return 0;
-+	return get_timer_offset() * 1000;
+ 	if (!fmt)
+ 		return -EINVAL;
+ 	write_lock(&binfmt_lock);
+-	list_add(&fmt->lh, &formats);
++	insert ? list_add(&fmt->lh, &formats) :
++		 list_add_tail(&fmt->lh, &formats);
+ 	write_unlock(&binfmt_lock);
+ 	return 0;	
  }
--EXPORT_SYMBOL(do_settimeofday);
--#endif /* !CONFIG_GENERIC_TIME */
-+#endif /* CONFIG_ARCH_USES_GETTIMEOFFSET */
  
- /* last time the RTC clock got updated */
- static long last_rtc_update;
-@@ -239,7 +186,7 @@ struct clocksource clocksource_sh = {
- 	.name		= "SuperH",
+-EXPORT_SYMBOL(register_binfmt);
++EXPORT_SYMBOL(__register_binfmt);
+ 
+ void unregister_binfmt(struct linux_binfmt * fmt)
+ {
+diff -puN include/linux/binfmts.h~alpha-binfmt_aout-fix include/linux/binfmts.h
+--- a/include/linux/binfmts.h~alpha-binfmt_aout-fix
++++ a/include/linux/binfmts.h
+@@ -82,7 +82,19 @@ struct linux_binfmt {
+ 	int hasvdso;
  };
  
--#ifdef CONFIG_GENERIC_TIME
-+#ifndef CONFIG_ARCH_USES_GETTIMEOFFSET
- unsigned long long sched_clock(void)
- {
- 	unsigned long long cycles;
-diff -puN arch/sh/kernel/time_64.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/time_64.c
---- a/arch/sh/kernel/time_64.c~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/kernel/time_64.c
-@@ -144,59 +144,10 @@ static unsigned long usecs_since_tick(vo
- 	return result;
- }
+-extern int register_binfmt(struct linux_binfmt *);
++extern int __register_binfmt(struct linux_binfmt *fmt, int insert);
++
++/* Registration of default binfmt handlers */
++static inline int register_binfmt(struct linux_binfmt *fmt)
++{
++	return __register_binfmt(fmt, 0);
++}
++/* Same as above, but adds a new binfmt at the top of the list */
++static inline int insert_binfmt(struct linux_binfmt *fmt)
++{
++	return __register_binfmt(fmt, 1);
++}
++
+ extern void unregister_binfmt(struct linux_binfmt *);
  
--void do_gettimeofday(struct timeval *tv)
-+u32 arch_gettimeoffset(void)
- {
--	unsigned long flags;
--	unsigned long seq;
--	unsigned long usec, sec;
--
--	do {
--		seq = read_seqbegin_irqsave(&xtime_lock, flags);
--		usec = usecs_since_tick();
--		sec = xtime.tv_sec;
--		usec += xtime.tv_nsec / 1000;
--	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
--
--	while (usec >= 1000000) {
--		usec -= 1000000;
--		sec++;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
--}
--EXPORT_SYMBOL(do_gettimeofday);
--
--int do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--	/*
--	 * This is revolting. We need to set "xtime" correctly. However, the
--	 * value in this location is the value at the most recent update of
--	 * wall time.  Discover what correction gettimeofday() would have
--	 * made, and then undo it!
--	 */
--	nsec -= 1000 * usecs_since_tick();
--
--	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--
--	return 0;
-+	return usecs_since_tick() * 1000;
- }
--EXPORT_SYMBOL(do_settimeofday);
- 
- /* Dummy RTC ops */
- static void null_rtc_get_time(struct timespec *tv)
-diff -puN arch/sh/kernel/timers/timer-mtu2.c~time-sh-convert-to-use-arch_getoffset-infrastructure arch/sh/kernel/timers/timer-mtu2.c
---- a/arch/sh/kernel/timers/timer-mtu2.c~time-sh-convert-to-use-arch_getoffset-infrastructure
-+++ a/arch/sh/kernel/timers/timer-mtu2.c
-@@ -191,7 +191,7 @@ struct sys_timer_ops mtu2_timer_ops = {
- 	.init		= mtu2_timer_init,
- 	.start		= mtu2_timer_start,
- 	.stop		= mtu2_timer_stop,
--#ifndef CONFIG_GENERIC_TIME
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
- 	.get_offset	= mtu2_timer_get_offset,
- #endif
- };
+ extern int prepare_binprm(struct linux_binprm *);
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
+origin.patch
 linux-next.patch
-time-move-calc_load-call-out-from-xtime_lock-protection.patch
-time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
-clocksource-sanity-check-sysfs-clocksource-changes.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+make-sure-nobodys-leaking-resources.patch
 
