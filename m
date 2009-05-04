@@ -1,113 +1,293 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-avoid-multiplication-overflow-in-shrink_zone.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:13:38 -0700
-Message-ID: <200905042013.n44KDcDu022624@imap1.linux-foundation.org>
+Subject: [merged] mm-fix-committed_as-underfolow-on-large-nr_cpus-environment.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:13:29 -0700
+Message-ID: <200905042013.n44KDTAZ022599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56080 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753715AbZEDUSf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:18:35 -0400
+	by vger.kernel.org with ESMTP id S1753240AbZEDUSq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:18:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, dave@linux.vnet.ibm.com, ebmunson@us.ibm.com, mel@csn.ul.ie, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: avoid multiplication overflow in shrink_zone()
+     mm: fix Committed_AS underflow on large NR_CPUS environment
 has been removed from the -mm tree.  Its filename was
-     vmscan-avoid-multiplication-overflow-in-shrink_zone.patch
+     mm-fix-committed_as-underfolow-on-large-nr_cpus-environment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: avoid multiplication overflow in shrink_zone()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: fix Committed_AS underflow on large NR_CPUS environment
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Local variable `scan' can overflow on zones which are larger than
+The Committed_AS field can underflow in certain situations:
 
-	(2G * 4k) / 100 = 80GB.
+>         # while true; do cat /proc/meminfo  | grep _AS; sleep 1; done | uniq -c
+>               1 Committed_AS: 18446744073709323392 kB
+>              11 Committed_AS: 18446744073709455488 kB
+>               6 Committed_AS:    35136 kB
+>               5 Committed_AS: 18446744073709454400 kB
+>               7 Committed_AS:    35904 kB
+>               3 Committed_AS: 18446744073709453248 kB
+>               2 Committed_AS:    34752 kB
+>               9 Committed_AS: 18446744073709453248 kB
+>               8 Committed_AS:    34752 kB
+>               3 Committed_AS: 18446744073709320960 kB
+>               7 Committed_AS: 18446744073709454080 kB
+>               3 Committed_AS: 18446744073709320960 kB
+>               5 Committed_AS: 18446744073709454080 kB
+>               6 Committed_AS: 18446744073709320960 kB
 
-Making it 64-bit on 64-bit will fix that up.
+Because NR_CPUS can be greater than 1000 and meminfo_proc_show() does
+not check for underflow.
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+But NR_CPUS proportional isn't good calculation.  In general,
+possibility of lock contention is proportional to the number of online
+cpus, not theorical maximum cpus (NR_CPUS).
+
+The current kernel has generic percpu-counter stuff.  using it is right
+way.  it makes code simplify and percpu_counter_read_positive() don't
+make underflow issue.
+
+Reported-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Eric B Munson <ebmunson@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: <stable@kernel.org>		[All kernel versions]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/meminfo.c    |    2 -
+ include/linux/mman.h |    9 ++------
+ mm/mmap.c            |   12 +++++-----
+ mm/nommu.c           |   13 ++++++-----
+ mm/swap.c            |   46 -----------------------------------------
+ 5 files changed, 17 insertions(+), 65 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-avoid-multiplication-overflow-in-shrink_zone mm/vmscan.c
---- a/mm/vmscan.c~vmscan-avoid-multiplication-overflow-in-shrink_zone
-+++ a/mm/vmscan.c
-@@ -1471,7 +1471,7 @@ static void shrink_zone(int priority, st
+diff -puN fs/proc/meminfo.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
++++ a/fs/proc/meminfo.c
+@@ -35,7 +35,7 @@ static int meminfo_proc_show(struct seq_
+ #define K(x) ((x) << (PAGE_SHIFT - 10))
+ 	si_meminfo(&i);
+ 	si_swapinfo(&i);
+-	committed = atomic_long_read(&vm_committed_space);
++	committed = percpu_counter_read_positive(&vm_committed_as);
+ 	allowed = ((totalram_pages - hugetlb_total_pages())
+ 		* sysctl_overcommit_ratio / 100) + total_swap_pages;
  
- 	for_each_evictable_lru(l) {
- 		int file = is_file_lru(l);
--		int scan;
-+		unsigned long scan;
+diff -puN include/linux/mman.h~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment include/linux/mman.h
+--- a/include/linux/mman.h~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
++++ a/include/linux/mman.h
+@@ -12,21 +12,18 @@
  
- 		scan = zone_nr_pages(zone, sc, l);
- 		if (priority) {
+ #ifdef __KERNEL__
+ #include <linux/mm.h>
++#include <linux/percpu_counter.h>
+ 
+ #include <asm/atomic.h>
+ 
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+-extern atomic_long_t vm_committed_space;
++extern struct percpu_counter vm_committed_as;
+ 
+-#ifdef CONFIG_SMP
+-extern void vm_acct_memory(long pages);
+-#else
+ static inline void vm_acct_memory(long pages)
+ {
+-	atomic_long_add(pages, &vm_committed_space);
++	percpu_counter_add(&vm_committed_as, pages);
+ }
+-#endif
+ 
+ static inline void vm_unacct_memory(long pages)
+ {
+diff -puN mm/mmap.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment mm/mmap.c
+--- a/mm/mmap.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
++++ a/mm/mmap.c
+@@ -85,7 +85,7 @@ EXPORT_SYMBOL(vm_get_page_prot);
+ int sysctl_overcommit_memory = OVERCOMMIT_GUESS;  /* heuristic overcommit */
+ int sysctl_overcommit_ratio = 50;	/* default is 50% */
+ int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
+-atomic_long_t vm_committed_space = ATOMIC_LONG_INIT(0);
++struct percpu_counter vm_committed_as;
+ 
+ /*
+  * Check that a process has enough memory to allocate a new virtual
+@@ -179,11 +179,7 @@ int __vm_enough_memory(struct mm_struct 
+ 	if (mm)
+ 		allowed -= mm->total_vm / 32;
+ 
+-	/*
+-	 * cast `allowed' as a signed long because vm_committed_space
+-	 * sometimes has a negative value
+-	 */
+-	if (atomic_long_read(&vm_committed_space) < (long)allowed)
++	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
+ 		return 0;
+ error:
+ 	vm_unacct_memory(pages);
+@@ -2481,4 +2477,8 @@ void mm_drop_all_locks(struct mm_struct 
+  */
+ void __init mmap_init(void)
+ {
++	int ret;
++
++	ret = percpu_counter_init(&vm_committed_as, 0);
++	VM_BUG_ON(ret);
+ }
+diff -puN mm/nommu.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment mm/nommu.c
+--- a/mm/nommu.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
++++ a/mm/nommu.c
+@@ -62,7 +62,7 @@ void *high_memory;
+ struct page *mem_map;
+ unsigned long max_mapnr;
+ unsigned long num_physpages;
+-atomic_long_t vm_committed_space = ATOMIC_LONG_INIT(0);
++struct percpu_counter vm_committed_as;
+ int sysctl_overcommit_memory = OVERCOMMIT_GUESS; /* heuristic overcommit */
+ int sysctl_overcommit_ratio = 50; /* default is 50% */
+ int sysctl_max_map_count = DEFAULT_MAX_MAP_COUNT;
+@@ -463,6 +463,10 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+  */
+ void __init mmap_init(void)
+ {
++	int ret;
++
++	ret = percpu_counter_init(&vm_committed_as, 0);
++	VM_BUG_ON(ret);
+ 	vm_region_jar = KMEM_CACHE(vm_region, SLAB_PANIC);
+ }
+ 
+@@ -1847,12 +1851,9 @@ int __vm_enough_memory(struct mm_struct 
+ 	if (mm)
+ 		allowed -= mm->total_vm / 32;
+ 
+-	/*
+-	 * cast `allowed' as a signed long because vm_committed_space
+-	 * sometimes has a negative value
+-	 */
+-	if (atomic_long_read(&vm_committed_space) < (long)allowed)
++	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
+ 		return 0;
++
+ error:
+ 	vm_unacct_memory(pages);
+ 
+diff -puN mm/swap.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment mm/swap.c
+--- a/mm/swap.c~mm-fix-committed_as-underfolow-on-large-nr_cpus-environment
++++ a/mm/swap.c
+@@ -491,49 +491,6 @@ unsigned pagevec_lookup_tag(struct pagev
+ 
+ EXPORT_SYMBOL(pagevec_lookup_tag);
+ 
+-#ifdef CONFIG_SMP
+-/*
+- * We tolerate a little inaccuracy to avoid ping-ponging the counter between
+- * CPUs
+- */
+-#define ACCT_THRESHOLD	max(16, NR_CPUS * 2)
+-
+-static DEFINE_PER_CPU(long, committed_space);
+-
+-void vm_acct_memory(long pages)
+-{
+-	long *local;
+-
+-	preempt_disable();
+-	local = &__get_cpu_var(committed_space);
+-	*local += pages;
+-	if (*local > ACCT_THRESHOLD || *local < -ACCT_THRESHOLD) {
+-		atomic_long_add(*local, &vm_committed_space);
+-		*local = 0;
+-	}
+-	preempt_enable();
+-}
+-
+-#ifdef CONFIG_HOTPLUG_CPU
+-
+-/* Drop the CPU's cached committed space back into the central pool. */
+-static int cpu_swap_callback(struct notifier_block *nfb,
+-			     unsigned long action,
+-			     void *hcpu)
+-{
+-	long *committed;
+-
+-	committed = &per_cpu(committed_space, (long)hcpu);
+-	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
+-		atomic_long_add(*committed, &vm_committed_space);
+-		*committed = 0;
+-		drain_cpu_pagevecs((long)hcpu);
+-	}
+-	return NOTIFY_OK;
+-}
+-#endif /* CONFIG_HOTPLUG_CPU */
+-#endif /* CONFIG_SMP */
+-
+ /*
+  * Perform any setup for the swap system
+  */
+@@ -554,7 +511,4 @@ void __init swap_setup(void)
+ 	 * Right now other parts of the system means that we
+ 	 * _really_ don't want to cluster much more
+ 	 */
+-#ifdef CONFIG_HOTPLUG_CPU
+-	hotcpu_notifier(cpu_swap_callback, 0);
+-#endif
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-mtd-fix-timeout-in-m25p80-driver-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
 page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
 page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+pagemap-document-clarifications.patch
+pagemap-documentation-9-more-exported-page-flags.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
+vmscan-evict-use-once-pages-first-v3.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
