@@ -1,118 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] forcedeth-add-clock-gating-feature.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:13:58 -0700
-Message-ID: <200905042013.n44KDwxN022843@imap1.linux-foundation.org>
+Subject: [merged] alpha-exception-table-sorting.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:13:20 -0700
+Message-ID: <200905042013.n44KDKRl022485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48033 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753649AbZEDUQH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:16:07 -0400
+	by vger.kernel.org with ESMTP id S1751667AbZEDUQC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:16:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aabdulla@nvidia.com, florian@openwrt.org, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, rth@twiddle.net, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: add clock gating feature
+     alpha: exception table sorting
 has been removed from the -mm tree.  Its filename was
-     forcedeth-add-clock-gating-feature.patch
+     alpha-exception-table-sorting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth: add clock gating feature
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: alpha: exception table sorting
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Add support for clock gating the tx/rx engines which is available on
-certain chipsets.
+Exception fixups for sections other than .text (like one in futex_init())
+break the natural ordering of fixup entries, so sorting is required.
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Without that the result of the exception table search depends on phase of
+the moon.
+
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Richard Henderson <rth@twiddle.net
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ arch/alpha/include/asm/uaccess.h |    2 +
+ arch/alpha/mm/extable.c          |   40 ++++++++++++++++++++++++++++-
+ 2 files changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-add-clock-gating-feature drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-add-clock-gating-feature
-+++ a/drivers/net/forcedeth.c
-@@ -343,6 +343,7 @@ enum {
- #define NVREG_POWERSTATE2_POWERUP_MASK		0x0F15
- #define NVREG_POWERSTATE2_POWERUP_REV_A3	0x0001
- #define NVREG_POWERSTATE2_PHY_RESET		0x0004
-+#define NVREG_POWERSTATE2_GATE_CLOCKS		0x0F00
- };
+diff -puN arch/alpha/include/asm/uaccess.h~alpha-exception-table-sorting arch/alpha/include/asm/uaccess.h
+--- a/arch/alpha/include/asm/uaccess.h~alpha-exception-table-sorting
++++ a/arch/alpha/include/asm/uaccess.h
+@@ -507,5 +507,7 @@ struct exception_table_entry
+ 	(pc) + (_fixup)->fixup.bits.nextinsn;			\
+ })
  
- /* Big endian: should work, but is untested */
-@@ -1017,6 +1018,23 @@ static int using_multi_irqs(struct net_d
- 		return 1;
- }
++#define ARCH_HAS_SORT_EXTABLE
++#define ARCH_HAS_SEARCH_EXTABLE
  
-+static void nv_txrx_gate(struct net_device *dev, bool gate)
+ #endif /* __ALPHA_UACCESS_H */
+diff -puN arch/alpha/mm/extable.c~alpha-exception-table-sorting arch/alpha/mm/extable.c
+--- a/arch/alpha/mm/extable.c~alpha-exception-table-sorting
++++ a/arch/alpha/mm/extable.c
+@@ -3,11 +3,49 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/sort.h>
+ #include <asm/uaccess.h>
+ 
++static inline unsigned long ex_to_addr(const struct exception_table_entry *x)
 +{
-+	struct fe_priv *np = get_nvpriv(dev);
-+	u8 __iomem *base = get_hwbase(dev);
-+	u32 powerstate;
-+
-+	if (!np->mac_in_use &&
-+	    (np->driver_data & DEV_HAS_POWER_CNTRL)) {
-+		powerstate = readl(base + NvRegPowerState2);
-+		if (gate)
-+			powerstate |= NVREG_POWERSTATE2_GATE_CLOCKS;
-+		else
-+			powerstate &= ~NVREG_POWERSTATE2_GATE_CLOCKS;
-+		writel(powerstate,base + NvRegPowerState2);
-+	}
++	return (unsigned long)&x->insn + x->insn;
 +}
 +
- static void nv_enable_irq(struct net_device *dev)
++static void swap_ex(void *a, void *b, int size)
++{
++	struct exception_table_entry *ex_a = a, *ex_b = b;
++	unsigned long addr_a = ex_to_addr(ex_a), addr_b = ex_to_addr(ex_b);
++	unsigned int t = ex_a->fixup.unit;
++
++	ex_a->fixup.unit = ex_b->fixup.unit;
++	ex_b->fixup.unit = t;
++	ex_a->insn = (int)(addr_b - (unsigned long)&ex_a->insn);
++	ex_b->insn = (int)(addr_a - (unsigned long)&ex_b->insn);
++}
++
++/*
++ * The exception table needs to be sorted so that the binary
++ * search that we use to find entries in it works properly.
++ * This is used both for the kernel exception table and for
++ * the exception tables of modules that get loaded.
++ */
++static int cmp_ex(const void *a, const void *b)
++{
++	const struct exception_table_entry *x = a, *y = b;
++
++	/* avoid overflow */
++	if (ex_to_addr(x) > ex_to_addr(y))
++		return 1;
++	if (ex_to_addr(x) < ex_to_addr(y))
++		return -1;
++	return 0;
++}
++
+ void sort_extable(struct exception_table_entry *start,
+ 		  struct exception_table_entry *finish)
  {
- 	struct fe_priv *np = get_nvpriv(dev);
-@@ -3394,12 +3412,14 @@ static void nv_linkchange(struct net_dev
- 		if (!netif_carrier_ok(dev)) {
- 			netif_carrier_on(dev);
- 			printk(KERN_INFO "%s: link up.\n", dev->name);
-+			nv_txrx_gate(dev, false);
- 			nv_start_rx(dev);
- 		}
- 	} else {
- 		if (netif_carrier_ok(dev)) {
- 			netif_carrier_off(dev);
- 			printk(KERN_INFO "%s: link down.\n", dev->name);
-+			nv_txrx_gate(dev, true);
- 			nv_stop_rx(dev);
- 		}
- 	}
-@@ -5327,6 +5347,7 @@ static int nv_open(struct net_device *de
- 	mii_rw(dev, np->phyaddr, MII_BMCR,
- 	       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ) & ~BMCR_PDOWN);
++	sort(start, finish - start, sizeof(struct exception_table_entry),
++	     cmp_ex, swap_ex);
+ }
  
-+	nv_txrx_gate(dev, false);
- 	/* erase previous misconfiguration */
- 	if (np->driver_data & DEV_HAS_POWER_CNTRL)
- 		nv_mac_reset(dev);
-@@ -5514,12 +5535,14 @@ static int nv_close(struct net_device *d
- 	nv_drain_rxtx(dev);
+ const struct exception_table_entry *
+@@ -20,7 +58,7 @@ search_extable(const struct exception_ta
+ 		unsigned long mid_value;
  
- 	if (np->wolenabled) {
-+		nv_txrx_gate(dev, false);
- 		writel(NVREG_PFF_ALWAYS|NVREG_PFF_MYADDR, base + NvRegPacketFilterFlags);
- 		nv_start_rx(dev);
- 	} else {
- 		/* power down phy */
- 		mii_rw(dev, np->phyaddr, MII_BMCR,
- 		       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ)|BMCR_PDOWN);
-+		nv_txrx_gate(dev, true);
- 	}
- 
- 	/* FIXME: power down nic */
+ 		mid = (last - first) / 2 + first;
+-		mid_value = (unsigned long)&mid->insn + mid->insn;
++		mid_value = ex_to_addr(mid);
+                 if (mid_value == value)
+                         return mid;
+                 else if (mid_value < value)
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
+origin.patch
 linux-next.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+make-sure-nobodys-leaking-resources.patch
 
