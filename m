@@ -1,186 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-titan-and-marvel-build-fixes.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:13:16 -0700
-Message-ID: <200905042013.n44KDGtC022399@imap1.linux-foundation.org>
+Subject: [merged] mmc-some-microsd-cards-are-not-recognized-by-pcixx12-sda-controller.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:13:55 -0700
+Message-ID: <200905042013.n44KDtOV022840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753555AbZEDUQC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:16:02 -0400
+	by vger.kernel.org with ESMTP id S1753860AbZEDUQI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:16:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, rth@twiddle.net, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: josemariafg@gmail.com, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: titan and marvel build fixes
+     mmc: some microSD cards are not recognized by PCIxx12 SDA controll=
+er
 has been removed from the -mm tree.  Its filename was
-     alpha-titan-and-marvel-build-fixes.patch
+     mmc-some-microsd-cards-are-not-recognized-by-pcixx12-sda-controlle=
+r.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: alpha: titan and marvel build fixes
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: mmc: some microSD cards are not recognized by PCIxx12 SDA cont=
+roller
+=46rom: Jos=E9 M. Fern=E1ndez <josemariafg@gmail.com>
 
-These platforms got broken after u64 => 'long long' conversion.
+My working laptop is a Toshiba Tecra M5 with Core2 Duo T7400 and 2GB of
+memory.  Since I'm using it I have found that some microSD cards (using
+their size adapter) are not recognized when they are inserted in the Te=
+cra
+M5 SD slot.  Now I own one of those cards (a Transcend 2GB
+MM8GR02GUACU-PA), which works well with Windows XP and Toshiba drivers.=
+=20
+Looking for a fix I have done some web research about similar laptop
+models, and following the clues I found next HTML page:
 
-Apparently that change was compile-tested with 'make allmodconfig', but it
-doesn't include systems that depend on !ALPHA_LEGACY_START_ADDRESS.
+http://list.drzeus.cx/pipermail/sdhci-devel/2007-December/002089.html
 
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Richard Henderson <rth@twiddle.net
+about a kernel patch related to the SD controller in my laptop, which
+involves a change on a mmc_delay call on controller startup. The
+lspci -vv description for the SD controller is:
+
+06:0b.3 SD Host controller: Texas Instruments PCIxx12 SDA Standard Comp=
+liant SD Host Controller (prog-if 01)
+        Subsystem: Toshiba America Info Systems Device 0001
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- Par=
+Err- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbo=
+rt- <TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (1750ns min, 1000ns max), Cache Line Size: 32 bytes
+        Interrupt: pin D routed to IRQ 23
+        Region 0: Memory at ff9ff700 (32-bit, non-prefetchable) [size=3D=
+256]
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D0mA PME(D0+,D1=
++,D2+,D3hot+,D3cold-)
+                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
+        Kernel driver in use: sdhci-pci
+        Kernel modules: sdhci-pci
+
+When I applied the proposed change from that patch on mmc_delay after
+MMC_POWER_ON, kernel started recognizing the microSD card, but with err=
+ors
+I have seen with other SD cards:
+
+=46eb 21 18:39:25 olympo mmc0: card claims to support voltages below th=
+e defined range. These will be ignored.
+=46eb 21 18:39:25 olympo mmc0: SDIO card claims to support the incomple=
+tely defined 'low voltage range'. This will be ignored.
+=46eb 21 18:39:25 olympo mmc0: error -110 whilst initialising SDIO card
+
+So, I extrapolated the change and, by chance, I found the fix, which
+consist on raising the mmc_delay from 2 to 10 both on MMC_POWER_UP and
+MMC_POWER_ON.  I have been using the kernel with this fix for some week=
+s,
+with no problem.
+
+I don't know whether this patch can break something in the behavior of
+other SD controllers, but at least it works for my laptop.
+
+Signed-off-by: Jos=E9 M. Fern=E1ndez <josemariafg@gmail.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/err_ev6.c    |    2 +-
- arch/alpha/kernel/err_ev7.c    |    4 ++--
- arch/alpha/kernel/err_impl.h   |   10 +++++-----
- arch/alpha/kernel/err_marvel.c |    2 +-
- arch/alpha/kernel/err_titan.c  |    4 ++--
- arch/alpha/kernel/proto.h      |    5 ++---
- 6 files changed, 13 insertions(+), 14 deletions(-)
+ drivers/mmc/core/core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/kernel/err_ev6.c~alpha-titan-and-marvel-build-fixes arch/alpha/kernel/err_ev6.c
---- a/arch/alpha/kernel/err_ev6.c~alpha-titan-and-marvel-build-fixes
-+++ a/arch/alpha/kernel/err_ev6.c
-@@ -229,7 +229,7 @@ ev6_process_logout_frame(struct el_commo
+diff -puN drivers/mmc/core/core.c~mmc-some-microsd-cards-are-not-recogn=
+ized-by-pcixx12-sda-controller drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-some-microsd-cards-are-not-recognized=
+-by-pcixx12-sda-controller
++++ a/drivers/mmc/core/core.c
+@@ -712,7 +712,7 @@ static void mmc_power_up(struct mmc_host
+ 	 * This delay should be sufficient to allow the power supply
+ 	 * to reach the minimum voltage.
+ 	 */
+-	mmc_delay(2);
++	mmc_delay(10);
+=20
+ 	host->ios.clock =3D host->f_min;
+ 	host->ios.power_mode =3D MMC_POWER_ON;
+@@ -722,7 +722,7 @@ static void mmc_power_up(struct mmc_host
+ 	 * This delay must be at least 74 clock sizes, or 1 ms, or the
+ 	 * time required to reach a stable voltage.
+ 	 */
+-	mmc_delay(2);
++	mmc_delay(10);
  }
- 
- void
--ev6_machine_check(u64 vector, u64 la_ptr)
-+ev6_machine_check(unsigned long vector, unsigned long la_ptr)
- {
- 	struct el_common *mchk_header = (struct el_common *)la_ptr;
- 
-diff -puN arch/alpha/kernel/err_ev7.c~alpha-titan-and-marvel-build-fixes arch/alpha/kernel/err_ev7.c
---- a/arch/alpha/kernel/err_ev7.c~alpha-titan-and-marvel-build-fixes
-+++ a/arch/alpha/kernel/err_ev7.c
-@@ -117,7 +117,7 @@ ev7_collect_logout_frame_subpackets(stru
- }
- 
- void
--ev7_machine_check(u64 vector, u64 la_ptr)
-+ev7_machine_check(unsigned long vector, unsigned long la_ptr)
- {
- 	struct el_subpacket *el_ptr = (struct el_subpacket *)la_ptr;
- 	char *saved_err_prefix = err_print_prefix;
-@@ -246,7 +246,7 @@ ev7_process_pal_subpacket(struct el_subp
- 
- 	switch(header->type) {
- 	case EL_TYPE__PAL__LOGOUT_FRAME:
--		printk("%s*** MCHK occurred on LPID %ld (RBOX %llx)\n",
-+		printk("%s*** MCHK occurred on LPID %lld (RBOX %llx)\n",
- 		       err_print_prefix,
- 		       packet->by_type.logout.whami, 
- 		       packet->by_type.logout.rbox_whami);
-diff -puN arch/alpha/kernel/err_impl.h~alpha-titan-and-marvel-build-fixes arch/alpha/kernel/err_impl.h
---- a/arch/alpha/kernel/err_impl.h~alpha-titan-and-marvel-build-fixes
-+++ a/arch/alpha/kernel/err_impl.h
-@@ -60,26 +60,26 @@ extern struct ev7_lf_subpackets *
- ev7_collect_logout_frame_subpackets(struct el_subpacket *,
- 				    struct ev7_lf_subpackets *);
- extern void ev7_register_error_handlers(void);
--extern void ev7_machine_check(u64, u64);
-+extern void ev7_machine_check(unsigned long, unsigned long);
- 
- /*
-  * err_ev6.c
-  */
- extern void ev6_register_error_handlers(void);
- extern int ev6_process_logout_frame(struct el_common *, int);
--extern void ev6_machine_check(u64, u64);
-+extern void ev6_machine_check(unsigned long, unsigned long);
- 
- /*
-  * err_marvel.c
-  */
--extern void marvel_machine_check(u64, u64);
-+extern void marvel_machine_check(unsigned long, unsigned long);
- extern void marvel_register_error_handlers(void);
- 
- /*
-  * err_titan.c
-  */
- extern int titan_process_logout_frame(struct el_common *, int);
--extern void titan_machine_check(u64, u64);
-+extern void titan_machine_check(unsigned long, unsigned long);
- extern void titan_register_error_handlers(void);
- extern int privateer_process_logout_frame(struct el_common *, int);
--extern void privateer_machine_check(u64, u64);
-+extern void privateer_machine_check(unsigned long, unsigned long);
-diff -puN arch/alpha/kernel/err_marvel.c~alpha-titan-and-marvel-build-fixes arch/alpha/kernel/err_marvel.c
---- a/arch/alpha/kernel/err_marvel.c~alpha-titan-and-marvel-build-fixes
-+++ a/arch/alpha/kernel/err_marvel.c
-@@ -1042,7 +1042,7 @@ marvel_process_logout_frame(struct ev7_l
- }
- 
- void
--marvel_machine_check(u64 vector, u64 la_ptr)
-+marvel_machine_check(unsigned long vector, unsigned long la_ptr)
- {
- 	struct el_subpacket *el_ptr = (struct el_subpacket *)la_ptr;
- 	int (*process_frame)(struct ev7_lf_subpackets *, int) = NULL;
-diff -puN arch/alpha/kernel/err_titan.c~alpha-titan-and-marvel-build-fixes arch/alpha/kernel/err_titan.c
---- a/arch/alpha/kernel/err_titan.c~alpha-titan-and-marvel-build-fixes
-+++ a/arch/alpha/kernel/err_titan.c
-@@ -380,7 +380,7 @@ titan_process_logout_frame(struct el_com
- }
- 
- void
--titan_machine_check(u64 vector, u64 la_ptr)
-+titan_machine_check(unsigned long vector, unsigned long la_ptr)
- {
- 	struct el_common *mchk_header = (struct el_common *)la_ptr;
- 	struct el_TITAN_sysdata_mcheck *tmchk =
-@@ -702,7 +702,7 @@ privateer_process_logout_frame(struct el
- }
- 
- void
--privateer_machine_check(u64 vector, u64 la_ptr)
-+privateer_machine_check(unsigned long vector, unsigned long la_ptr)
- {
- 	struct el_common *mchk_header = (struct el_common *)la_ptr;
- 	struct el_TITAN_sysdata_mcheck *tmchk =
-diff -puN arch/alpha/kernel/proto.h~alpha-titan-and-marvel-build-fixes arch/alpha/kernel/proto.h
---- a/arch/alpha/kernel/proto.h~alpha-titan-and-marvel-build-fixes
-+++ a/arch/alpha/kernel/proto.h
-@@ -36,7 +36,6 @@ extern void cia_pci_tbi(struct pci_contr
- extern struct pci_ops irongate_pci_ops;
- extern int irongate_pci_clr_err(void);
- extern void irongate_init_arch(void);
--extern void irongate_machine_check(u64, u64);
- #define irongate_pci_tbi ((void *)0)
- 
- /* core_lca.c */
-@@ -49,7 +48,7 @@ extern void lca_pci_tbi(struct pci_contr
- extern struct pci_ops marvel_pci_ops;
- extern void marvel_init_arch(void);
- extern void marvel_kill_arch(int);
--extern void marvel_machine_check(u64, u64);
-+extern void marvel_machine_check(unsigned long, unsigned long);
- extern void marvel_pci_tbi(struct pci_controller *, dma_addr_t, dma_addr_t);
- extern int marvel_pa_to_nid(unsigned long);
- extern int marvel_cpuid_to_nid(int);
-@@ -86,7 +85,7 @@ extern void t2_pci_tbi(struct pci_contro
- extern struct pci_ops titan_pci_ops;
- extern void titan_init_arch(void);
- extern void titan_kill_arch(int);
--extern void titan_machine_check(u64, u64);
-+extern void titan_machine_check(unsigned long, unsigned long);
- extern void titan_pci_tbi(struct pci_controller *, dma_addr_t, dma_addr_t);
- extern struct _alpha_agp_info *titan_agp_info(void);
- 
+=20
+ static void mmc_power_off(struct mmc_host *host)
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from josemariafg@gmail.com are
 
-origin.patch
 linux-next.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-make-sure-nobodys-leaking-resources.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
