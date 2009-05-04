@@ -1,145 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-binfmt_aout-fix.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:13:24 -0700
-Message-ID: <200905042013.n44KDOS5022507@imap1.linux-foundation.org>
+Subject: [merged] forcedeth-add-clock-gating-feature.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:13:58 -0700
+Message-ID: <200905042013.n44KDwxN022843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45712 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58305 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753618AbZEDUQC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:16:02 -0400
+	by vger.kernel.org with ESMTP id S1753649AbZEDUQH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:16:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, rth@twiddle.net, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: aabdulla@nvidia.com, florian@openwrt.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: binfmt_aout fix
+     forcedeth: add clock gating feature
 has been removed from the -mm tree.  Its filename was
-     alpha-binfmt_aout-fix.patch
+     forcedeth-add-clock-gating-feature.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: binfmt_aout fix
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: forcedeth: add clock gating feature
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-This fixes the problem introduced by commit 3bfacef412 (get rid of
-special-casing the /sbin/loader on alpha): osf/1 ecoff binary segfaults
-when binfmt_aout built as module.  That happens because aout binary
-handler gets on the top of the binfmt list due to late registration, and
-kernel attempts to execute the binary without preparatory work that must
-be done by binfmt_loader.
+Add support for clock gating the tx/rx engines which is available on
+certain chipsets.
 
-Fixed by changing the registration order of the default binfmt handlers
-using list_add_tail() and introducing insert_binfmt() function which
-places new handler on the top of the binfmt list.  This might be generally
-useful for installing arch-specific frontends for default handlers or just
-for overriding them.
-
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Richard Henderson <rth@twiddle.net
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/Makefile        |    6 +++++-
- arch/alpha/kernel/binfmt_loader.c |    2 +-
- fs/exec.c                         |    7 ++++---
- include/linux/binfmts.h           |   14 +++++++++++++-
- 4 files changed, 23 insertions(+), 6 deletions(-)
+ drivers/net/forcedeth.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN arch/alpha/kernel/Makefile~alpha-binfmt_aout-fix arch/alpha/kernel/Makefile
---- a/arch/alpha/kernel/Makefile~alpha-binfmt_aout-fix
-+++ a/arch/alpha/kernel/Makefile
-@@ -8,7 +8,7 @@ EXTRA_CFLAGS	:= -Werror -Wno-sign-compar
- 
- obj-y    := entry.o traps.o process.o init_task.o osf_sys.o irq.o \
- 	    irq_alpha.o signal.o setup.o ptrace.o time.o \
--	    alpha_ksyms.o systbls.o err_common.o io.o binfmt_loader.o
-+	    alpha_ksyms.o systbls.o err_common.o io.o
- 
- obj-$(CONFIG_VGA_HOSE)	+= console.o
- obj-$(CONFIG_SMP)	+= smp.o
-@@ -43,6 +43,10 @@ else
- # Misc support
- obj-$(CONFIG_ALPHA_SRM)		+= srmcons.o
- 
-+ifdef CONFIG_BINFMT_AOUT
-+obj-y	+= binfmt_loader.o
-+endif
-+
- # Core logic support
- obj-$(CONFIG_ALPHA_APECS)	+= core_apecs.o
- obj-$(CONFIG_ALPHA_CIA)		+= core_cia.o
-diff -puN arch/alpha/kernel/binfmt_loader.c~alpha-binfmt_aout-fix arch/alpha/kernel/binfmt_loader.c
---- a/arch/alpha/kernel/binfmt_loader.c~alpha-binfmt_aout-fix
-+++ a/arch/alpha/kernel/binfmt_loader.c
-@@ -46,6 +46,6 @@ static struct linux_binfmt loader_format
- 
- static int __init init_loader_binfmt(void)
- {
--	return register_binfmt(&loader_format);
-+	return insert_binfmt(&loader_format);
- }
- arch_initcall(init_loader_binfmt);
-diff -puN fs/exec.c~alpha-binfmt_aout-fix fs/exec.c
---- a/fs/exec.c~alpha-binfmt_aout-fix
-+++ a/fs/exec.c
-@@ -69,17 +69,18 @@ int suid_dumpable = 0;
- static LIST_HEAD(formats);
- static DEFINE_RWLOCK(binfmt_lock);
- 
--int register_binfmt(struct linux_binfmt * fmt)
-+int __register_binfmt(struct linux_binfmt * fmt, int insert)
- {
- 	if (!fmt)
- 		return -EINVAL;
- 	write_lock(&binfmt_lock);
--	list_add(&fmt->lh, &formats);
-+	insert ? list_add(&fmt->lh, &formats) :
-+		 list_add_tail(&fmt->lh, &formats);
- 	write_unlock(&binfmt_lock);
- 	return 0;	
- }
- 
--EXPORT_SYMBOL(register_binfmt);
-+EXPORT_SYMBOL(__register_binfmt);
- 
- void unregister_binfmt(struct linux_binfmt * fmt)
- {
-diff -puN include/linux/binfmts.h~alpha-binfmt_aout-fix include/linux/binfmts.h
---- a/include/linux/binfmts.h~alpha-binfmt_aout-fix
-+++ a/include/linux/binfmts.h
-@@ -82,7 +82,19 @@ struct linux_binfmt {
- 	int hasvdso;
+diff -puN drivers/net/forcedeth.c~forcedeth-add-clock-gating-feature drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-add-clock-gating-feature
++++ a/drivers/net/forcedeth.c
+@@ -343,6 +343,7 @@ enum {
+ #define NVREG_POWERSTATE2_POWERUP_MASK		0x0F15
+ #define NVREG_POWERSTATE2_POWERUP_REV_A3	0x0001
+ #define NVREG_POWERSTATE2_PHY_RESET		0x0004
++#define NVREG_POWERSTATE2_GATE_CLOCKS		0x0F00
  };
  
--extern int register_binfmt(struct linux_binfmt *);
-+extern int __register_binfmt(struct linux_binfmt *fmt, int insert);
-+
-+/* Registration of default binfmt handlers */
-+static inline int register_binfmt(struct linux_binfmt *fmt)
-+{
-+	return __register_binfmt(fmt, 0);
-+}
-+/* Same as above, but adds a new binfmt at the top of the list */
-+static inline int insert_binfmt(struct linux_binfmt *fmt)
-+{
-+	return __register_binfmt(fmt, 1);
-+}
-+
- extern void unregister_binfmt(struct linux_binfmt *);
+ /* Big endian: should work, but is untested */
+@@ -1017,6 +1018,23 @@ static int using_multi_irqs(struct net_d
+ 		return 1;
+ }
  
- extern int prepare_binprm(struct linux_binprm *);
++static void nv_txrx_gate(struct net_device *dev, bool gate)
++{
++	struct fe_priv *np = get_nvpriv(dev);
++	u8 __iomem *base = get_hwbase(dev);
++	u32 powerstate;
++
++	if (!np->mac_in_use &&
++	    (np->driver_data & DEV_HAS_POWER_CNTRL)) {
++		powerstate = readl(base + NvRegPowerState2);
++		if (gate)
++			powerstate |= NVREG_POWERSTATE2_GATE_CLOCKS;
++		else
++			powerstate &= ~NVREG_POWERSTATE2_GATE_CLOCKS;
++		writel(powerstate,base + NvRegPowerState2);
++	}
++}
++
+ static void nv_enable_irq(struct net_device *dev)
+ {
+ 	struct fe_priv *np = get_nvpriv(dev);
+@@ -3394,12 +3412,14 @@ static void nv_linkchange(struct net_dev
+ 		if (!netif_carrier_ok(dev)) {
+ 			netif_carrier_on(dev);
+ 			printk(KERN_INFO "%s: link up.\n", dev->name);
++			nv_txrx_gate(dev, false);
+ 			nv_start_rx(dev);
+ 		}
+ 	} else {
+ 		if (netif_carrier_ok(dev)) {
+ 			netif_carrier_off(dev);
+ 			printk(KERN_INFO "%s: link down.\n", dev->name);
++			nv_txrx_gate(dev, true);
+ 			nv_stop_rx(dev);
+ 		}
+ 	}
+@@ -5327,6 +5347,7 @@ static int nv_open(struct net_device *de
+ 	mii_rw(dev, np->phyaddr, MII_BMCR,
+ 	       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ) & ~BMCR_PDOWN);
+ 
++	nv_txrx_gate(dev, false);
+ 	/* erase previous misconfiguration */
+ 	if (np->driver_data & DEV_HAS_POWER_CNTRL)
+ 		nv_mac_reset(dev);
+@@ -5514,12 +5535,14 @@ static int nv_close(struct net_device *d
+ 	nv_drain_rxtx(dev);
+ 
+ 	if (np->wolenabled) {
++		nv_txrx_gate(dev, false);
+ 		writel(NVREG_PFF_ALWAYS|NVREG_PFF_MYADDR, base + NvRegPacketFilterFlags);
+ 		nv_start_rx(dev);
+ 	} else {
+ 		/* power down phy */
+ 		mii_rw(dev, np->phyaddr, MII_BMCR,
+ 		       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ)|BMCR_PDOWN);
++		nv_txrx_gate(dev, true);
+ 	}
+ 
+ 	/* FIXME: power down nic */
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
-origin.patch
 linux-next.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-make-sure-nobodys-leaking-resources.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
 
