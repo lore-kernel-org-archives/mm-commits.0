@@ -1,160 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-mem_cgroup_shrink_usage.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:12:50 -0700
-Message-ID: <200905042012.n44KCorg022174@imap1.linux-foundation.org>
+Subject: [merged] time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:13:47 -0700
+Message-ID: <200905042013.n44KDlSk022735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52227 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51018 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753426AbZEDUTF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:19:05 -0400
+	by vger.kernel.org with ESMTP id S1751667AbZEDUW6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:22:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.cn, menage@google.com, rientjes@google.com, yam
+To: johnstul@us.ibm.com, cooloney@kernel.org, geert@linux-m68k.org, ink@jurassic.park.msu.ru, lethal@linux-sh.org, magnus.damm@gmail.com, rmk@arm.linux.org.uk, rth@twiddle.net, starvik@ax
 
 
 The patch titled
-     memcg: fix mem_cgroup_shrink_usage()
+     time: create arch_gettimeoffset infrastructure for use in the generic timekeeping core.
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-mem_cgroup_shrink_usage.patch
+     time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix mem_cgroup_shrink_usage()
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: time: create arch_gettimeoffset infrastructure for use in the generic timekeeping core.
+From: john stultz <johnstul@us.ibm.com>
 
-Current mem_cgroup_shrink_usage() has two problems.
+Some arches don't supply their own clocksource.  This is mainly the case
+in architectures that get their inter-tick times by reading the counter on
+their interval timer.  Since these timers wrap every tick, they're not
+really useful as clocksources.  Wrapping them to act like one is possible
+but not very efficient.  So we provide a callout these arches can
+implement for use with the jiffies clocksource to provide finer then tick
+granular time.
 
-1. It doesn't call mem_cgroup_out_of_memory and doesn't update
-   last_oom_jiffies, so pagefault_out_of_memory invokes global OOM.
-
-2. Considering hierarchy, shrinking has to be done from the
-   mem_over_limit, not from the memcg which the page would be charged to.
-
-mem_cgroup_try_charge_swapin() does all of these things properly, so we
-use it and call cancel_charge_swapin when it succeeded.
-
-The name of "shrink_usage" is not appropriate for this behavior, so we
-change it too.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.cn>
-Cc: Paul Menage <menage@google.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Magnus Damm <magnus.damm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- mm/memcontrol.c            |   33 ++++++++++++---------------------
- mm/shmem.c                 |    8 ++++++--
- 3 files changed, 20 insertions(+), 25 deletions(-)
+ include/linux/time.h      |   15 +++++++++++++++
+ kernel/time/timekeeping.c |    7 +++++++
+ 2 files changed, 22 insertions(+)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-mem_cgroup_shrink_usage include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-mem_cgroup_shrink_usage
-+++ a/include/linux/memcontrol.h
-@@ -56,7 +56,7 @@ extern void mem_cgroup_move_lists(struct
- 				  enum lru_list from, enum lru_list to);
- extern void mem_cgroup_uncharge_page(struct page *page);
- extern void mem_cgroup_uncharge_cache_page(struct page *page);
--extern int mem_cgroup_shrink_usage(struct page *page,
-+extern int mem_cgroup_shmem_charge_fallback(struct page *page,
- 			struct mm_struct *mm, gfp_t gfp_mask);
+diff -puN include/linux/time.h~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core include/linux/time.h
+--- a/include/linux/time.h~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core
++++ a/include/linux/time.h
+@@ -113,6 +113,21 @@ struct timespec current_kernel_time(void
+ #define CURRENT_TIME		(current_kernel_time())
+ #define CURRENT_TIME_SEC	((struct timespec) { get_seconds(), 0 })
  
- extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
-@@ -155,7 +155,7 @@ static inline void mem_cgroup_uncharge_c
- {
- }
++/* Some architectures do not supply their own clocksource.
++ * This is mainly the case in architectures that get their
++ * inter-tick times by reading the counter on their interval
++ * timer. Since these timers wrap every tick, they're not really
++ * useful as clocksources. Wrapping them to act like one is possible
++ * but not very efficient. So we provide a callout these arches
++ * can implement for use with the jiffies clocksource to provide
++ * finer then tick granular time.
++ */
++#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
++extern u32 arch_gettimeoffset(void);
++#else
++#define arch_gettimeoffset() (0)
++#endif
++
+ extern void do_gettimeofday(struct timeval *tv);
+ extern int do_settimeofday(struct timespec *tv);
+ extern int do_sys_settimeofday(struct timespec *tv, struct timezone *tz);
+diff -puN kernel/time/timekeeping.c~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~time-create-arch_gettimeoffset-infrastructure-for-use-in-the-generic-timekeeping-core
++++ a/kernel/time/timekeeping.c
+@@ -77,6 +77,10 @@ static void clocksource_forward_now(void
+ 	clock->cycle_last = cycle_now;
  
--static inline int mem_cgroup_shrink_usage(struct page *page,
-+static inline int mem_cgroup_shmem_charge_fallback(struct page *page,
- 			struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	return 0;
-diff -puN mm/memcontrol.c~memcg-fix-mem_cgroup_shrink_usage mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-mem_cgroup_shrink_usage
-+++ a/mm/memcontrol.c
-@@ -1617,37 +1617,28 @@ void mem_cgroup_end_migration(struct mem
- }
+ 	nsec = cyc2ns(clock, cycle_delta);
++
++	/* If arch requires, add in gettimeoffset() */
++	nsec += arch_gettimeoffset();
++
+ 	timespec_add_ns(&xtime, nsec);
  
- /*
-- * A call to try to shrink memory usage under specified resource controller.
-- * This is typically used for page reclaiming for shmem for reducing side
-- * effect of page allocation from shmem, which is used by some mem_cgroup.
-+ * A call to try to shrink memory usage on charge failure at shmem's swapin.
-+ * Calling hierarchical_reclaim is not enough because we should update
-+ * last_oom_jiffies to prevent pagefault_out_of_memory from invoking global OOM.
-+ * Moreover considering hierarchy, we should reclaim from the mem_over_limit,
-+ * not from the memcg which this page would be charged to.
-+ * try_charge_swapin does all of these works properly.
-  */
--int mem_cgroup_shrink_usage(struct page *page,
-+int mem_cgroup_shmem_charge_fallback(struct page *page,
- 			    struct mm_struct *mm,
- 			    gfp_t gfp_mask)
- {
- 	struct mem_cgroup *mem = NULL;
--	int progress = 0;
--	int retry = MEM_CGROUP_RECLAIM_RETRIES;
-+	int ret;
+ 	nsec = ((s64)cycle_delta * clock->mult_orig) >> clock->shift;
+@@ -111,6 +115,9 @@ void getnstimeofday(struct timespec *ts)
+ 		/* convert to nanoseconds: */
+ 		nsecs = cyc2ns(clock, cycle_delta);
  
- 	if (mem_cgroup_disabled())
- 		return 0;
--	if (page)
--		mem = try_get_mem_cgroup_from_swapcache(page);
--	if (!mem && mm)
--		mem = try_get_mem_cgroup_from_mm(mm);
--	if (unlikely(!mem))
--		return 0;
++		/* If arch requires, add in gettimeoffset() */
++		nsecs += arch_gettimeoffset();
++
+ 	} while (read_seqretry(&xtime_lock, seq));
  
--	do {
--		progress = mem_cgroup_hierarchical_reclaim(mem,
--					gfp_mask, true, false);
--		progress += mem_cgroup_check_under_limit(mem);
--	} while (!progress && --retry);
-+	ret = mem_cgroup_try_charge_swapin(mm, page, gfp_mask, &mem);
-+	if (!ret)
-+		mem_cgroup_cancel_charge_swapin(mem); /* it does !mem check */
- 
--	css_put(&mem->css);
--	if (!retry)
--		return -ENOMEM;
--	return 0;
-+	return ret;
- }
- 
- static DEFINE_MUTEX(set_limit_mutex);
-diff -puN mm/shmem.c~memcg-fix-mem_cgroup_shrink_usage mm/shmem.c
---- a/mm/shmem.c~memcg-fix-mem_cgroup_shrink_usage
-+++ a/mm/shmem.c
-@@ -1340,8 +1340,12 @@ repeat:
- 			shmem_swp_unmap(entry);
- 			spin_unlock(&info->lock);
- 			if (error == -ENOMEM) {
--				/* allow reclaim from this memory cgroup */
--				error = mem_cgroup_shrink_usage(swappage,
-+				/*
-+				 * reclaim from proper memory cgroup and
-+				 * call memcg's OOM if needed.
-+				 */
-+				error = mem_cgroup_shmem_charge_fallback(
-+								swappage,
- 								current->mm,
- 								gfp);
- 				if (error) {
+ 	timespec_add_ns(ts, nsecs);
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-origin.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
-memcg-remove-mem_cgroup_cache_charge_swapin.patch
+linux-next.patch
+time-move-calc_load-call-out-from-xtime_lock-protection.patch
+time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
 
