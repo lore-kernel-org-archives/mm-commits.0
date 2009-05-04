@@ -1,119 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-serial-ftdi_sio-fix-reference-counting-of-ftdi_private.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:14:06 -0700
-Message-ID: <200905042014.n44KE6cF022955@imap1.linux-foundation.org>
+Subject: [merged] of-make-of_unregister_platform_driver-common-code.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:13:26 -0700
+Message-ID: <200905042013.n44KDQ7P022512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752588AbZEDUSW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:18:22 -0400
+	by vger.kernel.org with ESMTP id S1753715AbZEDUSY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:18:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, daniel@caiaq.de, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: grant.likely@secretlab.ca, benh@kernel.crashing.org, davem@davemloft.net, monstr@monstr.eu, rpurdie@rpsys.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-serial: ftdi_sio: fix reference counting of ftdi_private
+     of: make of_(un)register_platform_driver common code
 has been removed from the -mm tree.  Its filename was
-     usb-serial-ftdi_sio-fix-reference-counting-of-ftdi_private.patch
+     of-make-of_unregister_platform_driver-common-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-serial: ftdi_sio: fix reference counting of ftdi_private
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: of: make of_(un)register_platform_driver common code
+From: Grant Likely <grant.likely@secretlab.ca>
 
-This patch (as1238) adds proper reference counting for ftdi_sio's private
-data structure.  Without it, the driver will free the structure while it
-is still in use if the user unplugs the serial device before closing the
-device file.
+Some drivers using of_register_platform_driver() wrapper break on sparc
+because the wrapper isn't in the header file.  This patch moves it from
+Microblaze and PowerPC implementations and makes it common code.
 
-The patch also replaces a slightly dangerous
-cancel_delayed_work/flush_scheduled_work pair with
-cancel_delayed_work_sync, which is always safer.
+Fixes this sparc64 allmodconfig build error (at least):
 
-Reported-by: Daniel Mack <daniel@caiaq.de>
-Tested-by: Daniel Mack <daniel@caiaq.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
+drivers/leds/leds-gpio.c: In function `gpio_led_init':
+drivers/leds/leds-gpio.c:295: error: implicit declaration of function `of_register_platform_driver'
+drivers/leds/leds-gpio.c: In function `gpio_led_exit':
+drivers/leds/leds-gpio.c:311: error: implicit declaration of function `of_unregister_platform_driver'
+
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ftdi_sio.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ arch/microblaze/include/asm/of_platform.h |   10 ----------
+ arch/powerpc/include/asm/of_platform.h    |   10 ----------
+ include/linux/of_platform.h               |   10 ++++++++++
+ 3 files changed, 10 insertions(+), 20 deletions(-)
 
-diff -puN drivers/usb/serial/ftdi_sio.c~usb-serial-ftdi_sio-fix-reference-counting-of-ftdi_private drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~usb-serial-ftdi_sio-fix-reference-counting-of-ftdi_private
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -56,6 +56,7 @@ static __u16 vendor = FTDI_VID;
- static __u16 product;
+diff -puN arch/microblaze/include/asm/of_platform.h~of-make-of_unregister_platform_driver-common-code arch/microblaze/include/asm/of_platform.h
+--- a/arch/microblaze/include/asm/of_platform.h~of-make-of_unregister_platform_driver-common-code
++++ a/arch/microblaze/include/asm/of_platform.h
+@@ -36,16 +36,6 @@ static const struct of_device_id of_defa
+ 	{},
+ };
  
- struct ftdi_private {
-+	struct kref kref;
- 	ftdi_chip_type_t chip_type;
- 				/* type of device, either SIO or FT8U232AM */
- 	int baud_base;		/* baud base clock for divisor setting */
-@@ -1423,6 +1424,7 @@ static int ftdi_sio_port_probe(struct us
- 		return -ENOMEM;
- 	}
+-/* Platform drivers register/unregister */
+-static inline int of_register_platform_driver(struct of_platform_driver *drv)
+-{
+-	return of_register_driver(drv, &of_platform_bus_type);
+-}
+-static inline void of_unregister_platform_driver(struct of_platform_driver *drv)
+-{
+-	of_unregister_driver(drv);
+-}
+-
+ /* Platform devices and busses creation */
+ extern struct of_device *of_platform_device_create(struct device_node *np,
+ 						const char *bus_id,
+diff -puN arch/powerpc/include/asm/of_platform.h~of-make-of_unregister_platform_driver-common-code arch/powerpc/include/asm/of_platform.h
+--- a/arch/powerpc/include/asm/of_platform.h~of-make-of_unregister_platform_driver-common-code
++++ a/arch/powerpc/include/asm/of_platform.h
+@@ -11,16 +11,6 @@
+  *
+  */
  
-+	kref_init(&priv->kref);
- 	spin_lock_init(&priv->rx_lock);
- 	spin_lock_init(&priv->tx_lock);
- 	init_waitqueue_head(&priv->delta_msr_wait);
-@@ -1539,6 +1541,13 @@ static void ftdi_shutdown(struct usb_ser
- 	dbg("%s", __func__);
- }
+-/* Platform drivers register/unregister */
+-static inline int of_register_platform_driver(struct of_platform_driver *drv)
+-{
+-	return of_register_driver(drv, &of_platform_bus_type);
+-}
+-static inline void of_unregister_platform_driver(struct of_platform_driver *drv)
+-{
+-	of_unregister_driver(drv);
+-}
+-
+ /* Platform devices and busses creation */
+ extern struct of_device *of_platform_device_create(struct device_node *np,
+ 						   const char *bus_id,
+diff -puN include/linux/of_platform.h~of-make-of_unregister_platform_driver-common-code include/linux/of_platform.h
+--- a/include/linux/of_platform.h~of-make-of_unregister_platform_driver-common-code
++++ a/include/linux/of_platform.h
+@@ -51,6 +51,16 @@ extern int of_register_driver(struct of_
+ 			      struct bus_type *bus);
+ extern void of_unregister_driver(struct of_platform_driver *drv);
  
-+static void ftdi_sio_priv_release(struct kref *k)
++/* Platform drivers register/unregister */
++static inline int of_register_platform_driver(struct of_platform_driver *drv)
 +{
-+	struct ftdi_private *priv = container_of(k, struct ftdi_private, kref);
-+
-+	kfree(priv);
++	return of_register_driver(drv, &of_platform_bus_type);
++}
++static inline void of_unregister_platform_driver(struct of_platform_driver *drv)
++{
++	of_unregister_driver(drv);
 +}
 +
- static int ftdi_sio_port_remove(struct usb_serial_port *port)
- {
- 	struct ftdi_private *priv = usb_get_serial_port_data(port);
-@@ -1553,7 +1562,7 @@ static int ftdi_sio_port_remove(struct u
+ #include <asm/of_platform.h>
  
- 	if (priv) {
- 		usb_set_serial_port_data(port, NULL);
--		kfree(priv);
-+		kref_put(&priv->kref, ftdi_sio_priv_release);
- 	}
- 
- 	return 0;
-@@ -1618,7 +1627,8 @@ static int ftdi_open(struct tty_struct *
- 		dev_err(&port->dev,
- 			"%s - failed submitting read urb, error %d\n",
- 			__func__, result);
--
-+	else
-+		kref_get(&priv->kref);
- 
- 	return result;
- } /* ftdi_open */
-@@ -1665,11 +1675,11 @@ static void ftdi_close(struct usb_serial
- 
- 
- 	/* cancel any scheduled reading */
--	cancel_delayed_work(&priv->rx_work);
--	flush_scheduled_work();
-+	cancel_delayed_work_sync(&priv->rx_work);
- 
- 	/* shutdown our bulk read */
- 	usb_kill_urb(port->read_urb);
-+	kref_put(&priv->kref, ftdi_sio_priv_release);
- } /* ftdi_close */
- 
- 
+ extern struct of_device *of_find_device_by_node(struct device_node *np);
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from grant.likely@secretlab.ca are
 
+origin.patch
 linux-next.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
+mpc52xx_psc_spi-convert-to-cs_control-callback.patch
 
