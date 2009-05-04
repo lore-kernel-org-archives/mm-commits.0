@@ -1,132 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-some-microsd-cards-are-not-recognized-by-pcixx12-sda-controller.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:13:55 -0700
-Message-ID: <200905042013.n44KDtOV022840@imap1.linux-foundation.org>
+Subject: [merged] alpha-futex-implementation.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:13:22 -0700
+Message-ID: <200905042013.n44KDMVD022496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753860AbZEDUQI (ORCPT
+	by vger.kernel.org with ESMTP id S1753052AbZEDUQI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:16:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josemariafg@gmail.com, drzeus@drzeus.cx, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, rth@twiddle.net, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: some microSD cards are not recognized by PCIxx12 SDA controll=
-er
+     alpha: futex implementation
 has been removed from the -mm tree.  Its filename was
-     mmc-some-microsd-cards-are-not-recognized-by-pcixx12-sda-controlle=
-r.patch
+     alpha-futex-implementation.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: some microSD cards are not recognized by PCIxx12 SDA cont=
-roller
-=46rom: Jos=E9 M. Fern=E1ndez <josemariafg@gmail.com>
+Subject: alpha: futex implementation
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-My working laptop is a Toshiba Tecra M5 with Core2 Duo T7400 and 2GB of
-memory.  Since I'm using it I have found that some microSD cards (using
-their size adapter) are not recognized when they are inserted in the Te=
-cra
-M5 SD slot.  Now I own one of those cards (a Transcend 2GB
-MM8GR02GUACU-PA), which works well with Windows XP and Toshiba drivers.=
-=20
-Looking for a fix I have done some web research about similar laptop
-models, and following the clues I found next HTML page:
-
-http://list.drzeus.cx/pipermail/sdhci-devel/2007-December/002089.html
-
-about a kernel patch related to the SD controller in my laptop, which
-involves a change on a mmc_delay call on controller startup. The
-lspci -vv description for the SD controller is:
-
-06:0b.3 SD Host controller: Texas Instruments PCIxx12 SDA Standard Comp=
-liant SD Host Controller (prog-if 01)
-        Subsystem: Toshiba America Info Systems Device 0001
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- Par=
-Err- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbo=
-rt- <TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 64 (1750ns min, 1000ns max), Cache Line Size: 32 bytes
-        Interrupt: pin D routed to IRQ 23
-        Region 0: Memory at ff9ff700 (32-bit, non-prefetchable) [size=3D=
-256]
-        Capabilities: [80] Power Management version 2
-                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D0mA PME(D0+,D1=
-+,D2+,D3hot+,D3cold-)
-                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
-        Kernel driver in use: sdhci-pci
-        Kernel modules: sdhci-pci
-
-When I applied the proposed change from that patch on mmc_delay after
-MMC_POWER_ON, kernel started recognizing the microSD card, but with err=
-ors
-I have seen with other SD cards:
-
-=46eb 21 18:39:25 olympo mmc0: card claims to support voltages below th=
-e defined range. These will be ignored.
-=46eb 21 18:39:25 olympo mmc0: SDIO card claims to support the incomple=
-tely defined 'low voltage range'. This will be ignored.
-=46eb 21 18:39:25 olympo mmc0: error -110 whilst initialising SDIO card
-
-So, I extrapolated the change and, by chance, I found the fix, which
-consist on raising the mmc_delay from 2 to 10 both on MMC_POWER_UP and
-MMC_POWER_ON.  I have been using the kernel with this fix for some week=
-s,
-with no problem.
-
-I don't know whether this patch can break something in the behavior of
-other SD controllers, but at least it works for my laptop.
-
-Signed-off-by: Jos=E9 M. Fern=E1ndez <josemariafg@gmail.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Richard Henderson <rth@twiddle.net
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/alpha/include/asm/barrier.h |    2 
+ arch/alpha/include/asm/futex.h   |  118 ++++++++++++++++++++++++++++-
+ 2 files changed, 116 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/core/core.c~mmc-some-microsd-cards-are-not-recogn=
-ized-by-pcixx12-sda-controller drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-some-microsd-cards-are-not-recognized=
--by-pcixx12-sda-controller
-+++ a/drivers/mmc/core/core.c
-@@ -712,7 +712,7 @@ static void mmc_power_up(struct mmc_host
- 	 * This delay should be sufficient to allow the power supply
- 	 * to reach the minimum voltage.
- 	 */
--	mmc_delay(2);
-+	mmc_delay(10);
-=20
- 	host->ios.clock =3D host->f_min;
- 	host->ios.power_mode =3D MMC_POWER_ON;
-@@ -722,7 +722,7 @@ static void mmc_power_up(struct mmc_host
- 	 * This delay must be at least 74 clock sizes, or 1 ms, or the
- 	 * time required to reach a stable voltage.
- 	 */
--	mmc_delay(2);
-+	mmc_delay(10);
- }
-=20
- static void mmc_power_off(struct mmc_host *host)
+diff -puN arch/alpha/include/asm/barrier.h~alpha-futex-implementation arch/alpha/include/asm/barrier.h
+--- a/arch/alpha/include/asm/barrier.h~alpha-futex-implementation
++++ a/arch/alpha/include/asm/barrier.h
+@@ -16,11 +16,13 @@ __asm__ __volatile__("wmb": : :"memory")
+ __asm__ __volatile__("mb": : :"memory")
+ 
+ #ifdef CONFIG_SMP
++#define __ASM_SMP_MB	"\tmb\n"
+ #define smp_mb()	mb()
+ #define smp_rmb()	rmb()
+ #define smp_wmb()	wmb()
+ #define smp_read_barrier_depends()	read_barrier_depends()
+ #else
++#define __ASM_SMP_MB
+ #define smp_mb()	barrier()
+ #define smp_rmb()	barrier()
+ #define smp_wmb()	barrier()
+diff -puN arch/alpha/include/asm/futex.h~alpha-futex-implementation arch/alpha/include/asm/futex.h
+--- a/arch/alpha/include/asm/futex.h~alpha-futex-implementation
++++ a/arch/alpha/include/asm/futex.h
+@@ -1,6 +1,116 @@
+-#ifndef _ASM_FUTEX_H
+-#define _ASM_FUTEX_H
++#ifndef _ASM_ALPHA_FUTEX_H
++#define _ASM_ALPHA_FUTEX_H
+ 
+-#include <asm-generic/futex.h>
++#ifdef __KERNEL__
+ 
+-#endif
++#include <linux/futex.h>
++#include <linux/uaccess.h>
++#include <asm/errno.h>
++#include <asm/barrier.h>
++
++#define __futex_atomic_op(insn, ret, oldval, uaddr, oparg)	\
++	__asm__ __volatile__(					\
++		__ASM_SMP_MB					\
++	"1:	ldl_l	%0,0(%2)\n"				\
++		insn						\
++	"2:	stl_c	%1,0(%2)\n"				\
++	"	beq	%1,4f\n"				\
++	"	mov	$31,%1\n"				\
++	"3:	.subsection 2\n"				\
++	"4:	br	1b\n"					\
++	"	.previous\n"					\
++	"	.section __ex_table,\"a\"\n"			\
++	"	.long	1b-.\n"					\
++	"	lda	$31,3b-1b(%1)\n"			\
++	"	.long	2b-.\n"					\
++	"	lda	$31,3b-2b(%1)\n"			\
++	"	.previous\n"					\
++	:	"=&r" (oldval), "=&r"(ret)			\
++	:	"r" (uaddr), "r"(oparg)				\
++	:	"memory")
++
++static inline int futex_atomic_op_inuser (int encoded_op, int __user *uaddr)
++{
++	int op = (encoded_op >> 28) & 7;
++	int cmp = (encoded_op >> 24) & 15;
++	int oparg = (encoded_op << 8) >> 20;
++	int cmparg = (encoded_op << 20) >> 20;
++	int oldval = 0, ret;
++	if (encoded_op & (FUTEX_OP_OPARG_SHIFT << 28))
++		oparg = 1 << oparg;
++
++	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(int)))
++		return -EFAULT;
++
++	pagefault_disable();
++
++	switch (op) {
++	case FUTEX_OP_SET:
++		__futex_atomic_op("mov %3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	case FUTEX_OP_ADD:
++		__futex_atomic_op("addl %0,%3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	case FUTEX_OP_OR:
++		__futex_atomic_op("or %0,%3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	case FUTEX_OP_ANDN:
++		__futex_atomic_op("andnot %0,%3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	case FUTEX_OP_XOR:
++		__futex_atomic_op("xor %0,%3,%1\n", ret, oldval, uaddr, oparg);
++		break;
++	default:
++		ret = -ENOSYS;
++	}
++
++	pagefault_enable();
++
++	if (!ret) {
++		switch (cmp) {
++		case FUTEX_OP_CMP_EQ: ret = (oldval == cmparg); break;
++		case FUTEX_OP_CMP_NE: ret = (oldval != cmparg); break;
++		case FUTEX_OP_CMP_LT: ret = (oldval < cmparg); break;
++		case FUTEX_OP_CMP_GE: ret = (oldval >= cmparg); break;
++		case FUTEX_OP_CMP_LE: ret = (oldval <= cmparg); break;
++		case FUTEX_OP_CMP_GT: ret = (oldval > cmparg); break;
++		default: ret = -ENOSYS;
++		}
++	}
++	return ret;
++}
++
++static inline int
++futex_atomic_cmpxchg_inatomic(int __user *uaddr, int oldval, int newval)
++{
++	int prev, cmp;
++
++	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(int)))
++		return -EFAULT;
++
++	__asm__ __volatile__ (
++		__ASM_SMP_MB
++	"1:	ldl_l	%0,0(%2)\n"
++	"	cmpeq	%0,%3,%1\n"
++	"	beq	%1,3f\n"
++	"	mov	%4,%1\n"
++	"2:	stl_c	%1,0(%2)\n"
++	"	beq	%1,4f\n"
++	"3:	.subsection 2\n"
++	"4:	br	1b\n"
++	"	.previous\n"
++	"	.section __ex_table,\"a\"\n"
++	"	.long	1b-.\n"
++	"	lda	$31,3b-1b(%0)\n"
++	"	.long	2b-.\n"
++	"	lda	$31,3b-2b(%0)\n"
++	"	.previous\n"
++	:	"=&r"(prev), "=&r"(cmp)
++	:	"r"(uaddr), "r"((long)oldval), "r"(newval)
++	:	"memory");
++
++	return prev;
++}
++
++#endif /* __KERNEL__ */
++#endif /* _ASM_ALPHA_FUTEX_H */
 _
 
-Patches currently in -mm which might be from josemariafg@gmail.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
+origin.patch
 linux-next.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+make-sure-nobodys-leaking-resources.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
