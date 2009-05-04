@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-remove-obsolete-irq_desc_t-typedef.patch added to -mm tree
-Date: Mon, 04 May 2009 15:05:42 -0700
-Message-ID: <200905042205.n44M5gMM027490@imap1.linux-foundation.org>
+Subject: + alpha-remove-obsolete-hw_interrupt_type.patch added to -mm tree
+Date: Mon, 04 May 2009 15:05:47 -0700
+Message-ID: <200905042205.n44M5m8l027504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755929AbZEDWIM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 18:08:12 -0400
+	by vger.kernel.org with ESMTP id S1753644AbZEDWI2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 18:08:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, tony.luck@intel.com
+Cc: tglx@linutronix.de, rth@twiddle.net
 
 
 The patch titled
-     ia64: remove obsolete irq_desc_t typedef
+     alpha: remove obsolete hw_interrupt_type
 has been added to the -mm tree.  Its filename is
-     ia64-remove-obsolete-irq_desc_t-typedef.patch
+     alpha-remove-obsolete-hw_interrupt_type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: remove obsolete irq_desc_t typedef
+Subject: alpha: remove obsolete hw_interrupt_type
 From: Thomas Gleixner <tglx@linutronix.de>
 
 The defines and typedefs (hw_interrupt_type, no_irq_type, irq_desc_t) have
@@ -45,160 +45,333 @@ hit mainline we can remove the defines and typedefs finally.
 
 Impact: cleanup
 
-Convert the last remaining users and remove the typedef.
+Convert the last remaining users to struct irq_chip and remove the
+define.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Richard Henderson <rth@twiddle.net>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/sim/hpsim_irq.c   |    2 +-
- arch/ia64/include/asm/hw_irq.h |    2 +-
- arch/ia64/kernel/iosapic.c     |    6 +++---
- arch/ia64/kernel/irq.c         |    2 +-
- arch/ia64/kernel/irq_ia64.c    |    2 +-
- arch/ia64/kernel/mca.c         |    2 +-
- arch/ia64/kernel/smpboot.c     |    2 +-
- arch/ia64/sn/kernel/irq.c      |    4 ++--
- arch/ia64/xen/irq_xen.c        |    2 +-
- 9 files changed, 12 insertions(+), 12 deletions(-)
+ arch/alpha/kernel/irq_alpha.c     |    2 +-
+ arch/alpha/kernel/irq_i8259.c     |    2 +-
+ arch/alpha/kernel/irq_impl.h      |    2 +-
+ arch/alpha/kernel/irq_pyxis.c     |    2 +-
+ arch/alpha/kernel/irq_srm.c       |    2 +-
+ arch/alpha/kernel/sys_alcor.c     |    2 +-
+ arch/alpha/kernel/sys_cabriolet.c |    2 +-
+ arch/alpha/kernel/sys_dp264.c     |    6 +++---
+ arch/alpha/kernel/sys_eb64p.c     |    2 +-
+ arch/alpha/kernel/sys_eiger.c     |    2 +-
+ arch/alpha/kernel/sys_jensen.c    |    2 +-
+ arch/alpha/kernel/sys_marvel.c    |   10 +++++-----
+ arch/alpha/kernel/sys_mikasa.c    |    2 +-
+ arch/alpha/kernel/sys_noritake.c  |    2 +-
+ arch/alpha/kernel/sys_rawhide.c   |    2 +-
+ arch/alpha/kernel/sys_rx164.c     |    2 +-
+ arch/alpha/kernel/sys_sable.c     |    2 +-
+ arch/alpha/kernel/sys_takara.c    |    2 +-
+ arch/alpha/kernel/sys_titan.c     |    4 ++--
+ arch/alpha/kernel/sys_wildfire.c  |    2 +-
+ 20 files changed, 27 insertions(+), 27 deletions(-)
 
-diff -puN arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/hp/sim/hpsim_irq.c
---- a/arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-irq_desc_t-typedef
-+++ a/arch/ia64/hp/sim/hpsim_irq.c
-@@ -40,7 +40,7 @@ static struct hw_interrupt_type irq_type
- void __init
- hpsim_irq_init (void)
+diff -puN arch/alpha/kernel/irq_alpha.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/irq_alpha.c
+--- a/arch/alpha/kernel/irq_alpha.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/irq_alpha.c
+@@ -227,7 +227,7 @@ struct irqaction timer_irqaction = {
+ 	.name		= "timer",
+ };
+ 
+-static struct hw_interrupt_type rtc_irq_type = {
++static struct irq_chip rtc_irq_type = {
+ 	.typename	= "RTC",
+ 	.startup	= rtc_startup,
+ 	.shutdown	= rtc_enable_disable,
+diff -puN arch/alpha/kernel/irq_i8259.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/irq_i8259.c
+--- a/arch/alpha/kernel/irq_i8259.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/irq_i8259.c
+@@ -83,7 +83,7 @@ i8259a_end_irq(unsigned int irq)
+ 		i8259a_enable_irq(irq);
+ }
+ 
+-struct hw_interrupt_type i8259a_irq_type = {
++struct irq_chip i8259a_irq_type = {
+ 	.typename	= "XT-PIC",
+ 	.startup	= i8259a_startup_irq,
+ 	.shutdown	= i8259a_disable_irq,
+diff -puN arch/alpha/kernel/irq_impl.h~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/irq_impl.h
+--- a/arch/alpha/kernel/irq_impl.h~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/irq_impl.h
+@@ -36,7 +36,7 @@ extern void i8259a_disable_irq(unsigned 
+ extern void i8259a_mask_and_ack_irq(unsigned int);
+ extern unsigned int i8259a_startup_irq(unsigned int);
+ extern void i8259a_end_irq(unsigned int);
+-extern struct hw_interrupt_type i8259a_irq_type;
++extern struct irq_chip i8259a_irq_type;
+ extern void init_i8259a_irqs(void);
+ 
+ extern void handle_irq(int irq);
+diff -puN arch/alpha/kernel/irq_pyxis.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/irq_pyxis.c
+--- a/arch/alpha/kernel/irq_pyxis.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/irq_pyxis.c
+@@ -70,7 +70,7 @@ pyxis_mask_and_ack_irq(unsigned int irq)
+ 	*(vulp)PYXIS_INT_MASK;
+ }
+ 
+-static struct hw_interrupt_type pyxis_irq_type = {
++static struct irq_chip pyxis_irq_type = {
+ 	.typename	= "PYXIS",
+ 	.startup	= pyxis_startup_irq,
+ 	.shutdown	= pyxis_disable_irq,
+diff -puN arch/alpha/kernel/irq_srm.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/irq_srm.c
+--- a/arch/alpha/kernel/irq_srm.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/irq_srm.c
+@@ -48,7 +48,7 @@ srm_end_irq(unsigned int irq)
+ }
+ 
+ /* Handle interrupts from the SRM, assuming no additional weirdness.  */
+-static struct hw_interrupt_type srm_irq_type = {
++static struct irq_chip srm_irq_type = {
+ 	.typename	= "SRM",
+ 	.startup	= srm_startup_irq,
+ 	.shutdown	= srm_disable_irq,
+diff -puN arch/alpha/kernel/sys_alcor.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_alcor.c
+--- a/arch/alpha/kernel/sys_alcor.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_alcor.c
+@@ -89,7 +89,7 @@ alcor_end_irq(unsigned int irq)
+ 		alcor_enable_irq(irq);
+ }
+ 
+-static struct hw_interrupt_type alcor_irq_type = {
++static struct irq_chip alcor_irq_type = {
+ 	.typename	= "ALCOR",
+ 	.startup	= alcor_startup_irq,
+ 	.shutdown	= alcor_disable_irq,
+diff -puN arch/alpha/kernel/sys_cabriolet.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_cabriolet.c
+--- a/arch/alpha/kernel/sys_cabriolet.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_cabriolet.c
+@@ -71,7 +71,7 @@ cabriolet_end_irq(unsigned int irq)
+ 		cabriolet_enable_irq(irq);
+ }
+ 
+-static struct hw_interrupt_type cabriolet_irq_type = {
++static struct irq_chip cabriolet_irq_type = {
+ 	.typename	= "CABRIOLET",
+ 	.startup	= cabriolet_startup_irq,
+ 	.shutdown	= cabriolet_disable_irq,
+diff -puN arch/alpha/kernel/sys_dp264.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_dp264.c
+--- a/arch/alpha/kernel/sys_dp264.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_dp264.c
+@@ -194,7 +194,7 @@ clipper_set_affinity(unsigned int irq, c
+ 	spin_unlock(&dp264_irq_lock);
+ }
+ 
+-static struct hw_interrupt_type dp264_irq_type = {
++static struct irq_chip dp264_irq_type = {
+ 	.typename	= "DP264",
+ 	.startup	= dp264_startup_irq,
+ 	.shutdown	= dp264_disable_irq,
+@@ -205,7 +205,7 @@ static struct hw_interrupt_type dp264_ir
+ 	.set_affinity	= dp264_set_affinity,
+ };
+ 
+-static struct hw_interrupt_type clipper_irq_type = {
++static struct irq_chip clipper_irq_type = {
+ 	.typename	= "CLIPPER",
+ 	.startup	= clipper_startup_irq,
+ 	.shutdown	= clipper_disable_irq,
+@@ -294,7 +294,7 @@ clipper_srm_device_interrupt(unsigned lo
+ }
+ 
+ static void __init
+-init_tsunami_irqs(struct hw_interrupt_type * ops, int imin, int imax)
++init_tsunami_irqs(struct irq_chip * ops, int imin, int imax)
  {
--	irq_desc_t *idesc;
-+	struct irq_desc *idesc;
- 	int i;
+ 	long i;
+ 	for (i = imin; i <= imax; ++i) {
+diff -puN arch/alpha/kernel/sys_eb64p.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_eb64p.c
+--- a/arch/alpha/kernel/sys_eb64p.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_eb64p.c
+@@ -69,7 +69,7 @@ eb64p_end_irq(unsigned int irq)
+ 		eb64p_enable_irq(irq);
+ }
  
- 	for (i = 0; i < NR_IRQS; ++i) {
-diff -puN arch/ia64/include/asm/hw_irq.h~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/include/asm/hw_irq.h
---- a/arch/ia64/include/asm/hw_irq.h~ia64-remove-obsolete-irq_desc_t-typedef
-+++ a/arch/ia64/include/asm/hw_irq.h
-@@ -146,7 +146,7 @@ static inline void ia64_native_resend_ir
-  * Default implementations for the irq-descriptor API:
-  */
+-static struct hw_interrupt_type eb64p_irq_type = {
++static struct irq_chip eb64p_irq_type = {
+ 	.typename	= "EB64P",
+ 	.startup	= eb64p_startup_irq,
+ 	.shutdown	= eb64p_disable_irq,
+diff -puN arch/alpha/kernel/sys_eiger.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_eiger.c
+--- a/arch/alpha/kernel/sys_eiger.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_eiger.c
+@@ -80,7 +80,7 @@ eiger_end_irq(unsigned int irq)
+ 		eiger_enable_irq(irq);
+ }
  
--extern irq_desc_t irq_desc[NR_IRQS];
-+extern struct irq_desc irq_desc[NR_IRQS];
+-static struct hw_interrupt_type eiger_irq_type = {
++static struct irq_chip eiger_irq_type = {
+ 	.typename	= "EIGER",
+ 	.startup	= eiger_startup_irq,
+ 	.shutdown	= eiger_disable_irq,
+diff -puN arch/alpha/kernel/sys_jensen.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_jensen.c
+--- a/arch/alpha/kernel/sys_jensen.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_jensen.c
+@@ -118,7 +118,7 @@ jensen_local_end(unsigned int irq)
+ 		i8259a_end_irq(1);
+ }
  
- #ifndef CONFIG_IA64_GENERIC
- static inline ia64_vector __ia64_irq_to_vector(int irq)
-diff -puN arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/iosapic.c
---- a/arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-irq_desc_t-typedef
-+++ a/arch/ia64/kernel/iosapic.c
-@@ -449,7 +449,7 @@ iosapic_startup_edge_irq (unsigned int i
- static void
- iosapic_ack_edge_irq (unsigned int irq)
+-static struct hw_interrupt_type jensen_local_irq_type = {
++static struct irq_chip jensen_local_irq_type = {
+ 	.typename	= "LOCAL",
+ 	.startup	= jensen_local_startup,
+ 	.shutdown	= jensen_local_shutdown,
+diff -puN arch/alpha/kernel/sys_marvel.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_marvel.c
+--- a/arch/alpha/kernel/sys_marvel.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_marvel.c
+@@ -169,7 +169,7 @@ marvel_irq_noop_return(unsigned int irq)
+ 	return 0; 
+ }
+ 
+-static struct hw_interrupt_type marvel_legacy_irq_type = {
++static struct irq_chip marvel_legacy_irq_type = {
+ 	.typename	= "LEGACY",
+ 	.startup	= marvel_irq_noop_return,
+ 	.shutdown	= marvel_irq_noop,
+@@ -179,7 +179,7 @@ static struct hw_interrupt_type marvel_l
+ 	.end		= marvel_irq_noop,
+ };
+ 
+-static struct hw_interrupt_type io7_lsi_irq_type = {
++static struct irq_chip io7_lsi_irq_type = {
+ 	.typename	= "LSI",
+ 	.startup	= io7_startup_irq,
+ 	.shutdown	= io7_disable_irq,
+@@ -189,7 +189,7 @@ static struct hw_interrupt_type io7_lsi_
+ 	.end		= io7_end_irq,
+ };
+ 
+-static struct hw_interrupt_type io7_msi_irq_type = {
++static struct irq_chip io7_msi_irq_type = {
+ 	.typename	= "MSI",
+ 	.startup	= io7_startup_irq,
+ 	.shutdown	= io7_disable_irq,
+@@ -273,8 +273,8 @@ init_one_io7_msi(struct io7 *io7, unsign
+ 
+ static void __init
+ init_io7_irqs(struct io7 *io7, 
+-	      struct hw_interrupt_type *lsi_ops,
+-	      struct hw_interrupt_type *msi_ops)
++	      struct irq_chip *lsi_ops,
++	      struct irq_chip *msi_ops)
  {
--	irq_desc_t *idesc = irq_desc + irq;
-+	struct irq_desc *idesc = irq_desc + irq;
+ 	long base = (io7->pe << MARVEL_IRQ_VEC_PE_SHIFT) + 16;
+ 	long i;
+diff -puN arch/alpha/kernel/sys_mikasa.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_mikasa.c
+--- a/arch/alpha/kernel/sys_mikasa.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_mikasa.c
+@@ -68,7 +68,7 @@ mikasa_end_irq(unsigned int irq)
+ 		mikasa_enable_irq(irq);
+ }
  
- 	irq_complete_move(irq);
- 	move_native_irq(irq);
-@@ -598,7 +598,7 @@ static int
- register_intr (unsigned int gsi, int irq, unsigned char delivery,
- 	       unsigned long polarity, unsigned long trigger)
+-static struct hw_interrupt_type mikasa_irq_type = {
++static struct irq_chip mikasa_irq_type = {
+ 	.typename	= "MIKASA",
+ 	.startup	= mikasa_startup_irq,
+ 	.shutdown	= mikasa_disable_irq,
+diff -puN arch/alpha/kernel/sys_noritake.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_noritake.c
+--- a/arch/alpha/kernel/sys_noritake.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_noritake.c
+@@ -73,7 +73,7 @@ noritake_end_irq(unsigned int irq)
+                 noritake_enable_irq(irq);
+ }
+ 
+-static struct hw_interrupt_type noritake_irq_type = {
++static struct irq_chip noritake_irq_type = {
+ 	.typename	= "NORITAKE",
+ 	.startup	= noritake_startup_irq,
+ 	.shutdown	= noritake_disable_irq,
+diff -puN arch/alpha/kernel/sys_rawhide.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_rawhide.c
+--- a/arch/alpha/kernel/sys_rawhide.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_rawhide.c
+@@ -135,7 +135,7 @@ rawhide_end_irq(unsigned int irq)
+ 		rawhide_enable_irq(irq);
+ }
+ 
+-static struct hw_interrupt_type rawhide_irq_type = {
++static struct irq_chip rawhide_irq_type = {
+ 	.typename	= "RAWHIDE",
+ 	.startup	= rawhide_startup_irq,
+ 	.shutdown	= rawhide_disable_irq,
+diff -puN arch/alpha/kernel/sys_rx164.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_rx164.c
+--- a/arch/alpha/kernel/sys_rx164.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_rx164.c
+@@ -72,7 +72,7 @@ rx164_end_irq(unsigned int irq)
+ 		rx164_enable_irq(irq);
+ }
+ 
+-static struct hw_interrupt_type rx164_irq_type = {
++static struct irq_chip rx164_irq_type = {
+ 	.typename	= "RX164",
+ 	.startup	= rx164_startup_irq,
+ 	.shutdown	= rx164_disable_irq,
+diff -puN arch/alpha/kernel/sys_sable.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_sable.c
+--- a/arch/alpha/kernel/sys_sable.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_sable.c
+@@ -501,7 +501,7 @@ sable_lynx_mask_and_ack_irq(unsigned int
+ 	spin_unlock(&sable_lynx_irq_lock);
+ }
+ 
+-static struct hw_interrupt_type sable_lynx_irq_type = {
++static struct irq_chip sable_lynx_irq_type = {
+ 	.typename	= "SABLE/LYNX",
+ 	.startup	= sable_lynx_startup_irq,
+ 	.shutdown	= sable_lynx_disable_irq,
+diff -puN arch/alpha/kernel/sys_takara.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_takara.c
+--- a/arch/alpha/kernel/sys_takara.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_takara.c
+@@ -74,7 +74,7 @@ takara_end_irq(unsigned int irq)
+ 		takara_enable_irq(irq);
+ }
+ 
+-static struct hw_interrupt_type takara_irq_type = {
++static struct irq_chip takara_irq_type = {
+ 	.typename	= "TAKARA",
+ 	.startup	= takara_startup_irq,
+ 	.shutdown	= takara_disable_irq,
+diff -puN arch/alpha/kernel/sys_titan.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_titan.c
+--- a/arch/alpha/kernel/sys_titan.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_titan.c
+@@ -183,7 +183,7 @@ titan_srm_device_interrupt(unsigned long
+ 
+ 
+ static void __init
+-init_titan_irqs(struct hw_interrupt_type * ops, int imin, int imax)
++init_titan_irqs(struct irq_chip * ops, int imin, int imax)
  {
--	irq_desc_t *idesc;
-+	struct irq_desc *idesc;
- 	struct hw_interrupt_type *irq_type;
- 	int index;
- 	struct iosapic_rte_info *rte;
-@@ -826,7 +826,7 @@ iosapic_unregister_intr (unsigned int gs
- {
- 	unsigned long flags;
- 	int irq, index;
--	irq_desc_t *idesc;
-+	struct irq_desc *idesc;
- 	u32 low32;
- 	unsigned long trigger, polarity;
- 	unsigned int dest;
-diff -puN arch/ia64/kernel/irq.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/irq.c
---- a/arch/ia64/kernel/irq.c~ia64-remove-obsolete-irq_desc_t-typedef
-+++ a/arch/ia64/kernel/irq.c
-@@ -130,7 +130,7 @@ unsigned int vectors_in_migration[NR_IRQ
-  */
- static void migrate_irqs(void)
- {
--	irq_desc_t *desc;
-+	struct irq_desc *desc;
- 	int 		irq, new_cpu;
+ 	long i;
+ 	for (i = imin; i <= imax; ++i) {
+@@ -192,7 +192,7 @@ init_titan_irqs(struct hw_interrupt_type
+ 	}
+ }
  
- 	for (irq=0; irq < NR_IRQS; irq++) {
-diff -puN arch/ia64/kernel/irq_ia64.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/irq_ia64.c
---- a/arch/ia64/kernel/irq_ia64.c~ia64-remove-obsolete-irq_desc_t-typedef
-+++ a/arch/ia64/kernel/irq_ia64.c
-@@ -627,7 +627,7 @@ static struct irqaction tlb_irqaction = 
- void
- ia64_native_register_percpu_irq (ia64_vector vec, struct irqaction *action)
- {
--	irq_desc_t *desc;
-+	struct irq_desc *desc;
- 	unsigned int irq;
+-static struct hw_interrupt_type titan_irq_type = {
++static struct irq_chip titan_irq_type = {
+        .typename       = "TITAN",
+        .startup        = titan_startup_irq,
+        .shutdown       = titan_disable_irq,
+diff -puN arch/alpha/kernel/sys_wildfire.c~alpha-remove-obsolete-hw_interrupt_type arch/alpha/kernel/sys_wildfire.c
+--- a/arch/alpha/kernel/sys_wildfire.c~alpha-remove-obsolete-hw_interrupt_type
++++ a/arch/alpha/kernel/sys_wildfire.c
+@@ -157,7 +157,7 @@ wildfire_end_irq(unsigned int irq)
+ 		wildfire_enable_irq(irq);
+ }
  
- 	irq = vec;
-diff -puN arch/ia64/kernel/mca.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/mca.c
---- a/arch/ia64/kernel/mca.c~ia64-remove-obsolete-irq_desc_t-typedef
-+++ a/arch/ia64/kernel/mca.c
-@@ -2092,7 +2092,7 @@ ia64_mca_late_init(void)
- 	cpe_poll_timer.function = ia64_mca_cpe_poll;
- 
- 	{
--		irq_desc_t *desc;
-+		struct irq_desc *desc;
- 		unsigned int irq;
- 
- 		if (cpe_vector >= 0) {
-diff -puN arch/ia64/kernel/smpboot.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/smpboot.c
---- a/arch/ia64/kernel/smpboot.c~ia64-remove-obsolete-irq_desc_t-typedef
-+++ a/arch/ia64/kernel/smpboot.c
-@@ -678,7 +678,7 @@ extern void fixup_irqs(void);
- int migrate_platform_irqs(unsigned int cpu)
- {
- 	int new_cpei_cpu;
--	irq_desc_t *desc = NULL;
-+	struct irq_desc *desc = NULL;
- 	const struct cpumask *mask;
- 	int 		retval = 0;
- 
-diff -puN arch/ia64/sn/kernel/irq.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/sn/kernel/irq.c
---- a/arch/ia64/sn/kernel/irq.c~ia64-remove-obsolete-irq_desc_t-typedef
-+++ a/arch/ia64/sn/kernel/irq.c
-@@ -293,7 +293,7 @@ unsigned int sn_local_vector_to_irq(u8 v
- void sn_irq_init(void)
- {
- 	int i;
--	irq_desc_t *base_desc = irq_desc;
-+	struct irq_desc *base_desc = irq_desc;
- 
- 	ia64_first_device_vector = IA64_SN2_FIRST_DEVICE_VECTOR;
- 	ia64_last_device_vector = IA64_SN2_LAST_DEVICE_VECTOR;
-@@ -375,7 +375,7 @@ void sn_irq_fixup(struct pci_dev *pci_de
- 	int cpu = nasid_slice_to_cpuid(nasid, slice);
- #ifdef CONFIG_SMP
- 	int cpuphys;
--	irq_desc_t *desc;
-+	struct irq_desc *desc;
- #endif
- 
- 	pci_dev_get(pci_dev);
-diff -puN arch/ia64/xen/irq_xen.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/xen/irq_xen.c
---- a/arch/ia64/xen/irq_xen.c~ia64-remove-obsolete-irq_desc_t-typedef
-+++ a/arch/ia64/xen/irq_xen.c
-@@ -138,7 +138,7 @@ static void
- __xen_register_percpu_irq(unsigned int cpu, unsigned int vec,
- 			struct irqaction *action, int save)
- {
--	irq_desc_t *desc;
-+	struct irq_desc *desc;
- 	int irq = 0;
- 
- 	if (xen_slab_ready) {
+-static struct hw_interrupt_type wildfire_irq_type = {
++static struct irq_chip wildfire_irq_type = {
+ 	.typename	= "WILDFIRE",
+ 	.startup	= wildfire_startup_irq,
+ 	.shutdown	= wildfire_disable_irq,
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
