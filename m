@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + utrace-core-kill-exclude_xtrace-logic.patch added to -mm tree
-Date: Mon, 04 May 2009 16:32:50 -0700
-Message-ID: <200905042332.n44NWop3016746@imap1.linux-foundation.org>
+Subject: + rcu_sched_grace_period-kill-the-bogus-flush_signals.patch added to -mm tree
+Date: Mon, 04 May 2009 16:35:10 -0700
+Message-ID: <200905042335.n44NZAWE018180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754701AbZEDXev (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:34:51 -0400
+	by vger.kernel.org with ESMTP id S1757905AbZEDXh7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:37:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, roland@redhat.com
+Cc: oleg@redhat.com, mingo@elte.hu, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     utrace-core: kill exclude_xtrace logic
+     rcu_sched_grace_period(): kill the bogus flush_signals()
 has been added to the -mm tree.  Its filename is
-     utrace-core-kill-exclude_xtrace-logic.patch
+     rcu_sched_grace_period-kill-the-bogus-flush_signals.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: utrace-core: kill exclude_xtrace logic
+Subject: rcu_sched_grace_period(): kill the bogus flush_signals()
 From: Oleg Nesterov <oleg@redhat.com>
 
-exclude_utrace() has no callers. exclude_ptrace() is called under
-tasklist_lock + task_lock() but needs utrace->lock.
-
-Remove this logic for now. We will either add utrace-ptrace or rework
-this mutual exclusion later.
+As a kernel thread, rcu_sched_grace_period() runs with all signals
+ignored.  It can never receive a signal even if it sleeps in
+TASK_INTERRUPTIBLE, it needs the explicit allow_signal() to be visible for
+signals.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |   18 +-----------------
- kernel/utrace.c |    8 --------
- 2 files changed, 1 insertion(+), 25 deletions(-)
+ kernel/rcupreempt.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN kernel/ptrace.c~utrace-core-kill-exclude_xtrace-logic kernel/ptrace.c
---- a/kernel/ptrace.c~utrace-core-kill-exclude_xtrace-logic
-+++ a/kernel/ptrace.c
-@@ -16,7 +16,6 @@
- #include <linux/pagemap.h>
- #include <linux/smp_lock.h>
- #include <linux/ptrace.h>
--#include <linux/utrace.h>
- #include <linux/security.h>
- #include <linux/signal.h>
- #include <linux/audit.h>
-@@ -175,14 +174,6 @@ bool ptrace_may_access(struct task_struc
- 	return !err;
- }
+diff -puN kernel/rcupreempt.c~rcu_sched_grace_period-kill-the-bogus-flush_signals kernel/rcupreempt.c
+--- a/kernel/rcupreempt.c~rcu_sched_grace_period-kill-the-bogus-flush_signals
++++ a/kernel/rcupreempt.c
+@@ -1356,17 +1356,11 @@ static int rcu_sched_grace_period(void *
  
--/*
-- * For experimental use of utrace, exclude ptrace on the same task.
-- */
--static inline bool exclude_ptrace(struct task_struct *task)
--{
--	return unlikely(!!task_utrace_flags(task));
--}
--
- int ptrace_attach(struct task_struct *task)
- {
- 	int retval;
-@@ -221,11 +212,6 @@ repeat:
- 		goto repeat;
- 	}
+ 		rcu_ctrlblk.sched_sleep = rcu_sched_sleeping;
+ 		spin_unlock_irqrestore(&rcu_ctrlblk.schedlock, flags);
+-		ret = 0;
++		ret = 0; /* unused */
+ 		__wait_event_interruptible(rcu_ctrlblk.sched_wq,
+ 			rcu_ctrlblk.sched_sleep != rcu_sched_sleeping,
+ 			ret);
  
--	if (exclude_ptrace(task)) {
--		retval = -EBUSY;
--		goto bad;
--	}
--
- 	if (!task->mm)
- 		goto bad;
- 	/* the same process cannot be attached many times */
-@@ -602,9 +588,7 @@ int ptrace_traceme(void)
- 	 */
- repeat:
- 	task_lock(current);
--	if (exclude_ptrace(current)) {
--		ret = -EBUSY;
--	} else if (!(current->ptrace & PT_PTRACED)) {
-+	if (!(current->ptrace & PT_PTRACED)) {
- 		/*
- 		 * See ptrace_attach() comments about the locking here.
- 		 */
-diff -puN kernel/utrace.c~utrace-core-kill-exclude_xtrace-logic kernel/utrace.c
---- a/kernel/utrace.c~utrace-core-kill-exclude_xtrace-logic
-+++ a/kernel/utrace.c
-@@ -108,14 +108,6 @@ static struct utrace_engine *matching_en
- }
+-		/*
+-		 * Signals would prevent us from sleeping, and we cannot
+-		 * do much with them in any case.  So flush them.
+-		 */
+-		if (ret)
+-			flush_signals(current);
+ 		couldsleepnext = 0;
  
- /*
-- * For experimental use, utrace attach is mutually exclusive with ptrace.
-- */
--static inline bool exclude_utrace(struct task_struct *task)
--{
--	return unlikely(!!task->ptrace);
--}
--
--/*
-  * Called without locks, when we might be the first utrace engine to attach.
-  * If this is a newborn thread and we are not the creator, we have to wait
-  * for it.  The creator gets the first chance to attach.  The PF_STARTING
+ 	} while (!kthread_should_stop());
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
+rcu_sched_grace_period-kill-the-bogus-flush_signals.patch
 slow_work_thread-should-do-the-exclusive-wait.patch
 rework-fix-is_single_threaded.patch
 getrusage-fill-ru_maxrss-value.patch
