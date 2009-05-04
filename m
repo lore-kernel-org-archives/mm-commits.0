@@ -1,122 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] of-make-of_unregister_platform_driver-common-code.patch removed from -mm tree
-Date: Mon, 04 May 2009 13:13:26 -0700
-Message-ID: <200905042013.n44KDQ7P022512@imap1.linux-foundation.org>
+Subject: [merged] vmscan-avoid-multiplication-overflow-in-shrink_zone.patch removed from -mm tree
+Date: Mon, 04 May 2009 13:13:38 -0700
+Message-ID: <200905042013.n44KDcDu022624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753715AbZEDUSY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:18:24 -0400
+	by vger.kernel.org with ESMTP id S1753715AbZEDUSf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 16:18:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: grant.likely@secretlab.ca, benh@kernel.crashing.org, davem@davemloft.net, monstr@monstr.eu, rpurdie@rpsys.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     of: make of_(un)register_platform_driver common code
+     vmscan: avoid multiplication overflow in shrink_zone()
 has been removed from the -mm tree.  Its filename was
-     of-make-of_unregister_platform_driver-common-code.patch
+     vmscan-avoid-multiplication-overflow-in-shrink_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: of: make of_(un)register_platform_driver common code
-From: Grant Likely <grant.likely@secretlab.ca>
+Subject: vmscan: avoid multiplication overflow in shrink_zone()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Some drivers using of_register_platform_driver() wrapper break on sparc
-because the wrapper isn't in the header file.  This patch moves it from
-Microblaze and PowerPC implementations and makes it common code.
+Local variable `scan' can overflow on zones which are larger than
 
-Fixes this sparc64 allmodconfig build error (at least):
+	(2G * 4k) / 100 = 80GB.
 
-drivers/leds/leds-gpio.c: In function `gpio_led_init':
-drivers/leds/leds-gpio.c:295: error: implicit declaration of function `of_register_platform_driver'
-drivers/leds/leds-gpio.c: In function `gpio_led_exit':
-drivers/leds/leds-gpio.c:311: error: implicit declaration of function `of_unregister_platform_driver'
+Making it 64-bit on 64-bit will fix that up.
 
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/of_platform.h |   10 ----------
- arch/powerpc/include/asm/of_platform.h    |   10 ----------
- include/linux/of_platform.h               |   10 ++++++++++
- 3 files changed, 10 insertions(+), 20 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/microblaze/include/asm/of_platform.h~of-make-of_unregister_platform_driver-common-code arch/microblaze/include/asm/of_platform.h
---- a/arch/microblaze/include/asm/of_platform.h~of-make-of_unregister_platform_driver-common-code
-+++ a/arch/microblaze/include/asm/of_platform.h
-@@ -36,16 +36,6 @@ static const struct of_device_id of_defa
- 	{},
- };
+diff -puN mm/vmscan.c~vmscan-avoid-multiplication-overflow-in-shrink_zone mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-avoid-multiplication-overflow-in-shrink_zone
++++ a/mm/vmscan.c
+@@ -1471,7 +1471,7 @@ static void shrink_zone(int priority, st
  
--/* Platform drivers register/unregister */
--static inline int of_register_platform_driver(struct of_platform_driver *drv)
--{
--	return of_register_driver(drv, &of_platform_bus_type);
--}
--static inline void of_unregister_platform_driver(struct of_platform_driver *drv)
--{
--	of_unregister_driver(drv);
--}
--
- /* Platform devices and busses creation */
- extern struct of_device *of_platform_device_create(struct device_node *np,
- 						const char *bus_id,
-diff -puN arch/powerpc/include/asm/of_platform.h~of-make-of_unregister_platform_driver-common-code arch/powerpc/include/asm/of_platform.h
---- a/arch/powerpc/include/asm/of_platform.h~of-make-of_unregister_platform_driver-common-code
-+++ a/arch/powerpc/include/asm/of_platform.h
-@@ -11,16 +11,6 @@
-  *
-  */
+ 	for_each_evictable_lru(l) {
+ 		int file = is_file_lru(l);
+-		int scan;
++		unsigned long scan;
  
--/* Platform drivers register/unregister */
--static inline int of_register_platform_driver(struct of_platform_driver *drv)
--{
--	return of_register_driver(drv, &of_platform_bus_type);
--}
--static inline void of_unregister_platform_driver(struct of_platform_driver *drv)
--{
--	of_unregister_driver(drv);
--}
--
- /* Platform devices and busses creation */
- extern struct of_device *of_platform_device_create(struct device_node *np,
- 						   const char *bus_id,
-diff -puN include/linux/of_platform.h~of-make-of_unregister_platform_driver-common-code include/linux/of_platform.h
---- a/include/linux/of_platform.h~of-make-of_unregister_platform_driver-common-code
-+++ a/include/linux/of_platform.h
-@@ -51,6 +51,16 @@ extern int of_register_driver(struct of_
- 			      struct bus_type *bus);
- extern void of_unregister_driver(struct of_platform_driver *drv);
- 
-+/* Platform drivers register/unregister */
-+static inline int of_register_platform_driver(struct of_platform_driver *drv)
-+{
-+	return of_register_driver(drv, &of_platform_bus_type);
-+}
-+static inline void of_unregister_platform_driver(struct of_platform_driver *drv)
-+{
-+	of_unregister_driver(drv);
-+}
-+
- #include <asm/of_platform.h>
- 
- extern struct of_device *of_find_device_by_node(struct device_node *np);
+ 		scan = zone_nr_pages(zone, sc, l);
+ 		if (priority) {
 _
 
-Patches currently in -mm which might be from grant.likely@secretlab.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+mtd-fix-timeout-in-m25p80-driver-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
 leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-mpc52xx_psc_spi-convert-to-cs_control-callback.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
