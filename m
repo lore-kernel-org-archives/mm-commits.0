@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal.patch added to -mm tree
-Date: Mon, 04 May 2009 16:36:15 -0700
-Message-ID: <200905042336.n44NaFuL018857@imap1.linux-foundation.org>
+Subject: + allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch added to -mm tree
+Date: Mon, 04 May 2009 16:37:55 -0700
+Message-ID: <200905042337.n44NbtmZ019866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751830AbZEDXjw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:39:52 -0400
+	by vger.kernel.org with ESMTP id S1754328AbZEDXkD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:40:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, Ronald.Sieber@systec-electronic.com, daniel.krueger@systec-electronic.com, gregkh@suse.de
+Cc: oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     drivers/staging/epl: do not use CLONE_SIGHAND with allow_signal()
+     allow_signal: kill the bogus ->mm check, add a note about CLONE_SIGHAND
 has been added to the -mm tree.  Its filename is
-     drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal.patch
+     allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/epl: do not use CLONE_SIGHAND with allow_signal()
+Subject: allow_signal: kill the bogus ->mm check, add a note about CLONE_SIGHAND
 From: Oleg Nesterov <oleg@redhat.com>
 
-Not sure this patch is really needed since kernel_thread() is deprecated
-(and checkpatch.pl complains).
+allow_signal() checks ->mm == NULL.  Not sure why.  Perhaps to make sure
+current is the kernel thread.  But this helper must not be used unless we
+are the kernel thread, kill this check.
 
-But we should not use kernel_thread(CLONE_SIGHAND) if we are going to play
-with signals.
+Also, document the fact that the CLONE_SIGHAND kthread must not use
+allow_signal(), unless the caller really wants to change the parent's
+->sighand->action as well.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Daniel Krueger <daniel.krueger@systec-electronic.com>
-Cc: Ronald Sieber <Ronald.Sieber@systec-electronic.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/epl/EplSdoUdpu.c         |    3 ++-
- drivers/staging/epl/ShbIpc-LinuxKernel.c |    8 ++++----
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ kernel/exit.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN drivers/staging/epl/EplSdoUdpu.c~drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal drivers/staging/epl/EplSdoUdpu.c
---- a/drivers/staging/epl/EplSdoUdpu.c~drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal
-+++ a/drivers/staging/epl/EplSdoUdpu.c
-@@ -334,7 +334,8 @@ tEplKernel EplSdoUdpuConfig(unsigned lon
- 	}
- 	// create Listen-Thread
- 	SdoUdpInstance_g.m_ThreadHandle =
--	    kernel_thread(EplSdoUdpThread, &SdoUdpInstance_g, CLONE_KERNEL);
-+		kernel_thread(EplSdoUdpThread, &SdoUdpInstance_g,
-+				CLONE_FS | CLONE_FILES);
- 	if (SdoUdpInstance_g.m_ThreadHandle == 0) {
- 		Ret = kEplSdoUdpThreadError;
- 		goto Exit;
-diff -puN drivers/staging/epl/ShbIpc-LinuxKernel.c~drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal drivers/staging/epl/ShbIpc-LinuxKernel.c
---- a/drivers/staging/epl/ShbIpc-LinuxKernel.c~drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal
-+++ a/drivers/staging/epl/ShbIpc-LinuxKernel.c
-@@ -532,8 +532,8 @@ tShbError ShbIpcStartSignalingNewData(tS
- 
- 	//create thread for signalling new data
- 	pShbMemInst->m_tThreadNewDataId =
--	    kernel_thread(ShbIpcThreadSignalNewData, pShbInstance_p,
--			  CLONE_KERNEL);
-+		kernel_thread(ShbIpcThreadSignalNewData, pShbInstance_p,
-+				CLONE_FS | CLONE_FILES);
- 
-       Exit:
- 	return ShbError;
-@@ -636,8 +636,8 @@ tShbError ShbIpcStartSignalingJobReady(t
- 	pShbMemHeader->m_fJobReady = FALSE;
- 	//create thread for signalling new data
- 	pShbMemInst->m_tThreadJobReadyId =
--	    kernel_thread(ShbIpcThreadSignalJobReady, pShbInstance_p,
--			  CLONE_KERNEL);
-+		kernel_thread(ShbIpcThreadSignalJobReady, pShbInstance_p,
-+				CLONE_FS | CLONE_FILES);
-       Exit:
- 	return ShbError;
+diff -puN kernel/exit.c~allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand kernel/exit.c
+--- a/kernel/exit.c~allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand
++++ a/kernel/exit.c
+@@ -370,9 +370,8 @@ static void set_special_pids(struct pid 
  }
+ 
+ /*
+- * Let kernel threads use this to say that they
+- * allow a certain signal (since daemonize() will
+- * have disabled all of them by default).
++ * Let kernel threads use this to say that they allow a certain signal.
++ * Must not be used if kthread was cloned with CLONE_SIGHAND.
+  */
+ int allow_signal(int sig)
+ {
+@@ -380,14 +379,14 @@ int allow_signal(int sig)
+ 		return -EINVAL;
+ 
+ 	spin_lock_irq(&current->sighand->siglock);
++	/* This is only needed for daemonize()'ed kthreads */
+ 	sigdelset(&current->blocked, sig);
+-	if (!current->mm) {
+-		/* Kernel threads handle their own signals.
+-		   Let the signal code know it'll be handled, so
+-		   that they don't get converted to SIGKILL or
+-		   just silently dropped */
+-		current->sighand->action[(sig)-1].sa.sa_handler = (void __user *)2;
+-	}
++	/*
++	 * Kernel threads handle their own signals. Let the signal code
++	 * know it'll be handled, so that they don't get converted to
++	 * SIGKILL or just silently dropped.
++	 */
++	current->sighand->action[(sig)-1].sa.sa_handler = (void __user *)2;
+ 	recalc_sigpending();
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -102,6 +100,7 @@ drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal.patch
 slow_work_thread-should-do-the-exclusive-wait.patch
 rework-fix-is_single_threaded.patch
 getrusage-fill-ru_maxrss-value.patch
+allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
 ptrace-remove-pt_dtrace-from-arch-h8300.patch
 ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
 ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
