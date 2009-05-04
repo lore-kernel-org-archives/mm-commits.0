@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards.patch added to -mm tree
-Date: Mon, 04 May 2009 13:56:15 -0700
-Message-ID: <200905042056.n44KuF41016782@imap1.linux-foundation.org>
+Subject: + spi_mpc83xx-add-small-delay-after-asserting-chip-select-line.patch added to -mm tree
+Date: Mon, 04 May 2009 13:56:13 -0700
+Message-ID: <200905042056.n44KuDLt016771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754114AbZEDVB7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 17:01:59 -0400
+	by vger.kernel.org with ESMTP id S1754656AbZEDVCD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 17:02:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, gal
 
 
 The patch titled
-     powerpc/86xx: add MMC SPI support for MPC8610HPCD boards
+     spi_mpc83xx: add small delay after asserting chip-select line
 has been added to the -mm tree.  Its filename is
-     powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards.patch
+     spi_mpc83xx-add-small-delay-after-asserting-chip-select-line.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/86xx: add MMC SPI support for MPC8610HPCD boards
+Subject: spi_mpc83xx: add small delay after asserting chip-select line
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-This patch adds spi and mmc-spi-slot nodes, plus a gpio-controller for
-PIXIS' sdcsr bank that is used for managing SPI chip-select and for
-reading card's states.
+This is needed for some underlaying GPIO controllers that may be a bit
+slow, or if chip-select signal need some time to stabilize.
+
+For what it's worth, we already have the similar delay for chip-select
+de-assertion case.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Kumar Gala <galak@gate.crashing.org>
@@ -47,82 +49,24 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/dts/mpc8610_hpcd.dts     |   32 +++++++++++++++++++
- arch/powerpc/platforms/86xx/mpc8610_hpcd.c |    4 ++
- 2 files changed, 36 insertions(+)
+ drivers/spi/spi_mpc83xx.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/boot/dts/mpc8610_hpcd.dts~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards arch/powerpc/boot/dts/mpc8610_hpcd.dts
---- a/arch/powerpc/boot/dts/mpc8610_hpcd.dts~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards
-+++ a/arch/powerpc/boot/dts/mpc8610_hpcd.dts
-@@ -100,8 +100,18 @@
- 		};
+diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-add-small-delay-after-asserting-chip-select-line drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-add-small-delay-after-asserting-chip-select-line
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -383,8 +383,10 @@ static void mpc83xx_spi_work(struct work
+ 					break;
+ 			}
  
- 		board-control@3,0 {
-+			#address-cells = <1>;
-+			#size-cells = <1>;
- 			compatible = "fsl,fpga-pixis";
- 			reg = <3 0 0x20>;
-+			ranges = <0 3 0 0x20>;
-+
-+			sdcsr_pio: gpio-controller@a {
-+				#gpio-cells = <2>;
-+				compatible = "fsl,fpga-pixis-gpio-bank";
-+				reg = <0xa 1>;
-+				gpio-controller;
-+			};
- 		};
- 	};
- 
-@@ -177,6 +187,28 @@
- 			interrupt-parent = <&mpic>;
- 		};
- 
-+		spi@7000 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			compatible = "fsl,mpc8610-spi", "fsl,spi";
-+			reg = <0x7000 0x40>;
-+			cell-index = <0>;
-+			interrupts = <59 2>;
-+			interrupt-parent = <&mpic>;
-+			mode = "cpu";
-+			gpios = <&sdcsr_pio 7 0>;
-+
-+			mmc-slot@0 {
-+				compatible = "fsl,mpc8610hpcd-mmc-slot",
-+					     "mmc-spi-slot";
-+				reg = <0>;
-+				gpios = <&sdcsr_pio 0 1   /* nCD */
-+					 &sdcsr_pio 1 0>; /*  WP */
-+				voltage-ranges = <3300 3300>;
-+				spi-max-frequency = <50000000>;
-+			};
-+		};
-+
- 		display@2c000 {
- 			compatible = "fsl,diu";
- 			reg = <0x2c000 100>;
-diff -puN arch/powerpc/platforms/86xx/mpc8610_hpcd.c~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards arch/powerpc/platforms/86xx/mpc8610_hpcd.c
---- a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards
-+++ a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c
-@@ -37,6 +37,7 @@
- #include <linux/of_platform.h>
- #include <sysdev/fsl_pci.h>
- #include <sysdev/fsl_soc.h>
-+#include <sysdev/simple_gpio.h>
- 
- #include "mpc86xx.h"
- 
-@@ -51,6 +52,9 @@ static struct of_device_id __initdata mp
- 
- static int __init mpc8610_declare_of_platform_devices(void)
- {
-+	/* Firstly, register PIXIS GPIOs. */
-+	simple_gpiochip_init("fsl,fpga-pixis-gpio-bank");
-+
- 	/* Without this call, the SSI device driver won't get probed. */
- 	of_platform_bus_probe(NULL, mpc8610_ids, NULL);
- 
+-			if (cs_change)
++			if (cs_change) {
+ 				mpc83xx_spi_chipselect(spi, BITBANG_CS_ACTIVE);
++				ndelay(nsecs);
++			}
+ 			cs_change = t->cs_change;
+ 			if (t->len)
+ 				status = mpc83xx_spi_bufs(spi, t);
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com are
