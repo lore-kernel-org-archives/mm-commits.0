@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sched-emit-thread-info-flags-with-stack-trace.patch added to -mm tree
-Date: Tue, 05 May 2009 12:21:11 -0700
-Message-ID: <200905051921.n45JLBpY003502@imap1.linux-foundation.org>
+Subject: + mm-introduce-follow_pfn.patch added to -mm tree
+Date: Tue, 05 May 2009 12:24:53 -0700
+Message-ID: <200905051924.n45JOrE5005826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53143 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753030AbZEETXm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:23:42 -0400
+	by vger.kernel.org with ESMTP id S1758386AbZEET3x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, mingo@elte.hu
+Cc: hannes@cmpxchg.org, hch@infradead.org, hugh@veritas.com, hverkuil@xs4all.nl, lethal@linux-sh.org, magnus.damm@gmail.com
 
 
 The patch titled
-     sched: emit thread info flags with stack trace
+     mm: introduce follow_pfn()
 has been added to the -mm tree.  Its filename is
-     sched-emit-thread-info-flags-with-stack-trace.patch
+     mm-introduce-follow_pfn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: emit thread info flags with stack trace
-From: David Rientjes <rientjes@google.com>
+Subject: mm: introduce follow_pfn()
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-When a thread is oom killed and fails to exit, it's helpful to know which
-threads have access to memory reserves if the machine livelocks.  This is
-done by testing for the TIF_MEMDIE thread info flag and should be
-displayed alongside stack traces to identify tasks that have access to
-such reserves but are still stuck allocating pages, for instance.
+Analoguous to follow_phys(), add a helper that looks up the PFN at a
+user virtual address in an IO mapping or a raw PFN mapping.
 
-It would probably be helpful in other cases as well, so all thread info
-flags are emitted when showing a task.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    2 ++
+ mm/memory.c        |   29 +++++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+)
 
-diff -puN kernel/sched.c~sched-emit-thread-info-flags-with-stack-trace kernel/sched.c
---- a/kernel/sched.c~sched-emit-thread-info-flags-with-stack-trace
-+++ a/kernel/sched.c
-@@ -6606,8 +6606,9 @@ void sched_show_task(struct task_struct 
- #ifdef CONFIG_DEBUG_STACK_USAGE
- 	free = stack_not_used(p);
- #endif
--	printk(KERN_CONT "%5lu %5d %6d\n", free,
--		task_pid_nr(p), task_pid_nr(p->real_parent));
-+	printk(KERN_CONT "%5lu %5d %6d 0x%08x\n", free,
-+		task_pid_nr(p), task_pid_nr(p->real_parent),
-+		task_thread_info(p)->flags);
- 
- 	show_stack(p, NULL);
+diff -puN include/linux/mm.h~mm-introduce-follow_pfn include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-follow_pfn
++++ a/include/linux/mm.h
+@@ -817,6 +817,8 @@ int copy_page_range(struct mm_struct *ds
+ 			struct vm_area_struct *vma);
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows);
++int follow_pfn(struct vm_area_struct *vma, unsigned long address,
++	unsigned long *pfn);
+ int follow_phys(struct vm_area_struct *vma, unsigned long address,
+ 		unsigned int flags, unsigned long *prot, resource_size_t *phys);
+ int generic_access_phys(struct vm_area_struct *vma, unsigned long addr,
+diff -puN mm/memory.c~mm-introduce-follow_pfn mm/memory.c
+--- a/mm/memory.c~mm-introduce-follow_pfn
++++ a/mm/memory.c
+@@ -3228,6 +3228,35 @@ out:
+ 	return -EINVAL;
  }
+ 
++/**
++ * follow_pfn - look up PFN at a user virtual address
++ * @vma: memory mapping
++ * @address: user virtual address
++ * @pfn: location to store found PFN
++ *
++ * Only IO mappings and raw PFN mappings are allowed.
++ *
++ * Returns zero and the pfn at @pfn on success, -ve otherwise.
++ */
++int follow_pfn(struct vm_area_struct *vma, unsigned long address,
++	unsigned long *pfn)
++{
++	int ret = -EINVAL;
++	spinlock_t *ptl;
++	pte_t *ptep;
++
++	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
++		return ret;
++
++	ret = follow_pte(vma->vm_mm, address, &ptep, &ptl);
++	if (ret)
++		return ret;
++	*pfn = pte_pfn(*ptep);
++	pte_unmap_unlock(ptep, ptl);
++	return 0;
++}
++EXPORT_SYMBOL(follow_pfn);
++
+ #ifdef CONFIG_HAVE_IOREMAP_PROT
+ int follow_phys(struct vm_area_struct *vma,
+ 		unsigned long address, unsigned int flags,
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 linux-next.patch
-sched-emit-thread-info-flags-with-stack-trace.patch
-oom-prevent-livelock-when-oom_kill_allocating_task-is-set.patch
-cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
-cpusets-update-tasks-page-slab-spread-flags-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
-cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+eliminate-thousands-of-warnings-with-gcc-32-build.patch
+eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
+vmscan-evict-use-once-pages-first-v3.patch
+mm-introduce-follow_pte.patch
+mm-use-generic-follow_pte-in-follow_phys.patch
+mm-introduce-follow_pfn.patch
 
