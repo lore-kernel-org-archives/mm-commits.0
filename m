@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-make-the-initial-mmap-allocation-excess-behaviour-kconfig-configurable.patch added to -mm tree
-Date: Tue, 05 May 2009 15:17:03 -0700
-Message-ID: <200905052217.n45MH4NX016660@imap1.linux-foundation.org>
+Subject: + nommu-clamp-zone_batchsize-to-0-under-nommu-conditions.patch added to -mm tree
+Date: Tue, 05 May 2009 15:16:43 -0700
+Message-ID: <200905052216.n45MGhSL016450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753821AbZEEWTr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 18:19:47 -0400
+	by vger.kernel.org with ESMTP id S1754086AbZEEWTk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 18:19:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dhowells@redhat.com, gerg@snapgear.com, lanttor.guo@freescale.com
 
 
 The patch titled
-     nommu: make the initial mmap allocation excess behaviour Kconfig configurable
+     nommu: clamp zone_batchsize() to 0 under NOMMU conditions
 has been added to the -mm tree.  Its filename is
-     nommu-make-the-initial-mmap-allocation-excess-behaviour-kconfig-configurable.patch
+     nommu-clamp-zone_batchsize-to-0-under-nommu-conditions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: make the initial mmap allocation excess behaviour Kconfig configurable
+Subject: nommu: clamp zone_batchsize() to 0 under NOMMU conditions
 From: David Howells <dhowells@redhat.com>
 
-NOMMU mmap() has an option controlled by a sysctl variable that determines
-whether the allocations made by do_mmap_private() should have the excess
-space trimmed off and returned to the allocator.  Make the initial setting
-of this variable a Kconfig configuration option.
+Clamp zone_batchsize() to 0 under NOMMU conditions to stop
+free_hot_cold_page() from queueing and batching frees.
 
-The reason there can be excess space is that the allocator only allocates
-in power-of-2 size chunks, but mmap()'s can be made in sizes that aren't a
-power of 2.
+The problem is that under NOMMU conditions it is really important to be
+able to allocate large contiguous chunks of memory, but when munmap() or
+exit_mmap() releases big stretches of memory, return of these to the buddy
+allocator can be deferred, and when it does finally happen, it can be in
+small chunks.
 
-There are two alternatives:
+Whilst the fragmentation this incurs isn't so much of a problem under MMU
+conditions as userspace VM is glued together from individual pages with
+the aid of the MMU, it is a real problem if there isn't an MMU.
 
- (1) Keep the excess as dead space.  The dead space then remains unused for the
-     lifetime of the mapping.  Mappings of shared objects such as libc, ld.so
-     or busybox's text segment may retain their dead space forever.
+By clamping the page freeing queue size to 0, pages are returned to the
+allocator immediately, and the buddy detector is more likely to be able to
+glue them together into large chunks immediately, and fragmentation is
+less likely to occur.
 
- (2) Return the excess to the allocator.  This means that the dead space is
-     limited to less than a page per mapping, but it means that for a transient
-     process, there's more chance of fragmentation as the excess space may be
-     reused fairly quickly.
-
-During the boot process, a lot of transient processes are created, and
-this can cause a lot of fragmentation as the pagecache and various slabs
-grow greatly during this time.
-
-By turning off the trimming of excess space during boot and disabling
-batching of frees, Coldfire can manage to boot.
-
-A better way of doing things might be to have /sbin/init turn this option
-off.  By that point libc, ld.so and init - which are all long-duration
-processes - have all been loaded and trimmed.
+By disabling batching of frees, and by turning off the trimming of excess
+space during boot, Coldfire can manage to boot.
 
 Reported-by: Lanttor Guo <lanttor.guo@freescale.com>
 Signed-off-by: David Howells <dhowells@redhat.com>
@@ -74,57 +64,44 @@ Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   28 ++++++++++++++++++++++++++++
- mm/nommu.c |    2 +-
- 2 files changed, 29 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN mm/Kconfig~nommu-make-the-initial-mmap-allocation-excess-behaviour-kconfig-configurable mm/Kconfig
---- a/mm/Kconfig~nommu-make-the-initial-mmap-allocation-excess-behaviour-kconfig-configurable
-+++ a/mm/Kconfig
-@@ -225,3 +225,31 @@ config HAVE_MLOCKED_PAGE_BIT
+diff -puN mm/page_alloc.c~nommu-clamp-zone_batchsize-to-0-under-nommu-conditions mm/page_alloc.c
+--- a/mm/page_alloc.c~nommu-clamp-zone_batchsize-to-0-under-nommu-conditions
++++ a/mm/page_alloc.c
+@@ -2682,6 +2682,7 @@ static void __meminit zone_init_free_lis
  
- config MMU_NOTIFIER
- 	bool
-+
-+config NOMMU_INITIAL_TRIM_EXCESS
-+	int "Turn on mmap() excess space trimming before booting"
-+	depends on !MMU
-+	default 1
-+	help
-+	  The NOMMU mmap() frequently needs to allocate large contiguous chunks
-+	  of memory on which to store mappings, but it can only ask the system
-+	  allocator for chunks in 2^N*PAGE_SIZE amounts - which is frequently
-+	  more than it requires.  To deal with this, mmap() is able to trim off
-+	  the excess and return it to the allocator.
-+
-+	  If trimming is enabled, the excess is trimmed off and returned to the
-+	  system allocator, which can cause extra fragmentation, particularly
-+	  if there are a lot of transient processes.
-+
-+	  If trimming is disabled, the excess is kept, but not used, which for
-+	  long-term mappings means that the space is wasted.
-+
-+	  Trimming can be dynamically controlled through a sysctl option
-+	  (/proc/sys/vm/nr_trim_pages) which specifies the minimum number of
-+	  excess pages there must be before trimming should occur, or zero if
-+	  no trimming is to occur.
-+
-+	  This option specifies the initial value of this option.  The default
-+	  of 1 says that all excess pages should be trimmed.
-+
-+	  See Documentation/nommu-mmap.txt for more information.
-diff -puN mm/nommu.c~nommu-make-the-initial-mmap-allocation-excess-behaviour-kconfig-configurable mm/nommu.c
---- a/mm/nommu.c~nommu-make-the-initial-mmap-allocation-excess-behaviour-kconfig-configurable
-+++ a/mm/nommu.c
-@@ -66,7 +66,7 @@ struct percpu_counter vm_committed_as;
- int sysctl_overcommit_memory = OVERCOMMIT_GUESS; /* heuristic overcommit */
- int sysctl_overcommit_ratio = 50; /* default is 50% */
- int sysctl_max_map_count = DEFAULT_MAX_MAP_COUNT;
--int sysctl_nr_trim_pages = 1; /* page trimming behaviour */
-+int sysctl_nr_trim_pages = CONFIG_NOMMU_INITIAL_TRIM_EXCESS;
- int heap_stack_gap = 0;
+ static int zone_batchsize(struct zone *zone)
+ {
++#ifdef CONFIG_MMU
+ 	int batch;
  
- atomic_long_t mmap_pages_allocated;
+ 	/*
+@@ -2710,6 +2711,23 @@ static int zone_batchsize(struct zone *z
+ 	batch = rounddown_pow_of_two(batch + batch/2) - 1;
+ 
+ 	return batch;
++
++#else
++	/* The deferral and batching of frees should be suppressed under NOMMU
++	 * conditions.
++	 *
++	 * The problem is that NOMMU needs to be able to allocate large chunks
++	 * of contiguous memory as there's no hardware page translation to
++	 * assemble apparent contiguous memory from discontiguous pages.
++	 *
++	 * Queueing large contiguous runs of pages for batching, however,
++	 * causes the pages to actually be freed in smaller chunks.  As there
++	 * can be a significant delay between the individual batches being
++	 * recycled, this leads to the once large chunks of space being
++	 * fragmented and becoming unavailable for high-order allocations.
++	 */
++	return 0;
++#endif
+ }
+ 
+ static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
