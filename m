@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch added to -mm tree
-Date: Tue, 05 May 2009 16:41:05 -0700
-Message-ID: <200905052341.n45Nf5HH003978@imap1.linux-foundation.org>
+Subject: + kexec-sysrq-simplify-sysrq-c-handler-fix.patch added to -mm tree
+Date: Tue, 05 May 2009 16:45:16 -0700
+Message-ID: <200905060004.n4604Lfx018350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752618AbZEEXnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 19:43:35 -0400
+	by vger.kernel.org with ESMTP id S1753446AbZEFAID (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 20:08:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, roland@redhat.com
+Cc: akpm@linux-foundation.org, brayan@yack.com.br, ebiederm@xmission.com, nhorman@tuxdriver.com, vgoyal@redhat.com
 
 
 The patch titled
-     ptrace_get_task_struct: s/tasklist/rcu/, make it static
+     kexec-sysrq-simplify-sysrq-c-handler-fix
 has been added to the -mm tree.  Its filename is
-     ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
+     kexec-sysrq-simplify-sysrq-c-handler-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace_get_task_struct: s/tasklist/rcu/, make it static
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: kexec-sysrq-simplify-sysrq-c-handler-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- Use rcu_read_lock() instead of tasklist_lock to find/get the task
-  in ptrace_get_task_struct().
+drivers/char/sysrq.c: In function 'sysrq_handle_crash':
+drivers/char/sysrq.c:126: warning: dereferencing 'void *' pointer
+drivers/char/sysrq.c:126: error: invalid use of void expression
 
-- Make it static, it has no callers outside of ptrace.c.
-
-- The comment doesn't match the reality, this helper does not do
-  any checks. Beacuse it is really trivial and static I removed the
-  whole comment.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Brayan Arraes <brayan@yack.com.br>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    1 -
- kernel/ptrace.c        |   16 +++-------------
- 2 files changed, 3 insertions(+), 14 deletions(-)
+ drivers/char/sysrq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/ptrace.h~ptrace_get_task_struct-s-tasklist-rcu-make-it-static include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace_get_task_struct-s-tasklist-rcu-make-it-static
-+++ a/include/linux/ptrace.h
-@@ -81,7 +81,6 @@
+diff -puN drivers/char/sysrq.c~kexec-sysrq-simplify-sysrq-c-handler-fix drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~kexec-sysrq-simplify-sysrq-c-handler-fix
++++ a/drivers/char/sysrq.c
+@@ -122,7 +122,7 @@ static struct sysrq_key_op sysrq_unraw_o
  
- 
- extern long arch_ptrace(struct task_struct *child, long request, long addr, long data);
--extern struct task_struct *ptrace_get_task_struct(pid_t pid);
- extern int ptrace_traceme(void);
- extern int ptrace_readdata(struct task_struct *tsk, unsigned long src, char __user *dst, int len);
- extern int ptrace_writedata(struct task_struct *tsk, char __user *src, unsigned long dst, int len);
-diff -puN kernel/ptrace.c~ptrace_get_task_struct-s-tasklist-rcu-make-it-static kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace_get_task_struct-s-tasklist-rcu-make-it-static
-+++ a/kernel/ptrace.c
-@@ -587,26 +587,16 @@ int ptrace_request(struct task_struct *c
- 	return ret;
- }
- 
--/**
-- * ptrace_get_task_struct  --  grab a task struct reference for ptrace
-- * @pid:       process id to grab a task_struct reference of
-- *
-- * This function is a helper for ptrace implementations.  It checks
-- * permissions and then grabs a task struct for use of the actual
-- * ptrace implementation.
-- *
-- * Returns the task_struct for @pid or an ERR_PTR() on failure.
-- */
--struct task_struct *ptrace_get_task_struct(pid_t pid)
-+static struct task_struct *ptrace_get_task_struct(pid_t pid)
+ static void sysrq_handle_crash(int key, struct tty_struct *tty)
  {
- 	struct task_struct *child;
- 
--	read_lock(&tasklist_lock);
-+	rcu_read_lock();
- 	child = find_task_by_vpid(pid);
- 	if (child)
- 		get_task_struct(child);
-+	rcu_read_unlock();
- 
--	read_unlock(&tasklist_lock);
- 	if (!child)
- 		return ERR_PTR(-ESRCH);
- 	return child;
+-	void *killer = NULL;
++	char *killer = NULL;
+ 	*killer = 1;
+ }
+ static struct sysrq_key_op sysrq_crashdump_op = {
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-rcu_sched_grace_period-kill-the-bogus-flush_signals.patch
-drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal.patch
-slow_work_thread-should-do-the-exclusive-wait.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
-ptrace-remove-pt_dtrace-from-arch-h8300.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
-ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
-ptrace-remove-pt_dtrace-from-arch-m32r.patch
-ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
-ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
-ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
-ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
-ptrace-do-not-use-task_lock-for-attach.patch
-ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
-copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
-elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-signals-split-do_tkill.patch
-signals-implement-sys_rt_tgsigqueueinfo.patch
-x86-hookup-sys_rt_tgsigqueueinfo.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core-kill-exclude_xtrace-logic.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+mtd-fix-timeout-in-m25p80-driver-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+revert-genirq-assert-that-irq-handlers-are-indeed-running-in-hardirq-context.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler-fix.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
