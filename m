@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch added to -mm tree
-Date: Tue, 05 May 2009 13:32:32 -0700
-Message-ID: <200905052032.n45KWWjM015757@imap1.linux-foundation.org>
+Subject: + cpufreq-powernow-k8-determine-exact-cpu-frequency-for-hw-pstates.patch added to -mm tree
+Date: Tue, 05 May 2009 13:39:19 -0700
+Message-ID: <200905052039.n45KdJNY020223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38204 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754423AbZEEUhI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:37:08 -0400
+	by vger.kernel.org with ESMTP id S1755069AbZEEUlw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:41:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qingtao.cao@windriver.com, benh@kernel.crashing.org, galak@gate.crashing.org, michael@ellerman.id.au, norsk5@yahoo.com, paulus@samba.org
+Cc: andreas.herrmann3@amd.com, davej@codemonkey.org.uk, trenn@suse.de
 
 
 The patch titled
-     EDAC: CPC925 MC check fixup
+     cpufreq: powernow-k8: determine exact CPU frequency for HW Pstates
 has been added to the -mm tree.  Its filename is
-     edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch
+     cpufreq-powernow-k8-determine-exact-cpu-frequency-for-hw-pstates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: EDAC: CPC925 MC check fixup
-From: Harry Ciao <qingtao.cao@windriver.com>
+Subject: cpufreq: powernow-k8: determine exact CPU frequency for HW Pstates
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
 
-Fix an obvious bug in CPC925 Memory Controller's check routine -
-edac_mc_handle_ue() should have been called for UECC errors and
-edac_mc_handle_ce() for CECC errors.
+Slightly modified by trenn@suse.de -> only do this on fam 10h and fam 11h.
 
-Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
-Cc: Doug Thompson <norsk5@yahoo.com>
-Cc: Michael Ellerman <michael@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Currently powernow-k8 determines CPU frequency from ACPI PSS objects, but
+according to AMD family 11h BKDG this frequency is just a rounded value:
+
+  "CoreFreq (MHz) = The CPU COF specified by MSRC001_00[6B:64][CpuFid]
+  rounded to the nearest 100 Mhz."
+
+As a consequnce powernow-k8 reports wrong CPU frequency on some systems,
+e.g. on Turion X2 Ultra:
+
+  powernow-k8: Found 1 AMD Turion(tm)X2 Ultra DualCore Mobile ZM-82
+               processors (2 cpu cores) (version 2.20.00)
+  powernow-k8:    0 : pstate 0 (2200 MHz)
+  powernow-k8:    1 : pstate 1 (1100 MHz)
+  powernow-k8:    2 : pstate 2 (600 MHz)
+
+But this is wrong as frequency for Pstate2 is 550 MHz. x86info reports it
+correctly:
+
+  #x86info -a |grep Pstate
+  ...
+  Pstate-0: fid=e, did=0, vid=24 (2200MHz)
+  Pstate-1: fid=e, did=1, vid=30 (1100MHz)
+  Pstate-2: fid=e, did=2, vid=3c (550MHz) (current)
+
+Solution is to determine the frequency directly from Pstate MSRs instead
+of using rounded values from ACPI table.
+
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/cpc925_edac.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c |   23 ++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN drivers/edac/cpc925_edac.c~edac-add-cpc925-memory-controller-driver-mc-check-fixup drivers/edac/cpc925_edac.c
---- a/drivers/edac/cpc925_edac.c~edac-add-cpc925-memory-controller-driver-mc-check-fixup
-+++ a/drivers/edac/cpc925_edac.c
-@@ -544,17 +544,16 @@ static void cpc925_mc_check(struct mem_c
- 	/* Revert column/row addresses into page frame number, etc */
- 	cpc925_mc_get_pfn(mci, mear, &pfn, &offset, &csrow);
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-determine-exact-cpu-frequency-for-hw-pstates arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-determine-exact-cpu-frequency-for-hw-pstates
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -639,6 +639,20 @@ static void print_basics(struct powernow
+ 				data->batps);
+ }
  
--	if (apiexcp & UECC_EXCP_DETECTED) {
--		cpc925_mc_printk(mci, KERN_INFO, "DRAM UECC Fault\n");
-+	if (apiexcp & CECC_EXCP_DETECTED) {
-+		cpc925_mc_printk(mci, KERN_INFO, "DRAM CECC Fault\n");
- 		channel = cpc925_mc_find_channel(mci, syndrome);
- 		edac_mc_handle_ce(mci, pfn, offset, syndrome,
- 				  csrow, channel, mci->ctl_name);
++static u32 freq_from_fid_did(u32 fid, u32 did)
++{
++	u32 mhz = 0;
++
++	if (boot_cpu_data.x86 == 0x10)
++		mhz = (100 * (fid + 0x10)) >> did;
++	else if (boot_cpu_data.x86 == 0x11)
++		mhz = (100 * (fid + 8)) >> did;
++	else
++		BUG();
++
++	return mhz * 1000;
++}
++
+ static int fill_powernow_table(struct powernow_k8_data *data,
+ 		struct pst_s *pst, u8 maxvid)
+ {
+@@ -913,8 +927,13 @@ static int fill_powernow_table_pstate(st
+ 
+ 		powernow_table[i].index = index;
+ 
+-		powernow_table[i].frequency =
+-			data->acpi_data.states[i].core_frequency * 1000;
++		/* Frequency may be rounded for these */
++		if (boot_cpu_data.x86 == 0x10 || boot_cpu_data.x86 == 0x11) {
++			powernow_table[i].frequency =
++				freq_from_fid_did(lo & 0x3f, (lo >> 6) & 7);
++		} else
++			powernow_table[i].frequency =
++				data->acpi_data.states[i].core_frequency * 1000;
  	}
- 
--	if (apiexcp & CECC_EXCP_DETECTED) {
--		cpc925_mc_printk(mci, KERN_INFO, "DRAM CECC Fault\n");
--		edac_mc_handle_ue(mci, pfn, offset,
--				  csrow, mci->ctl_name);
-+	if (apiexcp & UECC_EXCP_DETECTED) {
-+		cpc925_mc_printk(mci, KERN_INFO, "DRAM UECC Fault\n");
-+		edac_mc_handle_ue(mci, pfn, offset, csrow, mci->ctl_name);
- 	}
- 
- 	cpc925_mc_printk(mci, KERN_INFO, "Dump registers:\n");
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from qingtao.cao@windriver.com are
+Patches currently in -mm which might be from andreas.herrmann3@amd.com are
 
-edac-add-cpc925-memory-controller-driver.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch
-edac-add-edac_device_alloc_index.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-cpc925-mc-platform-device-setup.patch
-edac-cpc925-mc-platform-device-setup-v3.patch
+linux-next.patch
+cpufreq-powernow-k8-determine-exact-cpu-frequency-for-hw-pstates.patch
 
