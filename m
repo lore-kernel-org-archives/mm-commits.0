@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data.patch added to -mm tree
-Date: Tue, 05 May 2009 13:39:16 -0700
-Message-ID: <200905052039.n45KdGHV020204@imap1.linux-foundation.org>
+Subject: + isl29003-fix-resume-functionality.patch added to -mm tree
+Date: Tue, 05 May 2009 13:40:26 -0700
+Message-ID: <200905052040.n45KeQAA021032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753625AbZEEUmn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:42:43 -0400
+	by vger.kernel.org with ESMTP id S1753691AbZEEUng (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:43:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: trenn@suse.de, davej@codemonkey.org.uk, mark.langsdorf@amd.com, mingo@elte.hu
+Cc: daniel@caiaq.de, khali@linux-fr.org, rjw@sisk.pl
 
 
 The patch titled
-     cpufreq: powernow-k8 cleanup msg if BIOS does not export ACPI _PSS cpufreq data
+     isl29003: fix resume functionality
 has been added to the -mm tree.  Its filename is
-     cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data.patch
+     isl29003-fix-resume-functionality.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: powernow-k8 cleanup msg if BIOS does not export ACPI _PSS cpufreq data
-From: Thomas Renninger <trenn@suse.de>
+Subject: isl29003: fix resume functionality
+From: Daniel Mack <daniel@caiaq.de>
 
-- Make the message shorter and easier to grep for
-- Use printk_once instead of WARN_ONCE (functionality of these was mixed up)
+The isl29003 does not interpret the return value of
+i2c_smbus_write_byte_data() correctly and hence causes an error on system
+resume.
 
-Also see bug: http://bugzilla.kernel.org/show_bug.cgi?id=13146
-for reference.
+Also introduce power_state_before_suspend and restore the chip's power
+state upon wakeup.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Cc: Langsdorf, Mark <mark.langsdorf@amd.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ drivers/misc/isl29003.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -1234,12 +1234,15 @@ static long __cpuinit powernowk8_cpu_ini
- 	return 0;
+diff -puN drivers/misc/isl29003.c~isl29003-fix-resume-functionality drivers/misc/isl29003.c
+--- a/drivers/misc/isl29003.c~isl29003-fix-resume-functionality
++++ a/drivers/misc/isl29003.c
+@@ -64,6 +64,7 @@ struct isl29003_data {
+ 	struct i2c_client *client;
+ 	struct mutex lock;
+ 	u8 reg_cache[ISL29003_NUM_CACHABLE_REGS];
++	u8 power_state_before_suspend;
+ };
+ 
+ static int gain_range[] = {
+@@ -411,6 +412,9 @@ static int __devexit isl29003_remove(str
+ #ifdef CONFIG_PM
+ static int isl29003_suspend(struct i2c_client *client, pm_message_t mesg)
+ {
++	struct isl29003_data *data = i2c_get_clientdata(client);
++
++	data->power_state_before_suspend = isl29003_get_power_state(client);
+ 	return isl29003_set_power_state(client, 0);
  }
  
-+static const char ACPI_PSS_BIOS_BUG_MSG[] =
-+	KERN_ERR FW_BUG PFX "No compatible ACPI _PSS objects found.\n"
-+	KERN_ERR FW_BUG PFX "Try again with latest BIOS.\n";
-+
- /* per CPU init entry point to the driver */
- static int __cpuinit powernowk8_cpu_init(struct cpufreq_policy *pol)
- {
- 	struct powernow_k8_data *data;
- 	int rc;
--	static int print_once;
+@@ -421,10 +425,11 @@ static int isl29003_resume(struct i2c_cl
  
- 	if (!cpu_online(pol->cpu))
- 		return -ENODEV;
-@@ -1263,19 +1266,7 @@ static int __cpuinit powernowk8_cpu_init
- 		 * an UP version, and is deprecated by AMD.
- 		 */
- 		if (num_online_cpus() != 1) {
--			/*
--			 * Replace this one with print_once as soon as such a
--			 * thing gets introduced
--			 */
--			if (!print_once) {
--				WARN_ONCE(1, KERN_ERR FW_BUG PFX "Your BIOS "
--					"does not provide ACPI _PSS objects "
--					"in a way that Linux understands. "
--					"Please report this to the Linux ACPI"
--					" maintainers and complain to your "
--					"BIOS vendor.\n");
--				print_once++;
--			}
-+			printk_once(ACPI_PSS_BIOS_BUG_MSG);
- 			goto err_out;
- 		}
- 		if (pol->cpu != 0) {
+ 	/* restore registers from cache */
+ 	for (i = 0; i < ARRAY_SIZE(data->reg_cache); i++)
+-		if (!i2c_smbus_write_byte_data(client, i, data->reg_cache[i]))
++		if (i2c_smbus_write_byte_data(client, i, data->reg_cache[i]))
+ 			return -EIO;
+ 
+-	return 0;
++	return isl29003_set_power_state(client,
++		data->power_state_before_suspend);
+ }
+ 
+ #else
 _
 
-Patches currently in -mm which might be from trenn@suse.de are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data.patch
-cpufreq-powernow-k8-determine-exact-cpu-frequency-for-hw-pstates.patch
+linux-next.patch
+usb-imx_udc-fix-leak-in-imx_ep_alloc_request.patch
+isl29003-fix-resume-functionality.patch
 
