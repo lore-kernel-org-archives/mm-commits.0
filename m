@@ -1,143 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: + ntp-adjust-shift_pll-to-improve-ntp-convergence.patch added to -mm tree
-Date: Tue, 05 May 2009 12:56:31 -0700
-Message-ID: <200905051956.n45JuVo9025575@imap1.linux-foundation.org>
+Subject: [obsolete] ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch removed from -mm tree
+Date: Tue, 05 May 2009 13:06:07 -0700
+Message-ID: <200905052006.n45K683G031644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37558 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751438AbZEEUMK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:12:10 -0400
+	by vger.kernel.org with ESMTP id S1758198AbZEEUPv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:15:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, mingo@elte.hu, riel@redhat.com, tglx@linutronix.de, zippel@linux-m68k.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh@veritas.com, ieidus@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntp: adjust SHIFT_PLL to improve NTP convergence.
-has been added to the -mm tree.  Its filename is
-     ntp-adjust-shift_pll-to-improve-ntp-convergence.patch
+     ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86
+has been removed from the -mm tree.  Its filename was
+     ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: adjust SHIFT_PLL to improve NTP convergence.
-From: john stultz <johnstul@us.ibm.com>
+Subject: ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The conversion to the ntpv4 reference model
-f19923937321244e7dc334767eb4b67e0e3d5c74 ("ntp: convert to the NTP4
-reference model") in 2.6.19 added nanosecond resolution the adjtimex
-interface, but also changed the "stiffness" of the frequency adjustments,
-causing NTP convergence time to greatly increase.
-
-SHIFT_PLL, which reduces the stiffness of the freq adjustments, was
-designed to be inversely linked to HZ, and the reference value of 4 was
-designed for Unix systems using HZ=100.  However Linux's clock steering
-code mostly independent of HZ.
-
-So this patch reduces the SHIFT_PLL value from 4 to 2, which causes NTPd
-behavior to match kernels prior to 2.6.19, greatly reducing convergence
-times, and improving close synchronization through environmental thermal
-changes.
-
-The patch also changes some l's to L's in nearby code to avoid misreading
-50l as 501.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |   44 +++++++++++++++++++++++++++++-----------
- 1 file changed, 32 insertions(+), 12 deletions(-)
+ mm/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/timex.h~adjust-shift_pll-to-improve-ntp-convergence include/linux/timex.h
---- a/include/linux/timex.h~adjust-shift_pll-to-improve-ntp-convergence
-+++ a/include/linux/timex.h
-@@ -170,17 +170,37 @@ struct timex {
- #include <asm/timex.h>
+diff -puN mm/Kconfig~ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86 mm/Kconfig
+--- a/mm/Kconfig~ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86
++++ a/mm/Kconfig
+@@ -228,6 +228,7 @@ config MMU_NOTIFIER
  
- /*
-- * SHIFT_KG and SHIFT_KF establish the damping of the PLL and are chosen
-- * for a slightly underdamped convergence characteristic. SHIFT_KH
-- * establishes the damping of the FLL and is chosen by wisdom and black
-- * art.
-- *
-- * MAXTC establishes the maximum time constant of the PLL. With the
-- * SHIFT_KG and SHIFT_KF values given and a time constant range from
-- * zero to MAXTC, the PLL will converge in 15 minutes to 16 hours,
-- * respectively.
-+ * SHIFT_PLL is used as a dampening factor to define how much we
-+ * adjust the frequency correction for a given offset in PLL mode.
-+ * It also used in dampening the offset correction, to define how
-+ * much of the current value in time_offset we correct for each
-+ * second. Changing this value changes the stiffness of the ntp
-+ * adjustment code. A lower value makes it more flexible, reducing
-+ * NTP convergence time. A higher value makes it stiffer, increasing
-+ * convergence time, but making the clock more stable.
-+ *
-+ * In David Mills' nanokenrel reference implmentation SHIFT_PLL is 4.
-+ * However this seems to increase convergence time much too long.
-+ *
-+ * https://lists.ntp.org/pipermail/hackers/2008-January/003487.html
-+ *
-+ * In the above mailing list discussion, it seems the value of 4
-+ * was appropriate for other Unix systems with HZ=100, and that
-+ * SHIFT_PLL should be decreased as HZ increases. However, Linux's
-+ * clock steering implementation is HZ independent.
-+ *
-+ * Through experimentation, a SHIFT_PLL value of 2 was found to allow
-+ * for fast convergence (very similar to the NTPv3 code used prior to
-+ * v2.6.19), with good clock stability.
-+ *
-+ *
-+ * SHIFT_FLL is used as a dampening factor to define how much we
-+ * adjust the frequency correction for a given offset in FLL mode.
-+ * In David Mills' nanokenrel reference implmentation SHIFT_PLL is 2.
-+ *
-+ * MAXTC establishes the maximum time constant of the PLL.
-  */
--#define SHIFT_PLL	4	/* PLL frequency factor (shift) */
-+#define SHIFT_PLL	2	/* PLL frequency factor (shift) */
- #define SHIFT_FLL	2	/* FLL frequency factor (shift) */
- #define MAXTC		10	/* maximum time constant (shift) */
- 
-@@ -192,10 +212,10 @@ struct timex {
- #define SHIFT_USEC 16		/* frequency offset scale (shift) */
- #define PPM_SCALE ((s64)NSEC_PER_USEC << (NTP_SCALE_SHIFT - SHIFT_USEC))
- #define PPM_SCALE_INV_SHIFT 19
--#define PPM_SCALE_INV ((1ll << (PPM_SCALE_INV_SHIFT + NTP_SCALE_SHIFT)) / \
-+#define PPM_SCALE_INV ((1LL << (PPM_SCALE_INV_SHIFT + NTP_SCALE_SHIFT)) / \
- 		       PPM_SCALE + 1)
- 
--#define MAXPHASE 500000000l	/* max phase error (ns) */
-+#define MAXPHASE 500000000L	/* max phase error (ns) */
- #define MAXFREQ 500000		/* max frequency error (ns/s) */
- #define MAXFREQ_SCALED ((s64)MAXFREQ << NTP_SCALE_SHIFT)
- #define MINSEC 256		/* min interval between updates (s) */
+ config KSM
+ 	tristate "Enable KSM for page sharing"
++	depends on X86
+ 	help
+ 	  Enable the KSM kernel module to allow page sharing of equal pages
+ 	  among different tasks.
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-time-move-calc_load-call-out-from-xtime_lock-protection.patch
-time-avoid-possible-endless-loop-when-using-jiffies-clocksource-and-oneshot-mode-clockevent.patch
-clockevent-export-register_device-and-delta2ns.patch
-ntp-adjust-shift_pll-to-improve-ntp-convergence.patch
-clocksource-sanity-check-sysfs-clocksource-changes.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+mtd-fix-timeout-in-m25p80-driver-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+revert-genirq-assert-that-irq-handlers-are-indeed-running-in-hardirq-context.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
