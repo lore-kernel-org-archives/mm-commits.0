@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + initramfs-clean-up-messages-related-to-initramfs-unpacking.patch added to -mm tree
-Date: Tue, 05 May 2009 15:31:28 -0700
-Message-ID: <200905052231.n45MVSeP025617@imap1.linux-foundation.org>
+Subject: + kexec-sysrq-simplify-sysrq-c-handler.patch added to -mm tree
+Date: Tue, 05 May 2009 15:30:08 -0700
+Message-ID: <200905052230.n45MU9tB024815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37041 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751619AbZEEWdJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 18:33:09 -0400
+	by vger.kernel.org with ESMTP id S1754063AbZEEWdZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 18:33:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.piel@tremplin-utc.net, hpa@zytor.com
+Cc: nhorman@tuxdriver.com, brayan@yack.com.br, ebiederm@xmission.com, vgoyal@redhat.com
 
 
 The patch titled
-     initramfs: clean up messages related to initramfs unpacking
+     kexec: sysrq: simplify sysrq-c handler
 has been added to the -mm tree.  Its filename is
-     initramfs-clean-up-messages-related-to-initramfs-unpacking.patch
+     kexec-sysrq-simplify-sysrq-c-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: initramfs: clean up messages related to initramfs unpacking
-From: Eric Piel <eric.piel@tremplin-utc.net>
+Subject: kexec: sysrq: simplify sysrq-c handler
+From: Neil Horman <nhorman@tuxdriver.com>
 
-With the removal of duplicate unpack_to_rootfs() (commit
-df52092f3c97788592ef72501a43fb7ac6a3cfe0) the messages displayed do not
-actually correspond to what the kernel is doing.  In addition, depending
-if ramdisks are supported or not, the messages are not at all the same.
+Currently the sysrq-c handler is bit over-engineered.  Its behavior is
+dependent on a few compile time and run time factors that alter its
+behavior which is really unnecessecary.
 
-So keep the messages more in sync with what is really doing the kernel,
-and only display a second message in case of failure.  This also ensure
-that the printk message cannot be split by other printk's.
+If CONFIG_KEXEC is not configured, sysrq-c, crashes the system with a NULL
+pointer dereference.  If CONFIG_KEXEC is configured, it calls crash_kexec
+directly, which implies that the kexec kernel will either be booted (if
+its been previously loaded), or it will simply do nothing (the no kexec
+kernel has been loaded).
 
-Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+It would be much easier to just simplify the whole thing to dereference a
+NULL pointer all the time regardless of configuration.  That way, it will
+always try to crash the system, and if a kexec kernel has been loaded into
+reserved space, it will still boot from the page fault trap handler
+(assuming panic_on_oops is set appropriately).
+
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Brayan Arraes <brayan@yack.com.br>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ drivers/char/sysrq.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN init/initramfs.c~initramfs-clean-up-messages-related-to-initramfs-unpacking init/initramfs.c
---- a/init/initramfs.c~initramfs-clean-up-messages-related-to-initramfs-unpacking
-+++ a/init/initramfs.c
-@@ -574,11 +574,10 @@ static int __init populate_rootfs(void)
- 	if (initrd_start) {
- #ifdef CONFIG_BLK_DEV_RAM
- 		int fd;
--		printk(KERN_INFO "checking if image is initramfs...\n");
-+		printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
- 		err = unpack_to_rootfs((char *)initrd_start,
- 			initrd_end - initrd_start);
- 		if (!err) {
--			printk(KERN_INFO "rootfs image is initramfs; unpacking...\n");
- 			free_initrd();
- 			return 0;
- 		} else {
-@@ -596,15 +595,11 @@ static int __init populate_rootfs(void)
- 			free_initrd();
- 		}
- #else
--		printk(KERN_INFO "Unpacking initramfs...");
-+		printk(KERN_INFO "Unpacking initramfs...\n");
- 		err = unpack_to_rootfs((char *)initrd_start,
- 			initrd_end - initrd_start);
--		if (err) {
--			printk(" failed!\n");
--			printk(KERN_EMERG "%s\n", err);
--		} else {
--			printk(" done\n");
--		}
-+		if (err)
-+			printk(KERN_EMERG "Initramfs unpacking failed: %s\n", err);
- 		free_initrd();
- #endif
- 	}
+diff -puN drivers/char/sysrq.c~kexec-sysrq-simplify-sysrq-c-handler drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~kexec-sysrq-simplify-sysrq-c-handler
++++ a/drivers/char/sysrq.c
+@@ -120,20 +120,17 @@ static struct sysrq_key_op sysrq_unraw_o
+ #define sysrq_unraw_op (*(struct sysrq_key_op *)0)
+ #endif /* CONFIG_VT */
+ 
+-#ifdef CONFIG_KEXEC
+-static void sysrq_handle_crashdump(int key, struct tty_struct *tty)
++static void sysrq_handle_crash(int key, struct tty_struct *tty)
+ {
+-	crash_kexec(get_irq_regs());
++	void *killer = NULL;
++	*killer = 1;
+ }
+ static struct sysrq_key_op sysrq_crashdump_op = {
+-	.handler	= sysrq_handle_crashdump,
+-	.help_msg	= "Crashdump",
+-	.action_msg	= "Trigger a crashdump",
++	.handler	= sysrq_handle_crash,
++	.help_msg	= "Crash",
++	.action_msg	= "Trigger a crash",
+ 	.enable_mask	= SYSRQ_ENABLE_DUMP,
+ };
+-#else
+-#define sysrq_crashdump_op (*(struct sysrq_key_op *)0)
+-#endif
+ 
+ static void sysrq_handle_reboot(int key, struct tty_struct *tty)
+ {
 _
 
-Patches currently in -mm which might be from eric.piel@tremplin-utc.net are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
-initramfs-clean-up-messages-related-to-initramfs-unpacking.patch
+linux-next.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
 
