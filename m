@@ -1,118 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] i2c-too-much-compiler-noise.patch removed from -mm tree
-Date: Tue, 05 May 2009 11:33:22 -0700
-Message-ID: <200905051833.n45IXMGi006054@imap1.linux-foundation.org>
+Subject: [merged] reiserfs-expand-i_mutex-to-enclose-lookup_one_len.patch removed from -mm tree
+Date: Tue, 05 May 2009 11:48:35 -0700
+Message-ID: <200905051848.n45ImZWJ015525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752676AbZEESd7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 14:33:59 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n45IXM3Y011730
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 5 May 2009 11:33:59 -0700
+	by vger.kernel.org with ESMTP id S1752703AbZEESwR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 14:52:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jeffm@suse.com, a.beregalov@gmail.com, david@unsolicited.net, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c: too much compiler noise
+     reiserfs: expand i_mutex to enclose lookup_one_len
 has been removed from the -mm tree.  Its filename was
-     i2c-too-much-compiler-noise.patch
+     reiserfs-expand-i_mutex-to-enclose-lookup_one_len.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: too much compiler noise
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiserfs: expand i_mutex to enclose lookup_one_len
+From: Jeff Mahoney <jeffm@suse.com>
 
+2.6.30-rc3 introduced some sanity checks in the VFS code to avoid NFS bugs
+by ensuring that lookup_one_len is always called under i_mutex.
+
+This patch expands the i_mutex locking to enclose lookup_one_len.  This
+was always required, but not not enforced in the reiserfs code since it
+does locking around the xattr interactions with the xattr_sem.
+
+This is obvious enough, and it survived an overnight 50 thread ACL test.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Tested-by: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: David <david@unsolicited.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/i2c.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/reiserfs/xattr.c |   32 ++++++++++++++------------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/i2c.h~i2c-too-much-compiler-noise include/linux/i2c.h
---- a/include/linux/i2c.h~i2c-too-much-compiler-noise
-+++ a/include/linux/i2c.h
-@@ -151,7 +151,7 @@ struct i2c_driver {
- 	 * has been dynamically allocated by the driver in the function above,
- 	 * it must be freed here.  (LEGACY I2C DRIVERS ONLY)
- 	 */
--	int (*detach_client)(struct i2c_client *) __deprecated;
-+	int (*detach_client)(struct i2c_client *);
+diff -puN fs/reiserfs/xattr.c~reiserfs-expand-i_mutex-to-enclose-lookup_one_len fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-expand-i_mutex-to-enclose-lookup_one_len
++++ a/fs/reiserfs/xattr.c
+@@ -120,25 +120,20 @@ static struct dentry *lookup_or_create_d
+ 	struct dentry *dentry;
+ 	BUG_ON(!parent);
  
- 	/* Standard driver model interfaces, for "new style" i2c drivers.
- 	 * With the driver model, device enumeration is NEVER done by drivers;
-@@ -431,8 +431,8 @@ static inline int i2c_add_driver(struct 
++	mutex_lock_nested(&parent->d_inode->i_mutex, I_MUTEX_XATTR);
+ 	dentry = lookup_one_len(name, parent, strlen(name));
+-	if (IS_ERR(dentry))
+-		return dentry;
+-	else if (!dentry->d_inode) {
++	if (!IS_ERR(dentry) && !dentry->d_inode) {
+ 		int err = -ENODATA;
  
- /* These are deprecated, your driver should use the standard .probe()
-  * and .remove() methods instead. */
--extern int __deprecated i2c_attach_client(struct i2c_client *);
--extern int __deprecated i2c_detach_client(struct i2c_client *);
-+extern int i2c_attach_client(struct i2c_client *);
-+extern int i2c_detach_client(struct i2c_client *);
+-		if (xattr_may_create(flags)) {
+-			mutex_lock_nested(&parent->d_inode->i_mutex,
+-					  I_MUTEX_XATTR);
++		if (xattr_may_create(flags))
+ 			err = xattr_mkdir(parent->d_inode, dentry, 0700);
+-			mutex_unlock(&parent->d_inode->i_mutex);
+-		}
  
- extern struct i2c_client *i2c_use_client(struct i2c_client *client);
- extern void i2c_release_client(struct i2c_client *client);
+ 		if (err) {
+ 			dput(dentry);
+ 			dentry = ERR_PTR(err);
+ 		}
+ 	}
+-
++	mutex_unlock(&parent->d_inode->i_mutex);
+ 	return dentry;
+ }
+ 
+@@ -184,6 +179,7 @@ fill_with_dentries(void *buf, const char
+ {
+ 	struct reiserfs_dentry_buf *dbuf = buf;
+ 	struct dentry *dentry;
++	WARN_ON_ONCE(!mutex_is_locked(&dbuf->xadir->d_inode->i_mutex));
+ 
+ 	if (dbuf->count == ARRAY_SIZE(dbuf->dentries))
+ 		return -ENOSPC;
+@@ -349,6 +345,7 @@ static struct dentry *xattr_lookup(struc
+ 	if (IS_ERR(xadir))
+ 		return ERR_CAST(xadir);
+ 
++	mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
+ 	xafile = lookup_one_len(name, xadir, strlen(name));
+ 	if (IS_ERR(xafile)) {
+ 		err = PTR_ERR(xafile);
+@@ -360,18 +357,15 @@ static struct dentry *xattr_lookup(struc
+ 
+ 	if (!xafile->d_inode) {
+ 		err = -ENODATA;
+-		if (xattr_may_create(flags)) {
+-			mutex_lock_nested(&xadir->d_inode->i_mutex,
+-					  I_MUTEX_XATTR);
++		if (xattr_may_create(flags))
+ 			err = xattr_create(xadir->d_inode, xafile,
+ 					      0700|S_IFREG);
+-			mutex_unlock(&xadir->d_inode->i_mutex);
+-		}
+ 	}
+ 
+ 	if (err)
+ 		dput(xafile);
+ out:
++	mutex_unlock(&xadir->d_inode->i_mutex);
+ 	dput(xadir);
+ 	if (err)
+ 		return ERR_PTR(err);
+@@ -435,6 +429,7 @@ static int lookup_and_delete_xattr(struc
+ 	if (IS_ERR(xadir))
+ 		return PTR_ERR(xadir);
+ 
++	mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
+ 	dentry = lookup_one_len(name, xadir, strlen(name));
+ 	if (IS_ERR(dentry)) {
+ 		err = PTR_ERR(dentry);
+@@ -442,14 +437,13 @@ static int lookup_and_delete_xattr(struc
+ 	}
+ 
+ 	if (dentry->d_inode) {
+-		mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
+ 		err = xattr_unlink(xadir->d_inode, dentry);
+-		mutex_unlock(&xadir->d_inode->i_mutex);
+ 		update_ctime(inode);
+ 	}
+ 
+ 	dput(dentry);
+ out_dput:
++	mutex_unlock(&xadir->d_inode->i_mutex);
+ 	dput(xadir);
+ 	return err;
+ }
+@@ -906,9 +900,9 @@ static int create_privroot(struct dentry
+ {
+ 	int err;
+ 	struct inode *inode = dentry->d_parent->d_inode;
+-	mutex_lock_nested(&inode->i_mutex, I_MUTEX_XATTR);
++	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
++
+ 	err = xattr_mkdir(inode, dentry, 0700);
+-	mutex_unlock(&inode->i_mutex);
+ 	if (err) {
+ 		dput(dentry);
+ 		dentry = NULL;
+@@ -980,6 +974,7 @@ int reiserfs_xattr_init(struct super_blo
+ 	/* If we don't have the privroot located yet - go find it */
+ 	if (!REISERFS_SB(s)->priv_root) {
+ 		struct dentry *dentry;
++		mutex_lock_nested(&s->s_root->d_inode->i_mutex, I_MUTEX_CHILD);
+ 		dentry = lookup_one_len(PRIVROOT_NAME, s->s_root,
+ 					strlen(PRIVROOT_NAME));
+ 		if (!IS_ERR(dentry)) {
+@@ -993,6 +988,7 @@ int reiserfs_xattr_init(struct super_blo
+ 			}
+ 		} else
+ 			err = PTR_ERR(dentry);
++		mutex_unlock(&s->s_root->d_inode->i_mutex);
+ 
+ 		if (!err && dentry) {
+ 			s->s_root->d_op = &xattr_lookup_poison_ops;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-mtd-fix-timeout-in-m25p80-driver-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-revert-genirq-assert-that-irq-handlers-are-indeed-running-in-hardirq-context.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
