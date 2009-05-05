@@ -1,107 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch removed from -mm tree
-Date: Tue, 05 May 2009 13:06:07 -0700
-Message-ID: <200905052006.n45K683G031644@imap1.linux-foundation.org>
+Subject: + ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch added to -mm tree
+Date: Tue, 05 May 2009 13:15:09 -0700
+Message-ID: <200905052015.n45KF9o0004829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59538 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758198AbZEEUPv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:15:51 -0400
+	by vger.kernel.org with ESMTP id S1754005AbZEEUUD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:20:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh@veritas.com, ieidus@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86
-has been removed from the -mm tree.  Its filename was
-     ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
+     ksm: limit the num of mem regions user can register per fd
+has been added to the -mm tree.  Its filename is
+     ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ksm: limit the num of mem regions user can register per fd
+From: Izik Eidus <ieidus@redhat.com>
 
+Right now user can open /dev/ksm fd and register unlimited number of
+regions, such behavior may allocate unlimited amount of kernel memory
+and get the whole host into out of memory situation.
+
+Signed-off-by: Izik Eidus <ieidus@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Avi Kivity <avi@redhat.com>
-Cc: Chris Wright <chrisw@redhat.com>
 Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Izik Eidus <ieidus@redhat.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/ksm.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN mm/Kconfig~ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86 mm/Kconfig
---- a/mm/Kconfig~ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86
-+++ a/mm/Kconfig
-@@ -228,6 +228,7 @@ config MMU_NOTIFIER
+diff -puN mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd mm/ksm.c
+--- a/mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd
++++ a/mm/ksm.c
+@@ -48,6 +48,9 @@ static int rmap_hash_size;
+ module_param(rmap_hash_size, int, 0);
+ MODULE_PARM_DESC(rmap_hash_size, "Hash table size for the reverse mapping");
  
- config KSM
- 	tristate "Enable KSM for page sharing"
-+	depends on X86
- 	help
- 	  Enable the KSM kernel module to allow page sharing of equal pages
- 	  among different tasks.
++static int regions_per_fd;
++module_param(regions_per_fd, int, 0);
++
+ /*
+  * ksm_mem_slot - hold information for an userspace scanning range
+  * (the scanning for this region will be from addr untill addr +
+@@ -67,6 +70,7 @@ struct ksm_mem_slot {
+  */
+ struct ksm_sma {
+ 	struct list_head sma_slots;
++	int nregions;
+ };
+ 
+ /**
+@@ -452,6 +456,11 @@ static int ksm_sma_ioctl_register_memory
+ 	struct ksm_mem_slot *slot;
+ 	int ret = -EPERM;
+ 
++	if ((ksm_sma->nregions + 1) > regions_per_fd) {
++		ret = -EBUSY;
++		goto out;
++	}
++
+ 	slot = kzalloc(sizeof(struct ksm_mem_slot), GFP_KERNEL);
+ 	if (!slot) {
+ 		ret = -ENOMEM;
+@@ -472,6 +481,7 @@ static int ksm_sma_ioctl_register_memory
+ 
+ 	list_add_tail(&slot->link, &slots);
+ 	list_add_tail(&slot->sma_link, &ksm_sma->sma_slots);
++	ksm_sma->nregions++;
+ 
+ 	up_write(&slots_lock);
+ 	return 0;
+@@ -510,6 +520,7 @@ static int ksm_sma_ioctl_remove_memory_r
+ 		mmput(slot->mm);
+ 		list_del(&slot->sma_link);
+ 		kfree(slot);
++		ksm_sma->nregions--;
+ 	}
+ 	up_write(&slots_lock);
+ 	return 0;
+@@ -1387,6 +1398,7 @@ static int ksm_dev_ioctl_create_shared_m
+ 	}
+ 
+ 	INIT_LIST_HEAD(&ksm_sma->sma_slots);
++	ksm_sma->nregions = 0;
+ 
+ 	fd = anon_inode_getfd("ksm-sma", &ksm_sma_fops, ksm_sma, 0);
+ 	if (fd < 0)
+@@ -1629,6 +1641,9 @@ static int __init ksm_init(void)
+ 	if (r)
+ 		goto out_free1;
+ 
++	if (!regions_per_fd)
++		regions_per_fd = 1024;
++
+ 	ksm_thread = kthread_run(ksm_scan_thread, NULL, "kksmd");
+ 	if (IS_ERR(ksm_thread)) {
+ 		printk(KERN_ERR "ksm: creating kthread failed\n");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ieidus@redhat.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-mtd-fix-timeout-in-m25p80-driver-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-revert-genirq-assert-that-irq-handlers-are-indeed-running-in-hardirq-context.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-mmu_notifiers-add-set_pte_at_notify.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
 ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
 ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-ksm-add-ksm-kernel-shared-memory-driver-borked-on-non-x86.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch
+ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-prot-handling-to-use-the-generic-helper-functions.patch
+ksm-add-ksm-kernel-shared-memory-driver-use-another-miscdevice-minor-number.patch
 
