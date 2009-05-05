@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + libata-avoid-world-writable-sysfs-files.patch added to -mm tree
-Date: Tue, 05 May 2009 12:48:18 -0700
-Message-ID: <200905051948.n45JmIvj020465@imap1.linux-foundation.org>
+Subject: + fbdev-remove-makefile-reference-to-removed-driver.patch added to -mm tree
+Date: Tue, 05 May 2009 12:51:04 -0700
+Message-ID: <200905051951.n45Jp4ww022187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59170 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700AbZEETvH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:51:07 -0400
+	by vger.kernel.org with ESMTP id S1752216AbZEETwO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:52:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: v.mayatskih@gmail.com, jeff@garzik.org
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     libata: avoid world-writable sysfs files
+     fbdev: remove makefile reference to removed driver
 has been added to the -mm tree.  Its filename is
-     libata-avoid-world-writable-sysfs-files.patch
+     fbdev-remove-makefile-reference-to-removed-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata: avoid world-writable sysfs files
-From: Vitaly Mayatskikh <v.mayatskih@gmail.com>
+Subject: fbdev: remove makefile reference to removed driver
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Avoid world-writable sysfs files in libata driver.
+The cyblafb driver is removed so remove its last trace in the makefile.
 
-Signed-off-by: Vitaly Mayatskikh <v.mayatskih@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-scsi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/Makefile |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/ata/libata-scsi.c~libata-avoid-world-writable-sysfs-files drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~libata-avoid-world-writable-sysfs-files
-+++ a/drivers/ata/libata-scsi.c
-@@ -313,7 +313,7 @@ ata_scsi_em_message_show(struct device *
- 		return ap->ops->em_show(ap, buf);
- 	return -EINVAL;
- }
--DEVICE_ATTR(em_message, S_IRUGO | S_IWUGO,
-+DEVICE_ATTR(em_message, S_IRUGO | S_IWUSR,
- 		ata_scsi_em_message_show, ata_scsi_em_message_store);
- EXPORT_SYMBOL_GPL(dev_attr_em_message);
- 
-@@ -366,7 +366,7 @@ ata_scsi_activity_store(struct device *d
- 	}
- 	return -EINVAL;
- }
--DEVICE_ATTR(sw_activity, S_IWUGO | S_IRUGO, ata_scsi_activity_show,
-+DEVICE_ATTR(sw_activity, S_IWUSR | S_IRUGO, ata_scsi_activity_show,
- 			ata_scsi_activity_store);
- EXPORT_SYMBOL_GPL(dev_attr_sw_activity);
- 
+diff -puN drivers/video/Makefile~fbdev-remove-makefile-reference-to-removed-driver drivers/video/Makefile
+--- a/drivers/video/Makefile~fbdev-remove-makefile-reference-to-removed-driver
++++ a/drivers/video/Makefile
+@@ -56,7 +56,6 @@ obj-$(CONFIG_FB_CT65550)          += chi
+ obj-$(CONFIG_FB_IMSTT)            += imsttfb.o
+ obj-$(CONFIG_FB_FM2)              += fm2fb.o
+ obj-$(CONFIG_FB_VT8623)           += vt8623fb.o
+-obj-$(CONFIG_FB_CYBLA)            += cyblafb.o
+ obj-$(CONFIG_FB_TRIDENT)          += tridentfb.o
+ obj-$(CONFIG_FB_LE80578)          += vermilion/
+ obj-$(CONFIG_FB_S3)               += s3fb.o
 _
 
-Patches currently in -mm which might be from v.mayatskih@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-origin.patch
-libata-avoid-world-writable-sysfs-files.patch
+linux-next.patch
+fbdev-fix-fillrect-for-24bpp-modes.patch
+fbdev-remove-makefile-reference-to-removed-driver.patch
+chipsfb-remove-redundant-assigment.patch
 
