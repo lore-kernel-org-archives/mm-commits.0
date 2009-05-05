@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alloc_vmap_area-fix-memory-leak.patch added to -mm tree
-Date: Tue, 05 May 2009 12:50:12 -0700
-Message-ID: <200905051950.n45JoCtY021673@imap1.linux-foundation.org>
+Subject: + chipsfb-remove-redundant-assignment.patch added to -mm tree
+Date: Tue, 05 May 2009 12:51:38 -0700
+Message-ID: <200905051951.n45JpcNt022567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34952 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758139AbZEETwm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:52:42 -0400
+	by vger.kernel.org with ESMTP id S1758540AbZEETxG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:53:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralphw@linux.vnet.ibm.com, cl@linux-foundation.org, minchan.kim@gmail.com, npiggin@suse.de
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     alloc_vmap_area: fix memory leak
+     chipsfb: remove redundant assignment
 has been added to the -mm tree.  Its filename is
-     alloc_vmap_area-fix-memory-leak.patch
+     chipsfb-remove-redundant-assignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alloc_vmap_area: fix memory leak
-From: Ralph Wuerthner <ralphw@linux.vnet.ibm.com>
+Subject: chipsfb: remove redundant assignment
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-If alloc_vmap_area() fails the allocated struct vmap_area has to be freed.
+The removed assignment is done inside the framebuffer_alloc() earlier.
 
-Signed-off-by: Ralph Wuerthner <ralphw@linux.vnet.ibm.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/chipsfb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/vmalloc.c~alloc_vmap_area-fix-memory-leak mm/vmalloc.c
---- a/mm/vmalloc.c~alloc_vmap_area-fix-memory-leak
-+++ a/mm/vmalloc.c
-@@ -403,6 +403,7 @@ overflow:
- 			printk(KERN_WARNING
- 				"vmap allocation for size %lu failed: "
- 				"use vmalloc=<size> to increase size.\n", size);
-+		kfree(va);
- 		return ERR_PTR(-EBUSY);
+diff -puN drivers/video/chipsfb.c~chipsfb-remove-redundant-assignment drivers/video/chipsfb.c
+--- a/drivers/video/chipsfb.c~chipsfb-remove-redundant-assignment
++++ a/drivers/video/chipsfb.c
+@@ -414,7 +414,6 @@ chipsfb_pci_init(struct pci_dev *dp, con
  	}
+ 
+ 	pci_set_drvdata(dp, p);
+-	p->device = &dp->dev;
+ 
+ 	init_chips(p, addr);
  
 _
 
-Patches currently in -mm which might be from ralphw@linux.vnet.ibm.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-alloc_vmap_area-fix-memory-leak.patch
+linux-next.patch
+fbdev-fix-fillrect-for-24bpp-modes.patch
+fbdev-remove-makefile-reference-to-removed-driver.patch
+chipsfb-remove-redundant-assignment.patch
 
