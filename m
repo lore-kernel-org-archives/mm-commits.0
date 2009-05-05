@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch added to -mm tree
-Date: Tue, 05 May 2009 16:11:17 -0700
-Message-ID: <200905052311.n45NBHIU017889@imap1.linux-foundation.org>
+Subject: + ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch added to -mm tree
+Date: Tue, 05 May 2009 16:11:15 -0700
+Message-ID: <200905052311.n45NBFDI017884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57227 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752969AbZEEXOm (ORCPT
+	by vger.kernel.org with ESMTP id S1752021AbZEEXOm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 19:14:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@redhat.com, chrisw@sous-sol.org, roland@redhat.com
 
 
 The patch titled
-     ptrace: cleanup check/set of PT_PTRACED during attach
+     ptrace: ptrace_attach: check PF_KTHREAD + exit_state instead of ->mm
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
+     ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup check/set of PT_PTRACED during attach
+Subject: ptrace: ptrace_attach: check PF_KTHREAD + exit_state instead of ->mm
 From: Oleg Nesterov <oleg@redhat.com>
 
-ptrace_attach() and ptrace_traceme() are the last functions which look as
-if the untraced task can have task->ptrace != 0, this must not be
-possible.  Change the code to just check ->ptrace != 0 and s/|=/=/ to set
-PT_PTRACED.
+- Add PF_KTHREAD check to prevent attaching to the kernel thread
+  with a borrowed ->mm.
 
-Also, a couple of trivial whitespace cleanups in ptrace_attach().
+  With or without this change we can race with daemonize() which
+  can set PF_KTHREAD or clear ->mm after ptrace_attach() does the
+  check, but this doesn't matter because reparent_to_kthreadd()
+  does ptrace_unlink().
 
-And move ptrace_traceme() up near ptrace_attach() to keep them close to
-each other.
+- Kill "!task->mm" check. We don't really care about ->mm != NULL,
+  and the task can call exit_mm() right after we drop task_lock().
+  What we need is to make sure we can't attach after exit_notify(),
+  check task->exit_state != 0 instead.
+
+Also, move the "already traced" check down for cosmetic reasons.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Chris Wright <chrisw@sous-sol.org>
@@ -52,147 +57,62 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |  102 +++++++++++++++++++++++-----------------------
- 1 file changed, 51 insertions(+), 51 deletions(-)
+ kernel/ptrace.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-cleanup-check-set-of-pt_ptraced-during-attach kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-cleanup-check-set-of-pt_ptraced-during-attach
+diff -puN kernel/ptrace.c~ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm
 +++ a/kernel/ptrace.c
-@@ -186,12 +186,12 @@ int ptrace_attach(struct task_struct *ta
- 		goto out;
+@@ -182,6 +182,8 @@ int ptrace_attach(struct task_struct *ta
+ 	audit_ptrace(task);
+ 
+ 	retval = -EPERM;
++	if (unlikely(task->flags & PF_KTHREAD))
++		goto out;
  	if (same_thread_group(task, current))
  		goto out;
--
--	/* Protect exec's credential calculations against our interference;
-+	/*
-+	 * Protect exec's credential calculations against our interference;
- 	 * SUID, SGID and LSM creds get determined differently under ptrace.
- 	 */
+ 
+@@ -191,8 +193,6 @@ int ptrace_attach(struct task_struct *ta
  	retval = mutex_lock_interruptible(&task->cred_exec_mutex);
--	if (retval  < 0)
-+	if (retval < 0)
+ 	if (retval  < 0)
  		goto out;
+-
+-	retval = -EPERM;
  repeat:
  	/*
-@@ -219,10 +219,10 @@ repeat:
- 	retval = -EPERM;
- 	if (unlikely(task->exit_state))
- 		goto bad;
+ 	 * Nasty, nasty.
+@@ -212,23 +212,24 @@ repeat:
+ 		goto repeat;
+ 	}
+ 
+-	if (!task->mm)
+-		goto bad;
+-	/* the same process cannot be attached many times */
 -	if (task->ptrace & PT_PTRACED)
-+	if (task->ptrace)
+-		goto bad;
+ 	retval = __ptrace_may_access(task, PTRACE_MODE_ATTACH);
+ 	if (retval)
  		goto bad;
  
--	task->ptrace |= PT_PTRACED;
-+	task->ptrace = PT_PTRACED;
+-	/* Go */
++	retval = -EPERM;
++	if (unlikely(task->exit_state))
++		goto bad;
++	if (task->ptrace & PT_PTRACED)
++		goto bad;
++
+ 	task->ptrace |= PT_PTRACED;
  	if (capable(CAP_SYS_PTRACE))
  		task->ptrace |= PT_PTRACE_CAP;
  
-@@ -238,6 +238,52 @@ out:
- 	return retval;
- }
- 
-+/**
-+ * ptrace_traceme  --  helper for PTRACE_TRACEME
-+ *
-+ * Performs checks and sets PT_PTRACED.
-+ * Should be used by all ptrace implementations for PTRACE_TRACEME.
-+ */
-+int ptrace_traceme(void)
-+{
-+	int ret = -EPERM;
-+
-+	/*
-+	 * Are we already being traced?
-+	 */
-+repeat:
-+	task_lock(current);
-+	if (!current->ptrace) {
-+		/*
-+		 * See ptrace_attach() comments about the locking here.
-+		 */
-+		unsigned long flags;
-+		if (!write_trylock_irqsave(&tasklist_lock, flags)) {
-+			task_unlock(current);
-+			do {
-+				cpu_relax();
-+			} while (!write_can_lock(&tasklist_lock));
-+			goto repeat;
-+		}
-+
-+		ret = security_ptrace_traceme(current->parent);
-+
-+		/*
-+		 * Check PF_EXITING to ensure ->real_parent has not passed
-+		 * exit_ptrace(). Otherwise we don't report the error but
-+		 * pretend ->real_parent untraces us right after return.
-+		 */
-+		if (!ret && !(current->real_parent->flags & PF_EXITING)) {
-+			current->ptrace = PT_PTRACED;
-+			__ptrace_link(current, current->real_parent);
-+		}
-+
-+		write_unlock_irqrestore(&tasklist_lock, flags);
-+	}
-+	task_unlock(current);
-+	return ret;
-+}
-+
- /*
-  * Called with irqs disabled, returns true if childs should reap themselves.
-  */
-@@ -575,52 +621,6 @@ int ptrace_request(struct task_struct *c
- }
- 
- /**
-- * ptrace_traceme  --  helper for PTRACE_TRACEME
-- *
-- * Performs checks and sets PT_PTRACED.
-- * Should be used by all ptrace implementations for PTRACE_TRACEME.
-- */
--int ptrace_traceme(void)
--{
--	int ret = -EPERM;
+ 	__ptrace_link(task, current);
 -
--	/*
--	 * Are we already being traced?
--	 */
--repeat:
--	task_lock(current);
--	if (!(current->ptrace & PT_PTRACED)) {
--		/*
--		 * See ptrace_attach() comments about the locking here.
--		 */
--		unsigned long flags;
--		if (!write_trylock_irqsave(&tasklist_lock, flags)) {
--			task_unlock(current);
--			do {
--				cpu_relax();
--			} while (!write_can_lock(&tasklist_lock));
--			goto repeat;
--		}
--
--		ret = security_ptrace_traceme(current->parent);
--
--		/*
--		 * Check PF_EXITING to ensure ->real_parent has not passed
--		 * exit_ptrace(). Otherwise we don't report the error but
--		 * pretend ->real_parent untraces us right after return.
--		 */
--		if (!ret && !(current->real_parent->flags & PF_EXITING)) {
--			current->ptrace |= PT_PTRACED;
--			__ptrace_link(current, current->real_parent);
--		}
--
--		write_unlock_irqrestore(&tasklist_lock, flags);
--	}
--	task_unlock(current);
--	return ret;
--}
--
--/**
-  * ptrace_get_task_struct  --  grab a task struct reference for ptrace
-  * @pid:       process id to grab a task_struct reference of
-  *
+ 	send_sig_info(SIGSTOP, SEND_SIG_FORCED, task);
++
++	retval = 0;
+ bad:
+ 	write_unlock_irqrestore(&tasklist_lock, flags);
+ 	task_unlock(task);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
