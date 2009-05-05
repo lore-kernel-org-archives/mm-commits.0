@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-follow_pfn.patch added to -mm tree
-Date: Tue, 05 May 2009 12:24:53 -0700
-Message-ID: <200905051924.n45JOrE5005826@imap1.linux-foundation.org>
+Subject: + mm-introduce-follow_pte.patch added to -mm tree
+Date: Tue, 05 May 2009 12:24:49 -0700
+Message-ID: <200905051924.n45JOnsQ005809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57261 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758386AbZEET3x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:29:53 -0400
+	by vger.kernel.org with ESMTP id S1757570AbZEET3m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:29:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hannes@cmpxchg.org, hch@infradead.org, hugh@veritas.com, hverkuil@xs4all.nl,
 
 
 The patch titled
-     mm: introduce follow_pfn()
+     mm: introduce follow_pte()
 has been added to the -mm tree.  Its filename is
-     mm-introduce-follow_pfn.patch
+     mm-introduce-follow_pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce follow_pfn()
+Subject: mm: introduce follow_pte()
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-Analoguous to follow_phys(), add a helper that looks up the PFN at a
-user virtual address in an IO mapping or a raw PFN mapping.
+A generic readonly page table lookup helper to map an address space and an
+address from it to a pte.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -48,57 +48,52 @@ Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/memory.c        |   29 +++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ mm/memory.c |   37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff -puN include/linux/mm.h~mm-introduce-follow_pfn include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-follow_pfn
-+++ a/include/linux/mm.h
-@@ -817,6 +817,8 @@ int copy_page_range(struct mm_struct *ds
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
-+int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-+	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
- 		unsigned int flags, unsigned long *prot, resource_size_t *phys);
- int generic_access_phys(struct vm_area_struct *vma, unsigned long addr,
-diff -puN mm/memory.c~mm-introduce-follow_pfn mm/memory.c
---- a/mm/memory.c~mm-introduce-follow_pfn
+diff -puN mm/memory.c~mm-introduce-follow_pte mm/memory.c
+--- a/mm/memory.c~mm-introduce-follow_pte
 +++ a/mm/memory.c
-@@ -3228,6 +3228,35 @@ out:
- 	return -EINVAL;
- }
+@@ -3191,6 +3191,43 @@ int in_gate_area_no_task(unsigned long a
  
-+/**
-+ * follow_pfn - look up PFN at a user virtual address
-+ * @vma: memory mapping
-+ * @address: user virtual address
-+ * @pfn: location to store found PFN
-+ *
-+ * Only IO mappings and raw PFN mappings are allowed.
-+ *
-+ * Returns zero and the pfn at @pfn on success, -ve otherwise.
-+ */
-+int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-+	unsigned long *pfn)
+ #endif	/* __HAVE_ARCH_GATE_AREA */
+ 
++static int follow_pte(struct mm_struct *mm, unsigned long address,
++		pte_t **ptepp, spinlock_t **ptlp)
 +{
-+	int ret = -EINVAL;
-+	spinlock_t *ptl;
++	pgd_t *pgd;
++	pud_t *pud;
++	pmd_t *pmd;
 +	pte_t *ptep;
 +
-+	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
-+		return ret;
++	pgd = pgd_offset(mm, address);
++	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
++		goto out;
 +
-+	ret = follow_pte(vma->vm_mm, address, &ptep, &ptl);
-+	if (ret)
-+		return ret;
-+	*pfn = pte_pfn(*ptep);
-+	pte_unmap_unlock(ptep, ptl);
++	pud = pud_offset(pgd, address);
++	if (pud_none(*pud) || unlikely(pud_bad(*pud)))
++		goto out;
++
++	pmd = pmd_offset(pud, address);
++	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
++		goto out;
++
++	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
++	if (pmd_huge(*pmd))
++		goto out;
++
++	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
++	if (!ptep)
++		goto out;
++	if (!pte_present(*ptep))
++		goto unlock;
++	*ptepp = ptep;
 +	return 0;
++unlock:
++	pte_unmap_unlock(ptep, *ptlp);
++out:
++	return -EINVAL;
 +}
-+EXPORT_SYMBOL(follow_pfn);
 +
  #ifdef CONFIG_HAVE_IOREMAP_PROT
  int follow_phys(struct vm_area_struct *vma,
