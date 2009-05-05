@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-sysrq-simplify-sysrq-c-handler.patch added to -mm tree
-Date: Tue, 05 May 2009 15:30:08 -0700
-Message-ID: <200905052230.n45MU9tB024815@imap1.linux-foundation.org>
+Subject: + rtc-ds1553-drop-irqf_shared.patch added to -mm tree
+Date: Tue, 05 May 2009 15:32:41 -0700
+Message-ID: <200905052232.n45MWf4d026390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754063AbZEEWdZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 18:33:25 -0400
+	by vger.kernel.org with ESMTP id S1754690AbZEEWfD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 18:35:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nhorman@tuxdriver.com, brayan@yack.com.br, ebiederm@xmission.com, vgoyal@redhat.com
+Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     kexec: sysrq: simplify sysrq-c handler
+     rtc-ds1553: drop IRQF_SHARED
 has been added to the -mm tree.  Its filename is
-     kexec-sysrq-simplify-sysrq-c-handler.patch
+     rtc-ds1553-drop-irqf_shared.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec: sysrq: simplify sysrq-c handler
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: rtc-ds1553: drop IRQF_SHARED
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Currently the sysrq-c handler is bit over-engineered.  Its behavior is
-dependent on a few compile time and run time factors that alter its
-behavior which is really unnecessecary.
+IRQF_SHARED should not be used with IRQF_DISABLED.  There is no in-tree
+user of this driver and only out-of-tree user I know uses a dedicated irq
+line for this RTC.
 
-If CONFIG_KEXEC is not configured, sysrq-c, crashes the system with a NULL
-pointer dereference.  If CONFIG_KEXEC is configured, it calls crash_kexec
-directly, which implies that the kexec kernel will either be booted (if
-its been previously loaded), or it will simply do nothing (the no kexec
-kernel has been loaded).
-
-It would be much easier to just simplify the whole thing to dereference a
-NULL pointer all the time regardless of configuration.  That way, it will
-always try to crash the system, and if a kexec kernel has been loaded into
-reserved space, it will still boot from the page fault trap handler
-(assuming panic_on_oops is set appropriately).
-
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Brayan Arraes <brayan@yack.com.br>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ drivers/rtc/rtc-ds1553.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/char/sysrq.c~kexec-sysrq-simplify-sysrq-c-handler drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~kexec-sysrq-simplify-sysrq-c-handler
-+++ a/drivers/char/sysrq.c
-@@ -120,20 +120,17 @@ static struct sysrq_key_op sysrq_unraw_o
- #define sysrq_unraw_op (*(struct sysrq_key_op *)0)
- #endif /* CONFIG_VT */
- 
--#ifdef CONFIG_KEXEC
--static void sysrq_handle_crashdump(int key, struct tty_struct *tty)
-+static void sysrq_handle_crash(int key, struct tty_struct *tty)
- {
--	crash_kexec(get_irq_regs());
-+	void *killer = NULL;
-+	*killer = 1;
- }
- static struct sysrq_key_op sysrq_crashdump_op = {
--	.handler	= sysrq_handle_crashdump,
--	.help_msg	= "Crashdump",
--	.action_msg	= "Trigger a crashdump",
-+	.handler	= sysrq_handle_crash,
-+	.help_msg	= "Crash",
-+	.action_msg	= "Trigger a crash",
- 	.enable_mask	= SYSRQ_ENABLE_DUMP,
- };
--#else
--#define sysrq_crashdump_op (*(struct sysrq_key_op *)0)
--#endif
- 
- static void sysrq_handle_reboot(int key, struct tty_struct *tty)
- {
+diff -puN drivers/rtc/rtc-ds1553.c~rtc-ds1553-drop-irqf_shared drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~rtc-ds1553-drop-irqf_shared
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -329,8 +329,7 @@ static int __devinit ds1553_rtc_probe(st
+ 	if (pdata->irq > 0) {
+ 		writeb(0, ioaddr + RTC_INTERRUPTS);
+ 		if (request_irq(pdata->irq, ds1553_rtc_interrupt,
+-				IRQF_DISABLED | IRQF_SHARED,
+-				pdev->name, pdev) < 0) {
++				IRQF_DISABLED, pdev->name, pdev) < 0) {
+ 			dev_warn(&pdev->dev, "interrupt not available.\n");
+ 			pdata->irq = 0;
+ 		}
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-linux-next.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+rtc-rtc-ds1742-nvram-attribute-fix.patch
+rtc-tx4939-drop-irqf_shared.patch
+rtc-ds1553-drop-irqf_shared.patch
+rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
 
