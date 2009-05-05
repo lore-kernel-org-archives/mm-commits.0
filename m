@@ -1,158 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + dcache-extrace-and-use-d_unlinked.patch added to -mm tree
-Date: Mon, 04 May 2009 16:44:18 -0700
-Message-ID: <200905042344.n44NiIo8023863@imap1.linux-foundation.org>
+Subject: [failures] sd-async-shutdown.patch removed from -mm tree
+Date: Tue, 05 May 2009 10:03:05 -0700
+Message-ID: <200905051703.n45H35mG014857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57819 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33695 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751283AbZEDXqr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2009 19:46:47 -0400
+	by vger.kernel.org with ESMTP id S1755976AbZEERGp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 13:06:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, hch@lst.de, viro@zeniv.linux.org.uk
+To: shaohua.li@intel.com, James.Bottomley@HansenPartnership.com, arjan@infradead.org, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dcache: extrace and use d_unlinked()
-has been added to the -mm tree.  Its filename is
-     dcache-extrace-and-use-d_unlinked.patch
+     sd: async shutdown
+has been removed from the -mm tree.  Its filename was
+     sd-async-shutdown.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dcache: extrace and use d_unlinked()
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: sd: async shutdown
+From: Shaohua Li <shaohua.li@intel.com>
 
-d_unlinked() will be used in middle-term to ban checkpointing when opened
-but unlinked file is detected, and in long term, to detect such situation
-and special case on it.
+sd shutdown is quite slow. It sometimes will take about 1s for shutdown.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c            |    7 +++----
- fs/namespace.c         |    8 ++++----
- include/linux/dcache.h |    5 +++++
- 3 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/scsi/sd.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN fs/dcache.c~dcache-extrace-and-use-d_unlinked fs/dcache.c
---- a/fs/dcache.c~dcache-extrace-and-use-d_unlinked
-+++ a/fs/dcache.c
-@@ -1910,7 +1910,7 @@ char *__d_path(const struct path *path, 
+diff -puN drivers/scsi/sd.c~sd-async-shutdown drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~sd-async-shutdown
++++ a/drivers/scsi/sd.c
+@@ -98,6 +98,7 @@ static int  sd_revalidate_disk(struct ge
+ static int  sd_probe(struct device *);
+ static int  sd_remove(struct device *);
+ static void sd_shutdown(struct device *);
++static void sd_sync_shutdown(struct device *);
+ static int sd_suspend(struct device *, pm_message_t state);
+ static int sd_resume(struct device *);
+ static void sd_rescan(struct device *);
+@@ -2064,7 +2065,7 @@ static int sd_remove(struct device *dev)
  
- 	spin_lock(&vfsmount_lock);
- 	prepend(&end, &buflen, "\0", 1);
--	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
-+	if (d_unlinked(dentry) &&
- 		(prepend(&end, &buflen, " (deleted)", 10) != 0))
- 			goto Elong;
+ 	device_del(&sdkp->dev);
+ 	del_gendisk(sdkp->disk);
+-	sd_shutdown(dev);
++	sd_sync_shutdown(dev);
  
-@@ -2035,7 +2035,7 @@ char *dentry_path(struct dentry *dentry,
+ 	mutex_lock(&sd_ref_mutex);
+ 	dev_set_drvdata(dev, NULL);
+@@ -2132,8 +2133,9 @@ static int sd_start_stop_device(struct s
+  * the normal SCSI command structure.  Wait for the command to
+  * complete.
+  */
+-static void sd_shutdown(struct device *dev)
++static void sd_async_shutdown(void *data, async_cookie_t cookie)
+ {
++	struct device *dev = data;
+ 	struct scsi_disk *sdkp = scsi_disk_get_from_dev(dev);
  
- 	spin_lock(&dcache_lock);
- 	prepend(&end, &buflen, "\0", 1);
--	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
-+	if (d_unlinked(dentry) &&
- 		(prepend(&end, &buflen, "//deleted", 9) != 0))
- 			goto Elong;
- 	if (buflen < 1)
-@@ -2097,9 +2097,8 @@ SYSCALL_DEFINE2(getcwd, char __user *, b
- 	read_unlock(&current->fs->lock);
- 
- 	error = -ENOENT;
--	/* Has the current directory has been unlinked? */
- 	spin_lock(&dcache_lock);
--	if (IS_ROOT(pwd.dentry) || !d_unhashed(pwd.dentry)) {
-+	if (!d_unlinked(pwd.dentry)) {
- 		unsigned long len;
- 		struct path tmp = root;
- 		char * cwd;
-diff -puN fs/namespace.c~dcache-extrace-and-use-d_unlinked fs/namespace.c
---- a/fs/namespace.c~dcache-extrace-and-use-d_unlinked
-+++ a/fs/namespace.c
-@@ -1415,7 +1415,7 @@ static int graft_tree(struct vfsmount *m
- 		goto out_unlock;
- 
- 	err = -ENOENT;
--	if (IS_ROOT(path->dentry) || !d_unhashed(path->dentry))
-+	if (!d_unlinked(path->dentry))
- 		err = attach_recursive_mnt(mnt, path, NULL);
- out_unlock:
- 	mutex_unlock(&path->dentry->d_inode->i_mutex);
-@@ -1597,7 +1597,7 @@ static int do_move_mount(struct path *pa
- 	if (IS_DEADDIR(path->dentry->d_inode))
- 		goto out1;
- 
--	if (!IS_ROOT(path->dentry) && d_unhashed(path->dentry))
-+	if (d_unlinked(path->dentry))
- 		goto out1;
- 
- 	err = -EINVAL;
-@@ -2160,9 +2160,9 @@ SYSCALL_DEFINE2(pivot_root, const char _
- 	error = -ENOENT;
- 	if (IS_DEADDIR(new.dentry->d_inode))
- 		goto out2;
--	if (d_unhashed(new.dentry) && !IS_ROOT(new.dentry))
-+	if (d_unlinked(new.dentry))
- 		goto out2;
--	if (d_unhashed(old.dentry) && !IS_ROOT(old.dentry))
-+	if (d_unlinked(old.dentry))
- 		goto out2;
- 	error = -EBUSY;
- 	if (new.mnt == root.mnt ||
-diff -puN include/linux/dcache.h~dcache-extrace-and-use-d_unlinked include/linux/dcache.h
---- a/include/linux/dcache.h~dcache-extrace-and-use-d_unlinked
-+++ a/include/linux/dcache.h
-@@ -351,6 +351,11 @@ static inline int d_unhashed(struct dent
- 	return (dentry->d_flags & DCACHE_UNHASHED);
+ 	if (!sdkp)
+@@ -2152,6 +2154,17 @@ static void sd_shutdown(struct device *d
+ 	scsi_disk_put(sdkp);
  }
  
-+static inline int d_unlinked(struct dentry *dentry)
++static void sd_shutdown(struct device *dev)
 +{
-+	return d_unhashed(dentry) && !IS_ROOT(dentry);
++	async_schedule(sd_async_shutdown, dev);
 +}
 +
- static inline struct dentry *dget_parent(struct dentry *dentry)
++static void sd_sync_shutdown(struct device *dev)
++{
++	async_cookie_t cookie = async_schedule(sd_async_shutdown, dev);
++	async_synchronize_cookie(cookie);
++}
++
+ static int sd_suspend(struct device *dev, pm_message_t mesg)
  {
- 	struct dentry *ret;
+ 	struct scsi_disk *sdkp = scsi_disk_get_from_dev(dev);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-origin.patch
-fs-remove-sparse-errors-in-proc_devtreec.patch
-dcache-extrace-and-use-d_unlinked.patch
-procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
-mm-consolidate-init_mm-definition.patch
-mm-consolidate-init_mm-definition-fix.patch
-pagemap-document-clarifications.patch
-pagemap-documentation-9-more-exported-page-flags.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-pidns-make-create_pid_namespace-accept-parent-pidns.patch
-pidns-rewrite-copy_pid_ns.patch
-utsns-extract-creeate_uts_ns.patch
-ipcns-remove-useless-get-put-while-clone_newipc.patch
-ipcns-extract-create_ipc_ns.patch
-nsproxy-extract-create_nsproxy.patch
+linux-next.patch
+synchronize-device-shutdown.patch
+serios-async-shutdown.patch
+sd-async-shutdown.patch
 
