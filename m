@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-a-typo-in-a-printk-message.patch added to -mm tree
-Date: Tue, 05 May 2009 12:19:48 -0700
-Message-ID: <200905051919.n45JJmZk002665@imap1.linux-foundation.org>
+Subject: + sched-emit-thread-info-flags-with-stack-trace.patch added to -mm tree
+Date: Tue, 05 May 2009 12:21:11 -0700
+Message-ID: <200905051921.n45JLBpY003502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52277 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53143 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752491AbZEETW0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:22:26 -0400
+	by vger.kernel.org with ESMTP id S1753030AbZEETXm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 15:23:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: knikanth@suse.de, mingo@elte.hu
+Cc: rientjes@google.com, mingo@elte.hu
 
 
 The patch titled
-     x86: fix a typo in a printk message
+     sched: emit thread info flags with stack trace
 has been added to the -mm tree.  Its filename is
-     x86-fix-a-typo-in-a-printk-message.patch
+     sched-emit-thread-info-flags-with-stack-trace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix a typo in a printk message
-From: Nikanth Karthikesan <knikanth@suse.de>
+Subject: sched: emit thread info flags with stack trace
+From: David Rientjes <rientjes@google.com>
 
-Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
+When a thread is oom killed and fails to exit, it's helpful to know which
+threads have access to memory reserves if the machine livelocks.  This is
+done by testing for the TIF_MEMDIE thread info flag and should be
+displayed alongside stack traces to identify tasks that have access to
+such reserves but are still stuck allocating pages, for instance.
+
+It would probably be helpful in other cases as well, so all thread info
+flags are emitted when showing a task.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/srat_32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/srat_32.c~x86-fix-a-typo-in-a-printk-message arch/x86/mm/srat_32.c
---- a/arch/x86/mm/srat_32.c~x86-fix-a-typo-in-a-printk-message
-+++ a/arch/x86/mm/srat_32.c
-@@ -216,7 +216,7 @@ int __init get_memcfg_from_srat(void)
+diff -puN kernel/sched.c~sched-emit-thread-info-flags-with-stack-trace kernel/sched.c
+--- a/kernel/sched.c~sched-emit-thread-info-flags-with-stack-trace
++++ a/kernel/sched.c
+@@ -6606,8 +6606,9 @@ void sched_show_task(struct task_struct 
+ #ifdef CONFIG_DEBUG_STACK_USAGE
+ 	free = stack_not_used(p);
+ #endif
+-	printk(KERN_CONT "%5lu %5d %6d\n", free,
+-		task_pid_nr(p), task_pid_nr(p->real_parent));
++	printk(KERN_CONT "%5lu %5d %6d 0x%08x\n", free,
++		task_pid_nr(p), task_pid_nr(p->real_parent),
++		task_thread_info(p)->flags);
  
- 	if (num_memory_chunks == 0) {
- 		printk(KERN_WARNING
--			 "could not finy any ACPI SRAT memory areas.\n");
-+			 "could not find any ACPI SRAT memory areas.\n");
- 		goto out_fail;
- 	}
- 
+ 	show_stack(p, NULL);
+ }
 _
 
-Patches currently in -mm which might be from knikanth@suse.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
+origin.patch
 linux-next.patch
-x86-fix-a-typo-in-a-printk-message.patch
-block-prevent-possible-io_context-refcount-overflow.patch
-atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around.patch
+sched-emit-thread-info-flags-with-stack-trace.patch
+oom-prevent-livelock-when-oom_kill_allocating_task-is-set.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
 
