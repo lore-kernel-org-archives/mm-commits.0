@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isl29003-fix-resume-functionality.patch added to -mm tree
-Date: Tue, 05 May 2009 13:40:26 -0700
-Message-ID: <200905052040.n45KeQAA021032@imap1.linux-foundation.org>
+Subject: + mm-use-roundown_pow_of_two-in-zone_batchsize.patch added to -mm tree
+Date: Tue, 05 May 2009 15:16:18 -0700
+Message-ID: <200905052216.n45MGIpU016150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59505 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753691AbZEEUng (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:43:36 -0400
+	by vger.kernel.org with ESMTP id S1755152AbZEEWSe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 18:18:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daniel@caiaq.de, khali@linux-fr.org, rjw@sisk.pl
+Cc: dhowells@redhat.com, lanttor.guo@freescale.com
 
 
 The patch titled
-     isl29003: fix resume functionality
+     mm: use roundown_pow_of_two() in zone_batchsize()
 has been added to the -mm tree.  Its filename is
-     isl29003-fix-resume-functionality.patch
+     mm-use-roundown_pow_of_two-in-zone_batchsize.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isl29003: fix resume functionality
-From: Daniel Mack <daniel@caiaq.de>
+Subject: mm: use roundown_pow_of_two() in zone_batchsize()
+From: David Howells <dhowells@redhat.com>
 
-The isl29003 does not interpret the return value of
-i2c_smbus_write_byte_data() correctly and hence causes an error on system
-resume.
+Use roundown_pow_of_two(N) in zone_batchsize() rather than (1 <<
+(fls(N)-1)) as they are equivalent, and with the former it is easier to
+see what is going on.
 
-Also introduce power_state_before_suspend and restore the chip's power
-state upon wakeup.
-
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Tested-by: Lanttor Guo <lanttor.guo@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/isl29003.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/isl29003.c~isl29003-fix-resume-functionality drivers/misc/isl29003.c
---- a/drivers/misc/isl29003.c~isl29003-fix-resume-functionality
-+++ a/drivers/misc/isl29003.c
-@@ -64,6 +64,7 @@ struct isl29003_data {
- 	struct i2c_client *client;
- 	struct mutex lock;
- 	u8 reg_cache[ISL29003_NUM_CACHABLE_REGS];
-+	u8 power_state_before_suspend;
- };
+diff -puN mm/page_alloc.c~mm-use-roundown_pow_of_two-in-zone_batchsize mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-use-roundown_pow_of_two-in-zone_batchsize
++++ a/mm/page_alloc.c
+@@ -2707,7 +2707,7 @@ static int zone_batchsize(struct zone *z
+ 	 * of pages of one half of the possible page colors
+ 	 * and the other with pages of the other colors.
+ 	 */
+-	batch = (1 << (fls(batch + batch/2)-1)) - 1;
++	batch = rounddown_pow_of_two(batch + batch/2) - 1;
  
- static int gain_range[] = {
-@@ -411,6 +412,9 @@ static int __devexit isl29003_remove(str
- #ifdef CONFIG_PM
- static int isl29003_suspend(struct i2c_client *client, pm_message_t mesg)
- {
-+	struct isl29003_data *data = i2c_get_clientdata(client);
-+
-+	data->power_state_before_suspend = isl29003_get_power_state(client);
- 	return isl29003_set_power_state(client, 0);
+ 	return batch;
  }
- 
-@@ -421,10 +425,11 @@ static int isl29003_resume(struct i2c_cl
- 
- 	/* restore registers from cache */
- 	for (i = 0; i < ARRAY_SIZE(data->reg_cache); i++)
--		if (!i2c_smbus_write_byte_data(client, i, data->reg_cache[i]))
-+		if (i2c_smbus_write_byte_data(client, i, data->reg_cache[i]))
- 			return -EIO;
- 
--	return 0;
-+	return isl29003_set_power_state(client,
-+		data->power_state_before_suspend);
- }
- 
- #else
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
+origin.patch
 linux-next.patch
-usb-imx_udc-fix-leak-in-imx_ep_alloc_request.patch
-isl29003-fix-resume-functionality.patch
+mm-use-roundown_pow_of_two-in-zone_batchsize.patch
+nommu-clamp-zone_batchsize-to-0-under-nommu-conditions.patch
+nommu-make-the-initial-mmap-allocation-excess-behaviour-kconfig-configurable.patch
+rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
+frv-remove-in-kernel-strace-code.patch
+frv-implement-tif_notify_resume.patch
+frv-dont-turn-on-tif_syscall_trace-unconditionally-in-syscall-prologue.patch
+frv-implement-new-style-ptrace.patch
+frv-duplicate-output_buffer-of-e03.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+flat-fix-data-sections-alignment.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
+mutex-subsystem-synchro-test-module.patch
 
