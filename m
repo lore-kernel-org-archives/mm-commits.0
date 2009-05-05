@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed.patch added to -mm tree
-Date: Tue, 05 May 2009 13:34:50 -0700
-Message-ID: <200905052034.n45KYo81017185@imap1.linux-foundation.org>
+Subject: + edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch added to -mm tree
+Date: Tue, 05 May 2009 13:32:32 -0700
+Message-ID: <200905052032.n45KWWjM015757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754086AbZEEUhG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:37:06 -0400
+	by vger.kernel.org with ESMTP id S1754423AbZEEUhI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 16:37:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@openvz.org, rientjes@google.com
+Cc: qingtao.cao@windriver.com, benh@kernel.crashing.org, galak@gate.crashing.org, michael@ellerman.id.au, norsk5@yahoo.com, paulus@samba.org
 
 
 The patch titled
-     mm: setup_per_zone_inactive_ratio - do not call for int_sqrt if not needed
+     EDAC: CPC925 MC check fixup
 has been added to the -mm tree.  Its filename is
-     mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed.patch
+     edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: setup_per_zone_inactive_ratio - do not call for int_sqrt if not needed
-From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: EDAC: CPC925 MC check fixup
+From: Harry Ciao <qingtao.cao@windriver.com>
 
-int_sqrt() returns 0 if its argument is zero so call it if only needed.
+Fix an obvious bug in CPC925 Memory Controller's check routine -
+edac_mc_handle_ue() should have been called for UECC errors and
+edac_mc_handle_ce() for CECC errors.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
+Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/edac/cpc925_edac.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed mm/page_alloc.c
---- a/mm/page_alloc.c~mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed
-+++ a/mm/page_alloc.c
-@@ -4547,8 +4547,9 @@ static void setup_per_zone_inactive_rati
+diff -puN drivers/edac/cpc925_edac.c~edac-add-cpc925-memory-controller-driver-mc-check-fixup drivers/edac/cpc925_edac.c
+--- a/drivers/edac/cpc925_edac.c~edac-add-cpc925-memory-controller-driver-mc-check-fixup
++++ a/drivers/edac/cpc925_edac.c
+@@ -544,17 +544,16 @@ static void cpc925_mc_check(struct mem_c
+ 	/* Revert column/row addresses into page frame number, etc */
+ 	cpc925_mc_get_pfn(mci, mear, &pfn, &offset, &csrow);
  
- 		/* Zone size in gigabytes */
- 		gb = zone->present_pages >> (30 - PAGE_SHIFT);
--		ratio = int_sqrt(10 * gb);
--		if (!ratio)
-+		if (gb)
-+			ratio = int_sqrt(10 * gb);
-+		else
- 			ratio = 1;
+-	if (apiexcp & UECC_EXCP_DETECTED) {
+-		cpc925_mc_printk(mci, KERN_INFO, "DRAM UECC Fault\n");
++	if (apiexcp & CECC_EXCP_DETECTED) {
++		cpc925_mc_printk(mci, KERN_INFO, "DRAM CECC Fault\n");
+ 		channel = cpc925_mc_find_channel(mci, syndrome);
+ 		edac_mc_handle_ce(mci, pfn, offset, syndrome,
+ 				  csrow, channel, mci->ctl_name);
+ 	}
  
- 		zone->inactive_ratio = ratio;
+-	if (apiexcp & CECC_EXCP_DETECTED) {
+-		cpc925_mc_printk(mci, KERN_INFO, "DRAM CECC Fault\n");
+-		edac_mc_handle_ue(mci, pfn, offset,
+-				  csrow, mci->ctl_name);
++	if (apiexcp & UECC_EXCP_DETECTED) {
++		cpc925_mc_printk(mci, KERN_INFO, "DRAM UECC Fault\n");
++		edac_mc_handle_ue(mci, pfn, offset, csrow, mci->ctl_name);
+ 	}
+ 
+ 	cpc925_mc_printk(mci, KERN_INFO, "Dump registers:\n");
 _
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from qingtao.cao@windriver.com are
 
-linux-next.patch
-mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed.patch
+edac-add-cpc925-memory-controller-driver.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch
+edac-add-edac_device_alloc_index.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-cpc925-mc-platform-device-setup.patch
+edac-cpc925-mc-platform-device-setup-v3.patch
 
