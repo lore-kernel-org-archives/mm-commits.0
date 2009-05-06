@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-sysrq-simplify-sysrq-c-handler-fix.patch added to -mm tree
-Date: Tue, 05 May 2009 16:45:16 -0700
-Message-ID: <200905060004.n4604Lfx018350@imap1.linux-foundation.org>
+Subject: + drivers-base-iommuc-add-missing-includes.patch added to -mm tree
+Date: Tue, 05 May 2009 19:24:51 -0700
+Message-ID: <200905060243.n462hu0N019751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57659 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753446AbZEFAID (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 20:08:03 -0400
+	by vger.kernel.org with ESMTP id S1751346AbZEFCpx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 22:45:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, brayan@yack.com.br, ebiederm@xmission.com, nhorman@tuxdriver.com, vgoyal@redhat.com
+Cc: akpm@linux-foundation.org, gregkh@suse.de, joerg.roedel@amd.com
 
 
 The patch titled
-     kexec-sysrq-simplify-sysrq-c-handler-fix
+     drivers/base/iommu.c: add missing includes
 has been added to the -mm tree.  Its filename is
-     kexec-sysrq-simplify-sysrq-c-handler-fix.patch
+     drivers-base-iommuc-add-missing-includes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-sysrq-simplify-sysrq-c-handler-fix
+Subject: drivers/base/iommu.c: add missing includes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/char/sysrq.c: In function 'sysrq_handle_crash':
-drivers/char/sysrq.c:126: warning: dereferencing 'void *' pointer
-drivers/char/sysrq.c:126: error: invalid use of void expression
+Fix zillions of x86_64 allmodconfig build errors.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Brayan Arraes <brayan@yack.com.br>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/iommu.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/sysrq.c~kexec-sysrq-simplify-sysrq-c-handler-fix drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~kexec-sysrq-simplify-sysrq-c-handler-fix
-+++ a/drivers/char/sysrq.c
-@@ -122,7 +122,7 @@ static struct sysrq_key_op sysrq_unraw_o
+diff -puN drivers/base/iommu.c~drivers-base-iommuc-add-missing-includes drivers/base/iommu.c
+--- a/drivers/base/iommu.c~drivers-base-iommuc-add-missing-includes
++++ a/drivers/base/iommu.c
+@@ -18,6 +18,8 @@
  
- static void sysrq_handle_crash(int key, struct tty_struct *tty)
- {
--	void *killer = NULL;
-+	char *killer = NULL;
- 	*killer = 1;
- }
- static struct sysrq_key_op sysrq_crashdump_op = {
+ #include <linux/bug.h>
+ #include <linux/types.h>
++#include <linux/module.h>
++#include <linux/slab.h>
+ #include <linux/errno.h>
+ #include <linux/iommu.h>
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,4 +113,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+drivers-base-iommuc-add-missing-includes.patch
 
