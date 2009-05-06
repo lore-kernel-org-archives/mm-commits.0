@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-iommuc-add-missing-includes.patch added to -mm tree
-Date: Tue, 05 May 2009 19:24:51 -0700
-Message-ID: <200905060243.n462hu0N019751@imap1.linux-foundation.org>
+Subject: + remove-put_cpu_no_resched-fix.patch added to -mm tree
+Date: Tue, 05 May 2009 19:26:56 -0700
+Message-ID: <200905060246.n462k1gB021089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751346AbZEFCpx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 22:45:53 -0400
+	by vger.kernel.org with ESMTP id S1751346AbZEFCuF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2009 22:50:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, joerg.roedel@amd.com
+Cc: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, bfields@fieldses.org, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     drivers/base/iommu.c: add missing includes
+     remove-put_cpu_no_resched-fix
 has been added to the -mm tree.  Its filename is
-     drivers-base-iommuc-add-missing-includes.patch
+     remove-put_cpu_no_resched-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/base/iommu.c: add missing includes
+Subject: remove-put_cpu_no_resched-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix zillions of x86_64 allmodconfig build errors.
+In file included from fs/nfs/client.c:46:
+fs/nfs/iostat.h: In function 'nfs_add_fscache_stats':
+fs/nfs/iostat.h:74: error: implicit declaration of function 'put_cpu_no_resched'
 
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Joerg Roedel <joerg.roedel@amd.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/iommu.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/nfs/iostat.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/iommu.c~drivers-base-iommuc-add-missing-includes drivers/base/iommu.c
---- a/drivers/base/iommu.c~drivers-base-iommuc-add-missing-includes
-+++ a/drivers/base/iommu.c
-@@ -18,6 +18,8 @@
- 
- #include <linux/bug.h>
- #include <linux/types.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
- #include <linux/errno.h>
- #include <linux/iommu.h>
+diff -puN fs/nfs/iostat.h~remove-put_cpu_no_resched-fix fs/nfs/iostat.h
+--- a/fs/nfs/iostat.h~remove-put_cpu_no_resched-fix
++++ a/fs/nfs/iostat.h
+@@ -71,7 +71,7 @@ static inline void nfs_add_fscache_stats
+ 	cpu = get_cpu();
+ 	iostats = per_cpu_ptr(NFS_SERVER(inode)->io_stats, cpu);
+ 	iostats->fscache[stat] += addend;
+-	put_cpu_no_resched();
++	put_cpu();
+ }
+ #endif
  
 _
 
@@ -81,6 +86,7 @@ pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+drivers-base-iommuc-add-missing-includes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 revert-genirq-assert-that-irq-handlers-are-indeed-running-in-hardirq-context.patch
 leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
@@ -96,6 +102,7 @@ page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
 headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
 rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
 flat-fix-data-sections-alignment.patch
 drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
@@ -113,5 +120,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-drivers-base-iommuc-add-missing-includes.patch
 
