@@ -1,99 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [folded] inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix.patch removed from -mm tree
-Date: Wed, 06 May 2009 16:00:46 -0700
-Message-ID: <200905062300.n46N0k99031001@imap1.linux-foundation.org>
+Subject: [folded] eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch removed from -mm tree
+Date: Wed, 06 May 2009 16:01:13 -0700
+Message-ID: <200905062301.n46N1Dxl031310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35732 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750935AbZEFXFl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2009 19:05:41 -0400
+	by vger.kernel.org with ESMTP id S1752425AbZEFXGV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2009 19:06:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eparis@redhat.com, a.p.zijlstra@chello.nl, clameter@sgi.com, fengguang.wu@intel.com, mpm@selenic.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, andi@firstfloor.org, arjan@linux.intel.com, hannes@cmpxchg.org, hugh@veritas.com, jesper.nilsson@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make inotify event handles use GFP_NOFS
+     eliminate-thousands-of-warnings-with-gcc-32-build-cleanup
 has been removed from the -mm tree.  Its filename was
-     inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix.patch
+     eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
 
-This patch was dropped because it was folded into inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive.patch
+This patch was dropped because it was folded into eliminate-thousands-of-warnings-with-gcc-32-build.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make inotify event handles use GFP_NOFS
-From: Eric Paris <eparis@redhat.com>
+Subject: eliminate-thousands-of-warnings-with-gcc-32-build-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I think this is a bandaide to shut up lockdep.  I could either figure out
-lockdep classes and figure out how to reclassify inotify locks since I
-believe Nick is correct when he says inotify watches pin the inode in core
-so memory pressure can't evict it.  I don't want to do that as I think the
-real fix is my next generation fsnotify which does zero allocations under
-locks and so everything can be GFP_KERNEL.  I'm posting this as it is
-clearly safe and should fix the issue.
-
-http://marc.info/?l=linux-kernel&m=123617147432377&w=2
-
-includes a lockdep warning that shows while we are reclaiming FS memory
-and inode may get evicted which generates an IN_IGNORED message.  Half
-of that code path already used GFP_NOFS but a second allocation to store
-the filename was using GFP_KERNEL.  As a precaution I also moved the
-audit handle_event code path to use GFP_NOFS.
-
-This is much the same as the precaution in f04b30de3c82528 which did
-something similar.
-
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditfilter.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/panic.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/auditfilter.c~inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix kernel/auditfilter.c
---- a/kernel/auditfilter.c~inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix
-+++ a/kernel/auditfilter.c
-@@ -1028,7 +1028,7 @@ static void audit_update_watch(struct au
+diff -puN kernel/panic.c~eliminate-thousands-of-warnings-with-gcc-32-build-cleanup kernel/panic.c
+--- a/kernel/panic.c~eliminate-thousands-of-warnings-with-gcc-32-build-cleanup
++++ a/kernel/panic.c
+@@ -369,10 +369,9 @@ void warn_slowpath_fmt(const char *file,
+ }
+ EXPORT_SYMBOL(warn_slowpath_fmt);
  
- 		if (audit_enabled) {
- 			struct audit_buffer *ab;
--			ab = audit_log_start(NULL, GFP_KERNEL,
-+			ab = audit_log_start(NULL, GFP_NOFS,
- 				AUDIT_CONFIG_CHANGE);
- 			audit_log_format(ab, "auid=%u ses=%u",
- 				audit_get_loginuid(current),
-@@ -1067,7 +1067,7 @@ static void audit_remove_parent_watches(
- 			e = container_of(r, struct audit_entry, rule);
- 			if (audit_enabled) {
- 				struct audit_buffer *ab;
--				ab = audit_log_start(NULL, GFP_KERNEL,
-+				ab = audit_log_start(NULL, GFP_NOFS,
- 					AUDIT_CONFIG_CHANGE);
- 				audit_log_format(ab, "auid=%u ses=%u",
- 					audit_get_loginuid(current),
+-static const char *empty = "";
+-
+ void warn_slowpath_null(const char *file, int line)
+ {
++	static const char *empty = "";
+ 	warn_slowpath_fmt(file, line, empty);
+ }
+ EXPORT_SYMBOL(warn_slowpath_null);
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive.patch
-inotify-use-gfp_nofs-in-kernel_event-to-work-around-a-lockdep-false-positive-fix.patch
+origin.patch
+eliminate-thousands-of-warnings-with-gcc-32-build.patch
+eliminate-thousands-of-warnings-with-gcc-32-build-cleanup.patch
+drivers-base-iommuc-add-missing-includes.patch
 linux-next.patch
-fsnotify-unified-filesystem-notification-backend.patch
-fsnotify-add-marks-to-inodes-so-groups-can-interpret-how-to-handle-those-inodes.patch
-fsnotify-parent-event-notification.patch
-dnotify-reimplement-dnotify-using-fsnotify.patch
-fsnotify-generic-notification-queue-and-waitq.patch
-fsnotify-include-pathnames-with-entries-when-possible.patch
-fsnotify-add-correlations-between-events.patch
-fsnotify-allow-groups-to-add-private-data-to-events.patch
-fsnotify-fsnotify-marks-on-inodes-pin-them-in-core.patch
-fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch
-inotify-reimplement-inotify-using-fsnotify.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+mtd-fix-timeout-in-m25p80-driver-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
