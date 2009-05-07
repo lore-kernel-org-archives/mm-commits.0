@@ -1,157 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fiemap-fix-problem-with-setting-fiemap_extent_last.patch removed from -mm tree
-Date: Thu, 07 May 2009 12:16:00 -0700
-Message-ID: <200905071916.n47JG0rf020019__2978.53970337219$1241724242$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] kernel-time-tick-broadcastc-tick_broadcast_device-can-become-static.patch removed from -mm tree
+Date: Thu, 07 May 2009 12:16:34 -0700
+Message-ID: <200905071916.n47JGYdR020390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753270AbZEGTXo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:23:44 -0400
+	by vger.kernel.org with ESMTP id S1762461AbZEGT3M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:29:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbacik@redhat.com, Joel.Becker@oracle.com, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, mfasheh@suse.com, sandeen@redhat.com, stable@kernel.org, swhiteho@redhat.com, xfs-m
+To: dmitri.vorobiev@movial.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fiemap: fix problem with setting FIEMAP_EXTENT_LAST
+     kernel/time/tick-broadcast.c tick_broadcast_device can become static
 has been removed from the -mm tree.  Its filename was
-     fiemap-fix-problem-with-setting-fiemap_extent_last.patch
+     kernel-time-tick-broadcastc-tick_broadcast_device-can-become-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fiemap: fix problem with setting FIEMAP_EXTENT_LAST
-From: Josef Bacik <jbacik@redhat.com>
+Subject: kernel/time/tick-broadcast.c tick_broadcast_device can become static
+From: Dmitri Vorobiev <dmitri.vorobiev@movial.com>
 
-Fix a problem where the generic block based fiemap stuff would not
-properly set FIEMAP_EXTENT_LAST on the last extent.  I've reworked things
-to keep track if we go past the EOF, and mark the last extent properly. 
-The problem was reported by and tested by Eric Sandeen.
+The variable tick_broadcast_device is not used outside of the
+file where it is defined, so let's make it static.
 
-Tested-by: Eric Sandeen <sandeen@redhat.com>
-Signed-off-by: Josef Bacik <jbacik@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: <xfs-masters@oss.sgi.com>
-Cc: <linux-btrfs@vger.kernel.org>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <Joel.Becker@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Dmitri Vorobiev <dmitri.vorobiev@movial.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ioctl.c |   75 +++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 55 insertions(+), 20 deletions(-)
+ kernel/time/tick-broadcast.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ioctl.c~fiemap-fix-problem-with-setting-fiemap_extent_last fs/ioctl.c
---- a/fs/ioctl.c~fiemap-fix-problem-with-setting-fiemap_extent_last
-+++ a/fs/ioctl.c
-@@ -258,7 +258,7 @@ int __generic_block_fiemap(struct inode 
- 	long long length = 0, map_len = 0;
- 	u64 logical = 0, phys = 0, size = 0;
- 	u32 flags = FIEMAP_EXTENT_MERGED;
--	int ret = 0;
-+	int ret = 0, past_eof = 0, whole_file = 0;
+diff -puN kernel/time/tick-broadcast.c~kernel-time-tick-broadcastc-tick_broadcast_device-can-become-static kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~kernel-time-tick-broadcastc-tick_broadcast_device-can-become-static
++++ a/kernel/time/tick-broadcast.c
+@@ -27,7 +27,7 @@
+  * timer stops in C3 state.
+  */
  
- 	if ((ret = fiemap_check_flags(fieinfo, FIEMAP_FLAG_SYNC)))
- 		return ret;
-@@ -266,6 +266,9 @@ int __generic_block_fiemap(struct inode 
- 	start_blk = logical_to_blk(inode, start);
- 
- 	length = (long long)min_t(u64, len, i_size_read(inode));
-+	if (length < len)
-+		whole_file = 1;
-+
- 	map_len = length;
- 
- 	do {
-@@ -282,11 +285,26 @@ int __generic_block_fiemap(struct inode 
- 
- 		/* HOLE */
- 		if (!buffer_mapped(&tmp)) {
-+			length -= blk_to_logical(inode, 1);
-+			start_blk++;
-+
-+			/*
-+			 * we want to handle the case where there is an
-+			 * allocated block at the front of the file, and then
-+			 * nothing but holes up to the end of the file properly,
-+			 * to make sure that extent at the front gets properly
-+			 * marked with FIEMAP_EXTENT_LAST
-+			 */
-+			if (!past_eof &&
-+			    blk_to_logical(inode, start_blk) >=
-+			    blk_to_logical(inode, 0)+i_size_read(inode))
-+				past_eof = 1;
-+
- 			/*
- 			 * first hole after going past the EOF, this is our
- 			 * last extent
- 			 */
--			if (length <= 0) {
-+			if (past_eof && size) {
- 				flags = FIEMAP_EXTENT_MERGED|FIEMAP_EXTENT_LAST;
- 				ret = fiemap_fill_next_extent(fieinfo, logical,
- 							      phys, size,
-@@ -294,15 +312,37 @@ int __generic_block_fiemap(struct inode 
- 				break;
- 			}
- 
--			length -= blk_to_logical(inode, 1);
--
- 			/* if we have holes up to/past EOF then we're done */
--			if (length <= 0)
-+			if (length <= 0 || past_eof)
- 				break;
--
--			start_blk++;
- 		} else {
--			if (length <= 0 && size) {
-+			/*
-+			 * we have gone over the length of what we wanted to
-+			 * map, and it wasn't the entire file, so add the extent
-+			 * we got last time and exit.
-+			 *
-+			 * This is for the case where say we want to map all the
-+			 * way up to the second to the last block in a file, but
-+			 * the last block is a hole, making the second to last
-+			 * block FIEMAP_EXTENT_LAST.  In this case we want to
-+			 * see if there is a hole after the second to last block
-+			 * so we can mark it properly.  If we found data after
-+			 * we exceeded the length we were requesting, then we
-+			 * are good to go, just add the extent to the fieinfo
-+			 * and break
-+			 */
-+			if (length <= 0 && !whole_file) {
-+				ret = fiemap_fill_next_extent(fieinfo, logical,
-+							      phys, size,
-+							      flags);
-+				break;
-+			}
-+
-+			/*
-+			 * if size != 0 then we know we already have an extent
-+			 * to add, so add it.
-+			 */
-+			if (size) {
- 				ret = fiemap_fill_next_extent(fieinfo, logical,
- 							      phys, size,
- 							      flags);
-@@ -319,19 +359,14 @@ int __generic_block_fiemap(struct inode 
- 			start_blk += logical_to_blk(inode, size);
- 
- 			/*
--			 * if we are past the EOF we need to loop again to see
--			 * if there is a hole so we can mark this extent as the
--			 * last one, and if not keep mapping things until we
--			 * find a hole, or we run out of slots in the extent
--			 * array
-+			 * If we are past the EOF, then we need to make sure as
-+			 * soon as we find a hole that the last extent we found
-+			 * is marked with FIEMAP_EXTENT_LAST
- 			 */
--			if (length <= 0)
--				continue;
+-struct tick_device tick_broadcast_device;
++static struct tick_device tick_broadcast_device;
+ /* FIXME: Use cpumask_var_t. */
+ static DECLARE_BITMAP(tick_broadcast_mask, NR_CPUS);
+ static DECLARE_BITMAP(tmpmask, NR_CPUS);
+_
+
+Patches currently in -mm which might be from dmitri.vorobiev@movial.com are
+
+linux-next.patch
+
