@@ -1,183 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nfsd-use-c99-struct-initializers.patch removed from -mm tree
-Date: Thu, 07 May 2009 12:16:46 -0700
-Message-ID: <200905071916.n47JGkhi020617@imap1.linux-foundation.org>
+Subject: [merged] rcu_sched_grace_period-kill-the-bogus-flush_signals.patch removed from -mm tree
+Date: Thu, 07 May 2009 12:16:50 -0700
+Message-ID: <200905071916.n47JGoi7020669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49638 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41344 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751970AbZEGTUW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:20:22 -0400
+	by vger.kernel.org with ESMTP id S1754482AbZEGTUZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:20:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: oleg@redhat.com, mingo@elte.hu, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd: use C99 struct initializers
+     rcu_sched_grace_period(): kill the bogus flush_signals()
 has been removed from the -mm tree.  Its filename was
-     nfsd-use-c99-struct-initializers.patch
+     rcu_sched_grace_period-kill-the-bogus-flush_signals.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfsd: use C99 struct initializers
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: rcu_sched_grace_period(): kill the bogus flush_signals()
+From: Oleg Nesterov <oleg@redhat.com>
 
-Eliminate 56 sparse warnings like this one:
+As a kernel thread, rcu_sched_grace_period() runs with all signals
+ignored.  It can never receive a signal even if it sleeps in
+TASK_INTERRUPTIBLE, it needs the explicit allow_signal() to be visible for
+signals.
 
-fs/nfsd/nfs4xdr.c:1331:15: warning: obsolete array initializer, use C99 syntax
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4xdr.c |  112 ++++++++++++++++++++++----------------------
- 1 file changed, 56 insertions(+), 56 deletions(-)
+ kernel/rcupreempt.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN fs/nfsd/nfs4xdr.c~nfsd-use-c99-struct-initializers fs/nfsd/nfs4xdr.c
---- a/fs/nfsd/nfs4xdr.c~nfsd-use-c99-struct-initializers
-+++ a/fs/nfsd/nfs4xdr.c
-@@ -1328,64 +1328,64 @@ static nfsd4_dec nfsd4_dec_ops[] = {
- };
+diff -puN kernel/rcupreempt.c~rcu_sched_grace_period-kill-the-bogus-flush_signals kernel/rcupreempt.c
+--- a/kernel/rcupreempt.c~rcu_sched_grace_period-kill-the-bogus-flush_signals
++++ a/kernel/rcupreempt.c
+@@ -1356,17 +1356,11 @@ static int rcu_sched_grace_period(void *
  
- static nfsd4_dec nfsd41_dec_ops[] = {
--	[OP_ACCESS]		(nfsd4_dec)nfsd4_decode_access,
--	[OP_CLOSE]		(nfsd4_dec)nfsd4_decode_close,
--	[OP_COMMIT]		(nfsd4_dec)nfsd4_decode_commit,
--	[OP_CREATE]		(nfsd4_dec)nfsd4_decode_create,
--	[OP_DELEGPURGE]		(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_DELEGRETURN]	(nfsd4_dec)nfsd4_decode_delegreturn,
--	[OP_GETATTR]		(nfsd4_dec)nfsd4_decode_getattr,
--	[OP_GETFH]		(nfsd4_dec)nfsd4_decode_noop,
--	[OP_LINK]		(nfsd4_dec)nfsd4_decode_link,
--	[OP_LOCK]		(nfsd4_dec)nfsd4_decode_lock,
--	[OP_LOCKT]		(nfsd4_dec)nfsd4_decode_lockt,
--	[OP_LOCKU]		(nfsd4_dec)nfsd4_decode_locku,
--	[OP_LOOKUP]		(nfsd4_dec)nfsd4_decode_lookup,
--	[OP_LOOKUPP]		(nfsd4_dec)nfsd4_decode_noop,
--	[OP_NVERIFY]		(nfsd4_dec)nfsd4_decode_verify,
--	[OP_OPEN]		(nfsd4_dec)nfsd4_decode_open,
--	[OP_OPENATTR]		(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_OPEN_CONFIRM]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_OPEN_DOWNGRADE]	(nfsd4_dec)nfsd4_decode_open_downgrade,
--	[OP_PUTFH]		(nfsd4_dec)nfsd4_decode_putfh,
--	[OP_PUTPUBFH]		(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_PUTROOTFH]		(nfsd4_dec)nfsd4_decode_noop,
--	[OP_READ]		(nfsd4_dec)nfsd4_decode_read,
--	[OP_READDIR]		(nfsd4_dec)nfsd4_decode_readdir,
--	[OP_READLINK]		(nfsd4_dec)nfsd4_decode_noop,
--	[OP_REMOVE]		(nfsd4_dec)nfsd4_decode_remove,
--	[OP_RENAME]		(nfsd4_dec)nfsd4_decode_rename,
--	[OP_RENEW]		(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_RESTOREFH]		(nfsd4_dec)nfsd4_decode_noop,
--	[OP_SAVEFH]		(nfsd4_dec)nfsd4_decode_noop,
--	[OP_SECINFO]		(nfsd4_dec)nfsd4_decode_secinfo,
--	[OP_SETATTR]		(nfsd4_dec)nfsd4_decode_setattr,
--	[OP_SETCLIENTID]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_SETCLIENTID_CONFIRM](nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_VERIFY]		(nfsd4_dec)nfsd4_decode_verify,
--	[OP_WRITE]		(nfsd4_dec)nfsd4_decode_write,
--	[OP_RELEASE_LOCKOWNER]	(nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_ACCESS]		= (nfsd4_dec)nfsd4_decode_access,
-+	[OP_CLOSE]		= (nfsd4_dec)nfsd4_decode_close,
-+	[OP_COMMIT]		= (nfsd4_dec)nfsd4_decode_commit,
-+	[OP_CREATE]		= (nfsd4_dec)nfsd4_decode_create,
-+	[OP_DELEGPURGE]		= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_DELEGRETURN]	= (nfsd4_dec)nfsd4_decode_delegreturn,
-+	[OP_GETATTR]		= (nfsd4_dec)nfsd4_decode_getattr,
-+	[OP_GETFH]		= (nfsd4_dec)nfsd4_decode_noop,
-+	[OP_LINK]		= (nfsd4_dec)nfsd4_decode_link,
-+	[OP_LOCK]		= (nfsd4_dec)nfsd4_decode_lock,
-+	[OP_LOCKT]		= (nfsd4_dec)nfsd4_decode_lockt,
-+	[OP_LOCKU]		= (nfsd4_dec)nfsd4_decode_locku,
-+	[OP_LOOKUP]		= (nfsd4_dec)nfsd4_decode_lookup,
-+	[OP_LOOKUPP]		= (nfsd4_dec)nfsd4_decode_noop,
-+	[OP_NVERIFY]		= (nfsd4_dec)nfsd4_decode_verify,
-+	[OP_OPEN]		= (nfsd4_dec)nfsd4_decode_open,
-+	[OP_OPENATTR]		= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_OPEN_CONFIRM]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_OPEN_DOWNGRADE]	= (nfsd4_dec)nfsd4_decode_open_downgrade,
-+	[OP_PUTFH]		= (nfsd4_dec)nfsd4_decode_putfh,
-+	[OP_PUTPUBFH]		= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_PUTROOTFH]		= (nfsd4_dec)nfsd4_decode_noop,
-+	[OP_READ]		= (nfsd4_dec)nfsd4_decode_read,
-+	[OP_READDIR]		= (nfsd4_dec)nfsd4_decode_readdir,
-+	[OP_READLINK]		= (nfsd4_dec)nfsd4_decode_noop,
-+	[OP_REMOVE]		= (nfsd4_dec)nfsd4_decode_remove,
-+	[OP_RENAME]		= (nfsd4_dec)nfsd4_decode_rename,
-+	[OP_RENEW]		= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_RESTOREFH]		= (nfsd4_dec)nfsd4_decode_noop,
-+	[OP_SAVEFH]		= (nfsd4_dec)nfsd4_decode_noop,
-+	[OP_SECINFO]		= (nfsd4_dec)nfsd4_decode_secinfo,
-+	[OP_SETATTR]		= (nfsd4_dec)nfsd4_decode_setattr,
-+	[OP_SETCLIENTID]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_SETCLIENTID_CONFIRM]= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_VERIFY]		= (nfsd4_dec)nfsd4_decode_verify,
-+	[OP_WRITE]		= (nfsd4_dec)nfsd4_decode_write,
-+	[OP_RELEASE_LOCKOWNER]	= (nfsd4_dec)nfsd4_decode_notsupp,
+ 		rcu_ctrlblk.sched_sleep = rcu_sched_sleeping;
+ 		spin_unlock_irqrestore(&rcu_ctrlblk.schedlock, flags);
+-		ret = 0;
++		ret = 0; /* unused */
+ 		__wait_event_interruptible(rcu_ctrlblk.sched_wq,
+ 			rcu_ctrlblk.sched_sleep != rcu_sched_sleeping,
+ 			ret);
  
- 	/* new operations for NFSv4.1 */
--	[OP_BACKCHANNEL_CTL]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_BIND_CONN_TO_SESSION](nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_EXCHANGE_ID]	(nfsd4_dec)nfsd4_decode_exchange_id,
--	[OP_CREATE_SESSION]	(nfsd4_dec)nfsd4_decode_create_session,
--	[OP_DESTROY_SESSION]	(nfsd4_dec)nfsd4_decode_destroy_session,
--	[OP_FREE_STATEID]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_GET_DIR_DELEGATION]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_GETDEVICEINFO]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_GETDEVICELIST]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_LAYOUTCOMMIT]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_LAYOUTGET]		(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_LAYOUTRETURN]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_SECINFO_NO_NAME]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_SEQUENCE]		(nfsd4_dec)nfsd4_decode_sequence,
--	[OP_SET_SSV]		(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_TEST_STATEID]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_WANT_DELEGATION]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_DESTROY_CLIENTID]	(nfsd4_dec)nfsd4_decode_notsupp,
--	[OP_RECLAIM_COMPLETE]	(nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_BACKCHANNEL_CTL]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_BIND_CONN_TO_SESSION]= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_EXCHANGE_ID]	= (nfsd4_dec)nfsd4_decode_exchange_id,
-+	[OP_CREATE_SESSION]	= (nfsd4_dec)nfsd4_decode_create_session,
-+	[OP_DESTROY_SESSION]	= (nfsd4_dec)nfsd4_decode_destroy_session,
-+	[OP_FREE_STATEID]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_GET_DIR_DELEGATION]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_GETDEVICEINFO]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_GETDEVICELIST]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_LAYOUTCOMMIT]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_LAYOUTGET]		= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_LAYOUTRETURN]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_SECINFO_NO_NAME]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_SEQUENCE]		= (nfsd4_dec)nfsd4_decode_sequence,
-+	[OP_SET_SSV]		= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_TEST_STATEID]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_WANT_DELEGATION]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_DESTROY_CLIENTID]	= (nfsd4_dec)nfsd4_decode_notsupp,
-+	[OP_RECLAIM_COMPLETE]	= (nfsd4_dec)nfsd4_decode_notsupp,
- };
+-		/*
+-		 * Signals would prevent us from sleeping, and we cannot
+-		 * do much with them in any case.  So flush them.
+-		 */
+-		if (ret)
+-			flush_signals(current);
+ 		couldsleepnext = 0;
  
- struct nfsd4_minorversion_ops {
+ 	} while (!kthread_should_stop());
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-lockd-fix-file_locking=n-build-error.patch
-xen-use-header-for-export_symbol_gpl.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-cgroups-make-messages-more-readable.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+getrusage-fill-ru_maxrss-value.patch
+allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
+ptrace-remove-pt_dtrace-from-arch-h8300.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+ptrace-remove-pt_dtrace-from-arch-m32r.patch
+ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
+ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
+ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
+ptrace-do-not-use-task_lock-for-attach.patch
+ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
+copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
+elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
 
