@@ -1,71 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] clockevent-export-register_device-and-delta2ns.patch removed from -mm tree
-Date: Thu, 07 May 2009 12:16:40 -0700
-Message-ID: <200905071916.n47JGeqE020555@imap1.linux-foundation.org>
+Subject: [merged] ntp-adjust-shift_pll-to-improve-ntp-convergence.patch removed from -mm tree
+Date: Thu, 07 May 2009 12:16:43 -0700
+Message-ID: <200905071916.n47JGhYs020574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754660AbZEGTVg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:21:36 -0400
+	by vger.kernel.org with ESMTP id S1754771AbZEGTVz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:21:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: damm@igel.co.jp, johnstul@us.ibm.com, lethal@linux-sh.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, mingo@elte.hu, riel@redhat.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clockevent: export register_device and delta2ns
+     ntp: adjust SHIFT_PLL to improve NTP convergence.
 has been removed from the -mm tree.  Its filename was
-     clockevent-export-register_device-and-delta2ns.patch
+     ntp-adjust-shift_pll-to-improve-ntp-convergence.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clockevent: export register_device and delta2ns
-From: Magnus Damm <damm@igel.co.jp>
+Subject: ntp: adjust SHIFT_PLL to improve NTP convergence.
+From: john stultz <johnstul@us.ibm.com>
 
-Export the following symbols using EXPORT_SYMBOL_GPL:
- - clockevent_delta2ns
- - clockevents_register_device
+The conversion to the ntpv4 reference model
+f19923937321244e7dc334767eb4b67e0e3d5c74 ("ntp: convert to the NTP4
+reference model") in 2.6.19 added nanosecond resolution the adjtimex
+interface, but also changed the "stiffness" of the frequency adjustments,
+causing NTP convergence time to greatly increase.
 
-This allows us to build SuperH clockevent and clocksource drivers as
-modules, see drivers/clocksource/sh_*.c
+SHIFT_PLL, which reduces the stiffness of the freq adjustments, was
+designed to be inversely linked to HZ, and the reference value of 4 was
+designed for Unix systems using HZ=100.  However Linux's clock steering
+code mostly independent of HZ.
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+So this patch reduces the SHIFT_PLL value from 4 to 2, which causes NTPd
+behavior to match kernels prior to 2.6.19, greatly reducing convergence
+times, and improving close synchronization through environmental thermal
+changes.
+
+The patch also changes some l's to L's in nearby code to avoid misreading
+50l as 501.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/clockevents.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/timex.h |   44 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 32 insertions(+), 12 deletions(-)
 
-diff -puN kernel/time/clockevents.c~clockevent-export-register_device-and-delta2ns kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~clockevent-export-register_device-and-delta2ns
-+++ a/kernel/time/clockevents.c
-@@ -54,6 +54,7 @@ unsigned long clockevent_delta2ns(unsign
- 
- 	return (unsigned long) clc;
- }
-+EXPORT_SYMBOL_GPL(clockevent_delta2ns);
- 
- /**
-  * clockevents_set_mode - set the operating mode of a clock event device
-@@ -187,6 +188,7 @@ void clockevents_register_device(struct 
- 
- 	spin_unlock(&clockevents_lock);
- }
-+EXPORT_SYMBOL_GPL(clockevents_register_device);
+diff -puN include/linux/timex.h~adjust-shift_pll-to-improve-ntp-convergence include/linux/timex.h
+--- a/include/linux/timex.h~adjust-shift_pll-to-improve-ntp-convergence
++++ a/include/linux/timex.h
+@@ -170,17 +170,37 @@ struct timex {
+ #include <asm/timex.h>
  
  /*
-  * Noop handler when we shut down an event device
+- * SHIFT_KG and SHIFT_KF establish the damping of the PLL and are chosen
+- * for a slightly underdamped convergence characteristic. SHIFT_KH
+- * establishes the damping of the FLL and is chosen by wisdom and black
+- * art.
+- *
+- * MAXTC establishes the maximum time constant of the PLL. With the
+- * SHIFT_KG and SHIFT_KF values given and a time constant range from
+- * zero to MAXTC, the PLL will converge in 15 minutes to 16 hours,
+- * respectively.
++ * SHIFT_PLL is used as a dampening factor to define how much we
++ * adjust the frequency correction for a given offset in PLL mode.
++ * It also used in dampening the offset correction, to define how
++ * much of the current value in time_offset we correct for each
++ * second. Changing this value changes the stiffness of the ntp
++ * adjustment code. A lower value makes it more flexible, reducing
++ * NTP convergence time. A higher value makes it stiffer, increasing
++ * convergence time, but making the clock more stable.
++ *
++ * In David Mills' nanokenrel reference implmentation SHIFT_PLL is 4.
++ * However this seems to increase convergence time much too long.
++ *
++ * https://lists.ntp.org/pipermail/hackers/2008-January/003487.html
++ *
++ * In the above mailing list discussion, it seems the value of 4
++ * was appropriate for other Unix systems with HZ=100, and that
++ * SHIFT_PLL should be decreased as HZ increases. However, Linux's
++ * clock steering implementation is HZ independent.
++ *
++ * Through experimentation, a SHIFT_PLL value of 2 was found to allow
++ * for fast convergence (very similar to the NTPv3 code used prior to
++ * v2.6.19), with good clock stability.
++ *
++ *
++ * SHIFT_FLL is used as a dampening factor to define how much we
++ * adjust the frequency correction for a given offset in FLL mode.
++ * In David Mills' nanokenrel reference implmentation SHIFT_PLL is 2.
++ *
++ * MAXTC establishes the maximum time constant of the PLL.
+  */
+-#define SHIFT_PLL	4	/* PLL frequency factor (shift) */
++#define SHIFT_PLL	2	/* PLL frequency factor (shift) */
+ #define SHIFT_FLL	2	/* FLL frequency factor (shift) */
+ #define MAXTC		10	/* maximum time constant (shift) */
+ 
+@@ -192,10 +212,10 @@ struct timex {
+ #define SHIFT_USEC 16		/* frequency offset scale (shift) */
+ #define PPM_SCALE ((s64)NSEC_PER_USEC << (NTP_SCALE_SHIFT - SHIFT_USEC))
+ #define PPM_SCALE_INV_SHIFT 19
+-#define PPM_SCALE_INV ((1ll << (PPM_SCALE_INV_SHIFT + NTP_SCALE_SHIFT)) / \
++#define PPM_SCALE_INV ((1LL << (PPM_SCALE_INV_SHIFT + NTP_SCALE_SHIFT)) / \
+ 		       PPM_SCALE + 1)
+ 
+-#define MAXPHASE 500000000l	/* max phase error (ns) */
++#define MAXPHASE 500000000L	/* max phase error (ns) */
+ #define MAXFREQ 500000		/* max frequency error (ns/s) */
+ #define MAXFREQ_SCALED ((s64)MAXFREQ << NTP_SCALE_SHIFT)
+ #define MINSEC 256		/* min interval between updates (s) */
 _
 
-Patches currently in -mm which might be from damm@igel.co.jp are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
+origin.patch
 linux-next.patch
+time-move-calc_load-call-out-from-xtime_lock-protection.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
 
