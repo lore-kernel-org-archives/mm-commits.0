@@ -1,131 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ntp-adjust-shift_pll-to-improve-ntp-convergence.patch removed from -mm tree
-Date: Thu, 07 May 2009 12:16:43 -0700
-Message-ID: <200905071916.n47JGhYs020574@imap1.linux-foundation.org>
+Subject: [merged] signals-split-do_tkill.patch removed from -mm tree
+Date: Thu, 07 May 2009 12:16:52 -0700
+Message-ID: <200905071916.n47JGqrY020684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754771AbZEGTVz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:21:55 -0400
+	by vger.kernel.org with ESMTP id S1754887AbZEGTWE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:22:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, mingo@elte.hu, riel@redhat.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, drepper@redhat.com, linux-abi@vger.kernel.org, linux-arch@vger.kernel.org, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntp: adjust SHIFT_PLL to improve NTP convergence.
+     signals: split do_tkill
 has been removed from the -mm tree.  Its filename was
-     ntp-adjust-shift_pll-to-improve-ntp-convergence.patch
+     signals-split-do_tkill.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: adjust SHIFT_PLL to improve NTP convergence.
-From: john stultz <johnstul@us.ibm.com>
+Subject: signals: split do_tkill
+From: Thomas Gleixner <tglx@linutronix.de>
 
-The conversion to the ntpv4 reference model
-f19923937321244e7dc334767eb4b67e0e3d5c74 ("ntp: convert to the NTP4
-reference model") in 2.6.19 added nanosecond resolution the adjtimex
-interface, but also changed the "stiffness" of the frequency adjustments,
-causing NTP convergence time to greatly increase.
+sys_kill() has a counterpart sys_tgkill which allows to send signals to a
+particular thread.  sys_rt_sigqueueinfo is lacking such a counterpart.
 
-SHIFT_PLL, which reduces the stiffness of the freq adjustments, was
-designed to be inversely linked to HZ, and the reference value of 4 was
-designed for Unix systems using HZ=100.  However Linux's clock steering
-code mostly independent of HZ.
+Aside of the asymmetry it is a show stopper for migrating applications
+from other unix-alike RTOSes.
 
-So this patch reduces the SHIFT_PLL value from 4 to 2, which causes NTPd
-behavior to match kernels prior to 2.6.19, greatly reducing convergence
-times, and improving close synchronization through environmental thermal
-changes.
+The following patch series implements rt_tgsigqueueinfo and hooks it up
+for x86.
 
-The patch also changes some l's to L's in nearby code to avoid misreading
-50l as 501.
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+
+This patch:
+
+Split out the code from do_tkill to make it reusable by the follow up
+patch which implements sys_rt_tgsigqueueinfo
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: <linux-abi@vger.kernel.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |   44 +++++++++++++++++++++++++++++-----------
- 1 file changed, 32 insertions(+), 12 deletions(-)
+ kernel/signal.c |   30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/timex.h~adjust-shift_pll-to-improve-ntp-convergence include/linux/timex.h
---- a/include/linux/timex.h~adjust-shift_pll-to-improve-ntp-convergence
-+++ a/include/linux/timex.h
-@@ -170,17 +170,37 @@ struct timex {
- #include <asm/timex.h>
+diff -puN kernel/signal.c~signals-split-do_tkill kernel/signal.c
+--- a/kernel/signal.c~signals-split-do_tkill
++++ a/kernel/signal.c
+@@ -2278,24 +2278,17 @@ SYSCALL_DEFINE2(kill, pid_t, pid, int, s
+ 	return kill_something_info(sig, &info, pid);
+ }
  
- /*
-- * SHIFT_KG and SHIFT_KF establish the damping of the PLL and are chosen
-- * for a slightly underdamped convergence characteristic. SHIFT_KH
-- * establishes the damping of the FLL and is chosen by wisdom and black
-- * art.
-- *
-- * MAXTC establishes the maximum time constant of the PLL. With the
-- * SHIFT_KG and SHIFT_KF values given and a time constant range from
-- * zero to MAXTC, the PLL will converge in 15 minutes to 16 hours,
-- * respectively.
-+ * SHIFT_PLL is used as a dampening factor to define how much we
-+ * adjust the frequency correction for a given offset in PLL mode.
-+ * It also used in dampening the offset correction, to define how
-+ * much of the current value in time_offset we correct for each
-+ * second. Changing this value changes the stiffness of the ntp
-+ * adjustment code. A lower value makes it more flexible, reducing
-+ * NTP convergence time. A higher value makes it stiffer, increasing
-+ * convergence time, but making the clock more stable.
-+ *
-+ * In David Mills' nanokenrel reference implmentation SHIFT_PLL is 4.
-+ * However this seems to increase convergence time much too long.
-+ *
-+ * https://lists.ntp.org/pipermail/hackers/2008-January/003487.html
-+ *
-+ * In the above mailing list discussion, it seems the value of 4
-+ * was appropriate for other Unix systems with HZ=100, and that
-+ * SHIFT_PLL should be decreased as HZ increases. However, Linux's
-+ * clock steering implementation is HZ independent.
-+ *
-+ * Through experimentation, a SHIFT_PLL value of 2 was found to allow
-+ * for fast convergence (very similar to the NTPv3 code used prior to
-+ * v2.6.19), with good clock stability.
-+ *
-+ *
-+ * SHIFT_FLL is used as a dampening factor to define how much we
-+ * adjust the frequency correction for a given offset in FLL mode.
-+ * In David Mills' nanokenrel reference implmentation SHIFT_PLL is 2.
-+ *
-+ * MAXTC establishes the maximum time constant of the PLL.
-  */
--#define SHIFT_PLL	4	/* PLL frequency factor (shift) */
-+#define SHIFT_PLL	2	/* PLL frequency factor (shift) */
- #define SHIFT_FLL	2	/* FLL frequency factor (shift) */
- #define MAXTC		10	/* maximum time constant (shift) */
+-static int do_tkill(pid_t tgid, pid_t pid, int sig)
++static int
++do_send_specific(pid_t tgid, pid_t pid, int sig, struct siginfo *info)
+ {
+-	int error;
+-	struct siginfo info;
+ 	struct task_struct *p;
+ 	unsigned long flags;
+-
+-	error = -ESRCH;
+-	info.si_signo = sig;
+-	info.si_errno = 0;
+-	info.si_code = SI_TKILL;
+-	info.si_pid = task_tgid_vnr(current);
+-	info.si_uid = current_uid();
++	int error = -ESRCH;
  
-@@ -192,10 +212,10 @@ struct timex {
- #define SHIFT_USEC 16		/* frequency offset scale (shift) */
- #define PPM_SCALE ((s64)NSEC_PER_USEC << (NTP_SCALE_SHIFT - SHIFT_USEC))
- #define PPM_SCALE_INV_SHIFT 19
--#define PPM_SCALE_INV ((1ll << (PPM_SCALE_INV_SHIFT + NTP_SCALE_SHIFT)) / \
-+#define PPM_SCALE_INV ((1LL << (PPM_SCALE_INV_SHIFT + NTP_SCALE_SHIFT)) / \
- 		       PPM_SCALE + 1)
+ 	rcu_read_lock();
+ 	p = find_task_by_vpid(pid);
+ 	if (p && (tgid <= 0 || task_tgid_vnr(p) == tgid)) {
+-		error = check_kill_permission(sig, &info, p);
++		error = check_kill_permission(sig, info, p);
+ 		/*
+ 		 * The null signal is a permissions and process existence
+ 		 * probe.  No signal is actually delivered.
+@@ -2305,7 +2298,7 @@ static int do_tkill(pid_t tgid, pid_t pi
+ 		 * signal is private anyway.
+ 		 */
+ 		if (!error && sig && lock_task_sighand(p, &flags)) {
+-			error = specific_send_sig_info(sig, &info, p);
++			error = specific_send_sig_info(sig, info, p);
+ 			unlock_task_sighand(p, &flags);
+ 		}
+ 	}
+@@ -2314,6 +2307,19 @@ static int do_tkill(pid_t tgid, pid_t pi
+ 	return error;
+ }
  
--#define MAXPHASE 500000000l	/* max phase error (ns) */
-+#define MAXPHASE 500000000L	/* max phase error (ns) */
- #define MAXFREQ 500000		/* max frequency error (ns/s) */
- #define MAXFREQ_SCALED ((s64)MAXFREQ << NTP_SCALE_SHIFT)
- #define MINSEC 256		/* min interval between updates (s) */
++static int do_tkill(pid_t tgid, pid_t pid, int sig)
++{
++	struct siginfo info;
++
++	info.si_signo = sig;
++	info.si_errno = 0;
++	info.si_code = SI_TKILL;
++	info.si_pid = task_tgid_vnr(current);
++	info.si_uid = current_uid();
++
++	return do_send_specific(tgid, pid, sig, &info);
++}
++
+ /**
+  *  sys_tgkill - send signal to one specific thread
+  *  @tgid: the thread group ID of the thread
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
 linux-next.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+x86-simplify-highmem-related-kconfig-entries.patch
+x86-enable-gart-iommu-only-after-setting-up-protection-methods.patch
+avr32-remove-obsolete-hw_interrupt_type.patch
 time-move-calc_load-call-out-from-xtime_lock-protection.patch
 clocksource-sanity-check-sysfs-clocksource-changes.patch
+ia64-remove-obsolete-no_irq_type.patch
+ia64-remove-obsolete-irq_desc_t-typedef.patch
+ia64-remove-obsolete-hw_interrupt_type.patch
+drivers-mfd-remove-obsolete-irq_desc_t-typedef.patch
+parisc-remove-obsolete-hw_interrupt_type.patch
+alpha-remove-obsolete-hw_interrupt_type.patch
+m32r-remove-obsolete-hw_interrupt_type.patch
+um-remove-obsolete-hw_interrupt_type.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+remove-put_cpu_no_resched.patch
+remove-put_cpu_no_resched-fix.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
 
