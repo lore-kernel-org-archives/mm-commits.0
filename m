@@ -1,179 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch removed from -mm tree
-Date: Thu, 07 May 2009 12:16:32 -0700
-Message-ID: <200905071916.n47JGW31020387@imap1.linux-foundation.org>
+Subject: [merged] timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred.patch removed from -mm tree
+Date: Thu, 07 May 2009 12:16:37 -0700
+Message-ID: <200905071916.n47JGbVZ020542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754356AbZEGTU1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:20:27 -0400
+	by vger.kernel.org with ESMTP id S1752455AbZEGTVC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:21:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: jon-hunter@ti.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/apic/io_apic.c: conditionally compile eoi_ioapic_irq() 
+     timers: allow deferrable timers for intervals tv2-tv5 to be deferred
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq.patch
+     timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/apic/io_apic.c: conditionally compile eoi_ioapic_irq() 
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: timers: allow deferrable timers for intervals tv2-tv5 to be deferred
+From: Jon Hunter <jon-hunter@ti.com>
 
-x86_64 allnoconfig:
+In the current kernel implementation only kernel timers for time interval
+tv1 are being deferred.  This patch allows any timer that is configured as
+deferrable to be defer regardless of time interval.
 
-arch/x86/kernel/apic/io_apic.c:2543: warning: 'eoi_ioapic_irq' defined but not used
+This patch was previously discussed in
+http://marc.info/?l=linux-kernel&m=123196343531966&w=2 and was acked by
+Venki Pallipadi, the author of the original deferrable timer patch.
 
-Cc: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apic/io_apic.c |   67 +++++++++++++++----------------
- 1 file changed, 34 insertions(+), 33 deletions(-)
+ kernel/timer.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/kernel/apic/io_apic.c~arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq arch/x86/kernel/apic/io_apic.c
---- a/arch/x86/kernel/apic/io_apic.c~arch-x86-kernel-apic-io_apicc-conditionally-compile-eoi_ioapic_irq
-+++ a/arch/x86/kernel/apic/io_apic.c
-@@ -2520,39 +2520,6 @@ static void irq_complete_move(struct irq
- static inline void irq_complete_move(struct irq_desc **descp) {}
- #endif
- 
--static void __eoi_ioapic_irq(unsigned int irq, struct irq_cfg *cfg)
--{
--	int apic, pin;
--	struct irq_pin_list *entry;
--
--	entry = cfg->irq_2_pin;
--	for (;;) {
--
--		if (!entry)
--			break;
--
--		apic = entry->apic;
--		pin = entry->pin;
--		io_apic_eoi(apic, pin);
--		entry = entry->next;
--	}
--}
--
--static void
--eoi_ioapic_irq(struct irq_desc *desc)
--{
--	struct irq_cfg *cfg;
--	unsigned long flags;
--	unsigned int irq;
--
--	irq = desc->irq;
--	cfg = desc->chip_data;
--
--	spin_lock_irqsave(&ioapic_lock, flags);
--	__eoi_ioapic_irq(irq, cfg);
--	spin_unlock_irqrestore(&ioapic_lock, flags);
--}
--
- static void ack_apic_edge(unsigned int irq)
- {
- 	struct irq_desc *desc = irq_to_desc(irq);
-@@ -2662,6 +2629,40 @@ static void ack_apic_level(unsigned int 
- }
- 
- #ifdef CONFIG_INTR_REMAP
+diff -puN kernel/timer.c~timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred kernel/timer.c
+--- a/kernel/timer.c~timers-allow-deferrable-timers-for-intervals-tv2-tv5-to-be-deferred
++++ a/kernel/timer.c
+@@ -1015,6 +1015,9 @@ cascade:
+ 		index = slot = timer_jiffies & TVN_MASK;
+ 		do {
+ 			list_for_each_entry(nte, varp->vec + slot, entry) {
++				if (tbase_get_deferrable(nte->base))
++					continue;
 +
-+static void __eoi_ioapic_irq(unsigned int irq, struct irq_cfg *cfg)
-+{
-+	int apic, pin;
-+	struct irq_pin_list *entry;
-+
-+	entry = cfg->irq_2_pin;
-+	for (;;) {
-+
-+		if (!entry)
-+			break;
-+
-+		apic = entry->apic;
-+		pin = entry->pin;
-+		io_apic_eoi(apic, pin);
-+		entry = entry->next;
-+	}
-+}
-+
-+static void
-+eoi_ioapic_irq(struct irq_desc *desc)
-+{
-+	struct irq_cfg *cfg;
-+	unsigned long flags;
-+	unsigned int irq;
-+
-+	irq = desc->irq;
-+	cfg = desc->chip_data;
-+
-+	spin_lock_irqsave(&ioapic_lock, flags);
-+	__eoi_ioapic_irq(irq, cfg);
-+	spin_unlock_irqrestore(&ioapic_lock, flags);
-+}
-+
- static void ir_ack_apic_edge(unsigned int irq)
- {
- 	ack_APIC_irq();
+ 				found = 1;
+ 				if (time_before(nte->expires, expires))
+ 					expires = nte->expires;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jon-hunter@ti.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-mtd-fix-timeout-in-m25p80-driver-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
