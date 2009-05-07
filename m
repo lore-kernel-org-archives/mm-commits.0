@@ -1,95 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rcu_sched_grace_period-kill-the-bogus-flush_signals.patch removed from -mm tree
-Date: Thu, 07 May 2009 12:16:50 -0700
-Message-ID: <200905071916.n47JGoi7020669@imap1.linux-foundation.org>
+Subject: [merged] nommu-clamp-zone_batchsize-to-0-under-nommu-conditions.patch removed from -mm tree
+Date: Thu, 07 May 2009 12:16:21 -0700
+Message-ID: <200905071916.n47JGLNr020273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44786 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754482AbZEGTUZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:20:25 -0400
+	by vger.kernel.org with ESMTP id S1752866AbZEGTUW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:20:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, mingo@elte.hu, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, gerg@snapgear.com, lanttor.guo@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rcu_sched_grace_period(): kill the bogus flush_signals()
+     nommu: clamp zone_batchsize() to 0 under NOMMU conditions
 has been removed from the -mm tree.  Its filename was
-     rcu_sched_grace_period-kill-the-bogus-flush_signals.patch
+     nommu-clamp-zone_batchsize-to-0-under-nommu-conditions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu_sched_grace_period(): kill the bogus flush_signals()
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: nommu: clamp zone_batchsize() to 0 under NOMMU conditions
+From: David Howells <dhowells@redhat.com>
 
-As a kernel thread, rcu_sched_grace_period() runs with all signals
-ignored.  It can never receive a signal even if it sleeps in
-TASK_INTERRUPTIBLE, it needs the explicit allow_signal() to be visible for
-signals.
+Clamp zone_batchsize() to 0 under NOMMU conditions to stop
+free_hot_cold_page() from queueing and batching frees.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+The problem is that under NOMMU conditions it is really important to be
+able to allocate large contiguous chunks of memory, but when munmap() or
+exit_mmap() releases big stretches of memory, return of these to the buddy
+allocator can be deferred, and when it does finally happen, it can be in
+small chunks.
+
+Whilst the fragmentation this incurs isn't so much of a problem under MMU
+conditions as userspace VM is glued together from individual pages with
+the aid of the MMU, it is a real problem if there isn't an MMU.
+
+By clamping the page freeing queue size to 0, pages are returned to the
+allocator immediately, and the buddy detector is more likely to be able to
+glue them together into large chunks immediately, and fragmentation is
+less likely to occur.
+
+By disabling batching of frees, and by turning off the trimming of excess
+space during boot, Coldfire can manage to boot.
+
+Reported-by: Lanttor Guo <lanttor.guo@freescale.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Tested-by: Lanttor Guo <lanttor.guo@freescale.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcupreempt.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/page_alloc.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN kernel/rcupreempt.c~rcu_sched_grace_period-kill-the-bogus-flush_signals kernel/rcupreempt.c
---- a/kernel/rcupreempt.c~rcu_sched_grace_period-kill-the-bogus-flush_signals
-+++ a/kernel/rcupreempt.c
-@@ -1356,17 +1356,11 @@ static int rcu_sched_grace_period(void *
+diff -puN mm/page_alloc.c~nommu-clamp-zone_batchsize-to-0-under-nommu-conditions mm/page_alloc.c
+--- a/mm/page_alloc.c~nommu-clamp-zone_batchsize-to-0-under-nommu-conditions
++++ a/mm/page_alloc.c
+@@ -2681,6 +2681,7 @@ static void __meminit zone_init_free_lis
  
- 		rcu_ctrlblk.sched_sleep = rcu_sched_sleeping;
- 		spin_unlock_irqrestore(&rcu_ctrlblk.schedlock, flags);
--		ret = 0;
-+		ret = 0; /* unused */
- 		__wait_event_interruptible(rcu_ctrlblk.sched_wq,
- 			rcu_ctrlblk.sched_sleep != rcu_sched_sleeping,
- 			ret);
+ static int zone_batchsize(struct zone *zone)
+ {
++#ifdef CONFIG_MMU
+ 	int batch;
  
--		/*
--		 * Signals would prevent us from sleeping, and we cannot
--		 * do much with them in any case.  So flush them.
--		 */
--		if (ret)
--			flush_signals(current);
- 		couldsleepnext = 0;
+ 	/*
+@@ -2709,6 +2710,23 @@ static int zone_batchsize(struct zone *z
+ 	batch = rounddown_pow_of_two(batch + batch/2) - 1;
  
- 	} while (!kthread_should_stop());
+ 	return batch;
++
++#else
++	/* The deferral and batching of frees should be suppressed under NOMMU
++	 * conditions.
++	 *
++	 * The problem is that NOMMU needs to be able to allocate large chunks
++	 * of contiguous memory as there's no hardware page translation to
++	 * assemble apparent contiguous memory from discontiguous pages.
++	 *
++	 * Queueing large contiguous runs of pages for batching, however,
++	 * causes the pages to actually be freed in smaller chunks.  As there
++	 * can be a significant delay between the individual batches being
++	 * recycled, this leads to the once large chunks of space being
++	 * fragmented and becoming unavailable for high-order allocations.
++	 */
++	return 0;
++#endif
+ }
+ 
+ static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
 linux-next.patch
-drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal.patch
+rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
+frv-remove-in-kernel-strace-code.patch
+frv-implement-tif_notify_resume.patch
+frv-dont-turn-on-tif_syscall_trace-unconditionally-in-syscall-prologue.patch
+frv-implement-new-style-ptrace.patch
+frv-duplicate-output_buffer-of-e03.patch
 slow_work_thread-should-do-the-exclusive-wait.patch
 rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
-ptrace-remove-pt_dtrace-from-arch-h8300.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+flat-fix-data-sections-alignment.patch
 ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
-ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
-ptrace-remove-pt_dtrace-from-arch-m32r.patch
-ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
-ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
-ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
-ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
-ptrace-do-not-use-task_lock-for-attach.patch
-ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
-copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
 elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
+mutex-subsystem-synchro-test-module.patch
 
