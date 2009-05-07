@@ -1,110 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-hookup-sys_rt_tgsigqueueinfo.patch removed from -mm tree
-Date: Thu, 07 May 2009 12:16:56 -0700
-Message-ID: <200905071916.n47JGu46020732@imap1.linux-foundation.org>
+Subject: [merged] fiemap-fix-problem-with-setting-fiemap_extent_last.patch removed from -mm tree
+Date: Thu, 07 May 2009 12:16:00 -0700
+Message-ID: <200905071916.n47JG0rf020019__2978.53970337219$1241724242$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53684 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754887AbZEGTWI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:22:08 -0400
+	by vger.kernel.org with ESMTP id S1753270AbZEGTXo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:23:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, drepper@redhat.com, linux-abi@vger.kernel.org, linux-arch@vger.kernel.org, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: jbacik@redhat.com, Joel.Becker@oracle.com, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, mfasheh@suse.com, sandeen@redhat.com, stable@kernel.org, swhiteho@redhat.com, xfs-m
 
 
 The patch titled
-     x86: hook up sys_rt_tgsigqueueinfo
+     fiemap: fix problem with setting FIEMAP_EXTENT_LAST
 has been removed from the -mm tree.  Its filename was
-     x86-hookup-sys_rt_tgsigqueueinfo.patch
+     fiemap-fix-problem-with-setting-fiemap_extent_last.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: hook up sys_rt_tgsigqueueinfo
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: fiemap: fix problem with setting FIEMAP_EXTENT_LAST
+From: Josef Bacik <jbacik@redhat.com>
 
-Make the new sys_rt_tgsigqueueinfo available for x86.
+Fix a problem where the generic block based fiemap stuff would not
+properly set FIEMAP_EXTENT_LAST on the last extent.  I've reworked things
+to keep track if we go past the EOF, and mark the last extent properly. 
+The problem was reported by and tested by Eric Sandeen.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: <linux-abi@vger.kernel.org>
-Cc: <linux-arch@vger.kernel.org>
+Tested-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: <xfs-masters@oss.sgi.com>
+Cc: <linux-btrfs@vger.kernel.org>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <Joel.Becker@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S          |    1 +
- arch/x86/include/asm/unistd_32.h   |    1 +
- arch/x86/include/asm/unistd_64.h   |    2 ++
- arch/x86/kernel/syscall_table_32.S |    1 +
- 4 files changed, 5 insertions(+)
+ fs/ioctl.c |   75 +++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 55 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86/ia32/ia32entry.S~x86-hookup-sys_rt_tgsigqueueinfo arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~x86-hookup-sys_rt_tgsigqueueinfo
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -830,4 +830,5 @@ ia32_sys_call_table:
- 	.quad sys_inotify_init1
- 	.quad compat_sys_preadv
- 	.quad compat_sys_pwritev
-+	.quad compat_sys_rt_tgsigqueueinfo	/* 335 */
- ia32_syscall_end:
-diff -puN arch/x86/include/asm/unistd_32.h~x86-hookup-sys_rt_tgsigqueueinfo arch/x86/include/asm/unistd_32.h
---- a/arch/x86/include/asm/unistd_32.h~x86-hookup-sys_rt_tgsigqueueinfo
-+++ a/arch/x86/include/asm/unistd_32.h
-@@ -340,6 +340,7 @@
- #define __NR_inotify_init1	332
- #define __NR_preadv		333
- #define __NR_pwritev		334
-+#define __NR_rt_tgsigqueueinfo	335
+diff -puN fs/ioctl.c~fiemap-fix-problem-with-setting-fiemap_extent_last fs/ioctl.c
+--- a/fs/ioctl.c~fiemap-fix-problem-with-setting-fiemap_extent_last
++++ a/fs/ioctl.c
+@@ -258,7 +258,7 @@ int __generic_block_fiemap(struct inode 
+ 	long long length = 0, map_len = 0;
+ 	u64 logical = 0, phys = 0, size = 0;
+ 	u32 flags = FIEMAP_EXTENT_MERGED;
+-	int ret = 0;
++	int ret = 0, past_eof = 0, whole_file = 0;
  
- #ifdef __KERNEL__
+ 	if ((ret = fiemap_check_flags(fieinfo, FIEMAP_FLAG_SYNC)))
+ 		return ret;
+@@ -266,6 +266,9 @@ int __generic_block_fiemap(struct inode 
+ 	start_blk = logical_to_blk(inode, start);
  
-diff -puN arch/x86/include/asm/unistd_64.h~x86-hookup-sys_rt_tgsigqueueinfo arch/x86/include/asm/unistd_64.h
---- a/arch/x86/include/asm/unistd_64.h~x86-hookup-sys_rt_tgsigqueueinfo
-+++ a/arch/x86/include/asm/unistd_64.h
-@@ -657,6 +657,8 @@ __SYSCALL(__NR_inotify_init1, sys_inotif
- __SYSCALL(__NR_preadv, sys_preadv)
- #define __NR_pwritev				296
- __SYSCALL(__NR_pwritev, sys_pwritev)
-+#define __NR_rt_tgsigqueueinfo			297
-+__SYSCALL(__NR_rt_tgsigqueueinfo, sys_rt_tgsigqueueinfo)
+ 	length = (long long)min_t(u64, len, i_size_read(inode));
++	if (length < len)
++		whole_file = 1;
++
+ 	map_len = length;
  
+ 	do {
+@@ -282,11 +285,26 @@ int __generic_block_fiemap(struct inode 
  
- #ifndef __NO_STUBS
-diff -puN arch/x86/kernel/syscall_table_32.S~x86-hookup-sys_rt_tgsigqueueinfo arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~x86-hookup-sys_rt_tgsigqueueinfo
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -334,3 +334,4 @@ ENTRY(sys_call_table)
- 	.long sys_inotify_init1
- 	.long sys_preadv
- 	.long sys_pwritev
-+	.long sys_rt_tgsigqueueinfo	/* 335 */
-_
-
-Patches currently in -mm which might be from tglx@linutronix.de are
-
-origin.patch
-linux-next.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-x86-simplify-highmem-related-kconfig-entries.patch
-x86-enable-gart-iommu-only-after-setting-up-protection-methods.patch
-avr32-remove-obsolete-hw_interrupt_type.patch
-time-move-calc_load-call-out-from-xtime_lock-protection.patch
-clocksource-sanity-check-sysfs-clocksource-changes.patch
-ia64-remove-obsolete-no_irq_type.patch
-ia64-remove-obsolete-irq_desc_t-typedef.patch
-ia64-remove-obsolete-hw_interrupt_type.patch
-drivers-mfd-remove-obsolete-irq_desc_t-typedef.patch
-parisc-remove-obsolete-hw_interrupt_type.patch
-alpha-remove-obsolete-hw_interrupt_type.patch
-m32r-remove-obsolete-hw_interrupt_type.patch
-um-remove-obsolete-hw_interrupt_type.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-remove-put_cpu_no_resched.patch
-remove-put_cpu_no_resched-fix.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-
+ 		/* HOLE */
+ 		if (!buffer_mapped(&tmp)) {
++			length -= blk_to_logical(inode, 1);
++			start_blk++;
++
++			/*
++			 * we want to handle the case where there is an
++			 * allocated block at the front of the file, and then
++			 * nothing but holes up to the end of the file properly,
++			 * to make sure that extent at the front gets properly
++			 * marked with FIEMAP_EXTENT_LAST
++			 */
++			if (!past_eof &&
++			    blk_to_logical(inode, start_blk) >=
++			    blk_to_logical(inode, 0)+i_size_read(inode))
++				past_eof = 1;
++
+ 			/*
+ 			 * first hole after going past the EOF, this is our
+ 			 * last extent
+ 			 */
+-			if (length <= 0) {
++			if (past_eof && size) {
+ 				flags = FIEMAP_EXTENT_MERGED|FIEMAP_EXTENT_LAST;
+ 				ret = fiemap_fill_next_extent(fieinfo, logical,
+ 							      phys, size,
+@@ -294,15 +312,37 @@ int __generic_block_fiemap(struct inode 
+ 				break;
+ 			}
+ 
+-			length -= blk_to_logical(inode, 1);
+-
+ 			/* if we have holes up to/past EOF then we're done */
+-			if (length <= 0)
++			if (length <= 0 || past_eof)
+ 				break;
+-
+-			start_blk++;
+ 		} else {
+-			if (length <= 0 && size) {
++			/*
++			 * we have gone over the length of what we wanted to
++			 * map, and it wasn't the entire file, so add the extent
++			 * we got last time and exit.
++			 *
++			 * This is for the case where say we want to map all the
++			 * way up to the second to the last block in a file, but
++			 * the last block is a hole, making the second to last
++			 * block FIEMAP_EXTENT_LAST.  In this case we want to
++			 * see if there is a hole after the second to last block
++			 * so we can mark it properly.  If we found data after
++			 * we exceeded the length we were requesting, then we
++			 * are good to go, just add the extent to the fieinfo
++			 * and break
++			 */
++			if (length <= 0 && !whole_file) {
++				ret = fiemap_fill_next_extent(fieinfo, logical,
++							      phys, size,
++							      flags);
++				break;
++			}
++
++			/*
++			 * if size != 0 then we know we already have an extent
++			 * to add, so add it.
++			 */
++			if (size) {
+ 				ret = fiemap_fill_next_extent(fieinfo, logical,
+ 							      phys, size,
+ 							      flags);
+@@ -319,19 +359,14 @@ int __generic_block_fiemap(struct inode 
+ 			start_blk += logical_to_blk(inode, size);
+ 
+ 			/*
+-			 * if we are past the EOF we need to loop again to see
+-			 * if there is a hole so we can mark this extent as the
+-			 * last one, and if not keep mapping things until we
+-			 * find a hole, or we run out of slots in the extent
+-			 * array
++			 * If we are past the EOF, then we need to make sure as
++			 * soon as we find a hole that the last extent we found
++			 * is marked with FIEMAP_EXTENT_LAST
+ 			 */
+-			if (length <= 0)
+-				continue;
