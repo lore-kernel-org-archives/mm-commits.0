@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + menu-fix-embedded-menu-presentation.patch added to -mm tree
-Date: Thu, 07 May 2009 13:07:39 -0700
-Message-ID: <200905072007.n47K7dpi020411@imap1.linux-foundation.org>
+Subject: + shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped.patch added to -mm tree
+Date: Thu, 07 May 2009 13:17:43 -0700
+Message-ID: <200905072017.n47KHiaX026832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41955 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753990AbZEGUKR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 16:10:17 -0400
+	by vger.kernel.org with ESMTP id S1762154AbZEGUTp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 16:19:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, sam@ravnborg.org
+Cc: oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     menu: fix embedded menu presentation
+     shift "ptrace implies WUNTRACED" from ptrace_do_wait() to wait_task_stopped()
 has been added to the -mm tree.  Its filename is
-     menu-fix-embedded-menu-presentation.patch
+     shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: menu: fix embedded menu presentation
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: shift "ptrace implies WUNTRACED" from ptrace_do_wait() to wait_task_stopped()
+From: Oleg Nesterov <oleg@redhat.com>
 
-The STRIP_ASM_SYMS kconfig symbol mucks up the embedded menu because
-STRIP_ASM_SYMS is in the middle of the embedded menu items but it does not
-depend on EMBEDDED.  Move it to beyond the end of the embedded menu so
-that the menu is presented correctly.
+No functional changes, preparation for the next patch.
 
-Or if STRIP_ASM_SYMS should depend on EMBEDDED, that can also be fixed.
+ptrace_do_wait() adds WUNTRACED to options for wait_task_stopped() which
+should always accept the stopped tracee, even if do_wait() was called
+without WUNTRACED.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Change wait_task_stopped() to check "ptrace || WUNTRACED" instead.  This
+makes the code more explicit, and "int options" argument becomes const in
+do_wait() pathes.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ kernel/exit.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN init/Kconfig~menu-fix-embedded-menu-presentation init/Kconfig
---- a/init/Kconfig~menu-fix-embedded-menu-presentation
-+++ a/init/Kconfig
-@@ -808,14 +808,6 @@ config KALLSYMS_EXTRA_PASS
- 	   you wait for kallsyms to be fixed.
+diff -puN kernel/exit.c~shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped kernel/exit.c
+--- a/kernel/exit.c~shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped
++++ a/kernel/exit.c
+@@ -1336,7 +1336,10 @@ static int wait_task_stopped(int ptrace,
+ 	uid_t uid = 0; /* unneeded, required by compiler */
+ 	pid_t pid;
  
+-	if (!(options & WUNTRACED))
++	/*
++	 * Traditionally we see ptrace'd stopped tasks regardless of options.
++	 */
++	if (!ptrace && !(options & WUNTRACED))
+ 		return 0;
  
--config STRIP_ASM_SYMS
--	bool "Strip assembler-generated symbols during link"
--	default n
--	help
--	  Strip internal assembler-generated symbols during a link (symbols
--	  that look like '.Lxxx') so they don't pollute the output of
--	  get_wchan() and suchlike.
+ 	exit_code = 0;
+@@ -1554,11 +1557,6 @@ static int ptrace_do_wait(struct task_st
+ {
+ 	struct task_struct *p;
+ 
+-	/*
+-	 * Traditionally we see ptrace'd stopped tasks regardless of options.
+-	 */
+-	options |= WUNTRACED;
 -
- config HOTPLUG
- 	bool "Support for hot-pluggable devices" if EMBEDDED
- 	default y
-@@ -961,6 +953,14 @@ config SLUB_DEBUG
- 	  SLUB sysfs support. /sys/slab will not exist and there will be
- 	  no support for cache validation etc.
- 
-+config STRIP_ASM_SYMS
-+	bool "Strip assembler-generated symbols during link"
-+	default n
-+	help
-+	  Strip internal assembler-generated symbols during a link (symbols
-+	  that look like '.Lxxx') so they don't pollute the output of
-+	  get_wchan() and suchlike.
-+
- config COMPAT_BRK
- 	bool "Disable heap randomization"
- 	default y
+ 	list_for_each_entry(p, &tsk->ptraced, ptrace_entry) {
+ 		int ret = wait_consider_task(tsk, 1, p, notask_error,
+ 					     type, pid, options,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-menu-fix-embedded-menu-presentation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-lockd-fix-file_locking=n-build-error.patch
-xen-use-header-for-export_symbol_gpl.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-cgroups-make-messages-more-readable.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+drivers-staging-epl-do-not-use-clone_sighand-with-allow_signal.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+getrusage-fill-ru_maxrss-value.patch
+allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
+ptrace-remove-pt_dtrace-from-arch-h8300.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+ptrace-remove-pt_dtrace-from-arch-m32r.patch
+ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
+ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
+ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
+ptrace-do-not-use-task_lock-for-attach.patch
+ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
+copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
+elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
+shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped.patch
+introduce-struct-wait_opts-to-simplify-do_wait-pathes.patch
+do_wait-simplify-retval-tsk_result-notask_error-mess.patch
+do_wait-kill-the-old-bug_on-use-while_each_thread.patch
+do_wait-fix-the-theoretical-race-with-stop-trace-cont.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
 
