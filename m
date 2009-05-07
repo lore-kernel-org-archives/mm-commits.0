@@ -1,81 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [merged] doc-hashdist-defaults-on-for-64bit.patch removed from -mm tree
-Date: Thu, 07 May 2009 12:15:52 -0700
-Message-ID: <200905071915.n47JFq9x019927@imap1.linux-foundation.org>
+Subject: [merged] nfsd-use-c99-struct-initializers.patch removed from -mm tree
+Date: Thu, 07 May 2009 12:16:46 -0700
+Message-ID: <200905071916.n47JGkhi020617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33507 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49638 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753363AbZEGTTx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:19:53 -0400
+	by vger.kernel.org with ESMTP id S1751970AbZEGTUW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:20:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, davem@davemloft.net, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc: hashdist defaults on for 64bit
+     nfsd: use C99 struct initializers
 has been removed from the -mm tree.  Its filename was
-     doc-hashdist-defaults-on-for-64bit.patch
+     nfsd-use-c99-struct-initializers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: hashdist defaults on for 64bit
-From: Hugh Dickins <hugh@veritas.com>
+Subject: nfsd: use C99 struct initializers
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-kernel boot parameter `hashdist' now defaults on for all 64bit NUMA.
+Eliminate 56 sparse warnings like this one:
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: David S. Miller <davem@davemloft.net>
+fs/nfsd/nfs4xdr.c:1331:15: warning: obsolete array initializer, use C99 syntax
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: J. Bruce Fields <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfsd/nfs4xdr.c |  112 ++++++++++++++++++++++----------------------
+ 1 file changed, 56 insertions(+), 56 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~doc-hashdist-defaults-on-for-64bit Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~doc-hashdist-defaults-on-for-64bit
-+++ a/Documentation/kernel-parameters.txt
-@@ -775,7 +775,7 @@ and is between 256 and 4096 characters. 
+diff -puN fs/nfsd/nfs4xdr.c~nfsd-use-c99-struct-initializers fs/nfsd/nfs4xdr.c
+--- a/fs/nfsd/nfs4xdr.c~nfsd-use-c99-struct-initializers
++++ a/fs/nfsd/nfs4xdr.c
+@@ -1328,64 +1328,64 @@ static nfsd4_dec nfsd4_dec_ops[] = {
+ };
  
- 	hashdist=	[KNL,NUMA] Large hashes allocated during boot
- 			are distributed across NUMA nodes.  Defaults on
--			for IA-64, off otherwise.
-+			for 64bit NUMA, off otherwise.
- 			Format: 0 | 1 (for off | on)
+ static nfsd4_dec nfsd41_dec_ops[] = {
+-	[OP_ACCESS]		(nfsd4_dec)nfsd4_decode_access,
+-	[OP_CLOSE]		(nfsd4_dec)nfsd4_decode_close,
+-	[OP_COMMIT]		(nfsd4_dec)nfsd4_decode_commit,
+-	[OP_CREATE]		(nfsd4_dec)nfsd4_decode_create,
+-	[OP_DELEGPURGE]		(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_DELEGRETURN]	(nfsd4_dec)nfsd4_decode_delegreturn,
+-	[OP_GETATTR]		(nfsd4_dec)nfsd4_decode_getattr,
+-	[OP_GETFH]		(nfsd4_dec)nfsd4_decode_noop,
+-	[OP_LINK]		(nfsd4_dec)nfsd4_decode_link,
+-	[OP_LOCK]		(nfsd4_dec)nfsd4_decode_lock,
+-	[OP_LOCKT]		(nfsd4_dec)nfsd4_decode_lockt,
+-	[OP_LOCKU]		(nfsd4_dec)nfsd4_decode_locku,
+-	[OP_LOOKUP]		(nfsd4_dec)nfsd4_decode_lookup,
+-	[OP_LOOKUPP]		(nfsd4_dec)nfsd4_decode_noop,
+-	[OP_NVERIFY]		(nfsd4_dec)nfsd4_decode_verify,
+-	[OP_OPEN]		(nfsd4_dec)nfsd4_decode_open,
+-	[OP_OPENATTR]		(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_OPEN_CONFIRM]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_OPEN_DOWNGRADE]	(nfsd4_dec)nfsd4_decode_open_downgrade,
+-	[OP_PUTFH]		(nfsd4_dec)nfsd4_decode_putfh,
+-	[OP_PUTPUBFH]		(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_PUTROOTFH]		(nfsd4_dec)nfsd4_decode_noop,
+-	[OP_READ]		(nfsd4_dec)nfsd4_decode_read,
+-	[OP_READDIR]		(nfsd4_dec)nfsd4_decode_readdir,
+-	[OP_READLINK]		(nfsd4_dec)nfsd4_decode_noop,
+-	[OP_REMOVE]		(nfsd4_dec)nfsd4_decode_remove,
+-	[OP_RENAME]		(nfsd4_dec)nfsd4_decode_rename,
+-	[OP_RENEW]		(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_RESTOREFH]		(nfsd4_dec)nfsd4_decode_noop,
+-	[OP_SAVEFH]		(nfsd4_dec)nfsd4_decode_noop,
+-	[OP_SECINFO]		(nfsd4_dec)nfsd4_decode_secinfo,
+-	[OP_SETATTR]		(nfsd4_dec)nfsd4_decode_setattr,
+-	[OP_SETCLIENTID]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_SETCLIENTID_CONFIRM](nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_VERIFY]		(nfsd4_dec)nfsd4_decode_verify,
+-	[OP_WRITE]		(nfsd4_dec)nfsd4_decode_write,
+-	[OP_RELEASE_LOCKOWNER]	(nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_ACCESS]		= (nfsd4_dec)nfsd4_decode_access,
++	[OP_CLOSE]		= (nfsd4_dec)nfsd4_decode_close,
++	[OP_COMMIT]		= (nfsd4_dec)nfsd4_decode_commit,
++	[OP_CREATE]		= (nfsd4_dec)nfsd4_decode_create,
++	[OP_DELEGPURGE]		= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_DELEGRETURN]	= (nfsd4_dec)nfsd4_decode_delegreturn,
++	[OP_GETATTR]		= (nfsd4_dec)nfsd4_decode_getattr,
++	[OP_GETFH]		= (nfsd4_dec)nfsd4_decode_noop,
++	[OP_LINK]		= (nfsd4_dec)nfsd4_decode_link,
++	[OP_LOCK]		= (nfsd4_dec)nfsd4_decode_lock,
++	[OP_LOCKT]		= (nfsd4_dec)nfsd4_decode_lockt,
++	[OP_LOCKU]		= (nfsd4_dec)nfsd4_decode_locku,
++	[OP_LOOKUP]		= (nfsd4_dec)nfsd4_decode_lookup,
++	[OP_LOOKUPP]		= (nfsd4_dec)nfsd4_decode_noop,
++	[OP_NVERIFY]		= (nfsd4_dec)nfsd4_decode_verify,
++	[OP_OPEN]		= (nfsd4_dec)nfsd4_decode_open,
++	[OP_OPENATTR]		= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_OPEN_CONFIRM]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_OPEN_DOWNGRADE]	= (nfsd4_dec)nfsd4_decode_open_downgrade,
++	[OP_PUTFH]		= (nfsd4_dec)nfsd4_decode_putfh,
++	[OP_PUTPUBFH]		= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_PUTROOTFH]		= (nfsd4_dec)nfsd4_decode_noop,
++	[OP_READ]		= (nfsd4_dec)nfsd4_decode_read,
++	[OP_READDIR]		= (nfsd4_dec)nfsd4_decode_readdir,
++	[OP_READLINK]		= (nfsd4_dec)nfsd4_decode_noop,
++	[OP_REMOVE]		= (nfsd4_dec)nfsd4_decode_remove,
++	[OP_RENAME]		= (nfsd4_dec)nfsd4_decode_rename,
++	[OP_RENEW]		= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_RESTOREFH]		= (nfsd4_dec)nfsd4_decode_noop,
++	[OP_SAVEFH]		= (nfsd4_dec)nfsd4_decode_noop,
++	[OP_SECINFO]		= (nfsd4_dec)nfsd4_decode_secinfo,
++	[OP_SETATTR]		= (nfsd4_dec)nfsd4_decode_setattr,
++	[OP_SETCLIENTID]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_SETCLIENTID_CONFIRM]= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_VERIFY]		= (nfsd4_dec)nfsd4_decode_verify,
++	[OP_WRITE]		= (nfsd4_dec)nfsd4_decode_write,
++	[OP_RELEASE_LOCKOWNER]	= (nfsd4_dec)nfsd4_decode_notsupp,
  
- 	hcl=		[IA-64] SGI's Hardware Graph compatibility layer
+ 	/* new operations for NFSv4.1 */
+-	[OP_BACKCHANNEL_CTL]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_BIND_CONN_TO_SESSION](nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_EXCHANGE_ID]	(nfsd4_dec)nfsd4_decode_exchange_id,
+-	[OP_CREATE_SESSION]	(nfsd4_dec)nfsd4_decode_create_session,
+-	[OP_DESTROY_SESSION]	(nfsd4_dec)nfsd4_decode_destroy_session,
+-	[OP_FREE_STATEID]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_GET_DIR_DELEGATION]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_GETDEVICEINFO]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_GETDEVICELIST]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_LAYOUTCOMMIT]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_LAYOUTGET]		(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_LAYOUTRETURN]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_SECINFO_NO_NAME]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_SEQUENCE]		(nfsd4_dec)nfsd4_decode_sequence,
+-	[OP_SET_SSV]		(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_TEST_STATEID]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_WANT_DELEGATION]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_DESTROY_CLIENTID]	(nfsd4_dec)nfsd4_decode_notsupp,
+-	[OP_RECLAIM_COMPLETE]	(nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_BACKCHANNEL_CTL]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_BIND_CONN_TO_SESSION]= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_EXCHANGE_ID]	= (nfsd4_dec)nfsd4_decode_exchange_id,
++	[OP_CREATE_SESSION]	= (nfsd4_dec)nfsd4_decode_create_session,
++	[OP_DESTROY_SESSION]	= (nfsd4_dec)nfsd4_decode_destroy_session,
++	[OP_FREE_STATEID]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_GET_DIR_DELEGATION]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_GETDEVICEINFO]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_GETDEVICELIST]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_LAYOUTCOMMIT]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_LAYOUTGET]		= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_LAYOUTRETURN]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_SECINFO_NO_NAME]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_SEQUENCE]		= (nfsd4_dec)nfsd4_decode_sequence,
++	[OP_SET_SSV]		= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_TEST_STATEID]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_WANT_DELEGATION]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_DESTROY_CLIENTID]	= (nfsd4_dec)nfsd4_decode_notsupp,
++	[OP_RECLAIM_COMPLETE]	= (nfsd4_dec)nfsd4_decode_notsupp,
+ };
+ 
+ struct nfsd4_minorversion_ops {
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-mm-disable-preemption-in-apply_to_pte_range.patch
-integrity-nfsd-imbalance-bug-fix.patch
-ksm-mmu_notifiers-add-set_pte_at_notify.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-page_wrprotect-write-protecting-page.patch
-ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
-ksm-add-ksm-kernel-shared-memory-driver.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
-ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch
-ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch
-ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
-ksm-add-ksm-kernel-shared-memory-driver-change-the-prot-handling-to-use-the-generic-helper-functions.patch
-ksm-add-ksm-kernel-shared-memory-driver-use-another-miscdevice-minor-number.patch
-mm-alloc_large_system_hash-check-order.patch
-page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
-mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
-mm-introduce-follow_pte.patch
-mm-use-generic-follow_pte-in-follow_phys.patch
-mm-introduce-follow_pfn.patch
-getrusage-fill-ru_maxrss-value.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
-prio_tree-debugging-patch.patch
+linux-next.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+qla2x-fix-printk-format-warnings.patch
+lockd-fix-file_locking=n-build-error.patch
+xen-use-header-for-export_symbol_gpl.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+cgroups-make-messages-more-readable.patch
+linuxpps-core-support.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
