@@ -1,96 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] doc-small-kernel-parameters-updates.patch removed from -mm tree
-Date: Thu, 07 May 2009 12:16:09 -0700
-Message-ID: <200905071916.n47JG9Sf020133@imap1.linux-foundation.org>
+Subject: [merged] initramfs-clean-up-messages-related-to-initramfs-unpacking.patch removed from -mm tree
+Date: Thu, 07 May 2009 12:16:27 -0700
+Message-ID: <200905071916.n47JGRGH020362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753248AbZEGTTj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:19:39 -0400
+	by vger.kernel.org with ESMTP id S1752427AbZEGTTV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 15:19:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, chris.sylvain@gmail.com, jengelh@medozas.de, mm-commits@vger.kernel.org
+To: eric.piel@tremplin-utc.net, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc: small kernel-parameters updates
+     initramfs: clean up messages related to initramfs unpacking
 has been removed from the -mm tree.  Its filename was
-     doc-small-kernel-parameters-updates.patch
+     initramfs-clean-up-messages-related-to-initramfs-unpacking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: small kernel-parameters updates
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: initramfs: clean up messages related to initramfs unpacking
+From: Eric Piel <eric.piel@tremplin-utc.net>
 
-Change last "i386" to X86-32 as is used throughout the rest of the file. 
-Change combination of X86-32,X86-64 to just X86, as is done throughout the
-rest of the file.
+With the removal of duplicate unpack_to_rootfs() (commit
+df52092f3c97788592ef72501a43fb7ac6a3cfe0) the messages displayed do not
+actually correspond to what the kernel is doing.  In addition, depending
+if ramdisks are supported or not, the messages are not at all the same.
 
-Add a note that hyphens and underscores are equivalent in parameter names,
-with examples.
+So keep the messages more in sync with what is really doing the kernel,
+and only display a second message in case of failure.  This also ensure
+that the printk message cannot be split by other printk's.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jan Engelhardt <jengelh@medozas.de>
-Cc: Christopher Sylvain <chris.sylvain@gmail.com>
+Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ init/initramfs.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~doc-small-kernel-parameters-updates Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~doc-small-kernel-parameters-updates
-+++ a/Documentation/kernel-parameters.txt
-@@ -17,6 +17,12 @@ are specified on the kernel command line
- 
- 	usbcore.blinkenlights=1
- 
-+Hyphens (dashes) and underscores are equivalent in parameter names, so
-+	log_buf_len=1M print-fatal-signals=1
-+can also be entered as
-+	log-buf-len=1M print_fatal_signals=1
-+
-+
- This document may not be entirely up to date and comprehensive. The command
- "modinfo -p ${modulename}" shows a current list of all parameters of a loadable
- module. Loadable modules, after being loaded into the running kernel, also
-@@ -345,7 +351,7 @@ and is between 256 and 4096 characters. 
- 			not play well with APC CPU idle - disable it if you have
- 			APC and your system crashes randomly.
- 
--	apic=		[APIC,i386] Advanced Programmable Interrupt Controller
-+	apic=		[APIC,X86-32] Advanced Programmable Interrupt Controller
- 			Change the output verbosity whilst booting
- 			Format: { quiet (default) | verbose | debug }
- 			Change the amount of debugging information output
-@@ -702,7 +708,7 @@ and is between 256 and 4096 characters. 
- 			to discrete, to make X server driver able to add WB
- 			entry later. This parameter enables that.
- 
--	enable_timer_pin_1 [i386,x86-64]
-+	enable_timer_pin_1 [X86]
- 			Enable PIN 1 of APIC timer
- 			Can be useful to work around chipset bugs
- 			(in particular on some ATI chipsets).
+diff -puN init/initramfs.c~initramfs-clean-up-messages-related-to-initramfs-unpacking init/initramfs.c
+--- a/init/initramfs.c~initramfs-clean-up-messages-related-to-initramfs-unpacking
++++ a/init/initramfs.c
+@@ -574,11 +574,10 @@ static int __init populate_rootfs(void)
+ 	if (initrd_start) {
+ #ifdef CONFIG_BLK_DEV_RAM
+ 		int fd;
+-		printk(KERN_INFO "checking if image is initramfs...\n");
++		printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
+ 		err = unpack_to_rootfs((char *)initrd_start,
+ 			initrd_end - initrd_start);
+ 		if (!err) {
+-			printk(KERN_INFO "rootfs image is initramfs; unpacking...\n");
+ 			free_initrd();
+ 			return 0;
+ 		} else {
+@@ -596,15 +595,11 @@ static int __init populate_rootfs(void)
+ 			free_initrd();
+ 		}
+ #else
+-		printk(KERN_INFO "Unpacking initramfs...");
++		printk(KERN_INFO "Unpacking initramfs...\n");
+ 		err = unpack_to_rootfs((char *)initrd_start,
+ 			initrd_end - initrd_start);
+-		if (err) {
+-			printk(" failed!\n");
+-			printk(KERN_EMERG "%s\n", err);
+-		} else {
+-			printk(" done\n");
+-		}
++		if (err)
++			printk(KERN_EMERG "Initramfs unpacking failed: %s\n", err);
+ 		free_initrd();
+ #endif
+ 	}
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from eric.piel@tremplin-utc.net are
 
 origin.patch
-linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-lockd-fix-file_locking=n-build-error.patch
-xen-use-header-for-export_symbol_gpl.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-cgroups-make-messages-more-readable.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
 
