@@ -1,120 +1,377 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch removed from -mm tree
-Date: Fri, 08 May 2009 13:26:49 -0700
-Message-ID: <200905082026.n48KQn2Y001580@imap1.linux-foundation.org>
+Subject: [to-be-updated] proc-export-more-page-flags-in-proc-kpageflags.patch removed from -mm tree
+Date: Fri, 08 May 2009 13:26:58 -0700
+Message-ID: <200905082026.n48KQwvK001684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44619 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756302AbZEHUam (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 16:30:42 -0400
+	by vger.kernel.org with ESMTP id S1756633AbZEHUap (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 16:30:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: introduce PageHuge() for testing huge/gigantic pages
+     proc: export more page flags in /proc/kpageflags
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+     proc-export-more-page-flags-in-proc-kpageflags.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce PageHuge() for testing huge/gigantic pages
+Subject: proc: export more page flags in /proc/kpageflags
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Introduce PageHuge(), which identifies huge/gigantic pages by their
-dedicated compound destructor functions.
+Export 9 page flags in /proc/kpageflags, and 8 more for kernel developers.
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+1) for kernel hackers (on CONFIG_DEBUG_KERNEL)
+   - all available page flags are exported, and
+   - exported as is
+2) for admins and end users
+   - only the more `well known' flags are exported:
+	11. KPF_MMAP		(pseudo flag) memory mapped page
+	12. KPF_ANON		(pseudo flag) memory mapped page (anonymous)
+	13. KPF_SWAPCACHE	page is in swap cache
+	14. KPF_SWAPBACKED	page is swap/RAM backed
+	15. KPF_COMPOUND_HEAD	(*)
+	16. KPF_COMPOUND_TAIL	(*)
+	17. KPF_UNEVICTABLE	page is in the unevictable LRU list
+	18. KPF_HWPOISON	hardware detected corruption
+	19. KPF_NOPAGE		(pseudo flag) no page frame at the address
+
+	(*) For compound pages, exporting _both_ head/tail info enables
+	    users to tell where a compound page starts/ends, and its order.
+
+   - limit flags to their typical usage scenario, as indicated by KOSAKI:
+	- LRU pages: only export relevant flags
+		- PG_lru
+		- PG_unevictable
+		- PG_active
+		- PG_referenced
+		- page_mapped()
+		- PageAnon()
+		- PG_swapcache
+		- PG_swapbacked
+		- PG_reclaim
+	- no-IO pages: mask out irrelevant flags
+		- PG_dirty
+		- PG_uptodate
+		- PG_writeback
+	- SLAB pages: mask out overloaded flags:
+		- PG_error
+		- PG_active
+		- PG_private
+	- PG_reclaim: mask out the overloaded PG_readahead
+	- compound flags: only export huge/gigantic pages
+
+Here are the admin/linus views of all page flags on a newly booted nfs-root system:
+
+# ./page-types # for admin
+         flags  page-count       MB  symbolic-flags                     long-symbolic-flags
+0x000000000000      491174     1918  ____________________________
+0x000000000020           1        0  _____l______________________       lru
+0x000000000028        2543        9  ___U_l______________________       uptodate,lru
+0x00000000002c        5288       20  __RU_l______________________       referenced,uptodate,lru
+0x000000004060           1        0  _____lA_______b_____________       lru,active,swapbacked
+0x000000004064          19        0  __R__lA_______b_____________       referenced,lru,active,swapbacked
+0x000000000068         225        0  ___U_lA_____________________       uptodate,lru,active
+0x00000000006c         969        3  __RU_lA_____________________       referenced,uptodate,lru,active
+0x000000000080        6832       26  _______S____________________       slab
+0x000000000400         576        2  __________B_________________       buddy
+0x000000000828        1159        4  ___U_l_____M________________       uptodate,lru,mmap
+0x00000000082c         310        1  __RU_l_____M________________       referenced,uptodate,lru,mmap
+0x000000004860           2        0  _____lA____M__b_____________       lru,active,mmap,swapbacked
+0x000000000868         375        1  ___U_lA____M________________       uptodate,lru,active,mmap
+0x00000000086c         635        2  __RU_lA____M________________       referenced,uptodate,lru,active,mmap
+0x000000005860        3831       14  _____lA____Ma_b_____________       lru,active,mmap,anonymous,swapbacked
+0x000000005864          28        0  __R__lA____Ma_b_____________       referenced,lru,active,mmap,anonymous,swapbacked
+         total      513968     2007
+
+# ./page-types # for linus, when CONFIG_DEBUG_KERNEL is turned on
+         flags  page-count       MB  symbolic-flags                     long-symbolic-flags
+0x000000000000      471058     1840  ____________________________
+0x000100000000       19288       75  ____________________r_______       reserved
+0x000000010000        1064        4  ________________T___________       compound_tail
+0x000000008000           1        0  _______________H____________       compound_head
+0x000000008014           1        0  __R_D__________H____________       referenced,dirty,compound_head
+0x000000010014           4        0  __R_D___________T___________       referenced,dirty,compound_tail
+0x000000000020           1        0  _____l______________________       lru
+0x000000000028        2522        9  ___U_l______________________       uptodate,lru
+0x00000000002c        5207       20  __RU_l______________________       referenced,uptodate,lru
+0x000000000068         203        0  ___U_lA_____________________       uptodate,lru,active
+0x00000000006c         869        3  __RU_lA_____________________       referenced,uptodate,lru,active
+0x000000004078           1        0  ___UDlA_______b_____________       uptodate,dirty,lru,active,swapbacked
+0x00000000407c          19        0  __RUDlA_______b_____________       referenced,uptodate,dirty,lru,active,swapbacked
+0x000000000080        5989       23  _______S____________________       slab
+0x000000008080         778        3  _______S_______H____________       slab,compound_head
+0x000000000228          44        0  ___U_l___I__________________       uptodate,lru,reclaim
+0x00000000022c          39        0  __RU_l___I__________________       referenced,uptodate,lru,reclaim
+0x000000000268          12        0  ___U_lA__I__________________       uptodate,lru,active,reclaim
+0x00000000026c          44        0  __RU_lA__I__________________       referenced,uptodate,lru,active,reclaim
+0x000000000400         550        2  __________B_________________       buddy
+0x000000000804           1        0  __R________M________________       referenced,mmap
+0x000000000828        1068        4  ___U_l_____M________________       uptodate,lru,mmap
+0x00000000082c         326        1  __RU_l_____M________________       referenced,uptodate,lru,mmap
+0x000000000868         335        1  ___U_lA____M________________       uptodate,lru,active,mmap
+0x00000000086c         599        2  __RU_lA____M________________       referenced,uptodate,lru,active,mmap
+0x000000004878           2        0  ___UDlA____M__b_____________       uptodate,dirty,lru,active,mmap,swapbacked
+0x000000000a28          44        0  ___U_l___I_M________________       uptodate,lru,reclaim,mmap
+0x000000000a2c          12        0  __RU_l___I_M________________       referenced,uptodate,lru,reclaim,mmap
+0x000000000a68           8        0  ___U_lA__I_M________________       uptodate,lru,active,reclaim,mmap
+0x000000000a6c          31        0  __RU_lA__I_M________________       referenced,uptodate,lru,active,reclaim,mmap
+0x000000001000         442        1  ____________a_______________       anonymous
+0x000000005808           7        0  ___U_______Ma_b_____________       uptodate,mmap,anonymous,swapbacked
+0x000000005868        3371       13  ___U_lA____Ma_b_____________       uptodate,lru,active,mmap,anonymous,swapbacked
+0x00000000586c          28        0  __RU_lA____Ma_b_____________       referenced,uptodate,lru,active,mmap,anonymous,swapbacked
+         total      513968     2007
+
+Thanks to KOSAKI and Andi for their valuable recommendations!
+
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Matt Mackall <mpm@selenic.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   24 ++++++++++++++++++++++++
- mm/hugetlb.c       |    2 +-
- mm/page_alloc.c    |   11 ++++++++++-
- 3 files changed, 35 insertions(+), 2 deletions(-)
+ fs/proc/page.c |  197 +++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 167 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/mm.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages
-+++ a/include/linux/mm.h
-@@ -354,6 +354,30 @@ static inline void set_compound_order(st
- 	page[1].lru.prev = (void *)order;
- }
+diff -puN fs/proc/page.c~proc-export-more-page-flags-in-proc-kpageflags fs/proc/page.c
+--- a/fs/proc/page.c~proc-export-more-page-flags-in-proc-kpageflags
++++ a/fs/proc/page.c
+@@ -6,6 +6,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#include <linux/backing-dev.h>
+ #include <asm/uaccess.h>
+ #include "internal.h"
  
-+#ifdef CONFIG_HUGETLBFS
-+void free_huge_page(struct page *page);
-+void free_gigantic_page(struct page *page);
+@@ -70,19 +71,172 @@ static const struct file_operations proc
+ 
+ /* These macros are used to decouple internal flags from exported ones */
+ 
+-#define KPF_LOCKED     0
+-#define KPF_ERROR      1
+-#define KPF_REFERENCED 2
+-#define KPF_UPTODATE   3
+-#define KPF_DIRTY      4
+-#define KPF_LRU        5
+-#define KPF_ACTIVE     6
+-#define KPF_SLAB       7
+-#define KPF_WRITEBACK  8
+-#define KPF_RECLAIM    9
+-#define KPF_BUDDY     10
++#define KPF_LOCKED		0
++#define KPF_ERROR		1
++#define KPF_REFERENCED		2
++#define KPF_UPTODATE		3
++#define KPF_DIRTY		4
++#define KPF_LRU			5
++#define KPF_ACTIVE		6
++#define KPF_SLAB		7
++#define KPF_WRITEBACK		8
++#define KPF_RECLAIM		9
++#define KPF_BUDDY		10
 +
-+static inline int PageHuge(struct page *page)
-+{
-+	compound_page_dtor *dtor;
++/* new additions in 2.6.31 */
++#define KPF_MMAP		11
++#define KPF_ANON		12
++#define KPF_SWAPCACHE		13
++#define KPF_SWAPBACKED		14
++#define KPF_COMPOUND_HEAD	15
++#define KPF_COMPOUND_TAIL	16
++#define KPF_UNEVICTABLE		17
++#define KPF_HWPOISON		18
++#define KPF_NOPAGE		19
 +
-+	if (!PageCompound(page))
-+		return 0;
++/* kernel hacking assistances */
++#define KPF_RESERVED		32
++#define KPF_MLOCKED		33
++#define KPF_MAPPEDTODISK	34
++#define KPF_PRIVATE		35
++#define KPF_PRIVATE2		36
++#define KPF_OWNER_PRIVATE	37
++#define KPF_ARCH		38
++#define KPF_UNCACHED		39
 +
-+	page = compound_head(page);
-+	dtor = get_compound_page_dtor(page);
-+
-+	return  dtor == free_huge_page ||
-+		dtor == free_gigantic_page;
-+}
++/*
++ * Kernel flags are exported faithfully to Linus and his fellow hackers.
++ * Otherwise some details are masked to avoid confusing the end user:
++ * - some kernel flags are completely invisible
++ * - some kernel flags are conditionally invisible on their odd usages
++ */
++#ifdef CONFIG_DEBUG_KERNEL
++static inline int genuine_linus(void) { return 1; }
 +#else
-+static inline int PageHuge(struct page *page)
-+{
-+	return 0;
-+}
++static inline int genuine_linus(void) { return 0; }
 +#endif
 +
- /*
-  * Multiple processes may "see" the same page. E.g. for untouched
-  * mappings of /dev/null, all processes see the same page full of
-diff -puN mm/hugetlb.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages
-+++ a/mm/hugetlb.c
-@@ -550,7 +550,7 @@ struct hstate *size_to_hstate(unsigned l
- 	return NULL;
- }
- 
--static void free_huge_page(struct page *page)
-+void free_huge_page(struct page *page)
- {
- 	/*
- 	 * Can't pass hstate in here because it is called from the
-diff -puN mm/page_alloc.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages
-+++ a/mm/page_alloc.c
-@@ -305,13 +305,22 @@ void prep_compound_page(struct page *pag
- }
- 
- #ifdef CONFIG_HUGETLBFS
-+/*
-+ * This (duplicated) destructor function distinguishes gigantic pages from
-+ * normal compound pages.
-+ */
-+void free_gigantic_page(struct page *page)
++#define kpf_copy_bit(uflags, kflags, visible, ubit, kbit)		\
++	do {								\
++		if (visible || genuine_linus())				\
++			uflags |= ((kflags >> kbit) & 1) << ubit;	\
++	} while (0);
++
++/* a helper function _not_ intended for more general uses */
++static inline int page_cap_writeback_dirty(struct page *page)
 +{
-+	__free_pages_ok(page, compound_order(page));
++	struct address_space *mapping;
++
++	if (!PageSlab(page))
++		mapping = page_mapping(page);
++	else
++		mapping = NULL;
++
++	return mapping && mapping_cap_writeback_dirty(mapping);
 +}
 +
- void prep_compound_gigantic_page(struct page *page, unsigned long order)
- {
- 	int i;
- 	int nr_pages = 1 << order;
- 	struct page *p = page + 1;
++static u64 get_uflags(struct page *page)
++{
++	u64 k;
++	u64 u;
++	int io;
++	int lru;
++	int slab;
++
++	/*
++	 * pseudo flag: KPF_NOPAGE
++	 * it differentiates a memory hole from a page with no flags
++	 */
++	if (!page)
++		return 1 << KPF_NOPAGE;
++
++	k = page->flags;
++	u = 0;
++
++	io   = page_cap_writeback_dirty(page);
++	lru  = k & (1 << PG_lru);
++	slab = k & (1 << PG_slab);
++
++	/*
++	 * pseudo flags for the well known (anonymous) memory mapped pages
++	 */
++	if (lru || genuine_linus()) {
++		if (!slab && page_mapped(page))
++			u |= 1 << KPF_MMAP;
++		if (PageAnon(page))
++			u |= 1 << KPF_ANON;
++	}
  
--	set_compound_page_dtor(page, free_compound_page);
-+	set_compound_page_dtor(page, free_gigantic_page);
- 	set_compound_order(page, order);
- 	__SetPageHead(page);
- 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
+-#define kpf_copy_bit(flags, dstpos, srcpos) (((flags >> srcpos) & 1) << dstpos)
++	/*
++	 * compound pages: export both head/tail info
++	 * they together define a compound page's start/end pos and order
++	 */
++	if (PageHuge(page) || genuine_linus()) {
++		if (PageHead(page))
++			u |= 1 << KPF_COMPOUND_HEAD;
++		if (PageTail(page))
++			u |= 1 << KPF_COMPOUND_TAIL;
++	}
++
++	kpf_copy_bit(u, k, 1,	  KPF_LOCKED,		PG_locked);
++
++	/*
++	 * Caveats on high order pages:
++	 * PG_buddy will only be set on the head page; SLUB/SLQB do the same
++	 * for PG_slab; SLOB won't set PG_slab at all on compound pages.
++	 */
++	kpf_copy_bit(u, k, 1,     KPF_SLAB,		PG_slab);
++	kpf_copy_bit(u, k, 1,     KPF_BUDDY,		PG_buddy);
++
++	kpf_copy_bit(u, k, io,    KPF_ERROR,		PG_error);
++	kpf_copy_bit(u, k, io,    KPF_DIRTY,		PG_dirty);
++	kpf_copy_bit(u, k, io,    KPF_UPTODATE,		PG_uptodate);
++	kpf_copy_bit(u, k, io,    KPF_WRITEBACK,	PG_writeback);
++
++	kpf_copy_bit(u, k, 1,     KPF_LRU,		PG_lru);
++	kpf_copy_bit(u, k, lru,	  KPF_REFERENCED,	PG_referenced);
++	kpf_copy_bit(u, k, lru,   KPF_ACTIVE,		PG_active);
++	kpf_copy_bit(u, k, lru,   KPF_RECLAIM,		PG_reclaim);
++
++	kpf_copy_bit(u, k, lru,   KPF_SWAPCACHE,	PG_swapcache);
++	kpf_copy_bit(u, k, lru,   KPF_SWAPBACKED,	PG_swapbacked);
++
++#ifdef CONFIG_MEMORY_FAILURE
++	kpf_copy_bit(u, k, 1,     KPF_HWPOISON,		PG_hwpoison);
++#endif
++
++#ifdef CONFIG_UNEVICTABLE_LRU
++	kpf_copy_bit(u, k, lru,   KPF_UNEVICTABLE,	PG_unevictable);
++	kpf_copy_bit(u, k, 0,     KPF_MLOCKED,		PG_mlocked);
++#endif
++
++	kpf_copy_bit(u, k, 0,     KPF_RESERVED,		PG_reserved);
++	kpf_copy_bit(u, k, 0,     KPF_MAPPEDTODISK,	PG_mappedtodisk);
++	kpf_copy_bit(u, k, 0,     KPF_PRIVATE,		PG_private);
++	kpf_copy_bit(u, k, 0,     KPF_PRIVATE2,		PG_private_2);
++	kpf_copy_bit(u, k, 0,     KPF_OWNER_PRIVATE,	PG_owner_priv_1);
++	kpf_copy_bit(u, k, 0,     KPF_ARCH,		PG_arch_1);
++
++#ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
++	kpf_copy_bit(u, k, 0,     KPF_UNCACHED,		PG_uncached);
++#endif
++
++	if (!genuine_linus()) {
++		/*
++		 * SLUB overloads some page flags which may confuse end user.
++		 */
++		if (slab)
++			u &= ~((1 << KPF_ACTIVE) | (1 << KPF_ERROR));
++		/*
++		 * PG_reclaim could be overloaded as PG_readahead,
++		 * and we only want to export the first one.
++		 */
++		if (!(u & (1 << KPF_WRITEBACK)))
++			u &= ~(1 << KPF_RECLAIM);
++	}
++
++	return u;
++};
+ 
+ static ssize_t kpageflags_read(struct file *file, char __user *buf,
+ 			     size_t count, loff_t *ppos)
+@@ -92,7 +246,6 @@ static ssize_t kpageflags_read(struct fi
+ 	unsigned long src = *ppos;
+ 	unsigned long pfn;
+ 	ssize_t ret = 0;
+-	u64 kflags, uflags;
+ 
+ 	pfn = src / KPMSIZE;
+ 	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
+@@ -104,24 +257,8 @@ static ssize_t kpageflags_read(struct fi
+ 			ppage = pfn_to_page(pfn);
+ 		else
+ 			ppage = NULL;
+-		if (!ppage)
+-			kflags = 0;
+-		else
+-			kflags = ppage->flags;
+-
+-		uflags = kpf_copy_bit(kflags, KPF_LOCKED, PG_locked) |
+-			kpf_copy_bit(kflags, KPF_ERROR, PG_error) |
+-			kpf_copy_bit(kflags, KPF_REFERENCED, PG_referenced) |
+-			kpf_copy_bit(kflags, KPF_UPTODATE, PG_uptodate) |
+-			kpf_copy_bit(kflags, KPF_DIRTY, PG_dirty) |
+-			kpf_copy_bit(kflags, KPF_LRU, PG_lru) |
+-			kpf_copy_bit(kflags, KPF_ACTIVE, PG_active) |
+-			kpf_copy_bit(kflags, KPF_SLAB, PG_slab) |
+-			kpf_copy_bit(kflags, KPF_WRITEBACK, PG_writeback) |
+-			kpf_copy_bit(kflags, KPF_RECLAIM, PG_reclaim) |
+-			kpf_copy_bit(kflags, KPF_BUDDY, PG_buddy);
+ 
+-		if (put_user(uflags, out)) {
++		if (put_user(get_uflags(ppage), out)) {
+ 			ret = -EFAULT;
+ 			break;
+ 		}
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
@@ -139,7 +396,6 @@ readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
 readahead-enforce-full-sync-mmap-readahead-size.patch
 pagemap-document-clarifications.patch
 pagemap-documentation-9-more-exported-page-flags.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
 proc-kpagecount-kpageflags-code-cleanup.patch
 proc-export-more-page-flags-in-proc-kpageflags.patch
 vmscan-cleanup-the-scan-batching-code.patch
