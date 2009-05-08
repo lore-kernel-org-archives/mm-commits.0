@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] proc-kpagecount-kpageflags-code-cleanup.patch removed from -mm tree
-Date: Fri, 08 May 2009 13:29:29 -0700
-Message-ID: <200905082029.n48KTTHH003253@imap1.linux-foundation.org>
+Subject: [to-be-updated] pagemap-document-clarifications.patch removed from -mm tree
+Date: Fri, 08 May 2009 13:29:54 -0700
+Message-ID: <200905082029.n48KTsue003469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60246 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755885AbZEHUdI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 16:33:08 -0400
+	by vger.kernel.org with ESMTP id S1753522AbZEHUdg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 16:33:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: kpagecount/kpageflags code cleanup
+     pagemap: document clarifications
 has been removed from the -mm tree.  Its filename was
-     proc-kpagecount-kpageflags-code-cleanup.patch
+     pagemap-document-clarifications.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: kpagecount/kpageflags code cleanup
+Subject: pagemap: document clarifications
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Move increments of pfn/out to bottom of the loop.
+Some bit ranges were inclusive and some not.  Fix them to be consistently
+inclusive.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -36,66 +37,33 @@ Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ Documentation/vm/pagemap.txt |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/page.c~proc-kpagecount-kpageflags-code-cleanup fs/proc/page.c
---- a/fs/proc/page.c~proc-kpagecount-kpageflags-code-cleanup
-+++ a/fs/proc/page.c
-@@ -32,20 +32,22 @@ static ssize_t kpagecount_read(struct fi
- 		return -EINVAL;
+diff -puN Documentation/vm/pagemap.txt~pagemap-document-clarifications Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-document-clarifications
++++ a/Documentation/vm/pagemap.txt
+@@ -12,9 +12,9 @@ There are three components to pagemap:
+    value for each virtual page, containing the following data (from
+    fs/proc/task_mmu.c, above pagemap_read):
  
- 	while (count > 0) {
--		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
--		pfn++;
-+		else
-+			ppage = NULL;
- 		if (!ppage)
- 			pcount = 0;
- 		else
- 			pcount = page_mapcount(ppage);
+-    * Bits 0-55  page frame number (PFN) if present
++    * Bits 0-54  page frame number (PFN) if present
+     * Bits 0-4   swap type if swapped
+-    * Bits 5-55  swap offset if swapped
++    * Bits 5-54  swap offset if swapped
+     * Bits 55-60 page shift (page size = 1<<page shift)
+     * Bit  61    reserved for future use
+     * Bit  62    page swapped
+@@ -36,7 +36,7 @@ There are three components to pagemap:
+  * /proc/kpageflags.  This file contains a 64-bit set of flags for each
+    page, indexed by PFN.
  
--		if (put_user(pcount, out++)) {
-+		if (put_user(pcount, out)) {
- 			ret = -EFAULT;
- 			break;
- 		}
+-   The flags are (from fs/proc/proc_misc, above kpageflags_read):
++   The flags are (from fs/proc/page.c, above kpageflags_read):
  
-+		pfn++;
-+		out++;
- 		count -= KPMSIZE;
- 	}
- 
-@@ -98,10 +100,10 @@ static ssize_t kpageflags_read(struct fi
- 		return -EINVAL;
- 
- 	while (count > 0) {
--		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
--		pfn++;
-+		else
-+			ppage = NULL;
- 		if (!ppage)
- 			kflags = 0;
- 		else
-@@ -119,11 +121,13 @@ static ssize_t kpageflags_read(struct fi
- 			kpf_copy_bit(kflags, KPF_RECLAIM, PG_reclaim) |
- 			kpf_copy_bit(kflags, KPF_BUDDY, PG_buddy);
- 
--		if (put_user(uflags, out++)) {
-+		if (put_user(uflags, out)) {
- 			ret = -EFAULT;
- 			break;
- 		}
- 
-+		pfn++;
-+		out++;
- 		count -= KPMSIZE;
- 	}
- 
+      0. LOCKED
+      1. ERROR
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
@@ -120,11 +88,12 @@ readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
 readahead-enforce-full-sync-mmap-readahead-size.patch
 pagemap-document-clarifications.patch
 pagemap-documentation-9-more-exported-page-flags.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
 vmscan-cleanup-the-scan-batching-code.patch
 vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
 vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
 inotify-reimplement-inotify-using-fsnotify-report-rounded-up-event-size-to-user-space.patch
 mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
 slob-use-pg_slab-for-identifying-slob-pages.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
 
