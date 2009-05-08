@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drm-ignore-lvds-on-intel-graphics-systems-that-lie-about-having-it.patch added to -mm tree
-Date: Fri, 08 May 2009 11:57:21 -0700
-Message-ID: <200905081857.n48IvLFp009776@imap1.linux-foundation.org>
+Subject: + uml-uml-net-driver-does-not-allow-for-vlans.patch added to -mm tree
+Date: Fri, 08 May 2009 12:12:03 -0700
+Message-ID: <200905081912.n48JC3tm019144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754455AbZEHTCJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 15:02:09 -0400
+	by vger.kernel.org with ESMTP id S1753670AbZEHTQ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 15:16:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jarod@redhat.com, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org, notting@redhat.com, zhenyu.z.wang@intel.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@linux.intel.com, blaisorblade@yahoo.it, davem@davemloft.net, devzero@web.de, jdike@addtoit.com
 
 
 The patch titled
-     drm: ignore LVDS on intel graphics systems that lie about having it
+     uml: UML net driver does not allow for vlans
 has been added to the -mm tree.  Its filename is
-     drm-ignore-lvds-on-intel-graphics-systems-that-lie-about-having-it.patch
+     uml-uml-net-driver-does-not-allow-for-vlans.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: ignore LVDS on intel graphics systems that lie about having it
-From: Jarod Wilson <jarod@redhat.com>
+Subject: uml: UML net driver does not allow for vlans
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-There are a number of small form factor desktop systems with Intel mobile
-graphics chips that lie and say they have an LVDS.  With kernel
-mode-setting, this becomes a problem, and makes native resolution boot go
-haywire -- for example, my Dell Studio Hybrid, hooked to a 1920x1080
-display claims to have a 1024x768 LVDS, and the resulting graphical boot
-on the 1920x1080 display uses only the top left 1024x768, and
-auto-configured X will end up only 1024x768 as well.  With this change,
-graphical boot and X both do 1920x1080 as expected.
+See ancient discussion at
+http://marc.info/?l=user-mode-linux-devel&m=101990155831279&w=2
 
-Note that we're simply embracing and extending the early bail-out code in
-place for the Mac Mini here.  The xorg intel driver uses pci subsystem
-device and vendor id for matching, while we're using dmi lookups here. 
-The MSI addition is courtesy of and tested by Bill Nottingham.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=7854
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
-Tested-by: Bill Nottingham <notting@redhat.com>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: "Wang, Zhenyu Z" <zhenyu.z.wang@intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Reported-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Roland Kletzing <devzero@web.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_lvds.c |   54 +++++++++++++++++++++++-----
- 1 file changed, 46 insertions(+), 8 deletions(-)
+ arch/um/include/shared/net_user.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/intel_lvds.c~drm-ignore-lvds-on-intel-graphics-systems-that-lie-about-having-it drivers/gpu/drm/i915/intel_lvds.c
---- a/drivers/gpu/drm/i915/intel_lvds.c~drm-ignore-lvds-on-intel-graphics-systems-that-lie-about-having-it
-+++ a/drivers/gpu/drm/i915/intel_lvds.c
-@@ -384,7 +384,51 @@ static const struct drm_encoder_funcs in
- 	.destroy = intel_lvds_enc_destroy,
- };
+diff -puN arch/um/include/shared/net_user.h~uml-uml-net-driver-does-not-allow-for-vlans arch/um/include/shared/net_user.h
+--- a/arch/um/include/shared/net_user.h~uml-uml-net-driver-does-not-allow-for-vlans
++++ a/arch/um/include/shared/net_user.h
+@@ -8,7 +8,7 @@
  
-+static int __init intel_no_lvds_dmi_callback(const struct dmi_system_id *id)
-+{
-+	DRM_DEBUG("Skipping LVDS initialization for %s\n", id->ident);
-+	return 1;
-+}
+ #define ETH_ADDR_LEN (6)
+ #define ETH_HEADER_ETHERTAP (16)
+-#define ETH_HEADER_OTHER (14)
++#define ETH_HEADER_OTHER (26) /* 14 for ethernet + VLAN + MPLS for crazy people */
+ #define ETH_MAX_PACKET (1500)
  
-+/* These systems claim to have LVDS, but really don't */
-+static const struct dmi_system_id __initdata intel_no_lvds[] = {
-+	{
-+		.callback = intel_no_lvds_dmi_callback,
-+		.ident = "Apple Mac Mini (Core series)",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
-+		},
-+	},
-+	{
-+		.callback = intel_no_lvds_dmi_callback,
-+		.ident = "Apple Mac Mini (Core 2 series)",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Macmini2,1"),
-+		},
-+	},
-+	{
-+		.callback = intel_no_lvds_dmi_callback,
-+		.ident = "MSI IM-945GSE-A",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "MSI"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "A9830IMS"),
-+		},
-+	},
-+	{
-+		.callback = intel_no_lvds_dmi_callback,
-+		.ident = "Dell Studio Hybrid",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Studio Hybrid 140g"),
-+		},
-+	},
-+
-+	/* FIXME: add a check for the Aopen Mini PC */
-+
-+	{ }	/* terminating entry */
-+};
- 
- /**
-  * intel_lvds_init - setup LVDS connectors on this device
-@@ -404,15 +448,9 @@ void intel_lvds_init(struct drm_device *
- 	u32 lvds;
- 	int pipe;
- 
--	/* Blacklist machines that we know falsely report LVDS. */
--	/* FIXME: add a check for the Aopen Mini PC */
+ #define UML_NET_VERSION (4)
+_
+
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+
+origin.patch
+linux-next.patch
+pata-rb532-cf-platform_get_irq-failure-ignored.patch
+uml-uml-net-driver-does-not-allow-for-vlans.patch
+drivers-usb-serial-ti_usb_3410_5052c-ti_usb-returns-eio-when-reopening-the-device.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+serial-8250c-irq-handling-race-and-spurious-iir-read.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
+char-isicom-fix-build-warning.patch
+linuxpps-core-support.patch
+
