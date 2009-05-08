@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-document-clarifications.patch added to -mm tree
-Date: Fri, 08 May 2009 13:40:48 -0700
-Message-ID: <200905082040.n48KemHw010434@imap1.linux-foundation.org>
+Subject: + proc-kpagecount-kpageflags-code-cleanup.patch added to -mm tree
+Date: Fri, 08 May 2009 13:40:44 -0700
+Message-ID: <200905082040.n48Kei1S010388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754925AbZEHUpe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 16:45:34 -0400
+	by vger.kernel.org with ESMTP id S1755067AbZEHUpg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 16:45:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.mot
 
 
 The patch titled
-     pagemap: document clarifications
+     proc: kpagecount/kpageflags code cleanup
 has been added to the -mm tree.  Its filename is
-     pagemap-document-clarifications.patch
+     proc-kpagecount-kpageflags-code-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: document clarifications
+Subject: proc: kpagecount/kpageflags code cleanup
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Some bit ranges were inclusive and some not.
-Fix them to be consistently inclusive.
+Move increments of pfn/out to bottom of the loop.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -48,33 +47,74 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/proc/page.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/vm/pagemap.txt~pagemap-document-clarifications Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~pagemap-document-clarifications
-+++ a/Documentation/vm/pagemap.txt
-@@ -12,9 +12,9 @@ There are three components to pagemap:
-    value for each virtual page, containing the following data (from
-    fs/proc/task_mmu.c, above pagemap_read):
+diff -puN fs/proc/page.c~proc-kpagecount-kpageflags-code-cleanup fs/proc/page.c
+--- a/fs/proc/page.c~proc-kpagecount-kpageflags-code-cleanup
++++ a/fs/proc/page.c
+@@ -11,6 +11,7 @@
  
--    * Bits 0-55  page frame number (PFN) if present
-+    * Bits 0-54  page frame number (PFN) if present
-     * Bits 0-4   swap type if swapped
--    * Bits 5-55  swap offset if swapped
-+    * Bits 5-54  swap offset if swapped
-     * Bits 55-60 page shift (page size = 1<<page shift)
-     * Bit  61    reserved for future use
-     * Bit  62    page swapped
-@@ -36,7 +36,7 @@ There are three components to pagemap:
-  * /proc/kpageflags.  This file contains a 64-bit set of flags for each
-    page, indexed by PFN.
+ #define KPMSIZE sizeof(u64)
+ #define KPMMASK (KPMSIZE - 1)
++
+ /* /proc/kpagecount - an array exposing page counts
+  *
+  * Each entry is a u64 representing the corresponding
+@@ -32,20 +33,22 @@ static ssize_t kpagecount_read(struct fi
+ 		return -EINVAL;
  
--   The flags are (from fs/proc/proc_misc, above kpageflags_read):
-+   The flags are (from fs/proc/page.c, above kpageflags_read):
+ 	while (count > 0) {
+-		ppage = NULL;
+ 		if (pfn_valid(pfn))
+ 			ppage = pfn_to_page(pfn);
+-		pfn++;
++		else
++			ppage = NULL;
+ 		if (!ppage)
+ 			pcount = 0;
+ 		else
+ 			pcount = page_mapcount(ppage);
  
-      0. LOCKED
-      1. ERROR
+-		if (put_user(pcount, out++)) {
++		if (put_user(pcount, out)) {
+ 			ret = -EFAULT;
+ 			break;
+ 		}
+ 
++		pfn++;
++		out++;
+ 		count -= KPMSIZE;
+ 	}
+ 
+@@ -98,10 +101,10 @@ static ssize_t kpageflags_read(struct fi
+ 		return -EINVAL;
+ 
+ 	while (count > 0) {
+-		ppage = NULL;
+ 		if (pfn_valid(pfn))
+ 			ppage = pfn_to_page(pfn);
+-		pfn++;
++		else
++			ppage = NULL;
+ 		if (!ppage)
+ 			kflags = 0;
+ 		else
+@@ -119,11 +122,13 @@ static ssize_t kpageflags_read(struct fi
+ 			kpf_copy_bit(kflags, KPF_RECLAIM, PG_reclaim) |
+ 			kpf_copy_bit(kflags, KPF_BUDDY, PG_buddy);
+ 
+-		if (put_user(uflags, out++)) {
++		if (put_user(uflags, out)) {
+ 			ret = -EFAULT;
+ 			break;
+ 		}
+ 
++		pfn++;
++		out++;
+ 		count -= KPMSIZE;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
