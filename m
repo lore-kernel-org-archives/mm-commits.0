@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition.patch added to -mm tree
-Date: Fri, 08 May 2009 12:13:12 -0700
-Message-ID: <200905081913.n48JDCte019879@imap1.linux-foundation.org>
+Subject: + rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-suspend.patch added to -mm tree
+Date: Fri, 08 May 2009 12:16:20 -0700
+Message-ID: <200905081916.n48JGKJ6021808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754813AbZEHTQv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 15:16:51 -0400
+	by vger.kernel.org with ESMTP id S1755235AbZEHTTu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 15:19:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eightgraph@gmail.com, lenb@kernel.org, rui.zhang@intel.com
+Cc: q1.kim@samsung.com, a.zummo@towertech.it, david-b@pacbell.net, kyungmin.park@samsung.com
 
 
 The patch titled
-     acpi thermal: fix off-by-1 error in trip point trigger condition
+     rtc: rtc-twl4030 don't mask alarm interrupts on suspend
 has been added to the -mm tree.  Its filename is
-     acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition.patch
+     rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-suspend.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi thermal: fix off-by-1 error in trip point trigger condition
-From: Vladimir Zajac <eightgraph@gmail.com>
+Subject: rtc: rtc-twl4030 don't mask alarm interrupts on suspend
+From: Kim Kyuwon <q1.kim@samsung.com>
 
-Fix a regression caused by commit b1569e99c795bf83b4ddf41c4f1c42761ab7f75e
-("ACPI: move thermal trip handling to generic thermal layer") which
-accidentally changed trip point trigger condition to temp > trip_temp
+This patch enables the alarm interrupt of TWL4030 RTC to wake up the
+system from suspend. You can test this patch with following command.
 
-This patch changes the trigger condition back to
-  temp >= trip_temp
+# echo +10 > /sys/class/rtc/rtc0/wakealarm; echo mem > /sys/power/state;
 
-Signed-off-by: Vladimir Zajac <eightgraph@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
+Acked-by: David Brownell <david-b@pacbell.net>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_sys.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-twl4030.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/thermal/thermal_sys.c~acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition
-+++ a/drivers/thermal/thermal_sys.c
-@@ -961,7 +961,7 @@ void thermal_zone_device_update(struct t
+diff -puN drivers/rtc/rtc-twl4030.c~rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-suspend drivers/rtc/rtc-twl4030.c
+--- a/drivers/rtc/rtc-twl4030.c~rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-suspend
++++ a/drivers/rtc/rtc-twl4030.c
+@@ -495,9 +495,7 @@ static int twl4030_rtc_suspend(struct pl
+ {
+ 	irqstat = rtc_irq_bits;
  
- 		switch (trip_type) {
- 		case THERMAL_TRIP_CRITICAL:
--			if (temp > trip_temp) {
-+			if (temp >= trip_temp) {
- 				if (tz->ops->notify)
- 					ret = tz->ops->notify(tz, count,
- 							      trip_type);
-@@ -974,7 +974,7 @@ void thermal_zone_device_update(struct t
- 			}
- 			break;
- 		case THERMAL_TRIP_HOT:
--			if (temp > trip_temp)
-+			if (temp >= trip_temp)
- 				if (tz->ops->notify)
- 					tz->ops->notify(tz, count, trip_type);
- 			break;
-@@ -986,14 +986,14 @@ void thermal_zone_device_update(struct t
+-	/* REVISIT alarm may need to wake us from sleep */
+-	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M |
+-			 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
++	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
+ 	return 0;
+ }
  
- 				cdev = instance->cdev;
- 
--				if (temp > trip_temp)
-+				if (temp >= trip_temp)
- 					cdev->ops->set_cur_state(cdev, 1);
- 				else
- 					cdev->ops->set_cur_state(cdev, 0);
- 			}
- 			break;
- 		case THERMAL_TRIP_PASSIVE:
--			if (temp > trip_temp || tz->passive)
-+			if (temp >= trip_temp || tz->passive)
- 				thermal_zone_device_passive(tz, temp,
- 							    trip_temp, count);
- 			break;
 _
 
-Patches currently in -mm which might be from eightgraph@gmail.com are
+Patches currently in -mm which might be from q1.kim@samsung.com are
 
-acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition.patch
+leds-fix-led-bd2802-errors-while-resuming.patch
+leds-change-the-license-information.patch
+leds-add-the-sysfs-interface-into-the-leds-bd2802-driver-for-changing-wave-pattern-and-led-current.patch
+rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-suspend.patch
 
