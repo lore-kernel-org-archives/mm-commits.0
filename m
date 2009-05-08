@@ -1,131 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: + slqb-fix-types.patch added to -mm tree
-Date: Thu, 07 May 2009 14:17:39 -0700
-Message-ID: <200905072136.n47Lan4v012362@imap1.linux-foundation.org>
+Subject: [failures] atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around.patch removed from -mm tree
+Date: Thu, 07 May 2009 17:04:15 -0700
+Message-ID: <200905080023.n480NOiV020507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38237 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751298AbZEGVjH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 17:39:07 -0400
+	by vger.kernel.org with ESMTP id S1761650AbZEHAZy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2009 20:25:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, npiggin@suse.de, penberg@cs.helsinki.fi
+To: knikanth@novell.com, knikanth@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slqb: fix types
-has been added to the -mm tree.  Its filename is
-     slqb-fix-types.patch
+     atomic: detect and warn on atomic_inc/atomic_dec wrapping around
+has been removed from the -mm tree.  Its filename was
+     atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slqb: fix types
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: atomic: detect and warn on atomic_inc/atomic_dec wrapping around
+From: Nikanth Karthikesan <knikanth@novell.com>
 
-x86_64 allnoconfig:
+Add a debug option to detect and warn when the 32-bit atomic_t overflows
+during atomic_inc and atomic_dec.
 
-mm/slqb.c: In function 'slab_alloc':
-mm/slqb.c:1546: warning: passing argument 3 of 'alloc_debug_processing' makes pointer from integer without a cast
-mm/slqb.c: In function 'slab_free':
-mm/slqb.c:1764: warning: passing argument 3 of 'free_debug_processing' makes pointer from integer without a cast
+We expect that overflow and underflow of an atomic_t is usually a bug. 
+There was a patch of this nature in -mm for a long time and it never
+triggered false positives and it did find a couple of real bugs.
 
-Has CONFIG_SLQB_DEBUG=n been runtime tested?
+The option is default-y for now.  It will have a fairly nasty impact on
+.text size so we may decide to switch it to default-n prior to a kernel
+release.
 
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slqb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/Kconfig                 |    1 
+ arch/x86/include/asm/atomic_32.h |    8 ++---
+ arch/x86/include/asm/atomic_64.h |    8 ++---
+ include/asm-generic/atomic.h     |   40 +++++++++++++++++++++++++++--
+ lib/Kconfig.debug                |   11 +++++++
+ 5 files changed, 58 insertions(+), 10 deletions(-)
 
-diff -puN mm/slqb.c~slqb-fix-types mm/slqb.c
---- a/mm/slqb.c~slqb-fix-types
-+++ a/mm/slqb.c
-@@ -915,13 +915,13 @@ static inline void setup_object_debug(st
+diff -puN arch/x86/Kconfig~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around arch/x86/Kconfig
+--- a/arch/x86/Kconfig~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around
++++ a/arch/x86/Kconfig
+@@ -46,6 +46,7 @@ config X86
+ 	select HAVE_KERNEL_GZIP
+ 	select HAVE_KERNEL_BZIP2
+ 	select HAVE_KERNEL_LZMA
++	select HAVE_ARCH_DEBUG_ATOMIC
+ 
+ config OUTPUT_FORMAT
+ 	string
+diff -puN arch/x86/include/asm/atomic_32.h~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around arch/x86/include/asm/atomic_32.h
+--- a/arch/x86/include/asm/atomic_32.h~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around
++++ a/arch/x86/include/asm/atomic_32.h
+@@ -78,24 +78,24 @@ static inline int atomic_sub_and_test(in
  }
  
- static inline int alloc_debug_processing(struct kmem_cache *s,
--			void *object, void *addr)
-+			void *object, unsigned long addr)
+ /**
+- * atomic_inc - increment atomic variable
++ * raw_atomic_inc - increment atomic variable
+  * @v: pointer of type atomic_t
+  *
+  * Atomically increments @v by 1.
+  */
+-static inline void atomic_inc(atomic_t *v)
++static inline void raw_atomic_inc(atomic_t *v)
  {
- 	return 0;
+ 	asm volatile(LOCK_PREFIX "incl %0"
+ 		     : "+m" (v->counter));
  }
  
- static inline int free_debug_processing(struct kmem_cache *s,
--			void *object, void *addr)
-+			void *object, unsigned long addr)
+ /**
+- * atomic_dec - decrement atomic variable
++ * raw_atomic_dec - decrement atomic variable
+  * @v: pointer of type atomic_t
+  *
+  * Atomically decrements @v by 1.
+  */
+-static inline void atomic_dec(atomic_t *v)
++static inline void raw_atomic_dec(atomic_t *v)
  {
- 	return 0;
+ 	asm volatile(LOCK_PREFIX "decl %0"
+ 		     : "+m" (v->counter));
+diff -puN arch/x86/include/asm/atomic_64.h~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around arch/x86/include/asm/atomic_64.h
+--- a/arch/x86/include/asm/atomic_64.h~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around
++++ a/arch/x86/include/asm/atomic_64.h
+@@ -77,12 +77,12 @@ static inline int atomic_sub_and_test(in
  }
+ 
+ /**
+- * atomic_inc - increment atomic variable
++ * raw_atomic_inc - increment atomic variable
+  * @v: pointer of type atomic_t
+  *
+  * Atomically increments @v by 1.
+  */
+-static inline void atomic_inc(atomic_t *v)
++static inline void raw_atomic_inc(atomic_t *v)
+ {
+ 	asm volatile(LOCK_PREFIX "incl %0"
+ 		     : "=m" (v->counter)
+@@ -90,12 +90,12 @@ static inline void atomic_inc(atomic_t *
+ }
+ 
+ /**
+- * atomic_dec - decrement atomic variable
++ * raw_atomic_dec - decrement atomic variable
+  * @v: pointer of type atomic_t
+  *
+  * Atomically decrements @v by 1.
+  */
+-static inline void atomic_dec(atomic_t *v)
++static inline void raw_atomic_dec(atomic_t *v)
+ {
+ 	asm volatile(LOCK_PREFIX "decl %0"
+ 		     : "=m" (v->counter)
+diff -puN include/asm-generic/atomic.h~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around include/asm-generic/atomic.h
+--- a/include/asm-generic/atomic.h~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around
++++ a/include/asm-generic/atomic.h
+@@ -4,15 +4,51 @@
+  * Copyright (C) 2005 Silicon Graphics, Inc.
+  *	Christoph Lameter
+  *
+- * Allows to provide arch independent atomic definitions without the need to
+- * edit all arch specific atomic.h files.
+  */
+ 
++#include <linux/kernel.h>
+ #include <asm/types.h>
++#include <asm/bug.h>
++
++
++/**
++ * atomic_inc - increment atomic variable
++ * @v: pointer of type atomic_t
++ *
++ * Atomically increments @v by 1.
++ */
++static inline void atomic_inc(atomic_t *v)
++{
++#ifdef CONFIG_ENABLE_WARN_ATOMIC_INC_WRAP
++	WARN_ONCE((atomic_read(v) > (INT_MAX / 2)),
++		KERN_ERR "atomic inc overflow!");
++#endif
++	raw_atomic_inc(v);
++}
++
++/**
++ * atomic_dec - decrement atomic variable
++ * @v: pointer of type atomic_t
++ *
++ * Atomically decrements @v by 1.
++ */
++static inline void atomic_dec(atomic_t *v)
++{
++#ifdef CONFIG_ENABLE_WARN_ATOMIC_INC_WRAP
++	WARN_ONCE((atomic_read(v) < (INT_MIN / 2)),
++		KERN_ERR "atomic dec underflow!");
++#endif
++	raw_atomic_dec(v);
++
++}
++
+ 
+ /*
+  * Suppport for atomic_long_t
+  *
++ * Allows to provide arch independent atomic definitions without the need to
++ * edit all arch specific atomic.h files.
++ *
+  * Casts for parameters are avoided for existing atomic functions in order to
+  * avoid issues with cast-as-lval under gcc 4.x and other limitations that the
+  * macros of a platform may have.
+diff -puN lib/Kconfig.debug~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around lib/Kconfig.debug
+--- a/lib/Kconfig.debug~atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around
++++ a/lib/Kconfig.debug
+@@ -17,6 +17,17 @@ config ENABLE_WARN_DEPRECATED
+ 	  Disable this to suppress the "warning: 'foo' is deprecated
+ 	  (declared at kernel/power/somefile.c:1234)" messages.
+ 
++config HAVE_ARCH_DEBUG_ATOMIC
++	bool
++
++config ENABLE_WARN_ATOMIC_INC_WRAP
++	bool "Enable warning on atomic_inc()/atomic_dec() wrap"
++	depends on HAVE_ARCH_DEBUG_ATOMIC
++	default y
++	help
++	  Enable printing a warning when atomic_inc() or atomic_dec()
++	  operation wraps around the 32-bit value.
++
+ config ENABLE_MUST_CHECK
+ 	bool "Enable __must_check logic"
+ 	default y
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from knikanth@novell.com are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-slqb-fix-types.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-mtd-fix-timeout-in-m25p80-driver-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-fs-sysfs-filec-use-create_singlethread_workqueue.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
+block-prevent-possible-io_context-refcount-overflow.patch
+atomic-detect-and-warn-on-atomic_inc-atomic_dec-wrapping-around.patch
 headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
