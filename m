@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + proc-kpagecount-kpageflags-code-cleanup.patch added to -mm tree
-Date: Fri, 08 May 2009 13:40:44 -0700
-Message-ID: <200905082040.n48Kei1S010388@imap1.linux-foundation.org>
+Subject: + pagemap-document-9-more-exported-page-flags.patch added to -mm tree
+Date: Fri, 08 May 2009 13:40:50 -0700
+Message-ID: <200905082040.n48KeoFb010479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755067AbZEHUpg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 16:45:36 -0400
+	by vger.kernel.org with ESMTP id S1763668AbZEHUpr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 16:45:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.mot
 
 
 The patch titled
-     proc: kpagecount/kpageflags code cleanup
+     pagemap: document 9 more exported page flags
 has been added to the -mm tree.  Its filename is
-     proc-kpagecount-kpageflags-code-cleanup.patch
+     pagemap-document-9-more-exported-page-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: kpagecount/kpageflags code cleanup
+Subject: pagemap: document 9 more exported page flags
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Move increments of pfn/out to bottom of the loop.
+Also add short descriptions for all of the 20 exported page flags.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -47,73 +47,80 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ Documentation/vm/pagemap.txt |   62 +++++++++++++++++++++++++++++++++
+ 1 file changed, 62 insertions(+)
 
-diff -puN fs/proc/page.c~proc-kpagecount-kpageflags-code-cleanup fs/proc/page.c
---- a/fs/proc/page.c~proc-kpagecount-kpageflags-code-cleanup
-+++ a/fs/proc/page.c
-@@ -11,6 +11,7 @@
- 
- #define KPMSIZE sizeof(u64)
- #define KPMMASK (KPMSIZE - 1)
+diff -puN Documentation/vm/pagemap.txt~pagemap-document-9-more-exported-page-flags Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-document-9-more-exported-page-flags
++++ a/Documentation/vm/pagemap.txt
+@@ -49,6 +49,68 @@ There are three components to pagemap:
+      8. WRITEBACK
+      9. RECLAIM
+     10. BUDDY
++    11. MMAP
++    12. ANON
++    13. SWAPCACHE
++    14. SWAPBACKED
++    15. COMPOUND_HEAD
++    16. COMPOUND_TAIL
++    16. HUGE
++    18. UNEVICTABLE
++    20. NOPAGE
 +
- /* /proc/kpagecount - an array exposing page counts
-  *
-  * Each entry is a u64 representing the corresponding
-@@ -32,20 +33,22 @@ static ssize_t kpagecount_read(struct fi
- 		return -EINVAL;
++Short descriptions to the page flags:
++
++ 0. LOCKED
++    page is being locked for exclusive access, eg. by undergoing read/write IO
++
++ 7. SLAB
++    page is managed by the SLAB/SLOB/SLUB/SLQB kernel memory allocator
++    When compound page is used, SLUB/SLQB will only set this flag on the head
++    page; SLOB will not flag it at all.
++
++10. BUDDY
++    a free memory block managed by the buddy system allocator
++    The buddy system organizes free memory in blocks of various orders.
++    An order N block has 2^N physically contiguous pages, with the BUDDY flag
++    set for and _only_ for the first page.
++
++15. COMPOUND_HEAD
++16. COMPOUND_TAIL
++    A compound page with order N consists of 2^N physically contiguous pages.
++    A compound page with order 2 takes the form of "HTTT", where H donates its
++    head page and T donates its tail page(s).  The major consumers of compound
++    pages are hugeTLB pages (Documentation/vm/hugetlbpage.txt), the SLUB etc.
++    memory allocators and various device drivers. However in this interface,
++    only huge/giga pages are made visible to end users.
++17. HUGE
++    this is an integral part of a HugeTLB page
++
++20. NOPAGE
++    no page frame exists at the requested address
++
++    [IO related page flags]
++ 1. ERROR     IO error occurred
++ 3. UPTODATE  page has up-to-date data
++              ie. for file backed page: (in-memory data revision >= on-disk one)
++ 4. DIRTY     page has been written to, hence contains new data
++              ie. for file backed page: (in-memory data revision >  on-disk one)
++ 8. WRITEBACK page is being synced to disk
++
++    [LRU related page flags]
++ 5. LRU         page is in one of the LRU lists
++ 6. ACTIVE      page is in the active LRU list
++18. UNEVICTABLE page is in the unevictable (non-)LRU list
++                It is somehow pinned and not a candidate for LRU page reclaims,
++		eg. ramfs pages, shmctl(SHM_LOCK) and mlock() memory segments
++ 2. REFERENCED  page has been referenced since last LRU list enqueue/requeue
++ 9. RECLAIM     page will be reclaimed soon after its pageout IO completed
++11. MMAP        a memory mapped page
++12. ANON        a memory mapped page that is not part of a file
++13. SWAPCACHE   page is mapped to swap space, ie. has an associated swap entry
++14. SWAPBACKED  page is backed by swap/RAM
++
++The page-types tool in this directory can be used to query the above flags.
  
- 	while (count > 0) {
--		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
--		pfn++;
-+		else
-+			ppage = NULL;
- 		if (!ppage)
- 			pcount = 0;
- 		else
- 			pcount = page_mapcount(ppage);
- 
--		if (put_user(pcount, out++)) {
-+		if (put_user(pcount, out)) {
- 			ret = -EFAULT;
- 			break;
- 		}
- 
-+		pfn++;
-+		out++;
- 		count -= KPMSIZE;
- 	}
- 
-@@ -98,10 +101,10 @@ static ssize_t kpageflags_read(struct fi
- 		return -EINVAL;
- 
- 	while (count > 0) {
--		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
--		pfn++;
-+		else
-+			ppage = NULL;
- 		if (!ppage)
- 			kflags = 0;
- 		else
-@@ -119,11 +122,13 @@ static ssize_t kpageflags_read(struct fi
- 			kpf_copy_bit(kflags, KPF_RECLAIM, PG_reclaim) |
- 			kpf_copy_bit(kflags, KPF_BUDDY, PG_buddy);
- 
--		if (put_user(uflags, out++)) {
-+		if (put_user(uflags, out)) {
- 			ret = -EFAULT;
- 			break;
- 		}
- 
-+		pfn++;
-+		out++;
- 		count -= KPMSIZE;
- 	}
+ Using pagemap to do something useful:
  
 _
 
