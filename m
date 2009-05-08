@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-unbreak-percpu-again.patch added to -mm tree
-Date: Fri, 08 May 2009 13:45:19 -0700
-Message-ID: <200905082045.n48KjJOP013324@imap1.linux-foundation.org>
+Subject: + fbdev-remove-outdated-advice-about-i2c-configuration.patch added to -mm tree
+Date: Fri, 08 May 2009 13:59:13 -0700
+Message-ID: <200905082059.n48KxDEg022136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42629 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759769AbZEHUtC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 16:49:02 -0400
+	by vger.kernel.org with ESMTP id S1754285AbZEHVBC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2009 17:01:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, akpm@linux-foundation.org, dhowells@redhat.com, ink@jurassic.park.msu.ru
+Cc: khali@linux-fr.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     alpha: unbreak percpu again
+     fbdev: remove outdated advice about I2C configuration
 has been added to the -mm tree.  Its filename is
-     alpha-unbreak-percpu-again.patch
+     fbdev-remove-outdated-advice-about-i2c-configuration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: unbreak percpu again
-From: Tejun Heo <tj@kernel.org>
+Subject: fbdev: remove outdated advice about I2C configuration
+From: Jean Delvare <khali@linux-fr.org>
 
-Commit 9b8de7479d0dbab1ed98b5b015d44232c9d3d08e ("FRV: Fix the section
-attribute on UP DECLARE_PER_CPU()") cleaned up DECLARE/DEFINE_PER_CPU()
-macros and in the process made alpha percpu.h include
-include/asm-generic/percpu.h which breaks compilation due to duplicate
-definitions.
+The required I2C modules are now selected automatically by the means
+of select statements in Kconfig, so there is no point in confusing the
+users with options he/she would be supposed to enable manually.
 
-Remove inclusion of generic asm helper file and define whatever necessary
-in alpha header proper.
-
-In the longer term, percpu definitions will be unified and all these
-little subtlties will be removed.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/percpu.h |   26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ drivers/video/Kconfig |   23 ++++-------------------
+ 1 file changed, 4 insertions(+), 19 deletions(-)
 
-diff -puN arch/alpha/include/asm/percpu.h~alpha-unbreak-percpu-again arch/alpha/include/asm/percpu.h
---- a/arch/alpha/include/asm/percpu.h~alpha-unbreak-percpu-again
-+++ a/arch/alpha/include/asm/percpu.h
-@@ -1,7 +1,9 @@
- #ifndef __ALPHA_PERCPU_H
- #define __ALPHA_PERCPU_H
-+
- #include <linux/compiler.h>
- #include <linux/threads.h>
-+#include <linux/percpu-defs.h>
+diff -puN drivers/video/Kconfig~fbdev-remove-outdated-advice-about-i2c-configuration drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-remove-outdated-advice-about-i2c-configuration
++++ a/drivers/video/Kconfig
+@@ -1128,13 +1128,6 @@ config FB_INTEL
+           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
+           Say Y if you have and plan to use such a board.
  
- /*
-  * Determine the real variable name from the name visible in the
-@@ -73,6 +75,28 @@ extern unsigned long __per_cpu_offset[NR
+-	  If you say Y here and want DDC/I2C support you must first say Y to
+-	  "I2C support" and "I2C bit-banging support" in the character devices
+-	  section.
+-
+-	  If you say M here then "I2C support" and "I2C bit-banging support"
+-	  can be build either as modules or built-in.
+-
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called intelfb.
  
- #endif /* SMP */
+@@ -1207,11 +1200,10 @@ config FB_MATROX_G
+ 	  pixel and 32 bpp packed pixel. You can also use font widths
+ 	  different from 8.
  
--#include <asm-generic/percpu.h>
-+#ifdef CONFIG_SMP
-+#define PER_CPU_BASE_SECTION ".data.percpu"
-+#else
-+#define PER_CPU_BASE_SECTION ".data"
-+#endif
-+
-+#ifdef CONFIG_SMP
-+
-+#ifdef MODULE
-+#define PER_CPU_SHARED_ALIGNED_SECTION ""
-+#else
-+#define PER_CPU_SHARED_ALIGNED_SECTION ".shared_aligned"
-+#endif
-+#define PER_CPU_FIRST_SECTION ".first"
-+
-+#else
-+
-+#define PER_CPU_SHARED_ALIGNED_SECTION ""
-+#define PER_CPU_FIRST_SECTION ""
-+
-+#endif
-+
-+#define PER_CPU_ATTRIBUTES
+-	  If you need support for G400 secondary head, you must first say Y to
+-	  "I2C support" in the character devices section, and then to
+-	  "Matrox I2C support" and "G400 second head support" here in the
+-	  framebuffer section. G450/G550 secondary head and digital output
+-	  are supported without additional modules.
++	  If you need support for G400 secondary head, you must say Y to
++	  "Matrox I2C support" and "G400 second head support" right below.
++	  G450/G550 secondary head and digital output are supported without
++	  additional modules.
  
- #endif /* __ALPHA_PERCPU_H */
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-linux-next.patch
-alpha-unbreak-percpu-again.patch
-
+ 	  The driver starts in monitor mode. You must use the matroxset tool 
+ 	  (available at <ftp://platan.vc.cvut.cz/pub/linux/matrox-latest/>) to 
+@@ -1310,13 +1302,6 @@ config FB_RADEON
+ 	  a framebuffer device.  There are both PCI and AGP versions.  You
+ 	  don't need to choose this to run the Radeon in plain VGA mode.
+ 
+-	  If you say Y here and want DDC/I2C support you must first say Y to
+-	  "I2C support" and "I2C bit-banging support" in the character devices
+-	  section.
+-
+-	  If you say M here then "I2C support" and "I2C bit-banging support" 
+-	  can be build either as modules or built-in.
