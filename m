@@ -1,119 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time.patch added to -mm tree
-Date: Mon, 11 May 2009 11:44:51 -0700
-Message-ID: <200905111844.n4BIipYk026683@imap1.linux-foundation.org>
+Subject: [merged] slqb-fix-types.patch removed from -mm tree
+Date: Mon, 11 May 2009 11:54:18 -0700
+Message-ID: <200905111854.n4BIsI6f032723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58458 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751695AbZEKSvW (ORCPT
+	by vger.kernel.org with ESMTP id S1753937AbZEKS47 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 14:51:22 -0400
+	Mon, 11 May 2009 14:56:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, elendil@planet.nl, johnstul@us.ibm.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, rostedt@goodmis.org, tglx@linutronix.de
+To: akpm@linux-foundation.org, npiggin@suse.de, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "ACPI: idle: mark_tsc_unstable() at init-time, not run-time"
-has been added to the -mm tree.  Its filename is
-     revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time.patch
+     slqb: fix types
+has been removed from the -mm tree.  Its filename was
+     slqb-fix-types.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "ACPI: idle: mark_tsc_unstable() at init-time, not run-time"
+Subject: slqb: fix types
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
+x86_64 allnoconfig:
 
-: commit a71e4917dc0ebbcb5a0ecb7ca3486643c1c9a6e2
-: Author:     Len Brown <len.brown@intel.com>
-: AuthorDate: Tue Apr 21 00:50:11 2009 -0400
-: Commit:     Len Brown <len.brown@intel.com>
-: CommitDate: Wed Apr 22 19:22:18 2009 -0400
-: 
-:     ACPI: idle: mark_tsc_unstable() at init-time, not run-time
+mm/slqb.c: In function 'slab_alloc':
+mm/slqb.c:1546: warning: passing argument 3 of 'alloc_debug_processing' makes pointer from integer without a cast
+mm/slqb.c: In function 'slab_free':
+mm/slqb.c:1764: warning: passing argument 3 of 'free_debug_processing' makes pointer from integer without a cast
 
-Due to the following report, from Frans Pop:
+Has CONFIG_SLQB_DEBUG=n been runtime tested?
 
-: I'm seeing the same issue with 2.6.30-rc5 (not tested previous RCs on that 
-: box) on a system for which TSC has always been usable.
-: 
-: $ dmesg | grep TSC
-: Fast TSC calibration using PIT
-: checking TSC synchronization [CPU#0 -> CPU#1]: passed.
-: Marking TSC unstable due to TSC halts in idle
-: 
-: The last line is new with 2.6.30. After reverting a71e4917dc0 the TSC 
-: works fine again.
-: 
-: The system has a Intel D945GCZ mainboard with dual core Pentium D 
-: (3.20GHz) processor running x86_64 and Debian Lenny.
-
-Reported-by: Frans Pop <elendil@planet.nl>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ mm/slqb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time
-+++ a/drivers/acpi/processor_idle.c
-@@ -607,11 +607,6 @@ static int acpi_processor_power_verify(s
- 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
- 		struct acpi_processor_cx *cx = &pr->power.states[i];
+diff -puN mm/slqb.c~slqb-fix-types mm/slqb.c
+--- a/mm/slqb.c~slqb-fix-types
++++ a/mm/slqb.c
+@@ -915,13 +915,13 @@ static inline void setup_object_debug(st
+ }
  
--#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
--		/* TSC could halt in idle, so notify users */
--		if (tsc_halts_in_c(cx->type))
--			mark_tsc_unstable("TSC halts in idle");;
--#endif
- 		switch (cx->type) {
- 		case ACPI_STATE_C1:
- 			cx->valid = 1;
-@@ -900,6 +895,11 @@ static int acpi_idle_enter_simple(struct
- 	kt2 = ktime_get_real();
- 	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ static inline int alloc_debug_processing(struct kmem_cache *s,
+-			void *object, void *addr)
++			void *object, unsigned long addr)
+ {
+ 	return 0;
+ }
  
-+#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
-+	/* TSC could halt in idle, so notify users */
-+	if (tsc_halts_in_c(cx->type))
-+		mark_tsc_unstable("TSC halts in idle");;
-+#endif
- 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 
- 	/* Tell the scheduler how much we idled: */
-@@ -1013,6 +1013,11 @@ static int acpi_idle_enter_bm(struct cpu
- 	kt2 = ktime_get_real();
- 	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 
-+#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
-+	/* TSC could halt in idle, so notify users */
-+	if (tsc_halts_in_c(ACPI_STATE_C3))
-+		mark_tsc_unstable("TSC halts in idle");
-+#endif
- 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+ static inline int free_debug_processing(struct kmem_cache *s,
+-			void *object, void *addr)
++			void *object, unsigned long addr)
+ {
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
