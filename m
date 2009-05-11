@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-invoke-oom-killer-for-__gfp_nofail.patch added to -mm tree
-Date: Mon, 11 May 2009 13:28:55 -0700
-Message-ID: <200905112028.n4BKSt1D029034@imap1.linux-foundation.org>
+Subject: + dma-mapping-mark-dma_nbits_mask-as-deprecated-fix.patch added to -mm tree
+Date: Mon, 11 May 2009 13:43:49 -0700
+Message-ID: <200905112043.n4BKhnFH006233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753953AbZEKUer (ORCPT
+	by vger.kernel.org with ESMTP id S1754845AbZEKUqw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 16:34:47 -0400
+	Mon, 11 May 2009 16:46:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, mel@csn.ul.ie, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com
+Cc: jirislaby@gmail.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, yanghy@cn.fujitsu.com
 
 
 The patch titled
-     mm: invoke oom killer for __GFP_NOFAIL
+     dma-mapping: mark DMA_nBITS_MASK as deprecated fix
 has been added to the -mm tree.  Its filename is
-     mm-invoke-oom-killer-for-__gfp_nofail.patch
+     dma-mapping-mark-dma_nbits_mask-as-deprecated-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: invoke oom killer for __GFP_NOFAIL
-From: David Rientjes <rientjes@google.com>
+Subject: dma-mapping: mark DMA_nBITS_MASK as deprecated fix
+From: Jiri Slaby <jirislaby@gmail.com>
 
-The oom killer must be invoked regardless of the order if the allocation
-is __GFP_NOFAIL, otherwise it will loop forever when reclaim fails to free
-some memory.
+As Fujita correctly demurs, use more meaningful typedef name, so that we
+now see:
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+warning: DMA_nnBIT_MASK is deprecated
+
+instead of
+
+warning: DMA_DEPRECATED is deprecated
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Yang Hongyang <yanghy@cn.fujitsu.com>
+Acked-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ include/linux/dma-mapping.h |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-invoke-oom-killer-for-__gfp_nofail mm/page_alloc.c
---- a/mm/page_alloc.c~mm-invoke-oom-killer-for-__gfp_nofail
-+++ a/mm/page_alloc.c
-@@ -1547,7 +1547,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 		goto out;
+diff -puN include/linux/dma-mapping.h~dma-mapping-mark-dma_nbits_mask-as-deprecated-fix include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~dma-mapping-mark-dma_nbits_mask-as-deprecated-fix
++++ a/include/linux/dma-mapping.h
+@@ -63,7 +63,7 @@ struct dma_map_ops {
  
- 	/* The OOM killer will not help higher order allocs */
--	if (order > PAGE_ALLOC_COSTLY_ORDER)
-+	if (order > PAGE_ALLOC_COSTLY_ORDER && !(gfp_mask & __GFP_NOFAIL))
- 		goto out;
+ #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
  
- 	/* Exhausted what can be done so it's blamo time */
-@@ -1763,16 +1763,12 @@ rebalance:
- 					migratetype);
- 			if (page)
- 				goto got_pg;
-+			if ((gfp_mask & __GFP_NOFAIL) ||
-+					order <= PAGE_ALLOC_COSTLY_ORDER)
-+				goto restart;
+-typedef u64 DMA_DEPRECATED __deprecated;
++typedef u64 DMA_nnBIT_MASK __deprecated;
  
--			/*
--			 * The OOM killer does not trigger for high-order allocations
--			 * but if no progress is being made, there are no other
--			 * options and retrying is unlikely to help
--			 */
--			if (order > PAGE_ALLOC_COSTLY_ORDER)
--				goto nopage;
+ /*
+  * NOTE: do not use the below macros in new code and do not add new definitions
+@@ -71,18 +71,18 @@ typedef u64 DMA_DEPRECATED __deprecated;
+  *
+  * Instead, just open-code DMA_BIT_MASK(n) within your driver
+  */
+-#define DMA_64BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(64)
+-#define DMA_48BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(48)
+-#define DMA_47BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(47)
+-#define DMA_40BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(40)
+-#define DMA_39BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(39)
+-#define DMA_35BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(35)
+-#define DMA_32BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(32)
+-#define DMA_31BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(31)
+-#define DMA_30BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(30)
+-#define DMA_29BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(29)
+-#define DMA_28BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(28)
+-#define DMA_24BIT_MASK	(DMA_DEPRECATED)DMA_BIT_MASK(24)
++#define DMA_64BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(64)
++#define DMA_48BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(48)
++#define DMA_47BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(47)
++#define DMA_40BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(40)
++#define DMA_39BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(39)
++#define DMA_35BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(35)
++#define DMA_32BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(32)
++#define DMA_31BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(31)
++#define DMA_30BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(30)
++#define DMA_29BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(29)
++#define DMA_28BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(28)
++#define DMA_24BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(24)
+ 
+ #define DMA_MASK_NONE	0x0ULL
+ 
+_
+
+Patches currently in -mm which might be from jirislaby@gmail.com are
+
+origin.patch
+linux-next.patch
+icom-converting-space-to-tabs.patch
+char-isicom-fix-build-warning.patch
+dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
+dma-mapping-mark-dma_nbits_mask-as-deprecated-fix.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
+
