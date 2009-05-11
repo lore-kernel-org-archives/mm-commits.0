@@ -1,89 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] cpufreq-fix-timer-teardown-in-ondemand-governor.patch removed from -mm tree
-Date: Mon, 11 May 2009 14:05:32 -0700
-Message-ID: <200905112105.n4BL5Wfo020283@imap1.linux-foundation.org>
+Subject: + oom-fix-possible-oom_dump_tasks-null-pointer.patch added to -mm tree
+Date: Mon, 11 May 2009 14:14:36 -0700
+Message-ID: <200905112114.n4BLEaVO026161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59429 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759057AbZEKVOE (ORCPT
+	by vger.kernel.org with ESMTP id S1759614AbZEKVRC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 17:14:04 -0400
+	Mon, 11 May 2009 17:17:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, chrisw@sous-sol.org, davej@redhat.com, greg@kroah.com, mingo@elte.hu, rjw@sisk.pl, sluskyb@paranoiacs.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, npiggin@suse.de
 
 
 The patch titled
-     cpufreq: fix timer teardown in ondemand governor
-has been removed from the -mm tree.  Its filename was
-     cpufreq-fix-timer-teardown-in-ondemand-governor.patch
+     oom: fix possible oom_dump_tasks NULL pointer
+has been added to the -mm tree.  Its filename is
+     oom-fix-possible-oom_dump_tasks-null-pointer.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: fix timer teardown in ondemand governor
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: oom: fix possible oom_dump_tasks NULL pointer
+From: David Rientjes <rientjes@google.com>
 
-The problem is that dbs_timer_exit() uses cancel_delayed_work() when it
-should use cancel_delayed_work_sync().  cancel_delayed_work() does not
-wait for the workqueue handler to exit.
+When /proc/sys/vm/oom_dump_tasks is enabled, it is possible to get a NULL
+pointer for tasks that have detached mm's since task_lock() is not held
+during the tasklist scan.
 
-The ondemand governor does not "seem" to be affected (read : race
-condition occurs very rarely) because the "if (!dbs_info->enable)" check
-at the beginning of the workqueue handler returns immediately without
-rescheduling the work.  The conservative governor in 2.6.30-rc has the
-same check as the ondemand governor, which makes things usually run
-smoothly.  However, if the governor is quickly stopped and then started,
-this could lead to the following race :
+Fix this by checking for a NULL mm_struct pointer and avoiding the
+dereference if the race occurred.
 
-dbs_enable could be reenabled and multiple do_dbs_timer handlers would
-run.  This is why a synchronized teardown is required.
-
-The patch applies to, at least, 2.6.28.x, 2.6.29.1, 2.6.30-rc2.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, 
-Cc: Ben Slusky <sluskyb@paranoiacs.org>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq_ondemand.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq_ondemand.c~cpufreq-fix-timer-teardown-in-ondemand-governor drivers/cpufreq/cpufreq_ondemand.c
---- a/drivers/cpufreq/cpufreq_ondemand.c~cpufreq-fix-timer-teardown-in-ondemand-governor
-+++ a/drivers/cpufreq/cpufreq_ondemand.c
-@@ -98,6 +98,9 @@ static unsigned int dbs_enable;	/* numbe
-  * (like __cpufreq_driver_target()) is being called with dbs_mutex taken, then
-  * cpu_hotplug lock should be taken before that. Note that cpu_hotplug lock
-  * is recursive for the same process. -Venki
-+ * DEADLOCK ALERT! (2) : do_dbs_timer() must not take the dbs_mutex, because it
-+ * would deadlock with cancel_delayed_work_sync(), which is needed for proper
-+ * raceless workqueue teardown.
-  */
- static DEFINE_MUTEX(dbs_mutex);
+diff -puN mm/oom_kill.c~oom-fix-possible-oom_dump_tasks-null-pointer mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-fix-possible-oom_dump_tasks-null-pointer
++++ a/mm/oom_kill.c
+@@ -284,22 +284,28 @@ static void dump_tasks(const struct mem_
+ 	printk(KERN_INFO "[ pid ]   uid  tgid total_vm      rss cpu oom_adj "
+ 	       "name\n");
+ 	do_each_thread(g, p) {
+-		/*
+-		 * total_vm and rss sizes do not exist for tasks with a
+-		 * detached mm so there's no need to report them.
+-		 */
+-		if (!p->mm)
+-			continue;
++		struct mm_struct *mm;
++
+ 		if (mem && !task_in_mem_cgroup(p, mem))
+ 			continue;
+ 		if (!thread_group_leader(p))
+ 			continue;
  
-@@ -562,7 +565,7 @@ static inline void dbs_timer_init(struct
- static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
- {
- 	dbs_info->enable = 0;
--	cancel_delayed_work(&dbs_info->work);
-+	cancel_delayed_work_sync(&dbs_info->work);
+ 		task_lock(p);
++		mm = p->mm;
++		if (!mm) {
++			/*
++			 * total_vm and rss sizes do not exist for tasks with no
++			 * mm so there's no need to report them; they can't be
++			 * oom killed anyway.
++			 */
++			task_unlock(p);
++			continue;
++		}
+ 		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
+-		       p->pid, __task_cred(p)->uid, p->tgid,
+-		       p->mm->total_vm, get_mm_rss(p->mm), (int)task_cpu(p),
+-		       p->oomkilladj, p->comm);
++		       p->pid, __task_cred(p)->uid, p->tgid, mm->total_vm,
++		       get_mm_rss(mm), (int)task_cpu(p), p->oomkilladj,
++		       p->comm);
+ 		task_unlock(p);
+ 	} while_each_thread(g, p);
  }
- 
- static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-cpufreq-fix-timer-teardown-in-ondemand-governor.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
+mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed.patch
+mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
+mm-invoke-oom-killer-for-__gfp_nofail.patch
+oom-fix-possible-oom_dump_tasks-null-pointer.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
 
