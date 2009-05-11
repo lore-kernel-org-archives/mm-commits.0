@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-export-pg_hwpoison-fix.patch added to -mm tree
-Date: Mon, 11 May 2009 13:22:06 -0700
-Message-ID: <200905112022.n4BKM6oW024645@imap1.linux-foundation.org>
+Subject: + mfd-pcf50633-fix-unsafe-disable_irq.patch added to -mm tree
+Date: Mon, 11 May 2009 13:25:24 -0700
+Message-ID: <200905112025.n4BKPO3O026754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50045 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43234 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759479AbZEKU0c (ORCPT
+	by vger.kernel.org with ESMTP id S1753439AbZEKUaN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 16:26:32 -0400
+	Mon, 11 May 2009 16:30:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mpm@selenic.com
+Cc: arhuaco@freaks-unidos.net, balajirrao@openmoko.org, mingo@elte.hu, sameo@openedhand.com, tglx@linutronix.de
 
 
 The patch titled
-     pagemap: fix HUGE numbering
+     mfd: pcf50633: fix unsafe disable_irq()
 has been added to the -mm tree.  Its filename is
-     pagemap-export-pg_hwpoison-fix.patch
+     mfd-pcf50633-fix-unsafe-disable_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: fix HUGE numbering
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: mfd: pcf50633: fix unsafe disable_irq()
+From: Nelson Castillo <arhuaco@freaks-unidos.net>
 
-Thanks to KOSAKI Motohiro for catching this.
+Without this change Openmoko Freerunner (GTA02) bootstrap will deadlock. 
+As pointed out in other patches this issue is in the wild since the merge
+of:
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+: commit 3aa551c9b4c40018f0e261a178e3d25478dc04a9
+: Author: Thomas Gleixner <tglx@linutronix.de>
+: Date:   Mon Mar 23 18:28:15 2009 +0100
+: 
+:    genirq: add threaded interrupt handler support
+: 
+:    Add support for threaded interrupt handlers
+
+Signed-off-by: Nelson Castillo <arhuaco@freaks-unidos.net>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <balajirrao@openmoko.org>
+Cc: Samuel Ortiz <sameo@openedhand.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |    2 +-
+ drivers/mfd/pcf50633-core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/pagemap.txt~pagemap-export-pg_hwpoison-fix Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~pagemap-export-pg_hwpoison-fix
-+++ a/Documentation/vm/pagemap.txt
-@@ -55,7 +55,7 @@ There are three components to pagemap:
-     14. SWAPBACKED
-     15. COMPOUND_HEAD
-     16. COMPOUND_TAIL
--    16. HUGE
-+    17. HUGE
-     18. UNEVICTABLE
-     19. HWPOISON
-     20. NOPAGE
+diff -puN drivers/mfd/pcf50633-core.c~mfd-pcf50633-fix-unsafe-disable_irq drivers/mfd/pcf50633-core.c
+--- a/drivers/mfd/pcf50633-core.c~mfd-pcf50633-fix-unsafe-disable_irq
++++ a/drivers/mfd/pcf50633-core.c
+@@ -443,7 +443,7 @@ static irqreturn_t pcf50633_irq(int irq,
+ 	dev_dbg(pcf->dev, "pcf50633_irq\n");
+ 
+ 	get_device(pcf->dev);
+-	disable_irq(pcf->irq);
++	disable_irq_nosync(pcf->irq);
+ 	schedule_work(&pcf->irq_work);
+ 
+ 	return IRQ_HANDLED;
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from arhuaco@freaks-unidos.net are
 
-linux-next.patch
-readahead-make-mmap_miss-an-unsigned-int.patch
-readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
-readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
-readahead-remove-one-unnecessary-radix-tree-lookup.patch
-readahead-increase-interleaved-readahead-size.patch
-readahead-remove-sync-async-readahead-call-dependency.patch
-readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
-readahead-sequential-mmap-readahead.patch
-readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-radix-tree-add-radix_tree_prev_hole.patch
-readahead-move-the-random-read-case-to-bottom.patch
-readahead-introduce-context-readahead-algorithm.patch
-readahead-introduce-context-readahead-algorithm-update.patch
-readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
-readahead-enforce-full-sync-mmap-readahead-size.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
-slob-use-pg_slab-for-identifying-slob-pages.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
-pagemap-document-clarifications.patch
-pagemap-document-9-more-exported-page-flags.patch
-pagemap-add-page-types-tool.patch
-pagemap-export-pg_hwpoison.patch
-pagemap-export-pg_hwpoison-fix.patch
-vmscan-cleanup-the-scan-batching-code.patch
-vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
-vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
-inotify-reimplement-inotify-using-fsnotify-report-rounded-up-event-size-to-user-space.patch
+mfd-pcf50633-fix-unsafe-disable_irq.patch
 
