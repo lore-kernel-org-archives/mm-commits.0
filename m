@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cred-include-inith-in-credh.patch added to -mm tree
-Date: Mon, 11 May 2009 13:20:11 -0700
-Message-ID: <200905112020.n4BKKBgM023422@imap1.linux-foundation.org>
+Subject: + pagemap-export-pg_hwpoison-fix.patch added to -mm tree
+Date: Mon, 11 May 2009 13:22:06 -0700
+Message-ID: <200905112022.n4BKM6oW024645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752808AbZEKUWt (ORCPT
+	by vger.kernel.org with ESMTP id S1759479AbZEKU0c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 16:22:49 -0400
+	Mon, 11 May 2009 16:26:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, dhowells@redhat.com, jmorris@namei.org
+Cc: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mpm@selenic.com
 
 
 The patch titled
-     cred: #include init.h in cred.h
+     pagemap: fix HUGE numbering
 has been added to the -mm tree.  Its filename is
-     cred-include-inith-in-credh.patch
+     pagemap-export-pg_hwpoison-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cred: #include init.h in cred.h
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: pagemap: fix HUGE numbering
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-linux/cred.h can't be included as first header (alphabetical order)
-because it uses __init which is enough to break compilation on some archs.
+Thanks to KOSAKI Motohiro for catching this.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cred.h |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/vm/pagemap.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cred.h~cred-include-inith-in-credh include/linux/cred.h
---- a/include/linux/cred.h~cred-include-inith-in-credh
-+++ a/include/linux/cred.h
-@@ -13,6 +13,7 @@
- #define _LINUX_CRED_H
- 
- #include <linux/capability.h>
-+#include <linux/init.h>
- #include <linux/key.h>
- #include <asm/atomic.h>
- 
+diff -puN Documentation/vm/pagemap.txt~pagemap-export-pg_hwpoison-fix Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-export-pg_hwpoison-fix
++++ a/Documentation/vm/pagemap.txt
+@@ -55,7 +55,7 @@ There are three components to pagemap:
+     14. SWAPBACKED
+     15. COMPOUND_HEAD
+     16. COMPOUND_TAIL
+-    16. HUGE
++    17. HUGE
+     18. UNEVICTABLE
+     19. HWPOISON
+     20. NOPAGE
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 linux-next.patch
-fs-remove-sparse-errors-in-proc_devtreec.patch
-procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
-cred-include-inith-in-credh.patch
-mm-consolidate-init_mm-definition.patch
-mm-consolidate-init_mm-definition-fix.patch
+readahead-make-mmap_miss-an-unsigned-int.patch
+readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
+readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
+readahead-remove-one-unnecessary-radix-tree-lookup.patch
+readahead-increase-interleaved-readahead-size.patch
+readahead-remove-sync-async-readahead-call-dependency.patch
+readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
+readahead-sequential-mmap-readahead.patch
+readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
+radix-tree-add-radix_tree_prev_hole.patch
+readahead-move-the-random-read-case-to-bottom.patch
+readahead-introduce-context-readahead-algorithm.patch
+readahead-introduce-context-readahead-algorithm-update.patch
+readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
+readahead-enforce-full-sync-mmap-readahead-size.patch
 mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
 slob-use-pg_slab-for-identifying-slob-pages.patch
 proc-kpagecount-kpageflags-code-cleanup.patch
@@ -78,14 +92,9 @@ pagemap-document-clarifications.patch
 pagemap-document-9-more-exported-page-flags.patch
 pagemap-add-page-types-tool.patch
 pagemap-export-pg_hwpoison.patch
-groups-move-code-to-kernel-groupsc.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-pidns-make-create_pid_namespace-accept-parent-pidns.patch
-pidns-rewrite-copy_pid_ns.patch
-utsns-extract-creeate_uts_ns.patch
-ipcns-remove-useless-get-put-while-clone_newipc.patch
-ipcns-extract-create_ipc_ns.patch
-nsproxy-extract-create_nsproxy.patch
+pagemap-export-pg_hwpoison-fix.patch
+vmscan-cleanup-the-scan-batching-code.patch
+vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
+vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+inotify-reimplement-inotify-using-fsnotify-report-rounded-up-event-size-to-user-space.patch
 
