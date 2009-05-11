@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-fix-build-error-add-missing-semi-colon.patch added to -mm tree
-Date: Mon, 11 May 2009 16:46:21 -0700
-Message-ID: <200905112346.n4BNkLU1026958@imap1.linux-foundation.org>
+Subject: + viafb-make-it-work-on-x86_64.patch added to -mm tree
+Date: Mon, 11 May 2009 16:48:13 -0700
+Message-ID: <200905112348.n4BNmDtw028200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37480 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760275AbZEKXtQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758997AbZEKXvJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 19:49:16 -0400
+	Mon, 11 May 2009 19:51:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, avi@redhat.com, sfr@canb.auug.org.au
+Cc: HaraldWelte@viatech.com, JosephChan@via.com.tw, ScottFang@viatech.com.cn, krzysztof.h1@wp.pl
 
 
 The patch titled
-     kvm: fix build error: add missing semi-colon
+     viafb: make it work on x86_64
 has been added to the -mm tree.  Its filename is
-     kvm-fix-build-error-add-missing-semi-colon.patch
+     viafb-make-it-work-on-x86_64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm: fix build error: add missing semi-colon
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: viafb: make it work on x86_64
+From: Harald Welte <HaraldWelte@viatech.com>
 
-Add missing ; to fix build error:
+Fix a bug in viafb on x86_64 builds (e.g. for VIA Nano CPU).
 
-arch/x86/kvm/x86.c:1259: error: expected',' or ';' before 'const'
+You cannot make the assumption that sizeof(unsigned int) ==
+sizeof(unsigned long), so the parsing of the default mode (640x480) fails,
+leading to a division by zero during insmod of the driver.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Avi Kivity <avi@redhat.com>
+Signed-off-by: Harald Welte <HaraldWelte@viatech.com>
+Cc: <JosephChan@via.com.tw>
+Cc: <ScottFang@viatech.com.cn>
+Cc: Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/x86.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/via/viafbdev.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kvm/x86.c~kvm-fix-build-error-add-missing-semi-colon arch/x86/kvm/x86.c
---- a/arch/x86/kvm/x86.c~kvm-fix-build-error-add-missing-semi-colon
-+++ a/arch/x86/kvm/x86.c
-@@ -1252,7 +1252,7 @@ static void do_cpuid_ent(struct kvm_cpui
- #ifdef CONFIG_X86_64
- 	unsigned f_lm = F(LM);
- #else
--	unsigned f_lm = 0
-+	unsigned f_lm = 0;
- #endif
+diff -puN drivers/video/via/viafbdev.c~viafb-make-it-work-on-x86_64 drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-make-it-work-on-x86_64
++++ a/drivers/video/via/viafbdev.c
+@@ -2103,7 +2103,7 @@ static void viafb_remove_proc(struct pro
  
- 	/* cpuid 1.edx */
+ static int __devinit via_pci_probe(void)
+ {
+-	unsigned int default_xres, default_yres;
++	unsigned long default_xres, default_yres;
+ 	char *tmpc, *tmpm;
+ 	char *tmpc_sec, *tmpm_sec;
+ 	int vmode_index;
+@@ -2196,8 +2196,8 @@ static int __devinit via_pci_probe(void)
+ 	viafb_FB_MM = viaparinfo->fbmem_virt;
+ 	tmpm = viafb_mode;
+ 	tmpc = strsep(&tmpm, "x");
+-	strict_strtoul(tmpc, 0, (unsigned long *)&default_xres);
+-	strict_strtoul(tmpm, 0, (unsigned long *)&default_yres);
++	strict_strtoul(tmpc, 0, &default_xres);
++	strict_strtoul(tmpm, 0, &default_yres);
+ 
+ 	vmode_index = viafb_get_mode_index(default_xres, default_yres, 0);
+ 	DEBUG_MSG(KERN_INFO "0->index=%d\n", vmode_index);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from HaraldWelte@viatech.com are
 
-origin.patch
-linux-next.patch
-kvm-fix-build-error-add-missing-semi-colon.patch
-dm-table-fix-printk-formats.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-menu-fix-embedded-menu-presentation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-slqbinfo-eliminate-warnings.patch
-lockd-fix-file_locking=n-build-error.patch
-xen-use-header-for-export_symbol_gpl.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-cgroups-make-messages-more-readable.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+viafb-make-it-work-on-x86_64.patch
 
