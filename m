@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + samsung-soc-framebuffer-driver-add-alpha-channel-support.patch added to -mm tree
-Date: Mon, 11 May 2009 13:57:35 -0700
-Message-ID: <200905112057.n4BKvZE4015191@imap1.linux-foundation.org>
+Subject: + mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds.patch added to -mm tree
+Date: Mon, 11 May 2009 14:03:03 -0700
+Message-ID: <200905112103.n4BL3359018662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752392AbZEKVBT (ORCPT
+	by vger.kernel.org with ESMTP id S1757383AbZEKVGx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 17:01:19 -0400
+	Mon, 11 May 2009 17:06:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daeinki@gmail.com, ben-linux@fluff.org, inki.dae@samsung.com, kmpark@infradead.org
+Cc: richard@rsk.demon.co.uk, mingo@elte.hu, oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     Samsung SoC Framebuffer driver: add Alpha Channel support  
+     mm: exit.c reorder wait_opts to remove padding on 64 bit builds
 has been added to the -mm tree.  Its filename is
-     samsung-soc-framebuffer-driver-add-alpha-channel-support.patch
+     mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Samsung SoC Framebuffer driver: add Alpha Channel support  
-From: InKi Dae <daeinki@gmail.com>
+Subject: mm: exit.c reorder wait_opts to remove padding on 64 bit builds
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-Add support for the ARGB1888 and ARGB4888 hardware to the Samsung SoC
-Framebuffer driver (s3c-fb.c).
+Reorder struct wait_opts to remove 8 bytes of alignment padding on 64 bit
+builds.
 
-ARGB1888 and ARGB4888 is decided by var->transp.length and this variable
-is set by s3c_fb_check_var().
-
-In s3c_fb_check_var(), if var->vits_per_pixel is 25 or 28, then
-var->transp.length would be 1 or 3.
-
-Therefore alpha mode(ARGB1888 or ARGB4888) could be decided through that
-variable.
-
-For using alpha mode, you need to set the following: This code should be
-added to your machine code as platform data.
-
-static struct s3c_fb_pd_win xxx_fb_win0 = {
-	/* this is to ensure we use win0 */
-	.win_mode = {
-		.pixclock		= (8+8+8+240)*(38+4+38+400),
-		.left_margin	= 8,
-		.right_margin	= 8,
-		.upper_margin	= 38,
-		.lower_margin	= 38,
-		.hsync_len		= 8,
-		.vsync_len		= 4,
-		.xres			= 240,
-		.yres			= 400,
-	},
-	.max_bpp		= 32,
-	.default_bpp	= 24,
-};
-
-static struct s3c_fb_pd_win xxx_fb_win1 = {
-	.win_mode = {
-		.pixclock		= (8+8+8+240)*(38+4+38+400),
-		.left_margin	= 8,
-		.right_margin	= 8,
-		.upper_margin	= 38,
-		.lower_margin	= 38,
-		.hsync_len		= 8,
-		.vsync_len		= 4,
-		.xres			= 240,
-		.yres			= 400,
-	},
-	.max_bpp		= 32,
-	.default_bpp	= 28,
-};
-
-
-static struct s3c_fb_platdata xxx_lcd_pdata __initdata = {
-	.win[0]		= &ncp_fb_win0,
-	.win[1]		= &ncp_fb_win1,
-	.vidcon0	= VIDCON0_VIDOUT_RGB | VIDCON0_PNRMODE_RGB,
-	.vidcon1	= VIDCON1_INV_HSYNC | VIDCON1_INV_VSYNC,
-	.setup_gpio	= xxx_fb_gpio_setup,
-};
-
-s3c_fb_set_platdata(&xxx_lcd_pdata);
-
-
-The above code sets pixelformat for window0 layer to RGB888 and window1
-layer to ARGB4888.
-
-Signed-off-by: InKi Dae <inki.dae@samsung.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Kyungmin Park <kmpark@infradead.org>
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c-fb.c |   31 ++++++++++++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/s3c-fb.c~samsung-soc-framebuffer-driver-add-alpha-channel-support drivers/video/s3c-fb.c
---- a/drivers/video/s3c-fb.c~samsung-soc-framebuffer-driver-add-alpha-channel-support
-+++ a/drivers/video/s3c-fb.c
-@@ -358,9 +358,16 @@ static int s3c_fb_set_par(struct fb_info
- 	writel(data, regs + VIDOSD_B(win_no));
+diff -puN kernel/exit.c~mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds kernel/exit.c
+--- a/kernel/exit.c~mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds
++++ a/kernel/exit.c
+@@ -1080,8 +1080,8 @@ SYSCALL_DEFINE1(exit_group, int, error_c
  
- 	data = var->xres * var->yres;
-+
-+	u32 osdc_data = 0;
-+
-+	osdc_data = VIDISD14C_ALPHA1_R(0xf) |
-+		VIDISD14C_ALPHA1_G(0xf) |
-+		VIDISD14C_ALPHA1_B(0xf);
-+
- 	if (s3c_fb_has_osd_d(win_no)) {
- 		writel(data, regs + VIDOSD_D(win_no));
--		writel(0, regs + VIDOSD_C(win_no));
-+		writel(osdc_data, regs + VIDOSD_C(win_no));
- 	} else
- 		writel(data, regs + VIDOSD_C(win_no));
+ struct wait_opts {
+ 	enum pid_type		wo_type;
+-	struct pid		*wo_pid;
+ 	int			wo_flags;
++	struct pid		*wo_pid;
  
-@@ -409,8 +416,12 @@ static int s3c_fb_set_par(struct fb_info
- 				data |= WINCON1_BPPMODE_19BPP_A1666;
- 			else
- 				data |= WINCON1_BPPMODE_18BPP_666;
--		} else if (var->transp.length != 0)
--			data |= WINCON1_BPPMODE_25BPP_A1888;
-+		} else if (var->transp.length == 1)
-+			data |= WINCON1_BPPMODE_25BPP_A1888
-+				| WINCON1_BLD_PIX;
-+		else if (var->transp.length == 4)
-+			data |= WINCON1_BPPMODE_28BPP_A4888
-+				| WINCON1_BLD_PIX | WINCON1_ALPHA_SEL;
- 		else
- 			data |= WINCON0_BPPMODE_24BPP_888;
- 
-@@ -418,6 +429,20 @@ static int s3c_fb_set_par(struct fb_info
- 		break;
- 	}
- 
-+	/* It has no color key control register for window0 */
-+	if (win_no > 0) {
-+		u32 keycon0_data = 0, keycon1_data = 0;
-+
-+		keycon0_data = ~(WxKEYCON0_KEYBL_EN |
-+				WxKEYCON0_KEYEN_F |
-+				WxKEYCON0_DIRCON) | WxKEYCON0_COMPKEY(0);
-+
-+		keycon1_data = WxKEYCON1_COLVAL(0xffffff);
-+
-+		writel(keycon0_data, regs + WxKEYCONy(win_no-1, 0));
-+		writel(keycon1_data, regs + WxKEYCONy(win_no-1, 1));
-+	}
-+
- 	writel(data, regs + WINCON(win_no));
- 	writel(0x0, regs + WINxMAP(win_no));
- 
+ 	struct siginfo __user	*wo_info;
+ 	int __user		*wo_stat;
 _
 
-Patches currently in -mm which might be from daeinki@gmail.com are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
-samsung-soc-framebuffer-driver-add-alpha-channel-support.patch
+mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds.patch
 
