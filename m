@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-pcf50633-fix-unsafe-disable_irq.patch added to -mm tree
-Date: Mon, 11 May 2009 13:25:24 -0700
-Message-ID: <200905112025.n4BKPO3O026754@imap1.linux-foundation.org>
+Subject: + mm-invoke-oom-killer-for-__gfp_nofail.patch added to -mm tree
+Date: Mon, 11 May 2009 13:28:55 -0700
+Message-ID: <200905112028.n4BKSt1D029034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52905 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753439AbZEKUaN (ORCPT
+	by vger.kernel.org with ESMTP id S1753953AbZEKUer (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 16:30:13 -0400
+	Mon, 11 May 2009 16:34:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arhuaco@freaks-unidos.net, balajirrao@openmoko.org, mingo@elte.hu, sameo@openedhand.com, tglx@linutronix.de
+Cc: rientjes@google.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, mel@csn.ul.ie, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com
 
 
 The patch titled
-     mfd: pcf50633: fix unsafe disable_irq()
+     mm: invoke oom killer for __GFP_NOFAIL
 has been added to the -mm tree.  Its filename is
-     mfd-pcf50633-fix-unsafe-disable_irq.patch
+     mm-invoke-oom-killer-for-__gfp_nofail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd: pcf50633: fix unsafe disable_irq()
-From: Nelson Castillo <arhuaco@freaks-unidos.net>
+Subject: mm: invoke oom killer for __GFP_NOFAIL
+From: David Rientjes <rientjes@google.com>
 
-Without this change Openmoko Freerunner (GTA02) bootstrap will deadlock. 
-As pointed out in other patches this issue is in the wild since the merge
-of:
+The oom killer must be invoked regardless of the order if the allocation
+is __GFP_NOFAIL, otherwise it will loop forever when reclaim fails to free
+some memory.
 
-: commit 3aa551c9b4c40018f0e261a178e3d25478dc04a9
-: Author: Thomas Gleixner <tglx@linutronix.de>
-: Date:   Mon Mar 23 18:28:15 2009 +0100
-: 
-:    genirq: add threaded interrupt handler support
-: 
-:    Add support for threaded interrupt handlers
-
-Signed-off-by: Nelson Castillo <arhuaco@freaks-unidos.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <balajirrao@openmoko.org>
-Cc: Samuel Ortiz <sameo@openedhand.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/pcf50633-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mfd/pcf50633-core.c~mfd-pcf50633-fix-unsafe-disable_irq drivers/mfd/pcf50633-core.c
---- a/drivers/mfd/pcf50633-core.c~mfd-pcf50633-fix-unsafe-disable_irq
-+++ a/drivers/mfd/pcf50633-core.c
-@@ -443,7 +443,7 @@ static irqreturn_t pcf50633_irq(int irq,
- 	dev_dbg(pcf->dev, "pcf50633_irq\n");
+diff -puN mm/page_alloc.c~mm-invoke-oom-killer-for-__gfp_nofail mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-invoke-oom-killer-for-__gfp_nofail
++++ a/mm/page_alloc.c
+@@ -1547,7 +1547,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 		goto out;
  
- 	get_device(pcf->dev);
--	disable_irq(pcf->irq);
-+	disable_irq_nosync(pcf->irq);
- 	schedule_work(&pcf->irq_work);
+ 	/* The OOM killer will not help higher order allocs */
+-	if (order > PAGE_ALLOC_COSTLY_ORDER)
++	if (order > PAGE_ALLOC_COSTLY_ORDER && !(gfp_mask & __GFP_NOFAIL))
+ 		goto out;
  
- 	return IRQ_HANDLED;
-_
-
-Patches currently in -mm which might be from arhuaco@freaks-unidos.net are
-
-mfd-pcf50633-fix-unsafe-disable_irq.patch
-
+ 	/* Exhausted what can be done so it's blamo time */
+@@ -1763,16 +1763,12 @@ rebalance:
+ 					migratetype);
+ 			if (page)
+ 				goto got_pg;
++			if ((gfp_mask & __GFP_NOFAIL) ||
++					order <= PAGE_ALLOC_COSTLY_ORDER)
++				goto restart;
+ 
+-			/*
+-			 * The OOM killer does not trigger for high-order allocations
+-			 * but if no progress is being made, there are no other
+-			 * options and retrying is unlikely to help
+-			 */
+-			if (order > PAGE_ALLOC_COSTLY_ORDER)
+-				goto nopage;
