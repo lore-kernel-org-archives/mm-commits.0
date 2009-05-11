@@ -1,136 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch added to -mm tree
-Date: Mon, 11 May 2009 15:11:47 -0700
-Message-ID: <200905112211.n4BMBlX5030712@imap1.linux-foundation.org>
+Subject: [to-be-updated] oom-fix-possible-oom_dump_tasks-null-pointer.patch removed from -mm tree
+Date: Mon, 11 May 2009 15:17:21 -0700
+Message-ID: <200905112217.n4BMHLZI001881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757739AbZEKWOC (ORCPT
+	by vger.kernel.org with ESMTP id S1753807AbZEKWTN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 18:14:02 -0400
+	Mon, 11 May 2009 18:19:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mel@csn.ul.ie, rientjes@google.com
+To: rientjes@google.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-allocator: warn if __GFP_NOFAIL is used for a large allocation
-has been added to the -mm tree.  Its filename is
-     page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+     oom: fix possible oom_dump_tasks NULL pointer
+has been removed from the -mm tree.  Its filename was
+     oom-fix-possible-oom_dump_tasks-null-pointer.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator: warn if __GFP_NOFAIL is used for a large allocation
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: oom: fix possible oom_dump_tasks NULL pointer
+From: David Rientjes <rientjes@google.com>
 
-__GFP_NOFAIL is a bad fiction.  Allocations _can_ fail, and callers should
-detect and suitably handle this (and not by lamely moving the infinite
-loop up to the caller level either).
+When /proc/sys/vm/oom_dump_tasks is enabled, it is possible to get a NULL
+pointer for tasks that have detached mm's since task_lock() is not held
+during the tasklist scan.
 
-Attempting to use __GFP_NOFAIL for a higher-order allocation is even
-worse, so add a once-off runtime check for this to slap people around for
-even thinking about trying it.
+Fix this by checking for a NULL mm_struct pointer and avoiding the
+dereference if the race occurred.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation
-+++ a/mm/page_alloc.c
-@@ -1201,8 +1201,19 @@ static int should_fail_alloc_page(gfp_t 
- {
- 	if (order < fail_page_alloc.min_order)
- 		return 0;
--	if (gfp_mask & __GFP_NOFAIL)
-+	if (gfp_mask & __GFP_NOFAIL) {
-+		/*
-+		 * __GFP_NOFAIL is not to be used in new code.
-+		 *
-+		 * All __GFP_NOFAIL callers should be fixed so that they
-+		 * properly detect and handle allocation failures.
-+		 *
-+		 * We most definitely don't want callers attempting to allocate
-+		 * greater than single-page units with __GFP_NOFAIL.
-+		 */
-+		WARN_ON_ONCE(order > 0);
- 		return 0;
-+	}
- 	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
- 		return 0;
- 	if (fail_page_alloc.ignore_gfp_wait && (gfp_mask & __GFP_WAIT))
+diff -puN mm/oom_kill.c~oom-fix-possible-oom_dump_tasks-null-pointer mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-fix-possible-oom_dump_tasks-null-pointer
++++ a/mm/oom_kill.c
+@@ -284,22 +284,28 @@ static void dump_tasks(const struct mem_
+ 	printk(KERN_INFO "[ pid ]   uid  tgid total_vm      rss cpu oom_adj "
+ 	       "name\n");
+ 	do_each_thread(g, p) {
+-		/*
+-		 * total_vm and rss sizes do not exist for tasks with a
+-		 * detached mm so there's no need to report them.
+-		 */
+-		if (!p->mm)
+-			continue;
++		struct mm_struct *mm;
++
+ 		if (mem && !task_in_mem_cgroup(p, mem))
+ 			continue;
+ 		if (!thread_group_leader(p))
+ 			continue;
+ 
+ 		task_lock(p);
++		mm = p->mm;
++		if (!mm) {
++			/*
++			 * total_vm and rss sizes do not exist for tasks with no
++			 * mm so there's no need to report them; they can't be
++			 * oom killed anyway.
++			 */
++			task_unlock(p);
++			continue;
++		}
+ 		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
+-		       p->pid, __task_cred(p)->uid, p->tgid,
+-		       p->mm->total_vm, get_mm_rss(p->mm), (int)task_cpu(p),
+-		       p->oomkilladj, p->comm);
++		       p->pid, __task_cred(p)->uid, p->tgid, mm->total_vm,
++		       get_mm_rss(mm), (int)task_cpu(p), p->oomkilladj,
++		       p->comm);
+ 		task_unlock(p);
+ 	} while_each_thread(g, p);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-alpha-unbreak-percpu-again.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-fs-sysfs-filec-use-create_singlethread_workqueue.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
+mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed.patch
+mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
+oom-fix-possible-oom_dump_tasks-null-pointer.patch
+oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
+oom-prevent-possible-oom_disable-livelock.patch
 page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
 
