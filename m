@@ -1,162 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time.patch removed from -mm tree
-Date: Mon, 11 May 2009 11:58:33 -0700
-Message-ID: <200905111858.n4BIwXGJ003043@imap1.linux-foundation.org>
+Subject: + dup2-fix-return-value-with-oldfd-==-newfd-and-invalid-fd.patch added to -mm tree
+Date: Mon, 11 May 2009 12:10:39 -0700
+Message-ID: <200905111910.n4BJAdLC010853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751801AbZEKTFb (ORCPT
+	by vger.kernel.org with ESMTP id S1751752AbZEKTOz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 15:05:31 -0400
+	Mon, 11 May 2009 15:14:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, elendil@planet.nl, johnstul@us.ibm.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, rostedt@goodmis.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jeffm@suse.com, jdluhos@novell.com, stable@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     revert "ACPI: idle: mark_tsc_unstable() at init-time, not run-time"
-has been removed from the -mm tree.  Its filename was
-     revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time.patch
+     dup2: fix return value with oldfd == newfd and invalid fd
+has been added to the -mm tree.  Its filename is
+     dup2-fix-return-value-with-oldfd-==-newfd-and-invalid-fd.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "ACPI: idle: mark_tsc_unstable() at init-time, not run-time"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dup2: fix return value with oldfd == newfd and invalid fd
+From: Jeff Mahoney <jeffm@suse.com>
 
-Revert
+Fix a regression introduced with 6c5d0512a091480c9f981162227fdb1c9d70e555
+("get rid of corner case in dup3() entirely").
 
-: commit a71e4917dc0ebbcb5a0ecb7ca3486643c1c9a6e2
-: Author:     Len Brown <len.brown@intel.com>
-: AuthorDate: Tue Apr 21 00:50:11 2009 -0400
-: Commit:     Len Brown <len.brown@intel.com>
-: CommitDate: Wed Apr 22 19:22:18 2009 -0400
-: 
-:     ACPI: idle: mark_tsc_unstable() at init-time, not run-time
+The return value of dup2 when oldfd == newfd and the fd isn't valid is not
+getting properly sign extended.  We end up with 4294967287 instead of
+-EBADF.
 
-Due to the following report, from Frans Pop:
+I've reproduced this on SLE11 (2.6.27.21), openSUSE Factory (2.6.29-rc5),
+and Ubuntu 9.04 (2.6.28).
 
-: I'm seeing the same issue with 2.6.30-rc5 (not tested previous RCs on that 
-: box) on a system for which TSC has always been usable.
-: 
-: $ dmesg | grep TSC
-: Fast TSC calibration using PIT
-: checking TSC synchronization [CPU#0 -> CPU#1]: passed.
-: Marking TSC unstable due to TSC halts in idle
-: 
-: The last line is new with 2.6.30. After reverting a71e4917dc0 the TSC 
-: works fine again.
-: 
-: The system has a Intel D945GCZ mainboard with dual core Pentium D 
-: (3.20GHz) processor running x86_64 and Debian Lenny.
+This patch uses a signed int for the error value so it is properly extended.
 
-Reported-by: Frans Pop <elendil@planet.nl>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Reported-by: Jiri Dluhos <jdluhos@novell.com>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ fs/fcntl.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time
-+++ a/drivers/acpi/processor_idle.c
-@@ -607,11 +607,6 @@ static int acpi_processor_power_verify(s
- 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
- 		struct acpi_processor_cx *cx = &pr->power.states[i];
+diff -puN fs/fcntl.c~dup2-fix-return-value-with-oldfd-==-newfd-and-invalid-fd fs/fcntl.c
+--- a/fs/fcntl.c~dup2-fix-return-value-with-oldfd-==-newfd-and-invalid-fd
++++ a/fs/fcntl.c
+@@ -115,13 +115,14 @@ out_unlock:
  
--#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
--		/* TSC could halt in idle, so notify users */
--		if (tsc_halts_in_c(cx->type))
--			mark_tsc_unstable("TSC halts in idle");;
--#endif
- 		switch (cx->type) {
- 		case ACPI_STATE_C1:
- 			cx->valid = 1;
-@@ -900,6 +895,11 @@ static int acpi_idle_enter_simple(struct
- 	kt2 = ktime_get_real();
- 	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 
-+#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
-+	/* TSC could halt in idle, so notify users */
-+	if (tsc_halts_in_c(cx->type))
-+		mark_tsc_unstable("TSC halts in idle");;
-+#endif
- 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 
- 	/* Tell the scheduler how much we idled: */
-@@ -1013,6 +1013,11 @@ static int acpi_idle_enter_bm(struct cpu
- 	kt2 = ktime_get_real();
- 	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 
-+#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
-+	/* TSC could halt in idle, so notify users */
-+	if (tsc_halts_in_c(ACPI_STATE_C3))
-+		mark_tsc_unstable("TSC halts in idle");
-+#endif
- 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+ SYSCALL_DEFINE2(dup2, unsigned int, oldfd, unsigned int, newfd)
+ {
++	int ret = oldfd;
+ 	if (unlikely(newfd == oldfd)) { /* corner case */
+ 		struct files_struct *files = current->files;
+ 		rcu_read_lock();
+ 		if (!fcheck_files(files, oldfd))
+-			oldfd = -EBADF;
++			ret = -EBADF;
+ 		rcu_read_unlock();
+-		return oldfd;
++		return ret;
+ 	}
+ 	return sys_dup3(oldfd, newfd, 0);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-alpha-unbreak-percpu-again.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time.patch
-fs-sysfs-filec-use-create_singlethread_workqueue.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+origin.patch
+dup2-fix-return-value-with-oldfd-==-newfd-and-invalid-fd.patch
 
