@@ -1,103 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-fix-crashdump-panic-with-config_kexec_jump.patch removed from -mm tree
-Date: Mon, 11 May 2009 11:54:15 -0700
-Message-ID: <200905111854.n4BIsFYm032714@imap1.linux-foundation.org>
+Subject: [obsolete] revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time.patch removed from -mm tree
+Date: Mon, 11 May 2009 11:58:33 -0700
+Message-ID: <200905111858.n4BIwXGJ003043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754202AbZEKTC2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751801AbZEKTFb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 15:02:28 -0400
+	Mon, 11 May 2009 15:05:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, ebiederm@xmission.com, nhorman@tuxdriver.com, stable@kernel.org, tstarling@wikimedia.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, elendil@planet.nl, johnstul@us.ibm.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, rostedt@goodmis.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kexec: fix crashdump panic with CONFIG_KEXEC_JUMP
+     revert "ACPI: idle: mark_tsc_unstable() at init-time, not run-time"
 has been removed from the -mm tree.  Its filename was
-     kexec-fix-crashdump-panic-with-config_kexec_jump.patch
+     revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec: fix crashdump panic with CONFIG_KEXEC_JUMP
-From: Huang Ying <ying.huang@intel.com>
+Subject: revert "ACPI: idle: mark_tsc_unstable() at init-time, not run-time"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Content-Transfer-Encoding: quoted-printable
-Tim Starling reported that crashdump will panic with kernel compiled
-with CONFIG_KEXEC_JUMP due to null pointer deference in
-machine_kexec_32.c: machine_kexec(), when deferencing
-kexec_image.
+Revert
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=3D13265
+: commit a71e4917dc0ebbcb5a0ecb7ca3486643c1c9a6e2
+: Author:     Len Brown <len.brown@intel.com>
+: AuthorDate: Tue Apr 21 00:50:11 2009 -0400
+: Commit:     Len Brown <len.brown@intel.com>
+: CommitDate: Wed Apr 22 19:22:18 2009 -0400
+: 
+:     ACPI: idle: mark_tsc_unstable() at init-time, not run-time
 
-This patch fixes the BUG by replacing global variable reference:
-kexec_image in machine_kexec() with local variable reference: image, which
-is more appropriate, and will not be null.
+Due to the following report, from Frans Pop:
 
-The same BUG is in machine_kexec_64.c too, and is fixed in the same way.
+: I'm seeing the same issue with 2.6.30-rc5 (not tested previous RCs on that 
+: box) on a system for which TSC has always been usable.
+: 
+: $ dmesg | grep TSC
+: Fast TSC calibration using PIT
+: checking TSC synchronization [CPU#0 -> CPU#1]: passed.
+: Marking TSC unstable due to TSC halts in idle
+: 
+: The last line is new with 2.6.30. After reverting a71e4917dc0 the TSC 
+: works fine again.
+: 
+: The system has a Intel D945GCZ mainboard with dual core Pentium D 
+: (3.20GHz) processor running x86_64 and Debian Lenny.
 
-Reported-by: Tim Starling <tstarling@wikimedia.org>
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: <stable@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Reported-by: Frans Pop <elendil@planet.nl>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_32.c |    4 ++--
- arch/x86/kernel/machine_kexec_64.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/processor_idle.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/kernel/machine_kexec_32.c~kexec-fix-crashdump-panic-with-config_kexec_jump arch/x86/kernel/machine_kexec_32.c
---- a/arch/x86/kernel/machine_kexec_32.c~kexec-fix-crashdump-panic-with-config_kexec_jump
-+++ a/arch/x86/kernel/machine_kexec_32.c
-@@ -194,7 +194,7 @@ void machine_kexec(struct kimage *image)
- 				       unsigned int preserve_context);
+diff -puN drivers/acpi/processor_idle.c~revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time
++++ a/drivers/acpi/processor_idle.c
+@@ -607,11 +607,6 @@ static int acpi_processor_power_verify(s
+ 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+ 		struct acpi_processor_cx *cx = &pr->power.states[i];
  
- #ifdef CONFIG_KEXEC_JUMP
--	if (kexec_image->preserve_context)
-+	if (image->preserve_context)
- 		save_processor_state();
- #endif
+-#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+-		/* TSC could halt in idle, so notify users */
+-		if (tsc_halts_in_c(cx->type))
+-			mark_tsc_unstable("TSC halts in idle");;
+-#endif
+ 		switch (cx->type) {
+ 		case ACPI_STATE_C1:
+ 			cx->valid = 1;
+@@ -900,6 +895,11 @@ static int acpi_idle_enter_simple(struct
+ 	kt2 = ktime_get_real();
+ 	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
  
-@@ -253,7 +253,7 @@ void machine_kexec(struct kimage *image)
- 					   image->preserve_context);
++#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
++	/* TSC could halt in idle, so notify users */
++	if (tsc_halts_in_c(cx->type))
++		mark_tsc_unstable("TSC halts in idle");;
++#endif
+ 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
  
- #ifdef CONFIG_KEXEC_JUMP
--	if (kexec_image->preserve_context)
-+	if (image->preserve_context)
- 		restore_processor_state();
- #endif
+ 	/* Tell the scheduler how much we idled: */
+@@ -1013,6 +1013,11 @@ static int acpi_idle_enter_bm(struct cpu
+ 	kt2 = ktime_get_real();
+ 	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
  
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-fix-crashdump-panic-with-config_kexec_jump arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-fix-crashdump-panic-with-config_kexec_jump
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -274,7 +274,7 @@ void machine_kexec(struct kimage *image)
- 	int save_ftrace_enabled;
- 
- #ifdef CONFIG_KEXEC_JUMP
--	if (kexec_image->preserve_context)
-+	if (image->preserve_context)
- 		save_processor_state();
- #endif
- 
-@@ -333,7 +333,7 @@ void machine_kexec(struct kimage *image)
- 				       image->preserve_context);
- 
- #ifdef CONFIG_KEXEC_JUMP
--	if (kexec_image->preserve_context)
-+	if (image->preserve_context)
- 		restore_processor_state();
- #endif
- 
++#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
++	/* TSC could halt in idle, so notify users */
++	if (tsc_halts_in_c(ACPI_STATE_C3))
++		mark_tsc_unstable("TSC halts in idle");
++#endif
+ 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
+ 	/* Tell the scheduler how much we idled: */
+ 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+alpha-unbreak-percpu-again.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+revert-acpi-idle-mark_tsc_unstable-at-init-time-not-run-time.patch
+fs-sysfs-filec-use-create_singlethread_workqueue.patch
+leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
+squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
