@@ -1,129 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + slqbinfo-eliminate-warnings.patch added to -mm tree
-Date: Mon, 11 May 2009 14:07:50 -0700
-Message-ID: <200905112107.n4BL7ogt021808@imap1.linux-foundation.org>
+Subject: [to-be-updated] cpufreq-fix-timer-teardown-in-conservative-governor-2630-rc2.patch removed from -mm tree
+Date: Mon, 11 May 2009 14:05:29 -0700
+Message-ID: <200905112105.n4BL5T2C020268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55630 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60161 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756002AbZEKVKS (ORCPT
+	by vger.kernel.org with ESMTP id S1753098AbZEKVNL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 17:10:18 -0400
+	Mon, 11 May 2009 17:13:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
+To: mathieu.desnoyers@polymtl.ca, davej@redhat.com, greg@kroah.com, lenb@kernel.org, mingo@elte.hu, rjw@sisk.pl, sluskyb@paranoiacs.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slqbinfo: eliminate warnings
-has been added to the -mm tree.  Its filename is
-     slqbinfo-eliminate-warnings.patch
+     cpufreq: fix timer teardown in conservative governor
+has been removed from the -mm tree.  Its filename was
+     cpufreq-fix-timer-teardown-in-conservative-governor-2630-rc2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slqbinfo: eliminate warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cpufreq: fix timer teardown in conservative governor
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Documentation/vm/slqbinfo.c:386: warning: unused variable 'total'
-Documentation/vm/slqbinfo.c:512: warning: format '%5d' expects type 'int', but argument 9 has type 'long unsigned int'
-Documentation/vm/slqbinfo.c:520: warning: format '%4ld' expects type 'long int', but argument 9 has type 'int'
-Documentation/vm/slqbinfo.c:646: warning: unused variable 'total_partial'
-Documentation/vm/slqbinfo.c:646: warning: unused variable 'avg_partial'
-Documentation/vm/slqbinfo.c:645: warning: unused variable 'max_partial'
-Documentation/vm/slqbinfo.c:645: warning: unused variable 'min_partial'
-Documentation/vm/slqbinfo.c:860: warning: unused variable 'count'
-Documentation/vm/slqbinfo.c:858: warning: unused variable 'p'
+The problem is that dbs_timer_exit() uses cancel_delayed_work() when it
+should use cancel_delayed_work_sync().  cancel_delayed_work() does not
+wait for the workqueue handler to exit.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+The ondemand governor does not seem to be affected because the "if
+(!dbs_info->enable)" check at the beginning of the workqueue handler
+returns immediately without rescheduling the work.  The conservative
+governor in 2.6.30-rc has the same check as the ondemand governor, which
+makes things usually run smoothly.  However, if the governor is quickly
+stopped and then started, this could lead to the following race :
+
+dbs_enable could be reenabled and multiple do_dbs_timer handlers would
+run.  This is why a synchronized teardown is required.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ben Slusky <sluskyb@paranoiacs.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slqbinfo.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/cpufreq/cpufreq_conservative.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/vm/slqbinfo.c~slqbinfo-eliminate-warnings Documentation/vm/slqbinfo.c
---- a/Documentation/vm/slqbinfo.c~slqbinfo-eliminate-warnings
-+++ a/Documentation/vm/slqbinfo.c
-@@ -383,7 +383,6 @@ void slab_stats(struct slabinfo *s)
+diff -puN drivers/cpufreq/cpufreq_conservative.c~cpufreq-fix-timer-teardown-in-conservative-governor-2630-rc2 drivers/cpufreq/cpufreq_conservative.c
+--- a/drivers/cpufreq/cpufreq_conservative.c~cpufreq-fix-timer-teardown-in-conservative-governor-2630-rc2
++++ a/drivers/cpufreq/cpufreq_conservative.c
+@@ -91,6 +91,9 @@ static unsigned int dbs_enable;	/* numbe
+  * (like __cpufreq_driver_target()) is being called with dbs_mutex taken, then
+  * cpu_hotplug lock should be taken before that. Note that cpu_hotplug lock
+  * is recursive for the same process. -Venki
++ * DEADLOCK ALERT! (2) : do_dbs_timer() must not take the dbs_mutex, because it
++ * would deadlock with cancel_delayed_work_sync(), which is needed for proper
++ * raceless workqueue teardown.
+  */
+ static DEFINE_MUTEX(dbs_mutex);
+ 
+@@ -542,7 +545,7 @@ static inline void dbs_timer_init(struct
+ static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
  {
- 	unsigned long total_alloc;
- 	unsigned long total_free;
--	unsigned long total;
+ 	dbs_info->enable = 0;
+-	cancel_delayed_work(&dbs_info->work);
++	cancel_delayed_work_sync(&dbs_info->work);
+ }
  
- 	total_alloc = s->alloc;
- 	total_free = s->free;
-@@ -501,7 +500,7 @@ void slabcache(struct slabinfo *s)
- 		total_alloc = s->alloc;
- 		total_free = s->free;
- 
--		printf("%-21s %8ld %10ld %10ld %5ld %5ld %7ld %5d %7ld %8d\n",
-+		printf("%-21s %8ld %10ld %10ld %5ld %5ld %7ld %5ld %7ld %8d\n",
- 			s->name, s->objects,
- 			total_alloc, total_free,
- 			total_alloc ? (s->alloc_slab_fill * 100 / total_alloc) : 0,
-@@ -512,7 +511,7 @@ void slabcache(struct slabinfo *s)
- 			s->order);
- 	}
- 	else
--		printf("%-21s %8ld %7d %8s %4d %1d %3ld %4ld %s\n",
-+		printf("%-21s %8ld %7d %8s %4d %1d %3ld %4d %s\n",
- 			s->name, s->objects, s->object_size, size_str,
- 			s->objs_per_slab, s->order,
- 			s->slabs ? (s->objects * s->object_size * 100) /
-@@ -641,10 +640,6 @@ void totals(void)
- 	/* Object size */
- 	unsigned long long min_objsize = max, max_objsize = 0, avg_objsize;
- 
--	/* Number of partial slabs in a slabcache */
--	unsigned long long min_partial = max, max_partial = 0,
--				avg_partial, total_partial = 0;
--
- 	/* Number of slabs in a slab cache */
- 	unsigned long long min_slabs = max, max_slabs = 0,
- 				avg_slabs, total_slabs = 0;
-@@ -855,9 +850,7 @@ void read_slab_dir(void)
- 	DIR *dir;
- 	struct dirent *de;
- 	struct slabinfo *slab = slabinfo;
--	char *p;
- 	char *t;
--	int count;
- 
- 	if (chdir("/sys/kernel/slab") && chdir("/sys/slab"))
- 		fatal("SYSFS support for SLUB not active\n");
+ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-origin.patch
 linux-next.patch
-dm-table-fix-printk-formats.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-fix.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-add-missing-prototype-and-update-history.patch
-menu-fix-embedded-menu-presentation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-slqbinfo-eliminate-warnings.patch
-lockd-fix-file_locking=n-build-error.patch
-xen-use-header-for-export_symbol_gpl.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-cgroups-make-messages-more-readable.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+cpufreq-fix-timer-teardown-in-conservative-governor-2630-rc2.patch
+cpufreq-fix-timer-teardown-in-ondemand-governor.patch
 
