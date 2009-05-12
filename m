@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rio-warn_unused_result-warnings-fix.patch added to -mm tree
-Date: Tue, 12 May 2009 15:11:34 -0700
-Message-ID: <200905122211.n4CMBYAL020276@imap1.linux-foundation.org>
+Subject: + rio-fix-section-mismatch.patch added to -mm tree
+Date: Tue, 12 May 2009 15:12:06 -0700
+Message-ID: <200905122212.n4CMC6Dd020758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753343AbZELWP3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756935AbZELWPu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 May 2009 18:15:29 -0400
+	Tue, 12 May 2009 18:15:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: leoli@freescale.com, benh@kernel.crashing.org, galak@gate.crashing.org, mpor
 
 
 The patch titled
-     rio: warn_unused_result warnings fix
+     rio: fix section mismatch
 has been added to the -mm tree.  Its filename is
-     rio-warn_unused_result-warnings-fix.patch
+     rio-fix-section-mismatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rio: warn_unused_result warnings fix
+Subject: rio: fix section mismatch
 From: Li Yang <leoli@freescale.com>
-
-Adding failure path for the following two cases.
-
-warning: ignoring return value of 'device_add', declared with attribute warn_unused_result
-warning: ignoring return value of 'sysfs_create_bin_file', declared with attribute warn_unused_result
 
 Signed-off-by: Li Yang <leoli@freescale.com>
 Cc: Kumar Gala <galak@gate.crashing.org>
@@ -50,122 +45,39 @@ Cc: Zhang Wei <zw@zh-kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c  |   44 ++++++++++++++++++++--------------
- drivers/rapidio/rio-sysfs.c |    6 +++-
- 2 files changed, 31 insertions(+), 19 deletions(-)
+ drivers/rapidio/rio-scan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rapidio/rio-scan.c~rio-warn_unused_result-warnings-fix drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rio-warn_unused_result-warnings-fix
+diff -puN drivers/rapidio/rio-scan.c~rio-fix-section-mismatch drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rio-fix-section-mismatch
 +++ a/drivers/rapidio/rio-scan.c
-@@ -263,15 +263,21 @@ static void rio_route_set_ops(struct rio
-  * device to the RIO device list.  Creates the generic sysfs nodes
-  * for an RIO device.
+@@ -296,7 +296,7 @@ static int __devinit rio_add_device(stru
+  * to a RIO device on success or NULL on failure.
+  *
   */
--static void __devinit rio_add_device(struct rio_dev *rdev)
-+static int __devinit rio_add_device(struct rio_dev *rdev)
- {
--	device_add(&rdev->dev);
-+	int err;
-+
-+	err = device_add(&rdev->dev);
-+	if (err)
-+		return err;
- 
- 	spin_lock(&rio_global_list_lock);
- 	list_add_tail(&rdev->global_list, &rio_devices);
- 	spin_unlock(&rio_global_list_lock);
- 
- 	rio_create_sysfs_dev_files(rdev);
-+
-+	return 0;
- }
- 
- /**
-@@ -294,13 +300,14 @@ static struct rio_dev *rio_setup_device(
+-static struct rio_dev *rio_setup_device(struct rio_net *net,
++static struct rio_dev __devinit *rio_setup_device(struct rio_net *net,
  					struct rio_mport *port, u16 destid,
  					u8 hopcount, int do_enum)
  {
-+	int ret = 0;
- 	struct rio_dev *rdev;
--	struct rio_switch *rswitch;
-+	struct rio_switch *rswitch = NULL;
- 	int result, rdid;
- 
- 	rdev = kzalloc(sizeof(struct rio_dev), GFP_KERNEL);
- 	if (!rdev)
--		goto out;
-+		return NULL;
- 
- 	rdev->net = net;
- 	rio_mport_read_config_32(port, destid, hopcount, RIO_DEV_ID_CAR,
-@@ -343,23 +350,16 @@ static struct rio_dev *rio_setup_device(
- 		rio_mport_read_config_32(port, destid, hopcount,
- 					 RIO_SWP_INFO_CAR, &rdev->swpinfo);
- 		rswitch = kmalloc(sizeof(struct rio_switch), GFP_KERNEL);
--		if (!rswitch) {
--			kfree(rdev);
--			rdev = NULL;
--			goto out;
--		}
-+		if (!rswitch)
-+			goto cleanup;
- 		rswitch->switchid = next_switchid;
- 		rswitch->hopcount = hopcount;
- 		rswitch->destid = destid;
- 		rswitch->route_table = kzalloc(sizeof(u8)*
- 					RIO_MAX_ROUTE_ENTRIES(port->sys_size),
- 					GFP_KERNEL);
--		if (!rswitch->route_table) {
--			kfree(rdev);
--			rdev = NULL;
--			kfree(rswitch);
--			goto out;
--		}
-+		if (!rswitch->route_table)
-+			goto cleanup;
- 		/* Initialize switch route table */
- 		for (rdid = 0; rdid < RIO_MAX_ROUTE_ENTRIES(port->sys_size);
- 				rdid++)
-@@ -390,10 +390,20 @@ static struct rio_dev *rio_setup_device(
- 		rio_init_dbell_res(&rdev->riores[RIO_DOORBELL_RESOURCE],
- 				   0, 0xffff);
- 
--	rio_add_device(rdev);
-+	ret = rio_add_device(rdev);
-+	if (ret)
-+		goto cleanup;
- 
--      out:
- 	return rdev;
-+
-+cleanup:
-+	if (rswitch) {
-+		if (rswitch->route_table)
-+			kfree(rswitch->route_table);
-+		kfree(rswitch);
-+	}
-+	kfree(rdev);
-+	return NULL;
- }
- 
- /**
-diff -puN drivers/rapidio/rio-sysfs.c~rio-warn_unused_result-warnings-fix drivers/rapidio/rio-sysfs.c
---- a/drivers/rapidio/rio-sysfs.c~rio-warn_unused_result-warnings-fix
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -214,9 +214,11 @@ static struct bin_attribute rio_config_a
+@@ -569,7 +569,7 @@ static void rio_net_add_mport(struct rio
+  * Recursively enumerates a RIO network.  Transactions are sent via the
+  * master port passed in @port.
   */
- int rio_create_sysfs_dev_files(struct rio_dev *rdev)
+-static int rio_enum_peer(struct rio_net *net, struct rio_mport *port,
++static int __devinit rio_enum_peer(struct rio_net *net, struct rio_mport *port,
+ 			 u8 hopcount)
  {
--	sysfs_create_bin_file(&rdev->dev.kobj, &rio_config_attr);
-+	int err = 0;
- 
--	return 0;
-+	err = sysfs_create_bin_file(&rdev->dev.kobj, &rio_config_attr);
-+
-+	return err;
- }
- 
- /**
+ 	int port_num;
+@@ -728,7 +728,7 @@ static int rio_enum_complete(struct rio_
+  * Recursively discovers a RIO network.  Transactions are sent via the
+  * master port passed in @port.
+  */
+-static int
++static int __devinit
+ rio_disc_peer(struct rio_net *net, struct rio_mport *port, u16 destid,
+ 	      u8 hopcount)
+ {
 _
 
 Patches currently in -mm which might be from leoli@freescale.com are
