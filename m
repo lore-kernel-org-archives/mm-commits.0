@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-make-it-work-on-x86_64.patch added to -mm tree
-Date: Mon, 11 May 2009 16:48:13 -0700
-Message-ID: <200905112348.n4BNmDtw028200@imap1.linux-foundation.org>
+Subject: + ipc-use-__arch_want_ipc_parse_version-in-ipc-utilh.patch added to -mm tree
+Date: Mon, 11 May 2009 17:03:58 -0700
+Message-ID: <200905120003.n4C03wIh005826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37480 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758997AbZEKXvJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757112AbZELAFg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 May 2009 19:51:09 -0400
+	Mon, 11 May 2009 20:05:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: HaraldWelte@viatech.com, JosephChan@via.com.tw, ScottFang@viatech.com.cn, krzysztof.h1@wp.pl
+Cc: arnd@arndb.de
 
 
 The patch titled
-     viafb: make it work on x86_64
+     ipc: use __ARCH_WANT_IPC_PARSE_VERSION in ipc/util.h
 has been added to the -mm tree.  Its filename is
-     viafb-make-it-work-on-x86_64.patch
+     ipc-use-__arch_want_ipc_parse_version-in-ipc-utilh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: make it work on x86_64
-From: Harald Welte <HaraldWelte@viatech.com>
+Subject: ipc: use __ARCH_WANT_IPC_PARSE_VERSION in ipc/util.h
+From: Arnd Bergmann <arnd@arndb.de>
 
-Fix a bug in viafb on x86_64 builds (e.g. for VIA Nano CPU).
+The definition of ipc_parse_version depends on
+__ARCH_WANT_IPC_PARSE_VERSION, but the header file declares it
+conditionally based on the architecture.
 
-You cannot make the assumption that sizeof(unsigned int) ==
-sizeof(unsigned long), so the parsing of the default mode (640x480) fails,
-leading to a division by zero during insmod of the driver.
+Use the macro consistently to make it easier to add new architectures.
 
-Signed-off-by: Harald Welte <HaraldWelte@viatech.com>
-Cc: <JosephChan@via.com.tw>
-Cc: <ScottFang@viatech.com.cn>
-Cc: Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ ipc/util.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-make-it-work-on-x86_64 drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-make-it-work-on-x86_64
-+++ a/drivers/video/via/viafbdev.c
-@@ -2103,7 +2103,7 @@ static void viafb_remove_proc(struct pro
+diff -puN ipc/util.h~ipc-use-__arch_want_ipc_parse_version-in-ipc-utilh ipc/util.h
+--- a/ipc/util.h~ipc-use-__arch_want_ipc_parse_version-in-ipc-utilh
++++ a/ipc/util.h
+@@ -128,7 +128,7 @@ void ipc_update_perm(struct ipc64_perm *
+ struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
+ 				      struct ipc64_perm *perm, int extra_perm);
  
- static int __devinit via_pci_probe(void)
- {
--	unsigned int default_xres, default_yres;
-+	unsigned long default_xres, default_yres;
- 	char *tmpc, *tmpm;
- 	char *tmpc_sec, *tmpm_sec;
- 	int vmode_index;
-@@ -2196,8 +2196,8 @@ static int __devinit via_pci_probe(void)
- 	viafb_FB_MM = viaparinfo->fbmem_virt;
- 	tmpm = viafb_mode;
- 	tmpc = strsep(&tmpm, "x");
--	strict_strtoul(tmpc, 0, (unsigned long *)&default_xres);
--	strict_strtoul(tmpm, 0, (unsigned long *)&default_yres);
-+	strict_strtoul(tmpc, 0, &default_xres);
-+	strict_strtoul(tmpm, 0, &default_yres);
- 
- 	vmode_index = viafb_get_mode_index(default_xres, default_yres, 0);
- 	DEBUG_MSG(KERN_INFO "0->index=%d\n", vmode_index);
+-#if defined(__ia64__) || defined(__x86_64__) || defined(__hppa__) || defined(__XTENSA__)
++#ifndef __ARCH_WANT_IPC_PARSE_VERSION
+   /* On IA-64, we always use the "64-bit version" of the IPC structures.  */ 
+ # define ipc_parse_version(cmd)	IPC_64
+ #else
 _
 
-Patches currently in -mm which might be from HaraldWelte@viatech.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-viafb-make-it-work-on-x86_64.patch
+linux-next.patch
+time-move-pit_tick_rate-to-linux-timexh.patch
+mb862xxfb-use-config_of-instead-of-config_ppc_of.patch
+ipc-use-__arch_want_ipc_parse_version-in-ipc-utilh.patch
 
