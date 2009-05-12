@@ -1,70 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded] squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 12 May 2009 13:23:49 -0700
-Message-ID: <200905122043.n4CKh5ja026453@imap1.linux-foundation.org>
+Subject: [folded] dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch removed from -mm tree
+Date: Tue, 12 May 2009 13:38:33 -0700
+Message-ID: <200905122057.n4CKvner003822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54794 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35227 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752307AbZELUpk (ORCPT
+	by vger.kernel.org with ESMTP id S1751722AbZELVBD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 May 2009 16:45:40 -0400
+	Tue, 12 May 2009 17:01:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, doug.chapman@hp.com, phillip@lougher.demon.co.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mchehab@infradead.org, simon@fire.lp0.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes
+     dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix
 has been removed from the -mm tree.  Its filename was
-     squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
+     dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
 
-This patch was dropped because it was folded into squashfs-fix-breakage-when-pagesize-blocksize.patch
+This patch was dropped because it was folded into dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes
+Subject: dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: spaces required around that '?' (ctx:VxV)
-#22: FILE: fs/squashfs/cache.c:255:
-+	cache->pages = cache->pages?cache->pages:1;
- 	                           ^
+- remove commented-out locking operations
+- simplify code
 
-ERROR: spaces required around that ':' (ctx:VxV)
-#22: FILE: fs/squashfs/cache.c:255:
-+	cache->pages = cache->pages?cache->pages:1;
- 	                                        ^
-
-total: 2 errors, 0 warnings, 7 lines checked
-
-./patches/squashfs-fix-breakage-when-pagesize-blocksize.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Doug Chapman <doug.chapman@hp.com>
-Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Simon Arlott <simon@fire.lp0.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/cache.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb/dvb-core/dmxdev.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN fs/squashfs/cache.c~squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes fs/squashfs/cache.c
---- a/fs/squashfs/cache.c~squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes
-+++ a/fs/squashfs/cache.c
-@@ -252,7 +252,7 @@ struct squashfs_cache *squashfs_cache_in
- 	cache->entries = entries;
- 	cache->block_size = block_size;
- 	cache->pages = block_size >> PAGE_CACHE_SHIFT;
--	cache->pages = cache->pages?cache->pages:1;
-+	cache->pages = cache->pages ? cache->pages : 1;
- 	cache->name = name;
- 	cache->num_waiters = 0;
- 	spin_lock_init(&cache->lock);
+diff -puN drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix drivers/media/dvb/dvb-core/dmxdev.c
+--- a/drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix
++++ a/drivers/media/dvb/dvb-core/dmxdev.c
+@@ -244,19 +244,13 @@ static ssize_t dvb_dvr_read(struct file 
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dmxdev *dmxdev = dvbdev->priv;
+-	int ret;
+ 
+-	if (dmxdev->exit) {
+-		//mutex_unlock(&dmxdev->mutex);
++	if (dmxdev->exit)
+ 		return -ENODEV;
+-	}
+ 
+-	//mutex_lock(&dmxdev->mutex);
+-	ret = dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
+-				     file->f_flags & O_NONBLOCK,
+-				     buf, count, ppos);
+-	//mutex_unlock(&dmxdev->mutex);
+-	return ret;
++	return dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
++				      file->f_flags & O_NONBLOCK,
++				      buf, count, ppos);
+ }
+ 
+ static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +75,7 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
 drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
 dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
 input-keyboard-introduce-lm8323-driver.patch
 drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
@@ -89,7 +90,6 @@ scsi-dpt_i2o-is-bust-on-ia64.patch
 fs-sysfs-filec-use-create_singlethread_workqueue.patch
 leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
 squashfs-fix-breakage-when-pagesize-blocksize.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
 mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
 mm-consolidate-init_mm-definition-fix.patch
 readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
