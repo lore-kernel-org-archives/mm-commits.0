@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix.patch added to -mm tree
-Date: Tue, 12 May 2009 10:55:01 -0700
-Message-ID: <200905121755.n4CHt1eS013411@imap1.linux-foundation.org>
+Subject: + mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch added to -mm tree
+Date: Tue, 12 May 2009 10:54:59 -0700
+Message-ID: <200905121754.n4CHsxtX013405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60608 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751359AbZELR7h (ORCPT
+	by vger.kernel.org with ESMTP id S1751612AbZELR7i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 May 2009 13:59:37 -0400
+	Tue, 12 May 2009 13:59:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@gmail.com, mel@csn.ul.ie, pavel@ucw.cz, rientjes@google.com, rjw@sisk.pl
+Cc: rjw@sisk.pl, fengguang.wu@gmail.com, mel@csn.ul.ie, pavel@ucw.cz, rientjes@google.com
 
 
 The patch titled
-     mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix
+     mm, PM/Freezer: Disable OOM killer when tasks are frozen
 has been added to the -mm tree.  Its filename is
-     mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix.patch
+     mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm, PM/Freezer: Disable OOM killer when tasks are frozen
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Be nicer to the namespace.
+Currently, the following scenario appears to be possible in theory:
 
-Cc: David Rientjes <rientjes@google.com>
+* Tasks are frozen for hibernation or suspend.
+* Free pages are almost exhausted.
+* Certain piece of code in the suspend code path attempts to allocate
+  some memory using GFP_KERNEL and allocation order less than or
+  equal to PAGE_ALLOC_COSTLY_ORDER.
+* __alloc_pages_internal() cannot find a free page so it invokes the
+  OOM killer.
+* The OOM killer attempts to kill a task, but the task is frozen, so
+  it doesn't die immediately.
+* __alloc_pages_internal() jumps to 'restart', unsuccessfully tries
+  to find a free page and invokes the OOM killer.
+* No progress can be made.
+
+Although it is now hard to trigger during hibernation due to the memory
+shrinking carried out by the hibernation code, it is theoretically
+possible to trigger during suspend after the memory shrinking has been
+removed from that code path.  Moreover, since memory allocations are
+going to be used for the hibernation memory shrinking, it will be even
+more likely to happen during hibernation.
+
+To prevent it from happening, introduce the oom_killer_disabled switch
+that will cause __alloc_pages_internal() to fail in the situations in
+which the OOM killer would have been called and make the freezer set
+this switch after tasks have been successfully frozen.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |    4 ++--
- kernel/power/process.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/gfp.h    |   12 ++++++++++++
+ kernel/power/process.c |    5 +++++
+ mm/page_alloc.c        |    4 ++++
+ 3 files changed, 21 insertions(+)
 
-diff -puN include/linux/gfp.h~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix include/linux/gfp.h
---- a/include/linux/gfp.h~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix
+diff -puN include/linux/gfp.h~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen
 +++ a/include/linux/gfp.h
-@@ -242,12 +242,12 @@ void drain_local_pages(void *dummy);
+@@ -240,4 +240,16 @@ void drain_zone_pages(struct zone *zone,
+ void drain_all_pages(void);
+ void drain_local_pages(void *dummy);
  
- extern bool oom_killer_disabled;
- 
--static inline void disable_oom_killer(void)
-+static inline void oom_killer_disable(void)
- {
- 	oom_killer_disabled = true;
- }
- 
--static inline void enable_oom_killer(void)
-+static inline void oom_killer_enable(void)
- {
- 	oom_killer_disabled = false;
- }
-diff -puN kernel/power/process.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix kernel/power/process.c
---- a/kernel/power/process.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix
++extern bool oom_killer_disabled;
++
++static inline void disable_oom_killer(void)
++{
++	oom_killer_disabled = true;
++}
++
++static inline void enable_oom_killer(void)
++{
++	oom_killer_disabled = false;
++}
++
+ #endif /* __LINUX_GFP_H */
+diff -puN kernel/power/process.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen kernel/power/process.c
+--- a/kernel/power/process.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen
 +++ a/kernel/power/process.c
-@@ -118,7 +118,7 @@ int freeze_processes(void)
+@@ -117,9 +117,12 @@ int freeze_processes(void)
+ 	if (error)
  		goto Exit;
  	printk("done.");
- 
--	disable_oom_killer();
-+	oom_killer_disable();
++
++	disable_oom_killer();
   Exit:
  	BUG_ON(in_atomic());
  	printk("\n");
-@@ -148,7 +148,7 @@ static void thaw_tasks(bool nosig_only)
++
+ 	return error;
+ }
+ 
+@@ -145,6 +148,8 @@ static void thaw_tasks(bool nosig_only)
  
  void thaw_processes(void)
  {
--	enable_oom_killer();
-+	oom_killer_enable();
- 
++	enable_oom_killer();
++
  	printk("Restarting tasks ... ");
  	thaw_tasks(true);
+ 	thaw_tasks(false);
+diff -puN mm/page_alloc.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen
++++ a/mm/page_alloc.c
+@@ -180,6 +180,8 @@ static void set_pageblock_migratetype(st
+ 					PB_migrate, PB_migrate_end);
+ }
+ 
++bool oom_killer_disabled __read_mostly;
++
+ #ifdef CONFIG_DEBUG_VM
+ static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
+ {
+@@ -1770,6 +1772,8 @@ rebalance:
+ 	 */
+ 	if (!did_some_progress) {
+ 		if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
++			if (oom_killer_disabled)
++				goto nopage;
+ 			page = __alloc_pages_may_oom(gfp_mask, order,
+ 					zonelist, high_zoneidx,
+ 					nodemask, preferred_zone,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-alpha-unbreak-percpu-again.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-fs-sysfs-filec-use-create_singlethread_workqueue.patch
-leds-of_register_platform_driver-doesnt-exist-on-sparc64.patch
-squashfs-fix-breakage-when-pagesize-blocksize-checkpatch-fixes.patch
-mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+devpts-correctly-set-default-options.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
 mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
