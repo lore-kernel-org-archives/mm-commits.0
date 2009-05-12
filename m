@@ -1,77 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: + videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 12 May 2009 14:49:32 -0700
-Message-ID: <200905122149.n4CLnX60005735@imap1.linux-foundation.org>
+Subject: [alternative-merged] lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 12 May 2009 14:51:33 -0700
+Message-ID: <200905122151.n4CLpYXg007070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752284AbZELVxe (ORCPT
+	by vger.kernel.org with ESMTP id S1751377AbZELVxr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 May 2009 17:53:34 -0400
+	Tue, 12 May 2009 17:53:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, damm@igel.co.jp, hannes@cmpxchg.org, hverkuil@xs4all.nl, lethal@linux-sh.org, mchehab@infradead.org
+To: akpm@linux-foundation.org, cl@linux-foundation.org, nickpiggin@yahoo.com.au, shijie8@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+     lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes
+Subject: lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#28: FILE: drivers/media/video/videobuf-dma-contig.c:117:
-+ * This function resets the user space pointer $
+ERROR: "foo * bar" should be "foo *bar"
+#48: FILE: lib/radix-tree.c:358:
++static void * radix_tree_lookup_element(struct radix_tree_root *root,
 
-total: 1 errors, 0 warnings, 28 lines checked
+ERROR: spaces prohibited around that ':' (ctx:WxW)
+#67: FILE: lib/radix-tree.c:392:
++	return is_slot ? (void *)slot : node;
+ 	                              ^
 
-./patches/videobuf-dma-contig-zero-copy-userptr-support-v3-comments.patch has style problems, please review.  If any of these errors
+ERROR: "(foo**)" should be "(foo **)"
+#85: FILE: lib/radix-tree.c:410:
++	return (void**)radix_tree_lookup_element(root, index, 1);
+
+total: 3 errors, 0 warnings, 98 lines checked
+
+./patches/lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Huang Shijie <shijie8@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/videobuf-dma-contig.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/radix-tree.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/videobuf-dma-contig.c~videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes drivers/media/video/videobuf-dma-contig.c
---- a/drivers/media/video/videobuf-dma-contig.c~videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes
-+++ a/drivers/media/video/videobuf-dma-contig.c
-@@ -114,7 +114,7 @@ static struct vm_operations_struct video
-  * videobuf_dma_contig_user_put() - reset pointer to user space buffer
-  * @mem: per-buffer private videobuf-dma-contig data
-  *
-- * This function resets the user space pointer 
-+ * This function resets the user space pointer
+diff -puN lib/radix-tree.c~lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes lib/radix-tree.c
+--- a/lib/radix-tree.c~lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes
++++ a/lib/radix-tree.c
+@@ -355,7 +355,7 @@ EXPORT_SYMBOL(radix_tree_insert);
+  * is_slot == 1 : search for the slot.
+  * is_slot == 0 : search for the node.
   */
- static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
+-static void * radix_tree_lookup_element(struct radix_tree_root *root,
++static void *radix_tree_lookup_element(struct radix_tree_root *root,
+ 					unsigned long index, int is_slot)
  {
+ 	unsigned int height, shift;
+@@ -407,7 +407,7 @@ static void * radix_tree_lookup_element(
+  */
+ void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index)
+ {
+-	return (void**)radix_tree_lookup_element(root, index, 1);
++	return (void **)radix_tree_lookup_element(root, index, 1);
+ }
+ EXPORT_SYMBOL(radix_tree_lookup_slot);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
