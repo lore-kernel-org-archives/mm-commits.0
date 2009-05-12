@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + videobuf-dma-contig-zero-copy-userptr-support-v3-comments.patch added to -mm tree
-Date: Tue, 12 May 2009 14:49:11 -0700
-Message-ID: <200905122149.n4CLnBrx005519@imap1.linux-foundation.org>
+Subject: + lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update.patch added to -mm tree
+Date: Tue, 12 May 2009 14:51:27 -0700
+Message-ID: <200905122151.n4CLpR3g006999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40078 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752738AbZELVwu (ORCPT
+	by vger.kernel.org with ESMTP id S1754751AbZELVxD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 May 2009 17:52:50 -0400
+	Tue, 12 May 2009 17:53:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: damm@igel.co.jp, hannes@cmpxchg.org, hverkuil@xs4all.nl, lethal@linux-sh.org, mchehab@infradead.org
+Cc: shijie8@gmail.com
 
 
 The patch titled
-     videobuf-dma-contig: zero copy USERPTR V3 comments
+     lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot update
 has been added to the -mm tree.  Its filename is
-     videobuf-dma-contig-zero-copy-userptr-support-v3-comments.patch
+     lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: videobuf-dma-contig: zero copy USERPTR V3 comments
-From: Magnus Damm <damm@igel.co.jp>
+Subject: lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot update
+From: Huang Shijie <shijie8@gmail.com>
 
-This patch adds function descriptions to V3 of the V4L2
-videobuf-dma-contig USERPTR zero copy patch.
-
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Huang Shijie <shijie8@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/videobuf-dma-contig.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ lib/radix-tree.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/media/video/videobuf-dma-contig.c~videobuf-dma-contig-zero-copy-userptr-support-v3-comments drivers/media/video/videobuf-dma-contig.c
---- a/drivers/media/video/videobuf-dma-contig.c~videobuf-dma-contig-zero-copy-userptr-support-v3-comments
-+++ a/drivers/media/video/videobuf-dma-contig.c
-@@ -110,6 +110,12 @@ static struct vm_operations_struct video
- 	.close    = videobuf_vm_close,
- };
- 
-+/**
-+ * videobuf_dma_contig_user_put() - reset pointer to user space buffer
-+ * @mem: per-buffer private videobuf-dma-contig data
-+ *
-+ * This function resets the user space pointer 
-+ */
- static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
+diff -puN lib/radix-tree.c~lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update lib/radix-tree.c
+--- a/lib/radix-tree.c~lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update
++++ a/lib/radix-tree.c
+@@ -355,8 +355,8 @@ EXPORT_SYMBOL(radix_tree_insert);
+  * is_slot == 1 : search for the slot.
+  * is_slot == 0 : search for the node.
+  */
+-static void * radix_tree_lookup_element(struct radix_tree_root *root,
+-					unsigned long index, int is_slot)
++static void *radix_tree_lookup_element(struct radix_tree_root *root,
++				unsigned long index, int is_slot)
  {
- 	mem->is_userptr = 0;
-@@ -117,6 +123,16 @@ static void videobuf_dma_contig_user_put
- 	mem->size = 0;
+ 	unsigned int height, shift;
+ 	struct radix_tree_node *node, **slot;
+@@ -389,25 +389,25 @@ static void * radix_tree_lookup_element(
+ 		height--;
+ 	} while (height > 0);
+ 
+-	return is_slot ? (void *)slot : node;
++	return is_slot ? (void *)slot:node;
  }
  
-+/**
-+ * videobuf_dma_contig_user_get() - setup user space memory pointer
-+ * @mem: per-buffer private videobuf-dma-contig data
-+ * @vb: video buffer to map
-+ *
-+ * This function validates and sets up a pointer to user space memory.
-+ * Only physically contiguous pfn-mapped memory is accepted.
-+ *
-+ * Returns 0 if successful.
-+ */
- static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
- 					struct videobuf_buffer *vb)
+ /**
+- *    radix_tree_lookup_slot    -    lookup a slot in a radix tree
+- *    @root:        radix tree root
+- *    @index:        index key
++ *	radix_tree_lookup_slot    -    lookup a slot in a radix tree
++ *	@root:		radix tree root
++ *	@index:		index key
+  *
+- *    Returns:  the slot corresponding to the position @index in the
+- *    radix tree @root. This is useful for update-if-exists operations.
++ *	Returns:  the slot corresponding to the position @index in the
++ *	radix tree @root. This is useful for update-if-exists operations.
+  *
+- *    This function can be called under rcu_read_lock iff the slot is not
+- *    modified by radix_tree_replace_slot, otherwise it must be called
+- *    exclusive from other writers. Any dereference of the slot must be done
+- *    using radix_tree_deref_slot.
++ *	This function can be called under rcu_read_lock iff the slot is not
++ *	modified by radix_tree_replace_slot, otherwise it must be called
++ *	exclusive from other writers. Any dereference of the slot must be done
++ *	using radix_tree_deref_slot.
+  */
+ void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index)
  {
+-	return (void**)radix_tree_lookup_element(root, index, 1);
++	return (void **)radix_tree_lookup_element(root, index, 1);
+ }
+ EXPORT_SYMBOL(radix_tree_lookup_slot);
+ 
+@@ -425,7 +425,7 @@ EXPORT_SYMBOL(radix_tree_lookup_slot);
+  */
+ void *radix_tree_lookup(struct radix_tree_root *root, unsigned long index)
+ {
+-    return radix_tree_lookup_element(root, index, 0);
++	return radix_tree_lookup_element(root, index, 0);
+ }
+ EXPORT_SYMBOL(radix_tree_lookup);
+ 
 _
 
-Patches currently in -mm which might be from damm@igel.co.jp are
+Patches currently in -mm which might be from shijie8@gmail.com are
 
-linux-next.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments.patch
+lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot.patch
+lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update.patch
+lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes.patch
 
