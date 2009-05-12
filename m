@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + a.patch added to -mm tree
-Date: Tue, 12 May 2009 15:25:40 -0700
-Message-ID: <200905122244.n4CMiuVb009754@imap1.linux-foundation.org>
+Subject: + drivers-usb-serial-sierrac-fix-printk-warning.patch added to -mm tree
+Date: Tue, 12 May 2009 15:27:59 -0700
+Message-ID: <200905122247.n4CMlFo9011327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752052AbZELWqm (ORCPT
+	by vger.kernel.org with ESMTP id S1751772AbZELWtA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 May 2009 18:46:42 -0400
+	Tue, 12 May 2009 18:49:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: akpm@linux-foundation.org, greg@kroah.com
 The patch titled
      drivers/usb/serial/sierra.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     a.patch
+     drivers-usb-serial-sierrac-fix-printk-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,6 +77,7 @@ mtd-flex-onenand-support.patch
 misdn-l1oip-reduce-stack-memory-footprint.patch
 drivers-net-82596c-suppress-warnings.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+drivers-usb-serial-sierrac-fix-printk-warning.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 revert-fbdev-uninline-lock_fb_info.patch
@@ -116,5 +117,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-a.patch
 
