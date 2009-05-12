@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size.patch added to -mm tree
-Date: Tue, 12 May 2009 14:55:04 -0700
-Message-ID: <200905122155.n4CLt5Oj009436@imap1.linux-foundation.org>
+Subject: + powerpc-fsl_rio-use-law-address-from-device-tree.patch added to -mm tree
+Date: Tue, 12 May 2009 15:11:26 -0700
+Message-ID: <200905122211.n4CMBQkF020248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46755 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751377AbZELV5P (ORCPT
+	by vger.kernel.org with ESMTP id S1752250AbZELWPH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 May 2009 17:57:15 -0400
+	Tue, 12 May 2009 18:15:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tytso@mit.edu, shaggy@linux.vnet.ibm.com
+Cc: leoli@freescale.com, benh@kernel.crashing.org, galak@gate.crashing.org, mporter@kernel.crashing.org, zw@zh-kernel.org
 
 
 The patch titled
-     fs: Don't pass stack garbage to filesystem's get_block() in map_bh->b_size
+     powerpc/fsl_rio: use LAW address from device tree
 has been added to the -mm tree.  Its filename is
-     fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size.patch
+     powerpc-fsl_rio-use-law-address-from-device-tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: Don't pass stack garbage to filesystem's get_block() in map_bh->b_size
-From: "Theodore Ts'o" <tytso@mit.edu>
+Subject: powerpc/fsl_rio: use LAW address from device tree
+From: Li Yang <leoli@freescale.com>
 
-The nobh_truncate_page() function is used by ext2, exofs, and jfs.  Of
-these three, only ext2 and jfs's get_block() function pays attention to
-bh->b_size --- which is normally always the filesystem blocksize except
-when the get_block() function is called by either mpage_readpage(),
-mpage_readpages(), or the direct I/O routines in fs/direct_io.c.
+Instead of fixed address in old code.
 
-Unfortunately, nobh_truncate_page() does not initialize map_bh before
-calling the filesystem-supplied get_block() function.  So ext2 and jfs
-will try to calculate the number of blocks to map by taking stack garbage
-and shifting it left by inode->i_blkbits.  This should be *mostly*
-harmless (except the filesystem will do some unnneeded work) unless the
-stack garbage is less than filesystem's blocksize, in which case maxblocks
-will be zero, and the attempt to find out whether or not the filesystem
-has a hole at a given logical block will fail, and the page cache entry
-might not get zero'ed out.
-
-Also if the stack garbage in in map_bh->state happens to have the
-BH_Mapped bit set, there could be an attempt to call readpage() on a
-non-existent page, which could cause nobh_truncate_page() to return an
-error when it should not.
-
-Fix this by initializing map_bh->state and map_bh->size.
-
-Fortunately, it's probably fairly unlikely that ext2 and jfs users
-mount with nobh these days.
-
-Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Signed-off-by: Li Yang <leoli@freescale.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Zhang Wei <zw@zh-kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/powerpc/sysdev/fsl_rio.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN fs/buffer.c~fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size fs/buffer.c
---- a/fs/buffer.c~fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size
-+++ a/fs/buffer.c
-@@ -2736,6 +2736,8 @@ has_buffers:
- 		pos += blocksize;
- 	}
+diff -puN arch/powerpc/sysdev/fsl_rio.c~powerpc-fsl_rio-use-law-address-from-device-tree arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~powerpc-fsl_rio-use-law-address-from-device-tree
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -1077,8 +1077,9 @@ int fsl_rio_setup(struct of_device *dev)
  
-+	map_bh.b_size = blocksize;
-+	map_bh.b_state = 0;
- 	err = get_block(inode, iblock, &map_bh, 0);
- 	if (err)
- 		goto unlock;
+ 	INIT_LIST_HEAD(&port->dbells);
+ 	port->iores.start = law_start;
+-	port->iores.end = law_start + law_size;
++	port->iores.end = law_start + law_size - 1;
+ 	port->iores.flags = IORESOURCE_MEM;
++	port->iores.name = "rio_io_win";
+ 
+ 	priv->bellirq = irq_of_parse_and_map(dev->node, 2);
+ 	priv->txirq = irq_of_parse_and_map(dev->node, 3);
+@@ -1156,14 +1157,15 @@ int fsl_rio_setup(struct of_device *dev)
+ 		out_be32((priv->regs_win + RIO_ISR_AACR), RIO_ISR_AACR_AA);
+ 
+ 	/* Configure maintenance transaction window */
+-	out_be32(&priv->maint_atmu_regs->rowbar, 0x000c0000);
+-	out_be32(&priv->maint_atmu_regs->rowar, 0x80077015);
++	out_be32(&priv->maint_atmu_regs->rowbar, law_start >> 12);
++	out_be32(&priv->maint_atmu_regs->rowar, 0x80077015);	/* 4M */
+ 
+ 	priv->maint_win = ioremap(law_start, RIO_MAINT_WIN_SIZE);
+ 
+ 	/* Configure outbound doorbell window */
+-	out_be32(&priv->dbell_atmu_regs->rowbar, 0x000c0400);
+-	out_be32(&priv->dbell_atmu_regs->rowar, 0x8004200b);
++	out_be32(&priv->dbell_atmu_regs->rowbar,
++			(law_start + RIO_MAINT_WIN_SIZE) >> 12);
++	out_be32(&priv->dbell_atmu_regs->rowar, 0x8004200b);	/* 4k */
+ 	fsl_rio_doorbell_init(port);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from tytso@mit.edu are
+Patches currently in -mm which might be from leoli@freescale.com are
 
-linux-next.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+rapidio-add-common-mapping-apis-for-rapidio-memory-access.patch
+powerpc-fsl_rio-use-law-address-from-device-tree.patch
+powerpc-add-memory-map-support-to-freescale-rapidio-block.patch
+rionet-add-memory-access-to-simulated-ethernet-over-rapidio.patch
+rio-warn_unused_result-warnings-fix.patch
+rio-fix-section-mismatch.patch
 
