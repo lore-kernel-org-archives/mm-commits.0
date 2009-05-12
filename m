@@ -1,139 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 12 May 2009 14:51:33 -0700
-Message-ID: <200905122151.n4CLpYXg007070@imap1.linux-foundation.org>
+Subject: + fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size.patch added to -mm tree
+Date: Tue, 12 May 2009 14:55:04 -0700
+Message-ID: <200905122155.n4CLt5Oj009436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751377AbZELVxr (ORCPT
+	by vger.kernel.org with ESMTP id S1751377AbZELV5P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 May 2009 17:53:47 -0400
+	Tue, 12 May 2009 17:57:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux-foundation.org, nickpiggin@yahoo.com.au, shijie8@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tytso@mit.edu, shaggy@linux.vnet.ibm.com
 
 
 The patch titled
-     lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes.patch
+     fs: Don't pass stack garbage to filesystem's get_block() in map_bh->b_size
+has been added to the -mm tree.  Its filename is
+     fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs: Don't pass stack garbage to filesystem's get_block() in map_bh->b_size
+From: "Theodore Ts'o" <tytso@mit.edu>
 
-ERROR: "foo * bar" should be "foo *bar"
-#48: FILE: lib/radix-tree.c:358:
-+static void * radix_tree_lookup_element(struct radix_tree_root *root,
+The nobh_truncate_page() function is used by ext2, exofs, and jfs.  Of
+these three, only ext2 and jfs's get_block() function pays attention to
+bh->b_size --- which is normally always the filesystem blocksize except
+when the get_block() function is called by either mpage_readpage(),
+mpage_readpages(), or the direct I/O routines in fs/direct_io.c.
 
-ERROR: spaces prohibited around that ':' (ctx:WxW)
-#67: FILE: lib/radix-tree.c:392:
-+	return is_slot ? (void *)slot : node;
- 	                              ^
+Unfortunately, nobh_truncate_page() does not initialize map_bh before
+calling the filesystem-supplied get_block() function.  So ext2 and jfs
+will try to calculate the number of blocks to map by taking stack garbage
+and shifting it left by inode->i_blkbits.  This should be *mostly*
+harmless (except the filesystem will do some unnneeded work) unless the
+stack garbage is less than filesystem's blocksize, in which case maxblocks
+will be zero, and the attempt to find out whether or not the filesystem
+has a hole at a given logical block will fail, and the page cache entry
+might not get zero'ed out.
 
-ERROR: "(foo**)" should be "(foo **)"
-#85: FILE: lib/radix-tree.c:410:
-+	return (void**)radix_tree_lookup_element(root, index, 1);
+Also if the stack garbage in in map_bh->state happens to have the
+BH_Mapped bit set, there could be an attempt to call readpage() on a
+non-existent page, which could cause nobh_truncate_page() to return an
+error when it should not.
 
-total: 3 errors, 0 warnings, 98 lines checked
+Fix this by initializing map_bh->state and map_bh->size.
 
-./patches/lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Fortunately, it's probably fairly unlikely that ext2 and jfs users
+mount with nobh these days.
 
-Please run checkpatch prior to sending patches
-
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Huang Shijie <shijie8@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/buffer.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/radix-tree.c~lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes lib/radix-tree.c
---- a/lib/radix-tree.c~lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes
-+++ a/lib/radix-tree.c
-@@ -355,7 +355,7 @@ EXPORT_SYMBOL(radix_tree_insert);
-  * is_slot == 1 : search for the slot.
-  * is_slot == 0 : search for the node.
-  */
--static void * radix_tree_lookup_element(struct radix_tree_root *root,
-+static void *radix_tree_lookup_element(struct radix_tree_root *root,
- 					unsigned long index, int is_slot)
- {
- 	unsigned int height, shift;
-@@ -407,7 +407,7 @@ static void * radix_tree_lookup_element(
-  */
- void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index)
- {
--	return (void**)radix_tree_lookup_element(root, index, 1);
-+	return (void **)radix_tree_lookup_element(root, index, 1);
- }
- EXPORT_SYMBOL(radix_tree_lookup_slot);
+diff -puN fs/buffer.c~fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size fs/buffer.c
+--- a/fs/buffer.c~fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size
++++ a/fs/buffer.c
+@@ -2736,6 +2736,8 @@ has_buffers:
+ 		pos += blocksize;
+ 	}
  
++	map_bh.b_size = blocksize;
++	map_bh.b_state = 0;
+ 	err = get_block(inode, iblock, &map_bh, 0);
+ 	if (err)
+ 		goto unlock;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tytso@mit.edu are
 
-alpha-unbreak-percpu-again.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-keyboard-introduce-lm8323-driver.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
-revert-fbdev-uninline-lock_fb_info.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-fs-sysfs-filec-use-create_singlethread_workqueue.patch
-squashfs-fix-breakage-when-pagesize-blocksize.patch
-mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-checkpatch-fixes.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+fs-dont-pass-stack-garbage-to-filesystems-get_block-in-map_bh-b_size.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
 
