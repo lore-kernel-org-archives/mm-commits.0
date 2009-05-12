@@ -1,70 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [folded] dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch removed from -mm tree
-Date: Tue, 12 May 2009 13:38:33 -0700
-Message-ID: <200905122057.n4CKvner003822@imap1.linux-foundation.org>
+Subject: [folded] drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 12 May 2009 13:40:49 -0700
+Message-ID: <200905122100.n4CL05jr005280@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35227 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751722AbZELVBD (ORCPT
+	by vger.kernel.org with ESMTP id S1752208AbZELVDo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 May 2009 17:01:03 -0400
+	Tue, 12 May 2009 17:03:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, simon@fire.lp0.eu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dtor@mail.ru, mamurph@cs.clemson.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix
+     input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
+     drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+This patch was dropped because it was folded into input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix
+Subject: input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- remove commented-out locking operations
-- simplify code
+ERROR: trailing whitespace
+#476: FILE: drivers/input/joystick/xpad.c:332:
++^I$
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Simon Arlott <simon@fire.lp0.eu>
+ERROR: trailing whitespace
+#1354: FILE: drivers/input/joystick/xpad.c:1294:
++^I$
+
+WARNING: kfree(NULL) is safe this check is probably not required
+#1396: FILE: drivers/input/joystick/xpad.c:1333:
++		if (xpad->id_packet)
++			kfree(xpad->id_packet);
+
+ERROR: space required after that ',' (ctx:VxV)
+#1555: FILE: drivers/input/joystick/xpad.h:133:
++#define XPAD_XBOX360_VENDOR_PROTOCOL(vend,pr) \
+                                          ^
+
+ERROR: Macros with multiple statements should be enclosed in a do - while loop
+#1562: FILE: drivers/input/joystick/xpad.h:140:
++#define XPAD_XBOX360_VENDOR(vend) \
++	{ XPAD_XBOX360_VENDOR_PROTOCOL(vend, 1) }, \
++	{ XPAD_XBOX360_VENDOR_PROTOCOL(vend, 129) }
+
+ERROR: trailing whitespace
+#1608: FILE: drivers/input/joystick/xpad.h:186:
++^I$
+
+total: 5 errors, 1 warnings, 1769 lines checked
+
+./patches/drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Mike Murphy <mamurph@cs.clemson.edu>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-core/dmxdev.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ drivers/input/joystick/xpad.c |    3 +--
+ drivers/input/joystick/xpad.h |    2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix drivers/media/dvb/dvb-core/dmxdev.c
---- a/drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix
-+++ a/drivers/media/dvb/dvb-core/dmxdev.c
-@@ -244,19 +244,13 @@ static ssize_t dvb_dvr_read(struct file 
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
--	int ret;
- 
--	if (dmxdev->exit) {
--		//mutex_unlock(&dmxdev->mutex);
-+	if (dmxdev->exit)
- 		return -ENODEV;
--	}
- 
--	//mutex_lock(&dmxdev->mutex);
--	ret = dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
--				     file->f_flags & O_NONBLOCK,
--				     buf, count, ppos);
--	//mutex_unlock(&dmxdev->mutex);
--	return ret;
-+	return dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
-+				      file->f_flags & O_NONBLOCK,
-+				      buf, count, ppos);
+diff -puN drivers/input/joystick/xpad.c~drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes drivers/input/joystick/xpad.c
+--- a/drivers/input/joystick/xpad.c~drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes
++++ a/drivers/input/joystick/xpad.c
+@@ -1329,8 +1329,7 @@ static void xpad_disconnect(struct usb_i
+ 		usb_free_urb(xpad->irq_in);
+ 		usb_buffer_free(xpad->udev, XPAD_PKT_LEN,
+ 				xpad->idata, xpad->idata_dma);
+-		if (xpad->id_packet)
+-			kfree(xpad->id_packet);
++		kfree(xpad->id_packet);
+ 		kfree(xpad);
+ 	}
  }
- 
- static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
+diff -puN drivers/input/joystick/xpad.h~drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes drivers/input/joystick/xpad.h
+--- a/drivers/input/joystick/xpad.h~drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes
++++ a/drivers/input/joystick/xpad.h
+@@ -130,7 +130,7 @@ struct xpad_led {
+  * USB_INTERFACE_INFO (also specifically refused by USB subsystem), so we
+  * match against vendor id as well. Wired Xbox 360 devices have protocol 1,
+  * wireless controllers have protocol 129. */
+-#define XPAD_XBOX360_VENDOR_PROTOCOL(vend,pr) \
++#define XPAD_XBOX360_VENDOR_PROTOCOL(vend, pr) \
+ 	.match_flags = USB_DEVICE_ID_MATCH_VENDOR | \
+ 			USB_DEVICE_ID_MATCH_INT_INFO, \
+ 	.idVendor = (vend), \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,8 +108,8 @@ i-need-old-gcc.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
 drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
 dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read-fix.patch
 input-keyboard-introduce-lm8323-driver.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
 mtd-flex-onenand-support.patch
