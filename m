@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes.patch added to -mm tree
-Date: Wed, 13 May 2009 12:48:11 -0700
-Message-ID: <200905131948.n4DJmBDW005122@imap1.linux-foundation.org>
+Subject: + dtlk-off-by-one-in-readwrite_tts.patch added to -mm tree
+Date: Wed, 13 May 2009 13:00:15 -0700
+Message-ID: <200905132000.n4DK0F5D013273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44594 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753597AbZEMTu0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755558AbZEMUAo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 15:50:26 -0400
+	Wed, 13 May 2009 16:00:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, rmk@arm.linux.org.uk
+Cc: roel.kluin@gmail.com, jrv@vanzandt.mv.com
 
 
 The patch titled
-     mm: double check that memmap is actually valid with a memmap that has unexpected holes
+     dtlk: off by one in {read,write}_tts()
 has been added to the -mm tree.  Its filename is
-     mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes.patch
+     dtlk-off-by-one-in-readwrite_tts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,212 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: double check that memmap is actually valid with a memmap that has unexpected holes
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: dtlk: off by one in {read,write}_tts()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-pfn_valid() is meant to be able to tell if a given PFN has valid memmap
-associated with it or not.  In FLATMEM, it is expected that holes always
-have valid memmap as long as there is valid PFNs either side of the hole. 
-In SPARSEMEM, it is assumed that a valid section has a memmap for the
-entire section.
+With a postfix increment retries is incremented beyond DTLK_MAX_RETRIES so
+the error message is not displayed correctly.
 
-However, ARM and maybe other embedded architectures in the future free
-memmap backing holes to save memory on the assumption the memmap is never
-used.  The page_zone linkages are then broken even though pfn_valid()
-returns true.  A walker of the full memmap must then do this additional
-check to ensure the memmap they are looking at is sane by making sure the
-zone and PFN linkages are still valid.  This is expensive, but walkers of
-the full memmap are extremely rare.
-
-This was caught before for FLATMEM and hacked around but it hits again for
-SPARSEMEM because the page_zone linkages can look ok where the PFN
-linkages are totally screwed.  This looks like a hatchet job but the
-reality is that any clean solution would end up consumning all the memory
-saved by punching these unexpected holes in the memmap.  For example, we
-tried marking the memmap within the section invalid but the section size
-exceeds the size of the hole in most cases so pfn_valid() starts returning
-false where valid memmap exists.  Shrinking the size of the section would
-increase memory consumption offsetting the gains.
-
-This patch identifies when an architecture is punching unexpected holes in
-the memmap that the memory model cannot automatically detect and sets
-ARCH_HAS_HOLES_MEMORYMODEL.  At the moment, this is restricted to EP93xx
-which is the model sub-architecture this has been reported on but may
-expand later.  When set, walkers of the full memmap must call
-memmap_valid_within() for each PFN and passing in what it expects the page
-and zone to be for that PFN.  If it finds the linkages to be broken, it
-assumes the memmap is invalid for that PFN.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: James R. Van Zandt <jrv@vanzandt.mv.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig       |    6 +++---
- include/linux/mmzone.h |   26 ++++++++++++++++++++++++++
- mm/mmzone.c            |   15 +++++++++++++++
- mm/vmstat.c            |   19 ++++---------------
- 4 files changed, 48 insertions(+), 18 deletions(-)
+ drivers/char/dtlk.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/Kconfig~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes arch/arm/Kconfig
---- a/arch/arm/Kconfig~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes
-+++ a/arch/arm/Kconfig
-@@ -281,6 +281,7 @@ config ARCH_EP93XX
- 	select HAVE_CLK
- 	select COMMON_CLKDEV
- 	select ARCH_REQUIRE_GPIOLIB
-+	select ARCH_HAS_HOLES_MEMORYMODEL
- 	help
- 	  This enables support for the Cirrus EP93xx series of CPUs.
+diff -puN drivers/char/dtlk.c~dtlk-off-by-one-in-readwrite_tts drivers/char/dtlk.c
+--- a/drivers/char/dtlk.c~dtlk-off-by-one-in-readwrite_tts
++++ a/drivers/char/dtlk.c
+@@ -571,7 +571,7 @@ static char dtlk_read_tts(void)
+ 		portval = inb_p(dtlk_port_tts);
+ 	} while ((portval & TTS_READABLE) == 0 &&
+ 		 retries++ < DTLK_MAX_RETRIES);
+-	if (retries == DTLK_MAX_RETRIES)
++	if (retries > DTLK_MAX_RETRIES)
+ 		printk(KERN_ERR "dtlk_read_tts() timeout\n");
  
-@@ -1007,10 +1008,9 @@ config OABI_COMPAT
- 	  UNPREDICTABLE (in fact it can be predicted that it won't work
- 	  at all). If in doubt say Y.
+ 	ch = inb_p(dtlk_port_tts);	/* input from TTS port */
+@@ -583,7 +583,7 @@ static char dtlk_read_tts(void)
+ 		portval = inb_p(dtlk_port_tts);
+ 	} while ((portval & TTS_READABLE) != 0 &&
+ 		 retries++ < DTLK_MAX_RETRIES);
+-	if (retries == DTLK_MAX_RETRIES)
++	if (retries > DTLK_MAX_RETRIES)
+ 		printk(KERN_ERR "dtlk_read_tts() timeout\n");
  
--config ARCH_FLATMEM_HAS_HOLES
-+config ARCH_HAS_HOLES_MEMORYMODEL
- 	bool
--	default y
--	depends on FLATMEM
-+	default n
+ 	TRACE_RET;
+@@ -640,7 +640,7 @@ static char dtlk_write_tts(char ch)
+ 		while ((inb_p(dtlk_port_tts) & TTS_WRITABLE) == 0 &&
+ 		       retries++ < DTLK_MAX_RETRIES)	/* DT ready? */
+ 			;
+-	if (retries == DTLK_MAX_RETRIES)
++	if (retries > DTLK_MAX_RETRIES)
+ 		printk(KERN_ERR "dtlk_write_tts() timeout\n");
  
- # Discontigmem is deprecated
- config ARCH_DISCONTIGMEM_ENABLE
-diff -puN include/linux/mmzone.h~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes
-+++ a/include/linux/mmzone.h
-@@ -1108,6 +1108,32 @@ unsigned long __init node_memmap_size_by
- #define pfn_valid_within(pfn) (1)
- #endif
- 
-+#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
-+/*
-+ * pfn_valid() is meant to be able to tell if a given PFN has valid memmap
-+ * associated with it or not. In FLATMEM, it is expected that holes always
-+ * have valid memmap as long as there is valid PFNs either side of the hole.
-+ * In SPARSEMEM, it is assumed that a valid section has a memmap for the
-+ * entire section.
-+ *
-+ * However, an ARM, and maybe other embedded architectures in the future
-+ * free memmap backing holes to save memory on the assumption the memmap is
-+ * never used. The page_zone linkages are then broken even though pfn_valid()
-+ * returns true. A walker of the full memmap must then do this additional
-+ * check to ensure the memmap they are looking at is sane by making sure
-+ * the zone and PFN linkages are still valid. This is expensive, but walkers
-+ * of the full memmap are extremely rare.
-+ */
-+int memmap_valid_within(unsigned long pfn,
-+					struct page *page, struct zone *zone);
-+#else
-+static inline int memmap_valid_within(unsigned long pfn,
-+					struct page *page, struct zone *zone)
-+{
-+	return 1;
-+}
-+#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
-+
- #endif /* !__GENERATING_BOUNDS.H */
- #endif /* !__ASSEMBLY__ */
- #endif /* _LINUX_MMZONE_H */
-diff -puN mm/mmzone.c~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes mm/mmzone.c
---- a/mm/mmzone.c~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes
-+++ a/mm/mmzone.c
-@@ -6,6 +6,7 @@
- 
- 
- #include <linux/stddef.h>
-+#include <linux/mm.h>
- #include <linux/mmzone.h>
- #include <linux/module.h>
- 
-@@ -72,3 +73,17 @@ struct zoneref *next_zones_zonelist(stru
- 	*zone = zonelist_zone(z);
- 	return z;
- }
-+
-+#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
-+int memmap_valid_within(unsigned long pfn,
-+					struct page *page, struct zone *zone)
-+{
-+	if (page_to_pfn(page) != pfn)
-+		return 0;
-+
-+	if (page_zone(page) != zone)
-+		return 0;
-+
-+	return 1;
-+}
-+#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
-diff -puN mm/vmstat.c~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes mm/vmstat.c
---- a/mm/vmstat.c~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes
-+++ a/mm/vmstat.c
-@@ -509,22 +509,11 @@ static void pagetypeinfo_showblockcount_
- 			continue;
- 
- 		page = pfn_to_page(pfn);
--#ifdef CONFIG_ARCH_FLATMEM_HAS_HOLES
--		/*
--		 * Ordinarily, memory holes in flatmem still have a valid
--		 * memmap for the PFN range. However, an architecture for
--		 * embedded systems (e.g. ARM) can free up the memmap backing
--		 * holes to save memory on the assumption the memmap is
--		 * never used. The page_zone linkages are then broken even
--		 * though pfn_valid() returns true. Skip the page if the
--		 * linkages are broken. Even if this test passed, the impact
--		 * is that the counters for the movable type are off but
--		 * fragmentation monitoring is likely meaningless on small
--		 * systems.
--		 */
--		if (page_zone(page) != zone)
-+
-+		/* Watch for unexpected holes punched in the memmap */
-+		if (!memmap_valid_within(pfn, page, zone))
- 			continue;
--#endif
-+
- 		mtype = get_pageblock_migratetype(page);
- 
- 		if (mtype < MIGRATE_TYPES)
+ 	outb_p(ch, dtlk_port_tts);	/* output to TTS port */
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
+asm-generic-fix-local_add_unless-macro.patch
 linux-next.patch
-mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-mm-alloc_large_system_hash-check-order.patch
-page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
-page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
-page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
-page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
-page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-inline-__rmqueue_smallest.patch
-page-allocator-inline-buffered_rmqueue.patch
-page-allocator-inline-__rmqueue_fallback.patch
-page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
-page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
-page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
-page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
-page-allocator-update-nr_free_pages-only-as-necessary.patch
-page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
-page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-page-allocator-move-free_page_mlock-to-page_allocc.patch
-page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
-mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+drm-fix-lock_test_with_return-macro.patch
+v4l-dvb-cimax2c-fix-typo.patch
+zoran-fix-error.patch
+uwb-event_size-should-be-signed.patch
+irda-count-reaches-1.patch
+isdn-get_free_devid-failure-ignored.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+wis-sony-tunerc-typo.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+spi_bfin5xx-limit-reaches-1.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
+nes-off-by-one-in-reset_adapter_ne020-and-init_serdes.patch
+riptide-postfix-increment-and-off-by-one.patch
 
