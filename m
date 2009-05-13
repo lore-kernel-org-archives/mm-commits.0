@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dtlk-off-by-one-in-readwrite_tts.patch added to -mm tree
-Date: Wed, 13 May 2009 13:00:15 -0700
-Message-ID: <200905132000.n4DK0F5D013273@imap1.linux-foundation.org>
+Subject: + riptide-postfix-increment-and-off-by-one.patch added to -mm tree
+Date: Wed, 13 May 2009 13:00:19 -0700
+Message-ID: <200905132000.n4DK0Jsq013369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755558AbZEMUAo (ORCPT
+	by vger.kernel.org with ESMTP id S1755862AbZEMUA4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 16:00:44 -0400
+	Wed, 13 May 2009 16:00:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, jrv@vanzandt.mv.com
+Cc: roel.kluin@gmail.com, tiwai@suse.de
 
 
 The patch titled
-     dtlk: off by one in {read,write}_tts()
+     riptide: postfix increment and off by one
 has been added to the -mm tree.  Its filename is
-     dtlk-off-by-one-in-readwrite_tts.patch
+     riptide-postfix-increment-and-off-by-one.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dtlk: off by one in {read,write}_tts()
+Subject: riptide: postfix increment and off by one
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With a postfix increment retries is incremented beyond DTLK_MAX_RETRIES so
-the error message is not displayed correctly.
+With a postfix increment these variables are incremented beyond
+CMDIF_TIMEOUT / MAX_WRITE_RETRY.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: James R. Van Zandt <jrv@vanzandt.mv.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/dtlk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ sound/pci/riptide/riptide.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/dtlk.c~dtlk-off-by-one-in-readwrite_tts drivers/char/dtlk.c
---- a/drivers/char/dtlk.c~dtlk-off-by-one-in-readwrite_tts
-+++ a/drivers/char/dtlk.c
-@@ -571,7 +571,7 @@ static char dtlk_read_tts(void)
- 		portval = inb_p(dtlk_port_tts);
- 	} while ((portval & TTS_READABLE) == 0 &&
- 		 retries++ < DTLK_MAX_RETRIES);
--	if (retries == DTLK_MAX_RETRIES)
-+	if (retries > DTLK_MAX_RETRIES)
- 		printk(KERN_ERR "dtlk_read_tts() timeout\n");
+diff -puN sound/pci/riptide/riptide.c~riptide-postfix-increment-and-off-by-one sound/pci/riptide/riptide.c
+--- a/sound/pci/riptide/riptide.c~riptide-postfix-increment-and-off-by-one
++++ a/sound/pci/riptide/riptide.c
+@@ -889,7 +889,7 @@ static int sendcmd(struct cmdif *cif, u3
+ 	spin_lock_irqsave(&cif->lock, irqflags);
+ 	while (i++ < CMDIF_TIMEOUT && !IS_READY(cif->hwport))
+ 		udelay(10);
+-	if (i >= CMDIF_TIMEOUT) {
++	if (i > CMDIF_TIMEOUT) {
+ 		err = -EBUSY;
+ 		goto errout;
+ 	}
+@@ -907,8 +907,10 @@ static int sendcmd(struct cmdif *cif, u3
+ 			WRITE_PORT_ULONG(cmdport->data1, cmd);	/* write cmd */
+ 			if ((flags & RESP) && ret) {
+ 				while (!IS_DATF(cmdport) &&
+-				       time++ < CMDIF_TIMEOUT)
++				       time < CMDIF_TIMEOUT) {
+ 					udelay(10);
++					time++;
++				}
+ 				if (time < CMDIF_TIMEOUT) {	/* read response */
+ 					ret->retlongs[0] =
+ 					    READ_PORT_ULONG(cmdport->data1);
+@@ -1454,7 +1456,7 @@ static int snd_riptide_trigger(struct sn
+ 			SEND_GPOS(cif, 0, data->id, &rptr);
+ 			udelay(1);
+ 		} while (i != rptr.retlongs[1] && j++ < MAX_WRITE_RETRY);
+-		if (j >= MAX_WRITE_RETRY)
++		if (j > MAX_WRITE_RETRY)
+ 			snd_printk(KERN_ERR "Riptide: Could not stop stream!");
+ 		break;
+ 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+@@ -1783,7 +1785,7 @@ snd_riptide_codec_write(struct snd_ac97 
+ 		SEND_SACR(cif, val, reg);
+ 		SEND_RACR(cif, reg, &rptr);
+ 	} while (rptr.retwords[1] != val && i++ < MAX_WRITE_RETRY);
+-	if (i == MAX_WRITE_RETRY)
++	if (i > MAX_WRITE_RETRY)
+ 		snd_printdd("Write AC97 reg failed\n");
+ }
  
- 	ch = inb_p(dtlk_port_tts);	/* input from TTS port */
-@@ -583,7 +583,7 @@ static char dtlk_read_tts(void)
- 		portval = inb_p(dtlk_port_tts);
- 	} while ((portval & TTS_READABLE) != 0 &&
- 		 retries++ < DTLK_MAX_RETRIES);
--	if (retries == DTLK_MAX_RETRIES)
-+	if (retries > DTLK_MAX_RETRIES)
- 		printk(KERN_ERR "dtlk_read_tts() timeout\n");
- 
- 	TRACE_RET;
-@@ -640,7 +640,7 @@ static char dtlk_write_tts(char ch)
- 		while ((inb_p(dtlk_port_tts) & TTS_WRITABLE) == 0 &&
- 		       retries++ < DTLK_MAX_RETRIES)	/* DT ready? */
- 			;
--	if (retries == DTLK_MAX_RETRIES)
-+	if (retries > DTLK_MAX_RETRIES)
- 		printk(KERN_ERR "dtlk_write_tts() timeout\n");
- 
- 	outb_p(ch, dtlk_port_tts);	/* output to TTS port */
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
