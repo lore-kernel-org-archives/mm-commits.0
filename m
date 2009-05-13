@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-add-sst39sf040-chip-to-jedec_probe.patch added to -mm tree
-Date: Wed, 13 May 2009 11:44:16 -0700
-Message-ID: <200905131844.n4DIiGDF027023@imap1.linux-foundation.org>
+Subject: + davinci_nand-cmdlinepart-uses-mtd-ids.patch added to -mm tree
+Date: Wed, 13 May 2009 11:46:04 -0700
+Message-ID: <200905131846.n4DIk4Dq028262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760449AbZEMSp7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755735AbZEMStP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 14:45:59 -0400
+	Wed, 13 May 2009 14:49:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mirq-linux@rere.qmqm.pl, dwmw2@infradead.org
+Cc: dbrownell@users.sourceforge.net, dwmw2@infradead.org, nsnehaprabha@ti.com
 
 
 The patch titled
-     mtd: add SST39SF040 chip to jedec_probe
+     davinci_nand: cmdlinepart uses MTD IDs
 has been added to the -mm tree.  Its filename is
-     mtd-add-sst39sf040-chip-to-jedec_probe.patch
+     davinci_nand-cmdlinepart-uses-mtd-ids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: add SST39SF040 chip to jedec_probe
-From: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Subject: davinci_nand: cmdlinepart uses MTD IDs
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Add SST39SF040 chip (like SST39SF020A but bigger - 4Mbit).
+Remove some legacy code from the davinci_nand driver, which made
+cmdlinepart ignore the the MTD ID passed to it.  Boards can have multiple
+NAND chips, and some do (like the DM357 EVM), so this dated hack is
+undesirable.
 
-Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Correct labels a"re like davinci_nand.0" (for chipselect 0).
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Snehaprabha Narnakaje <nsnehaprabha@ti.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/jedec_probe.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/mtd/nand/davinci_nand.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN drivers/mtd/chips/jedec_probe.c~mtd-add-sst39sf040-chip-to-jedec_probe drivers/mtd/chips/jedec_probe.c
---- a/drivers/mtd/chips/jedec_probe.c~mtd-add-sst39sf040-chip-to-jedec_probe
-+++ a/drivers/mtd/chips/jedec_probe.c
-@@ -166,6 +166,7 @@
- #define SST39LF040	0x00D7
- #define SST39SF010A	0x00B5
- #define SST39SF020A	0x00B6
-+#define SST39SF040	0x00B7
- #define SST49LF004B	0x0060
- #define SST49LF040B	0x0050
- #define SST49LF008A	0x005a
-@@ -1393,6 +1394,18 @@ static const struct amd_flash_info jedec
- 		}
- 	}, {
- 		.mfr_id		= MANUFACTURER_SST,
-+		.dev_id		= SST39SF040,
-+		.name		= "SST 39SF040",
-+		.devtypes	= CFI_DEVICETYPE_X8,
-+		.uaddr		= MTD_UADDR_0x5555_0x2AAA,
-+		.dev_size	= SIZE_512KiB,
-+		.cmd_set	= P_ID_AMD_STD,
-+		.nr_regions	= 1,
-+		.regions	= {
-+			ERASEINFO(0x01000,128),
-+		}
-+	}, {
-+		.mfr_id		= MANUFACTURER_SST,
- 		.dev_id		= SST49LF040B,
- 		.name		= "SST 49LF040B",
- 		.devtypes	= CFI_DEVICETYPE_X8,
-_
-
-Patches currently in -mm which might be from mirq-linux@rere.qmqm.pl are
-
-mtd-add-sst39sf040-chip-to-jedec_probe.patch
-pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-
+diff -puN drivers/mtd/nand/davinci_nand.c~davinci_nand-cmdlinepart-uses-mtd-ids drivers/mtd/nand/davinci_nand.c
+--- a/drivers/mtd/nand/davinci_nand.c~davinci_nand-cmdlinepart-uses-mtd-ids
++++ a/drivers/mtd/nand/davinci_nand.c
+@@ -717,19 +717,8 @@ syndrome_done:
+ 			static const char *probes[] __initconst =
+ 				{ "cmdlinepart", NULL };
+ 
+-			const char		*master_name;
+-
+-			/* Set info->mtd.name = 0 temporarily */
+-			master_name		= info->mtd.name;
+-			info->mtd.name		= (char *)0;
+-
+-			/* info->mtd.name == 0, means: don't bother checking
+-			   <mtd-id> */
+ 			mtd_parts_nb = parse_mtd_partitions(&info->mtd, probes,
+ 							    &mtd_parts, 0);
