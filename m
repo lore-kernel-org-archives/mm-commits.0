@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch added to -mm tree
-Date: Wed, 13 May 2009 12:44:34 -0700
-Message-ID: <200905131944.n4DJiY9O002680@imap1.linux-foundation.org>
+Subject: + mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes.patch added to -mm tree
+Date: Wed, 13 May 2009 12:48:11 -0700
+Message-ID: <200905131948.n4DJmBDW005122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752055AbZEMTsK (ORCPT
+	by vger.kernel.org with ESMTP id S1753597AbZEMTu0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 15:48:10 -0400
+	Wed, 13 May 2009 15:50:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, hannes@cmpxchg.org, lee.schermerhorn@hp.com, riel@redhat.com
+Cc: mel@csn.ul.ie, rmk@arm.linux.org.uk
 
 
 The patch titled
-     vmscan: change the number of the unmapped files in zone reclaim
+     mm: double check that memmap is actually valid with a memmap that has unexpected holes
 has been added to the -mm tree.  Its filename is
-     vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
+     mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,180 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: change the number of the unmapped files in zone reclaim
+Subject: mm: double check that memmap is actually valid with a memmap that has unexpected holes
+From: Mel Gorman <mel@csn.ul.ie>
 
+pfn_valid() is meant to be able to tell if a given PFN has valid memmap
+associated with it or not.  In FLATMEM, it is expected that holes always
+have valid memmap as long as there is valid PFNs either side of the hole. 
+In SPARSEMEM, it is assumed that a valid section has a memmap for the
+entire section.
 
-Documentation/sysctl/vm.txt says
+However, ARM and maybe other embedded architectures in the future free
+memmap backing holes to save memory on the assumption the memmap is never
+used.  The page_zone linkages are then broken even though pfn_valid()
+returns true.  A walker of the full memmap must then do this additional
+check to ensure the memmap they are looking at is sane by making sure the
+zone and PFN linkages are still valid.  This is expensive, but walkers of
+the full memmap are extremely rare.
 
-    A percentage of the total pages in each zone.  Zone reclaim will
-    only occur if more than this percentage of pages are file backed and
-    unmapped.  This is to insure that a minimal amount of local pages is
-    still available for file I/O even if the node is overallocated.
+This was caught before for FLATMEM and hacked around but it hits again for
+SPARSEMEM because the page_zone linkages can look ok where the PFN
+linkages are totally screwed.  This looks like a hatchet job but the
+reality is that any clean solution would end up consumning all the memory
+saved by punching these unexpected holes in the memmap.  For example, we
+tried marking the memmap within the section invalid but the section size
+exceeds the size of the hole in most cases so pfn_valid() starts returning
+false where valid memmap exists.  Shrinking the size of the section would
+increase memory consumption offsetting the gains.
 
-However, zone_page_state(zone, NR_FILE_PAGES) contain some non file backed
-pages (e.g.  swapcache, buffer-head)
+This patch identifies when an architecture is punching unexpected holes in
+the memmap that the memory model cannot automatically detect and sets
+ARCH_HAS_HOLES_MEMORYMODEL.  At the moment, this is restricted to EP93xx
+which is the model sub-architecture this has been reported on but may
+expand later.  When set, walkers of the full memmap must call
+memmap_valid_within() for each PFN and passing in what it expects the page
+and zone to be for that PFN.  If it finds the linkages to be broken, it
+assumes the memmap is invalid for that PFN.
 
-The right calculation is to use NR_{IN}ACTIVE_FILE.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ arch/arm/Kconfig       |    6 +++---
+ include/linux/mmzone.h |   26 ++++++++++++++++++++++++++
+ mm/mmzone.c            |   15 +++++++++++++++
+ mm/vmstat.c            |   19 ++++---------------
+ 4 files changed, 48 insertions(+), 18 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim mm/vmscan.c
---- a/mm/vmscan.c~vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim
-+++ a/mm/vmscan.c
-@@ -2364,6 +2364,7 @@ static int __zone_reclaim(struct zone *z
- 		.isolate_pages = isolate_pages_global,
- 	};
- 	unsigned long slab_reclaimable;
-+	long nr_unmapped_file_pages;
+diff -puN arch/arm/Kconfig~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes arch/arm/Kconfig
+--- a/arch/arm/Kconfig~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes
++++ a/arch/arm/Kconfig
+@@ -281,6 +281,7 @@ config ARCH_EP93XX
+ 	select HAVE_CLK
+ 	select COMMON_CLKDEV
+ 	select ARCH_REQUIRE_GPIOLIB
++	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	help
+ 	  This enables support for the Cirrus EP93xx series of CPUs.
  
- 	disable_swap_token();
- 	cond_resched();
-@@ -2376,9 +2377,11 @@ static int __zone_reclaim(struct zone *z
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
+@@ -1007,10 +1008,9 @@ config OABI_COMPAT
+ 	  UNPREDICTABLE (in fact it can be predicted that it won't work
+ 	  at all). If in doubt say Y.
  
--	if (zone_page_state(zone, NR_FILE_PAGES) -
--		zone_page_state(zone, NR_FILE_MAPPED) >
--		zone->min_unmapped_pages) {
-+	nr_unmapped_file_pages = zone_page_state(zone, NR_INACTIVE_FILE) +
-+				 zone_page_state(zone, NR_ACTIVE_FILE) -
-+				 zone_page_state(zone, NR_FILE_MAPPED);
+-config ARCH_FLATMEM_HAS_HOLES
++config ARCH_HAS_HOLES_MEMORYMODEL
+ 	bool
+-	default y
+-	depends on FLATMEM
++	default n
+ 
+ # Discontigmem is deprecated
+ config ARCH_DISCONTIGMEM_ENABLE
+diff -puN include/linux/mmzone.h~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes
++++ a/include/linux/mmzone.h
+@@ -1108,6 +1108,32 @@ unsigned long __init node_memmap_size_by
+ #define pfn_valid_within(pfn) (1)
+ #endif
+ 
++#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
++/*
++ * pfn_valid() is meant to be able to tell if a given PFN has valid memmap
++ * associated with it or not. In FLATMEM, it is expected that holes always
++ * have valid memmap as long as there is valid PFNs either side of the hole.
++ * In SPARSEMEM, it is assumed that a valid section has a memmap for the
++ * entire section.
++ *
++ * However, an ARM, and maybe other embedded architectures in the future
++ * free memmap backing holes to save memory on the assumption the memmap is
++ * never used. The page_zone linkages are then broken even though pfn_valid()
++ * returns true. A walker of the full memmap must then do this additional
++ * check to ensure the memmap they are looking at is sane by making sure
++ * the zone and PFN linkages are still valid. This is expensive, but walkers
++ * of the full memmap are extremely rare.
++ */
++int memmap_valid_within(unsigned long pfn,
++					struct page *page, struct zone *zone);
++#else
++static inline int memmap_valid_within(unsigned long pfn,
++					struct page *page, struct zone *zone)
++{
++	return 1;
++}
++#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
 +
-+	if (nr_unmapped_file_pages > zone->min_unmapped_pages) {
- 		/*
- 		 * Free memory by calling shrink zone with increasing
- 		 * priorities until we have enough memory freed.
-@@ -2425,6 +2428,8 @@ int zone_reclaim(struct zone *zone, gfp_
- {
- 	int node_id;
- 	int ret;
-+	long nr_unmapped_file_pages;
-+	long nr_slab_reclaimable;
+ #endif /* !__GENERATING_BOUNDS.H */
+ #endif /* !__ASSEMBLY__ */
+ #endif /* _LINUX_MMZONE_H */
+diff -puN mm/mmzone.c~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes mm/mmzone.c
+--- a/mm/mmzone.c~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes
++++ a/mm/mmzone.c
+@@ -6,6 +6,7 @@
  
- 	/*
- 	 * Zone reclaim reclaims unmapped file backed pages and
-@@ -2436,10 +2441,12 @@ int zone_reclaim(struct zone *zone, gfp_
- 	 * if less than a specified percentage of the zone is used by
- 	 * unmapped file backed pages.
- 	 */
--	if (zone_page_state(zone, NR_FILE_PAGES) -
--	    zone_page_state(zone, NR_FILE_MAPPED) <= zone->min_unmapped_pages
--	    && zone_page_state(zone, NR_SLAB_RECLAIMABLE)
--			<= zone->min_slab_pages)
-+	nr_unmapped_file_pages = zone_page_state(zone, NR_INACTIVE_FILE) +
-+				 zone_page_state(zone, NR_ACTIVE_FILE) -
-+				 zone_page_state(zone, NR_FILE_MAPPED);
-+	nr_slab_reclaimable = zone_page_state(zone, NR_SLAB_RECLAIMABLE);
-+	if (nr_unmapped_file_pages <= zone->min_unmapped_pages &&
-+	    nr_slab_reclaimable <= zone->min_slab_pages)
- 		return 0;
  
- 	if (zone_is_all_unreclaimable(zone))
+ #include <linux/stddef.h>
++#include <linux/mm.h>
+ #include <linux/mmzone.h>
+ #include <linux/module.h>
+ 
+@@ -72,3 +73,17 @@ struct zoneref *next_zones_zonelist(stru
+ 	*zone = zonelist_zone(z);
+ 	return z;
+ }
++
++#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
++int memmap_valid_within(unsigned long pfn,
++					struct page *page, struct zone *zone)
++{
++	if (page_to_pfn(page) != pfn)
++		return 0;
++
++	if (page_zone(page) != zone)
++		return 0;
++
++	return 1;
++}
++#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
+diff -puN mm/vmstat.c~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes mm/vmstat.c
+--- a/mm/vmstat.c~mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes
++++ a/mm/vmstat.c
+@@ -509,22 +509,11 @@ static void pagetypeinfo_showblockcount_
+ 			continue;
+ 
+ 		page = pfn_to_page(pfn);
+-#ifdef CONFIG_ARCH_FLATMEM_HAS_HOLES
+-		/*
+-		 * Ordinarily, memory holes in flatmem still have a valid
+-		 * memmap for the PFN range. However, an architecture for
+-		 * embedded systems (e.g. ARM) can free up the memmap backing
+-		 * holes to save memory on the assumption the memmap is
+-		 * never used. The page_zone linkages are then broken even
+-		 * though pfn_valid() returns true. Skip the page if the
+-		 * linkages are broken. Even if this test passed, the impact
+-		 * is that the counters for the movable type are off but
+-		 * fragmentation monitoring is likely meaningless on small
+-		 * systems.
+-		 */
+-		if (page_zone(page) != zone)
++
++		/* Watch for unexpected holes punched in the memmap */
++		if (!memmap_valid_within(pfn, page, zone))
+ 			continue;
+-#endif
++
+ 		mtype = get_pageblock_migratetype(page);
+ 
+ 		if (mtype < MIGRATE_TYPES)
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 linux-next.patch
-procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
 vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+mm-alloc_large_system_hash-check-order.patch
 page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
@@ -144,30 +233,13 @@ page-allocator-update-nr_free_pages-only-as-necessary.patch
 page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
 page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
 page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
 page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
 page-allocator-move-free_page_mlock-to-page_allocc.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
-pagemap-document-clarifications.patch
-pagemap-document-9-more-exported-page-flags.patch
-pagemap-add-page-types-tool.patch
-pagemap-export-pg_hwpoison.patch
-pagemap-export-pg_hwpoison-fix.patch
-vmscan-evict-use-once-pages-first-v3.patch
-vmscan-cleanup-the-scan-batching-code.patch
-vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
-vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
+mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
 page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
-vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
-vmscan-zone_reclaim-use-may_swap.patch
-migration-only-migrate_prep-once-per-move_pages.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+mm-double-check-that-memmap-is-actually-valid-with-a-memmap-that-has-unexpected-holes.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
