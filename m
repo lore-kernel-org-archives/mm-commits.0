@@ -1,141 +1,286 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix.patch removed from -mm tree
-Date: Wed, 13 May 2009 12:12:14 -0700
-Message-ID: <200905131912.n4DJCEiu013386@imap1.linux-foundation.org>
+Subject: + pm-hibernate-move-memory-shrinking-to-snapshotc-rev-2.patch added to -mm tree
+Date: Wed, 13 May 2009 12:35:24 -0700
+Message-ID: <200905131935.n4DJZP0B028973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754053AbZEMTQv (ORCPT
+	by vger.kernel.org with ESMTP id S1753350AbZEMTi1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 15:16:51 -0400
+	Wed, 13 May 2009 15:38:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@gmail.com, mel@csn.ul.ie, pavel@ucw.cz, rientjes@google.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rjw@sisk.pl, fengguang.wu@intel.com, pavel@ucw.cz
 
 
 The patch titled
-     mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix
-has been removed from the -mm tree.  Its filename was
-     mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix.patch
+     pm/hibernate: move memory shrinking to snapshotc
+has been added to the -mm tree.  Its filename is
+     pm-hibernate-move-memory-shrinking-to-snapshotc-rev-2.patch
 
-This patch was dropped because it was folded into mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pm/hibernate: move memory shrinking to snapshotc
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Be nicer to the namespace.
+The next patch is going to modify the memory shrinking code so that it
+will make memory allocations to free memory instead of using an artificial
+memory shrinking mechanism for that.  For this purpose it is convenient to
+move swsusp_shrink_memory() from kernel/power/swsusp.c to
+kernel/power/snapshot.c, because the new memory-shrinking code is going to
+use things that are local to kernel/power/snapshot.c .
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |    4 ++--
- kernel/power/process.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/power/power.h    |    4 -
+ kernel/power/snapshot.c |   80 +++++++++++++++++++++++++++++++++++++-
+ kernel/power/swsusp.c   |   76 ------------------------------------
+ 3 files changed, 79 insertions(+), 81 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix include/linux/gfp.h
---- a/include/linux/gfp.h~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix
-+++ a/include/linux/gfp.h
-@@ -242,12 +242,12 @@ void drain_local_pages(void *dummy);
+diff -puN kernel/power/power.h~pm-hibernate-move-memory-shrinking-to-snapshotc-rev-2 kernel/power/power.h
+--- a/kernel/power/power.h~pm-hibernate-move-memory-shrinking-to-snapshotc-rev-2
++++ a/kernel/power/power.h
+@@ -74,7 +74,7 @@ extern asmlinkage int swsusp_arch_resume
  
- extern bool oom_killer_disabled;
+ extern int create_basic_memory_bitmaps(void);
+ extern void free_basic_memory_bitmaps(void);
+-extern unsigned int count_data_pages(void);
++extern int swsusp_shrink_memory(void);
  
--static inline void disable_oom_killer(void)
-+static inline void oom_killer_disable(void)
+ /**
+  *	Auxiliary structure used for reading the snapshot image data and
+@@ -149,7 +149,6 @@ extern int swsusp_swap_in_use(void);
+ 
+ /* kernel/power/disk.c */
+ extern int swsusp_check(void);
+-extern int swsusp_shrink_memory(void);
+ extern void swsusp_free(void);
+ extern int swsusp_read(unsigned int *flags_p);
+ extern int swsusp_write(unsigned int flags);
+@@ -176,7 +175,6 @@ extern int pm_notifier_call_chain(unsign
+ #endif
+ 
+ #ifdef CONFIG_HIGHMEM
+-unsigned int count_highmem_pages(void);
+ int restore_highmem(void);
+ #else
+ static inline unsigned int count_highmem_pages(void) { return 0; }
+diff -puN kernel/power/snapshot.c~pm-hibernate-move-memory-shrinking-to-snapshotc-rev-2 kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~pm-hibernate-move-memory-shrinking-to-snapshotc-rev-2
++++ a/kernel/power/snapshot.c
+@@ -39,6 +39,14 @@ static int swsusp_page_is_free(struct pa
+ static void swsusp_set_page_forbidden(struct page *);
+ static void swsusp_unset_page_forbidden(struct page *);
+ 
++/*
++ * Preferred image size in bytes (tunable via /sys/power/image_size).
++ * When it is set to N, swsusp will do its best to ensure the image
++ * size will not exceed N bytes, but if that is impossible, it will
++ * try to create the smallest image possible.
++ */
++unsigned long image_size = 500 * 1024 * 1024;
++
+ /* List of PBEs needed for restoring the pages that were allocated before
+  * the suspend and included in the suspend image, but have also been
+  * allocated by the "resume" kernel, so their contents cannot be written
+@@ -840,7 +848,7 @@ static struct page *saveable_highmem_pag
+  *	pages.
+  */
+ 
+-unsigned int count_highmem_pages(void)
++static unsigned int count_highmem_pages(void)
  {
- 	oom_killer_disabled = true;
+ 	struct zone *zone;
+ 	unsigned int n = 0;
+@@ -902,7 +910,7 @@ static struct page *saveable_page(struct
+  *	pages.
+  */
+ 
+-unsigned int count_data_pages(void)
++static unsigned int count_data_pages(void)
+ {
+ 	struct zone *zone;
+ 	unsigned long pfn, max_zone_pfn;
+@@ -1058,6 +1066,74 @@ void swsusp_free(void)
+ 	buffer = NULL;
  }
  
--static inline void enable_oom_killer(void)
-+static inline void oom_killer_enable(void)
- {
- 	oom_killer_disabled = false;
++/**
++ *	swsusp_shrink_memory -  Try to free as much memory as needed
++ *
++ *	... but do not OOM-kill anyone
++ *
++ *	Notice: all userland should be stopped before it is called, or
++ *	livelock is possible.
++ */
++
++#define SHRINK_BITE	10000
++static inline unsigned long __shrink_memory(long tmp)
++{
++	if (tmp > SHRINK_BITE)
++		tmp = SHRINK_BITE;
++	return shrink_all_memory(tmp);
++}
++
++int swsusp_shrink_memory(void)
++{
++	long tmp;
++	struct zone *zone;
++	unsigned long pages = 0;
++	unsigned int i = 0;
++	char *p = "-\\|/";
++	struct timeval start, stop;
++
++	printk(KERN_INFO "PM: Shrinking memory...  ");
++	do_gettimeofday(&start);
++	do {
++		long size, highmem_size;
++
++		highmem_size = count_highmem_pages();
++		size = count_data_pages() + PAGES_FOR_IO + SPARE_PAGES;
++		tmp = size;
++		size += highmem_size;
++		for_each_populated_zone(zone) {
++			tmp += snapshot_additional_pages(zone);
++			if (is_highmem(zone)) {
++				highmem_size -=
++					zone_page_state(zone, NR_FREE_PAGES);
++			} else {
++				tmp -= zone_page_state(zone, NR_FREE_PAGES);
++				tmp += zone->lowmem_reserve[ZONE_NORMAL];
++			}
++		}
++
++		if (highmem_size < 0)
++			highmem_size = 0;
++
++		tmp += highmem_size;
++		if (tmp > 0) {
++			tmp = __shrink_memory(tmp);
++			if (!tmp)
++				return -ENOMEM;
++			pages += tmp;
++		} else if (size > image_size / PAGE_SIZE) {
++			tmp = __shrink_memory(size - (image_size / PAGE_SIZE));
++			pages += tmp;
++		}
++		printk("\b%c", p[i++%4]);
++	} while (tmp > 0);
++	do_gettimeofday(&stop);
++	printk("\bdone (%lu pages freed)\n", pages);
++	swsusp_show_speed(&start, &stop, pages, "Freed");
++
++	return 0;
++}
++
+ #ifdef CONFIG_HIGHMEM
+ /**
+   *	count_pages_for_highmem - compute the number of non-highmem pages
+diff -puN kernel/power/swsusp.c~pm-hibernate-move-memory-shrinking-to-snapshotc-rev-2 kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~pm-hibernate-move-memory-shrinking-to-snapshotc-rev-2
++++ a/kernel/power/swsusp.c
+@@ -55,14 +55,6 @@
+ 
+ #include "power.h"
+ 
+-/*
+- * Preferred image size in bytes (tunable via /sys/power/image_size).
+- * When it is set to N, swsusp will do its best to ensure the image
+- * size will not exceed N bytes, but if that is impossible, it will
+- * try to create the smallest image possible.
+- */
+-unsigned long image_size = 500 * 1024 * 1024;
+-
+ int in_suspend __nosavedata = 0;
+ 
+ /**
+@@ -195,74 +187,6 @@ void swsusp_show_speed(struct timeval *s
+ 			kps / 1000, (kps % 1000) / 10);
  }
-diff -puN kernel/power/process.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix kernel/power/process.c
---- a/kernel/power/process.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix
-+++ a/kernel/power/process.c
-@@ -118,7 +118,7 @@ int freeze_processes(void)
- 		goto Exit;
- 	printk("done.");
  
--	disable_oom_killer();
-+	oom_killer_disable();
-  Exit:
- 	BUG_ON(in_atomic());
- 	printk("\n");
-@@ -148,7 +148,7 @@ static void thaw_tasks(bool nosig_only)
- 
- void thaw_processes(void)
- {
--	enable_oom_killer();
-+	oom_killer_enable();
- 
- 	printk("Restarting tasks ... ");
- 	thaw_tasks(true);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-keyboard-introduce-lm8323-driver.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-drivers-usb-serial-sierrac-fix-printk-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-revert-fbdev-uninline-lock_fb_info.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-squashfs-fix-breakage-when-pagesize-blocksize.patch
-mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-
+-/**
+- *	swsusp_shrink_memory -  Try to free as much memory as needed
+- *
+- *	... but do not OOM-kill anyone
+- *
+- *	Notice: all userland should be stopped before it is called, or
+- *	livelock is possible.
+- */
+-
+-#define SHRINK_BITE	10000
+-static inline unsigned long __shrink_memory(long tmp)
+-{
+-	if (tmp > SHRINK_BITE)
+-		tmp = SHRINK_BITE;
+-	return shrink_all_memory(tmp);
+-}
+-
+-int swsusp_shrink_memory(void)
+-{
+-	long tmp;
+-	struct zone *zone;
+-	unsigned long pages = 0;
+-	unsigned int i = 0;
+-	char *p = "-\\|/";
+-	struct timeval start, stop;
+-
+-	printk(KERN_INFO "PM: Shrinking memory...  ");
+-	do_gettimeofday(&start);
+-	do {
+-		long size, highmem_size;
+-
+-		highmem_size = count_highmem_pages();
+-		size = count_data_pages() + PAGES_FOR_IO + SPARE_PAGES;
+-		tmp = size;
+-		size += highmem_size;
+-		for_each_populated_zone(zone) {
+-			tmp += snapshot_additional_pages(zone);
+-			if (is_highmem(zone)) {
+-				highmem_size -=
+-					zone_page_state(zone, NR_FREE_PAGES);
+-			} else {
+-				tmp -= zone_page_state(zone, NR_FREE_PAGES);
+-				tmp += zone->lowmem_reserve[ZONE_NORMAL];
+-			}
+-		}
+-
+-		if (highmem_size < 0)
+-			highmem_size = 0;
+-
+-		tmp += highmem_size;
+-		if (tmp > 0) {
+-			tmp = __shrink_memory(tmp);
+-			if (!tmp)
+-				return -ENOMEM;
+-			pages += tmp;
+-		} else if (size > image_size / PAGE_SIZE) {
+-			tmp = __shrink_memory(size - (image_size / PAGE_SIZE));
+-			pages += tmp;
+-		}
+-		printk("\b%c", p[i++%4]);
+-	} while (tmp > 0);
+-	do_gettimeofday(&stop);
+-	printk("\bdone (%lu pages freed)\n", pages);
+-	swsusp_show_speed(&start, &stop, pages, "Freed");
+-
+-	return 0;
+-}
