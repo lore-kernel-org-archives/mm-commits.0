@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + irda-count-reaches-1.patch added to -mm tree
-Date: Wed, 13 May 2009 11:45:12 -0700
-Message-ID: <200905131845.n4DIjChw027653@imap1.linux-foundation.org>
+Subject: + vmscan-zone_reclaim-use-may_swap.patch added to -mm tree
+Date: Wed, 13 May 2009 11:51:51 -0700
+Message-ID: <200905131851.n4DIpqYL032153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46428 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755090AbZEMSvG (ORCPT
+	by vger.kernel.org with ESMTP id S1760373AbZEMSz3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 14:51:06 -0400
+	Wed, 13 May 2009 14:55:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, samuel@sortiz.org
+Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, hannes@cmpxchg.org, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     irda: count reaches -1
+     vmscan: zone_reclaim use may_swap
 has been added to the -mm tree.  Its filename is
-     irda-count-reaches-1.patch
+     vmscan-zone_reclaim-use-may_swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irda: count reaches -1
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: vmscan: zone_reclaim use may_swap
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Count reaches -1 rather than 0,
+Documentation/sysctl/vm.txt says
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+    zone_reclaim_mode:
+
+    Zone_reclaim_mode allows someone to set more or less aggressive
+    approaches to reclaim memory when a zone runs out of memory.  If it is
+    set to zero then no zone reclaim occurs.  Allocations will be
+    satisfied from other zones / nodes in the system.
+
+	This is value ORed together of
+
+	1	= Zone reclaim on
+	2	= Zone reclaim writes dirty pages out
+	4	= Zone reclaim swaps pages
+
+So, "(zone_reclaim_mode & RECLAIM_SWAP) == 0" mean we don't want to
+reclaim swap-backed pages.  not mapped file.
+
+Thus, may_swap is better than may_unmap.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/smsc-ircc2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/irda/smsc-ircc2.c~irda-count-reaches-1 drivers/net/irda/smsc-ircc2.c
---- a/drivers/net/irda/smsc-ircc2.c~irda-count-reaches-1
-+++ a/drivers/net/irda/smsc-ircc2.c
-@@ -2124,7 +2124,7 @@ static void smsc_ircc_sir_wait_hw_transm
- 	while (count-- > 0 && !(inb(iobase + UART_LSR) & UART_LSR_TEMT))
- 		udelay(1);
- 
--	if (count == 0)
-+	if (count < 0)
- 		IRDA_DEBUG(0, "%s(): stuck transmitter\n", __func__);
- }
- 
+diff -puN mm/vmscan.c~vmscan-zone_reclaim-use-may_swap mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-zone_reclaim-use-may_swap
++++ a/mm/vmscan.c
+@@ -2349,8 +2349,8 @@ static int __zone_reclaim(struct zone *z
+ 	int priority;
+ 	struct scan_control sc = {
+ 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
+-		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
+-		.may_swap = 1,
++		.may_unmap = 1,
++		.may_swap = !!(zone_reclaim_mode & RECLAIM_SWAP),
+ 		.swap_cluster_max = max_t(unsigned long, nr_pages,
+ 					SWAP_CLUSTER_MAX),
+ 		.gfp_mask = gfp_mask,
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-origin.patch
-asm-generic-fix-local_add_unless-macro.patch
 linux-next.patch
-drm-fix-lock_test_with_return-macro.patch
-v4l-dvb-cimax2c-fix-typo.patch
-zoran-fix-error.patch
-uwb-event_size-should-be-signed.patch
-irda-count-reaches-1.patch
-isdn-get_free_devid-failure-ignored.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-wis-sony-tunerc-typo.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-ufs-sector_t-cannot-be-negative.patch
+procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
+pagemap-document-clarifications.patch
+pagemap-document-9-more-exported-page-flags.patch
+pagemap-add-page-types-tool.patch
+pagemap-export-pg_hwpoison.patch
+pagemap-export-pg_hwpoison-fix.patch
+vmscan-evict-use-once-pages-first-v3.patch
+vmscan-cleanup-the-scan-batching-code.patch
+vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
+vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
+vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
+vmscan-zone_reclaim-use-may_swap.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
