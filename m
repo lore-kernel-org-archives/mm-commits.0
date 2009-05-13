@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-zone_reclaim-use-may_swap.patch added to -mm tree
-Date: Wed, 13 May 2009 11:51:51 -0700
-Message-ID: <200905131851.n4DIpqYL032153@imap1.linux-foundation.org>
+Subject: + vmscan-drop-pf_swapwrite-from-zone_reclaim.patch added to -mm tree
+Date: Wed, 13 May 2009 11:51:49 -0700
+Message-ID: <200905131851.n4DIpnSE032094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34042 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49541 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760373AbZEMSz3 (ORCPT
+	by vger.kernel.org with ESMTP id S1759944AbZEMSz2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 14:55:29 -0400
+	Wed, 13 May 2009 14:55:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, hannes@cmpxchg.org,
 
 
 The patch titled
-     vmscan: zone_reclaim use may_swap
+     vmscan: drop PF_SWAPWRITE from zone_reclaim
 has been added to the -mm tree.  Its filename is
-     vmscan-zone_reclaim-use-may_swap.patch
+     vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: zone_reclaim use may_swap
+Subject: vmscan: drop PF_SWAPWRITE from zone_reclaim
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Documentation/sysctl/vm.txt says
+PF_SWAPWRITE mean ignore write congestion. (see may_write_to_queue())
 
-    zone_reclaim_mode:
-
-    Zone_reclaim_mode allows someone to set more or less aggressive
-    approaches to reclaim memory when a zone runs out of memory.  If it is
-    set to zero then no zone reclaim occurs.  Allocations will be
-    satisfied from other zones / nodes in the system.
-
-	This is value ORed together of
-
-	1	= Zone reclaim on
-	2	= Zone reclaim writes dirty pages out
-	4	= Zone reclaim swaps pages
-
-So, "(zone_reclaim_mode & RECLAIM_SWAP) == 0" mean we don't want to
-reclaim swap-backed pages.  not mapped file.
-
-Thus, may_swap is better than may_unmap.
+foreground reclaim shouldn't ignore it because writing to a write
+congested device cause large IO lantencies.  It isn't better than remote
+node allocation.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/vmscan.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-zone_reclaim-use-may_swap mm/vmscan.c
---- a/mm/vmscan.c~vmscan-zone_reclaim-use-may_swap
+diff -puN mm/vmscan.c~vmscan-drop-pf_swapwrite-from-zone_reclaim mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-drop-pf_swapwrite-from-zone_reclaim
 +++ a/mm/vmscan.c
-@@ -2349,8 +2349,8 @@ static int __zone_reclaim(struct zone *z
- 	int priority;
- 	struct scan_control sc = {
- 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
--		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
--		.may_swap = 1,
-+		.may_unmap = 1,
-+		.may_swap = !!(zone_reclaim_mode & RECLAIM_SWAP),
- 		.swap_cluster_max = max_t(unsigned long, nr_pages,
- 					SWAP_CLUSTER_MAX),
- 		.gfp_mask = gfp_mask,
+@@ -2368,7 +2368,7 @@ static int __zone_reclaim(struct zone *z
+ 	 * and we also need to be able to write out pages for RECLAIM_WRITE
+ 	 * and RECLAIM_SWAP.
+ 	 */
+-	p->flags |= PF_MEMALLOC | PF_SWAPWRITE;
++	p->flags |= PF_MEMALLOC;
+ 	reclaim_state.reclaimed_slab = 0;
+ 	p->reclaim_state = &reclaim_state;
+ 
+@@ -2415,7 +2415,7 @@ static int __zone_reclaim(struct zone *z
+ 	}
+ 
+ 	p->reclaim_state = NULL;
+-	current->flags &= ~(PF_MEMALLOC | PF_SWAPWRITE);
++	current->flags &= ~PF_MEMALLOC;
+ 	return sc.nr_reclaimed >= nr_pages;
+ }
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
