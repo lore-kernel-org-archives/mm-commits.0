@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nes-off-by-one-in-reset_adapter_ne020-and-init_serdes.patch added to -mm tree
-Date: Wed, 13 May 2009 13:00:17 -0700
-Message-ID: <200905132000.n4DK0H8a013299@imap1.linux-foundation.org>
+Subject: + splice-fix-error-return-code.patch added to -mm tree
+Date: Wed, 13 May 2009 13:28:04 -0700
+Message-ID: <200905132047.n4DKlMjg012660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57130 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755814AbZEMUAu (ORCPT
+	by vger.kernel.org with ESMTP id S1757959AbZEMUrn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 16:00:50 -0400
+	Wed, 13 May 2009 16:47:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, hal.rosenstock@gmail.com, rolandd@cisco.com, sean.hefty@intel.com
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, miklos@szeredi.hu
 
 
 The patch titled
-     nes: off by one in reset_adapter_ne020() and init_serdes()
+     splice: fix error return code
 has been added to the -mm tree.  Its filename is
-     nes-off-by-one-in-reset_adapter_ne020-and-init_serdes.patch
+     splice-fix-error-return-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nes: off by one in reset_adapter_ne020() and init_serdes()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: splice: fix error return code
+From: Andrew Morton <akpm@linux-foundation.org>
 
-With a postfix increment i is incremented beyond 10/5k so the error
-message will be displayed too soon.
+gcc says:
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+fs/splice.c: In function 'default_file_splice_read':
+fs/splice.c:566: warning: 'error' may be used uninitialized in this function
+
+which is sort-of true.  The code will in fact return -ENOMEM instead of the
+kernel_readv() return value.
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/nes/nes_hw.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/splice.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/nes/nes_hw.c~nes-off-by-one-in-reset_adapter_ne020-and-init_serdes drivers/infiniband/hw/nes/nes_hw.c
---- a/drivers/infiniband/hw/nes/nes_hw.c~nes-off-by-one-in-reset_adapter_ne020-and-init_serdes
-+++ a/drivers/infiniband/hw/nes/nes_hw.c
-@@ -667,7 +667,7 @@ static unsigned int nes_reset_adapter_ne
- 		i = 0;
- 		while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET) & 0x00000040) == 0) && i++ < 10000)
- 			mdelay(1);
--		if (i >= 10000) {
-+		if (i > 10000) {
- 			nes_debug(NES_DBG_INIT, "Did not see full soft reset done.\n");
- 			return 0;
- 		}
-@@ -675,7 +675,7 @@ static unsigned int nes_reset_adapter_ne
- 		i = 0;
- 		while ((nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS) != 0x80) && i++ < 10000)
- 			mdelay(1);
--		if (i >= 10000) {
-+		if (i > 10000) {
- 			printk(KERN_ERR PFX "Internal CPU not ready, status = %02X\n",
- 			       nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS));
- 			return 0;
-@@ -701,7 +701,7 @@ static unsigned int nes_reset_adapter_ne
- 	i = 0;
- 	while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET) & 0x00000040) == 0) && i++ < 10000)
- 		mdelay(1);
--	if (i >= 10000) {
-+	if (i > 10000) {
- 		nes_debug(NES_DBG_INIT, "Did not see port soft reset done.\n");
- 		return 0;
+diff -puN fs/splice.c~splice-fix-error-return-code fs/splice.c
+--- a/fs/splice.c~splice-fix-error-return-code
++++ a/fs/splice.c
+@@ -595,8 +595,10 @@ ssize_t default_file_splice_read(struct 
  	}
-@@ -711,7 +711,7 @@ static unsigned int nes_reset_adapter_ne
- 	while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0)
- 			& 0x0000000f)) != 0x0000000f) && i++ < 5000)
- 		mdelay(1);
--	if (i >= 5000) {
-+	if (i > 5000) {
- 		nes_debug(NES_DBG_INIT, "Serdes 0 not ready, status=%x\n", u32temp);
- 		return 0;
- 	}
-@@ -722,7 +722,7 @@ static unsigned int nes_reset_adapter_ne
- 		while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS1)
- 				& 0x0000000f)) != 0x0000000f) && i++ < 5000)
- 			mdelay(1);
--		if (i >= 5000) {
-+		if (i > 5000) {
- 			nes_debug(NES_DBG_INIT, "Serdes 1 not ready, status=%x\n", u32temp);
- 			return 0;
- 		}
-@@ -792,7 +792,7 @@ static int nes_init_serdes(struct nes_de
- 		while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0)
- 				& 0x0000000f)) != 0x0000000f) && i++ < 5000)
- 			mdelay(1);
--		if (i >= 5000) {
-+		if (i > 5000) {
- 			nes_debug(NES_DBG_PHY, "Init: serdes 0 not ready, status=%x\n", u32temp);
- 			return 1;
- 		}
-@@ -815,7 +815,7 @@ static int nes_init_serdes(struct nes_de
- 			while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS1)
- 				& 0x0000000f)) != 0x0000000f) && (i++ < 5000))
- 				mdelay(1);
--			if (i >= 5000) {
-+			if (i > 5000) {
- 				printk("%s: Init: serdes 1 not ready, status=%x\n", __func__, u32temp);
- 				/* return 1; */
- 			}
+ 
+ 	res = kernel_readv(in, vec, spd.nr_pages, *ppos);
+-	if (res < 0)
++	if (res < 0) {
++		error = res;
+ 		goto err;
++	}
+ 
+ 	error = 0;
+ 	if (!res)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-asm-generic-fix-local_add_unless-macro.patch
 linux-next.patch
-drm-fix-lock_test_with_return-macro.patch
-v4l-dvb-cimax2c-fix-typo.patch
-zoran-fix-error.patch
-uwb-event_size-should-be-signed.patch
-irda-count-reaches-1.patch
-isdn-get_free_devid-failure-ignored.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-wis-sony-tunerc-typo.patch
-frv-duplicate-output_buffer-of-e03.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-keyboard-introduce-lm8323-driver.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+drivers-usb-serial-sierrac-fix-printk-warning.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+revert-fbdev-uninline-lock_fb_info.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+squashfs-fix-breakage-when-pagesize-blocksize.patch
+mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
 m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
-nes-off-by-one-in-reset_adapter_ne020-and-init_serdes.patch
-riptide-postfix-increment-and-off-by-one.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+splice-fix-error-return-code.patch
 
