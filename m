@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + riptide-postfix-increment-and-off-by-one.patch added to -mm tree
-Date: Wed, 13 May 2009 13:00:19 -0700
-Message-ID: <200905132000.n4DK0Jsq013369@imap1.linux-foundation.org>
+Subject: + nes-off-by-one-in-reset_adapter_ne020-and-init_serdes.patch added to -mm tree
+Date: Wed, 13 May 2009 13:00:17 -0700
+Message-ID: <200905132000.n4DK0H8a013299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755862AbZEMUA4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755814AbZEMUAu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 16:00:56 -0400
+	Wed, 13 May 2009 16:00:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, tiwai@suse.de
+Cc: roel.kluin@gmail.com, hal.rosenstock@gmail.com, rolandd@cisco.com, sean.hefty@intel.com
 
 
 The patch titled
-     riptide: postfix increment and off by one
+     nes: off by one in reset_adapter_ne020() and init_serdes()
 has been added to the -mm tree.  Its filename is
-     riptide-postfix-increment-and-off-by-one.patch
+     nes-off-by-one-in-reset_adapter_ne020-and-init_serdes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: riptide: postfix increment and off by one
+Subject: nes: off by one in reset_adapter_ne020() and init_serdes()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With a postfix increment these variables are incremented beyond
-CMDIF_TIMEOUT / MAX_WRITE_RETRY.
+With a postfix increment i is incremented beyond 10/5k so the error
+message will be displayed too soon.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/riptide/riptide.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/nes/nes_hw.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN sound/pci/riptide/riptide.c~riptide-postfix-increment-and-off-by-one sound/pci/riptide/riptide.c
---- a/sound/pci/riptide/riptide.c~riptide-postfix-increment-and-off-by-one
-+++ a/sound/pci/riptide/riptide.c
-@@ -889,7 +889,7 @@ static int sendcmd(struct cmdif *cif, u3
- 	spin_lock_irqsave(&cif->lock, irqflags);
- 	while (i++ < CMDIF_TIMEOUT && !IS_READY(cif->hwport))
- 		udelay(10);
--	if (i >= CMDIF_TIMEOUT) {
-+	if (i > CMDIF_TIMEOUT) {
- 		err = -EBUSY;
- 		goto errout;
+diff -puN drivers/infiniband/hw/nes/nes_hw.c~nes-off-by-one-in-reset_adapter_ne020-and-init_serdes drivers/infiniband/hw/nes/nes_hw.c
+--- a/drivers/infiniband/hw/nes/nes_hw.c~nes-off-by-one-in-reset_adapter_ne020-and-init_serdes
++++ a/drivers/infiniband/hw/nes/nes_hw.c
+@@ -667,7 +667,7 @@ static unsigned int nes_reset_adapter_ne
+ 		i = 0;
+ 		while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET) & 0x00000040) == 0) && i++ < 10000)
+ 			mdelay(1);
+-		if (i >= 10000) {
++		if (i > 10000) {
+ 			nes_debug(NES_DBG_INIT, "Did not see full soft reset done.\n");
+ 			return 0;
+ 		}
+@@ -675,7 +675,7 @@ static unsigned int nes_reset_adapter_ne
+ 		i = 0;
+ 		while ((nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS) != 0x80) && i++ < 10000)
+ 			mdelay(1);
+-		if (i >= 10000) {
++		if (i > 10000) {
+ 			printk(KERN_ERR PFX "Internal CPU not ready, status = %02X\n",
+ 			       nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS));
+ 			return 0;
+@@ -701,7 +701,7 @@ static unsigned int nes_reset_adapter_ne
+ 	i = 0;
+ 	while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET) & 0x00000040) == 0) && i++ < 10000)
+ 		mdelay(1);
+-	if (i >= 10000) {
++	if (i > 10000) {
+ 		nes_debug(NES_DBG_INIT, "Did not see port soft reset done.\n");
+ 		return 0;
  	}
-@@ -907,8 +907,10 @@ static int sendcmd(struct cmdif *cif, u3
- 			WRITE_PORT_ULONG(cmdport->data1, cmd);	/* write cmd */
- 			if ((flags & RESP) && ret) {
- 				while (!IS_DATF(cmdport) &&
--				       time++ < CMDIF_TIMEOUT)
-+				       time < CMDIF_TIMEOUT) {
- 					udelay(10);
-+					time++;
-+				}
- 				if (time < CMDIF_TIMEOUT) {	/* read response */
- 					ret->retlongs[0] =
- 					    READ_PORT_ULONG(cmdport->data1);
-@@ -1454,7 +1456,7 @@ static int snd_riptide_trigger(struct sn
- 			SEND_GPOS(cif, 0, data->id, &rptr);
- 			udelay(1);
- 		} while (i != rptr.retlongs[1] && j++ < MAX_WRITE_RETRY);
--		if (j >= MAX_WRITE_RETRY)
-+		if (j > MAX_WRITE_RETRY)
- 			snd_printk(KERN_ERR "Riptide: Could not stop stream!");
- 		break;
- 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-@@ -1783,7 +1785,7 @@ snd_riptide_codec_write(struct snd_ac97 
- 		SEND_SACR(cif, val, reg);
- 		SEND_RACR(cif, reg, &rptr);
- 	} while (rptr.retwords[1] != val && i++ < MAX_WRITE_RETRY);
--	if (i == MAX_WRITE_RETRY)
-+	if (i > MAX_WRITE_RETRY)
- 		snd_printdd("Write AC97 reg failed\n");
- }
- 
+@@ -711,7 +711,7 @@ static unsigned int nes_reset_adapter_ne
+ 	while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0)
+ 			& 0x0000000f)) != 0x0000000f) && i++ < 5000)
+ 		mdelay(1);
+-	if (i >= 5000) {
++	if (i > 5000) {
+ 		nes_debug(NES_DBG_INIT, "Serdes 0 not ready, status=%x\n", u32temp);
+ 		return 0;
+ 	}
+@@ -722,7 +722,7 @@ static unsigned int nes_reset_adapter_ne
+ 		while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS1)
+ 				& 0x0000000f)) != 0x0000000f) && i++ < 5000)
+ 			mdelay(1);
+-		if (i >= 5000) {
++		if (i > 5000) {
+ 			nes_debug(NES_DBG_INIT, "Serdes 1 not ready, status=%x\n", u32temp);
+ 			return 0;
+ 		}
+@@ -792,7 +792,7 @@ static int nes_init_serdes(struct nes_de
+ 		while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0)
+ 				& 0x0000000f)) != 0x0000000f) && i++ < 5000)
+ 			mdelay(1);
+-		if (i >= 5000) {
++		if (i > 5000) {
+ 			nes_debug(NES_DBG_PHY, "Init: serdes 0 not ready, status=%x\n", u32temp);
+ 			return 1;
+ 		}
+@@ -815,7 +815,7 @@ static int nes_init_serdes(struct nes_de
+ 			while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS1)
+ 				& 0x0000000f)) != 0x0000000f) && (i++ < 5000))
+ 				mdelay(1);
+-			if (i >= 5000) {
++			if (i > 5000) {
+ 				printk("%s: Init: serdes 1 not ready, status=%x\n", __func__, u32temp);
+ 				/* return 1; */
+ 			}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
