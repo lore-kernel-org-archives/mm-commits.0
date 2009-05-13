@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-drop-pf_swapwrite-from-zone_reclaim.patch added to -mm tree
-Date: Wed, 13 May 2009 11:51:49 -0700
-Message-ID: <200905131851.n4DIpnSE032094@imap1.linux-foundation.org>
+Subject: + vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch added to -mm tree
+Date: Wed, 13 May 2009 11:51:46 -0700
+Message-ID: <200905131851.n4DIplxZ032076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759944AbZEMSz2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755735AbZEMS4S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 14:55:28 -0400
+	Wed, 13 May 2009 14:56:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, hannes@cmpxchg.org,
 
 
 The patch titled
-     vmscan: drop PF_SWAPWRITE from zone_reclaim
+     vmscan: change the number of the unmapped files in zone reclaim
 has been added to the -mm tree.  Its filename is
-     vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
+     vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: drop PF_SWAPWRITE from zone_reclaim
+Subject: vmscan: change the number of the unmapped files in zone reclaim
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-PF_SWAPWRITE mean ignore write congestion. (see may_write_to_queue())
+Documentation/sysctl/vm.txt says
 
-foreground reclaim shouldn't ignore it because writing to a write
-congested device cause large IO lantencies.  It isn't better than remote
-node allocation.
+    A percentage of the total pages in each zone.  Zone reclaim will
+    only occur if more than this percentage of pages are file backed and
+    unmapped.  This is to insure that a minimal amount of local pages is
+    still available for file I/O even if the node is overallocated.
+
+However, zone_page_state(zone, NR_FILE_PAGES) contains some non file backed
+pages (e.g.  swapcache, buffer-head)
+
+The right calculation is to use NR_{IN}ACTIVE_FILE.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
@@ -51,30 +57,61 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-drop-pf_swapwrite-from-zone_reclaim mm/vmscan.c
---- a/mm/vmscan.c~vmscan-drop-pf_swapwrite-from-zone_reclaim
+diff -puN mm/vmscan.c~vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim
 +++ a/mm/vmscan.c
-@@ -2368,7 +2368,7 @@ static int __zone_reclaim(struct zone *z
- 	 * and we also need to be able to write out pages for RECLAIM_WRITE
- 	 * and RECLAIM_SWAP.
- 	 */
--	p->flags |= PF_MEMALLOC | PF_SWAPWRITE;
-+	p->flags |= PF_MEMALLOC;
+@@ -2359,6 +2359,7 @@ static int __zone_reclaim(struct zone *z
+ 		.isolate_pages = isolate_pages_global,
+ 	};
+ 	unsigned long slab_reclaimable;
++	long nr_unmapped_file_pages;
+ 
+ 	disable_swap_token();
+ 	cond_resched();
+@@ -2371,9 +2372,11 @@ static int __zone_reclaim(struct zone *z
  	reclaim_state.reclaimed_slab = 0;
  	p->reclaim_state = &reclaim_state;
  
-@@ -2415,7 +2415,7 @@ static int __zone_reclaim(struct zone *z
- 	}
+-	if (zone_page_state(zone, NR_FILE_PAGES) -
+-		zone_page_state(zone, NR_FILE_MAPPED) >
+-		zone->min_unmapped_pages) {
++	nr_unmapped_file_pages = zone_page_state(zone, NR_INACTIVE_FILE) +
++				 zone_page_state(zone, NR_ACTIVE_FILE) -
++				 zone_page_state(zone, NR_FILE_MAPPED);
++
++	if (nr_unmapped_file_pages > zone->min_unmapped_pages) {
+ 		/*
+ 		 * Free memory by calling shrink zone with increasing
+ 		 * priorities until we have enough memory freed.
+@@ -2420,6 +2423,8 @@ int zone_reclaim(struct zone *zone, gfp_
+ {
+ 	int node_id;
+ 	int ret;
++	long nr_unmapped_file_pages;
++	long nr_slab_reclaimable;
  
- 	p->reclaim_state = NULL;
--	current->flags &= ~(PF_MEMALLOC | PF_SWAPWRITE);
-+	current->flags &= ~PF_MEMALLOC;
- 	return sc.nr_reclaimed >= nr_pages;
- }
+ 	/*
+ 	 * Zone reclaim reclaims unmapped file backed pages and
+@@ -2431,10 +2436,12 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	 * if less than a specified percentage of the zone is used by
+ 	 * unmapped file backed pages.
+ 	 */
+-	if (zone_page_state(zone, NR_FILE_PAGES) -
+-	    zone_page_state(zone, NR_FILE_MAPPED) <= zone->min_unmapped_pages
+-	    && zone_page_state(zone, NR_SLAB_RECLAIMABLE)
+-			<= zone->min_slab_pages)
++	nr_unmapped_file_pages = zone_page_state(zone, NR_INACTIVE_FILE) +
++				 zone_page_state(zone, NR_ACTIVE_FILE) -
++				 zone_page_state(zone, NR_FILE_MAPPED);
++	nr_slab_reclaimable = zone_page_state(zone, NR_SLAB_RECLAIMABLE);
++	if (nr_unmapped_file_pages <= zone->min_unmapped_pages &&
++	    nr_slab_reclaimable <= zone->min_slab_pages)
+ 		return 0;
  
+ 	if (zone_is_all_unreclaimable(zone))
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
