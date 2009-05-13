@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + da9030_battery-fix-race-between-event-handler-and-monitor.patch added to -mm tree
-Date: Wed, 13 May 2009 11:40:51 -0700
-Message-ID: <200905131840.n4DIep1E024747@imap1.linux-foundation.org>
+Subject: + m68k-cnt-reaches-1-not-0.patch added to -mm tree
+Date: Wed, 13 May 2009 11:42:25 -0700
+Message-ID: <200905131842.n4DIgPBM025750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57451 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760814AbZEMSmk (ORCPT
+	by vger.kernel.org with ESMTP id S1760700AbZEMSpc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 14:42:40 -0400
+	Wed, 13 May 2009 14:45:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike@compulab.co.il, cbou@mail.ru
+Cc: roel.kluin@gmail.com, geert@linux-m68k.org
 
 
 The patch titled
-     da9030_battery: fix race between event handler and monitor
+     m68k: cnt reaches -1, not 0
 has been added to the -mm tree.  Its filename is
-     da9030_battery-fix-race-between-event-handler-and-monitor.patch
+     m68k-cnt-reaches-1-not-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: da9030_battery: fix race between event handler and monitor
-From: Mike Rapoport <mike@compulab.co.il>
+Subject: m68k: cnt reaches -1, not 0
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-Cc: Anton Vorontsov <cbou@mail.ru>
+With the postfix decrement cnt reaches -1 rather than 0.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/da9030_battery.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ arch/m68k/amiga/config.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/power/da9030_battery.c~da9030_battery-fix-race-between-event-handler-and-monitor drivers/power/da9030_battery.c
---- a/drivers/power/da9030_battery.c~da9030_battery-fix-race-between-event-handler-and-monitor
-+++ a/drivers/power/da9030_battery.c
-@@ -22,8 +22,6 @@
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
+diff -puN arch/m68k/amiga/config.c~m68k-cnt-reaches-1-not-0 arch/m68k/amiga/config.c
+--- a/arch/m68k/amiga/config.c~m68k-cnt-reaches-1-not-0
++++ a/arch/m68k/amiga/config.c
+@@ -574,10 +574,11 @@ static int a2000_hwclk(int op, struct rt
  
--#define DA9030_STATUS_CHDET	(1 << 3)
--
- #define DA9030_FAULT_LOG		0x0a
- #define DA9030_FAULT_LOG_OVER_TEMP	(1 << 7)
- #define DA9030_FAULT_LOG_VBAT_OVER	(1 << 4)
-@@ -244,6 +242,8 @@ static void da9030_set_charge(struct da9
+ 	tod_2000.cntrl1 = TOD2000_CNTRL1_HOLD;
+ 
+-	while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt--) {
++	while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt) {
+ 		tod_2000.cntrl1 &= ~TOD2000_CNTRL1_HOLD;
+ 		udelay(70);
+ 		tod_2000.cntrl1 |= TOD2000_CNTRL1_HOLD;
++		--cnt;
  	}
  
- 	da903x_write(charger->master, DA9030_CHARGE_CONTROL, val);
-+
-+	power_supply_changed(&charger->psy);
- }
+ 	if (!cnt)
+@@ -649,10 +650,11 @@ static int amiga_set_clock_mmss(unsigned
  
- static void da9030_charger_check_state(struct da9030_charger *charger)
-@@ -258,6 +258,12 @@ static void da9030_charger_check_state(s
- 			da9030_set_charge(charger, 1);
+ 		tod_2000.cntrl1 |= TOD2000_CNTRL1_HOLD;
+ 
+-		while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt--) {
++		while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt) {
+ 			tod_2000.cntrl1 &= ~TOD2000_CNTRL1_HOLD;
+ 			udelay(70);
+ 			tod_2000.cntrl1 |= TOD2000_CNTRL1_HOLD;
++			--cnt;
  		}
- 	} else {
-+		/* Charger has been pulled out */
-+		if (!charger->chdet) {
-+			da9030_set_charge(charger, 0);
-+			return;
-+		}
-+
- 		if (charger->adc.vbat_res >=
- 		    charger->thresholds.vbat_charge_stop) {
- 			da9030_set_charge(charger, 0);
-@@ -395,13 +401,11 @@ static int da9030_battery_event(struct n
- {
- 	struct da9030_charger *charger =
- 		container_of(nb, struct da9030_charger, nb);
--	int status;
  
- 	switch (event) {
- 	case DA9030_EVENT_CHDET:
--		status = da903x_query_status(charger->master,
--					     DA9030_STATUS_CHDET);
--		da9030_set_charge(charger, status);
-+		cancel_delayed_work_sync(&charger->work);
-+		schedule_work(&charger->work.work);
- 		break;
- 	case DA9030_EVENT_VBATMON:
- 		da9030_battery_vbat_event(charger);
-@@ -565,7 +569,8 @@ static int da9030_battery_remove(struct 
- 	da903x_unregister_notifier(charger->master, &charger->nb,
- 				   DA9030_EVENT_CHDET | DA9030_EVENT_VBATMON |
- 				   DA9030_EVENT_CHIOVER | DA9030_EVENT_TBAT);
--	cancel_delayed_work(&charger->work);
-+	cancel_delayed_work_sync(&charger->work);
-+	da9030_set_charge(charger, 0);
- 	power_supply_unregister(&charger->psy);
- 
- 	kfree(charger);
+ 		if (!cnt)
 _
 
-Patches currently in -mm which might be from mike@compulab.co.il are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
+asm-generic-fix-local_add_unless-macro.patch
 linux-next.patch
-da9030_battery-fix-race-between-event-handler-and-monitor.patch
+drm-fix-lock_test_with_return-macro.patch
+v4l-dvb-cimax2c-fix-typo.patch
+zoran-fix-error.patch
+uwb-event_size-should-be-signed.patch
+isdn-get_free_devid-failure-ignored.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+wis-sony-tunerc-typo.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+spi_bfin5xx-limit-reaches-1.patch
+ufs-sector_t-cannot-be-negative.patch
 
