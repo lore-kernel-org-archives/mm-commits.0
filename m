@@ -1,74 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-make-it-work-on-x86_64.patch removed from -mm tree
-Date: Wed, 13 May 2009 11:31:53 -0700
-Message-ID: <200905131831.n4DIVrZZ018634@imap1.linux-foundation.org>
+Subject: [merged] rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-suspend.patch removed from -mm tree
+Date: Wed, 13 May 2009 11:31:45 -0700
+Message-ID: <200905131831.n4DIVjS4018508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760525AbZEMSfe (ORCPT
+	by vger.kernel.org with ESMTP id S1760539AbZEMSfo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 14:35:34 -0400
+	Wed, 13 May 2009 14:35:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: HaraldWelte@viatech.com, JosephChan@via.com.tw, ScottFang@viatech.com.cn, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: q1.kim@samsung.com, a.zummo@towertech.it, david-b@pacbell.net, kyungmin.park@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: make it work on x86_64
+     rtc: rtc-twl4030 don't mask alarm interrupts on suspend
 has been removed from the -mm tree.  Its filename was
-     viafb-make-it-work-on-x86_64.patch
+     rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-suspend.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: make it work on x86_64
-From: Harald Welte <HaraldWelte@viatech.com>
+Subject: rtc: rtc-twl4030 don't mask alarm interrupts on suspend
+From: Kim Kyuwon <q1.kim@samsung.com>
 
-Fix a bug in viafb on x86_64 builds (e.g. for VIA Nano CPU).
+This patch enables the alarm interrupt of TWL4030 RTC to wake up the
+system from suspend. You can test this patch with following command.
 
-You cannot make the assumption that sizeof(unsigned int) ==
-sizeof(unsigned long), so the parsing of the default mode (640x480) fails,
-leading to a division by zero during insmod of the driver.
+# echo +10 > /sys/class/rtc/rtc0/wakealarm; echo mem > /sys/power/state;
 
-Signed-off-by: Harald Welte <HaraldWelte@viatech.com>
-Cc: <JosephChan@via.com.tw>
-Cc: <ScottFang@viatech.com.cn>
-Cc: Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
+Acked-by: David Brownell <david-b@pacbell.net>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-twl4030.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-make-it-work-on-x86_64 drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-make-it-work-on-x86_64
-+++ a/drivers/video/via/viafbdev.c
-@@ -2103,7 +2103,7 @@ static void viafb_remove_proc(struct pro
- 
- static int __devinit via_pci_probe(void)
+diff -puN drivers/rtc/rtc-twl4030.c~rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-suspend drivers/rtc/rtc-twl4030.c
+--- a/drivers/rtc/rtc-twl4030.c~rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-suspend
++++ a/drivers/rtc/rtc-twl4030.c
+@@ -495,9 +495,7 @@ static int twl4030_rtc_suspend(struct pl
  {
--	unsigned int default_xres, default_yres;
-+	unsigned long default_xres, default_yres;
- 	char *tmpc, *tmpm;
- 	char *tmpc_sec, *tmpm_sec;
- 	int vmode_index;
-@@ -2196,8 +2196,8 @@ static int __devinit via_pci_probe(void)
- 	viafb_FB_MM = viaparinfo->fbmem_virt;
- 	tmpm = viafb_mode;
- 	tmpc = strsep(&tmpm, "x");
--	strict_strtoul(tmpc, 0, (unsigned long *)&default_xres);
--	strict_strtoul(tmpm, 0, (unsigned long *)&default_yres);
-+	strict_strtoul(tmpc, 0, &default_xres);
-+	strict_strtoul(tmpm, 0, &default_yres);
+ 	irqstat = rtc_irq_bits;
  
- 	vmode_index = viafb_get_mode_index(default_xres, default_yres, 0);
- 	DEBUG_MSG(KERN_INFO "0->index=%d\n", vmode_index);
+-	/* REVISIT alarm may need to wake us from sleep */
+-	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M |
+-			 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
++	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from HaraldWelte@viatech.com are
+Patches currently in -mm which might be from q1.kim@samsung.com are
 
 origin.patch
+leds-fix-led-bd2802-errors-while-resuming.patch
+leds-change-the-license-information.patch
+leds-add-the-sysfs-interface-into-the-leds-bd2802-driver-for-changing-wave-pattern-and-led-current.patch
 
