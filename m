@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-cnt-reaches-1-not-0.patch added to -mm tree
-Date: Wed, 13 May 2009 11:42:25 -0700
-Message-ID: <200905131842.n4DIgPBM025750@imap1.linux-foundation.org>
+Subject: + mtd-add-sst39sf040-chip-to-jedec_probe.patch added to -mm tree
+Date: Wed, 13 May 2009 11:44:16 -0700
+Message-ID: <200905131844.n4DIiGDF027023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760700AbZEMSpc (ORCPT
+	by vger.kernel.org with ESMTP id S1760449AbZEMSp7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 May 2009 14:45:32 -0400
+	Wed, 13 May 2009 14:45:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, geert@linux-m68k.org
+Cc: mirq-linux@rere.qmqm.pl, dwmw2@infradead.org
 
 
 The patch titled
-     m68k: cnt reaches -1, not 0
+     mtd: add SST39SF040 chip to jedec_probe
 has been added to the -mm tree.  Its filename is
-     m68k-cnt-reaches-1-not-0.patch
+     mtd-add-sst39sf040-chip-to-jedec_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: cnt reaches -1, not 0
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: mtd: add SST39SF040 chip to jedec_probe
+From: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 
-With the postfix decrement cnt reaches -1 rather than 0.
+Add SST39SF040 chip (like SST39SF020A but bigger - 4Mbit).
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/amiga/config.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mtd/chips/jedec_probe.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN arch/m68k/amiga/config.c~m68k-cnt-reaches-1-not-0 arch/m68k/amiga/config.c
---- a/arch/m68k/amiga/config.c~m68k-cnt-reaches-1-not-0
-+++ a/arch/m68k/amiga/config.c
-@@ -574,10 +574,11 @@ static int a2000_hwclk(int op, struct rt
- 
- 	tod_2000.cntrl1 = TOD2000_CNTRL1_HOLD;
- 
--	while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt--) {
-+	while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt) {
- 		tod_2000.cntrl1 &= ~TOD2000_CNTRL1_HOLD;
- 		udelay(70);
- 		tod_2000.cntrl1 |= TOD2000_CNTRL1_HOLD;
-+		--cnt;
- 	}
- 
- 	if (!cnt)
-@@ -649,10 +650,11 @@ static int amiga_set_clock_mmss(unsigned
- 
- 		tod_2000.cntrl1 |= TOD2000_CNTRL1_HOLD;
- 
--		while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt--) {
-+		while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt) {
- 			tod_2000.cntrl1 &= ~TOD2000_CNTRL1_HOLD;
- 			udelay(70);
- 			tod_2000.cntrl1 |= TOD2000_CNTRL1_HOLD;
-+			--cnt;
+diff -puN drivers/mtd/chips/jedec_probe.c~mtd-add-sst39sf040-chip-to-jedec_probe drivers/mtd/chips/jedec_probe.c
+--- a/drivers/mtd/chips/jedec_probe.c~mtd-add-sst39sf040-chip-to-jedec_probe
++++ a/drivers/mtd/chips/jedec_probe.c
+@@ -166,6 +166,7 @@
+ #define SST39LF040	0x00D7
+ #define SST39SF010A	0x00B5
+ #define SST39SF020A	0x00B6
++#define SST39SF040	0x00B7
+ #define SST49LF004B	0x0060
+ #define SST49LF040B	0x0050
+ #define SST49LF008A	0x005a
+@@ -1393,6 +1394,18 @@ static const struct amd_flash_info jedec
  		}
- 
- 		if (!cnt)
+ 	}, {
+ 		.mfr_id		= MANUFACTURER_SST,
++		.dev_id		= SST39SF040,
++		.name		= "SST 39SF040",
++		.devtypes	= CFI_DEVICETYPE_X8,
++		.uaddr		= MTD_UADDR_0x5555_0x2AAA,
++		.dev_size	= SIZE_512KiB,
++		.cmd_set	= P_ID_AMD_STD,
++		.nr_regions	= 1,
++		.regions	= {
++			ERASEINFO(0x01000,128),
++		}
++	}, {
++		.mfr_id		= MANUFACTURER_SST,
+ 		.dev_id		= SST49LF040B,
+ 		.name		= "SST 49LF040B",
+ 		.devtypes	= CFI_DEVICETYPE_X8,
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from mirq-linux@rere.qmqm.pl are
 
-origin.patch
-asm-generic-fix-local_add_unless-macro.patch
-linux-next.patch
-drm-fix-lock_test_with_return-macro.patch
-v4l-dvb-cimax2c-fix-typo.patch
-zoran-fix-error.patch
-uwb-event_size-should-be-signed.patch
-isdn-get_free_devid-failure-ignored.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-wis-sony-tunerc-typo.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-ufs-sector_t-cannot-be-negative.patch
+mtd-add-sst39sf040-chip-to-jedec_probe.patch
+pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
 
