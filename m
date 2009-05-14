@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch added to -mm tree
-Date: Thu, 14 May 2009 09:31:20 -0700
-Message-ID: <200905141631.n4EGVKlD022154@imap1.linux-foundation.org>
+Subject: + mmc_spi-use-eilseq-for-possible-transmission-errors.patch added to -mm tree
+Date: Thu, 14 May 2009 09:41:31 -0700
+Message-ID: <200905141641.n4EGfVTw029058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751112AbZENQgy (ORCPT
+	by vger.kernel.org with ESMTP id S1751502AbZENQmM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 May 2009 12:36:54 -0400
+	Thu, 14 May 2009 12:42:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: wolfgang.mues@auerswald.de, dbrownell@users.sourceforge.net, drzeus@drzeus.cx, matt@console-pimps.org, vapier.adi@gmail.com
 
 
 The patch titled
-     vmscan: prevent shrinking of active anon lru list in case of no swap space V3
+     mmc_spi: use EILSEQ for possible transmission errors
 has been added to the -mm tree.  Its filename is
-     vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
+     mmc_spi-use-eilseq-for-possible-transmission-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: prevent shrinking of active anon lru list in case of no swap space V3
-From: MinChan Kim <minchan.kim@gmail.com>
+Subject: mmc_spi: use EILSEQ for possible transmission errors
+From: Wolfgang Muees <wolfgang.mues@auerswald.de>
 
-shrink_zone() can deactivate active anon pages even if we don't have a
-swap device.  Many embedded products don't have a swap device.  So the
-deactivation of anon pages is unnecessary.
+Change the reported error code for the responses to a command from
+EINVAL/EIO to EILSEQ, as EINVAL is reserved for non-recoverable host
+errors, and the responses from the SD/MMC card may be because of
+recoverable transmission errors in the command or in the response. 
+Response codes are NOT protected by a checksum, so don't trust them.
 
-This patch prevents unnecessary deactivation of anon lru pages.  But, it
-don't prevent aging of anon pages to swap out.
-
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Wolfgang Muees <wolfgang.mues@auerswald.de>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/mmc_spi.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3
-+++ a/mm/vmscan.c
-@@ -1570,7 +1570,7 @@ static void shrink_zone(int priority, st
- 	 * Even if we did not try to evict anon pages at all, we want to
- 	 * rebalance the anon lru active/inactive ratio.
- 	 */
--	if (inactive_anon_is_low(zone, sc))
-+	if (inactive_anon_is_low(zone, sc) && nr_swap_pages > 0)
- 		shrink_active_list(SWAP_CLUSTER_MAX, zone, sc, priority, 0);
+diff -puN drivers/mmc/host/mmc_spi.c~mmc_spi-use-eilseq-for-possible-transmission-errors drivers/mmc/host/mmc_spi.c
+--- a/drivers/mmc/host/mmc_spi.c~mmc_spi-use-eilseq-for-possible-transmission-errors
++++ a/drivers/mmc/host/mmc_spi.c
+@@ -334,17 +334,18 @@ checkstatus:
+ 	cmd->error = 0;
  
- 	throttle_vm_writeout(sc->gfp_mask);
+ 	/* Status byte: the entire seven-bit R1 response.  */
+-	if (cmd->resp[0] != 0) {
+-		if ((R1_SPI_PARAMETER | R1_SPI_ADDRESS
+-				      | R1_SPI_ILLEGAL_COMMAND)
+-				& cmd->resp[0])
+-			value = -EINVAL;
+-		else if (R1_SPI_COM_CRC & cmd->resp[0])
+-			value = -EILSEQ;
+-		else if ((R1_SPI_ERASE_SEQ | R1_SPI_ERASE_RESET)
+-				& cmd->resp[0])
+-			value = -EIO;
+-		/* else R1_SPI_IDLE, "it's resetting" */
++	/*
++	 * Note that we have a problem here: as the response is NOT protected
++	 * by a CRC or checksum, a transmission error in the response will
++	 * be interpreted as an error code. So we map all error codes to
++	 * EILSEQ here, to allow for the upper layer to retry the command.
++	 * If one of these error codes is a non-recoverable error, retries
++	 * will do no harm.
++	 */
++
++	/* Allow only 0 and R1_SPI_IDLE here */
++	if (cmd->resp[0] & ~R1_SPI_IDLE) {
++		value = -EILSEQ;
+ 	}
+ 
+ 	switch (mmc_spi_resp_type(cmd)) {
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from wolfgang.mues@auerswald.de are
 
-vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
-mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
-vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
+linux-next.patch
+mmc_spi-use-eilseq-for-possible-transmission-errors.patch
 
