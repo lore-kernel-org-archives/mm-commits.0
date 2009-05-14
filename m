@@ -1,80 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rio-fix-section-mismatch.patch removed from -mm tree
-Date: Thu, 14 May 2009 09:10:39 -0700
-Message-ID: <200905141610.n4EGAdfV008131@imap1.linux-foundation.org>
+Subject: [merged] squashfs-fix-breakage-when-pagesize-blocksize.patch removed from -mm tree
+Date: Thu, 14 May 2009 09:10:35 -0700
+Message-ID: <200905141610.n4EGAZPg008120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752846AbZENQLO (ORCPT
+	by vger.kernel.org with ESMTP id S1752559AbZENQLa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 May 2009 12:11:14 -0400
+	Thu, 14 May 2009 12:11:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: leoli@freescale.com, benh@kernel.crashing.org, galak@gate.crashing.org, mporter@kernel.crashing.org, zw@zh-kernel.org, mm-commits@vger.kernel.org
+To: doug.chapman@hp.com, phillip@lougher.demon.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rio: fix section mismatch
+     squashfs: fix breakage when pagesize > blocksize
 has been removed from the -mm tree.  Its filename was
-     rio-fix-section-mismatch.patch
+     squashfs-fix-breakage-when-pagesize-blocksize.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rio: fix section mismatch
-From: Li Yang <leoli@freescale.com>
+Subject: squashfs: fix breakage when pagesize > blocksize
+From: Doug Chapman <doug.chapman@hp.com>
 
-Signed-off-by: Li Yang <leoli@freescale.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Zhang Wei <zw@zh-kernel.org>
+Squashfs is broken on any system where the pageszie is larger than either
+the block size of the squashfs image or larger than the metadata size
+(8192).  This is easily fixed by ensuring cache->pages is always > 0.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Doug Chapman <doug.chapman@hp.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/squashfs/cache.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rapidio/rio-scan.c~rio-fix-section-mismatch drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rio-fix-section-mismatch
-+++ a/drivers/rapidio/rio-scan.c
-@@ -296,7 +296,7 @@ static int __devinit rio_add_device(stru
-  * to a RIO device on success or NULL on failure.
-  *
-  */
--static struct rio_dev *rio_setup_device(struct rio_net *net,
-+static struct rio_dev __devinit *rio_setup_device(struct rio_net *net,
- 					struct rio_mport *port, u16 destid,
- 					u8 hopcount, int do_enum)
- {
-@@ -569,7 +569,7 @@ static void rio_net_add_mport(struct rio
-  * Recursively enumerates a RIO network.  Transactions are sent via the
-  * master port passed in @port.
-  */
--static int rio_enum_peer(struct rio_net *net, struct rio_mport *port,
-+static int __devinit rio_enum_peer(struct rio_net *net, struct rio_mport *port,
- 			 u8 hopcount)
- {
- 	int port_num;
-@@ -728,7 +728,7 @@ static int rio_enum_complete(struct rio_
-  * Recursively discovers a RIO network.  Transactions are sent via the
-  * master port passed in @port.
-  */
--static int
-+static int __devinit
- rio_disc_peer(struct rio_net *net, struct rio_mport *port, u16 destid,
- 	      u8 hopcount)
- {
+diff -puN fs/squashfs/cache.c~squashfs-fix-breakage-when-pagesize-blocksize fs/squashfs/cache.c
+--- a/fs/squashfs/cache.c~squashfs-fix-breakage-when-pagesize-blocksize
++++ a/fs/squashfs/cache.c
+@@ -252,6 +252,7 @@ struct squashfs_cache *squashfs_cache_in
+ 	cache->entries = entries;
+ 	cache->block_size = block_size;
+ 	cache->pages = block_size >> PAGE_CACHE_SHIFT;
++	cache->pages = cache->pages ? cache->pages : 1;
+ 	cache->name = name;
+ 	cache->num_waiters = 0;
+ 	spin_lock_init(&cache->lock);
 _
 
-Patches currently in -mm which might be from leoli@freescale.com are
+Patches currently in -mm which might be from doug.chapman@hp.com are
 
-linux-next.patch
-rapidio-add-common-mapping-apis-for-rapidio-memory-access.patch
-powerpc-add-memory-map-support-to-freescale-rapidio-block.patch
-rionet-add-memory-access-to-simulated-ethernet-over-rapidio.patch
-rio-warn_unused_result-warnings-fix.patch
+origin.patch
 
