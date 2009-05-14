@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc_spi-use-eilseq-for-possible-transmission-errors.patch added to -mm tree
-Date: Thu, 14 May 2009 09:41:31 -0700
-Message-ID: <200905141641.n4EGfVTw029058@imap1.linux-foundation.org>
+Subject: + mm-check-the-argument-of-kunmap-on-architectures-without-highmem.patch added to -mm tree
+Date: Thu, 14 May 2009 09:44:51 -0700
+Message-ID: <200905141644.n4EGipmE031306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48608 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751502AbZENQmM (ORCPT
+	by vger.kernel.org with ESMTP id S1752387AbZENQpu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 May 2009 12:42:12 -0400
+	Thu, 14 May 2009 12:45:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wolfgang.mues@auerswald.de, dbrownell@users.sourceforge.net, drzeus@drzeus.cx, matt@console-pimps.org, vapier.adi@gmail.com
+Cc: matthew@wil.cx, dwmw2@infradead.org, willy@linux.intel.com
 
 
 The patch titled
-     mmc_spi: use EILSEQ for possible transmission errors
+     mm: check the argument of kunmap on architectures without highmem
 has been added to the -mm tree.  Its filename is
-     mmc_spi-use-eilseq-for-possible-transmission-errors.patch
+     mm-check-the-argument-of-kunmap-on-architectures-without-highmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_spi: use EILSEQ for possible transmission errors
-From: Wolfgang Muees <wolfgang.mues@auerswald.de>
+Subject: mm: check the argument of kunmap on architectures without highmem
+From: Matthew Wilcox <matthew@wil.cx>
 
-Change the reported error code for the responses to a command from
-EINVAL/EIO to EILSEQ, as EINVAL is reserved for non-recoverable host
-errors, and the responses from the SD/MMC card may be because of
-recoverable transmission errors in the command or in the response. 
-Response codes are NOT protected by a checksum, so don't trust them.
+If you're using a non-highmem architecture, passing an argument with the
+wrong type to kunmap() doesn't give you a warning because the ifdef
+doesn't check the type.
 
-Signed-off-by: Wolfgang Muees <wolfgang.mues@auerswald.de>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Using a static inline function solves the problem nicely.
+
+Reported-by: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/mmc_spi.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ include/linux/highmem.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/mmc_spi.c~mmc_spi-use-eilseq-for-possible-transmission-errors drivers/mmc/host/mmc_spi.c
---- a/drivers/mmc/host/mmc_spi.c~mmc_spi-use-eilseq-for-possible-transmission-errors
-+++ a/drivers/mmc/host/mmc_spi.c
-@@ -334,17 +334,18 @@ checkstatus:
- 	cmd->error = 0;
+diff -puN include/linux/highmem.h~mm-check-the-argument-of-kunmap-on-architectures-without-highmem include/linux/highmem.h
+--- a/include/linux/highmem.h~mm-check-the-argument-of-kunmap-on-architectures-without-highmem
++++ a/include/linux/highmem.h
+@@ -55,7 +55,9 @@ static inline void *kmap(struct page *pa
+ 	return page_address(page);
+ }
  
- 	/* Status byte: the entire seven-bit R1 response.  */
--	if (cmd->resp[0] != 0) {
--		if ((R1_SPI_PARAMETER | R1_SPI_ADDRESS
--				      | R1_SPI_ILLEGAL_COMMAND)
--				& cmd->resp[0])
--			value = -EINVAL;
--		else if (R1_SPI_COM_CRC & cmd->resp[0])
--			value = -EILSEQ;
--		else if ((R1_SPI_ERASE_SEQ | R1_SPI_ERASE_RESET)
--				& cmd->resp[0])
--			value = -EIO;
--		/* else R1_SPI_IDLE, "it's resetting" */
-+	/*
-+	 * Note that we have a problem here: as the response is NOT protected
-+	 * by a CRC or checksum, a transmission error in the response will
-+	 * be interpreted as an error code. So we map all error codes to
-+	 * EILSEQ here, to allow for the upper layer to retry the command.
-+	 * If one of these error codes is a non-recoverable error, retries
-+	 * will do no harm.
-+	 */
-+
-+	/* Allow only 0 and R1_SPI_IDLE here */
-+	if (cmd->resp[0] & ~R1_SPI_IDLE) {
-+		value = -EILSEQ;
- 	}
+-#define kunmap(page) do { (void) (page); } while (0)
++static inline void kunmap(struct page *page)
++{
++}
  
- 	switch (mmc_spi_resp_type(cmd)) {
+ static inline void *kmap_atomic(struct page *page, enum km_type idx)
+ {
 _
 
-Patches currently in -mm which might be from wolfgang.mues@auerswald.de are
+Patches currently in -mm which might be from matthew@wil.cx are
 
 linux-next.patch
-mmc_spi-use-eilseq-for-possible-transmission-errors.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+mm-check-the-argument-of-kunmap-on-architectures-without-highmem.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+make-sure-nobodys-leaking-resources.patch
 
