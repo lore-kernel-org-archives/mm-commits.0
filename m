@@ -1,108 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch removed from -mm tree
-Date: Thu, 14 May 2009 09:08:53 -0700
-Message-ID: <200905141608.n4EG8raG006970@imap1.linux-foundation.org>
+Subject: [merged] avr32-remove-obsolete-hw_interrupt_type.patch removed from -mm tree
+Date: Thu, 14 May 2009 09:10:32 -0700
+Message-ID: <200905141610.n4EGAWg6008099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752138AbZENQJ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752559AbZENQLN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 May 2009 12:09:26 -0400
+	Thu, 14 May 2009 12:11:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, skinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/madvise.c: don't open-code is_vm_hugetlb_page()
+     avr32: remove obsolete hw_interrupt_type
 has been removed from the -mm tree.  Its filename was
-     mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
+     avr32-remove-obsolete-hw_interrupt_type.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/madvise.c: don't open-code is_vm_hugetlb_page()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: avr32: remove obsolete hw_interrupt_type
+From: Thomas Gleixner <tglx@linutronix.de>
 
-This is slightly more efficient for CONFIG_HUGETLB_PAGE=n kernels.
+The defines and typedefs (hw_interrupt_type, no_irq_type, irq_desc_t) have
+been kept around for migration reasons.  After more than two years it's
+time to remove them finally.
 
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+This patch cleans up one of the remaining users.  When all such patches
+hit mainline we can remove the defines and typedefs finally.
+
+Impact: cleanup
+
+Convert the last remaining users to struct irq_chip and remove the
+define.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Haavard Skinnemoen <skinnemoen@atmel.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
+ arch/avr32/include/asm/hw_irq.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-madvisec-dont-open-code-is_vm_hugetlb_page mm/madvise.c
---- a/mm/madvise.c~mm-madvisec-dont-open-code-is_vm_hugetlb_page
-+++ a/mm/madvise.c
-@@ -117,7 +117,7 @@ static long madvise_willneed(struct vm_a
- 	 * is not the case for hugetlbfs. Do not give a bad return value
- 	 * but ignore the advice.
- 	 */
--	if (vma->vm_flags & VM_HUGETLB)
-+	if (is_vm_hugetlb_page(vma))
- 		return 0;
+diff -puN arch/avr32/include/asm/hw_irq.h~avr32-remove-obsolete-hw_interrupt_type arch/avr32/include/asm/hw_irq.h
+--- a/arch/avr32/include/asm/hw_irq.h~avr32-remove-obsolete-hw_interrupt_type
++++ a/arch/avr32/include/asm/hw_irq.h
+@@ -1,7 +1,7 @@
+ #ifndef __ASM_AVR32_HW_IRQ_H
+ #define __ASM_AVR32_HW_IRQ_H
  
- 	if (file->f_mapping->a_ops->get_xip_mem) {
+-static inline void hw_resend_irq(struct hw_interrupt_type *h, unsigned int i)
++static inline void hw_resend_irq(struct irq_chip *h, unsigned int i)
+ {
+ 	/* Nothing to do */
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-splice-fix-error-return-code.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-keyboard-introduce-lm8323-driver.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-drivers-usb-serial-sierrac-fix-printk-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-revert-fbdev-uninline-lock_fb_info.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-madvisec-dont-open-code-is_vm_hugetlb_page.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+x86-enable-gart-iommu-only-after-setting-up-protection-methods.patch
+time-move-calc_load-call-out-from-xtime_lock-protection.patch
+time-move-pit_tick_rate-to-linux-timexh.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
+ia64-remove-obsolete-no_irq_type.patch
+ia64-remove-obsolete-irq_desc_t-typedef.patch
+ia64-remove-obsolete-hw_interrupt_type.patch
+drivers-mfd-remove-obsolete-irq_desc_t-typedef.patch
+parisc-remove-obsolete-hw_interrupt_type.patch
+mfd-pcf50633-fix-unsafe-disable_irq.patch
+alpha-remove-obsolete-hw_interrupt_type.patch
+m32r-remove-obsolete-hw_interrupt_type.patch
+um-remove-obsolete-hw_interrupt_type.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+remove-put_cpu_no_resched.patch
 remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
 
