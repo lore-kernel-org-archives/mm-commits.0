@@ -1,85 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch removed from -mm tree
-Date: Sat, 16 May 2009 15:52:03 -0700
-Message-ID: <200905162252.n4GMq3nh012020@imap1.linux-foundation.org>
+Subject: + drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch added to -mm tree
+Date: Sat, 16 May 2009 15:52:28 -0700
+Message-ID: <200905162252.n4GMqSxm012354@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53230 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755628AbZEPWwH (ORCPT
+	by vger.kernel.org with ESMTP id S1755418AbZEPWwm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 May 2009 18:52:07 -0400
+	Sat, 16 May 2009 18:52:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, eric@anholt.net, hannes@hanneseder.net, linux@youmustbejoking.demon.co.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alessandro.zummo@towertech.it, david-b@pacbell.net, greg@kroah.com, kay.sievers@vrfy.org, mingo@elte.hu, ozan@pardus.org.tr, rjw@sisk.pl
 
 
 The patch titled
-     drivers/gpu/drm/i915/intel_fb.c: remove sysrq-g handler
-has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+     drivers/rtc/rtc-cmos.c: cmos_init(): don't ignore pnp_register_driver() return value
+has been added to the -mm tree.  Its filename is
+     drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/intel_fb.c: remove sysrq-g handler
+Subject: drivers/rtc/rtc-cmos.c: cmos_init(): don't ignore pnp_register_driver() return value
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13130
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13326
 
-Just remove this sysrq handler - it's doing various bad things from
-hardirq context and clearly isn't used much at all.
+Prevents a null-pointer deref under the above-described circumstances.
 
-Reported-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Hannes Eder <hannes@hanneseder.net>
+pnp_unregister_driver() shouldn't oops the kernel either - that's a
+different bug.
+
+Reported-by: <ozan@pardus.org.tr>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_fb.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ drivers/rtc/rtc-cmos.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/intel_fb.c~drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler drivers/gpu/drm/i915/intel_fb.c
---- a/drivers/gpu/drm/i915/intel_fb.c~drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler
-+++ a/drivers/gpu/drm/i915/intel_fb.c
-@@ -31,7 +31,6 @@
- #include <linux/mm.h>
- #include <linux/tty.h>
- #include <linux/slab.h>
--#include <linux/sysrq.h>
- #include <linux/delay.h>
- #include <linux/fb.h>
- #include <linux/init.h>
-@@ -857,17 +856,6 @@ void intelfb_restore(void)
- 	drm_crtc_helper_set_config(&kernelfb_mode);
- }
+diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value
++++ a/drivers/rtc/rtc-cmos.c
+@@ -1179,7 +1179,9 @@ static int __init cmos_init(void)
+ 	int retval = 0;
  
--static void intelfb_sysrq(int dummy1, struct tty_struct *dummy3)
--{
--        intelfb_restore();
--}
--
--static struct sysrq_key_op sysrq_intelfb_restore_op = {
--        .handler = intelfb_sysrq,
--        .help_msg = "force-fb(G)",
--        .action_msg = "Restore framebuffer console",
--};
--
- int intelfb_probe(struct drm_device *dev)
- {
- 	int ret;
-@@ -898,8 +886,6 @@ int intelfb_probe(struct drm_device *dev
- 		ret = intelfb_single_fb_probe(dev);
- 	}
+ #ifdef	CONFIG_PNP
+-	pnp_register_driver(&cmos_pnp_driver);
++	retval = pnp_register_driver(&cmos_pnp_driver);
++	if (retval < 0)
++		return retval;
+ #endif
  
--	register_sysrq_key('g', &sysrq_intelfb_restore_op);
--
- 	return ret;
- }
- EXPORT_SYMBOL(intelfb_probe);
+ 	if (!cmos_rtc.dev)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +81,6 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 splice-fix-error-return-code.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
 dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
 input-keyboard-introduce-lm8323-driver.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
