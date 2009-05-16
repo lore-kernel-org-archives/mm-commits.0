@@ -1,127 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: + sysrq-intel_fb-fix-sysrq-g-collision.patch added to -mm tree
-Date: Thu, 14 May 2009 16:17:04 -0700
-Message-ID: <200905142317.n4ENH418001194@imap1.linux-foundation.org>
+Subject: [withdrawn] drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch removed from -mm tree
+Date: Sat, 16 May 2009 15:52:03 -0700
+Message-ID: <200905162252.n4GMq3nh012020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755246AbZENX0l (ORCPT
+	by vger.kernel.org with ESMTP id S1755628AbZEPWwH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 May 2009 19:26:41 -0400
+	Sat, 16 May 2009 18:52:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jason.wessel@windriver.com, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org
+To: akpm@linux-foundation.org, airlied@linux.ie, eric@anholt.net, hannes@hanneseder.net, linux@youmustbejoking.demon.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysrq, intel_fb: fix sysrq g collision
-has been added to the -mm tree.  Its filename is
-     sysrq-intel_fb-fix-sysrq-g-collision.patch
+     drivers/gpu/drm/i915/intel_fb.c: remove sysrq-g handler
+has been removed from the -mm tree.  Its filename was
+     drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq, intel_fb: fix sysrq g collision
-From: Jason Wessel <jason.wessel@windriver.com>
+Subject: drivers/gpu/drm/i915/intel_fb.c: remove sysrq-g handler
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Commit 79e539453b34e35f39299a899d263b0a1f1670bd ("i915: add mode setting
-support") introduced a regression where you cannot use sysrq 'g' to enter
-kgdb.  The solution is to move the intel fb sysrq over to V for video
-instead of G for graphics.  The SMP VOYAGER code to register for the
-sysrq-v is not anywhere to be found in the mainline kernel, so the
-comments in the code were cleaned up as well.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13130
 
-This patch also cleans up the sysrq definitions for kgdb to make it
-generic for the kernel debugger, such that the sysrq 'g' can be used in
-the future to enter a gdbstub or another kernel debugger.
+Just remove this sysrq handler - it's doing various bad things from
+hardirq context and clearly isn't used much at all.
 
-Signed-off-by: Jason Vessel <jason.wessel@windriver.com>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Reported-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
 Cc: Eric Anholt <eric@anholt.net>
 Cc: Dave Airlie <airlied@linux.ie>
+Cc: Hannes Eder <hannes@hanneseder.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c            |    4 ++--
- drivers/gpu/drm/i915/intel_fb.c |    4 ++--
- kernel/kgdb.c                   |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/i915/intel_fb.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN drivers/char/sysrq.c~sysrq-intel_fb-fix-sysrq-g-collision drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~sysrq-intel_fb-fix-sysrq-g-collision
-+++ a/drivers/char/sysrq.c
-@@ -406,7 +406,7 @@ static struct sysrq_key_op *sysrq_key_ta
- 	&sysrq_showlocks_op,		/* d */
- 	&sysrq_term_op,			/* e */
- 	&sysrq_moom_op,			/* f */
--	/* g: May be registered by ppc for kgdb */
-+	/* g: May be registered for the kernel debugger */
- 	NULL,				/* g */
- 	NULL,				/* h - reserved for help */
- 	&sysrq_kill_op,			/* i */
-@@ -431,7 +431,7 @@ static struct sysrq_key_op *sysrq_key_ta
- 	&sysrq_sync_op,			/* s */
- 	&sysrq_showstate_op,		/* t */
- 	&sysrq_mountro_op,		/* u */
--	/* v: May be registered at init time by SMP VOYAGER */
-+	/* v: May be registered for frame buffer video console restore */
- 	NULL,				/* v */
- 	&sysrq_showstate_blocked_op,	/* w */
- 	/* x: May be registered on ppc/powerpc for xmon */
-diff -puN drivers/gpu/drm/i915/intel_fb.c~sysrq-intel_fb-fix-sysrq-g-collision drivers/gpu/drm/i915/intel_fb.c
---- a/drivers/gpu/drm/i915/intel_fb.c~sysrq-intel_fb-fix-sysrq-g-collision
+diff -puN drivers/gpu/drm/i915/intel_fb.c~drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler drivers/gpu/drm/i915/intel_fb.c
+--- a/drivers/gpu/drm/i915/intel_fb.c~drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler
 +++ a/drivers/gpu/drm/i915/intel_fb.c
-@@ -864,7 +864,7 @@ static void intelfb_sysrq(int dummy1, st
+@@ -31,7 +31,6 @@
+ #include <linux/mm.h>
+ #include <linux/tty.h>
+ #include <linux/slab.h>
+-#include <linux/sysrq.h>
+ #include <linux/delay.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+@@ -857,17 +856,6 @@ void intelfb_restore(void)
+ 	drm_crtc_helper_set_config(&kernelfb_mode);
+ }
  
- static struct sysrq_key_op sysrq_intelfb_restore_op = {
-         .handler = intelfb_sysrq,
+-static void intelfb_sysrq(int dummy1, struct tty_struct *dummy3)
+-{
+-        intelfb_restore();
+-}
+-
+-static struct sysrq_key_op sysrq_intelfb_restore_op = {
+-        .handler = intelfb_sysrq,
 -        .help_msg = "force-fb(G)",
-+        .help_msg = "force-fb(V)",
-         .action_msg = "Restore framebuffer console",
- };
- 
-@@ -898,7 +898,7 @@ int intelfb_probe(struct drm_device *dev
+-        .action_msg = "Restore framebuffer console",
+-};
+-
+ int intelfb_probe(struct drm_device *dev)
+ {
+ 	int ret;
+@@ -898,8 +886,6 @@ int intelfb_probe(struct drm_device *dev
  		ret = intelfb_single_fb_probe(dev);
  	}
  
 -	register_sysrq_key('g', &sysrq_intelfb_restore_op);
-+	register_sysrq_key('v', &sysrq_intelfb_restore_op);
- 
+-
  	return ret;
  }
-diff -puN kernel/kgdb.c~sysrq-intel_fb-fix-sysrq-g-collision kernel/kgdb.c
---- a/kernel/kgdb.c~sysrq-intel_fb-fix-sysrq-g-collision
-+++ a/kernel/kgdb.c
-@@ -1583,8 +1583,8 @@ static void sysrq_handle_gdb(int key, st
- 
- static struct sysrq_key_op sysrq_gdb_op = {
- 	.handler	= sysrq_handle_gdb,
--	.help_msg	= "Gdb",
--	.action_msg	= "GDB",
-+	.help_msg	= "debug(G)",
-+	.action_msg	= "DEBUG",
- };
- #endif
- 
+ EXPORT_SYMBOL(intelfb_probe);
 _
 
-Patches currently in -mm which might be from jason.wessel@windriver.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sysrq-intel_fb-fix-sysrq-g-collision.patch
+origin.patch
 linux-next.patch
-frv-duplicate-output_buffer-of-e03.patch
-kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+splice-fix-error-return-code.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+drivers-gpu-drm-i915-intel_fbc-remove-sysrq-g-handler.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-keyboard-introduce-lm8323-driver.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+drivers-usb-serial-sierrac-fix-printk-warning.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+revert-fbdev-uninline-lock_fb_info.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
