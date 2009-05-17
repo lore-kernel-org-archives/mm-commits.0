@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate.patch added to -mm tree
-Date: Sat, 16 May 2009 22:56:28 -0700
-Message-ID: <200905170556.n4H5uSrq001191@imap1.linux-foundation.org>
+Subject: + intelfb-fix-color-map-setting-with-an-lvds-display.patch added to -mm tree
+Date: Sat, 16 May 2009 23:19:40 -0700
+Message-ID: <200905170619.n4H6JerI016628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58644 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724AbZEQF5X (ORCPT
+	by vger.kernel.org with ESMTP id S1750724AbZEQGTl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 17 May 2009 01:57:23 -0400
+	Sun, 17 May 2009 02:19:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: toshi.okajima@jp.fujitsu.com, adobriyan@gmail.com, nickpiggin@yahoo.com.au, peterz@infradead.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: krzysztof.h1@wp.pl, samanddeanus@yahoo.com
 
 
 The patch titled
-     page-writeback: fix the calculation of the oldest_jif in wb_kupdate()
+     intelfb: fix color map setting with an LVDS display
 has been added to the -mm tree.  Its filename is
-     page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate.patch
+     intelfb-fix-color-map-setting-with-an-lvds-display.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-writeback: fix the calculation of the oldest_jif in wb_kupdate()
-From: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
+Subject: intelfb: fix color map setting with an LVDS display
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-wb_kupdate() function has a bug on linux-2.6.30-rc5.  This bug causes
-generic_sync_sb_inodes() to start to write inodes back much earlier than
-our expectations because it miscalculates oldest_jif in wb_kupdate().
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13285
 
-Fixes a whoops added in:
+The intelfb driver sets color map depending on currently active pipe. 
+However, if an LVDS display is attached (like in laptop) the active pipe
+variable is never set.  The default value is PIPE_A and can be wrong.  Set
+up the pipe variable during driver initialization after hardware state was
+read.
 
-: Author:     Alexey Dobriyan <adobriyan@gmail.com>
-: AuthorDate: Tue Mar 31 15:23:18 2009 -0700
-: Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-: CommitDate: Wed Apr 1 08:59:13 2009 -0700
-: 
-:     mm: fix proc_dointvec_userhz_jiffies "breakage"
+I also found by experiment that if both pipes were enabled, the PIPE_B is
+used (active).
 
-Signed-off-by: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The problem is visible in the 8 bpp mode if colors above 15 are used.  The
+first 16 color entries are displayed correctly.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Reported-by: Dean Menezes <samanddeanus@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/intelfb/intelfbdrv.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/page-writeback.c~page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate mm/page-writeback.c
---- a/mm/page-writeback.c~page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate
-+++ a/mm/page-writeback.c
-@@ -94,12 +94,12 @@ unsigned long vm_dirty_bytes;
- /*
-  * The interval between `kupdate'-style writebacks
-  */
--unsigned int dirty_writeback_interval = 5 * 100; /* sentiseconds */
-+unsigned int dirty_writeback_interval = 5 * 100; /* centiseconds */
+diff -puN drivers/video/intelfb/intelfbdrv.c~intelfb-fix-color-map-setting-with-an-lvds-display drivers/video/intelfb/intelfbdrv.c
+--- a/drivers/video/intelfb/intelfbdrv.c~intelfb-fix-color-map-setting-with-an-lvds-display
++++ a/drivers/video/intelfb/intelfbdrv.c
+@@ -871,6 +871,12 @@ static int __devinit intelfb_pci_registe
  
- /*
-  * The longest time for which data is allowed to remain dirty
-  */
--unsigned int dirty_expire_interval = 30 * 100; /* sentiseconds */
-+unsigned int dirty_expire_interval = 30 * 100; /* centiseconds */
+ 	intelfbhw_print_hw_state(dinfo, &dinfo->save_state);
  
- /*
-  * Flag that makes the machine dump writes/reads and block dirtyings.
-@@ -770,7 +770,7 @@ static void wb_kupdate(unsigned long arg
++	/* Check whether pipe A or pipe B is enabled. */
++	if (dinfo->save_state.pipe_a_conf & PIPECONF_ENABLE)
++		dinfo->pipe = PIPE_A;
++	if (dinfo->save_state.pipe_b_conf & PIPECONF_ENABLE)
++		dinfo->pipe = PIPE_B;
++
+ 	if (bailearly == 18)
+ 		bailout(dinfo);
  
- 	sync_supers();
- 
--	oldest_jif = jiffies - msecs_to_jiffies(dirty_expire_interval);
-+	oldest_jif = jiffies - msecs_to_jiffies(dirty_expire_interval * 10);
- 	start_jif = jiffies;
- 	next_jif = start_jif + msecs_to_jiffies(dirty_writeback_interval * 10);
- 	nr_to_write = global_page_state(NR_FILE_DIRTY) +
 _
 
-Patches currently in -mm which might be from toshi.okajima@jp.fujitsu.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate.patch
+origin.patch
+linux-next.patch
+revert-fbdev-fix-info-lock-deadlock-in-fbcon_event_notify.patch
+revert-fbdev-uninline-lock_fb_info.patch
+revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
+revert-fbmem-dont-call-copy_from-to_user-with-mutex-held.patch
+fbdev-move-back-to-bkl-solution.patch
+intelfb-fix-color-map-setting-with-an-lvds-display.patch
+chipsfb-remove-redundant-assignment.patch
+igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
+offb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
 
