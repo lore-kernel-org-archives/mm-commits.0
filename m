@@ -1,70 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mfd-pcf50633-fix-unsafe-disable_irq.patch removed from -mm tree
-Date: Sun, 17 May 2009 09:54:40 -0700
-Message-ID: <200905171654.n4HGseP7017290@imap1.linux-foundation.org>
+Subject: [merged] acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition.patch removed from -mm tree
+Date: Sun, 17 May 2009 09:54:35 -0700
+Message-ID: <200905171654.n4HGsZSq017216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752461AbZEQQ5q (ORCPT
+	by vger.kernel.org with ESMTP id S1752734AbZEQQ5s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 17 May 2009 12:57:46 -0400
+	Sun, 17 May 2009 12:57:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arhuaco@freaks-unidos.net, balajirrao@openmoko.org, mingo@elte.hu, sameo@openedhand.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: eightgraph@gmail.com, lenb@kernel.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mfd: pcf50633: fix unsafe disable_irq()
+     acpi thermal: fix off-by-1 error in trip point trigger condition
 has been removed from the -mm tree.  Its filename was
-     mfd-pcf50633-fix-unsafe-disable_irq.patch
+     acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd: pcf50633: fix unsafe disable_irq()
-From: Nelson Castillo <arhuaco@freaks-unidos.net>
+Subject: acpi thermal: fix off-by-1 error in trip point trigger condition
+From: Vladimir Zajac <eightgraph@gmail.com>
 
-Without this change Openmoko Freerunner (GTA02) bootstrap will deadlock. 
-As pointed out in other patches this issue is in the wild since the merge
-of:
+Fix a regression caused by commit b1569e99c795bf83b4ddf41c4f1c42761ab7f75e
+("ACPI: move thermal trip handling to generic thermal layer") which
+accidentally changed trip point trigger condition to temp > trip_temp
 
-: commit 3aa551c9b4c40018f0e261a178e3d25478dc04a9
-: Author: Thomas Gleixner <tglx@linutronix.de>
-: Date:   Mon Mar 23 18:28:15 2009 +0100
-: 
-:    genirq: add threaded interrupt handler support
-: 
-:    Add support for threaded interrupt handlers
+This patch changes the trigger condition back to
+  temp >= trip_temp
 
-Signed-off-by: Nelson Castillo <arhuaco@freaks-unidos.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <balajirrao@openmoko.org>
-Cc: Samuel Ortiz <sameo@openedhand.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Vladimir Zajac <eightgraph@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/pcf50633-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/thermal/thermal_sys.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mfd/pcf50633-core.c~mfd-pcf50633-fix-unsafe-disable_irq drivers/mfd/pcf50633-core.c
---- a/drivers/mfd/pcf50633-core.c~mfd-pcf50633-fix-unsafe-disable_irq
-+++ a/drivers/mfd/pcf50633-core.c
-@@ -443,7 +443,7 @@ static irqreturn_t pcf50633_irq(int irq,
- 	dev_dbg(pcf->dev, "pcf50633_irq\n");
+diff -puN drivers/thermal/thermal_sys.c~acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition
++++ a/drivers/thermal/thermal_sys.c
+@@ -961,7 +961,7 @@ void thermal_zone_device_update(struct t
  
- 	get_device(pcf->dev);
--	disable_irq(pcf->irq);
-+	disable_irq_nosync(pcf->irq);
- 	schedule_work(&pcf->irq_work);
+ 		switch (trip_type) {
+ 		case THERMAL_TRIP_CRITICAL:
+-			if (temp > trip_temp) {
++			if (temp >= trip_temp) {
+ 				if (tz->ops->notify)
+ 					ret = tz->ops->notify(tz, count,
+ 							      trip_type);
+@@ -974,7 +974,7 @@ void thermal_zone_device_update(struct t
+ 			}
+ 			break;
+ 		case THERMAL_TRIP_HOT:
+-			if (temp > trip_temp)
++			if (temp >= trip_temp)
+ 				if (tz->ops->notify)
+ 					tz->ops->notify(tz, count, trip_type);
+ 			break;
+@@ -986,14 +986,14 @@ void thermal_zone_device_update(struct t
  
- 	return IRQ_HANDLED;
+ 				cdev = instance->cdev;
+ 
+-				if (temp > trip_temp)
++				if (temp >= trip_temp)
+ 					cdev->ops->set_cur_state(cdev, 1);
+ 				else
+ 					cdev->ops->set_cur_state(cdev, 0);
+ 			}
+ 			break;
+ 		case THERMAL_TRIP_PASSIVE:
+-			if (temp > trip_temp || tz->passive)
++			if (temp >= trip_temp || tz->passive)
+ 				thermal_zone_device_passive(tz, temp,
+ 							    trip_temp, count);
+ 			break;
 _
 
-Patches currently in -mm which might be from arhuaco@freaks-unidos.net are
+Patches currently in -mm which might be from eightgraph@gmail.com are
 
-linux-next.patch
+origin.patch
 
