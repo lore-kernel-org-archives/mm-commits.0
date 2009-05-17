@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch added to -mm tree
-Date: Sat, 16 May 2009 15:52:28 -0700
-Message-ID: <200905162252.n4GMqSxm012354@imap1.linux-foundation.org>
+Subject: + page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate.patch added to -mm tree
+Date: Sat, 16 May 2009 22:56:28 -0700
+Message-ID: <200905170556.n4H5uSrq001191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755418AbZEPWwm (ORCPT
+	by vger.kernel.org with ESMTP id S1750724AbZEQF5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 May 2009 18:52:42 -0400
+	Sun, 17 May 2009 01:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alessandro.zummo@towertech.it, david-b@pacbell.net, greg@kroah.com, kay.sievers@vrfy.org, mingo@elte.hu, ozan@pardus.org.tr, rjw@sisk.pl
+Cc: toshi.okajima@jp.fujitsu.com, adobriyan@gmail.com, nickpiggin@yahoo.com.au, peterz@infradead.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     drivers/rtc/rtc-cmos.c: cmos_init(): don't ignore pnp_register_driver() return value
+     page-writeback: fix the calculation of the oldest_jif in wb_kupdate()
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+     page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-cmos.c: cmos_init(): don't ignore pnp_register_driver() return value
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: page-writeback: fix the calculation of the oldest_jif in wb_kupdate()
+From: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13326
+wb_kupdate() function has a bug on linux-2.6.30-rc5.  This bug causes
+generic_sync_sb_inodes() to start to write inodes back much earlier than
+our expectations because it miscalculates oldest_jif in wb_kupdate().
 
-Prevents a null-pointer deref under the above-described circumstances.
+Fixes a whoops added in:
 
-pnp_unregister_driver() shouldn't oops the kernel either - that's a
-different bug.
+: Author:     Alexey Dobriyan <adobriyan@gmail.com>
+: AuthorDate: Tue Mar 31 15:23:18 2009 -0700
+: Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+: CommitDate: Wed Apr 1 08:59:13 2009 -0700
+: 
+:     mm: fix proc_dointvec_userhz_jiffies "breakage"
 
-Reported-by: <ozan@pardus.org.tr>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -1179,7 +1179,9 @@ static int __init cmos_init(void)
- 	int retval = 0;
+diff -puN mm/page-writeback.c~page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate mm/page-writeback.c
+--- a/mm/page-writeback.c~page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate
++++ a/mm/page-writeback.c
+@@ -94,12 +94,12 @@ unsigned long vm_dirty_bytes;
+ /*
+  * The interval between `kupdate'-style writebacks
+  */
+-unsigned int dirty_writeback_interval = 5 * 100; /* sentiseconds */
++unsigned int dirty_writeback_interval = 5 * 100; /* centiseconds */
  
- #ifdef	CONFIG_PNP
--	pnp_register_driver(&cmos_pnp_driver);
-+	retval = pnp_register_driver(&cmos_pnp_driver);
-+	if (retval < 0)
-+		return retval;
- #endif
+ /*
+  * The longest time for which data is allowed to remain dirty
+  */
+-unsigned int dirty_expire_interval = 30 * 100; /* sentiseconds */
++unsigned int dirty_expire_interval = 30 * 100; /* centiseconds */
  
- 	if (!cmos_rtc.dev)
+ /*
+  * Flag that makes the machine dump writes/reads and block dirtyings.
+@@ -770,7 +770,7 @@ static void wb_kupdate(unsigned long arg
+ 
+ 	sync_supers();
+ 
+-	oldest_jif = jiffies - msecs_to_jiffies(dirty_expire_interval);
++	oldest_jif = jiffies - msecs_to_jiffies(dirty_expire_interval * 10);
+ 	start_jif = jiffies;
+ 	next_jif = start_jif + msecs_to_jiffies(dirty_writeback_interval * 10);
+ 	nr_to_write = global_page_state(NR_FILE_DIRTY) +
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from toshi.okajima@jp.fujitsu.com are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-splice-fix-error-return-code.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-keyboard-introduce-lm8323-driver.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-drivers-usb-serial-sierrac-fix-printk-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-revert-fbdev-uninline-lock_fb_info.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+page-writeback-fix-the-calculation-of-the-oldest_jif-in-wb_kupdate.patch
 
