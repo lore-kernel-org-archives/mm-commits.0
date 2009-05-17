@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intelfb-fix-color-map-setting-with-an-lvds-display.patch added to -mm tree
-Date: Sat, 16 May 2009 23:19:40 -0700
-Message-ID: <200905170619.n4H6JerI016628@imap1.linux-foundation.org>
+Subject: + mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch added to -mm tree
+Date: Sun, 17 May 2009 08:38:51 -0700
+Message-ID: <200905171538.n4HFcp97031801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724AbZEQGTl (ORCPT
+	by vger.kernel.org with ESMTP id S1752200AbZEQPkH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 17 May 2009 02:19:41 -0400
+	Sun, 17 May 2009 11:40:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, samanddeanus@yahoo.com
+Cc: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, mpm@selenic.com
 
 
 The patch titled
-     intelfb: fix color map setting with an LVDS display
+     mm-introduce-pagehuge-for-testing-huge-gigantic-pages update
 has been added to the -mm tree.  Its filename is
-     intelfb-fix-color-map-setting-with-an-lvds-display.patch
+     mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,184 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intelfb: fix color map setting with an LVDS display
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: mm-introduce-pagehuge-for-testing-huge-gigantic-pages update
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13285
-
-The intelfb driver sets color map depending on currently active pipe. 
-However, if an LVDS display is attached (like in laptop) the active pipe
-variable is never set.  The default value is PIPE_A and can be wrong.  Set
-up the pipe variable during driver initialization after hardware state was
-read.
-
-I also found by experiment that if both pipes were enabled, the PIPE_B is
-used (active).
-
-The problem is visible in the 8 bpp mode if colors above 15 are used.  The
-first 16 color entries are displayed correctly.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Reported-by: Dean Menezes <samanddeanus@yahoo.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/intelfb/intelfbdrv.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/proc/page.c          |    1 +
+ include/linux/hugetlb.h |    7 +++++++
+ include/linux/mm.h      |    9 ---------
+ mm/hugetlb.c            |   10 ++--------
+ mm/internal.h           |    1 -
+ mm/page_alloc.c         |    4 +++-
+ 6 files changed, 13 insertions(+), 19 deletions(-)
 
-diff -puN drivers/video/intelfb/intelfbdrv.c~intelfb-fix-color-map-setting-with-an-lvds-display drivers/video/intelfb/intelfbdrv.c
---- a/drivers/video/intelfb/intelfbdrv.c~intelfb-fix-color-map-setting-with-an-lvds-display
-+++ a/drivers/video/intelfb/intelfbdrv.c
-@@ -871,6 +871,12 @@ static int __devinit intelfb_pci_registe
+diff -puN fs/proc/page.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update fs/proc/page.c
+--- a/fs/proc/page.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update
++++ a/fs/proc/page.c
+@@ -6,6 +6,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#include <linux/hugetlb.h>
+ #include <asm/uaccess.h>
+ #include "internal.h"
  
- 	intelfbhw_print_hw_state(dinfo, &dinfo->save_state);
+diff -puN include/linux/hugetlb.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update
++++ a/include/linux/hugetlb.h
+@@ -11,6 +11,8 @@
  
-+	/* Check whether pipe A or pipe B is enabled. */
-+	if (dinfo->save_state.pipe_a_conf & PIPECONF_ENABLE)
-+		dinfo->pipe = PIPE_A;
-+	if (dinfo->save_state.pipe_b_conf & PIPECONF_ENABLE)
-+		dinfo->pipe = PIPE_B;
+ struct ctl_table;
+ 
++int PageHuge(struct page *page);
 +
- 	if (bailearly == 18)
- 		bailout(dinfo);
+ static inline int is_vm_hugetlb_page(struct vm_area_struct *vma)
+ {
+ 	return vma->vm_flags & VM_HUGETLB;
+@@ -61,6 +63,11 @@ void hugetlb_change_protection(struct vm
  
+ #else /* !CONFIG_HUGETLB_PAGE */
+ 
++static inline int PageHuge(struct page *page)
++{
++	return 0;
++}
++
+ static inline int is_vm_hugetlb_page(struct vm_area_struct *vma)
+ {
+ 	return 0;
+diff -puN include/linux/mm.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update
++++ a/include/linux/mm.h
+@@ -355,15 +355,6 @@ static inline void set_compound_order(st
+ 	page[1].lru.prev = (void *)order;
+ }
+ 
+-#ifdef CONFIG_HUGETLBFS
+-int PageHuge(struct page *page);
+-#else
+-static inline int PageHuge(struct page *page)
+-{
+-	return 0;
+-}
+-#endif
+-
+ /*
+  * Multiple processes may "see" the same page. E.g. for untouched
+  * mappings of /dev/null, all processes see the same page full of
+diff -puN mm/hugetlb.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update
++++ a/mm/hugetlb.c
+@@ -578,11 +578,6 @@ static void free_huge_page(struct page *
+ 		hugetlb_put_quota(mapping, 1);
+ }
+ 
+-static void free_gigantic_page(struct page *page)
+-{
+-	__free_pages_ok(page, compound_order(page));
+-}
+-
+ static void prep_new_huge_page(struct hstate *h, struct page *page, int nid)
+ {
+ 	set_compound_page_dtor(page, free_huge_page);
+@@ -599,7 +594,7 @@ static void prep_compound_gigantic_page(
+ 	int nr_pages = 1 << order;
+ 	struct page *p = page + 1;
+ 
+-	set_compound_page_dtor(page, free_gigantic_page);
++	/* we rely on prep_new_huge_page to set the destructor */
+ 	set_compound_order(page, order);
+ 	__SetPageHead(page);
+ 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
+@@ -618,8 +613,7 @@ int PageHuge(struct page *page)
+ 	page = compound_head(page);
+ 	dtor = get_compound_page_dtor(page);
+ 
+-	return  dtor == free_huge_page ||
+-		dtor == free_gigantic_page;
++	return dtor == free_huge_page;
+ }
+ 
+ static struct page *alloc_fresh_huge_page_node(struct hstate *h, int nid)
+diff -puN mm/internal.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update mm/internal.h
+--- a/mm/internal.h~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update
++++ a/mm/internal.h
+@@ -48,7 +48,6 @@ extern void putback_lru_page(struct page
+  */
+ extern unsigned long highest_memmap_pfn;
+ extern void __free_pages_bootmem(struct page *page, unsigned int order);
+-extern void __free_pages_ok(struct page *page, unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned long order);
+ 
+ 
+diff -puN mm/page_alloc.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update
++++ a/mm/page_alloc.c
+@@ -77,6 +77,8 @@ int percpu_pagelist_fraction;
+ int pageblock_order __read_mostly;
+ #endif
+ 
++static void __free_pages_ok(struct page *page, unsigned int order);
++
+ /*
+  * results with 256, 32 in the lowmem_reserve sysctl:
+  *	1G machine -> (16M dma, 800M-16M normal, 1G-800M high)
+@@ -551,7 +553,7 @@ static void free_one_page(struct zone *z
+ 	spin_unlock(&zone->lock);
+ }
+ 
+-void __free_pages_ok(struct page *page, unsigned int order)
++static void __free_pages_ok(struct page *page, unsigned int order)
+ {
+ 	unsigned long flags;
+ 	int i;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-origin.patch
 linux-next.patch
-revert-fbdev-fix-info-lock-deadlock-in-fbcon_event_notify.patch
-revert-fbdev-uninline-lock_fb_info.patch
-revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
-revert-fbmem-dont-call-copy_from-to_user-with-mutex-held.patch
-fbdev-move-back-to-bkl-solution.patch
-intelfb-fix-color-map-setting-with-an-lvds-display.patch
-chipsfb-remove-redundant-assignment.patch
-igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
-offb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
+readahead-make-mmap_miss-an-unsigned-int.patch
+readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
+readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
+readahead-remove-one-unnecessary-radix-tree-lookup.patch
+readahead-increase-interleaved-readahead-size.patch
+readahead-remove-sync-async-readahead-call-dependency.patch
+readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
+readahead-sequential-mmap-readahead.patch
+readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
+radix-tree-add-radix_tree_prev_hole.patch
+readahead-move-the-random-read-case-to-bottom.patch
+readahead-introduce-context-readahead-algorithm.patch
+readahead-introduce-context-readahead-algorithm-update.patch
+readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
+readahead-enforce-full-sync-mmap-readahead-size.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
+pagemap-document-clarifications.patch
+pagemap-document-9-more-exported-page-flags.patch
+pagemap-add-page-types-tool.patch
+pagemap-export-pg_hwpoison.patch
+pagemap-export-pg_hwpoison-fix.patch
+vmscan-cleanup-the-scan-batching-code.patch
+vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
+vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+pm-suspend-do-not-shrink-memory-before-suspend.patch
+pm-hibernate-move-memory-shrinking-to-snapshotc-rev-2.patch
+pm-hibernate-rework-shrinking-of-memory.patch
+pm-hibernate-do-not-release-preallocated-memory-unnecessarily-rev-2.patch
+pm-hibernate-do-not-try-to-allocate-too-much-memory-too-hard.patch
+inotify-reimplement-inotify-using-fsnotify-report-rounded-up-event-size-to-user-space.patch
 
