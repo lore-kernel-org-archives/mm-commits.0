@@ -1,117 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] splice-fix-error-return-code.patch removed from -mm tree
-Date: Sun, 17 May 2009 09:54:15 -0700
-Message-ID: <200905171654.n4HGsFPn016981@imap1.linux-foundation.org>
+Subject: [merged] kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch removed from -mm tree
+Date: Sun, 17 May 2009 09:54:20 -0700
+Message-ID: <200905171654.n4HGsKMe017057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46596 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751989AbZEQQzD (ORCPT
+	by vger.kernel.org with ESMTP id S1753042AbZEQQzK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 17 May 2009 12:55:03 -0400
+	Sun, 17 May 2009 12:55:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, miklos@szeredi.hu, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, avi@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     splice: fix error return code
+     kvm: expand on "help" info to specify kvm intel and amd module names
 has been removed from the -mm tree.  Its filename was
-     splice-fix-error-return-code.patch
+     kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: splice: fix error return code
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kvm: expand on "help" info to specify kvm intel and amd module names
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-gcc says:
-
-fs/splice.c: In function 'default_file_splice_read':
-fs/splice.c:566: warning: 'error' may be used uninitialized in this function
-
-which is sort-of true.  The code will in fact return -ENOMEM instead of the
-kernel_readv() return value.
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Avi Kivity <avi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/kvm/Kconfig |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/splice.c~splice-fix-error-return-code fs/splice.c
---- a/fs/splice.c~splice-fix-error-return-code
-+++ a/fs/splice.c
-@@ -595,8 +595,10 @@ ssize_t default_file_splice_read(struct 
- 	}
+diff -puN arch/x86/kvm/Kconfig~kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names arch/x86/kvm/Kconfig
+--- a/arch/x86/kvm/Kconfig~kvm-expand-on-help-info-to-specify-kvm-intel-and-amd-module-names
++++ a/arch/x86/kvm/Kconfig
+@@ -50,6 +50,9 @@ config KVM_INTEL
+ 	  Provides support for KVM on Intel processors equipped with the VT
+ 	  extensions.
  
- 	res = kernel_readv(in, vec, spd.nr_pages, *ppos);
--	if (res < 0)
-+	if (res < 0) {
-+		error = res;
- 		goto err;
-+	}
++	  To compile this as a module, choose M here: the module
++	  will be called kvm-intel.
++
+ config KVM_AMD
+ 	tristate "KVM for AMD processors support"
+ 	depends on KVM
+@@ -57,6 +60,9 @@ config KVM_AMD
+ 	  Provides support for KVM on AMD processors equipped with the AMD-V
+ 	  (SVM) extensions.
  
- 	error = 0;
- 	if (!res)
++	  To compile this as a module, choose M here: the module
++	  will be called kvm-amd.
++
+ config KVM_TRACE
+ 	bool "KVM trace support"
+ 	depends on KVM && SYSFS
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-keyboard-introduce-lm8323-driver.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-drivers-usb-serial-sierrac-fix-printk-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-revert-fbdev-uninline-lock_fb_info.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+drm-simplify-kcalloc-call-to-kzalloc.patch
+scripts-headers_checkpl-correct-re-in-header-config-leak-check.patch
+ramdisk-remove-long-deprecated-ramdisk=-boot-time-param.patch
+kernel-kfifoc-replace-conditional-test-with-is_power_of_2.patch
+ntfs-use-is_power_of_2-function-for-clarity.patch
 
