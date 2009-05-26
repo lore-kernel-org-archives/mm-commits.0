@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch added to -mm tree
-Date: Tue, 26 May 2009 14:42:03 -0700
-Message-ID: <200905262142.n4QLg3t7029870@imap1.linux-foundation.org>
+Subject: + maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch added to -mm tree
+Date: Tue, 26 May 2009 14:42:05 -0700
+Message-ID: <200905262142.n4QLg5Bk029878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53659 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758606AbZEZVme (ORCPT
+	by vger.kernel.org with ESMTP id S1758718AbZEZVmg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:42:34 -0400
+	Tue, 26 May 2009 17:42:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: change "die" to "warn" when command line file is not a patch
+     MAINTAINERS: swap mismarked ECRYPT FS M: and P: entries
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
+     maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: change "die" to "warn" when command line file is not a patch
+Subject: MAINTAINERS: swap mismarked ECRYPT FS M: and P: entries
 From: Joe Perches <joe@perches.com>
-
-fixes git send-email with a cover letter
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch
-+++ a/scripts/get_maintainer.pl
-@@ -165,7 +165,7 @@ foreach my $file (@ARGV) {
- 	}
- 	close(PATCH);
- 	if ($file_cnt == @files) {
--	    die "$P: file '${file}' doesn't appear to be a patch.  "
-+	    warn "$P: file '${file}' doesn't appear to be a patch.  "
- 		. "Add -f to options?\n";
- 	}
- 	@files = sort_and_uniq(@files);
+diff -puN MAINTAINERS~maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries MAINTAINERS
+--- a/MAINTAINERS~maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries
++++ a/MAINTAINERS
+@@ -1970,8 +1970,8 @@ F:	net/bridge/netfilter/ebt*.c
+ ECRYPT FILE SYSTEM
+ P:	Tyler Hicks
+ M:	tyhicks@linux.vnet.ibm.com
+-M:	Dustin Kirkland
+-P:	kirkland@canonical.com
++P:	Dustin Kirkland
++M:	kirkland@canonical.com
+ L:	ecryptfs-devel@lists.launchpad.net
+ W:	https://launchpad.net/ecryptfs
+ S:	Supported
 _
 
 Patches currently in -mm which might be from joe@perches.com are
