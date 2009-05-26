@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch added to -mm tree
-Date: Tue, 26 May 2009 14:42:01 -0700
-Message-ID: <200905262142.n4QLg1v2029866@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch added to -mm tree
+Date: Tue, 26 May 2009 14:41:49 -0700
+Message-ID: <200905262141.n4QLfnaM029659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758599AbZEZVmb (ORCPT
+	by vger.kernel.org with ESMTP id S1757543AbZEZVmU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:42:31 -0400
+	Tue, 26 May 2009 17:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: allow 8 bit characters in email addresses
+     scripts/get_maintainer.pl: improve --git-chief-penquins (Linus Torvalds) filtering
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch
+     scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: allow 8 bit characters in email addresses
+Subject: scripts/get_maintainer.pl: improve --git-chief-penquins (Linus Torvalds) filtering
 From: Joe Perches <joe@perches.com>
+
+Moved linux-kernel@vger.kernel.org to MAINTAINERS
+lkml will be added to all CC lists via F: pattern match
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/get_maintainer.pl |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering
 +++ a/scripts/get_maintainer.pl
-@@ -57,7 +57,7 @@ my $penguin_chiefs = "\(" . join("|",@pe
+@@ -216,15 +216,19 @@ foreach my $file (@files) {
  
- # rfc822 email address - preloaded methods go here.
- my $rfc822_lwsp = "(?:(?:\\r\\n)?[ \\t])";
--my $rfc822_char = '[\\000-\\177]';
-+my $rfc822_char = '[\\000-\\377]';
+ }
  
- if (!GetOptions(
- 		'email!' => \$email,
+-if ($email_git_penguin_chiefs) {
++if ($email) {
+     foreach my $chief (@penguin_chief) {
+ 	if ($chief =~ m/^(.*):(.*)/) {
+-	    my $chief_name = $1;
+-	    my $chief_addr = $2;
++	    my $email_address;
+ 	    if ($email_usename) {
+-		push(@email_to, format_email($chief_name, $chief_addr));
++		$email_address = format_email($1, $2);
+ 	    } else {
+-		push(@email_to, $chief_addr);
++		$email_address = $2;
++	    }
++	    if ($email_git_penguin_chiefs) {
++		push(@email_to, $email_address);
++	    } else {
++		@email_to = grep(!/${email_address}/, @email_to);
+ 	    }
+ 	}
+     }
+@@ -236,10 +240,7 @@ if ($email || $email_list) {
+ 	@to = (@to, @email_to);
+     }
+     if ($email_list) {
+-	if (@list_to == 0) {
+-	    push(@list_to, "linux-kernel\@vger.kernel.org");
+ 	@to = (@to, @list_to);
+-	}
+     }
+     output(uniq(@to));
+ }
+@@ -314,7 +315,7 @@ Default options:
+   [--email --git --m --n --l --multiline]
+ 
+ Other options:
+-  --version -> show version
++  --version => show version
+   --help => show this help information
+ 
+ EOT
+@@ -423,7 +424,7 @@ sub add_categories {
+ sub which {
+     my ($bin) = @_;
+ 
+-    foreach my $path (split /:/, $ENV{PATH}) {
++    foreach my $path (split(/:/, $ENV{PATH})) {
+ 	if (-e "$path/$bin") {
+ 	    return "$path/$bin";
+ 	}
+@@ -446,12 +447,8 @@ sub recent_git_signoffs {
+     }
+ 
+     $cmd = "git log --since=${email_git_since} -- ${file}";
+-    $cmd .= " | grep -Pi \"^[-_ 	a-z]+by:.*\\\@\"";
+-    if (!$email_git_penguin_chiefs) {
+-	$cmd .= " | grep -Pv \"${penguin_chiefs}\"";
+-    }
++    $cmd .= " | grep -Pi \"^[-_ 	a-z]+by:.*\\\@.*\$\"";
+     $cmd .= " | cut -f2- -d\":\"";
+-    $cmd .= " | sed -e \"s/^\\s+//g\"";
+     $cmd .= " | sort | uniq -c | sort -rn";
+ 
+     $output = `${cmd}`;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
