@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + b3dfg-clean-up-module_parm_desc-newline.patch added to -mm tree
-Date: Tue, 26 May 2009 14:55:32 -0700
-Message-ID: <200905262155.n4QLtWR4006882@imap1.linux-foundation.org>
+Subject: + remove-bashisms-from-scripts.patch added to -mm tree
+Date: Tue, 26 May 2009 14:57:21 -0700
+Message-ID: <200905262157.n4QLvLfn008200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44443 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758073AbZEZVzd (ORCPT
+	by vger.kernel.org with ESMTP id S1756978AbZEZV5e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:55:33 -0400
+	Tue, 26 May 2009 17:57:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andre.neo.net@gmail.com, greg@kroah.com
+Cc: dannf@debian.org, sam@ravnborg.org
 
 
 The patch titled
-     b3dfg: clean up MODULE_PARM_DESC newline
+     Remove bashisms from scripts
 has been added to the -mm tree.  Its filename is
-     b3dfg-clean-up-module_parm_desc-newline.patch
+     remove-bashisms-from-scripts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: b3dfg: clean up MODULE_PARM_DESC newline
-From: Andre Lopes <andre.neo.net@gmail.com>
+Subject: Remove bashisms from scripts
+From: dann frazier <dannf@debian.org>
 
-Remove incorrect MODULE_PARM_DESC newline.
+The '-e' option to echo and brace expansion are not guaranteed to be supported
+by a POSIX-compliant /bin/sh (e.g. dash)
 
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: dann frazier <dannf@debian.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/b3dfg/b3dfg.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gcc-version.sh |    2 +-
+ scripts/ver_linux      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/staging/b3dfg/b3dfg.c~b3dfg-clean-up-module_parm_desc-newline drivers/staging/b3dfg/b3dfg.c
---- a/drivers/staging/b3dfg/b3dfg.c~b3dfg-clean-up-module_parm_desc-newline
-+++ a/drivers/staging/b3dfg/b3dfg.c
-@@ -41,7 +41,7 @@ static unsigned int b3dfg_nbuf = 2;
+diff -puN scripts/gcc-version.sh~remove-bashisms-from-scripts scripts/gcc-version.sh
+--- a/scripts/gcc-version.sh~remove-bashisms-from-scripts
++++ a/scripts/gcc-version.sh
+@@ -18,7 +18,7 @@ compiler="$*"
  
- module_param_named(buffer_count, b3dfg_nbuf, uint, 0444);
+ if [ ${#compiler} -eq 0 ]; then
+ 	echo "Error: No compiler specified."
+-	echo -e "Usage:\n\t$0 <gcc-command>"
++	printf "Usage:\n\t$0 <gcc-command>\n"
+ 	exit 1
+ fi
  
--MODULE_PARM_DESC(buffer_count, "Number of buffers (min 2, default 2)\n");
-+MODULE_PARM_DESC(buffer_count, "Number of buffers (min 2, default 2)");
+diff -puN scripts/ver_linux~remove-bashisms-from-scripts scripts/ver_linux
+--- a/scripts/ver_linux~remove-bashisms-from-scripts
++++ a/scripts/ver_linux
+@@ -65,7 +65,7 @@ sed -n -e '/^.*\/libc-\([^/]*\)\.so$/{s/
+ ldd -v > /dev/null 2>&1 && ldd -v || ldd --version |head -n 1 | awk \
+ 'NR==1{print "Dynamic linker (ldd)  ", $NF}'
  
- MODULE_AUTHOR("Daniel Drake <ddrake@brontes3d.com>");
- MODULE_DESCRIPTION("Brontes frame grabber driver");
+-ls -l /usr/lib/lib{g,stdc}++.so  2>/dev/null | awk -F. \
++ls -l /usr/lib/libg++.so /usr/lib/libstdc++.so  2>/dev/null | awk -F. \
+        '{print "Linux C++ Library      " $4"."$5"."$6}'
+ 
+ ps --version 2>&1 | grep version | awk \
 _
 
-Patches currently in -mm which might be from andre.neo.net@gmail.com are
+Patches currently in -mm which might be from dannf@debian.org are
 
-b3dfg-clean-up-module_parm_desc-newline.patch
+remove-bashisms-from-scripts.patch
 
