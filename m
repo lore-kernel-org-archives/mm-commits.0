@@ -1,198 +1,444 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] integrity-nfsd-imbalance-bug-fix.patch removed from -mm tree
-Date: Tue, 26 May 2009 12:28:55 -0700
-Message-ID: <200905261928.n4QJSt3a001707@imap1.linux-foundation.org>
+Subject: [wrecked] fsnotify-parent-event-notification.patch removed from -mm tree
+Date: Tue, 26 May 2009 12:34:12 -0700
+Message-ID: <200905261934.n4QJYCN8005407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756966AbZEZT3k (ORCPT
+	by vger.kernel.org with ESMTP id S1756178AbZEZTeg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 15:29:40 -0400
+	Tue, 26 May 2009 15:34:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, hooanon05@yahoo.co.jp, hugh@veritas.com, jmorris@namei.org, neilb@suse.de, safford@watson.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: eparis@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     integrity: nfsd imbalance bug fix
+     fsnotify: parent event notification
 has been removed from the -mm tree.  Its filename was
-     integrity-nfsd-imbalance-bug-fix.patch
+     fsnotify-parent-event-notification.patch
 
 This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: integrity: nfsd imbalance bug fix
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: fsnotify: parent event notification
+From: Eric Paris <eparis@redhat.com>
 
-The number of calls to ima_path_check()/ima_file_free() should be
-balanced.  An extra call to fput(), indicates the file could have been
-accessed without first being measured.
+inotify and dnotify both use a similar parent notification mechanism.  We
+add a generic parent notification mechanism to fsnotify for both of these
+to use.  This new machanism also adds the dentry flag optimization which
+exists for inotify to dnotify.
 
-An nfsd exported file is opened/closed by the kernel
-causing an integrity imbalance message.
-
-- rename and export opencount_get to ima_opencount_get
-- replace ima_shm_check calls with ima_opencount_get
-- add call to increment opencount for files opened by nfsd.
-- add call to measure exported files in nfsd_permission().
-- export ima_path_check
-
-Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: david safford <safford@watson.ibm.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: "J. R. Okajima" <hooanon05@yahoo.co.jp>
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c                     |    9 +++++++++
- include/linux/ima.h               |    4 ++--
- ipc/shm.c                         |    4 ++--
- mm/shmem.c                        |    2 +-
- security/integrity/ima/ima_main.c |   25 ++++++++++++-------------
- 5 files changed, 26 insertions(+), 18 deletions(-)
+ fs/notify/fsnotify.c             |   91 +++++++++++++++++++++++++++++
+ fs/notify/fsnotify.h             |    5 +
+ fs/notify/inode_mark.c           |   17 +++++
+ include/linux/dcache.h           |    3 
+ include/linux/fsnotify.h         |   34 +++++++---
+ include/linux/fsnotify_backend.h |   64 ++++++++++++++++++++
+ 6 files changed, 204 insertions(+), 10 deletions(-)
 
-diff -puN fs/nfsd/vfs.c~integrity-nfsd-imbalance-bug-fix fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~integrity-nfsd-imbalance-bug-fix
-+++ a/fs/nfsd/vfs.c
-@@ -55,6 +55,7 @@
- #include <linux/security.h>
- #endif /* CONFIG_NFSD_V4 */
- #include <linux/jhash.h>
-+#include <linux/ima.h>
+diff -puN fs/notify/fsnotify.c~fsnotify-parent-event-notification fs/notify/fsnotify.c
+--- a/fs/notify/fsnotify.c~fsnotify-parent-event-notification
++++ a/fs/notify/fsnotify.c
+@@ -35,6 +35,97 @@ void __fsnotify_inode_delete(struct inod
+ EXPORT_SYMBOL_GPL(__fsnotify_inode_delete);
  
- #include <asm/uaccess.h>
- 
-@@ -735,6 +736,8 @@ nfsd_open(struct svc_rqst *rqstp, struct
- 			    flags, cred);
- 	if (IS_ERR(*filp))
- 		host_err = PTR_ERR(*filp);
-+	else
-+		ima_opencount_get(*filp);
- out_nfserr:
- 	err = nfserrno(host_err);
- out:
-@@ -2096,7 +2099,13 @@ nfsd_permission(struct svc_rqst *rqstp, 
- 	if (err == -EACCES && S_ISREG(inode->i_mode) &&
- 	    acc == (NFSD_MAY_READ | NFSD_MAY_OWNER_OVERRIDE))
- 		err = inode_permission(inode, MAY_EXEC);
-+	if (err)
-+		goto nfsd_out;
- 
-+	err = ima_path_check(&exp->ex_path,
-+			     acc & (MAY_READ | MAY_WRITE | MAY_EXEC));
-+	return err;
-+nfsd_out:
- 	return err? nfserrno(err) : 0;
- }
- 
-diff -puN include/linux/ima.h~integrity-nfsd-imbalance-bug-fix include/linux/ima.h
---- a/include/linux/ima.h~integrity-nfsd-imbalance-bug-fix
-+++ a/include/linux/ima.h
-@@ -20,7 +20,7 @@ extern void ima_inode_free(struct inode 
- extern int ima_path_check(struct path *path, int mask);
- extern void ima_file_free(struct file *file);
- extern int ima_file_mmap(struct file *file, unsigned long prot);
--extern void ima_shm_check(struct file *file);
-+extern void ima_opencount_get(struct file *file);
- 
- #else
- static inline int ima_bprm_check(struct linux_binprm *bprm)
-@@ -53,7 +53,7 @@ static inline int ima_file_mmap(struct f
- 	return 0;
- }
- 
--static inline void ima_shm_check(struct file *file)
-+static inline void ima_opencount_get(struct file *file)
- {
- 	return;
- }
-diff -puN ipc/shm.c~integrity-nfsd-imbalance-bug-fix ipc/shm.c
---- a/ipc/shm.c~integrity-nfsd-imbalance-bug-fix
-+++ a/ipc/shm.c
-@@ -384,7 +384,7 @@ static int newseg(struct ipc_namespace *
- 	error = PTR_ERR(file);
- 	if (IS_ERR(file))
- 		goto no_file;
--	ima_shm_check(file);
-+	ima_opencount_get(file);
- 
- 	id = ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
- 	if (id < 0) {
-@@ -891,7 +891,7 @@ long do_shmat(int shmid, char __user *sh
- 	file = alloc_file(path.mnt, path.dentry, f_mode, &shm_file_operations);
- 	if (!file)
- 		goto out_free;
--	ima_shm_check(file);
-+	ima_opencount_get(file);
- 
- 	file->private_data = sfd;
- 	file->f_mapping = shp->shm_file->f_mapping;
-diff -puN mm/shmem.c~integrity-nfsd-imbalance-bug-fix mm/shmem.c
---- a/mm/shmem.c~integrity-nfsd-imbalance-bug-fix
-+++ a/mm/shmem.c
-@@ -2684,7 +2684,7 @@ int shmem_zero_setup(struct vm_area_stru
- 	if (IS_ERR(file))
- 		return PTR_ERR(file);
- 
--	ima_shm_check(file);
-+	ima_opencount_get(file);
- 	if (vma->vm_file)
- 		fput(vma->vm_file);
- 	vma->vm_file = file;
-diff -puN security/integrity/ima/ima_main.c~integrity-nfsd-imbalance-bug-fix security/integrity/ima/ima_main.c
---- a/security/integrity/ima/ima_main.c~integrity-nfsd-imbalance-bug-fix
-+++ a/security/integrity/ima/ima_main.c
-@@ -194,6 +194,7 @@ out:
- 	kref_put(&iint->refcount, iint_free);
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(ima_path_check);
- 
- static int process_measurement(struct file *file, const unsigned char *filename,
- 			       int mask, int function)
-@@ -222,7 +223,16 @@ out:
- 	return rc;
- }
- 
--static void opencount_get(struct file *file)
-+/*
-+ * ima_opencount_get - incr opencount for files opened by the kernel
-+ *
-+ * - IPC shm and shmat create/fput a file.
-+ * - nfsd opens/closes exported files.
-+ *
-+ * Increment the opencount for these files to prevent unnecessary
-+ * imbalance messages.
+ /*
++ * Given an inode, first check if we care what happens to our children.  Inotify
++ * and dnotify both tell their parents about events.  If we care about any event
++ * on a child we run all of our children and set a dentry flag saying that the
++ * parent cares.  Thus when an event happens on a child it can quickly tell if
++ * if there is a need to find a parent and send the event to the parent.
 + */
-+void ima_opencount_get(struct file *file)
++void __fsnotify_update_child_dentry_flags(struct inode *inode)
++{
++	struct dentry *alias;
++	int watched;
++
++	if (!S_ISDIR(inode->i_mode))
++		return;
++
++	/* determine if the children should tell inode about their events */
++	watched = fsnotify_inode_watches_children(inode);
++
++	spin_lock(&dcache_lock);
++	/* run all of the dentries associated with this inode.  Since this is a
++	 * directory, there damn well better only be one item on this list */
++	list_for_each_entry(alias, &inode->i_dentry, d_alias) {
++		struct dentry *child;
++
++		/* run all of the children of the original inode and fix their
++		 * d_flags to indicate parental interest (their parent is the
++		 * original inode) */
++		list_for_each_entry(child, &alias->d_subdirs, d_u.d_child) {
++			if (!child->d_inode)
++				continue;
++
++			spin_lock(&child->d_lock);
++			if (watched)
++				child->d_flags |= DCACHE_FSNOTIFY_PARENT_WATCHED;
++			else
++				child->d_flags &= ~DCACHE_FSNOTIFY_PARENT_WATCHED;
++			spin_unlock(&child->d_lock);
++		}
++	}
++	spin_unlock(&dcache_lock);
++}
++
++/* Notify this dentry's parent about a child's events. */
++void __fsnotify_parent(struct dentry *dentry, __u32 mask)
++{
++	struct dentry *parent;
++	struct inode *p_inode;
++	bool send = false;
++	bool should_update_children = false;
++
++	if (!(dentry->d_flags | DCACHE_FSNOTIFY_PARENT_WATCHED))
++		return;
++
++	spin_lock(&dentry->d_lock);
++	parent = dentry->d_parent;
++	p_inode = parent->d_inode;
++
++	if (fsnotify_inode_watches_children(p_inode)) {
++		if (p_inode->i_fsnotify_mask & mask) {
++			dget(parent);
++			send = true;
++		}
++	} else {
++		/*
++		 * The parent doesn't care about events on it's children but
++		 * at least one child thought it did.  We need to run all the
++		 * children and update their d_flags to let them know p_inode
++		 * doesn't care about them any more.
++		 */
++		dget(parent);
++		should_update_children = true;
++	}
++
++	spin_unlock(&dentry->d_lock);
++
++	if (send) {
++		/* we are notifying a parent so come up with the new mask which
++		 * specifies these are events which came from a child. */
++		mask |= FS_EVENT_ON_CHILD;
++
++		fsnotify(p_inode, mask, dentry->d_inode, FSNOTIFY_EVENT_INODE);
++		dput(parent);
++	}
++
++	if (unlikely(should_update_children)) {
++		__fsnotify_update_child_dentry_flags(p_inode);
++		dput(parent);
++	}
++}
++EXPORT_SYMBOL_GPL(__fsnotify_parent);
++
++/*
+  * This is the main call to fsnotify.  The VFS calls into hook specific functions
+  * in linux/fsnotify.h.  Those functions then in turn call here.  Here will call
+  * out to all of the registered fsnotify_group.  Those groups can then use the
+diff -puN fs/notify/fsnotify.h~fsnotify-parent-event-notification fs/notify/fsnotify.h
+--- a/fs/notify/fsnotify.h~fsnotify-parent-event-notification
++++ a/fs/notify/fsnotify.h
+@@ -17,4 +17,9 @@ extern __u32 fsnotify_mask;
+ extern void fsnotify_final_destroy_group(struct fsnotify_group *group);
+ /* run the list of all marks associated with inode and flag them to be freed */
+ extern void fsnotify_clear_marks_by_inode(struct inode *inode);
++/*
++ * update the dentry->d_flags of all of inode's children to indicate if inode cares
++ * about events that happen to its children.
++ */
++extern void __fsnotify_update_child_dentry_flags(struct inode *inode);
+ #endif	/* __FS_NOTIFY_FSNOTIFY_H_ */
+diff -puN fs/notify/inode_mark.c~fsnotify-parent-event-notification fs/notify/inode_mark.c
+--- a/fs/notify/inode_mark.c~fsnotify-parent-event-notification
++++ a/fs/notify/inode_mark.c
+@@ -131,6 +131,8 @@ void fsnotify_recalc_inode_mask(struct i
+ 	spin_lock(&inode->i_lock);
+ 	fsnotify_recalc_inode_mask_locked(inode);
+ 	spin_unlock(&inode->i_lock);
++
++	__fsnotify_update_child_dentry_flags(inode);
+ }
+ 
+ /*
+@@ -190,6 +192,19 @@ void fsnotify_destroy_mark_by_entry(stru
+ 	group->ops->freeing_mark(entry, group);
+ 
+ 	/*
++	 * __fsnotify_update_child_dentry_flags(inode);
++	 *
++	 * I really want to call that, but we can't, we have no idea if the inode
++	 * still exists the second we drop the entry->lock.
++	 *
++	 * The next time an event arrive to this inode from one of it's children
++	 * __fsnotify_parent will see that the inode doesn't care about it's
++	 * children and will update all of these flags then.  So really this
++	 * is just a lazy update (and could be a perf win...)
++	 */
++
++
++	/*
+ 	 * it's possible that this group tried to destroy itself, but this
+ 	 * this mark was simultaneously being freed by inode.  If that's the
+ 	 * case, we finish freeing the group here.
+@@ -323,6 +338,8 @@ int fsnotify_add_mark(struct fsnotify_ma
+ 	if (lentry) {
+ 		ret = -EEXIST;
+ 		fsnotify_put_mark(lentry);
++	} else {
++		__fsnotify_update_child_dentry_flags(inode);
+ 	}
+ 
+ 	return ret;
+diff -puN include/linux/dcache.h~fsnotify-parent-event-notification include/linux/dcache.h
+--- a/include/linux/dcache.h~fsnotify-parent-event-notification
++++ a/include/linux/dcache.h
+@@ -180,7 +180,8 @@ d_iput:		no		no		no       yes
+ #define DCACHE_REFERENCED	0x0008  /* Recently used, don't discard. */
+ #define DCACHE_UNHASHED		0x0010	
+ 
+-#define DCACHE_INOTIFY_PARENT_WATCHED	0x0020 /* Parent inode is watched */
++#define DCACHE_INOTIFY_PARENT_WATCHED	0x0020 /* Parent inode is watched by inotify */
++#define DCACHE_FSNOTIFY_PARENT_WATCHED	0x0040 /* Parent inode is watched by some fsnotify listener */
+ 
+ #define DCACHE_COOKIE		0x0040	/* For use by dcookie subsystem */
+ 
+diff -puN include/linux/fsnotify.h~fsnotify-parent-event-notification include/linux/fsnotify.h
+--- a/include/linux/fsnotify.h~fsnotify-parent-event-notification
++++ a/include/linux/fsnotify.h
+@@ -23,15 +23,31 @@
+ static inline void fsnotify_d_instantiate(struct dentry *entry,
+ 						struct inode *inode)
  {
- 	struct inode *inode = file->f_dentry->d_inode;
- 	struct ima_iint_cache *iint;
-@@ -236,6 +246,7 @@ static void opencount_get(struct file *f
- 	iint->opencount++;
- 	mutex_unlock(&iint->mutex);
- }
-+EXPORT_SYMBOL_GPL(ima_opencount_get);
- 
- /**
-  * ima_file_mmap - based on policy, collect/store measurement.
-@@ -260,18 +271,6 @@ int ima_file_mmap(struct file *file, uns
- 	return 0;
++	__fsnotify_d_instantiate(entry, inode);
++
+ 	inotify_d_instantiate(entry, inode);
  }
  
--/*
-- * ima_shm_check - IPC shm and shmat create/fput a file
-- *
-- * Maintain the opencount for these files to prevent unnecessary
-- * imbalance messages.
-- */
--void ima_shm_check(struct file *file)
--{
--	opencount_get(file);
--	return;
--}
++/* Notify this dentry's parent about a child's events. */
++static inline void fsnotify_parent(struct dentry *dentry, __u32 mask)
++{
++	__fsnotify_parent(dentry, mask);
++
++	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
++}
++
+ /*
+  * fsnotify_d_move - entry has been moved
+  * Called with dcache_lock and entry->d_lock held.
+  */
+ static inline void fsnotify_d_move(struct dentry *entry)
+ {
++	/*
++	 * On move we need to update entry->d_flags to indicate if the new parent
++	 * cares about events from this entry.
++	 */
++	__fsnotify_update_dcache_flags(entry);
++
+ 	inotify_d_move(entry);
+ }
+ 
+@@ -117,7 +133,8 @@ static inline void fsnotify_nameremove(s
+ 	if (isdir)
+ 		mask |= FS_IN_ISDIR;
+ 	dnotify_parent(dentry, DN_DELETE);
+-	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
++
++	fsnotify_parent(dentry, mask);
+ }
+ 
+ /*
+@@ -187,9 +204,9 @@ static inline void fsnotify_access(struc
+ 		mask |= FS_IN_ISDIR;
+ 
+ 	dnotify_parent(dentry, DN_ACCESS);
+-	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
+ 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
+ 
++	fsnotify_parent(dentry, mask);
+ 	fsnotify(inode, mask, inode, FSNOTIFY_EVENT_INODE);
+ }
+ 
+@@ -205,9 +222,9 @@ static inline void fsnotify_modify(struc
+ 		mask |= FS_IN_ISDIR;
+ 
+ 	dnotify_parent(dentry, DN_MODIFY);
+-	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
+ 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
+ 
++	fsnotify_parent(dentry, mask);
+ 	fsnotify(inode, mask, inode, FSNOTIFY_EVENT_INODE);
+ }
+ 
+@@ -222,9 +239,9 @@ static inline void fsnotify_open(struct 
+ 	if (S_ISDIR(inode->i_mode))
+ 		mask |= FS_IN_ISDIR;
+ 
+-	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
+ 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
+ 
++	fsnotify_parent(dentry, mask);
+ 	fsnotify(inode, mask, inode, FSNOTIFY_EVENT_INODE);
+ }
+ 
+@@ -235,16 +252,15 @@ static inline void fsnotify_close(struct
+ {
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+-	const char *name = dentry->d_name.name;
+ 	fmode_t mode = file->f_mode;
+ 	__u32 mask = (mode & FMODE_WRITE) ? FS_CLOSE_WRITE : FS_CLOSE_NOWRITE;
+ 
+ 	if (S_ISDIR(inode->i_mode))
+ 		mask |= FS_IN_ISDIR;
+ 
+-	inotify_dentry_parent_queue_event(dentry, mask, 0, name);
+ 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
+ 
++	fsnotify_parent(dentry, mask);
+ 	fsnotify(inode, mask, file, FSNOTIFY_EVENT_FILE);
+ }
+ 
+@@ -259,9 +275,9 @@ static inline void fsnotify_xattr(struct
+ 	if (S_ISDIR(inode->i_mode))
+ 		mask |= FS_IN_ISDIR;
+ 
+-	inotify_dentry_parent_queue_event(dentry, mask, 0, dentry->d_name.name);
+ 	inotify_inode_queue_event(inode, mask, 0, NULL, NULL);
+ 
++	fsnotify_parent(dentry, mask);
+ 	fsnotify(inode, mask, inode, FSNOTIFY_EVENT_INODE);
+ }
+ 
+@@ -310,8 +326,8 @@ static inline void fsnotify_change(struc
+ 		if (S_ISDIR(inode->i_mode))
+ 			in_mask |= FS_IN_ISDIR;
+ 		inotify_inode_queue_event(inode, in_mask, 0, NULL, NULL);
+-		inotify_dentry_parent_queue_event(dentry, in_mask, 0,
+-						  dentry->d_name.name);
++
++		fsnotify_parent(dentry, in_mask);
+ 		fsnotify(inode, in_mask, inode, FSNOTIFY_EVENT_INODE);
+ 	}
+ }
+diff -puN include/linux/fsnotify_backend.h~fsnotify-parent-event-notification include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fsnotify-parent-event-notification
++++ a/include/linux/fsnotify_backend.h
+@@ -46,6 +46,17 @@
+ #define FS_DN_RENAME		0x10000000	/* file renamed */
+ #define FS_DN_MULTISHOT		0x20000000	/* dnotify multishot */
+ 
++/* This inode cares about things that happen to its children.  Always set for
++ * dnotify and inotify. */
++#define FS_EVENT_ON_CHILD	0x08000000
++
++/* This is a list of all events that may get sent to a parernt based on fs event
++ * happening to inodes inside that directory */
++#define FS_EVENTS_POSS_ON_CHILD   (FS_ACCESS | FS_MODIFY | FS_ATTRIB |\
++				   FS_CLOSE_WRITE | FS_CLOSE_NOWRITE | FS_OPEN |\
++				   FS_MOVED_FROM | FS_MOVED_TO | FS_CREATE |\
++				   FS_DELETE)
++
+ struct fsnotify_group;
+ struct fsnotify_event;
+ struct fsnotify_mark_entry;
+@@ -183,8 +194,52 @@ struct fsnotify_mark_entry {
+ 
+ /* main fsnotify call to send events */
+ extern void fsnotify(struct inode *to_tell, __u32 mask, void *data, int data_is);
++extern void __fsnotify_parent(struct dentry *dentry, __u32 mask);
+ extern void __fsnotify_inode_delete(struct inode *inode);
+ 
++static inline int fsnotify_inode_watches_children(struct inode *inode)
++{
++	/* FS_EVENT_ON_CHILD is set if the inode may care */
++	if (!(inode->i_fsnotify_mask & FS_EVENT_ON_CHILD))
++		return 0;
++	/* this inode might care about child events, does it care about the
++	 * specific set of events that can happen on a child? */
++	return inode->i_fsnotify_mask & FS_EVENTS_POSS_ON_CHILD;
++}
++
++/*
++ * Update the dentry with a flag indicating the interest of its parent to receive
++ * filesystem events when those events happens to this dentry->d_inode.
++ */
++static inline void __fsnotify_update_dcache_flags(struct dentry *dentry)
++{
++	struct dentry *parent;
++
++	assert_spin_locked(&dcache_lock);
++	assert_spin_locked(&dentry->d_lock);
++
++	parent = dentry->d_parent;
++	if (fsnotify_inode_watches_children(parent->d_inode))
++		dentry->d_flags |= DCACHE_FSNOTIFY_PARENT_WATCHED;
++	else
++		dentry->d_flags &= ~DCACHE_FSNOTIFY_PARENT_WATCHED;
++}
++
++/*
++ * fsnotify_d_instantiate - instantiate a dentry for inode
++ * Called with dcache_lock held.
++ */
++static inline void __fsnotify_d_instantiate(struct dentry *dentry, struct inode *inode)
++{
++	if (!inode)
++		return;
++
++	assert_spin_locked(&dcache_lock);
++
++	spin_lock(&dentry->d_lock);
++	__fsnotify_update_dcache_flags(dentry);
++	spin_unlock(&dentry->d_lock);
++}
+ 
+ /* called from fsnotify listeners, such as fanotify or dnotify */
+ 
+@@ -230,9 +285,18 @@ extern struct fsnotify_event *fsnotify_c
+ static inline void fsnotify(struct inode *to_tell, __u32 mask, void *data, int data_is)
+ {}
+ 
++static inline void __fsnotify_parent(struct dentry *dentry, __u32 mask)
++{}
++
+ static inline void __fsnotify_inode_delete(struct inode *inode)
+ {}
+ 
++static inline void __fsnotify_update_dcache_flags(struct dentry *dentry)
++{}
++
++static inline void __fsnotify_d_instantiate(struct dentry *dentry, struct inode *inode)
++{}
++
+ #endif	/* CONFIG_FSNOTIFY */
+ 
+ #endif	/* __KERNEL __ */
+_
+
+Patches currently in -mm which might be from eparis@redhat.com are
+
+linux-next.patch
+fsnotify-parent-event-notification.patch
+fsnotify-parent-event-notification-dont-slow-everything-down.patch
+dnotify-reimplement-dnotify-using-fsnotify.patch
+fsnotify-generic-notification-queue-and-waitq.patch
+fsnotify-include-pathnames-with-entries-when-possible.patch
+fsnotify-add-correlations-between-events.patch
+fsnotify-allow-groups-to-add-private-data-to-events.patch
+fsnotify-fsnotify-marks-on-inodes-pin-them-in-core.patch
+fsnotify-handle-filesystem-unmounts-with-fsnotify-marks.patch
+inotify-reimplement-inotify-using-fsnotify.patch
+inotify-reimplement-inotify-using-fsnotify-report-rounded-up-event-size-to-user-space.patch
+
