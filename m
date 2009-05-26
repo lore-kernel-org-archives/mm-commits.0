@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cls_cgroup-read-classid-atomically-in-classifier.patch added to -mm tree
-Date: Tue, 26 May 2009 14:02:22 -0700
-Message-ID: <200905262102.n4QL2M8j002063@imap1.linux-foundation.org>
+Subject: + acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash.patch added to -mm tree
+Date: Tue, 26 May 2009 14:06:00 -0700
+Message-ID: <200905262106.n4QL61B7004579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41387 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751857AbZEZVCe (ORCPT
+	by vger.kernel.org with ESMTP id S1753001AbZEZVGC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:02:34 -0400
+	Tue, 26 May 2009 17:06:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, lizf@cn.fujitsu.com
+Cc: len.brown@intel.com, venkatesh.pallipadi@intel.com, youquan.song@intel.com
 
 
 The patch titled
-     cls_cgroup: read classid atomically in classifier
+     acpi: sanity check _PSS frequency to prevent cpufreq crash
 has been added to the -mm tree.  Its filename is
-     cls_cgroup-read-classid-atomically-in-classifier.patch
+     acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cls_cgroup: read classid atomically in classifier
-From: Paul Menage <menage@google.com>
+Subject: acpi: sanity check _PSS frequency to prevent cpufreq crash
+From: Len Brown <len.brown@intel.com>
 
-Avoid reading the unsynchronized value cs->classid multiple times, since
-it could change concurrently from non-zero to zero; this would result in
-the classifier returning a positive result with a bogus (zero) classid.
+When BIOS SETUP is changed to disable EIST, some BIOS hand the OS an
+un-initialized _PSS:
 
-Signed-off-by: Paul Menage <menage@google.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+        Name (_PSS, Package (0x06)
+        {
+            Package (0x06)
+            {
+                0x80000000,	// frequency [MHz]
+                0x80000000,	// power [mW]
+                0x80000000,	// latency [us]
+                0x80000000,	// BM latency [us]
+                0x80000000,	// control
+                0x80000000	// status
+            },
+	    ...
+
+These are outrageous values for frequency, power and latency, raising the
+question where to draw the line between legal and illegal.  We tend to
+survive garbage in the power and latency fields, but we can BUG_ON when
+garbage is in the frequency field.
+
+Cpufreq multiplies the frequency by 1000 and stores it in a u32 KHz.  So
+disregard a _PSS with a frequency so large that it can't be represented by
+cpufreq.
+
+Addresses https://bugzilla.redhat.com/show_bug.cgi?id=500311
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+Cc: Youquan, Song <youquan.song@intel.com>
+Cc: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sched/cls_cgroup.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/acpi/processor_perflib.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN net/sched/cls_cgroup.c~cls_cgroup-read-classid-atomically-in-classifier net/sched/cls_cgroup.c
---- a/net/sched/cls_cgroup.c~cls_cgroup-read-classid-atomically-in-classifier
-+++ a/net/sched/cls_cgroup.c
-@@ -98,8 +98,7 @@ static int cls_cgroup_classify(struct sk
- 			       struct tcf_result *res)
- {
- 	struct cls_cgroup_head *head = tp->root;
--	struct cgroup_cls_state *cs;
--	int ret = 0;
-+	u32 classid;
+diff -puN drivers/acpi/processor_perflib.c~acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash
++++ a/drivers/acpi/processor_perflib.c
+@@ -309,9 +309,13 @@ static int acpi_processor_get_performanc
+ 				  (u32) px->bus_master_latency,
+ 				  (u32) px->control, (u32) px->status));
  
- 	/*
- 	 * Due to the nature of the classifier it is required to ignore all
-@@ -115,17 +114,18 @@ static int cls_cgroup_classify(struct sk
- 		return -1;
- 
- 	rcu_read_lock();
--	cs = task_cls_state(current);
--	if (cs->classid && tcf_em_tree_match(skb, &head->ematches, NULL)) {
--		res->classid = cs->classid;
--		res->class = 0;
--		ret = tcf_exts_exec(skb, &head->exts, res);
--	} else
--		ret = -1;
--
-+	classid = task_cls_state(current)->classid;
- 	rcu_read_unlock();
- 
--	return ret;
-+	if (!classid)
-+		return -1;
-+
-+	if (!tcf_em_tree_match(skb, &head->ematches, NULL))
-+		return -1;
-+
-+	res->classid = classid;
-+	res->class = 0;
-+	return tcf_exts_exec(skb, &head->exts, res);
- }
- 
- static unsigned long cls_cgroup_get(struct tcf_proto *tp, u32 handle)
+-		if (!px->core_frequency) {
+-			printk(KERN_ERR PREFIX
+-				    "Invalid _PSS data: freq is zero\n");
++		/*
++ 		 * Check that ACPI's u64 MHz will be valid as u32 KHz in cpufreq
++		 */
++		if (!px->core_frequency ||
++			((u32)(px->core_frequency * 1000) != (px->core_frequency * 1000))) {
++			printk(KERN_ERR FW_BUG PREFIX
++				    "Invalid BIOS _PSS frequency: 0x%llx MHz\n", px->core_frequency);
+ 			result = -EFAULT;
+ 			kfree(pr->performance->states);
+ 			goto end;
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from len.brown@intel.com are
 
+origin.patch
 linux-next.patch
-cls_cgroup-read-classid-atomically-in-classifier.patch
-cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
-cpusets-update-tasks-page-slab-spread-flags-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
-cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
-cgroups-make-messages-more-readable.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
-add-a-refcount-check-in-dput.patch
+acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash.patch
+dell-laptop-fix-uninitialized-wrong-return-value.patch
+dell-wmi-mask-off-bis-provided-garbage-in-scancode-data.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
 
