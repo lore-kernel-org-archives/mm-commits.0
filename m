@@ -1,70 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xen-use-header-for-export_symbol_gpl.patch removed from -mm tree
-Date: Tue, 26 May 2009 12:35:49 -0700
-Message-ID: <200905261935.n4QJZnGa006613@imap1.linux-foundation.org>
+Subject: [merged] rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch removed from -mm tree
+Date: Tue, 26 May 2009 12:35:45 -0700
+Message-ID: <200905261935.n4QJZj9X006492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45195 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757899AbZEZTgm (ORCPT
+	by vger.kernel.org with ESMTP id S1757379AbZEZTgg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 15:36:42 -0400
+	Tue, 26 May 2009 15:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, jeremy@goop.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: error27@gmail.com, davem@davemloft.net, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen: use header for EXPORT_SYMBOL_GPL
+     RxRPC: fix error handling for rxrpc_alloc_connection()
 has been removed from the -mm tree.  Its filename was
-     xen-use-header-for-export_symbol_gpl.patch
+     rxrpc-fix-error-handling-for-rxrpc_alloc_connection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xen: use header for EXPORT_SYMBOL_GPL
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: RxRPC: fix error handling for rxrpc_alloc_connection()
+From: Dan Carpenter <error27@gmail.com>
 
-mmu.c needs to #include module.h to prevent these warnings:
+rxrpc_alloc_connection() doesn't return an error code on failure, it just
+returns NULL.  IS_ERR(NULL) is false.
 
-arch/x86/xen/mmu.c:239: warning: data definition has no type or storage class
-arch/x86/xen/mmu.c:239: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
-arch/x86/xen/mmu.c:239: warning: parameter names (without types) in function declaration
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/mmu.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/rxrpc/ar-connection.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/xen/mmu.c~xen-use-header-for-export_symbol_gpl arch/x86/xen/mmu.c
---- a/arch/x86/xen/mmu.c~xen-use-header-for-export_symbol_gpl
-+++ a/arch/x86/xen/mmu.c
-@@ -42,6 +42,7 @@
- #include <linux/highmem.h>
- #include <linux/debugfs.h>
- #include <linux/bug.h>
-+#include <linux/module.h>
+diff -puN net/rxrpc/ar-connection.c~rxrpc-fix-error-handling-for-rxrpc_alloc_connection net/rxrpc/ar-connection.c
+--- a/net/rxrpc/ar-connection.c~rxrpc-fix-error-handling-for-rxrpc_alloc_connection
++++ a/net/rxrpc/ar-connection.c
+@@ -343,9 +343,9 @@ static int rxrpc_connect_exclusive(struc
+ 		/* not yet present - create a candidate for a new connection
+ 		 * and then redo the check */
+ 		conn = rxrpc_alloc_connection(gfp);
+-		if (IS_ERR(conn)) {
+-			_leave(" = %ld", PTR_ERR(conn));
+-			return PTR_ERR(conn);
++		if (!conn) {
++			_leave(" = -ENOMEM");
++			return -ENOMEM;
+ 		}
  
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
+ 		conn->trans = trans;
+@@ -508,9 +508,9 @@ int rxrpc_connect_call(struct rxrpc_sock
+ 		/* not yet present - create a candidate for a new connection and then
+ 		 * redo the check */
+ 		candidate = rxrpc_alloc_connection(gfp);
+-		if (IS_ERR(candidate)) {
+-			_leave(" = %ld", PTR_ERR(candidate));
+-			return PTR_ERR(candidate);
++		if (!candidate) {
++			_leave(" = -ENOMEM");
++			return -ENOMEM;
+ 		}
+ 
+ 		candidate->trans = trans;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-menu-fix-embedded-menu-presentation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-lockd-fix-file_locking=n-build-error.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-cgroups-make-messages-more-readable.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
 
