@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-processor-remove-spurious-newline-from-warning-message.patch added to -mm tree
-Date: Tue, 26 May 2009 16:05:20 -0700
-Message-ID: <200905262305.n4QN5KJ1023289@imap1.linux-foundation.org>
+Subject: + documentation-changes-perl-is-needed-to-build-the-kernel.patch added to -mm tree
+Date: Tue, 26 May 2009 16:07:51 -0700
+Message-ID: <200905262307.n4QN7pnk025194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754083AbZEZXFX (ORCPT
+	by vger.kernel.org with ESMTP id S1757845AbZEZXIQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 19:05:23 -0400
+	Tue, 26 May 2009 19:08:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: elendil@planet.nl, len.brown@intel.com, rui.zhang@intel.com
+Cc: jluis@escomposlinux.org, sam@ravnborg.org
 
 
 The patch titled
-     ACPI processor: remove spurious newline from warning message
+     Documentation/Changes: perl is needed to build the kernel
 has been added to the -mm tree.  Its filename is
-     acpi-processor-remove-spurious-newline-from-warning-message.patch
+     documentation-changes-perl-is-needed-to-build-the-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI processor: remove spurious newline from warning message
-From: Frans Pop <elendil@planet.nl>
+Subject: Documentation/Changes: perl is needed to build the kernel
+From: Jose Luis Perez Diez <jluis@escomposlinux.org>
 
-Commit 4973b22a ("ACPI processor: reset the throttling state once it's
-invalid") introduced a new warning which prints a spurious newline.
+Perl is used on the kernel Makefile to generate documentation, firmwares
+in c source form, sources, graphs, and some headers and this fact is
+undocumented.
 
-The ACPI_WARNING macro that is used already takes care of adding a
-newline, after adding ACPI_CA_VERSION to the message.  Remove the newline
-to avoid the message getting split into two lines.
-
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Jose Luis Perez Diez <jluis@escomposlinux.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/Changes |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/acpi/processor_throttling.c~acpi-processor-remove-spurious-newline-from-warning-message drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~acpi-processor-remove-spurious-newline-from-warning-message
-+++ a/drivers/acpi/processor_throttling.c
-@@ -840,7 +840,7 @@ static int acpi_processor_get_throttling
- 		state = acpi_get_throttling_state(pr, value);
- 		if (state == -1) {
- 			ACPI_WARNING((AE_INFO,
--				"Invalid throttling state, reset\n"));
-+				"Invalid throttling state, reset"));
- 			state = 0;
- 			ret = acpi_processor_set_throttling(pr, state);
- 			if (ret)
+diff -puN Documentation/Changes~documentation-changes-perl-is-needed-to-build-the-kernel Documentation/Changes
+--- a/Documentation/Changes~documentation-changes-perl-is-needed-to-build-the-kernel
++++ a/Documentation/Changes
+@@ -71,6 +71,13 @@ assembling the 16-bit boot code, removin
+ your kernel.  This change does, however, mean that you need a recent
+ release of binutils.
+ 
++Perl
++----
++
++You will need perl 5 and the following modules: Getopt::Long, Getopt::Std, File::Basename, and File::Find to build the kernel.
++
++
++
+ System utilities
+ ================
+ 
 _
 
-Patches currently in -mm which might be from elendil@planet.nl are
+Patches currently in -mm which might be from jluis@escomposlinux.org are
 
-linux-next.patch
-acpi-processor-remove-spurious-newline-from-warning-message.patch
+documentation-changes-perl-is-needed-to-build-the-kernel.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
 
