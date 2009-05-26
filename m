@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-pair-edac-e752x-p-and-m-entries.patch added to -mm tree
-Date: Tue, 26 May 2009 13:11:07 -0700
-Message-ID: <200905262011.n4QKB9A8031110@imap1.linux-foundation.org>
+Subject: + drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch added to -mm tree
+Date: Tue, 26 May 2009 13:31:53 -0700
+Message-ID: <200905262031.n4QKVrU7013243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752802AbZEZUMA (ORCPT
+	by vger.kernel.org with ESMTP id S1755404AbZEZUcM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 16:12:00 -0400
+	Tue, 26 May 2009 16:32:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, dougthompson@xmission.com
+Cc: vapier@gentoo.org, a.zummo@towertech.it, david-b@pacbell.net, hch@lst.de, lethal@linux-sh.org
 
 
 The patch titled
-     MAINTAINERS: pair EDAC-E752X P: and M: entries
+     drivers/char/rtc: disable legacy RTC driver on Blackfin systems
 has been added to the -mm tree.  Its filename is
-     maintainers-pair-edac-e752x-p-and-m-entries.patch
+     drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: pair EDAC-E752X P: and M: entries
-From: Joe Perches <joe@perches.com>
+Subject: drivers/char/rtc: disable legacy RTC driver on Blackfin systems
+From: Mike Frysinger <vapier@gentoo.org>
 
-Entries should be P: name then M: email address.
+Blackfin platforms do not support the hardware which this driver drives.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
+ drivers/char/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-pair-edac-e752x-p-and-m-entries MAINTAINERS
---- a/MAINTAINERS~maintainers-pair-edac-e752x-p-and-m-entries
-+++ a/MAINTAINERS
-@@ -1971,8 +1971,8 @@ F:	include/linux/edac.h
- 
- EDAC-E752X
- P:	Mark Gross
--P:	Doug Thompson
- M:	mark.gross@intel.com
-+P:	Doug Thompson
- M:	dougthompson@xmission.com
- L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
+diff -puN drivers/char/Kconfig~drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems drivers/char/Kconfig
+--- a/drivers/char/Kconfig~drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems
++++ a/drivers/char/Kconfig
+@@ -794,7 +794,7 @@ if RTC_LIB=n
+ config RTC
+ 	tristate "Enhanced Real Time Clock Support (legacy PC RTC driver)"
+ 	depends on !PPC && !PARISC && !IA64 && !M68K && !SPARC && !FRV \
+-			&& !ARM && !SUPERH && !S390 && !AVR32
++			&& !ARM && !SUPERH && !S390 && !AVR32 && !BLACKFIN
+ 	---help---
+ 	  If you say Y here and create a character special file /dev/rtc with
+ 	  major number 10 and minor number 135 using mknod ("man mknod"), you
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-maintainers-pair-edac-e752x-p-and-m-entries.patch
 linux-next.patch
+irda-new-blackfin-on-chip-sir-irda-driver.patch
+drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
 
