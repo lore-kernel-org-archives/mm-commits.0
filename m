@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch added to -mm tree
-Date: Tue, 26 May 2009 14:41:51 -0700
-Message-ID: <200905262141.n4QLfpAR029732@imap1.linux-foundation.org>
+Subject: + maintainers-add-file-patterns-to-the-rest.patch added to -mm tree
+Date: Tue, 26 May 2009 14:42:07 -0700
+Message-ID: <200905262142.n4QLg7EP029938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758254AbZEZVmW (ORCPT
+	by vger.kernel.org with ESMTP id S1758718AbZEZVmi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:42:22 -0400
+	Tue, 26 May 2009 17:42:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: warn on missing git or git repository
+     MAINTAINERS: add file patterns to "THE REST"
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch
+     maintainers-add-file-patterns-to-the-rest.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: warn on missing git or git repository
+Subject: MAINTAINERS: add file patterns to "THE REST"
 From: Joe Perches <joe@perches.com>
 
-support older versions of grep (use -E not -P)
-no need to return data in routine recent_git_signoffs
+These file patterns match all sources.
+By default, scripts/get_maintainers.pl excludes Linus Torvalds
+from the CC: list.  Option --git-chief-penguins will include him.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ MAINTAINERS |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-warn-on-missing-git-or-git-repository scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-warn-on-missing-git-or-git-repository
-+++ a/scripts/get_maintainer.pl
-@@ -443,11 +443,21 @@ sub recent_git_signoffs {
-     my @lines = ();
+diff -puN MAINTAINERS~maintainers-add-file-patterns-to-the-rest MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-file-patterns-to-the-rest
++++ a/MAINTAINERS
+@@ -6437,5 +6437,10 @@ F:	drivers/serial/zs.*
  
-     if (which("git") eq "") {
--	die("$P: git not found.  Add --nogit to options?\n");
-+	warn("$P: git not found.  Add --nogit to options?\n");
-+	return;
-+    }
-+    if (!(-d ".git")) {
-+	warn("$P: .git repository not found.\n");
-+	warn("Use a .git repository for better results.\n");
-+	warn("ie: git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git\n");
-+	return;
-     }
- 
-     $cmd = "git log --since=${email_git_since} -- ${file}";
--    $cmd .= " | grep -Pi \"^[-_ 	a-z]+by:.*\\\@.*\$\"";
-+    $cmd .= " | grep -Ei \"^[-_ 	a-z]+by:.*\\\@.*\$\"";
-+    if (!$email_git_penguin_chiefs) {
-+	$cmd .= " | grep -Ev \"${penguin_chiefs}\"";
-+    }
-     $cmd .= " | cut -f2- -d\":\"";
-     $cmd .= " | sort | uniq -c | sort -rn";
- 
-@@ -486,7 +496,6 @@ sub recent_git_signoffs {
- 	    push(@email_to, $line);
- 	}
-     }
--    return $output;
- }
- 
- sub uniq {
+ THE REST
+ P:	Linus Torvalds
++M:	torvalds@linux-foundation.org
++L:	linux-kernel@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+ S:	Buried alive in reporters
++F:	*
++F:	*/
++
 _
 
 Patches currently in -mm which might be from joe@perches.com are
