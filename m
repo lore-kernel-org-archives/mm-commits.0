@@ -1,106 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash.patch added to -mm tree
-Date: Tue, 26 May 2009 14:06:00 -0700
-Message-ID: <200905262106.n4QL61B7004579@imap1.linux-foundation.org>
+Subject: [alternative-merged] acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch removed from -mm tree
+Date: Tue, 26 May 2009 14:06:14 -0700
+Message-ID: <200905262106.n4QL6E2q004770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753001AbZEZVGC (ORCPT
+	by vger.kernel.org with ESMTP id S1754110AbZEZVHR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:06:02 -0400
+	Tue, 26 May 2009 17:07:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: len.brown@intel.com, venkatesh.pallipadi@intel.com, youquan.song@intel.com
+To: youquan.song@intel.com, lenb@kernel.org, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: sanity check _PSS frequency to prevent cpufreq crash
-has been added to the -mm tree.  Its filename is
-     acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash.patch
+     acpi: check _PSS invalidation when BIOS report _PSS with 0x80000000
+has been removed from the -mm tree.  Its filename was
+     acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: sanity check _PSS frequency to prevent cpufreq crash
-From: Len Brown <len.brown@intel.com>
+Subject: acpi: check _PSS invalidation when BIOS report _PSS with 0x80000000
+From: Youquan, Song <youquan.song@intel.com>
 
-When BIOS SETUP is changed to disable EIST, some BIOS hand the OS an
-un-initialized _PSS:
+When cpu frequencey scaling is disabled, some BIOSes report _PSS with all
+0x80000000.  If the kernel treats this case as valid, the kernel will boot
+crash when load cpufreq govenors.
 
-        Name (_PSS, Package (0x06)
-        {
-            Package (0x06)
-            {
-                0x80000000,	// frequency [MHz]
-                0x80000000,	// power [mW]
-                0x80000000,	// latency [us]
-                0x80000000,	// BM latency [us]
-                0x80000000,	// control
-                0x80000000	// status
-            },
-	    ...
+So in order to cover more buggy BIOSs, the patch just check _PSS core
+frequency invalidation.
 
-These are outrageous values for frequency, power and latency, raising the
-question where to draw the line between legal and illegal.  We tend to
-survive garbage in the power and latency fields, but we can BUG_ON when
-garbage is in the frequency field.
+On Sun, 15 Mar 2009 23:22:37 -0400 (EDT) Len Brown <lenb@kernel.org> wrote:
 
-Cpufreq multiplies the frequency by 1000 and stores it in a u32 KHz.  So
-disregard a _PSS with a frequency so large that it can't be represented by
-cpufreq.
+> NAK -- per previous discussion on the list.
+> 
+> This patch is not the right way to address this issue,
+> which is reported here, BTW:
+> 
+> https://bugzilla.redhat.com/show_bug.cgi?id=467941
 
-Addresses https://bugzilla.redhat.com/show_bug.cgi?id=500311
-
-Signed-off-by: Len Brown <len.brown@intel.com>
-Cc: Youquan, Song <youquan.song@intel.com>
-Cc: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+Signed-off-by: Youquan, Song <youquan.song@intel.com>
+Signed-off-by: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_perflib.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/acpi/processor_perflib.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/acpi/processor_perflib.c~acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash
+diff -puN drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000 drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000
 +++ a/drivers/acpi/processor_perflib.c
-@@ -309,9 +309,13 @@ static int acpi_processor_get_performanc
- 				  (u32) px->bus_master_latency,
- 				  (u32) px->control, (u32) px->status));
+@@ -42,6 +42,7 @@
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
++#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
+ ACPI_MODULE_NAME("processor_perflib");
  
--		if (!px->core_frequency) {
--			printk(KERN_ERR PREFIX
--				    "Invalid _PSS data: freq is zero\n");
-+		/*
-+ 		 * Check that ACPI's u64 MHz will be valid as u32 KHz in cpufreq
-+		 */
-+		if (!px->core_frequency ||
-+			((u32)(px->core_frequency * 1000) != (px->core_frequency * 1000))) {
-+			printk(KERN_ERR FW_BUG PREFIX
-+				    "Invalid BIOS _PSS frequency: 0x%llx MHz\n", px->core_frequency);
- 			result = -EFAULT;
+ static DEFINE_MUTEX(performance_mutex);
+@@ -316,6 +317,14 @@ static int acpi_processor_get_performanc
  			kfree(pr->performance->states);
  			goto end;
+ 		}
++
++		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
++			printk(KERN_ERR PREFIX
++				    "P-states disabled in the BIOS\n");
++			result = -EFAULT;
++			kfree(pr->performance->states);
++			goto end;
++		}
+ 	}
+ 
+       end:
 _
 
-Patches currently in -mm which might be from len.brown@intel.com are
+Patches currently in -mm which might be from youquan.song@intel.com are
 
-origin.patch
-linux-next.patch
 acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash.patch
-dell-laptop-fix-uninitialized-wrong-return-value.patch
-dell-wmi-mask-off-bis-provided-garbage-in-scancode-data.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
 
