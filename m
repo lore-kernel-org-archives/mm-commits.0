@@ -1,61 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-ncr_d700c-fix-irq-handler-return-type.patch removed from -mm tree
-Date: Tue, 26 May 2009 12:35:47 -0700
-Message-ID: <200905261935.n4QJZlb8006606@imap1.linux-foundation.org>
+Subject: [merged] scsi-tape-fix-gcc-44-warning.patch removed from -mm tree
+Date: Tue, 26 May 2009 12:35:42 -0700
+Message-ID: <200905261935.n4QJZgS8006483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757168AbZEZTgQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757913AbZEZTgg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 15:36:16 -0400
+	Tue, 26 May 2009 15:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: helight.xu@gmail.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: Kai.Makisara@kolumbus.fi, James.Bottomley@HansenPartnership.com, kai.makisara@kolumbus.fi, sergey.senozhatsky@mail.by, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/NCR_D700.c: fix IRQ handler return type
+     scsi tape: fix gcc 4.4 warning
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-ncr_d700c-fix-irq-handler-return-type.patch
+     scsi-tape-fix-gcc-44-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/NCR_D700.c: fix IRQ handler return type
-From: Zhenwen Xu <helight.xu@gmail.com>
+Subject: scsi tape: fix gcc 4.4 warning
+From: Kai Makisara <Kai.Makisara@kolumbus.fi>
 
-drivers/scsi/NCR_D700.c: In function `NCR_D700_probe':
-drivers/scsi/NCR_D700.c:322: warning: passing argument 2 of `request_irq' from incompatible pointer type
-drivers/scsi/NCR_D700.c:322: warning: passing argument 2 of `request_irq' from incompatible pointer type
-drivers/scsi/NCR_D700.c:322: warning: passing argument 2 of `request_irq' from incompatible pointer type
+This patch fixes the GCC 4.4 warning reported by David Binderman and Sergey
+Senozhatsky. The old version was working correctly but was not easy to read.
 
-Signed-off-by: Zhenwen Xu <helight.xu@gmail.com>
+Signed-off-by: Kai Makisara <kai.makisara@kolumbus.fi>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@mail.by>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/NCR_D700.c |    2 +-
+ drivers/scsi/st.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/NCR_D700.c~drivers-scsi-ncr_d700c-fix-irq-handler-return-type drivers/scsi/NCR_D700.c
---- a/drivers/scsi/NCR_D700.c~drivers-scsi-ncr_d700c-fix-irq-handler-return-type
-+++ a/drivers/scsi/NCR_D700.c
-@@ -224,7 +224,7 @@ NCR_D700_probe_one(struct NCR_D700_priva
- 	return ret;
- }
- 
--static int
-+static irqreturn_t
- NCR_D700_intr(int irq, void *data)
- {
- 	struct NCR_D700_private *p = (struct NCR_D700_private *)data;
+diff -puN drivers/scsi/st.c~scsi-tape-fix-gcc-44-warning drivers/scsi/st.c
+--- a/drivers/scsi/st.c~scsi-tape-fix-gcc-44-warning
++++ a/drivers/scsi/st.c
+@@ -2964,7 +2964,7 @@ static int st_int_ioctl(struct scsi_tape
+ 			    !(STp->use_pf & PF_TESTED)) {
+ 				/* Try the other possible state of Page Format if not
+ 				   already tried */
+-				STp->use_pf = !STp->use_pf | PF_TESTED;
++				STp->use_pf = (STp->use_pf ^ USE_PF) | PF_TESTED;
+ 				st_release_request(SRpnt);
+ 				SRpnt = NULL;
+ 				return st_int_ioctl(STp, cmd_in, arg);
 _
 
-Patches currently in -mm which might be from helight.xu@gmail.com are
+Patches currently in -mm which might be from Kai.Makisara@kolumbus.fi are
 
 linux-next.patch
-drivers-leds-leds-gpioc-fix-a-section-mismatch.patch
 
