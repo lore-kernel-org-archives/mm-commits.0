@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch added to -mm tree
-Date: Tue, 26 May 2009 14:42:15 -0700
-Message-ID: <200905262142.n4QLgM69030136@imap1.linux-foundation.org>
+Subject: + maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch added to -mm tree
+Date: Tue, 26 May 2009 14:42:24 -0700
+Message-ID: <200905262142.n4QLgOKI030140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755645AbZEZVnl (ORCPT
+	by vger.kernel.org with ESMTP id S1755780AbZEZVnq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:43:41 -0400
+	Tue, 26 May 2009 17:43:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: mention scripts/get_maintainer.pl in the preface
+     MAINTAINERS: add file pattern to CISCO FCOE HBA DRIVER
 has been added to the -mm tree.  Its filename is
-     maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
+     maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: mention scripts/get_maintainer.pl in the preface
+Subject: MAINTAINERS: add file pattern to CISCO FCOE HBA DRIVER
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ++++++
- 1 file changed, 6 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-mention-scripts-get_maintainerpl-in-the-preface MAINTAINERS
---- a/MAINTAINERS~maintainers-mention-scripts-get_maintainerpl-in-the-preface
+diff -puN MAINTAINERS~maintainers-add-file-pattern-to-cisco-fcoe-hba-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-file-pattern-to-cisco-fcoe-hba-driver
 +++ a/MAINTAINERS
-@@ -36,6 +36,12 @@ trivial patch so apply some common sense
- 	(scripts/checkpatch.pl) to catch trival style violations.
- 	See Documentation/CodingStyle for guidance here.
+@@ -1453,6 +1453,7 @@ P:	Joe Eykholt
+ M:	jeykholt@cisco.com
+ L:	linux-scsi@vger.kernel.org
+ S:	Supported
++F:	drivers/scsi/fnic/
  
-+	PLEASE CC: the maintainers and mailing lists that are generated
-+	by scripts/get_maintainer.pl.  The results returned by the
-+	script will be best if you have git installed and are making
-+	your changes in a branch derived from Linus' latest git tree.
-+	See Documentation/SubmittingPatches for details.
-+
- 	PLEASE try to include any credit lines you want added with the
- 	patch. It avoids people being missed off by mistake and makes
- 	it easier to know who wants adding and who doesn't.
+ CODA FILE SYSTEM
+ P:	Jan Harkes
 _
 
 Patches currently in -mm which might be from joe@perches.com are
