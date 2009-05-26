@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch added to -mm tree
-Date: Tue, 26 May 2009 14:42:05 -0700
-Message-ID: <200905262142.n4QLg5Bk029878@imap1.linux-foundation.org>
+Subject: + maintainers-update-m32r-file-patterns-after-rename.patch added to -mm tree
+Date: Tue, 26 May 2009 14:42:09 -0700
+Message-ID: <200905262142.n4QLg9qR029995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41429 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758718AbZEZVmg (ORCPT
+	by vger.kernel.org with ESMTP id S1756274AbZEZVnJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:42:36 -0400
+	Tue, 26 May 2009 17:43:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: swap mismarked ECRYPT FS M: and P: entries
+     MAINTAINERS: update M32R file patterns after rename
 has been added to the -mm tree.  Its filename is
-     maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
+     maintainers-update-m32r-file-patterns-after-rename.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: swap mismarked ECRYPT FS M: and P: entries
+Subject: MAINTAINERS: update M32R file patterns after rename
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries MAINTAINERS
---- a/MAINTAINERS~maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries
+diff -puN MAINTAINERS~maintainers-update-m32r-file-patterns-after-rename MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-m32r-file-patterns-after-rename
 +++ a/MAINTAINERS
-@@ -1970,8 +1970,8 @@ F:	net/bridge/netfilter/ebt*.c
- ECRYPT FILE SYSTEM
- P:	Tyler Hicks
- M:	tyhicks@linux.vnet.ibm.com
--M:	Dustin Kirkland
--P:	kirkland@canonical.com
-+P:	Dustin Kirkland
-+M:	kirkland@canonical.com
- L:	ecryptfs-devel@lists.launchpad.net
- W:	https://launchpad.net/ecryptfs
- S:	Supported
+@@ -3621,7 +3621,6 @@ L:	linux-m32r-ja@ml.linux-m32r.org (in J
+ W:	http://www.linux-m32r.org/
+ S:	Maintained
+ F:	arch/m32r/
+-F:	include/asm-m32r/
+ 
+ M68K ARCHITECTURE
+ P:	Geert Uytterhoeven
 _
 
 Patches currently in -mm which might be from joe@perches.com are
