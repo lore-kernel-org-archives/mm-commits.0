@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-printk_once-in-several-places.patch added to -mm tree
-Date: Tue, 26 May 2009 13:38:23 -0700
-Message-ID: <200905262038.n4QKcNbj017783@imap1.linux-foundation.org>
+Subject: + cls_cgroup-read-classid-atomically-in-classifier.patch added to -mm tree
+Date: Tue, 26 May 2009 14:02:22 -0700
+Message-ID: <200905262102.n4QL2M8j002063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751229AbZEZUjD (ORCPT
+	by vger.kernel.org with ESMTP id S1751857AbZEZVCe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 16:39:03 -0400
+	Tue, 26 May 2009 17:02:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, davem@davemloft.net, kosaki.motohiro@jp.fujitsu.com, linux@dominikbrodowski.net, mingo@elte.hu
+Cc: menage@google.com, lizf@cn.fujitsu.com
 
 
 The patch titled
-     use printk_once() in several places
+     cls_cgroup: read classid atomically in classifier
 has been added to the -mm tree.  Its filename is
-     use-printk_once-in-several-places.patch
+     cls_cgroup-read-classid-atomically-in-classifier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: use printk_once() in several places
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: cls_cgroup: read classid atomically in classifier
+From: Paul Menage <menage@google.com>
 
-There are some places to be able to use printk_once instead of hard coding.
+Avoid reading the unsynchronized value cs->classid multiple times, since
+it could change concurrently from non-zero to zero; this would result in
+the classifier returning a positive result with a bogus (zero) classid.
 
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common.c  |    8 ++------
- drivers/net/3c515.c           |    7 ++-----
- drivers/pcmcia/pcmcia_ioctl.c |    9 +++------
- 3 files changed, 7 insertions(+), 17 deletions(-)
+ net/sched/cls_cgroup.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/common.c~use-printk_once-in-several-places arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~use-printk_once-in-several-places
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -503,13 +503,9 @@ static void __cpuinit get_cpu_vendor(str
- 		}
- 	}
- 
--	if (!printed) {
--		printed++;
--		printk(KERN_ERR
-+	printk_once(KERN_ERR
- 		    "CPU: vendor_id '%s' unknown, using generic init.\n", v);
--
--		printk(KERN_ERR "CPU: Your system may be unstable.\n");
--	}
-+	printk_once(KERN_ERR "CPU: Your system may be unstable.\n");
- 
- 	c->x86_vendor = X86_VENDOR_UNKNOWN;
- 	this_cpu = &default_cpu;
-diff -puN drivers/net/3c515.c~use-printk_once-in-several-places drivers/net/3c515.c
---- a/drivers/net/3c515.c~use-printk_once-in-several-places
-+++ a/drivers/net/3c515.c
-@@ -430,15 +430,12 @@ int init_module(void)
- struct net_device *tc515_probe(int unit)
+diff -puN net/sched/cls_cgroup.c~cls_cgroup-read-classid-atomically-in-classifier net/sched/cls_cgroup.c
+--- a/net/sched/cls_cgroup.c~cls_cgroup-read-classid-atomically-in-classifier
++++ a/net/sched/cls_cgroup.c
+@@ -98,8 +98,7 @@ static int cls_cgroup_classify(struct sk
+ 			       struct tcf_result *res)
  {
- 	struct net_device *dev = corkscrew_scan(unit);
--	static int printed;
+ 	struct cls_cgroup_head *head = tp->root;
+-	struct cgroup_cls_state *cs;
+-	int ret = 0;
++	u32 classid;
  
- 	if (!dev)
- 		return ERR_PTR(-ENODEV);
+ 	/*
+ 	 * Due to the nature of the classifier it is required to ignore all
+@@ -115,17 +114,18 @@ static int cls_cgroup_classify(struct sk
+ 		return -1;
  
--	if (corkscrew_debug > 0 && !printed) {
--		printed = 1;
--		printk(version);
--	}
-+	if (corkscrew_debug > 0)
-+		printk_once(version);
+ 	rcu_read_lock();
+-	cs = task_cls_state(current);
+-	if (cs->classid && tcf_em_tree_match(skb, &head->ematches, NULL)) {
+-		res->classid = cs->classid;
+-		res->class = 0;
+-		ret = tcf_exts_exec(skb, &head->exts, res);
+-	} else
+-		ret = -1;
+-
++	classid = task_cls_state(current)->classid;
+ 	rcu_read_unlock();
  
- 	return dev;
+-	return ret;
++	if (!classid)
++		return -1;
++
++	if (!tcf_em_tree_match(skb, &head->ematches, NULL))
++		return -1;
++
++	res->classid = classid;
++	res->class = 0;
++	return tcf_exts_exec(skb, &head->exts, res);
  }
-diff -puN drivers/pcmcia/pcmcia_ioctl.c~use-printk_once-in-several-places drivers/pcmcia/pcmcia_ioctl.c
---- a/drivers/pcmcia/pcmcia_ioctl.c~use-printk_once-in-several-places
-+++ a/drivers/pcmcia/pcmcia_ioctl.c
-@@ -915,12 +915,9 @@ static int ds_ioctl(struct inode * inode
- 		err = -EPERM;
- 		goto free_out;
- 	} else {
--		static int printed = 0;
--		if (!printed) {
--			printk(KERN_WARNING "2.6. kernels use pcmciamtd instead of memory_cs.c and do not require special\n");
--			printk(KERN_WARNING "MTD handling any more.\n");
--			printed++;
--		}
-+			printk_once(KERN_WARNING
-+				"2.6. kernels use pcmciamtd instead of memory_cs.c and do not require special\n");
-+			printk_once(KERN_WARNING "MTD handling any more.\n");
- 	}
- 	err = -EINVAL;
- 	goto free_out;
+ 
+ static unsigned long cls_cgroup_get(struct tcf_proto *tp, u32 handle)
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from menage@google.com are
 
 linux-next.patch
-vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
-mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
-vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
-use-printk_once-in-several-places.patch
+cls_cgroup-read-classid-atomically-in-classifier.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+cgroups-make-messages-more-readable.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+add-a-refcount-check-in-dput.patch
 
