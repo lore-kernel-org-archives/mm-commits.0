@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch added to -mm tree
-Date: Tue, 26 May 2009 14:41:45 -0700
-Message-ID: <200905262141.n4QLfjkQ029542@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch added to -mm tree
+Date: Tue, 26 May 2009 14:41:47 -0700
+Message-ID: <200905262141.n4QLflYi029600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757543AbZEZVmQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758574AbZEZVmU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:42:16 -0400
+	Tue, 26 May 2009 17:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: output first field only in mailing lists and after maintainers.
+     scripts/get_maintainer.pl: better fix for subscriber-only mailing lists
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch
+     scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: output first field only in mailing lists and after maintainers.
+Subject: scripts/get_maintainer.pl: better fix for subscriber-only mailing lists
 From: Joe Perches <joe@perches.com>
-
-Fix mailing lists that are described, but not "(subscriber-only)"
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   46 +++++++++++++++++++++---------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ scripts/get_maintainer.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists
 +++ a/scripts/get_maintainer.pl
-@@ -13,7 +13,7 @@
- use strict;
- 
- my $P = $0;
--my $V = '0.15';
-+my $V = '0.16';
- 
- use Getopt::Long qw(:config no_auto_abbrev);
- 
-@@ -169,6 +169,7 @@ foreach my $file (@ARGV) {
- }
- 
- my @email_to = ();
-+my @list_to = ();
- my @scm = ();
- my @web = ();
- my @subsystem = ();
-@@ -182,7 +183,7 @@ foreach my $file (@files) {
- 
-     my $exclude = 0;
-     foreach my $line (@typevalue) {
--	if ($line =~ m/^(\C):(.*)/) {
-+	if ($line =~ m/^(\C):\s*(.*)/) {
- 	    my $type = $1;
- 	    my $value = $2;
- 	    if ($type eq 'X') {
-@@ -196,7 +197,7 @@ foreach my $file (@files) {
-     if (!$exclude) {
- 	my $tvi = 0;
- 	foreach my $line (@typevalue) {
--	    if ($line =~ m/^(\C):(.*)/) {
-+	    if ($line =~ m/^(\C):\s*(.*)/) {
- 		my $type = $1;
- 		my $value = $2;
- 		if ($type eq 'F') {
-@@ -229,15 +230,18 @@ if ($email_git_penguin_chiefs) {
-     }
- }
- 
--if ($email) {
--    my $address_cnt = @email_to;
--    if ($address_cnt == 0 && $email_list) {
--	push(@email_to, "linux-kernel\@vger.kernel.org");
-+if ($email || $email_list) {
-+    my @to = ();
-+    if ($email) {
-+	@to = (@to, @email_to);
-+    }
-+    if ($email_list) {
-+	if (@list_to == 0) {
-+	    push(@list_to, "linux-kernel\@vger.kernel.org");
-+	@to = (@to, @list_to);
-+	}
-     }
--
--#Don't sort email address list, but do remove duplicates
--    @email_to = uniq(@email_to);
--    output(@email_to);
-+    output(uniq(@to));
- }
- 
- if ($scm) {
-@@ -307,7 +311,7 @@ Output type options:
-   --multiline => print 1 entry per line
- 
- Default options:
--  [--email --git --m --l --multiline]
-+  [--email --git --m --n --l --multiline]
- 
- Other options:
-   --version -> show version
-@@ -366,26 +370,30 @@ sub add_categories {
-     $index = $index - 1;
-     while ($index >= 0) {
- 	my $tv = $typevalue[$index];
--	if ($tv =~ m/^(\C):(.*)/) {
-+	if ($tv =~ m/^(\C):\s*(.*)/) {
- 	    my $ptype = $1;
- 	    my $pvalue = $2;
- 	    if ($ptype eq "L") {
--		my $subscr = $pvalue;
--		if ($subscr =~ m/\s*\(subscribers-only\)/) {
-+		my $list_address = $pvalue;
-+		my $list_additional = "";
-+		if ($list_address =~ m/([^\s]+)\s+(.*)$/) {
-+		    $list_address = $1;
-+		    $list_additional = $2;
-+		}
-+		if ($list_additional =~ m/\(subscribers-only\)/) {
- 		    if ($email_subscriber_list) {
--			$subscr =~ s/\s*\(subscribers-only\)//g;
--			push(@email_to, $subscr);
-+			push(@list_to, $list_address);
- 		    }
- 		} else {
- 		    if ($email_list) {
--			push(@email_to, $pvalue);
-+			push(@list_to, $list_address);
- 		    }
+@@ -380,7 +380,7 @@ sub add_categories {
+ 		    $list_address = $1;
+ 		    $list_additional = $2;
  		}
- 	    } elsif ($ptype eq "M") {
- 		if ($email_maintainer) {
- 		    if ($index >= 0) {
- 			my $tv = $typevalue[$index - 1];
--			if ($tv =~ m/^(\C):(.*)/) {
-+			if ($tv =~ m/^(\C):\s*(.*)/) {
- 			    if ($1 eq "P" && $email_usename) {
- 				push(@email_to, format_email($2, $pvalue));
- 			    } else {
+-		if ($list_additional =~ m/\(subscribers-only\)/) {
++		if ($list_additional =~ m/subscribers-only/) {
+ 		    if ($email_subscriber_list) {
+ 			push(@list_to, $list_address);
+ 		    }
 _
 
 Patches currently in -mm which might be from joe@perches.com are
