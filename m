@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch added to -mm tree
-Date: Tue, 26 May 2009 14:16:36 -0700
-Message-ID: <200905262116.n4QLGax8012036@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch added to -mm tree
+Date: Tue, 26 May 2009 14:41:57 -0700
+Message-ID: <200905262141.n4QLfv6Q029803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44503 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758342AbZEZVRg (ORCPT
+	by vger.kernel.org with ESMTP id S1758716AbZEZVm2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:17:36 -0400
+	Tue, 26 May 2009 17:42:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com, kay.sievers@vrfy.org, tj@kernel.org
+Cc: joe@perches.com
 
 
 The patch titled
-     devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup
+     scripts/get_maintainer.pl: support both "P:/M:" and integrated "M:" lines
 has been added to the -mm tree.  Its filename is
-     devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+     scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scripts/get_maintainer.pl: support both "P:/M:" and integrated "M:" lines
+From: Joe Perches <joe@perches.com>
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/devres.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ scripts/get_maintainer.pl |   30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
-diff -puN drivers/base/devres.c~devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup drivers/base/devres.c
---- a/drivers/base/devres.c~devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup
-+++ a/drivers/base/devres.c
-@@ -429,10 +429,8 @@ int devres_release_all(struct device *de
- 	unsigned long flags;
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines
++++ a/scripts/get_maintainer.pl
+@@ -55,7 +55,7 @@ foreach my $chief (@penguin_chief) {
+ }
+ my $penguin_chiefs = "\(" . join("|",@penguin_chief_names) . "\)";
  
- 	/* Looks like an uninitialized device structure */
--	if (dev->devres_head.next == NULL) {
--		WARN(1);
-+	if (WARN_ON(dev->devres_head.next == NULL))
- 		return -ENODEV;
--	}
- 	spin_lock_irqsave(&dev->devres_lock, flags);
- 	return release_nodes(dev, dev->devres_head.next, &dev->devres_head,
- 			     flags);
+-# rfc822 - preloaded methods go here.
++# rfc822 email address - preloaded methods go here.
+ my $rfc822_lwsp = "(?:(?:\\r\\n)?[ \\t])";
+ my $rfc822_char = '[\\000-\\177]';
+ 
+@@ -396,7 +396,19 @@ sub add_categories {
+ 		    }
+ 		}
+ 	    } elsif ($ptype eq "M") {
+-		if ($email_maintainer) {
++		my $p_used = 0;
++		if ($index >= 0) {
++		    my $tv = $typevalue[$index - 1];
++		    if ($tv =~ m/^(\C):\s*(.*)/) {
++			if ($1 eq "P") {
++			    if ($email_usename) {
++				push_email_address(format_email($2, $pvalue));
++				$p_used = 1;
++			    }
++			}
++		    }
++		}
++		if (!$p_used) {
+ 		    push_email_addresses($pvalue);
+ 		}
+ 	    } elsif ($ptype eq "T") {
+@@ -436,13 +448,16 @@ sub push_email_addresses {
+ 
+     my @address_list = ();
+ 
+-    if (@address_list = rfc822_validlist($address)) {
++    if (rfc822_valid($address)) {
++	push_email_address($address);
++    } elsif (@address_list = rfc822_validlist($address)) {
+ 	my $array_count = shift(@address_list);
+ 	while (my $entry = shift(@address_list)) {
+ 	    push_email_address($entry);
+ 	}
++    } else {
++	warn("Invalid MAINTAINERS address: '" . $address . "'\n");
+     }
+-
+ }
+ 
+ sub which {
+@@ -471,9 +486,8 @@ sub recent_git_signoffs {
+ 	return;
+     }
+     if (!(-d ".git")) {
+-	warn("$P: .git repository not found.\n");
+-	warn("Use a .git repository for better results.\n");
+-	warn("ie: git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git\n");
++	warn("$P: .git directory not found.  Use a git repository for better results.\n");
++	warn("$P: perhaps 'git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git'\n");
+ 	return;
+     }
+ 
+@@ -632,7 +646,7 @@ sub rfc822_validlist ($) {
+     my @r;
+     if ($s =~ m/^(?:$rfc822re)?(?:,(?:$rfc822re)?)*$/so &&
+ 	$s =~ m/^$rfc822_char*$/) {
+-        while($s =~ m/(?:^|,$rfc822_lwsp*)($rfc822re)/gos) {
++        while ($s =~ m/(?:^|,$rfc822_lwsp*)($rfc822re)/gos) {
+             push @r, $1;
+         }
+         return wantarray ? (scalar(@r), @r) : 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
+maintainers-pair-edac-e752x-p-and-m-entries.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-drivers-usb-serial-sierrac-fix-printk-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-revert-fbdev-uninline-lock_fb_info.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch
+scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch
+scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
+scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch
+scripts-get_maintainerpl-support-m-lines-with-names-and-multiple-entries-per-m-line.patch
+scripts-get_maintainerpl-better-email-name-quoting.patch
+scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch
+scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch
+scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch
+scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
+maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
+maintainers-add-file-patterns-to-the-rest.patch
+maintainers-update-m32r-file-patterns-after-rename.patch
+maintainers-mark-alsa-lists-as-moderated.patch
+maintainers-remove-l-linux-kernel-vgerkernelorg-from-all-but-the-rest.patch
+maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
+maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
 
