@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-file-patterns-to-the-rest.patch added to -mm tree
-Date: Tue, 26 May 2009 14:42:07 -0700
-Message-ID: <200905262142.n4QLg7EP029938@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch added to -mm tree
+Date: Tue, 26 May 2009 14:42:03 -0700
+Message-ID: <200905262142.n4QLg3t7029870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44018 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758718AbZEZVmi (ORCPT
+	by vger.kernel.org with ESMTP id S1758606AbZEZVme (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 17:42:38 -0400
+	Tue, 26 May 2009 17:42:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: add file patterns to "THE REST"
+     scripts/get_maintainer.pl: change "die" to "warn" when command line file is not a patch
 has been added to the -mm tree.  Its filename is
-     maintainers-add-file-patterns-to-the-rest.patch
+     scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add file patterns to "THE REST"
+Subject: scripts/get_maintainer.pl: change "die" to "warn" when command line file is not a patch
 From: Joe Perches <joe@perches.com>
 
-These file patterns match all sources.
-By default, scripts/get_maintainers.pl excludes Linus Torvalds
-from the CC: list.  Option --git-chief-penguins will include him.
+fixes git send-email with a cover letter
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++++
- 1 file changed, 5 insertions(+)
+ scripts/get_maintainer.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-file-patterns-to-the-rest MAINTAINERS
---- a/MAINTAINERS~maintainers-add-file-patterns-to-the-rest
-+++ a/MAINTAINERS
-@@ -6437,5 +6437,10 @@ F:	drivers/serial/zs.*
- 
- THE REST
- P:	Linus Torvalds
-+M:	torvalds@linux-foundation.org
-+L:	linux-kernel@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
- S:	Buried alive in reporters
-+F:	*
-+F:	*/
-+
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch
++++ a/scripts/get_maintainer.pl
+@@ -165,7 +165,7 @@ foreach my $file (@ARGV) {
+ 	}
+ 	close(PATCH);
+ 	if ($file_cnt == @files) {
+-	    die "$P: file '${file}' doesn't appear to be a patch.  "
++	    warn "$P: file '${file}' doesn't appear to be a patch.  "
+ 		. "Add -f to options?\n";
+ 	}
+ 	@files = sort_and_uniq(@files);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
