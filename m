@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] linuxpps-core-support.patch removed from -mm tree
-Date: Tue, 26 May 2009 16:31:02 -0700
-Message-ID: <200905262331.n4QNV2OC008924@imap1.linux-foundation.org>
+Subject: + linuxpps-core-support.patch added to -mm tree
+Date: Tue, 26 May 2009 16:33:41 -0700
+Message-ID: <200905262333.n4QNXfPl010892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43013 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755368AbZEZXcU (ORCPT
+	by vger.kernel.org with ESMTP id S1760614AbZEZXev (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 19:32:20 -0400
+	Tue, 26 May 2009 19:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, hch@infradead.org, kay.sievers@vrfy.org, mtk.manpages@googlemail.com, randy.dunlap@oracle.com, zippel
+To: mm-commits@vger.kernel.org
+Cc: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, hch@infradead.org, kay.sievers@vrfy.org, mtk.manpages@googlemail.com, randy.dunlap@oracle.com, zippel@linux-m68k.org
 
 
 The patch titled
      LinuxPPS: core support
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      linuxpps-core-support.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -67,10 +77,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/pps/Makefile                 |    8 
  drivers/pps/kapi.c                   |  329 +++++++++++++++++++++++++
  drivers/pps/pps.c                    |  312 +++++++++++++++++++++++
- drivers/pps/sysfs.c                  |  104 +++++++
+ drivers/pps/sysfs.c                  |   98 +++++++
  include/linux/Kbuild                 |    1 
- include/linux/pps.h                  |  194 ++++++++++++++
- 13 files changed, 1238 insertions(+)
+ include/linux/pps.h                  |  122 +++++++++
+ include/linux/pps_kernel.h           |   89 ++++++
+ 14 files changed, 1249 insertions(+)
 
 diff -puN /dev/null Documentation/ABI/testing/sysfs-pps
 --- /dev/null
@@ -340,7 +351,7 @@ diff -puN /dev/null Documentation/pps/pps.txt
 diff -puN MAINTAINERS~linuxpps-core-support MAINTAINERS
 --- a/MAINTAINERS~linuxpps-core-support
 +++ a/MAINTAINERS
-@@ -4478,6 +4478,13 @@ S:	Maintained
+@@ -4465,6 +4465,13 @@ S:	Maintained
  F:	drivers/net/pppol2tp.c
  F:	include/linux/if_pppol2tp.h
  
@@ -369,14 +380,14 @@ diff -puN drivers/Kconfig~linuxpps-core-support drivers/Kconfig
 diff -puN drivers/Makefile~linuxpps-core-support drivers/Makefile
 --- a/drivers/Makefile~linuxpps-core-support
 +++ a/drivers/Makefile
-@@ -70,6 +70,7 @@ obj-$(CONFIG_SERIO)		+= input/serio/
- obj-$(CONFIG_GAMEPORT)		+= input/gameport/
- obj-$(CONFIG_INPUT)		+= input/
+@@ -72,6 +72,7 @@ obj-$(CONFIG_INPUT)		+= input/
  obj-$(CONFIG_I2O)		+= message/
-+obj-$(CONFIG_PPS)		+= pps/
  obj-$(CONFIG_RTC_LIB)		+= rtc/
  obj-y				+= i2c/ media/
++obj-$(CONFIG_PPS)		+= pps/
  obj-$(CONFIG_W1)		+= w1/
+ obj-$(CONFIG_POWER_SUPPLY)	+= power/
+ obj-$(CONFIG_HWMON)		+= hwmon/
 diff -puN /dev/null drivers/pps/Kconfig
 --- /dev/null
 +++ a/drivers/pps/Kconfig
@@ -460,7 +471,7 @@ diff -puN /dev/null drivers/pps/kapi.c
 +#include <linux/spinlock.h>
 +#include <linux/idr.h>
 +#include <linux/fs.h>
-+#include <linux/pps.h>
++#include <linux/pps_kernel.h>
 +
 +/*
 + * Global variables
@@ -793,7 +804,7 @@ diff -puN /dev/null drivers/pps/pps.c
 +#include <linux/idr.h>
 +#include <linux/cdev.h>
 +#include <linux/poll.h>
-+#include <linux/pps.h>
++#include <linux/pps_kernel.h>
 +
 +/*
 + * Local variables
@@ -1078,7 +1089,7 @@ diff -puN /dev/null drivers/pps/pps.c
 diff -puN /dev/null drivers/pps/sysfs.c
 --- /dev/null
 +++ a/drivers/pps/sysfs.c
-@@ -0,0 +1,104 @@
+@@ -0,0 +1,98 @@
 +/*
 + * PPS sysfs support
 + *
@@ -1104,7 +1115,7 @@ diff -puN /dev/null drivers/pps/sysfs.c
 +#include <linux/device.h>
 +#include <linux/module.h>
 +#include <linux/string.h>
-+#include <linux/pps.h>
++#include <linux/pps_kernel.h>
 +
 +/*
 + * Attribute functions
@@ -1122,7 +1133,6 @@ diff -puN /dev/null drivers/pps/sysfs.c
 +			(long long) pps->assert_tu.sec, pps->assert_tu.nsec,
 +			pps->assert_sequence);
 +}
-+DEVICE_ATTR(assert, S_IRUGO, pps_show_assert, NULL);
 +
 +static ssize_t pps_show_clear(struct device *dev,
 +				struct device_attribute *attr, char *buf)
@@ -1136,7 +1146,6 @@ diff -puN /dev/null drivers/pps/sysfs.c
 +			(long long) pps->clear_tu.sec, pps->clear_tu.nsec,
 +			pps->clear_sequence);
 +}
-+DEVICE_ATTR(clear, S_IRUGO, pps_show_clear, NULL);
 +
 +static ssize_t pps_show_mode(struct device *dev,
 +				struct device_attribute *attr, char *buf)
@@ -1145,7 +1154,6 @@ diff -puN /dev/null drivers/pps/sysfs.c
 +
 +	return sprintf(buf, "%4x\n", pps->info.mode);
 +}
-+DEVICE_ATTR(mode, S_IRUGO, pps_show_mode, NULL);
 +
 +static ssize_t pps_show_echo(struct device *dev,
 +				struct device_attribute *attr, char *buf)
@@ -1154,7 +1162,6 @@ diff -puN /dev/null drivers/pps/sysfs.c
 +
 +	return sprintf(buf, "%d\n", !!pps->info.echo);
 +}
-+DEVICE_ATTR(echo, S_IRUGO, pps_show_echo, NULL);
 +
 +static ssize_t pps_show_name(struct device *dev,
 +				struct device_attribute *attr, char *buf)
@@ -1163,7 +1170,6 @@ diff -puN /dev/null drivers/pps/sysfs.c
 +
 +	return sprintf(buf, "%s\n", pps->info.name);
 +}
-+DEVICE_ATTR(name, S_IRUGO, pps_show_name, NULL);
 +
 +static ssize_t pps_show_path(struct device *dev,
 +				struct device_attribute *attr, char *buf)
@@ -1172,7 +1178,6 @@ diff -puN /dev/null drivers/pps/sysfs.c
 +
 +	return sprintf(buf, "%s\n", pps->info.path);
 +}
-+DEVICE_ATTR(path, S_IRUGO, pps_show_path, NULL);
 +
 +struct device_attribute pps_attrs[] = {
 +	__ATTR(assert, S_IRUGO, pps_show_assert, NULL),
@@ -1186,7 +1191,7 @@ diff -puN /dev/null drivers/pps/sysfs.c
 diff -puN include/linux/Kbuild~linuxpps-core-support include/linux/Kbuild
 --- a/include/linux/Kbuild~linuxpps-core-support
 +++ a/include/linux/Kbuild
-@@ -306,6 +306,7 @@ unifdef-y += pmu.h
+@@ -307,6 +307,7 @@ unifdef-y += pmu.h
  unifdef-y += poll.h
  unifdef-y += ppp_defs.h
  unifdef-y += ppp-comp.h
@@ -1197,10 +1202,9 @@ diff -puN include/linux/Kbuild~linuxpps-core-support include/linux/Kbuild
 diff -puN /dev/null include/linux/pps.h
 --- /dev/null
 +++ a/include/linux/pps.h
-@@ -0,0 +1,194 @@
+@@ -0,0 +1,122 @@
 +/*
-+ * PPS API kernel header
-+ *
++ * PPS API header
 + *
 + * Copyright (C) 2005-2009   Rodolfo Giometti <giometti@linux.it>
 + *
@@ -1223,7 +1227,7 @@ diff -puN /dev/null include/linux/pps.h
 +#ifndef _PPS_H_
 +#define _PPS_H_
 +
-+#define PPS_VERSION		"5.3.5"
++#define PPS_VERSION		"5.3.6"
 +#define PPS_MAX_SOURCES		16		/* should be enough... */
 +
 +/* Implementation note: the logical states ``assert'' and ``clear''
@@ -1320,7 +1324,32 @@ diff -puN /dev/null include/linux/pps.h
 +#define PPS_GETCAP		_IOR('p', 0xa3, int *)
 +#define PPS_FETCH		_IOWR('p', 0xa4, struct pps_fdata *)
 +
-+#ifdef __KERNEL__
++#endif /* _PPS_H_ */
+diff -puN /dev/null include/linux/pps_kernel.h
+--- /dev/null
++++ a/include/linux/pps_kernel.h
+@@ -0,0 +1,89 @@
++/*
++ * PPS API kernel header
++ *
++ * Copyright (C) 2009   Rodolfo Giometti <giometti@linux.it>
++ *
++ *   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; either version 2 of the License, or
++ *   (at your option) any later version.
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   You should have received a copy of the GNU General Public License
++ *   along with this program; if not, write to the Free Software
++ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/pps.h>
 +
 +#include <linux/cdev.h>
 +#include <linux/device.h>
@@ -1373,6 +1402,7 @@ diff -puN /dev/null include/linux/pps.h
 +
 +extern spinlock_t pps_idr_lock;
 +extern struct idr pps_idr;
++extern struct timespec pps_irq_ts[];
 +
 +extern struct device_attribute pps_attrs[];
 +
@@ -1388,10 +1418,6 @@ diff -puN /dev/null include/linux/pps.h
 +extern int pps_register_cdev(struct pps_device *pps);
 +extern void pps_unregister_cdev(struct pps_device *pps);
 +extern void pps_event(int source, struct pps_ktime *ts, int event, void *data);
-+
-+#endif /* __KERNEL__ */
-+
-+#endif /* _PPS_H_ */
 _
 
 Patches currently in -mm which might be from giometti@linux.it are
