@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs.patch added to -mm tree
-Date: Wed, 27 May 2009 13:14:49 -0700
-Message-ID: <200905272014.n4RKEnQI029586@imap1.linux-foundation.org>
+Subject: + x86-ignore-vm_locked-when-determining-if-hugetlb-backed-page-tables-can-be-shared-or-not.patch added to -mm tree
+Date: Wed, 27 May 2009 13:14:46 -0700
+Message-ID: <200905272014.n4RKEkf5029583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761881AbZE0UR2 (ORCPT
+	by vger.kernel.org with ESMTP id S933572AbZE0URj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 16:17:28 -0400
+	Wed, 27 May 2009 16:17:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, Lee.Schermerhorn@hp.com, agl@us.ibm.com, apw@canonical.com, e
 
 
 The patch titled
-     mm: account for MAP_SHARED mappings using VM_MAYSHARE and not VM_SHARED in hugetlbfs
+     x86: ignore VM_LOCKED when determining if hugetlb-backed page tables can be shared or not
 has been added to the -mm tree.  Its filename is
-     mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs.patch
+     x86-ignore-vm_locked-when-determining-if-hugetlb-backed-page-tables-can-be-shared-or-not.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: account for MAP_SHARED mappings using VM_MAYSHARE and not VM_SHARED in hugetlbfs
+Subject: x86: ignore VM_LOCKED when determining if hugetlb-backed page tables can be shared or not
 From: Mel Gorman <mel@csn.ul.ie>
 
 Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13302
 
-hugetlbfs reserves huge pages but does not fault them at mmap() time to
-ensure that future faults succeed.  The reservation behaviour differs
-depending on whether the mapping was mapped MAP_SHARED or MAP_PRIVATE. 
-For MAP_SHARED mappings, hugepages are reserved when mmap() is first
-called and are tracked based on information associated with the inode. 
-Other processes mapping MAP_SHARED use the same reservation.  MAP_PRIVATE
-track the reservations based on the VMA created as part of the mmap()
-operation.  Each process mapping MAP_PRIVATE must make its own
-reservation.
+On x86 and x86-64, it is possible that page tables are shared beween
+shared mappings backed by hugetlbfs.  As part of this,
+page_table_shareable() checks a pair of vma->vm_flags and they must match
+if they are to be shared.  All VMA flags are taken into account, including
+VM_LOCKED.
 
-hugetlbfs currently checks if a VMA is MAP_SHARED with the VM_SHARED flag
-and not VM_MAYSHARE.  For file-backed mappings, such as hugetlbfs,
-VM_SHARED is set only if the mapping is MAP_SHARED and the file was opened
-read-write.  If a shared memory mapping was mapped shared-read-write for
-populating of data and mapped shared-read-only by other processes, then
-hugetlbfs would account for the mapping as if it was MAP_PRIVATE.  This
-causes processes to fail to map the file MAP_SHARED even though it should
-succeed as the reservation is there.
+The problem is that VM_LOCKED is cleared on fork().  When a process with a
+shared memory segment forks() to exec() a helper, there will be shared
+VMAs with different flags.  The impact is that the shared segment is
+sometimes considered shareable and other times not, depending on what
+process is checking.
 
-This patch alters mm/hugetlb.c and replaces VM_SHARED with VM_MAYSHARE
-when the intent of the code was to check whether the VMA was mapped
-MAP_SHARED or MAP_PRIVATE.
+What happens is that the segment page tables are being shared but the
+count is inaccurate depending on the ordering of events.  As the page
+tables are freed with put_page(), bad pmd's are found when some of the
+children exit.  The hugepage counters also get corrupted and the Total and
+Free count will no longer match even when all the hugepage-backed regions
+are freed.  This requires a reboot of the machine to "fix".
+
+This patch addresses the problem by comparing all flags except VM_LOCKED
+when deciding if pagetables should be shared or not for hugetlbfs-backed
+mapping.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: <stable@kernel.org>
 Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
@@ -75,128 +75,30 @@ Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ arch/x86/mm/hugetlbpage.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs mm/hugetlb.c
---- a/mm/hugetlb.c~mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs
-+++ a/mm/hugetlb.c
-@@ -316,7 +316,7 @@ static void resv_map_release(struct kref
- static struct resv_map *vma_resv_map(struct vm_area_struct *vma)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	if (!(vma->vm_flags & VM_SHARED))
-+	if (!(vma->vm_flags & VM_MAYSHARE))
- 		return (struct resv_map *)(get_vma_private_data(vma) &
- 							~HPAGE_RESV_MASK);
- 	return NULL;
-@@ -325,7 +325,7 @@ static struct resv_map *vma_resv_map(str
- static void set_vma_resv_map(struct vm_area_struct *vma, struct resv_map *map)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	VM_BUG_ON(vma->vm_flags & VM_SHARED);
-+	VM_BUG_ON(vma->vm_flags & VM_MAYSHARE);
+diff -puN arch/x86/mm/hugetlbpage.c~x86-ignore-vm_locked-when-determining-if-hugetlb-backed-page-tables-can-be-shared-or-not arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~x86-ignore-vm_locked-when-determining-if-hugetlb-backed-page-tables-can-be-shared-or-not
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -26,12 +26,16 @@ static unsigned long page_table_shareabl
+ 	unsigned long sbase = saddr & PUD_MASK;
+ 	unsigned long s_end = sbase + PUD_SIZE;
  
- 	set_vma_private_data(vma, (get_vma_private_data(vma) &
- 				HPAGE_RESV_MASK) | (unsigned long)map);
-@@ -334,7 +334,7 @@ static void set_vma_resv_map(struct vm_a
- static void set_vma_resv_flags(struct vm_area_struct *vma, unsigned long flags)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	VM_BUG_ON(vma->vm_flags & VM_SHARED);
-+	VM_BUG_ON(vma->vm_flags & VM_MAYSHARE);
- 
- 	set_vma_private_data(vma, get_vma_private_data(vma) | flags);
- }
-@@ -353,7 +353,7 @@ static void decrement_hugepage_resv_vma(
- 	if (vma->vm_flags & VM_NORESERVE)
- 		return;
- 
--	if (vma->vm_flags & VM_SHARED) {
-+	if (vma->vm_flags & VM_MAYSHARE) {
- 		/* Shared mappings always use reserves */
- 		h->resv_huge_pages--;
- 	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
-@@ -369,14 +369,14 @@ static void decrement_hugepage_resv_vma(
- void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	if (!(vma->vm_flags & VM_SHARED))
-+	if (!(vma->vm_flags & VM_MAYSHARE))
- 		vma->vm_private_data = (void *)0;
- }
- 
- /* Returns true if the VMA has associated reserve pages */
- static int vma_has_reserves(struct vm_area_struct *vma)
- {
--	if (vma->vm_flags & VM_SHARED)
-+	if (vma->vm_flags & VM_MAYSHARE)
- 		return 1;
- 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER))
- 		return 1;
-@@ -924,7 +924,7 @@ static long vma_needs_reservation(struct
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	struct inode *inode = mapping->host;
- 
--	if (vma->vm_flags & VM_SHARED) {
-+	if (vma->vm_flags & VM_MAYSHARE) {
- 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		return region_chg(&inode->i_mapping->private_list,
- 							idx, idx + 1);
-@@ -949,7 +949,7 @@ static void vma_commit_reservation(struc
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	struct inode *inode = mapping->host;
- 
--	if (vma->vm_flags & VM_SHARED) {
-+	if (vma->vm_flags & VM_MAYSHARE) {
- 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
- 
-@@ -1893,7 +1893,7 @@ retry_avoidcopy:
- 	 * at the time of fork() could consume its reserves on COW instead
- 	 * of the full address range.
++	/* Allow segments to share if only one is marked locked */
++	unsigned long vm_flags = vma->vm_flags & ~VM_LOCKED;
++	unsigned long svm_flags = svma->vm_flags & ~VM_LOCKED;
++
+ 	/*
+ 	 * match the virtual addresses, permission and the alignment of the
+ 	 * page table page.
  	 */
--	if (!(vma->vm_flags & VM_SHARED) &&
-+	if (!(vma->vm_flags & VM_MAYSHARE) &&
- 			is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
- 			old_page != pagecache_page)
- 		outside_reserve = 1;
-@@ -2000,7 +2000,7 @@ retry:
- 		clear_huge_page(page, address, huge_page_size(h));
- 		__SetPageUptodate(page);
+ 	if (pmd_index(addr) != pmd_index(saddr) ||
+-	    vma->vm_flags != svma->vm_flags ||
++	    vm_flags != svm_flags ||
+ 	    sbase < svma->vm_start || svma->vm_end < s_end)
+ 		return 0;
  
--		if (vma->vm_flags & VM_SHARED) {
-+		if (vma->vm_flags & VM_MAYSHARE) {
- 			int err;
- 			struct inode *inode = mapping->host;
- 
-@@ -2104,7 +2104,7 @@ int hugetlb_fault(struct mm_struct *mm, 
- 			goto out_mutex;
- 		}
- 
--		if (!(vma->vm_flags & VM_SHARED))
-+		if (!(vma->vm_flags & VM_MAYSHARE))
- 			pagecache_page = hugetlbfs_pagecache_page(h,
- 								vma, address);
- 	}
-@@ -2289,7 +2289,7 @@ int hugetlb_reserve_pages(struct inode *
- 	 * to reserve the full area even if read-only as mprotect() may be
- 	 * called to make the mapping read-write. Assume !vma is a shm mapping
- 	 */
--	if (!vma || vma->vm_flags & VM_SHARED)
-+	if (!vma || vma->vm_flags & VM_MAYSHARE)
- 		chg = region_chg(&inode->i_mapping->private_list, from, to);
- 	else {
- 		struct resv_map *resv_map = resv_map_alloc();
-@@ -2330,7 +2330,7 @@ int hugetlb_reserve_pages(struct inode *
- 	 * consumed reservations are stored in the map. Hence, nothing
- 	 * else has to be done for private mappings here
- 	 */
--	if (!vma || vma->vm_flags & VM_SHARED)
-+	if (!vma || vma->vm_flags & VM_MAYSHARE)
- 		region_add(&inode->i_mapping->private_list, from, to);
- 	return 0;
- }
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
