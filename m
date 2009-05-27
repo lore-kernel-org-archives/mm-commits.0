@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-printk_once-in-several-places-clean-up-printk_once-of-get_cpu_vendor.patch added to -mm tree
-Date: Tue, 26 May 2009 19:01:41 -0700
-Message-ID: <200905270201.n4R21f2E016377@imap1.linux-foundation.org>
+Subject: + lis3-fix-misc-device-unregistering-and-printk.patch added to -mm tree
+Date: Tue, 26 May 2009 19:22:24 -0700
+Message-ID: <200905270222.n4R2MOJT030831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754067AbZE0CB5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755560AbZE0CWb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 22:01:57 -0400
+	Tue, 26 May 2009 22:22:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, mingo@elte.hu, pavel@ucw.cz
+Cc: eric.piel@tremplin-utc.net, pavel@ucw.cz
 
 
 The patch titled
-     clean up printk_once of get_cpu_vendor
+     lis3: fix misc device unregistering and printk
 has been added to the -mm tree.  Its filename is
-     use-printk_once-in-several-places-clean-up-printk_once-of-get_cpu_vendor.patch
+     lis3-fix-misc-device-unregistering-and-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clean up printk_once of get_cpu_vendor
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: lis3: fix misc device unregistering and printk
+From: Eric Piel <eric.piel@tremplin-utc.net>
 
-It remove unnecessary variable and change two static variable
-with one.
+Can only unregister the misc device if it was registered before.  Also
+remove debugging messages, which in addition were not properly formated.
 
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/hwmon/lis3lv02d.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/common.c~use-printk_once-in-several-places-clean-up-printk_once-of-get_cpu_vendor arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~use-printk_once-in-several-places-clean-up-printk_once-of-get_cpu_vendor
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -486,7 +486,6 @@ out:
- static void __cpuinit get_cpu_vendor(struct cpuinfo_x86 *c)
- {
- 	char *v = c->x86_vendor_id;
--	static int printed;
- 	int i;
- 
- 	for (i = 0; i < X86_VENDOR_NUM; i++) {
-@@ -504,8 +503,8 @@ static void __cpuinit get_cpu_vendor(str
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-fix-misc-device-unregistering-and-printk drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-fix-misc-device-unregistering-and-printk
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -199,7 +199,6 @@ static int lis3lv02d_misc_open(struct in
+ 		return -EBUSY;
  	}
+ 	lis3lv02d_increase_use(&lis3_dev);
+-	printk("lis3: registered interrupt %d\n", lis3_dev.irq);
+ 	return 0;
+ }
  
- 	printk_once(KERN_ERR
--		    "CPU: vendor_id '%s' unknown, using generic init.\n", v);
--	printk_once(KERN_ERR "CPU: Your system may be unstable.\n");
-+			"CPU: vendor_id '%s' unknown, using generic init.\n" \
-+			"CPU: Your system may be unstable.\n", v);
+@@ -378,7 +377,8 @@ void lis3lv02d_joystick_disable(void)
+ 	if (!lis3_dev.idev)
+ 		return;
  
- 	c->x86_vendor = X86_VENDOR_UNKNOWN;
- 	this_cpu = &default_cpu;
-_
-
-Patches currently in -mm which might be from minchan.kim@gmail.com are
-
-linux-next.patch
-vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
-mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
-vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
-use-printk_once-in-several-places.patch
-use-printk_once-in-several-places-clean-up-printk_once-of-get_cpu_vendor.patch
-
+-	misc_deregister(&lis3lv02d_misc_device);
++	if (lis3_dev.irq)
++		misc_deregister(&lis3lv02d_misc_device);
+ 	input_unregister_device(lis3_dev.idev);
+ 	lis3_dev.idev = NULL;
+ }
+@@ -493,8 +493,6 @@ int lis3lv02d_init_device(struct lis3lv0
+ 	if (lis3lv02d_joystick_enable())
+ 		printk(KERN_ERR DRIVER_NAME ": joystick initialization failed\n");
+ 
+-	printk("lis3_init_device: irq %d\n", dev->irq);
