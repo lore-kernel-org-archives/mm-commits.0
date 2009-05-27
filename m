@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage.patch added to -mm tree
-Date: Wed, 27 May 2009 15:33:53 -0700
-Message-ID: <200905272233.n4RMXrhc029683@imap1.linux-foundation.org>
+Subject: + maintainers-add-file-patterns-to-tty-layer.patch added to -mm tree
+Date: Wed, 27 May 2009 15:34:50 -0700
+Message-ID: <200905272234.n4RMYoKm030351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752340AbZE0Wex (ORCPT
+	by vger.kernel.org with ESMTP id S1761423AbZE0Wf7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 18:34:53 -0400
+	Wed, 27 May 2009 18:35:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, roland@redhat.com
+Cc: joe@perches.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     ptrace: do_notify_parent_cldstop: fix the wrong ->nsproxy usage
+     MAINTAINERS: add file patterns to TTY LAYER
 has been added to the -mm tree.  Its filename is
-     ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage.patch
+     maintainers-add-file-patterns-to-tty-layer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: do_notify_parent_cldstop: fix the wrong ->nsproxy usage
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: MAINTAINERS: add file patterns to TTY LAYER
+From: Joe Perches <joe@perches.com>
 
-If the non-traced sub-thread calls do_notify_parent_cldstop(), we send the
-notification to group_leader->real_parent and we report group_leader's
-pid.
-
-But, if group_leader is traced we use the wrong ->parent->nsproxy->pid_ns,
-the tracer and parent can live in different namespaces.  Change the code
-to use "parent" instead of tsk->parent.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN kernel/signal.c~ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage kernel/signal.c
---- a/kernel/signal.c~ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage
-+++ a/kernel/signal.c
-@@ -1494,7 +1494,7 @@ static void do_notify_parent_cldstop(str
- 	 * see comment in do_notify_parent() abot the following 3 lines
- 	 */
- 	rcu_read_lock();
--	info.si_pid = task_pid_nr_ns(tsk, tsk->parent->nsproxy->pid_ns);
-+	info.si_pid = task_pid_nr_ns(tsk, parent->nsproxy->pid_ns);
- 	info.si_uid = __task_cred(tsk)->uid;
- 	rcu_read_unlock();
+diff -puN MAINTAINERS~maintainers-add-file-patterns-to-tty-layer MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-file-patterns-to-tty-layer
++++ a/MAINTAINERS
+@@ -5651,6 +5651,11 @@ TTY LAYER
+ P:	Alan Cox
+ M:	alan@lxorguk.ukuu.org.uk
+ S:	Maintained
++F:	drivers/char/tty_*
++F:	drivers/serial/serial_core.c
++F:	include/linux/serial_core.h
++F:	include/linux/serial.h
++F:	include/linux/tty.h
  
+ TULIP NETWORK DRIVERS
+ P:	Grant Grundler
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
 
+maintainers-pair-edac-e752x-p-and-m-entries.patch
 linux-next.patch
-slow_work_thread-should-do-the-exclusive-wait.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
-ptrace-remove-pt_dtrace-from-arch-h8300.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
-ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
-ptrace-remove-pt_dtrace-from-arch-m32r.patch
-ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
-ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
-ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
-ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
-ptrace-do-not-use-task_lock-for-attach.patch
-ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
-ptrace-wait_task_zombie-s-parent-real_parent.patch
-ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
-copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
-elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
-shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped.patch
-introduce-struct-wait_opts-to-simplify-do_wait-pathes.patch
-do_wait-simplify-retval-tsk_result-notask_error-mess.patch
-do_wait-kill-the-old-bug_on-use-while_each_thread.patch
-do_wait-fix-the-theoretical-race-with-stop-trace-cont.patch
-mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds.patch
-wait_task_-cleanups-split-wait_noreap_copyout.patch
-wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_stopped.patch
-wait_task_-cleanups-use-copy_wait_opts_to_user-in-do_wait.patch
-wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_zombie.patch
-wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_continued.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
+scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch
+scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch
+scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
+scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch
+scripts-get_maintainerpl-support-m-lines-with-names-and-multiple-entries-per-m-line.patch
+scripts-get_maintainerpl-better-email-name-quoting.patch
+scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch
+scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch
+scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch
+scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
+maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
+maintainers-add-file-patterns-to-the-rest.patch
+maintainers-update-m32r-file-patterns-after-rename.patch
+maintainers-mark-alsa-lists-as-moderated.patch
+maintainers-remove-l-linux-kernel-vgerkernelorg-from-all-but-the-rest.patch
+maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
+maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
+maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
+maintainers-add-file-patterns-to-tty-layer.patch
 
