@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch added to -mm tree
-Date: Wed, 27 May 2009 16:59:53 -0700
-Message-ID: <200905272359.n4RNxrco024496@imap1.linux-foundation.org>
+Subject: + pci-pm-read-device-power-state-from-register-after-updating-it.patch added to -mm tree
+Date: Wed, 27 May 2009 16:59:56 -0700
+Message-ID: <200905272359.n4RNxuGh024600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44078 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50676 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756772AbZE1AAM (ORCPT
+	by vger.kernel.org with ESMTP id S1757268AbZE1AAN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 20:00:12 -0400
+	Wed, 27 May 2009 20:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rjw@sisk.pl, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     pci pm: follow PCI_PM_CTRL_NO_SOFT_RESET during transitions from D3
+     pci pm: read device power state from register after updating it
 has been added to the -mm tree.  Its filename is
-     pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch
+     pci-pm-read-device-power-state-from-register-after-updating-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci pm: follow PCI_PM_CTRL_NO_SOFT_RESET during transitions from D3
+Subject: pci pm: read device power state from register after updating it
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-According to the PCI PM specification (PCI Bus Power Management Interface
-Specification, Rev.  1.2, Section 5.4.1) we are supposed to reinitialize
-devices that have PCI_PM_CTRL_NO_SOFT_RESET clear during all transitions
-from PCI_D3hot to PCI_D0, but we only do it if the device's current_state
-field is equal to PCI_UNKNOWN.
+After attempting to change the power state of a PCI device
+pci_raw_set_power_state() doesn't check if the value it wrote into the
+device's PCI_PM_CTRL register has been stored in there.  Still, it
+modifies the device's current_state field as though that's the case.  This
+may cause the driver of the device to think that its power state has been
+changed while in fact it hasn't.
 
-This may lead to problems if a device with PCI_PM_CTRL_NO_SOFT_RESET unset
-is put into PCI_D3hot at run time by its driver and pci_set_power_state()
-is used to put it back into PCI_D0, because in that case the device will
-remain uninitialized after pci_set_power_state() has returned.  Prevent
-that from happening by modifying pci_raw_set_power_state() to reinitialize
-devices with PCI_PM_CTRL_NO_SOFT_RESET unset during all transitions from
-D3 to D0.
+To prevent such situations from happening modify pci_raw_set_power_state()
+so that it reads the device's PCI_PM_CTRL register after writing into it
+and uses the value read from the register to update the device's
+current_state field.  Also make it return -EIO if the new state of the
+device is not equal to the state requested by the called.
+
+To distinguish this error condition from the other ones make
+pci_raw_set_power_state() return -ENOSYS instead of -EIO when it is
+impossible to change the power state of the device, because it doesn't
+support the native PCI PM at all or the requested target state is not
+supported by it.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pci/pci.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pci/pci.c~pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3 drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3
+diff -puN drivers/pci/pci.c~pci-pm-read-device-power-state-from-register-after-updating-it drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-pm-read-device-power-state-from-register-after-updating-it
 +++ a/drivers/pci/pci.c
-@@ -485,6 +485,8 @@ static int pci_raw_set_power_state(struc
- 		pmcsr &= ~PCI_PM_CTRL_STATE_MASK;
- 		pmcsr |= state;
- 		break;
-+	case PCI_D3hot:
-+	case PCI_D3cold:
- 	case PCI_UNKNOWN: /* Boot-up */
- 		if ((pmcsr & PCI_PM_CTRL_STATE_MASK) == PCI_D3hot
- 		 && !(pmcsr & PCI_PM_CTRL_NO_SOFT_RESET))
+@@ -451,7 +451,7 @@ static int pci_raw_set_power_state(struc
+ 		return 0;
+ 
+ 	if (!dev->pm_cap)
+-		return -EIO;
++		return -ENOSYS;
+ 
+ 	if (state < PCI_D0 || state > PCI_D3hot)
+ 		return -EINVAL;
+@@ -470,7 +470,7 @@ static int pci_raw_set_power_state(struc
+ 	/* check if this device supports the desired state */
+ 	if ((state == PCI_D1 && !dev->d1_support)
+ 	   || (state == PCI_D2 && !dev->d2_support))
+-		return -EIO;
++		return -ENOSYS;
+ 
+ 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
+ 
+@@ -507,7 +507,11 @@ static int pci_raw_set_power_state(struc
+ 	else if (state == PCI_D2 || dev->current_state == PCI_D2)
+ 		udelay(PCI_PM_D2_DELAY);
+ 
+-	dev->current_state = state;
++	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
++	dev->current_state = (pmcsr & PCI_PM_CTRL_STATE_MASK);
++	/* Return error code if we have failed to change the state */
++	if (dev->current_state != state)
++		return -EIO;
+ 
+ 	/* According to section 5.4.1 of the "PCI BUS POWER MANAGEMENT
+ 	 * INTERFACE SPECIFICATION, REV. 1.2", a device transitioning
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
