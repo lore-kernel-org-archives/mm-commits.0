@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + otus-80211core-coidc-fix-array-range-check.patch added to -mm tree
-Date: Wed, 27 May 2009 00:17:29 -0700
-Message-ID: <200905270717.n4R7HTr9007115@imap1.linux-foundation.org>
+Subject: + drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch added to -mm tree
+Date: Wed, 27 May 2009 00:19:22 -0700
+Message-ID: <200905270719.n4R7JMEF008436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760523AbZE0HRe (ORCPT
+	by vger.kernel.org with ESMTP id S1759198AbZE0HTt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 03:17:34 -0400
+	Wed, 27 May 2009 03:19:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, greg@kroah.com, lrodriguez@atheros.com
+Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, grant.likely@secretlab.ca, w.sang@pengutronix.de
 
 
 The patch titled
-     otus/80211core/coid.c: fix array range check
+     drivers/serial/mpc52xx_uart.c: fix array overindexing check
 has been added to the -mm tree.  Its filename is
-     otus-80211core-coidc-fix-array-range-check.patch
+     drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: otus/80211core/coid.c: fix array range check
+Subject: drivers/serial/mpc52xx_uart.c: fix array overindexing check
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The test for an overindexing of wd->ap.wds.encryMode[] has an off-by-one.
+The check for an overindexing of mpc52xx_uart_{ports,nodes} has an
+off-by-one.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Luis R. Rodriguez <lrodriguez@atheros.com>
-Cc: Greg KH <greg@kroah.com>
+Acked-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/otus/80211core/coid.c |    2 +-
+ drivers/serial/mpc52xx_uart.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/otus/80211core/coid.c~otus-80211core-coidc-fix-array-range-check drivers/staging/otus/80211core/coid.c
---- a/drivers/staging/otus/80211core/coid.c~otus-80211core-coidc-fix-array-range-check
-+++ a/drivers/staging/otus/80211core/coid.c
-@@ -2013,7 +2013,7 @@ u16_t zfiConfigWdsPort(zdev_t* dev, u8_t
+diff -puN drivers/serial/mpc52xx_uart.c~drivers-serial-mpc52xx_uartc-fix-array-overindexing-check drivers/serial/mpc52xx_uart.c
+--- a/drivers/serial/mpc52xx_uart.c~drivers-serial-mpc52xx_uartc-fix-array-overindexing-check
++++ a/drivers/serial/mpc52xx_uart.c
+@@ -988,7 +988,7 @@ mpc52xx_console_setup(struct console *co
+ 	pr_debug("mpc52xx_console_setup co=%p, co->index=%i, options=%s\n",
+ 		 co, co->index, options);
  
-     zmw_get_wlan_dev(dev);
- 
--    if (wdsPortId > ZM_MAX_WDS_SUPPORT)
-+    if (wdsPortId >= ZM_MAX_WDS_SUPPORT)
-     {
-         return ZM_ERR_WDS_PORT_ID;
-     }
+-	if ((co->index < 0) || (co->index > MPC52xx_PSC_MAXNUM)) {
++	if ((co->index < 0) || (co->index >= MPC52xx_PSC_MAXNUM)) {
+ 		pr_debug("PSC%x out of range\n", co->index);
+ 		return -EINVAL;
+ 	}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -87,4 +90,5 @@ spi_bfin5xx-limit-reaches-1.patch
 carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
 ufs-sector_t-cannot-be-negative.patch
 dtlk-off-by-one-in-readwrite_tts.patch
+drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
 
