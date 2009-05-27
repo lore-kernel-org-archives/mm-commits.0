@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hexdump-remove-the-trailing-space.patch added to -mm tree
-Date: Tue, 26 May 2009 16:37:22 -0700
-Message-ID: <200905262337.n4QNbMPW013478@imap1.linux-foundation.org>
+Subject: + sh-fix-access-beyond-array_size-of-onchip_ops.patch added to -mm tree
+Date: Tue, 26 May 2009 17:04:27 -0700
+Message-ID: <200905270004.n4R04R5E032358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760142AbZEZXhr (ORCPT
+	by vger.kernel.org with ESMTP id S1760938AbZE0AFQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 May 2009 19:37:47 -0400
+	Tue, 26 May 2009 20:05:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, randy.dunlap@oracle.com
+Cc: roel.kluin@gmail.com, lethal@linux-sh.org
 
 
 The patch titled
-     hexdump: remove the trailing space
+     sh: fix access beyond ARRAY_SIZE of onchip_ops[]
 has been added to the -mm tree.  Its filename is
-     hexdump-remove-the-trailing-space.patch
+     sh-fix-access-beyond-array_size-of-onchip_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hexdump: remove the trailing space
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: sh: fix access beyond ARRAY_SIZE of onchip_ops[]
+From: Roel Kluin <roel.kluin@gmail.com>
 
-For example:
-        hex_dump_to_buffer("AB", 2, 16, 1, buf, 100, 0);
-        pr_info("[%s]\n", buf);
+Do not go beyond ARRAY_SIZE of onchip_ops
 
-I'd expect the output to be "[41 42]", but actually it's "[41 42 ]"
-
-This patch also makes the required buf to be minimum.  To print the hex
-format of "AB", a buf with size 6 should be sufficient, but
-hex_dump_to_buffer() required at least 8.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/hexdump.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ arch/sh/kernel/cpu/sh4a/clock-sh7722.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/hexdump.c~hexdump-remove-the-trailing-space lib/hexdump.c
---- a/lib/hexdump.c~hexdump-remove-the-trailing-space
-+++ a/lib/hexdump.c
-@@ -65,7 +65,8 @@ void hex_dump_to_buffer(const void *buf,
+diff -puN arch/sh/kernel/cpu/sh4a/clock-sh7722.c~sh-fix-access-beyond-array_size-of-onchip_ops arch/sh/kernel/cpu/sh4a/clock-sh7722.c
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c~sh-fix-access-beyond-array_size-of-onchip_ops
++++ a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
+@@ -897,7 +897,7 @@ struct clk_ops *onchip_ops[] = {
+ void __init
+ arch_init_clk_ops(struct clk_ops **ops, int type)
+ {
+-	BUG_ON(type < 0 || type > ARRAY_SIZE(onchip_ops));
++	BUG_ON(type < 0 || type >= ARRAY_SIZE(onchip_ops));
+ 	*ops = onchip_ops[type];
+ }
  
- 		for (j = 0; j < ngroups; j++)
- 			lx += scnprintf(linebuf + lx, linebuflen - lx,
--				"%16.16llx ", (unsigned long long)*(ptr8 + j));
-+				"%s%16.16llx", j ? " " : "",
-+				(unsigned long long)*(ptr8 + j));
- 		ascii_column = 17 * ngroups + 2;
- 		break;
- 	}
-@@ -76,7 +77,7 @@ void hex_dump_to_buffer(const void *buf,
- 
- 		for (j = 0; j < ngroups; j++)
- 			lx += scnprintf(linebuf + lx, linebuflen - lx,
--				"%8.8x ", *(ptr4 + j));
-+				"%s%8.8x", j ? " " : "", *(ptr4 + j));
- 		ascii_column = 9 * ngroups + 2;
- 		break;
- 	}
-@@ -87,19 +88,21 @@ void hex_dump_to_buffer(const void *buf,
- 
- 		for (j = 0; j < ngroups; j++)
- 			lx += scnprintf(linebuf + lx, linebuflen - lx,
--				"%4.4x ", *(ptr2 + j));
-+				"%s%4.4x", j ? " " : "", *(ptr2 + j));
- 		ascii_column = 5 * ngroups + 2;
- 		break;
- 	}
- 
- 	default:
--		for (j = 0; (j < rowsize) && (j < len) && (lx + 4) < linebuflen;
--		     j++) {
-+		for (j = 0; (j < len) && (lx + 3) <= linebuflen; j++) {
- 			ch = ptr[j];
- 			linebuf[lx++] = hex_asc_hi(ch);
- 			linebuf[lx++] = hex_asc_lo(ch);
- 			linebuf[lx++] = ' ';
- 		}
-+		if (j)
-+			lx--;
-+
- 		ascii_column = 3 * rowsize + 2;
- 		break;
- 	}
-@@ -108,7 +111,7 @@ void hex_dump_to_buffer(const void *buf,
- 
- 	while (lx < (linebuflen - 1) && lx < (ascii_column - 1))
- 		linebuf[lx++] = ' ';
--	for (j = 0; (j < rowsize) && (j < len) && (lx + 2) < linebuflen; j++)
-+	for (j = 0; (j < len) && (lx + 2) < linebuflen; j++)
- 		linebuf[lx++] = (isascii(ptr[j]) && isprint(ptr[j])) ? ptr[j]
- 				: '.';
- nil:
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-cls_cgroup-read-classid-atomically-in-classifier.patch
-hexdump-remove-the-trailing-space.patch
-cgroups-make-messages-more-readable.patch
-devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
-memcg-remove-some-redundant-checks.patch
-memcg-remove-unneeded-forward-declaration-from-schedh.patch
+drm-fix-lock_test_with_return-macro.patch
+v4l-dvb-cimax2c-fix-typo.patch
+zoran-fix-error.patch
+uwb-event_size-should-be-signed.patch
+irda-count-reaches-1.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+wis-sony-tunerc-typo.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+sh-fix-access-beyond-array_size-of-onchip_ops.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+spi_bfin5xx-limit-reaches-1.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
