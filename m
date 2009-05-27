@@ -1,92 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lockd-fix-file_locking=n-build-error.patch removed from -mm tree
-Date: Wed, 27 May 2009 13:55:48 -0700
-Message-ID: <200905272055.n4RKtmCc026037@imap1.linux-foundation.org>
+Subject: + maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch added to -mm tree
+Date: Wed, 27 May 2009 14:53:59 -0700
+Message-ID: <200905272153.n4RLrx78001929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34267 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755424AbZE0VDQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754007AbZE0Vyb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 17:03:16 -0400
+	Wed, 27 May 2009 17:54:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: joe@perches.com, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     lockd: fix FILE_LOCKING=n build error
-has been removed from the -mm tree.  Its filename was
-     lockd-fix-file_locking=n-build-error.patch
+     MAINTAINERS: add Paul McKenney to RCU and RCUTORTURE
+has been added to the -mm tree.  Its filename is
+     maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockd: fix FILE_LOCKING=n build error
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: MAINTAINERS: add Paul McKenney to RCU and RCUTORTURE
+From: Joe Perches <joe@perches.com>
 
-lockd/svclock.c is missing a header file <linux/fs.h>.
-
-<linux/fs.h> is missing a definition of locks_release_private()
-for the config case of FILE_LOCKING=n, causing a build error:
-
-fs/lockd/svclock.c:330: error: implicit declaration of function 'locks_release_private'
-
-lockd without FILE_LOCKING doesn't make sense, so make LOCKD and LOCKD_V4
-depend on FILE_LOCKING, and make NFS depend on FILE_LOCKING.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Bruce Fields <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig     |    2 ++
- fs/nfs/Kconfig |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ MAINTAINERS |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/Kconfig~lockd-fix-file_locking=n-build-error fs/Kconfig
---- a/fs/Kconfig~lockd-fix-file_locking=n-build-error
-+++ a/fs/Kconfig
-@@ -236,10 +236,12 @@ source "fs/nfsd/Kconfig"
- 
- config LOCKD
- 	tristate
-+	depends on FILE_LOCKING
- 
- config LOCKD_V4
- 	bool
- 	depends on NFSD_V3 || NFS_V3
-+	depends on FILE_LOCKING
- 	default y
- 
- config EXPORTFS
-diff -puN fs/nfs/Kconfig~lockd-fix-file_locking=n-build-error fs/nfs/Kconfig
---- a/fs/nfs/Kconfig~lockd-fix-file_locking=n-build-error
-+++ a/fs/nfs/Kconfig
-@@ -1,6 +1,6 @@
- config NFS_FS
- 	tristate "NFS client support"
--	depends on INET
-+	depends on INET && FILE_LOCKING
- 	select LOCKD
- 	select SUNRPC
- 	select NFS_ACL_SUPPORT if NFS_V3_ACL
+diff -puN MAINTAINERS~maintainers-add-paul-mckenney-to-rcu-and-rcutorture MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-paul-mckenney-to-rcu-and-rcutorture
++++ a/MAINTAINERS
+@@ -4736,6 +4736,8 @@ F:	drivers/net/wireless/ray*
+ RCUTORTURE MODULE
+ P:	Josh Triplett
+ M:	josh@freedesktop.org
++P:	Paul E. McKenney
++M:	paulmck@linux.vnet.ibm.com
+ S:	Maintained
+ F:	Documentation/RCU/torture.txt
+ F:	kernel/rcutorture.c
+@@ -4762,6 +4764,8 @@ F:	net/rds/
+ READ-COPY UPDATE (RCU)
+ P:	Dipankar Sarma
+ M:	dipankar@in.ibm.com
++P:	Paul E. McKenney
++M:	paulmck@linux.vnet.ibm.com
+ W:	http://www.rdrop.com/users/paulmck/rclock/
+ S:	Supported
+ F:	Documentation/RCU/rcu.txt
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from joe@perches.com are
 
+maintainers-pair-edac-e752x-p-and-m-entries.patch
 linux-next.patch
-x86-platform-oqo-select-input_polldev.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-menu-fix-embedded-menu-presentation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-qla2x-fix-printk-format-warnings.patch
-hexdump-remove-the-trailing-space.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-cgroups-make-messages-more-readable.patch
-linuxpps-core-support.patch
-reiser4-export-remove_from_page_cache-fix.patch
+scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch
+scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch
+scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
+scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch
+scripts-get_maintainerpl-support-m-lines-with-names-and-multiple-entries-per-m-line.patch
+scripts-get_maintainerpl-better-email-name-quoting.patch
+scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch
+scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch
+scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch
+scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
+maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
+maintainers-add-file-patterns-to-the-rest.patch
+maintainers-update-m32r-file-patterns-after-rename.patch
+maintainers-mark-alsa-lists-as-moderated.patch
+maintainers-remove-l-linux-kernel-vgerkernelorg-from-all-but-the-rest.patch
+maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
+maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
+maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
 
