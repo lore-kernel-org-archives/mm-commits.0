@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-change-email-address-for-thomas-dahlmann.patch added to -mm tree
-Date: Wed, 27 May 2009 15:25:18 -0700
-Message-ID: <200905272225.n4RMPI7A023742@imap1.linux-foundation.org>
+Subject: + ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage.patch added to -mm tree
+Date: Wed, 27 May 2009 15:33:53 -0700
+Message-ID: <200905272233.n4RMXrhc029683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932858AbZE0W0K (ORCPT
+	by vger.kernel.org with ESMTP id S1752340AbZE0Wex (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 18:26:10 -0400
+	Wed, 27 May 2009 18:34:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dahlmann.thomas@arcor.de
+Cc: oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     MAINTAINERS: change email address for Thomas Dahlmann
+     ptrace: do_notify_parent_cldstop: fix the wrong ->nsproxy usage
 has been added to the -mm tree.  Its filename is
-     maintainers-change-email-address-for-thomas-dahlmann.patch
+     ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: change email address for Thomas Dahlmann
-From: Thomas Dahlmann <dahlmann.thomas@arcor.de>
+Subject: ptrace: do_notify_parent_cldstop: fix the wrong ->nsproxy usage
+From: Oleg Nesterov <oleg@redhat.com>
 
-Signed-off-by: Thomas <dahlmann.thomas@arcor.de>
+If the non-traced sub-thread calls do_notify_parent_cldstop(), we send the
+notification to group_leader->real_parent and we report group_leader's
+pid.
+
+But, if group_leader is traced we use the wrong ->parent->nsproxy->pid_ns,
+the tracer and parent can live in different namespaces.  Change the code
+to use "parent" instead of tsk->parent.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
+ kernel/signal.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-change-email-address-for-thomas-dahlmann MAINTAINERS
---- a/MAINTAINERS~maintainers-change-email-address-for-thomas-dahlmann
-+++ a/MAINTAINERS
-@@ -434,7 +434,7 @@ F:	arch/alpha/
+diff -puN kernel/signal.c~ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage kernel/signal.c
+--- a/kernel/signal.c~ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage
++++ a/kernel/signal.c
+@@ -1494,7 +1494,7 @@ static void do_notify_parent_cldstop(str
+ 	 * see comment in do_notify_parent() abot the following 3 lines
+ 	 */
+ 	rcu_read_lock();
+-	info.si_pid = task_pid_nr_ns(tsk, tsk->parent->nsproxy->pid_ns);
++	info.si_pid = task_pid_nr_ns(tsk, parent->nsproxy->pid_ns);
+ 	info.si_uid = __task_cred(tsk)->uid;
+ 	rcu_read_unlock();
  
- AMD GEODE CS5536 USB DEVICE CONTROLLER DRIVER
- P:	Thomas Dahlmann
--M:	thomas.dahlmann@amd.com
-+M:	dahlmann.thomas@arcor.de
- L:	linux-geode@lists.infradead.org (moderated for non-subscribers)
- S:	Supported
- F:	drivers/usb/gadget/amd5536udc.*
 _
 
-Patches currently in -mm which might be from dahlmann.thomas@arcor.de are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-maintainers-change-email-address-for-thomas-dahlmann.patch
+linux-next.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+getrusage-fill-ru_maxrss-value.patch
+allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
+ptrace-remove-pt_dtrace-from-arch-h8300.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+ptrace-remove-pt_dtrace-from-arch-m32r.patch
+ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
+ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
+ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
+ptrace-do-not-use-task_lock-for-attach.patch
+ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
+ptrace-wait_task_zombie-s-parent-real_parent.patch
+ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
+copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
+elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
+shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped.patch
+introduce-struct-wait_opts-to-simplify-do_wait-pathes.patch
+do_wait-simplify-retval-tsk_result-notask_error-mess.patch
+do_wait-kill-the-old-bug_on-use-while_each_thread.patch
+do_wait-fix-the-theoretical-race-with-stop-trace-cont.patch
+mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds.patch
+wait_task_-cleanups-split-wait_noreap_copyout.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_stopped.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-do_wait.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_zombie.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_continued.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
 
