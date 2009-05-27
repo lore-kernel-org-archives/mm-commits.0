@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 26 May 2009 22:30:29 -0700
-Message-ID: <200905270530.n4R5UTL3030523@imap1.linux-foundation.org>
+Subject: + page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 26 May 2009 22:30:37 -0700
+Message-ID: <200905270530.n4R5Ub5r030643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750975AbZE0Faa (ORCPT
+	by vger.kernel.org with ESMTP id S1750695AbZE0Fah (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 01:30:30 -0400
+	Wed, 27 May 2009 01:30:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, minchan.kim@gmail.com
 
 
 The patch titled
-     page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes
+     page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+     page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes
+Subject: page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 ERROR: trailing whitespace
-#119: FILE: mm/page_alloc.c:4474:
-+ * setup_per_zone_wmarks - called when min_free_kbytes changes $
+#134: FILE: mm/page_alloc.c:4575:
++^I^Icalculate_zone_inactive_ratio(zone);^I$
 
-WARNING: line over 80 characters
-#123: FILE: mm/page_alloc.c:4477:
-+ * Ensures that the watermark[min,low,high] values for each zone are set correctly
+total: 1 errors, 0 warnings, 45 lines checked
 
-total: 1 errors, 1 warnings, 62 lines checked
-
-./patches/page-allocator-clean-up-functions-related-to-pages_min.patch has style problems, please review.  If any of these errors
+./patches/page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -57,29 +53,22 @@ Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes include/linux/mm.h
-diff -puN mm/memory_hotplug.c~page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes mm/memory_hotplug.c
-diff -puN mm/page_alloc.c~page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes
+diff -puN include/linux/mm.h~page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes include/linux/mm.h
+diff -puN mm/page_alloc.c~page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes
 +++ a/mm/page_alloc.c
-@@ -4465,11 +4465,11 @@ static void setup_per_zone_lowmem_reserv
+@@ -4566,7 +4566,7 @@ static void __init setup_per_zone_inacti
+ 	struct zone *zone;
+ 
+ 	for_each_zone(zone)
+-		calculate_zone_inactive_ratio(zone);	
++		calculate_zone_inactive_ratio(zone);
  }
  
- /**
-- * setup_per_zone_wmarks - called when min_free_kbytes changes 
-+ * setup_per_zone_wmarks - called when min_free_kbytes changes
-  * or when memory is hot-added
-  *
-- * Ensures that the watermark[min,low,high] values for each zone are set correctly
-- * with respect to min_free_kbytes.
-+ * Ensures that the watermark[min,low,high] values for each zone are set
-+ * correctly with respect to min_free_kbytes.
-  */
- void setup_per_zone_wmarks(void)
- {
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
