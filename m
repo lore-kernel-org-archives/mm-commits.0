@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-fix-array-indexing-check.patch added to -mm tree
-Date: Wed, 27 May 2009 00:21:25 -0700
-Message-ID: <200905270721.n4R7LP2T009912@imap1.linux-foundation.org>
+Subject: + drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch added to -mm tree
+Date: Wed, 27 May 2009 00:23:40 -0700
+Message-ID: <200905270723.n4R7Nerr011483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34266 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48446 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761616AbZE0HVa (ORCPT
+	by vger.kernel.org with ESMTP id S1759026AbZE0HYP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 03:21:30 -0400
+	Wed, 27 May 2009 03:24:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, rusty@rustcorp.com.au
+Cc: roel.kluin@gmail.com, isdn@linux-pingi.de
 
 
 The patch titled
-     lguest: fix array indexing check
+     drivers/isdn/i4l/isdn_tty.c: fix check for array overindexing
 has been added to the -mm tree.  Its filename is
-     lguest-fix-array-indexing-check.patch
+     drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lguest: fix array indexing check
+Subject: drivers/isdn/i4l/isdn_tty.c: fix check for array overindexing
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The check for an overindexing of cpu->arch.gdt[] has an off-by-one.
+The check for overindexing of dev->mdm.info[] has an off-by-one.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Karsten Keil <isdn@linux-pingi.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/segments.c |    2 +-
+ drivers/isdn/i4l/isdn_tty.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/lguest/segments.c~lguest-fix-array-indexing-check drivers/lguest/segments.c
---- a/drivers/lguest/segments.c~lguest-fix-array-indexing-check
-+++ a/drivers/lguest/segments.c
-@@ -150,7 +150,7 @@ void load_guest_gdt_entry(struct lg_cpu 
- {
- 	/* We assume the Guest has the same number of GDT entries as the
- 	 * Host, otherwise we'd have to dynamically allocate the Guest GDT. */
--	if (num > ARRAY_SIZE(cpu->arch.gdt))
-+	if (num >= ARRAY_SIZE(cpu->arch.gdt))
- 		kill_guest(cpu, "too many gdt entries %i", num);
+diff -puN drivers/isdn/i4l/isdn_tty.c~drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing drivers/isdn/i4l/isdn_tty.c
+--- a/drivers/isdn/i4l/isdn_tty.c~drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing
++++ a/drivers/isdn/i4l/isdn_tty.c
+@@ -1592,7 +1592,7 @@ isdn_tty_open(struct tty_struct *tty, st
+ 	int retval, line;
  
- 	/* Set it up, then fix it. */
+ 	line = tty->index;
+-	if (line < 0 || line > ISDN_MAX_CHANNELS)
++	if (line < 0 || line >= ISDN_MAX_CHANNELS)
+ 		return -ENODEV;
+ 	info = &dev->mdm.info[line];
+ 	if (isdn_tty_paranoia_check(info, tty->name, "isdn_tty_open"))
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -70,6 +70,7 @@ v4l-dvb-cimax2c-fix-typo.patch
 zoran-fix-error.patch
 uwb-event_size-should-be-signed.patch
 irda-count-reaches-1.patch
+drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
 scsi-ncr53c8xx-div-reaches-1.patch
 scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
 wis-sony-tunerc-typo.patch
