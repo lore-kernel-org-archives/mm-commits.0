@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch added to -mm tree
-Date: Wed, 27 May 2009 00:19:22 -0700
-Message-ID: <200905270719.n4R7JMEF008436@imap1.linux-foundation.org>
+Subject: + lguest-fix-array-indexing-check.patch added to -mm tree
+Date: Wed, 27 May 2009 00:21:25 -0700
+Message-ID: <200905270721.n4R7LP2T009912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39057 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34266 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759198AbZE0HTt (ORCPT
+	by vger.kernel.org with ESMTP id S1761616AbZE0HVa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 03:19:49 -0400
+	Wed, 27 May 2009 03:21:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, grant.likely@secretlab.ca, w.sang@pengutronix.de
+Cc: roel.kluin@gmail.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     drivers/serial/mpc52xx_uart.c: fix array overindexing check
+     lguest: fix array indexing check
 has been added to the -mm tree.  Its filename is
-     drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
+     lguest-fix-array-indexing-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/serial/mpc52xx_uart.c: fix array overindexing check
+Subject: lguest: fix array indexing check
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The check for an overindexing of mpc52xx_uart_{ports,nodes} has an
-off-by-one.
+The check for an overindexing of cpu->arch.gdt[] has an off-by-one.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mpc52xx_uart.c |    2 +-
+ drivers/lguest/segments.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/mpc52xx_uart.c~drivers-serial-mpc52xx_uartc-fix-array-overindexing-check drivers/serial/mpc52xx_uart.c
---- a/drivers/serial/mpc52xx_uart.c~drivers-serial-mpc52xx_uartc-fix-array-overindexing-check
-+++ a/drivers/serial/mpc52xx_uart.c
-@@ -988,7 +988,7 @@ mpc52xx_console_setup(struct console *co
- 	pr_debug("mpc52xx_console_setup co=%p, co->index=%i, options=%s\n",
- 		 co, co->index, options);
+diff -puN drivers/lguest/segments.c~lguest-fix-array-indexing-check drivers/lguest/segments.c
+--- a/drivers/lguest/segments.c~lguest-fix-array-indexing-check
++++ a/drivers/lguest/segments.c
+@@ -150,7 +150,7 @@ void load_guest_gdt_entry(struct lg_cpu 
+ {
+ 	/* We assume the Guest has the same number of GDT entries as the
+ 	 * Host, otherwise we'd have to dynamically allocate the Guest GDT. */
+-	if (num > ARRAY_SIZE(cpu->arch.gdt))
++	if (num >= ARRAY_SIZE(cpu->arch.gdt))
+ 		kill_guest(cpu, "too many gdt entries %i", num);
  
--	if ((co->index < 0) || (co->index > MPC52xx_PSC_MAXNUM)) {
-+	if ((co->index < 0) || (co->index >= MPC52xx_PSC_MAXNUM)) {
- 		pr_debug("PSC%x out of range\n", co->index);
- 		return -EINVAL;
- 	}
+ 	/* Set it up, then fix it. */
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -78,6 +74,7 @@ scsi-ncr53c8xx-div-reaches-1.patch
 scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
 wis-sony-tunerc-typo.patch
 otus-80211core-coidc-fix-array-range-check.patch
+lguest-fix-array-indexing-check.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 sh-fix-access-beyond-array_size-of-onchip_ops.patch
@@ -86,9 +83,9 @@ m68k-count-can-reach-51-not-50.patch
 m68k-cnt-reaches-1-not-0.patch
 uml-bad-macro-expansion-parameter-is-member.patch
 serial-z85c30-bcm1480-loops-reach-1.patch
+drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
 spi_bfin5xx-limit-reaches-1.patch
 carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
 ufs-sector_t-cannot-be-negative.patch
 dtlk-off-by-one-in-readwrite_tts.patch
-drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
 
