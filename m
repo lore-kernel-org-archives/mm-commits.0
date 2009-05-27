@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch added to -mm tree
-Date: Wed, 27 May 2009 11:00:48 -0700
-Message-ID: <200905271800.n4RI0md4032681@imap1.linux-foundation.org>
+Subject: + cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch added to -mm tree
+Date: Wed, 27 May 2009 13:07:49 -0700
+Message-ID: <200905272007.n4RK7n0k024598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762262AbZE0SBk (ORCPT
+	by vger.kernel.org with ESMTP id S1751894AbZE0UIf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 14:01:40 -0400
+	Wed, 27 May 2009 16:08:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, y-goto@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk, lmilano@gmx.net, mark.langsdorf@amd.com, mingo@elte.hu, rui.zhang@intel.com, trenn@suse.de
 
 
 The patch titled
-     page-allocator: reset wmark_min and inactive ratio of zone when hotplug happens
+     cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup
 has been added to the -mm tree.  Its filename is
-     page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
+     cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator: reset wmark_min and inactive ratio of zone when hotplug happens
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Solve two problems.
+Reduce scope of ACPI_PSS_BIOS_BUG_MSG[].
 
-Whenever memory hotplug sucessfully happens, zone->present_pages
-have to be changed.
-
-1) Now memory hotplug calls setup_per_zone_wmark_min only when
-   online_pages called, not offline_pages.
-
-   It breaks balance.
-
-2) If zone->present_pages is changed, we also have to change
-   zone->inactive_ratio.  That's because inactive_ratio depends on
-   zone->present_pages.
-
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Langsdorf, Mark <mark.langsdorf@amd.com>
+Cc: Leo Milano <lmilano@gmx.net>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 ++++
- mm/page_alloc.c     |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory_hotplug.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens
-+++ a/mm/memory_hotplug.c
-@@ -423,6 +423,7 @@ int online_pages(unsigned long pfn, unsi
- 	zone->zone_pgdat->node_present_pages += onlined_pages;
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -1215,13 +1215,12 @@ static int powernowk8_verify(struct cpuf
+ 	return cpufreq_frequency_table_verify(pol, data->powernow_table);
+ }
  
- 	setup_per_zone_wmarks();
-+	calculate_zone_inactive_ratio(zone);
- 	if (onlined_pages) {
- 		kswapd_run(zone_to_nid(zone));
- 		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
-@@ -832,6 +833,9 @@ repeat:
- 	totalram_pages -= offlined_pages;
- 	num_physpages -= offlined_pages;
- 
-+	setup_per_zone_wmarks();
-+	calculate_zone_inactive_ratio(zone);
-+
- 	vm_total_pages = nr_free_pagecache_pages();
- 	writeback_set_ratelimit();
- 
-diff -puN mm/page_alloc.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens
-+++ a/mm/page_alloc.c
-@@ -4466,7 +4466,7 @@ static void setup_per_zone_lowmem_reserv
- 
- /**
-  * setup_per_zone_wmarks - called when min_free_kbytes changes
-- * or when memory is hot-added
-+ * or when memory is hot-{added|removed}
-  *
-  * Ensures that the watermark[min,low,high] values for each zone are set
-  * correctly with respect to min_free_kbytes.
+-static const char ACPI_PSS_BIOS_BUG_MSG[] =
+-	KERN_ERR FW_BUG PFX "No compatible ACPI _PSS objects found.\n"
+-	KERN_ERR FW_BUG PFX "Try again with latest BIOS.\n";
+-
+ /* per CPU init entry point to the driver */
+ static int __cpuinit powernowk8_cpu_init(struct cpufreq_policy *pol)
+ {
++	static const char ACPI_PSS_BIOS_BUG_MSG[] =
++		KERN_ERR FW_BUG PFX "No compatible ACPI _PSS objects found.\n"
++		KERN_ERR FW_BUG PFX "Try again with latest BIOS.\n";
+ 	struct powernow_k8_data *data;
+ 	cpumask_t oldmask;
+ 	int rc;
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-fbdev-uninline-lock_fb_info.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
 linux-next.patch
-vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
-mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
-vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
-page-allocator-clean-up-functions-related-to-pages_min.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+drivers-usb-serial-sierrac-fix-printk-warning.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
 page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
 page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
-use-printk_once-in-several-places.patch
-use-printk_once-in-several-places-clean-up-printk_once-of-get_cpu_vendor.patch
-cpufreq-change-print_once-to-printk_once.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+flat-fix-data-sections-alignment.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
