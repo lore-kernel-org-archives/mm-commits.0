@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-eliminate-redundant-pci_stop_dev-call-from-pci_destroy_dev.patch added to -mm tree
-Date: Wed, 27 May 2009 16:43:53 -0700
-Message-ID: <200905272343.n4RNhr18013474@imap1.linux-foundation.org>
+Subject: + pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch added to -mm tree
+Date: Wed, 27 May 2009 16:59:53 -0700
+Message-ID: <200905272359.n4RNxrco024496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55966 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44078 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756797AbZE0Xo0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756772AbZE1AAM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 19:44:26 -0400
+	Wed, 27 May 2009 20:00:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: achiang@hp.com, jbarnes@virtuousgeek.org
+Cc: rjw@sisk.pl, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     pci: eliminate redundant pci_stop_dev() call from pci_destroy_dev()
+     pci pm: follow PCI_PM_CTRL_NO_SOFT_RESET during transitions from D3
 has been added to the -mm tree.  Its filename is
-     pci-eliminate-redundant-pci_stop_dev-call-from-pci_destroy_dev.patch
+     pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: eliminate redundant pci_stop_dev() call from pci_destroy_dev()
-From: Alex Chiang <achiang@hp.com>
+Subject: pci pm: follow PCI_PM_CTRL_NO_SOFT_RESET during transitions from D3
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-We always call pci_stop_bus_device before calling pci_destroy_dev.
+According to the PCI PM specification (PCI Bus Power Management Interface
+Specification, Rev.  1.2, Section 5.4.1) we are supposed to reinitialize
+devices that have PCI_PM_CTRL_NO_SOFT_RESET clear during all transitions
+from PCI_D3hot to PCI_D0, but we only do it if the device's current_state
+field is equal to PCI_UNKNOWN.
 
-Since pci_stop_bus_device calls pci_stop_dev, there is no need
-for pci_destroy_dev to repeat the call.
+This may lead to problems if a device with PCI_PM_CTRL_NO_SOFT_RESET unset
+is put into PCI_D3hot at run time by its driver and pci_set_power_state()
+is used to put it back into PCI_D0, because in that case the device will
+remain uninitialized after pci_set_power_state() has returned.  Prevent
+that from happening by modifying pci_raw_set_power_state() to reinitialize
+devices with PCI_PM_CTRL_NO_SOFT_RESET unset during all transitions from
+D3 to D0.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/remove.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/pci/pci.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/pci/remove.c~pci-eliminate-redundant-pci_stop_dev-call-from-pci_destroy_dev drivers/pci/remove.c
---- a/drivers/pci/remove.c~pci-eliminate-redundant-pci_stop_dev-call-from-pci_destroy_dev
-+++ a/drivers/pci/remove.c
-@@ -32,8 +32,6 @@ static void pci_stop_dev(struct pci_dev 
- 
- static void pci_destroy_dev(struct pci_dev *dev)
- {
--	pci_stop_dev(dev);
+diff -puN drivers/pci/pci.c~pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3 drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3
++++ a/drivers/pci/pci.c
+@@ -485,6 +485,8 @@ static int pci_raw_set_power_state(struc
+ 		pmcsr &= ~PCI_PM_CTRL_STATE_MASK;
+ 		pmcsr |= state;
+ 		break;
++	case PCI_D3hot:
++	case PCI_D3cold:
+ 	case PCI_UNKNOWN: /* Boot-up */
+ 		if ((pmcsr & PCI_PM_CTRL_STATE_MASK) == PCI_D3hot
+ 		 && !(pmcsr & PCI_PM_CTRL_NO_SOFT_RESET))
+_
+
+Patches currently in -mm which might be from rjw@sisk.pl are
+
+origin.patch
+linux-next.patch
+drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch
+pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch
+pci-pm-read-device-power-state-from-register-after-updating-it.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+pm-hibernate-rework-shrinking-of-memory.patch
+pm-hibernate-do-not-release-preallocated-memory-unnecessarily-rev-2.patch
+pm-hibernate-do-not-try-to-allocate-too-much-memory-too-hard.patch
+shrink_slab-handle-bad-shrinkers.patch
+
