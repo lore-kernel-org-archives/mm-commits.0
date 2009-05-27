@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s3c-fix-check-of-index-into-s3c_gpios.patch added to -mm tree
-Date: Tue, 26 May 2009 22:57:39 -0700
-Message-ID: <200905270557.n4R5vdfP016873@imap1.linux-foundation.org>
+Subject: + fbdev-permit-setting-of-vesa-modes-when-using-compiled-in-drivers.patch added to -mm tree
+Date: Tue, 26 May 2009 23:15:21 -0700
+Message-ID: <200905270615.n4R6FLbJ029078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58733 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759124AbZE0F6A (ORCPT
+	by vger.kernel.org with ESMTP id S1756130AbZE0GPm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 01:58:00 -0400
+	Wed, 27 May 2009 02:15:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, ben-linux@fluff.org, rmk@arm.linux.org.uk
+Cc: krzysztof.h1@wp.pl, wl@gnu.org
 
 
 The patch titled
-     s3c: fix check of index into s3c_gpios[]
+     fbdev: permit setting of VESA modes when using compiled-in drivers
 has been added to the -mm tree.  Its filename is
-     s3c-fix-check-of-index-into-s3c_gpios.patch
+     fbdev-permit-setting-of-vesa-modes-when-using-compiled-in-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c: fix check of index into s3c_gpios[]
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: fbdev: permit setting of VESA modes when using compiled-in drivers
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The check of the s3c_gpios[] index had an off-by-one.
+The kernel does not accept VESA modes via the "vga=" kernel parameter
+if there is no frame buffer driver compiled-in to handle it.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Werner Lemberg <wl@gnu.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-s3c/gpio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/plat-s3c/gpio.c~s3c-fix-check-of-index-into-s3c_gpios arch/arm/plat-s3c/gpio.c
---- a/arch/arm/plat-s3c/gpio.c~s3c-fix-check-of-index-into-s3c_gpios
-+++ a/arch/arm/plat-s3c/gpio.c
-@@ -28,7 +28,7 @@ static __init void s3c_gpiolib_track(str
- 
- 	gpn = chip->chip.base;
- 	for (i = 0; i < chip->chip.ngpio; i++, gpn++) {
--		BUG_ON(gpn > ARRAY_SIZE(s3c_gpios));
-+		BUG_ON(gpn >= ARRAY_SIZE(s3c_gpios));
- 		s3c_gpios[gpn] = chip;
- 	}
- }
+diff -puN drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers-bug-13249 drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers-bug-13249
++++ a/drivers/video/Kconfig
+@@ -1122,7 +1122,7 @@ config FB_INTEL
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-	select FB_BOOT_VESA_SUPPORT
++	select FB_BOOT_VESA_SUPPORT if FB_INTEL = y
+ 	help
+ 	  This driver supports the on-board graphics built in to the Intel
+           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
+@@ -1460,7 +1460,7 @@ config FB_SIS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-	select FB_BOOT_VESA_SUPPORT
++	select FB_BOOT_VESA_SUPPORT if FB_SIS = y
+ 	help
+ 	  This is the frame buffer device driver for the SiS 300, 315, 330
+ 	  and 340 series as well as XGI V3XT, V5, V8, Z7 graphics chipsets.
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
+revert-fbdev-fix-info-lock-deadlock-in-fbcon_event_notify.patch
+revert-fbdev-uninline-lock_fb_info.patch
+revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
+revert-fbmem-dont-call-copy_from-to_user-with-mutex-held.patch
+fbdev-move-back-to-bkl-solution.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-drm-fix-lock_test_with_return-macro.patch
-v4l-dvb-cimax2c-fix-typo.patch
-zoran-fix-error.patch
-uwb-event_size-should-be-signed.patch
-irda-count-reaches-1.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-wis-sony-tunerc-typo.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-sh-fix-access-beyond-array_size-of-onchip_ops.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
+fbdev-permit-setting-of-vesa-modes-when-using-compiled-in-drivers.patch
+intelfb-fix-color-map-setting-with-an-lvds-display.patch
+chipsfb-remove-redundant-assignment.patch
+igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
+offb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
 
