@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch added to -mm tree
-Date: Wed, 27 May 2009 00:11:11 -0700
-Message-ID: <200905270711.n4R7BBEP002702@imap1.linux-foundation.org>
+Subject: + carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch added to -mm tree
+Date: Wed, 27 May 2009 00:15:53 -0700
+Message-ID: <200905270715.n4R7Fr00005939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754197AbZE0HLi (ORCPT
+	by vger.kernel.org with ESMTP id S1751040AbZE0HQH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 03:11:38 -0400
+	Wed, 27 May 2009 03:16:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sg.tweak@gmail.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, rjw@sisk.pl, shemminger@vyatta.com
+Cc: roel.kluin@gmail.com, bigeasy@linutronix.de, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     drivers/net/macvlan.c: fix cloning of tagged VLAN interfaces
+     carminefb: fix possible access beyond end of carmine_modedb[]
 has been added to the -mm tree.  Its filename is
-     drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch
+     carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/macvlan.c: fix cloning of tagged VLAN interfaces
-From: <sg.tweak@gmail.com>
+Subject: carminefb: fix possible access beyond end of carmine_modedb[]
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13348
+This check is off-by-one.
 
-akpm: the reporter disappeared, so I typed it in again.
-
-
-It is not possible to make clone of tagged VLAN interface to be used as
-mac-based vlan interfave.
-
-How reproducible:
-Use any 802.1q tagged vlan interface, e.g. eth2.700 and clone it:
-
-  ip link add link eth2.700 address 00:04:75:cb:38:09 macvlan0 type macvlan
-  ip link set dev macvlan0 up
-  ip addr add 10.195.1.1/24 dev macvlan0
-
-So far, so good. Now try to ping anything via macvlan0:
-
-  ping 10.195.1.2
-
-
-Actual results:
-For every attempted packet tx kernel writes to console:
-
-------------[ cut here ]------------
-WARNING: at net/8021q/vlan_dev.c:254 vlan_dev_hard_header+0x36/0x126 [8021q]()
-Hardware name: M22ES
-Modules linked in: arptable_filter arp_tables bridge veth macvlan arc4 ecb
-ppp_mppe ppp_async crc_ccitt ppp_generic slhc autofs4 sunrpc 8021q garp stp
-ipt_REJECT nf_conntrack_ipv4 nf_defrag_ipv4 xt_state nf_conntrack xt_tcpudp
-x_tables dm_mirror dm_region_hash dm_log dm_multipath dm_mod sbs sbshc lp
-floppy snd_intel8x0 joydev snd_seq_dummy snd_intel8x0m snd_ac97_codec
-ide_cd_mod ac97_bus snd_seq_oss cdrom snd_seq_midi_event serio_raw snd_seq
-snd_seq_device snd_pcm_oss snd_mixer_oss parport_pc snd_pcm parport battery
-8139cp snd_timer i2c_sis96x ac button snd rtc_cmos rtc_core 8139too soundcore
-rtc_lib mii i2c_core pcspkr snd_page_alloc pata_sis libata sd_mod scsi_mod ext3
-jbd ehci_hcd ohci_hcd uhci_hcd [last unloaded: ip_tables]
-Pid: 0, comm: swapper Tainted: G        W  2.6.29.3 #1
-Call Trace:
- [<c0425f48>] warn_slowpath+0x60/0x9f
- [<c0425f6f>] warn_slowpath+0x87/0x9f
- [<dffb850d>] vlan_dev_hard_header+0x0/0x126 [8021q]
- [<dffb8543>] vlan_dev_hard_header+0x36/0x126 [8021q]
- [<dffb850d>] vlan_dev_hard_header+0x0/0x126 [8021q]
- [<df83155d>] macvlan_hard_header+0x3c/0x47 [macvlan]
- [<df831521>] macvlan_hard_header+0x0/0x47 [macvlan]
- [<c062bf3f>] arp_create+0xef/0x1ff
- [<c062c08c>] arp_send+0x3d/0x54
- [<c062c916>] arp_solicit+0x16c/0x177
- [<c05fadd2>] neigh_timer_handler+0x227/0x269
- [<c05fabab>] neigh_timer_handler+0x0/0x269
- [<c042ce4d>] run_timer_softirq+0xf0/0x141
- [<c0429e5a>] __do_softirq+0x76/0xf8
- [<c0429de4>] __do_softirq+0x0/0xf8
- <IRQ>  [<c044fb67>] handle_level_irq+0x0/0xad
- [<c0429db7>] irq_exit+0x35/0x62
- [<c04046bb>] do_IRQ+0xdf/0xf4
- [<c04035a7>] common_interrupt+0x27/0x2c
- [<c04079c5>] default_idle+0x2a/0x3d
- [<c0401bb6>] cpu_idle+0x57/0x70
-
-
-Macvlan driver always uses standard ethernet header length for all types
-of interface to which it is linked.  This patch fixes this problem.
-
-Reported-by: <sg.tweak@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Stephen Hemminger <shemminger@vyatta.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Sebastian Siewior <bigeasy@linutronix.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/macvlan.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/carminefb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/macvlan.c~drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces drivers/net/macvlan.c
---- a/drivers/net/macvlan.c~drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces
-+++ a/drivers/net/macvlan.c
-@@ -358,6 +358,7 @@ static int macvlan_init(struct net_devic
- 				  (lowerdev->state & MACVLAN_STATE_MASK);
- 	dev->features 		= lowerdev->features & MACVLAN_FEATURES;
- 	dev->iflink		= lowerdev->ifindex;
-+	dev->hard_header_len	= lowerdev->hard_header_len;
+diff -puN drivers/video/carminefb.c~carminefb-fix-possible-access-beyond-end-of-carmine_modedb drivers/video/carminefb.c
+--- a/drivers/video/carminefb.c~carminefb-fix-possible-access-beyond-end-of-carmine_modedb
++++ a/drivers/video/carminefb.c
+@@ -562,7 +562,7 @@ static int __devinit alloc_carmine_fb(vo
+ 	if (ret < 0)
+ 		goto err_free_fb;
  
- 	macvlan_set_lockdep_class(dev);
+-	if (fb_mode > ARRAY_SIZE(carmine_modedb))
++	if (fb_mode >= ARRAY_SIZE(carmine_modedb))
+ 		fb_mode = CARMINEFB_DEFAULT_VIDEO_MODE;
  
+ 	par->cur_mode = par->new_mode = ~0;
 _
 
-Patches currently in -mm which might be from sg.tweak@gmail.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch
+linux-next.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+drm-fix-lock_test_with_return-macro.patch
+v4l-dvb-cimax2c-fix-typo.patch
+zoran-fix-error.patch
+uwb-event_size-should-be-signed.patch
+irda-count-reaches-1.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+wis-sony-tunerc-typo.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+sh-fix-access-beyond-array_size-of-onchip_ops.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+spi_bfin5xx-limit-reaches-1.patch
+carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
