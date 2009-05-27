@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch added to -mm tree
-Date: Wed, 27 May 2009 00:23:40 -0700
-Message-ID: <200905270723.n4R7Nerr011483@imap1.linux-foundation.org>
+Subject: + fsldma-fix-check-on-potential-fdev-chan-overflow.patch added to -mm tree
+Date: Wed, 27 May 2009 00:26:06 -0700
+Message-ID: <200905270726.n4R7Q64x013186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48446 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759026AbZE0HYP (ORCPT
+	by vger.kernel.org with ESMTP id S1762282AbZE0H1B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 03:24:15 -0400
+	Wed, 27 May 2009 03:27:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, isdn@linux-pingi.de
+Cc: roel.kluin@gmail.com, dan.j.williams@intel.com, leoli@freescale.com
 
 
 The patch titled
-     drivers/isdn/i4l/isdn_tty.c: fix check for array overindexing
+     fsldma: fix check on potential fdev->chan[] overflow
 has been added to the -mm tree.  Its filename is
-     drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
+     fsldma-fix-check-on-potential-fdev-chan-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/isdn/i4l/isdn_tty.c: fix check for array overindexing
+Subject: fsldma: fix check on potential fdev->chan[] overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The check for overindexing of dev->mdm.info[] has an off-by-one.
+Fix the check of potential array overflow when using corrupted channel
+device tree nodes.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/i4l/isdn_tty.c |    2 +-
+ drivers/dma/fsldma.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/i4l/isdn_tty.c~drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing drivers/isdn/i4l/isdn_tty.c
---- a/drivers/isdn/i4l/isdn_tty.c~drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing
-+++ a/drivers/isdn/i4l/isdn_tty.c
-@@ -1592,7 +1592,7 @@ isdn_tty_open(struct tty_struct *tty, st
- 	int retval, line;
+diff -puN drivers/dma/fsldma.c~fsldma-fix-check-on-potential-fdev-chan-overflow drivers/dma/fsldma.c
+--- a/drivers/dma/fsldma.c~fsldma-fix-check-on-potential-fdev-chan-overflow
++++ a/drivers/dma/fsldma.c
+@@ -831,7 +831,7 @@ static int __devinit fsl_dma_chan_probe(
+ 			new_fsl_chan->reg.end - new_fsl_chan->reg.start + 1);
  
- 	line = tty->index;
--	if (line < 0 || line > ISDN_MAX_CHANNELS)
-+	if (line < 0 || line >= ISDN_MAX_CHANNELS)
- 		return -ENODEV;
- 	info = &dev->mdm.info[line];
- 	if (isdn_tty_paranoia_check(info, tty->name, "isdn_tty_open"))
+ 	new_fsl_chan->id = ((new_fsl_chan->reg.start - 0x100) & 0xfff) >> 7;
+-	if (new_fsl_chan->id > FSL_DMA_MAX_CHANS_PER_DEVICE) {
++	if (new_fsl_chan->id >= FSL_DMA_MAX_CHANS_PER_DEVICE) {
+ 		dev_err(fdev->dev, "There is no %d channel!\n",
+ 				new_fsl_chan->id);
+ 		err = -EINVAL;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
 s3c-fix-check-of-index-into-s3c_gpios.patch
+fsldma-fix-check-on-potential-fdev-chan-overflow.patch
 drm-fix-lock_test_with_return-macro.patch
 v4l-dvb-cimax2c-fix-typo.patch
 zoran-fix-error.patch
