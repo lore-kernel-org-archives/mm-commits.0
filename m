@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch added to -mm tree
-Date: Tue, 26 May 2009 22:30:33 -0700
-Message-ID: <200905270530.n4R5UXDo030635@imap1.linux-foundation.org>
+Subject: + page-allocator-clean-up-functions-related-to-pages_min.patch added to -mm tree
+Date: Tue, 26 May 2009 22:30:25 -0700
+Message-ID: <200905270530.n4R5UPd1030520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57404 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754119AbZE0Faw (ORCPT
+	by vger.kernel.org with ESMTP id S1751040AbZE0Fbo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 01:30:52 -0400
+	Wed, 27 May 2009 01:31:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     page-allocator: add inactive ratio calculation function of each zone
+     page-allocator: clean up functions related to pages_min
 has been added to the -mm tree.  Its filename is
-     page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
+     page-allocator-clean-up-functions-related-to-pages_min.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator: add inactive ratio calculation function of each zone
+Subject: page-allocator: clean up functions related to pages_min
 From: Minchan Kim <minchan.kim@gmail.com>
 
-Factor the per-zone arithemetic inside setup_per_zone_inactive_ratio()'s
-loop into a a separate function, calculate_zone_inactive_ratio().  This
-function will be used in a later patch
-
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/page_alloc.c    |   28 ++++++++++++++++------------
- 2 files changed, 17 insertions(+), 12 deletions(-)
+ include/linux/mm.h  |    2 +-
+ mm/memory_hotplug.c |    2 +-
+ mm/page_alloc.c     |   15 ++++++++-------
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mm.h~page-allocator-add-inactive-ratio-calculation-function-of-each-zone include/linux/mm.h
---- a/include/linux/mm.h~page-allocator-add-inactive-ratio-calculation-function-of-each-zone
+diff -puN include/linux/mm.h~page-allocator-clean-up-functions-related-to-pages_min include/linux/mm.h
+--- a/include/linux/mm.h~page-allocator-clean-up-functions-related-to-pages_min
 +++ a/include/linux/mm.h
-@@ -1058,6 +1058,7 @@ extern void set_dma_reserve(unsigned lon
+@@ -1057,7 +1057,7 @@ extern int __meminit __early_pfn_to_nid(
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
  extern void memmap_init_zone(unsigned long, int, unsigned long,
  				unsigned long, enum memmap_context);
- extern void setup_per_zone_wmarks(void);
-+extern void calculate_zone_inactive_ratio(struct zone *zone);
+-extern void setup_per_zone_pages_min(void);
++extern void setup_per_zone_wmarks(void);
  extern void mem_init(void);
  extern void __init mmap_init(void);
  extern void show_mem(void);
-diff -puN mm/page_alloc.c~page-allocator-add-inactive-ratio-calculation-function-of-each-zone mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-add-inactive-ratio-calculation-function-of-each-zone
+diff -puN mm/memory_hotplug.c~page-allocator-clean-up-functions-related-to-pages_min mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~page-allocator-clean-up-functions-related-to-pages_min
++++ a/mm/memory_hotplug.c
+@@ -422,7 +422,7 @@ int online_pages(unsigned long pfn, unsi
+ 	zone->present_pages += onlined_pages;
+ 	zone->zone_pgdat->node_present_pages += onlined_pages;
+ 
+-	setup_per_zone_pages_min();
++	setup_per_zone_wmarks();
+ 	if (onlined_pages) {
+ 		kswapd_run(zone_to_nid(zone));
+ 		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
+diff -puN mm/page_alloc.c~page-allocator-clean-up-functions-related-to-pages_min mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-clean-up-functions-related-to-pages_min
 +++ a/mm/page_alloc.c
-@@ -4547,22 +4547,26 @@ void setup_per_zone_wmarks(void)
-  *    1TB     101        10GB
-  *   10TB     320        32GB
-  */
--static void __init setup_per_zone_inactive_ratio(void)
-+void calculate_zone_inactive_ratio(struct zone *zone)
- {
--	struct zone *zone;
-+	unsigned int gb, ratio;
- 
--	for_each_zone(zone) {
--		unsigned int gb, ratio;
-+	/* Zone size in gigabytes */
-+	gb = zone->present_pages >> (30 - PAGE_SHIFT);
-+	if (gb)
-+		ratio = int_sqrt(10 * gb);
-+	else
-+		ratio = 1;
- 
--		/* Zone size in gigabytes */
--		gb = zone->present_pages >> (30 - PAGE_SHIFT);
--		if (gb)
--			ratio = int_sqrt(10 * gb);
--		else
--			ratio = 1;
-+	zone->inactive_ratio = ratio;
-+}
- 
--		zone->inactive_ratio = ratio;
--	}
-+static void __init setup_per_zone_inactive_ratio(void)
-+{
-+	struct zone *zone;
-+
-+	for_each_zone(zone)
-+		calculate_zone_inactive_ratio(zone);	
+@@ -4465,12 +4465,13 @@ static void setup_per_zone_lowmem_reserv
  }
  
+ /**
+- * setup_per_zone_pages_min - called when min_free_kbytes changes.
++ * setup_per_zone_wmarks - called when min_free_kbytes changes 
++ * or when memory is hot-added
+  *
+- * Ensures that the pages_{min,low,high} values for each zone are set correctly
++ * Ensures that the watermark[min,low,high] values for each zone are set correctly
+  * with respect to min_free_kbytes.
+  */
+-void setup_per_zone_pages_min(void)
++void setup_per_zone_wmarks(void)
+ {
+ 	unsigned long pages_min = min_free_kbytes >> (PAGE_SHIFT - 10);
+ 	unsigned long lowmem_pages = 0;
+@@ -4588,7 +4589,7 @@ static void __init setup_per_zone_inacti
+  * 8192MB:	11584k
+  * 16384MB:	16384k
+  */
+-static int __init init_per_zone_pages_min(void)
++static int __init init_per_zone_wmark_min(void)
+ {
+ 	unsigned long lowmem_kbytes;
+ 
+@@ -4599,12 +4600,12 @@ static int __init init_per_zone_pages_mi
+ 		min_free_kbytes = 128;
+ 	if (min_free_kbytes > 65536)
+ 		min_free_kbytes = 65536;
+-	setup_per_zone_pages_min();
++	setup_per_zone_wmarks();
+ 	setup_per_zone_lowmem_reserve();
+ 	setup_per_zone_inactive_ratio();
+ 	return 0;
+ }
+-module_init(init_per_zone_pages_min)
++module_init(init_per_zone_wmark_min)
+ 
  /*
+  * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so 
+@@ -4616,7 +4617,7 @@ int min_free_kbytes_sysctl_handler(ctl_t
+ {
+ 	proc_dointvec(table, write, file, buffer, length, ppos);
+ 	if (write)
+-		setup_per_zone_pages_min();
++		setup_per_zone_wmarks();
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from minchan.kim@gmail.com are
