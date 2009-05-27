@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-file-patterns-to-tty-layer.patch added to -mm tree
-Date: Wed, 27 May 2009 15:34:50 -0700
-Message-ID: <200905272234.n4RMYoKm030351@imap1.linux-foundation.org>
+Subject: + documentation-connector-cn_testc-comment-unused-cn_test_want_notify.patch added to -mm tree
+Date: Wed, 27 May 2009 16:04:58 -0700
+Message-ID: <200905272304.n4RN4wEb018888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761423AbZE0Wf7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752469AbZE0XGU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 18:35:59 -0400
+	Wed, 27 May 2009 19:06:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, alan@lxorguk.ukuu.org.uk
+Cc: jaswinder@kernel.org, jaswinderrajput@gmail.com, zbr@ioremap.net
 
 
 The patch titled
-     MAINTAINERS: add file patterns to TTY LAYER
+     Documentation/connector/cn_test.c comment unused cn_test_want_notify()
 has been added to the -mm tree.  Its filename is
-     maintainers-add-file-patterns-to-tty-layer.patch
+     documentation-connector-cn_testc-comment-unused-cn_test_want_notify.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add file patterns to TTY LAYER
-From: Joe Perches <joe@perches.com>
+Subject: Documentation/connector/cn_test.c comment unused cn_test_want_notify()
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Currently cn_test_want_notify() has no user.
+
+So add an ifdef and a comment which tells us to not remove it.
+
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/connector/cn_test.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-add-file-patterns-to-tty-layer MAINTAINERS
---- a/MAINTAINERS~maintainers-add-file-patterns-to-tty-layer
-+++ a/MAINTAINERS
-@@ -5651,6 +5651,11 @@ TTY LAYER
- P:	Alan Cox
- M:	alan@lxorguk.ukuu.org.uk
- S:	Maintained
-+F:	drivers/char/tty_*
-+F:	drivers/serial/serial_core.c
-+F:	include/linux/serial_core.h
-+F:	include/linux/serial.h
-+F:	include/linux/tty.h
+diff -puN Documentation/connector/cn_test.c~documentation-connector-cn_testc-comment-unused-cn_test_want_notify Documentation/connector/cn_test.c
+--- a/Documentation/connector/cn_test.c~documentation-connector-cn_testc-comment-unused-cn_test_want_notify
++++ a/Documentation/connector/cn_test.c
+@@ -41,6 +41,12 @@ void cn_test_callback(void *data)
+ 	       msg->seq, msg->ack, msg->len, (char *)msg->data);
+ }
  
- TULIP NETWORK DRIVERS
- P:	Grant Grundler
++/*
++ * Do not remove this function even if no one is using it as
++ * this is an example of how to get notifications about new
++ * connector user registration
++ */
++#if 0
+ static int cn_test_want_notify(void)
+ {
+ 	struct cn_ctl_msg *ctl;
+@@ -117,6 +123,7 @@ nlmsg_failure:
+ 	kfree_skb(skb);
+ 	return -EINVAL;
+ }
++#endif
+ 
+ static u32 cn_test_timer_counter;
+ static void cn_test_timer_func(unsigned long __data)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jaswinder@kernel.org are
 
-maintainers-pair-edac-e752x-p-and-m-entries.patch
 linux-next.patch
-scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch
-scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch
-scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
-scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch
-scripts-get_maintainerpl-support-m-lines-with-names-and-multiple-entries-per-m-line.patch
-scripts-get_maintainerpl-better-email-name-quoting.patch
-scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch
-scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch
-scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch
-scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
-maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
-maintainers-add-file-patterns-to-the-rest.patch
-maintainers-update-m32r-file-patterns-after-rename.patch
-maintainers-mark-alsa-lists-as-moderated.patch
-maintainers-remove-l-linux-kernel-vgerkernelorg-from-all-but-the-rest.patch
-maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
-maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
-maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
-maintainers-add-file-patterns-to-tty-layer.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+documentation-accounting-getdelaysc-intialize-the-variable-before-using-it.patch
+documentation-connector-cn_testc-comment-unused-cn_test_want_notify.patch
+sysctlc-remove-unused-variable.patch
 
