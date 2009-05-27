@@ -1,95 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + fsldma-fix-check-on-potential-fdev-chan-overflow.patch added to -mm tree
-Date: Wed, 27 May 2009 00:26:06 -0700
-Message-ID: <200905270726.n4R7Q64x013186@imap1.linux-foundation.org>
+Subject: [withdrawn] fbdev-permit-setting-of-vesa-modes-when-using-compiled-in-drivers.patch removed from -mm tree
+Date: Wed, 27 May 2009 00:47:34 -0700
+Message-ID: <200905270747.n4R7lYSS028433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762282AbZE0H1B (ORCPT
+	by vger.kernel.org with ESMTP id S1755952AbZE0HsK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 03:27:01 -0400
+	Wed, 27 May 2009 03:48:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, dan.j.williams@intel.com, leoli@freescale.com
+To: krzysztof.h1@wp.pl, wl@gnu.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsldma: fix check on potential fdev->chan[] overflow
-has been added to the -mm tree.  Its filename is
-     fsldma-fix-check-on-potential-fdev-chan-overflow.patch
+     fbdev: permit setting of VESA modes when using compiled-in drivers
+has been removed from the -mm tree.  Its filename was
+     fbdev-permit-setting-of-vesa-modes-when-using-compiled-in-drivers.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsldma: fix check on potential fdev->chan[] overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: fbdev: permit setting of VESA modes when using compiled-in drivers
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Fix the check of potential array overflow when using corrupted channel
-device tree nodes.
+The kernel does not accept VESA modes via the "vga=" kernel parameter
+if there is no frame buffer driver compiled-in to handle it.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Werner Lemberg <wl@gnu.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/fsldma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dma/fsldma.c~fsldma-fix-check-on-potential-fdev-chan-overflow drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~fsldma-fix-check-on-potential-fdev-chan-overflow
-+++ a/drivers/dma/fsldma.c
-@@ -831,7 +831,7 @@ static int __devinit fsl_dma_chan_probe(
- 			new_fsl_chan->reg.end - new_fsl_chan->reg.start + 1);
- 
- 	new_fsl_chan->id = ((new_fsl_chan->reg.start - 0x100) & 0xfff) >> 7;
--	if (new_fsl_chan->id > FSL_DMA_MAX_CHANS_PER_DEVICE) {
-+	if (new_fsl_chan->id >= FSL_DMA_MAX_CHANS_PER_DEVICE) {
- 		dev_err(fdev->dev, "There is no %d channel!\n",
- 				new_fsl_chan->id);
- 		err = -EINVAL;
+diff -puN drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers-bug-13249 drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers-bug-13249
++++ a/drivers/video/Kconfig
+@@ -1122,7 +1122,7 @@ config FB_INTEL
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-	select FB_BOOT_VESA_SUPPORT
++	select FB_BOOT_VESA_SUPPORT if FB_INTEL = y
+ 	help
+ 	  This driver supports the on-board graphics built in to the Intel
+           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
+@@ -1460,7 +1460,7 @@ config FB_SIS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-	select FB_BOOT_VESA_SUPPORT
++	select FB_BOOT_VESA_SUPPORT if FB_SIS = y
+ 	help
+ 	  This is the frame buffer device driver for the SiS 300, 315, 330
+ 	  and 340 series as well as XGI V3XT, V5, V8, Z7 graphics chipsets.
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
+revert-fbdev-fix-info-lock-deadlock-in-fbcon_event_notify.patch
+revert-fbdev-uninline-lock_fb_info.patch
+revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
+revert-fbmem-dont-call-copy_from-to_user-with-mutex-held.patch
+fbdev-move-back-to-bkl-solution.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-fsldma-fix-check-on-potential-fdev-chan-overflow.patch
-drm-fix-lock_test_with_return-macro.patch
-v4l-dvb-cimax2c-fix-typo.patch
-zoran-fix-error.patch
-uwb-event_size-should-be-signed.patch
-irda-count-reaches-1.patch
-drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-wis-sony-tunerc-typo.patch
-otus-80211core-coidc-fix-array-range-check.patch
-lguest-fix-array-indexing-check.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-sh-fix-access-beyond-array_size-of-onchip_ops.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
-spi_bfin5xx-limit-reaches-1.patch
-carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
+fbdev-permit-setting-of-vesa-modes-when-using-compiled-in-drivers.patch
+intelfb-fix-color-map-setting-with-an-lvds-display.patch
+chipsfb-remove-redundant-assignment.patch
+igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
+offb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
+acornfb-remove-fb_mmap-function.patch
 
