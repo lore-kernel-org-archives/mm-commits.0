@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch added to -mm tree
-Date: Wed, 27 May 2009 13:07:49 -0700
-Message-ID: <200905272007.n4RK7n0k024598@imap1.linux-foundation.org>
+Subject: + mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs.patch added to -mm tree
+Date: Wed, 27 May 2009 13:14:49 -0700
+Message-ID: <200905272014.n4RKEnQI029586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37024 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48952 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751894AbZE0UIf (ORCPT
+	by vger.kernel.org with ESMTP id S1761881AbZE0UR2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 16:08:35 -0400
+	Wed, 27 May 2009 16:17:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk, lmilano@gmx.net, mark.langsdorf@amd.com, mingo@elte.hu, rui.zhang@intel.com, trenn@suse.de
+Cc: mel@csn.ul.ie, Lee.Schermerhorn@hp.com, agl@us.ibm.com, apw@canonical.com, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, stable@kernel.org, starlight@binnacle.cx
 
 
 The patch titled
-     cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup
+     mm: account for MAP_SHARED mappings using VM_MAYSHARE and not VM_SHARED in hugetlbfs
 has been added to the -mm tree.  Its filename is
-     cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+     mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,214 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: account for MAP_SHARED mappings using VM_MAYSHARE and not VM_SHARED in hugetlbfs
+From: Mel Gorman <mel@csn.ul.ie>
 
-Reduce scope of ACPI_PSS_BIOS_BUG_MSG[].
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13302
 
-Cc: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+hugetlbfs reserves huge pages but does not fault them at mmap() time to
+ensure that future faults succeed.  The reservation behaviour differs
+depending on whether the mapping was mapped MAP_SHARED or MAP_PRIVATE. 
+For MAP_SHARED mappings, hugepages are reserved when mmap() is first
+called and are tracked based on information associated with the inode. 
+Other processes mapping MAP_SHARED use the same reservation.  MAP_PRIVATE
+track the reservations based on the VMA created as part of the mmap()
+operation.  Each process mapping MAP_PRIVATE must make its own
+reservation.
+
+hugetlbfs currently checks if a VMA is MAP_SHARED with the VM_SHARED flag
+and not VM_MAYSHARE.  For file-backed mappings, such as hugetlbfs,
+VM_SHARED is set only if the mapping is MAP_SHARED and the file was opened
+read-write.  If a shared memory mapping was mapped shared-read-write for
+populating of data and mapped shared-read-only by other processes, then
+hugetlbfs would account for the mapping as if it was MAP_PRIVATE.  This
+causes processes to fail to map the file MAP_SHARED even though it should
+succeed as the reservation is there.
+
+This patch alters mm/hugetlb.c and replaces VM_SHARED with VM_MAYSHARE
+when the intent of the code was to check whether the VMA was mapped
+MAP_SHARED or MAP_PRIVATE.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Langsdorf, Mark <mark.langsdorf@amd.com>
-Cc: Leo Milano <lmilano@gmx.net>
-Cc: Thomas Renninger <trenn@suse.de>
+Cc: <stable@kernel.org>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: <starlight@binnacle.cx>
+Cc: Eric B Munson <ebmunson@us.ibm.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -1215,13 +1215,12 @@ static int powernowk8_verify(struct cpuf
- 	return cpufreq_frequency_table_verify(pol, data->powernow_table);
+diff -puN mm/hugetlb.c~mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs
++++ a/mm/hugetlb.c
+@@ -316,7 +316,7 @@ static void resv_map_release(struct kref
+ static struct resv_map *vma_resv_map(struct vm_area_struct *vma)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+-	if (!(vma->vm_flags & VM_SHARED))
++	if (!(vma->vm_flags & VM_MAYSHARE))
+ 		return (struct resv_map *)(get_vma_private_data(vma) &
+ 							~HPAGE_RESV_MASK);
+ 	return NULL;
+@@ -325,7 +325,7 @@ static struct resv_map *vma_resv_map(str
+ static void set_vma_resv_map(struct vm_area_struct *vma, struct resv_map *map)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+-	VM_BUG_ON(vma->vm_flags & VM_SHARED);
++	VM_BUG_ON(vma->vm_flags & VM_MAYSHARE);
+ 
+ 	set_vma_private_data(vma, (get_vma_private_data(vma) &
+ 				HPAGE_RESV_MASK) | (unsigned long)map);
+@@ -334,7 +334,7 @@ static void set_vma_resv_map(struct vm_a
+ static void set_vma_resv_flags(struct vm_area_struct *vma, unsigned long flags)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+-	VM_BUG_ON(vma->vm_flags & VM_SHARED);
++	VM_BUG_ON(vma->vm_flags & VM_MAYSHARE);
+ 
+ 	set_vma_private_data(vma, get_vma_private_data(vma) | flags);
+ }
+@@ -353,7 +353,7 @@ static void decrement_hugepage_resv_vma(
+ 	if (vma->vm_flags & VM_NORESERVE)
+ 		return;
+ 
+-	if (vma->vm_flags & VM_SHARED) {
++	if (vma->vm_flags & VM_MAYSHARE) {
+ 		/* Shared mappings always use reserves */
+ 		h->resv_huge_pages--;
+ 	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
+@@ -369,14 +369,14 @@ static void decrement_hugepage_resv_vma(
+ void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+-	if (!(vma->vm_flags & VM_SHARED))
++	if (!(vma->vm_flags & VM_MAYSHARE))
+ 		vma->vm_private_data = (void *)0;
  }
  
--static const char ACPI_PSS_BIOS_BUG_MSG[] =
--	KERN_ERR FW_BUG PFX "No compatible ACPI _PSS objects found.\n"
--	KERN_ERR FW_BUG PFX "Try again with latest BIOS.\n";
--
- /* per CPU init entry point to the driver */
- static int __cpuinit powernowk8_cpu_init(struct cpufreq_policy *pol)
+ /* Returns true if the VMA has associated reserve pages */
+ static int vma_has_reserves(struct vm_area_struct *vma)
  {
-+	static const char ACPI_PSS_BIOS_BUG_MSG[] =
-+		KERN_ERR FW_BUG PFX "No compatible ACPI _PSS objects found.\n"
-+		KERN_ERR FW_BUG PFX "Try again with latest BIOS.\n";
- 	struct powernow_k8_data *data;
- 	cpumask_t oldmask;
- 	int rc;
+-	if (vma->vm_flags & VM_SHARED)
++	if (vma->vm_flags & VM_MAYSHARE)
+ 		return 1;
+ 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+ 		return 1;
+@@ -924,7 +924,7 @@ static long vma_needs_reservation(struct
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	struct inode *inode = mapping->host;
+ 
+-	if (vma->vm_flags & VM_SHARED) {
++	if (vma->vm_flags & VM_MAYSHARE) {
+ 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		return region_chg(&inode->i_mapping->private_list,
+ 							idx, idx + 1);
+@@ -949,7 +949,7 @@ static void vma_commit_reservation(struc
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	struct inode *inode = mapping->host;
+ 
+-	if (vma->vm_flags & VM_SHARED) {
++	if (vma->vm_flags & VM_MAYSHARE) {
+ 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
+ 
+@@ -1893,7 +1893,7 @@ retry_avoidcopy:
+ 	 * at the time of fork() could consume its reserves on COW instead
+ 	 * of the full address range.
+ 	 */
+-	if (!(vma->vm_flags & VM_SHARED) &&
++	if (!(vma->vm_flags & VM_MAYSHARE) &&
+ 			is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
+ 			old_page != pagecache_page)
+ 		outside_reserve = 1;
+@@ -2000,7 +2000,7 @@ retry:
+ 		clear_huge_page(page, address, huge_page_size(h));
+ 		__SetPageUptodate(page);
+ 
+-		if (vma->vm_flags & VM_SHARED) {
++		if (vma->vm_flags & VM_MAYSHARE) {
+ 			int err;
+ 			struct inode *inode = mapping->host;
+ 
+@@ -2104,7 +2104,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 			goto out_mutex;
+ 		}
+ 
+-		if (!(vma->vm_flags & VM_SHARED))
++		if (!(vma->vm_flags & VM_MAYSHARE))
+ 			pagecache_page = hugetlbfs_pagecache_page(h,
+ 								vma, address);
+ 	}
+@@ -2289,7 +2289,7 @@ int hugetlb_reserve_pages(struct inode *
+ 	 * to reserve the full area even if read-only as mprotect() may be
+ 	 * called to make the mapping read-write. Assume !vma is a shm mapping
+ 	 */
+-	if (!vma || vma->vm_flags & VM_SHARED)
++	if (!vma || vma->vm_flags & VM_MAYSHARE)
+ 		chg = region_chg(&inode->i_mapping->private_list, from, to);
+ 	else {
+ 		struct resv_map *resv_map = resv_map_alloc();
+@@ -2330,7 +2330,7 @@ int hugetlb_reserve_pages(struct inode *
+ 	 * consumed reservations are stored in the map. Hence, nothing
+ 	 * else has to be done for private mappings here
+ 	 */
+-	if (!vma || vma->vm_flags & VM_SHARED)
++	if (!vma || vma->vm_flags & VM_MAYSHARE)
+ 		region_add(&inode->i_mapping->private_list, from, to);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-revert-fbdev-uninline-lock_fb_info.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+oom-fix-possible-oom_dump_tasks-null-pointer.patch
+x86-ignore-vm_locked-when-determining-if-hugetlb-backed-page-tables-can-be-shared-or-not.patch
+mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-drivers-usb-serial-sierrac-fix-printk-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+mm-alloc_large_system_hash-check-order.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
 page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
 page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
+mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
 page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
 mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-flat-fix-data-sections-alignment.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
+page-allocator-clean-up-functions-related-to-pages_min.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
