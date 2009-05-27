@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch added to -mm tree
-Date: Wed, 27 May 2009 00:15:53 -0700
-Message-ID: <200905270715.n4R7Fr00005939@imap1.linux-foundation.org>
+Subject: + otus-80211core-coidc-fix-array-range-check.patch added to -mm tree
+Date: Wed, 27 May 2009 00:17:29 -0700
+Message-ID: <200905270717.n4R7HTr9007115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42326 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751040AbZE0HQH (ORCPT
+	by vger.kernel.org with ESMTP id S1760523AbZE0HRe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 03:16:07 -0400
+	Wed, 27 May 2009 03:17:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, bigeasy@linutronix.de, krzysztof.h1@poczta.fm
+Cc: roel.kluin@gmail.com, greg@kroah.com, lrodriguez@atheros.com
 
 
 The patch titled
-     carminefb: fix possible access beyond end of carmine_modedb[]
+     otus/80211core/coid.c: fix array range check
 has been added to the -mm tree.  Its filename is
-     carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
+     otus-80211core-coidc-fix-array-range-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: carminefb: fix possible access beyond end of carmine_modedb[]
+Subject: otus/80211core/coid.c: fix array range check
 From: Roel Kluin <roel.kluin@gmail.com>
 
-This check is off-by-one.
+The test for an overindexing of wd->ap.wds.encryMode[] has an off-by-one.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Sebastian Siewior <bigeasy@linutronix.de>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Luis R. Rodriguez <lrodriguez@atheros.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/carminefb.c |    2 +-
+ drivers/staging/otus/80211core/coid.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/carminefb.c~carminefb-fix-possible-access-beyond-end-of-carmine_modedb drivers/video/carminefb.c
---- a/drivers/video/carminefb.c~carminefb-fix-possible-access-beyond-end-of-carmine_modedb
-+++ a/drivers/video/carminefb.c
-@@ -562,7 +562,7 @@ static int __devinit alloc_carmine_fb(vo
- 	if (ret < 0)
- 		goto err_free_fb;
+diff -puN drivers/staging/otus/80211core/coid.c~otus-80211core-coidc-fix-array-range-check drivers/staging/otus/80211core/coid.c
+--- a/drivers/staging/otus/80211core/coid.c~otus-80211core-coidc-fix-array-range-check
++++ a/drivers/staging/otus/80211core/coid.c
+@@ -2013,7 +2013,7 @@ u16_t zfiConfigWdsPort(zdev_t* dev, u8_t
  
--	if (fb_mode > ARRAY_SIZE(carmine_modedb))
-+	if (fb_mode >= ARRAY_SIZE(carmine_modedb))
- 		fb_mode = CARMINEFB_DEFAULT_VIDEO_MODE;
+     zmw_get_wlan_dev(dev);
  
- 	par->cur_mode = par->new_mode = ~0;
+-    if (wdsPortId > ZM_MAX_WDS_SUPPORT)
++    if (wdsPortId >= ZM_MAX_WDS_SUPPORT)
+     {
+         return ZM_ERR_WDS_PORT_ID;
+     }
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -74,6 +74,7 @@ irda-count-reaches-1.patch
 scsi-ncr53c8xx-div-reaches-1.patch
 scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
 wis-sony-tunerc-typo.patch
+otus-80211core-coidc-fix-array-range-check.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 sh-fix-access-beyond-array_size-of-onchip_ops.patch
