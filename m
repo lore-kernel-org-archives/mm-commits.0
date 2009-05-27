@@ -1,78 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] fbdev-permit-setting-of-vesa-modes-when-using-compiled-in-drivers.patch removed from -mm tree
-Date: Wed, 27 May 2009 00:47:34 -0700
-Message-ID: <200905270747.n4R7lYSS028433@imap1.linux-foundation.org>
+Subject: + page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch added to -mm tree
+Date: Wed, 27 May 2009 11:00:48 -0700
+Message-ID: <200905271800.n4RI0md4032681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755952AbZE0HsK (ORCPT
+	by vger.kernel.org with ESMTP id S1762262AbZE0SBk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 03:48:10 -0400
+	Wed, 27 May 2009 14:01:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, wl@gnu.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     fbdev: permit setting of VESA modes when using compiled-in drivers
-has been removed from the -mm tree.  Its filename was
-     fbdev-permit-setting-of-vesa-modes-when-using-compiled-in-drivers.patch
+     page-allocator: reset wmark_min and inactive ratio of zone when hotplug happens
+has been added to the -mm tree.  Its filename is
+     page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: permit setting of VESA modes when using compiled-in drivers
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: page-allocator: reset wmark_min and inactive ratio of zone when hotplug happens
+From: Minchan Kim <minchan.kim@gmail.com>
 
-The kernel does not accept VESA modes via the "vga=" kernel parameter
-if there is no frame buffer driver compiled-in to handle it.
+Solve two problems.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Werner Lemberg <wl@gnu.org>
+Whenever memory hotplug sucessfully happens, zone->present_pages
+have to be changed.
+
+1) Now memory hotplug calls setup_per_zone_wmark_min only when
+   online_pages called, not offline_pages.
+
+   It breaks balance.
+
+2) If zone->present_pages is changed, we also have to change
+   zone->inactive_ratio.  That's because inactive_ratio depends on
+   zone->present_pages.
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    4 ++++
+ mm/page_alloc.c     |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers-bug-13249 drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers-bug-13249
-+++ a/drivers/video/Kconfig
-@@ -1122,7 +1122,7 @@ config FB_INTEL
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
--	select FB_BOOT_VESA_SUPPORT
-+	select FB_BOOT_VESA_SUPPORT if FB_INTEL = y
- 	help
- 	  This driver supports the on-board graphics built in to the Intel
-           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
-@@ -1460,7 +1460,7 @@ config FB_SIS
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
--	select FB_BOOT_VESA_SUPPORT
-+	select FB_BOOT_VESA_SUPPORT if FB_SIS = y
- 	help
- 	  This is the frame buffer device driver for the SiS 300, 315, 330
- 	  and 340 series as well as XGI V3XT, V5, V8, Z7 graphics chipsets.
+diff -puN mm/memory_hotplug.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens
++++ a/mm/memory_hotplug.c
+@@ -423,6 +423,7 @@ int online_pages(unsigned long pfn, unsi
+ 	zone->zone_pgdat->node_present_pages += onlined_pages;
+ 
+ 	setup_per_zone_wmarks();
++	calculate_zone_inactive_ratio(zone);
+ 	if (onlined_pages) {
+ 		kswapd_run(zone_to_nid(zone));
+ 		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
+@@ -832,6 +833,9 @@ repeat:
+ 	totalram_pages -= offlined_pages;
+ 	num_physpages -= offlined_pages;
+ 
++	setup_per_zone_wmarks();
++	calculate_zone_inactive_ratio(zone);
++
+ 	vm_total_pages = nr_free_pagecache_pages();
+ 	writeback_set_ratelimit();
+ 
+diff -puN mm/page_alloc.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens
++++ a/mm/page_alloc.c
+@@ -4466,7 +4466,7 @@ static void setup_per_zone_lowmem_reserv
+ 
+ /**
+  * setup_per_zone_wmarks - called when min_free_kbytes changes
+- * or when memory is hot-added
++ * or when memory is hot-{added|removed}
+  *
+  * Ensures that the watermark[min,low,high] values for each zone are set
+  * correctly with respect to min_free_kbytes.
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-revert-fbdev-fix-info-lock-deadlock-in-fbcon_event_notify.patch
-revert-fbdev-uninline-lock_fb_info.patch
-revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
-revert-fbmem-dont-call-copy_from-to_user-with-mutex-held.patch
-fbdev-move-back-to-bkl-solution.patch
 linux-next.patch
-fbdev-permit-setting-of-vesa-modes-when-using-compiled-in-drivers.patch
-intelfb-fix-color-map-setting-with-an-lvds-display.patch
-chipsfb-remove-redundant-assignment.patch
-igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
-offb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
-acornfb-remove-fb_mmap-function.patch
+vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
+vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
+page-allocator-clean-up-functions-related-to-pages_min.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
+use-printk_once-in-several-places.patch
+use-printk_once-in-several-places-clean-up-printk_once-of-get_cpu_vendor.patch
+cpufreq-change-print_once-to-printk_once.patch
 
