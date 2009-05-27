@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch added to -mm tree
-Date: Wed, 27 May 2009 14:53:59 -0700
-Message-ID: <200905272153.n4RLrx78001929@imap1.linux-foundation.org>
+Subject: + maintainers-add-file-patterns-to-tty-layer.patch added to -mm tree
+Date: Wed, 27 May 2009 15:02:01 -0700
+Message-ID: <200905272202.n4RM21eS007521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754007AbZE0Vyb (ORCPT
+	by vger.kernel.org with ESMTP id S1756175AbZE0WCj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 17:54:31 -0400
+	Wed, 27 May 2009 18:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, paulmck@linux.vnet.ibm.com
+Cc: joe@perches.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     MAINTAINERS: add Paul McKenney to RCU and RCUTORTURE
+     MAINTAINERS: add file patterns to TTY LAYER
 has been added to the -mm tree.  Its filename is
-     maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
+     maintainers-add-file-patterns-to-tty-layer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add Paul McKenney to RCU and RCUTORTURE
+Subject: MAINTAINERS: add file patterns to TTY LAYER
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++++
- 1 file changed, 4 insertions(+)
+ MAINTAINERS |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-add-paul-mckenney-to-rcu-and-rcutorture MAINTAINERS
---- a/MAINTAINERS~maintainers-add-paul-mckenney-to-rcu-and-rcutorture
+diff -puN MAINTAINERS~maintainers-add-file-patterns-to-tty-layer MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-file-patterns-to-tty-layer
 +++ a/MAINTAINERS
-@@ -4736,6 +4736,8 @@ F:	drivers/net/wireless/ray*
- RCUTORTURE MODULE
- P:	Josh Triplett
- M:	josh@freedesktop.org
-+P:	Paul E. McKenney
-+M:	paulmck@linux.vnet.ibm.com
+@@ -5651,6 +5651,11 @@ TTY LAYER
+ P:	Alan Cox
+ M:	alan@lxorguk.ukuu.org.uk
  S:	Maintained
- F:	Documentation/RCU/torture.txt
- F:	kernel/rcutorture.c
-@@ -4762,6 +4764,8 @@ F:	net/rds/
- READ-COPY UPDATE (RCU)
- P:	Dipankar Sarma
- M:	dipankar@in.ibm.com
-+P:	Paul E. McKenney
-+M:	paulmck@linux.vnet.ibm.com
- W:	http://www.rdrop.com/users/paulmck/rclock/
- S:	Supported
- F:	Documentation/RCU/rcu.txt
++F:	drivers/char/tty_*
++F:	drivers/serial/serial_core.c
++F:	linux/serial_core.h
++F:	linux/serial.h
++F:	linux/tty.h
+ 
+ TULIP NETWORK DRIVERS
+ P:	Grant Grundler
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -90,4 +84,5 @@ maintainers-remove-l-linux-kernel-vgerkernelorg-from-all-but-the-rest.patch
 maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
 maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
 maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
+maintainers-add-file-patterns-to-tty-layer.patch
 
