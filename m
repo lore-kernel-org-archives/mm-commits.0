@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-accounting-getdelaysc-intialize-the-variable-before-using-it.patch added to -mm tree
-Date: Tue, 26 May 2009 23:54:48 -0700
-Message-ID: <200905270654.n4R6smks023767@imap1.linux-foundation.org>
+Subject: + x86-platform-oqo-select-input_polldev.patch added to -mm tree
+Date: Tue, 26 May 2009 23:59:27 -0700
+Message-ID: <200905270659.n4R6xRuj027002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51732 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37681 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757659AbZE0Gz4 (ORCPT
+	by vger.kernel.org with ESMTP id S1759389AbZE0HBQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 May 2009 02:55:56 -0400
+	Wed, 27 May 2009 03:01:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaswinder@kernel.org, balbir@in.ibm.com, jaswinderrajput@gmail.com
+Cc: randy.dunlap@oracle.com, dmitry.torokhov@gmail.com, lenb@kernel.org, mjg59@srcf.ucam.org
 
 
 The patch titled
-     Documentation/accounting/getdelays.c intialize the variable before using it
+     x86 platform: oqo: select INPUT_POLLDEV
 has been added to the -mm tree.  Its filename is
-     documentation-accounting-getdelaysc-intialize-the-variable-before-using-it.patch
+     x86-platform-oqo-select-input_polldev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/accounting/getdelays.c intialize the variable before using it
-From: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Subject: x86 platform: oqo: select INPUT_POLLDEV
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix compilation warning:
+OQO_WMI uses INPUT_POLLDEV, but it can select that instead of depending on
+it, since it represents library code.
 
-Documentation/accounting/getdelays.c: In function `main':
-Documentation/accounting/getdelays.c:249: warning: `cmd_type' may be used uninitialized in this function
-
-This is in fact a false positive.
-
-Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |    3 ++-
+ drivers/platform/x86/Kconfig |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/accounting/getdelays.c~documentation-accounting-getdelaysc-intialize-the-variable-before-using-it Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~documentation-accounting-getdelaysc-intialize-the-variable-before-using-it
-+++ a/Documentation/accounting/getdelays.c
-@@ -246,7 +246,8 @@ void print_ioacct(struct taskstats *t)
- 
- int main(int argc, char *argv[])
- {
--	int c, rc, rep_len, aggr_len, len2, cmd_type;
-+	int c, rc, rep_len, aggr_len, len2;
-+	int cmd_type = TASKSTATS_CMD_ATTR_UNSPEC;
- 	__u16 id;
- 	__u32 mypid;
- 
+diff -puN drivers/platform/x86/Kconfig~x86-platform-oqo-select-input_polldev drivers/platform/x86/Kconfig
+--- a/drivers/platform/x86/Kconfig~x86-platform-oqo-select-input_polldev
++++ a/drivers/platform/x86/Kconfig
+@@ -146,9 +146,10 @@ config MSI_LAPTOP
+ config OQO_WMI
+        tristate "OQO WMI extras"
+        depends on ACPI_WMI
+-       depends on INPUT && INPUT_POLLDEV
++       depends on INPUT
+        depends on RFKILL
+        depends on BACKLIGHT_CLASS_DEVICE
++	select INPUT_POLLDEV
+        help
+          Say Y here if you want to support rfkill and backlight control on
+          series 2 OQO handheld devices.
 _
 
-Patches currently in -mm which might be from jaswinder@kernel.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-documentation-accounting-getdelaysc-intialize-the-variable-before-using-it.patch
-sysctlc-remove-unused-variable.patch
+x86-platform-oqo-select-input_polldev.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+menu-fix-embedded-menu-presentation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+qla2x-fix-printk-format-warnings.patch
+lockd-fix-file_locking=n-build-error.patch
+hexdump-remove-the-trailing-space.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+cgroups-make-messages-more-readable.patch
+linuxpps-core-support.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
