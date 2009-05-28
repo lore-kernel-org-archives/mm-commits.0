@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-qconf-fix-the-type-of-the-desktop-widget.patch added to -mm tree
-Date: Wed, 27 May 2009 23:43:59 -0700
-Message-ID: <200905280643.n4S6hx3o015101@imap1.linux-foundation.org>
+Subject: + cg14-use-standard-fields-for-framebuffer-physical-address-and-length.patch added to -mm tree
+Date: Wed, 27 May 2009 23:47:36 -0700
+Message-ID: <200905280647.n4S6la5w017699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754112AbZE1Gog (ORCPT
+	by vger.kernel.org with ESMTP id S1750951AbZE1GsE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 02:44:36 -0400
+	Thu, 28 May 2009 02:48:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: markus.heidelberg@web.de, sam@ravnborg.org, zippel@linux-m68k.org
+Cc: krzysztof.h1@wp.pl, davem@davemloft.net
 
 
 The patch titled
-     kconfig qconf: fix the type of the desktop widget
+     cg14: use standard fields for framebuffer physical address and length
 has been added to the -mm tree.  Its filename is
-     kconfig-qconf-fix-the-type-of-the-desktop-widget.patch
+     cg14-use-standard-fields-for-framebuffer-physical-address-and-length.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig qconf: fix the type of the desktop widget
-From: Markus Heidelberg <markus.heidelberg@web.de>
+Subject: cg14: use standard fields for framebuffer physical address and length
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-QApplication::desktop() returns a pointer to QDesktopWidget, not to
-QWidget.
+Use standard fields fbinfo.fix.smem_start and fbinfo.fix.smem_len for
+physical address and length of framebuffer.
 
-Fixes the following compiler error after a quick conversion with 'qt3to4',
-which occured with g++ 3.4.6 and 4.1.2, but not anymore with 4.3.2.
+This also fixes output of the 'fbset -i' command - address and length of
+the framebuffer is displayed correctly.
 
-scripts/kconfig/qconf.cc: In constructor 'ConfigMainWindow::ConfigMainWindow()':
-scripts/kconfig/qconf.cc:1289: error: cannot convert 'QDesktopWidget*' to 'QWidget*' in initialization
-
-Signed-off-by: Markus Heidelberg <markus.heidelberg@web.de>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/qconf.cc |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/video/cg14.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN scripts/kconfig/qconf.cc~kconfig-qconf-fix-the-type-of-the-desktop-widget scripts/kconfig/qconf.cc
---- a/scripts/kconfig/qconf.cc~kconfig-qconf-fix-the-type-of-the-desktop-widget
-+++ a/scripts/kconfig/qconf.cc
-@@ -5,6 +5,7 @@
+diff -puN drivers/video/cg14.c~cg14-use-standard-fields-for-framebuffer-physical-address-and-length drivers/video/cg14.c
+--- a/drivers/video/cg14.c~cg14-use-standard-fields-for-framebuffer-physical-address-and-length
++++ a/drivers/video/cg14.c
+@@ -196,9 +196,7 @@ struct cg14_par {
+ 	u32			flags;
+ #define CG14_FLAG_BLANKED	0x00000001
  
- #include <qapplication.h>
- #include <qmainwindow.h>
-+#include <qdesktopwidget.h>
- #include <qtoolbar.h>
- #include <qlayout.h>
- #include <qvbox.h>
-@@ -1275,7 +1276,7 @@ ConfigMainWindow::ConfigMainWindow(void)
- 	int x, y, width, height;
- 	char title[256];
+-	unsigned long		physbase;
+ 	unsigned long		iospace;
+-	unsigned long		fbsize;
  
--	QWidget *d = configApp->desktop();
-+	QDesktopWidget *d = configApp->desktop();
- 	snprintf(title, sizeof(title), _("Linux Kernel v%s Configuration"),
- 		getenv("KERNELVERSION"));
- 	setCaption(title);
+ 	struct sbus_mmap_map	mmap_map[CG14_MMAP_ENTRIES];
+ 
+@@ -271,7 +269,7 @@ static int cg14_mmap(struct fb_info *inf
+ 	struct cg14_par *par = (struct cg14_par *) info->par;
+ 
+ 	return sbusfb_mmap_helper(par->mmap_map,
+-				  par->physbase, par->fbsize,
++				  info->fix.smem_start, info->fix.smem_len,
+ 				  par->iospace, vma);
+ }
+ 
+@@ -343,7 +341,8 @@ static int cg14_ioctl(struct fb_info *in
+ 
+ 	default:
+ 		ret = sbusfb_ioctl_helper(cmd, arg, info,
+-					  FBTYPE_MDICOLOR, 8, par->fbsize);
++					  FBTYPE_MDICOLOR, 8,
++					  info->fix.smem_len);
+ 		break;
+ 	};
+ 
+@@ -462,7 +461,7 @@ static void cg14_unmap_regs(struct of_de
+ 			   par->cursor, sizeof(struct cg14_cursor));
+ 	if (info->screen_base)
+ 		of_iounmap(&op->resource[1],
+-			   info->screen_base, par->fbsize);
++			   info->screen_base, info->fix.smem_len);
+ }
+ 
+ static int __devinit cg14_probe(struct of_device *op, const struct of_device_id *match)
+@@ -488,14 +487,14 @@ static int __devinit cg14_probe(struct o
+ 
+ 	linebytes = of_getintprop_default(dp, "linebytes",
+ 					  info->var.xres);
+-	par->fbsize = PAGE_ALIGN(linebytes * info->var.yres);
++	info->fix.smem_len = PAGE_ALIGN(linebytes * info->var.yres);
+ 
+ 	if (!strcmp(dp->parent->name, "sbus") ||
+ 	    !strcmp(dp->parent->name, "sbi")) {
+-		par->physbase = op->resource[0].start;
++		info->fix.smem_start = op->resource[0].start;
+ 		par->iospace = op->resource[0].flags & IORESOURCE_BITS;
+ 	} else {
+-		par->physbase = op->resource[1].start;
++		info->fix.smem_start = op->resource[1].start;
+ 		par->iospace = op->resource[0].flags & IORESOURCE_BITS;
+ 	}
+ 
+@@ -507,7 +506,7 @@ static int __devinit cg14_probe(struct o
+ 				 sizeof(struct cg14_cursor), "cg14 cursor");
+ 
+ 	info->screen_base = of_ioremap(&op->resource[1], 0,
+-				       par->fbsize, "cg14 ram");
++				       info->fix.smem_len, "cg14 ram");
+ 
+ 	if (!par->regs || !par->clut || !par->cursor || !info->screen_base)
+ 		goto out_unmap_regs;
+@@ -557,7 +556,7 @@ static int __devinit cg14_probe(struct o
+ 
+ 	printk(KERN_INFO "%s: cgfourteen at %lx:%lx, %dMB\n",
+ 	       dp->full_name,
+-	       par->iospace, par->physbase,
++	       par->iospace, info->fix.smem_start,
+ 	       par->ramsize >> 20);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from markus.heidelberg@web.de are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-kconfig-fix-typo-mconfig-to-menuconfig-in-a-comment.patch
-kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help.patch
-kconfig-resort-the-documentation-of-the-environment-variables.patch
-gitignore-ignore-kconfig-i18n-files.patch
-kconfig-qconf-fix-wall-compiler-warnings.patch
-kconfig-qconf-fix-namespace-for-horizontal-and-vertical-enum-values.patch
-kconfig-qconf-add-namespace-for-use-of-key_-enum-values.patch
-kconfig-qconf-fix-the-type-of-the-desktop-widget.patch
-kconfig-do-not-hardcode-config-filename.patch
-kconfig-do-not-hardcode-include-config-autoconf-filename.patch
+revert-fbdev-fix-info-lock-deadlock-in-fbcon_event_notify.patch
+revert-fbdev-uninline-lock_fb_info.patch
+revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
+revert-fbmem-dont-call-copy_from-to_user-with-mutex-held.patch
+fbdev-move-back-to-bkl-solution.patch
+linux-next.patch
+intelfb-fix-color-map-setting-with-an-lvds-display.patch
+chipsfb-remove-redundant-assignment.patch
+igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
+offb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
+acornfb-remove-fb_mmap-function.patch
+s3c-fb-fix-resource-releasing-on-error-during-probing.patch
+bw2-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+cg14-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+cg3-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+cg6-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+leo-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+p9100-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+tcx-use-standard-fields-for-framebuffer-physical-address-and-length.patch
 
