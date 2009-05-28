@@ -1,101 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] crypto-hifn_795x-fix-__devinitexit-markings.patch removed from -mm tree
-Date: Thu, 28 May 2009 12:26:59 -0700
-Message-ID: <200905281926.n4SJQxgq002666@imap1.linux-foundation.org>
+Subject: [folded] parport_gsc-fix-printk-format-error-fix.patch removed from -mm tree
+Date: Thu, 28 May 2009 13:54:02 -0700
+Message-ID: <200905282113.n4SLDgGe013340@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42032 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756861AbZE1T2J (ORCPT
+	by vger.kernel.org with ESMTP id S1756524AbZE1VOP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 15:28:09 -0400
+	Thu, 28 May 2009 17:14:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, herbert@gondor.apana.org.au, kaber@trash.net, zbr@ioremap.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.beregalov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     crypto: hifn_795x - fix __dev{init,exit} markings
+     parport_gsc-fix-printk-format-error-fix
 has been removed from the -mm tree.  Its filename was
-     crypto-hifn_795x-fix-__devinitexit-markings.patch
+     parport_gsc-fix-printk-format-error-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into parport_gsc-fix-printk-format-error.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: crypto: hifn_795x - fix __dev{init,exit} markings
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: parport_gsc-fix-printk-format-error-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The remove member of the pci_driver hifn_pci_driver uses __devexit_p(), so
-the remove function itself should be marked with __devexit.  And where
-there be __devexit on the remove, so is there __devinit on the probe.
-
-Similarly, the module_init/module_exit functions should be declared with
-plain __init/__exit markings, not the hotplug __dev{init,exit} ones.
-
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Alexander Beregalov <a.beregalov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/hifn_795x.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/parport/parport_gsc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/crypto/hifn_795x.c~crypto-hifn_795x-fix-__devinitexit-markings drivers/crypto/hifn_795x.c
---- a/drivers/crypto/hifn_795x.c~crypto-hifn_795x-fix-__devinitexit-markings
-+++ a/drivers/crypto/hifn_795x.c
-@@ -2564,7 +2564,7 @@ static void hifn_tasklet_callback(unsign
- 		hifn_process_queue(dev);
- }
+diff -puN drivers/parport/parport_gsc.c~parport_gsc-fix-printk-format-error-fix drivers/parport/parport_gsc.c
+--- a/drivers/parport/parport_gsc.c~parport_gsc-fix-printk-format-error-fix
++++ a/drivers/parport/parport_gsc.c
+@@ -352,8 +352,8 @@ static int __devinit parport_init_chip(s
+ 	unsigned long port;
  
--static int hifn_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-+static int __devinit hifn_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- {
- 	int err, i;
- 	struct hifn_device *dev;
-@@ -2696,7 +2696,7 @@ err_out_disable_pci_device:
- 	return err;
- }
- 
--static void hifn_remove(struct pci_dev *pdev)
-+static void __devexit hifn_remove(struct pci_dev *pdev)
- {
- 	int i;
- 	struct hifn_device *dev;
-@@ -2744,7 +2744,7 @@ static struct pci_driver hifn_pci_driver
- 	.remove   = __devexit_p(hifn_remove),
- };
- 
--static int __devinit hifn_init(void)
-+static int __init hifn_init(void)
- {
- 	unsigned int freq;
- 	int err;
-@@ -2789,7 +2789,7 @@ static int __devinit hifn_init(void)
- 	return 0;
- }
- 
--static void __devexit hifn_fini(void)
-+static void __exit hifn_fini(void)
- {
- 	pci_unregister_driver(&hifn_pci_driver);
+ 	if (!dev->irq) {
+-		printk(KERN_WARNING "IRQ not found for parallel device at 0x%lx\n",
+-			(unsigned long)dev->hpa.start);
++		printk(KERN_WARNING "IRQ not found for parallel device at 0x%llx\n",
++			(unsigned long long)dev->hpa.start);
+ 		return -ENODEV;
+ 	}
  
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+revert-fbdev-uninline-lock_fb_info.patch
+flat-fix-data-sections-alignment.patch
+parport_gsc-fix-printk-format-error.patch
+parport_gsc-fix-printk-format-error-fix.patch
+serial-8250_gsc-fix-printk-format-warning-fix.patch
 linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-drivers-hvc-add-missing-__devexit_p.patch
-plat_nand-add-missing-__devexit_p.patch
-irda-new-blackfin-on-chip-sir-irda-driver.patch
-virtio_blk-add-missing-__devinitexit-markings.patch
-drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
-gpio-max7301-add-missing-__devexit-marking.patch
-istallion-add-missing-__devexit-marking.patch
-edac-add-missing-__devexit_p.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+drivers-usb-serial-sierrac-fix-printk-warning.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+serial-jsm-correctly-support-4-8-port-boards.patch
+serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
