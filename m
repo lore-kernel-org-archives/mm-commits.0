@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ds_selftest-is-borked.patch added to -mm tree
-Date: Thu, 28 May 2009 15:39:20 -0700
-Message-ID: <200905282258.n4SMwxxO022940@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix.patch added to -mm tree
+Date: Thu, 28 May 2009 16:07:33 -0700
+Message-ID: <200905282327.n4SNRDlM010626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54170 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56329 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752824AbZE1W7K (ORCPT
+	by vger.kernel.org with ESMTP id S1752149AbZE1X12 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 18:59:10 -0400
+	Thu, 28 May 2009 19:27:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, markus.t.metzger@intel.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu
 
 
 The patch titled
-     ds_selftest is borked
+     dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix
 has been added to the -mm tree.  Its filename is
-     ds_selftest-is-borked.patch
+     dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ds_selftest is borked
+Subject: dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kconfig keeps on resurrecting this.  Make it (and its oops) go away.
-
-Cc: Markus Metzger <markus.t.metzger@intel.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ds.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-generic/dma-mapping-common.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/ds.c~ds_selftest-is-borked arch/x86/kernel/ds.c
---- a/arch/x86/kernel/ds.c~ds_selftest-is-borked
-+++ a/arch/x86/kernel/ds.c
-@@ -1412,6 +1412,8 @@ void ds_switch_to(struct task_struct *pr
- 
- static __init int ds_selftest(void)
+diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix include/asm-generic/dma-mapping-common.h
+--- a/include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix
++++ a/include/asm-generic/dma-mapping-common.h
+@@ -41,8 +41,7 @@ static inline int dma_map_sg_attrs(struc
+ 				   struct dma_attrs *attrs)
  {
-+	return 0;
-+
- 	if (ds_cfg.sizeof_rec[ds_bts]) {
- 		int error;
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+-	int i, ents;
+-	struct scatterlist *s;
++	int ents;
  
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	ents = ops->map_sg(dev, sg, nents, dir, attrs);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +111,7 @@ drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-ch
 edac-add-cpc925-memory-controller-driver-cleanup.patch
 edac-add-edac_device_alloc_index-cleanup.patch
 dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch
+dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix.patch
 kexec-sysrq-simplify-sysrq-c-handler.patch
 gru-support-for-asynchronous-gru-instructions-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
