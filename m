@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s3c-fb-fix-resource-releasing-on-error-during-probing.patch added to -mm tree
-Date: Wed, 27 May 2009 23:31:28 -0700
-Message-ID: <200905280631.n4S6VSBS006249@imap1.linux-foundation.org>
+Subject: + s3c-fb-pm-fix.patch added to -mm tree
+Date: Wed, 27 May 2009 23:31:32 -0700
+Message-ID: <200905280631.n4S6VWKG006353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751380AbZE1GcO (ORCPT
+	by vger.kernel.org with ESMTP id S1751966AbZE1GcO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 28 May 2009 02:32:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, ben-linux@fluff.org, kyungmin.park@samsung.com, m.szyprowski@samsung.com
+Cc: m.szyprowski@samsung.com, ben-linux@fluff.org, kyungmin.park@samsung.com
 
 
 The patch titled
-     s3c-fb: fix resource releasing on error during probing
+     S3C-fb: PM fix
 has been added to the -mm tree.  Its filename is
-     s3c-fb-fix-resource-releasing-on-error-during-probing.patch
+     s3c-fb-pm-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c-fb: fix resource releasing on error during probing
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: S3C-fb: PM fix
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-All resources are released in s3c_fb_win_release so remove other places of
-resources releasing.  Add releasing of an allocated fb_info structure as
-well.
+Correctly restore the FrameBuffer register state in the resume function.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Ben Dooks <ben-linux@fluff.org>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c-fb.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ drivers/video/s3c-fb.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/s3c-fb.c~s3c-fb-fix-resource-releasing-on-error-during-probing drivers/video/s3c-fb.c
---- a/drivers/video/s3c-fb.c~s3c-fb-fix-resource-releasing-on-error-during-probing
+diff -puN drivers/video/s3c-fb.c~s3c-fb-pm-fix drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~s3c-fb-pm-fix
 +++ a/drivers/video/s3c-fb.c
-@@ -725,9 +725,12 @@ static void s3c_fb_free_memory(struct s3
-  */
- static void s3c_fb_release_win(struct s3c_fb *sfb, struct s3c_fb_win *win)
+@@ -972,7 +972,8 @@ static int __devexit s3c_fb_remove(struc
+ 	int win;
+ 
+ 	for (win = 0; win <= S3C_FB_MAX_WIN; win++)
+-		s3c_fb_release_win(sfb, sfb->windows[win]);
++		if (sfb->windows[win])
++			s3c_fb_release_win(sfb, sfb->windows[win]);
+ 
+ 	iounmap(sfb->regs);
+ 
+@@ -1010,11 +1011,20 @@ static int s3c_fb_suspend(struct platfor
+ static int s3c_fb_resume(struct platform_device *pdev)
  {
--	fb_dealloc_cmap(&win->fbinfo->cmap);
--	unregister_framebuffer(win->fbinfo);
--	s3c_fb_free_memory(sfb, win);
-+	if (win->fbinfo) {
-+		unregister_framebuffer(win->fbinfo);
-+		fb_dealloc_cmap(&win->fbinfo->cmap);
-+		s3c_fb_free_memory(sfb, win);
-+		framebuffer_release(win->fbinfo);
-+	}
- }
+ 	struct s3c_fb *sfb = platform_get_drvdata(pdev);
++	struct s3c_fb_platdata *pd = sfb->pdata;
+ 	struct s3c_fb_win *win;
+ 	int win_no;
  
- /**
-@@ -778,7 +781,7 @@ static int __devinit s3c_fb_probe_win(st
- 	ret = s3c_fb_alloc_memory(sfb, win);
- 	if (ret) {
- 		dev_err(sfb->dev, "failed to allocate display memory\n");
--		goto err_framebuffer;
-+		return ret;
- 	}
+ 	clk_enable(sfb->bus_clk);
  
- 	/* setup the r/b/g positions for the window's palette */
-@@ -801,7 +804,7 @@ static int __devinit s3c_fb_probe_win(st
- 	ret = s3c_fb_check_var(&fbinfo->var, fbinfo);
- 	if (ret < 0) {
- 		dev_err(sfb->dev, "check_var failed on initial video params\n");
--		goto err_alloc_mem;
-+		return ret;
- 	}
- 
- 	/* create initial colour map */
-@@ -821,20 +824,13 @@ static int __devinit s3c_fb_probe_win(st
- 	ret = register_framebuffer(fbinfo);
- 	if (ret < 0) {
- 		dev_err(sfb->dev, "failed to register framebuffer\n");
--		goto err_alloc_mem;
-+		return ret;
- 	}
- 
- 	*res = win;
- 	dev_info(sfb->dev, "window %d: fb %s\n", win_no, fbinfo->fix.id);
- 
- 	return 0;
--
--err_alloc_mem:
--	s3c_fb_free_memory(sfb, win);
++	/* setup registers */
++	writel(pd->vidcon1, sfb->regs + VIDCON1);
++
++	/* zero all windows before we do anything */
++	for (win_no = 0; win_no < S3C_FB_MAX_WIN; win_no++)
++		s3c_fb_clear_win(sfb, win_no);
++
++	/* restore framebuffers */
+ 	for (win_no = 0; win_no < S3C_FB_MAX_WIN; win_no++) {
+ 		win = sfb->windows[win_no];
+ 		if (!win)
+_
+
+Patches currently in -mm which might be from m.szyprowski@samsung.com are
+
+linux-next.patch
+s3c-fb-pm-fix.patch
+s3c-fb-fix-resource-releasing-on-error-during-probing.patch
+
