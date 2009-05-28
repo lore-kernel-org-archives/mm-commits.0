@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_lcdfb-correct-fifo-size-for-some-products.patch added to -mm tree
-Date: Thu, 28 May 2009 00:35:43 -0700
-Message-ID: <200905280735.n4S7ZhVs018966@imap1.linux-foundation.org>
+Subject: + memcg-use-ifdef-for-mem_cgroup_is_obsolete.patch added to -mm tree
+Date: Thu, 28 May 2009 00:38:15 -0700
+Message-ID: <200905280738.n4S7cFGb020775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750755AbZE1Hfu (ORCPT
+	by vger.kernel.org with ESMTP id S1754331AbZE1HkR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 03:35:50 -0400
+	Thu, 28 May 2009 03:40:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas.ferre@atmel.com, avictor.za@gmail.com, hskinnemoen@atmel.com
+Cc: penberg@cs.helsinki.fi, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.cn
 
 
 The patch titled
-     atmel_lcdfb: correct fifo size for some products
+     memcg: use ifdef for mem_cgroup_is_obsolete()
 has been added to the -mm tree.  Its filename is
-     atmel_lcdfb-correct-fifo-size-for-some-products.patch
+     memcg-use-ifdef-for-mem_cgroup_is_obsolete.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: correct fifo size for some products
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: memcg: use ifdef for mem_cgroup_is_obsolete()
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Remove wrong fifo size definition for some AT91 products.
+When CONFIG_DEBUG_VM is disabled, I get the following warning:
 
-Due to a misunderstanding of some AT91 datasheets, a fifo size of 2048
-(words) has been introduced by mistake.  In fact, all products (AT91/AT32)
-are sharing the same fifo size of 512 words.
+    CC      mm/memcontrol.o
+  mm/memcontrol.c:318: warning: `mem_cgroup_is_obsolete' defined but not
+  used
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Andrew Victor <avictor.za@gmail.com>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Fix that up by wrapping mem_cgroup_is_obsolete() in an ifdef.
+
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-correct-fifo-size-for-some-products drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-correct-fifo-size-for-some-products
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -29,14 +29,8 @@
+diff -puN mm/memcontrol.c~memcg-use-ifdef-for-mem_cgroup_is_obsolete mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-ifdef-for-mem_cgroup_is_obsolete
++++ a/mm/memcontrol.c
+@@ -314,12 +314,14 @@ static struct mem_cgroup *try_get_mem_cg
+ 	return mem;
+ }
  
- /* configurable parameters */
- #define ATMEL_LCDC_CVAL_DEFAULT		0xc8
--#define ATMEL_LCDC_DMA_BURST_LEN	8
++#ifdef CONFIG_DEBUG_VM
+ static bool mem_cgroup_is_obsolete(struct mem_cgroup *mem)
+ {
+ 	if (!mem)
+ 		return true;
+ 	return css_is_removed(&mem->css);
+ }
++#endif
+ 
+ 
+ /*
+_
+
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+
+memcg-use-ifdef-for-mem_cgroup_is_obsolete.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+linux-next.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+slab-leaks3-default-y.patch
+
