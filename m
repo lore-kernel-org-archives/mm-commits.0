@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch added to -mm tree
-Date: Wed, 27 May 2009 23:55:11 -0700
-Message-ID: <200905280655.n4S6tB6v022943@imap1.linux-foundation.org>
+Subject: + radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch added to -mm tree
+Date: Wed, 27 May 2009 23:55:13 -0700
+Message-ID: <200905280655.n4S6tDIK022992@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52685 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750780AbZE1Gzq (ORCPT
+	by vger.kernel.org with ESMTP id S1750921AbZE1Gzu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 02:55:46 -0400
+	Thu, 28 May 2009 02:55:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, benh@kernel.crashing.org, krzysztof.h1@poczta.fm
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, krzysztof.h1@poczta.fm, roel.kluin@gmail.com
 
 
 The patch titled
-     radeon: P2G2CLK_ALWAYS_ONb tested twice, should 2nd be P2G2CLK_DAC_ALWAYS_ONb?
+     radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix
 has been added to the -mm tree.  Its filename is
-     radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+     radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeon: P2G2CLK_ALWAYS_ONb tested twice, should 2nd be P2G2CLK_DAC_ALWAYS_ONb?
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-P2G2CLK_ALWAYS_ONb is tested twice, 2nd should be P2G2CLK_DAC_ALWAYS_ONb.
+Remove duplicated bitwise-OR of PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb too.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/radeon_pm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/aty/radeon_pm.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb drivers/video/aty/radeon_pm.c
---- a/drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb
+diff -puN drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix drivers/video/aty/radeon_pm.c
+--- a/drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix
 +++ a/drivers/video/aty/radeon_pm.c
-@@ -395,7 +395,7 @@ static void radeon_pm_enable_dynamic_mod
- 			PIXCLKS_CNTL__R300_PIXCLK_TRANS_ALWAYS_ONb      |
- 			PIXCLKS_CNTL__R300_PIXCLK_TVO_ALWAYS_ONb        |
- 			PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb           |
--			PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb);
-+			PIXCLKS_CNTL__R300_P2G2CLK_DAC_ALWAYS_ONb);
- 		OUTPLL(pllPIXCLKS_CNTL, tmp);
+@@ -213,7 +213,6 @@ static void radeon_pm_disable_dynamic_mo
+ 			 PIXCLKS_CNTL__R300_PIXCLK_TRANS_ALWAYS_ONb	|
+ 			 PIXCLKS_CNTL__R300_PIXCLK_TVO_ALWAYS_ONb	|
+ 			 PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb		|
+-			 PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb		|
+ 			 PIXCLKS_CNTL__R300_DISP_DAC_PIXCLK_DAC2_BLANK_OFF);
+                 OUTPLL(pllPIXCLKS_CNTL, tmp);
  
- 		tmp = INPLL(pllMCLK_MISC);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
+revert-fbdev-uninline-lock_fb_info.patch
+flat-fix-data-sections-alignment.patch
+parport_gsc-fix-printk-format-error-fix.patch
+serial-8250_gsc-fix-printk-format-warning-fix.patch
 linux-next.patch
-soc-correct-print-specifiers-for-unsigneds.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-fsldma-fix-check-on-potential-fdev-chan-overflow.patch
-drm-fix-lock_test_with_return-macro.patch
-uwb-event_size-should-be-signed.patch
-irda-count-reaches-1.patch
-drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-wis-sony-tunerc-typo.patch
-otus-80211core-coidc-fix-array-range-check.patch
-wmm_paramac_aci_acm_aifsn-tested-twice.patch
-lguest-fix-array-indexing-check.patch
-frv-duplicate-output_buffer-of-e03.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+drivers-usb-serial-sierrac-fix-printk-warning.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
 m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+serial-jsm-correctly-support-4-8-port-boards.patch
+serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes.patch
 radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
