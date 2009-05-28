@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + p9100-use-standard-fields-for-framebuffer-physical-address-and-length.patch added to -mm tree
-Date: Wed, 27 May 2009 23:47:44 -0700
-Message-ID: <200905280647.n4S6liow017822@imap1.linux-foundation.org>
+Subject: + radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch added to -mm tree
+Date: Wed, 27 May 2009 23:55:11 -0700
+Message-ID: <200905280655.n4S6tB6v022943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60551 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757378AbZE1GsQ (ORCPT
+	by vger.kernel.org with ESMTP id S1750780AbZE1Gzq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 02:48:16 -0400
+	Thu, 28 May 2009 02:55:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, davem@davemloft.net
+Cc: roel.kluin@gmail.com, benh@kernel.crashing.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     p9100: use standard fields for framebuffer physical address and length
+     radeon: P2G2CLK_ALWAYS_ONb tested twice, should 2nd be P2G2CLK_DAC_ALWAYS_ONb?
 has been added to the -mm tree.  Its filename is
-     p9100-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+     radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,132 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: p9100: use standard fields for framebuffer physical address and length
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: radeon: P2G2CLK_ALWAYS_ONb tested twice, should 2nd be P2G2CLK_DAC_ALWAYS_ONb?
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Use standard fields fbinfo.fix.smem_start and fbinfo.fix.smem_len for
-physical address and length of framebuffer.
+P2G2CLK_ALWAYS_ONb is tested twice, 2nd should be P2G2CLK_DAC_ALWAYS_ONb.
 
-This also fixes output of the 'fbset -i' command - address and length of
-the framebuffer are displayed correctly.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/p9100.c |   20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ drivers/video/aty/radeon_pm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/p9100.c~p9100-use-standard-fields-for-framebuffer-physical-address-and-length drivers/video/p9100.c
---- a/drivers/video/p9100.c~p9100-use-standard-fields-for-framebuffer-physical-address-and-length
-+++ a/drivers/video/p9100.c
-@@ -134,9 +134,7 @@ struct p9100_par {
- 	u32			flags;
- #define P9100_FLAG_BLANKED	0x00000001
+diff -puN drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb drivers/video/aty/radeon_pm.c
+--- a/drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb
++++ a/drivers/video/aty/radeon_pm.c
+@@ -395,7 +395,7 @@ static void radeon_pm_enable_dynamic_mod
+ 			PIXCLKS_CNTL__R300_PIXCLK_TRANS_ALWAYS_ONb      |
+ 			PIXCLKS_CNTL__R300_PIXCLK_TVO_ALWAYS_ONb        |
+ 			PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb           |
+-			PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb);
++			PIXCLKS_CNTL__R300_P2G2CLK_DAC_ALWAYS_ONb);
+ 		OUTPLL(pllPIXCLKS_CNTL, tmp);
  
--	unsigned long		physbase;
- 	unsigned long		which_io;
--	unsigned long		fbsize;
- };
- 
- /**
-@@ -224,18 +222,16 @@ static int p9100_mmap(struct fb_info *in
- 	struct p9100_par *par = (struct p9100_par *)info->par;
- 
- 	return sbusfb_mmap_helper(p9100_mmap_map,
--				  par->physbase, par->fbsize,
-+				  info->fix.smem_start, info->fix.smem_len,
- 				  par->which_io, vma);
- }
- 
- static int p9100_ioctl(struct fb_info *info, unsigned int cmd,
- 		       unsigned long arg)
- {
--	struct p9100_par *par = (struct p9100_par *) info->par;
--
- 	/* Make it look like a cg3. */
- 	return sbusfb_ioctl_helper(cmd, arg, info,
--				   FBTYPE_SUN3COLOR, 8, par->fbsize);
-+				   FBTYPE_SUN3COLOR, 8, info->fix.smem_len);
- }
- 
- /*
-@@ -271,7 +267,7 @@ static int __devinit p9100_probe(struct 
- 	spin_lock_init(&par->lock);
- 
- 	/* This is the framebuffer and the only resource apps can mmap.  */
--	par->physbase = op->resource[2].start;
-+	info->fix.smem_start = op->resource[2].start;
- 	par->which_io = op->resource[2].flags & IORESOURCE_BITS;
- 
- 	sbusfb_fill_var(&info->var, dp, 8);
-@@ -280,7 +276,7 @@ static int __devinit p9100_probe(struct 
- 	info->var.blue.length = 8;
- 
- 	linebytes = of_getintprop_default(dp, "linebytes", info->var.xres);
--	par->fbsize = PAGE_ALIGN(linebytes * info->var.yres);
-+	info->fix.smem_len = PAGE_ALIGN(linebytes * info->var.yres);
- 
- 	par->regs = of_ioremap(&op->resource[0], 0,
- 			       sizeof(struct p9100_regs), "p9100 regs");
-@@ -290,7 +286,7 @@ static int __devinit p9100_probe(struct 
- 	info->flags = FBINFO_DEFAULT;
- 	info->fbops = &p9100_ops;
- 	info->screen_base = of_ioremap(&op->resource[2], 0,
--				       par->fbsize, "p9100 ram");
-+				       info->fix.smem_len, "p9100 ram");
- 	if (!info->screen_base)
- 		goto out_unmap_regs;
- 
-@@ -311,7 +307,7 @@ static int __devinit p9100_probe(struct 
- 
- 	printk(KERN_INFO "%s: p9100 at %lx:%lx\n",
- 	       dp->full_name,
--	       par->which_io, par->physbase);
-+	       par->which_io, info->fix.smem_start);
- 
- 	return 0;
- 
-@@ -319,7 +315,7 @@ out_dealloc_cmap:
- 	fb_dealloc_cmap(&info->cmap);
- 
- out_unmap_screen:
--	of_iounmap(&op->resource[2], info->screen_base, par->fbsize);
-+	of_iounmap(&op->resource[2], info->screen_base, info->fix.smem_len);
- 
- out_unmap_regs:
- 	of_iounmap(&op->resource[0], par->regs, sizeof(struct p9100_regs));
-@@ -340,7 +336,7 @@ static int __devexit p9100_remove(struct
- 	fb_dealloc_cmap(&info->cmap);
- 
- 	of_iounmap(&op->resource[0], par->regs, sizeof(struct p9100_regs));
--	of_iounmap(&op->resource[2], info->screen_base, par->fbsize);
-+	of_iounmap(&op->resource[2], info->screen_base, info->fix.smem_len);
- 
- 	framebuffer_release(info);
- 
+ 		tmp = INPLL(pllMCLK_MISC);
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-revert-fbdev-fix-info-lock-deadlock-in-fbcon_event_notify.patch
-revert-fbdev-uninline-lock_fb_info.patch
-revert-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
-revert-fbmem-dont-call-copy_from-to_user-with-mutex-held.patch
-fbdev-move-back-to-bkl-solution.patch
+origin.patch
+drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
 linux-next.patch
-intelfb-fix-color-map-setting-with-an-lvds-display.patch
-chipsfb-remove-redundant-assignment.patch
-igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
-offb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
-acornfb-remove-fb_mmap-function.patch
-s3c-fb-fix-resource-releasing-on-error-during-probing.patch
-bw2-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-cg14-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-cg3-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-cg6-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-leo-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-p9100-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-tcx-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+soc-correct-print-specifiers-for-unsigneds.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+fsldma-fix-check-on-potential-fdev-chan-overflow.patch
+drm-fix-lock_test_with_return-macro.patch
+uwb-event_size-should-be-signed.patch
+irda-count-reaches-1.patch
+drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+wis-sony-tunerc-typo.patch
+otus-80211core-coidc-fix-array-range-check.patch
+wmm_paramac_aci_acm_aifsn-tested-twice.patch
+lguest-fix-array-indexing-check.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+spi_bfin5xx-limit-reaches-1.patch
+carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
