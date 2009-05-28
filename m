@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-msi_ia64c-dmar_msi_type-should-be-static.patch added to -mm tree
-Date: Thu, 28 May 2009 01:32:54 -0700
-Message-ID: <200905280832.n4S8WsYF026926@imap1.linux-foundation.org>
+Subject: + leds-alix-leds2-fixed-for-award-bios.patch added to -mm tree
+Date: Thu, 28 May 2009 01:43:10 -0700
+Message-ID: <200905280843.n4S8hApj001652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754823AbZE1Ie1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750964AbZE1In2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 04:34:27 -0400
+	Thu, 28 May 2009 04:43:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaswinder@kernel.org, jaswinderrajput@gmail.com, tony.luck@intel.com
+Cc: Tobias_Mueller@twam.info, const@mimas.ru, rpurdie@rpsys.net
 
 
 The patch titled
-     ia64: msi_ia64.c dmar_msi_type should be static
+     leds: alix-leds2 fixed for Award  BIOS
 has been added to the -mm tree.  Its filename is
-     ia64-msi_ia64c-dmar_msi_type-should-be-static.patch
+     leds-alix-leds2-fixed-for-award-bios.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: msi_ia64.c dmar_msi_type should be static
-From: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Subject: leds: alix-leds2 fixed for Award  BIOS
+From: Tobias Mueller <Tobias_Mueller@twam.info>
 
-Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Add initialisation of GPIO ports for compatibility with boards with Award
+BIOS (e.g.  ALIX.3D3).
+
+Signed-off-by: Tobias Mueller <Tobias_Mueller@twam.info>
+Reviewed-by: Constantin Baranov <const@mimas.ru>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/msi_ia64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/leds/Kconfig      |    1 +
+ drivers/leds/leds-alix2.c |    7 ++++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/msi_ia64.c~ia64-msi_ia64c-dmar_msi_type-should-be-static arch/ia64/kernel/msi_ia64.c
---- a/arch/ia64/kernel/msi_ia64.c~ia64-msi_ia64c-dmar_msi_type-should-be-static
-+++ a/arch/ia64/kernel/msi_ia64.c
-@@ -158,7 +158,7 @@ static int dmar_msi_set_affinity(unsigne
- }
- #endif /* CONFIG_SMP */
+diff -puN drivers/leds/Kconfig~leds-alix-leds2-fixed-for-award-bios drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-alix-leds2-fixed-for-award-bios
++++ a/drivers/leds/Kconfig
+@@ -75,6 +75,7 @@ config LEDS_ALIX2
+ 	depends on LEDS_CLASS && X86 && EXPERIMENTAL
+ 	help
+ 	  This option enables support for the PCEngines ALIX.2 and ALIX.3 LEDs.
++	  You have to set leds-alix2.force=1 for boards with Award BIOS.
  
--struct irq_chip dmar_msi_type = {
-+static struct irq_chip dmar_msi_type = {
- 	.name = "DMAR_MSI",
- 	.unmask = dmar_msi_unmask,
- 	.mask = dmar_msi_mask,
+ config LEDS_H1940
+ 	tristate "LED Support for iPAQ H1940 device"
+diff -puN drivers/leds/leds-alix2.c~leds-alix-leds2-fixed-for-award-bios drivers/leds/leds-alix2.c
+--- a/drivers/leds/leds-alix2.c~leds-alix-leds2-fixed-for-award-bios
++++ a/drivers/leds/leds-alix2.c
+@@ -14,7 +14,7 @@
+ 
+ static int force = 0;
+ module_param(force, bool, 0444);
+-MODULE_PARM_DESC(force, "Assume system has ALIX.2 style LEDs");
++MODULE_PARM_DESC(force, "Assume system has ALIX.2/ALIX.3 style LEDs");
+ 
+ struct alix_led {
+ 	struct led_classdev cdev;
+@@ -155,6 +155,11 @@ static int __init alix_led_init(void)
+ 		goto out;
+ 	}
+ 
++	/* enable output on GPIO for LED 1,2,3 */
++	outl(1 << 6, 0x6104);
++	outl(1 << 9, 0x6184);
++	outl(1 << 11, 0x6184);
++
+ 	pdev = platform_device_register_simple(KBUILD_MODNAME, -1, NULL, 0);
+ 	if (!IS_ERR(pdev)) {
+ 		ret = platform_driver_probe(&alix_led_driver, alix_led_probe);
 _
 
-Patches currently in -mm which might be from jaswinder@kernel.org are
+Patches currently in -mm which might be from Tobias_Mueller@twam.info are
 
-linux-next.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-ia64-msi_ia64c-dmar_msi_type-should-be-static.patch
-documentation-accounting-getdelaysc-intialize-the-variable-before-using-it.patch
-documentation-connector-cn_testc-comment-unused-cn_test_want_notify.patch
-sysctlc-remove-unused-variable.patch
+leds-alix-leds2-fixed-for-award-bios.patch
 
