@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch added to -mm tree
-Date: Thu, 28 May 2009 00:20:45 -0700
-Message-ID: <200905280720.n4S7Kj4a008433@imap1.linux-foundation.org>
+Subject: + dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch added to -mm tree
+Date: Thu, 28 May 2009 00:20:38 -0700
+Message-ID: <200905280720.n4S7KcEx008389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37888 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50699 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756128AbZE1HU5 (ORCPT
+	by vger.kernel.org with ESMTP id S1757231AbZE1HVJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 03:20:57 -0400
+	Thu, 28 May 2009 03:21:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, arnd@a
 
 
 The patch titled
-     dma-mapping: dma-debug: fix compiler warnings on IA64
+     dma-mapping: x86: use asm-generic/dma-mapping-common.h
 has been added to the -mm tree.  Its filename is
-     dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch
+     dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: dma-debug: fix compiler warnings on IA64
+Subject: dma-mapping: x86: use asm-generic/dma-mapping-common.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-
-Hopefully, we don't need such cast in the future (uses int-ll64.h) but for
-now we get the following warnings:
-
-lib/dma-debug.c: In function 'debug_dma_dump_mappings':
-lib/dma-debug.c:233: warning: format '%Lx' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:233: warning: format '%Lx' expects type 'long long unsigned int', but argument 8 has type 'u64'
-lib/dma-debug.c: In function 'check_unmap':
-lib/dma-debug.c:553: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:553: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:561: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:561: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:561: warning: format '%llu' expects type 'long long unsigned int', but argument 8 has type 'u64'
-lib/dma-debug.c:569: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:569: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:577: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:577: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:598: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:598: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c: In function 'check_for_illegal_area':
-lib/dma-debug.c:634: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c: In function 'check_sync':
-lib/dma-debug.c:657: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:665: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:665: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:665: warning: format '%llu' expects type 'long long unsigned int', but argument 8 has type 'u64'
-lib/dma-debug.c:665: warning: format '%llu' expects type 'long long unsigned int', but argument 9 has type 'u64'
-lib/dma-debug.c:674: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:688: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:698: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Acked-by: Joerg Roedel <joerg.roedel@amd.com>
@@ -77,185 +47,198 @@ Cc; "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |   82 ++++++++++++++++++++++++++--------------------
- 1 file changed, 48 insertions(+), 34 deletions(-)
+ arch/x86/Kconfig                   |    1 
+ arch/x86/include/asm/dma-mapping.h |  167 ---------------------------
+ 2 files changed, 3 insertions(+), 165 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-mapping-dma-debug-fix-compiler-warnings-on-ia64 lib/dma-debug.c
---- a/lib/dma-debug.c~dma-mapping-dma-debug-fix-compiler-warnings-on-ia64
-+++ a/lib/dma-debug.c
-@@ -234,7 +234,8 @@ void debug_dma_dump_mappings(struct devi
- 					 "%s idx %d P=%Lx D=%Lx L=%Lx %s\n",
- 					 type2name[entry->type], idx,
- 					 (unsigned long long)entry->paddr,
--					 entry->dev_addr, entry->size,
-+					 (unsigned long long)entry->dev_addr,
-+					 (unsigned long long)entry->size,
- 					 dir2name[entry->direction]);
- 			}
- 		}
-@@ -553,7 +554,8 @@ static void check_unmap(struct dma_debug
- 		err_printk(ref->dev, NULL, "DMA-API: device driver tries "
- 			   "to free DMA memory it has not allocated "
- 			   "[device address=0x%016llx] [size=%llu bytes]\n",
--			   ref->dev_addr, ref->size);
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)ref->size);
- 		goto out;
- 	}
- 
-@@ -562,7 +564,9 @@ static void check_unmap(struct dma_debug
- 			   "DMA memory with different size "
- 			   "[device address=0x%016llx] [map size=%llu bytes] "
- 			   "[unmap size=%llu bytes]\n",
--			   ref->dev_addr, entry->size, ref->size);
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)entry->size,
-+			   (unsigned long long)ref->size);
- 	}
- 
- 	if (ref->type != entry->type) {
-@@ -570,7 +574,8 @@ static void check_unmap(struct dma_debug
- 			   "DMA memory with wrong function "
- 			   "[device address=0x%016llx] [size=%llu bytes] "
- 			   "[mapped as %s] [unmapped as %s]\n",
--			   ref->dev_addr, ref->size,
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)ref->size,
- 			   type2name[entry->type], type2name[ref->type]);
- 	} else if ((entry->type == dma_debug_coherent) &&
- 		   (ref->paddr != entry->paddr)) {
-@@ -578,7 +583,8 @@ static void check_unmap(struct dma_debug
- 			   "DMA memory with different CPU address "
- 			   "[device address=0x%016llx] [size=%llu bytes] "
- 			   "[cpu alloc address=%p] [cpu free address=%p]",
--			   ref->dev_addr, ref->size,
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)ref->size,
- 			   (void *)entry->paddr, (void *)ref->paddr);
- 	}
- 
-@@ -599,7 +605,8 @@ static void check_unmap(struct dma_debug
- 			   "DMA memory with different direction "
- 			   "[device address=0x%016llx] [size=%llu bytes] "
- 			   "[mapped with %s] [unmapped with %s]\n",
--			   ref->dev_addr, ref->size,
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)ref->size,
- 			   dir2name[entry->direction],
- 			   dir2name[ref->direction]);
- 	}
-@@ -632,8 +639,9 @@ static void check_for_illegal_area(struc
- 	if (overlap(addr, size, _text, _etext) ||
- 	    overlap(addr, size, __start_rodata, __end_rodata))
- 		err_printk(dev, NULL, "DMA-API: device driver maps "
--				"memory from kernel text or rodata "
--				"[addr=%p] [size=%llu]\n", addr, size);
-+			   "memory from kernel text or rodata "
-+			   "[addr=%p] [size=%llu]\n", addr,
-+			   (unsigned long long)size);
+diff -puN arch/x86/Kconfig~dma-mapping-x86-use-asm-generic-dma-mapping-commonh arch/x86/Kconfig
+--- a/arch/x86/Kconfig~dma-mapping-x86-use-asm-generic-dma-mapping-commonh
++++ a/arch/x86/Kconfig
+@@ -28,6 +28,7 @@ config X86
+ 	select HAVE_KPROBES
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+ 	select ARCH_WANT_FRAME_POINTERS
++	select HAVE_DMA_ATTRS
+ 	select HAVE_KRETPROBES
+ 	select HAVE_FTRACE_MCOUNT_RECORD
+ 	select HAVE_DYNAMIC_FTRACE
+diff -puN arch/x86/include/asm/dma-mapping.h~dma-mapping-x86-use-asm-generic-dma-mapping-commonh arch/x86/include/asm/dma-mapping.h
+--- a/arch/x86/include/asm/dma-mapping.h~dma-mapping-x86-use-asm-generic-dma-mapping-commonh
++++ a/arch/x86/include/asm/dma-mapping.h
+@@ -32,6 +32,8 @@ static inline struct dma_map_ops *get_dm
+ #endif
  }
  
- static void check_sync(struct device *dev, dma_addr_t addr,
-@@ -655,29 +663,33 @@ static void check_sync(struct device *de
++#include <asm-generic/dma-mapping-common.h>
++
+ /* Make sure we keep the same behaviour */
+ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ {
+@@ -52,171 +54,6 @@ extern int dma_set_mask(struct device *d
+ extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 					dma_addr_t *dma_addr, gfp_t flag);
  
- 	if (!entry) {
- 		err_printk(dev, NULL, "DMA-API: device driver tries "
--				"to sync DMA memory it has not allocated "
--				"[device address=0x%016llx] [size=%llu bytes]\n",
--				(unsigned long long)addr, size);
-+			   "to sync DMA memory it has not allocated "
-+			   "[device address=0x%016llx] [size=%llu bytes]\n",
-+			   (unsigned long long)addr, (unsigned long long)size);
- 		goto out;
- 	}
- 
- 	if ((offset + size) > entry->size) {
- 		err_printk(dev, entry, "DMA-API: device driver syncs"
--				" DMA memory outside allocated range "
--				"[device address=0x%016llx] "
--				"[allocation size=%llu bytes] [sync offset=%llu] "
--				"[sync size=%llu]\n", entry->dev_addr, entry->size,
--				offset, size);
-+			   " DMA memory outside allocated range "
-+			   "[device address=0x%016llx] "
-+			   "[allocation size=%llu bytes] [sync offset=%llu] "
-+			   "[sync size=%llu]\n",
-+			   (unsigned long long)entry->dev_addr,
-+			   (unsigned long long)entry->size,
-+			   (unsigned long long)offset,
-+			   (unsigned long long)size);
- 	}
- 
- 	if (direction != entry->direction) {
- 		err_printk(dev, entry, "DMA-API: device driver syncs "
--				"DMA memory with different direction "
--				"[device address=0x%016llx] [size=%llu bytes] "
--				"[mapped with %s] [synced with %s]\n",
--				(unsigned long long)addr, entry->size,
--				dir2name[entry->direction],
--				dir2name[direction]);
-+			   "DMA memory with different direction "
-+			   "[device address=0x%016llx] [size=%llu bytes] "
-+			   "[mapped with %s] [synced with %s]\n",
-+			   (unsigned long long)addr,
-+			   (unsigned long long)entry->size,
-+			   dir2name[entry->direction],
-+			   dir2name[direction]);
- 	}
- 
- 	if (entry->direction == DMA_BIDIRECTIONAL)
-@@ -686,22 +698,24 @@ static void check_sync(struct device *de
- 	if (to_cpu && !(entry->direction == DMA_FROM_DEVICE) &&
- 		      !(direction == DMA_TO_DEVICE))
- 		err_printk(dev, entry, "DMA-API: device driver syncs "
--				"device read-only DMA memory for cpu "
--				"[device address=0x%016llx] [size=%llu bytes] "
--				"[mapped with %s] [synced with %s]\n",
--				(unsigned long long)addr, entry->size,
--				dir2name[entry->direction],
--				dir2name[direction]);
-+			   "device read-only DMA memory for cpu "
-+			   "[device address=0x%016llx] [size=%llu bytes] "
-+			   "[mapped with %s] [synced with %s]\n",
-+			   (unsigned long long)addr,
-+			   (unsigned long long)entry->size,
-+			   dir2name[entry->direction],
-+			   dir2name[direction]);
- 
- 	if (!to_cpu && !(entry->direction == DMA_TO_DEVICE) &&
- 		       !(direction == DMA_FROM_DEVICE))
- 		err_printk(dev, entry, "DMA-API: device driver syncs "
--				"device write-only DMA memory to device "
--				"[device address=0x%016llx] [size=%llu bytes] "
--				"[mapped with %s] [synced with %s]\n",
--				(unsigned long long)addr, entry->size,
--				dir2name[entry->direction],
--				dir2name[direction]);
-+			   "device write-only DMA memory to device "
-+			   "[device address=0x%016llx] [size=%llu bytes] "
-+			   "[mapped with %s] [synced with %s]\n",
-+			   (unsigned long long)addr,
-+			   (unsigned long long)entry->size,
-+			   dir2name[entry->direction],
-+			   dir2name[direction]);
- 
- out:
- 	put_hash_bucket(bucket, &flags);
-_
-
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
-
-linux-next.patch
-vino-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
-ib-mthca-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
-net-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
-sg_io-dont-perform-unneeded-copy-in-compat-code.patch
-usb-replace-dma_sync_single-and-dma_sync_sg-with-dma_sync_single_for_cpu-and-dma_sync_sg_for_cpu.patch
-dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
-dma-mapping-mark-dma_sync_single-and-dma_sync_sg-as-deprecated.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh.patch
-dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-add-config_dma_api_debug-support.patch
-dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch
-
+-static inline dma_addr_t
+-dma_map_single(struct device *hwdev, void *ptr, size_t size,
+-	       enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(hwdev);
+-	dma_addr_t addr;
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	addr = ops->map_page(hwdev, virt_to_page(ptr),
+-			     (unsigned long)ptr & ~PAGE_MASK, size,
+-			     dir, NULL);
+-	debug_dma_map_page(hwdev, virt_to_page(ptr),
+-			   (unsigned long)ptr & ~PAGE_MASK, size,
+-			   dir, addr, true);
+-	return addr;
+-}
+-
+-static inline void
+-dma_unmap_single(struct device *dev, dma_addr_t addr, size_t size,
+-		 enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(dev);
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	if (ops->unmap_page)
+-		ops->unmap_page(dev, addr, size, dir, NULL);
+-	debug_dma_unmap_page(dev, addr, size, dir, true);
+-}
+-
+-static inline int
+-dma_map_sg(struct device *hwdev, struct scatterlist *sg,
+-	   int nents, enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(hwdev);
+-	int ents;
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	ents = ops->map_sg(hwdev, sg, nents, dir, NULL);
+-	debug_dma_map_sg(hwdev, sg, nents, ents, dir);
+-
+-	return ents;
+-}
+-
+-static inline void
+-dma_unmap_sg(struct device *hwdev, struct scatterlist *sg, int nents,
+-	     enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(hwdev);
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	debug_dma_unmap_sg(hwdev, sg, nents, dir);
+-	if (ops->unmap_sg)
+-		ops->unmap_sg(hwdev, sg, nents, dir, NULL);
+-}
+-
+-static inline void
+-dma_sync_single_for_cpu(struct device *hwdev, dma_addr_t dma_handle,
+-			size_t size, enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(hwdev);
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	if (ops->sync_single_for_cpu)
+-		ops->sync_single_for_cpu(hwdev, dma_handle, size, dir);
+-	debug_dma_sync_single_for_cpu(hwdev, dma_handle, size, dir);
+-	flush_write_buffers();
+-}
+-
+-static inline void
+-dma_sync_single_for_device(struct device *hwdev, dma_addr_t dma_handle,
+-			   size_t size, enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(hwdev);
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	if (ops->sync_single_for_device)
+-		ops->sync_single_for_device(hwdev, dma_handle, size, dir);
+-	debug_dma_sync_single_for_device(hwdev, dma_handle, size, dir);
+-	flush_write_buffers();
+-}
+-
+-static inline void
+-dma_sync_single_range_for_cpu(struct device *hwdev, dma_addr_t dma_handle,
+-			      unsigned long offset, size_t size,
+-			      enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(hwdev);
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	if (ops->sync_single_range_for_cpu)
+-		ops->sync_single_range_for_cpu(hwdev, dma_handle, offset,
+-					       size, dir);
+-	debug_dma_sync_single_range_for_cpu(hwdev, dma_handle,
+-					    offset, size, dir);
+-	flush_write_buffers();
+-}
+-
+-static inline void
+-dma_sync_single_range_for_device(struct device *hwdev, dma_addr_t dma_handle,
+-				 unsigned long offset, size_t size,
+-				 enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(hwdev);
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	if (ops->sync_single_range_for_device)
+-		ops->sync_single_range_for_device(hwdev, dma_handle,
+-						  offset, size, dir);
+-	debug_dma_sync_single_range_for_device(hwdev, dma_handle,
+-					       offset, size, dir);
+-	flush_write_buffers();
+-}
+-
+-static inline void
+-dma_sync_sg_for_cpu(struct device *hwdev, struct scatterlist *sg,
+-		    int nelems, enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(hwdev);
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	if (ops->sync_sg_for_cpu)
+-		ops->sync_sg_for_cpu(hwdev, sg, nelems, dir);
+-	debug_dma_sync_sg_for_cpu(hwdev, sg, nelems, dir);
+-	flush_write_buffers();
+-}
+-
+-static inline void
+-dma_sync_sg_for_device(struct device *hwdev, struct scatterlist *sg,
+-		       int nelems, enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(hwdev);
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	if (ops->sync_sg_for_device)
+-		ops->sync_sg_for_device(hwdev, sg, nelems, dir);
+-	debug_dma_sync_sg_for_device(hwdev, sg, nelems, dir);
+-
+-	flush_write_buffers();
+-}
+-
+-static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
+-				      size_t offset, size_t size,
+-				      enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(dev);
+-	dma_addr_t addr;
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	addr = ops->map_page(dev, page, offset, size, dir, NULL);
+-	debug_dma_map_page(dev, page, offset, size, dir, addr, false);
+-
+-	return addr;
+-}
+-
+-static inline void dma_unmap_page(struct device *dev, dma_addr_t addr,
+-				  size_t size, enum dma_data_direction dir)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(dev);
+-
+-	BUG_ON(!valid_dma_direction(dir));
+-	if (ops->unmap_page)
+-		ops->unmap_page(dev, addr, size, dir, NULL);
+-	debug_dma_unmap_page(dev, addr, size, dir, false);
+-}
