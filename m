@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-qconf-fix-wall-compiler-warnings.patch added to -mm tree
-Date: Wed, 27 May 2009 23:43:53 -0700
-Message-ID: <200905280643.n4S6hrms015092@imap1.linux-foundation.org>
+Subject: + kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help.patch added to -mm tree
+Date: Wed, 27 May 2009 23:43:47 -0700
+Message-ID: <200905280643.n4S6hlHI014973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36598 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58111 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755305AbZE1GoL (ORCPT
+	by vger.kernel.org with ESMTP id S1758725AbZE1GoL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 28 May 2009 02:44:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: markus.heidelberg@web.de, sam@ravnborg.org, zippel@linux-m68k.org
 
 
 The patch titled
-     kconfig qconf: fix -Wall compiler warnings
+     kconfig: add a note about the deps to the 'silentoldconfig' help
 has been added to the -mm tree.  Its filename is
-     kconfig-qconf-fix-wall-compiler-warnings.patch
+     kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig qconf: fix -Wall compiler warnings
+Subject: kconfig: add a note about the deps to the 'silentoldconfig' help
 From: Markus Heidelberg <markus.heidelberg@web.de>
-
-These compiler warnings occure when adding -Wall to HOSTCXXFLAGS in
-/Makefile
-
-scripts/kconfig/qconf.h: In constructor `ConfigInfoView::ConfigInfoView(QWidget*, const char*)':
-scripts/kconfig/qconf.h:274: warning: `ConfigInfoView::menu' will be initialized after
-scripts/kconfig/qconf.h:273: warning:   `symbol* ConfigInfoView::sym'
-scripts/kconfig/qconf.cc:922: warning:   when initialized here
-
-scripts/kconfig/qconf.cc: In member function `void ConfigMainWindow::setMenuLink(menu*)':
-scripts/kconfig/qconf.cc:1498: warning: enumeration value `menuMode' not handled in switch
-scripts/kconfig/qconf.cc:1498: warning: enumeration value `listMode' not handled in switch
-
-scripts/kconfig/qconf.cc: In member function `void ConfigMainWindow::saveSettings()':
-scripts/kconfig/qconf.cc:1664: warning: enumeration value `menuMode' not handled in switch
-scripts/kconfig/qconf.cc:1664: warning: enumeration value `listMode' not handled in switch
 
 Signed-off-by: Markus Heidelberg <markus.heidelberg@web.de>
 Cc: Sam Ravnborg <sam@ravnborg.org>
@@ -59,40 +43,33 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/qconf.cc |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ README                   |    1 +
+ scripts/kconfig/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/kconfig/qconf.cc~kconfig-qconf-fix-wall-compiler-warnings scripts/kconfig/qconf.cc
---- a/scripts/kconfig/qconf.cc~kconfig-qconf-fix-wall-compiler-warnings
-+++ a/scripts/kconfig/qconf.cc
-@@ -920,7 +920,7 @@ void ConfigView::updateListAll(void)
- }
- 
- ConfigInfoView::ConfigInfoView(QWidget* parent, const char *name)
--	: Parent(parent, name), menu(0), sym(0)
-+	: Parent(parent, name), sym(0), menu(0)
- {
- 	if (name) {
- 		configSettings->beginGroup(name);
-@@ -1524,6 +1524,8 @@ void ConfigMainWindow::setMenuLink(struc
- 	case fullMode:
- 		list = configList;
- 		break;
-+	default:
-+		break;
- 	}
- 
- 	if (list) {
-@@ -1673,6 +1675,9 @@ void ConfigMainWindow::saveSettings(void
- 	case fullMode :
- 		entry = "full";
- 		break;
-+
-+	default:
-+		break;
- 	}
- 	configSettings->writeEntry("/listMode", entry);
- 
+diff -puN README~kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help README
+--- a/README~kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help
++++ a/README
+@@ -174,6 +174,7 @@ CONFIGURING the kernel:
+ 	"make silentoldconfig"
+ 			   Like above, but avoids cluttering the screen
+ 			   with questions already answered.
++			   Additionally updates the dependencies.
+ 	"make defconfig"   Create a ./.config file by using the default
+ 			   symbol values from arch/$ARCH/defconfig.
+ 	"make allyesconfig"
+diff -puN scripts/kconfig/Makefile~kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help scripts/kconfig/Makefile
+--- a/scripts/kconfig/Makefile~kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help
++++ a/scripts/kconfig/Makefile
+@@ -83,7 +83,7 @@ help:
+ 	@echo  '  xconfig	  - Update current config utilising a QT based front-end'
+ 	@echo  '  gconfig	  - Update current config utilising a GTK based front-end'
+ 	@echo  '  oldconfig	  - Update current config utilising a provided .config as base'
+-	@echo  '  silentoldconfig - Same as oldconfig, but quietly'
++	@echo  '  silentoldconfig - Same as oldconfig, but quietly, additionally update deps'
+ 	@echo  '  randconfig	  - New config with random answer to all options'
+ 	@echo  '  defconfig	  - New config with default answer to all options'
+ 	@echo  '  allmodconfig	  - New config selecting modules when possible'
 _
 
 Patches currently in -mm which might be from markus.heidelberg@web.de are
