@@ -1,65 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-build-warning-and-avoid-checking-for-mem-=-null-again-and-again.patch added to -mm tree
-Date: Thu, 28 May 2009 02:09:09 -0700
-Message-ID: <200905280909.n4S999mE020066@imap1.linux-foundation.org>
+Subject: [merged] acpi-processor-remove-spurious-newline-from-warning-message.patch removed from -mm tree
+Date: Thu, 28 May 2009 12:26:54 -0700
+Message-ID: <200905281926.n4SJQsfI002596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48162 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751936AbZE1JNk (ORCPT
+	by vger.kernel.org with ESMTP id S1754817AbZE1T1Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 05:13:40 -0400
+	Thu, 28 May 2009 15:27:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: knikanth@suse.de, kamezawa.hiroyu@jp.fujitsu.com, penberg@cs.helsinki.fi
+To: elendil@planet.nl, len.brown@intel.com, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix build warning and avoid checking for mem != null again and again
-has been added to the -mm tree.  Its filename is
-     memcg-fix-build-warning-and-avoid-checking-for-mem-=-null-again-and-again.patch
+     ACPI processor: remove spurious newline from warning message
+has been removed from the -mm tree.  Its filename was
+     acpi-processor-remove-spurious-newline-from-warning-message.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix build warning and avoid checking for mem != null again and again
-From: Nikanth Karthikesan <knikanth@suse.de>
+Subject: ACPI processor: remove spurious newline from warning message
+From: Frans Pop <elendil@planet.nl>
 
-Fix build warning, "mem_cgroup_is_obsolete defined but not used" when
-CONFIG_DEBUG_VM is not set.  Also avoid checking for !mem again and again.
+Commit 4973b22a ("ACPI processor: reset the throttling state once it's
+invalid") introduced a new warning which prints a spurious newline.
 
-Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+The ACPI_WARNING macro that is used already takes care of adding a
+newline, after adding ACPI_CA_VERSION to the message.  Remove the newline
+to avoid the message getting split into two lines.
+
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ drivers/acpi/processor_throttling.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-build-warning-and-avoid-checking-for-mem-=-null-again-and-again mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-build-warning-and-avoid-checking-for-mem-=-null-again-and-again
-+++ a/mm/memcontrol.c
-@@ -314,14 +314,6 @@ static struct mem_cgroup *try_get_mem_cg
- 	return mem;
- }
- 
--static bool mem_cgroup_is_obsolete(struct mem_cgroup *mem)
--{
--	if (!mem)
--		return true;
--	return css_is_removed(&mem->css);
--}
--
+diff -puN drivers/acpi/processor_throttling.c~acpi-processor-remove-spurious-newline-from-warning-message drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-processor-remove-spurious-newline-from-warning-message
++++ a/drivers/acpi/processor_throttling.c
+@@ -840,7 +840,7 @@ static int acpi_processor_get_throttling
+ 		state = acpi_get_throttling_state(pr, value);
+ 		if (state == -1) {
+ 			ACPI_WARNING((AE_INFO,
+-				"Invalid throttling state, reset\n"));
++				"Invalid throttling state, reset"));
+ 			state = 0;
+ 			ret = acpi_processor_set_throttling(pr, state);
+ 			if (ret)
+_
+
+Patches currently in -mm which might be from elendil@planet.nl are
+
+linux-next.patch
+
