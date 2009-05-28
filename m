@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-qconf-fix-namespace-for-horizontal-and-vertical-enum-values.patch added to -mm tree
-Date: Wed, 27 May 2009 23:43:55 -0700
-Message-ID: <200905280643.n4S6htaQ015095@imap1.linux-foundation.org>
+Subject: + kconfig-do-not-hardcode-include-config-autoconf-filename.patch added to -mm tree
+Date: Wed, 27 May 2009 23:44:03 -0700
+Message-ID: <200905280644.n4S6i3jA015223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56280 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49404 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754764AbZE1Goa (ORCPT
+	by vger.kernel.org with ESMTP id S1755889AbZE1Goi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 02:44:30 -0400
+	Thu, 28 May 2009 02:44:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: markus.heidelberg@web.de, sam@ravnborg.org, zippel@linux-m68k.org
 
 
 The patch titled
-     kconfig qconf: fix namespace for Horizontal and Vertical enum values
+     kconfig: do not hardcode "include/config/auto.conf" filename
 has been added to the -mm tree.  Its filename is
-     kconfig-qconf-fix-namespace-for-horizontal-and-vertical-enum-values.patch
+     kconfig-do-not-hardcode-include-config-autoconf-filename.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,21 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig qconf: fix namespace for Horizontal and Vertical enum values
+Subject: kconfig: do not hardcode "include/config/auto.conf" filename
 From: Markus Heidelberg <markus.heidelberg@web.de>
 
-They were used as QSplitter::Horizontal resp. QSplitter::Vertical, but
-are defined in the 'Qt' namespace.
+Regardless of KCONFIG_AUTOCONFIG, the filename written as a Make target
+into "include/config/auto.conf.cmd" was always the default one.
 
-Fixes the following compiler errors after a quick conversion with 'qt3to4',
-which occured with g++ 3.4.6 and 4.1.2, but not anymore with 4.3.2.
-
-scripts/kconfig/qconf.cc: In constructor 'ConfigSearchWindow::ConfigSearchWindow(ConfigMainWindow*, const char*)':
-scripts/kconfig/qconf.cc:1213: error: 'Vertical' is not a member of 'QSplitter'
-
-scripts/kconfig/qconf.cc: In constructor 'ConfigMainWindow::ConfigMainWindow()':
-scripts/kconfig/qconf.cc:1304: error: 'Horizontal' is not a member of 'QSplitter'
-scripts/kconfig/qconf.cc:1311: error: 'Vertical' is not a member of 'QSplitter'
+Of course this doesn't make it work for the Kernel kbuild system, since
+there the filename is hardcoded at several places in the Makefiles.
 
 Signed-off-by: Markus Heidelberg <markus.heidelberg@web.de>
 Cc: Sam Ravnborg <sam@ravnborg.org>
@@ -56,38 +49,101 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/qconf.cc |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/kconfig/confdata.c |   20 ++++++++++++--------
+ scripts/kconfig/lkc.h      |    1 +
+ scripts/kconfig/util.c     |    6 +++---
+ 3 files changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN scripts/kconfig/qconf.cc~kconfig-qconf-fix-namespace-for-horizontal-and-vertical-enum-values scripts/kconfig/qconf.cc
---- a/scripts/kconfig/qconf.cc~kconfig-qconf-fix-namespace-for-horizontal-and-vertical-enum-values
-+++ a/scripts/kconfig/qconf.cc
-@@ -1199,7 +1199,7 @@ ConfigSearchWindow::ConfigSearchWindow(C
- 	layout1->addLayout(layout2);
+diff -puN scripts/kconfig/confdata.c~kconfig-do-not-hardcode-include-config-autoconf-filename scripts/kconfig/confdata.c
+--- a/scripts/kconfig/confdata.c~kconfig-do-not-hardcode-include-config-autoconf-filename
++++ a/scripts/kconfig/confdata.c
+@@ -41,6 +41,13 @@ const char *conf_get_configname(void)
+ 	return name ? name : ".config";
+ }
  
- 	split = new QSplitter(this);
--	split->setOrientation(QSplitter::Vertical);
-+	split->setOrientation(Qt::Vertical);
- 	list = new ConfigView(split, name);
- 	list->list->mode = listMode;
- 	info = new ConfigInfoView(split, name);
-@@ -1290,14 +1290,14 @@ ConfigMainWindow::ConfigMainWindow(void)
- 		move(x, y);
++const char *conf_get_autoconfig_name(void)
++{
++	char *name = getenv("KCONFIG_AUTOCONFIG");
++
++	return name ? name : "include/config/auto.conf";
++}
++
+ static char *conf_expand_value(const char *in)
+ {
+ 	struct symbol *sym;
+@@ -555,15 +562,14 @@ int conf_write(const char *name)
  
- 	split1 = new QSplitter(this);
--	split1->setOrientation(QSplitter::Horizontal);
-+	split1->setOrientation(Qt::Horizontal);
- 	setCentralWidget(split1);
+ int conf_split_config(void)
+ {
+-	char *name, path[128];
++	const char *name;
++	char path[128];
+ 	char *s, *d, c;
+ 	struct symbol *sym;
+ 	struct stat sb;
+ 	int res, i, fd;
  
- 	menuView = new ConfigView(split1, "menu");
- 	menuList = menuView->list;
+-	name = getenv("KCONFIG_AUTOCONFIG");
+-	if (!name)
+-		name = "include/config/auto.conf";
++	name = conf_get_autoconfig_name();
+ 	conf_read_simple(name, S_DEF_AUTO);
  
- 	split2 = new QSplitter(split1);
--	split2->setOrientation(QSplitter::Vertical);
-+	split2->setOrientation(Qt::Vertical);
+ 	if (chdir("include/config"))
+@@ -670,7 +676,7 @@ int conf_write_autoconf(void)
+ {
+ 	struct symbol *sym;
+ 	const char *str;
+-	char *name;
++	const char *name;
+ 	FILE *out, *out_h;
+ 	time_t now;
+ 	int i, l;
+@@ -773,9 +779,7 @@ int conf_write_autoconf(void)
+ 		name = "include/linux/autoconf.h";
+ 	if (rename(".tmpconfig.h", name))
+ 		return 1;
+-	name = getenv("KCONFIG_AUTOCONFIG");
+-	if (!name)
+-		name = "include/config/auto.conf";
++	name = conf_get_autoconfig_name();
+ 	/*
+ 	 * This must be the last step, kbuild has a dependency on auto.conf
+ 	 * and this marks the successful completion of the previous steps.
+diff -puN scripts/kconfig/lkc.h~kconfig-do-not-hardcode-include-config-autoconf-filename scripts/kconfig/lkc.h
+--- a/scripts/kconfig/lkc.h~kconfig-do-not-hardcode-include-config-autoconf-filename
++++ a/scripts/kconfig/lkc.h
+@@ -74,6 +74,7 @@ char *zconf_curname(void);
  
- 	// create config tree
- 	configView = new ConfigView(split2, "config");
+ /* confdata.c */
+ const char *conf_get_configname(void);
++const char *conf_get_autoconfig_name(void);
+ char *conf_get_default_confname(void);
+ void sym_set_change_count(int count);
+ void sym_add_change_count(int count);
+diff -puN scripts/kconfig/util.c~kconfig-do-not-hardcode-include-config-autoconf-filename scripts/kconfig/util.c
+--- a/scripts/kconfig/util.c~kconfig-do-not-hardcode-include-config-autoconf-filename
++++ a/scripts/kconfig/util.c
+@@ -46,8 +46,8 @@ int file_write_dep(const char *name)
+ 		else
+ 			fprintf(out, "\t%s\n", file->name);
+ 	}
+-	fprintf(out, "\ninclude/config/auto.conf: \\\n"
+-		     "\t$(deps_config)\n\n");
++	fprintf(out, "\n%s: \\\n"
++		     "\t$(deps_config)\n\n", conf_get_autoconfig_name());
+ 
+ 	expr_list_for_each_sym(sym_env_list, e, sym) {
+ 		struct property *prop;
+@@ -61,7 +61,7 @@ int file_write_dep(const char *name)
+ 		if (!value)
+ 			value = "";
+ 		fprintf(out, "ifneq \"$(%s)\" \"%s\"\n", env_sym->name, value);
+-		fprintf(out, "include/config/auto.conf: FORCE\n");
++		fprintf(out, "%s: FORCE\n", conf_get_autoconfig_name());
+ 		fprintf(out, "endif\n");
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from markus.heidelberg@web.de are
