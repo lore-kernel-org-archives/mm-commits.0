@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atl1c-wake_mcast-tested-twice-not-wake_ucast.patch added to -mm tree
-Date: Thu, 28 May 2009 00:00:01 -0700
-Message-ID: <200905280700.n4S701xM026314@imap1.linux-foundation.org>
+Subject: + txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set.patch added to -mm tree
+Date: Thu, 28 May 2009 00:09:02 -0700
+Message-ID: <200905280709.n4S792tp032677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56199 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750755AbZE1HAE (ORCPT
+	by vger.kernel.org with ESMTP id S1751728AbZE1HJV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 03:00:04 -0400
+	Thu, 28 May 2009 03:09:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, csnook@redhat.com, jcliburn@gmail.com, jie.yang@atheros.com
+Cc: anemo@mba.ocn.ne.jp, dan.j.williams@intel.com, ralf@linux-mips.org
 
 
 The patch titled
-     atl1c: WAKE_MCAST tested twice, not WAKE_UCAST
+     txx9dmac: use dma_unmap_single if DMA_COMPL_{SRC,DEST}_UNMAP_SINGLE was set
 has been added to the -mm tree.  Its filename is
-     atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
+     txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atl1c: WAKE_MCAST tested twice, not WAKE_UCAST
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: txx9dmac: use dma_unmap_single if DMA_COMPL_{SRC,DEST}_UNMAP_SINGLE was set
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-The WAKE_MCAST bit is tested twice, the first should be WAKE_UCAST.
+This patch does not change actual behaviour since dma_unmap_page is just
+an alias of dma_unmap_single on MIPS.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jie Yang <jie.yang@atheros.com>
-Cc: Jay Cliburn <jcliburn@gmail.com>
-Cc: Chris Snook <csnook@redhat.com>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1c/atl1c_ethtool.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/dma/txx9dmac.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/atl1c/atl1c_ethtool.c~atl1c-wake_mcast-tested-twice-not-wake_ucast drivers/net/atl1c/atl1c_ethtool.c
---- a/drivers/net/atl1c/atl1c_ethtool.c~atl1c-wake_mcast-tested-twice-not-wake_ucast
-+++ a/drivers/net/atl1c/atl1c_ethtool.c
-@@ -271,7 +271,7 @@ static int atl1c_set_wol(struct net_devi
- 	struct atl1c_adapter *adapter = netdev_priv(netdev);
+diff -puN drivers/dma/txx9dmac.c~txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set drivers/dma/txx9dmac.c
+--- a/drivers/dma/txx9dmac.c~txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set
++++ a/drivers/dma/txx9dmac.c
+@@ -432,23 +432,27 @@ txx9dmac_descriptor_complete(struct txx9
+ 	list_splice_init(&txd->tx_list, &dc->free_list);
+ 	list_move(&desc->desc_node, &dc->free_list);
  
- 	if (wol->wolopts & (WAKE_ARP | WAKE_MAGICSECURE |
--			    WAKE_MCAST | WAKE_BCAST | WAKE_MCAST))
-+			    WAKE_UCAST | WAKE_BCAST | WAKE_MCAST))
- 		return -EOPNOTSUPP;
- 	/* these settings will always override what we currently have */
- 	adapter->wol = 0;
+-	/*
+-	 * We use dma_unmap_page() regardless of how the buffers were
+-	 * mapped before they were submitted...
+-	 */
+ 	if (!ds) {
+ 		dma_addr_t dmaaddr;
+ 		if (!(txd->flags & DMA_COMPL_SKIP_DEST_UNMAP)) {
+ 			dmaaddr = is_dmac64(dc) ?
+ 				desc->hwdesc.DAR : desc->hwdesc32.DAR;
+-			dma_unmap_page(chan2parent(&dc->chan), dmaaddr,
+-				       desc->len, DMA_FROM_DEVICE);
++			if (txd->flags & DMA_COMPL_DEST_UNMAP_SINGLE)
++				dma_unmap_single(chan2parent(&dc->chan),
++					dmaaddr, desc->len, DMA_FROM_DEVICE);
++			else
++				dma_unmap_page(chan2parent(&dc->chan),
++					dmaaddr, desc->len, DMA_FROM_DEVICE);
+ 		}
+ 		if (!(txd->flags & DMA_COMPL_SKIP_SRC_UNMAP)) {
+ 			dmaaddr = is_dmac64(dc) ?
+ 				desc->hwdesc.SAR : desc->hwdesc32.SAR;
+-			dma_unmap_page(chan2parent(&dc->chan), dmaaddr,
+-				       desc->len, DMA_TO_DEVICE);
++			if (txd->flags & DMA_COMPL_SRC_UNMAP_SINGLE)
++				dma_unmap_single(chan2parent(&dc->chan),
++					dmaaddr, desc->len, DMA_TO_DEVICE);
++			else
++				dma_unmap_page(chan2parent(&dc->chan),
++					dmaaddr, desc->len, DMA_TO_DEVICE);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-origin.patch
-drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
 linux-next.patch
-soc-correct-print-specifiers-for-unsigneds.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-fsldma-fix-check-on-potential-fdev-chan-overflow.patch
-drm-fix-lock_test_with_return-macro.patch
-uwb-event_size-should-be-signed.patch
-irda-count-reaches-1.patch
-drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
-atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-wis-sony-tunerc-typo.patch
-otus-80211core-coidc-fix-array-range-check.patch
-wmm_paramac_aci_acm_aifsn-tested-twice.patch
-lguest-fix-array-indexing-check.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-platinumfb-misplaced-parenthesis.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
+txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+rtc-rtc-ds1742-nvram-attribute-fix.patch
+rtc-tx4939-drop-irqf_shared.patch
+rtc-ds1553-drop-irqf_shared.patch
+rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
 
