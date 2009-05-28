@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 27 May 2009 23:11:27 -0700
-Message-ID: <200905280611.n4S6BRdH024606@imap1.linux-foundation.org>
+Subject: + plat_nand-add-missing-__devexit_p.patch added to -mm tree
+Date: Wed, 27 May 2009 23:19:38 -0700
+Message-ID: <200905280619.n4S6JcDu030395@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757437AbZE1GLk (ORCPT
+	by vger.kernel.org with ESMTP id S1750951AbZE1GTq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 02:11:40 -0400
+	Thu, 28 May 2009 02:19:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Scott_Kilau@digi.com, adam@os.inf.tu-dresden.de, alan@lxorguk.ukuu.org.uk, git.user@gmail.com, wendyx@us.ibm.com
+Cc: vapier@gentoo.org, dwmw2@infradead.org
 
 
 The patch titled
-     serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes
+     plat_nand: add missing __devexit_p()
 has been added to the -mm tree.  Its filename is
-     serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes.patch
+     plat_nand-add-missing-__devexit_p.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: plat_nand: add missing __devexit_p()
+From: Mike Frysinger <vapier@gentoo.org>
 
-ERROR: space required after that ',' (ctx:VxV)
-#51: FILE: drivers/serial/jsm/jsm_tty.c:36:
-+static DECLARE_BITMAP(linemap,MAXLINES);
-                              ^
+The remove function uses __devexit, so the .remove assignment needs
+__devexit_p() to fix a build error with hotplug disabled.
 
-ERROR: space required after that ',' (ctx:VxV)
-#69: FILE: drivers/serial/jsm/jsm_tty.c:465:
-+		line = find_first_zero_bit(linemap,MAXLINES);
- 		                                  ^
-
-total: 2 errors, 0 warnings, 43 lines checked
-
-./patches/serial-jsm-correctly-support-4-8-port-boards.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alexander Y. Fomichev <git.user@gmail.com>
-Cc: Scott H Kilau <Scott_Kilau@digi.com>
-Cc: Wendy Xiong <wendyx@us.ibm.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_tty.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/plat_nand.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -33,7 +33,7 @@
+diff -puN drivers/mtd/nand/plat_nand.c~plat_nand-add-missing-__devexit_p drivers/mtd/nand/plat_nand.c
+--- a/drivers/mtd/nand/plat_nand.c~plat_nand-add-missing-__devexit_p
++++ a/drivers/mtd/nand/plat_nand.c
+@@ -139,7 +139,7 @@ static int __devexit plat_nand_remove(st
  
- #include "jsm.h"
- 
--static DECLARE_BITMAP(linemap,MAXLINES);
-+static DECLARE_BITMAP(linemap, MAXLINES);
- 
- static void jsm_carrier(struct jsm_channel *ch);
- 
-@@ -462,7 +462,7 @@ int __devinit jsm_uart_port_init(struct 
- 		brd->channels[i]->uart_port.membase = brd->re_map_membase;
- 		brd->channels[i]->uart_port.fifosize = 16;
- 		brd->channels[i]->uart_port.ops = &jsm_ops;
--		line = find_first_zero_bit(linemap,MAXLINES);
-+		line = find_first_zero_bit(linemap, MAXLINES);
- 		if (line >= MAXLINES) {
- 			printk(KERN_INFO "linemap is full, added device failed\n");
- 			continue;
+ static struct platform_driver plat_nand_driver = {
+ 	.probe		= plat_nand_probe,
+-	.remove		= plat_nand_remove,
++	.remove		= __devexit_p(plat_nand_remove),
+ 	.driver		= {
+ 		.name	= "gen_nand",
+ 		.owner	= THIS_MODULE,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-revert-fbdev-uninline-lock_fb_info.patch
-flat-fix-data-sections-alignment.patch
-parport_gsc-fix-printk-format-error-fix.patch
-serial-8250_gsc-fix-printk-format-warning-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-drivers-usb-serial-sierrac-fix-printk-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-serial-jsm-correctly-support-4-8-port-boards.patch
-serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+plat_nand-add-missing-__devexit_p.patch
+irda-new-blackfin-on-chip-sir-irda-driver.patch
+drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
 
