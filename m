@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mm-remove-config_unevictable_lru-config-option.patch removed from -mm tree
-Date: Thu, 28 May 2009 01:45:20 -0700
-Message-ID: <200905280845.n4S8jLGP003150@imap1.linux-foundation.org>
+Subject: + mm-remove-config_unevictable_lru-config-option.patch added to -mm tree
+Date: Thu, 28 May 2009 02:10:31 -0700
+Message-ID: <200905280910.n4S9AVk1020994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54961 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759201AbZE1IqJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755404AbZE1JLq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 04:46:09 -0400
+	Thu, 28 May 2009 05:11:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, dwmw2@infradead.org, hannes@cmpxchg.org, lee.schermerhorn@hp.com, minchan.kim@gmail.com, mpm@selenic.com, riel@redhat.com, mm-comm
+To: mm-commits@vger.kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, dwmw2@infradead.org, hannes@cmpxchg.org, lee.schermerhorn@hp.com, minchan.kim@gmail.com, mpm@selenic.com, riel@redhat.com
 
 
 The patch titled
      mm: remove CONFIG_UNEVICTABLE_LRU config option
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-remove-config_unevictable_lru-config-option.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
