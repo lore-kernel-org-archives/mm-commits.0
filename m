@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help.patch added to -mm tree
-Date: Wed, 27 May 2009 23:43:47 -0700
-Message-ID: <200905280643.n4S6hlHI014973@imap1.linux-foundation.org>
+Subject: + gitignore-ignore-kconfig-i18n-files.patch added to -mm tree
+Date: Wed, 27 May 2009 23:43:51 -0700
+Message-ID: <200905280643.n4S6hpkk014995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58111 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758725AbZE1GoL (ORCPT
+	by vger.kernel.org with ESMTP id S1756709AbZE1GoM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 02:44:11 -0400
+	Thu, 28 May 2009 02:44:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: markus.heidelberg@web.de, sam@ravnborg.org, zippel@linux-m68k.org
 
 
 The patch titled
-     kconfig: add a note about the deps to the 'silentoldconfig' help
+     gitignore: ignore Kconfig i18n files
 has been added to the -mm tree.  Its filename is
-     kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help.patch
+     gitignore-ignore-kconfig-i18n-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig: add a note about the deps to the 'silentoldconfig' help
+Subject: gitignore: ignore Kconfig i18n files
 From: Markus Heidelberg <markus.heidelberg@web.de>
 
 Signed-off-by: Markus Heidelberg <markus.heidelberg@web.de>
@@ -43,33 +43,22 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- README                   |    1 +
- scripts/kconfig/Makefile |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ scripts/kconfig/.gitignore |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN README~kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help README
---- a/README~kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help
-+++ a/README
-@@ -174,6 +174,7 @@ CONFIGURING the kernel:
- 	"make silentoldconfig"
- 			   Like above, but avoids cluttering the screen
- 			   with questions already answered.
-+			   Additionally updates the dependencies.
- 	"make defconfig"   Create a ./.config file by using the default
- 			   symbol values from arch/$ARCH/defconfig.
- 	"make allyesconfig"
-diff -puN scripts/kconfig/Makefile~kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help scripts/kconfig/Makefile
---- a/scripts/kconfig/Makefile~kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help
-+++ a/scripts/kconfig/Makefile
-@@ -83,7 +83,7 @@ help:
- 	@echo  '  xconfig	  - Update current config utilising a QT based front-end'
- 	@echo  '  gconfig	  - Update current config utilising a GTK based front-end'
- 	@echo  '  oldconfig	  - Update current config utilising a provided .config as base'
--	@echo  '  silentoldconfig - Same as oldconfig, but quietly'
-+	@echo  '  silentoldconfig - Same as oldconfig, but quietly, additionally update deps'
- 	@echo  '  randconfig	  - New config with random answer to all options'
- 	@echo  '  defconfig	  - New config with default answer to all options'
- 	@echo  '  allmodconfig	  - New config selecting modules when possible'
+diff -puN scripts/kconfig/.gitignore~gitignore-ignore-kconfig-i18n-files scripts/kconfig/.gitignore
+--- a/scripts/kconfig/.gitignore~gitignore-ignore-kconfig-i18n-files
++++ a/scripts/kconfig/.gitignore
+@@ -8,6 +8,9 @@ lex.*.c
+ zconf.hash.c
+ *.moc
+ lkc_defs.h
++gconf.glade.h
++*.pot
++*.mo
+ 
+ #
+ # configuration programs
 _
 
 Patches currently in -mm which might be from markus.heidelberg@web.de are
