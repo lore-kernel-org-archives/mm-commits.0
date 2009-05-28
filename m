@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + platinumfb-misplaced-parenthesis.patch added to -mm tree
-Date: Wed, 27 May 2009 23:57:02 -0700
-Message-ID: <200905280657.n4S6v2MW024267@imap1.linux-foundation.org>
+Subject: + atl1c-wake_mcast-tested-twice-not-wake_ucast.patch added to -mm tree
+Date: Thu, 28 May 2009 00:00:01 -0700
+Message-ID: <200905280700.n4S701xM026314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41047 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750740AbZE1G54 (ORCPT
+	by vger.kernel.org with ESMTP id S1750755AbZE1HAE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 02:57:56 -0400
+	Thu, 28 May 2009 03:00:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, benh@kernel.crashing.org, geert@linux-m68k.org, paulus@samba.org, syrjala@sci.fi
+Cc: roel.kluin@gmail.com, csnook@redhat.com, jcliburn@gmail.com, jie.yang@atheros.com
 
 
 The patch titled
-     platinumfb: fix misplaced parenthesis
+     atl1c: WAKE_MCAST tested twice, not WAKE_UCAST
 has been added to the -mm tree.  Its filename is
-     platinumfb-misplaced-parenthesis.patch
+     atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: platinumfb: fix misplaced parenthesis
+Subject: atl1c: WAKE_MCAST tested twice, not WAKE_UCAST
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Since `+' has a higher precedence than the trinary operator `?', this
-added `hres * (1 << color_mode)' to the boolean testing videomode and
-depth.
+The WAKE_MCAST bit is tested twice, the first should be WAKE_UCAST.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ville Syrjala <syrjala@sci.fi>
+Cc: Jie Yang <jie.yang@atheros.com>
+Cc: Jay Cliburn <jcliburn@gmail.com>
+Cc: Chris Snook <csnook@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/platinumfb.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/net/atl1c/atl1c_ethtool.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/platinumfb.c~platinumfb-misplaced-parenthesis drivers/video/platinumfb.c
---- a/drivers/video/platinumfb.c~platinumfb-misplaced-parenthesis
-+++ a/drivers/video/platinumfb.c
-@@ -221,10 +221,14 @@ static int platinumfb_setcolreg(u_int re
+diff -puN drivers/net/atl1c/atl1c_ethtool.c~atl1c-wake_mcast-tested-twice-not-wake_ucast drivers/net/atl1c/atl1c_ethtool.c
+--- a/drivers/net/atl1c/atl1c_ethtool.c~atl1c-wake_mcast-tested-twice-not-wake_ucast
++++ a/drivers/net/atl1c/atl1c_ethtool.c
+@@ -271,7 +271,7 @@ static int atl1c_set_wol(struct net_devi
+ 	struct atl1c_adapter *adapter = netdev_priv(netdev);
  
- static inline int platinum_vram_reqd(int video_mode, int color_mode)
- {
--	return vmode_attrs[video_mode-1].vres *
--	       (vmode_attrs[video_mode-1].hres * (1<<color_mode) +
--		((video_mode == VMODE_832_624_75) &&
--		 (color_mode > CMODE_8)) ? 0x10 : 0x20) + 0x1000;
-+	int baseval = vmode_attrs[video_mode-1].hres * (1<<color_mode);
-+
-+	if ((video_mode == VMODE_832_624_75) && (color_mode > CMODE_8))
-+		baseval += 0x10;
-+	else
-+		baseval += 0x20;
-+
-+	return vmode_attrs[video_mode-1].vres * baseval + 0x1000;
- }
- 
- #define STORE_D2(a, d) { \
+ 	if (wol->wolopts & (WAKE_ARP | WAKE_MAGICSECURE |
+-			    WAKE_MCAST | WAKE_BCAST | WAKE_MCAST))
++			    WAKE_UCAST | WAKE_BCAST | WAKE_MCAST))
+ 		return -EOPNOTSUPP;
+ 	/* these settings will always override what we currently have */
+ 	adapter->wol = 0;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -88,6 +75,7 @@ drm-fix-lock_test_with_return-macro.patch
 uwb-event_size-should-be-signed.patch
 irda-count-reaches-1.patch
 drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
+atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
 scsi-ncr53c8xx-div-reaches-1.patch
 scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
 wis-sony-tunerc-typo.patch
