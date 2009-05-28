@@ -1,50 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [folded] parport_gsc-fix-printk-format-error-fix.patch removed from -mm tree
-Date: Thu, 28 May 2009 13:54:02 -0700
-Message-ID: <200905282113.n4SLDgGe013340@imap1.linux-foundation.org>
+Subject: [folded] serial-8250_gsc-fix-printk-format-warning-fix.patch removed from -mm tree
+Date: Thu, 28 May 2009 13:54:37 -0700
+Message-ID: <200905282114.n4SLEGi5013794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756524AbZE1VOP (ORCPT
+	by vger.kernel.org with ESMTP id S1757899AbZE1VPC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 17:14:15 -0400
+	Thu, 28 May 2009 17:15:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.beregalov@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.beregalov@gmail.com, alan@lxorguk.ukuu.org.uk, kyle@mcmartin.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport_gsc-fix-printk-format-error-fix
+     serial-8250_gsc-fix-printk-format-warning-fix
 has been removed from the -mm tree.  Its filename was
-     parport_gsc-fix-printk-format-error-fix.patch
+     serial-8250_gsc-fix-printk-format-warning-fix.patch
 
-This patch was dropped because it was folded into parport_gsc-fix-printk-format-error.patch
+This patch was dropped because it was folded into serial-8250_gsc-fix-printk-format-warning.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport_gsc-fix-printk-format-error-fix
+Subject: serial-8250_gsc-fix-printk-format-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_gsc.c |    4 ++--
+ drivers/serial/8250_gsc.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/parport/parport_gsc.c~parport_gsc-fix-printk-format-error-fix drivers/parport/parport_gsc.c
---- a/drivers/parport/parport_gsc.c~parport_gsc-fix-printk-format-error-fix
-+++ a/drivers/parport/parport_gsc.c
-@@ -352,8 +352,8 @@ static int __devinit parport_init_chip(s
- 	unsigned long port;
- 
- 	if (!dev->irq) {
--		printk(KERN_WARNING "IRQ not found for parallel device at 0x%lx\n",
--			(unsigned long)dev->hpa.start);
-+		printk(KERN_WARNING "IRQ not found for parallel device at 0x%llx\n",
-+			(unsigned long long)dev->hpa.start);
+diff -puN drivers/serial/8250_gsc.c~serial-8250_gsc-fix-printk-format-warning-fix drivers/serial/8250_gsc.c
+--- a/drivers/serial/8250_gsc.c~serial-8250_gsc-fix-printk-format-warning-fix
++++ a/drivers/serial/8250_gsc.c
+@@ -39,9 +39,9 @@ static int __init serial_init_chip(struc
+ 		 */
+ 		if (parisc_parent(dev)->id.hw_type != HPHW_IOA)
+ 			printk(KERN_INFO
+-				"Serial: device 0x%lx not configured.\n"
++				"Serial: device 0x%llx not configured.\n"
+ 				"Enable support for Wax, Lasi, Asp or Dino.\n",
+-				(unsigned long)dev->hpa.start);
++				(unsigned long long)dev->hpa.start);
  		return -ENODEV;
  	}
  
@@ -56,7 +59,7 @@ origin.patch
 revert-fbdev-uninline-lock_fb_info.patch
 flat-fix-data-sections-alignment.patch
 parport_gsc-fix-printk-format-error.patch
-parport_gsc-fix-printk-format-error-fix.patch
+serial-8250_gsc-fix-printk-format-warning.patch
 serial-8250_gsc-fix-printk-format-warning-fix.patch
 linux-next.patch
 next-remove-localversion.patch
