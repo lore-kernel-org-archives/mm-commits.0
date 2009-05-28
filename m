@@ -1,88 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fsldma-fix-check-on-potential-fdev-chan-overflow.patch removed from -mm tree
-Date: Thu, 28 May 2009 12:26:57 -0700
-Message-ID: <200905281926.n4SJQvnS002663@imap1.linux-foundation.org>
+Subject: [merged] cls_cgroup-read-classid-atomically-in-classifier.patch removed from -mm tree
+Date: Thu, 28 May 2009 12:27:03 -0700
+Message-ID: <200905281927.n4SJR3mG002672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755677AbZE1T1d (ORCPT
+	by vger.kernel.org with ESMTP id S1763611AbZE1T1o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 15:27:33 -0400
+	Thu, 28 May 2009 15:27:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dan.j.williams@intel.com, leoli@freescale.com, mm-commits@vger.kernel.org
+To: menage@google.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsldma: fix check on potential fdev->chan[] overflow
+     cls_cgroup: read classid atomically in classifier
 has been removed from the -mm tree.  Its filename was
-     fsldma-fix-check-on-potential-fdev-chan-overflow.patch
+     cls_cgroup-read-classid-atomically-in-classifier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsldma: fix check on potential fdev->chan[] overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cls_cgroup: read classid atomically in classifier
+From: Paul Menage <menage@google.com>
 
-Fix the check of potential array overflow when using corrupted channel
-device tree nodes.
+Avoid reading the unsynchronized value cs->classid multiple times, since
+it could change concurrently from non-zero to zero; this would result in
+the classifier returning a positive result with a bogus (zero) classid.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/fsldma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sched/cls_cgroup.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/dma/fsldma.c~fsldma-fix-check-on-potential-fdev-chan-overflow drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~fsldma-fix-check-on-potential-fdev-chan-overflow
-+++ a/drivers/dma/fsldma.c
-@@ -831,7 +831,7 @@ static int __devinit fsl_dma_chan_probe(
- 			new_fsl_chan->reg.end - new_fsl_chan->reg.start + 1);
+diff -puN net/sched/cls_cgroup.c~cls_cgroup-read-classid-atomically-in-classifier net/sched/cls_cgroup.c
+--- a/net/sched/cls_cgroup.c~cls_cgroup-read-classid-atomically-in-classifier
++++ a/net/sched/cls_cgroup.c
+@@ -98,8 +98,7 @@ static int cls_cgroup_classify(struct sk
+ 			       struct tcf_result *res)
+ {
+ 	struct cls_cgroup_head *head = tp->root;
+-	struct cgroup_cls_state *cs;
+-	int ret = 0;
++	u32 classid;
  
- 	new_fsl_chan->id = ((new_fsl_chan->reg.start - 0x100) & 0xfff) >> 7;
--	if (new_fsl_chan->id > FSL_DMA_MAX_CHANS_PER_DEVICE) {
-+	if (new_fsl_chan->id >= FSL_DMA_MAX_CHANS_PER_DEVICE) {
- 		dev_err(fdev->dev, "There is no %d channel!\n",
- 				new_fsl_chan->id);
- 		err = -EINVAL;
+ 	/*
+ 	 * Due to the nature of the classifier it is required to ignore all
+@@ -115,17 +114,18 @@ static int cls_cgroup_classify(struct sk
+ 		return -1;
+ 
+ 	rcu_read_lock();
+-	cs = task_cls_state(current);
+-	if (cs->classid && tcf_em_tree_match(skb, &head->ematches, NULL)) {
+-		res->classid = cs->classid;
+-		res->class = 0;
+-		ret = tcf_exts_exec(skb, &head->exts, res);
+-	} else
+-		ret = -1;
+-
++	classid = task_cls_state(current)->classid;
+ 	rcu_read_unlock();
+ 
+-	return ret;
++	if (!classid)
++		return -1;
++
++	if (!tcf_em_tree_match(skb, &head->ematches, NULL))
++		return -1;
++
++	res->classid = classid;
++	res->class = 0;
++	return tcf_exts_exec(skb, &head->exts, res);
+ }
+ 
+ static unsigned long cls_cgroup_get(struct tcf_proto *tp, u32 handle)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from menage@google.com are
 
-origin.patch
-drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
 linux-next.patch
-soc-correct-print-specifiers-for-unsigneds.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-drm-fix-lock_test_with_return-macro.patch
-uwb-event_size-should-be-signed.patch
-irda-count-reaches-1.patch
-drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
-atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-wis-sony-tunerc-typo.patch
-otus-80211core-coidc-fix-array-range-check.patch
-wmm_paramac_aci_acm_aifsn-tested-twice.patch
-lguest-fix-array-indexing-check.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-platinumfb-misplaced-parenthesis.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+cgroups-make-messages-more-readable.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+add-a-refcount-check-in-dput.patch
 
