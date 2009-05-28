@@ -1,95 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash.patch removed from -mm tree
-Date: Thu, 28 May 2009 12:26:52 -0700
-Message-ID: <200905281926.n4SJQq2W002544@imap1.linux-foundation.org>
+Subject: [merged] fsldma-fix-check-on-potential-fdev-chan-overflow.patch removed from -mm tree
+Date: Thu, 28 May 2009 12:26:57 -0700
+Message-ID: <200905281926.n4SJQvnS002663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751728AbZE1T1L (ORCPT
+	by vger.kernel.org with ESMTP id S1755677AbZE1T1d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 15:27:11 -0400
+	Thu, 28 May 2009 15:27:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: len.brown@intel.com, venkatesh.pallipadi@intel.com, youquan.song@intel.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, dan.j.williams@intel.com, leoli@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: sanity check _PSS frequency to prevent cpufreq crash
+     fsldma: fix check on potential fdev->chan[] overflow
 has been removed from the -mm tree.  Its filename was
-     acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash.patch
+     fsldma-fix-check-on-potential-fdev-chan-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: sanity check _PSS frequency to prevent cpufreq crash
-From: Len Brown <len.brown@intel.com>
+Subject: fsldma: fix check on potential fdev->chan[] overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-When BIOS SETUP is changed to disable EIST, some BIOS hand the OS an
-un-initialized _PSS:
+Fix the check of potential array overflow when using corrupted channel
+device tree nodes.
 
-        Name (_PSS, Package (0x06)
-        {
-            Package (0x06)
-            {
-                0x80000000,	// frequency [MHz]
-                0x80000000,	// power [mW]
-                0x80000000,	// latency [us]
-                0x80000000,	// BM latency [us]
-                0x80000000,	// control
-                0x80000000	// status
-            },
-	    ...
-
-These are outrageous values for frequency, power and latency, raising the
-question where to draw the line between legal and illegal.  We tend to
-survive garbage in the power and latency fields, but we can BUG_ON when
-garbage is in the frequency field.
-
-Cpufreq multiplies the frequency by 1000 and stores it in a u32 KHz.  So
-disregard a _PSS with a frequency so large that it can't be represented by
-cpufreq.
-
-Addresses https://bugzilla.redhat.com/show_bug.cgi?id=500311
-
-Signed-off-by: Len Brown <len.brown@intel.com>
-Cc: Youquan, Song <youquan.song@intel.com>
-Cc: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_perflib.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/dma/fsldma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_perflib.c~acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~acpi-sanity-check-_pss-frequency-to-prevent-cpufreq-crash
-+++ a/drivers/acpi/processor_perflib.c
-@@ -309,9 +309,13 @@ static int acpi_processor_get_performanc
- 				  (u32) px->bus_master_latency,
- 				  (u32) px->control, (u32) px->status));
+diff -puN drivers/dma/fsldma.c~fsldma-fix-check-on-potential-fdev-chan-overflow drivers/dma/fsldma.c
+--- a/drivers/dma/fsldma.c~fsldma-fix-check-on-potential-fdev-chan-overflow
++++ a/drivers/dma/fsldma.c
+@@ -831,7 +831,7 @@ static int __devinit fsl_dma_chan_probe(
+ 			new_fsl_chan->reg.end - new_fsl_chan->reg.start + 1);
  
--		if (!px->core_frequency) {
--			printk(KERN_ERR PREFIX
--				    "Invalid _PSS data: freq is zero\n");
-+		/*
-+ 		 * Check that ACPI's u64 MHz will be valid as u32 KHz in cpufreq
-+		 */
-+		if (!px->core_frequency ||
-+			((u32)(px->core_frequency * 1000) != (px->core_frequency * 1000))) {
-+			printk(KERN_ERR FW_BUG PREFIX
-+				    "Invalid BIOS _PSS frequency: 0x%llx MHz\n", px->core_frequency);
- 			result = -EFAULT;
- 			kfree(pr->performance->states);
- 			goto end;
+ 	new_fsl_chan->id = ((new_fsl_chan->reg.start - 0x100) & 0xfff) >> 7;
+-	if (new_fsl_chan->id > FSL_DMA_MAX_CHANS_PER_DEVICE) {
++	if (new_fsl_chan->id >= FSL_DMA_MAX_CHANS_PER_DEVICE) {
+ 		dev_err(fdev->dev, "There is no %d channel!\n",
+ 				new_fsl_chan->id);
+ 		err = -EINVAL;
 _
 
-Patches currently in -mm which might be from len.brown@intel.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
+drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
 linux-next.patch
-dell-laptop-fix-uninitialized-wrong-return-value.patch
-dell-wmi-mask-off-bis-provided-garbage-in-scancode-data.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+soc-correct-print-specifiers-for-unsigneds.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+drm-fix-lock_test_with_return-macro.patch
+uwb-event_size-should-be-signed.patch
+irda-count-reaches-1.patch
+drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
+atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+wis-sony-tunerc-typo.patch
+otus-80211core-coidc-fix-array-range-check.patch
+wmm_paramac_aci_acm_aifsn-tested-twice.patch
+lguest-fix-array-indexing-check.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+spi_bfin5xx-limit-reaches-1.patch
+carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+platinumfb-misplaced-parenthesis.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
