@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + virtio_blk-add-missing-__devinitexit-markings.patch added to -mm tree
-Date: Wed, 27 May 2009 23:25:06 -0700
-Message-ID: <200905280625.n4S6P6Gc001774@imap1.linux-foundation.org>
+Subject: + s3c-fb-fix-resource-releasing-on-error-during-probing.patch added to -mm tree
+Date: Wed, 27 May 2009 23:31:28 -0700
+Message-ID: <200905280631.n4S6VSBS006249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751097AbZE1GZL (ORCPT
+	by vger.kernel.org with ESMTP id S1751380AbZE1GcO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 02:25:11 -0400
+	Thu, 28 May 2009 02:32:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, rusty@rustcorp.com.au
+Cc: krzysztof.h1@wp.pl, ben-linux@fluff.org, kyungmin.park@samsung.com, m.szyprowski@samsung.com
 
 
 The patch titled
-     virtio_blk: add missing __dev{init,exit} markings
+     s3c-fb: fix resource releasing on error during probing
 has been added to the -mm tree.  Its filename is
-     virtio_blk-add-missing-__devinitexit-markings.patch
+     s3c-fb-fix-resource-releasing-on-error-during-probing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: virtio_blk: add missing __dev{init,exit} markings
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: s3c-fb: fix resource releasing on error during probing
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The remove member of the virtio_driver structure uses __devexit_p(), so
-the remove function itself should be marked with __devexit.  And where
-there be __devexit on the remove, so is there __devinit on the probe.
+All resources are released in s3c_fb_win_release so remove other places of
+resources releasing.  Add releasing of an allocated fb_info structure as
+well.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/virtio_blk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/s3c-fb.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN drivers/block/virtio_blk.c~virtio_blk-add-missing-__devinitexit-markings drivers/block/virtio_blk.c
---- a/drivers/block/virtio_blk.c~virtio_blk-add-missing-__devinitexit-markings
-+++ a/drivers/block/virtio_blk.c
-@@ -223,7 +223,7 @@ static int index_to_minor(int index)
- 	return index << PART_BITS;
+diff -puN drivers/video/s3c-fb.c~s3c-fb-fix-resource-releasing-on-error-during-probing drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~s3c-fb-fix-resource-releasing-on-error-during-probing
++++ a/drivers/video/s3c-fb.c
+@@ -725,9 +725,12 @@ static void s3c_fb_free_memory(struct s3
+  */
+ static void s3c_fb_release_win(struct s3c_fb *sfb, struct s3c_fb_win *win)
+ {
+-	fb_dealloc_cmap(&win->fbinfo->cmap);
+-	unregister_framebuffer(win->fbinfo);
+-	s3c_fb_free_memory(sfb, win);
++	if (win->fbinfo) {
++		unregister_framebuffer(win->fbinfo);
++		fb_dealloc_cmap(&win->fbinfo->cmap);
++		s3c_fb_free_memory(sfb, win);
++		framebuffer_release(win->fbinfo);
++	}
  }
  
--static int virtblk_probe(struct virtio_device *vdev)
-+static int __devinit virtblk_probe(struct virtio_device *vdev)
- {
- 	struct virtio_blk *vblk;
- 	int err;
-@@ -364,7 +364,7 @@ out:
- 	return err;
- }
+ /**
+@@ -778,7 +781,7 @@ static int __devinit s3c_fb_probe_win(st
+ 	ret = s3c_fb_alloc_memory(sfb, win);
+ 	if (ret) {
+ 		dev_err(sfb->dev, "failed to allocate display memory\n");
+-		goto err_framebuffer;
++		return ret;
+ 	}
  
--static void virtblk_remove(struct virtio_device *vdev)
-+static void __devexit virtblk_remove(struct virtio_device *vdev)
- {
- 	struct virtio_blk *vblk = vdev->priv;
+ 	/* setup the r/b/g positions for the window's palette */
+@@ -801,7 +804,7 @@ static int __devinit s3c_fb_probe_win(st
+ 	ret = s3c_fb_check_var(&fbinfo->var, fbinfo);
+ 	if (ret < 0) {
+ 		dev_err(sfb->dev, "check_var failed on initial video params\n");
+-		goto err_alloc_mem;
++		return ret;
+ 	}
  
-_
-
-Patches currently in -mm which might be from vapier@gentoo.org are
-
-origin.patch
-linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-drivers-hvc-add-missing-__devexit_p.patch
-plat_nand-add-missing-__devexit_p.patch
-irda-new-blackfin-on-chip-sir-irda-driver.patch
-crypto-hifn_795x-fix-__devinitexit-markings.patch
-drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
-gpio-max7301-add-missing-__devexit-marking.patch
-istallion-add-missing-__devexit-marking.patch
-edac-add-missing-__devexit_p.patch
-virtio_blk-add-missing-__devinitexit-markings.patch
-
+ 	/* create initial colour map */
+@@ -821,20 +824,13 @@ static int __devinit s3c_fb_probe_win(st
+ 	ret = register_framebuffer(fbinfo);
+ 	if (ret < 0) {
+ 		dev_err(sfb->dev, "failed to register framebuffer\n");
+-		goto err_alloc_mem;
++		return ret;
+ 	}
+ 
+ 	*res = win;
+ 	dev_info(sfb->dev, "window %d: fb %s\n", win_no, fbinfo->fix.id);
+ 
+ 	return 0;
+-
+-err_alloc_mem:
+-	s3c_fb_free_memory(sfb, win);
