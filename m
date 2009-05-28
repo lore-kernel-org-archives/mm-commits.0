@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + edac-amd8111-amd8131-use-dev_name.patch added to -mm tree
-Date: Thu, 28 May 2009 00:45:26 -0700
-Message-ID: <200905280745.n4S7jQjk025793@imap1.linux-foundation.org>
+Subject: + edac-amd8111-amd8131-kconfig-fixup.patch added to -mm tree
+Date: Thu, 28 May 2009 00:45:28 -0700
+Message-ID: <200905280745.n4S7jSQL025864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43133 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57793 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750964AbZE1Hp0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752578AbZE1Hp2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 03:45:26 -0400
+	Thu, 28 May 2009 03:45:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: qingtao.cao@windriver.com, norsk5@yahoo.com
 
 
 The patch titled
-     edac: AMD8111 & AMD8131 use dev_name()
+     edac: AMD8111 & AMD8131 Kconfig fixup
 has been added to the -mm tree.  Its filename is
-     edac-amd8111-amd8131-use-dev_name.patch
+     edac-amd8111-amd8131-kconfig-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: AMD8111 & AMD8131 use dev_name()
+Subject: edac: AMD8111 & AMD8131 Kconfig fixup
 From: Harry Ciao <qingtao.cao@windriver.com>
 
-The "bus_id" member in the device structure has been obsolete, use
-dev_name() instead.
+The amd8111_edac.c driver will fail allmodconfig on architectures other
+than PPC, introduce Kconfig dependency to avoid this, since both AMD8111
+and AMD8131 chips are only adopted on Maple so far.
 
 Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
 Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/amd8111_edac.c |    4 ++--
- drivers/edac/amd8131_edac.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/edac/Kconfig  |    8 ++++++--
+ drivers/edac/Makefile |    2 ++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/edac/amd8111_edac.c~edac-amd8111-amd8131-use-dev_name drivers/edac/amd8111_edac.c
---- a/drivers/edac/amd8111_edac.c~edac-amd8111-amd8131-use-dev_name
-+++ a/drivers/edac/amd8111_edac.c
-@@ -389,7 +389,7 @@ static int amd8111_dev_probe(struct pci_
- 	dev_info->edac_dev->dev = &dev_info->dev->dev;
- 	dev_info->edac_dev->mod_name = AMD8111_EDAC_MOD_STR;
- 	dev_info->edac_dev->ctl_name = dev_info->ctl_name;
--	dev_info->edac_dev->dev_name = dev_info->dev->dev.bus_id;
-+	dev_info->edac_dev->dev_name = dev_name(&dev_info->dev->dev);
+diff -puN drivers/edac/Kconfig~edac-amd8111-amd8131-kconfig-fixup drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~edac-amd8111-amd8131-kconfig-fixup
++++ a/drivers/edac/Kconfig
+@@ -192,16 +192,20 @@ config EDAC_PPC4XX
  
- 	if (edac_op_state == EDAC_OPSTATE_POLL)
- 		dev_info->edac_dev->edac_check = dev_info->check;
-@@ -473,7 +473,7 @@ static int amd8111_pci_probe(struct pci_
- 	pci_info->edac_dev->dev = &pci_info->dev->dev;
- 	pci_info->edac_dev->mod_name = AMD8111_EDAC_MOD_STR;
- 	pci_info->edac_dev->ctl_name = pci_info->ctl_name;
--	pci_info->edac_dev->dev_name = pci_info->dev->dev.bus_id;
-+	pci_info->edac_dev->dev_name = dev_name(&pci_info->dev->dev);
+ config EDAC_AMD8131
+ 	tristate "AMD8131 HyperTransport PCI-X Tunnel"
+-	depends on EDAC_MM_EDAC && PCI
++	depends on EDAC_MM_EDAC && PCI && PPC_MAPLE
+ 	help
+ 	  Support for error detection and correction on the
+ 	  AMD8131 HyperTransport PCI-X Tunnel chip.
++	  Note, add more Kconfig dependency if it's adopted
++	  on some machine other than Maple.
  
- 	if (edac_op_state == EDAC_OPSTATE_POLL)
- 		pci_info->edac_dev->edac_check = pci_info->check;
-diff -puN drivers/edac/amd8131_edac.c~edac-amd8111-amd8131-use-dev_name drivers/edac/amd8131_edac.c
---- a/drivers/edac/amd8131_edac.c~edac-amd8111-amd8131-use-dev_name
-+++ a/drivers/edac/amd8131_edac.c
-@@ -287,7 +287,7 @@ static int amd8131_probe(struct pci_dev 
- 	dev_info->edac_dev->dev = &dev_info->dev->dev;
- 	dev_info->edac_dev->mod_name = AMD8131_EDAC_MOD_STR;
- 	dev_info->edac_dev->ctl_name = dev_info->ctl_name;
--	dev_info->edac_dev->dev_name = dev_info->dev->dev.bus_id;
-+	dev_info->edac_dev->dev_name = dev_name(&dev_info->dev->dev);
+ config EDAC_AMD8111
+ 	tristate "AMD8111 HyperTransport I/O Hub"
+-	depends on EDAC_MM_EDAC && PCI
++	depends on EDAC_MM_EDAC && PCI && PPC_MAPLE
+ 	help
+ 	  Support for error detection and correction on the
+ 	  AMD8111 HyperTransport I/O Hub chip.
++	  Note, add more Kconfig dependency if it's adopted
++	  on some machine other than Maple.
  
- 	if (edac_op_state == EDAC_OPSTATE_POLL)
- 		dev_info->edac_dev->edac_check = amd8131_chipset.check;
+ endif # EDAC
+diff -puN drivers/edac/Makefile~edac-amd8111-amd8131-kconfig-fixup drivers/edac/Makefile
+--- a/drivers/edac/Makefile~edac-amd8111-amd8131-kconfig-fixup
++++ a/drivers/edac/Makefile
+@@ -35,3 +35,5 @@ obj-$(CONFIG_EDAC_MPC85XX)		+= mpc85xx_e
+ obj-$(CONFIG_EDAC_MV64X60)		+= mv64x60_edac.o
+ obj-$(CONFIG_EDAC_CELL)			+= cell_edac.o
+ obj-$(CONFIG_EDAC_PPC4XX)		+= ppc4xx_edac.o
++obj-$(CONFIG_EDAC_AMD8111)		+= amd8111_edac.o
++obj-$(CONFIG_EDAC_AMD8131)		+= amd8131_edac.o
 _
 
 Patches currently in -mm which might be from qingtao.cao@windriver.com are
