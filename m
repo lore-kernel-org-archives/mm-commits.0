@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch added to -mm tree
-Date: Thu, 28 May 2009 14:29:58 -0700
-Message-ID: <200905282149.n4SLnbk0006316@imap1.linux-foundation.org>
+Subject: + ds_selftest-is-borked.patch added to -mm tree
+Date: Thu, 28 May 2009 15:39:20 -0700
+Message-ID: <200905282258.n4SMwxxO022940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54170 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751120AbZE1Vtt (ORCPT
+	by vger.kernel.org with ESMTP id S1752824AbZE1W7K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 17:49:49 -0400
+	Thu, 28 May 2009 18:59:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu
+Cc: akpm@linux-foundation.org, markus.t.metzger@intel.com, mingo@elte.hu
 
 
 The patch titled
-     dma-mapping-add-asm-generic-dma-mapping-commonh-fix
+     ds_selftest is borked
 has been added to the -mm tree.  Its filename is
-     dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch
+     ds_selftest-is-borked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-asm-generic-dma-mapping-commonh-fix
+Subject: ds_selftest is borked
 From: Andrew Morton <akpm@linux-foundation.org>
 
-bah.
+kconfig keeps on resurrecting this.  Make it (and its oops) go away.
 
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Markus Metzger <markus.t.metzger@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/dma-mapping-common.h |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/x86/kernel/ds.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix include/asm-generic/dma-mapping-common.h
---- a/include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix
-+++ a/include/asm-generic/dma-mapping-common.h
-@@ -1,7 +1,6 @@
- #ifndef _ASM_GENERIC_DMA_MAPPING_H
- #define _ASM_GENERIC_DMA_MAPPING_H
+diff -puN arch/x86/kernel/ds.c~ds_selftest-is-borked arch/x86/kernel/ds.c
+--- a/arch/x86/kernel/ds.c~ds_selftest-is-borked
++++ a/arch/x86/kernel/ds.c
+@@ -1412,6 +1412,8 @@ void ds_switch_to(struct task_struct *pr
  
--#include <linux/kmemcheck.h>
- #include <linux/scatterlist.h>
- #include <linux/dma-debug.h>
- #include <linux/dma-attrs.h>
-@@ -14,7 +13,6 @@ static inline dma_addr_t dma_map_single_
- 	struct dma_map_ops *ops = get_dma_ops(dev);
- 	dma_addr_t addr;
+ static __init int ds_selftest(void)
+ {
++	return 0;
++
+ 	if (ds_cfg.sizeof_rec[ds_bts]) {
+ 		int error;
  
--	kmemcheck_mark_initialized(ptr, size);
- 	BUG_ON(!valid_dma_direction(dir));
- 	addr = ops->map_page(dev, virt_to_page(ptr),
- 			     (unsigned long)ptr & ~PAGE_MASK, size,
-@@ -46,8 +44,6 @@ static inline int dma_map_sg_attrs(struc
- 	int i, ents;
- 	struct scatterlist *s;
- 
--	for_each_sg(sg, s, nents, i)
--		kmemcheck_mark_initialized(sg_virt(s), s->length);
- 	BUG_ON(!valid_dma_direction(dir));
- 	ents = ops->map_sg(dev, sg, nents, dir, attrs);
- 	debug_dma_map_sg(dev, sg, nents, ents, dir);
-@@ -74,7 +70,6 @@ static inline dma_addr_t dma_map_page(st
- 	struct dma_map_ops *ops = get_dma_ops(dev);
- 	dma_addr_t addr;
- 
--	kmemcheck_mark_initialized(page_address(page) + offset, size);
- 	BUG_ON(!valid_dma_direction(dir));
- 	addr = ops->map_page(dev, page, offset, size, dir, NULL);
- 	debug_dma_map_page(dev, page, offset, size, dir, addr, false);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +71,7 @@ serial-8250_gsc-fix-printk-format-warning.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
+ds_selftest-is-borked.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
 cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
 devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
