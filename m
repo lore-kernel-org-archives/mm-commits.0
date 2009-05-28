@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-resort-the-documentation-of-the-environment-variables.patch added to -mm tree
-Date: Wed, 27 May 2009 23:43:49 -0700
-Message-ID: <200905280643.n4S6hoBc014978@imap1.linux-foundation.org>
+Subject: + kconfig-qconf-add-namespace-for-use-of-key_-enum-values.patch added to -mm tree
+Date: Wed, 27 May 2009 23:43:57 -0700
+Message-ID: <200905280643.n4S6hvjN015098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758985AbZE1GoN (ORCPT
+	by vger.kernel.org with ESMTP id S1758649AbZE1GoS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 May 2009 02:44:13 -0400
+	Thu, 28 May 2009 02:44:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: markus.heidelberg@web.de, sam@ravnborg.org, zippel@linux-m68k.org
 
 
 The patch titled
-     kconfig: resort the documentation of the environment variables
+     kconfig qconf: add namespace for use of Key_ enum values
 has been added to the -mm tree.  Its filename is
-     kconfig-resort-the-documentation-of-the-environment-variables.patch
+     kconfig-qconf-add-namespace-for-use-of-key_-enum-values.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig: resort the documentation of the environment variables
+Subject: kconfig qconf: add namespace for use of Key_ enum values
 From: Markus Heidelberg <markus.heidelberg@web.de>
 
-All the KCONFIG_ environment variables were previously located in a
-section "Environment variables in 'menuconfig'", but neither are they
-restricted to 'menuconfig' nor are they all used by 'menuconfig'.
+They are defined in the 'Qt' namespace.
 
-Introduce the following three sections for these variables:
-  * Environment variables for '*config'
-  * Environment variables for '{allyes/allmod/allno/rand}config'
-  * Environment variables for 'silentoldconfig'
+Fixes the following compiler errors after a quick conversion with 'qt3to4',
+which occured with g++ 3.4.6 and 4.1.2, but not anymore with 4.3.2.
 
-Furthermore this puts MENUCONFIG_MODE next to MENUCONFIG_COLOR into a
-common section "User interface options for 'menuconfig'".
+scripts/kconfig/qconf.cc: In member function 'virtual void ConfigLineEdit::keyPressEvent(QKeyEvent*)':
+scripts/kconfig/qconf.cc:311: error: 'Key_Escape' was not declared in this scope
+scripts/kconfig/qconf.cc:313: error: 'Key_Return' was not declared in this scope
+scripts/kconfig/qconf.cc:314: error: 'Key_Enter' was not declared in this scope
+
+scripts/kconfig/qconf.cc: In member function 'virtual void ConfigList::keyPressEvent(QKeyEvent*)':
+scripts/kconfig/qconf.cc:653: error: 'Key_Escape' was not declared in this scope
+scripts/kconfig/qconf.cc:666: error: 'Key_Return' was not declared in this scope
+scripts/kconfig/qconf.cc:667: error: 'Key_Enter' was not declared in this scope
+scripts/kconfig/qconf.cc:681: error: 'Key_Space' was not declared in this scope
+scripts/kconfig/qconf.cc:684: error: 'Key_N' was not declared in this scope
+scripts/kconfig/qconf.cc:687: error: 'Key_M' was not declared in this scope
+scripts/kconfig/qconf.cc:690: error: 'Key_Y' was not declared in this scope
+
+scripts/kconfig/qconf.cc: In constructor 'ConfigMainWindow::ConfigMainWindow()':
+scripts/kconfig/qconf.cc:1329: error: 'CTRL' was not declared in this scope
+scripts/kconfig/qconf.cc:1329: error: 'Key_Q' was not declared in this scope
+scripts/kconfig/qconf.cc:1331: error: 'Key_L' was not declared in this scope
+scripts/kconfig/qconf.cc:1333: error: 'Key_S' was not declared in this scope
+scripts/kconfig/qconf.cc:1340: error: 'Key_F' was not declared in this scope
 
 Signed-off-by: Markus Heidelberg <markus.heidelberg@web.de>
 Cc: Sam Ravnborg <sam@ravnborg.org>
@@ -55,173 +69,90 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kbuild/kconfig.txt |  116 +++++++++++++++--------------
- 1 file changed, 60 insertions(+), 56 deletions(-)
+ scripts/kconfig/qconf.cc |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN Documentation/kbuild/kconfig.txt~kconfig-resort-the-documentation-of-the-environment-variables Documentation/kbuild/kconfig.txt
---- a/Documentation/kbuild/kconfig.txt~kconfig-resort-the-documentation-of-the-environment-variables
-+++ a/Documentation/kbuild/kconfig.txt
-@@ -35,48 +35,26 @@ new .config files to see the differences
+diff -puN scripts/kconfig/qconf.cc~kconfig-qconf-add-namespace-for-use-of-key_-enum-values scripts/kconfig/qconf.cc
+--- a/scripts/kconfig/qconf.cc~kconfig-qconf-add-namespace-for-use-of-key_-enum-values
++++ a/scripts/kconfig/qconf.cc
+@@ -297,10 +297,10 @@ void ConfigLineEdit::show(ConfigItem* i)
+ void ConfigLineEdit::keyPressEvent(QKeyEvent* e)
+ {
+ 	switch (e->key()) {
+-	case Key_Escape:
++	case Qt::Key_Escape:
+ 		break;
+-	case Key_Return:
+-	case Key_Enter:
++	case Qt::Key_Return:
++	case Qt::Key_Enter:
+ 		sym_set_string_value(item->menu->sym, text().latin1());
+ 		parent()->updateList(item);
+ 		break;
+@@ -639,7 +639,7 @@ void ConfigList::keyPressEvent(QKeyEvent
+ 	struct menu *menu;
+ 	enum prop_type type;
  
- (Yes, we need something better here.)
+-	if (ev->key() == Key_Escape && mode != fullMode && mode != listMode) {
++	if (ev->key() == Qt::Key_Escape && mode != fullMode && mode != listMode) {
+ 		emit parentSelected();
+ 		ev->accept();
+ 		return;
+@@ -652,8 +652,8 @@ void ConfigList::keyPressEvent(QKeyEvent
+ 	item = (ConfigItem*)i;
  
--
--======================================================================
--menuconfig
----------------------------------------------------
--
--SEARCHING for CONFIG symbols
--
--Searching in menuconfig:
--
--	The Search function searches for kernel configuration symbol
--	names, so you have to know something close to what you are
--	looking for.
--
--	Example:
--		/hotplug
--		This lists all config symbols that contain "hotplug",
--		e.g., HOTPLUG, HOTPLUG_CPU, MEMORY_HOTPLUG.
--
--	For search help, enter / followed TAB-TAB-TAB (to highlight
--	<Help>) and Enter.  This will tell you that you can also use
--	regular expressions (regexes) in the search string, so if you
--	are not interested in MEMORY_HOTPLUG, you could try
--
--		/^hotplug
--
--
- ______________________________________________________________________
--Color Themes for 'menuconfig'
-+Environment variables for '*config'
- 
--It is possible to select different color themes using the variable
--MENUCONFIG_COLOR.  To select a theme use:
-+KCONFIG_CONFIG
-+--------------------------------------------------
-+This environment variable can be used to specify a default kernel config
-+file name to override the default name of ".config".
- 
--	make MENUCONFIG_COLOR=<theme> menuconfig
-+KCONFIG_OVERWRITECONFIG
-+--------------------------------------------------
-+If you set KCONFIG_OVERWRITECONFIG in the environment, Kconfig will not
-+break symlinks when .config is a symlink to somewhere else.
- 
--Available themes are:
--  mono       => selects colors suitable for monochrome displays
--  blackbg    => selects a color scheme with black background
--  classic    => theme with blue background. The classic look
--  bluetitle  => a LCD friendly version of classic. (default)
-+KCONFIG_NOTIMESTAMP
-+--------------------------------------------------
-+If this environment variable exists and is non-null, the timestamp line
-+in generated .config files is omitted.
- 
- ______________________________________________________________________
--Environment variables in 'menuconfig'
-+Environment variables for '{allyes/allmod/allno/rand}config'
- 
- KCONFIG_ALLCONFIG
- --------------------------------------------------
-@@ -95,8 +73,7 @@ values.
- This enables you to create "miniature" config (miniconfig) or custom
- config files containing just the config symbols that you are interested
- in.  Then the kernel config system generates the full .config file,
--including dependencies of your miniconfig file, based on the miniconfig
--file.
-+including symbols of your miniconfig file.
- 
- This 'KCONFIG_ALLCONFIG' file is a config file which contains
- (usually a subset of all) preset config symbols.  These variable
-@@ -113,26 +90,14 @@ These examples will disable most options
- disable the options that are explicitly listed in the specified
- mini-config files.
- 
-+______________________________________________________________________
-+Environment variables for 'silentoldconfig'
-+
- KCONFIG_NOSILENTUPDATE
- --------------------------------------------------
- If this variable has a non-blank value, it prevents silent kernel
- config udpates (requires explicit updates).
- 
--KCONFIG_CONFIG
----------------------------------------------------
--This environment variable can be used to specify a default kernel config
--file name to override the default name of ".config".
--
--KCONFIG_OVERWRITECONFIG
----------------------------------------------------
--If you set KCONFIG_OVERWRITECONFIG in the environment, Kconfig will not
--break symlinks when .config is a symlink to somewhere else.
--
--KCONFIG_NOTIMESTAMP
----------------------------------------------------
--If this environment variable exists and is non-null, the timestamp line
--in generated .config files is omitted.
--
- KCONFIG_AUTOCONFIG
- --------------------------------------------------
- This environment variable can be set to specify the path & name of the
-@@ -143,15 +108,54 @@ KCONFIG_AUTOHEADER
- This environment variable can be set to specify the path & name of the
- "autoconf.h" (header) file.  Its default value is "include/linux/autoconf.h".
- 
-+
-+======================================================================
-+menuconfig
-+--------------------------------------------------
-+
-+SEARCHING for CONFIG symbols
-+
-+Searching in menuconfig:
-+
-+	The Search function searches for kernel configuration symbol
-+	names, so you have to know something close to what you are
-+	looking for.
-+
-+	Example:
-+		/hotplug
-+		This lists all config symbols that contain "hotplug",
-+		e.g., HOTPLUG, HOTPLUG_CPU, MEMORY_HOTPLUG.
-+
-+	For search help, enter / followed TAB-TAB-TAB (to highlight
-+	<Help>) and Enter.  This will tell you that you can also use
-+	regular expressions (regexes) in the search string, so if you
-+	are not interested in MEMORY_HOTPLUG, you could try
-+
-+		/^hotplug
-+
- ______________________________________________________________________
--menuconfig User Interface Options
------------------------------------------------------------------------
-+User interface options for 'menuconfig'
-+
-+MENUCONFIG_COLOR
-+--------------------------------------------------
-+It is possible to select different color themes using the variable
-+MENUCONFIG_COLOR.  To select a theme use:
-+
-+	make MENUCONFIG_COLOR=<theme> menuconfig
-+
-+Available themes are:
-+  mono       => selects colors suitable for monochrome displays
-+  blackbg    => selects a color scheme with black background
-+  classic    => theme with blue background. The classic look
-+  bluetitle  => a LCD friendly version of classic. (default)
-+
- MENUCONFIG_MODE
- --------------------------------------------------
- This mode shows all sub-menus in one large tree.
- 
- Example:
--	MENUCONFIG_MODE=single_menu make menuconfig
-+	make MENUCONFIG_MODE=single_menu menuconfig
-+
- 
- ======================================================================
- xconfig
+ 	switch (ev->key()) {
+-	case Key_Return:
+-	case Key_Enter:
++	case Qt::Key_Return:
++	case Qt::Key_Enter:
+ 		if (item->goParent) {
+ 			emit parentSelected();
+ 			break;
+@@ -667,16 +667,16 @@ void ConfigList::keyPressEvent(QKeyEvent
+ 			emit menuSelected(menu);
+ 			break;
+ 		}
+-	case Key_Space:
++	case Qt::Key_Space:
+ 		changeValue(item);
+ 		break;
+-	case Key_N:
++	case Qt::Key_N:
+ 		setValue(item, no);
+ 		break;
+-	case Key_M:
++	case Qt::Key_M:
+ 		setValue(item, mod);
+ 		break;
+-	case Key_Y:
++	case Qt::Key_Y:
+ 		setValue(item, yes);
+ 		break;
+ 	default:
+@@ -1315,18 +1315,18 @@ ConfigMainWindow::ConfigMainWindow(void)
+ 	backAction = new QAction("Back", QPixmap(xpm_back), _("Back"), 0, this);
+ 	  connect(backAction, SIGNAL(activated()), SLOT(goBack()));
+ 	  backAction->setEnabled(FALSE);
+-	QAction *quitAction = new QAction("Quit", _("&Quit"), CTRL+Key_Q, this);
++	QAction *quitAction = new QAction("Quit", _("&Quit"), Qt::CTRL + Qt::Key_Q, this);
+ 	  connect(quitAction, SIGNAL(activated()), SLOT(close()));
+-	QAction *loadAction = new QAction("Load", QPixmap(xpm_load), _("&Load"), CTRL+Key_L, this);
++	QAction *loadAction = new QAction("Load", QPixmap(xpm_load), _("&Load"), Qt::CTRL + Qt::Key_L, this);
+ 	  connect(loadAction, SIGNAL(activated()), SLOT(loadConfig()));
+-	saveAction = new QAction("Save", QPixmap(xpm_save), _("&Save"), CTRL+Key_S, this);
++	saveAction = new QAction("Save", QPixmap(xpm_save), _("&Save"), Qt::CTRL + Qt::Key_S, this);
+ 	  connect(saveAction, SIGNAL(activated()), SLOT(saveConfig()));
+ 	conf_set_changed_callback(conf_changed);
+ 	// Set saveAction's initial state
+ 	conf_changed();
+ 	QAction *saveAsAction = new QAction("Save As...", _("Save &As..."), 0, this);
+ 	  connect(saveAsAction, SIGNAL(activated()), SLOT(saveConfigAs()));
+-	QAction *searchAction = new QAction("Find", _("&Find"), CTRL+Key_F, this);
++	QAction *searchAction = new QAction("Find", _("&Find"), Qt::CTRL + Qt::Key_F, this);
+ 	  connect(searchAction, SIGNAL(activated()), SLOT(searchConfig()));
+ 	QAction *singleViewAction = new QAction("Single View", QPixmap(xpm_single_view), _("Single View"), 0, this);
+ 	  connect(singleViewAction, SIGNAL(activated()), SLOT(showSingleView()));
 _
 
 Patches currently in -mm which might be from markus.heidelberg@web.de are
