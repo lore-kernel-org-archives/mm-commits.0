@@ -1,198 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: + s3c-fb-cpufreq-frequency-scaling-support.patch added to -mm tree
-Date: Fri, 29 May 2009 13:45:06 -0700
-Message-ID: <200905292045.n4TKj6hJ000624@imap1.linux-foundation.org>
+Subject: [to-be-updated] pm-hibernate-do-not-try-to-allocate-too-much-memory-too-hard.patch removed from -mm tree
+Date: Fri, 29 May 2009 13:45:50 -0700
+Message-ID: <200905292045.n4TKjojI001168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51013 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752201AbZE2UqM (ORCPT
+	by vger.kernel.org with ESMTP id S1752075AbZE2UqS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 16:46:12 -0400
+	Fri, 29 May 2009 16:46:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ben@simtec.co.uk, davej@codemonkey.org.uk, linux@simtec.co.uk
+To: rjw@sisk.pl, fengguang.wu@intel.com, nigel@tuxonice.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3c-fb: CPUFREQ frequency scaling support
-has been added to the -mm tree.  Its filename is
-     s3c-fb-cpufreq-frequency-scaling-support.patch
+     pm/hibernate: do not try to allocate too much memory too hard
+has been removed from the -mm tree.  Its filename was
+     pm-hibernate-do-not-try-to-allocate-too-much-memory-too-hard.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c-fb: CPUFREQ frequency scaling support
-From: Ben Dooks <ben@simtec.co.uk>
+Subject: pm/hibernate: do not try to allocate too much memory too hard
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Add support for CPU frequency scaling in the S3C24XX video driver.
+We want to avoid attempting to free too much memory too hard during
+hibernation, so estimate the minimum size of the image to use as the lower
+limit for preallocating memory.
 
-Signed-off-by: Simtec Linux Team <linux@simtec.co.uk>
-Signed-off-by: Ben Dooks <ben@simtec.co.uk>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+The approach here is based on the (experimental) observation that we can't
+free more page frames than the sum of:
+
+* global_page_state(NR_SLAB_RECLAIMABLE)
+* global_page_state(NR_ACTIVE_ANON)
+* global_page_state(NR_INACTIVE_ANON)
+* global_page_state(NR_ACTIVE_FILE)
+* global_page_state(NR_INACTIVE_FILE)
+
+and even that is usually impossible to free in practice, because some of
+the pages reported as global_page_state(NR_SLAB_RECLAIMABLE) can't in fact
+be freed.  It turns out, however, that if the sum of the above numbers is
+subtracted from the number of saveable pages in the system and the result
+is multiplied by 1.25, we get a suitable estimate of the minimum size of
+the image.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Nigel Cunningham <nigel@tuxonice.net>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c |   67 ++++++++++++++++++++++++++++++++++--
- drivers/video/s3c2410fb.h |    5 ++
- 2 files changed, 70 insertions(+), 2 deletions(-)
+ kernel/power/snapshot.c |   56 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 52 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/s3c2410fb.c~s3c-fb-cpufreq-frequency-scaling-support drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c-fb-cpufreq-frequency-scaling-support
-+++ a/drivers/video/s3c2410fb.c
-@@ -24,6 +24,7 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/clk.h>
-+#include <linux/cpufreq.h>
- 
- #include <asm/io.h>
- #include <asm/div64.h>
-@@ -89,7 +90,7 @@ static void s3c2410fb_set_lcdaddr(struct
- static unsigned int s3c2410fb_calc_pixclk(struct s3c2410fb_info *fbi,
- 					  unsigned long pixclk)
- {
--	unsigned long clk = clk_get_rate(fbi->clk);
-+	unsigned long clk = fbi->clk_rate;
- 	unsigned long long div;
- 
- 	/* pixclk is in picoseconds, our clock is in Hz
-@@ -758,6 +759,57 @@ static irqreturn_t s3c2410fb_irq(int irq
- 	return IRQ_HANDLED;
+diff -puN kernel/power/snapshot.c~pm-hibernate-do-not-try-to-allocate-too-much-memory-too-hard kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~pm-hibernate-do-not-try-to-allocate-too-much-memory-too-hard
++++ a/kernel/power/snapshot.c
+@@ -1213,6 +1213,49 @@ static void free_unnecessary_pages(void)
  }
  
-+#ifdef CONFIG_CPU_FREQ
-+
-+static int s3c2410fb_cpufreq_transition(struct notifier_block *nb,
-+					unsigned long val, void *data)
+ /**
++ * minimum_image_size - Estimate the minimum acceptable size of an image
++ * @saveable: The total number of saveable pages in the system.
++ *
++ * We want to avoid attempting to free too much memory too hard, so estimate the
++ * minimum acceptable size of a hibernation image to use as the lower limit for
++ * preallocating memory.
++ *
++ * The minimum size of the image is computed as
++ *
++ * ([number of saveable pages] - [number of pages we can free]) * 1.25
++ *
++ * where the second term is the sum of reclaimable slab, anonymouns pages and
++ * active/inactive file pages.
++ *
++ * NOTE: It usually turns out that we can't really free all pages reported as
++ * reclaimable slab, so the number resulting from the subtraction alone is too
++ * low.  Still, it seems reasonable to assume that this number is proportional
++ * to the total number of pages that cannot be freed, which leads to the
++ * formula above.  The coefficient of proportinality in this formula, 1.25, has
++ * been determined experimentally.
++ */
++static unsigned long minimum_image_size(unsigned long saveable)
 +{
-+	struct cpufreq_freqs *freqs = data;
-+	struct s3c2410fb_info *info;
-+	struct fb_info *fbinfo;
-+	long delta_f;
++	unsigned long size;
 +
-+	info = container_of(nb, struct s3c2410fb_info, freq_transition);
-+	fbinfo = platform_get_drvdata(to_platform_device(info->dev));
++	/* Compute the number of saveable pages we can free. */
++	size = global_page_state(NR_SLAB_RECLAIMABLE)
++		+ global_page_state(NR_ACTIVE_ANON)
++		+ global_page_state(NR_INACTIVE_ANON)
++		+ global_page_state(NR_ACTIVE_FILE)
++		+ global_page_state(NR_INACTIVE_FILE);
 +
-+	/* work out change, <0 for speed-up */
-+	delta_f = info->clk_rate - clk_get_rate(info->clk);
++	if (saveable <= size)
++		return saveable;
 +
-+	if ((val == CPUFREQ_POSTCHANGE && delta_f > 0) ||
-+	    (val == CPUFREQ_PRECHANGE && delta_f < 0)) {
-+		info->clk_rate = clk_get_rate(info->clk);
-+		s3c2410fb_activate_var(fbinfo);
-+	}
++	size = saveable - size;
++	size += (size >> 2);
 +
-+	return 0;
++	return size;
 +}
 +
-+static inline int s3c2410fb_cpufreq_register(struct s3c2410fb_info *info)
-+{
-+	info->freq_transition.notifier_call = s3c2410fb_cpufreq_transition;
 +
-+	return cpufreq_register_notifier(&info->freq_transition,
-+					 CPUFREQ_TRANSITION_NOTIFIER);
-+}
-+
-+static inline void s3c2410fb_cpufreq_deregister(struct s3c2410fb_info *info)
-+{
-+	cpufreq_unregister_notifier(&info->freq_transition,
-+				    CPUFREQ_TRANSITION_NOTIFIER);
-+}
-+
-+#else
-+static inline int s3c2410fb_cpufreq_register(struct s3c2410fb_info *info)
-+{
-+	return 0;
-+}
-+
-+static inline void s3c2410fb_cpufreq_deregister(struct s3c2410fb_info *info)
-+{
-+}
-+#endif
-+
-+
- static char driver_name[] = "s3c2410fb";
- 
- static int __init s3c24xxfb_probe(struct platform_device *pdev,
-@@ -875,6 +927,8 @@ static int __init s3c24xxfb_probe(struct
- 
- 	msleep(1);
- 
-+	info->clk_rate = clk_get_rate(info->clk);
-+
- 	/* find maximum required memory size for display */
- 	for (i = 0; i < mach_info->num_displays; i++) {
- 		unsigned long smem_len = mach_info->displays[i].xres;
-@@ -904,11 +958,17 @@ static int __init s3c24xxfb_probe(struct
- 
- 	s3c2410fb_check_var(&fbinfo->var, fbinfo);
- 
-+	ret = s3c2410fb_cpufreq_register(info);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Failed to register cpufreq\n");
-+		goto free_video_memory;
-+	}
-+
- 	ret = register_framebuffer(fbinfo);
- 	if (ret < 0) {
- 		printk(KERN_ERR "Failed to register framebuffer device: %d\n",
- 			ret);
--		goto free_video_memory;
-+		goto free_cpufreq;
++/**
+  * hibernate_preallocate_memory - Preallocate memory for hibernation image
+  *
+  * To create a hibernation image it is necessary to make a copy of every page
+@@ -1229,8 +1272,8 @@ static void free_unnecessary_pages(void)
+  *
+  * If image_size is set below the number following from the above formula,
+  * the preallocation of memory is continued until the total number of saveable
+- * pages in the system is below the requested image size or it is impossible to
+- * allocate more memory, whichever happens first.
++ * pages in the system is below the requested image size or the minimum
++ * acceptable image size returned by minimum_image_size(), whichever is greater.
+  */
+ int hibernate_preallocate_memory(void)
+ {
+@@ -1291,6 +1334,11 @@ int hibernate_preallocate_memory(void)
+ 		goto out;
  	}
  
- 	/* create device files */
-@@ -922,6 +982,8 @@ static int __init s3c24xxfb_probe(struct
- 
- 	return 0;
- 
-+ free_cpufreq:
-+	s3c2410fb_cpufreq_deregister(info);
- free_video_memory:
- 	s3c2410fb_unmap_video_memory(fbinfo);
- release_clock:
-@@ -961,6 +1023,7 @@ static int s3c2410fb_remove(struct platf
- 	int irq;
- 
- 	unregister_framebuffer(fbinfo);
-+	s3c2410fb_cpufreq_deregister(info);
- 
- 	s3c2410fb_lcd_enable(info, 0);
- 	msleep(1);
-diff -puN drivers/video/s3c2410fb.h~s3c-fb-cpufreq-frequency-scaling-support drivers/video/s3c2410fb.h
---- a/drivers/video/s3c2410fb.h~s3c-fb-cpufreq-frequency-scaling-support
-+++ a/drivers/video/s3c2410fb.h
-@@ -29,8 +29,13 @@ struct s3c2410fb_info {
- 	enum s3c_drv_type	drv_type;
- 	struct s3c2410fb_hw	regs;
- 
-+	unsigned long		clk_rate;
- 	unsigned int		palette_ready;
- 
-+#ifdef CONFIG_CPU_FREQ
-+	struct notifier_block	freq_transition;
-+#endif
++	/* Estimate the minimum size of the image. */
++	pages = minimum_image_size(saveable);
++	if (size < pages)
++		size = min_t(unsigned long, pages, max_size);
 +
- 	/* keep these registers in case we need to re-write palette */
- 	u32			palette_buffer[256];
- 	u32			pseudo_pal[16];
+ 	/*
+ 	 * Let the memory management subsystem know that we're going to need a
+ 	 * large number of page frames to allocate and make it free some memory.
+@@ -1303,8 +1351,8 @@ int hibernate_preallocate_memory(void)
+ 	 * The number of saveable pages in memory was too high, so apply some
+ 	 * pressure to decrease it.  First, make room for the largest possible
+ 	 * image and fail if that doesn't work.  Next, try to decrease the size
+-	 * of the image as much as indicated by image_size using allocations
+-	 * from highmem and non-highmem zones separately.
++	 * of the image as much as indicated by 'size' using allocations from
++	 * highmem and non-highmem zones separately.
+ 	 */
+ 	pages_highmem = preallocate_image_highmem(highmem / 2);
+ 	max_size += pages_highmem;
 _
 
-Patches currently in -mm which might be from ben@simtec.co.uk are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
+origin.patch
 linux-next.patch
-s3c-fb-cpufreq-frequency-scaling-support.patch
+drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch
+pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch
+pci-pm-read-device-power-state-from-register-after-updating-it.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+pm-hibernate-do-not-try-to-allocate-too-much-memory-too-hard.patch
+shrink_slab-handle-bad-shrinkers.patch
 
