@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-pm-read-device-power-state-from-register-after-updating-it-update.patch added to -mm tree
-Date: Fri, 29 May 2009 13:48:11 -0700
-Message-ID: <200905292048.n4TKmBKE002866@imap1.linux-foundation.org>
+Subject: + icom-fixing-a-if-clause-spaghetti.patch added to -mm tree
+Date: Fri, 29 May 2009 13:49:29 -0700
+Message-ID: <200905292049.n4TKnTNM003769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750811AbZE2Usk (ORCPT
+	by vger.kernel.org with ESMTP id S1752988AbZE2Utz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 16:48:40 -0400
+	Fri, 29 May 2009 16:49:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, jbarnes@virtuousgeek.org
+Cc: leitao@linux.vnet.ibm.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
 
 
 The patch titled
-     pci-pm-read-device-power-state-from-register-after-updating-it-update
+     icom: clean up an `if' clause
 has been added to the -mm tree.  Its filename is
-     pci-pm-read-device-power-state-from-register-after-updating-it-update.patch
+     icom-fixing-a-if-clause-spaghetti.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-pm-read-device-power-state-from-register-after-updating-it-update
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: icom: clean up an `if' clause
+From: Breno Leitao <leitao@linux.vnet.ibm.com>
 
-After attempting to change the power state of a PCI device
-pci_raw_set_power_state() doesn't check if the value it wrote into the
-device's PCI_PM_CTRL register has been stored in there.  Still, it
-modifies the device's current_state field as though that's the case.  This
-may cause the driver of the device to think that its power state has been
-changed while in fact it hasn't.
+adapter->version can only be ADAPTER_V2 or ADAPTER_V1.  So, that OR
+operand in the "if" clause is nonsense and can be removed.
 
-To prevent such situations from happening modify pci_raw_set_power_state()
-so that it reads the device's PCI_PM_CTRL register after writing into it
-and uses the value read from the register to update the device's
-current_state field.  Also make it return -EIO if the new state of the
-device is not equal to the state requested by the called.
-
-To distinguish this error condition from the other ones make
-pci_raw_set_power_state() return -ENODEV instead of -EIO when it is
-impossible to change the power state of the device, because it doesn't
-support the native PCI PM at all or the requested target state is not
-supported by it.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Breno Leitao <leitao@linux.vnet.ibm.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c |    4 ++--
+ drivers/serial/icom.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/pci.c~pci-pm-read-device-power-state-from-register-after-updating-it-update drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-pm-read-device-power-state-from-register-after-updating-it-update
-+++ a/drivers/pci/pci.c
-@@ -451,7 +451,7 @@ static int pci_raw_set_power_state(struc
- 		return 0;
+diff -puN drivers/serial/icom.c~icom-fixing-a-if-clause-spaghetti drivers/serial/icom.c
+--- a/drivers/serial/icom.c~icom-fixing-a-if-clause-spaghetti
++++ a/drivers/serial/icom.c
+@@ -413,7 +413,7 @@ static void load_code(struct icom_port *
+ 	release_firmware(fw);
  
- 	if (!dev->pm_cap)
--		return -ENOSYS;
-+		return -ENODEV;
+ 	/* Set Hardware level */
+-	if ((icom_port->adapter->version | ADAPTER_V2) == ADAPTER_V2)
++	if (icom_port->adapter->version == ADAPTER_V2)
+ 		writeb(V2_HARDWARE, &(icom_port->dram->misc_flags));
  
- 	if (state < PCI_D0 || state > PCI_D3hot)
- 		return -EINVAL;
-@@ -470,7 +470,7 @@ static int pci_raw_set_power_state(struc
- 	/* check if this device supports the desired state */
- 	if ((state == PCI_D1 && !dev->d1_support)
- 	   || (state == PCI_D2 && !dev->d2_support))
--		return -ENOSYS;
-+		return -ENODEV;
+ 	/* Start the processor in Adapter */
+@@ -866,7 +866,7 @@ static irqreturn_t icom_interrupt(int ir
+ 	/* find icom_port for this interrupt */
+ 	icom_adapter = (struct icom_adapter *) dev_id;
  
- 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
+-	if ((icom_adapter->version | ADAPTER_V2) == ADAPTER_V2) {
++	if (icom_adapter->version == ADAPTER_V2) {
+ 		int_reg = icom_adapter->base_addr + 0x8024;
  
+ 		adapter_interrupts = readl(int_reg);
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from leitao@linux.vnet.ibm.com are
 
-origin.patch
 linux-next.patch
-drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch
-pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch
-pci-pm-read-device-power-state-from-register-after-updating-it.patch
-pci-pm-read-device-power-state-from-register-after-updating-it-update.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-shrink_slab-handle-bad-shrinkers.patch
+icom-converting-space-to-tabs.patch
+icom-fix-compile-errors-when-defining-icom_trace.patch
+icom-fixing-a-if-clause-spaghetti.patch
 
