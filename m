@@ -1,138 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch removed from -mm tree
-Date: Fri, 29 May 2009 11:42:54 -0700
-Message-ID: <200905291842.n4TIgs5q011184@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock.patch removed from -mm tree
+Date: Fri, 29 May 2009 11:42:56 -0700
+Message-ID: <200905291842.n4TIguAD011281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751559AbZE2Sn1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751559AbZE2Snc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 14:43:27 -0400
+	Fri, 29 May 2009 14:43:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs: make errno values consistent when open pident vs exit(2) race occurs
+     memcg: fix deadlock between lock_page_cgroup and mapping tree_lock
 has been removed from the -mm tree.  Its filename was
-     procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
+     memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: make errno values consistent when open pident vs exit(2) race occurs
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: memcg: fix deadlock between lock_page_cgroup and mapping tree_lock
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-proc_pident_instantiate() has following call flow.
+mapping->tree_lock can be acquired from interrupt context.  Then,
+following dead lock can occur.
 
-proc_pident_lookup()
-  proc_pident_instantiate()
-    proc_pid_make_inode()
+Assume "A" as a page.
 
-And, proc_pident_lookup() has following error handling.
+ CPU0:
+       lock_page_cgroup(A)
+		interrupted
+			-> take mapping->tree_lock.
+ CPU1:
+       take mapping->tree_lock
+		-> lock_page_cgroup(A)
 
-	const struct pid_entry *p, *last;
-	error = ERR_PTR(-ENOENT);
-	if (!task)
-		goto out_no_task;
+This patch tries to fix above deadlock by moving memcg's hook to out of
+mapping->tree_lock.  charge/uncharge of pagecache/swapcache is protected
+by page lock, not tree_lock.
 
-Then, proc_pident_instantiate should return ENOENT too when racing against
-exit(2) occur.
+After this patch, lock_page_cgroup() is not called under mapping->tree_lock.
 
-EINAL has two bad reason.
-  - it implies caller is wrong. bad the race isn't caller's mistake.
-  - man 2 open don't explain EINVAL. user often don't handle it.
-
-Note: Other proc_pid_make_inode() caller already use ENOENT properly.
-
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap.h |    5 +++++
+ mm/filemap.c         |    6 +++---
+ mm/memcontrol.c      |    4 +++-
+ mm/swap_state.c      |    4 +---
+ mm/truncate.c        |    1 +
+ mm/vmscan.c          |    2 ++
+ 6 files changed, 15 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/base.c~procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs fs/proc/base.c
---- a/fs/proc/base.c~procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs
-+++ a/fs/proc/base.c
-@@ -1956,7 +1956,7 @@ static struct dentry *proc_pident_instan
- 	const struct pid_entry *p = ptr;
- 	struct inode *inode;
- 	struct proc_inode *ei;
--	struct dentry *error = ERR_PTR(-EINVAL);
-+	struct dentry *error = ERR_PTR(-ENOENT);
+diff -puN include/linux/swap.h~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock include/linux/swap.h
+--- a/include/linux/swap.h~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock
++++ a/include/linux/swap.h
+@@ -437,6 +437,11 @@ static inline int mem_cgroup_cache_charg
+ 	return 0;
+ }
  
- 	inode = proc_pid_make_inode(dir->i_sb, task);
- 	if (!inode)
++static inline void
++mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent)
++{
++}
++
+ #endif /* CONFIG_SWAP */
+ #endif /* __KERNEL__*/
+ #endif /* _LINUX_SWAP_H */
+diff -puN mm/filemap.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock mm/filemap.c
+--- a/mm/filemap.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock
++++ a/mm/filemap.c
+@@ -121,7 +121,6 @@ void __remove_from_page_cache(struct pag
+ 	mapping->nrpages--;
+ 	__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	BUG_ON(page_mapped(page));
+-	mem_cgroup_uncharge_cache_page(page);
+ 
+ 	/*
+ 	 * Some filesystems seem to re-dirty the page even after
+@@ -145,6 +144,7 @@ void remove_from_page_cache(struct page 
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	__remove_from_page_cache(page);
+ 	spin_unlock_irq(&mapping->tree_lock);
++	mem_cgroup_uncharge_cache_page(page);
+ }
+ 
+ static int sync_page(void *word)
+@@ -476,13 +476,13 @@ int add_to_page_cache_locked(struct page
+ 		if (likely(!error)) {
+ 			mapping->nrpages++;
+ 			__inc_zone_page_state(page, NR_FILE_PAGES);
++			spin_unlock_irq(&mapping->tree_lock);
+ 		} else {
+ 			page->mapping = NULL;
++			spin_unlock_irq(&mapping->tree_lock);
+ 			mem_cgroup_uncharge_cache_page(page);
+ 			page_cache_release(page);
+ 		}
+-
+-		spin_unlock_irq(&mapping->tree_lock);
+ 		radix_tree_preload_end();
+ 	} else
+ 		mem_cgroup_uncharge_cache_page(page);
+diff -puN mm/memcontrol.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock
++++ a/mm/memcontrol.c
+@@ -1488,8 +1488,9 @@ void mem_cgroup_uncharge_cache_page(stru
+ 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE);
+ }
+ 
++#ifdef CONFIG_SWAP
+ /*
+- * called from __delete_from_swap_cache() and drop "page" account.
++ * called after __delete_from_swap_cache() and drop "page" account.
+  * memcg information is recorded to swap_cgroup of "ent"
+  */
+ void mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent)
+@@ -1506,6 +1507,7 @@ void mem_cgroup_uncharge_swapcache(struc
+ 	if (memcg)
+ 		css_put(&memcg->css);
+ }
++#endif
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ /*
+diff -puN mm/swap_state.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock mm/swap_state.c
+--- a/mm/swap_state.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock
++++ a/mm/swap_state.c
+@@ -109,8 +109,6 @@ int add_to_swap_cache(struct page *page,
+  */
+ void __delete_from_swap_cache(struct page *page)
+ {
+-	swp_entry_t ent = {.val = page_private(page)};
+-
+ 	VM_BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON(!PageSwapCache(page));
+ 	VM_BUG_ON(PageWriteback(page));
+@@ -121,7 +119,6 @@ void __delete_from_swap_cache(struct pag
+ 	total_swapcache_pages--;
+ 	__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	INC_CACHE_INFO(del_total);
+-	mem_cgroup_uncharge_swapcache(page, ent);
+ }
+ 
+ /**
+@@ -191,6 +188,7 @@ void delete_from_swap_cache(struct page 
+ 	__delete_from_swap_cache(page);
+ 	spin_unlock_irq(&swapper_space.tree_lock);
+ 
++	mem_cgroup_uncharge_swapcache(page, entry);
+ 	swap_free(entry);
+ 	page_cache_release(page);
+ }
+diff -puN mm/truncate.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock mm/truncate.c
+--- a/mm/truncate.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock
++++ a/mm/truncate.c
+@@ -359,6 +359,7 @@ invalidate_complete_page2(struct address
+ 	BUG_ON(page_has_private(page));
+ 	__remove_from_page_cache(page);
+ 	spin_unlock_irq(&mapping->tree_lock);
++	mem_cgroup_uncharge_cache_page(page);
+ 	page_cache_release(page);	/* pagecache ref */
+ 	return 1;
+ failed:
+diff -puN mm/vmscan.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock mm/vmscan.c
+--- a/mm/vmscan.c~memcg-fix-deadlock-between-lock_page_cgroup-and-mapping-tree_lock
++++ a/mm/vmscan.c
+@@ -470,10 +470,12 @@ static int __remove_mapping(struct addre
+ 		swp_entry_t swap = { .val = page_private(page) };
+ 		__delete_from_swap_cache(page);
+ 		spin_unlock_irq(&mapping->tree_lock);
++		mem_cgroup_uncharge_swapcache(page, swap);
+ 		swap_free(swap);
+ 	} else {
+ 		__remove_from_page_cache(page);
+ 		spin_unlock_irq(&mapping->tree_lock);
++		mem_cgroup_uncharge_cache_page(page);
+ 	}
+ 
+ 	return 1;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
 origin.patch
-linux-next.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
-page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
-page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
-page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
-page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-inline-__rmqueue_smallest.patch
-page-allocator-inline-buffered_rmqueue.patch
-page-allocator-inline-__rmqueue_fallback.patch
-page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
-page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
-page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
-page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
-page-allocator-update-nr_free_pages-only-as-necessary.patch
-page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
-page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-page-allocator-move-free_page_mlock-to-page_allocc.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
-pagemap-document-clarifications.patch
-pagemap-document-9-more-exported-page-flags.patch
-pagemap-add-page-types-tool.patch
-pagemap-export-pg_hwpoison.patch
-pagemap-export-pg_hwpoison-fix.patch
-vmscan-evict-use-once-pages-first-v3.patch
-vmscan-cleanup-the-scan-batching-code.patch
-vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
-vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
-vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
-vmscan-zone_reclaim-use-may_swap.patch
-migration-only-migrate_prep-once-per-move_pages.patch
-vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
-page-allocator-clean-up-functions-related-to-pages_min.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
-page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
-mm-remove-config_unevictable_lru-config-option.patch
-use-printk_once-in-several-places.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
 memcg-add-file-based-rss-accounting.patch
 memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+memcg-remove-mem_cgroup_cache_charge_swapin.patch
 
