@@ -1,130 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 29 May 2009 11:41:57 -0700
-Message-ID: <200905291841.n4TIfvZE010573@imap1.linux-foundation.org>
+Subject: [merged] procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch removed from -mm tree
+Date: Fri, 29 May 2009 11:42:54 -0700
+Message-ID: <200905291842.n4TIgs5q011184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43395 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752277AbZE2Sm1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751559AbZE2Sn1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 14:42:27 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n4TIfvH4019605
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2009 11:41:58 -0700
+	Fri, 29 May 2009 14:43:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     procfs: make errno values consistent when open pident vs exit(2) race occurs
+has been removed from the -mm tree.  Its filename was
+     procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: procfs: make errno values consistent when open pident vs exit(2) race occurs
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
+proc_pident_instantiate() has following call flow.
+
+proc_pident_lookup()
+  proc_pident_instantiate()
+    proc_pid_make_inode()
+
+And, proc_pident_lookup() has following error handling.
+
+	const struct pid_entry *p, *last;
+	error = ERR_PTR(-ENOENT);
+	if (!task)
+		goto out_no_task;
+
+Then, proc_pident_instantiate should return ENOENT too when racing against
+exit(2) occur.
+
+EINAL has two bad reason.
+  - it implies caller is wrong. bad the race isn't caller's mistake.
+  - man 2 open don't explain EINVAL. user often don't handle it.
+
+Note: Other proc_pid_make_inode() caller already use ENOENT properly.
+
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_gsc.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/proc/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_gsc.c~linux-next-git-rejects drivers/serial/8250_gsc.c
---- a/drivers/serial/8250_gsc.c~linux-next-git-rejects
-+++ a/drivers/serial/8250_gsc.c
-@@ -41,11 +41,7 @@ static int __init serial_init_chip(struc
- 			printk(KERN_INFO
- 				"Serial: device 0x%llx not configured.\n"
- 				"Enable support for Wax, Lasi, Asp or Dino.\n",
--<<<<<<< HEAD:drivers/serial/8250_gsc.c
- 				(unsigned long long)dev->hpa.start);
--=======
--				(unsigned long)dev->hpa.start);
-->>>>>>> FETCH_HEAD:drivers/serial/8250_gsc.c
- 		return -ENODEV;
- 	}
+diff -puN fs/proc/base.c~procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs fs/proc/base.c
+--- a/fs/proc/base.c~procfs-make-errno-values-consistent-when-open-pident-vs-exit2-race-occurs
++++ a/fs/proc/base.c
+@@ -1956,7 +1956,7 @@ static struct dentry *proc_pident_instan
+ 	const struct pid_entry *p = ptr;
+ 	struct inode *inode;
+ 	struct proc_inode *ei;
+-	struct dentry *error = ERR_PTR(-EINVAL);
++	struct dentry *error = ERR_PTR(-ENOENT);
  
+ 	inode = proc_pid_make_inode(dir->i_sb, task);
+ 	if (!inode)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-revert-fbdev-uninline-lock_fb_info.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-ds_selftest-is-borked.patch
-edac-compile-workaround.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-drivers-usb-serial-sierrac-fix-printk-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
 page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
 page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
+pagemap-document-clarifications.patch
+pagemap-document-9-more-exported-page-flags.patch
+pagemap-add-page-types-tool.patch
+pagemap-export-pg_hwpoison.patch
+pagemap-export-pg_hwpoison-fix.patch
+vmscan-evict-use-once-pages-first-v3.patch
+vmscan-cleanup-the-scan-batching-code.patch
+vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
+vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
 page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-serial-jsm-correctly-support-4-8-port-boards.patch
-serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
+vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
+vmscan-zone_reclaim-use-may_swap.patch
+migration-only-migrate_prep-once-per-move_pages.patch
+vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
+page-allocator-clean-up-functions-related-to-pages_min.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
+page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
+mm-remove-config_unevictable_lru-config-option.patch
+use-printk_once-in-several-places.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
