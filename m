@@ -1,302 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] pm-hibernate-rework-shrinking-of-memory.patch removed from -mm tree
-Date: Fri, 29 May 2009 13:45:35 -0700
-Message-ID: <200905292045.n4TKjZqE000958@imap1.linux-foundation.org>
+Subject: + s3c-fb-cpufreq-frequency-scaling-support.patch added to -mm tree
+Date: Fri, 29 May 2009 13:45:06 -0700
+Message-ID: <200905292045.n4TKj6hJ000624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51013 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752013AbZE2UqL (ORCPT
+	by vger.kernel.org with ESMTP id S1752201AbZE2UqM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 16:46:11 -0400
+	Fri, 29 May 2009 16:46:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, fengguang.wu@intel.com, nigel@tuxonice.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ben@simtec.co.uk, davej@codemonkey.org.uk, linux@simtec.co.uk
 
 
 The patch titled
-     pm/hibernate: rework shrinking of memory
-has been removed from the -mm tree.  Its filename was
-     pm-hibernate-rework-shrinking-of-memory.patch
+     s3c-fb: CPUFREQ frequency scaling support
+has been added to the -mm tree.  Its filename is
+     s3c-fb-cpufreq-frequency-scaling-support.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm/hibernate: rework shrinking of memory
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: s3c-fb: CPUFREQ frequency scaling support
+From: Ben Dooks <ben@simtec.co.uk>
 
-Rework swsusp_shrink_memory() so that it calls shrink_all_memory() just
-once to make some room for the image and then allocates memory to apply
-more pressure to the memory management subsystem, if necessary.
+Add support for CPU frequency scaling in the S3C24XX video driver.
 
-Unfortunately, we don't seem to be able to drop shrink_all_memory()
-entirely just yet, because that would lead to huge performance regressions
-in some test cases.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Nigel Cunningham <nigel@tuxonice.net>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Simtec Linux Team <linux@simtec.co.uk>
+Signed-off-by: Ben Dooks <ben@simtec.co.uk>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |  211 +++++++++++++++++++++++++++++---------
- 1 file changed, 166 insertions(+), 45 deletions(-)
+ drivers/video/s3c2410fb.c |   67 ++++++++++++++++++++++++++++++++++--
+ drivers/video/s3c2410fb.h |    5 ++
+ 2 files changed, 70 insertions(+), 2 deletions(-)
 
-diff -puN kernel/power/snapshot.c~pm-hibernate-rework-shrinking-of-memory kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~pm-hibernate-rework-shrinking-of-memory
-+++ a/kernel/power/snapshot.c
-@@ -1066,69 +1066,190 @@ void swsusp_free(void)
- 	buffer = NULL;
+diff -puN drivers/video/s3c2410fb.c~s3c-fb-cpufreq-frequency-scaling-support drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c-fb-cpufreq-frequency-scaling-support
++++ a/drivers/video/s3c2410fb.c
+@@ -24,6 +24,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
++#include <linux/cpufreq.h>
+ 
+ #include <asm/io.h>
+ #include <asm/div64.h>
+@@ -89,7 +90,7 @@ static void s3c2410fb_set_lcdaddr(struct
+ static unsigned int s3c2410fb_calc_pixclk(struct s3c2410fb_info *fbi,
+ 					  unsigned long pixclk)
+ {
+-	unsigned long clk = clk_get_rate(fbi->clk);
++	unsigned long clk = fbi->clk_rate;
+ 	unsigned long long div;
+ 
+ 	/* pixclk is in picoseconds, our clock is in Hz
+@@ -758,6 +759,57 @@ static irqreturn_t s3c2410fb_irq(int irq
+ 	return IRQ_HANDLED;
  }
  
-+/* Helper functions used for the shrinking of memory. */
++#ifdef CONFIG_CPU_FREQ
 +
-+#define GFP_IMAGE	(GFP_KERNEL | __GFP_NOWARN)
-+
- /**
-- *	swsusp_shrink_memory -  Try to free as much memory as needed
-+ * preallocate_image_pages - Allocate a number of pages for hibernation image
-+ * @nr_pages: Number of page frames to allocate.
-+ * @mask: GFP flags to use for the allocation.
-  *
-- *	... but do not OOM-kill anyone
-+ * Return value: Number of page frames actually allocated
-+ */
-+static unsigned long preallocate_image_pages(unsigned long nr_pages, gfp_t mask)
++static int s3c2410fb_cpufreq_transition(struct notifier_block *nb,
++					unsigned long val, void *data)
 +{
-+	unsigned long nr_alloc = 0;
++	struct cpufreq_freqs *freqs = data;
++	struct s3c2410fb_info *info;
++	struct fb_info *fbinfo;
++	long delta_f;
 +
-+	while (nr_pages > 0) {
-+		if (!alloc_image_page(mask))
-+			break;
-+		nr_pages--;
-+		nr_alloc++;
++	info = container_of(nb, struct s3c2410fb_info, freq_transition);
++	fbinfo = platform_get_drvdata(to_platform_device(info->dev));
++
++	/* work out change, <0 for speed-up */
++	delta_f = info->clk_rate - clk_get_rate(info->clk);
++
++	if ((val == CPUFREQ_POSTCHANGE && delta_f > 0) ||
++	    (val == CPUFREQ_PRECHANGE && delta_f < 0)) {
++		info->clk_rate = clk_get_rate(info->clk);
++		s3c2410fb_activate_var(fbinfo);
 +	}
 +
-+	return nr_alloc;
++	return 0;
 +}
 +
-+static unsigned long preallocate_image_memory(unsigned long nr_pages)
++static inline int s3c2410fb_cpufreq_register(struct s3c2410fb_info *info)
 +{
-+	return preallocate_image_pages(nr_pages, GFP_IMAGE);
++	info->freq_transition.notifier_call = s3c2410fb_cpufreq_transition;
++
++	return cpufreq_register_notifier(&info->freq_transition,
++					 CPUFREQ_TRANSITION_NOTIFIER);
 +}
 +
-+#ifdef CONFIG_HIGHMEM
-+static unsigned long preallocate_image_highmem(unsigned long nr_pages)
++static inline void s3c2410fb_cpufreq_deregister(struct s3c2410fb_info *info)
 +{
-+	return preallocate_image_pages(nr_pages, GFP_IMAGE | __GFP_HIGHMEM);
++	cpufreq_unregister_notifier(&info->freq_transition,
++				    CPUFREQ_TRANSITION_NOTIFIER);
 +}
 +
-+#define FRACTION_SHIFT	8
-+
-+/**
-+ * compute_fraction - Compute approximate fraction x * (a/b)
-+ * @x: Number to multiply.
-+ * @numerator: Numerator of the fraction (a).
-+ * @denominator: Denominator of the fraction (b).
-  *
-- *	Notice: all userland should be stopped before it is called, or
-- *	livelock is possible.
-+ * Compute an approximate value of the expression x * (a/b), where a is less
-+ * than b, all x, a, b are unsigned longs and x * a may be greater than the
-+ * maximum unsigned long.
-  */
-+static unsigned long compute_fraction(
-+	unsigned long x, unsigned long numerator, unsigned long denominator)
-+{
-+	unsigned long ratio = (numerator << FRACTION_SHIFT) / denominator;
-+
-+	x *= ratio;
-+	return x >> FRACTION_SHIFT;
-+}
-+
-+static unsigned long highmem_size(
-+	unsigned long size, unsigned long highmem, unsigned long count)
-+{
-+	return highmem > count / 2 ?
-+			compute_fraction(size, highmem, count) :
-+			size - compute_fraction(size, count - highmem, count);
-+}
 +#else
-+static inline unsigned long preallocate_image_highmem(unsigned long nr_pages)
++static inline int s3c2410fb_cpufreq_register(struct s3c2410fb_info *info)
 +{
 +	return 0;
 +}
- 
--#define SHRINK_BITE	10000
--static inline unsigned long __shrink_memory(long tmp)
-+static inline unsigned long highmem_size(
-+	unsigned long size, unsigned long highmem, unsigned long count)
- {
--	if (tmp > SHRINK_BITE)
--		tmp = SHRINK_BITE;
--	return shrink_all_memory(tmp);
-+	return 0;
- }
-+#endif /* CONFIG_HIGHMEM */
- 
-+/**
-+ * swsusp_shrink_memory -  Make the kernel release as much memory as needed
-+ *
-+ * To create a hibernation image it is necessary to make a copy of every page
-+ * frame in use.  We also need a number of page frames to be free during
-+ * hibernation for allocations made while saving the image and for device
-+ * drivers, in case they need to allocate memory from their hibernation
-+ * callbacks (these two numbers are given by PAGES_FOR_IO and SPARE_PAGES,
-+ * respectively, both of which are rough estimates).  To make this happen, we
-+ * compute the total number of available page frames and allocate at least
-+ *
-+ * ([page frames total] + PAGES_FOR_IO + [metadata pages]) / 2 + 2 * SPARE_PAGES
-+ *
-+ * of them, which corresponds to the maximum size of a hibernation image.
-+ *
-+ * If image_size is set below the number following from the above formula,
-+ * the preallocation of memory is continued until the total number of saveable
-+ * pages in the system is below the requested image size or it is impossible to
-+ * allocate more memory, whichever happens first.
-+ */
- int swsusp_shrink_memory(void)
- {
--	long tmp;
- 	struct zone *zone;
--	unsigned long pages = 0;
--	unsigned int i = 0;
--	char *p = "-\\|/";
-+	unsigned long saveable, size, max_size, count, highmem, pages = 0;
-+	unsigned long alloc, pages_highmem;
- 	struct timeval start, stop;
-+	int error = 0;
- 
--	printk(KERN_INFO "PM: Shrinking memory...  ");
-+	printk(KERN_INFO "PM: Shrinking memory... ");
- 	do_gettimeofday(&start);
--	do {
--		long size, highmem_size;
- 
--		highmem_size = count_highmem_pages();
--		size = count_data_pages() + PAGES_FOR_IO + SPARE_PAGES;
--		tmp = size;
--		size += highmem_size;
--		for_each_populated_zone(zone) {
--			tmp += snapshot_additional_pages(zone);
--			if (is_highmem(zone)) {
--				highmem_size -=
--					zone_page_state(zone, NR_FREE_PAGES);
--			} else {
--				tmp -= zone_page_state(zone, NR_FREE_PAGES);
--				tmp += zone->lowmem_reserve[ZONE_NORMAL];
--			}
--		}
-+	/* Count the number of saveable data pages. */
-+	highmem = count_highmem_pages();
-+	saveable = count_data_pages();
- 
--		if (highmem_size < 0)
--			highmem_size = 0;
-+	/*
-+	 * Compute the total number of page frames we can use (count) and the
-+	 * number of pages needed for image metadata (size).
-+	 */
-+	count = saveable;
-+	saveable += highmem;
-+	size = 0;
-+	for_each_populated_zone(zone) {
-+		size += snapshot_additional_pages(zone);
-+		if (is_highmem(zone))
-+			highmem += zone_page_state(zone, NR_FREE_PAGES);
-+		else
-+			count += zone_page_state(zone, NR_FREE_PAGES);
-+	}
-+	count += highmem;
-+	count -= totalreserve_pages;
- 
--		tmp += highmem_size;
--		if (tmp > 0) {
--			tmp = __shrink_memory(tmp);
--			if (!tmp)
--				return -ENOMEM;
--			pages += tmp;
--		} else if (size > image_size / PAGE_SIZE) {
--			tmp = __shrink_memory(size - (image_size / PAGE_SIZE));
--			pages += tmp;
--		}
--		printk("\b%c", p[i++%4]);
--	} while (tmp > 0);
-+	/* Compute the maximum number of saveable pages to leave in memory. */
-+	max_size = (count - (size + PAGES_FOR_IO)) / 2 - 2 * SPARE_PAGES;
-+	size = DIV_ROUND_UP(image_size, PAGE_SIZE);
-+	if (size > max_size)
-+		size = max_size;
-+	/*
-+	 * If the maximum is not less than the current number of saveable pages
-+	 * in memory, we don't need to do anything more.
-+	 */
-+	if (size >= saveable)
-+		goto out;
 +
-+	/*
-+	 * Let the memory management subsystem know that we're going to need a
-+	 * large number of page frames to allocate and make it free some memory.
-+	 * NOTE: If this is not done, performance will be hurt badly in some
-+	 * test cases.
-+	 */
-+	shrink_all_memory(saveable - size);
++static inline void s3c2410fb_cpufreq_deregister(struct s3c2410fb_info *info)
++{
++}
++#endif
 +
-+	/*
-+	 * The number of saveable pages in memory was too high, so apply some
-+	 * pressure to decrease it.  First, make room for the largest possible
-+	 * image and fail if that doesn't work.  Next, try to decrease the size
-+	 * of the image as much as indicated by image_size using allocations
-+	 * from highmem and non-highmem zones separately.
-+	 */
-+	pages_highmem = preallocate_image_highmem(highmem / 2);
-+	max_size += pages_highmem;
-+	alloc = count - max_size;
-+	pages = preallocate_image_memory(alloc);
-+	if (pages < alloc) {
-+		error = -ENOMEM;
-+		goto free_out;
-+	}
-+	size = max_size - size;
-+	alloc = size;
-+	size = preallocate_image_highmem(highmem_size(size, highmem, count));
-+	pages_highmem += size;
-+	alloc -= size;
-+	pages += preallocate_image_memory(alloc);
-+	pages += pages_highmem;
 +
-+ free_out:
-+	/* Release all of the preallocated page frames. */
-+	swsusp_free();
+ static char driver_name[] = "s3c2410fb";
+ 
+ static int __init s3c24xxfb_probe(struct platform_device *pdev,
+@@ -875,6 +927,8 @@ static int __init s3c24xxfb_probe(struct
+ 
+ 	msleep(1);
+ 
++	info->clk_rate = clk_get_rate(info->clk);
 +
-+	if (error) {
-+		printk(KERN_CONT "\n");
-+		return error;
+ 	/* find maximum required memory size for display */
+ 	for (i = 0; i < mach_info->num_displays; i++) {
+ 		unsigned long smem_len = mach_info->displays[i].xres;
+@@ -904,11 +958,17 @@ static int __init s3c24xxfb_probe(struct
+ 
+ 	s3c2410fb_check_var(&fbinfo->var, fbinfo);
+ 
++	ret = s3c2410fb_cpufreq_register(info);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to register cpufreq\n");
++		goto free_video_memory;
 +	}
 +
-+ out:
- 	do_gettimeofday(&stop);
--	printk("\bdone (%lu pages freed)\n", pages);
-+	printk(KERN_CONT "done (preallocated %lu free pages)\n", pages);
- 	swsusp_show_speed(&start, &stop, pages, "Freed");
+ 	ret = register_framebuffer(fbinfo);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR "Failed to register framebuffer device: %d\n",
+ 			ret);
+-		goto free_video_memory;
++		goto free_cpufreq;
+ 	}
+ 
+ 	/* create device files */
+@@ -922,6 +982,8 @@ static int __init s3c24xxfb_probe(struct
  
  	return 0;
+ 
++ free_cpufreq:
++	s3c2410fb_cpufreq_deregister(info);
+ free_video_memory:
+ 	s3c2410fb_unmap_video_memory(fbinfo);
+ release_clock:
+@@ -961,6 +1023,7 @@ static int s3c2410fb_remove(struct platf
+ 	int irq;
+ 
+ 	unregister_framebuffer(fbinfo);
++	s3c2410fb_cpufreq_deregister(info);
+ 
+ 	s3c2410fb_lcd_enable(info, 0);
+ 	msleep(1);
+diff -puN drivers/video/s3c2410fb.h~s3c-fb-cpufreq-frequency-scaling-support drivers/video/s3c2410fb.h
+--- a/drivers/video/s3c2410fb.h~s3c-fb-cpufreq-frequency-scaling-support
++++ a/drivers/video/s3c2410fb.h
+@@ -29,8 +29,13 @@ struct s3c2410fb_info {
+ 	enum s3c_drv_type	drv_type;
+ 	struct s3c2410fb_hw	regs;
+ 
++	unsigned long		clk_rate;
+ 	unsigned int		palette_ready;
+ 
++#ifdef CONFIG_CPU_FREQ
++	struct notifier_block	freq_transition;
++#endif
++
+ 	/* keep these registers in case we need to re-write palette */
+ 	u32			palette_buffer[256];
+ 	u32			pseudo_pal[16];
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from ben@simtec.co.uk are
 
-origin.patch
 linux-next.patch
-drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch
-pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch
-pci-pm-read-device-power-state-from-register-after-updating-it.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-pm-hibernate-rework-shrinking-of-memory.patch
-pm-hibernate-do-not-release-preallocated-memory-unnecessarily-rev-2.patch
-pm-hibernate-do-not-try-to-allocate-too-much-memory-too-hard.patch
-shrink_slab-handle-bad-shrinkers.patch
+s3c-fb-cpufreq-frequency-scaling-support.patch
 
