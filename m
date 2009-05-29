@@ -1,90 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-amd8111-amd8131-kconfig-fixup.patch removed from -mm tree
-Date: Fri, 29 May 2009 11:43:27 -0700
-Message-ID: <200905291843.n4TIhRfn011673@imap1.linux-foundation.org>
+Subject: [merged] serial-8250_gsc-fix-printk-format-warning.patch removed from -mm tree
+Date: Fri, 29 May 2009 11:43:09 -0700
+Message-ID: <200905291843.n4TIh9l1011420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752853AbZE2Snz (ORCPT
+	by vger.kernel.org with ESMTP id S1753213AbZE2Sn6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 14:43:55 -0400
+	Fri, 29 May 2009 14:43:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qingtao.cao@windriver.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
+To: a.beregalov@gmail.com, alan@lxorguk.ukuu.org.uk, kyle@mcmartin.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: AMD8111 & AMD8131 Kconfig fixup
+     serial: 8250_gsc: fix printk format error
 has been removed from the -mm tree.  Its filename was
-     edac-amd8111-amd8131-kconfig-fixup.patch
+     serial-8250_gsc-fix-printk-format-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: AMD8111 & AMD8131 Kconfig fixup
-From: Harry Ciao <qingtao.cao@windriver.com>
+Subject: serial: 8250_gsc: fix printk format error
+From: Alexander Beregalov <a.beregalov@gmail.com>
 
-The amd8111_edac.c driver will fail allmodconfig on architectures other
-than PPC, introduce Kconfig dependency to avoid this, since both AMD8111
-and AMD8131 chips are only adopted on Maple so far.
+drivers/serial/8250_gsc.c:44: warning: format '%lx' expects type
+'long unsigned int', but argument 2 has type 'resource_size_t'
 
-Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
-Cc: Doug Thompson <norsk5@yahoo.com>
+[akpm@linux-foundation.org: fix it to handle u64's]
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig  |    8 ++++++--
- drivers/edac/Makefile |    2 ++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/serial/8250_gsc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/edac/Kconfig~edac-amd8111-amd8131-kconfig-fixup drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-amd8111-amd8131-kconfig-fixup
-+++ a/drivers/edac/Kconfig
-@@ -192,16 +192,20 @@ config EDAC_PPC4XX
+diff -puN drivers/serial/8250_gsc.c~serial-8250_gsc-fix-printk-format-warning drivers/serial/8250_gsc.c
+--- a/drivers/serial/8250_gsc.c~serial-8250_gsc-fix-printk-format-warning
++++ a/drivers/serial/8250_gsc.c
+@@ -39,9 +39,9 @@ static int __init serial_init_chip(struc
+ 		 */
+ 		if (parisc_parent(dev)->id.hw_type != HPHW_IOA)
+ 			printk(KERN_INFO
+-				"Serial: device 0x%lx not configured.\n"
++				"Serial: device 0x%llx not configured.\n"
+ 				"Enable support for Wax, Lasi, Asp or Dino.\n",
+-				dev->hpa.start);
++				(unsigned long long)dev->hpa.start);
+ 		return -ENODEV;
+ 	}
  
- config EDAC_AMD8131
- 	tristate "AMD8131 HyperTransport PCI-X Tunnel"
--	depends on EDAC_MM_EDAC && PCI
-+	depends on EDAC_MM_EDAC && PCI && PPC_MAPLE
- 	help
- 	  Support for error detection and correction on the
- 	  AMD8131 HyperTransport PCI-X Tunnel chip.
-+	  Note, add more Kconfig dependency if it's adopted
-+	  on some machine other than Maple.
- 
- config EDAC_AMD8111
- 	tristate "AMD8111 HyperTransport I/O Hub"
--	depends on EDAC_MM_EDAC && PCI
-+	depends on EDAC_MM_EDAC && PCI && PPC_MAPLE
- 	help
- 	  Support for error detection and correction on the
- 	  AMD8111 HyperTransport I/O Hub chip.
-+	  Note, add more Kconfig dependency if it's adopted
-+	  on some machine other than Maple.
- 
- endif # EDAC
-diff -puN drivers/edac/Makefile~edac-amd8111-amd8131-kconfig-fixup drivers/edac/Makefile
---- a/drivers/edac/Makefile~edac-amd8111-amd8131-kconfig-fixup
-+++ a/drivers/edac/Makefile
-@@ -35,3 +35,5 @@ obj-$(CONFIG_EDAC_MPC85XX)		+= mpc85xx_e
- obj-$(CONFIG_EDAC_MV64X60)		+= mv64x60_edac.o
- obj-$(CONFIG_EDAC_CELL)			+= cell_edac.o
- obj-$(CONFIG_EDAC_PPC4XX)		+= ppc4xx_edac.o
-+obj-$(CONFIG_EDAC_AMD8111)		+= amd8111_edac.o
-+obj-$(CONFIG_EDAC_AMD8131)		+= amd8131_edac.o
 _
 
-Patches currently in -mm which might be from qingtao.cao@windriver.com are
+Patches currently in -mm which might be from a.beregalov@gmail.com are
 
 origin.patch
-edac-add-cpc925-memory-controller-driver.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch
-edac-add-edac_device_alloc_index.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-cpc925-mc-platform-device-setup.patch
-edac-cpc925-mc-platform-device-setup-v3.patch
+linux-next.patch
 
