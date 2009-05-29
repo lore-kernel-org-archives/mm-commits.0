@@ -1,526 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-add-cciss-driver-sysfs-entries.patch added to -mm tree
-Date: Fri, 29 May 2009 12:47:54 -0700
-Message-ID: <200905291947.n4TJlsFa024806@imap1.linux-foundation.org>
+Subject: [folded] serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 29 May 2009 12:49:37 -0700
+Message-ID: <200905291949.n4TJnbcE025953@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38440 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762109AbZE2Tsh (ORCPT
+	by vger.kernel.org with ESMTP id S1752899AbZE2TuT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 15:48:37 -0400
+	Fri, 29 May 2009 15:50:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: andrew.patterson@hp.com, jens.axboe@oracle.com, mike.miller@hp.com, scameron@beardog.cca.cpqcorp.net
+To: akpm@linux-foundation.org, Scott_Kilau@digi.com, adam@os.inf.tu-dresden.de, alan@lxorguk.ukuu.org.uk, git.user@gmail.com, wendyx@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: add cciss driver sysfs entries
-has been added to the -mm tree.  Its filename is
-     cciss-add-cciss-driver-sysfs-entries.patch
+     serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into serial-jsm-correctly-support-4-8-port-boards.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: add cciss driver sysfs entries
-From: Andrew Patterson <andrew.patterson@hp.com>
+Subject: serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add sysfs entries to the cciss driver needed for the dm/multipath tools.
+ERROR: space required after that ',' (ctx:VxV)
+#51: FILE: drivers/serial/jsm/jsm_tty.c:36:
++static DECLARE_BITMAP(linemap,MAXLINES);
+                              ^
 
-A file for vendor, model, rev, and unique_id is added for each logical
-drive under directory /sys/bus/pci/devices/<dev>/ccissX/cXdY.  Where X =
-the controller (or host) number and Y is the logical drive number.
+ERROR: space required after that ',' (ctx:VxV)
+#69: FILE: drivers/serial/jsm/jsm_tty.c:465:
++		line = find_first_zero_bit(linemap,MAXLINES);
+ 		                                  ^
 
-A link from /sys/bus/pci/devices/<dev>/ccissX/cXdY/block:cciss!cXdY to
-/sys/block/cciss!cXdY/device is also created.  A bus is created in
-/sys/bus/cciss.  A link is created from the pci ccissX entry to
-/sys/bus/cciss/devices/ccissX.  Please consider this for inclusion.
+total: 2 errors, 0 warnings, 43 lines checked
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
+./patches/serial-jsm-correctly-support-4-8-port-boards.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alexander Y. Fomichev <git.user@gmail.com>
+Cc: Scott H Kilau <Scott_Kilau@digi.com>
+Cc: Wendy Xiong <wendyx@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-bus-pci-devices-cciss |   33 +
- drivers/block/cciss.c                                 |  267 +++++++++-
- drivers/block/cciss.h                                 |   24 
- 3 files changed, 314 insertions(+), 10 deletions(-)
+ drivers/serial/jsm/jsm_tty.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-bus-pci-devices-cciss
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-bus-pci-devices-cciss
-@@ -0,0 +1,33 @@
-+Where:		/sys/bus/pci/devices/<dev>/ccissX/cXdY/model
-+Date:		March 2009
-+Kernel Version: 2.6.30
-+Contact:	iss_storagedev@hp.com
-+Description:	Displays the SCSI INQUIRY page 0 model for logical drive
-+		Y of controller X.
-+
-+Where:		/sys/bus/pci/devices/<dev>/ccissX/cXdY/rev
-+Date:		March 2009
-+Kernel Version: 2.6.30
-+Contact:	iss_storagedev@hp.com
-+Description:	Displays the SCSI INQUIRY page 0 revision for logical
-+		drive Y of controller X.
-+
-+Where:		/sys/bus/pci/devices/<dev>/ccissX/cXdY/unique_id
-+Date:		March 2009
-+Kernel Version: 2.6.30
-+Contact:	iss_storagedev@hp.com
-+Description:	Displays the SCSI INQUIRY page 83 serial number for logical
-+		drive Y of controller X.
-+
-+Where:		/sys/bus/pci/devices/<dev>/ccissX/cXdY/vendor
-+Date:		March 2009
-+Kernel Version: 2.6.30
-+Contact:	iss_storagedev@hp.com
-+Description:	Displays the SCSI INQUIRY page 0 vendor for logical drive
-+		Y of controller X.
-+
-+Where:		/sys/bus/pci/devices/<dev>/ccissX/cXdY/block:cciss!cXdY
-+Date:		March 2009
-+Kernel Version: 2.6.30
-+Contact:	iss_storagedev@hp.com
-+Description:	A symbolic link to /sys/block/cciss!cXdY
-diff -puN drivers/block/cciss.c~cciss-add-cciss-driver-sysfs-entries drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-add-cciss-driver-sysfs-entries
-+++ a/drivers/block/cciss.c
-@@ -437,6 +437,194 @@ static void __devinit cciss_procinit(int
- }
- #endif				/* CONFIG_PROC_FS */
+diff -puN drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes drivers/serial/jsm/jsm_tty.c
+--- a/drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes
++++ a/drivers/serial/jsm/jsm_tty.c
+@@ -33,7 +33,7 @@
  
-+#define MAX_PRODUCT_NAME_LEN 19
-+
-+#define to_hba(n) container_of(n, struct ctlr_info, dev)
-+#define to_drv(n) container_of(n, drive_info_struct, dev)
-+
-+static struct device_type cciss_host_type = {
-+	.name		= "cciss_host",
-+};
-+
-+static ssize_t dev_show_unique_id(struct device *dev,
-+				 struct device_attribute *attr,
-+				 char *buf)
-+{
-+	drive_info_struct *drv = to_drv(dev);
-+	struct ctlr_info *h = to_hba(drv->dev.parent);
-+	__u8 sn[16];
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(CCISS_LOCK(h->ctlr), flags);
-+	if (h->busy_configuring)
-+		ret = -EBUSY;
-+	else
-+		memcpy(sn, drv->serial_no, sizeof(sn));
-+	spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
-+
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(buf, 16 * 2 + 2,
-+				"%02X%02X%02X%02X%02X%02X%02X%02X"
-+				"%02X%02X%02X%02X%02X%02X%02X%02X\n",
-+				sn[0], sn[1], sn[2], sn[3],
-+				sn[4], sn[5], sn[6], sn[7],
-+				sn[8], sn[9], sn[10], sn[11],
-+				sn[12], sn[13], sn[14], sn[15]);
-+}
-+DEVICE_ATTR(unique_id, S_IRUGO, dev_show_unique_id, NULL);
-+
-+static ssize_t dev_show_vendor(struct device *dev,
-+			       struct device_attribute *attr,
-+			       char *buf)
-+{
-+	drive_info_struct *drv = to_drv(dev);
-+	struct ctlr_info *h = to_hba(drv->dev.parent);
-+	char vendor[VENDOR_LEN + 1];
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(CCISS_LOCK(h->ctlr), flags);
-+	if (h->busy_configuring)
-+		ret = -EBUSY;
-+	else
-+		memcpy(vendor, drv->vendor, VENDOR_LEN + 1);
-+	spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
-+
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(buf, sizeof(vendor) + 1, "%s\n", drv->vendor);
-+}
-+DEVICE_ATTR(vendor, S_IRUGO, dev_show_vendor, NULL);
-+
-+static ssize_t dev_show_model(struct device *dev,
-+			      struct device_attribute *attr,
-+			      char *buf)
-+{
-+	drive_info_struct *drv = to_drv(dev);
-+	struct ctlr_info *h = to_hba(drv->dev.parent);
-+	char model[MODEL_LEN + 1];
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(CCISS_LOCK(h->ctlr), flags);
-+	if (h->busy_configuring)
-+		ret = -EBUSY;
-+	else
-+		memcpy(model, drv->model, MODEL_LEN + 1);
-+	spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
-+
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(buf, sizeof(model) + 1, "%s\n", drv->model);
-+}
-+DEVICE_ATTR(model, S_IRUGO, dev_show_model, NULL);
-+
-+static ssize_t dev_show_rev(struct device *dev,
-+			    struct device_attribute *attr,
-+			    char *buf)
-+{
-+	drive_info_struct *drv = to_drv(dev);
-+	struct ctlr_info *h = to_hba(drv->dev.parent);
-+	char rev[REV_LEN + 1];
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(CCISS_LOCK(h->ctlr), flags);
-+	if (h->busy_configuring)
-+		ret = -EBUSY;
-+	else
-+		memcpy(rev, drv->rev, REV_LEN + 1);
-+	spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
-+
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(buf, sizeof(rev) + 1, "%s\n", drv->rev);
-+}
-+DEVICE_ATTR(rev, S_IRUGO, dev_show_rev, NULL);
-+
-+static struct attribute *cciss_dev_attrs[] = {
-+	&dev_attr_unique_id.attr,
-+	&dev_attr_model.attr,
-+	&dev_attr_vendor.attr,
-+	&dev_attr_rev.attr,
-+	NULL
-+};
-+
-+static struct attribute_group cciss_dev_attr_group = {
-+	.attrs = cciss_dev_attrs,
-+};
-+
-+static struct attribute_group *cciss_dev_attr_groups[] = {
-+	&cciss_dev_attr_group,
-+	NULL
-+};
-+
-+static struct device_type cciss_dev_type = {
-+	.name		= "cciss_device",
-+	.groups		= cciss_dev_attr_groups,
-+};
-+
-+static struct bus_type cciss_bus_type = {
-+	.name		= "cciss",
-+};
-+
-+
-+/*
-+ * Initialize sysfs entry for each controller.  This sets up and registers
-+ * the 'cciss#' directory for each individual controller under
-+ * /sys/bus/pci/devices/<dev>/.
-+ */
-+static int cciss_create_hba_sysfs_entry(struct ctlr_info *h)
-+{
-+	device_initialize(&h->dev);
-+	h->dev.type = &cciss_host_type;
-+	h->dev.bus = &cciss_bus_type;
-+	dev_set_name(&h->dev, "%s", h->devname);
-+	h->dev.parent = &h->pdev->dev;
-+
-+	return device_add(&h->dev);
-+}
-+
-+/*
-+ * Remove sysfs entries for an hba.
-+ */
-+static void cciss_destroy_hba_sysfs_entry(struct ctlr_info *h)
-+{
-+	device_del(&h->dev);
-+}
-+
-+/*
-+ * Initialize sysfs for each logical drive.  This sets up and registers
-+ * the 'c#d#' directory for each individual logical drive under
-+ * /sys/bus/pci/devices/<dev/ccis#/. We also create a link from
-+ * /sys/block/cciss!c#d# to this entry.
-+ */
-+static int cciss_create_ld_sysfs_entry(struct ctlr_info *h,
-+				       drive_info_struct *drv,
-+				       int drv_index)
-+{
-+	device_initialize(&drv->dev);
-+	drv->dev.type = &cciss_dev_type;
-+	drv->dev.bus = &cciss_bus_type;
-+	dev_set_name(&drv->dev, "c%dd%d", h->ctlr, drv_index);
-+	drv->dev.parent = &h->dev;
-+	return device_add(&drv->dev);
-+}
-+
-+/*
-+ * Remove sysfs entries for a logical drive.
-+ */
-+static void cciss_destroy_ld_sysfs_entry(drive_info_struct *drv)
-+{
-+	device_del(&drv->dev);
-+}
-+
- /*
-  * For operations that cannot sleep, a command block is allocated at init,
-  * and managed by cmd_alloc() and cmd_free() using a simple bitmap to track
-@@ -1332,6 +1520,45 @@ static void cciss_softirq_done(struct re
- 	spin_unlock_irqrestore(&h->lock, flags);
- }
+ #include "jsm.h"
  
-+/* This function gets the SCSI vendor, model, and revision of a logical drive
-+ * via the inquiry page 0.  Model, vendor, and rev are set to empty strings if
-+ * they cannot be read.
-+ */
-+static void cciss_get_device_descr(int ctlr, int logvol, int withirq,
-+				   char *vendor, char *model, char *rev)
-+{
-+	int rc;
-+	InquiryData_struct *inq_buf;
-+
-+	*vendor = '\0';
-+	*model = '\0';
-+	*rev = '\0';
-+
-+	inq_buf = kzalloc(sizeof(InquiryData_struct), GFP_KERNEL);
-+	if (!inq_buf)
-+		return;
-+
-+	if (withirq)
-+		rc = sendcmd_withirq(CISS_INQUIRY, ctlr, inq_buf,
-+				     sizeof(InquiryData_struct), 1, logvol,
-+				     0, TYPE_CMD);
-+	else
-+		rc = sendcmd(CISS_INQUIRY, ctlr, inq_buf,
-+			     sizeof(InquiryData_struct), 1, logvol, 0, NULL,
-+			     TYPE_CMD);
-+	if (rc == IO_OK) {
-+		memcpy(vendor, &inq_buf->data_byte[8], VENDOR_LEN);
-+		vendor[VENDOR_LEN] = '\0';
-+		memcpy(model, &inq_buf->data_byte[16], MODEL_LEN);
-+		model[MODEL_LEN] = '\0';
-+		memcpy(rev, &inq_buf->data_byte[32], REV_LEN);
-+		rev[REV_LEN] = '\0';
-+	}
-+
-+	kfree(inq_buf);
-+	return;
-+}
-+
- /* This function gets the serial number of a logical drive via
-  * inquiry page 0x83.  Serial no. is 16 bytes.  If the serial
-  * number cannot be had, for whatever reason, 16 bytes of 0xff
-@@ -1372,7 +1599,7 @@ static void cciss_add_disk(ctlr_info_t *
- 	disk->first_minor = drv_index << NWD_SHIFT;
- 	disk->fops = &cciss_fops;
- 	disk->private_data = &h->drv[drv_index];
--	disk->driverfs_dev = &h->pdev->dev;
-+	disk->driverfs_dev = &h->drv[drv_index].dev;
+-static DECLARE_BITMAP(linemap,MAXLINES);
++static DECLARE_BITMAP(linemap, MAXLINES);
  
- 	/* Set up queue information */
- 	blk_queue_bounce_limit(disk->queue, h->pdev->dma_mask);
-@@ -1463,6 +1690,8 @@ static void cciss_update_drive_info(int 
- 	drvinfo->block_size = block_size;
- 	drvinfo->nr_blocks = total_size + 1;
+ static void jsm_carrier(struct jsm_channel *ch);
  
-+	cciss_get_device_descr(ctlr, drv_index, 1, drvinfo->vendor,
-+				drvinfo->model, drvinfo->rev);
- 	cciss_get_serial_no(ctlr, drv_index, 1, drvinfo->serial_no,
- 			sizeof(drvinfo->serial_no));
- 
-@@ -1512,6 +1741,9 @@ static void cciss_update_drive_info(int 
- 	h->drv[drv_index].cylinders = drvinfo->cylinders;
- 	h->drv[drv_index].raid_level = drvinfo->raid_level;
- 	memcpy(h->drv[drv_index].serial_no, drvinfo->serial_no, 16);
-+	memcpy(h->drv[drv_index].vendor, drvinfo->vendor, VENDOR_LEN + 1);
-+	memcpy(h->drv[drv_index].model, drvinfo->model, MODEL_LEN + 1);
-+	memcpy(h->drv[drv_index].rev, drvinfo->rev, REV_LEN + 1);
- 
- 	++h->num_luns;
- 	disk = h->gendisk[drv_index];
-@@ -1586,6 +1818,8 @@ static int cciss_add_gendisk(ctlr_info_t
- 		}
- 	}
- 	h->drv[drv_index].LunID = lunid;
-+	if (cciss_create_ld_sysfs_entry(h, &h->drv[drv_index], drv_index))
-+		goto err_free_disk;
- 
- 	/* Don't need to mark this busy because nobody */
- 	/* else knows about this disk yet to contend */
-@@ -1593,6 +1827,11 @@ static int cciss_add_gendisk(ctlr_info_t
- 	h->drv[drv_index].busy_configuring = 0;
- 	wmb();
- 	return drv_index;
-+
-+err_free_disk:
-+	put_disk(h->gendisk[drv_index]);
-+	h->gendisk[drv_index] = NULL;
-+	return -1;
- }
- 
- /* This is for the special case of a controller which
-@@ -1713,6 +1952,7 @@ static int rebuild_lun_table(ctlr_info_t
- 			h->drv[i].busy_configuring = 1;
- 			spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
- 			return_code = deregister_disk(h, i, 1);
-+			cciss_destroy_ld_sysfs_entry(&h->drv[i]);
- 			h->drv[i].busy_configuring = 0;
- 		}
- 	}
-@@ -3719,12 +3959,15 @@ static int __devinit cciss_init_one(stru
- 	INIT_HLIST_HEAD(&hba[i]->reqQ);
- 
- 	if (cciss_pci_init(hba[i], pdev) != 0)
--		goto clean1;
-+		goto clean0;
- 
- 	sprintf(hba[i]->devname, "cciss%d", i);
- 	hba[i]->ctlr = i;
- 	hba[i]->pdev = pdev;
- 
-+	if (cciss_create_hba_sysfs_entry(hba[i]))
-+		goto clean0;
-+
- 	/* configure PCI DMA stuff */
- 	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(64)))
- 		dac = 1;
-@@ -3868,6 +4111,8 @@ clean4:
- clean2:
- 	unregister_blkdev(hba[i]->major, hba[i]->devname);
- clean1:
-+	cciss_destroy_hba_sysfs_entry(hba[i]);
-+clean0:
- 	hba[i]->busy_initializing = 0;
- 	/* cleanup any queues that may have been initialized */
- 	for (j=0; j <= hba[i]->highest_lun; j++){
-@@ -3978,6 +4223,7 @@ static void __devexit cciss_remove_one(s
- 	 */
- 	pci_release_regions(pdev);
- 	pci_set_drvdata(pdev, NULL);
-+	cciss_destroy_hba_sysfs_entry(hba[i]);
- 	free_hba(i);
- }
- 
-@@ -3995,6 +4241,8 @@ static struct pci_driver cciss_pci_drive
-  */
- static int __init cciss_init(void)
- {
-+	int err;
-+
- 	/*
- 	 * The hardware requires that commands are aligned on a 64-bit
- 	 * boundary. Given that we use pci_alloc_consistent() to allocate an
-@@ -4004,8 +4252,20 @@ static int __init cciss_init(void)
- 
- 	printk(KERN_INFO DRIVER_NAME "\n");
- 
-+	err = bus_register(&cciss_bus_type);
-+	if (err)
-+		return err;
-+
- 	/* Register for our PCI devices */
--	return pci_register_driver(&cciss_pci_driver);
-+	err = pci_register_driver(&cciss_pci_driver);
-+	if (err)
-+		goto err_bus_register;
-+
-+	return 0;
-+
-+err_bus_register:
-+	bus_unregister(&cciss_bus_type);
-+	return err;
- }
- 
- static void __exit cciss_cleanup(void)
-@@ -4022,6 +4282,7 @@ static void __exit cciss_cleanup(void)
- 		}
- 	}
- 	remove_proc_entry("driver/cciss", NULL);
-+	bus_unregister(&cciss_bus_type);
- }
- 
- static void fail_all_cmds(unsigned long ctlr)
-diff -puN drivers/block/cciss.h~cciss-add-cciss-driver-sysfs-entries drivers/block/cciss.h
---- a/drivers/block/cciss.h~cciss-add-cciss-driver-sysfs-entries
-+++ a/drivers/block/cciss.h
-@@ -12,6 +12,10 @@
- #define IO_OK		0
- #define IO_ERROR	1
- 
-+#define VENDOR_LEN	8
-+#define MODEL_LEN	16
-+#define REV_LEN		4
-+
- struct ctlr_info;
- typedef struct ctlr_info ctlr_info_t;
- 
-@@ -34,13 +38,18 @@ typedef struct _drive_info_struct
- 	int 	cylinders;
- 	int	raid_level; /* set to -1 to indicate that
- 			     * the drive is not in use/configured
--			    */
--	int	busy_configuring; /*This is set when the drive is being removed
--				   *to prevent it from being opened or it's queue
--				   *from being started.
--				  */
--	__u8 serial_no[16]; /* from inquiry page 0x83, */
--			    /* not necc. null terminated. */
-+			     */
-+	int	busy_configuring; /* This is set when a drive is being removed
-+				   * to prevent it from being opened or it's
-+				   * queue from being started.
-+				   */
-+	struct	device dev;
-+	__u8 serial_no[16]; /* from inquiry page 0x83,
-+			     * not necc. null terminated.
-+			     */
-+	char vendor[VENDOR_LEN + 1]; /* SCSI vendor string */
-+	char model[MODEL_LEN + 1];   /* SCSI model string */
-+	char rev[REV_LEN + 1];       /* SCSI revision string */
- } drive_info_struct;
- 
- #ifdef CONFIG_CISS_SCSI_TAPE
-@@ -123,6 +132,7 @@ struct ctlr_info 
- 	unsigned char alive;
- 	struct completion *rescan_wait;
- 	struct task_struct *cciss_scan_thread;
-+	struct device dev;
- };
- 
- /*  Defining the diffent access_menthods */
+@@ -462,7 +462,7 @@ int __devinit jsm_uart_port_init(struct 
+ 		brd->channels[i]->uart_port.membase = brd->re_map_membase;
+ 		brd->channels[i]->uart_port.fifosize = 16;
+ 		brd->channels[i]->uart_port.ops = &jsm_ops;
+-		line = find_first_zero_bit(linemap,MAXLINES);
++		line = find_first_zero_bit(linemap, MAXLINES);
+ 		if (line >= MAXLINES) {
+ 			printk(KERN_INFO "linemap is full, added device failed\n");
+ 			continue;
 _
 
-Patches currently in -mm which might be from andrew.patterson@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cciss-add-cciss-driver-sysfs-entries.patch
+origin.patch
+revert-fbdev-uninline-lock_fb_info.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+edac-compile-workaround.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+cciss-fix-scsi-device-reset-handler-fix.patch
+drivers-usb-serial-sierrac-fix-printk-warning.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+serial-jsm-correctly-support-4-8-port-boards.patch
+serial-jsm-correctly-support-4-8-port-boards-checkpatch-fixes.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch
+dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
