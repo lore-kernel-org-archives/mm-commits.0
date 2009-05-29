@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cramfs-move-cramfs-magic-out-of-cramfs_fsh.patch added to -mm tree
-Date: Fri, 29 May 2009 16:19:53 -0700
-Message-ID: <200905292319.n4TNJrp9012353@imap1.linux-foundation.org>
+Subject: + mips-txx9-add-tx4939-rng-support.patch added to -mm tree
+Date: Fri, 29 May 2009 16:29:55 -0700
+Message-ID: <200905292329.n4TNTtsn019343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752354AbZE2XUT (ORCPT
+	by vger.kernel.org with ESMTP id S1751825AbZE2XbL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 19:20:19 -0400
+	Fri, 29 May 2009 19:31:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, viro@zeniv.linux.org.uk
+Cc: anemo@mba.ocn.ne.jp, herbert@gondor.apana.org.au, mpm@selenic.com, ralf@linux-mips.org
 
 
 The patch titled
-     cramfs: move cramfs magic out of cramfs_fs.h
+     mips: TXx9: add TX4939 RNG support
 has been added to the -mm tree.  Its filename is
-     cramfs-move-cramfs-magic-out-of-cramfs_fsh.patch
+     mips-txx9-add-tx4939-rng-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cramfs: move cramfs magic out of cramfs_fs.h
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: mips: TXx9: add TX4939 RNG support
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Add platform support for RNG of TX4939 SoC.
+
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cramfs_fs.h |    3 +--
- include/linux/magic.h     |    2 ++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ arch/mips/include/asm/txx9/tx4939.h   |    1 +
+ arch/mips/txx9/generic/setup_tx4939.c |   18 ++++++++++++++++++
+ arch/mips/txx9/rbtx4939/setup.c       |    1 +
+ 3 files changed, 20 insertions(+)
 
-diff -puN include/linux/cramfs_fs.h~cramfs-move-cramfs-magic-out-of-cramfs_fsh include/linux/cramfs_fs.h
---- a/include/linux/cramfs_fs.h~cramfs-move-cramfs-magic-out-of-cramfs_fsh
-+++ a/include/linux/cramfs_fs.h
-@@ -2,9 +2,8 @@
- #define __CRAMFS_H
+diff -puN arch/mips/include/asm/txx9/tx4939.h~mips-txx9-add-tx4939-rng-support arch/mips/include/asm/txx9/tx4939.h
+--- a/arch/mips/include/asm/txx9/tx4939.h~mips-txx9-add-tx4939-rng-support
++++ a/arch/mips/include/asm/txx9/tx4939.h
+@@ -539,6 +539,7 @@ int tx4939_pci_map_irq(const struct pci_
+ void tx4939_setup_pcierr_irq(void);
+ void tx4939_irq_init(void);
+ int tx4939_irq(void);
++void tx4939_rng_init(void);
+ void tx4939_mtd_init(int ch);
+ void tx4939_ata_init(void);
+ void tx4939_rtc_init(void);
+diff -puN arch/mips/txx9/generic/setup_tx4939.c~mips-txx9-add-tx4939-rng-support arch/mips/txx9/generic/setup_tx4939.c
+--- a/arch/mips/txx9/generic/setup_tx4939.c~mips-txx9-add-tx4939-rng-support
++++ a/arch/mips/txx9/generic/setup_tx4939.c
+@@ -494,6 +494,24 @@ void __init tx4939_aclc_init(void)
+ 			       TXX9_IRQ_BASE + TX4939_IR_ACLC, 1, 0, 1);
+ }
  
- #include <linux/types.h>
-+#include <linux/magic.h>
++#define TX4939_RNG_REG	((TX4939_CRYPTO_REG & 0xfffffffffULL) + 0xb0)
++void __init tx4939_rng_init(void)
++{
++	static struct resource res = {
++		.start = TX4939_RNG_REG,
++		.end = TX4939_RNG_REG + 0x30 - 1,
++		.flags = IORESOURCE_MEM,
++	};
++	static struct platform_device pdev = {
++		.name = "tx4939-rng",
++		.id = -1,
++		.num_resources = 1,
++		.resource = &res,
++	};
++
++	platform_device_register(&pdev);
++}
++
+ static void __init tx4939_stop_unused_modules(void)
+ {
+ 	__u64 pcfg, rst = 0, ckd = 0;
+diff -puN arch/mips/txx9/rbtx4939/setup.c~mips-txx9-add-tx4939-rng-support arch/mips/txx9/rbtx4939/setup.c
+--- a/arch/mips/txx9/rbtx4939/setup.c~mips-txx9-add-tx4939-rng-support
++++ a/arch/mips/txx9/rbtx4939/setup.c
+@@ -501,6 +501,7 @@ static void __init rbtx4939_device_init(
+ 	tx4939_dmac_init(0, 2);
+ 	tx4939_aclc_init();
+ 	platform_device_register_simple("txx9aclc-generic", -1, NULL, 0);
++	tx4939_rng_init();
+ }
  
--#define CRAMFS_MAGIC		0x28cd3d45	/* some random number */
--#define CRAMFS_MAGIC_WEND	0x453dcd28	/* magic number with the wrong endianess */
- #define CRAMFS_SIGNATURE	"Compressed ROMFS"
- 
- /*
-diff -puN include/linux/magic.h~cramfs-move-cramfs-magic-out-of-cramfs_fsh include/linux/magic.h
---- a/include/linux/magic.h~cramfs-move-cramfs-magic-out-of-cramfs_fsh
-+++ a/include/linux/magic.h
-@@ -6,6 +6,8 @@
- #define AFS_SUPER_MAGIC		0x5346414F
- #define AUTOFS_SUPER_MAGIC	0x0187
- #define CODA_SUPER_MAGIC	0x73757245
-+#define CRAMFS_MAGIC		0x28cd3d45	/* some random number */
-+#define CRAMFS_MAGIC_WEND	0x453dcd28	/* magic number with the wrong endianess */
- #define CUSE_SUPER_MAGIC	0x43555345
- #define DEBUGFS_MAGIC		0x64626720
- #define SYSFS_MAGIC		0x62656572
+ static void __init rbtx4939_setup(void)
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-origin.patch
 linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-drivers-hvc-add-missing-__devexit_p.patch
-plat_nand-add-missing-__devexit_p.patch
-irda-new-blackfin-on-chip-sir-irda-driver.patch
-virtio_blk-add-missing-__devinitexit-markings.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
-gpio-max7301-add-missing-__devexit-marking.patch
-istallion-add-missing-__devexit-marking.patch
-edac-add-missing-__devexit_p.patch
-cramfs-move-cramfs-magic-out-of-cramfs_fsh.patch
+txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set.patch
+hwrng-add-tx4939-rng-driver.patch
+mips-txx9-add-tx4939-rng-support.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+rtc-rtc-ds1742-nvram-attribute-fix.patch
+rtc-tx4939-drop-irqf_shared.patch
+rtc-ds1553-drop-irqf_shared.patch
+rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
 
