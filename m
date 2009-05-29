@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-jsm-correctly-support-4-8-port-boards-update.patch added to -mm tree
-Date: Fri, 29 May 2009 12:55:24 -0700
-Message-ID: <200905291955.n4TJtObp030060@imap1.linux-foundation.org>
+Subject: + edac-build-fix.patch added to -mm tree
+Date: Fri, 29 May 2009 12:57:34 -0700
+Message-ID: <200905291957.n4TJvYpI031646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37081 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755728AbZE2Tzh (ORCPT
+	by vger.kernel.org with ESMTP id S1753055AbZE2T5g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 15:55:37 -0400
+	Fri, 29 May 2009 15:57:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: git.user@gmail.com, Scott_Kilau@digi.com, adam@os.inf.tu-dresden.de, alan@lxorguk.ukuu.org.ukgit.user@gmail.co, wendyx@us.ibm.com
+Cc: borislav.petkov@amd.com
 
 
 The patch titled
-     serial-jsm-correctly-support-4-8-port-boards-update
+     edac: build fix
 has been added to the -mm tree.  Its filename is
-     serial-jsm-correctly-support-4-8-port-boards-update.patch
+     edac-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-jsm-correctly-support-4-8-port-boards-update
-From: "Alexander Y. Fomichev" <git.user@gmail.com>
+Subject: edac: build fix
+From: Borislav Petkov <borislav.petkov@amd.com>
 
-Signed-off-by: Alexander Y. Fomichev <git.user@gmail.co
-Cc: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
-Cc: Scott H Kilau <Scott_Kilau@digi.com>
-Cc: Wendy Xiong <wendyx@us.ibm.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>m>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_tty.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ drivers/edac/amd64_edac.c |    2 +-
+ drivers/edac/amd64_edac.h |   13 -------------
+ 2 files changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-update drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-update
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -34,6 +34,7 @@
- #include "jsm.h"
+diff -puN drivers/edac/amd64_edac.c~edac-build-fix drivers/edac/amd64_edac.c
+--- a/drivers/edac/amd64_edac.c~edac-build-fix
++++ a/drivers/edac/amd64_edac.c
+@@ -1419,7 +1419,7 @@ static u32 f10_determine_channel(struct 
+ 		if (dct_sel_interleave_addr(pvt) == 0)
+ 			cs = sys_addr >> 6 & 1;
+ 		else if ((dct_sel_interleave_addr(pvt) >> 1) & 1) {
+-			temp = popcnt((u32) ((sys_addr >> 16) & 0x1F)) % 2;
++			temp = hweight_long((u32) ((sys_addr >> 16) & 0x1F)) % 2;
  
- static DECLARE_BITMAP(linemap, MAXLINES);
-+static DEFINE_MUTEX(linemap_mutex);
+ 			if (dct_sel_interleave_addr(pvt) & 1)
+ 				cs = (sys_addr >> 9 & 1) ^ temp;
+diff -puN drivers/edac/amd64_edac.h~edac-build-fix drivers/edac/amd64_edac.h
+--- a/drivers/edac/amd64_edac.h~edac-build-fix
++++ a/drivers/edac/amd64_edac.h
+@@ -443,19 +443,6 @@ enum {
+ #define K8_MSR_MC4STAT			0x0411
+ #define K8_MSR_MC4ADDR			0x0412
  
- static void jsm_carrier(struct jsm_channel *ch);
- 
-@@ -449,6 +450,9 @@ int __devinit jsm_uart_port_init(struct 
- 
- 	brd->nasync = brd->maxports;
- 
-+	/* protect linemap for whole range of line numbers*/
-+	mutex_lock(&linemap_mutex);
-+
- 	/* Set up channel variables */
- 	for (i = 0; i < brd->nasync; i++, ch = brd->channels[i]) {
- 
-@@ -467,13 +471,14 @@ int __devinit jsm_uart_port_init(struct 
- 			printk(KERN_INFO "linemap is full, added device failed\n");
- 			continue;
- 		} else
--			__set_bit((int)line, linemap);
-+			set_bit((int)line, linemap);
- 		brd->channels[i]->uart_port.line = line;
- 		if (uart_add_one_port (&jsm_uart_driver, &brd->channels[i]->uart_port))
- 			printk(KERN_INFO "Added device failed\n");
- 		else
- 			printk(KERN_INFO "Added device \n");
- 	}
-+	mutex_unlock(&linemap_mutex);
- 
- 	jsm_printk(INIT, INFO, &brd->pci_dev, "finish\n");
- 	return 0;
-@@ -495,6 +500,8 @@ int jsm_remove_uart_port(struct jsm_boar
- 
- 	brd->nasync = brd->maxports;
- 
-+	mutex_lock(&linemap_mutex);
-+
- 	/* Set up channel variables */
- 	for (i = 0; i < brd->nasync; i++) {
- 
-@@ -502,11 +509,12 @@ int jsm_remove_uart_port(struct jsm_boar
- 			continue;
- 
- 		ch = brd->channels[i];
+-/*
+- * popcnt - count the set bits in a bit vector.
+- * @vec - bit vector
+- *
+- * This instruction is supported only on F10h and later CPUs.
+- */
+-#define popcnt(x)						\
+-({								\
+-	typeof(x) __ret;					\
+-	__asm__("popcnt %1, %0" : "=r" (__ret) : "r" (x));	\
+-	__ret;							\
+-})
