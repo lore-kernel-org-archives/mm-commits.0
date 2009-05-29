@@ -1,78 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-pair-edac-e752x-p-and-m-entries.patch removed from -mm tree
-Date: Fri, 29 May 2009 11:42:47 -0700
-Message-ID: <200905291842.n4TIglS3011156@imap1.linux-foundation.org>
+Subject: [merged] edac-amd8111-amd8131-use-dev_name.patch removed from -mm tree
+Date: Fri, 29 May 2009 11:43:25 -0700
+Message-ID: <200905291843.n4TIhPjO011611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54097 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752710AbZE2Sns (ORCPT
+	by vger.kernel.org with ESMTP id S1752810AbZE2Snv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 14:43:48 -0400
+	Fri, 29 May 2009 14:43:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: qingtao.cao@windriver.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: pair EDAC-E752X P: and M: entries
+     edac: AMD8111 & AMD8131 use dev_name()
 has been removed from the -mm tree.  Its filename was
-     maintainers-pair-edac-e752x-p-and-m-entries.patch
+     edac-amd8111-amd8131-use-dev_name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: pair EDAC-E752X P: and M: entries
-From: Joe Perches <joe@perches.com>
+Subject: edac: AMD8111 & AMD8131 use dev_name()
+From: Harry Ciao <qingtao.cao@windriver.com>
 
-Entries should be P: name then M: email address.
+The "bus_id" member in the device structure has been obsolete, use
+dev_name() instead.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/edac/amd8111_edac.c |    4 ++--
+ drivers/edac/amd8131_edac.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-pair-edac-e752x-p-and-m-entries MAINTAINERS
---- a/MAINTAINERS~maintainers-pair-edac-e752x-p-and-m-entries
-+++ a/MAINTAINERS
-@@ -1971,8 +1971,8 @@ F:	include/linux/edac.h
+diff -puN drivers/edac/amd8111_edac.c~edac-amd8111-amd8131-use-dev_name drivers/edac/amd8111_edac.c
+--- a/drivers/edac/amd8111_edac.c~edac-amd8111-amd8131-use-dev_name
++++ a/drivers/edac/amd8111_edac.c
+@@ -389,7 +389,7 @@ static int amd8111_dev_probe(struct pci_
+ 	dev_info->edac_dev->dev = &dev_info->dev->dev;
+ 	dev_info->edac_dev->mod_name = AMD8111_EDAC_MOD_STR;
+ 	dev_info->edac_dev->ctl_name = dev_info->ctl_name;
+-	dev_info->edac_dev->dev_name = dev_info->dev->dev.bus_id;
++	dev_info->edac_dev->dev_name = dev_name(&dev_info->dev->dev);
  
- EDAC-E752X
- P:	Mark Gross
--P:	Doug Thompson
- M:	mark.gross@intel.com
-+P:	Doug Thompson
- M:	dougthompson@xmission.com
- L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
+ 	if (edac_op_state == EDAC_OPSTATE_POLL)
+ 		dev_info->edac_dev->edac_check = dev_info->check;
+@@ -473,7 +473,7 @@ static int amd8111_pci_probe(struct pci_
+ 	pci_info->edac_dev->dev = &pci_info->dev->dev;
+ 	pci_info->edac_dev->mod_name = AMD8111_EDAC_MOD_STR;
+ 	pci_info->edac_dev->ctl_name = pci_info->ctl_name;
+-	pci_info->edac_dev->dev_name = pci_info->dev->dev.bus_id;
++	pci_info->edac_dev->dev_name = dev_name(&pci_info->dev->dev);
+ 
+ 	if (edac_op_state == EDAC_OPSTATE_POLL)
+ 		pci_info->edac_dev->edac_check = pci_info->check;
+diff -puN drivers/edac/amd8131_edac.c~edac-amd8111-amd8131-use-dev_name drivers/edac/amd8131_edac.c
+--- a/drivers/edac/amd8131_edac.c~edac-amd8111-amd8131-use-dev_name
++++ a/drivers/edac/amd8131_edac.c
+@@ -287,7 +287,7 @@ static int amd8131_probe(struct pci_dev 
+ 	dev_info->edac_dev->dev = &dev_info->dev->dev;
+ 	dev_info->edac_dev->mod_name = AMD8131_EDAC_MOD_STR;
+ 	dev_info->edac_dev->ctl_name = dev_info->ctl_name;
+-	dev_info->edac_dev->dev_name = dev_info->dev->dev.bus_id;
++	dev_info->edac_dev->dev_name = dev_name(&dev_info->dev->dev);
+ 
+ 	if (edac_op_state == EDAC_OPSTATE_POLL)
+ 		dev_info->edac_dev->edac_check = amd8131_chipset.check;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from qingtao.cao@windriver.com are
 
 origin.patch
-linux-next.patch
-scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch
-scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch
-scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
-scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch
-scripts-get_maintainerpl-support-m-lines-with-names-and-multiple-entries-per-m-line.patch
-scripts-get_maintainerpl-better-email-name-quoting.patch
-scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch
-scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch
-scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch
-scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
-maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
-maintainers-add-file-patterns-to-the-rest.patch
-maintainers-update-m32r-file-patterns-after-rename.patch
-maintainers-mark-alsa-lists-as-moderated.patch
-maintainers-remove-l-linux-kernel-vgerkernelorg-from-all-but-the-rest.patch
-maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
-maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
-maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
-maintainers-add-file-patterns-to-tty-layer.patch
+edac-add-cpc925-memory-controller-driver.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch
+edac-add-edac_device_alloc_index.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-cpc925-mc-platform-device-setup.patch
+edac-cpc925-mc-platform-device-setup-v3.patch
 
