@@ -1,235 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs.patch removed from -mm tree
-Date: Fri, 29 May 2009 11:43:19 -0700
-Message-ID: <200905291843.n4TIhJwE011550@imap1.linux-foundation.org>
+Subject: [merged] parport_gsc-fix-printk-format-error.patch removed from -mm tree
+Date: Fri, 29 May 2009 11:43:07 -0700
+Message-ID: <200905291843.n4TIh79o011416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46720 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759766AbZE2SpM (ORCPT
+	by vger.kernel.org with ESMTP id S1751789AbZE2SvX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 14:45:12 -0400
+	Fri, 29 May 2009 14:51:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, Lee.Schermerhorn@hp.com, agl@us.ibm.com, apw@canonical.com, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, stable@kernel
+To: a.beregalov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: account for MAP_SHARED mappings using VM_MAYSHARE and not VM_SHARED in hugetlbfs
+     parport_gsc: fix printk format error
 has been removed from the -mm tree.  Its filename was
-     mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs.patch
+     parport_gsc-fix-printk-format-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: account for MAP_SHARED mappings using VM_MAYSHARE and not VM_SHARED in hugetlbfs
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: parport_gsc: fix printk format error
+From: Alexander Beregalov <a.beregalov@gmail.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13302
+drivers/parport/parport_gsc.c:356: warning: format '%lx' expects type
+'long unsigned int', but argument 2 has type 'resource_size_t'
 
-hugetlbfs reserves huge pages but does not fault them at mmap() time to
-ensure that future faults succeed.  The reservation behaviour differs
-depending on whether the mapping was mapped MAP_SHARED or MAP_PRIVATE. 
-For MAP_SHARED mappings, hugepages are reserved when mmap() is first
-called and are tracked based on information associated with the inode. 
-Other processes mapping MAP_SHARED use the same reservation.  MAP_PRIVATE
-track the reservations based on the VMA created as part of the mmap()
-operation.  Each process mapping MAP_PRIVATE must make its own
-reservation.
-
-hugetlbfs currently checks if a VMA is MAP_SHARED with the VM_SHARED flag
-and not VM_MAYSHARE.  For file-backed mappings, such as hugetlbfs,
-VM_SHARED is set only if the mapping is MAP_SHARED and the file was opened
-read-write.  If a shared memory mapping was mapped shared-read-write for
-populating of data and mapped shared-read-only by other processes, then
-hugetlbfs would account for the mapping as if it was MAP_PRIVATE.  This
-causes processes to fail to map the file MAP_SHARED even though it should
-succeed as the reservation is there.
-
-This patch alters mm/hugetlb.c and replaces VM_SHARED with VM_MAYSHARE
-when the intent of the code was to check whether the VMA was mapped
-MAP_SHARED or MAP_PRIVATE.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: <starlight@binnacle.cx>
-Cc: Eric B Munson <ebmunson@us.ibm.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+[akpm@linux-foundation.org: fix it to handle u64's]
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/parport/parport_gsc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs mm/hugetlb.c
---- a/mm/hugetlb.c~mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs
-+++ a/mm/hugetlb.c
-@@ -316,7 +316,7 @@ static void resv_map_release(struct kref
- static struct resv_map *vma_resv_map(struct vm_area_struct *vma)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	if (!(vma->vm_flags & VM_SHARED))
-+	if (!(vma->vm_flags & VM_MAYSHARE))
- 		return (struct resv_map *)(get_vma_private_data(vma) &
- 							~HPAGE_RESV_MASK);
- 	return NULL;
-@@ -325,7 +325,7 @@ static struct resv_map *vma_resv_map(str
- static void set_vma_resv_map(struct vm_area_struct *vma, struct resv_map *map)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	VM_BUG_ON(vma->vm_flags & VM_SHARED);
-+	VM_BUG_ON(vma->vm_flags & VM_MAYSHARE);
+diff -puN drivers/parport/parport_gsc.c~parport_gsc-fix-printk-format-error drivers/parport/parport_gsc.c
+--- a/drivers/parport/parport_gsc.c~parport_gsc-fix-printk-format-error
++++ a/drivers/parport/parport_gsc.c
+@@ -352,8 +352,8 @@ static int __devinit parport_init_chip(s
+ 	unsigned long port;
  
- 	set_vma_private_data(vma, (get_vma_private_data(vma) &
- 				HPAGE_RESV_MASK) | (unsigned long)map);
-@@ -334,7 +334,7 @@ static void set_vma_resv_map(struct vm_a
- static void set_vma_resv_flags(struct vm_area_struct *vma, unsigned long flags)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	VM_BUG_ON(vma->vm_flags & VM_SHARED);
-+	VM_BUG_ON(vma->vm_flags & VM_MAYSHARE);
- 
- 	set_vma_private_data(vma, get_vma_private_data(vma) | flags);
- }
-@@ -353,7 +353,7 @@ static void decrement_hugepage_resv_vma(
- 	if (vma->vm_flags & VM_NORESERVE)
- 		return;
- 
--	if (vma->vm_flags & VM_SHARED) {
-+	if (vma->vm_flags & VM_MAYSHARE) {
- 		/* Shared mappings always use reserves */
- 		h->resv_huge_pages--;
- 	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
-@@ -369,14 +369,14 @@ static void decrement_hugepage_resv_vma(
- void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	if (!(vma->vm_flags & VM_SHARED))
-+	if (!(vma->vm_flags & VM_MAYSHARE))
- 		vma->vm_private_data = (void *)0;
- }
- 
- /* Returns true if the VMA has associated reserve pages */
- static int vma_has_reserves(struct vm_area_struct *vma)
- {
--	if (vma->vm_flags & VM_SHARED)
-+	if (vma->vm_flags & VM_MAYSHARE)
- 		return 1;
- 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER))
- 		return 1;
-@@ -924,7 +924,7 @@ static long vma_needs_reservation(struct
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	struct inode *inode = mapping->host;
- 
--	if (vma->vm_flags & VM_SHARED) {
-+	if (vma->vm_flags & VM_MAYSHARE) {
- 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		return region_chg(&inode->i_mapping->private_list,
- 							idx, idx + 1);
-@@ -949,7 +949,7 @@ static void vma_commit_reservation(struc
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	struct inode *inode = mapping->host;
- 
--	if (vma->vm_flags & VM_SHARED) {
-+	if (vma->vm_flags & VM_MAYSHARE) {
- 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
- 
-@@ -1893,7 +1893,7 @@ retry_avoidcopy:
- 	 * at the time of fork() could consume its reserves on COW instead
- 	 * of the full address range.
- 	 */
--	if (!(vma->vm_flags & VM_SHARED) &&
-+	if (!(vma->vm_flags & VM_MAYSHARE) &&
- 			is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
- 			old_page != pagecache_page)
- 		outside_reserve = 1;
-@@ -2000,7 +2000,7 @@ retry:
- 		clear_huge_page(page, address, huge_page_size(h));
- 		__SetPageUptodate(page);
- 
--		if (vma->vm_flags & VM_SHARED) {
-+		if (vma->vm_flags & VM_MAYSHARE) {
- 			int err;
- 			struct inode *inode = mapping->host;
- 
-@@ -2104,7 +2104,7 @@ int hugetlb_fault(struct mm_struct *mm, 
- 			goto out_mutex;
- 		}
- 
--		if (!(vma->vm_flags & VM_SHARED))
-+		if (!(vma->vm_flags & VM_MAYSHARE))
- 			pagecache_page = hugetlbfs_pagecache_page(h,
- 								vma, address);
+ 	if (!dev->irq) {
+-		printk(KERN_WARNING "IRQ not found for parallel device at 0x%lx\n",
+-			dev->hpa.start);
++		printk(KERN_WARNING "IRQ not found for parallel device at 0x%llx\n",
++			(unsigned long long)dev->hpa.start);
+ 		return -ENODEV;
  	}
-@@ -2289,7 +2289,7 @@ int hugetlb_reserve_pages(struct inode *
- 	 * to reserve the full area even if read-only as mprotect() may be
- 	 * called to make the mapping read-write. Assume !vma is a shm mapping
- 	 */
--	if (!vma || vma->vm_flags & VM_SHARED)
-+	if (!vma || vma->vm_flags & VM_MAYSHARE)
- 		chg = region_chg(&inode->i_mapping->private_list, from, to);
- 	else {
- 		struct resv_map *resv_map = resv_map_alloc();
-@@ -2330,7 +2330,7 @@ int hugetlb_reserve_pages(struct inode *
- 	 * consumed reservations are stored in the map. Hence, nothing
- 	 * else has to be done for private mappings here
- 	 */
--	if (!vma || vma->vm_flags & VM_SHARED)
-+	if (!vma || vma->vm_flags & VM_MAYSHARE)
- 		region_add(&inode->i_mapping->private_list, from, to);
- 	return 0;
- }
+ 
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from a.beregalov@gmail.com are
 
 origin.patch
 linux-next.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-mm-alloc_large_system_hash-check-order.patch
-page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
-page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
-page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
-page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
-page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-inline-__rmqueue_smallest.patch
-page-allocator-inline-buffered_rmqueue.patch
-page-allocator-inline-__rmqueue_fallback.patch
-page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
-page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
-page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
-page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
-page-allocator-update-nr_free_pages-only-as-necessary.patch
-page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
-page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-page-allocator-move-free_page_mlock-to-page_allocc.patch
-page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
-mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
-page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
-page-allocator-clean-up-functions-related-to-pages_min.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
 
