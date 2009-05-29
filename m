@@ -1,89 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch removed from -mm tree
-Date: Fri, 29 May 2009 11:42:59 -0700
-Message-ID: <200905291842.n4TIgxvb011286@imap1.linux-foundation.org>
+Subject: [merged] mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs.patch removed from -mm tree
+Date: Fri, 29 May 2009 11:43:19 -0700
+Message-ID: <200905291843.n4TIhJwE011550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758258AbZE2Sow (ORCPT
+	by vger.kernel.org with ESMTP id S1759766AbZE2SpM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 14:44:52 -0400
+	Fri, 29 May 2009 14:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, grant.likely@secretlab.ca, stable@kernel.org, w.sang@pengutronix.de, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, Lee.Schermerhorn@hp.com, agl@us.ibm.com, apw@canonical.com, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, stable@kernel
 
 
 The patch titled
-     drivers/serial/mpc52xx_uart.c: fix array overindexing check
+     mm: account for MAP_SHARED mappings using VM_MAYSHARE and not VM_SHARED in hugetlbfs
 has been removed from the -mm tree.  Its filename was
-     drivers-serial-mpc52xx_uartc-fix-array-overindexing-check.patch
+     mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/serial/mpc52xx_uart.c: fix array overindexing check
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: mm: account for MAP_SHARED mappings using VM_MAYSHARE and not VM_SHARED in hugetlbfs
+From: Mel Gorman <mel@csn.ul.ie>
 
-The check for an overindexing of mpc52xx_uart_{ports,nodes} has an
-off-by-one.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13302
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+hugetlbfs reserves huge pages but does not fault them at mmap() time to
+ensure that future faults succeed.  The reservation behaviour differs
+depending on whether the mapping was mapped MAP_SHARED or MAP_PRIVATE. 
+For MAP_SHARED mappings, hugepages are reserved when mmap() is first
+called and are tracked based on information associated with the inode. 
+Other processes mapping MAP_SHARED use the same reservation.  MAP_PRIVATE
+track the reservations based on the VMA created as part of the mmap()
+operation.  Each process mapping MAP_PRIVATE must make its own
+reservation.
+
+hugetlbfs currently checks if a VMA is MAP_SHARED with the VM_SHARED flag
+and not VM_MAYSHARE.  For file-backed mappings, such as hugetlbfs,
+VM_SHARED is set only if the mapping is MAP_SHARED and the file was opened
+read-write.  If a shared memory mapping was mapped shared-read-write for
+populating of data and mapped shared-read-only by other processes, then
+hugetlbfs would account for the mapping as if it was MAP_PRIVATE.  This
+causes processes to fail to map the file MAP_SHARED even though it should
+succeed as the reservation is there.
+
+This patch alters mm/hugetlb.c and replaces VM_SHARED with VM_MAYSHARE
+when the intent of the code was to check whether the VMA was mapped
+MAP_SHARED or MAP_PRIVATE.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: <stable@kernel.org>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: <starlight@binnacle.cx>
+Cc: Eric B Munson <ebmunson@us.ibm.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mpc52xx_uart.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/serial/mpc52xx_uart.c~drivers-serial-mpc52xx_uartc-fix-array-overindexing-check drivers/serial/mpc52xx_uart.c
---- a/drivers/serial/mpc52xx_uart.c~drivers-serial-mpc52xx_uartc-fix-array-overindexing-check
-+++ a/drivers/serial/mpc52xx_uart.c
-@@ -988,7 +988,7 @@ mpc52xx_console_setup(struct console *co
- 	pr_debug("mpc52xx_console_setup co=%p, co->index=%i, options=%s\n",
- 		 co, co->index, options);
+diff -puN mm/hugetlb.c~mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-account-for-map_shared-mappings-using-vm_mayshare-and-not-vm_shared-in-hugetlbfs
++++ a/mm/hugetlb.c
+@@ -316,7 +316,7 @@ static void resv_map_release(struct kref
+ static struct resv_map *vma_resv_map(struct vm_area_struct *vma)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+-	if (!(vma->vm_flags & VM_SHARED))
++	if (!(vma->vm_flags & VM_MAYSHARE))
+ 		return (struct resv_map *)(get_vma_private_data(vma) &
+ 							~HPAGE_RESV_MASK);
+ 	return NULL;
+@@ -325,7 +325,7 @@ static struct resv_map *vma_resv_map(str
+ static void set_vma_resv_map(struct vm_area_struct *vma, struct resv_map *map)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+-	VM_BUG_ON(vma->vm_flags & VM_SHARED);
++	VM_BUG_ON(vma->vm_flags & VM_MAYSHARE);
  
--	if ((co->index < 0) || (co->index > MPC52xx_PSC_MAXNUM)) {
-+	if ((co->index < 0) || (co->index >= MPC52xx_PSC_MAXNUM)) {
- 		pr_debug("PSC%x out of range\n", co->index);
- 		return -EINVAL;
+ 	set_vma_private_data(vma, (get_vma_private_data(vma) &
+ 				HPAGE_RESV_MASK) | (unsigned long)map);
+@@ -334,7 +334,7 @@ static void set_vma_resv_map(struct vm_a
+ static void set_vma_resv_flags(struct vm_area_struct *vma, unsigned long flags)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+-	VM_BUG_ON(vma->vm_flags & VM_SHARED);
++	VM_BUG_ON(vma->vm_flags & VM_MAYSHARE);
+ 
+ 	set_vma_private_data(vma, get_vma_private_data(vma) | flags);
+ }
+@@ -353,7 +353,7 @@ static void decrement_hugepage_resv_vma(
+ 	if (vma->vm_flags & VM_NORESERVE)
+ 		return;
+ 
+-	if (vma->vm_flags & VM_SHARED) {
++	if (vma->vm_flags & VM_MAYSHARE) {
+ 		/* Shared mappings always use reserves */
+ 		h->resv_huge_pages--;
+ 	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
+@@ -369,14 +369,14 @@ static void decrement_hugepage_resv_vma(
+ void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+-	if (!(vma->vm_flags & VM_SHARED))
++	if (!(vma->vm_flags & VM_MAYSHARE))
+ 		vma->vm_private_data = (void *)0;
+ }
+ 
+ /* Returns true if the VMA has associated reserve pages */
+ static int vma_has_reserves(struct vm_area_struct *vma)
+ {
+-	if (vma->vm_flags & VM_SHARED)
++	if (vma->vm_flags & VM_MAYSHARE)
+ 		return 1;
+ 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+ 		return 1;
+@@ -924,7 +924,7 @@ static long vma_needs_reservation(struct
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	struct inode *inode = mapping->host;
+ 
+-	if (vma->vm_flags & VM_SHARED) {
++	if (vma->vm_flags & VM_MAYSHARE) {
+ 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		return region_chg(&inode->i_mapping->private_list,
+ 							idx, idx + 1);
+@@ -949,7 +949,7 @@ static void vma_commit_reservation(struc
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	struct inode *inode = mapping->host;
+ 
+-	if (vma->vm_flags & VM_SHARED) {
++	if (vma->vm_flags & VM_MAYSHARE) {
+ 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
+ 
+@@ -1893,7 +1893,7 @@ retry_avoidcopy:
+ 	 * at the time of fork() could consume its reserves on COW instead
+ 	 * of the full address range.
+ 	 */
+-	if (!(vma->vm_flags & VM_SHARED) &&
++	if (!(vma->vm_flags & VM_MAYSHARE) &&
+ 			is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
+ 			old_page != pagecache_page)
+ 		outside_reserve = 1;
+@@ -2000,7 +2000,7 @@ retry:
+ 		clear_huge_page(page, address, huge_page_size(h));
+ 		__SetPageUptodate(page);
+ 
+-		if (vma->vm_flags & VM_SHARED) {
++		if (vma->vm_flags & VM_MAYSHARE) {
+ 			int err;
+ 			struct inode *inode = mapping->host;
+ 
+@@ -2104,7 +2104,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 			goto out_mutex;
+ 		}
+ 
+-		if (!(vma->vm_flags & VM_SHARED))
++		if (!(vma->vm_flags & VM_MAYSHARE))
+ 			pagecache_page = hugetlbfs_pagecache_page(h,
+ 								vma, address);
  	}
+@@ -2289,7 +2289,7 @@ int hugetlb_reserve_pages(struct inode *
+ 	 * to reserve the full area even if read-only as mprotect() may be
+ 	 * called to make the mapping read-write. Assume !vma is a shm mapping
+ 	 */
+-	if (!vma || vma->vm_flags & VM_SHARED)
++	if (!vma || vma->vm_flags & VM_MAYSHARE)
+ 		chg = region_chg(&inode->i_mapping->private_list, from, to);
+ 	else {
+ 		struct resv_map *resv_map = resv_map_alloc();
+@@ -2330,7 +2330,7 @@ int hugetlb_reserve_pages(struct inode *
+ 	 * consumed reservations are stored in the map. Hence, nothing
+ 	 * else has to be done for private mappings here
+ 	 */
+-	if (!vma || vma->vm_flags & VM_SHARED)
++	if (!vma || vma->vm_flags & VM_MAYSHARE)
+ 		region_add(&inode->i_mapping->private_list, from, to);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-drm-fix-lock_test_with_return-macro.patch
-uwb-event_size-should-be-signed.patch
-irda-count-reaches-1.patch
-drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
-atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-wis-sony-tunerc-typo.patch
-otus-80211core-coidc-fix-array-range-check.patch
-wmm_paramac_aci_acm_aifsn-tested-twice.patch
-lguest-fix-array-indexing-check.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-platinumfb-misplaced-parenthesis.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+mm-alloc_large_system_hash-check-order.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
+mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
+page-allocator-clean-up-functions-related-to-pages_min.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
