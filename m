@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-swap-cache-interface-for-swap-reference.patch added to -mm tree
-Date: Fri, 29 May 2009 14:55:42 -0700
-Message-ID: <200905292155.n4TLthRO018165@imap1.linux-foundation.org>
+Subject: + mm-reuse-unused-swap-entry-if-necessary.patch added to -mm tree
+Date: Fri, 29 May 2009 14:55:48 -0700
+Message-ID: <200905292155.n4TLtnoQ018218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48400 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752104AbZE2V4c (ORCPT
+	by vger.kernel.org with ESMTP id S1751708AbZE2V4c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 29 May 2009 17:56:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com
 
 
 The patch titled
-     mm: add swap cache interface for swap reference
+     mm: reuse unused swap entry if necessary
 has been added to the -mm tree.  Its filename is
-     mm-add-swap-cache-interface-for-swap-reference.patch
+     mm-reuse-unused-swap-entry-if-necessary.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add swap cache interface for swap reference
+Subject: mm: reuse unused swap entry if necessary
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-In a following patch, the usage of swap cache is recorded into swap_map. 
-This patch is for necessary interface changes to do that.
+Presently we can know a swap entry is just used as SwapCache via swap_map,
+without looking up swap cache.
 
-2 interfaces:
+Then, we have a chance to reuse swap-cache-only swap entries in
+get_swap_pages().
 
-  - swapcache_prepare()
-  - swapcache_free()
+This patch tries to free swap-cache-only swap entries if swap is not
+enough.
 
-are added for allocating/freeing refcnt from swap-cache to existing swap
-entries.  But implementation itself is not changed under this patch.  At
-adding swapcache_free(), memcg's hook code is moved under
-swapcache_free().  This is better than using scattered hooks.
+Note: We hit following path when swap_cluster code cannot find a free
+cluster.  Then, vm_swap_full() is not only condition to allow the kernel
+to reclaim unused swap.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -61,150 +61,79 @@ Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    7 +++++++
- mm/shmem.c           |    2 +-
- mm/swap_state.c      |   11 +++++------
- mm/swapfile.c        |   19 +++++++++++++++++++
- mm/vmscan.c          |    3 +--
- 5 files changed, 33 insertions(+), 9 deletions(-)
+ mm/swapfile.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff -puN include/linux/swap.h~mm-add-swap-cache-interface-for-swap-reference include/linux/swap.h
---- a/include/linux/swap.h~mm-add-swap-cache-interface-for-swap-reference
-+++ a/include/linux/swap.h
-@@ -282,8 +282,10 @@ extern void si_swapinfo(struct sysinfo *
- extern swp_entry_t get_swap_page(void);
- extern swp_entry_t get_swap_page_of_type(int);
- extern int swap_duplicate(swp_entry_t);
-+extern int swapcache_prepare(swp_entry_t);
- extern int valid_swaphandles(swp_entry_t, unsigned long *);
- extern void swap_free(swp_entry_t);
-+extern void swapcache_free(swp_entry_t, struct page *page);
- extern int free_swap_and_cache(swp_entry_t);
- extern int swap_type_of(dev_t, sector_t, struct block_device **);
- extern unsigned int count_swap_pages(int, int);
-@@ -352,11 +354,16 @@ static inline void show_swap_cache_info(
- 
- #define free_swap_and_cache(swp)	is_migration_entry(swp)
- #define swap_duplicate(swp)		is_migration_entry(swp)
-+#define swapcache_prepare(swp)		is_migration_entry(swp)
- 
- static inline void swap_free(swp_entry_t swp)
- {
- }
- 
-+static inline void swapcache_free(swp_entry_t swp, struct page *page)
-+{
-+}
-+
- static inline struct page *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
- 			struct vm_area_struct *vma, unsigned long addr)
- {
-diff -puN mm/shmem.c~mm-add-swap-cache-interface-for-swap-reference mm/shmem.c
---- a/mm/shmem.c~mm-add-swap-cache-interface-for-swap-reference
-+++ a/mm/shmem.c
-@@ -1097,7 +1097,7 @@ static int shmem_writepage(struct page *
- 	shmem_swp_unmap(entry);
- unlock:
- 	spin_unlock(&info->lock);
--	swap_free(swap);
-+	swapcache_free(swap, NULL);
- redirty:
- 	set_page_dirty(page);
- 	if (wbc->for_reclaim)
-diff -puN mm/swap_state.c~mm-add-swap-cache-interface-for-swap-reference mm/swap_state.c
---- a/mm/swap_state.c~mm-add-swap-cache-interface-for-swap-reference
-+++ a/mm/swap_state.c
-@@ -162,11 +162,11 @@ int add_to_swap(struct page *page)
- 			return 1;
- 		case -EEXIST:
- 			/* Raced with "speculative" read_swap_cache_async */
--			swap_free(entry);
-+			swapcache_free(entry, NULL);
- 			continue;
- 		default:
- 			/* -ENOMEM radix-tree allocation failure */
--			swap_free(entry);
-+			swapcache_free(entry, NULL);
- 			return 0;
- 		}
- 	}
-@@ -188,8 +188,7 @@ void delete_from_swap_cache(struct page 
- 	__delete_from_swap_cache(page);
- 	spin_unlock_irq(&swapper_space.tree_lock);
- 
--	mem_cgroup_uncharge_swapcache(page, entry);
--	swap_free(entry);
-+	swapcache_free(entry, page);
- 	page_cache_release(page);
- }
- 
-@@ -293,7 +292,7 @@ struct page *read_swap_cache_async(swp_e
- 		/*
- 		 * Swap entry may have been freed since our caller observed it.
- 		 */
--		if (!swap_duplicate(entry))
-+		if (!swapcache_prepare(entry))
- 			break;
- 
- 		/*
-@@ -317,7 +316,7 @@ struct page *read_swap_cache_async(swp_e
- 		}
- 		ClearPageSwapBacked(new_page);
- 		__clear_page_locked(new_page);
--		swap_free(entry);
-+		swapcache_free(entry, NULL);
- 	} while (err != -ENOMEM);
- 
- 	if (new_page)
-diff -puN mm/swapfile.c~mm-add-swap-cache-interface-for-swap-reference mm/swapfile.c
---- a/mm/swapfile.c~mm-add-swap-cache-interface-for-swap-reference
+diff -puN mm/swapfile.c~mm-reuse-unused-swap-entry-if-necessary mm/swapfile.c
+--- a/mm/swapfile.c~mm-reuse-unused-swap-entry-if-necessary
 +++ a/mm/swapfile.c
-@@ -510,6 +510,16 @@ void swap_free(swp_entry_t entry)
+@@ -73,6 +73,25 @@ static inline unsigned short make_swap_c
+ 	return ret;
  }
  
++static int
++try_to_reuse_swap(struct swap_info_struct *si, unsigned long offset)
++{
++	int type = si - swap_info;
++	swp_entry_t entry = swp_entry(type, offset);
++	struct page *page;
++	int ret = 0;
++
++	page = find_get_page(&swapper_space, entry.val);
++	if (!page)
++		return 0;
++	if (trylock_page(page)) {
++		ret = try_to_free_swap(page);
++		unlock_page(page);
++	}
++	page_cache_release(page);
++	return ret;
++}
++
  /*
-+ * Called after dropping swapcache to decrease refcnt to swap entries.
-+ */
-+void swapcache_free(swp_entry_t entry, struct page *page)
-+{
-+	if (page)
-+		mem_cgroup_uncharge_swapcache(page, entry);
-+	return swap_free(entry);
-+}
+  * We need this because the bdev->unplug_fn can sleep and we cannot
+  * hold swap_lock while calling the unplug_fn. And swap_lock
+@@ -294,6 +313,18 @@ checks:
+ 		goto no_page;
+ 	if (offset > si->highest_bit)
+ 		scan_base = offset = si->lowest_bit;
 +
-+/*
-  * How many references to page are currently swapped out?
-  */
- static inline int page_swapcount(struct page *page)
-@@ -1979,6 +1989,15 @@ bad_file:
- 	goto out;
- }
++	/* reuse swap entry of cache-only swap if not busy. */
++	if (vm_swap_full() && si->swap_map[offset] == SWAP_HAS_CACHE) {
++		int ret;
++		spin_unlock(&swap_lock);
++		ret = try_to_reuse_swap(si, offset);
++		spin_lock(&swap_lock);
++		if (ret)
++			goto checks; /* we released swap_lock. retry. */
++		goto scan; /* In some racy case */
++	}
++
+ 	if (si->swap_map[offset])
+ 		goto scan;
  
-+/*
-+ * Called when allocating swap cache for exising swap entry,
-+ */
-+int swapcache_prepare(swp_entry_t entry)
-+{
-+	return swap_duplicate(entry);
-+}
-+
-+
- struct swap_info_struct *
- get_swap_info_struct(unsigned type)
- {
-diff -puN mm/vmscan.c~mm-add-swap-cache-interface-for-swap-reference mm/vmscan.c
---- a/mm/vmscan.c~mm-add-swap-cache-interface-for-swap-reference
-+++ a/mm/vmscan.c
-@@ -470,8 +470,7 @@ static int __remove_mapping(struct addre
- 		swp_entry_t swap = { .val = page_private(page) };
- 		__delete_from_swap_cache(page);
- 		spin_unlock_irq(&mapping->tree_lock);
--		mem_cgroup_uncharge_swapcache(page, swap);
--		swap_free(swap);
-+		swapcache_free(swap, page);
- 	} else {
- 		__remove_from_page_cache(page);
- 		spin_unlock_irq(&mapping->tree_lock);
+@@ -375,6 +406,10 @@ scan:
+ 			spin_lock(&swap_lock);
+ 			goto checks;
+ 		}
++		if (vm_swap_full() && si->swap_map[offset] == SWAP_HAS_CACHE) {
++			spin_lock(&swap_lock);
++			goto checks;
++		}
+ 		if (unlikely(--latency_ration < 0)) {
+ 			cond_resched();
+ 			latency_ration = LATENCY_LIMIT;
+@@ -386,6 +421,10 @@ scan:
+ 			spin_lock(&swap_lock);
+ 			goto checks;
+ 		}
++		if (vm_swap_full() && si->swap_map[offset] == SWAP_HAS_CACHE) {
++			spin_lock(&swap_lock);
++			goto checks;
++		}
+ 		if (unlikely(--latency_ration < 0)) {
+ 			cond_resched();
+ 			latency_ration = LATENCY_LIMIT;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
