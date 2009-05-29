@@ -1,137 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-ignore-vm_locked-when-determining-if-hugetlb-backed-page-tables-can-be-shared-or-not.patch removed from -mm tree
-Date: Fri, 29 May 2009 11:43:16 -0700
-Message-ID: <200905291843.n4TIhG58011547@imap1.linux-foundation.org>
+Subject: [merged] flat-fix-data-sections-alignment.patch removed from -mm tree
+Date: Fri, 29 May 2009 11:43:03 -0700
+Message-ID: <200905291843.n4TIh3aj011295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37194 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752277AbZE2Szn (ORCPT
+	by vger.kernel.org with ESMTP id S1754708AbZE2Szj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 14:55:43 -0400
+	Fri, 29 May 2009 14:55:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, Lee.Schermerhorn@hp.com, agl@us.ibm.com, apw@canonical.com, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, stable@kernel
+To: os@emlix.com, cooloney@kernel.org, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, jw@emlix.com, lethal@linux-sh.org, rmk@arm.linux.org.uk, vapier.adi@gmail.com, mm-commi
 
 
 The patch titled
-     x86: ignore VM_LOCKED when determining if hugetlb-backed page tables can be shared or not
+     flat: fix data sections alignment
 has been removed from the -mm tree.  Its filename was
-     x86-ignore-vm_locked-when-determining-if-hugetlb-backed-page-tables-can-be-shared-or-not.patch
+     flat-fix-data-sections-alignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: ignore VM_LOCKED when determining if hugetlb-backed page tables can be shared or not
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: flat: fix data sections alignment
+From: Oskar Schirmer <os@emlix.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13302
+The flat loader uses an architecture's flat_stack_align() to align the
+stack but assumes word-alignment is enough for the data sections.
 
-On x86 and x86-64, it is possible that page tables are shared beween
-shared mappings backed by hugetlbfs.  As part of this,
-page_table_shareable() checks a pair of vma->vm_flags and they must match
-if they are to be shared.  All VMA flags are taken into account, including
-VM_LOCKED.
+However, on the Xtensa S6000 we have registers up to 128bit width
+which can be used from userspace and therefor need userspace stack and
+data-section alignment of at least this size.
 
-The problem is that VM_LOCKED is cleared on fork().  When a process with a
-shared memory segment forks() to exec() a helper, there will be shared
-VMAs with different flags.  The impact is that the shared segment is
-sometimes considered shareable and other times not, depending on what
-process is checking.
+This patch drops flat_stack_align() and uses the same alignment that
+is required for slab caches, ARCH_SLAB_MINALIGN, or wordsize if it's
+not defined by the architecture.
 
-What happens is that the segment page tables are being shared but the
-count is inaccurate depending on the ordering of events.  As the page
-tables are freed with put_page(), bad pmd's are found when some of the
-children exit.  The hugepage counters also get corrupted and the Total and
-Free count will no longer match even when all the hugepage-backed regions
-are freed.  This requires a reboot of the machine to "fix".
+It also fixes m32r which was obviously kaput, aligning an
+uninitialized stack entry instead of the stack pointer.
 
-This patch addresses the problem by comparing all flags except VM_LOCKED
-when deciding if pagetables should be shared or not for hugetlbfs-backed
-mapping.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: <starlight@binnacle.cx>
-Cc: Eric B Munson <ebmunson@us.ibm.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Oskar Schirmer <os@emlix.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Johannes Weiner <jw@emlix.com>
+Acked-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/arm/include/asm/flat.h      |    3 -
+ arch/blackfin/include/asm/flat.h |    1 
+ arch/h8300/include/asm/flat.h    |    1 
+ arch/m32r/include/asm/flat.h     |    1 
+ arch/m68k/include/asm/flat.h     |    1 
+ arch/sh/include/asm/flat.h       |    1 
+ fs/binfmt_flat.c                 |   46 +++++++++++++++++++----------
+ 7 files changed, 31 insertions(+), 23 deletions(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~x86-ignore-vm_locked-when-determining-if-hugetlb-backed-page-tables-can-be-shared-or-not arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~x86-ignore-vm_locked-when-determining-if-hugetlb-backed-page-tables-can-be-shared-or-not
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -26,12 +26,16 @@ static unsigned long page_table_shareabl
- 	unsigned long sbase = saddr & PUD_MASK;
- 	unsigned long s_end = sbase + PUD_SIZE;
+diff -puN arch/arm/include/asm/flat.h~flat-fix-data-sections-alignment arch/arm/include/asm/flat.h
+--- a/arch/arm/include/asm/flat.h~flat-fix-data-sections-alignment
++++ a/arch/arm/include/asm/flat.h
+@@ -5,9 +5,6 @@
+ #ifndef __ARM_FLAT_H__
+ #define __ARM_FLAT_H__
  
-+	/* Allow segments to share if only one is marked locked */
-+	unsigned long vm_flags = vma->vm_flags & ~VM_LOCKED;
-+	unsigned long svm_flags = svma->vm_flags & ~VM_LOCKED;
+-/* An odd number of words will be pushed after this alignment, so
+-   deliberately misalign the value.  */
+-#define	flat_stack_align(sp)	sp = (void *)(((unsigned long)(sp) - 4) | 4)
+ #define	flat_argvp_envp_on_stack()		1
+ #define	flat_old_ram_flag(flags)		(flags)
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+diff -puN arch/blackfin/include/asm/flat.h~flat-fix-data-sections-alignment arch/blackfin/include/asm/flat.h
+--- a/arch/blackfin/include/asm/flat.h~flat-fix-data-sections-alignment
++++ a/arch/blackfin/include/asm/flat.h
+@@ -10,7 +10,6 @@
+ 
+ #include <asm/unaligned.h>
+ 
+-#define	flat_stack_align(sp)	/* nothing needed */
+ #define	flat_argvp_envp_on_stack()		0
+ #define	flat_old_ram_flag(flags)		(flags)
+ 
+diff -puN arch/h8300/include/asm/flat.h~flat-fix-data-sections-alignment arch/h8300/include/asm/flat.h
+--- a/arch/h8300/include/asm/flat.h~flat-fix-data-sections-alignment
++++ a/arch/h8300/include/asm/flat.h
+@@ -5,7 +5,6 @@
+ #ifndef __H8300_FLAT_H__
+ #define __H8300_FLAT_H__
+ 
+-#define	flat_stack_align(sp)			/* nothing needed */
+ #define	flat_argvp_envp_on_stack()		1
+ #define	flat_old_ram_flag(flags)		1
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+diff -puN arch/m32r/include/asm/flat.h~flat-fix-data-sections-alignment arch/m32r/include/asm/flat.h
+--- a/arch/m32r/include/asm/flat.h~flat-fix-data-sections-alignment
++++ a/arch/m32r/include/asm/flat.h
+@@ -12,7 +12,6 @@
+ #ifndef __ASM_M32R_FLAT_H
+ #define __ASM_M32R_FLAT_H
+ 
+-#define	flat_stack_align(sp)		(*sp += (*sp & 3 ? (4 - (*sp & 3)): 0))
+ #define	flat_argvp_envp_on_stack()		0
+ #define	flat_old_ram_flag(flags)		(flags)
+ #define	flat_set_persistent(relval, p)		0
+diff -puN arch/m68k/include/asm/flat.h~flat-fix-data-sections-alignment arch/m68k/include/asm/flat.h
+--- a/arch/m68k/include/asm/flat.h~flat-fix-data-sections-alignment
++++ a/arch/m68k/include/asm/flat.h
+@@ -5,7 +5,6 @@
+ #ifndef __M68KNOMMU_FLAT_H__
+ #define __M68KNOMMU_FLAT_H__
+ 
+-#define	flat_stack_align(sp)			/* nothing needed */
+ #define	flat_argvp_envp_on_stack()		1
+ #define	flat_old_ram_flag(flags)		(flags)
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+diff -puN arch/sh/include/asm/flat.h~flat-fix-data-sections-alignment arch/sh/include/asm/flat.h
+--- a/arch/sh/include/asm/flat.h~flat-fix-data-sections-alignment
++++ a/arch/sh/include/asm/flat.h
+@@ -12,7 +12,6 @@
+ #ifndef __ASM_SH_FLAT_H
+ #define __ASM_SH_FLAT_H
+ 
+-#define	flat_stack_align(sp)			/* nothing needed */
+ #define	flat_argvp_envp_on_stack()		0
+ #define	flat_old_ram_flag(flags)		(flags)
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+diff -puN fs/binfmt_flat.c~flat-fix-data-sections-alignment fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~flat-fix-data-sections-alignment
++++ a/fs/binfmt_flat.c
+@@ -41,6 +41,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/unaligned.h>
+ #include <asm/cacheflush.h>
++#include <asm/page.h>
+ 
+ /****************************************************************************/
+ 
+@@ -54,6 +55,18 @@
+ #define	DBG_FLT(a...)
+ #endif
+ 
++/*
++ * User data (stack, data section and bss) needs to be aligned
++ * for the same reasons as SLAB memory is, and to the same amount.
++ * Avoid duplicating architecture specific code by using the same
++ * macro as with SLAB allocation:
++ */
++#ifdef ARCH_SLAB_MINALIGN
++#define FLAT_DATA_ALIGN	(ARCH_SLAB_MINALIGN)
++#else
++#define FLAT_DATA_ALIGN	(sizeof(void *))
++#endif
 +
- 	/*
- 	 * match the virtual addresses, permission and the alignment of the
- 	 * page table page.
- 	 */
- 	if (pmd_index(addr) != pmd_index(saddr) ||
--	    vma->vm_flags != svma->vm_flags ||
-+	    vm_flags != svm_flags ||
- 	    sbase < svma->vm_start || svma->vm_end < s_end)
- 		return 0;
+ #define RELOC_FAILED 0xff00ff01		/* Relocation incorrect somewhere */
+ #define UNLOADED_LIB 0x7ff000ff		/* Placeholder for unused library */
  
-_
-
-Patches currently in -mm which might be from mel@csn.ul.ie are
-
-origin.patch
-linux-next.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-mm-alloc_large_system_hash-check-order.patch
-page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
-page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
-page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
-page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
-page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-inline-__rmqueue_smallest.patch
-page-allocator-inline-buffered_rmqueue.patch
-page-allocator-inline-__rmqueue_fallback.patch
-page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
-page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
-page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
-page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
-page-allocator-update-nr_free_pages-only-as-necessary.patch
-page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
-page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-page-allocator-move-free_page_mlock-to-page_allocc.patch
-page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
-mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
-page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
-page-allocator-clean-up-functions-related-to-pages_min.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-
+@@ -114,20 +127,18 @@ static unsigned long create_flat_tables(
+ 	int envc = bprm->envc;
+ 	char uninitialized_var(dummy);
+ 
+-	sp = (unsigned long *) ((-(unsigned long)sizeof(char *))&(unsigned long) p);
++	sp = (unsigned long *)p;
++	sp -= (envc + argc + 2) + 1 + (flat_argvp_envp_on_stack() ? 2 : 0);
++	sp = (unsigned long *) ((unsigned long)sp & -FLAT_DATA_ALIGN);
++	argv = sp + 1 + (flat_argvp_envp_on_stack() ? 2 : 0);
++	envp = argv + (argc + 1);
+ 
+-	sp -= envc+1;
+-	envp = sp;
+-	sp -= argc+1;
+-	argv = sp;
+-
+-	flat_stack_align(sp);
+ 	if (flat_argvp_envp_on_stack()) {
+-		--sp; put_user((unsigned long) envp, sp);
+-		--sp; put_user((unsigned long) argv, sp);
++		put_user((unsigned long) envp, sp + 2);
++		put_user((unsigned long) argv, sp + 1);
+ 	}
+ 
+-	put_user(argc,--sp);
++	put_user(argc, sp);
+ 	current->mm->arg_start = (unsigned long) p;
+ 	while (argc-->0) {
+ 		put_user((unsigned long) p, argv++);
+@@ -558,7 +569,9 @@ static int load_flat_file(struct linux_b
+ 			ret = realdatastart;
+ 			goto err;
+ 		}
+-		datapos = realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long);
++		datapos = ALIGN(realdatastart +
++				MAX_SHARED_LIBS * sizeof(unsigned long),
++				FLAT_DATA_ALIGN);
+ 
+ 		DBG_FLT("BINFMT_FLAT: Allocated data+bss+stack (%d bytes): %x\n",
+ 				(int)(data_len + bss_len + stack_len), (int)datapos);
+@@ -604,9 +617,12 @@ static int load_flat_file(struct linux_b
+ 		}
+ 
+ 		realdatastart = textpos + ntohl(hdr->data_start);
+-		datapos = realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long);
+-		reloc = (unsigned long *) (textpos + ntohl(hdr->reloc_start) +
+-				MAX_SHARED_LIBS * sizeof(unsigned long));
++		datapos = ALIGN(realdatastart +
++				MAX_SHARED_LIBS * sizeof(unsigned long),
++				FLAT_DATA_ALIGN);
++
++		reloc = (unsigned long *)
++			(datapos + (ntohl(hdr->reloc_start) - text_len));
+ 		memp = textpos;
+ 		memp_size = len;
+ #ifdef CONFIG_BINFMT_ZFLAT
+@@ -854,7 +870,7 @@ static int load_flat_binary(struct linux
+ 	stack_len = TOP_OF_ARGS - bprm->p;             /* the strings */
+ 	stack_len += (bprm->argc + 1) * sizeof(char *); /* the argv array */
+ 	stack_len += (bprm->envc + 1) * sizeof(char *); /* the envp array */
