@@ -1,84 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cred-include-inith-in-credh.patch removed from -mm tree
-Date: Fri, 29 May 2009 11:42:52 -0700
-Message-ID: <200905291842.n4TIgqNp011165@imap1.linux-foundation.org>
+Subject: [merged] maintainers-pair-edac-e752x-p-and-m-entries.patch removed from -mm tree
+Date: Fri, 29 May 2009 11:42:47 -0700
+Message-ID: <200905291842.n4TIglS3011156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39886 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752579AbZE2Snl (ORCPT
+	by vger.kernel.org with ESMTP id S1752710AbZE2Sns (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 14:43:41 -0400
+	Fri, 29 May 2009 14:43:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, dhowells@redhat.com, jmorris@namei.org, mm-commits@vger.kernel.org
+To: joe@perches.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cred: #include init.h in cred.h
+     MAINTAINERS: pair EDAC-E752X P: and M: entries
 has been removed from the -mm tree.  Its filename was
-     cred-include-inith-in-credh.patch
+     maintainers-pair-edac-e752x-p-and-m-entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cred: #include init.h in cred.h
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: MAINTAINERS: pair EDAC-E752X P: and M: entries
+From: Joe Perches <joe@perches.com>
 
-linux/cred.h can't be included as first header (alphabetical order)
-because it uses __init which is enough to break compilation on some archs.
+Entries should be P: name then M: email address.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: James Morris <jmorris@namei.org>
-Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cred.h |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cred.h~cred-include-inith-in-credh include/linux/cred.h
---- a/include/linux/cred.h~cred-include-inith-in-credh
-+++ a/include/linux/cred.h
-@@ -13,6 +13,7 @@
- #define _LINUX_CRED_H
+diff -puN MAINTAINERS~maintainers-pair-edac-e752x-p-and-m-entries MAINTAINERS
+--- a/MAINTAINERS~maintainers-pair-edac-e752x-p-and-m-entries
++++ a/MAINTAINERS
+@@ -1971,8 +1971,8 @@ F:	include/linux/edac.h
  
- #include <linux/capability.h>
-+#include <linux/init.h>
- #include <linux/key.h>
- #include <asm/atomic.h>
- 
+ EDAC-E752X
+ P:	Mark Gross
+-P:	Doug Thompson
+ M:	mark.gross@intel.com
++P:	Doug Thompson
+ M:	dougthompson@xmission.com
+ L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	bluesmoke.sourceforge.net
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-mm-consolidate-init_mm-definition.patch
-mm-consolidate-init_mm-definition-fix.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
-pagemap-document-clarifications.patch
-pagemap-document-9-more-exported-page-flags.patch
-pagemap-add-page-types-tool.patch
-pagemap-export-pg_hwpoison.patch
-pagemap-export-pg_hwpoison-fix.patch
-groups-move-code-to-kernel-groupsc.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-fs-remove-sparse-errors-in-proc_devtreec.patch
-proc-merge-arrayc-into-basec.patch
-pidns-make-create_pid_namespace-accept-parent-pidns.patch
-pidns-rewrite-copy_pid_ns.patch
-utsns-extract-creeate_uts_ns.patch
-ipcns-remove-useless-get-put-while-clone_newipc.patch
-ipcns-extract-create_ipc_ns.patch
-nsproxy-extract-create_nsproxy.patch
-ipcns-3-4-make-free_ipc_ns-static.patch
-ipcns-move-free_ipcs-proto.patch
+scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch
+scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch
+scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
+scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch
+scripts-get_maintainerpl-support-m-lines-with-names-and-multiple-entries-per-m-line.patch
+scripts-get_maintainerpl-better-email-name-quoting.patch
+scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch
+scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch
+scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch
+scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
+maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
+maintainers-add-file-patterns-to-the-rest.patch
+maintainers-update-m32r-file-patterns-after-rename.patch
+maintainers-mark-alsa-lists-as-moderated.patch
+maintainers-remove-l-linux-kernel-vgerkernelorg-from-all-but-the-rest.patch
+maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
+maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
+maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
+maintainers-add-file-patterns-to-tty-layer.patch
 
