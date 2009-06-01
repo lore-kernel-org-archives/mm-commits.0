@@ -1,75 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch added to -mm tree
-Date: Mon, 01 Jun 2009 12:54:51 -0700
-Message-ID: <200906011954.n51JspAd019818@imap1.linux-foundation.org>
+Subject: [obsolete] dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch removed from -mm tree
+Date: Mon, 01 Jun 2009 12:56:37 -0700
+Message-ID: <200906011956.n51JubOg021126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59529 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756049AbZFATzW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:55:22 -0400
+	by vger.kernel.org with ESMTP id S1754145AbZFAT5E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:57:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Scott_Kilau@digi.com, adam@os.inf.tu-dresden.de, alan@lxorguk.ukuu.org.uk, git.user@gmail.com, wendyx@us.ibm.com
+To: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jsm: clean up "serial: jsm: correctly support 4 8 port boards"
-has been added to the -mm tree.  Its filename is
-     jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+     dma-mapping-add-asm-generic-dma-mapping-commonh-fix
+has been removed from the -mm tree.  Its filename was
+     dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jsm: clean up "serial: jsm: correctly support 4 8 port boards"
+Subject: dma-mapping-add-asm-generic-dma-mapping-commonh-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove unneeded casts.
+bah.
 
-Cc: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alexander Y. Fomichev <git.user@gmail.com>
-Cc: Scott H Kilau <Scott_Kilau@digi.com>
-Cc: Wendy Xiong <wendyx@us.ibm.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_tty.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-generic/dma-mapping-common.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm_tty.c~jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -467,7 +467,7 @@ int __devinit jsm_uart_port_init(struct 
- 			printk(KERN_INFO "jsm: linemap is full, added device failed\n");
- 			continue;
- 		} else
--			set_bit((int)line, linemap);
-+			set_bit(line, linemap);
- 		brd->channels[i]->uart_port.line = line;
- 		if (uart_add_one_port (&jsm_uart_driver, &brd->channels[i]->uart_port))
- 			printk(KERN_INFO "jsm: add device failed\n");
-@@ -503,7 +503,7 @@ int jsm_remove_uart_port(struct jsm_boar
+diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix include/asm-generic/dma-mapping-common.h
+--- a/include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix
++++ a/include/asm-generic/dma-mapping-common.h
+@@ -1,7 +1,6 @@
+ #ifndef _ASM_GENERIC_DMA_MAPPING_H
+ #define _ASM_GENERIC_DMA_MAPPING_H
  
- 		ch = brd->channels[i];
+-#include <linux/kmemcheck.h>
+ #include <linux/scatterlist.h>
+ #include <linux/dma-debug.h>
+ #include <linux/dma-attrs.h>
+@@ -14,7 +13,6 @@ static inline dma_addr_t dma_map_single_
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+ 	dma_addr_t addr;
  
--		clear_bit((int)(ch->uart_port.line), linemap);
-+		clear_bit(ch->uart_port.line, linemap);
- 		uart_remove_one_port(&jsm_uart_driver, &brd->channels[i]->uart_port);
- 	}
+-	kmemcheck_mark_initialized(ptr, size);
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	addr = ops->map_page(dev, virt_to_page(ptr),
+ 			     (unsigned long)ptr & ~PAGE_MASK, size,
+@@ -46,8 +44,6 @@ static inline int dma_map_sg_attrs(struc
+ 	int i, ents;
+ 	struct scatterlist *s;
  
+-	for_each_sg(sg, s, nents, i)
+-		kmemcheck_mark_initialized(sg_virt(s), s->length);
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	ents = ops->map_sg(dev, sg, nents, dir, attrs);
+ 	debug_dma_map_sg(dev, sg, nents, ents, dir);
+@@ -74,7 +70,6 @@ static inline dma_addr_t dma_map_page(st
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+ 	dma_addr_t addr;
+ 
+-	kmemcheck_mark_initialized(page_address(page) + offset, size);
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	addr = ops->map_page(dev, page, offset, size, dir, NULL);
+ 	debug_dma_map_page(dev, page, offset, size, dir, addr, false);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
