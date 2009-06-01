@@ -1,120 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] serial-jsm-correctly-support-4-8-port-boards.patch removed from -mm tree
-Date: Mon, 01 Jun 2009 12:57:16 -0700
-Message-ID: <200906011957.n51JvGjH021645@imap1.linux-foundation.org>
+Subject: + x86-fix-cpufreq-tsc-scaling.patch added to -mm tree
+Date: Mon, 01 Jun 2009 14:23:52 -0700
+Message-ID: <200906012123.n51LNqTX019965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754318AbZFAT57 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:57:59 -0400
+	by vger.kernel.org with ESMTP id S1750931AbZFAVYN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 17:24:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: git.user@gmail.com, Scott_Kilau@digi.com, adam@os.inf.tu-dresden.de, alan@lxorguk.ukuu.org.uk, wendyx@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: peterz@infradead.org, a.p.zijlstra@chello.nl, tglx@linutronix.de
 
 
 The patch titled
-     serial: jsm: correctly support 4/8 port boards
-has been removed from the -mm tree.  Its filename was
-     serial-jsm-correctly-support-4-8-port-boards.patch
+     x86: fix cpufreq tsc scaling
+has been added to the -mm tree.  Its filename is
+     x86-fix-cpufreq-tsc-scaling.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: jsm: correctly support 4/8 port boards
-From: Alexander Y. Fomichev <git.user@gmail.com>
+Subject: x86: fix cpufreq tsc scaling
+From: Peter Zijlstra <peterz@infradead.org>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13336
+For freqency dependent TSCs we only scale the cycles, we do not account
+for the discrepancy in absolute value.  Add a constant factor so that:
 
-The jsm driver was written for 2-port boards but now supports 4/8-ports
-via commit ffa7525c13eb3db0fd19a3e1cffe2ce6f561f5f3 ("jsm: additional
-device support")
+  c1 + f1*cyc == c2 + f2*cyc
 
-However a part of the code doesn't aware about hardware like this:
-
-drivers/serial/jsm/jsm_tty.c +462
-brd->channels[i]->uart_port.line = brd->channels[i]->ch_portnum + brd->boardnum
-* 2
-
-Here jsm_uart_port_init just increments uart_port.line by 2 for any
-further board so uart_port.line assigned for the second board overlaps
-range of the first one (i.g.  with digi neo 8).  
-
-The patch fixes this.
-
-[akpm@linux-foundation.org: turned the bugzilla patch into a usable one]
-[akpm@linux-foundation.org: coding-style fixes]
-Cc: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
-Cc: Scott H Kilau <Scott_Kilau@digi.com>
-Cc: Wendy Xiong <wendyx@us.ibm.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+LKML-Reference: <new-submission>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Chucked-on-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm.h     |    1 +
- drivers/serial/jsm/jsm_tty.c |   12 +++++++++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/timer.h |    6 +++++-
+ arch/x86/kernel/tsc.c        |    8 ++++++--
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm.h~serial-jsm-correctly-support-4-8-port-boards drivers/serial/jsm/jsm.h
---- a/drivers/serial/jsm/jsm.h~serial-jsm-correctly-support-4-8-port-boards
-+++ a/drivers/serial/jsm/jsm.h
-@@ -61,6 +61,7 @@ enum {
- 	if ((DBG_##nlevel & jsm_debug))			\
- 	dev_printk(KERN_##klevel, pdev->dev, fmt, ## args)
+diff -puN arch/x86/include/asm/timer.h~x86-fix-cpufreq-tsc-scaling arch/x86/include/asm/timer.h
+--- a/arch/x86/include/asm/timer.h~x86-fix-cpufreq-tsc-scaling
++++ a/arch/x86/include/asm/timer.h
+@@ -45,12 +45,16 @@ extern int no_timer_check;
+  */
  
-+#define	MAXLINES	256
- #define MAXPORTS	8
- #define MAX_STOPS_SENT	5
+ DECLARE_PER_CPU(unsigned long, cyc2ns);
++DECLARE_PER_CPU(unsigned long long, cyc2ns_offset);
  
-diff -puN drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -33,6 +33,8 @@
+ #define CYC2NS_SCALE_FACTOR 10 /* 2^10, carefully chosen */
  
- #include "jsm.h"
- 
-+static DECLARE_BITMAP(linemap, MAXLINES);
-+
- static void jsm_carrier(struct jsm_channel *ch);
- 
- static inline int jsm_get_mstat(struct jsm_channel *ch)
-@@ -433,6 +435,7 @@ int __devinit jsm_tty_init(struct jsm_bo
- int __devinit jsm_uart_port_init(struct jsm_board *brd)
+ static inline unsigned long long __cycles_2_ns(unsigned long long cyc)
  {
- 	int i;
-+	unsigned int line;
- 	struct jsm_channel *ch;
+-	return cyc * per_cpu(cyc2ns, smp_processor_id()) >> CYC2NS_SCALE_FACTOR;
++	int cpu = smp_processor_id();
++	unsigned long long ns = per_cpu(cyc2ns_offset, cpu);
++	ns += cyc * per_cpu(cyc2ns, cpu) >> CYC2NS_SCALE_FACTOR;
++	return ns;
+ }
  
- 	if (!brd)
-@@ -459,7 +462,13 @@ int __devinit jsm_uart_port_init(struct 
- 		brd->channels[i]->uart_port.membase = brd->re_map_membase;
- 		brd->channels[i]->uart_port.fifosize = 16;
- 		brd->channels[i]->uart_port.ops = &jsm_ops;
--		brd->channels[i]->uart_port.line = brd->channels[i]->ch_portnum + brd->boardnum * 2;
-+		line = find_first_zero_bit(linemap, MAXLINES);
-+		if (line >= MAXLINES) {
-+			printk(KERN_INFO "linemap is full, added device failed\n");
-+			continue;
-+		} else
-+			__set_bit((int)line, linemap);
-+		brd->channels[i]->uart_port.line = line;
- 		if (uart_add_one_port (&jsm_uart_driver, &brd->channels[i]->uart_port))
- 			printk(KERN_INFO "Added device failed\n");
- 		else
-@@ -494,6 +503,7 @@ int jsm_remove_uart_port(struct jsm_boar
+ static inline unsigned long long cycles_2_ns(unsigned long long cyc)
+diff -puN arch/x86/kernel/tsc.c~x86-fix-cpufreq-tsc-scaling arch/x86/kernel/tsc.c
+--- a/arch/x86/kernel/tsc.c~x86-fix-cpufreq-tsc-scaling
++++ a/arch/x86/kernel/tsc.c
+@@ -590,22 +590,26 @@ EXPORT_SYMBOL(recalibrate_cpu_khz);
+  */
  
- 		ch = brd->channels[i];
+ DEFINE_PER_CPU(unsigned long, cyc2ns);
++DEFINE_PER_CPU(unsigned long long, cyc2ns_offset);
  
-+		__clear_bit((int)(ch->uart_port.line), linemap);
- 		uart_remove_one_port(&jsm_uart_driver, &brd->channels[i]->uart_port);
- 	}
+ static void set_cyc2ns_scale(unsigned long cpu_khz, int cpu)
+ {
+-	unsigned long long tsc_now, ns_now;
++	unsigned long long tsc_now, ns_now, *offset;
+ 	unsigned long flags, *scale;
  
+ 	local_irq_save(flags);
+ 	sched_clock_idle_sleep_event();
+ 
+ 	scale = &per_cpu(cyc2ns, cpu);
++	offset = &per_cpu(cyc2ns_offset, cpu);
+ 
+ 	rdtscll(tsc_now);
+ 	ns_now = __cycles_2_ns(tsc_now);
+ 
+-	if (cpu_khz)
++	if (cpu_khz) {
+ 		*scale = (NSEC_PER_MSEC << CYC2NS_SCALE_FACTOR)/cpu_khz;
++		*offset = ns_now - (tsc_now * *scale >> CYC2NS_SCALE_FACTOR);
++	}
+ 
+ 	sched_clock_idle_wakeup_event(0);
+ 	local_irq_restore(flags);
 _
 
-Patches currently in -mm which might be from git.user@gmail.com are
+Patches currently in -mm which might be from peterz@infradead.org are
 
 linux-next.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+x86-fix-cpufreq-tsc-scaling.patch
+vmscan-evict-use-once-pages-first-v3.patch
 
