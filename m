@@ -1,54 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 01 Jun 2009 12:49:16 -0700
-Message-ID: <200906011949.n51JnGXx015786@imap1.linux-foundation.org>
+Subject: + jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch added to -mm tree
+Date: Mon, 01 Jun 2009 12:54:51 -0700
+Message-ID: <200906011954.n51JspAd019818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59529 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752803AbZFATtQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:49:16 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n51JnGiq012739
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 1 Jun 2009 12:49:18 -0700
+	by vger.kernel.org with ESMTP id S1756049AbZFATzW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:55:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, Scott_Kilau@digi.com, adam@os.inf.tu-dresden.de, alan@lxorguk.ukuu.org.uk, git.user@gmail.com, wendyx@us.ibm.com
 
 
 The patch titled
-     linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     jsm: clean up "serial: jsm: correctly support 4 8 port boards"
+has been added to the -mm tree.  Its filename is
+     jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: jsm: clean up "serial: jsm: correctly support 4 8 port boards"
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Remove unneeded casts.
+
+Cc: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alexander Y. Fomichev <git.user@gmail.com>
+Cc: Scott H Kilau <Scott_Kilau@digi.com>
+Cc: Wendy Xiong <wendyx@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_gsc.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/serial/jsm/jsm_tty.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/8250_gsc.c~linux-next-git-rejects drivers/serial/8250_gsc.c
---- a/drivers/serial/8250_gsc.c~linux-next-git-rejects
-+++ a/drivers/serial/8250_gsc.c
-@@ -41,11 +41,7 @@ static int __init serial_init_chip(struc
- 			printk(KERN_INFO
- 				"Serial: device 0x%llx not configured.\n"
- 				"Enable support for Wax, Lasi, Asp or Dino.\n",
--<<<<<<< HEAD:drivers/serial/8250_gsc.c
- 				(unsigned long long)dev->hpa.start);
--=======
--				(unsigned long)dev->hpa.start);
-->>>>>>> FETCH_HEAD:drivers/serial/8250_gsc.c
- 		return -ENODEV;
+diff -puN drivers/serial/jsm/jsm_tty.c~jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards drivers/serial/jsm/jsm_tty.c
+--- a/drivers/serial/jsm/jsm_tty.c~jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards
++++ a/drivers/serial/jsm/jsm_tty.c
+@@ -467,7 +467,7 @@ int __devinit jsm_uart_port_init(struct 
+ 			printk(KERN_INFO "jsm: linemap is full, added device failed\n");
+ 			continue;
+ 		} else
+-			set_bit((int)line, linemap);
++			set_bit(line, linemap);
+ 		brd->channels[i]->uart_port.line = line;
+ 		if (uart_add_one_port (&jsm_uart_driver, &brd->channels[i]->uart_port))
+ 			printk(KERN_INFO "jsm: add device failed\n");
+@@ -503,7 +503,7 @@ int jsm_remove_uart_port(struct jsm_boar
+ 
+ 		ch = brd->channels[i];
+ 
+-		clear_bit((int)(ch->uart_port.line), linemap);
++		clear_bit(ch->uart_port.line, linemap);
+ 		uart_remove_one_port(&jsm_uart_driver, &brd->channels[i]->uart_port);
  	}
  
 _
@@ -58,7 +77,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 revert-fbdev-uninline-lock_fb_info.patch
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 ds_selftest-is-borked.patch
@@ -95,8 +113,7 @@ headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.pat
 remove-put_cpu_no_resched-fix.patch
 rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
 proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-serial-jsm-correctly-support-4-8-port-boards.patch
-serial-jsm-correctly-support-4-8-port-boards-fix.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
 radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
 documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
 drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
