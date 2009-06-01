@@ -1,77 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch removed from -mm tree
-Date: Mon, 01 Jun 2009 12:56:37 -0700
-Message-ID: <200906011956.n51JubOg021126@imap1.linux-foundation.org>
+Subject: [obsolete] dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix.patch removed from -mm tree
+Date: Mon, 01 Jun 2009 12:56:49 -0700
+Message-ID: <200906011956.n51JunNX021266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754145AbZFAT5E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:57:04 -0400
+	by vger.kernel.org with ESMTP id S1753312AbZFAT5V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:57:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping-add-asm-generic-dma-mapping-commonh-fix
+     dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch
+     dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-asm-generic-dma-mapping-commonh-fix
+Subject: dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-bah.
 
 Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/dma-mapping-common.h |    5 -----
- 1 file changed, 5 deletions(-)
+ include/asm-generic/dma-mapping-common.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix include/asm-generic/dma-mapping-common.h
---- a/include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix
+diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix include/asm-generic/dma-mapping-common.h
+--- a/include/asm-generic/dma-mapping-common.h~dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix
 +++ a/include/asm-generic/dma-mapping-common.h
-@@ -1,7 +1,6 @@
- #ifndef _ASM_GENERIC_DMA_MAPPING_H
- #define _ASM_GENERIC_DMA_MAPPING_H
- 
--#include <linux/kmemcheck.h>
- #include <linux/scatterlist.h>
- #include <linux/dma-debug.h>
- #include <linux/dma-attrs.h>
-@@ -14,7 +13,6 @@ static inline dma_addr_t dma_map_single_
+@@ -41,8 +41,7 @@ static inline int dma_map_sg_attrs(struc
+ 				   struct dma_attrs *attrs)
+ {
  	struct dma_map_ops *ops = get_dma_ops(dev);
- 	dma_addr_t addr;
+-	int i, ents;
+-	struct scatterlist *s;
++	int ents;
  
--	kmemcheck_mark_initialized(ptr, size);
- 	BUG_ON(!valid_dma_direction(dir));
- 	addr = ops->map_page(dev, virt_to_page(ptr),
- 			     (unsigned long)ptr & ~PAGE_MASK, size,
-@@ -46,8 +44,6 @@ static inline int dma_map_sg_attrs(struc
- 	int i, ents;
- 	struct scatterlist *s;
- 
--	for_each_sg(sg, s, nents, i)
--		kmemcheck_mark_initialized(sg_virt(s), s->length);
  	BUG_ON(!valid_dma_direction(dir));
  	ents = ops->map_sg(dev, sg, nents, dir, attrs);
- 	debug_dma_map_sg(dev, sg, nents, ents, dir);
-@@ -74,7 +70,6 @@ static inline dma_addr_t dma_map_page(st
- 	struct dma_map_ops *ops = get_dma_ops(dev);
- 	dma_addr_t addr;
- 
--	kmemcheck_mark_initialized(page_address(page) + offset, size);
- 	BUG_ON(!valid_dma_direction(dir));
- 	addr = ops->map_page(dev, page, offset, size, dir, NULL);
- 	debug_dma_map_page(dev, page, offset, size, dir, addr, false);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,7 +96,6 @@ documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
 drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
 edac-add-cpc925-memory-controller-driver-cleanup.patch
 edac-add-edac_device_alloc_index-cleanup.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch
 dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix.patch
 kexec-sysrq-simplify-sysrq-c-handler.patch
 gru-support-for-asynchronous-gru-instructions-fix.patch
