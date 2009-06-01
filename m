@@ -1,111 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-delete-final-remnants-of-mtd-ioctls-from-fs-compat_ioctlc.patch removed from -mm tree
-Date: Mon, 01 Jun 2009 12:57:10 -0700
-Message-ID: <200906011957.n51JvAWg021597@imap1.linux-foundation.org>
+Subject: [merged] icom-fixing-a-if-clause-spaghetti.patch removed from -mm tree
+Date: Mon, 01 Jun 2009 12:57:14 -0700
+Message-ID: <200906011957.n51JvEaA021642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752375AbZFAT5q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:57:46 -0400
+	by vger.kernel.org with ESMTP id S1753637AbZFAT5u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kpc.mtd@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: leitao@linux.vnet.ibm.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: delete final remnants of MTD ioctls from fs/compat_ioctl.c
+     icom: clean up an `if' clause
 has been removed from the -mm tree.  Its filename was
-     mtd-delete-final-remnants-of-mtd-ioctls-from-fs-compat_ioctlc.patch
+     icom-fixing-a-if-clause-spaghetti.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: delete final remnants of MTD ioctls from fs/compat_ioctl.c
-From: Kevin Cernekee <kpc.mtd@gmail.com>
+Subject: icom: clean up an `if' clause
+From: Breno Leitao <leitao@linux.vnet.ibm.com>
 
-Move all MTD compat_ioctl logic into drivers/mtd/mtdchar.c
+adapter->version can only be ADAPTER_V2 or ADAPTER_V1.  So, that OR
+operand in the "if" clause is nonsense and can be removed.
 
-Depends on this patch set:
-
-http://lkml.org/lkml/2009/4/9/52
-http://lkml.org/lkml/2009/4/9/53
-http://lkml.org/lkml/2009/4/9/54
-http://lkml.org/lkml/2009/4/9/55
-
-Signed-off-by: Kevin Cernekee <kpc.mtd@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Breno Leitao <leitao@linux.vnet.ibm.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdchar.c |    3 ++-
- fs/compat_ioctl.c     |   22 ----------------------
- 2 files changed, 2 insertions(+), 23 deletions(-)
+ drivers/serial/icom.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/mtdchar.c~mtd-delete-final-remnants-of-mtd-ioctls-from-fs-compat_ioctlc drivers/mtd/mtdchar.c
---- a/drivers/mtd/mtdchar.c~mtd-delete-final-remnants-of-mtd-ioctls-from-fs-compat_ioctlc
-+++ a/drivers/mtd/mtdchar.c
-@@ -836,6 +836,7 @@ struct mtd_oob_buf32 {
- static long mtd_compat_ioctl(struct file *file, unsigned int cmd,
- 	unsigned long arg)
- {
-+	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct mtd_file_info *mfi = file->private_data;
- 	struct mtd_info *mtd = mfi->mtd;
- 	void __user *argp = (void __user *)arg;
-@@ -873,7 +874,7 @@ static long mtd_compat_ioctl(struct file
- 		break;
- 	}
- 	default:
--		ret = -ENOIOCTLCMD;
-+		ret = mtd_ioctl(inode, file, cmd, arg);
- 	}
+diff -puN drivers/serial/icom.c~icom-fixing-a-if-clause-spaghetti drivers/serial/icom.c
+--- a/drivers/serial/icom.c~icom-fixing-a-if-clause-spaghetti
++++ a/drivers/serial/icom.c
+@@ -413,7 +413,7 @@ static void load_code(struct icom_port *
+ 	release_firmware(fw);
  
- 	unlock_kernel();
-diff -puN fs/compat_ioctl.c~mtd-delete-final-remnants-of-mtd-ioctls-from-fs-compat_ioctlc fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~mtd-delete-final-remnants-of-mtd-ioctls-from-fs-compat_ioctlc
-+++ a/fs/compat_ioctl.c
-@@ -94,7 +94,6 @@
- #include <linux/atm_tcp.h>
- #include <linux/sonet.h>
- #include <linux/atm_suni.h>
--#include <linux/mtd/mtd.h>
+ 	/* Set Hardware level */
+-	if ((icom_port->adapter->version | ADAPTER_V2) == ADAPTER_V2)
++	if (icom_port->adapter->version == ADAPTER_V2)
+ 		writeb(V2_HARDWARE, &(icom_port->dram->misc_flags));
  
- #include <linux/usb.h>
- #include <linux/usbdevice_fs.h>
-@@ -2392,27 +2391,6 @@ COMPATIBLE_IOCTL(USBDEVFS_SUBMITURB32)
- COMPATIBLE_IOCTL(USBDEVFS_REAPURB32)
- COMPATIBLE_IOCTL(USBDEVFS_REAPURBNDELAY32)
- COMPATIBLE_IOCTL(USBDEVFS_CLEAR_HALT)
--/* MTD */
--COMPATIBLE_IOCTL(MEMGETINFO)
--COMPATIBLE_IOCTL(MEMERASE)
--COMPATIBLE_IOCTL(MEMLOCK)
--COMPATIBLE_IOCTL(MEMUNLOCK)
--COMPATIBLE_IOCTL(MEMGETREGIONCOUNT)
--COMPATIBLE_IOCTL(MEMGETREGIONINFO)
--COMPATIBLE_IOCTL(MEMSETOOBSEL)
--COMPATIBLE_IOCTL(MEMGETOOBSEL)
--COMPATIBLE_IOCTL(MEMGETBADBLOCK)
--COMPATIBLE_IOCTL(MEMSETBADBLOCK)
--COMPATIBLE_IOCTL(OTPSELECT)
--COMPATIBLE_IOCTL(OTPGETREGIONCOUNT)
--COMPATIBLE_IOCTL(OTPGETREGIONINFO)
--COMPATIBLE_IOCTL(OTPLOCK)
--COMPATIBLE_IOCTL(ECCGETLAYOUT)
--COMPATIBLE_IOCTL(ECCGETSTATS)
--COMPATIBLE_IOCTL(MTDFILEMODE)
--COMPATIBLE_IOCTL(MEMERASE64)
--COMPATIBLE_IOCTL(MEMREADOOB64)
--COMPATIBLE_IOCTL(MEMWRITEOOB64)
- /* NBD */
- ULONG_IOCTL(NBD_SET_SOCK)
- ULONG_IOCTL(NBD_SET_BLKSIZE)
+ 	/* Start the processor in Adapter */
+@@ -866,7 +866,7 @@ static irqreturn_t icom_interrupt(int ir
+ 	/* find icom_port for this interrupt */
+ 	icom_adapter = (struct icom_adapter *) dev_id;
+ 
+-	if ((icom_adapter->version | ADAPTER_V2) == ADAPTER_V2) {
++	if (icom_adapter->version == ADAPTER_V2) {
+ 		int_reg = icom_adapter->base_addr + 0x8024;
+ 
+ 		adapter_interrupts = readl(int_reg);
 _
 
-Patches currently in -mm which might be from kpc.mtd@gmail.com are
+Patches currently in -mm which might be from leitao@linux.vnet.ibm.com are
 
 linux-next.patch
+icom-converting-space-to-tabs.patch
+icom-fix-compile-errors-when-defining-icom_trace.patch
 
