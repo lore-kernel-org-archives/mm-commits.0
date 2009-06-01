@@ -1,290 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh.patch added to -mm tree
-Date: Fri, 29 May 2009 16:50:00 -0700
-Message-ID: <200905292350.n4TNo0LW001313@imap1.linux-foundation.org>
+Subject: [obsolete] serial-jsm-correctly-support-4-8-port-boards-update.patch removed from -mm tree
+Date: Mon, 01 Jun 2009 12:23:14 -0700
+Message-ID: <200906011923.n51JNFSm029315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752220AbZE2XuE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 May 2009 19:50:04 -0400
+	by vger.kernel.org with ESMTP id S1752750AbZFATX1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:23:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, reif@earthlink.net
+To: git.user@gmail.com, Scott_Kilau@digi.com, adam@os.inf.tu-dresden.de, alan@lxorguk.ukuu.org.ukgit.user@gmail.co, wendyx@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparc: move the duplication in dma-mapping_{32|64}.h to dma-mapping.h
-has been added to the -mm tree.  Its filename is
-     sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh.patch
+     serial-jsm-correctly-support-4-8-port-boards-update
+has been removed from the -mm tree.  Its filename was
+     serial-jsm-correctly-support-4-8-port-boards-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc: move the duplication in dma-mapping_{32|64}.h to dma-mapping.h
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: serial-jsm-correctly-support-4-8-port-boards-update
+From: "Alexander Y. Fomichev" <git.user@gmail.com>
 
-This patchset unifies dma-mapping_32.h and dma-mapping_64.h, that is,
-it uses dma-mapping.h instead and removes dma-mapping_32.h and
-dma-mapping_64.h.
-
-In short, this patchset modifies SPARC32 to use struct dma_map
-ops.
-
-I like to see architectures implement the dma API in the similar way.
-
-
-This patch:
-
-Move the duplication in dma-mapping_{32|64}.h to dma-mapping.h.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Tested-by: Robert Reif <reif@earthlink.net>
+Signed-off-by: Alexander Y. Fomichev <git.user@gmail.co
+Cc: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Cc: Scott H Kilau <Scott_Kilau@digi.com>
+Cc: Wendy Xiong <wendyx@us.ibm.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>m>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/dma-mapping.h    |   42 ++++++++++++++++++++++
- arch/sparc/include/asm/dma-mapping_32.h |   18 ---------
- arch/sparc/include/asm/dma-mapping_64.h |   40 --------------------
- arch/sparc/kernel/dma.c                 |   30 ---------------
- 4 files changed, 42 insertions(+), 88 deletions(-)
+ drivers/serial/jsm/jsm_tty.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN arch/sparc/include/asm/dma-mapping.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh arch/sparc/include/asm/dma-mapping.h
---- a/arch/sparc/include/asm/dma-mapping.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh
-+++ a/arch/sparc/include/asm/dma-mapping.h
-@@ -5,4 +5,46 @@
- #else
- #include <asm/dma-mapping_32.h>
- #endif
-+
-+#define DMA_ERROR_CODE	(~(dma_addr_t)0x0)
-+
-+extern int dma_supported(struct device *dev, u64 mask);
-+extern int dma_set_mask(struct device *dev, u64 dma_mask);
-+
-+static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+{
-+	return (dma_addr == DMA_ERROR_CODE);
-+}
-+
-+static inline int dma_get_cache_alignment(void)
-+{
-+	/*
-+	 * no easy way to get cache size on all processors, so return
-+	 * the maximum possible, to be safe
-+	 */
-+	return (1 << INTERNODE_CACHE_SHIFT);
-+}
-+
-+#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
-+#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
-+#define dma_is_consistent(d, h)	(1)
-+
-+static inline void dma_sync_single_range_for_cpu(struct device *dev,
-+						 dma_addr_t dma_handle,
-+						 unsigned long offset,
-+						 size_t size,
-+						 enum dma_data_direction dir)
-+{
-+	dma_sync_single_for_cpu(dev, dma_handle+offset, size, dir);
-+}
-+
-+static inline void dma_sync_single_range_for_device(struct device *dev,
-+						    dma_addr_t dma_handle,
-+						    unsigned long offset,
-+						    size_t size,
-+						    enum dma_data_direction dir)
-+{
-+	dma_sync_single_for_device(dev, dma_handle+offset, size, dir);
-+}
-+
- #endif
-diff -puN arch/sparc/include/asm/dma-mapping_32.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh arch/sparc/include/asm/dma-mapping_32.h
---- a/arch/sparc/include/asm/dma-mapping_32.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh
-+++ a/arch/sparc/include/asm/dma-mapping_32.h
-@@ -7,10 +7,6 @@ struct device;
- struct scatterlist;
- struct page;
+diff -puN drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-update drivers/serial/jsm/jsm_tty.c
+--- a/drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-update
++++ a/drivers/serial/jsm/jsm_tty.c
+@@ -34,6 +34,7 @@
+ #include "jsm.h"
  
--#define DMA_ERROR_CODE	(~(dma_addr_t)0x0)
--
--extern int dma_supported(struct device *dev, u64 mask);
--extern int dma_set_mask(struct device *dev, u64 dma_mask);
- extern void *dma_alloc_coherent(struct device *dev, size_t size,
- 				dma_addr_t *dma_handle, gfp_t flag);
- extern void dma_free_coherent(struct device *dev, size_t size,
-@@ -37,24 +33,10 @@ extern void dma_sync_single_for_device(s
- 				       dma_addr_t dma_handle,
- 				       size_t size,
- 				       enum dma_data_direction direction);
--extern void dma_sync_single_range_for_cpu(struct device *dev,
--					  dma_addr_t dma_handle,
--					  unsigned long offset,
--					  size_t size,
--					  enum dma_data_direction direction);
--extern void dma_sync_single_range_for_device(struct device *dev,
--					     dma_addr_t dma_handle,
--					     unsigned long offset, size_t size,
--					     enum dma_data_direction direction);
- extern void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
- 				int nelems, enum dma_data_direction direction);
- extern void dma_sync_sg_for_device(struct device *dev,
- 				   struct scatterlist *sg, int nelems,
- 				   enum dma_data_direction direction);
--extern int dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
--extern int dma_get_cache_alignment(void);
--
--#define dma_alloc_noncoherent	dma_alloc_coherent
--#define dma_free_noncoherent	dma_free_coherent
+ static DECLARE_BITMAP(linemap, MAXLINES);
++static DEFINE_MUTEX(linemap_mutex);
  
- #endif /* _ASM_SPARC_DMA_MAPPING_H */
-diff -puN arch/sparc/include/asm/dma-mapping_64.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh arch/sparc/include/asm/dma-mapping_64.h
---- a/arch/sparc/include/asm/dma-mapping_64.h~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh
-+++ a/arch/sparc/include/asm/dma-mapping_64.h
-@@ -4,8 +4,6 @@
- #include <linux/scatterlist.h>
- #include <linux/mm.h>
+ static void jsm_carrier(struct jsm_channel *ch);
  
--#define DMA_ERROR_CODE	(~(dma_addr_t)0x0)
--
- struct dma_ops {
- 	void *(*alloc_coherent)(struct device *dev, size_t size,
- 				dma_addr_t *dma_handle, gfp_t flag);
-@@ -31,9 +29,6 @@ struct dma_ops {
- };
- extern const struct dma_ops *dma_ops;
+@@ -449,6 +450,9 @@ int __devinit jsm_uart_port_init(struct 
  
--extern int dma_supported(struct device *dev, u64 mask);
--extern int dma_set_mask(struct device *dev, u64 dma_mask);
--
- static inline void *dma_alloc_coherent(struct device *dev, size_t size,
- 				       dma_addr_t *dma_handle, gfp_t flag)
- {
-@@ -102,25 +97,6 @@ static inline void dma_sync_single_for_d
- 	/* No flushing needed to sync cpu writes to the device.  */
- }
+ 	brd->nasync = brd->maxports;
  
--static inline void dma_sync_single_range_for_cpu(struct device *dev,
--						 dma_addr_t dma_handle,
--						 unsigned long offset,
--						 size_t size,
--						 enum dma_data_direction direction)
--{
--	dma_sync_single_for_cpu(dev, dma_handle+offset, size, direction);
--}
--
--static inline void dma_sync_single_range_for_device(struct device *dev,
--						    dma_addr_t dma_handle,
--						    unsigned long offset,
--						    size_t size,
--						    enum dma_data_direction direction)
--{
--	/* No flushing needed to sync cpu writes to the device.  */
--}
--
--
- static inline void dma_sync_sg_for_cpu(struct device *dev,
- 				       struct scatterlist *sg, int nelems,
- 				       enum dma_data_direction direction)
-@@ -135,20 +111,4 @@ static inline void dma_sync_sg_for_devic
- 	/* No flushing needed to sync cpu writes to the device.  */
- }
++	/* protect linemap for whole range of line numbers*/
++	mutex_lock(&linemap_mutex);
++
+ 	/* Set up channel variables */
+ 	for (i = 0; i < brd->nasync; i++, ch = brd->channels[i]) {
  
--static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
--{
--	return (dma_addr == DMA_ERROR_CODE);
--}
--
--static inline int dma_get_cache_alignment(void)
--{
--	/* no easy way to get cache size on all processors, so return
--	 * the maximum possible, to be safe */
--	return (1 << INTERNODE_CACHE_SHIFT);
--}
--
--#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
--#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
--#define dma_is_consistent(d, h)	(1)
--
- #endif /* _ASM_SPARC64_DMA_MAPPING_H */
-diff -puN arch/sparc/kernel/dma.c~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh arch/sparc/kernel/dma.c
---- a/arch/sparc/kernel/dma.c~sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh
-+++ a/arch/sparc/kernel/dma.c
-@@ -167,24 +167,6 @@ void dma_sync_single_for_device(struct d
- }
- EXPORT_SYMBOL(dma_sync_single_for_device);
+@@ -467,13 +471,14 @@ int __devinit jsm_uart_port_init(struct 
+ 			printk(KERN_INFO "linemap is full, added device failed\n");
+ 			continue;
+ 		} else
+-			__set_bit((int)line, linemap);
++			set_bit((int)line, linemap);
+ 		brd->channels[i]->uart_port.line = line;
+ 		if (uart_add_one_port (&jsm_uart_driver, &brd->channels[i]->uart_port))
+ 			printk(KERN_INFO "Added device failed\n");
+ 		else
+ 			printk(KERN_INFO "Added device \n");
+ 	}
++	mutex_unlock(&linemap_mutex);
  
--void dma_sync_single_range_for_cpu(struct device *dev,
--				   dma_addr_t dma_handle,
--				   unsigned long offset,
--				   size_t size,
--				   enum dma_data_direction direction)
--{
--	dma_sync_single_for_cpu(dev, dma_handle+offset, size, direction);
--}
--EXPORT_SYMBOL(dma_sync_single_range_for_cpu);
--
--void dma_sync_single_range_for_device(struct device *dev, dma_addr_t dma_handle,
--				      unsigned long offset, size_t size,
--				      enum dma_data_direction direction)
--{
--	dma_sync_single_for_device(dev, dma_handle+offset, size, direction);
--}
--EXPORT_SYMBOL(dma_sync_single_range_for_device);
--
- void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
- 			 int nelems, enum dma_data_direction direction)
- {
-@@ -213,15 +195,3 @@ void dma_sync_sg_for_device(struct devic
- 	BUG();
- }
- EXPORT_SYMBOL(dma_sync_sg_for_device);
--
--int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
--{
--	return (dma_addr == DMA_ERROR_CODE);
--}
--EXPORT_SYMBOL(dma_mapping_error);
--
--int dma_get_cache_alignment(void)
--{
--	return 32;
--}
--EXPORT_SYMBOL(dma_get_cache_alignment);
-_
-
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
-
-linux-next.patch
-vino-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
-ib-mthca-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
-net-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
-sg_io-dont-perform-unneeded-copy-in-compat-code.patch
-sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh.patch
-sparc-add-sync_single_for_device-and-sync_sg_for_device-to-struct-dma_ops.patch
-sparc-use-dma_map_page-instead-of-dma_map_single.patch
-sparc-remove-dma-mapping_3264h.patch
-usb-replace-dma_sync_single-and-dma_sync_sg-with-dma_sync_single_for_cpu-and-dma_sync_sg_for_cpu.patch
-dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
-dma-mapping-mark-dma_sync_single-and-dma_sync_sg-as-deprecated.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh-fix.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh-fix-fix.patch
-dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-add-config_dma_api_debug-support.patch
-dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch
-
+ 	jsm_printk(INIT, INFO, &brd->pci_dev, "finish\n");
+ 	return 0;
+@@ -495,6 +500,8 @@ int jsm_remove_uart_port(struct jsm_boar
+ 
+ 	brd->nasync = brd->maxports;
+ 
++	mutex_lock(&linemap_mutex);
++
+ 	/* Set up channel variables */
+ 	for (i = 0; i < brd->nasync; i++) {
+ 
+@@ -502,11 +509,12 @@ int jsm_remove_uart_port(struct jsm_boar
+ 			continue;
+ 
+ 		ch = brd->channels[i];
