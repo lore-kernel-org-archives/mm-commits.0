@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-cpufreq-tsc-scaling.patch added to -mm tree
-Date: Mon, 01 Jun 2009 14:23:52 -0700
-Message-ID: <200906012123.n51LNqTX019965@imap1.linux-foundation.org>
+Subject: + pci-use-fixed-up-device-class-when-configuring-device.patch added to -mm tree
+Date: Mon, 01 Jun 2009 14:29:03 -0700
+Message-ID: <200906012129.n51LT3pZ023712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51844 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750931AbZFAVYN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 17:24:13 -0400
+	by vger.kernel.org with ESMTP id S1750785AbZFAVan (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 17:30:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peterz@infradead.org, a.p.zijlstra@chello.nl, tglx@linutronix.de
+Cc: yu.zhao@intel.com, grundler@parisc-linux.org, htejun@gmail.com, jeff@garzik.org, marc.c.dionne@gmail.com
 
 
 The patch titled
-     x86: fix cpufreq tsc scaling
+     pci: use fixed-up device class when configuring device
 has been added to the -mm tree.  Its filename is
-     x86-fix-cpufreq-tsc-scaling.patch
+     pci-use-fixed-up-device-class-when-configuring-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,82 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix cpufreq tsc scaling
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: pci: use fixed-up device class when configuring device
+From: Yu Zhao <yu.zhao@intel.com>
 
-For freqency dependent TSCs we only scale the cycles, we do not account
-for the discrepancy in absolute value.  Add a constant factor so that:
+The device class may be changed after the early fixup. Need to
+re-read the class value from pci_dev when configuring the device.
+Otherwise some devices such as JMicron SATA controller won't work.
 
-  c1 + f1*cyc == c2 + f2*cyc
-
-LKML-Reference: <new-submission>
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Chucked-on-by: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Marc Dionne <marc.c.dionne@gmail.com>
+Signed-off-by: Yu Zhao <yu.zhao@intel.com>
+Reviewed-by: Grant Grundler <grundler@parisc-linux.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/timer.h |    6 +++++-
- arch/x86/kernel/tsc.c        |    8 ++++++--
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/pci/probe.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/x86/include/asm/timer.h~x86-fix-cpufreq-tsc-scaling arch/x86/include/asm/timer.h
---- a/arch/x86/include/asm/timer.h~x86-fix-cpufreq-tsc-scaling
-+++ a/arch/x86/include/asm/timer.h
-@@ -45,12 +45,16 @@ extern int no_timer_check;
-  */
+diff -puN drivers/pci/probe.c~pci-use-fixed-up-device-class-when-configuring-device drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-use-fixed-up-device-class-when-configuring-device
++++ a/drivers/pci/probe.c
+@@ -750,6 +750,8 @@ int pci_setup_device(struct pci_dev *dev
  
- DECLARE_PER_CPU(unsigned long, cyc2ns);
-+DECLARE_PER_CPU(unsigned long long, cyc2ns_offset);
+ 	/* Early fixups, before probing the BARs */
+ 	pci_fixup_device(pci_fixup_early, dev);
++	/* device class may be changed after fixup */
++	class = dev->class >> 8;
  
- #define CYC2NS_SCALE_FACTOR 10 /* 2^10, carefully chosen */
- 
- static inline unsigned long long __cycles_2_ns(unsigned long long cyc)
- {
--	return cyc * per_cpu(cyc2ns, smp_processor_id()) >> CYC2NS_SCALE_FACTOR;
-+	int cpu = smp_processor_id();
-+	unsigned long long ns = per_cpu(cyc2ns_offset, cpu);
-+	ns += cyc * per_cpu(cyc2ns, cpu) >> CYC2NS_SCALE_FACTOR;
-+	return ns;
- }
- 
- static inline unsigned long long cycles_2_ns(unsigned long long cyc)
-diff -puN arch/x86/kernel/tsc.c~x86-fix-cpufreq-tsc-scaling arch/x86/kernel/tsc.c
---- a/arch/x86/kernel/tsc.c~x86-fix-cpufreq-tsc-scaling
-+++ a/arch/x86/kernel/tsc.c
-@@ -590,22 +590,26 @@ EXPORT_SYMBOL(recalibrate_cpu_khz);
-  */
- 
- DEFINE_PER_CPU(unsigned long, cyc2ns);
-+DEFINE_PER_CPU(unsigned long long, cyc2ns_offset);
- 
- static void set_cyc2ns_scale(unsigned long cpu_khz, int cpu)
- {
--	unsigned long long tsc_now, ns_now;
-+	unsigned long long tsc_now, ns_now, *offset;
- 	unsigned long flags, *scale;
- 
- 	local_irq_save(flags);
- 	sched_clock_idle_sleep_event();
- 
- 	scale = &per_cpu(cyc2ns, cpu);
-+	offset = &per_cpu(cyc2ns_offset, cpu);
- 
- 	rdtscll(tsc_now);
- 	ns_now = __cycles_2_ns(tsc_now);
- 
--	if (cpu_khz)
-+	if (cpu_khz) {
- 		*scale = (NSEC_PER_MSEC << CYC2NS_SCALE_FACTOR)/cpu_khz;
-+		*offset = ns_now - (tsc_now * *scale >> CYC2NS_SCALE_FACTOR);
-+	}
- 
- 	sched_clock_idle_wakeup_event(0);
- 	local_irq_restore(flags);
+ 	switch (dev->hdr_type) {		    /* header type */
+ 	case PCI_HEADER_TYPE_NORMAL:		    /* standard header */
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from yu.zhao@intel.com are
 
 linux-next.patch
-x86-fix-cpufreq-tsc-scaling.patch
-vmscan-evict-use-once-pages-first-v3.patch
+pci-use-fixed-up-device-class-when-configuring-device.patch
 
