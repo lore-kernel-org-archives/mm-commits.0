@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround.patch added to -mm tree
-Date: Mon, 01 Jun 2009 15:36:43 -0700
-Message-ID: <200906012236.n51MahaX008411@imap1.linux-foundation.org>
+Subject: + readahead-add-blk_run_backing_dev.patch added to -mm tree
+Date: Mon, 01 Jun 2009 16:11:17 -0700
+Message-ID: <200906012311.n51NBI9V001178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45338 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752172AbZFAWhc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 18:37:32 -0400
+	by vger.kernel.org with ESMTP id S1753181AbZFAXLZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 19:11:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: prarit@redhat.com, mingo@elte.hu, suresh.b.siddha@intel.com
+Cc: hifumi.hisashi@oss.ntt.co.jp, fengguang.wu@intel.com, jens.axboe@oracle.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     x86: nmi: add Intel processor 0x6f4 to NMI perfctr1 workaround
+     readahead: add blk_run_backing_dev
 has been added to the -mm tree.  Its filename is
-     x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround.patch
+     readahead-add-blk_run_backing_dev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: nmi: add Intel processor 0x6f4 to NMI perfctr1 workaround
-From: Prarit Bhargava <prarit@redhat.com>
+Subject: readahead: add blk_run_backing_dev
+From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 
-Expand Intel NMI perfctr1 workaround to include a Core2 processor stepping
-(cpuid family-6, model-f, stepping-4).  Resolves a situation where the NMI
-would not enable on these processors.
+I added blk_run_backing_dev on page_cache_async_readahead so readahead I/O
+is unpluged to improve throughput on especially RAID environment.
 
-Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+The normal case is, if page N become uptodate at time T(N), then T(N) <=
+T(N+1) holds.  With RAID (and NFS to some degree), there is no strict
+ordering, the data arrival time depends on runtime status of individual
+disks, which breaks that formula.  So in do_generic_file_read(), just
+after submitting the async readahead IO request, the current page may well
+be uptodate, so the page won't be locked, and the block device won't be
+implicitly unplugged:
+
+               if (PageReadahead(page))
+                        page_cache_async_readahead()
+                if (!PageUptodate(page))
+                                goto page_not_up_to_date;
+                //...
+page_not_up_to_date:
+                lock_page_killable(page);
+
+Therefore explicit unplugging can help.
+
+Following is the test result with dd.
+
+#dd if=testdir/testfile of=/dev/null bs=16384
+
+-2.6.30-rc6
+1048576+0 records in
+1048576+0 records out
+17179869184 bytes (17 GB) copied, 224.182 seconds, 76.6 MB/s
+
+-2.6.30-rc6-patched
+1048576+0 records in
+1048576+0 records out
+17179869184 bytes (17 GB) copied, 206.465 seconds, 83.2 MB/s
+
+(7Disks RAID-0 Array)
+
+-2.6.30-rc6
+1054976+0 records in
+1054976+0 records out
+17284726784 bytes (17 GB) copied, 212.233 seconds, 81.4 MB/s
+
+-2.6.30-rc6-patched
+1054976+0 records out
+17284726784 bytes (17 GB) copied, 198.878 seconds, 86.9 MB/s
+
+(7Disks RAID-5 Array)
+
+Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/perfctr-watchdog.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/readahead.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN arch/x86/kernel/cpu/perfctr-watchdog.c~x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround arch/x86/kernel/cpu/perfctr-watchdog.c
---- a/arch/x86/kernel/cpu/perfctr-watchdog.c~x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround
-+++ a/arch/x86/kernel/cpu/perfctr-watchdog.c
-@@ -716,11 +716,15 @@ static void probe_nmi_watchdog(void)
- 		wd_ops = &k7_wd_ops;
- 		break;
- 	case X86_VENDOR_INTEL:
--		/*
--		 * Work around Core Duo (Yonah) errata AE49 where perfctr1
--		 * doesn't have a working enable bit.
-+		/* Work around where perfctr1 doesn't have a working enable
-+		 * bit as described in the following errata:
-+		 * AE49 Core Duo and Intel Core Solo 65 nm
-+		 * AN49 Intel Pentium Dual-Core
-+		 * AF49 Dual-Core Intel Xeon Processor LV
- 		 */
--		if (boot_cpu_data.x86 == 6 && boot_cpu_data.x86_model == 14) {
-+		if ((boot_cpu_data.x86 == 6 && boot_cpu_data.x86_model == 14) ||
-+		    ((boot_cpu_data.x86 == 6 && boot_cpu_data.x86_model == 15 &&
-+		     boot_cpu_data.x86_mask == 4))) {
- 			intel_arch_wd_ops.perfctr = MSR_ARCH_PERFMON_PERFCTR0;
- 			intel_arch_wd_ops.evntsel = MSR_ARCH_PERFMON_EVENTSEL0;
- 		}
+diff -puN mm/readahead.c~readahead-add-blk_run_backing_dev mm/readahead.c
+--- a/mm/readahead.c~readahead-add-blk_run_backing_dev
++++ a/mm/readahead.c
+@@ -547,5 +547,15 @@ page_cache_async_readahead(struct addres
+ 
+ 	/* do read-ahead */
+ 	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
++
++	/*
++	* Normally the current page is !uptodate and lock_page() will be
++	* immediately called to implicitly unplug the device. However this
++	* is not always true for RAID conifgurations, where data arrives
++	* not strictly in their submission order. In this case we need to
++	* explicitly kick off the IO.
++	*/
++	if (PageUptodate(page))
++		blk_run_backing_dev(mapping->backing_dev_info, NULL);
+ }
+ EXPORT_SYMBOL_GPL(page_cache_async_readahead);
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
 
-x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround.patch
+linux-next.patch
+readahead-add-blk_run_backing_dev.patch
 
