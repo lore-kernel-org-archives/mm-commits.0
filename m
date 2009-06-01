@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-cdc-acm-quirk-for-alcatel-ot-i650.patch added to -mm tree
-Date: Mon, 01 Jun 2009 15:34:04 -0700
-Message-ID: <200906012234.n51MY4Yv006525@imap1.linux-foundation.org>
+Subject: + x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround.patch added to -mm tree
+Date: Mon, 01 Jun 2009 15:36:43 -0700
+Message-ID: <200906012236.n51MahaX008411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45338 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752698AbZFAWek (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 18:34:40 -0400
+	by vger.kernel.org with ESMTP id S1752172AbZFAWhc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 18:37:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kir@openvz.org, greg@kroah.com, oliver@neukum.org
+Cc: prarit@redhat.com, mingo@elte.hu, suresh.b.siddha@intel.com
 
 
 The patch titled
-     usb: cdc-acm: quirk for Alcatel OT-I650
+     x86: nmi: add Intel processor 0x6f4 to NMI perfctr1 workaround
 has been added to the -mm tree.  Its filename is
-     usb-cdc-acm-quirk-for-alcatel-ot-i650.patch
+     x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: cdc-acm: quirk for Alcatel OT-I650
-From: Kir Kolyshkin <kir@openvz.org>
+Subject: x86: nmi: add Intel processor 0x6f4 to NMI perfctr1 workaround
+From: Prarit Bhargava <prarit@redhat.com>
 
-This mobile phone fails to work as a modem, failing with:
- cdc_acm: Zero length descriptor references
- cdc_acm: probe of 1-6.1.3:1.1 failed with error -22
+Expand Intel NMI perfctr1 workaround to include a Core2 processor stepping
+(cpuid family-6, model-f, stepping-4).  Resolves a situation where the NMI
+would not enable on these processors.
 
-Tested to work fine with this patch.
-
-Signed-off-by: Kir Kolyshkin <kir@openvz.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Oliver Neukum <oliver@neukum.org>
+Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/class/cdc-acm.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/x86/kernel/cpu/perfctr-watchdog.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/usb/class/cdc-acm.c~usb-cdc-acm-quirk-for-alcatel-ot-i650 drivers/usb/class/cdc-acm.c
---- a/drivers/usb/class/cdc-acm.c~usb-cdc-acm-quirk-for-alcatel-ot-i650
-+++ a/drivers/usb/class/cdc-acm.c
-@@ -1451,6 +1451,9 @@ static struct usb_device_id acm_ids[] = 
- 					   Maybe we should define a new
- 					   quirk for this. */
- 	},
-+	{ USB_DEVICE(0x1bbb, 0x0003), /* Alcatel OT-I650 */
-+	.driver_info = NO_UNION_NORMAL, /* reports zero length descriptor */
-+	},
- 
- 	/* control interfaces with various AT-command sets */
- 	{ USB_INTERFACE_INFO(USB_CLASS_COMM, USB_CDC_SUBCLASS_ACM,
+diff -puN arch/x86/kernel/cpu/perfctr-watchdog.c~x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround arch/x86/kernel/cpu/perfctr-watchdog.c
+--- a/arch/x86/kernel/cpu/perfctr-watchdog.c~x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround
++++ a/arch/x86/kernel/cpu/perfctr-watchdog.c
+@@ -716,11 +716,15 @@ static void probe_nmi_watchdog(void)
+ 		wd_ops = &k7_wd_ops;
+ 		break;
+ 	case X86_VENDOR_INTEL:
+-		/*
+-		 * Work around Core Duo (Yonah) errata AE49 where perfctr1
+-		 * doesn't have a working enable bit.
++		/* Work around where perfctr1 doesn't have a working enable
++		 * bit as described in the following errata:
++		 * AE49 Core Duo and Intel Core Solo 65 nm
++		 * AN49 Intel Pentium Dual-Core
++		 * AF49 Dual-Core Intel Xeon Processor LV
+ 		 */
+-		if (boot_cpu_data.x86 == 6 && boot_cpu_data.x86_model == 14) {
++		if ((boot_cpu_data.x86 == 6 && boot_cpu_data.x86_model == 14) ||
++		    ((boot_cpu_data.x86 == 6 && boot_cpu_data.x86_model == 15 &&
++		     boot_cpu_data.x86_mask == 4))) {
+ 			intel_arch_wd_ops.perfctr = MSR_ARCH_PERFMON_PERFCTR0;
+ 			intel_arch_wd_ops.evntsel = MSR_ARCH_PERFMON_EVENTSEL0;
+ 		}
 _
 
-Patches currently in -mm which might be from kir@openvz.org are
+Patches currently in -mm which might be from prarit@redhat.com are
 
-usb-cdc-acm-quirk-for-alcatel-ot-i650.patch
+x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround.patch
 
