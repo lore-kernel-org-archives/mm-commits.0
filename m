@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb_serial-only-allow-sysrq-on-a-console-port.patch added to -mm tree
-Date: Mon, 01 Jun 2009 16:27:27 -0700
-Message-ID: <200906012327.n51NRRwF013106@imap1.linux-foundation.org>
+Subject: + time-nohz-fix-ondemand-governor-not-always-ramping-up-on-100%-load.patch added to -mm tree
+Date: Mon, 01 Jun 2009 16:32:19 -0700
+Message-ID: <200906012332.n51NWJ8d016597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56657 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752936AbZFAX14 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 19:27:56 -0400
+	by vger.kernel.org with ESMTP id S1752716AbZFAXdm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 19:33:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jason.wessel@windriver.com, greg@kroah.com
+Cc: arve@android.com, a.p.zijlstra@chello.nl, mingo@elte.hu, rmk@arm.linux.org.uk, swetland@google.com, tglx@linutronix.de
 
 
 The patch titled
-     usb_serial: only allow sysrq on a console port
+     time: nohz: fix ondemand governor not always ramping up on 100% load.
 has been added to the -mm tree.  Its filename is
-     usb_serial-only-allow-sysrq-on-a-console-port.patch
+     time-nohz-fix-ondemand-governor-not-always-ramping-up-on-100%-load.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb_serial: only allow sysrq on a console port
-From: Jason Wessel <jason.wessel@windriver.com>
+Subject: time: nohz: fix ondemand governor not always ramping up on 100% load.
+From: Arve Hjonnevag <arve@android.com>
 
-The only time a sysrq should get processed is if the attached device is a
-console.  This is intended to protect sysrq execution on a host connected
-with a terminal program.
+On systems that perform the context switch with interrupts enabled (e.g. 
+ARM) get_cpu_idle_time_us could get stuck returning the last idle time
+when the cpu is busy.  If an interrupt occurs while switching to the idle
+thread, and this interrupt wakes up a thread, need-resched will be set on
+the idle thread, but since we have not finished switching to the idle
+thread tick_nohz_stop_sched_tick will be called.  (idle_cpu is true since
+the head of the runqueue is the idle thread, but need_resched returns
+false since we are still running in the context of the old thread)
 
-Here is the problem scenario:
+Fix this by not calling tick_nohz_start_idle when returning from an
+interrupt while the idle thread is in its schedule phase.  (!ts->inidle)
 
-host A <-- rs232 link --> host B
-
-Host A is using mincom and a usb pl2303 device to connect to host b which
-is a linux system with a usb pl2303 device acting as the serial console. 
-When host B is rebooted the pl2303 emits random junk characters on reset. 
-These character sequences contain serial break signals most of the time
-and when translated to a sysrq have caused host A to get random processes
-killed, reboots or power down.
-
-It is true that in this setup with this patch host B might still have the
-same problem as host A if you reboot host A.  In most cases host A is a
-development host which seldom gets rebooted, and you could turn off sysrq
-temporarily on host B if you need to reboot host A.
-
-Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Arve Hjonnevag <arve@android.com>
+Cc: Brian Sewtland <swetland@google.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/generic.c |    2 +-
+ kernel/time/tick-sched.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/generic.c~usb_serial-only-allow-sysrq-on-a-console-port drivers/usb/serial/generic.c
---- a/drivers/usb/serial/generic.c~usb_serial-only-allow-sysrq-on-a-console-port
-+++ a/drivers/usb/serial/generic.c
-@@ -528,7 +528,7 @@ void usb_serial_generic_unthrottle(struc
+diff -puN kernel/time/tick-sched.c~time-nohz-fix-ondemand-governor-not-always-ramping-up-on-100%-load kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~time-nohz-fix-ondemand-governor-not-always-ramping-up-on-100%-load
++++ a/kernel/time/tick-sched.c
+@@ -224,7 +224,6 @@ void tick_nohz_stop_sched_tick(int inidl
  
- int usb_serial_handle_sysrq_char(struct usb_serial_port *port, unsigned int ch)
- {
--	if (port->sysrq) {
-+	if (port->sysrq && port->console) {
- 		if (ch && time_before(jiffies, port->sysrq)) {
- 			handle_sysrq(ch, tty_port_tty_get(&port->port));
- 			port->sysrq = 0;
+ 	cpu = smp_processor_id();
+ 	ts = &per_cpu(tick_cpu_sched, cpu);
+-	now = tick_nohz_start_idle(ts);
+ 
+ 	/*
+ 	 * If this cpu is offline and it is the one which updates
+@@ -244,6 +243,7 @@ void tick_nohz_stop_sched_tick(int inidl
+ 	if (!inidle && !ts->inidle)
+ 		goto end;
+ 
++	now = tick_nohz_start_idle(ts);
+ 	ts->inidle = 1;
+ 
+ 	if (need_resched())
 _
 
-Patches currently in -mm which might be from jason.wessel@windriver.com are
+Patches currently in -mm which might be from arve@android.com are
 
 linux-next.patch
-pl2303-usb_serial-implement-sysrq-handling-on-break.patch
-usb_serial-only-allow-sysrq-on-a-console-port.patch
-frv-duplicate-output_buffer-of-e03.patch
-kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+time-nohz-fix-ondemand-governor-not-always-ramping-up-on-100%-load.patch
 
