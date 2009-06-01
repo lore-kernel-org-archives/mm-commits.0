@@ -1,71 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + serial-jsm-correctly-support-4-8-port-boards-fix.patch added to -mm tree
-Date: Mon, 01 Jun 2009 12:23:08 -0700
-Message-ID: <200906011923.n51JN8MV029198@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 01 Jun 2009 12:49:16 -0700
+Message-ID: <200906011949.n51JnGXx015786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755890AbZFATXW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:23:22 -0400
+	by vger.kernel.org with ESMTP id S1752803AbZFATtQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 15:49:16 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n51JnGiq012739
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 1 Jun 2009 12:49:18 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Scott_Kilau@digi.com, adam@os.inf.tu-dresden.de, alan@lxorguk.ukuu.org.uk, git.user@gmail.com, wendyx@us.ibm.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial-jsm-correctly-support-4-8-port-boards-fix
-has been added to the -mm tree.  Its filename is
-     serial-jsm-correctly-support-4-8-port-boards-fix.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-jsm-correctly-support-4-8-port-boards-fix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alexander Y. Fomichev <git.user@gmail.com>
-Cc: Scott H Kilau <Scott_Kilau@digi.com>
-Cc: Wendy Xiong <wendyx@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_tty.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/8250_gsc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-fix drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~serial-jsm-correctly-support-4-8-port-boards-fix
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -467,7 +467,7 @@ int __devinit jsm_uart_port_init(struct 
- 			printk(KERN_INFO "linemap is full, added device failed\n");
- 			continue;
- 		} else
--			__set_bit((int)line, linemap);
-+			set_bit(line, linemap);
- 		brd->channels[i]->uart_port.line = line;
- 		if (uart_add_one_port (&jsm_uart_driver, &brd->channels[i]->uart_port))
- 			printk(KERN_INFO "Added device failed\n");
-@@ -503,7 +503,7 @@ int jsm_remove_uart_port(struct jsm_boar
- 
- 		ch = brd->channels[i];
- 
--		__clear_bit((int)(ch->uart_port.line), linemap);
-+		clear_bit(ch->uart_port.line, linemap);
- 		uart_remove_one_port(&jsm_uart_driver, &brd->channels[i]->uart_port);
+diff -puN drivers/serial/8250_gsc.c~linux-next-git-rejects drivers/serial/8250_gsc.c
+--- a/drivers/serial/8250_gsc.c~linux-next-git-rejects
++++ a/drivers/serial/8250_gsc.c
+@@ -41,11 +41,7 @@ static int __init serial_init_chip(struc
+ 			printk(KERN_INFO
+ 				"Serial: device 0x%llx not configured.\n"
+ 				"Enable support for Wax, Lasi, Asp or Dino.\n",
+-<<<<<<< HEAD:drivers/serial/8250_gsc.c
+ 				(unsigned long long)dev->hpa.start);
+-=======
+-				(unsigned long)dev->hpa.start);
+->>>>>>> FETCH_HEAD:drivers/serial/8250_gsc.c
+ 		return -ENODEV;
  	}
  
 _
