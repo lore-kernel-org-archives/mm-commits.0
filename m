@@ -1,120 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-allow-docproc-invocation-from-external.patch added to -mm tree
-Date: Mon, 01 Jun 2009 20:35:29 -0700
-Message-ID: <200906020335.n523ZTaW030626@imap1.linux-foundation.org>
+Subject: [to-be-updated] mips-txx9-add-tx4939-rng-support.patch removed from -mm tree
+Date: Mon, 01 Jun 2009 20:58:47 -0700
+Message-ID: <200906020358.n523wl2w015026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754754AbZFBDfg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 23:35:36 -0400
+	by vger.kernel.org with ESMTP id S1757123AbZFBD7m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 23:59:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, randy.dunlap@oracle.com, sam@ravnborg.org
+To: anemo@mba.ocn.ne.jp, herbert@gondor.apana.org.au, mpm@selenic.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts: allow docproc invocation from external
-has been added to the -mm tree.  Its filename is
-     scripts-allow-docproc-invocation-from-external.patch
+     mips: TXx9: add TX4939 RNG support
+has been removed from the -mm tree.  Its filename was
+     mips-txx9-add-tx4939-rng-support.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts: allow docproc invocation from external
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: mips: TXx9: add TX4939 RNG support
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-- getcwd returns path without a slash at the end, add the slash
-- add KBUILD_SRC env support, so that we can specify path for
-  kernel (to know where scripts/kernel-doc resides) and SRCTREE
-  (for searching files referenced in .tmpl) separately
-- use KBUILD_SRC instead of a newly introduced environment variable
+Add platform support for RNG of TX4939 SoC.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/basic/docproc.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ arch/mips/include/asm/txx9/tx4939.h   |    1 +
+ arch/mips/txx9/generic/setup_tx4939.c |   18 ++++++++++++++++++
+ arch/mips/txx9/rbtx4939/setup.c       |    1 +
+ 3 files changed, 20 insertions(+)
 
-diff -puN scripts/basic/docproc.c~scripts-allow-docproc-invocation-from-external scripts/basic/docproc.c
---- a/scripts/basic/docproc.c~scripts-allow-docproc-invocation-from-external
-+++ a/scripts/basic/docproc.c
-@@ -69,7 +69,7 @@ FILELINE * docsection;
- #define NOFUNCTION    "-nofunction"
- #define NODOCSECTIONS "-no-doc-sections"
- 
--char *srctree;
-+static char *srctree, *kernsrctree;
- 
- void usage (void)
- {
-@@ -77,7 +77,8 @@ void usage (void)
- 	fprintf(stderr, "Input is read from file.tmpl. Output is sent to stdout\n");
- 	fprintf(stderr, "doc: frontend when generating kernel documentation\n");
- 	fprintf(stderr, "depend: generate list of files referenced within file\n");
--	fprintf(stderr, "Environment variable SRCTREE: absolute path to kernel source tree.\n");
-+	fprintf(stderr, "Environment variable SRCTREE: absolute path to sources.\n");
-+	fprintf(stderr, "                     KBUILD_SRC: absolute path to kernel source tree.\n");
+diff -puN arch/mips/include/asm/txx9/tx4939.h~mips-txx9-add-tx4939-rng-support arch/mips/include/asm/txx9/tx4939.h
+--- a/arch/mips/include/asm/txx9/tx4939.h~mips-txx9-add-tx4939-rng-support
++++ a/arch/mips/include/asm/txx9/tx4939.h
+@@ -539,6 +539,7 @@ int tx4939_pci_map_irq(const struct pci_
+ void tx4939_setup_pcierr_irq(void);
+ void tx4939_irq_init(void);
+ int tx4939_irq(void);
++void tx4939_rng_init(void);
+ void tx4939_mtd_init(int ch);
+ void tx4939_ata_init(void);
+ void tx4939_rtc_init(void);
+diff -puN arch/mips/txx9/generic/setup_tx4939.c~mips-txx9-add-tx4939-rng-support arch/mips/txx9/generic/setup_tx4939.c
+--- a/arch/mips/txx9/generic/setup_tx4939.c~mips-txx9-add-tx4939-rng-support
++++ a/arch/mips/txx9/generic/setup_tx4939.c
+@@ -494,6 +494,24 @@ void __init tx4939_aclc_init(void)
+ 			       TXX9_IRQ_BASE + TX4939_IR_ACLC, 1, 0, 1);
  }
  
- /*
-@@ -96,8 +97,8 @@ void exec_kernel_doc(char **svec)
- 			exit(1);
- 		case  0:
- 			memset(real_filename, 0, sizeof(real_filename));
--			strncat(real_filename, srctree, PATH_MAX);
--			strncat(real_filename, KERNELDOCPATH KERNELDOC,
-+			strncat(real_filename, kernsrctree, PATH_MAX);
-+			strncat(real_filename, "/" KERNELDOCPATH KERNELDOC,
- 					PATH_MAX - strlen(real_filename));
- 			execvp(real_filename, svec);
- 			fprintf(stderr, "exec ");
-@@ -178,6 +179,7 @@ void find_export_symbols(char * filename
- 		char real_filename[PATH_MAX + 1];
- 		memset(real_filename, 0, sizeof(real_filename));
- 		strncat(real_filename, srctree, PATH_MAX);
-+		strncat(real_filename, "/", PATH_MAX - strlen(real_filename));
- 		strncat(real_filename, filename,
- 				PATH_MAX - strlen(real_filename));
- 		sym = add_new_file(filename);
-@@ -382,6 +384,9 @@ int main(int argc, char *argv[])
- 	srctree = getenv("SRCTREE");
- 	if (!srctree)
- 		srctree = getcwd(NULL, 0);
-+	kernsrctree = getenv("KBUILD_SRC");
-+	if (!kernsrctree)
-+		kernsrctree = srctree;
- 	if (argc != 3) {
- 		usage();
- 		exit(1);
++#define TX4939_RNG_REG	((TX4939_CRYPTO_REG & 0xfffffffffULL) + 0xb0)
++void __init tx4939_rng_init(void)
++{
++	static struct resource res = {
++		.start = TX4939_RNG_REG,
++		.end = TX4939_RNG_REG + 0x30 - 1,
++		.flags = IORESOURCE_MEM,
++	};
++	static struct platform_device pdev = {
++		.name = "tx4939-rng",
++		.id = -1,
++		.num_resources = 1,
++		.resource = &res,
++	};
++
++	platform_device_register(&pdev);
++}
++
+ static void __init tx4939_stop_unused_modules(void)
+ {
+ 	__u64 pcfg, rst = 0, ckd = 0;
+diff -puN arch/mips/txx9/rbtx4939/setup.c~mips-txx9-add-tx4939-rng-support arch/mips/txx9/rbtx4939/setup.c
+--- a/arch/mips/txx9/rbtx4939/setup.c~mips-txx9-add-tx4939-rng-support
++++ a/arch/mips/txx9/rbtx4939/setup.c
+@@ -501,6 +501,7 @@ static void __init rbtx4939_device_init(
+ 	tx4939_dmac_init(0, 2);
+ 	tx4939_aclc_init();
+ 	platform_device_register_simple("txx9aclc-generic", -1, NULL, 0);
++	tx4939_rng_init();
+ }
+ 
+ static void __init rbtx4939_setup(void)
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-char-mxser-fix-isa-board-lookup.patch
 linux-next.patch
-scripts-allow-docproc-invocation-from-external.patch
-fs-fix-lock-imbalance-in-do_remount_sb.patch
-icom-converting-space-to-tabs.patch
-icom-fix-compile-errors-when-defining-icom_trace.patch
-char-isicom-fix-build-warning.patch
-rapidio-fix-kerneldoc-for-rio_mem_ops.patch
-dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set.patch
+mips-txx9-add-tx4939-rng-support.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+rtc-rtc-ds1742-nvram-attribute-fix.patch
+rtc-tx4939-drop-irqf_shared.patch
+rtc-ds1553-drop-irqf_shared.patch
+rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
 
