@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 02 Jun 2009 15:24:24 -0700
-Message-ID: <200906022244.n52MiAnh010690@imap1.linux-foundation.org>
+Subject: + gpio-driver-for-primecell-pl061-gpio-controller-fix.patch added to -mm tree
+Date: Tue, 02 Jun 2009 15:50:09 -0700
+Message-ID: <200906022309.n52N9tdP030952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755531AbZFBWoM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 18:44:12 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n52MiDWp017472
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 2 Jun 2009 15:44:14 -0700
+	by vger.kernel.org with ESMTP id S1752546AbZFBXKN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 19:10:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, baruch@tkos.co.il, david-b@pacbell.net, rmk@arm.linux.org.uk
 
 
 The patch titled
-     linux-next-git-rejects
+     gpio-driver-for-primecell-pl061-gpio-controller-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,31 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: gpio-driver-for-primecell-pl061-gpio-controller-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+it uses arm-only stuff.
+
+Cc: Baruch Siach <baruch@tkos.co.il>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/gpio/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/forcedeth.c~linux-next-git-rejects drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~linux-next-git-rejects
-+++ a/drivers/net/forcedeth.c
-@@ -5543,12 +5543,8 @@ static int nv_close(struct net_device *d
+diff -puN drivers/gpio/Kconfig~gpio-driver-for-primecell-pl061-gpio-controller-fix drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-driver-for-primecell-pl061-gpio-controller-fix
++++ a/drivers/gpio/Kconfig
+@@ -69,6 +69,7 @@ comment "Memory mapped GPIO expanders:"
  
- 	nv_drain_rxtx(dev);
+ config GPIO_PL061
+ 	bool "PrimeCell PL061 GPIO support"
++	depends on ARM
+ 	help
+ 	  Say yes here to support the PrimeCell PL061 GPIO device
  
--<<<<<<< HEAD:drivers/net/forcedeth.c
--	if (np->wolenabled || !phy_power_down) {
--=======
- 	if (np->wolenabled) {
- 		nv_txrx_gate(dev, false);
-->>>>>>> FETCH_HEAD:drivers/net/forcedeth.c
- 		writel(NVREG_PFF_ALWAYS|NVREG_PFF_MYADDR, base + NvRegPacketFilterFlags);
- 		nv_start_rx(dev);
- 	} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +103,7 @@ remove-put_cpu_no_resched-fix.patch
 rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
 proc-merge-arrayc-into-basec-checkpatch-fixes.patch
 jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
 radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
 documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
 cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
