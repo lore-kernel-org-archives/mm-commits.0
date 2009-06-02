@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-atomic_opstxt-fix-sample-code.patch added to -mm tree
-Date: Mon, 01 Jun 2009 21:19:21 -0700
-Message-ID: <200906020419.n524JLC4029943@imap1.linux-foundation.org>
+Subject: + ima-return-proper-error-value-on-failure-of-dentry_open.patch added to -mm tree
+Date: Mon, 01 Jun 2009 21:22:05 -0700
+Message-ID: <200906020422.n524M5kt031936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751225AbZFBETV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 00:19:21 -0400
+	by vger.kernel.org with ESMTP id S1751180AbZFBEXK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 00:23:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: figo1802@gmail.com
+Cc: vibi_sreenivasan@cms.com, jmorris@namei.org, sailer@watson.ibm.com, serue@us.ibm.com, zohar@us.ibm.com
 
 
 The patch titled
-     Documentation/atomic_ops.txt: fix sample code
+     ima: return proper error value on failure of dentry_open()
 has been added to the -mm tree.  Its filename is
-     documentation-atomic_opstxt-fix-sample-code.patch
+     ima-return-proper-error-value-on-failure-of-dentry_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/atomic_ops.txt: fix sample code
-From: "Figo.zhang" <figo1802@gmail.com>
+Subject: ima: return proper error value on failure of dentry_open()
+From: vibi sreenivasan <vibi_sreenivasan@cms.com>
 
-list_add() lost a parameter in sample code.
+dentry_open can return error value on error.  Check that value before
+calling fput & return proper error value
 
-Signed-off-by: Figo.zhang <figo1802@gmail.com>
+Signed-off-by: vibi sreenivasan <vibi_sreenivasan@cms.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Reiner Sailer <sailer@watson.ibm.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/atomic_ops.txt |    4 ++--
+ security/integrity/ima/ima_main.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/atomic_ops.txt~documentation-atomic_opstxt-fix-sample-code Documentation/atomic_ops.txt
---- a/Documentation/atomic_ops.txt~documentation-atomic_opstxt-fix-sample-code
-+++ a/Documentation/atomic_ops.txt
-@@ -229,10 +229,10 @@ kernel.  It is the use of atomic counter
- counting, and it works such that once the counter falls to zero it can
- be guaranteed that no other entity can be accessing the object:
- 
--static void obj_list_add(struct obj *obj)
-+static void obj_list_add(struct obj *obj, struct list_head *head)
- {
- 	obj->active = 1;
--	list_add(&obj->list);
-+	list_add(&obj->list, head);
+diff -puN security/integrity/ima/ima_main.c~ima-return-proper-error-value-on-failure-of-dentry_open security/integrity/ima/ima_main.c
+--- a/security/integrity/ima/ima_main.c~ima-return-proper-error-value-on-failure-of-dentry_open
++++ a/security/integrity/ima/ima_main.c
+@@ -198,10 +198,10 @@ int ima_path_check(struct path *path, in
+ 	}
+ out:
+ 	mutex_unlock(&iint->mutex);
+-	if (file)
++	if (IS_ERR(file))
+ 		fput(file);
+ 	kref_put(&iint->refcount, iint_free);
+-	return 0;
++	return rc;
  }
+ EXPORT_SYMBOL_GPL(ima_path_check);
  
- static void obj_list_del(struct obj *obj)
 _
 
-Patches currently in -mm which might be from figo1802@gmail.com are
+Patches currently in -mm which might be from vibi_sreenivasan@cms.com are
 
-documentation-atomic_opstxt-fix-sample-code.patch
+ima-return-proper-error-value-on-failure-of-dentry_open.patch
 
