@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch added to -mm tree
-Date: Mon, 01 Jun 2009 23:02:58 -0700
-Message-ID: <200906020602.n5262wcu008560@imap1.linux-foundation.org>
+Subject: + cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch added to -mm tree
+Date: Mon, 01 Jun 2009 23:03:35 -0700
+Message-ID: <200906020603.n5263Zlx009051@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757896AbZFBGDj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 02:03:39 -0400
+	by vger.kernel.org with ESMTP id S1759749AbZFBGDp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 02:03:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     cgroups: forbid noprefix if mounting more than just cpuset subsystem
+     cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix
 has been added to the -mm tree.  Its filename is
-     cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
+     cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: forbid noprefix if mounting more than just cpuset subsystem
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The 'noprefix' option was introduced for backwards-compatibility of
-cpuset, but actually it can be used when mounting other subsystems.
+Fix shift for cpuset_subsys_id >= 32.
 
-This results in possibility of name collision, and now the collision can
-really happen, because we have 'stat' file in both memory and cpuacct
-subsystem:
-
-	# mount -t cgroup -o noprefix,memory,cpuacct xxx /mnt
-
-Cgroup will happily mount the 2 subsystems, but only 'stat' file of memory
-subsys can be seen.
-
-We don't want users to use nopreifx, and also want to avoid name
-collision, so we change to allow noprefix only if mounting just the cpuset
-subsystem.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem
+diff -puN kernel/cgroup.c~cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix
 +++ a/kernel/cgroup.c
-@@ -842,6 +842,11 @@ static int parse_cgroupfs_options(char *
- 				     struct cgroup_sb_opts *opts)
- {
- 	char *token, *o = data ?: "all";
-+	unsigned long mask = (unsigned long)-1;
-+
-+#ifdef CONFIG_CPUSETS
-+	mask = ~(1 << cpuset_subsys_id);
-+#endif
+@@ -845,7 +845,7 @@ static int parse_cgroupfs_options(char *
+ 	unsigned long mask = (unsigned long)-1;
+ 
+ #ifdef CONFIG_CPUSETS
+-	mask = ~(1 << cpuset_subsys_id);
++	mask = ~(1UL << cpuset_subsys_id);
+ #endif
  
  	opts->subsys_bits = 0;
- 	opts->flags = 0;
-@@ -886,6 +891,11 @@ static int parse_cgroupfs_options(char *
- 		}
- 	}
- 
-+	/* We allow noprefix only if mounting just the cpuset subsystem */
-+	if (test_bit(ROOT_NOPREFIX, &opts->flags) &&
-+	    (opts->subsys_bits & mask))
-+		return -EINVAL;
-+
- 	/* We can't have an empty hierarchy */
- 	if (!opts->subsys_bits)
- 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+revert-fbdev-uninline-lock_fb_info.patch
 linux-next.patch
-mm-add-swap-cache-interface-for-swap-reference.patch
-mm-modify-swap_map-and-add-swap_has_cache-flag.patch
-mm-reuse-unused-swap-entry-if-necessary.patch
-hexdump-remove-the-trailing-space.patch
-cgroups-make-messages-more-readable.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
-devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
-memcg-remove-some-redundant-checks.patch
-memcg-remove-unneeded-forward-declaration-from-schedh.patch
-memcg-fix-swap-accounting.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+cciss-fix-scsi-device-reset-handler-fix.patch
+drivers-usb-serial-sierrac-fix-printk-warning.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
