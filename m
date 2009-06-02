@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + eisaids-add-network-peripherals-fddi-boards.patch added to -mm tree
-Date: Mon, 01 Jun 2009 19:29:06 -0700
-Message-ID: <200906020229.n522T6ih015200@imap1.linux-foundation.org>
+Subject: + mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization.patch added to -mm tree
+Date: Mon, 01 Jun 2009 19:31:41 -0700
+Message-ID: <200906020231.n522VfHr017018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58840 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49420 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755015AbZFBC3N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 22:29:13 -0400
+	by vger.kernel.org with ESMTP id S1754982AbZFBCcv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2009 22:32:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, maz@wild-wind.fr.eu.org
+Cc: research@subreption.com, davem@davemloft.net, johannes@sipsolutions.net, linville@tuxdriver.com, riel@redhat.com
 
 
 The patch titled
-     eisa.ids: add Network Peripherals FDDI boards
+     mac80211: use kzfree in key handling to enforce data sanitization
 has been added to the -mm tree.  Its filename is
-     eisaids-add-network-peripherals-fddi-boards.patch
+     mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eisa.ids: add Network Peripherals FDDI boards
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: mac80211: use kzfree in key handling to enforce data sanitization
+From: Larry Highsmith <research@subreption.com>
 
-Add EISA IDs for Network Peripherals FDDI boards.  Descriptions taken from
-the respective EISA configuration files.
+Replace the kfree() calls within the mac80211 WEP RC4 key handling and
+ieee80211 management APIs with kzfree(), to enforce sanitization of the
+key buffer contents.
 
-It's unlikely we'll ever support these cards, the problem being the lack
-of documentation.  Assuming the policy for the EISA ID database is the
-same as for PCI I'm sending these entries for the sake of completeness.
+This prevents the keys from persisting on memory, potentially leaking to
+other kernel users after re-allocation of the memory by the LIFO
+allocators, or in coldboot attack scenarios.  Information can be leaked as
+well due to use of uninitialized variables, or other bugs.
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Marc Zyngier <maz@wild-wind.fr.eu.org>
+This patch doesn't affect fastpaths.
+
+Signed-off-by: Larry Highsmith <research@subreption.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: David S. Miller <davem@davemloft.net>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/eisa/eisa.ids |    5 +++++
- 1 file changed, 5 insertions(+)
+ net/mac80211/key.c |    6 +++---
+ net/mac80211/wep.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/eisa/eisa.ids~eisaids-add-network-peripherals-fddi-boards drivers/eisa/eisa.ids
---- a/drivers/eisa/eisa.ids~eisaids-add-network-peripherals-fddi-boards
-+++ a/drivers/eisa/eisa.ids
-@@ -1140,6 +1140,11 @@ NON0301 "c't Universale Graphic Adapter"
- NON0401 "c't Universal Ethernet Adapter"
- NON0501 "c't Universal 16-Bit Sound Adapter"
- NON0601 "c't Universal 8-Bit Adapter"
-+NPI0120 "Network Peripherals NP-EISA-1 FDDI Interface"
-+NPI0221 "Network Peripherals NP-EISA-2 FDDI Interface"
-+NPI0223 "Network Peripherals NP-EISA-2E Enhanced FDDI Interface"
-+NPI0301 "Network Peripherals NP-EISA-3 FDDI Interface"
-+NPI0303 "Network Peripherals NP-EISA-3E Enhanced FDDI Interface"
- NSS0011 "Newport Systems Solutions WNIC Adapter"
- NVL0701 "Novell NE3200 Bus Master Ethernet"
- NVL0702 "Novell NE3200T Bus Master Ethernet"
+diff -puN net/mac80211/key.c~mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization net/mac80211/key.c
+--- a/net/mac80211/key.c~mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization
++++ a/net/mac80211/key.c
+@@ -358,7 +358,7 @@ struct ieee80211_key *ieee80211_key_allo
+ 		 */
+ 		key->u.ccmp.tfm = ieee80211_aes_key_setup_encrypt(key_data);
+ 		if (!key->u.ccmp.tfm) {
+-			kfree(key);
++			kzfree(key);
+ 			return NULL;
+ 		}
+ 	}
+@@ -471,7 +471,7 @@ void ieee80211_key_free(struct ieee80211
+ 		 * and don't Oops */
+ 		if (key->conf.alg == ALG_CCMP)
+ 			ieee80211_aes_key_free(key->u.ccmp.tfm);
+-		kfree(key);
++		kzfree(key);
+ 		return;
+ 	}
+ 
+@@ -533,7 +533,7 @@ static void __ieee80211_key_destroy(stru
+ 		ieee80211_aes_cmac_key_free(key->u.aes_cmac.tfm);
+ 	ieee80211_debugfs_key_remove(key);
+ 
+-	kfree(key);
++	kzfree(key);
+ }
+ 
+ static void __ieee80211_key_todo(void)
+diff -puN net/mac80211/wep.c~mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization net/mac80211/wep.c
+--- a/net/mac80211/wep.c~mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization
++++ a/net/mac80211/wep.c
+@@ -161,7 +161,7 @@ int ieee80211_wep_encrypt(struct ieee802
+ 
+ 	iv = ieee80211_wep_add_iv(local, skb, key);
+ 	if (!iv) {
+-		kfree(rc4key);
++		kzfree(rc4key);
+ 		return -1;
+ 	}
+ 
+@@ -179,7 +179,7 @@ int ieee80211_wep_encrypt(struct ieee802
+ 	ieee80211_wep_encrypt_data(local->wep_tx_tfm, rc4key, klen,
+ 				   iv + WEP_IV_LEN, len);
+ 
+-	kfree(rc4key);
++	kzfree(rc4key);
+ 
+ 	return 0;
+ }
+@@ -258,7 +258,7 @@ int ieee80211_wep_decrypt(struct ieee802
+ 				       len))
+ 		ret = -1;
+ 
+-	kfree(rc4key);
++	kzfree(rc4key);
+ 
+ 	/* Trim ICV */
+ 	skb_trim(skb, skb->len - WEP_ICV_LEN);
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from research@subreption.com are
 
-origin.patch
-linux-next.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-eisaids-add-network-peripherals-fddi-boards.patch
+mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization.patch
 
