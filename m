@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-enable-gcov_profile_all-for-x86_64.patch added to -mm tree
-Date: Tue, 02 Jun 2009 15:03:50 -0700
-Message-ID: <200906022203.n52M3oQw011697@imap1.linux-foundation.org>
+Subject: + seq_file-add-function-to-write-binary-data.patch added to -mm tree
+Date: Tue, 02 Jun 2009 15:03:40 -0700
+Message-ID: <200906022203.n52M3ffk011560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753001AbZFBWFE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 18:05:04 -0400
+	by vger.kernel.org with ESMTP id S1752113AbZFBWFS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 18:05:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oberpar@linux.vnet.ibm.com, W.Li@Sun.COM, andi@firstfloor.org, heicars2@linu
 
 
 The patch titled
-     gcov: enable GCOV_PROFILE_ALL for x86_64
+     seq_file: add function to write binary data
 has been added to the -mm tree.  Its filename is
-     gcov-enable-gcov_profile_all-for-x86_64.patch
+     seq_file-add-function-to-write-binary-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcov: enable GCOV_PROFILE_ALL for x86_64
+Subject: seq_file: add function to write binary data
 From: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 
-Enable gcov profiling of the entire kernel on x86_64. Required changes
-include disabling profiling for:
-
-* arch/kernel/acpi/realmode and arch/kernel/boot/compressed:
-  not linked to main kernel
-* arch/vdso, arch/kernel/vsyscall_64 and arch/kernel/hpet:
-  profiling causes segfaults during boot (incompatible context)
+seq_write() can be used to construct seq_files containing arbitrary data. 
+Required by the gcov-profiling interface to synthesize binary profiling
+data files.
 
 Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -60,82 +56,51 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/Makefile                 |    1 +
- arch/x86/boot/compressed/Makefile      |    1 +
- arch/x86/kernel/Makefile               |    2 ++
- arch/x86/kernel/acpi/realmode/Makefile |    1 +
- arch/x86/vdso/Makefile                 |    1 +
- kernel/gcov/Kconfig                    |    2 +-
- 6 files changed, 7 insertions(+), 1 deletion(-)
+ fs/seq_file.c            |   20 ++++++++++++++++++++
+ include/linux/seq_file.h |    1 +
+ 2 files changed, 21 insertions(+)
 
-diff -puN arch/x86/boot/Makefile~gcov-enable-gcov_profile_all-for-x86_64 arch/x86/boot/Makefile
---- a/arch/x86/boot/Makefile~gcov-enable-gcov_profile_all-for-x86_64
-+++ a/arch/x86/boot/Makefile
-@@ -70,6 +70,7 @@ KBUILD_CFLAGS	:= $(LINUXINCLUDE) -g -Os 
- 		   $(call cc-option, -mpreferred-stack-boundary=2)
- KBUILD_CFLAGS	+= $(call cc-option, -m32)
- KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
-+GCOV_PROFILE := n
+diff -puN fs/seq_file.c~seq_file-add-function-to-write-binary-data fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-add-function-to-write-binary-data
++++ a/fs/seq_file.c
+@@ -640,6 +640,26 @@ int seq_puts(struct seq_file *m, const c
+ }
+ EXPORT_SYMBOL(seq_puts);
  
- $(obj)/bzImage: asflags-y  := $(SVGA_MODE)
++/**
++ * seq_write - write arbitrary data to buffer
++ * @seq: seq_file identifying the buffer to which data should be written
++ * @data: data address
++ * @len: number of bytes
++ *
++ * Return 0 on success, non-zero otherwise.
++ */
++int seq_write(struct seq_file *seq, const void *data, size_t len)
++{
++	if (seq->count + len < seq->size) {
++		memcpy(seq->buf + seq->count, data, len);
++		seq->count += len;
++		return 0;
++	}
++	seq->count = seq->size;
++	return -1;
++}
++EXPORT_SYMBOL(seq_write);
++
+ struct list_head *seq_list_start(struct list_head *head, loff_t pos)
+ {
+ 	struct list_head *lh;
+diff -puN include/linux/seq_file.h~seq_file-add-function-to-write-binary-data include/linux/seq_file.h
+--- a/include/linux/seq_file.h~seq_file-add-function-to-write-binary-data
++++ a/include/linux/seq_file.h
+@@ -43,6 +43,7 @@ int seq_release(struct inode *, struct f
+ int seq_escape(struct seq_file *, const char *, const char *);
+ int seq_putc(struct seq_file *m, char c);
+ int seq_puts(struct seq_file *m, const char *s);
++int seq_write(struct seq_file *seq, const void *data, size_t len);
  
-diff -puN arch/x86/boot/compressed/Makefile~gcov-enable-gcov_profile_all-for-x86_64 arch/x86/boot/compressed/Makefile
---- a/arch/x86/boot/compressed/Makefile~gcov-enable-gcov_profile_all-for-x86_64
-+++ a/arch/x86/boot/compressed/Makefile
-@@ -15,6 +15,7 @@ KBUILD_CFLAGS += $(call cc-option,-ffree
- KBUILD_CFLAGS += $(call cc-option,-fno-stack-protector)
- 
- KBUILD_AFLAGS  := $(KBUILD_CFLAGS) -D__ASSEMBLY__
-+GCOV_PROFILE := n
- 
- LDFLAGS := -m elf_$(UTS_MACHINE)
- LDFLAGS_vmlinux := -T
-diff -puN arch/x86/kernel/Makefile~gcov-enable-gcov_profile_all-for-x86_64 arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~gcov-enable-gcov_profile_all-for-x86_64
-+++ a/arch/x86/kernel/Makefile
-@@ -24,6 +24,8 @@ CFLAGS_vsyscall_64.o	:= $(PROFILING) -g0
- CFLAGS_hpet.o		:= $(nostackp)
- CFLAGS_tsc.o		:= $(nostackp)
- CFLAGS_paravirt.o	:= $(nostackp)
-+GCOV_PROFILE_vsyscall_64.o	:= n
-+GCOV_PROFILE_hpet.o		:= n
- 
- obj-y			:= process_$(BITS).o signal.o entry_$(BITS).o
- obj-y			+= traps.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
-diff -puN arch/x86/kernel/acpi/realmode/Makefile~gcov-enable-gcov_profile_all-for-x86_64 arch/x86/kernel/acpi/realmode/Makefile
---- a/arch/x86/kernel/acpi/realmode/Makefile~gcov-enable-gcov_profile_all-for-x86_64
-+++ a/arch/x86/kernel/acpi/realmode/Makefile
-@@ -42,6 +42,7 @@ KBUILD_CFLAGS	:= $(LINUXINCLUDE) -g -Os 
- 		   $(call cc-option, -mpreferred-stack-boundary=2)
- KBUILD_CFLAGS	+= $(call cc-option, -m32)
- KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
-+GCOV_PROFILE := n
- 
- WAKEUP_OBJS = $(addprefix $(obj)/,$(wakeup-y))
- 
-diff -puN arch/x86/vdso/Makefile~gcov-enable-gcov_profile_all-for-x86_64 arch/x86/vdso/Makefile
---- a/arch/x86/vdso/Makefile~gcov-enable-gcov_profile_all-for-x86_64
-+++ a/arch/x86/vdso/Makefile
-@@ -123,6 +123,7 @@ quiet_cmd_vdso = VDSO    $@
- 		       -Wl,-T,$(filter %.lds,$^) $(filter %.o,$^)
- 
- VDSO_LDFLAGS = -fPIC -shared $(call ld-option, -Wl$(comma)--hash-style=sysv)
-+GCOV_PROFILE := n
- 
- #
- # Install the unstripped copy of vdso*.so listed in $(vdso-install-y).
-diff -puN kernel/gcov/Kconfig~gcov-enable-gcov_profile_all-for-x86_64 kernel/gcov/Kconfig
---- a/kernel/gcov/Kconfig~gcov-enable-gcov_profile_all-for-x86_64
-+++ a/kernel/gcov/Kconfig
-@@ -34,7 +34,7 @@ config GCOV_KERNEL
- config GCOV_PROFILE_ALL
- 	bool "Profile entire Kernel"
- 	depends on GCOV_KERNEL
--	depends on S390 || X86_32
-+	depends on S390 || X86
- 	default n
- 	---help---
- 	This options activates profiling for the entire kernel.
+ int seq_printf(struct seq_file *, const char *, ...)
+ 	__attribute__ ((format (printf,2,3)));
 _
 
 Patches currently in -mm which might be from oberpar@linux.vnet.ibm.com are
