@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-__invalidate_mapping_pages-variant.patch added to -mm tree
-Date: Tue, 02 Jun 2009 15:30:48 -0700
-Message-ID: <200906022230.n52MUmgf032736@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 02 Jun 2009 15:24:24 -0700
+Message-ID: <200906022244.n52MiAnh010690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59706 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51469 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751894AbZFBWbG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 18:31:06 -0400
+	by vger.kernel.org with ESMTP id S1755531AbZFBWoM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 18:44:12 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n52MiDWp017472
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 2 Jun 2009 15:44:14 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikew@google.com, david@fromorbit.com, fengguang.wu@intel.com, jack@suse.cz, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     mm: remove __invalidate_mapping_pages variant
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-remove-__invalidate_mapping_pages-variant.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +37,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove __invalidate_mapping_pages variant
-From: Mike Waychison <mikew@google.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove __invalidate_mapping_pages atomic variant now that its sole caller
-can sleep (fixed in eccb95cee4f0d56faa46ef22fb94dd4a3578d3eb ("vfs: fix
-lock inversion in drop_pagecache_sb()")).
-
-This fixes softlockups that can occur while in the drop_caches path.
-
-Signed-off-by: Mike Waychison <mikew@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c   |    2 +-
- include/linux/fs.h |    3 ---
- mm/truncate.c      |   39 ++++++++++++++++-----------------------
- 3 files changed, 17 insertions(+), 27 deletions(-)
+ drivers/net/forcedeth.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/drop_caches.c~mm-remove-__invalidate_mapping_pages-variant fs/drop_caches.c
---- a/fs/drop_caches.c~mm-remove-__invalidate_mapping_pages-variant
-+++ a/fs/drop_caches.c
-@@ -24,7 +24,7 @@ static void drop_pagecache_sb(struct sup
- 			continue;
- 		__iget(inode);
- 		spin_unlock(&inode_lock);
--		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
-+		invalidate_mapping_pages(inode->i_mapping, 0, -1);
- 		iput(toput_inode);
- 		toput_inode = inode;
- 		spin_lock(&inode_lock);
-diff -puN include/linux/fs.h~mm-remove-__invalidate_mapping_pages-variant include/linux/fs.h
---- a/include/linux/fs.h~mm-remove-__invalidate_mapping_pages-variant
-+++ a/include/linux/fs.h
-@@ -2039,9 +2039,6 @@ extern int __invalidate_device(struct bl
- extern int invalidate_partition(struct gendisk *, int);
- #endif
- extern int invalidate_inodes(struct super_block *);
--unsigned long __invalidate_mapping_pages(struct address_space *mapping,
--					pgoff_t start, pgoff_t end,
--					bool be_atomic);
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 					pgoff_t start, pgoff_t end);
+diff -puN drivers/net/forcedeth.c~linux-next-git-rejects drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~linux-next-git-rejects
++++ a/drivers/net/forcedeth.c
+@@ -5543,12 +5543,8 @@ static int nv_close(struct net_device *d
  
-diff -puN mm/truncate.c~mm-remove-__invalidate_mapping_pages-variant mm/truncate.c
---- a/mm/truncate.c~mm-remove-__invalidate_mapping_pages-variant
-+++ a/mm/truncate.c
-@@ -267,8 +267,21 @@ void truncate_inode_pages(struct address
- }
- EXPORT_SYMBOL(truncate_inode_pages);
+ 	nv_drain_rxtx(dev);
  
--unsigned long __invalidate_mapping_pages(struct address_space *mapping,
--				pgoff_t start, pgoff_t end, bool be_atomic)
-+/**
-+ * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-+ * @mapping: the address_space which holds the pages to invalidate
-+ * @start: the offset 'from' which to invalidate
-+ * @end: the offset 'to' which to invalidate (inclusive)
-+ *
-+ * This function only removes the unlocked pages, if you want to
-+ * remove all the pages of one inode, you must call truncate_inode_pages.
-+ *
-+ * invalidate_mapping_pages() will not block on IO activity. It will not
-+ * invalidate pages which are dirty, locked, under writeback or mapped into
-+ * pagetables.
-+ */
-+unsigned long invalidate_mapping_pages(struct address_space *mapping,
-+				       pgoff_t start, pgoff_t end)
- {
- 	struct pagevec pvec;
- 	pgoff_t next = start;
-@@ -309,30 +322,10 @@ unlock:
- 				break;
- 		}
- 		pagevec_release(&pvec);
--		if (likely(!be_atomic))
--			cond_resched();
-+		cond_resched();
- 	}
- 	return ret;
- }
--
--/**
-- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-- * @mapping: the address_space which holds the pages to invalidate
-- * @start: the offset 'from' which to invalidate
-- * @end: the offset 'to' which to invalidate (inclusive)
-- *
-- * This function only removes the unlocked pages, if you want to
-- * remove all the pages of one inode, you must call truncate_inode_pages.
-- *
-- * invalidate_mapping_pages() will not block on IO activity. It will not
-- * invalidate pages which are dirty, locked, under writeback or mapped into
-- * pagetables.
-- */
--unsigned long invalidate_mapping_pages(struct address_space *mapping,
--				pgoff_t start, pgoff_t end)
--{
--	return __invalidate_mapping_pages(mapping, start, end, false);
--}
- EXPORT_SYMBOL(invalidate_mapping_pages);
- 
- /*
+-<<<<<<< HEAD:drivers/net/forcedeth.c
+-	if (np->wolenabled || !phy_power_down) {
+-=======
+ 	if (np->wolenabled) {
+ 		nv_txrx_gate(dev, false);
+->>>>>>> FETCH_HEAD:drivers/net/forcedeth.c
+ 		writel(NVREG_PFF_ALWAYS|NVREG_PFF_MYADDR, base + NvRegPacketFilterFlags);
+ 		nv_start_rx(dev);
+ 	} else {
 _
 
-Patches currently in -mm which might be from mikew@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-remove-__invalidate_mapping_pages-variant.patch
+origin.patch
+revert-fbdev-uninline-lock_fb_info.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+cciss-fix-scsi-device-reset-handler-fix.patch
+drivers-usb-serial-sierrac-fix-printk-warning.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
