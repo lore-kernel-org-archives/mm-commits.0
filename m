@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-driver-for-primecell-pl061-gpio-controller-fix.patch added to -mm tree
-Date: Tue, 02 Jun 2009 15:50:09 -0700
-Message-ID: <200906022309.n52N9tdP030952@imap1.linux-foundation.org>
+Subject: + pagemap-add-page-types-tool-fix.patch added to -mm tree
+Date: Tue, 02 Jun 2009 16:09:38 -0700
+Message-ID: <200906022329.n52NTNcW013639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752546AbZFBXKN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 19:10:13 -0400
+	by vger.kernel.org with ESMTP id S1755361AbZFBX3s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 19:29:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, baruch@tkos.co.il, david-b@pacbell.net, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, andi@firstfloor.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mpm@selenic.com
 
 
 The patch titled
-     gpio-driver-for-primecell-pl061-gpio-controller-fix
+     pagemap-add-page-types-tool-fix
 has been added to the -mm tree.  Its filename is
-     gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
+     pagemap-add-page-types-tool-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-driver-for-primecell-pl061-gpio-controller-fix
+Subject: pagemap-add-page-types-tool-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-it uses arm-only stuff.
+Documentation/vm/page-types.c:252: warning: function declaration isn't a prototype
 
-Cc: Baruch Siach <baruch@tkos.co.il>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/vm/page-types.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-driver-for-primecell-pl061-gpio-controller-fix drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-driver-for-primecell-pl061-gpio-controller-fix
-+++ a/drivers/gpio/Kconfig
-@@ -69,6 +69,7 @@ comment "Memory mapped GPIO expanders:"
+diff -puN Documentation/vm/page-types.c~pagemap-add-page-types-tool-fix Documentation/vm/page-types.c
+--- a/Documentation/vm/page-types.c~pagemap-add-page-types-tool-fix
++++ a/Documentation/vm/page-types.c
+@@ -246,7 +246,7 @@ void show_page(unsigned long offset, uin
+ 	printf("%lu\t%s\n", offset, page_flag_name(flags));
+ }
  
- config GPIO_PL061
- 	bool "PrimeCell PL061 GPIO support"
-+	depends on ARM
- 	help
- 	  Say yes here to support the PrimeCell PL061 GPIO device
+-void show_summary()
++void show_summary(void)
+ {
+ 	int i;
  
 _
 
@@ -91,6 +95,7 @@ ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
 page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
 page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool-fix.patch
 videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
 page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
 mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
