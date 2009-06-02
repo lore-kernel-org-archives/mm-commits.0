@@ -1,43 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] jffs2-move-jffs2_gcd_mtd-threads-to-the-kthread-api.patch removed from -mm tree
-Date: Tue, 02 Jun 2009 15:07:56 -0700
-Message-ID: <200906022207.n52M7u1u014947@imap1.linux-foundation.org>
+Subject: + jffs2-move-jffs2_gcd_mtd-threads-to-the-new-kthread-api.patch added to -mm tree
+Date: Tue, 02 Jun 2009 15:11:18 -0700
+Message-ID: <200906022211.n52MBI4L017486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751901AbZFBWIl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 18:08:41 -0400
+	by vger.kernel.org with ESMTP id S1754213AbZFBWL1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2009 18:11:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerard.lledo@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: gerard.lledo@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     jffs2: move jffs2_gcd_mtd threads to the kthread API
-has been removed from the -mm tree.  Its filename was
-     jffs2-move-jffs2_gcd_mtd-threads-to-the-kthread-api.patch
+     jffs2: move jffs2_gcd_mtd threads to the new kthread API
+has been added to the -mm tree.  Its filename is
+     jffs2-move-jffs2_gcd_mtd-threads-to-the-new-kthread-api.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2: move jffs2_gcd_mtd threads to the kthread API
+Subject: jffs2: move jffs2_gcd_mtd threads to the new kthread API
 From: Gerard Lledo <gerard.lledo@gmail.com>
 
-Move the jffs2 garbage collecting thread to the kthread API.
+Move the jffs2 garbage collecting thread to the new kthread API.
 
 Signed-off-by: Gerard Lledo <gerard.lledo@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/background.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ fs/jffs2/background.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN fs/jffs2/background.c~jffs2-move-jffs2_gcd_mtd-threads-to-the-kthread-api fs/jffs2/background.c
---- a/fs/jffs2/background.c~jffs2-move-jffs2_gcd_mtd-threads-to-the-kthread-api
+diff -puN fs/jffs2/background.c~jffs2-move-jffs2_gcd_mtd-threads-to-the-new-kthread-api fs/jffs2/background.c
+--- a/fs/jffs2/background.c~jffs2-move-jffs2_gcd_mtd-threads-to-the-new-kthread-api
 +++ a/fs/jffs2/background.c
 @@ -15,6 +15,7 @@
  #include <linux/completion.h>
@@ -63,17 +73,16 @@ diff -puN fs/jffs2/background.c~jffs2-move-jffs2_gcd_mtd-threads-to-the-kthread-
 -	pid = kernel_thread(jffs2_garbage_collect_thread, c, CLONE_FS|CLONE_FILES);
 -	if (pid < 0) {
 -		printk(KERN_WARNING "fork failed for JFFS2 garbage collect thread: %d\n", -pid);
-+	tsk = kthread_create(jffs2_garbage_collect_thread, c, "jffs2_gcd_mtd%d", c->mtd->index);
++	tsk = kthread_run(jffs2_garbage_collect_thread, c, "jffs2_gcd_mtd%d", c->mtd->index);
 +	if (IS_ERR(tsk)) {
 +		printk(KERN_WARNING "fork failed for JFFS2 garbage collect thread: %ld\n", -PTR_ERR(tsk));
  		complete(&c->gc_thread_exit);
 -		ret = pid;
 +		ret = PTR_ERR(tsk);
  	} else {
--		/* Wait for it... */
+ 		/* Wait for it... */
 -		D1(printk(KERN_DEBUG "JFFS2: Garbage collect thread is pid %d\n", pid));
 +		D1(printk(KERN_DEBUG "JFFS2: Garbage collect thread is pid %d\n", tsk->pid));
-+		wake_up_process(tsk);
  		wait_for_completion(&c->gc_thread_start);
 +		ret = tsk->pid;
  	}
@@ -103,5 +112,6 @@ _
 
 Patches currently in -mm which might be from gerard.lledo@gmail.com are
 
-jffs2-move-jffs2_gcd_mtd-threads-to-the-kthread-api.patch
+jffs2-move-jffs2_gcd_mtd-threads-to-the-new-kthread-api.patch
+jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup.patch
 
