@@ -1,56 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-g_serial-append-zlp-when-tx-buffer-becomes-empty.patch removed from -mm tree
-Date: Wed, 03 Jun 2009 13:02:32 -0700
-Message-ID: <200906032002.n53K2WVJ001877@imap1.linux-foundation.org>
+Subject: [merged] usb-imx_udc-dont-queue-more-data-when-zlp-is-to-be-sent.patch removed from -mm tree
+Date: Wed, 03 Jun 2009 13:02:35 -0700
+Message-ID: <200906032002.n53K2ZCo001888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44218 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754283AbZFCUDU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 16:03:20 -0400
+	by vger.kernel.org with ESMTP id S1755178AbZFCUDY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 16:03:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dg@emlix.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: dg@emlix.com, augulis.darius@gmail.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: g_serial: append zlp when tx buffer becomes empty
+     usb: imx_udc: don't queue more data when zlp is to be sent
 has been removed from the -mm tree.  Its filename was
-     usb-g_serial-append-zlp-when-tx-buffer-becomes-empty.patch
+     usb-imx_udc-dont-queue-more-data-when-zlp-is-to-be-sent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: g_serial: append zlp when tx buffer becomes empty
+Subject: usb: imx_udc: don't queue more data when zlp is to be sent
 From: Daniel Glockner <dg@emlix.com>
 
-Some usb serial host drivers expect a short packet before they forward the
-data to the application.  This is caused by them trying to read more than
-one packet at a time.  So when the gadget sends an exact multiple of the
-maximum packet size, it should append a zero-length packet.
+When a zero-length packet has been requested and another packet is written
+into the fifo, the MX1 tends to send the first byte of the previous packet
+instead of the first byte of the current packet.  The CRC is adjusted
+accordingly so that this packet is _not_ discarded by the host.
+
+Waiting for the ZLPS bit to clear avoids these bad packets.
 
 Signed-off-by: Daniel Glockner <dg@emlix.com>
+Cc: Darius Augulis <augulis.darius@gmail.com>
 Cc: David Brownell <david-b@pacbell.net>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/u_serial.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/gadget/imx_udc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/usb/gadget/u_serial.c~usb-g_serial-append-zlp-when-tx-buffer-becomes-empty drivers/usb/gadget/u_serial.c
---- a/drivers/usb/gadget/u_serial.c~usb-g_serial-append-zlp-when-tx-buffer-becomes-empty
-+++ a/drivers/usb/gadget/u_serial.c
-@@ -371,6 +371,7 @@ __acquires(&port->port_lock)
+diff -puN drivers/usb/gadget/imx_udc.c~usb-imx_udc-dont-queue-more-data-when-zlp-is-to-be-sent drivers/usb/gadget/imx_udc.c
+--- a/drivers/usb/gadget/imx_udc.c~usb-imx_udc-dont-queue-more-data-when-zlp-is-to-be-sent
++++ a/drivers/usb/gadget/imx_udc.c
+@@ -415,6 +415,13 @@ static int write_packet(struct imx_ep_st
+ 	u8	*buf;
+ 	int	length, count, temp;
  
- 		req->length = len;
- 		list_del(&req->list);
-+		req->zero = (gs_buf_data_avail(&port->port_write_buf) == 0);
++	if (unlikely(__raw_readl(imx_ep->imx_usb->base +
++				 USB_EP_STAT(EP_NO(imx_ep))) & EPSTAT_ZLPS)) {
++		D_TRX(imx_ep->imx_usb->dev, "<%s> zlp still queued in EP %s\n",
++			__func__, imx_ep->ep.name);
++		return -1;
++	}
++
+ 	buf = req->req.buf + req->req.actual;
+ 	prefetch(buf);
  
- 		pr_vdebug(PREFIX "%d: tx len=%d, 0x%02x 0x%02x 0x%02x ...\n",
- 				port->port_num, len, *((u8 *)req->buf),
 _
 
 Patches currently in -mm which might be from dg@emlix.com are
