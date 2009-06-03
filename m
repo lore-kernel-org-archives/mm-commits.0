@@ -1,120 +1,442 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 03 Jun 2009 12:51:41 -0700
-Message-ID: <200906031951.n53Jpfo8025707@imap1.linux-foundation.org>
+Subject: [alternative-merged] time-move-calc_load-call-out-from-xtime_lock-protection.patch removed from -mm tree
+Date: Wed, 03 Jun 2009 12:56:15 -0700
+Message-ID: <200906031956.n53JuG1V029244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751409AbZFCTvl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 15:51:41 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n53JpgWB021455
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 3 Jun 2009 12:51:43 -0700
+	by vger.kernel.org with ESMTP id S1753304AbZFCT4c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 15:56:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: sivanich@sgi.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     time: move calc_load call out from xtime_lock protection
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     time-move-calc_load-call-out-from-xtime_lock-protection.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: time: move calc_load call out from xtime_lock protection
+From: Dimitri Sivanich <sivanich@sgi.com>
 
+The xtime_lock is being held for long periods on larger systems due to an
+extensive amount of time being spent in calc_load(), specifically here:
+
+  do_timer->update_times->calc_load->count_active_tasks->nr_active()
+
+On a 64 cpu system I've seen this take approximately 55 usec.  Presumably
+it would be worse on larger systems.  This causes other cpus to be held
+off in places such as scheduler_tick->sched_clock_tick waiting for the
+xtime_lock to be released.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/alpha/kernel/time.c                   |    1 
+ arch/arm/kernel/time.c                     |    1 
+ arch/arm/mach-clps711x/include/mach/time.h |    2 +
+ arch/arm/mach-l7200/include/mach/time.h    |    2 +
+ arch/blackfin/kernel/time.c                |    2 +
+ arch/cris/arch-v10/kernel/time.c           |    2 +
+ arch/cris/arch-v32/kernel/time.c           |    1 
+ arch/frv/kernel/time.c                     |    1 
+ arch/h8300/kernel/time.c                   |    1 
+ arch/ia64/kernel/time.c                    |    1 
+ arch/ia64/xen/time.c                       |    2 +
+ arch/m32r/kernel/time.c                    |    1 
+ arch/m68k/kernel/time.c                    |    1 
+ arch/m68k/sun3/sun3ints.c                  |    1 
+ arch/m68knommu/kernel/time.c               |    2 +
+ arch/mn10300/kernel/time.c                 |    1 
+ arch/parisc/kernel/time.c                  |    1 
+ arch/sparc/kernel/pcic.c                   |    2 +
+ arch/sparc/kernel/time_32.c                |    1 
+ arch/xtensa/kernel/time.c                  |    2 +
+ include/linux/timer.h                      |    5 ++++
+ kernel/time/tick-common.c                  |    1 
+ kernel/time/tick-sched.c                   |    2 +
+ kernel/timer.c                             |   22 ++++++++++++-------
+ 24 files changed, 51 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~linux-next-git-rejects drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~linux-next-git-rejects
-+++ a/drivers/net/forcedeth.c
-@@ -5543,12 +5543,8 @@ static int nv_close(struct net_device *d
+diff -puN arch/alpha/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/alpha/kernel/time.c
+--- a/arch/alpha/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/alpha/kernel/time.c
+@@ -137,6 +137,7 @@ irqreturn_t timer_interrupt(int irq, voi
+ 	}
  
- 	nv_drain_rxtx(dev);
+ 	write_sequnlock(&xtime_lock);
++	calc_load(nticks);
  
--<<<<<<< HEAD:drivers/net/forcedeth.c
--	if (np->wolenabled || !phy_power_down) {
--=======
- 	if (np->wolenabled) {
- 		nv_txrx_gate(dev, false);
-->>>>>>> FETCH_HEAD:drivers/net/forcedeth.c
- 		writel(NVREG_PFF_ALWAYS|NVREG_PFF_MYADDR, base + NvRegPacketFilterFlags);
- 		nv_start_rx(dev);
- 	} else {
+ #ifndef CONFIG_SMP
+ 	while (nticks--)
+diff -puN arch/arm/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/arm/kernel/time.c
+--- a/arch/arm/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/arm/kernel/time.c
+@@ -339,6 +339,7 @@ void timer_tick(void)
+ 	write_seqlock(&xtime_lock);
+ 	do_timer(1);
+ 	write_sequnlock(&xtime_lock);
++	calc_load(1);
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(get_irq_regs()));
+ #endif
+diff -puN arch/arm/mach-clps711x/include/mach/time.h~time-move-calc_load-call-out-from-xtime_lock-protection arch/arm/mach-clps711x/include/mach/time.h
+--- a/arch/arm/mach-clps711x/include/mach/time.h~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/arm/mach-clps711x/include/mach/time.h
+@@ -17,6 +17,7 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
++#include <linux/timer.h>
+ #include <asm/leds.h>
+ #include <asm/hardware/clps7111.h>
+ 
+@@ -31,6 +32,7 @@ p720t_timer_interrupt(int irq, void *dev
+ 	struct pt_regs *regs = get_irq_regs();
+ 	do_leds();
+ 	do_timer(1);
++	calc_load(1);
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(regs));
+ #endif
+diff -puN arch/arm/mach-l7200/include/mach/time.h~time-move-calc_load-call-out-from-xtime_lock-protection arch/arm/mach-l7200/include/mach/time.h
+--- a/arch/arm/mach-l7200/include/mach/time.h~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/arm/mach-l7200/include/mach/time.h
+@@ -11,6 +11,7 @@
+ #ifndef _ASM_ARCH_TIME_H
+ #define _ASM_ARCH_TIME_H
+ 
++#include <linux/timer.h>
+ #include <mach/irqs.h>
+ 
+ /*
+@@ -47,6 +48,7 @@ timer_interrupt(int irq, void *dev_id)
+ {
+ 	struct pt_regs *regs = get_irq_regs();
+ 	do_timer(1);
++	calc_load(1);
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(regs));
+ #endif
+diff -puN arch/blackfin/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/blackfin/kernel/time.c
+--- a/arch/blackfin/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/blackfin/kernel/time.c
+@@ -11,6 +11,7 @@
+ #include <linux/module.h>
+ #include <linux/profile.h>
+ #include <linux/interrupt.h>
++#include <linux/timer.h>
+ #include <linux/time.h>
+ #include <linux/irq.h>
+ #include <linux/delay.h>
+@@ -164,6 +165,7 @@ irqreturn_t timer_interrupt(int irq, voi
+ 	}
+ #endif
+ 	write_sequnlock(&xtime_lock);
++	calc_load(1);
+ 
+ #ifdef CONFIG_IPIPE
+ 	update_root_process_times(get_irq_regs());
+diff -puN arch/cris/arch-v10/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/cris/arch-v10/kernel/time.c
+--- a/arch/cris/arch-v10/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/cris/arch-v10/kernel/time.c
+@@ -231,6 +231,8 @@ timer_interrupt(int irq, void *dev_id)
+ 	/* call the real timer interrupt handler */
+ 
+ 	do_timer(1);
++
++	calc_load(1);
+ 	
+         cris_do_profile(regs); /* Save profiling information */
+ 
+diff -puN arch/cris/arch-v32/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/cris/arch-v32/kernel/time.c
+--- a/arch/cris/arch-v32/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/cris/arch-v32/kernel/time.c
+@@ -240,6 +240,7 @@ timer_interrupt(int irq, void *dev_id)
+ 	/* Call the real timer interrupt handler */
+ 	do_timer(1);
+ 
++	calc_load(1);
+ 	/*
+ 	 * If we have an externally synchronized Linux clock, then update
+ 	 * CMOS clock accordingly every ~11 minutes. Set_rtc_mmss() has to be
+diff -puN arch/frv/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/frv/kernel/time.c
+--- a/arch/frv/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/frv/kernel/time.c
+@@ -97,6 +97,7 @@ static irqreturn_t timer_interrupt(int i
+ #endif /* CONFIG_HEARTBEAT */
+ 
+ 	write_sequnlock(&xtime_lock);
++	calc_load(1);
+ 
+ 	update_process_times(user_mode(get_irq_regs()));
+ 
+diff -puN arch/h8300/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/h8300/kernel/time.c
+--- a/arch/h8300/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/h8300/kernel/time.c
+@@ -38,6 +38,7 @@ void h8300_timer_tick(void)
+ 	write_seqlock(&xtime_lock);
+ 	do_timer(1);
+ 	write_sequnlock(&xtime_lock);
++	calc_load(1);
+ 	update_process_times(user_mode(get_irq_regs()));
+ }
+ 
+diff -puN arch/ia64/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/ia64/kernel/time.c
+--- a/arch/ia64/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/ia64/kernel/time.c
+@@ -201,6 +201,7 @@ timer_interrupt (int irq, void *dev_id)
+ 			do_timer(1);
+ 			local_cpu_data->itm_next = new_itm;
+ 			write_sequnlock(&xtime_lock);
++			calc_load(1);
+ 		} else
+ 			local_cpu_data->itm_next = new_itm;
+ 
+diff -puN arch/ia64/xen/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/ia64/xen/time.c
+--- a/arch/ia64/xen/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/ia64/xen/time.c
+@@ -23,6 +23,7 @@
+ #include <linux/delay.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/posix-timers.h>
++#include <linux/timer.h>
+ #include <linux/irq.h>
+ #include <linux/clocksource.h>
+ 
+@@ -145,6 +146,7 @@ consider_steal_time(unsigned long new_it
+ 			do_timer(stolen + blocked);
+ 			local_cpu_data->itm_next = delta_itm + new_itm;
+ 			write_sequnlock(&xtime_lock);
++			calc_load(stolen + blocked);
+ 		} else {
+ 			local_cpu_data->itm_next = delta_itm + new_itm;
+ 		}
+diff -puN arch/m32r/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/m32r/kernel/time.c
+--- a/arch/m32r/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/m32r/kernel/time.c
+@@ -193,6 +193,7 @@ static irqreturn_t timer_interrupt(int i
+ 	profile_tick(CPU_PROFILING);
+ #endif
+ 	do_timer(1);
++	calc_load(1);
+ 
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(get_irq_regs()));
+diff -puN arch/m68k/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/m68k/kernel/time.c
+--- a/arch/m68k/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/m68k/kernel/time.c
+@@ -42,6 +42,7 @@ static inline int set_rtc_mmss(unsigned 
+ static irqreturn_t timer_interrupt(int irq, void *dummy)
+ {
+ 	do_timer(1);
++	calc_load(1);
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(get_irq_regs()));
+ #endif
+diff -puN arch/m68k/sun3/sun3ints.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/m68k/sun3/sun3ints.c
+--- a/arch/m68k/sun3/sun3ints.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/m68k/sun3/sun3ints.c
+@@ -67,6 +67,7 @@ static irqreturn_t sun3_int5(int irq, vo
+ 	intersil_clear();
+ #endif
+         do_timer(1);
++	calc_load(1);
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(get_irq_regs()));
+ #endif
+diff -puN arch/m68knommu/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/m68knommu/kernel/time.c
+--- a/arch/m68knommu/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/m68knommu/kernel/time.c
+@@ -50,6 +50,8 @@ irqreturn_t arch_timer_interrupt(int irq
+ 
+ 	write_sequnlock(&xtime_lock);
+ 
++	calc_load(1);
++
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(get_irq_regs()));
+ #endif
+diff -puN arch/mn10300/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/mn10300/kernel/time.c
+--- a/arch/mn10300/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/mn10300/kernel/time.c
+@@ -111,6 +111,7 @@ static irqreturn_t timer_interrupt(int i
+ 		/* advance the kernel's time tracking system */
+ 		profile_tick(CPU_PROFILING);
+ 		do_timer(1);
++		calc_load(1);
+ 		check_rtc_time();
+ 	}
+ 
+diff -puN arch/parisc/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/parisc/kernel/time.c
+--- a/arch/parisc/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/parisc/kernel/time.c
+@@ -148,6 +148,7 @@ irqreturn_t __irq_entry timer_interrupt(
+ 		write_seqlock(&xtime_lock);
+ 		do_timer(ticks_elapsed);
+ 		write_sequnlock(&xtime_lock);
++		calc_load(ticks_elapsed);
+ 	}
+ 
+ 	return IRQ_HANDLED;
+diff -puN arch/sparc/kernel/pcic.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/sparc/kernel/pcic.c
+--- a/arch/sparc/kernel/pcic.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/sparc/kernel/pcic.c
+@@ -12,6 +12,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/types.h>
++#include <linux/timer.h>
+ #include <linux/init.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+@@ -707,6 +708,7 @@ static irqreturn_t pcic_timer_handler (i
+ 	pcic_clear_clock_irq();
+ 	do_timer(1);
+ 	write_sequnlock(&xtime_lock);
++	calc_load(1);
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(get_irq_regs()));
+ #endif
+diff -puN arch/sparc/kernel/time_32.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/sparc/kernel/time_32.c
+--- a/arch/sparc/kernel/time_32.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/sparc/kernel/time_32.c
+@@ -110,6 +110,7 @@ static irqreturn_t timer_interrupt(int d
+ 	    last_rtc_update = xtime.tv_sec - 600; /* do it again in 60 s */
+ 	}
+ 	write_sequnlock(&xtime_lock);
++	calc_load(1);
+ 
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(get_irq_regs()));
+diff -puN arch/xtensa/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection arch/xtensa/kernel/time.c
+--- a/arch/xtensa/kernel/time.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/arch/xtensa/kernel/time.c
+@@ -13,6 +13,7 @@
+  */
+ 
+ #include <linux/errno.h>
++#include <linux/timer.h>
+ #include <linux/time.h>
+ #include <linux/clocksource.h>
+ #include <linux/interrupt.h>
+@@ -111,6 +112,7 @@ again:
+ 		set_linux_timer(next);
+ 
+ 		write_sequnlock(&xtime_lock);
++		calc_load(1);
+ 	}
+ 
+ 	/* Allow platform to do something useful (Wdog). */
+diff -puN include/linux/timer.h~time-move-calc_load-call-out-from-xtime_lock-protection include/linux/timer.h
+--- a/include/linux/timer.h~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/include/linux/timer.h
+@@ -186,6 +186,11 @@ extern unsigned long next_timer_interrup
+ extern unsigned long get_next_timer_interrupt(unsigned long now);
+ 
+ /*
++ * Calculate load averages.
++ */
++extern void calc_load(unsigned long);
++
++/*
+  * Timer-statistics info:
+  */
+ #ifdef CONFIG_TIMER_STATS
+diff -puN kernel/time/tick-common.c~time-move-calc_load-call-out-from-xtime_lock-protection kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/kernel/time/tick-common.c
+@@ -67,6 +67,7 @@ static void tick_periodic(int cpu)
+ 
+ 		do_timer(1);
+ 		write_sequnlock(&xtime_lock);
++		calc_load(1);
+ 	}
+ 
+ 	update_process_times(user_mode(get_irq_regs()));
+diff -puN kernel/time/tick-sched.c~time-move-calc_load-call-out-from-xtime_lock-protection kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/kernel/time/tick-sched.c
+@@ -81,6 +81,8 @@ static void tick_do_update_jiffies64(kti
+ 		tick_next_period = ktime_add(last_jiffies_update, tick_period);
+ 	}
+ 	write_sequnlock(&xtime_lock);
++	if (ticks)
++		calc_load(ticks);
+ }
+ 
+ /*
+diff -puN kernel/timer.c~time-move-calc_load-call-out-from-xtime_lock-protection kernel/timer.c
+--- a/kernel/timer.c~time-move-calc_load-call-out-from-xtime_lock-protection
++++ a/kernel/timer.c
+@@ -1173,30 +1173,39 @@ static unsigned long count_active_tasks(
+  * Nothing else seems to be standardized: the fractional size etc
+  * all seem to differ on different machines.
+  *
+- * Requires xtime_lock to access.
++ * Requires avenrun_lock to write.  Readers are not protected.
+  */
+ unsigned long avenrun[3];
++static DEFINE_SPINLOCK(avenrun_lock);
+ 
+ EXPORT_SYMBOL(avenrun);
+ 
+ /*
+  * calc_load - given tick count, update the avenrun load estimates.
+- * This is called while holding a write_lock on xtime_lock.
+  */
+-static inline void calc_load(unsigned long ticks)
++void calc_load(unsigned long ticks)
+ {
+ 	unsigned long active_tasks; /* fixed-point */
+ 	static int count = LOAD_FREQ;
+ 
+ 	count -= ticks;
+ 	if (unlikely(count < 0)) {
++		unsigned long avr_1, avr_5, avr_15;
+ 		active_tasks = count_active_tasks();
++		spin_lock(&avenrun_lock);
++		avr_1 = avenrun[0];
++		avr_5 = avenrun[1];
++		avr_15 = avenrun[2];
+ 		do {
+-			CALC_LOAD(avenrun[0], EXP_1, active_tasks);
+-			CALC_LOAD(avenrun[1], EXP_5, active_tasks);
+-			CALC_LOAD(avenrun[2], EXP_15, active_tasks);
++			CALC_LOAD(avr_1, EXP_1, active_tasks);
++			CALC_LOAD(avr_5, EXP_5, active_tasks);
++			CALC_LOAD(avr_15, EXP_15, active_tasks);
+ 			count += LOAD_FREQ;
+ 		} while (count < 0);
++		avenrun[0] = avr_1;
++		avenrun[1] = avr_5;
++		avenrun[2] = avr_15;
++		spin_unlock(&avenrun_lock);
+ 	}
+ }
+ 
+@@ -1230,7 +1239,6 @@ void run_local_timers(void)
+ static inline void update_times(unsigned long ticks)
+ {
+ 	update_wall_time();
+-	calc_load(ticks);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sivanich@sgi.com are
 
-revert-fbdev-uninline-lock_fb_info.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-ds_selftest-is-borked.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-cciss-fix-scsi-device-reset-handler-fix.patch
-drivers-usb-serial-sierrac-fix-printk-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool-fix.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+time-move-calc_load-call-out-from-xtime_lock-protection.patch
 
