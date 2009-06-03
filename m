@@ -1,79 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-imx_udc-dont-queue-more-data-when-zlp-is-to-be-sent.patch removed from -mm tree
-Date: Wed, 03 Jun 2009 13:02:35 -0700
-Message-ID: <200906032002.n53K2ZCo001888@imap1.linux-foundation.org>
+Subject: [merged] icom-fix-compile-errors-when-defining-icom_trace.patch removed from -mm tree
+Date: Wed, 03 Jun 2009 13:02:47 -0700
+Message-ID: <200906032002.n53K2l5r002031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44218 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755178AbZFCUDY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 16:03:24 -0400
+	by vger.kernel.org with ESMTP id S1755189AbZFCUDZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 16:03:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dg@emlix.com, augulis.darius@gmail.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: leitao@linux.vnet.ibm.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: imx_udc: don't queue more data when zlp is to be sent
+     icom: fix compile errors when defining ICOM_TRACE
 has been removed from the -mm tree.  Its filename was
-     usb-imx_udc-dont-queue-more-data-when-zlp-is-to-be-sent.patch
+     icom-fix-compile-errors-when-defining-icom_trace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: imx_udc: don't queue more data when zlp is to be sent
-From: Daniel Glockner <dg@emlix.com>
+Subject: icom: fix compile errors when defining ICOM_TRACE
+From: Breno Leitao <leitao@linux.vnet.ibm.com>
 
-When a zero-length packet has been requested and another packet is written
-into the fifo, the MX1 tends to send the first byte of the previous packet
-instead of the first byte of the current packet.  The CRC is adjusted
-accordingly so that this packet is _not_ discarded by the host.
+As it is, defining ICOM_TRACE produces some compile errors, as "parameter
+name omitted" and "redefinition of `trace'"
 
-Waiting for the ZLPS bit to clear avoids these bad packets.
+This patch removes the wrong trace definition.
 
-Signed-off-by: Daniel Glockner <dg@emlix.com>
-Cc: Darius Augulis <augulis.darius@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Breno Leitao <leitao@linux.vnet.ibm.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/imx_udc.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/serial/icom.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN drivers/usb/gadget/imx_udc.c~usb-imx_udc-dont-queue-more-data-when-zlp-is-to-be-sent drivers/usb/gadget/imx_udc.c
---- a/drivers/usb/gadget/imx_udc.c~usb-imx_udc-dont-queue-more-data-when-zlp-is-to-be-sent
-+++ a/drivers/usb/gadget/imx_udc.c
-@@ -415,6 +415,13 @@ static int write_packet(struct imx_ep_st
- 	u8	*buf;
- 	int	length, count, temp;
+diff -puN drivers/serial/icom.c~icom-fix-compile-errors-when-defining-icom_trace drivers/serial/icom.c
+--- a/drivers/serial/icom.c~icom-fix-compile-errors-when-defining-icom_trace
++++ a/drivers/serial/icom.c
+@@ -137,7 +137,12 @@ static LIST_HEAD(icom_adapter_head);
+ static spinlock_t icom_lock;
  
-+	if (unlikely(__raw_readl(imx_ep->imx_usb->base +
-+				 USB_EP_STAT(EP_NO(imx_ep))) & EPSTAT_ZLPS)) {
-+		D_TRX(imx_ep->imx_usb->dev, "<%s> zlp still queued in EP %s\n",
-+			__func__, imx_ep->ep.name);
-+		return -1;
-+	}
-+
- 	buf = req->req.buf + req->req.actual;
- 	prefetch(buf);
+ #ifdef ICOM_TRACE
+-static inline void trace(struct icom_port *, char *, unsigned long) {};
++static inline void trace(struct icom_port *icom_port, char *trace_pt,
++			unsigned long trace_data)
++{
++	dev_info(&icom_port->adapter->pci_dev->dev, ":%d:%s - %lx\n",
++	icom_port->port, trace_pt, trace_data);
++}
+ #else
+ static inline void trace(struct icom_port *icom_port, char *trace_pt, unsigned long trace_data) {};
+ #endif
+@@ -1644,15 +1649,6 @@ static void __exit icom_exit(void)
+ module_init(icom_init);
+ module_exit(icom_exit);
  
-_
-
-Patches currently in -mm which might be from dg@emlix.com are
-
-linux-next.patch
-xtensa-variant-specific-code.patch
-xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
-xtensa-s6000-dma-engine-support.patch
-xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
-xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
-s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
-xtensa-s6105-specific-configuration-for-s6gmac.patch
-xtensa-enable-s6gmac-in-s6105_defconfig.patch
-xtensa-add-m41t62-rtc-to-s6105-platform.patch
-xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
-atmel-lcdc-fix-pixclock-upper-bound-detection.patch
-
+-#ifdef ICOM_TRACE
+-static inline void trace(struct icom_port *icom_port, char *trace_pt,
+-		  unsigned long trace_data)
+-{
+-	dev_info(&icom_port->adapter->pci_dev->dev, ":%d:%s - %lx\n",
+-		 icom_port->port, trace_pt, trace_data);
+-}
+-#endif
