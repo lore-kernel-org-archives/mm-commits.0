@@ -1,78 +1,323 @@
 From: akpm@linux-foundation.org
-Subject: [merged] wis-sony-tunerc-typo.patch removed from -mm tree
-Date: Wed, 03 Jun 2009 13:02:15 -0700
-Message-ID: <200906032002.n53K2FBn001588@imap1.linux-foundation.org>
+Subject: [merged] cciss-factor-out-core-of-sendcmd-for-a-more-sane-interface.patch removed from -mm tree
+Date: Wed, 03 Jun 2009 13:02:04 -0700
+Message-ID: <200906032002.n53K24xY001445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754873AbZFCUCP (ORCPT
+	by vger.kernel.org with ESMTP id S1753450AbZFCUCP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 16:02:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: scameron@beardog.cca.cpqcorp.net, jens.axboe@oracle.com, mikem@beardog.cca.cpqcorp.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wis-sony-tuner.c: fix &&/|| error
+     cciss: factor out core of sendcmd() for a more sane interface
 has been removed from the -mm tree.  Its filename was
-     wis-sony-tunerc-typo.patch
+     cciss-factor-out-core-of-sendcmd-for-a-more-sane-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wis-sony-tuner.c: fix &&/|| error
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cciss: factor out core of sendcmd() for a more sane interface
+From: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
 
-Fix &&/|| typo
+Factor out the core of sendcmd() to provide a simpler interface which
+exposes all the error information to the caller and make the original
+sendcmd use this new function.  Rationale: The SCSI error handling
+routines need to send commands with interrupts turned off, but they also
+need access to the full error information.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
+Cc: Mike Miller <mikem@beardog.cca.cpqcorp.net>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/go7007/wis-sony-tuner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/cciss.c |  225 +++++++++++++++++++---------------------
+ 1 file changed, 109 insertions(+), 116 deletions(-)
 
-diff -puN drivers/staging/go7007/wis-sony-tuner.c~wis-sony-tunerc-typo drivers/staging/go7007/wis-sony-tuner.c
---- a/drivers/staging/go7007/wis-sony-tuner.c~wis-sony-tunerc-typo
-+++ a/drivers/staging/go7007/wis-sony-tuner.c
-@@ -370,7 +370,7 @@ static int set_if(struct i2c_client *cli
- 	i2c_transfer(client->adapter, &msg, 1);
+diff -puN drivers/block/cciss.c~cciss-factor-out-core-of-sendcmd-for-a-more-sane-interface drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-factor-out-core-of-sendcmd-for-a-more-sane-interface
++++ a/drivers/block/cciss.c
+@@ -2373,41 +2373,21 @@ static int add_sendcmd_reject(__u8 cmd, 
+ 	return 0;
+ }
  
- 	/* Select MPX mode if not forced by the user */
--	if (force_mpx_mode >= 0 || force_mpx_mode < MPX_NUM_MODES)
-+	if (force_mpx_mode >= 0 && force_mpx_mode < MPX_NUM_MODES)
- 		t->mpxmode = force_mpx_mode;
- 	else
- 		t->mpxmode = default_mpx_mode;
+-/*
+- * Send a command to the controller, and wait for it to complete.
+- * Only used at init time.
++/* Send command c to controller h and poll for it to complete.
++ * Turns interrupts off on the board.  Used at driver init time
++ * and during SCSI error recovery.
+  */
+-static int sendcmd(__u8 cmd, int ctlr, void *buff, size_t size, unsigned int use_unit_num,	/* 0: address the controller,
+-												   1: address logical volume log_unit,
+-												   2: periph device address is scsi3addr */
+-		   unsigned int log_unit,
+-		   __u8 page_code, unsigned char *scsi3addr, int cmd_type)
++static int sendcmd_core(ctlr_info_t *h, CommandList_struct *c)
+ {
+-	CommandList_struct *c;
+ 	int i;
+ 	unsigned long complete;
+-	ctlr_info_t *info_p = hba[ctlr];
++	int status = IO_ERROR;
+ 	u64bit buff_dma_handle;
+-	int status, done = 0;
+ 
+-	if ((c = cmd_alloc(info_p, 1)) == NULL) {
+-		printk(KERN_WARNING "cciss: unable to get memory");
+-		return IO_ERROR;
+-	}
+-	status = fill_cmd(c, cmd, ctlr, buff, size, use_unit_num,
+-			  log_unit, page_code, scsi3addr, cmd_type);
+-	if (status != IO_OK) {
+-		cmd_free(info_p, c, 1);
+-		return status;
+-	}
+-      resend_cmd1:
+-	/*
+-	 * Disable interrupt
+-	 */
+-#ifdef CCISS_DEBUG
+-	printk(KERN_DEBUG "cciss: turning intr off\n");
+-#endif				/* CCISS_DEBUG */
+-	info_p->access.set_intr_mask(info_p, CCISS_INTR_OFF);
++resend_cmd1:
++
++	/* Disable interrupt on the board. */
++	h->access.set_intr_mask(h, CCISS_INTR_OFF);
+ 
+ 	/* Make sure there is room in the command FIFO */
+ 	/* Actually it should be completely empty at this time */
+@@ -2415,21 +2395,15 @@ static int sendcmd(__u8 cmd, int ctlr, v
+ 	/* tape side of the driver. */
+ 	for (i = 200000; i > 0; i--) {
+ 		/* if fifo isn't full go */
+-		if (!(info_p->access.fifo_full(info_p))) {
+-
++		if (!(h->access.fifo_full(h)))
+ 			break;
+-		}
+ 		udelay(10);
+ 		printk(KERN_WARNING "cciss cciss%d: SendCmd FIFO full,"
+-		       " waiting!\n", ctlr);
++		       " waiting!\n", h->ctlr);
+ 	}
+-	/*
+-	 * Send the cmd
+-	 */
+-	info_p->access.submit_command(info_p, c);
+-	done = 0;
++	h->access.submit_command(h, c); /* Send the cmd */
+ 	do {
+-		complete = pollcomplete(ctlr);
++		complete = pollcomplete(h->ctlr);
+ 
+ #ifdef CCISS_DEBUG
+ 		printk(KERN_DEBUG "cciss: command completed\n");
+@@ -2438,97 +2412,116 @@ static int sendcmd(__u8 cmd, int ctlr, v
+ 		if (complete == 1) {
+ 			printk(KERN_WARNING
+ 			       "cciss cciss%d: SendCmd Timeout out, "
+-			       "No command list address returned!\n", ctlr);
++			       "No command list address returned!\n", h->ctlr);
+ 			status = IO_ERROR;
+-			done = 1;
+ 			break;
+ 		}
+ 
+-		/* This will need to change for direct lookup completions */
+-		if ((complete & CISS_ERROR_BIT)
+-		    && (complete & ~CISS_ERROR_BIT) == c->busaddr) {
+-			/* if data overrun or underun on Report command
+-			   ignore it
+-			 */
+-			if (((c->Request.CDB[0] == CISS_REPORT_LOG) ||
+-			     (c->Request.CDB[0] == CISS_REPORT_PHYS) ||
+-			     (c->Request.CDB[0] == CISS_INQUIRY)) &&
+-			    ((c->err_info->CommandStatus ==
+-			      CMD_DATA_OVERRUN) ||
+-			     (c->err_info->CommandStatus == CMD_DATA_UNDERRUN)
+-			    )) {
+-				complete = c->busaddr;
+-			} else {
+-				if (c->err_info->CommandStatus ==
+-				    CMD_UNSOLICITED_ABORT) {
+-					printk(KERN_WARNING "cciss%d: "
+-					       "unsolicited abort %p\n",
+-					       ctlr, c);
+-					if (c->retry_count < MAX_CMD_RETRIES) {
+-						printk(KERN_WARNING
+-						       "cciss%d: retrying %p\n",
+-						       ctlr, c);
+-						c->retry_count++;
+-						/* erase the old error */
+-						/* information */
+-						memset(c->err_info, 0,
+-						       sizeof
+-						       (ErrorInfo_struct));
+-						goto resend_cmd1;
+-					} else {
+-						printk(KERN_WARNING
+-						       "cciss%d: retried %p too "
+-						       "many times\n", ctlr, c);
+-						status = IO_ERROR;
+-						goto cleanup1;
+-					}
+-				} else if (c->err_info->CommandStatus ==
+-					   CMD_UNABORTABLE) {
+-					printk(KERN_WARNING
+-					       "cciss%d: command could not be aborted.\n",
+-					       ctlr);
+-					status = IO_ERROR;
+-					goto cleanup1;
+-				}
+-				printk(KERN_WARNING "ciss ciss%d: sendcmd"
+-				       " Error %x \n", ctlr,
+-				       c->err_info->CommandStatus);
+-				printk(KERN_WARNING "ciss ciss%d: sendcmd"
+-				       " offensive info\n"
+-				       "  size %x\n   num %x   value %x\n",
+-				       ctlr,
+-				       c->err_info->MoreErrInfo.Invalid_Cmd.
+-				       offense_size,
+-				       c->err_info->MoreErrInfo.Invalid_Cmd.
+-				       offense_num,
+-				       c->err_info->MoreErrInfo.Invalid_Cmd.
+-				       offense_value);
+-				status = IO_ERROR;
+-				goto cleanup1;
+-			}
++		/* If it's not the cmd we're looking for, save it for later */
++		if ((complete & ~CISS_ERROR_BIT) != c->busaddr) {
++			if (add_sendcmd_reject(c->Request.CDB[0],
++				h->ctlr, complete) != 0)
++				BUG(); /* we are hosed if we get here. */
++			continue;
+ 		}
+-		/* This will need changing for direct lookup completions */
+-		if (complete != c->busaddr) {
+-			if (add_sendcmd_reject(cmd, ctlr, complete) != 0) {
+-				BUG();	/* we are pretty much hosed if we get here. */
++
++		/* It is our command.  If no error, we're done. */
++		if (!(complete & CISS_ERROR_BIT)) {
++			status = IO_OK;
++			break;
++		}
++
++		/* There is an error... */
++
++		/* if data overrun or underun on Report command ignore it */
++		if (((c->Request.CDB[0] == CISS_REPORT_LOG) ||
++		     (c->Request.CDB[0] == CISS_REPORT_PHYS) ||
++		     (c->Request.CDB[0] == CISS_INQUIRY)) &&
++			((c->err_info->CommandStatus == CMD_DATA_OVERRUN) ||
++			 (c->err_info->CommandStatus == CMD_DATA_UNDERRUN))) {
++			complete = c->busaddr;
++			status = IO_OK;
++			break;
++		}
++
++		if (c->err_info->CommandStatus == CMD_UNSOLICITED_ABORT) {
++			printk(KERN_WARNING "cciss%d: unsolicited abort %p\n",
++				h->ctlr, c);
++			if (c->retry_count < MAX_CMD_RETRIES) {
++				printk(KERN_WARNING "cciss%d: retrying %p\n",
++				   h->ctlr, c);
++				c->retry_count++;
++				/* erase the old error information */
++				memset(c->err_info, 0, sizeof(c->err_info));
++				goto resend_cmd1;
+ 			}
+-			continue;
+-		} else
+-			done = 1;
+-	} while (!done);
++			printk(KERN_WARNING "cciss%d: retried %p too many "
++				"times\n", h->ctlr, c);
++			status = IO_ERROR;
++			goto cleanup1;
++		}
++
++		if (c->err_info->CommandStatus == CMD_UNABORTABLE) {
++			printk(KERN_WARNING "cciss%d: command could not be "
++				"aborted.\n", h->ctlr);
++			status = IO_ERROR;
++			goto cleanup1;
++		}
++
++		printk(KERN_WARNING "cciss%d: sendcmd error\n", h->ctlr);
++		printk(KERN_WARNING "cmd = 0x%02x, CommandStatus = 0x%02x\n",
++			c->Request.CDB[0], c->err_info->CommandStatus);
++		if (c->err_info->CommandStatus == CMD_TARGET_STATUS) {
++			printk(KERN_WARNING "Target status = 0x%02x\n",
++			c->err_info->ScsiStatus);
++			if (c->err_info->ScsiStatus == 2) /* chk cond */
++				printk(KERN_WARNING "Sense key = 0x%02x\n",
++					0xf & c->err_info->SenseInfo[2]);
++		}
++
++		status = IO_ERROR;
++		goto cleanup1;
++
++	} while (1);
+ 
+-      cleanup1:
++cleanup1:
+ 	/* unlock the data buffer from DMA */
+ 	buff_dma_handle.val32.lower = c->SG[0].Addr.lower;
+ 	buff_dma_handle.val32.upper = c->SG[0].Addr.upper;
+-	pci_unmap_single(info_p->pdev, (dma_addr_t) buff_dma_handle.val,
++	pci_unmap_single(h->pdev, (dma_addr_t) buff_dma_handle.val,
+ 			 c->SG[0].Len, PCI_DMA_BIDIRECTIONAL);
+ #ifdef CONFIG_CISS_SCSI_TAPE
+ 	/* if we saved some commands for later, process them now. */
+-	if (info_p->scsi_rejects.ncompletions > 0)
+-		do_cciss_intr(0, info_p);
++	if (h->scsi_rejects.ncompletions > 0)
++		do_cciss_intr(0, h);
+ #endif
+-	cmd_free(info_p, c, 1);
++	return status;
++}
++
++/*
++ * Send a command to the controller, and wait for it to complete.
++ * Used at init time, and during SCSI error recovery.
++ */
++static int sendcmd(__u8 cmd, int ctlr, void *buff, size_t size,
++	unsigned int use_unit_num,/* 0: address the controller,
++				     1: address logical volume log_unit,
++				     2: periph device address is scsi3addr */
++	unsigned int log_unit,
++	__u8 page_code, unsigned char *scsi3addr, int cmd_type)
++{
++	CommandList_struct *c;
++	int status;
++
++	c = cmd_alloc(hba[ctlr], 1);
++	if (!c) {
++		printk(KERN_WARNING "cciss: unable to get memory");
++		return IO_ERROR;
++	}
++	status = fill_cmd(c, cmd, ctlr, buff, size, use_unit_num,
++			  log_unit, page_code, scsi3addr, cmd_type);
++	if (status == IO_OK)
++		status = sendcmd_core(hba[ctlr], c);
++	cmd_free(hba[ctlr], c, 1);
+ 	return status;
+ }
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from scameron@beardog.cca.cpqcorp.net are
 
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-drm-fix-lock_test_with_return-macro.patch
-irda-count-reaches-1.patch
-drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
-atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-lguest-fix-array-indexing-check.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-z85c30-bcm1480-loops-reach-1.patch
-spi_bfin5xx-limit-reaches-1.patch
-carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-platinumfb-misplaced-parenthesis.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
 
