@@ -1,96 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + oom-move-oom_adj-value-from-task_struct-to-mm_struct-fix.patch added to -mm tree
-Date: Tue, 02 Jun 2009 21:57:19 -0700
-Message-ID: <200906030457.n534vJ0X007555@imap1.linux-foundation.org>
+Subject: [failures] kbuild-fix-_modinst_post-to-pick-up-cross-depmod-instead-of-host-depmod.patch removed from -mm tree
+Date: Wed, 03 Jun 2009 10:32:51 -0700
+Message-ID: <200906031732.n53HWpac014009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48395 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751354AbZFCE5c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 00:57:32 -0400
+	by vger.kernel.org with ESMTP id S1756188AbZFCRdp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 13:33:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com
+To: robert.berger@reliableembeddedsystems.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom-move-oom_adj-value-from-task_struct-to-mm_struct fix
-has been added to the -mm tree.  Its filename is
-     oom-move-oom_adj-value-from-task_struct-to-mm_struct-fix.patch
+     kbuild: fix _modinst_post to pick up Cross $DEPMOD instead of host depmod
+has been removed from the -mm tree.  Its filename was
+     kbuild-fix-_modinst_post-to-pick-up-cross-depmod-instead-of-host-depmod.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom-move-oom_adj-value-from-task_struct-to-mm_struct fix
-From: David Rientjes <rientjes@google.com>
+Subject: kbuild: fix _modinst_post to pick up Cross $DEPMOD instead of host depmod
+From: Robert Berger <robert.berger@reliableembeddedsystems.com>
 
-
-
+Signed-off-by: Robert Berger <robert.berger@reliableembeddedsystems.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/android/lowmemorykiller.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/android/lowmemorykiller.c~oom-move-oom_adj-value-from-task_struct-to-mm_struct-fix drivers/staging/android/lowmemorykiller.c
---- a/drivers/staging/android/lowmemorykiller.c~oom-move-oom_adj-value-from-task_struct-to-mm_struct-fix
-+++ a/drivers/staging/android/lowmemorykiller.c
-@@ -96,19 +96,21 @@ static int lowmem_shrink(int nr_to_scan,
+diff -puN Makefile~kbuild-fix-_modinst_post-to-pick-up-cross-depmod-instead-of-host-depmod Makefile
+--- a/Makefile~kbuild-fix-_modinst_post-to-pick-up-cross-depmod-instead-of-host-depmod
++++ a/Makefile
+@@ -1170,7 +1170,7 @@ _modinst_:
+ PHONY += _modinst_post
+ _modinst_post: _modinst_
+ 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.fwinst obj=firmware __fw_modinst
+-	$(call cmd,depmod)
++	$(call cmd,$(DEPMOD))
  
- 	read_lock(&tasklist_lock);
- 	for_each_process(p) {
-+		struct mm_struct *mm;
- 		int oom_adj;
+ else # CONFIG_MODULES
  
- 		task_lock(p);
--		if (!p->mm) {
-+		mm = p->mm;
-+		if (!mm) {
- 			task_unlock(p);
- 			continue;
- 		}
--		oom_adj = p->oomkilladj;
-+		oom_adj = mm->oom_adj;
- 		if (oom_adj < min_adj) {
- 			task_unlock(p);
- 			continue;
- 		}
--		tasksize = get_mm_rss(p->mm);
-+		tasksize = get_mm_rss(mm);
- 		task_unlock(p);
- 		if (tasksize <= 0)
- 			continue;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from robert.berger@reliableembeddedsystems.com are
 
-origin.patch
-linux-next.patch
-cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
-cpusets-update-tasks-page-slab-spread-flags-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
-cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
-mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed.patch
-mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
-oom-move-oom_adj-value-from-task_struct-to-mm_struct-fix.patch
-oom-avoid-unnecessary-mm-locking-and-scanning-for-oom_disable.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+kbuild-fix-_modinst_post-to-pick-up-cross-depmod-instead-of-host-depmod.patch
 
