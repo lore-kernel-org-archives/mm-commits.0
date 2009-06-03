@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-add-blk_run_backing_dev-fix.patch added to -mm tree
-Date: Wed, 03 Jun 2009 14:55:06 -0700
-Message-ID: <200906032155.n53Lt6Mf024689@imap1.linux-foundation.org>
+Subject: + readahead-add-blk_run_backing_dev-fix-fix-2.patch added to -mm tree
+Date: Wed, 03 Jun 2009 14:55:51 -0700
+Message-ID: <200906032155.n53LtpCG025285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753669AbZFCVzT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 17:55:19 -0400
+	by vger.kernel.org with ESMTP id S1751237AbZFCVz4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 17:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, hifumi.hisashi@oss.ntt.co.jp, jens.axboe@oracle.com, kosaki.motohiro@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, hifumi.hisashi@oss.ntt.co.jp, jens.axboe@oracle.com, kosaki.motohiro@jp.fujitsu.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     readahead-add-blk_run_backing_dev-fix
+     readahead-add-blk_run_backing_dev-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     readahead-add-blk_run_backing_dev-fix.patch
+     readahead-add-blk_run_backing_dev-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead-add-blk_run_backing_dev-fix
+Subject: readahead-add-blk_run_backing_dev-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-unbust comment layout
+This is yuk.   It's just to amke Randy happy for now.
 
 Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/readahead.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/readahead.c~readahead-add-blk_run_backing_dev-fix mm/readahead.c
---- a/mm/readahead.c~readahead-add-blk_run_backing_dev-fix
+diff -puN mm/readahead.c~readahead-add-blk_run_backing_dev-fix-fix-2 mm/readahead.c
+--- a/mm/readahead.c~readahead-add-blk_run_backing_dev-fix-fix-2
 +++ a/mm/readahead.c
-@@ -549,12 +549,12 @@ page_cache_async_readahead(struct addres
+@@ -548,6 +548,7 @@ page_cache_async_readahead(struct addres
+ 	/* do read-ahead */
  	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
  
++#ifdef CONFIG_BLOCK
  	/*
--	* Normally the current page is !uptodate and lock_page() will be
--	* immediately called to implicitly unplug the device. However this
--	* is not always true for RAID conifgurations, where data arrives
--	* not strictly in their submission order. In this case we need to
--	* explicitly kick off the IO.
--	*/
-+	 * Normally the current page is !uptodate and lock_page() will be
-+	 * immediately called to implicitly unplug the device. However this
-+	 * is not always true for RAID conifgurations, where data arrives
-+	 * not strictly in their submission order. In this case we need to
-+	 * explicitly kick off the IO.
-+	 */
+ 	 * Normally the current page is !uptodate and lock_page() will be
+ 	 * immediately called to implicitly unplug the device. However this
+@@ -557,5 +558,6 @@ page_cache_async_readahead(struct addres
+ 	 */
  	if (PageUptodate(page))
  		blk_run_backing_dev(mapping->backing_dev_info, NULL);
++#endif
  }
+ EXPORT_SYMBOL_GPL(page_cache_async_readahead);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +103,7 @@ mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
 page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
 page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
 readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
 headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
