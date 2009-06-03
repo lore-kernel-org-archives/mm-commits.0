@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + new-pci-device-id.patch added to -mm tree
-Date: Wed, 03 Jun 2009 13:24:15 -0700
-Message-ID: <200906032024.n53KOFtC018805@imap1.linux-foundation.org>
+Subject: [folded] new-pci-device-id.patch removed from -mm tree
+Date: Wed, 03 Jun 2009 13:24:24 -0700
+Message-ID: <200906032024.n53KOOfl018930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36649 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753626AbZFCUYo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 16:24:44 -0400
+	by vger.kernel.org with ESMTP id S1753587AbZFCUYw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 16:24:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: aabdulla@nvidia.com, davem@davemloft.net
+To: aabdulla@nvidia.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
      new pci device id
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      new-pci-device-id.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into forcedeth-addition-of-new-device-id.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
