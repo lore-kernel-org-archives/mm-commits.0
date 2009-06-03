@@ -1,76 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb_serial-only-allow-sysrq-on-a-console-port.patch removed from -mm tree
-Date: Wed, 03 Jun 2009 13:02:42 -0700
-Message-ID: <200906032002.n53K2gQq002014@imap1.linux-foundation.org>
+Subject: [merged] usb-g_serial-append-zlp-when-tx-buffer-becomes-empty.patch removed from -mm tree
+Date: Wed, 03 Jun 2009 13:02:32 -0700
+Message-ID: <200906032002.n53K2WVJ001877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754370AbZFCUDJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 16:03:09 -0400
+	by vger.kernel.org with ESMTP id S1754283AbZFCUDU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 16:03:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jason.wessel@windriver.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: dg@emlix.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb_serial: only allow sysrq on a console port
+     usb: g_serial: append zlp when tx buffer becomes empty
 has been removed from the -mm tree.  Its filename was
-     usb_serial-only-allow-sysrq-on-a-console-port.patch
+     usb-g_serial-append-zlp-when-tx-buffer-becomes-empty.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb_serial: only allow sysrq on a console port
-From: Jason Wessel <jason.wessel@windriver.com>
+Subject: usb: g_serial: append zlp when tx buffer becomes empty
+From: Daniel Glockner <dg@emlix.com>
 
-The only time a sysrq should get processed is if the attached device is a
-console.  This is intended to protect sysrq execution on a host connected
-with a terminal program.
+Some usb serial host drivers expect a short packet before they forward the
+data to the application.  This is caused by them trying to read more than
+one packet at a time.  So when the gadget sends an exact multiple of the
+maximum packet size, it should append a zero-length packet.
 
-Here is the problem scenario:
-
-host A <-- rs232 link --> host B
-
-Host A is using mincom and a usb pl2303 device to connect to host b which
-is a linux system with a usb pl2303 device acting as the serial console. 
-When host B is rebooted the pl2303 emits random junk characters on reset. 
-These character sequences contain serial break signals most of the time
-and when translated to a sysrq have caused host A to get random processes
-killed, reboots or power down.
-
-It is true that in this setup with this patch host B might still have the
-same problem as host A if you reboot host A.  In most cases host A is a
-development host which seldom gets rebooted, and you could turn off sysrq
-temporarily on host B if you need to reboot host A.
-
-Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Daniel Glockner <dg@emlix.com>
+Cc: David Brownell <david-b@pacbell.net>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/gadget/u_serial.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/serial/generic.c~usb_serial-only-allow-sysrq-on-a-console-port drivers/usb/serial/generic.c
---- a/drivers/usb/serial/generic.c~usb_serial-only-allow-sysrq-on-a-console-port
-+++ a/drivers/usb/serial/generic.c
-@@ -528,7 +528,7 @@ void usb_serial_generic_unthrottle(struc
+diff -puN drivers/usb/gadget/u_serial.c~usb-g_serial-append-zlp-when-tx-buffer-becomes-empty drivers/usb/gadget/u_serial.c
+--- a/drivers/usb/gadget/u_serial.c~usb-g_serial-append-zlp-when-tx-buffer-becomes-empty
++++ a/drivers/usb/gadget/u_serial.c
+@@ -371,6 +371,7 @@ __acquires(&port->port_lock)
  
- int usb_serial_handle_sysrq_char(struct usb_serial_port *port, unsigned int ch)
- {
--	if (port->sysrq) {
-+	if (port->sysrq && port->console) {
- 		if (ch && time_before(jiffies, port->sysrq)) {
- 			handle_sysrq(ch, tty_port_tty_get(&port->port));
- 			port->sysrq = 0;
+ 		req->length = len;
+ 		list_del(&req->list);
++		req->zero = (gs_buf_data_avail(&port->port_write_buf) == 0);
+ 
+ 		pr_vdebug(PREFIX "%d: tx len=%d, 0x%02x 0x%02x 0x%02x ...\n",
+ 				port->port_num, len, *((u8 *)req->buf),
 _
 
-Patches currently in -mm which might be from jason.wessel@windriver.com are
+Patches currently in -mm which might be from dg@emlix.com are
 
 linux-next.patch
-frv-duplicate-output_buffer-of-e03.patch
-kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+xtensa-variant-specific-code.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-s6000-dma-engine-support.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+xtensa-add-m41t62-rtc-to-s6105-platform.patch
+xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
+atmel-lcdc-fix-pixclock-upper-bound-detection.patch
 
