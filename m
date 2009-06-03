@@ -1,82 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] forcedeth-addition-of-new-device-id.patch removed from -mm tree
-Date: Wed, 03 Jun 2009 14:47:59 -0700
-Message-ID: <200906032147.n53Llxtc019204@imap1.linux-foundation.org>
+Subject: + readahead-add-blk_run_backing_dev-fix.patch added to -mm tree
+Date: Wed, 03 Jun 2009 14:55:06 -0700
+Message-ID: <200906032155.n53Lt6Mf024689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56606 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45508 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754180AbZFCVsA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 17:48:00 -0400
+	by vger.kernel.org with ESMTP id S1753669AbZFCVzT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 17:55:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aabdulla@nvidia.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, hifumi.hisashi@oss.ntt.co.jp, jens.axboe@oracle.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     forcedeth: add new device id
-has been removed from the -mm tree.  Its filename was
-     forcedeth-addition-of-new-device-id.patch
+     readahead-add-blk_run_backing_dev-fix
+has been added to the -mm tree.  Its filename is
+     readahead-add-blk_run_backing_dev-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth: add new device id
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: readahead-add-blk_run_backing_dev-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add support for new ethernet device in the MCP89 chipset.
+unbust comment layout
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    7 ++++++-
- include/linux/pci_ids.h |    1 +
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ mm/readahead.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-addition-of-new-device-id drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-addition-of-new-device-id
-+++ a/drivers/net/forcedeth.c
-@@ -6158,7 +6158,8 @@ static int nv_resume(struct pci_dev *pde
- 	for (i = 0;i <= np->register_size/sizeof(u32); i++)
- 		writel(np->saved_config_space[i], base+i*sizeof(u32));
+diff -puN mm/readahead.c~readahead-add-blk_run_backing_dev-fix mm/readahead.c
+--- a/mm/readahead.c~readahead-add-blk_run_backing_dev-fix
++++ a/mm/readahead.c
+@@ -549,12 +549,12 @@ page_cache_async_readahead(struct addres
+ 	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
  
--	pci_write_config_dword(pdev, NV_MSI_PRIV_OFFSET, NV_MSI_PRIV_VALUE);
-+	if (np->device_id != PCI_DEVICE_ID_NVIDIA_NVENET_40)
-+		pci_write_config_dword(pdev, NV_MSI_PRIV_OFFSET, NV_MSI_PRIV_VALUE);
- 
- 	/* restore phy state, including autoneg */
- 	phy_init(dev);
-@@ -6362,6 +6363,10 @@ static struct pci_device_id pci_tbl[] = 
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_39),
- 		.driver_data = DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX_V3|DEV_HAS_STATISTICS_V3|DEV_HAS_TEST_EXTENDED|DEV_HAS_CORRECT_MACADDR|DEV_HAS_COLLISION_FIX|DEV_NEED_TX_LIMIT|DEV_HAS_GEAR_MODE,
- 	},
-+	{	/* MCP89 Ethernet Controller */
-+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_40),
-+		.driver_data = DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX_V3|DEV_HAS_STATISTICS_V3|DEV_HAS_TEST_EXTENDED|DEV_HAS_CORRECT_MACADDR|DEV_HAS_COLLISION_FIX|DEV_NEED_TX_LIMIT|DEV_HAS_GEAR_MODE,
-+	},
- 	{0,},
- };
- 
-diff -puN include/linux/pci_ids.h~forcedeth-addition-of-new-device-id include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~forcedeth-addition-of-new-device-id
-+++ a/include/linux/pci_ids.h
-@@ -1289,6 +1289,7 @@
- #define PCI_DEVICE_ID_NVIDIA_NVENET_37              0x0AB1
- #define PCI_DEVICE_ID_NVIDIA_NVENET_38              0x0AB2
- #define PCI_DEVICE_ID_NVIDIA_NVENET_39              0x0AB3
-+#define PCI_DEVICE_ID_NVIDIA_NVENET_40              0x0D7D
- 
- #define PCI_VENDOR_ID_IMS		0x10e0
- #define PCI_DEVICE_ID_IMS_TT128		0x9128
+ 	/*
+-	* Normally the current page is !uptodate and lock_page() will be
+-	* immediately called to implicitly unplug the device. However this
+-	* is not always true for RAID conifgurations, where data arrives
+-	* not strictly in their submission order. In this case we need to
+-	* explicitly kick off the IO.
+-	*/
++	 * Normally the current page is !uptodate and lock_page() will be
++	 * immediately called to implicitly unplug the device. However this
++	 * is not always true for RAID conifgurations, where data arrives
++	 * not strictly in their submission order. In this case we need to
++	 * explicitly kick off the IO.
++	 */
+ 	if (PageUptodate(page))
+ 		blk_run_backing_dev(mapping->backing_dev_info, NULL);
+ }
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-fbdev-uninline-lock_fb_info.patch
 linux-next.patch
-forcedeth-addition-of-new-device-id.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool-fix.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
+gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
