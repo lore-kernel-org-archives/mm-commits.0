@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + intelfb-fix-a-bug-when-changing-video-timing.patch added to -mm tree
-Date: Wed, 03 Jun 2009 14:29:02 -0700
-Message-ID: <200906032129.n53LT2sl004251@imap1.linux-foundation.org>
+Subject: + ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch added to -mm tree
+Date: Wed, 03 Jun 2009 14:30:41 -0700
+Message-ID: <200906032130.n53LUfA3005567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751950AbZFCV3o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 17:29:44 -0400
+	by vger.kernel.org with ESMTP id S1753564AbZFCVa7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2009 17:30:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulepanter@users.sourceforge.net, krzysztof.h1@poczta.fm, sparkie@lowbyte.de
+Cc: aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     intelfb: fix a bug when changing video timing
+     ksm: fix rmap_item use after free
 has been added to the -mm tree.  Its filename is
-     intelfb-fix-a-bug-when-changing-video-timing.patch
+     ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intelfb: fix a bug when changing video timing
-From: Paul Menzel <paulepanter@users.sourceforge.net>
+Subject: ksm: fix rmap_item use after free
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-When changing video timing dynamically via fbset the screen sporadically
-is rendered black.
+This avoid crashing with slab debugging enabled by removing a window for
+memory corruption if freed slab entries are reused before we read the next
+pointer.  Against mmotm.
 
-With the attached fix which disables VCO prior to timing register change
-the problem disappears.
-
-I had a look at the Xserver register setup code. Here the VCO is
-disabled in the same way [1].
-
-This patch is taken from vga-sync-field version 0.0.11 [2][3].
-
-[1] http://cgit.freedesktop.org/xorg/driver/xf86-video-intel/tree/src/i830_=
-driver.c
-[2] http://lowbyte.de/vga-sync-fields/vga-sync-fields-0.0.11.tgz
-[3] http://easy-vdr.de/git?p=frc.git/.git;a=commit;h=dcc3b863e5a663652587619c357bd20075af6896
-2587619c357bd20075af6896
-
-Signed-off-by: Thomas Hilber <sparkie@lowbyte.de>
-Signed-off-by: Paul Menzel <paulepanter@users.sourceforge.net>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/intelfb/intelfbdrv.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/ksm.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/intelfb/intelfbdrv.c~intelfb-fix-a-bug-when-changing-video-timing drivers/video/intelfb/intelfbdrv.c
---- a/drivers/video/intelfb/intelfbdrv.c~intelfb-fix-a-bug-when-changing-video-timing
-+++ a/drivers/video/intelfb/intelfbdrv.c
-@@ -1374,6 +1374,11 @@ static int intelfb_set_par(struct fb_inf
- 	DBG_MSG("intelfb_set_par (%dx%d-%d)\n", info->var.xres,
- 		info->var.yres, info->var.bits_per_pixel);
+diff -puN mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free mm/ksm.c
+--- a/mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free
++++ a/mm/ksm.c
+@@ -892,7 +892,7 @@ static struct rmap_item *stable_tree_sea
+ {
+ 	struct rb_node *node = root_stable_tree.rb_node;
+ 	struct tree_item *tree_item;
+-	struct rmap_item *found_rmap_item;
++	struct rmap_item *found_rmap_item, *next_rmap_item;
  
-+	/*
-+	 * Disable VCO prior to timing register change.
-+	 */
-+	OUTREG(DPLL_A, INREG(DPLL_A) & ~DPLL_VCO_ENABLE);
-+
- 	intelfb_blank(FB_BLANK_POWERDOWN, info);
+ 	while (node) {
+ 		int ret;
+@@ -907,9 +907,11 @@ static struct rmap_item *stable_tree_sea
+ 			      found_rmap_item->address == rmap_item->address)) {
+ 				if (!is_zapped_item(found_rmap_item, page2))
+ 					break;
++				next_rmap_item = found_rmap_item->next;
+ 				remove_rmap_item_from_tree(found_rmap_item);
+-			}
+-			found_rmap_item = found_rmap_item->next;
++				found_rmap_item = next_rmap_item;
++			} else
++				found_rmap_item = found_rmap_item->next;
+ 		}
+ 		if (!found_rmap_item)
+ 			goto out_didnt_find;
+@@ -959,7 +961,7 @@ static int stable_tree_insert(struct pag
  
- 	if (ACCEL(dinfo, info))
+ 	while (*new) {
+ 		int ret;
+-		struct rmap_item *insert_rmap_item;
++		struct rmap_item *insert_rmap_item, *next_rmap_item;
+ 
+ 		tree_item = rb_entry(*new, struct tree_item, node);
+ 		BUG_ON(!tree_item);
+@@ -973,9 +975,11 @@ static int stable_tree_insert(struct pag
+ 			     insert_rmap_item->address == rmap_item->address)) {
+ 				if (!is_zapped_item(insert_rmap_item, page2))
+ 					break;
++				next_rmap_item = insert_rmap_item->next;
+ 				remove_rmap_item_from_tree(insert_rmap_item);
+-			}
+-			insert_rmap_item = insert_rmap_item->next;
++				insert_rmap_item = next_rmap_item;
++			} else
++				insert_rmap_item = insert_rmap_item->next;
+ 		}
+ 		if (!insert_rmap_item)
+ 			return 1;
 _
 
-Patches currently in -mm which might be from paulepanter@users.sourceforge.net are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-fbdev-add-video-modes-for-resolutions-and-timings-of-pal-rgb.patch
-documentation-fb-vesafbtxt-fix-typo.patch
-intelfb-fix-a-bug-when-changing-video-timing.patch
+linux-next.patch
+ksm-mmu_notifiers-add-set_pte_at_notify.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch
+ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-prot-handling-to-use-the-generic-helper-functions.patch
+ksm-add-ksm-kernel-shared-memory-driver-use-another-miscdevice-minor-number.patch
+ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch
+ksm-fix-losing-visibility-of-part-of-rmap_item-next-list.patch
 
