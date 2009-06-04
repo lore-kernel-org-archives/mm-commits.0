@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch added to -mm tree
-Date: Thu, 04 Jun 2009 15:18:55 -0700
-Message-ID: <200906042218.n54MItZj028074@imap1.linux-foundation.org>
+Subject: + serial-fix-off-by-one-errors.patch added to -mm tree
+Date: Thu, 04 Jun 2009 15:23:26 -0700
+Message-ID: <200906042223.n54MNRMG031597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751077AbZFDWTH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 18:19:07 -0400
+	by vger.kernel.org with ESMTP id S1751364AbZFDWXn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 18:23:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, macro@linux-mips.org, ralf@linux-mips.org
 
 
 The patch titled
-     vfs: split generic_forget_inode() so that hugetlbfs does not have to copy it
+     serial: fix off by one errors
 has been added to the -mm tree.  Its filename is
-     vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+     serial-fix-off-by-one-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,140 +33,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: split generic_forget_inode() so that hugetlbfs does not have to copy it
-From: Jan Kara <jack@suse.cz>
+Subject: serial: fix off by one errors
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Hugetlbfs needs to do special things instead of truncate_inode_pages().
- Currently, it copied generic_forget_inode() except for
-truncate_inode_pages() call which is asking for trouble (the code there
-isn't trivial).  So create a separate function generic_detach_inode()
-which does all the list magic done in generic_forget_inode() and call
-it from hugetlbfs_forget_inode().
+In zs_console_putchar() occurs:
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+	if (zs_transmit_drain(zport, irq))
+		write_zsdata(zport, ch);
+
+However if in zs_transmit_drain() no empty Tx Buffer occurs, limit reaches
+-1 => true, and the write still occurs.
+
+This patch changes postfix to prefix decrements in this and similar
+functions to prevent similar mistakes in the future.  This decreases the
+iterations with one but the chosen loop count was arbitrary anyway.
+
+In sunhv limit reaches -1, not 0, so the test is off by one.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   35 +++++------------------------------
- fs/inode.c           |   21 +++++++++++++++++++--
- include/linux/fs.h   |    1 +
- 3 files changed, 25 insertions(+), 32 deletions(-)
+ drivers/serial/sb1250-duart.c |    6 +++---
+ drivers/serial/sunhv.c        |    2 +-
+ drivers/serial/zs.c           |    6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it
-+++ a/fs/hugetlbfs/inode.c
-@@ -381,36 +381,11 @@ static void hugetlbfs_delete_inode(struc
- 
- static void hugetlbfs_forget_inode(struct inode *inode) __releases(inode_lock)
+diff -puN drivers/serial/sb1250-duart.c~serial-fix-off-by-one-errors drivers/serial/sb1250-duart.c
+--- a/drivers/serial/sb1250-duart.c~serial-fix-off-by-one-errors
++++ a/drivers/serial/sb1250-duart.c
+@@ -204,7 +204,7 @@ static int sbd_receive_drain(struct sbd_
  {
--	struct super_block *sb = inode->i_sb;
--
--	if (!hlist_unhashed(&inode->i_hash)) {
--		if (!(inode->i_state & (I_DIRTY|I_SYNC)))
--			list_move(&inode->i_list, &inode_unused);
--		inodes_stat.nr_unused++;
--		if (!sb || (sb->s_flags & MS_ACTIVE)) {
--			spin_unlock(&inode_lock);
--			return;
--		}
--		inode->i_state |= I_WILL_FREE;
--		spin_unlock(&inode_lock);
--		/*
--		 * write_inode_now is a noop as we set BDI_CAP_NO_WRITEBACK
--		 * in our backing_dev_info.
--		 */
--		write_inode_now(inode, 1);
--		spin_lock(&inode_lock);
--		inode->i_state &= ~I_WILL_FREE;
--		inodes_stat.nr_unused--;
--		hlist_del_init(&inode->i_hash);
--	}
--	list_del_init(&inode->i_list);
--	list_del_init(&inode->i_sb_list);
--	inode->i_state |= I_FREEING;
--	inodes_stat.nr_inodes--;
--	spin_unlock(&inode_lock);
--	truncate_hugepages(inode, 0);
--	clear_inode(inode);
--	destroy_inode(inode);
-+	if (generic_detach_inode(inode)) {
-+		truncate_hugepages(inode, 0);
-+		clear_inode(inode);
-+		destroy_inode(inode);
-+	}
- }
+ 	int loops = 10000;
  
- static void hugetlbfs_drop_inode(struct inode *inode)
-diff -puN fs/inode.c~vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it fs/inode.c
---- a/fs/inode.c~vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it
-+++ a/fs/inode.c
-@@ -1193,7 +1193,16 @@ void generic_delete_inode(struct inode *
+-	while (sbd_receive_ready(sport) && loops--)
++	while (sbd_receive_ready(sport) && --loops)
+ 		read_sbdchn(sport, R_DUART_RX_HOLD);
+ 	return loops;
  }
- EXPORT_SYMBOL(generic_delete_inode);
- 
--static void generic_forget_inode(struct inode *inode)
-+/**
-+ *	generic_detach_inode - remove inode from inode lists
-+ *	@inode: inode to remove
-+ *
-+ *	Remove inode from inode lists, write it if it's dirty. This is just an
-+ *	internal VFS helper exported for hugetlbfs. Do not use!
-+ *
-+ *	Returns 1 if inode should be completely destroyed.
-+ */
-+int generic_detach_inode(struct inode *inode)
+@@ -218,7 +218,7 @@ static int __maybe_unused sbd_transmit_d
  {
- 	struct super_block *sb = inode->i_sb;
+ 	int loops = 10000;
  
-@@ -1203,7 +1212,7 @@ static void generic_forget_inode(struct 
- 		inodes_stat.nr_unused++;
- 		if (sb->s_flags & MS_ACTIVE) {
- 			spin_unlock(&inode_lock);
--			return;
-+			return 0;
- 		}
- 		WARN_ON(inode->i_state & I_NEW);
- 		inode->i_state |= I_WILL_FREE;
-@@ -1221,6 +1230,14 @@ static void generic_forget_inode(struct 
- 	inode->i_state |= I_FREEING;
- 	inodes_stat.nr_inodes--;
- 	spin_unlock(&inode_lock);
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(generic_detach_inode);
-+
-+static void generic_forget_inode(struct inode *inode)
-+{
-+	if (!generic_detach_inode(inode))
-+		return;
- 	if (inode->i_data.nrpages)
- 		truncate_inode_pages(&inode->i_data, 0);
- 	clear_inode(inode);
-diff -puN include/linux/fs.h~vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it include/linux/fs.h
---- a/include/linux/fs.h~vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it
-+++ a/include/linux/fs.h
-@@ -2136,6 +2136,7 @@ extern ino_t iunique(struct super_block 
- extern int inode_needs_sync(struct inode *inode);
- extern void generic_delete_inode(struct inode *inode);
- extern void generic_drop_inode(struct inode *inode);
-+extern int generic_detach_inode(struct inode *inode);
+-	while (!sbd_transmit_ready(sport) && loops--)
++	while (!sbd_transmit_ready(sport) && --loops)
+ 		udelay(2);
+ 	return loops;
+ }
+@@ -232,7 +232,7 @@ static int sbd_line_drain(struct sbd_por
+ {
+ 	int loops = 10000;
  
- extern struct inode *ilookup5_nowait(struct super_block *sb,
- 		unsigned long hashval, int (*test)(struct inode *, void *),
+-	while (!sbd_transmit_empty(sport) && loops--)
++	while (!sbd_transmit_empty(sport) && --loops)
+ 		udelay(2);
+ 	return loops;
+ }
+diff -puN drivers/serial/sunhv.c~serial-fix-off-by-one-errors drivers/serial/sunhv.c
+--- a/drivers/serial/sunhv.c~serial-fix-off-by-one-errors
++++ a/drivers/serial/sunhv.c
+@@ -461,7 +461,7 @@ static void sunhv_console_write_paged(st
+ 					break;
+ 				udelay(1);
+ 			}
+-			if (limit <= 0)
++			if (limit < 0)
+ 				break;
+ 			page_bytes -= written;
+ 			ra += written;
+diff -puN drivers/serial/zs.c~serial-fix-off-by-one-errors drivers/serial/zs.c
+--- a/drivers/serial/zs.c~serial-fix-off-by-one-errors
++++ a/drivers/serial/zs.c
+@@ -231,7 +231,7 @@ static int zs_receive_drain(struct zs_po
+ {
+ 	int loops = 10000;
+ 
+-	while ((read_zsreg(zport, R0) & Rx_CH_AV) && loops--)
++	while ((read_zsreg(zport, R0) & Rx_CH_AV) && --loops)
+ 		read_zsdata(zport);
+ 	return loops;
+ }
+@@ -241,7 +241,7 @@ static int zs_transmit_drain(struct zs_p
+ 	struct zs_scc *scc = zport->scc;
+ 	int loops = 10000;
+ 
+-	while (!(read_zsreg(zport, R0) & Tx_BUF_EMP) && loops--) {
++	while (!(read_zsreg(zport, R0) & Tx_BUF_EMP) && --loops) {
+ 		zs_spin_unlock_cond_irq(&scc->zlock, irq);
+ 		udelay(2);
+ 		zs_spin_lock_cond_irq(&scc->zlock, irq);
+@@ -254,7 +254,7 @@ static int zs_line_drain(struct zs_port 
+ 	struct zs_scc *scc = zport->scc;
+ 	int loops = 10000;
+ 
+-	while (!(read_zsreg(zport, R1) & ALL_SNT) && loops--) {
++	while (!(read_zsreg(zport, R1) & ALL_SNT) && --loops) {
+ 		zs_spin_unlock_cond_irq(&scc->zlock, irq);
+ 		udelay(2);
+ 		zs_spin_lock_cond_irq(&scc->zlock, irq);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
-mm-remove-__invalidate_mapping_pages-variant.patch
-ext2-do-not-update-mtime-of-a-moved-directory.patch
-ext3-fix-chain-verification-in-ext3_get_blocks.patch
-isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch
-isofs-fix-setting-of-uid-and-gid-to-0.patch
-isofs-cleanup-mount-option-processing.patch
-reiser4-update-names-of-quota-methods.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+drm-fix-lock_test_with_return-macro.patch
+irda-count-reaches-1.patch
+drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
+atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+lguest-fix-array-indexing-check.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+serial-fix-off-by-one-errors.patch
+serial-z85c30-bcm1480-loops-reach-1.patch
+spi_bfin5xx-limit-reaches-1.patch
+carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+platinumfb-misplaced-parenthesis.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
