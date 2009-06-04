@@ -1,70 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + serial-fix-off-by-one-errors.patch added to -mm tree
-Date: Thu, 04 Jun 2009 15:23:26 -0700
-Message-ID: <200906042223.n54MNRMG031597@imap1.linux-foundation.org>
+Subject: [alternative-merged] serial-z85c30-bcm1480-loops-reach-1.patch removed from -mm tree
+Date: Thu, 04 Jun 2009 15:23:43 -0700
+Message-ID: <200906042223.n54MNird031818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57467 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751364AbZFDWXn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 18:23:43 -0400
+	by vger.kernel.org with ESMTP id S1751308AbZFDWX5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 18:23:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, macro@linux-mips.org, ralf@linux-mips.org
+To: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, macro@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: fix off by one errors
-has been added to the -mm tree.  Its filename is
-     serial-fix-off-by-one-errors.patch
+     serial: Z85C30: BCM1480: loops reach -1
+has been removed from the -mm tree.  Its filename was
+     serial-z85c30-bcm1480-loops-reach-1.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: fix off by one errors
+Subject: serial: Z85C30: BCM1480: loops reach -1
 From: Roel Kluin <roel.kluin@gmail.com>
 
-In zs_console_putchar() occurs:
+With a postfix decrement 'loops' reaches -1, which is subsequently
+returned.  In drivers/serial/zs.c, line 1137 it is considered as a boolean
+with 0 as failure:
 
-	if (zs_transmit_drain(zport, irq))
-		write_zsdata(zport, ch);
+if (zs_transmit_drain(zport, irq))
+                write_zsdata(zport, ch);
 
-However if in zs_transmit_drain() no empty Tx Buffer occurs, limit reaches
--1 => true, and the write still occurs.
-
-This patch changes postfix to prefix decrements in this and similar
-functions to prevent similar mistakes in the future.  This decreases the
-iterations with one but the chosen loop count was arbitrary anyway.
-
-In sunhv limit reaches -1, not 0, so the test is off by one.
+so to use it as such loops should end at 0 after the loop rather than -1.
+This also fixes similar loops in other functions.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Acked-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/serial/sb1250-duart.c |    6 +++---
- drivers/serial/sunhv.c        |    2 +-
  drivers/serial/zs.c           |    6 +++---
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/serial/sb1250-duart.c~serial-fix-off-by-one-errors drivers/serial/sb1250-duart.c
---- a/drivers/serial/sb1250-duart.c~serial-fix-off-by-one-errors
+diff -puN drivers/serial/sb1250-duart.c~serial-z85c30-bcm1480-loops-reach-1 drivers/serial/sb1250-duart.c
+--- a/drivers/serial/sb1250-duart.c~serial-z85c30-bcm1480-loops-reach-1
 +++ a/drivers/serial/sb1250-duart.c
 @@ -204,7 +204,7 @@ static int sbd_receive_drain(struct sbd_
  {
@@ -93,20 +76,8 @@ diff -puN drivers/serial/sb1250-duart.c~serial-fix-off-by-one-errors drivers/ser
  		udelay(2);
  	return loops;
  }
-diff -puN drivers/serial/sunhv.c~serial-fix-off-by-one-errors drivers/serial/sunhv.c
---- a/drivers/serial/sunhv.c~serial-fix-off-by-one-errors
-+++ a/drivers/serial/sunhv.c
-@@ -461,7 +461,7 @@ static void sunhv_console_write_paged(st
- 					break;
- 				udelay(1);
- 			}
--			if (limit <= 0)
-+			if (limit < 0)
- 				break;
- 			page_bytes -= written;
- 			ra += written;
-diff -puN drivers/serial/zs.c~serial-fix-off-by-one-errors drivers/serial/zs.c
---- a/drivers/serial/zs.c~serial-fix-off-by-one-errors
+diff -puN drivers/serial/zs.c~serial-z85c30-bcm1480-loops-reach-1 drivers/serial/zs.c
+--- a/drivers/serial/zs.c~serial-z85c30-bcm1480-loops-reach-1
 +++ a/drivers/serial/zs.c
 @@ -231,7 +231,7 @@ static int zs_receive_drain(struct zs_po
  {
