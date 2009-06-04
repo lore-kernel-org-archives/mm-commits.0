@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zone_reclaim-is-always-0-by-default.patch added to -mm tree
-Date: Thu, 04 Jun 2009 15:32:12 -0700
-Message-ID: <200906042232.n54MWCGC005888@imap1.linux-foundation.org>
+Subject: + mtd-nand-max_retries-off-by-one.patch added to -mm tree
+Date: Thu, 04 Jun 2009 15:34:00 -0700
+Message-ID: <200906042234.n54MY0Qu007337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752030AbZFDWce (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 18:32:34 -0400
+	by vger.kernel.org with ESMTP id S1751576AbZFDWe1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 18:34:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, benh@kernel.crashing.org, cl@linux-foundation.org, fengguang.wu@intel.com, holt@sgi.com, riel@redhat.com, tony.luck@intel.com, yanmin.zhang@intel.com
+Cc: roel.kluin@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     mm: zone_reclaim is always 0 by default
+     mtd/nand: max_retries off by one
 has been added to the -mm tree.  Its filename is
-     mm-zone_reclaim-is-always-0-by-default.patch
+     mtd-nand-max_retries-off-by-one.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,151 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: zone_reclaim is always 0 by default
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mtd/nand: max_retries off by one
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Current linux policy is, zone_reclaim_mode is enabled by default if the
-machine has large remote node distance.  it's because we could assume that
-large distance mean large server until recently.
+With `while (max_retries-- > 0)' max_retries reaches -1 after the loop.
 
-Unfortunately, recent modern x86 CPU (e.g.  Core i7, Opeteron) have P2P
-transport memory controller.  IOW it's seen as NUMA from software view. 
-Some Core i7 machine has large remote node distance.
-
-Yanmin reported zone_reclaim_mode=1 cause large apache regression.
-
-    One Nehalem machine has 12GB memory,
-    but there is always 2GB free although applications accesses lots of files.
-    Eventually we located the root cause as zone_reclaim_mode=1.
-
-Actually, zone_reclaim_mode=1 mean "I dislike remote node allocation
-rather than disk access", it makes performance improvement to HPC
-workload.  but it makes performance degression to desktop, file server and
-web server.
-
-In general, workload depended configration shouldn't put into default settings.
-
-However, current code is long standing about two year.  Highest POWER and
-IA64 HPC machine (only) use this setting.
-
-Thus, x86 and almost rest architecture change default setting, but Only power and ia64
-remain current configuration for backward-compatibility.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: "Zhang, Yanmin" <yanmin.zhang@intel.com>
-Acked-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/topology.h |    6 ++++++
- include/linux/topology.h            |    7 +------
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/mtd/nand/mxc_nand.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/include/asm/topology.h~mm-zone_reclaim-is-always-0-by-default arch/powerpc/include/asm/topology.h
---- a/arch/powerpc/include/asm/topology.h~mm-zone_reclaim-is-always-0-by-default
-+++ a/arch/powerpc/include/asm/topology.h
-@@ -10,6 +10,12 @@ struct device_node;
- 
- #include <asm/mmzone.h>
- 
-+/*
-+ * Distance above which we begin to use zone reclaim
-+ */
-+#define RECLAIM_DISTANCE 20
-+
-+
- static inline int cpu_to_node(int cpu)
- {
- 	return numa_cpu_lookup_table[cpu];
-diff -puN include/linux/topology.h~mm-zone_reclaim-is-always-0-by-default include/linux/topology.h
---- a/include/linux/topology.h~mm-zone_reclaim-is-always-0-by-default
-+++ a/include/linux/topology.h
-@@ -54,12 +54,7 @@ int arch_update_cpu_topology(void);
- #define node_distance(from,to)	((from) == (to) ? LOCAL_DISTANCE : REMOTE_DISTANCE)
- #endif
- #ifndef RECLAIM_DISTANCE
--/*
-- * If the distance between nodes in a system is larger than RECLAIM_DISTANCE
-- * (in whatever arch specific measurement units returned by node_distance())
-- * then switch on zone reclaim on boot.
-- */
--#define RECLAIM_DISTANCE 20
-+#define RECLAIM_DISTANCE INT_MAX
- #endif
- #ifndef PENALTY_FOR_NODE_WITH_CPUS
- #define PENALTY_FOR_NODE_WITH_CPUS	(1)
+diff -puN drivers/mtd/nand/mxc_nand.c~mtd-nand-max_retries-off-by-one drivers/mtd/nand/mxc_nand.c
+--- a/drivers/mtd/nand/mxc_nand.c~mtd-nand-max_retries-off-by-one
++++ a/drivers/mtd/nand/mxc_nand.c
+@@ -192,7 +192,7 @@ static void wait_op_done(struct mxc_nand
+ 			}
+ 			udelay(1);
+ 		}
+-		if (max_retries <= 0)
++		if (max_retries < 0)
+ 			DEBUG(MTD_DEBUG_LEVEL0, "%s(%d): INT not set\n",
+ 			      __func__, param);
+ 	}
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
-page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
-page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
-page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
-page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-inline-__rmqueue_smallest.patch
-page-allocator-inline-buffered_rmqueue.patch
-page-allocator-inline-__rmqueue_fallback.patch
-page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
-page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
-page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
-page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
-page-allocator-update-nr_free_pages-only-as-necessary.patch
-page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
-page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-page-allocator-move-free_page_mlock-to-page_allocc.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
-pagemap-document-clarifications.patch
-pagemap-document-9-more-exported-page-flags.patch
-pagemap-add-page-types-tool.patch
-pagemap-add-page-types-tool-fix.patch
-pagemap-export-pg_hwpoison.patch
-pagemap-export-pg_hwpoison-fix.patch
-vmscan-evict-use-once-pages-first-v3.patch
-vmscan-cleanup-the-scan-batching-code.patch
-vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
-vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
-vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
-vmscan-zone_reclaim-use-may_swap.patch
-migration-only-migrate_prep-once-per-move_pages.patch
-vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
-page-allocator-clean-up-functions-related-to-pages_min.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
-page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
-mm-remove-config_unevictable_lru-config-option.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-zone_reclaim-is-always-0-by-default.patch
-use-printk_once-in-several-places.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+drm-fix-lock_test_with_return-macro.patch
+mtd-nand-max_retries-off-by-one.patch
+irda-count-reaches-1.patch
+drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
+atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+lguest-fix-array-indexing-check.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+serial-fix-off-by-one-errors.patch
+spi_bfin5xx-limit-reaches-1.patch
+carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+platinumfb-misplaced-parenthesis.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
