@@ -1,259 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-move-back-to-bkl-solution.patch removed from -mm tree
-Date: Thu, 04 Jun 2009 12:57:12 -0700
-Message-ID: <200906041957.n54JvCpt014499@imap1.linux-foundation.org>
+Subject: [obsolete] sound-core-initc-fix-deadlock.patch removed from -mm tree
+Date: Thu, 04 Jun 2009 13:13:14 -0700
+Message-ID: <200906042013.n54KDEhl027094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33945 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752300AbZFDT6L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 15:58:11 -0400
+	by vger.kernel.org with ESMTP id S1751510AbZFDUNw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 16:13:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, geert@linux-m68k.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: move back to BKL solution
+     sound/core/init.c: fix deadlock
 has been removed from the -mm tree.  Its filename was
-     fbdev-move-back-to-bkl-solution.patch
+     sound-core-initc-fix-deadlock.patch
 
-This patch was dropped because we'll be trying to fix it up
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: move back to BKL solution
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: sound/core/init.c: fix deadlock
+From: Andrew Morton <akpm@linux-foundation.org>
 
-A conversion of the BLK to the fb_info->lock mutex brought some circular
-locking dependencies.  Despite extensive effort to fix these problems
-there are still some bugs left.  The last effort unveiled a problem
-described below.  It is not fixable without rethinking how locking should
-be done inside the fbdev layer.
+[  341.381805] work_for_cpu  D 0000000000000000     0  1372      2 0x00000000
+[  341.381805]  ffff880253527d10 0000000000000046 ffff880253527d60 ffffffff8100c5ce
+[  341.381805]  ffff880253527d10 ffff88025f1ed7c0 ffff88025f149800 ffff88025f1edb60
+[  341.381805]  ffffffff81552e49 ffff880253527fd8 ffff880028066000 0000000000000000
+[  341.381805] Call Trace:
+[  341.381805]  [<ffffffff8100c5ce>] ? apic_timer_interrupt+0xe/0x20
+[  341.381805]  [<ffffffff8134d2f0>] __mutex_lock_slowpath+0xd0/0x126
+[  341.381805]  [<ffffffff8134d1b6>] mutex_lock+0x2c/0x43
+[  341.381805]  [<ffffffffa004899e>] snd_card_set_id+0x130/0x202 [snd]
+[  341.381805]  [<ffffffffa0048ac5>] snd_card_register+0x55/0xda [snd]
+[  341.381805]  [<ffffffffa011d626>] azx_probe+0x8cf/0x941 [snd_hda_intel]
+[  341.381805]  [<ffffffffa011b7d0>] ? azx_send_cmd+0x0/0x127 [snd_hda_intel]
+[  341.381805]  [<ffffffffa011cb3f>] ? azx_get_response+0x0/0x1dd [snd_hda_intel]
+[  341.381805]  [<ffffffffa011c16c>] ? azx_attach_pcm_stream+0x0/0x18c [snd_hda_intel]
+[  341.381805]  [<ffffffffa011bdce>] ? azx_bus_reset+0x0/0x7d [snd_hda_intel]
+[  341.381805]  [<ffffffff8104fac0>] ? do_work_for_cpu+0x0/0x22
+[  341.381805]  [<ffffffff811903b4>] local_pci_probe+0x12/0x16
+[  341.381805]  [<ffffffff8104fad0>] do_work_for_cpu+0x10/0x22
+[  341.381805]  [<ffffffff810530ee>] kthread+0x88/0x90
+[  341.381805]  [<ffffffff8100caba>] child_rip+0xa/0x20
+[  341.381805]  [<ffffffff81053066>] ? kthread+0x0/0x90
+[  341.381805]  [<ffffffff8100cab0>] ? child_rip+0x0/0x20
 
-Short summary of the lock dep is:
+snd_card_register() calls snd_card_set_id() under snd_card_mutex, so taking it
+again doesn't work very well.
 
-1. sys_munmap() obtains [mm->mmap_sem] and calls indirectly
-  :: fb_release() obtains [fb_info->lock]
-
-2. fb_ioctl() obtains [fb_info->lock] and calls indirectly
-  :: fb_notifier_call_chain() obtains [fb_notifier_list->rwsem]
-
-3. driver_probe_device() calls indirectly
-  :: register_framebuffer() calls indirectly
-    :: fb_notifier_call_chain() obtains [fb_notifier_list->rwsem] and calls indirectly
-      :: sysfs_create_dir() obtains [sysfs_mutex]
-
-4. sysfs_readdir() obtains [sysfs_mutex] and calls indirectly
-  :: copy_to_user() obtains [mm->mmap_sem]
-
-Revert the BKL to mutex conversion patch
-(3e680aae4e53ab54cdbb0c29257dae0cbb158e1c) while keeping the patch which
-made the fb_ioctl and the fb_compat_ioctl using a common function
-(a684e7d33096892093456dd56a582cfc3bfad648).
-
-This patch requires reverting following commits before applying:
-513adb58685615b0b1d47a3f0d40f5352beff189
-6a7f2829b5f8be124e168265f176dbbbea8861a0
-66c1ca019078220dc1bf968f2bb18421100ef147
-1f5e31d7e55ac7fbd4ec5e5b20c8868b0e4564c9
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Andrea Righi <righi.andrea@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jaroslav Kysela <perex@perex.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |   47 +++++++++++++++-------------------------
- include/linux/fb.h    |    1 
- 2 files changed, 18 insertions(+), 30 deletions(-)
+ sound/core/init.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fbdev-move-back-to-bkl-solution drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-move-back-to-bkl-solution
-+++ a/drivers/video/fbmem.c
-@@ -1126,18 +1126,16 @@ static long do_fb_ioctl(struct fb_info *
- }
- 
- static long fb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
--__acquires(&info->lock)
--__releases(&info->lock)
- {
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	int fbidx = iminor(inode);
- 	struct fb_info *info;
- 	long ret;
- 
-+	lock_kernel();
- 	info = registered_fb[fbidx];
--	mutex_lock(&info->lock);
- 	ret = do_fb_ioctl(info, cmd, arg);
--	mutex_unlock(&info->lock);
-+	unlock_kernel();
- 	return ret;
- }
- 
-@@ -1257,8 +1255,6 @@ static int fb_get_fscreeninfo(struct fb_
- 
- static long fb_compat_ioctl(struct file *file, unsigned int cmd,
- 			    unsigned long arg)
--__acquires(&info->lock)
--__releases(&info->lock)
- {
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	int fbidx = iminor(inode);
-@@ -1266,7 +1262,7 @@ __releases(&info->lock)
- 	struct fb_ops *fb = info->fbops;
- 	long ret = -ENOIOCTLCMD;
- 
--	mutex_lock(&info->lock);
-+	lock_kernel();
- 	switch(cmd) {
- 	case FBIOGET_VSCREENINFO:
- 	case FBIOPUT_VSCREENINFO:
-@@ -1292,15 +1288,13 @@ __releases(&info->lock)
- 			ret = fb->fb_compat_ioctl(info, cmd, arg);
- 		break;
- 	}
--	mutex_unlock(&info->lock);
-+	unlock_kernel();
- 	return ret;
- }
- #endif
- 
- static int
- fb_mmap(struct file *file, struct vm_area_struct * vma)
--__acquires(&info->lock)
--__releases(&info->lock)
- {
- 	int fbidx = iminor(file->f_path.dentry->d_inode);
- 	struct fb_info *info = registered_fb[fbidx];
-@@ -1316,13 +1310,13 @@ __releases(&info->lock)
- 		return -ENODEV;
- 	if (fb->fb_mmap) {
- 		int res;
--		mutex_lock(&info->lock);
-+		lock_kernel();
- 		res = fb->fb_mmap(info, vma);
--		mutex_unlock(&info->lock);
-+		unlock_kernel();
- 		return res;
- 	}
- 
--	mutex_lock(&info->lock);
-+	lock_kernel();
- 
- 	/* frame buffer memory */
- 	start = info->fix.smem_start;
-@@ -1331,13 +1325,13 @@ __releases(&info->lock)
- 		/* memory mapped io */
- 		off -= len;
- 		if (info->var.accel_flags) {
--			mutex_unlock(&info->lock);
-+			unlock_kernel();
- 			return -EINVAL;
+diff -puN sound/core/init.c~sound-core-initc-fix-deadlock sound/core/init.c
+--- a/sound/core/init.c~sound-core-initc-fix-deadlock
++++ a/sound/core/init.c
+@@ -529,14 +529,12 @@ void snd_card_set_id(struct snd_card *ca
+       		}
+ 	      	if (!snd_info_check_reserved_words(id))
+       			goto __change;
+-		mutex_lock(&snd_card_mutex);
+ 		for (i = 0; i < snd_ecards_limit; i++) {
+ 			if (snd_cards[i] && !strcmp(snd_cards[i]->id, id)) {
+ 				mutex_unlock(&snd_card_mutex);
+ 				goto __change;
+ 			}
  		}
- 		start = info->fix.mmio_start;
- 		len = PAGE_ALIGN((start & ~PAGE_MASK) + info->fix.mmio_len);
- 	}
--	mutex_unlock(&info->lock);
-+	unlock_kernel();
- 	start &= PAGE_MASK;
- 	if ((vma->vm_end - vma->vm_start + off) > len)
- 		return -EINVAL;
-@@ -1354,8 +1348,6 @@ __releases(&info->lock)
+-		mutex_unlock(&snd_card_mutex);
+ 		break;
  
- static int
- fb_open(struct inode *inode, struct file *file)
--__acquires(&info->lock)
--__releases(&info->lock)
- {
- 	int fbidx = iminor(inode);
- 	struct fb_info *info;
-@@ -1363,13 +1355,13 @@ __releases(&info->lock)
- 
- 	if (fbidx >= FB_MAX)
- 		return -ENODEV;
--	info = registered_fb[fbidx];
--	if (!info)
-+	lock_kernel();
-+	if (!(info = registered_fb[fbidx]))
- 		request_module("fb%d", fbidx);
--	info = registered_fb[fbidx];
--	if (!info)
--		return -ENODEV;
--	mutex_lock(&info->lock);
-+	if (!(info = registered_fb[fbidx])) {
-+		res = -ENODEV;
-+		goto out;
-+	}
- 	if (!try_module_get(info->fbops->owner)) {
- 		res = -ENODEV;
- 		goto out;
-@@ -1385,22 +1377,20 @@ __releases(&info->lock)
- 		fb_deferred_io_open(info, inode, file);
- #endif
- out:
--	mutex_unlock(&info->lock);
-+	unlock_kernel();
- 	return res;
- }
- 
- static int 
- fb_release(struct inode *inode, struct file *file)
--__acquires(&info->lock)
--__releases(&info->lock)
- {
- 	struct fb_info * const info = file->private_data;
- 
--	mutex_lock(&info->lock);
-+	lock_kernel();
- 	if (info->fbops->fb_release)
- 		info->fbops->fb_release(info,1);
- 	module_put(info->fbops->owner);
--	mutex_unlock(&info->lock);
-+	unlock_kernel();
- 	return 0;
- }
- 
-@@ -1479,7 +1469,6 @@ register_framebuffer(struct fb_info *fb_
- 		if (!registered_fb[i])
- 			break;
- 	fb_info->node = i;
--	mutex_init(&fb_info->lock);
- 
- 	fb_info->dev = device_create(fb_class, fb_info->device,
- 				     MKDEV(FB_MAJOR, i), NULL, "fb%d", i);
-diff -puN include/linux/fb.h~fbdev-move-back-to-bkl-solution include/linux/fb.h
---- a/include/linux/fb.h~fbdev-move-back-to-bkl-solution
-+++ a/include/linux/fb.h
-@@ -813,7 +813,6 @@ struct fb_tile_ops {
- struct fb_info {
- 	int node;
- 	int flags;
--	struct mutex lock;		/* Lock for open/release/ioctl funcs */
- 	struct fb_var_screeninfo var;	/* Current var */
- 	struct fb_fix_screeninfo fix;	/* Current fix */
- 	struct fb_monspecs monspecs;	/* Current Monitor specs */
+ 	      __change:
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fbdev-move-back-to-bkl-solution.patch
 linux-next.patch
-intelfb-fix-color-map-setting-with-an-lvds-display.patch
-chipsfb-remove-redundant-assignment.patch
-igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
-offb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
-acornfb-remove-fb_mmap-function.patch
-s3c-fb-fix-resource-releasing-on-error-during-probing.patch
-fbdev-use-framebuffer_release-for-freeing-fb_info-structures.patch
-intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
-bw2-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-cg14-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-cg3-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-cg6-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-leo-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-p9100-use-standard-fields-for-framebuffer-physical-address-and-length.patch
-tcx-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+sound-core-initc-fix-deadlock.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool-fix.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
+gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
