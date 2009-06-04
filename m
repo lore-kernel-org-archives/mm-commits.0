@@ -1,72 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] dell-wmi-mask-off-bis-provided-garbage-in-scancode-data.patch removed from -mm tree
-Date: Thu, 04 Jun 2009 14:06:58 -0700
-Message-ID: <200906042106.n54L6waX004094@imap1.linux-foundation.org>
+Subject: + dell-wmi-dont-generate-errors-on-empty-messages.patch added to -mm tree
+Date: Thu, 04 Jun 2009 14:07:16 -0700
+Message-ID: <200906042107.n54L7GDC004362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39237 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45207 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750814AbZFDVH0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 17:07:26 -0400
+	by vger.kernel.org with ESMTP id S1752292AbZFDVIc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 17:08:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mario_limonciello@dell.com, dtor@mail.ru, len.brown@intel.com, mjg@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mjg@redhat.com, lenb@kernel.org
 
 
 The patch titled
-     dell-wmi: mask off BIS-provided garbage in scancode data
-has been removed from the -mm tree.  Its filename was
-     dell-wmi-mask-off-bis-provided-garbage-in-scancode-data.patch
+     dell-wmi: don't generate errors on empty messages
+has been added to the -mm tree.  Its filename is
+     dell-wmi-dont-generate-errors-on-empty-messages.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dell-wmi: mask off BIS-provided garbage in scancode data
-From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: dell-wmi: don't generate errors on empty messages
+From: Matthew Garrett <mjg@redhat.com>
 
-In debugging with some future machines that actually contain BIOS level
-support for dell-wmi, I've determined that the upper half of the data that
-comes back from wmi_get_event_data may sometimes contain extra information
-that isn't currently relevant when pulling scan codes out of the data. 
-This causes dell-wmi to improperly respond to these events.
+There's no point in generating kernel messages if we didn't receive a
+parsable keyboard event - only do so if there appeared to be a scancode.
 
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/platform/x86/dell-wmi.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/dell-wmi.c~dell-wmi-mask-off-bis-provided-garbage-in-scancode-data drivers/platform/x86/dell-wmi.c
---- a/drivers/platform/x86/dell-wmi.c~dell-wmi-mask-off-bis-provided-garbage-in-scancode-data
+diff -puN drivers/platform/x86/dell-wmi.c~dell-wmi-dont-generate-errors-on-empty-messages drivers/platform/x86/dell-wmi.c
+--- a/drivers/platform/x86/dell-wmi.c~dell-wmi-dont-generate-errors-on-empty-messages
 +++ a/drivers/platform/x86/dell-wmi.c
-@@ -122,7 +122,7 @@ static void dell_wmi_notify(u32 value, v
- 
- 	if (obj && obj->type == ACPI_TYPE_BUFFER) {
- 		int *buffer = (int *)obj->buffer.pointer;
--		key = dell_wmi_get_entry_by_scancode(buffer[1]);
-+		key = dell_wmi_get_entry_by_scancode(0xFFFF & buffer[1]);
- 		if (key) {
- 			input_report_key(dell_wmi_input_dev, key->keycode, 1);
+@@ -176,9 +176,9 @@ static void dell_wmi_notify(u32 value, v
  			input_sync(dell_wmi_input_dev);
-@@ -130,7 +130,7 @@ static void dell_wmi_notify(u32 value, v
+ 			input_report_key(dell_wmi_input_dev, key->keycode, 0);
  			input_sync(dell_wmi_input_dev);
- 		} else
+-		} else
++		} else if (buffer[1] & 0xFFFF)
  			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
 -			       buffer[1]);
-+			       0xFFFF & buffer[1]);
++			       buffer[1] & 0xFFFF);
  	}
  }
  
 _
 
-Patches currently in -mm which might be from mario_limonciello@dell.com are
+Patches currently in -mm which might be from mjg@redhat.com are
 
-dell-wmi-mask-off-bis-provided-garbage-in-scancode-data.patch
+linux-next.patch
 dell-wmi-mask-off-upper-bytes-of-event-response.patch
 dell-wmi-add-additional-keyboard-events.patch
+dell-wmi-dont-generate-errors-on-empty-messages.patch
+hp-wmi-add-support-for-reporting-tablet-state.patch
 
