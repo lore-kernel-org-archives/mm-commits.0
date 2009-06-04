@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-memc-avoid-oom-lockup-during-large-reads-from-dev-zero-tweaks-fix.patch added to -mm tree
-Date: Thu, 04 Jun 2009 14:10:56 -0700
-Message-ID: <200906042110.n54LAuIE007226@imap1.linux-foundation.org>
+Subject: + kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch added to -mm tree
+Date: Thu, 04 Jun 2009 15:17:19 -0700
+Message-ID: <200906042217.n54MHJ3R026830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753382AbZFDVK6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 17:10:58 -0400
+	by vger.kernel.org with ESMTP id S1751077AbZFDWRT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 18:17:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, sqazi@google.com, torvalds@linux-foundation.org
+Cc: vapier@gentoo.org, jason.wessel@windriver.com
 
 
 The patch titled
-     drivers-char-memc-avoid-oom-lockup-during-large-reads-from-dev-zero-tweaks-fix
+     kgdbts: unify/generalize gdb breakpoint adjustment
 has been added to the -mm tree.  Its filename is
-     drivers-char-memc-avoid-oom-lockup-during-large-reads-from-dev-zero-tweaks-fix.patch
+     kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-char-memc-avoid-oom-lockup-during-large-reads-from-dev-zero-tweaks-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kgdbts: unify/generalize gdb breakpoint adjustment
+From: Mike Frysinger <vapier@gentoo.org>
 
-return the correct thing in anticipation of an implementation of
-interruptible writes.
+The Blackfin arch, like the x86 arch, needs to adjust the PC manually
+after a breakpoint is hit as normally this is handled by the remote gdb. 
+However, rather than starting another arch ifdef mess, create a common
+GDB_ADJUSTS_BREAK_OFFSET define for any arch to opt-in via their kgdb.h.
 
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Salman Qazi <sqazi@google.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/blackfin/include/asm/kgdb.h |    1 +
+ arch/x86/include/asm/kgdb.h      |    1 +
+ drivers/misc/kgdbts.c            |   14 ++++++--------
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/mem.c~drivers-char-memc-avoid-oom-lockup-during-large-reads-from-dev-zero-tweaks-fix drivers/char/mem.c
---- a/drivers/char/mem.c~drivers-char-memc-avoid-oom-lockup-during-large-reads-from-dev-zero-tweaks-fix
-+++ a/drivers/char/mem.c
-@@ -702,7 +702,7 @@ static ssize_t read_zero(struct file * f
- 		 * matter, as userland will never see it.
- 		 */
- 		if (fatal_signal_pending(current))
--			return -EINTR;
-+			return written ? written : -EINTR;
- 		cond_resched();
+diff -puN arch/blackfin/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment arch/blackfin/include/asm/kgdb.h
+--- a/arch/blackfin/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment
++++ a/arch/blackfin/include/asm/kgdb.h
+@@ -107,6 +107,7 @@ static inline void arch_kgdb_breakpoint(
+ }
+ #define BREAK_INSTR_SIZE	2
+ #define CACHE_FLUSH_IS_SAFE	1
++#define GDB_ADJUSTS_BREAK_OFFSET
+ #define HW_INST_WATCHPOINT_NUM	6
+ #define HW_WATCHPOINT_NUM	8
+ #define TYPE_INST_WATCHPOINT	0
+diff -puN arch/x86/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment arch/x86/include/asm/kgdb.h
+--- a/arch/x86/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment
++++ a/arch/x86/include/asm/kgdb.h
+@@ -75,5 +75,6 @@ static inline void arch_kgdb_breakpoint(
+ }
+ #define BREAK_INSTR_SIZE	1
+ #define CACHE_FLUSH_IS_SAFE	1
++#define GDB_ADJUSTS_BREAK_OFFSET
+ 
+ #endif /* _ASM_X86_KGDB_H */
+diff -puN drivers/misc/kgdbts.c~kgdbts-unify-generalize-gdb-breakpoint-adjustment drivers/misc/kgdbts.c
+--- a/drivers/misc/kgdbts.c~kgdbts-unify-generalize-gdb-breakpoint-adjustment
++++ a/drivers/misc/kgdbts.c
+@@ -291,10 +291,10 @@ static int check_and_rewind_pc(char *put
+ 		 NUMREGBYTES);
+ 	gdb_regs_to_pt_regs(kgdbts_gdb_regs, &kgdbts_regs);
+ 	v2printk("Stopped at IP: %lx\n", instruction_pointer(&kgdbts_regs));
+-#ifdef CONFIG_X86
+-	/* On x86 a breakpoint stop requires it to be decremented */
+-	if (addr + 1 == kgdbts_regs.ip)
+-		offset = -1;
++#ifdef GDB_ADJUSTS_BREAK_OFFSET
++	/* On some arches, a breakpoint stop requires it to be decremented */
++	if (addr + BREAK_INSTR_SIZE == instruction_pointer(&kgdbts_regs))
++		offset = -BREAK_INSTR_SIZE;
+ #endif
+ 	if (strcmp(arg, "silent") &&
+ 		instruction_pointer(&kgdbts_regs) + offset != addr) {
+@@ -302,10 +302,8 @@ static int check_and_rewind_pc(char *put
+ 			   instruction_pointer(&kgdbts_regs) + offset, addr);
+ 		return 1;
  	}
- 	return written ? written : -EFAULT;
+-#ifdef CONFIG_X86
+-	/* On x86 adjust the instruction pointer if needed */
+-	kgdbts_regs.ip += offset;
+-#endif
++	/* Readjust the instruction pointer if needed */
++	instruction_pointer(&kgdbts_regs) += offset;
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-drivers-char-memc-avoid-oom-lockup-during-large-reads-from-dev-zero-tweaks.patch
-drivers-char-memc-avoid-oom-lockup-during-large-reads-from-dev-zero-tweaks-fix.patch
+kbuild-fix-detection-of-config_frame_warn=0.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-ds_selftest-is-borked.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool-fix.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
+pcmcia-yenta-add-missing-__devexit-marking.patch
+drivers-hvc-add-missing-__devexit_p.patch
+plat_nand-add-missing-__devexit_p.patch
+irda-new-blackfin-on-chip-sir-irda-driver.patch
+virtio_blk-add-missing-__devinitexit-markings.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+gitignore-ignore-patch-files.patch
+drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
+gpio-max7301-add-missing-__devexit-marking.patch
+istallion-add-missing-__devexit-marking.patch
+edac-add-missing-__devexit_p.patch
+cramfs-move-cramfs-magic-out-of-cramfs_fsh.patch
 
