@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + gpio-add-timbgpio.patch added to -mm tree
-Date: Thu, 04 Jun 2009 00:52:22 -0700
-Message-ID: <200906040752.n547qM7R001157@imap1.linux-foundation.org>
+Date: Thu, 04 Jun 2009 00:52:47 -0700
+Message-ID: <200906040752.n547qlB4001517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751416AbZFDHwX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 03:52:23 -0400
+	by vger.kernel.org with ESMTP id S1752602AbZFDHwu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 03:52:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard.rojfors.ext@mocean-labs.com
+Cc: richard.rojfors.ext@mocean-labs.com, david-b@pacbell.net
 
 
 The patch titled
@@ -40,6 +40,7 @@ A GPIO driver for the Timberdale FPGA found on the Intel Atom board
 Russellville.
 
 Signed-off-by: Richard Rojfors <richard.rojfors.ext@mocean-labs.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
