@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + console-make-blank-timeout-value-a-boot-option.patch added to -mm tree
-Date: Thu, 04 Jun 2009 01:46:06 -0700
-Message-ID: <200906040846.n548k6Vl010422@imap1.linux-foundation.org>
+Date: Thu, 04 Jun 2009 01:46:22 -0700
+Message-ID: <200906040846.n548kMT8010666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43816 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757193AbZFDIql (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 04:46:41 -0400
+	by vger.kernel.org with ESMTP id S1751416AbZFDIqx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 04:46:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,7 +15,7 @@ Cc: daniel@caiaq.de
 
 
 The patch titled
-     From: Daniel Mack <daniel@caiaq.de>
+     console: make blank timeout value a boot option
 has been added to the -mm tree.  Its filename is
      console-make-blank-timeout-value-a-boot-option.patch
 
@@ -33,62 +33,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Daniel Mack <daniel@caiaq.de>
+Subject: console: make blank timeout value a boot option
 From: Daniel Mack <daniel@caiaq.de>
 
-On Thu, Jun 04, 2009 at 01:17:40AM -0700, Andrew Morton wrote:
-> > That's already possible - there is an ioctl for that. It's just not
-> > configurable at boot time, and that occured to be very annoying when
-> > developing systems that won't fully boot up for >10mins. You have no way
-> > to wake up the console then.
->
-> Oh.  Your changelog sucked :)
->
-> > Is there any concern why that shouldn't be a kernel option?
->
-> I suppose it makes sense.  You really have systems which take more than
-> ten minutes to start running initscripts?  Poor you.
-
-This happens during development only. Assume the system tries to mount
-an NFS volume for its rootfs and fails due to a broken NIC driver; you
-might be interessted in some debug output. Assume the kernel crashes
-at boot time and you happen to miss that and come back to the machine
-10 minutes later; you would still like to see the Oops. Or think about
-situations where you forgot to add a userspace application to disable
-the screen saver and you still want to see kernel messages and no input
-device is attached to wake up the console. All possible scenarios where
-this option would make sense.
-
-I'm not saying it's the most important thing to have, but it's still
-handy :)
-
-> Please resend with a more complete description?
-
-Attached. Better now?
-
-Thanks,
-Daniel
-
-From 9a77004367e49d41b58b81fb6a4882d0906a4743 Mon Sep 17 00:00:00 2001
-Date: Tue, 2 Jun 2009 16:38:44 +0200
-Subject: [PATCH] console: make blank timeout value a boot option
-
 The console blank timer is currently hardcoded to 10*60 seconds which
-might be annoying on systems with no input devices attached to wake up
-the console again. Especially during development, disabling the screen
-saver can be handy - for example when debugging the root fs mount
-mechanism or other scenarios where no userspace program could be started
-to do that at runtime from userspace.
+might be annoying on systems with no input devices attached to wake up the
+console again.  Especially during development, disabling the screen saver
+can be handy - for example when debugging the root fs mount mechanism or
+other scenarios where no userspace program could be started to do that at
+runtime from userspace.
 
 This patch defines a core_param for the variable in charge which allows
-users to entirely disable the blank feature at boot time by setting it
-0. The value can still be overwritten at runtime using the standard
-ioctl call - this just allows to conditionally change the default.
+users to entirely disable the blank feature at boot time by setting it 0. 
+The value can still be overwritten at runtime using the standard ioctl
+call - this just allows to conditionally change the default.
 
 Signed-off-by: Daniel Mack <daniel@caiaq.de>
----
-
-index e87bdbf..67331e8 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
