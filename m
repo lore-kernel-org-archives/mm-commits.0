@@ -1,149 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-tracehook_report_clone-fix-false-positives.patch removed from -mm tree
-Date: Fri, 05 Jun 2009 11:55:12 -0700
-Message-ID: <200906051855.n55ItCkU020543@imap1.linux-foundation.org>
+Subject: [merged] pci-use-fixed-up-device-class-when-configuring-device.patch removed from -mm tree
+Date: Fri, 05 Jun 2009 11:55:25 -0700
+Message-ID: <200906051855.n55ItP6a020738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53893 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751986AbZFESzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 14:55:52 -0400
+	by vger.kernel.org with ESMTP id S1751226AbZFES4a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 14:56:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, hch@infradead.org, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: yu.zhao@intel.com, grundler@parisc-linux.org, htejun@gmail.com, jeff@garzik.org, marc.c.dionne@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: tracehook_report_clone: fix false positives
+     pci: use fixed-up device class when configuring device
 has been removed from the -mm tree.  Its filename was
-     ptrace-tracehook_report_clone-fix-false-positives.patch
+     pci-use-fixed-up-device-class-when-configuring-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: tracehook_report_clone: fix false positives
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: pci: use fixed-up device class when configuring device
+From: Yu Zhao <yu.zhao@intel.com>
 
-The "trace || CLONE_PTRACE" check in tracehook_report_clone() is not right,
+The device class may be changed after the early fixup. Need to
+re-read the class value from pci_dev when configuring the device.
+Otherwise some devices such as JMicron SATA controller won't work.
 
-- If the untraced task does clone(CLONE_PTRACE) the new child is not traced,
-  we must not queue SIGSTOP.
-
-- If we forked the traced task, but the tracer exits and untraces both the
-  forking task and the new child (after copy_process() drops tasklist_lock),
-  we should not queue SIGSTOP too.
-
-Change the code to check task_ptrace() != 0 instead. This is still racy, but
-the race is harmless.
-
-We can race with another tracer attaching to this child, or the tracer can
-exit and detach in parallel. But giwen that we didn't do wake_up_new_task()
-yet, the child must have the pending SIGSTOP anyway.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Tested-by: Marc Dionne <marc.c.dionne@gmail.com>
+Signed-off-by: Yu Zhao <yu.zhao@intel.com>
+Reviewed-by: Grant Grundler <grundler@parisc-linux.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   11 +++++------
- kernel/fork.c             |    2 +-
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/pci/probe.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/tracehook.h~ptrace-tracehook_report_clone-fix-false-positives include/linux/tracehook.h
---- a/include/linux/tracehook.h~ptrace-tracehook_report_clone-fix-false-positives
-+++ a/include/linux/tracehook.h
-@@ -259,14 +259,12 @@ static inline void tracehook_finish_clon
+diff -puN drivers/pci/probe.c~pci-use-fixed-up-device-class-when-configuring-device drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-use-fixed-up-device-class-when-configuring-device
++++ a/drivers/pci/probe.c
+@@ -750,6 +750,8 @@ int pci_setup_device(struct pci_dev *dev
  
- /**
-  * tracehook_report_clone - in parent, new child is about to start running
-- * @trace:		return value from tracehook_prepare_clone()
-  * @regs:		parent's user register state
-  * @clone_flags:	flags from parent's system call
-  * @pid:		new child's PID in the parent's namespace
-  * @child:		new child task
-  *
-- * Called after a child is set up, but before it has been started
-- * running.  @trace is the value returned by tracehook_prepare_clone().
-+ * Called after a child is set up, but before it has been started running.
-  * This is not a good place to block, because the child has not started
-  * yet.  Suspend the child here if desired, and then block in
-  * tracehook_report_clone_complete().  This must prevent the child from
-@@ -276,13 +274,14 @@ static inline void tracehook_finish_clon
-  *
-  * Called with no locks held, but the child cannot run until this returns.
-  */
--static inline void tracehook_report_clone(int trace, struct pt_regs *regs,
-+static inline void tracehook_report_clone(struct pt_regs *regs,
- 					  unsigned long clone_flags,
- 					  pid_t pid, struct task_struct *child)
- {
--	if (unlikely(trace) || unlikely(clone_flags & CLONE_PTRACE)) {
-+	if (unlikely(task_ptrace(child))) {
- 		/*
--		 * The child starts up with an immediate SIGSTOP.
-+		 * It doesn't matter who attached/attaching to this
-+		 * task, the pending SIGSTOP is right in any case.
- 		 */
- 		sigaddset(&child->pending.signal, SIGSTOP);
- 		set_tsk_thread_flag(child, TIF_SIGPENDING);
-diff -puN kernel/fork.c~ptrace-tracehook_report_clone-fix-false-positives kernel/fork.c
---- a/kernel/fork.c~ptrace-tracehook_report_clone-fix-false-positives
-+++ a/kernel/fork.c
-@@ -1409,7 +1409,7 @@ long do_fork(unsigned long clone_flags,
- 		}
+ 	/* Early fixups, before probing the BARs */
+ 	pci_fixup_device(pci_fixup_early, dev);
++	/* device class may be changed after fixup */
++	class = dev->class >> 8;
  
- 		audit_finish_fork(p);
--		tracehook_report_clone(trace, regs, clone_flags, nr, p);
-+		tracehook_report_clone(regs, clone_flags, nr, p);
- 
- 		/*
- 		 * We set PF_STARTING at creation in case tracing wants to
+ 	switch (dev->hdr_type) {		    /* header type */
+ 	case PCI_HEADER_TYPE_NORMAL:		    /* standard header */
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from yu.zhao@intel.com are
 
-origin.patch
 linux-next.patch
-slow_work_thread-should-do-the-exclusive-wait.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
-ptrace-remove-pt_dtrace-from-arch-h8300.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
-ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
-ptrace-remove-pt_dtrace-from-arch-m32r.patch
-ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
-ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
-ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
-ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
-ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
-ptrace-do-not-use-task_lock-for-attach.patch
-ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
-ptrace-wait_task_zombie-s-parent-real_parent.patch
-ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage.patch
-ptrace-dont-take-tasklist-to-get-set-last_siginfo.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
-copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
-elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
-shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped.patch
-introduce-struct-wait_opts-to-simplify-do_wait-pathes.patch
-do_wait-simplify-retval-tsk_result-notask_error-mess.patch
-do_wait-kill-the-old-bug_on-use-while_each_thread.patch
-do_wait-fix-the-theoretical-race-with-stop-trace-cont.patch
-mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds.patch
-wait_task_-cleanups-split-wait_noreap_copyout.patch
-wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_stopped.patch
-wait_task_-cleanups-use-copy_wait_opts_to_user-in-do_wait.patch
-wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_zombie.patch
-wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_continued.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-pids-clean-up-find_task_by_pid-variants.patch
 
