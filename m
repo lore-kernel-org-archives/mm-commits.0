@@ -1,144 +1,271 @@
 From: akpm@linux-foundation.org
-Subject: + lib-add-lib-gcdc-fix-fix.patch added to -mm tree
-Date: Thu, 04 Jun 2009 16:45:59 -0700
-Message-ID: <200906050005.n5505m0h013928@imap1.linux-foundation.org>
+Subject: - gpio-added-mc33880-driver.patch removed from -mm tree
+Date: Thu, 04 Jun 2009 17:19:23 -0700
+Message-ID: <200906050039.n550dCLE008036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57161 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751010AbZFEAHM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 20:07:12 -0400
+	by vger.kernel.org with ESMTP id S1751228AbZFEAjU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2009 20:39:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, florian@openwrt.org, horms@verge.net.au, joe@perches.com, juliusv@google.com, kaber@trash.net, sshtylyov@ru.mvista.com, tiwai@suse.de
+To: richard.rojfors.ext@mocean-labs.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-add-lib-gcdc-fix-fix
-has been added to the -mm tree.  Its filename is
-     lib-add-lib-gcdc-fix-fix.patch
+     gpio: add MC33880 driver
+has been removed from the -mm tree.  Its filename was
+     gpio-added-mc33880-driver.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because I have no mc33880_platform_data definition
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-add-lib-gcdc-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gpio: add MC33880 driver
+From: Richard Rojfors <richard.rojfors.ext@mocean-labs.com>
 
-doh.
+A GPIO driver for the Freescale MC33880 High/Low side switch.
 
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Florian Fainelli <florian@openwrt.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Julius Volz <juliusv@google.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Richard Rojfors <richard.rojfors.ext@mocean-labs.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpio/Kconfig   |    7 +
+ drivers/gpio/Makefile  |    2 
+ drivers/gpio/mc33880.c |  196 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 205 insertions(+)
 
-diff -puN lib/Makefile~lib-add-lib-gcdc-fix-fix lib/Makefile
---- a/lib/Makefile~lib-add-lib-gcdc-fix-fix
-+++ a/lib/Makefile
-@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 idr.o int_sqrt.o extable.o prio_tree.o \
- 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
- 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
--	 is_single_threaded.o plist.o decompress.o gcd.o
-+	 is_single_threaded.o plist.o decompress.o
+diff -puN drivers/gpio/Kconfig~gpio-added-mc33880-driver drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-added-mc33880-driver
++++ a/drivers/gpio/Kconfig
+@@ -182,4 +182,11 @@ config GPIO_MCP23S08
+ 	  SPI driver for Microchip MCP23S08 I/O expander.  This provides
+ 	  a GPIO interface supporting inputs and outputs.
  
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-@@ -21,7 +21,7 @@ lib-y	+= kobject.o kref.o klist.o
- 
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
--	 string_helpers.o
-+	 string_helpers.o gcd.o
- 
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
- CFLAGS_kobject.o += -DDEBUG
++config GPIO_MC33880
++	tristate "Freescale MC33880 high-side/low-side switch"
++	depends on SPI_MASTER
++	help
++	  SPI driver for Freescale MC33880 high-side/low-side switch.
++	  This provides GPIO interface supporting inputs and outputs.
++
+ endif
+diff -puN drivers/gpio/Makefile~gpio-added-mc33880-driver drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpio-added-mc33880-driver
++++ a/drivers/gpio/Makefile
+@@ -13,3 +13,5 @@ obj-$(CONFIG_GPIO_PL061)	+= pl061.o
+ obj-$(CONFIG_GPIO_TWL4030)	+= twl4030-gpio.o
+ obj-$(CONFIG_GPIO_XILINX)	+= xilinx_gpio.o
+ obj-$(CONFIG_GPIO_BT8XX)	+= bt8xxgpio.o
++obj-$(CONFIG_GPIO_MC33880)	+= mc33880.o
++
+diff -puN /dev/null drivers/gpio/mc33880.c
+--- /dev/null
++++ a/drivers/gpio/mc33880.c
+@@ -0,0 +1,196 @@
++/*
++ * mc33880.c MC33880 high-side/low-side switch GPIO driver
++ * Copyright (c) 2009 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++/* Supports:
++ * Freescale MC33880 high-side/low-side switch
++ */
++
++#include <linux/init.h>
++#include <linux/mutex.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/mc33880.h>
++#include <linux/gpio.h>
++
++#define DRIVER_NAME "mc33880"
++
++/*
++ * Pin configurations, see MAX7301 datasheet page 6
++ */
++#define PIN_CONFIG_MASK 0x03
++#define PIN_CONFIG_IN_PULLUP 0x03
++#define PIN_CONFIG_IN_WO_PULLUP 0x02
++#define PIN_CONFIG_OUT 0x01
++
++#define PIN_NUMBER 8
++
++
++/*
++ * Some registers must be read back to modify.
++ * To save time we cache them here in memory
++ */
++struct mc33880 {
++	struct mutex	lock;	/* protect from simultanous accesses */
++	u8		port_config;
++	struct gpio_chip chip;
++	struct spi_device *spi;
++};
++
++static int mc33880_write_config(struct mc33880 *mc)
++{
++	return spi_write(mc->spi, &mc->port_config, sizeof(mc->port_config));
++}
++
++
++static int __mc33880_set(struct mc33880 *mc, unsigned offset, int value)
++{
++	if (value)
++		mc->port_config |= 1 << offset;
++	else
++		mc->port_config &= ~(1 << offset);
++
++	return mc33880_write_config(mc);
++}
++
++
++static void mc33880_set(struct gpio_chip *chip, unsigned offset, int value)
++{
++	struct mc33880 *mc = container_of(chip, struct mc33880, chip);
++
++	mutex_lock(&mc->lock);
++
++	__mc33880_set(mc, offset, value);
++
++	mutex_unlock(&mc->lock);
++}
++
++static int __devinit mc33880_probe(struct spi_device *spi)
++{
++	struct mc33880 *mc;
++	struct mc33880_platform_data *pdata;
++	int ret;
++
++	pdata = spi->dev.platform_data;
++	if (!pdata || !pdata->base) {
++		dev_dbg(&spi->dev, "incorrect or missing platform data\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * bits_per_word cannot be configured in platform data
++	 */
++	spi->bits_per_word = 8;
++
++	ret = spi_setup(spi);
++	if (ret < 0)
++		return ret;
++
++	mc = kzalloc(sizeof(struct mc33880), GFP_KERNEL);
++	if (!mc)
++		return -ENOMEM;
++
++	mutex_init(&mc->lock);
++
++	dev_set_drvdata(&spi->dev, mc);
++
++	mc->spi = spi;
++
++	mc->chip.label = DRIVER_NAME,
++	mc->chip.set = mc33880_set;
++	mc->chip.base = pdata->base;
++	mc->chip.ngpio = PIN_NUMBER;
++	mc->chip.can_sleep = 1;
++	mc->chip.dev = &spi->dev;
++	mc->chip.owner = THIS_MODULE;
++
++	mc->port_config = 0x00;
++	/* write twice, because during initialisation the first setting
++	 * is just for testing SPI communication, and the second is the
++	 * "real" configuration
++	 */
++	ret = mc33880_write_config(mc);
++	mc->port_config = 0x00;
++	if (!ret)
++		ret = mc33880_write_config(mc);
++
++	if (ret) {
++		printk(KERN_ERR "Failed writing to " DRIVER_NAME ": %d\n", ret);
++		goto exit_destroy;
++	}
++
++	ret = gpiochip_add(&mc->chip);
++	if (ret)
++		goto exit_destroy;
++
++	return ret;
++
++exit_destroy:
++	dev_set_drvdata(&spi->dev, NULL);
++	mutex_destroy(&mc->lock);
++	kfree(mc);
++	return ret;
++}
++
++static int mc33880_remove(struct spi_device *spi)
++{
++	struct mc33880 *mc;
++	int ret;
++
++	mc = dev_get_drvdata(&spi->dev);
++	if (mc == NULL)
++		return -ENODEV;
++
++	dev_set_drvdata(&spi->dev, NULL);
++
++	ret = gpiochip_remove(&mc->chip);
++	if (!ret) {
++		mutex_destroy(&mc->lock);
++		kfree(mc);
++	} else
++		dev_err(&spi->dev, "Failed to remove the GPIO controller: %d\n",
++			ret);
++
++	return ret;
++}
++
++static struct spi_driver mc33880_driver = {
++	.driver = {
++		.name		= DRIVER_NAME,
++		.owner		= THIS_MODULE,
++	},
++	.probe		= mc33880_probe,
++	.remove		= __devexit_p(mc33880_remove),
++};
++
++static int __init mc33880_init(void)
++{
++	return spi_register_driver(&mc33880_driver);
++}
++/* register after spi postcore initcall and before
++ * subsys initcalls that may rely on these GPIOs
++ */
++subsys_initcall(mc33880_init);
++
++static void __exit mc33880_exit(void)
++{
++	spi_unregister_driver(&mc33880_driver);
++}
++module_exit(mc33880_exit);
++
++MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
++MODULE_LICENSE("GPL v2");
++
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from richard.rojfors.ext@mocean-labs.com are
 
-drivers-char-memc-avoid-oom-lockup-during-large-reads-from-dev-zero.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-ds_selftest-is-borked.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool-fix.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+gpio-added-mc33880-driver.patch
+gpio-add-timbgpio.patch
 
