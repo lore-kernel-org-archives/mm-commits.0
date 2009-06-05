@@ -1,70 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-revert-ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch removed from -mm tree
-Date: Fri, 05 Jun 2009 11:55:18 -0700
-Message-ID: <200906051855.n55ItIiE020603@imap1.linux-foundation.org>
+Subject: [merged] ptrace-tracehook_report_clone-fix-false-positives.patch removed from -mm tree
+Date: Fri, 05 Jun 2009 11:55:12 -0700
+Message-ID: <200906051855.n55ItCkU020543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53893 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750876AbZFESzc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 14:55:32 -0400
+	by vger.kernel.org with ESMTP id S1751986AbZFESzw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 14:55:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, dvlasenk@redhat.com, jan.kratochvil@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, hch@infradead.org, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: revert "ptrace_detach: the wrong wakeup breaks the ERESTARTxxx logic"
+     ptrace: tracehook_report_clone: fix false positives
 has been removed from the -mm tree.  Its filename was
-     ptrace-revert-ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch
+     ptrace-tracehook_report_clone-fix-false-positives.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: revert "ptrace_detach: the wrong wakeup breaks the ERESTARTxxx logic"
+Subject: ptrace: tracehook_report_clone: fix false positives
 From: Oleg Nesterov <oleg@redhat.com>
 
-Commit 95a3540da9c81a5987be810e1d9a83640a366bd5 ("ptrace_detach: the wrong
-wakeup breaks the ERESTARTxxx logic") removed the "extra"
-wake_up_process() from ptrace_detach(), but as Jan pointed out this breaks
-the compatibility.
+The "trace || CLONE_PTRACE" check in tracehook_report_clone() is not right,
 
-I believe the changelog is right and this wake_up() is wrong in many ways.
- But GDB assumes that ptrace(PTRACE_DETACH, child, 0, 0) always wakes up
-the tracee.  Despite the fact this breaks
-SIGNAL_STOP_STOPPED/group_stop_count logic, and despite the fact this
-wake_up_process() can break another assumption: PTRACE_DETACH with SIGSTOP
-should leave the tracee in TASK_STOPPED case.  Because the untraced child
-can dequeue SIGSTOP and call do_signal_stop() before ptrace_detach() calls
-wake_up_process().
+- If the untraced task does clone(CLONE_PTRACE) the new child is not traced,
+  we must not queue SIGSTOP.
 
-Revert this change for now.  We need some fixes even if we we want to keep
-the current behaviour, but these fixes are not for 2.6.30.
+- If we forked the traced task, but the tracer exits and untraces both the
+  forking task and the new child (after copy_process() drops tasklist_lock),
+  we should not queue SIGSTOP too.
+
+Change the code to check task_ptrace() != 0 instead. This is still racy, but
+the race is harmless.
+
+We can race with another tracer attaching to this child, or the tracer can
+exit and detach in parallel. But giwen that we didn't do wake_up_new_task()
+yet, the child must have the pending SIGSTOP anyway.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/tracehook.h |   11 +++++------
+ kernel/fork.c             |    2 +-
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-revert-ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-revert-ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic
-+++ a/kernel/ptrace.c
-@@ -304,6 +304,8 @@ int ptrace_detach(struct task_struct *ch
- 	if (child->ptrace) {
- 		child->exit_code = data;
- 		dead = __ptrace_detach(current, child);
-+		if (!child->exit_state)
-+			wake_up_process(child);
- 	}
- 	write_unlock_irq(&tasklist_lock);
+diff -puN include/linux/tracehook.h~ptrace-tracehook_report_clone-fix-false-positives include/linux/tracehook.h
+--- a/include/linux/tracehook.h~ptrace-tracehook_report_clone-fix-false-positives
++++ a/include/linux/tracehook.h
+@@ -259,14 +259,12 @@ static inline void tracehook_finish_clon
  
+ /**
+  * tracehook_report_clone - in parent, new child is about to start running
+- * @trace:		return value from tracehook_prepare_clone()
+  * @regs:		parent's user register state
+  * @clone_flags:	flags from parent's system call
+  * @pid:		new child's PID in the parent's namespace
+  * @child:		new child task
+  *
+- * Called after a child is set up, but before it has been started
+- * running.  @trace is the value returned by tracehook_prepare_clone().
++ * Called after a child is set up, but before it has been started running.
+  * This is not a good place to block, because the child has not started
+  * yet.  Suspend the child here if desired, and then block in
+  * tracehook_report_clone_complete().  This must prevent the child from
+@@ -276,13 +274,14 @@ static inline void tracehook_finish_clon
+  *
+  * Called with no locks held, but the child cannot run until this returns.
+  */
+-static inline void tracehook_report_clone(int trace, struct pt_regs *regs,
++static inline void tracehook_report_clone(struct pt_regs *regs,
+ 					  unsigned long clone_flags,
+ 					  pid_t pid, struct task_struct *child)
+ {
+-	if (unlikely(trace) || unlikely(clone_flags & CLONE_PTRACE)) {
++	if (unlikely(task_ptrace(child))) {
+ 		/*
+-		 * The child starts up with an immediate SIGSTOP.
++		 * It doesn't matter who attached/attaching to this
++		 * task, the pending SIGSTOP is right in any case.
+ 		 */
+ 		sigaddset(&child->pending.signal, SIGSTOP);
+ 		set_tsk_thread_flag(child, TIF_SIGPENDING);
+diff -puN kernel/fork.c~ptrace-tracehook_report_clone-fix-false-positives kernel/fork.c
+--- a/kernel/fork.c~ptrace-tracehook_report_clone-fix-false-positives
++++ a/kernel/fork.c
+@@ -1409,7 +1409,7 @@ long do_fork(unsigned long clone_flags,
+ 		}
+ 
+ 		audit_finish_fork(p);
+-		tracehook_report_clone(trace, regs, clone_flags, nr, p);
++		tracehook_report_clone(regs, clone_flags, nr, p);
+ 
+ 		/*
+ 		 * We set PF_STARTING at creation in case tracing wants to
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
