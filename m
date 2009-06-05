@@ -1,61 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-use-fixed-up-device-class-when-configuring-device.patch removed from -mm tree
-Date: Fri, 05 Jun 2009 11:55:25 -0700
-Message-ID: <200906051855.n55ItP6a020738@imap1.linux-foundation.org>
+Subject: + documentation-fix-inconsistent-description-of-futex-list_op_pending.patch added to -mm tree
+Date: Fri, 05 Jun 2009 12:27:01 -0700
+Message-ID: <200906051927.n55JR1Nm014019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751226AbZFES4a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 14:56:30 -0400
+	by vger.kernel.org with ESMTP id S1750876AbZFET1s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 15:27:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yu.zhao@intel.com, grundler@parisc-linux.org, htejun@gmail.com, jeff@garzik.org, marc.c.dionne@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: matthltc@us.ibm.com, mingo@redhat.com, tglx@linuxtronix.de
 
 
 The patch titled
-     pci: use fixed-up device class when configuring device
-has been removed from the -mm tree.  Its filename was
-     pci-use-fixed-up-device-class-when-configuring-device.patch
+     futex: documentation: fix inconsistent description of futex list_op_pending
+has been added to the -mm tree.  Its filename is
+     documentation-fix-inconsistent-description-of-futex-list_op_pending.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: use fixed-up device class when configuring device
-From: Yu Zhao <yu.zhao@intel.com>
+Subject: futex: documentation: fix inconsistent description of futex list_op_pending
+From: Matt Helsley <matthltc@us.ibm.com>
 
-The device class may be changed after the early fixup. Need to
-re-read the class value from pci_dev when configuring the device.
-Otherwise some devices such as JMicron SATA controller won't work.
+Strictly speaking list_op_pending points to the 'lock entry', not the
+'lock word' (which is actually at 'offset' from 'lock entry').  We can
+infer this based on reading the code in kernel/futex.c:
 
-Tested-by: Marc Dionne <marc.c.dionne@gmail.com>
-Signed-off-by: Yu Zhao <yu.zhao@intel.com>
-Reviewed-by: Grant Grundler <grundler@parisc-linux.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+	    struct robust_list __user *entry, *next_entry, *pending;
+		...
+            if (fetch_robust_entry(&pending, &head->list_op_pending, &pip))
+                    return;
+            ...
+            if (pending)
+                    handle_futex_death((void __user *)pending + futex_offset,
+                                       curr, pip);
+
+Which is also consistent with the rest of the docs on robust futex lists.
+
+Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linuxtronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/robust-futex-ABI.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci-use-fixed-up-device-class-when-configuring-device drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-use-fixed-up-device-class-when-configuring-device
-+++ a/drivers/pci/probe.c
-@@ -750,6 +750,8 @@ int pci_setup_device(struct pci_dev *dev
+diff -puN Documentation/robust-futex-ABI.txt~documentation-fix-inconsistent-description-of-futex-list_op_pending Documentation/robust-futex-ABI.txt
+--- a/Documentation/robust-futex-ABI.txt~documentation-fix-inconsistent-description-of-futex-list_op_pending
++++ a/Documentation/robust-futex-ABI.txt
+@@ -135,7 +135,7 @@ manipulating this list), the user code m
+ protocol on 'lock entry' insertion and removal:
  
- 	/* Early fixups, before probing the BARs */
- 	pci_fixup_device(pci_fixup_early, dev);
-+	/* device class may be changed after fixup */
-+	class = dev->class >> 8;
+ On insertion:
+- 1) set the 'list_op_pending' word to the address of the 'lock word'
++ 1) set the 'list_op_pending' word to the address of the 'lock entry'
+     to be inserted,
+  2) acquire the futex lock,
+  3) add the lock entry, with its thread id (TID) in the bottom 29 bits
+@@ -143,7 +143,7 @@ On insertion:
+  4) clear the 'list_op_pending' word.
  
- 	switch (dev->hdr_type) {		    /* header type */
- 	case PCI_HEADER_TYPE_NORMAL:		    /* standard header */
+ On removal:
+- 1) set the 'list_op_pending' word to the address of the 'lock word'
++ 1) set the 'list_op_pending' word to the address of the 'lock entry'
+     to be removed,
+  2) remove the lock entry for this lock from the 'head' list,
+  2) release the futex lock, and
 _
 
-Patches currently in -mm which might be from yu.zhao@intel.com are
+Patches currently in -mm which might be from matthltc@us.ibm.com are
 
-linux-next.patch
+documentation-fix-inconsistent-description-of-futex-list_op_pending.patch
 
