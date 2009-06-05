@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch added to -mm tree
-Date: Fri, 05 Jun 2009 12:33:18 -0700
-Message-ID: <200906051933.n55JXIab019219@imap1.linux-foundation.org>
+Subject: + watchdog-add-bcm47xx-driver.patch added to -mm tree
+Date: Fri, 05 Jun 2009 12:50:46 -0700
+Message-ID: <200906051950.n55JokjS000937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751519AbZFETdx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 15:33:53 -0400
+	by vger.kernel.org with ESMTP id S1751960AbZFETu7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 15:50:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penguin-kernel@i-love.sakura.ne.jppenguin-kernel@i-love.sakura.ne.jp, viro@zeniv.linux.org.uk
+Cc: castet.matthieu@free.fr, biblbroks@sezampro.rs, ralf@linux-mips.org, wim@iguana.be
 
 
 The patch titled
-     seq_file: return a negative error code when seq_path_root() fails.
+     watchdog: add bcm47xx driver
 has been added to the -mm tree.  Its filename is
-     seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch
+     watchdog-add-bcm47xx-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,353 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file: return a negative error code when seq_path_root() fails.
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: watchdog: add bcm47xx driver
+From: matthieu castet <castet.matthieu@free.fr>
 
-seq_path_root() is returning a return value of successful __d_path()
-instead of returning a negative value when mangle_path() failed.
+Add a watchdog driver for the broadcom 47xx device.  It uses the ssb
+subsytem to access embeded watchdog device.
 
-This is not a bug so far because nobody is using return value of
-seq_path_root().
+Because the watchdog timeout is very short (about 2s), a soft timer is
+used to increase the watchdog period.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+A patch for exporting the ssb_watchdog_timer_set will be submitted on next
+linux-mips merge.  Without this patch it can't be build as a module.
+
+Signed-off-by: Aleksandar Radovanovic <biblbroks@sezampro.rs>
+Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/watchdog/Kconfig       |    6 
+ drivers/watchdog/Makefile      |    1 
+ drivers/watchdog/bcm47xx_wdt.c |  289 +++++++++++++++++++++++++++++++
+ 3 files changed, 296 insertions(+)
 
-diff -puN fs/seq_file.c~seq_file-return-a-negative-error-code-when-seq_path_root-fails fs/seq_file.c
---- a/fs/seq_file.c~seq_file-return-a-negative-error-code-when-seq_path_root-fails
-+++ a/fs/seq_file.c
-@@ -470,6 +470,7 @@ int seq_path_root(struct seq_file *m, st
- 				m->count = s - m->buf;
- 				return 0;
- 			}
-+			err = -ENAMETOOLONG;
- 		}
- 	}
- 	m->count = m->size;
+diff -puN drivers/watchdog/Kconfig~watchdog-add-bcm47xx-driver drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~watchdog-add-bcm47xx-driver
++++ a/drivers/watchdog/Kconfig
+@@ -783,6 +783,12 @@ config TXX9_WDT
+ 	help
+ 	  Hardware driver for the built-in watchdog timer on TXx9 MIPS SoCs.
+ 
++config BCM47XX_WDT
++    tristate "Broadcom BCM47xx Watchdog Timer"
++    depends on BCM47XX
++    help
++      Hardware driver for the Broadcom BCM47xx Watchog Timer.
++
+ # PARISC Architecture
+ 
+ # POWERPC Architecture
+diff -puN drivers/watchdog/Makefile~watchdog-add-bcm47xx-driver drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~watchdog-add-bcm47xx-driver
++++ a/drivers/watchdog/Makefile
+@@ -107,6 +107,7 @@ obj-$(CONFIG_WDT_RM9K_GPI) += rm9k_wdt.o
+ obj-$(CONFIG_SIBYTE_WDOG) += sb_wdog.o
+ obj-$(CONFIG_AR7_WDT) += ar7_wdt.o
+ obj-$(CONFIG_TXX9_WDT) += txx9wdt.o
++obj-$(CONFIG_BCM47XX_WDT) += bcm47xx_wdt.o
+ 
+ # PARISC Architecture
+ 
+diff -puN /dev/null drivers/watchdog/bcm47xx_wdt.c
+--- /dev/null
++++ a/drivers/watchdog/bcm47xx_wdt.c
+@@ -0,0 +1,289 @@
++/*
++ *  Watchdog driver for Broadcom BCM47XX
++ *
++ *  Copyright (C) 2008 Aleksandar Radovanovic <biblbroks@sezampro.rs>
++ *
++ *  This program is free software; you can redistribute it and/or
++ *  modify it under the terms of the GNU General Public License
++ *  as published by the Free Software Foundation; either version
++ *  2 of the License, or (at your option) any later version.
++ */
++
++#include <linux/bitops.h>
++#include <linux/errno.h>
++#include <linux/fs.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/miscdevice.h>
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/notifier.h>
++#include <linux/types.h>
++#include <linux/uaccess.h>
++#include <linux/watchdog.h>
++#include <linux/timer.h>
++#include <linux/jiffies.h>
++#include <linux/ssb/ssb_embedded.h>
++#include <asm/mach-bcm47xx/bcm47xx.h>
++
++#define DRV_NAME		"bcm47xx_wdt"
++
++#define WDT_DEFAULT_TIME	30	/* seconds */
++#define WDT_MAX_TIME		256	/* seconds */
++
++static int wdt_time = WDT_DEFAULT_TIME;
++static int nowayout = WATCHDOG_NOWAYOUT;
++
++module_param(wdt_time, int, 0);
++MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="
++				__MODULE_STRING(WDT_DEFAULT_TIME) ")");
++
++#ifdef CONFIG_WATCHDOG_NOWAYOUT
++module_param(nowayout, int, 0);
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++#endif
++
++static struct platform_device *bcm47xx_wdt_platform_device;
++
++static unsigned long bcm47xx_wdt_busy;
++static char expect_release;
++static struct timer_list wdt_timer;
++static atomic_t ticks;
++
++static inline void bcm47xx_wdt_hw_start(void)
++{
++	/* this is 2,5s on 100Mhz clock  and 2s on 133 Mhz */
++	ssb_watchdog_timer_set(&ssb_bcm47xx, 0xfffffff);
++}
++
++static inline int bcm47xx_wdt_hw_stop(void)
++{
++	return ssb_watchdog_timer_set(&ssb_bcm47xx, 0);
++}
++
++static void bcm47xx_timer_tick(unsigned long unused)
++{
++	if(!atomic_dec_and_test(&ticks)) {
++		bcm47xx_wdt_hw_start();
++		mod_timer(&wdt_timer, jiffies + HZ);
++	}
++	else {
++		printk(KERN_CRIT PFX "Watchdog will fire soon!!!.\n");
++	}
++}
++
++static inline void bcm47xx_wdt_pet(void)
++{
++	atomic_set(&ticks, wdt_time);
++}
++
++static void bcm47xx_wdt_start(void)
++{
++	bcm47xx_wdt_pet();
++	bcm47xx_timer_tick(0);
++}
++
++static void bcm47xx_wdt_pause(void)
++{
++	del_timer(&wdt_timer);
++	bcm47xx_wdt_hw_stop();
++}
++
++static void bcm47xx_wdt_stop(void)
++{
++	bcm47xx_wdt_pause();
++}
++
++static int bcm47xx_wdt_settimeout(int new_time)
++{
++	if ((new_time <= 0) || (new_time > WDT_MAX_TIME))
++		return -EINVAL;
++
++	wdt_time = new_time;
++	return 0;
++}
++
++static int bcm47xx_wdt_open(struct inode *inode, struct file *file)
++{
++	if (test_and_set_bit(0, &bcm47xx_wdt_busy))
++		return -EBUSY;
++
++	bcm47xx_wdt_start();
++	return nonseekable_open(inode, file);
++}
++
++static int bcm47xx_wdt_release(struct inode *inode, struct file *file)
++{
++	if (expect_release == 42) {
++		bcm47xx_wdt_stop();
++	} else {
++		printk(KERN_CRIT DRV_NAME ": Unexpected close, not stopping watchdog!\n");
++		bcm47xx_wdt_start();
++	}
++
++	clear_bit(0, &bcm47xx_wdt_busy);
++	expect_release = 0;
++	return 0;
++}
++
++static ssize_t bcm47xx_wdt_write (struct file *file, const char __user *data,
++			      size_t len, loff_t * ppos)
++{
++	if (len) {
++		if (!nowayout) {
++			size_t i;
++
++			expect_release = 0;
++
++			for (i = 0; i != len; i++) {
++				char c;
++				if (get_user(c, data + i))
++					return -EFAULT;
++				if (c == 'V')
++					expect_release = 42;
++			}
++		}
++		bcm47xx_wdt_pet();
++	}
++	return len;
++}
++
++static struct watchdog_info bcm47xx_wdt_info = {
++	.identity 	= DRV_NAME,
++	.options 	= WDIOF_SETTIMEOUT |
++				WDIOF_KEEPALIVEPING |
++				WDIOF_MAGICCLOSE,
++};
++
++static long bcm47xx_wdt_ioctl(struct file *file,
++					unsigned int cmd, unsigned long arg)
++{
++	void __user *argp = (void __user *)arg;
++	int __user *p = argp;
++	int new_value, retval = -EINVAL;;
++
++	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		return copy_to_user(argp, &bcm47xx_wdt_info,
++				sizeof(bcm47xx_wdt_info)) ? -EFAULT : 0;
++
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, p);
++
++	case WDIOC_SETOPTIONS:
++		if (get_user(new_value, p))
++			return -EFAULT;
++
++		if (new_value & WDIOS_DISABLECARD) {
++			bcm47xx_wdt_stop();
++			retval = 0;
++		}
++
++		if (new_value & WDIOS_ENABLECARD) {
++			bcm47xx_wdt_start();
++			retval = 0;
++		}
++
++		return retval;
++
++	case WDIOC_KEEPALIVE:
++		bcm47xx_wdt_pet();
++		return 0;
++
++	case WDIOC_SETTIMEOUT:
++		if (get_user(new_value, p))
++			return -EFAULT;
++
++		if (bcm47xx_wdt_settimeout(new_value))
++			return -EINVAL;
++
++		bcm47xx_wdt_pet();
++
++	case WDIOC_GETTIMEOUT:
++		return put_user(wdt_time, p);
++
++	default:
++		return -ENOTTY;
++	}
++}
++
++static int bcm47xx_wdt_notify_sys(struct notifier_block *this, unsigned long code,
++	void *unused)
++{
++	if (code == SYS_DOWN || code == SYS_HALT)
++		bcm47xx_wdt_stop();
++	return NOTIFY_DONE;
++}
++
++static const struct file_operations bcm47xx_wdt_fops = {
++	.owner		= THIS_MODULE,
++	.llseek		= no_llseek,
++	.unlocked_ioctl	= bcm47xx_wdt_ioctl,
++	.open		= bcm47xx_wdt_open,
++	.release	= bcm47xx_wdt_release,
++	.write		= bcm47xx_wdt_write,
++};
++
++static struct miscdevice bcm47xx_wdt_miscdev = {
++	.minor		= WATCHDOG_MINOR,
++	.name		= "watchdog",
++	.fops		= &bcm47xx_wdt_fops,
++};
++
++static struct notifier_block bcm47xx_wdt_notifier = {
++	.notifier_call = bcm47xx_wdt_notify_sys,
++};
++
++static int __init bcm47xx_wdt_init(void)
++{
++	int ret;
++
++	if (bcm47xx_wdt_hw_stop() < 0)
++		return -ENODEV;
++
++	setup_timer(&wdt_timer, bcm47xx_timer_tick, 0L);
++
++	if (bcm47xx_wdt_settimeout(wdt_time)) {
++		bcm47xx_wdt_settimeout(WDT_DEFAULT_TIME);
++		printk(KERN_INFO DRV_NAME ": wdt_time value must be 1 <= wdt_time <= 256, using %d\n",
++			wdt_time);
++	}
++
++	ret = register_reboot_notifier(&bcm47xx_wdt_notifier);
++	if (ret)
++		ret;
++
++	ret = misc_register(&bcm47xx_wdt_miscdev);
++	if (ret) {
++		unregister_reboot_notifier(&bcm47xx_wdt_notifier);
++		return ret;
++	}
++
++	printk(KERN_INFO "BCM47xx Watchdog Timer enabled (%d seconds%s)\n",
++				wdt_time, nowayout ? ", nowayout" : "");
++	return 0;
++}
++
++static void __exit bcm47xx_wdt_exit(void)
++{
++	if (!nowayout)
++		bcm47xx_wdt_stop();
++
++	misc_deregister(&bcm47xx_wdt_miscdev);
++
++	unregister_reboot_notifier(&bcm47xx_wdt_notifier);
++
++	return 0;
++}
++
++module_init(bcm47xx_wdt_init);
++module_exit(bcm47xx_wdt_exit);
++
++MODULE_AUTHOR("Aleksandar Radovanovic");
++MODULE_DESCRIPTION("Watchdog driver for Broadcom BCM47xx");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:bcm47xx_wdt");
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from castet.matthieu@free.fr are
 
-linux-next.patch
-seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch
+watchdog-add-bcm47xx-driver.patch
 
