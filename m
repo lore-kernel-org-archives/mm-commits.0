@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch added to -mm tree
-Date: Fri, 05 Jun 2009 12:58:29 -0700
-Message-ID: <200906051958.n55JwTwl007233@imap1.linux-foundation.org>
+Subject: + eeepc-laptop-enable-camera-by-default.patch added to -mm tree
+Date: Fri, 05 Jun 2009 13:07:29 -0700
+Message-ID: <200906052007.n55K7TbS014596__40034.6678369262$1244232525$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38826 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751270AbZFET6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 15:58:47 -0400
+	by vger.kernel.org with ESMTP id S1752056AbZFEUIg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 16:08:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, yamamoto@valinux.co.jp
+Cc: penberg@cs.helsinki.fi, acpi4asus-user@lists.sourceforge.net, corentincj@iksaif.net, len.brown@intel.com, mjg@redhat.com
 
 
 The patch titled
-     memcg: fix behavior under memory.limit equals to memsw.limit
+     eeepc-laptop: enable camera by default
 has been added to the -mm tree.  Its filename is
-     memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch
+     eeepc-laptop-enable-camera-by-default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,135 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix behavior under memory.limit equals to memsw.limit
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: eeepc-laptop: enable camera by default
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-A user can set memcg.limit_in_bytes == memcg.memsw.limit_in_bytes when the
-user just want to limit the total size of applications, in other words,
-not very interested in memory usage itself.  In this case, swap-out will
-be done only by global-LRU.
+If we leave the camera disabled by default, userspace programs (e.g. 
+Skype, Cheese) leave the user out in the cold saying that the machine "has
+no camera." Therefore, it's better to enable camera by default and let
+people who really don't want it just disable the thing.
 
-But, under current implementation, memory.limit_in_bytes is checked at
-first and try_to_free_page() may do swap-out.  But, that swap-out is
-useless for memsw.limit_in_bytes and the thread may hit limit again.
-
-This patch tries to fix the current behavior at memory.limit ==
-memsw.limit case.  And documentation is updated to explain the behavior of
-this special case.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: <acpi4asus-user@lists.sourceforge.net>
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   17 +++++++++++------
- mm/memcontrol.c                  |   19 +++++++++++++++++++
- 2 files changed, 30 insertions(+), 6 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-fix-behavior-under-memorylimit-equals-to-memswlimit Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-fix-behavior-under-memorylimit-equals-to-memswlimit
-+++ a/Documentation/cgroups/memory.txt
-@@ -152,14 +152,19 @@ When swap is accounted, following files 
+diff -puN drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-camera-by-default drivers/platform/x86/eeepc-laptop.c
+--- a/drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-camera-by-default
++++ a/drivers/platform/x86/eeepc-laptop.c
+@@ -331,6 +331,19 @@ static const struct rfkill_ops eeepc_rfk
+ };
  
- usage of mem+swap is limited by memsw.limit_in_bytes.
- 
--Note: why 'mem+swap' rather than swap.
-+* why 'mem+swap' rather than swap.
- The global LRU(kswapd) can swap out arbitrary pages. Swap-out means
- to move account from memory to swap...there is no change in usage of
--mem+swap.
--
--In other words, when we want to limit the usage of swap without affecting
--global LRU, mem+swap limit is better than just limiting swap from OS point
--of view.
-+mem+swap. In other words, when we want to limit the usage of swap without
-+affecting global LRU, mem+swap limit is better than just limiting swap from
-+OS point of view.
+ /*
++ * Camera helpers
++ */
 +
-+* What happens when a cgroup hits memory.memsw.limit_in_bytes
-+When a cgroup his memory.memsw.limit_in_bytes, it's useless to do swap-out
-+in this cgroup. Then, swap-out will not be done by cgroup routine and file
-+caches are dropped. But as mentioned above, global LRU can do swapout memory
-+from it for sanity of the system's memory management state. You can't forbid
-+it by cgroup.
- 
- 2.5 Reclaim
- 
-diff -puN mm/memcontrol.c~memcg-fix-behavior-under-memorylimit-equals-to-memswlimit mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-behavior-under-memorylimit-equals-to-memswlimit
-+++ a/mm/memcontrol.c
-@@ -177,6 +177,9 @@ struct mem_cgroup {
- 
- 	unsigned int	swappiness;
- 
-+	/* set when res.limit == memsw.limit */
-+	bool		memsw_is_minimum;
++static void eeepc_enable_camera(void)
++{
++	int err;
 +
- 	/*
- 	 * statistics. This must be placed at the end of memcg.
- 	 */
-@@ -847,6 +850,10 @@ static int mem_cgroup_hierarchical_recla
- 	int ret, total = 0;
- 	int loop = 0;
- 
-+	/* If memsw_is_minimum==1, swap-out is of-no-use. */
-+	if (root_mem->memsw_is_minimum)
-+		noswap = true;
++	err = set_acpi(CM_ASL_CAMERA, 1);
++	if (err)
++		printk(EEEPC_WARNING "Unable to enable camera %d\n", err);
++}
 +
- 	while (loop < 2) {
- 		victim = mem_cgroup_select_victim(root_mem);
- 		if (victim == root_mem)
-@@ -1752,6 +1759,12 @@ static int mem_cgroup_resize_limit(struc
- 			break;
- 		}
- 		ret = res_counter_set_limit(&memcg->res, val);
-+		if (!ret) {
-+			if (memswlimit == val)
-+				memcg->memsw_is_minimum = true;
-+			else
-+				memcg->memsw_is_minimum = false;
-+		}
- 		mutex_unlock(&set_limit_mutex);
- 
- 		if (!ret)
-@@ -1799,6 +1812,12 @@ static int mem_cgroup_resize_memsw_limit
- 			break;
- 		}
- 		ret = res_counter_set_limit(&memcg->memsw, val);
-+		if (!ret) {
-+			if (memlimit == val)
-+				memcg->memsw_is_minimum = true;
-+			else
-+				memcg->memsw_is_minimum = false;
-+		}
- 		mutex_unlock(&set_limit_mutex);
- 
- 		if (!ret)
++/*
+  * Sys helpers
+  */
+ static int parse_arg(const char *buf, unsigned long count, int *val)
+@@ -1036,6 +1049,9 @@ static int __init eeepc_laptop_init(void
+ 	result = eeepc_hwmon_init(dev);
+ 	if (result)
+ 		goto fail_hwmon;
++
++	eeepc_enable_camera();
++
+ 	/* Register platform stuff */
+ 	result = platform_driver_register(&platform_driver);
+ 	if (result)
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
-migration-only-migrate_prep-once-per-move_pages.patch
-page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
-page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
-mm-add-swap-cache-interface-for-swap-reference.patch
-mm-modify-swap_map-and-add-swap_has_cache-flag.patch
-mm-modify-swap_map-and-add-swap_has_cache-flag-update.patch
-mm-reuse-unused-swap-entry-if-necessary.patch
-mm-reuse-unused-swap-entry-if-necessary-update.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix2.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
-memcg-remove-mem_cgroup_cache_charge_swapin.patch
-memcg-remove-some-redundant-checks.patch
-memcg-remove-unneeded-forward-declaration-from-schedh.patch
-memcg-fix-swap-accounting.patch
-memcg-fix-swap-accounting-update.patch
-memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+linux-next.patch
+eeepc-laptop-enable-camera-by-default.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+slab-leaks3-default-y.patch
 
