@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-fix-inconsistent-description-of-futex-list_op_pending.patch added to -mm tree
-Date: Fri, 05 Jun 2009 12:27:01 -0700
-Message-ID: <200906051927.n55JR1Nm014019@imap1.linux-foundation.org>
+Subject: + seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch added to -mm tree
+Date: Fri, 05 Jun 2009 12:33:18 -0700
+Message-ID: <200906051933.n55JXIab019219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46253 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750876AbZFET1s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 15:27:48 -0400
+	by vger.kernel.org with ESMTP id S1751519AbZFETdx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 15:33:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthltc@us.ibm.com, mingo@redhat.com, tglx@linuxtronix.de
+Cc: penguin-kernel@i-love.sakura.ne.jppenguin-kernel@i-love.sakura.ne.jp, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     futex: documentation: fix inconsistent description of futex list_op_pending
+     seq_file: return a negative error code when seq_path_root() fails.
 has been added to the -mm tree.  Its filename is
-     documentation-fix-inconsistent-description-of-futex-list_op_pending.patch
+     seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: futex: documentation: fix inconsistent description of futex list_op_pending
-From: Matt Helsley <matthltc@us.ibm.com>
+Subject: seq_file: return a negative error code when seq_path_root() fails.
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 
-Strictly speaking list_op_pending points to the 'lock entry', not the
-'lock word' (which is actually at 'offset' from 'lock entry').  We can
-infer this based on reading the code in kernel/futex.c:
+seq_path_root() is returning a return value of successful __d_path()
+instead of returning a negative value when mangle_path() failed.
 
-	    struct robust_list __user *entry, *next_entry, *pending;
-		...
-            if (fetch_robust_entry(&pending, &head->list_op_pending, &pip))
-                    return;
-            ...
-            if (pending)
-                    handle_futex_death((void __user *)pending + futex_offset,
-                                       curr, pip);
+This is not a bug so far because nobody is using return value of
+seq_path_root().
 
-Which is also consistent with the rest of the docs on robust futex lists.
-
-Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linuxtronix.de>
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/robust-futex-ABI.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/seq_file.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/robust-futex-ABI.txt~documentation-fix-inconsistent-description-of-futex-list_op_pending Documentation/robust-futex-ABI.txt
---- a/Documentation/robust-futex-ABI.txt~documentation-fix-inconsistent-description-of-futex-list_op_pending
-+++ a/Documentation/robust-futex-ABI.txt
-@@ -135,7 +135,7 @@ manipulating this list), the user code m
- protocol on 'lock entry' insertion and removal:
- 
- On insertion:
-- 1) set the 'list_op_pending' word to the address of the 'lock word'
-+ 1) set the 'list_op_pending' word to the address of the 'lock entry'
-     to be inserted,
-  2) acquire the futex lock,
-  3) add the lock entry, with its thread id (TID) in the bottom 29 bits
-@@ -143,7 +143,7 @@ On insertion:
-  4) clear the 'list_op_pending' word.
- 
- On removal:
-- 1) set the 'list_op_pending' word to the address of the 'lock word'
-+ 1) set the 'list_op_pending' word to the address of the 'lock entry'
-     to be removed,
-  2) remove the lock entry for this lock from the 'head' list,
-  2) release the futex lock, and
+diff -puN fs/seq_file.c~seq_file-return-a-negative-error-code-when-seq_path_root-fails fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-return-a-negative-error-code-when-seq_path_root-fails
++++ a/fs/seq_file.c
+@@ -470,6 +470,7 @@ int seq_path_root(struct seq_file *m, st
+ 				m->count = s - m->buf;
+ 				return 0;
+ 			}
++			err = -ENAMETOOLONG;
+ 		}
+ 	}
+ 	m->count = m->size;
 _
 
-Patches currently in -mm which might be from matthltc@us.ibm.com are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
-documentation-fix-inconsistent-description-of-futex-list_op_pending.patch
+linux-next.patch
+seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch
 
