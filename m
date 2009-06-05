@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-interface-to-reset-limits.patch added to -mm tree
-Date: Fri, 05 Jun 2009 13:20:36 -0700
-Message-ID: <200906052020.n55KKaEB025293@imap1.linux-foundation.org>
+Subject: + mm-remove-annotation-of-gfp_mask-in-add_to_swap.patch added to -mm tree
+Date: Fri, 05 Jun 2009 13:28:40 -0700
+Message-ID: <200906052028.n55KSeiV031916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753967AbZFEUVU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 16:21:20 -0400
+	by vger.kernel.org with ESMTP id S1751005AbZFEU2n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 16:28:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, yamamoto@valinux.co.jp
+Cc: minchan.kim@gmail.com, hugh.dickins@tiscali.co.uk
 
 
 The patch titled
-     memcg: add interface to reset limits
+     mm: remove annotation of gfp_mask in add_to_swap
 has been added to the -mm tree.  Its filename is
-     memcg-add-interface-to-reset-limits.patch
+     mm-remove-annotation-of-gfp_mask-in-add_to_swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,94 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add interface to reset limits
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: mm: remove annotation of gfp_mask in add_to_swap
+From: Minchan Kim <minchan.kim@gmail.com>
 
-We don't have an interface to reset mem.limit or memsw.limit now.
+Hugh removed add_to_swap's gfp_mask argument.  (mm: remove gfp_mask from
+add_to_swap) So we have to remove annotation of gfp_mask of the function.
 
-This patch allows to reset mem.limit or memsw.limit when they are being
-set to -1.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    1 +
- include/linux/res_counter.h      |    2 ++
- kernel/res_counter.c             |   12 +++++++++++-
- 3 files changed, 14 insertions(+), 1 deletion(-)
+ mm/swap_state.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-add-interface-to-reset-limits Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-add-interface-to-reset-limits
-+++ a/Documentation/cgroups/memory.txt
-@@ -209,6 +209,7 @@ We can alter the memory limit:
- 
- NOTE: We can use a suffix (k, K, m, M, g or G) to indicate values in kilo,
- mega or gigabytes.
-+NOTE: We can write "-1" to reset the *.limit_in_bytes(unlimited).
- 
- # cat /cgroups/0/memory.limit_in_bytes
- 4194304
-diff -puN include/linux/res_counter.h~memcg-add-interface-to-reset-limits include/linux/res_counter.h
---- a/include/linux/res_counter.h~memcg-add-interface-to-reset-limits
-+++ a/include/linux/res_counter.h
-@@ -49,6 +49,8 @@ struct res_counter {
- 	struct res_counter *parent;
- };
- 
-+#define RESOURCE_MAX (unsigned long long)LLONG_MAX
-+
+diff -puN mm/swap_state.c~mm-remove-annotation-of-gfp_mask-in-add_to_swap mm/swap_state.c
+--- a/mm/swap_state.c~mm-remove-annotation-of-gfp_mask-in-add_to_swap
++++ a/mm/swap_state.c
+@@ -124,7 +124,6 @@ void __delete_from_swap_cache(struct pag
  /**
-  * Helpers to interact with userspace
-  * res_counter_read_u64() - returns the value of the specified member.
-diff -puN kernel/res_counter.c~memcg-add-interface-to-reset-limits kernel/res_counter.c
---- a/kernel/res_counter.c~memcg-add-interface-to-reset-limits
-+++ a/kernel/res_counter.c
-@@ -18,7 +18,7 @@
- void res_counter_init(struct res_counter *counter, struct res_counter *parent)
- {
- 	spin_lock_init(&counter->lock);
--	counter->limit = (unsigned long long)LLONG_MAX;
-+	counter->limit = RESOURCE_MAX;
- 	counter->parent = parent;
- }
- 
-@@ -133,6 +133,16 @@ int res_counter_memparse_write_strategy(
- 					unsigned long long *res)
- {
- 	char *end;
-+
-+	/* return RESOURCE_MAX(unlimited) if "-1" is specified */
-+	if (*buf == '-') {
-+		*res = simple_strtoull(buf + 1, &end, 10);
-+		if (*res != 1 || *end != '\0')
-+			return -EINVAL;
-+		*res = RESOURCE_MAX;
-+		return 0;
-+	}
-+
- 	/* FIXME - make memparse() take const char* args */
- 	*res = memparse((char *)buf, &end);
- 	if (*end != '\0')
+  * add_to_swap - allocate swap space for a page
+  * @page: page we want to move to swap
+- * @gfp_mask: memory allocation flags
+  *
+  * Allocate swap space for the page and add the page to the
+  * swap cache.  Caller needs to hold the page lock. 
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-mm-add-swap-cache-interface-for-swap-reference.patch
-mm-modify-swap_map-and-add-swap_has_cache-flag.patch
-mm-modify-swap_map-and-add-swap_has_cache-flag-update.patch
-mm-reuse-unused-swap-entry-if-necessary.patch
-mm-reuse-unused-swap-entry-if-necessary-update.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
-memcg-remove-mem_cgroup_cache_charge_swapin.patch
-memcg-fix-swap-accounting.patch
-memcg-fix-swap-accounting-update.patch
-memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch
-memcg-add-interface-to-reset-limits.patch
+linux-next.patch
+vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
+vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
+page-allocator-clean-up-functions-related-to-pages_min.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
+mm-remove-config_unevictable_lru-config-option.patch
+mm-remove-annotation-of-gfp_mask-in-add_to_swap.patch
+use-printk_once-in-several-places.patch
+use-printk_once-in-several-places-clean-up-printk_once-of-get_cpu_vendor.patch
 
