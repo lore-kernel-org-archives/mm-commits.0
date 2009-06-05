@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + eeepc-laptop-enable-camera-by-default-fix.patch added to -mm tree
-Date: Fri, 05 Jun 2009 13:08:47 -0700
-Message-ID: <200906052008.n55K8ltL015687__8994.35467222265$1244232593$gmane$org@imap1.linux-foundation.org>
+Subject: + watchdog-fix-memory-corruption-when-rcba-is-disabled-by-hardware.patch added to -mm tree
+Date: Fri, 05 Jun 2009 13:12:02 -0700
+Message-ID: <200906052012.n55KC2nh018311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753489AbZFEUJk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 16:09:40 -0400
+	by vger.kernel.org with ESMTP id S1751345AbZFEUMF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jun 2009 16:12:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, acpi4asus-user@lists.sourceforge.net, corentincj@iksaif.net, len.brown@intel.com, mjg@redhat.com, penberg@cs.helsinki.fi
+Cc: den@openvz.org, vvs@openvz.org, wim@iguana.be
 
 
 The patch titled
-     eeepc-laptop-enable-camera-by-default-fix
+     watchdog: fix memory corruption when RCBA is disabled by hardware
 has been added to the -mm tree.  Its filename is
-     eeepc-laptop-enable-camera-by-default-fix.patch
+     watchdog-fix-memory-corruption-when-rcba-is-disabled-by-hardware.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,101 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eeepc-laptop-enable-camera-by-default-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: watchdog: fix memory corruption when RCBA is disabled by hardware
 
-use __init
 
-Cc: <acpi4asus-user@lists.sourceforge.net>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+According to 9.1.33 on p.343 of ICH8.pdf RCBA can be disabled by hardware
+if bit 0 of RCBA register is not set.
+
+Perform correct check for this to prevent memory corruption under some
+virtual machines where this feature is disabled.
+
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Vasily Averin <vvs@openvz.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/eeepc-laptop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/iTCO_wdt.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-camera-by-default-fix drivers/platform/x86/eeepc-laptop.c
---- a/drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-camera-by-default-fix
-+++ a/drivers/platform/x86/eeepc-laptop.c
-@@ -334,7 +334,7 @@ static const struct rfkill_ops eeepc_rfk
-  * Camera helpers
-  */
- 
--static void eeepc_enable_camera(void)
-+static void __init eeepc_enable_camera(void)
- {
- 	int err;
- 
+diff -puN drivers/watchdog/iTCO_wdt.c~watchdog-fix-memory-corruption-when-rcba-is-disabled-by-hardware drivers/watchdog/iTCO_wdt.c
+--- a/drivers/watchdog/iTCO_wdt.c~watchdog-fix-memory-corruption-when-rcba-is-disabled-by-hardware
++++ a/drivers/watchdog/iTCO_wdt.c
+@@ -666,6 +666,12 @@ static int __devinit iTCO_wdt_init(struc
+ 	   GCS = RCBA + ICH6_GCS(0x3410). */
+ 	if (iTCO_wdt_private.iTCO_version == 2) {
+ 		pci_read_config_dword(pdev, 0xf0, &base_address);
++		if ((base_address & 1) == 0) {
++			printk(KERN_ERR PFX "failed to reset NO_REBOOT flag, "
++			       "RCBA is disabled by harddware\n");
++			ret = -ENODEV;
++			goto out_put;
++		}
+ 		RCBA = base_address & 0xffffc000;
+ 		iTCO_wdt_private.gcs = ioremap((RCBA + 0x3410), 4);
+ 	}
+@@ -745,6 +751,7 @@ unreg_smi_en:
+ out:
+ 	if (iTCO_wdt_private.iTCO_version == 2)
+ 		iounmap(iTCO_wdt_private.gcs);
++out_put:
+ 	pci_dev_put(iTCO_wdt_private.pdev);
+ 	iTCO_wdt_private.ACPIBASE = 0;
+ 	return ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from den@openvz.org are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-ds_selftest-is-borked.patch
-eeepc-laptop-enable-camera-by-default-fix.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool-fix.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+watchdog-fix-memory-corruption-when-rcba-is-disabled-by-hardware.patch
 
