@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-warnings-with-gcc-44.patch added to -mm tree
-Date: Mon, 08 Jun 2009 15:54:54 -0700
-Message-ID: <200906082254.n58Mssnw017653@imap1.linux-foundation.org>
+Subject: + jbd-fix-race-in-buffer-processing-in-commit-code.patch added to -mm tree
+Date: Mon, 08 Jun 2009 15:58:55 -0700
+Message-ID: <200906082258.n58MwtDI020940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35723 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752843AbZFHWzD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:55:03 -0400
+	by vger.kernel.org with ESMTP id S1754692AbZFHW77 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:59:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@jeffreymahoney.com, jeffm@suse.com, mason@oracle.com
+Cc: jack@suse.cz, linux-ext4@vger.kernel.org, stable@kernel.org
 
 
 The patch titled
-     reiserfs: fix warnings with gcc 4.4
+     jbd: fix race in buffer processing in commit code
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-warnings-with-gcc-44.patch
+     jbd-fix-race-in-buffer-processing-in-commit-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,157 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: fix warnings with gcc 4.4
-From: Jeff Mahoney <jeffm@jeffreymahoney.com>
+Subject: jbd: fix race in buffer processing in commit code
+From: Jan Kara <jack@suse.cz>
 
-Several code paths in reiserfs have a construct like:
+In commit code, we scan buffers attached to a transaction.  During this
+scan, we sometimes have to drop j_list_lock and then we recheck whether
+the journal buffer head didn't get freed by journal_try_to_free_buffers().
+ But checking for buffer_jbd(bh) isn't enough because a new journal head
+could get attached to our buffer head.  So add a check whether the journal
+head remained the same and whether it's still at the same transaction and
+list.
 
- if (is_direntry_le_ih(ih = B_N_PITEM_HEAD(src, item_num))) ...
+This is a nasty bug and can cause problems like memory corruption (use after
+free) or trigger various assertions in JBD code (observed).
 
-which, in addition to being ugly, end up causing compiler warnings with
-gcc 4.4.0.  Previous compilers didn't issue a warning.
-
-fs/reiserfs/do_balan.c:1273: warning: operation on `aux_ih' may be undefined
-fs/reiserfs/lbalance.c:393: warning: operation on `ih' may be undefined
-fs/reiserfs/lbalance.c:421: warning: operation on `ih' may be undefined
-fs/reiserfs/lbalance.c:777: warning: operation on `ih' may be undefined
-
-I believe this is due to the ih being passed to macros which evaluate the
-argument more than once.  This is old code and we haven't seen any
-problems with it, but this patch eliminates the warnings.
-
-It converts the multiple evaluation macros to static inlines and does a
-preassignment for the cases that were causing the warnings because that
-code is just ugly.
-
-Reported-by: Chris Mason <mason@oracle.com>
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <stable@kernel.org>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/do_balan.c      |    5 +--
- fs/reiserfs/lbalance.c      |   10 ++++---
- include/linux/reiserfs_fs.h |   47 ++++++++++++++++++++++++++++------
- 3 files changed, 47 insertions(+), 15 deletions(-)
+ fs/jbd/commit.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiserfs/do_balan.c~reiserfs-fix-warnings-with-gcc-44 fs/reiserfs/do_balan.c
---- a/fs/reiserfs/do_balan.c~reiserfs-fix-warnings-with-gcc-44
-+++ a/fs/reiserfs/do_balan.c
-@@ -1262,9 +1262,8 @@ static int balance_leaf(struct tree_bala
- 
- 					RFALSE(ih, "PAP-12210: ih must be 0");
- 
--					if (is_direntry_le_ih
--					    (aux_ih =
--					     B_N_PITEM_HEAD(tbS0, item_pos))) {
-+					aux_ih = B_N_PITEM_HEAD(tbS0, item_pos);
-+					if (is_direntry_le_ih(aux_ih)) {
- 						/* we append to directory item */
- 
- 						int entry_count;
-diff -puN fs/reiserfs/lbalance.c~reiserfs-fix-warnings-with-gcc-44 fs/reiserfs/lbalance.c
---- a/fs/reiserfs/lbalance.c~reiserfs-fix-warnings-with-gcc-44
-+++ a/fs/reiserfs/lbalance.c
-@@ -390,7 +390,8 @@ static void leaf_item_bottle(struct buff
- 
- 	if (last_first == FIRST_TO_LAST) {
- 		/* if ( if item in position item_num in buffer SOURCE is directory item ) */
--		if (is_direntry_le_ih(ih = B_N_PITEM_HEAD(src, item_num)))
-+		ih = B_N_PITEM_HEAD(src, item_num);
-+		if (is_direntry_le_ih(ih))
- 			leaf_copy_dir_entries(dest_bi, src, FIRST_TO_LAST,
- 					      item_num, 0, cpy_bytes);
- 		else {
-@@ -418,7 +419,8 @@ static void leaf_item_bottle(struct buff
+diff -puN fs/jbd/commit.c~jbd-fix-race-in-buffer-processing-in-commit-code fs/jbd/commit.c
+--- a/fs/jbd/commit.c~jbd-fix-race-in-buffer-processing-in-commit-code
++++ a/fs/jbd/commit.c
+@@ -241,7 +241,7 @@ write_out_data:
+ 			spin_lock(&journal->j_list_lock);
  		}
- 	} else {
- 		/*  if ( if item in position item_num in buffer SOURCE is directory item ) */
--		if (is_direntry_le_ih(ih = B_N_PITEM_HEAD(src, item_num)))
-+		ih = B_N_PITEM_HEAD(src, item_num);
-+		if (is_direntry_le_ih(ih))
- 			leaf_copy_dir_entries(dest_bi, src, LAST_TO_FIRST,
- 					      item_num,
- 					      I_ENTRY_COUNT(ih) - cpy_bytes,
-@@ -774,8 +776,8 @@ void leaf_delete_items(struct buffer_inf
- 			leaf_delete_items_entirely(cur_bi, first + 1,
- 						   del_num - 1);
- 
--			if (is_direntry_le_ih
--			    (ih = B_N_PITEM_HEAD(bh, B_NR_ITEMS(bh) - 1)))
-+			ih = B_N_PITEM_HEAD(bh, B_NR_ITEMS(bh) - 1);
-+			if (is_direntry_le_ih(ih))
- 				/* the last item is directory  */
- 				/* len = numbers of directory entries in this item */
- 				len = ih_entry_count(ih);
-diff -puN include/linux/reiserfs_fs.h~reiserfs-fix-warnings-with-gcc-44 include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~reiserfs-fix-warnings-with-gcc-44
-+++ a/include/linux/reiserfs_fs.h
-@@ -712,23 +712,54 @@ static inline void set_le_key_k_type(int
- 		   cpu_to_le32(type2uniqueness(type)))
- 	    : (void)(set_offset_v2_k_type(&(key->u.k_offset_v2), type));
- }
-+
- static inline void set_le_ih_k_type(struct item_head *ih, int type)
- {
- 	set_le_key_k_type(ih_version(ih), &(ih->ih_key), type);
- }
- 
--#define is_direntry_le_key(version,key) (le_key_k_type (version, key) == TYPE_DIRENTRY)
--#define is_direct_le_key(version,key) (le_key_k_type (version, key) == TYPE_DIRECT)
--#define is_indirect_le_key(version,key) (le_key_k_type (version, key) == TYPE_INDIRECT)
--#define is_statdata_le_key(version,key) (le_key_k_type (version, key) == TYPE_STAT_DATA)
-+static inline int is_direntry_le_key(int version, struct reiserfs_key *key)
-+{
-+	return le_key_k_type(version, key) == TYPE_DIRENTRY;
-+}
-+
-+static inline int is_direct_le_key(int version, struct reiserfs_key *key)
-+{
-+	return le_key_k_type(version, key) == TYPE_DIRECT;
-+}
-+
-+static inline int is_indirect_le_key(int version, struct reiserfs_key *key)
-+{
-+	return le_key_k_type(version, key) == TYPE_INDIRECT;
-+}
-+
-+static inline int is_statdata_le_key(int version, struct reiserfs_key *key)
-+{
-+	return le_key_k_type(version, key) == TYPE_STAT_DATA;
-+}
- 
- //
- // item header has version.
- //
--#define is_direntry_le_ih(ih) is_direntry_le_key (ih_version (ih), &((ih)->ih_key))
--#define is_direct_le_ih(ih) is_direct_le_key (ih_version (ih), &((ih)->ih_key))
--#define is_indirect_le_ih(ih) is_indirect_le_key (ih_version(ih), &((ih)->ih_key))
--#define is_statdata_le_ih(ih) is_statdata_le_key (ih_version (ih), &((ih)->ih_key))
-+static inline int is_direntry_le_ih(struct item_head *ih)
-+{
-+	return is_direntry_le_key(ih_version(ih), &ih->ih_key);
-+}
-+
-+static inline int is_direct_le_ih(struct item_head *ih)
-+{
-+	return is_direct_le_key(ih_version(ih), &ih->ih_key);
-+}
-+
-+static inline int is_indirect_le_ih(struct item_head *ih)
-+{
-+	return is_indirect_le_key(ih_version(ih), &ih->ih_key);
-+}
-+
-+static inline int is_statdata_le_ih(struct item_head *ih)
-+{
-+	return is_statdata_le_key(ih_version(ih), &ih->ih_key);
-+}
- 
- //
- // key is pointer to cpu key, result is cpu
+ 		/* Someone already cleaned up the buffer? */
+-		if (!buffer_jbd(bh)
++		if (!buffer_jbd(bh) || bh2jh(bh) != jh
+ 			|| jh->b_transaction != commit_transaction
+ 			|| jh->b_jlist != BJ_SyncData) {
+ 			jbd_unlock_bh_state(bh);
+@@ -478,7 +478,9 @@ void journal_commit_transaction(journal_
+ 			spin_lock(&journal->j_list_lock);
+ 			continue;
+ 		}
+-		if (buffer_jbd(bh) && jh->b_jlist == BJ_Locked) {
++		if (buffer_jbd(bh) && bh2jh(bh) == jh &&
++		    jh->b_transaction == commit_transaction &&
++		    jh->b_jlist == BJ_Locked) {
+ 			__journal_unfile_buffer(jh);
+ 			jbd_unlock_bh_state(bh);
+ 			journal_remove_journal_head(bh);
 _
 
-Patches currently in -mm which might be from jeffm@jeffreymahoney.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-reiserfs-fix-warnings-with-gcc-44.patch
+jbd-fix-race-in-buffer-processing-in-commit-code.patch
+linux-next.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
+mm-remove-__invalidate_mapping_pages-variant.patch
+ext2-do-not-update-mtime-of-a-moved-directory.patch
+ext3-fix-chain-verification-in-ext3_get_blocks.patch
+isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch
+isofs-fix-setting-of-uid-and-gid-to-0.patch
+isofs-cleanup-mount-option-processing.patch
+reiser4-update-names-of-quota-methods.patch
 
