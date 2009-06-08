@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + firmware_map-fix-hang-with-x86-32bit.patch added to -mm tree
-Date: Mon, 08 Jun 2009 15:53:18 -0700
-Message-ID: <200906082253.n58MrJZF016335@imap1.linux-foundation.org>
+Subject: + reiserfs-fix-warnings-with-gcc-44.patch added to -mm tree
+Date: Mon, 08 Jun 2009 15:54:54 -0700
+Message-ID: <200906082254.n58Mssnw017653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752843AbZFHWyo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:54:44 -0400
+	by vger.kernel.org with ESMTP id S1752843AbZFHWzD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:55:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, hpa@zytor.com, mingo@elte.hu, pchen@nvidia.com, stable@kernel.org, tglx@linutronix.de
+Cc: jeffm@jeffreymahoney.com, jeffm@suse.com, mason@oracle.com
 
 
 The patch titled
-     firmware_map: fix hang with x86/32bit
+     reiserfs: fix warnings with gcc 4.4
 has been added to the -mm tree.  Its filename is
-     firmware_map-fix-hang-with-x86-32bit.patch
+     reiserfs-fix-warnings-with-gcc-44.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,119 +33,157 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware_map: fix hang with x86/32bit
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: reiserfs: fix warnings with gcc 4.4
+From: Jeff Mahoney <jeffm@jeffreymahoney.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13484
+Several code paths in reiserfs have a construct like:
 
-Peer reported:
-| The bug is introduced from kernel 2.6.27, if E820 table reserve the memory
-| above 4G in 32bit OS(BIOS-e820: 00000000fff80000 - 0000000120000000
-| (reserved)), system will report Int 6 error and hang up. The bug is caused by
-| the following code in drivers/firmware/memmap.c, the resource_size_t is 32bit
-| variable in 32bit OS, the BUG_ON() will be invoked to result in the Int 6
-| error. I try the latest 32bit Ubuntu and Fedora distributions, all hit this
-| bug.
-|======
-|static int firmware_map_add_entry(resource_size_t start, resource_size_t end,
-|                  const char *type,
-|                  struct firmware_map_entry *entry)
+ if (is_direntry_le_ih(ih = B_N_PITEM_HEAD(src, item_num))) ...
 
-and it only happen with CONFIG_PHYS_ADDR_T_64BIT is not set.
+which, in addition to being ugly, end up causing compiler warnings with
+gcc 4.4.0.  Previous compilers didn't issue a warning.
 
-it turns out we need to pass u64 instead of resource_size_t for that.
+fs/reiserfs/do_balan.c:1273: warning: operation on `aux_ih' may be undefined
+fs/reiserfs/lbalance.c:393: warning: operation on `ih' may be undefined
+fs/reiserfs/lbalance.c:421: warning: operation on `ih' may be undefined
+fs/reiserfs/lbalance.c:777: warning: operation on `ih' may be undefined
 
-Reported-and-tested-by: Peer Chen <pchen@nvidia.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@kernel.org>
+I believe this is due to the ih being passed to macros which evaluate the
+argument more than once.  This is old code and we haven't seen any
+problems with it, but this patch eliminates the warnings.
+
+It converts the multiple evaluation macros to static inlines and does a
+preassignment for the cases that were causing the warnings because that
+code is just ugly.
+
+Reported-by: Chris Mason <mason@oracle.com>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c    |   12 +++++-------
- include/linux/firmware-map.h |   12 ++++--------
- 2 files changed, 9 insertions(+), 15 deletions(-)
+ fs/reiserfs/do_balan.c      |    5 +--
+ fs/reiserfs/lbalance.c      |   10 ++++---
+ include/linux/reiserfs_fs.h |   47 ++++++++++++++++++++++++++++------
+ 3 files changed, 47 insertions(+), 15 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit
-+++ a/drivers/firmware/memmap.c
-@@ -31,8 +31,8 @@
-  * information is necessary as for the resource tree.
-  */
- struct firmware_map_entry {
--	resource_size_t		start;	/* start of the memory range */
--	resource_size_t		end;	/* end of the memory range (incl.) */
-+	u64			start;	/* start of the memory range */
-+	u64			end;	/* end of the memory range (incl.) */
- 	const char		*type;	/* type of the memory range */
- 	struct list_head	list;	/* entry for the linked list */
- 	struct kobject		kobj;   /* kobject for each entry */
-@@ -101,7 +101,7 @@ static LIST_HEAD(map_entries);
-  * Common implementation of firmware_map_add() and firmware_map_add_early()
-  * which expects a pre-allocated struct firmware_map_entry.
-  **/
--static int firmware_map_add_entry(resource_size_t start, resource_size_t end,
-+static int firmware_map_add_entry(u64 start, u64 end,
- 				  const char *type,
- 				  struct firmware_map_entry *entry)
+diff -puN fs/reiserfs/do_balan.c~reiserfs-fix-warnings-with-gcc-44 fs/reiserfs/do_balan.c
+--- a/fs/reiserfs/do_balan.c~reiserfs-fix-warnings-with-gcc-44
++++ a/fs/reiserfs/do_balan.c
+@@ -1262,9 +1262,8 @@ static int balance_leaf(struct tree_bala
+ 
+ 					RFALSE(ih, "PAP-12210: ih must be 0");
+ 
+-					if (is_direntry_le_ih
+-					    (aux_ih =
+-					     B_N_PITEM_HEAD(tbS0, item_pos))) {
++					aux_ih = B_N_PITEM_HEAD(tbS0, item_pos);
++					if (is_direntry_le_ih(aux_ih)) {
+ 						/* we append to directory item */
+ 
+ 						int entry_count;
+diff -puN fs/reiserfs/lbalance.c~reiserfs-fix-warnings-with-gcc-44 fs/reiserfs/lbalance.c
+--- a/fs/reiserfs/lbalance.c~reiserfs-fix-warnings-with-gcc-44
++++ a/fs/reiserfs/lbalance.c
+@@ -390,7 +390,8 @@ static void leaf_item_bottle(struct buff
+ 
+ 	if (last_first == FIRST_TO_LAST) {
+ 		/* if ( if item in position item_num in buffer SOURCE is directory item ) */
+-		if (is_direntry_le_ih(ih = B_N_PITEM_HEAD(src, item_num)))
++		ih = B_N_PITEM_HEAD(src, item_num);
++		if (is_direntry_le_ih(ih))
+ 			leaf_copy_dir_entries(dest_bi, src, FIRST_TO_LAST,
+ 					      item_num, 0, cpy_bytes);
+ 		else {
+@@ -418,7 +419,8 @@ static void leaf_item_bottle(struct buff
+ 		}
+ 	} else {
+ 		/*  if ( if item in position item_num in buffer SOURCE is directory item ) */
+-		if (is_direntry_le_ih(ih = B_N_PITEM_HEAD(src, item_num)))
++		ih = B_N_PITEM_HEAD(src, item_num);
++		if (is_direntry_le_ih(ih))
+ 			leaf_copy_dir_entries(dest_bi, src, LAST_TO_FIRST,
+ 					      item_num,
+ 					      I_ENTRY_COUNT(ih) - cpy_bytes,
+@@ -774,8 +776,8 @@ void leaf_delete_items(struct buffer_inf
+ 			leaf_delete_items_entirely(cur_bi, first + 1,
+ 						   del_num - 1);
+ 
+-			if (is_direntry_le_ih
+-			    (ih = B_N_PITEM_HEAD(bh, B_NR_ITEMS(bh) - 1)))
++			ih = B_N_PITEM_HEAD(bh, B_NR_ITEMS(bh) - 1);
++			if (is_direntry_le_ih(ih))
+ 				/* the last item is directory  */
+ 				/* len = numbers of directory entries in this item */
+ 				len = ih_entry_count(ih);
+diff -puN include/linux/reiserfs_fs.h~reiserfs-fix-warnings-with-gcc-44 include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~reiserfs-fix-warnings-with-gcc-44
++++ a/include/linux/reiserfs_fs.h
+@@ -712,23 +712,54 @@ static inline void set_le_key_k_type(int
+ 		   cpu_to_le32(type2uniqueness(type)))
+ 	    : (void)(set_offset_v2_k_type(&(key->u.k_offset_v2), type));
+ }
++
+ static inline void set_le_ih_k_type(struct item_head *ih, int type)
  {
-@@ -132,8 +132,7 @@ static int firmware_map_add_entry(resour
-  *
-  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-  **/
--int firmware_map_add(resource_size_t start, resource_size_t end,
--		     const char *type)
-+int firmware_map_add(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
- 
-@@ -157,8 +156,7 @@ int firmware_map_add(resource_size_t sta
-  *
-  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-  **/
--int __init firmware_map_add_early(resource_size_t start, resource_size_t end,
--				  const char *type)
-+int __init firmware_map_add_early(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
- 
-diff -puN include/linux/firmware-map.h~firmware_map-fix-hang-with-x86-32bit include/linux/firmware-map.h
---- a/include/linux/firmware-map.h~firmware_map-fix-hang-with-x86-32bit
-+++ a/include/linux/firmware-map.h
-@@ -24,21 +24,17 @@
-  */
- #ifdef CONFIG_FIRMWARE_MEMMAP
- 
--int firmware_map_add(resource_size_t start, resource_size_t end,
--		     const char *type);
--int firmware_map_add_early(resource_size_t start, resource_size_t end,
--			   const char *type);
-+int firmware_map_add(u64 start, u64 end, const char *type);
-+int firmware_map_add_early(u64 start, u64 end, const char *type);
- 
- #else /* CONFIG_FIRMWARE_MEMMAP */
- 
--static inline int firmware_map_add(resource_size_t start, resource_size_t end,
--				   const char *type)
-+static inline int firmware_map_add(u64 start, u64 end, const char *type)
- {
- 	return 0;
+ 	set_le_key_k_type(ih_version(ih), &(ih->ih_key), type);
  }
  
--static inline int firmware_map_add_early(resource_size_t start,
--					 resource_size_t end, const char *type)
-+static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
- {
- 	return 0;
- }
+-#define is_direntry_le_key(version,key) (le_key_k_type (version, key) == TYPE_DIRENTRY)
+-#define is_direct_le_key(version,key) (le_key_k_type (version, key) == TYPE_DIRECT)
+-#define is_indirect_le_key(version,key) (le_key_k_type (version, key) == TYPE_INDIRECT)
+-#define is_statdata_le_key(version,key) (le_key_k_type (version, key) == TYPE_STAT_DATA)
++static inline int is_direntry_le_key(int version, struct reiserfs_key *key)
++{
++	return le_key_k_type(version, key) == TYPE_DIRENTRY;
++}
++
++static inline int is_direct_le_key(int version, struct reiserfs_key *key)
++{
++	return le_key_k_type(version, key) == TYPE_DIRECT;
++}
++
++static inline int is_indirect_le_key(int version, struct reiserfs_key *key)
++{
++	return le_key_k_type(version, key) == TYPE_INDIRECT;
++}
++
++static inline int is_statdata_le_key(int version, struct reiserfs_key *key)
++{
++	return le_key_k_type(version, key) == TYPE_STAT_DATA;
++}
+ 
+ //
+ // item header has version.
+ //
+-#define is_direntry_le_ih(ih) is_direntry_le_key (ih_version (ih), &((ih)->ih_key))
+-#define is_direct_le_ih(ih) is_direct_le_key (ih_version (ih), &((ih)->ih_key))
+-#define is_indirect_le_ih(ih) is_indirect_le_key (ih_version(ih), &((ih)->ih_key))
+-#define is_statdata_le_ih(ih) is_statdata_le_key (ih_version (ih), &((ih)->ih_key))
++static inline int is_direntry_le_ih(struct item_head *ih)
++{
++	return is_direntry_le_key(ih_version(ih), &ih->ih_key);
++}
++
++static inline int is_direct_le_ih(struct item_head *ih)
++{
++	return is_direct_le_key(ih_version(ih), &ih->ih_key);
++}
++
++static inline int is_indirect_le_ih(struct item_head *ih)
++{
++	return is_indirect_le_key(ih_version(ih), &ih->ih_key);
++}
++
++static inline int is_statdata_le_ih(struct item_head *ih)
++{
++	return is_statdata_le_key(ih_version(ih), &ih->ih_key);
++}
+ 
+ //
+ // key is pointer to cpu key, result is cpu
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from jeffm@jeffreymahoney.com are
 
-linux-next.patch
-firmware_map-fix-hang-with-x86-32bit.patch
-firmware_map-fix-hang-with-x86-32bit-fix.patch
-page-allocator-clear-n_high_memory-map-before-se-set-it-again.patch
+reiserfs-fix-warnings-with-gcc-44.patch
 
