@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + gru-remove-references-to-the-obsolete-global-status-handle.patch added to -mm tree
-Date: Mon, 08 Jun 2009 16:11:34 -0700
-Message-ID: <200906082311.n58NBYBM031212@imap1.linux-foundation.org>
+Subject: + gru-copyright-fixes.patch added to -mm tree
+Date: Mon, 08 Jun 2009 16:11:36 -0700
+Message-ID: <200906082311.n58NBaRv031285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58215 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756430AbZFHXLe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 19:11:34 -0400
+	by vger.kernel.org with ESMTP id S1756371AbZFHXLg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 19:11:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: remove references to the obsolete global status handle
+     gru: copyright fixes
 has been added to the -mm tree.  Its filename is
-     gru-remove-references-to-the-obsolete-global-status-handle.patch
+     gru-copyright-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: remove references to the obsolete global status handle
+Subject: gru: copyright fixes
 From: Jack Steiner <steiner@sgi.com>
 
-Delete references to the SGI GRU GSH hardware resources.  These GRU
-resources have been deleted from the hardware.  (These resources have
-never benn used, anyway).
+Fix the copyright statements in a couple of GRU files.  No functional
+changes are being made.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/gruhandles.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/misc/sgi-gru/grukdump.c |   18 ++++++++++++++----
+ drivers/misc/sgi-gru/grumain.c  |   18 ++++++++++++++----
+ 2 files changed, 28 insertions(+), 8 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/gruhandles.h~gru-remove-references-to-the-obsolete-global-status-handle drivers/misc/sgi-gru/gruhandles.h
---- a/drivers/misc/sgi-gru/gruhandles.h~gru-remove-references-to-the-obsolete-global-status-handle
-+++ a/drivers/misc/sgi-gru/gruhandles.h
-@@ -39,7 +39,6 @@
- #define GRU_NUM_CBE		128
- #define GRU_NUM_TFH		128
- #define GRU_NUM_CCH		16
--#define GRU_NUM_GSH		1
+diff -puN drivers/misc/sgi-gru/grukdump.c~gru-copyright-fixes drivers/misc/sgi-gru/grukdump.c
+--- a/drivers/misc/sgi-gru/grukdump.c~gru-copyright-fixes
++++ a/drivers/misc/sgi-gru/grukdump.c
+@@ -3,11 +3,21 @@
+  *
+  *            Dump GRU State
+  *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
++ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
+  *
+- * Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+  */
  
- /* Maximum resource counts that can be reserved by user programs */
- #define GRU_NUM_USER_CBR	GRU_NUM_CBE
-@@ -56,7 +55,6 @@
- #define GRU_CBE_BASE		(GRU_MCS_BASE + 0x10000)
- #define GRU_TFH_BASE		(GRU_MCS_BASE + 0x18000)
- #define GRU_CCH_BASE		(GRU_MCS_BASE + 0x20000)
--#define GRU_GSH_BASE		(GRU_MCS_BASE + 0x30000)
+ #include <linux/kernel.h>
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-copyright-fixes drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-copyright-fixes
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -3,11 +3,21 @@
+  *
+  *            DRIVER TABLE MANAGER + GRU CONTEXT LOAD/UNLOAD
+  *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
++ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
+  *
+- * Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+  */
  
- /* User gseg constants */
- #define GRU_GSEG_STRIDE		(4 * 1024 * 1024)
+ #include <linux/kernel.h>
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
