@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-fix-race-in-buffer-processing-in-commit-code.patch added to -mm tree
-Date: Mon, 08 Jun 2009 15:58:55 -0700
-Message-ID: <200906082258.n58MwtDI020940@imap1.linux-foundation.org>
+Subject: + gru-fix-cache-coherency-issues-with-instruction-retry.patch added to -mm tree
+Date: Mon, 08 Jun 2009 16:11:14 -0700
+Message-ID: <200906082311.n58NBE5E030922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35723 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754692AbZFHW77 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:59:59 -0400
+	by vger.kernel.org with ESMTP id S1752777AbZFHXLP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 19:11:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, linux-ext4@vger.kernel.org, stable@kernel.org
+Cc: steiner@sgi.com
 
 
 The patch titled
-     jbd: fix race in buffer processing in commit code
+     gru: fix cache coherency issues with instruction retry
 has been added to the -mm tree.  Its filename is
-     jbd-fix-race-in-buffer-processing-in-commit-code.patch
+     gru-fix-cache-coherency-issues-with-instruction-retry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: fix race in buffer processing in commit code
-From: Jan Kara <jack@suse.cz>
+Subject: gru: fix cache coherency issues with instruction retry
+From: Jack Steiner <steiner@sgi.com>
 
-In commit code, we scan buffers attached to a transaction.  During this
-scan, we sometimes have to drop j_list_lock and then we recheck whether
-the journal buffer head didn't get freed by journal_try_to_free_buffers().
- But checking for buffer_jbd(bh) isn't enough because a new journal head
-could get attached to our buffer head.  So add a check whether the journal
-head remained the same and whether it's still at the same transaction and
-list.
+Fix two problems related to GRU instruction failures.  Cache coherency is
+not maintained for CBEs except when loading or unloading contexts.  When
+reading a CBE to extract error information, the CBE must first be flushed
+from the cache.
 
-This is a nasty bug and can cause problems like memory corruption (use after
-free) or trigger various assertions in JBD code (observed).
+The function that reads kerrnel CBEs was reading the wrong CBE.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: <stable@kernel.org>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/misc/sgi-gru/grufault.c     |    3 ++-
+ drivers/misc/sgi-gru/grufile.c      |    2 +-
+ drivers/misc/sgi-gru/grukservices.c |   12 ++++++++++--
+ drivers/misc/sgi-gru/grutables.h    |    1 +
+ 4 files changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN fs/jbd/commit.c~jbd-fix-race-in-buffer-processing-in-commit-code fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-fix-race-in-buffer-processing-in-commit-code
-+++ a/fs/jbd/commit.c
-@@ -241,7 +241,7 @@ write_out_data:
- 			spin_lock(&journal->j_list_lock);
- 		}
- 		/* Someone already cleaned up the buffer? */
--		if (!buffer_jbd(bh)
-+		if (!buffer_jbd(bh) || bh2jh(bh) != jh
- 			|| jh->b_transaction != commit_transaction
- 			|| jh->b_jlist != BJ_SyncData) {
- 			jbd_unlock_bh_state(bh);
-@@ -478,7 +478,9 @@ void journal_commit_transaction(journal_
- 			spin_lock(&journal->j_list_lock);
- 			continue;
- 		}
--		if (buffer_jbd(bh) && jh->b_jlist == BJ_Locked) {
-+		if (buffer_jbd(bh) && bh2jh(bh) == jh &&
-+		    jh->b_transaction == commit_transaction &&
-+		    jh->b_jlist == BJ_Locked) {
- 			__journal_unfile_buffer(jh);
- 			jbd_unlock_bh_state(bh);
- 			journal_remove_journal_head(bh);
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-fix-cache-coherency-issues-with-instruction-retry drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-fix-cache-coherency-issues-with-instruction-retry
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -614,7 +614,7 @@ int gru_get_exception_detail(unsigned lo
+ 	} else if (gts->ts_gru) {
+ 		cbrnum = thread_cbr_number(gts, ucbnum);
+ 		cbe = get_cbe_by_index(gts->ts_gru, cbrnum);
+-		prefetchw(cbe);/* Harmless on hardware, required for emulator */
++		gru_flush_cache(cbe);	/* CBE not coherent */
+ 		excdet.opc = cbe->opccpy;
+ 		excdet.exopc = cbe->exopccpy;
+ 		excdet.ecause = cbe->ecause;
+@@ -622,6 +622,7 @@ int gru_get_exception_detail(unsigned lo
+ 		excdet.exceptdet1 = cbe->idef3upd;
+ 		excdet.cbrstate = cbe->cbrstate;
+ 		excdet.cbrexecstatus = cbe->cbrexecstatus;
++		gru_flush_cache(cbe);
+ 		ret = 0;
+ 	} else {
+ 		ret = -EAGAIN;
+diff -puN drivers/misc/sgi-gru/grufile.c~gru-fix-cache-coherency-issues-with-instruction-retry drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~gru-fix-cache-coherency-issues-with-instruction-retry
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -46,6 +46,7 @@
+ 
+ struct gru_blade_state *gru_base[GRU_MAX_BLADES] __read_mostly;
+ unsigned long gru_start_paddr __read_mostly;
++void *gru_start_vaddr __read_mostly;
+ unsigned long gru_end_paddr __read_mostly;
+ unsigned int gru_max_gids __read_mostly;
+ struct gru_stats_s gru_stats;
+@@ -376,7 +377,6 @@ static int __init gru_init(void)
+ {
+ 	int ret, irq, chip;
+ 	char id[10];
+-	void *gru_start_vaddr;
+ 
+ 	if (!is_uv_system())
+ 		return 0;
+diff -puN drivers/misc/sgi-gru/grukservices.c~gru-fix-cache-coherency-issues-with-instruction-retry drivers/misc/sgi-gru/grukservices.c
+--- a/drivers/misc/sgi-gru/grukservices.c~gru-fix-cache-coherency-issues-with-instruction-retry
++++ a/drivers/misc/sgi-gru/grukservices.c
+@@ -98,6 +98,9 @@
+ #define ASYNC_HAN_TO_BID(h)	((h) - 1)
+ #define ASYNC_BID_TO_HAN(b)	((b) + 1)
+ #define ASYNC_HAN_TO_BS(h)	gru_base[ASYNC_HAN_TO_BID(h)]
++#define KCB_TO_GID(cb)		((cb - gru_start_vaddr) /		\
++					(GRU_SIZE * GRU_CHIPLETS_PER_BLADE))
++#define KCB_TO_BS(cb)		gru_base[KCB_TO_GID(cb)]
+ 
+ #define GRU_NUM_KERNEL_CBR	1
+ #define GRU_NUM_KERNEL_DSR_BYTES 256
+@@ -354,14 +357,19 @@ int gru_get_cb_exception_detail(void *cb
+ 		struct control_block_extended_exc_detail *excdet)
+ {
+ 	struct gru_control_block_extended *cbe;
++	struct gru_blade_state *bs;
++	int cbrnum;
+ 
+-	cbe = get_cbe(GRUBASE(cb), get_cb_number(cb));
+-	prefetchw(cbe);	/* Harmless on hardware, required for emulator */
++	bs = KCB_TO_BS(cb);
++	cbrnum = thread_cbr_number(bs->bs_kgts, get_cb_number(cb));
++	cbe = get_cbe(GRUBASE(cb), cbrnum);
++	gru_flush_cache(cbe);	/* CBE not coherent */
+ 	excdet->opc = cbe->opccpy;
+ 	excdet->exopc = cbe->exopccpy;
+ 	excdet->ecause = cbe->ecause;
+ 	excdet->exceptdet0 = cbe->idef1upd;
+ 	excdet->exceptdet1 = cbe->idef3upd;
++	gru_flush_cache(cbe);
+ 	return 0;
+ }
+ 
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-fix-cache-coherency-issues-with-instruction-retry drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-fix-cache-coherency-issues-with-instruction-retry
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -153,6 +153,7 @@
+ extern struct gru_stats_s gru_stats;
+ extern struct gru_blade_state *gru_base[];
+ extern unsigned long gru_start_paddr, gru_end_paddr;
++extern void *gru_start_vaddr;
+ extern unsigned int gru_max_gids;
+ 
+ #define GRU_MAX_BLADES		MAX_NUMNODES
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from steiner@sgi.com are
 
-jbd-fix-race-in-buffer-processing-in-commit-code.patch
 linux-next.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
-mm-remove-__invalidate_mapping_pages-variant.patch
-ext2-do-not-update-mtime-of-a-moved-directory.patch
-ext3-fix-chain-verification-in-ext3_get_blocks.patch
-isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch
-isofs-fix-setting-of-uid-and-gid-to-0.patch
-isofs-cleanup-mount-option-processing.patch
-reiser4-update-names-of-quota-methods.patch
+page-allocator-clear-n_high_memory-map-before-se-set-it-again.patch
+gru-bug-fixes-for-gru-exception-handling.patch
+gru-dump-chiplet-state.patch
+gru-dump-chiplet-state-update.patch
+gru-dynamic-allocation-of-kernel-contexts.patch
+gru-dynamic-allocation-of-kernel-contexts-update.patch
+gru-change-context-load-and-unload.patch
+gru-support-cch_allocate-for-kernel-threads.patch
+gru-change-resource-assignment-for-kernel-threads.patch
+gru-support-contexts-with-zero-dsrs-or-cbrs.patch
+gru-fix-handling-of-mesq-failures.patch
+gru-check-context-state-on-reload.patch
+gru-support-instruction-completion-interrupts.patch
+gru-support-for-asynchronous-gru-instructions.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+gru-update-gru-kernel-self-tests.patch
+gru-update-gru-kernel-self-tests-fix.patch
+gru-update-to-rev-09-of-gru-spec.patch
+gru-fix-cache-coherency-issues-with-instruction-retry.patch
+gru-add-user-request-to-explicitly-unload-a-gru-context.patch
+gru-fix-automatic-retry-of-gru-instruction-failures.patch
+gru-collect-per-context-user-statistics.patch
+gru-delete-user-request-for-fetching-chiplet-status.patch
+gru-cleanup-gru-inline-functions.patch
+gru-generic-infrastructure-for-context-options.patch
+gru-add-user-request-to-specify-gru-slice.patch
+gru-fix-potential-use-after-free-when-purging-gru-tlbs.patch
+gru-fixes-to-grudump-utility.patch
+gru-remove-references-to-the-obsolete-global-status-handle.patch
+gru-copyright-fixes.patch
 
