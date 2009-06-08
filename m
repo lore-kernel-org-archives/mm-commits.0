@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-change-scsi-error-handling-routines-to-work-with-interrupts-enabled.patch added to -mm tree
-Date: Mon, 08 Jun 2009 15:41:47 -0700
-Message-ID: <200906082241.n58Mfls1006984@imap1.linux-foundation.org>
+Subject: + cciss-decode-unit-attention-in-scsi-error-handling-code.patch added to -mm tree
+Date: Mon, 08 Jun 2009 15:41:51 -0700
+Message-ID: <200906082241.n58Mfpt2007046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755399AbZFHWmA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:42:00 -0400
+	by vger.kernel.org with ESMTP id S1755444AbZFHWmE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:42:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: scameron@beardog.cca.cpqcorp.net, jens.axboe@oracle.com, mike.miller@hp.com
 
 
 The patch titled
-     cciss: change SCSI error handling routines to work with interrupts enabled.
+     cciss: decode unit attention in SCSI error handling code
 has been added to the -mm tree.  Its filename is
-     cciss-change-scsi-error-handling-routines-to-work-with-interrupts-enabled.patch
+     cciss-decode-unit-attention-in-scsi-error-handling-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: change SCSI error handling routines to work with interrupts enabled.
+Subject: cciss: decode unit attention in SCSI error handling code
 From: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
 
-Change cciss scsi error handling routines to work with interrupts enabled.
+Make SCSI reset error handler decode unit attention ASC and after a target
+reset wait for a unit attention that indicates a reset occurred rather
+than just for any old unit attention.
 
 Signed-off-by: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
 Cc: Jens Axboe <jens.axboe@oracle.com>
@@ -44,86 +46,45 @@ Cc: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c      |    3 +++
- drivers/block/cciss_scsi.c |   24 +++++++++---------------
- 2 files changed, 12 insertions(+), 15 deletions(-)
+ drivers/block/cciss_scsi.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-change-scsi-error-handling-routines-to-work-with-interrupts-enabled drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-change-scsi-error-handling-routines-to-work-with-interrupts-enabled
-+++ a/drivers/block/cciss.c
-@@ -184,6 +184,9 @@ static int sendcmd(__u8 cmd, int ctlr, v
- static int sendcmd_withirq(__u8 cmd, int ctlr, void *buff, size_t size,
- 			__u8 page_code, unsigned char scsi3addr[],
- 			int cmd_type);
-+static int sendcmd_withirq_core(ctlr_info_t *h, CommandList_struct *c,
-+	int attempt_retry);
-+static int process_sendcmd_error(ctlr_info_t *h, CommandList_struct *c);
- 
- static void fail_all_cmds(unsigned long ctlr);
- static int scan_thread(void *data);
-diff -puN drivers/block/cciss_scsi.c~cciss-change-scsi-error-handling-routines-to-work-with-interrupts-enabled drivers/block/cciss_scsi.c
---- a/drivers/block/cciss_scsi.c~cciss-change-scsi-error-handling-routines-to-work-with-interrupts-enabled
+diff -puN drivers/block/cciss_scsi.c~cciss-decode-unit-attention-in-scsi-error-handling-code drivers/block/cciss_scsi.c
+--- a/drivers/block/cciss_scsi.c~cciss-decode-unit-attention-in-scsi-error-handling-code
 +++ a/drivers/block/cciss_scsi.c
-@@ -49,8 +49,6 @@ static int fill_cmd(CommandList_struct *
- 	__u8 page_code, unsigned char *scsi3addr,
- 	int cmd_type);
+@@ -1604,16 +1604,25 @@ static int wait_for_device_to_become_rea
  
--static int sendcmd_core(ctlr_info_t *h, CommandList_struct *c);
--
- static CommandList_struct *cmd_alloc(ctlr_info_t *h, int get_from_pool);
- static void cmd_free(ctlr_info_t *h, CommandList_struct *c, int got_from_pool);
+ 		(void) process_sendcmd_error(h, c);
  
-@@ -1601,11 +1599,10 @@ static int wait_for_device_to_become_rea
- 		/* Send the Test Unit Ready */
- 		rc = fill_cmd(c, TEST_UNIT_READY, h->ctlr, NULL, 0, 0,
- 			lunaddr, TYPE_CMD);
--		if (rc == 0) {
--			rc = sendcmd_core(h, c);
--			/* sendcmd turned off interrupts, turn 'em back on. */
--			h->access.set_intr_mask(h, CCISS_INTR_ON);
--		}
-+		if (rc == 0)
-+			rc = sendcmd_withirq_core(h, c, 0);
-+
-+		(void) process_sendcmd_error(h, c);
+-		if (rc == 0 && c->err_info->CommandStatus == CMD_SUCCESS)
+-			break;
++		if (rc != 0)
++			goto retry_tur;
  
- 		if (rc == 0 && c->err_info->CommandStatus == CMD_SUCCESS)
+-		if (rc == 0 &&
+-			c->err_info->CommandStatus == CMD_TARGET_STATUS &&
+-			c->err_info->ScsiStatus == SAM_STAT_CHECK_CONDITION &&
+-			(c->err_info->SenseInfo[2] == NO_SENSE ||
+-			c->err_info->SenseInfo[2] == UNIT_ATTENTION))
++		if (c->err_info->CommandStatus == CMD_SUCCESS)
  			break;
-@@ -1663,10 +1660,8 @@ static int cciss_eh_device_reset_handler
- 		return FAILED;
- 	memcpy(lunaddr, &cmd_in_trouble->Header.LUN.LunAddrBytes[0], 8);
- 	/* send a reset to the SCSI LUN which the command was sent to */
--	rc = sendcmd(CCISS_RESET_MSG, ctlr, NULL, 0, 0, lunaddr,
-+	rc = sendcmd_withirq(CCISS_RESET_MSG, ctlr, NULL, 0, 0, lunaddr,
- 		TYPE_MSG);
--	/* sendcmd turned off interrupts on the board, turn 'em back on. */
--	(*c)->access.set_intr_mask(*c, CCISS_INTR_ON);
- 	if (rc == 0 && wait_for_device_to_become_ready(*c, lunaddr) == 0)
- 		return SUCCESS;
- 	printk(KERN_WARNING "cciss%d: resetting device failed.\n", ctlr);
-@@ -1677,6 +1672,7 @@ static int  cciss_eh_abort_handler(struc
- {
- 	int rc;
- 	CommandList_struct *cmd_to_abort;
-+	unsigned char lunaddr[8];
- 	ctlr_info_t **c;
- 	int ctlr;
  
-@@ -1691,11 +1687,9 @@ static int  cciss_eh_abort_handler(struc
- 	cmd_to_abort = (CommandList_struct *) scsicmd->host_scribble;
- 	if (cmd_to_abort == NULL) /* paranoia */
- 		return FAILED;
--	rc = sendcmd(CCISS_ABORT_MSG, ctlr, &cmd_to_abort->Header.Tag, 0, 0,
--		(unsigned char *) &cmd_to_abort->Header.LUN.LunAddrBytes[0], 
--		TYPE_MSG);
--	/* sendcmd turned off interrupts on the board, turn 'em back on. */
--	(*c)->access.set_intr_mask(*c, CCISS_INTR_ON);
-+	memcpy(lunaddr, &cmd_to_abort->Header.LUN.LunAddrBytes[0], 8);
-+	rc = sendcmd_withirq(CCISS_ABORT_MSG, ctlr, &cmd_to_abort->Header.Tag,
-+		0, 0, lunaddr, TYPE_MSG);
- 	if (rc == 0)
- 		return SUCCESS;
- 	return FAILED;
++		if (c->err_info->CommandStatus == CMD_TARGET_STATUS &&
++			c->err_info->ScsiStatus == SAM_STAT_CHECK_CONDITION) {
++			if (c->err_info->SenseInfo[2] == NO_SENSE)
++				break;
++			if (c->err_info->SenseInfo[2] == UNIT_ATTENTION) {
++				unsigned char asc;
++				asc = c->err_info->SenseInfo[12];
++				check_for_unit_attention(h, c);
++				if (asc == POWER_OR_RESET)
++					break;
++			}
++		}
++retry_tur:
+ 		printk(KERN_WARNING "cciss%d: Waiting %d secs "
+ 			"for device to become ready.\n",
+ 			h->ctlr, waittime / HZ);
 _
 
 Patches currently in -mm which might be from scameron@beardog.cca.cpqcorp.net are
