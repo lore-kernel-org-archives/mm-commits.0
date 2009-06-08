@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-remove-no-longer-needed-sendcmd-reject-processing-code.patch added to -mm tree
-Date: Mon, 08 Jun 2009 15:41:49 -0700
-Message-ID: <200906082241.n58MfoJl007035@imap1.linux-foundation.org>
+Subject: + firmware_map-fix-hang-with-x86-32bit-fix.patch added to -mm tree
+Date: Mon, 08 Jun 2009 15:53:21 -0700
+Message-ID: <200906082253.n58MrMuw016395@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41588 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755444AbZFHWmD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:42:03 -0400
+	by vger.kernel.org with ESMTP id S1751742AbZFHWyl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:54:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: scameron@beardog.cca.cpqcorp.net, jens.axboe@oracle.com, mike.miller@hp.com
+Cc: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, yinghai@kernel.org
 
 
 The patch titled
-     cciss: remove no longer needed sendcmd reject processing code
+     firmware_map-fix-hang-with-x86-32bit-fix
 has been added to the -mm tree.  Its filename is
-     cciss-remove-no-longer-needed-sendcmd-reject-processing-code.patch
+     firmware_map-fix-hang-with-x86-32bit-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,226 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: remove no longer needed sendcmd reject processing code
-From: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
+Subject: firmware_map-fix-hang-with-x86-32bit-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Now that the cciss SCSI error handling routines operate with interrupts
-enabled, we no longer need to maintain the list of command completions
-that sendcmd() might inadvertantly scoop up, since now it only runs at
-driver init time, and there won't be any other commands for it to scoop
-up.  So we can remove that list and the code that adds to it and processes
-it.
+explain why..
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Mike Miller <mike.miller@hp.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   98 +---------------------------------------
- drivers/block/cciss.h |    9 ---
- 2 files changed, 3 insertions(+), 104 deletions(-)
+ drivers/firmware/memmap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/block/cciss.c~cciss-remove-no-longer-needed-sendcmd-reject-processing-code drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-remove-no-longer-needed-sendcmd-reject-processing-code
-+++ a/drivers/block/cciss.c
-@@ -2612,51 +2612,6 @@ static unsigned long pollcomplete(int ct
- 	return 1;
- }
- 
--static int add_sendcmd_reject(__u8 cmd, int ctlr, unsigned long complete)
--{
--	/* We get in here if sendcmd() is polling for completions
--	   and gets some command back that it wasn't expecting --
--	   something other than that which it just sent down.
--	   Ordinarily, that shouldn't happen, but it can happen when
--	   the scsi tape stuff gets into error handling mode, and
--	   starts using sendcmd() to try to abort commands and
--	   reset tape drives.  In that case, sendcmd may pick up
--	   completions of commands that were sent to logical drives
--	   through the block i/o system, or cciss ioctls completing, etc.
--	   In that case, we need to save those completions for later
--	   processing by the interrupt handler.
--	 */
--
--#ifdef CONFIG_CISS_SCSI_TAPE
--	struct sendcmd_reject_list *srl = &hba[ctlr]->scsi_rejects;
--
--	/* If it's not the scsi tape stuff doing error handling, (abort */
--	/* or reset) then we don't expect anything weird. */
--	if (cmd != CCISS_RESET_MSG && cmd != CCISS_ABORT_MSG) {
--#endif
--		printk(KERN_WARNING "cciss cciss%d: SendCmd "
--		       "Invalid command list address returned! (%lx)\n",
--		       ctlr, complete);
--		/* not much we can do. */
--#ifdef CONFIG_CISS_SCSI_TAPE
--		return 1;
--	}
--
--	/* We've sent down an abort or reset, but something else
--	   has completed */
--	if (srl->ncompletions >= (hba[ctlr]->nr_cmds + 2)) {
--		/* Uh oh.  No room to save it for later... */
--		printk(KERN_WARNING "cciss%d: Sendcmd: Invalid command addr, "
--		       "reject list overflow, command lost!\n", ctlr);
--		return 1;
--	}
--	/* Save it for later */
--	srl->complete[srl->ncompletions] = complete;
--	srl->ncompletions++;
--#endif
--	return 0;
--}
--
- /* Send command c to controller h and poll for it to complete.
-  * Turns interrupts off on the board.  Used at driver init time
-  * and during SCSI error recovery.
-@@ -2701,11 +2656,10 @@ resend_cmd1:
- 			break;
- 		}
- 
--		/* If it's not the cmd we're looking for, save it for later */
-+		/* Make sure it's the command we're expecting. */
- 		if ((complete & ~CISS_ERROR_BIT) != c->busaddr) {
--			if (add_sendcmd_reject(c->Request.CDB[0],
--				h->ctlr, complete) != 0)
--				BUG(); /* we are hosed if we get here. */
-+			printk(KERN_WARNING "cciss%d: Unexpected command "
-+				"completion.\n", h->ctlr);
- 			continue;
- 		}
- 
-@@ -2770,11 +2724,6 @@ resend_cmd1:
- 	buff_dma_handle.val32.upper = c->SG[0].Addr.upper;
- 	pci_unmap_single(h->pdev, (dma_addr_t) buff_dma_handle.val,
- 			 c->SG[0].Len, PCI_DMA_BIDIRECTIONAL);
--#ifdef CONFIG_CISS_SCSI_TAPE
--	/* if we saved some commands for later, process them now. */
--	if (h->scsi_rejects.ncompletions > 0)
--		do_cciss_intr(0, h);
--#endif
- 	return status;
- }
- 
-@@ -3195,44 +3144,18 @@ startio:
- 
- static inline unsigned long get_next_completion(ctlr_info_t *h)
- {
--#ifdef CONFIG_CISS_SCSI_TAPE
--	/* Any rejects from sendcmd() lying around? Process them first */
--	if (h->scsi_rejects.ncompletions == 0)
--		return h->access.command_completed(h);
--	else {
--		struct sendcmd_reject_list *srl;
--		int n;
--		srl = &h->scsi_rejects;
--		n = --srl->ncompletions;
--		/* printk("cciss%d: processing saved reject\n", h->ctlr); */
--		printk("p");
--		return srl->complete[n];
--	}
--#else
- 	return h->access.command_completed(h);
--#endif
- }
- 
- static inline int interrupt_pending(ctlr_info_t *h)
- {
--#ifdef CONFIG_CISS_SCSI_TAPE
--	return (h->access.intr_pending(h)
--		|| (h->scsi_rejects.ncompletions > 0));
--#else
- 	return h->access.intr_pending(h);
--#endif
- }
- 
- static inline long interrupt_not_for_us(ctlr_info_t *h)
- {
--#ifdef CONFIG_CISS_SCSI_TAPE
--	return (((h->access.intr_pending(h) == 0) ||
--		 (h->interrupts_enabled == 0))
--		&& (h->scsi_rejects.ncompletions == 0));
--#else
- 	return (((h->access.intr_pending(h) == 0) ||
- 		 (h->interrupts_enabled == 0)));
--#endif
- }
- 
- static irqreturn_t do_cciss_intr(int irq, void *dev_id)
-@@ -4054,15 +3977,6 @@ static int __devinit cciss_init_one(stru
- 		printk(KERN_ERR "cciss: out of memory");
- 		goto clean4;
- 	}
--#ifdef CONFIG_CISS_SCSI_TAPE
--	hba[i]->scsi_rejects.complete =
--	    kmalloc(sizeof(hba[i]->scsi_rejects.complete[0]) *
--		    (hba[i]->nr_cmds + 5), GFP_KERNEL);
--	if (hba[i]->scsi_rejects.complete == NULL) {
--		printk(KERN_ERR "cciss: out of memory");
--		goto clean4;
--	}
--#endif
- 	spin_lock_init(&hba[i]->lock);
- 
- 	/* Initialize the pdev driver private data.
-@@ -4122,9 +4036,6 @@ static int __devinit cciss_init_one(stru
- 
- clean4:
- 	kfree(inq_buff);
--#ifdef CONFIG_CISS_SCSI_TAPE
--	kfree(hba[i]->scsi_rejects.complete);
--#endif
- 	kfree(hba[i]->cmd_pool_bits);
- 	if (hba[i]->cmd_pool)
- 		pci_free_consistent(hba[i]->pdev,
-@@ -4242,9 +4153,6 @@ static void __devexit cciss_remove_one(s
- 	pci_free_consistent(hba[i]->pdev, hba[i]->nr_cmds * sizeof(ErrorInfo_struct),
- 			    hba[i]->errinfo_pool, hba[i]->errinfo_pool_dhandle);
- 	kfree(hba[i]->cmd_pool_bits);
--#ifdef CONFIG_CISS_SCSI_TAPE
--	kfree(hba[i]->scsi_rejects.complete);
--#endif
- 	/*
- 	 * Deliberately omit pci_disable_device(): it does something nasty to
- 	 * Smart Array controllers that pci_enable_device does not undo
-diff -puN drivers/block/cciss.h~cciss-remove-no-longer-needed-sendcmd-reject-processing-code drivers/block/cciss.h
---- a/drivers/block/cciss.h~cciss-remove-no-longer-needed-sendcmd-reject-processing-code
-+++ a/drivers/block/cciss.h
-@@ -53,14 +53,6 @@ typedef struct _drive_info_struct
- 	char rev[REV_LEN + 1];       /* SCSI revision string */
- } drive_info_struct;
- 
--#ifdef CONFIG_CISS_SCSI_TAPE
--
--struct sendcmd_reject_list {
--	int ncompletions;
--	unsigned long *complete; /* array of NR_CMDS tags */
--};
--
--#endif
- struct ctlr_info 
- {
- 	int	ctlr;
-@@ -128,7 +120,6 @@ struct ctlr_info 
- 	void *scsi_ctlr; /* ptr to structure containing scsi related stuff */
- 	/* list of block side commands the scsi error handling sucked up */
- 	/* and saved for later processing */
--	struct sendcmd_reject_list scsi_rejects;
- #endif
- 	unsigned char alive;
- 	struct completion *rescan_wait;
+diff -puN drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit-fix drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit-fix
++++ a/drivers/firmware/memmap.c
+@@ -31,6 +31,10 @@
+  * information is necessary as for the resource tree.
+  */
+ struct firmware_map_entry {
++	/*
++	 * start and end must be u64 rather than resource_size_t, because e820
++	 * resources can lie at addresses above 4G.
++	 */
+ 	u64			start;	/* start of the memory range */
+ 	u64			end;	/* end of the memory range (incl.) */
+ 	const char		*type;	/* type of the memory range */
 _
 
-Patches currently in -mm which might be from scameron@beardog.cca.cpqcorp.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-cciss-use-schedule_timeout_uninterruptible-in-scsi-error-handling-code.patch
-cciss-factor-out-core-of-sendcmd_withirq-for-use-by-scsi-error-handling-code.patch
-cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq.patch
-cciss-factor-out-fix-target-status-processing-code-from-sendcmd-functions.patch
-cciss-separate-error-processing-and-command-retrying-code-in-sendcmd_withirq_core.patch
-cciss-change-scsi-error-handling-routines-to-work-with-interrupts-enabled.patch
-cciss-remove-no-longer-needed-sendcmd-reject-processing-code.patch
-cciss-decode-unit-attention-in-scsi-error-handling-code.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+eeepc-laptop-enable-camera-by-default-fix.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+mtd-flex-onenand-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+firmware_map-fix-hang-with-x86-32bit-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool-fix.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
+gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
