@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch added to -mm tree
-Date: Mon, 08 Jun 2009 15:33:55 -0700
-Message-ID: <200906082233.n58MXtjh000603@imap1.linux-foundation.org>
+Subject: + cciss-use-schedule_timeout_uninterruptible-in-scsi-error-handling-code.patch added to -mm tree
+Date: Mon, 08 Jun 2009 15:41:37 -0700
+Message-ID: <200906082241.n58Mfb6m006841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43662 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754822AbZFHWef (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:34:35 -0400
+	by vger.kernel.org with ESMTP id S1752484AbZFHWlt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:41:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca
+Cc: scameron@beardog.cca.cpqcorp.net, jens.axboe@oracle.com, mike.miller@hp.com
 
 
 The patch titled
-     spi: takes size of a pointer to determine the size of the pointed-to type
+     cciss: use schedule_timeout_uninterruptible in SCSI error handling code
 has been added to the -mm tree.  Its filename is
-     spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch
+     cciss-use-schedule_timeout_uninterruptible-in-scsi-error-handling-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: takes size of a pointer to determine the size of the pointed-to type
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cciss: use schedule_timeout_uninterruptible in SCSI error handling code
+From: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
 
-Do not take the size of a pointer to determine the size of the pointed-to
-type.
+Use schedule_timeout_uninterruptible instead of schedule_timeout in the
+scsi error handling code when waiting between TUR polls since we are not
+interested in nor want to be interrupted by signals.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/cciss_scsi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -711,12 +711,12 @@ static int of_mpc83xx_spi_get_chipselect
- 		return 0;
- 	}
+diff -puN drivers/block/cciss_scsi.c~cciss-use-schedule_timeout_uninterruptible-in-scsi-error-handling-code drivers/block/cciss_scsi.c
+--- a/drivers/block/cciss_scsi.c~cciss-use-schedule_timeout_uninterruptible-in-scsi-error-handling-code
++++ a/drivers/block/cciss_scsi.c
+@@ -1608,7 +1608,7 @@ static int wait_for_device_to_become_rea
+ 		/* Wait for a bit.  do this first, because if we send
+ 		 * the TUR right away, the reset will just abort it.
+ 		 */
+-		schedule_timeout_interruptible(waittime);
++		schedule_timeout_uninterruptible(waittime);
+ 		count++;
  
--	pinfo->gpios = kmalloc(ngpios * sizeof(pinfo->gpios), GFP_KERNEL);
-+	pinfo->gpios = kmalloc(ngpios * sizeof(*pinfo->gpios), GFP_KERNEL);
- 	if (!pinfo->gpios)
- 		return -ENOMEM;
--	memset(pinfo->gpios, -1, ngpios * sizeof(pinfo->gpios));
-+	memset(pinfo->gpios, -1, ngpios * sizeof(*pinfo->gpios));
- 
--	pinfo->alow_flags = kzalloc(ngpios * sizeof(pinfo->alow_flags),
-+	pinfo->alow_flags = kzalloc(ngpios * sizeof(*pinfo->alow_flags),
- 				    GFP_KERNEL);
- 	if (!pinfo->alow_flags) {
- 		ret = -ENOMEM;
+ 		/* Increase wait time with each try, up to a point. */
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from scameron@beardog.cca.cpqcorp.net are
 
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-drm-fix-lock_test_with_return-macro.patch
-tvp514x-try_count-off-by-one.patch
-mtd-nand-max_retries-off-by-one.patch
-irda-count-reaches-1.patch
-drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
-atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-lguest-fix-array-indexing-check.patch
-spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-fix-off-by-one-errors.patch
-spi_bfin5xx-limit-reaches-1.patch
-carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-platinumfb-misplaced-parenthesis.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
+cciss-use-schedule_timeout_uninterruptible-in-scsi-error-handling-code.patch
+cciss-factor-out-core-of-sendcmd_withirq-for-use-by-scsi-error-handling-code.patch
+cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq.patch
+cciss-factor-out-fix-target-status-processing-code-from-sendcmd-functions.patch
+cciss-separate-error-processing-and-command-retrying-code-in-sendcmd_withirq_core.patch
+cciss-change-scsi-error-handling-routines-to-work-with-interrupts-enabled.patch
+cciss-remove-no-longer-needed-sendcmd-reject-processing-code.patch
+cciss-decode-unit-attention-in-scsi-error-handling-code.patch
 
