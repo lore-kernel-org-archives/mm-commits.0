@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + firmware_map-fix-hang-with-x86-32bit-fix.patch added to -mm tree
-Date: Mon, 08 Jun 2009 15:53:21 -0700
-Message-ID: <200906082253.n58MrMuw016395@imap1.linux-foundation.org>
+Subject: + firmware_map-fix-hang-with-x86-32bit.patch added to -mm tree
+Date: Mon, 08 Jun 2009 15:53:18 -0700
+Message-ID: <200906082253.n58MrJZF016335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751742AbZFHWyl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:54:41 -0400
+	by vger.kernel.org with ESMTP id S1752843AbZFHWyo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2009 18:54:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, yinghai@kernel.org
+Cc: yinghai@kernel.org, hpa@zytor.com, mingo@elte.hu, pchen@nvidia.com, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     firmware_map-fix-hang-with-x86-32bit-fix
+     firmware_map: fix hang with x86/32bit
 has been added to the -mm tree.  Its filename is
-     firmware_map-fix-hang-with-x86-32bit-fix.patch
+     firmware_map-fix-hang-with-x86-32bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware_map-fix-hang-with-x86-32bit-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: firmware_map: fix hang with x86/32bit
+From: Yinghai Lu <yinghai@kernel.org>
 
-explain why..
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13484
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <stable@kernel.org>
+Peer reported:
+| The bug is introduced from kernel 2.6.27, if E820 table reserve the memory
+| above 4G in 32bit OS(BIOS-e820: 00000000fff80000 - 0000000120000000
+| (reserved)), system will report Int 6 error and hang up. The bug is caused by
+| the following code in drivers/firmware/memmap.c, the resource_size_t is 32bit
+| variable in 32bit OS, the BUG_ON() will be invoked to result in the Int 6
+| error. I try the latest 32bit Ubuntu and Fedora distributions, all hit this
+| bug.
+|======
+|static int firmware_map_add_entry(resource_size_t start, resource_size_t end,
+|                  const char *type,
+|                  struct firmware_map_entry *entry)
+
+and it only happen with CONFIG_PHYS_ADDR_T_64BIT is not set.
+
+it turns out we need to pass u64 instead of resource_size_t for that.
+
+Reported-and-tested-by: Peer Chen <pchen@nvidia.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/firmware/memmap.c    |   12 +++++-------
+ include/linux/firmware-map.h |   12 ++++--------
+ 2 files changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit-fix drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit-fix
+diff -puN drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit
 +++ a/drivers/firmware/memmap.c
-@@ -31,6 +31,10 @@
+@@ -31,8 +31,8 @@
   * information is necessary as for the resource tree.
   */
  struct firmware_map_entry {
-+	/*
-+	 * start and end must be u64 rather than resource_size_t, because e820
-+	 * resources can lie at addresses above 4G.
-+	 */
- 	u64			start;	/* start of the memory range */
- 	u64			end;	/* end of the memory range (incl.) */
+-	resource_size_t		start;	/* start of the memory range */
+-	resource_size_t		end;	/* end of the memory range (incl.) */
++	u64			start;	/* start of the memory range */
++	u64			end;	/* end of the memory range (incl.) */
  	const char		*type;	/* type of the memory range */
+ 	struct list_head	list;	/* entry for the linked list */
+ 	struct kobject		kobj;   /* kobject for each entry */
+@@ -101,7 +101,7 @@ static LIST_HEAD(map_entries);
+  * Common implementation of firmware_map_add() and firmware_map_add_early()
+  * which expects a pre-allocated struct firmware_map_entry.
+  **/
+-static int firmware_map_add_entry(resource_size_t start, resource_size_t end,
++static int firmware_map_add_entry(u64 start, u64 end,
+ 				  const char *type,
+ 				  struct firmware_map_entry *entry)
+ {
+@@ -132,8 +132,7 @@ static int firmware_map_add_entry(resour
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int firmware_map_add(resource_size_t start, resource_size_t end,
+-		     const char *type)
++int firmware_map_add(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+ 
+@@ -157,8 +156,7 @@ int firmware_map_add(resource_size_t sta
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int __init firmware_map_add_early(resource_size_t start, resource_size_t end,
+-				  const char *type)
++int __init firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+ 
+diff -puN include/linux/firmware-map.h~firmware_map-fix-hang-with-x86-32bit include/linux/firmware-map.h
+--- a/include/linux/firmware-map.h~firmware_map-fix-hang-with-x86-32bit
++++ a/include/linux/firmware-map.h
+@@ -24,21 +24,17 @@
+  */
+ #ifdef CONFIG_FIRMWARE_MEMMAP
+ 
+-int firmware_map_add(resource_size_t start, resource_size_t end,
+-		     const char *type);
+-int firmware_map_add_early(resource_size_t start, resource_size_t end,
+-			   const char *type);
++int firmware_map_add(u64 start, u64 end, const char *type);
++int firmware_map_add_early(u64 start, u64 end, const char *type);
+ 
+ #else /* CONFIG_FIRMWARE_MEMMAP */
+ 
+-static inline int firmware_map_add(resource_size_t start, resource_size_t end,
+-				   const char *type)
++static inline int firmware_map_add(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
+ 
+-static inline int firmware_map_add_early(resource_size_t start,
+-					 resource_size_t end, const char *type)
++static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-ds_selftest-is-borked.patch
-eeepc-laptop-enable-camera-by-default-fix.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-mtd-flex-onenand-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
+firmware_map-fix-hang-with-x86-32bit.patch
 firmware_map-fix-hang-with-x86-32bit-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool-fix.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+page-allocator-clear-n_high_memory-map-before-se-set-it-again.patch
 
