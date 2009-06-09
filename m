@@ -1,79 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cramfs-move-cramfs-magic-out-of-cramfs_fsh.patch removed from -mm tree
-Date: Tue, 09 Jun 2009 11:12:40 -0700
-Message-ID: <200906091812.n59ICeUW018877@imap1.linux-foundation.org>
+Subject: [merged] da9030_battery-fix-race-between-event-handler-and-monitor.patch removed from -mm tree
+Date: Tue, 09 Jun 2009 11:12:23 -0700
+Message-ID: <200906091812.n59ICNMv018659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42723 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758878AbZFISMk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 14:12:40 -0400
+	by vger.kernel.org with ESMTP id S1756967AbZFISNP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 14:13:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mike@compulab.co.il, cbou@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cramfs: move cramfs magic out of cramfs_fs.h
+     da9030_battery: fix race between event handler and monitor
 has been removed from the -mm tree.  Its filename was
-     cramfs-move-cramfs-magic-out-of-cramfs_fsh.patch
+     da9030_battery-fix-race-between-event-handler-and-monitor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cramfs: move cramfs magic out of cramfs_fs.h
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: da9030_battery: fix race between event handler and monitor
+From: Mike Rapoport <mike@compulab.co.il>
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+There are cases when charging monitor and the event handler try to change
+the charger state simultaneously.  For instance, a charger is connected to
+the system, there's the detection event and the event handler tries to
+enable charging.  It is possible that the periodic charging monitor runs
+at the same time and it still thinks there's no external charger.  So it
+tries to disable the charging.  As the result, even if the conditions
+necessary to charge the battery hold, there will be no actual charging.
+
+The patch changes the event handler so that instead of enabling/disabling
+the charger immediately it would rather make the monitor run.  The monitor
+code then decides what should be the charger state.
+
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Cc: Anton Vorontsov <cbou@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cramfs_fs.h |    3 +--
- include/linux/magic.h     |    2 ++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/power/da9030_battery.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/cramfs_fs.h~cramfs-move-cramfs-magic-out-of-cramfs_fsh include/linux/cramfs_fs.h
---- a/include/linux/cramfs_fs.h~cramfs-move-cramfs-magic-out-of-cramfs_fsh
-+++ a/include/linux/cramfs_fs.h
-@@ -2,9 +2,8 @@
- #define __CRAMFS_H
+diff -puN drivers/power/da9030_battery.c~da9030_battery-fix-race-between-event-handler-and-monitor drivers/power/da9030_battery.c
+--- a/drivers/power/da9030_battery.c~da9030_battery-fix-race-between-event-handler-and-monitor
++++ a/drivers/power/da9030_battery.c
+@@ -22,8 +22,6 @@
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
  
- #include <linux/types.h>
-+#include <linux/magic.h>
+-#define DA9030_STATUS_CHDET	(1 << 3)
+-
+ #define DA9030_FAULT_LOG		0x0a
+ #define DA9030_FAULT_LOG_OVER_TEMP	(1 << 7)
+ #define DA9030_FAULT_LOG_VBAT_OVER	(1 << 4)
+@@ -244,6 +242,8 @@ static void da9030_set_charge(struct da9
+ 	}
  
--#define CRAMFS_MAGIC		0x28cd3d45	/* some random number */
--#define CRAMFS_MAGIC_WEND	0x453dcd28	/* magic number with the wrong endianess */
- #define CRAMFS_SIGNATURE	"Compressed ROMFS"
+ 	da903x_write(charger->master, DA9030_CHARGE_CONTROL, val);
++
++	power_supply_changed(&charger->psy);
+ }
  
- /*
-diff -puN include/linux/magic.h~cramfs-move-cramfs-magic-out-of-cramfs_fsh include/linux/magic.h
---- a/include/linux/magic.h~cramfs-move-cramfs-magic-out-of-cramfs_fsh
-+++ a/include/linux/magic.h
-@@ -6,6 +6,8 @@
- #define AFS_SUPER_MAGIC		0x5346414F
- #define AUTOFS_SUPER_MAGIC	0x0187
- #define CODA_SUPER_MAGIC	0x73757245
-+#define CRAMFS_MAGIC		0x28cd3d45	/* some random number */
-+#define CRAMFS_MAGIC_WEND	0x453dcd28	/* magic number with the wrong endianess */
- #define CUSE_SUPER_MAGIC	0x43555345
- #define DEBUGFS_MAGIC		0x64626720
- #define SYSFS_MAGIC		0x62656572
+ static void da9030_charger_check_state(struct da9030_charger *charger)
+@@ -258,6 +258,12 @@ static void da9030_charger_check_state(s
+ 			da9030_set_charge(charger, 1);
+ 		}
+ 	} else {
++		/* Charger has been pulled out */
++		if (!charger->chdet) {
++			da9030_set_charge(charger, 0);
++			return;
++		}
++
+ 		if (charger->adc.vbat_res >=
+ 		    charger->thresholds.vbat_charge_stop) {
+ 			da9030_set_charge(charger, 0);
+@@ -395,13 +401,11 @@ static int da9030_battery_event(struct n
+ {
+ 	struct da9030_charger *charger =
+ 		container_of(nb, struct da9030_charger, nb);
+-	int status;
+ 
+ 	switch (event) {
+ 	case DA9030_EVENT_CHDET:
+-		status = da903x_query_status(charger->master,
+-					     DA9030_STATUS_CHDET);
+-		da9030_set_charge(charger, status);
++		cancel_delayed_work_sync(&charger->work);
++		schedule_work(&charger->work.work);
+ 		break;
+ 	case DA9030_EVENT_VBATMON:
+ 		da9030_battery_vbat_event(charger);
+@@ -565,7 +569,8 @@ static int da9030_battery_remove(struct 
+ 	da903x_unregister_notifier(charger->master, &charger->nb,
+ 				   DA9030_EVENT_CHDET | DA9030_EVENT_VBATMON |
+ 				   DA9030_EVENT_CHIOVER | DA9030_EVENT_TBAT);
+-	cancel_delayed_work(&charger->work);
++	cancel_delayed_work_sync(&charger->work);
++	da9030_set_charge(charger, 0);
+ 	power_supply_unregister(&charger->psy);
+ 
+ 	kfree(charger);
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from mike@compulab.co.il are
 
-origin.patch
-shm-fix-unused-warnings-on-nommu.patch
 linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-drivers-hvc-add-missing-__devexit_p.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-gitignore-ignore-patch-files.patch
-drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
-gpio-max7301-add-missing-__devexit-marking.patch
-istallion-add-missing-__devexit-marking.patch
-edac-add-missing-__devexit_p.patch
 
