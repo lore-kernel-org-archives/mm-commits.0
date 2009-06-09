@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [folded] gpio-driver-for-primecell-pl061-gpio-controller-fix.patch removed from -mm tree
-Date: Tue, 09 Jun 2009 14:03:25 -0700
-Message-ID: <200906092103.n59L3PWA028166@imap1.linux-foundation.org>
+Subject: [folded] gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch removed from -mm tree
+Date: Tue, 09 Jun 2009 14:03:34 -0700
+Message-ID: <200906092103.n59L3YPt028260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58202 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752075AbZFIVDk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 17:03:40 -0400
+	by vger.kernel.org with ESMTP id S1751713AbZFIVDu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 17:03:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, baruch@tkos.co.il, david-b@pacbell.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio-driver-for-primecell-pl061-gpio-controller-fix
+     gpio-driver-for-primecell-pl061-gpio-controller-fix-fix
 has been removed from the -mm tree.  Its filename was
-     gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
+     gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
 
 This patch was dropped because it was folded into gpio-driver-for-primecell-pl061-gpio-controller-v4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-driver-for-primecell-pl061-gpio-controller-fix
+Subject: gpio-driver-for-primecell-pl061-gpio-controller-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-it uses arm-only stuff.
 
 Cc: Baruch Siach <baruch@tkos.co.il>
 Cc: David Brownell <david-b@pacbell.net>
@@ -34,17 +32,18 @@ Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpio/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-driver-for-primecell-pl061-gpio-controller-fix drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-driver-for-primecell-pl061-gpio-controller-fix
+diff -puN drivers/gpio/Kconfig~gpio-driver-for-primecell-pl061-gpio-controller-fix-fix drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-driver-for-primecell-pl061-gpio-controller-fix-fix
 +++ a/drivers/gpio/Kconfig
-@@ -69,6 +69,7 @@ comment "Memory mapped GPIO expanders:"
+@@ -69,7 +69,7 @@ comment "Memory mapped GPIO expanders:"
  
  config GPIO_PL061
  	bool "PrimeCell PL061 GPIO support"
-+	depends on ARM
+-	depends on ARM
++	depends on ARM_AMBA
  	help
  	  Say yes here to support the PrimeCell PL061 GPIO device
  
@@ -95,7 +94,6 @@ remove-put_cpu_no_resched-fix.patch
 rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
 proc-merge-arrayc-into-basec-checkpatch-fixes.patch
 jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-gpio-driver-for-primecell-pl061-gpio-controller-fix.patch
 gpio-driver-for-primecell-pl061-gpio-controller-fix-fix.patch
 radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
 fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
