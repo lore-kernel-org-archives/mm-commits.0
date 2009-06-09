@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-mutually-exclusive-port_status.patch added to -mm tree
-Date: Tue, 09 Jun 2009 14:58:35 -0700
-Message-ID: <200906092158.n59LwZ26008086@imap1.linux-foundation.org>
+Subject: + oom-only-oom-kill-exiting-tasks-with-attached-memory.patch added to -mm tree
+Date: Tue, 09 Jun 2009 14:29:22 -0700
+Message-ID: <200906092129.n59LTMKV016682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51977 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46200 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759162AbZFIWAr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 18:00:47 -0400
+	by vger.kernel.org with ESMTP id S1750810AbZFIWDE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 18:03:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, avorontsov@ru.mvista.com, gregkh@suse.de
+Cc: rientjes@google.com, balbir@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     usb: mutually exclusive port_status
+     oom: only oom kill exiting tasks with attached memory
 has been added to the -mm tree.  Its filename is
-     usb-mutually-exclusive-port_status.patch
+     oom-only-oom-kill-exiting-tasks-with-attached-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: mutually exclusive port_status
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: oom: only oom kill exiting tasks with attached memory
+From: David Rientjes <rientjes@google.com>
 
-FHCI_PORT_DISABLED, -LOW and -FULL are mutually exclusive as status.
+When a task is chosen for oom kill and is found to be PF_EXITING,
+__oom_kill_task() is called to elevate the task's timeslice and give it
+access to memory reserves so that it may quickly exit.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+This privilege is unnecessary, however, if the task has already detached
+its mm.  Although its possible for the mm to become detached later since
+task_lock() is not held, __oom_kill_task() will simply be a no-op in such
+circumstances.
+
+Subsequently, it is no longer necessary to warn about killing mm-less
+tasks since it is a no-op.
+
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/fhci-sched.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/oom_kill.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/usb/host/fhci-sched.c~usb-mutually-exclusive-port_status drivers/usb/host/fhci-sched.c
---- a/drivers/usb/host/fhci-sched.c~usb-mutually-exclusive-port_status
-+++ a/drivers/usb/host/fhci-sched.c
-@@ -576,9 +576,7 @@ irqreturn_t fhci_irq(struct usb_hcd *hcd
- 			out_be16(&usb->fhci->regs->usb_event,
- 				 usb->saved_msk);
- 		} else if (usb->port_status == FHCI_PORT_DISABLED) {
--			if (fhci_ioports_check_bus_state(fhci) == 1 &&
--					usb->port_status != FHCI_PORT_LOW &&
--					usb->port_status != FHCI_PORT_FULL)
-+			if (fhci_ioports_check_bus_state(fhci) == 1)
- 				fhci_device_connected_interrupt(fhci);
- 		}
- 		usb_er &= ~USB_E_RESET_MASK;
-@@ -605,9 +603,7 @@ irqreturn_t fhci_irq(struct usb_hcd *hcd
+diff -puN mm/oom_kill.c~oom-only-oom-kill-exiting-tasks-with-attached-memory mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-only-oom-kill-exiting-tasks-with-attached-memory
++++ a/mm/oom_kill.c
+@@ -325,11 +325,8 @@ static void __oom_kill_task(struct task_
+ 		return;
  	}
  
- 	if (usb_er & USB_E_IDLE_MASK) {
--		if (usb->port_status == FHCI_PORT_DISABLED &&
--				usb->port_status != FHCI_PORT_LOW &&
--				usb->port_status != FHCI_PORT_FULL) {
-+		if (usb->port_status == FHCI_PORT_DISABLED) {
- 			usb_er &= ~USB_E_RESET_MASK;
- 			fhci_device_connected_interrupt(fhci);
- 		} else if (usb->port_status ==
+-	if (!p->mm) {
+-		WARN_ON(1);
+-		printk(KERN_WARNING "tried to kill an mm-less task!\n");
++	if (!p->mm)
+ 		return;
+-	}
+ 
+ 	if (verbose)
+ 		printk(KERN_ERR "Killed process %d (%s)\n",
+@@ -397,8 +394,9 @@ static int oom_kill_process(struct task_
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+ 	 * its children or threads, just set TIF_MEMDIE so it can die quickly
++	 * if its mm is still attached.
+ 	 */
+-	if (p->flags & PF_EXITING) {
++	if (p->mm && (p->flags & PF_EXITING)) {
+ 		__oom_kill_task(p, 0);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-drm-fix-lock_test_with_return-macro.patch
-tvp514x-try_count-off-by-one.patch
-drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
-atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-usb-mutually-exclusive-port_status.patch
-spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-serial-fix-off-by-one-errors.patch
-spi_bfin5xx-limit-reaches-1.patch
-carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-platinumfb-misplaced-parenthesis.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
+mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed.patch
+mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
+oom-move-oom_adj-value-from-task_struct-to-mm_struct-fix.patch
+oom-avoid-unnecessary-mm-locking-and-scanning-for-oom_disable.patch
+oom-invoke-oom-killer-for-__gfp_nofail.patch
+oom-only-oom-kill-exiting-tasks-with-attached-memory.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
 
