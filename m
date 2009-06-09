@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-clean-up-journal_try_to_free_buffers.patch added to -mm tree
-Date: Tue, 09 Jun 2009 13:18:45 -0700
-Message-ID: <200906092018.n59KIkIe024353@imap1.linux-foundation.org>
+Subject: + jbd2-clean-up-jbd2_journal_try_to_free_buffers.patch added to -mm tree
+Date: Tue, 09 Jun 2009 13:18:47 -0700
+Message-ID: <200906092018.n59KImC0024356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36060 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750885AbZFIUTA (ORCPT
+	by vger.kernel.org with ESMTP id S1751341AbZFIUTA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 16:19:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hifumi.hisashi@oss.ntt.co.jp, cmm@us.ibm.com, jack@suse.cz, tytso@mit.edu
 
 
 The patch titled
-     jbd: clean up journal_try_to_free_buffers()
+     jbd2: clean up jbd2_journal_try_to_free_buffers()
 has been added to the -mm tree.  Its filename is
-     jbd-clean-up-journal_try_to_free_buffers.patch
+     jbd2-clean-up-jbd2_journal_try_to_free_buffers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: clean up journal_try_to_free_buffers()
+Subject: jbd2: clean up jbd2_journal_try_to_free_buffers()
 From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 
 I delete the following patch
@@ -61,30 +61,31 @@ Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/transaction.c |   48 -----------------------------------------
- 1 file changed, 48 deletions(-)
+ fs/jbd2/transaction.c |   49 ----------------------------------------
+ 1 file changed, 49 deletions(-)
 
-diff -puN fs/jbd/transaction.c~jbd-clean-up-journal_try_to_free_buffers fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-clean-up-journal_try_to_free_buffers
-+++ a/fs/jbd/transaction.c
-@@ -1686,35 +1686,6 @@ out:
+diff -puN fs/jbd2/transaction.c~jbd2-clean-up-jbd2_journal_try_to_free_buffers fs/jbd2/transaction.c
+--- a/fs/jbd2/transaction.c~jbd2-clean-up-jbd2_journal_try_to_free_buffers
++++ a/fs/jbd2/transaction.c
+@@ -1547,36 +1547,6 @@ out:
  	return;
  }
  
 -/*
-- * journal_try_to_free_buffers() could race with journal_commit_transaction()
-- * The latter might still hold the a count on buffers when inspecting
-- * them on t_syncdata_list or t_locked_list.
+- * jbd2_journal_try_to_free_buffers() could race with
+- * jbd2_journal_commit_transaction(). The later might still hold the
+- * reference count to the buffers when inspecting them on
+- * t_syncdata_list or t_locked_list.
 - *
-- * journal_try_to_free_buffers() will call this function to
+- * jbd2_journal_try_to_free_buffers() will call this function to
 - * wait for the current transaction to finish syncing data buffers, before
-- * tryinf to free that buffer.
+- * try to free that buffer.
 - *
-- * Called with journal->j_state_lock held.
+- * Called with journal->j_state_lock hold.
 - */
--static void journal_wait_for_transaction_sync_data(journal_t *journal)
+-static void jbd2_journal_wait_for_transaction_sync_data(journal_t *journal)
 -{
--	transaction_t *transaction = NULL;
+-	transaction_t *transaction;
 -	tid_t tid;
 -
 -	spin_lock(&journal->j_state_lock);
@@ -97,19 +98,19 @@ diff -puN fs/jbd/transaction.c~jbd-clean-up-journal_try_to_free_buffers fs/jbd/t
 -
 -	tid = transaction->t_tid;
 -	spin_unlock(&journal->j_state_lock);
--	log_wait_commit(journal, tid);
+-	jbd2_log_wait_commit(journal, tid);
 -}
 -
  /**
-  * int journal_try_to_free_buffers() - try to free page buffers.
+  * int jbd2_journal_try_to_free_buffers() - try to free page buffers.
   * @journal: journal for operation
-@@ -1786,25 +1757,6 @@ int journal_try_to_free_buffers(journal_
+@@ -1649,25 +1619,6 @@ int jbd2_journal_try_to_free_buffers(jou
  
  	ret = try_to_free_buffers(page);
  
 -	/*
--	 * There are a number of places where journal_try_to_free_buffers()
--	 * could race with journal_commit_transaction(), the later still
+-	 * There are a number of places where jbd2_journal_try_to_free_buffers()
+-	 * could race with jbd2_journal_commit_transaction(), the later still
 -	 * holds the reference to the buffers to free while processing them.
 -	 * try_to_free_buffers() failed to free those buffers. Some of the
 -	 * caller of releasepage() request page buffers to be dropped, otherwise
@@ -122,6 +123,6 @@ diff -puN fs/jbd/transaction.c~jbd-clean-up-journal_try_to_free_buffers fs/jbd/t
 -	 * with the journal locked.
 -	 */
 -	if (ret == 0 && (gfp_mask & __GFP_WAIT) && (gfp_mask & __GFP_FS)) {
--		journal_wait_for_transaction_sync_data(journal);
+-		jbd2_journal_wait_for_transaction_sync_data(journal);
 -		ret = try_to_free_buffers(page);
 -	}
