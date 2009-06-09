@@ -1,67 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] plat_nand-add-missing-__devexit_p.patch removed from -mm tree
-Date: Tue, 09 Jun 2009 11:12:14 -0700
-Message-ID: <200906091812.n59ICEto018513@imap1.linux-foundation.org>
+Subject: [merged] gadget-atmel_usba_udc-change-way-of-specifying-bias-function.patch removed from -mm tree
+Date: Tue, 09 Jun 2009 11:12:26 -0700
+Message-ID: <200906091812.n59ICQRx018662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759098AbZFISM1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 14:12:27 -0400
+	by vger.kernel.org with ESMTP id S1757117AbZFISMf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 14:12:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: nicolas.ferre@atmel.com, dbrownell@users.sourceforge.net, greg@kroah.com, haavard.skinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     plat_nand: add missing __devexit_p()
+     gadget: atmel_usba_udc: change way of specifying bias function
 has been removed from the -mm tree.  Its filename was
-     plat_nand-add-missing-__devexit_p.patch
+     gadget-atmel_usba_udc-change-way-of-specifying-bias-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: plat_nand: add missing __devexit_p()
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: gadget: atmel_usba_udc: change way of specifying bias function
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-The remove function uses __devexit, so the .remove assignment needs
-__devexit_p() to fix a build error with hotplug disabled.
+The toggle_bias() function was specified differently for avr32 and at91
+architectures.  Now, new at91 have the same behavior as avr32. 
+Consequently, we change to a particular chip function definition: only for
+at91sam9rl.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/plat_nand.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/gadget/atmel_usba_udc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mtd/nand/plat_nand.c~plat_nand-add-missing-__devexit_p drivers/mtd/nand/plat_nand.c
---- a/drivers/mtd/nand/plat_nand.c~plat_nand-add-missing-__devexit_p
-+++ a/drivers/mtd/nand/plat_nand.c
-@@ -139,7 +139,7 @@ static int __devexit plat_nand_remove(st
+diff -puN drivers/usb/gadget/atmel_usba_udc.c~gadget-atmel_usba_udc-change-way-of-specifying-bias-function drivers/usb/gadget/atmel_usba_udc.c
+--- a/drivers/usb/gadget/atmel_usba_udc.c~gadget-atmel_usba_udc-change-way-of-specifying-bias-function
++++ a/drivers/usb/gadget/atmel_usba_udc.c
+@@ -326,13 +326,7 @@ static int vbus_is_present(struct usba_u
+ 	return 1;
+ }
  
- static struct platform_driver plat_nand_driver = {
- 	.probe		= plat_nand_probe,
--	.remove		= plat_nand_remove,
-+	.remove		= __devexit_p(plat_nand_remove),
- 	.driver		= {
- 		.name	= "gen_nand",
- 		.owner	= THIS_MODULE,
+-#if defined(CONFIG_AVR32)
+-
+-static void toggle_bias(int is_on)
+-{
+-}
+-
+-#elif defined(CONFIG_ARCH_AT91)
++#if defined(CONFIG_ARCH_AT91SAM9RL)
+ 
+ #include <mach/at91_pmc.h>
+ 
+@@ -346,7 +340,13 @@ static void toggle_bias(int is_on)
+ 		at91_sys_write(AT91_CKGR_UCKR, uckr & ~(AT91_PMC_BIASEN));
+ }
+ 
+-#endif /* CONFIG_ARCH_AT91 */
++#else
++
++static void toggle_bias(int is_on)
++{
++}
++
++#endif /* CONFIG_ARCH_AT91SAM9RL */
+ 
+ static void next_fifo_transaction(struct usba_ep *ep, struct usba_request *req)
+ {
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from nicolas.ferre@atmel.com are
 
-origin.patch
-shm-fix-unused-warnings-on-nommu.patch
 linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-drivers-hvc-add-missing-__devexit_p.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-gitignore-ignore-patch-files.patch
-drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
-gpio-max7301-add-missing-__devexit-marking.patch
-istallion-add-missing-__devexit-marking.patch
-edac-add-missing-__devexit_p.patch
+atmel-lcdc-fix-pixclock-upper-bound-detection.patch
 
