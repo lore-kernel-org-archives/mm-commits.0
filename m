@@ -1,102 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] pci-pm-read-device-power-state-from-register-after-updating-it.patch removed from -mm tree
-Date: Tue, 09 Jun 2009 14:38:03 -0700
-Message-ID: <200906092138.n59Lc3m7023772@imap1.linux-foundation.org>
+Subject: + usb-mutually-exclusive-port_status.patch added to -mm tree
+Date: Tue, 09 Jun 2009 14:58:35 -0700
+Message-ID: <200906092158.n59LwZ26008086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51189 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760241AbZFIV5f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 17:57:35 -0400
+	by vger.kernel.org with ESMTP id S1759162AbZFIWAr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 18:00:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: roel.kluin@gmail.com, avorontsov@ru.mvista.com, gregkh@suse.de
 
 
 The patch titled
-     pci pm: read device power state from register after updating it
-has been removed from the -mm tree.  Its filename was
-     pci-pm-read-device-power-state-from-register-after-updating-it.patch
+     usb: mutually exclusive port_status
+has been added to the -mm tree.  Its filename is
+     usb-mutually-exclusive-port_status.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci pm: read device power state from register after updating it
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: usb: mutually exclusive port_status
+From: Roel Kluin <roel.kluin@gmail.com>
 
-After attempting to change the power state of a PCI device
-pci_raw_set_power_state() doesn't check if the value it wrote into the
-device's PCI_PM_CTRL register has been stored in there.  Still, it
-modifies the device's current_state field as though that's the case.  This
-may cause the driver of the device to think that its power state has been
-changed while in fact it hasn't.
+FHCI_PORT_DISABLED, -LOW and -FULL are mutually exclusive as status.
 
-To prevent such situations from happening modify pci_raw_set_power_state()
-so that it reads the device's PCI_PM_CTRL register after writing into it
-and uses the value read from the register to update the device's
-current_state field.  Also make it return -EIO if the new state of the
-device is not equal to the state requested by the called.
-
-To distinguish this error condition from the other ones make
-pci_raw_set_power_state() return -ENODEV instead of -EIO when it is
-impossible to change the power state of the device, because it doesn't
-support the native PCI PM at all or the requested target state is not
-supported by it.
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/usb/host/fhci-sched.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pci/pci.c~pci-pm-read-device-power-state-from-register-after-updating-it drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-pm-read-device-power-state-from-register-after-updating-it
-+++ a/drivers/pci/pci.c
-@@ -451,7 +451,7 @@ static int pci_raw_set_power_state(struc
- 		return 0;
+diff -puN drivers/usb/host/fhci-sched.c~usb-mutually-exclusive-port_status drivers/usb/host/fhci-sched.c
+--- a/drivers/usb/host/fhci-sched.c~usb-mutually-exclusive-port_status
++++ a/drivers/usb/host/fhci-sched.c
+@@ -576,9 +576,7 @@ irqreturn_t fhci_irq(struct usb_hcd *hcd
+ 			out_be16(&usb->fhci->regs->usb_event,
+ 				 usb->saved_msk);
+ 		} else if (usb->port_status == FHCI_PORT_DISABLED) {
+-			if (fhci_ioports_check_bus_state(fhci) == 1 &&
+-					usb->port_status != FHCI_PORT_LOW &&
+-					usb->port_status != FHCI_PORT_FULL)
++			if (fhci_ioports_check_bus_state(fhci) == 1)
+ 				fhci_device_connected_interrupt(fhci);
+ 		}
+ 		usb_er &= ~USB_E_RESET_MASK;
+@@ -605,9 +603,7 @@ irqreturn_t fhci_irq(struct usb_hcd *hcd
+ 	}
  
- 	if (!dev->pm_cap)
--		return -EIO;
-+		return -ENOSYS;
- 
- 	if (state < PCI_D0 || state > PCI_D3hot)
- 		return -EINVAL;
-@@ -470,7 +470,7 @@ static int pci_raw_set_power_state(struc
- 	/* check if this device supports the desired state */
- 	if ((state == PCI_D1 && !dev->d1_support)
- 	   || (state == PCI_D2 && !dev->d2_support))
--		return -EIO;
-+		return -ENOSYS;
- 
- 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
- 
-@@ -507,7 +507,11 @@ static int pci_raw_set_power_state(struc
- 	else if (state == PCI_D2 || dev->current_state == PCI_D2)
- 		udelay(PCI_PM_D2_DELAY);
- 
--	dev->current_state = state;
-+	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
-+	dev->current_state = (pmcsr & PCI_PM_CTRL_STATE_MASK);
-+	/* Return error code if we have failed to change the state */
-+	if (dev->current_state != state)
-+		return -EIO;
- 
- 	/* According to section 5.4.1 of the "PCI BUS POWER MANAGEMENT
- 	 * INTERFACE SPECIFICATION, REV. 1.2", a device transitioning
+ 	if (usb_er & USB_E_IDLE_MASK) {
+-		if (usb->port_status == FHCI_PORT_DISABLED &&
+-				usb->port_status != FHCI_PORT_LOW &&
+-				usb->port_status != FHCI_PORT_FULL) {
++		if (usb->port_status == FHCI_PORT_DISABLED) {
+ 			usb_er &= ~USB_E_RESET_MASK;
+ 			fhci_device_connected_interrupt(fhci);
+ 		} else if (usb->port_status ==
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch
-pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch
-pci-pm-read-device-power-state-from-register-after-updating-it.patch
-pci-pm-read-device-power-state-from-register-after-updating-it-update.patch
-floppy-fix-hibernation.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-shrink_slab-handle-bad-shrinkers.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+drm-fix-lock_test_with_return-macro.patch
+tvp514x-try_count-off-by-one.patch
+drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
+atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+usb-mutually-exclusive-port_status.patch
+spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+serial-fix-off-by-one-errors.patch
+spi_bfin5xx-limit-reaches-1.patch
+carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+platinumfb-misplaced-parenthesis.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
