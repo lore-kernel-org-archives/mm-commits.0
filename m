@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + jbd2-clean-up-jbd2_journal_try_to_free_buffers.patch added to -mm tree
-Date: Tue, 09 Jun 2009 13:18:47 -0700
-Message-ID: <200906092018.n59KImC0024356@imap1.linux-foundation.org>
+Subject: + vmscan-report-vm_flags-in-page_referenced.patch added to -mm tree
+Date: Tue, 09 Jun 2009 13:31:55 -0700
+Message-ID: <200906092031.n59KVt2i002583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751341AbZFIUTA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 16:19:00 -0400
+	by vger.kernel.org with ESMTP id S1752422AbZFIUc3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 16:32:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hifumi.hisashi@oss.ntt.co.jp, cmm@us.ibm.com, jack@suse.cz, tytso@mit.edu
+Cc: fengguang.wu@intel.com, hannes@cmpxchg.org, minchan.kim@gmail.com, peterz@infradead.org, riel@redhat.com
 
 
 The patch titled
-     jbd2: clean up jbd2_journal_try_to_free_buffers()
+     vmscan: report vm_flags in page_referenced()
 has been added to the -mm tree.  Its filename is
-     jbd2-clean-up-jbd2_journal_try_to_free_buffers.patch
+     vmscan-report-vm_flags-in-page_referenced.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,239 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd2: clean up jbd2_journal_try_to_free_buffers()
-From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Subject: vmscan: report vm_flags in page_referenced()
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-I delete the following patch
-"commit 3f31fddfa26b7594b44ff2b34f9a04ba409e0f91
-Author: Mingming Cao <cmm@us.ibm.com>
-Date:   Fri Jul 25 01:46:22 2008 -0700
+Collect vma->vm_flags of the VMAs that actually referenced the page.
 
-    jbd: fix race between free buffer and commit transaction
+This is preparing for more informed reclaim heuristics, eg.  to protect
+executable file pages more aggressively.  For now only the VM_EXEC bit
+will be used by the caller.
 
+Thanks to Johannes, Peter and Minchan for all the good tips.
 
-This patch is no longer needed because if race between freeing buffer and
-committing transaction functionality occurs and dio gets error, currently
-dio falls back to buffered IO by the following patch.
-
-	commit 6ccfa806a9cfbbf1cd43d5b6aa47ef2c0eb518fd
-	Author: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-	Date:   Tue Sep 2 14:35:40 2008 -0700
-
-   	VFS: fix dio write returning EIO when try_to_release_page fails
-
-Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-Cc: Theodore Tso <tytso@mit.edu>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Acked-by: Jan Kara <jack@suse.cz>
+Acked-by: Peter Zijlstra <peterz@infradead.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/transaction.c |   49 ----------------------------------------
- 1 file changed, 49 deletions(-)
+ include/linux/rmap.h |    5 +++--
+ mm/rmap.c            |   37 ++++++++++++++++++++++++++-----------
+ mm/vmscan.c          |    7 +++++--
+ 3 files changed, 34 insertions(+), 15 deletions(-)
 
-diff -puN fs/jbd2/transaction.c~jbd2-clean-up-jbd2_journal_try_to_free_buffers fs/jbd2/transaction.c
---- a/fs/jbd2/transaction.c~jbd2-clean-up-jbd2_journal_try_to_free_buffers
-+++ a/fs/jbd2/transaction.c
-@@ -1547,36 +1547,6 @@ out:
- 	return;
+diff -puN include/linux/rmap.h~vmscan-report-vm_flags-in-page_referenced include/linux/rmap.h
+--- a/include/linux/rmap.h~vmscan-report-vm_flags-in-page_referenced
++++ a/include/linux/rmap.h
+@@ -83,7 +83,8 @@ static inline void page_dup_rmap(struct 
+ /*
+  * Called from mm/vmscan.c to handle paging out
+  */
+-int page_referenced(struct page *, int is_locked, struct mem_cgroup *cnt);
++int page_referenced(struct page *, int is_locked,
++			struct mem_cgroup *cnt, unsigned long *vm_flags);
+ int try_to_unmap(struct page *, int ignore_refs);
+ 
+ /*
+@@ -121,7 +122,7 @@ int page_wrprotect(struct page *page, in
+ #define anon_vma_prepare(vma)	(0)
+ #define anon_vma_link(vma)	do {} while (0)
+ 
+-#define page_referenced(page,l,cnt) TestClearPageReferenced(page)
++#define page_referenced(page, locked, cnt, flags) TestClearPageReferenced(page)
+ #define try_to_unmap(page, refs) SWAP_FAIL
+ 
+ static inline int page_mkclean(struct page *page)
+diff -puN mm/rmap.c~vmscan-report-vm_flags-in-page_referenced mm/rmap.c
+--- a/mm/rmap.c~vmscan-report-vm_flags-in-page_referenced
++++ a/mm/rmap.c
+@@ -333,7 +333,9 @@ static int page_mapped_in_vma(struct pag
+  * repeatedly from either page_referenced_anon or page_referenced_file.
+  */
+ static int page_referenced_one(struct page *page,
+-	struct vm_area_struct *vma, unsigned int *mapcount)
++			       struct vm_area_struct *vma,
++			       unsigned int *mapcount,
++			       unsigned long *vm_flags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long address;
+@@ -381,11 +383,14 @@ out_unmap:
+ 	(*mapcount)--;
+ 	pte_unmap_unlock(pte, ptl);
+ out:
++	if (referenced)
++		*vm_flags |= vma->vm_flags;
+ 	return referenced;
  }
  
--/*
-- * jbd2_journal_try_to_free_buffers() could race with
-- * jbd2_journal_commit_transaction(). The later might still hold the
-- * reference count to the buffers when inspecting them on
-- * t_syncdata_list or t_locked_list.
-- *
-- * jbd2_journal_try_to_free_buffers() will call this function to
-- * wait for the current transaction to finish syncing data buffers, before
-- * try to free that buffer.
-- *
-- * Called with journal->j_state_lock hold.
-- */
--static void jbd2_journal_wait_for_transaction_sync_data(journal_t *journal)
--{
--	transaction_t *transaction;
--	tid_t tid;
--
--	spin_lock(&journal->j_state_lock);
--	transaction = journal->j_committing_transaction;
--
--	if (!transaction) {
--		spin_unlock(&journal->j_state_lock);
--		return;
--	}
--
--	tid = transaction->t_tid;
--	spin_unlock(&journal->j_state_lock);
--	jbd2_log_wait_commit(journal, tid);
--}
--
- /**
-  * int jbd2_journal_try_to_free_buffers() - try to free page buffers.
-  * @journal: journal for operation
-@@ -1649,25 +1619,6 @@ int jbd2_journal_try_to_free_buffers(jou
+ static int page_referenced_anon(struct page *page,
+-				struct mem_cgroup *mem_cont)
++				struct mem_cgroup *mem_cont,
++				unsigned long *vm_flags)
+ {
+ 	unsigned int mapcount;
+ 	struct anon_vma *anon_vma;
+@@ -405,7 +410,8 @@ static int page_referenced_anon(struct p
+ 		 */
+ 		if (mem_cont && !mm_match_cgroup(vma->vm_mm, mem_cont))
+ 			continue;
+-		referenced += page_referenced_one(page, vma, &mapcount);
++		referenced += page_referenced_one(page, vma,
++						  &mapcount, vm_flags);
+ 		if (!mapcount)
+ 			break;
+ 	}
+@@ -418,6 +424,7 @@ static int page_referenced_anon(struct p
+  * page_referenced_file - referenced check for object-based rmap
+  * @page: the page we're checking references on.
+  * @mem_cont: target memory controller
++ * @vm_flags: collect encountered vma->vm_flags who actually referenced the page
+  *
+  * For an object-based mapped page, find all the places it is mapped and
+  * check/clear the referenced flag.  This is done by following the page->mapping
+@@ -427,7 +434,8 @@ static int page_referenced_anon(struct p
+  * This function is only called from page_referenced for object-based pages.
+  */
+ static int page_referenced_file(struct page *page,
+-				struct mem_cgroup *mem_cont)
++				struct mem_cgroup *mem_cont,
++				unsigned long *vm_flags)
+ {
+ 	unsigned int mapcount;
+ 	struct address_space *mapping = page->mapping;
+@@ -467,7 +475,8 @@ static int page_referenced_file(struct p
+ 		 */
+ 		if (mem_cont && !mm_match_cgroup(vma->vm_mm, mem_cont))
+ 			continue;
+-		referenced += page_referenced_one(page, vma, &mapcount);
++		referenced += page_referenced_one(page, vma,
++						  &mapcount, vm_flags);
+ 		if (!mapcount)
+ 			break;
+ 	}
+@@ -481,29 +490,35 @@ static int page_referenced_file(struct p
+  * @page: the page to test
+  * @is_locked: caller holds lock on the page
+  * @mem_cont: target memory controller
++ * @vm_flags: collect encountered vma->vm_flags who actually referenced the page
+  *
+  * Quick test_and_clear_referenced for all mappings to a page,
+  * returns the number of ptes which referenced the page.
+  */
+-int page_referenced(struct page *page, int is_locked,
+-			struct mem_cgroup *mem_cont)
++int page_referenced(struct page *page,
++		    int is_locked,
++		    struct mem_cgroup *mem_cont,
++		    unsigned long *vm_flags)
+ {
+ 	int referenced = 0;
  
- 	ret = try_to_free_buffers(page);
+ 	if (TestClearPageReferenced(page))
+ 		referenced++;
  
--	/*
--	 * There are a number of places where jbd2_journal_try_to_free_buffers()
--	 * could race with jbd2_journal_commit_transaction(), the later still
--	 * holds the reference to the buffers to free while processing them.
--	 * try_to_free_buffers() failed to free those buffers. Some of the
--	 * caller of releasepage() request page buffers to be dropped, otherwise
--	 * treat the fail-to-free as errors (such as generic_file_direct_IO())
--	 *
--	 * So, if the caller of try_to_release_page() wants the synchronous
--	 * behaviour(i.e make sure buffers are dropped upon return),
--	 * let's wait for the current transaction to finish flush of
--	 * dirty data buffers, then try to free those buffers again,
--	 * with the journal locked.
--	 */
--	if (ret == 0 && (gfp_mask & __GFP_WAIT) && (gfp_mask & __GFP_FS)) {
--		jbd2_journal_wait_for_transaction_sync_data(journal);
--		ret = try_to_free_buffers(page);
--	}
++	*vm_flags = 0;
+ 	if (page_mapped(page) && page->mapping) {
+ 		if (PageAnon(page))
+-			referenced += page_referenced_anon(page, mem_cont);
++			referenced += page_referenced_anon(page, mem_cont,
++								vm_flags);
+ 		else if (is_locked)
+-			referenced += page_referenced_file(page, mem_cont);
++			referenced += page_referenced_file(page, mem_cont,
++								vm_flags);
+ 		else if (!trylock_page(page))
+ 			referenced++;
+ 		else {
+ 			if (page->mapping)
+-				referenced +=
+-					page_referenced_file(page, mem_cont);
++				referenced += page_referenced_file(page,
++							mem_cont, vm_flags);
+ 			unlock_page(page);
+ 		}
+ 	}
+diff -puN mm/vmscan.c~vmscan-report-vm_flags-in-page_referenced mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-report-vm_flags-in-page_referenced
++++ a/mm/vmscan.c
+@@ -577,6 +577,7 @@ static unsigned long shrink_page_list(st
+ 	struct pagevec freed_pvec;
+ 	int pgactivate = 0;
+ 	unsigned long nr_reclaimed = 0;
++	unsigned long vm_flags;
+ 
+ 	cond_resched();
+ 
+@@ -627,7 +628,8 @@ static unsigned long shrink_page_list(st
+ 				goto keep_locked;
+ 		}
+ 
+-		referenced = page_referenced(page, 1, sc->mem_cgroup);
++		referenced = page_referenced(page, 1,
++						sc->mem_cgroup, &vm_flags);
+ 		/* In active use or really unfreeable?  Activate it. */
+ 		if (sc->order <= PAGE_ALLOC_COSTLY_ORDER &&
+ 					referenced && page_mapping_inuse(page))
+@@ -1208,6 +1210,7 @@ static void shrink_active_list(unsigned 
+ {
+ 	unsigned long pgmoved;
+ 	unsigned long pgscanned;
++	unsigned long vm_flags;
+ 	LIST_HEAD(l_hold);	/* The pages which were snipped off */
+ 	LIST_HEAD(l_inactive);
+ 	struct page *page;
+@@ -1248,7 +1251,7 @@ static void shrink_active_list(unsigned 
+ 
+ 		/* page_referenced clears PageReferenced */
+ 		if (page_mapping_inuse(page) &&
+-		    page_referenced(page, 0, sc->mem_cgroup))
++		    page_referenced(page, 0, sc->mem_cgroup, &vm_flags))
+ 			pgmoved++;
+ 
+ 		list_add(&page->lru, &l_inactive);
+_
+
+Patches currently in -mm which might be from fengguang.wu@intel.com are
+
+linux-next.patch
+readahead-make-mmap_miss-an-unsigned-int.patch
+readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
+readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
+readahead-remove-one-unnecessary-radix-tree-lookup.patch
+readahead-increase-interleaved-readahead-size.patch
+readahead-remove-sync-async-readahead-call-dependency.patch
+readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
+readahead-sequential-mmap-readahead.patch
+readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
+radix-tree-add-radix_tree_prev_hole.patch
+readahead-move-the-random-read-case-to-bottom.patch
+readahead-introduce-context-readahead-algorithm.patch
+readahead-introduce-context-readahead-algorithm-update.patch
+readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
+readahead-enforce-full-sync-mmap-readahead-size.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
+pagemap-document-clarifications.patch
+pagemap-document-9-more-exported-page-flags.patch
+pagemap-add-page-types-tool.patch
+pagemap-add-page-types-tool-fix.patch
+pagemap-export-pg_hwpoison.patch
+pagemap-export-pg_hwpoison-fix.patch
+vmscan-cleanup-the-scan-batching-code.patch
+vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
+vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-remove-__invalidate_mapping_pages-variant.patch
+vmscan-report-vm_flags-in-page_referenced.patch
+vmscan-make-mapped-executable-pages-the-first-class-citizen.patch
+vmscan-merge-duplicate-code-in-shrink_active_list.patch
+
