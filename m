@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-timberdale-add-timbgpio.patch added to -mm tree
-Date: Tue, 09 Jun 2009 16:10:25 -0700
-Message-ID: <200906092310.n59NAPXo001578@imap1.linux-foundation.org>
+Subject: + mfd-timberdale-add-timberdale-dma-driver.patch added to -mm tree
+Date: Tue, 09 Jun 2009 16:10:10 -0700
+Message-ID: <200906092310.n59NAAul001405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41262 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750810AbZFIXMg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 19:12:36 -0400
+	by vger.kernel.org with ESMTP id S1753201AbZFIXMn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 19:12:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard.rojfors.ext@mocean-labs.com, david-b@pacbell.net
+Cc: richard.rojfors.ext@mocean-labs.com, sameo@openedhand.com
 
 
 The patch titled
-     gpio: timberdale: add timbgpio
+     mfd: timberdale: add Timberdale DMA driver
 has been added to the -mm tree.  Its filename is
-     gpio-timberdale-add-timbgpio.patch
+     mfd-timberdale-add-timberdale-dma-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,57 +38,60 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: gpio: timberdale: add timbgpio
+Subject: mfd: timberdale: add Timberdale DMA driver
 =46rom: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
 
-Supplied is a GPIO driver for the Timberdale FPGA found on the
-Intel Atom board Russellville.
+Support for the Timberdale FPGA internal DMA engine
+
+This driver gives other drivers the possibility to start DMA directly
+between IP block inside the FPGA and the main memory
 
 Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig    |    6=20
- drivers/gpio/Makefile   |    1=20
- drivers/gpio/timbgpio.c |  247 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 254 insertions(+)
+ drivers/mfd/Kconfig         |    7=20
+ drivers/mfd/Makefile        |    2=20
+ drivers/mfd/timbdma.c       |  302 ++++++++++++++++++++++++++++++++++
+ include/linux/mfd/timbdma.h |   76 ++++++++
+ 4 files changed, 387 insertions(+)
 
-diff -puN drivers/gpio/Kconfig~gpio-timberdale-add-timbgpio drivers/gpi=
-o/Kconfig
---- a/drivers/gpio/Kconfig~gpio-timberdale-add-timbgpio
-+++ a/drivers/gpio/Kconfig
-@@ -167,6 +167,12 @@ config GPIO_BT8XX
+diff -puN drivers/mfd/Kconfig~mfd-timberdale-add-timberdale-dma-driver =
+drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~mfd-timberdale-add-timberdale-dma-driver
++++ a/drivers/mfd/Kconfig
+@@ -262,6 +262,13 @@ config EZX_PCAP
+ 	  This enables the PCAP ASIC present on EZX Phones. This is
+ 	  needed for MMC, TouchScreen, Sound, USB, etc..
 =20
- 	  If unsure, say N.
-=20
-+config GPIO_TIMBERDALE
-+	tristate "Support for timberdale GPIO"
-+	depends on MFD_TIMBERDALE && GPIOLIB
++config MFD_TIMBERDALE_DMA
++	tristate "Support for timberdale DMA"
++	depends on MFD_TIMBERDALE
 +	---help---
-+	Add support for GPIO usage of some pins of the timberdale FPGA.
++	Add support the DMA block inside the timberdale FPGA. This to be able
++	to do DMA transfers directly to some of the blocks inside the FPGA
 +
- comment "SPI GPIO expanders:"
+ endmenu
 =20
- config GPIO_MAX7301
-diff -puN drivers/gpio/Makefile~gpio-timberdale-add-timbgpio drivers/gp=
-io/Makefile
---- a/drivers/gpio/Makefile~gpio-timberdale-add-timbgpio
-+++ a/drivers/gpio/Makefile
-@@ -13,5 +13,6 @@ obj-$(CONFIG_GPIO_PL061)	+=3D pl061.o
- obj-$(CONFIG_GPIO_TWL4030)	+=3D twl4030-gpio.o
- obj-$(CONFIG_GPIO_XILINX)	+=3D xilinx_gpio.o
- obj-$(CONFIG_GPIO_BT8XX)	+=3D bt8xxgpio.o
-+obj-$(CONFIG_GPIO_TIMBERDALE)	+=3D timbgpio.o
- obj-$(CONFIG_GPIO_MC33880)	+=3D mc33880.o
-=20
-diff -puN drivers/gpio/timbgpio.c~gpio-timberdale-add-timbgpio drivers/=
-gpio/timbgpio.c
---- a/drivers/gpio/timbgpio.c~gpio-timberdale-add-timbgpio
-+++ a/drivers/gpio/timbgpio.c
-@@ -0,0 +1,247 @@
+ menu "Multimedia Capabilities Port drivers"
+diff -puN drivers/mfd/Makefile~mfd-timberdale-add-timberdale-dma-driver=
+ drivers/mfd/Makefile
+--- a/drivers/mfd/Makefile~mfd-timberdale-add-timberdale-dma-driver
++++ a/drivers/mfd/Makefile
+@@ -43,4 +43,6 @@ obj-$(CONFIG_PMIC_DA903X)	+=3D da903x.o
+ obj-$(CONFIG_MFD_PCF50633)	+=3D pcf50633-core.o
+ obj-$(CONFIG_PCF50633_ADC)	+=3D pcf50633-adc.o
+ obj-$(CONFIG_PCF50633_GPIO)	+=3D pcf50633-gpio.o
++
++obj-$(CONFIG_MFD_TIMBERDALE_DMA)	+=3D timbdma.o
+ obj-$(CONFIG_AB3100_CORE)	+=3D ab3100-core.o
+diff -puN /dev/null drivers/mfd/timbdma.c
+--- /dev/null
++++ a/drivers/mfd/timbdma.c
+@@ -0,0 +1,302 @@
 +/*
-+ * timbgpio.c timberdale FPGA GPIO driver
++ * timbdma.c timberdale FPGA DMA driver
 + * Copyright (c) 2009 Intel Corporation
 + *
 + * This program is free software; you can redistribute it and/or modif=
@@ -107,103 +110,184 @@ y
 + */
 +
 +/* Supports:
-+ * Timberdale FPGA GPIO
++ * Timberdale FPGA DMA engine
 + */
 +
++#include <linux/version.h>
 +#include <linux/module.h>
-+#include <linux/gpio.h>
 +#include <linux/pci.h>
-+#include <linux/platform_device.h>
 +#include <linux/interrupt.h>
++#include <linux/platform_device.h>
 +
-+#define DRIVER_NAME "timb-gpio"
++#include <linux/mfd/timbdma.h>
 +
-+#define TIMB_NR_GPIOS		16
++static struct timbdma_dev *self_g;
 +
-+#define TGPIOVAL		0
-+#define TGPIODIR		0x04
-+#define TGPIOINT		0x08
-+#define TGPIOINT_STATUS		0x0c
-+#define TGPIOINT_PENDING	0x10
-+#define TGPIOINT_CLR		0x14
-+#define TGPIOFLK		0x18
-+#define TGPIOLVL		0x1c
-+
-+struct timbgpio {
-+	void __iomem		*membase;
-+	struct mutex		lock; /* mutual exclusion */
-+	struct pci_dev		*pdev;
-+	struct gpio_chip	gpio;
-+};
-+
-+static u32 timbgpio_configure(struct gpio_chip *gpio, unsigned nr,
-+						unsigned off, unsigned val)
++static irqreturn_t timbdma_handleinterrupt(int irq, void *devid)
 +{
-+	struct timbgpio *tgpio =3D container_of(gpio, struct timbgpio, gpio);
++	struct timbdma_dev *dev =3D (struct timbdma_dev *)devid;
++	int ipr;
++	int i;
 +
-+	u32 config, oldconfig, wconfig;
++	ipr =3D ioread32(dev->membase + timbdma_ctrlmap_TIMBPEND);
 +
-+	mutex_lock(&tgpio->lock);
-+	config =3D ioread32(tgpio->membase + off);
-+	oldconfig =3D config;
++	/* ack */
++	iowrite32(ipr, dev->membase + timbdma_ctrlmap_TIMBSTATUS);
 +
-+	if (val)
-+		config |=3D (1 << nr);
++	/* call the callbacks */
++	for (i =3D 0; i < DMA_IRQS; i++) {
++		int mask =3D 1 << i;
++		if ((ipr & mask) && dev->callbacks[i])
++			dev->callbacks[i](mask, dev->callback_data[i]);
++	}
++
++	if (ipr)
++		return IRQ_HANDLED;
 +	else
-+		config &=3D ~(1 << nr);
-+
-+	iowrite32(config, tgpio->membase + off);
-+	wconfig =3D ioread32(tgpio->membase + off);
-+	mutex_unlock(&tgpio->lock);
-+
-+	return oldconfig;
++		return IRQ_NONE;
 +}
 +
-+static int timbgpio_gpio_direction_input(struct gpio_chip *gpio, unsig=
-ned nr)
++
++void timb_start_dma(u32 flag, unsigned long buf, int len, int bytes_pe=
+r_row)
 +{
-+	timbgpio_configure(gpio, nr, TGPIODIR, 1);
-+	return 0;
-+}
++	int i;
++	unsigned long irqflags;
++	struct timbdma_dev *dev =3D self_g;
 +
-+static int timbgpio_gpio_get(struct gpio_chip *gpio, unsigned nr)
++	spin_lock_irqsave(&dev->lock, irqflags);
++
++	/* now enable the DMA transfer */
++	for (i =3D 0; i < DMA_IRQS; i++)
++		if (flag & (1 << i)) {
++			u32 offset =3D i / 2 * 0x40;
++
++			if (!(i % 2)) {
++				/* RX */
++				/* bytes per row */
++				iowrite32(bytes_per_row, dev->membase + offset +
++					timbdma_dmacfg_BPERROW);
++				/* address high */
++				iowrite32(0, dev->membase + offset +
++					timbdma_dmacfg_RXSTARTH);
++				/* address low */
++				iowrite32(buf, dev->membase + offset +
++					timbdma_dmacfg_RXSTARTL);
++				/* Length */
++				iowrite32(len, dev->membase + offset +
++					timbdma_dmacfg_RXLENGTH);
++				/* Clear rx sw read pointer */
++				iowrite32(0, dev->membase + offset +
++					timbdma_dmacfg_RXSWRP);
++				/* enable the transfer */
++				iowrite32(1, dev->membase + offset +
++					timbdma_dmacfg_RXENABLE);
++			} else {
++				/* TX */
++				/* address high */
++				iowrite32(0, dev->membase + offset +
++					timbdma_dmacfg_TXSTARTH);
++				/* address low */
++				iowrite32(buf, dev->membase + offset +
++					timbdma_dmacfg_TXSTARTL);
++				/* Length */
++				iowrite32(len, dev->membase + offset +
++					timbdma_dmacfg_TXLENGTH);
++				/* Set tx sw write pointer */
++				iowrite32(len, dev->membase + offset +
++					timbdma_dmacfg_TXSWWP);
++			}
++
++			/* only allow one bit in the flag field */
++			break;
++		}
++	spin_unlock_irqrestore(&dev->lock, irqflags);
++}
++EXPORT_SYMBOL(timb_start_dma);
++
++void *timb_stop_dma(u32 flags)
 +{
-+	struct timbgpio *tgpio =3D container_of(gpio, struct timbgpio, gpio);
-+	u32 value;
++	int i;
++	unsigned long irqflags;
++	struct timbdma_dev *dev =3D self_g;
++	void *result =3D 0;
 +
-+	value =3D ioread32(tgpio->membase + TGPIOVAL);
-+	return (value & (1 << nr)) ? 1 : 0;
++	spin_lock_irqsave(&dev->lock, irqflags);
++
++	/* now disable the DMA transfers */
++	for (i =3D 0; i < DMA_IRQS; i++)
++		if (flags & (1 << i)) {
++			/*
++				RX enable registers are located at:
++				0x14
++				0x54
++				0x94
++
++				TX SW pointer registers are located at:
++				0x24
++				0x64
++			*/
++			u32 offset =3D i / 2 * 0x40;
++			u32 result_offset =3D offset;
++			if (!(i % 2)) {
++				/* even -> RX enable */
++				offset +=3D timbdma_dmacfg_RXENABLE;
++				result_offset +=3D timbdma_dmacfg_RXFPGAWP;
++			} else {
++				/* odd -> TX SW pointer reg */
++				offset +=3D timbdma_dmacfg_TXSWWP;
++				result_offset =3D timbdma_dmacfg_TXFPGARP;
++			}
++
++			iowrite32(0, dev->membase + offset);
++			/* check how far the FPGA has written/read */
++			result =3D (void *)ioread32(dev->membase + result_offset);
++		}
++
++	/* ack any pending IRQs */
++	iowrite32(flags, dev->membase + timbdma_ctrlmap_TIMBSTATUS);
++
++	spin_unlock_irqrestore(&dev->lock, irqflags);
++
++	return result;
 +}
++EXPORT_SYMBOL(timb_stop_dma);
 +
-+static int timbgpio_gpio_direction_output(struct gpio_chip *gpio,
-+						unsigned nr, int val)
++void timb_set_dma_interruptcb(u32 flags, timbdma_interruptcb icb, void=
+ *data)
 +{
-+	timbgpio_configure(gpio, nr, TGPIODIR, 0);
-+	return 0;
++	int i;
++	unsigned long irqflags;
++	struct timbdma_dev *dev =3D self_g;
++	u32 ier;
++
++	spin_lock_irqsave(&dev->lock, irqflags);
++
++	for (i =3D 0; i < DMA_IRQS; i++)
++		if (flags & (1 << i)) {
++			dev->callbacks[i] =3D icb;
++			dev->callback_data[i] =3D data;
++		}
++
++	/* Ack any pending IRQ */
++	iowrite32(flags, dev->membase + timbdma_ctrlmap_TIMBSTATUS);
++
++	/* if a null callback is given -> clear interrupt, else -> enable */
++	ier =3D ioread32(dev->membase + timbdma_ctrlmap_TIMBENABLE);
++	if (icb !=3D NULL)
++		ier |=3D flags;
++	else
++		ier &=3D ~flags;
++	iowrite32(ier, dev->membase + timbdma_ctrlmap_TIMBENABLE);
++
++	spin_unlock_irqrestore(&dev->lock, irqflags);
 +}
++EXPORT_SYMBOL(timb_set_dma_interruptcb);
 +
-+
-+
-+static void timbgpio_gpio_set(struct gpio_chip *gpio,
-+				unsigned nr, int val)
-+{
-+	timbgpio_configure(gpio, nr, TGPIOVAL, val);
-+}
-+
-+static irqreturn_t timbgpio_handleinterrupt(int irq, void *devid)
-+{
-+	struct timbgpio *tgpio =3D (struct timbgpio *)devid;
-+
-+	iowrite32(0xffffffff, tgpio->membase + TGPIOINT_CLR);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int timbgpio_probe(struct platform_device *dev)
++static int timbdma_probe(struct platform_device *dev)
 +{
 +	int err, irq;
-+	struct gpio_chip *gc;
-+	struct timbgpio *tgpio;
++	struct timbdma_dev *self;
 +	struct resource *iomem;
 +
 +	iomem =3D platform_get_resource(dev, IORESOURCE_MEM, 0);
@@ -212,131 +296,190 @@ ned nr)
 +		goto err_mem;
 +	}
 +
-+	tgpio =3D kzalloc(sizeof(*tgpio), GFP_KERNEL);
-+	if (!tgpio) {
++	self =3D kzalloc(sizeof(*self), GFP_KERNEL);
++	if (!self) {
 +		err =3D -EINVAL;
 +		goto err_mem;
 +	}
 +
-+	mutex_init(&tgpio->lock);
++	spin_lock_init(&self->lock);
 +
-+	if (!request_mem_region(iomem->start, resource_size(iomem),
-+		DRIVER_NAME)) {
++	if (!request_mem_region(iomem->start,
++		resource_size(iomem), "timb-dma")) {
 +		err =3D -EBUSY;
 +		goto err_request;
 +	}
 +
-+	tgpio->membase =3D ioremap(iomem->start, resource_size(iomem));
-+	if (!tgpio->membase) {
++	self->membase =3D ioremap(iomem->start, resource_size(iomem));
++	if (!self->membase) {
++		printk(KERN_ERR "timbdma: Failed to remap I/O memory\n");
 +		err =3D -ENOMEM;
 +		goto err_ioremap;
 +	}
 +
-+	gc =3D &tgpio->gpio;
-+
-+	gc->label =3D DRIVER_NAME;
-+	gc->owner =3D THIS_MODULE;
-+	gc->direction_input =3D timbgpio_gpio_direction_input;
-+	gc->get =3D timbgpio_gpio_get;
-+	gc->direction_output =3D timbgpio_gpio_direction_output;
-+	gc->set =3D timbgpio_gpio_set;
-+	gc->dbg_show =3D NULL;
-+	gc->base =3D 0;
-+	gc->ngpio =3D TIMB_NR_GPIOS;
-+	gc->can_sleep =3D 0;
-+
-+	err =3D gpiochip_add(gc);
-+	if (err)
-+		goto err_chipadd;
-+
-+	platform_set_drvdata(dev, tgpio);
-+
 +	/* register interrupt */
 +	irq =3D platform_get_irq(dev, 0);
-+	if (irq < 0)
-+		goto err_get_irq;
-+
-+	/* clear pending interrupts */
-+	iowrite32(0xffffffff, tgpio->membase + TGPIOINT_CLR);
-+	iowrite32(0x0, tgpio->membase + TGPIOINT);
-+
-+	/* request IRQ */
-+	err =3D request_irq(irq, timbgpio_handleinterrupt, IRQF_SHARED,
-+		DRIVER_NAME, tgpio);
-+	if (err) {
-+		printk(KERN_ERR DRIVER_NAME": Failed to request IRQ\n");
++	if (irq < 0) {
++		err =3D irq;
 +		goto err_get_irq;
 +	}
 +
-+	return err;
++	/* request IRQ */
++	err =3D request_irq(irq, timbdma_handleinterrupt, IRQF_SHARED,
++			  "timb-dma", self);
++	if (err) {
++		printk(KERN_ERR "timbdma: Failed to request IRQ\n");
++		goto err_get_irq;
++	}
++
++	platform_set_drvdata(dev, self);
++
++	/* assign the global pointer */
++	self_g =3D self;
++
++	return 0;
 +
 +err_get_irq:
-+	err =3D gpiochip_remove(&tgpio->gpio);
-+	if (err)
-+		printk(KERN_ERR DRIVER_NAME": failed to remove gpio_chip\n");
-+err_chipadd:
-+	iounmap(tgpio->membase);
++	iounmap(self->membase);
 +err_ioremap:
 +	release_mem_region(iomem->start, resource_size(iomem));
 +err_request:
-+	kfree(tgpio);
++	kfree(self);
 +err_mem:
-+	printk(KERN_ERR DRIVER_NAME": Failed to register GPIOs: %d\n", err);
++	printk(KERN_ERR "timberdale: Failed to register Timberdale DMA: %d\n"=
+,
++		err);
 +
 +	return err;
 +}
 +
-+static int timbgpio_remove(struct platform_device *dev)
++static int timbdma_remove(struct platform_device *dev)
 +{
-+	int err;
-+	struct timbgpio *tgpio =3D platform_get_drvdata(dev);
++	struct timbdma_dev *self =3D platform_get_drvdata(dev);
 +	struct resource *iomem =3D platform_get_resource(dev, IORESOURCE_MEM,=
  0);
 +
-+	/* disable interrupts */
-+	iowrite32(0x0, tgpio->membase + TGPIOINT);
-+
-+	free_irq(platform_get_irq(dev, 0), tgpio);
-+	err =3D gpiochip_remove(&tgpio->gpio);
-+	if (err)
-+		printk(KERN_ERR DRIVER_NAME": failed to remove gpio_chip\n");
-+
-+	iounmap(tgpio->membase);
++	free_irq(platform_get_irq(dev, 0), self);
++	iounmap(self->membase);
 +	release_mem_region(iomem->start, resource_size(iomem));
-+	kfree(tgpio);
-+
++	kfree(self);
++	self_g =3D NULL;
 +	return 0;
 +}
 +
-+static struct platform_driver timbgpio_platform_driver =3D {
++static struct platform_driver timbdma_platform_driver =3D {
 +	.driver =3D {
-+		.name	=3D DRIVER_NAME,
++		.name	=3D "timb-dma",
 +		.owner	=3D THIS_MODULE,
 +	},
-+	.probe		=3D timbgpio_probe,
-+	.remove		=3D timbgpio_remove,
++	.probe		=3D timbdma_probe,
++	.remove		=3D timbdma_remove,
 +};
 +
 +/*--------------------------------------------------------------------=
 ------*/
 +
-+static int __init timbgpio_init(void)
++static int __init timbdma_init(void)
 +{
-+	return platform_driver_register(&timbgpio_platform_driver);
++	self_g =3D NULL;
++	return platform_driver_register(&timbdma_platform_driver);
 +}
 +
-+static void __exit timbgpio_exit(void)
++static void __exit timbdma_exit(void)
 +{
-+	platform_driver_unregister(&timbgpio_platform_driver);
++	platform_driver_unregister(&timbdma_platform_driver);
 +}
 +
-+module_init(timbgpio_init);
-+module_exit(timbgpio_exit);
++module_init(timbdma_init);
++module_exit(timbdma_exit);
 +
-+MODULE_DESCRIPTION("Timberdale GPIO driver");
++MODULE_DESCRIPTION("Timberdale DMA driver");
++MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
 +MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Mocean Laboratories");
-+MODULE_ALIAS("platform:"DRIVER_NAME);
++MODULE_ALIAS("platform:timb-dma");
++
+diff -puN /dev/null include/linux/mfd/timbdma.h
+--- /dev/null
++++ a/include/linux/mfd/timbdma.h
+@@ -0,0 +1,76 @@
++/*
++ * timbdma.h timberdale FPGA DMA driver defines
++ * Copyright (c) 2009 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++/* Supports:
++ * Timberdale FPGA DMA engine
++ */
++
++#ifndef _TIMBDMA_H
++#define _TIMBDMA_H
++
++#include <linux/spinlock.h>
++
++
++#define DMA_IRQ_UART_RX		0x01
++#define DMA_IRQ_UART_TX		0x02
++#define DMA_IRQ_MLB_RX		0x04
++#define DMA_IRQ_MLB_TX		0x08
++#define DMA_IRQ_VIDEO_RX	0x10
++#define DMA_IRQ_VIDEO_DROP	0x20
++#define DMA_IRQS		6
++
++
++typedef int (*timbdma_interruptcb)(u32 flag, void *data);
++
++#define timbdma_ctrlmap_DMACFGBTUART	0x000000
++#define timbdma_ctrlmap_DMACFGMLBSY	0x000040
++#define timbdma_ctrlmap_DMACFGVIDEO	0x000080
++#define timbdma_ctrlmap_TIMBSTATUS	0x080000
++#define timbdma_ctrlmap_TIMBPEND	0x080004
++#define timbdma_ctrlmap_TIMBENABLE	0x080008
++#define timbdma_ctrlmap_VIDEOBUFFER	0x200000
++
++#define timbdma_dmacfg_RXSTARTH	0x00
++#define timbdma_dmacfg_RXSTARTL	0x04
++#define timbdma_dmacfg_RXLENGTH	0x08
++#define timbdma_dmacfg_RXFPGAWP	0x0C
++#define timbdma_dmacfg_RXSWRP	0x10
++#define timbdma_dmacfg_RXENABLE	0x14
++#define timbdma_dmacfg_TXSTARTH	0x18
++#define timbdma_dmacfg_TXSTARTL	0x1C
++#define timbdma_dmacfg_TXLENGTH	0x20
++#define timbdma_dmacfg_TXSWWP	0x24
++#define timbdma_dmacfg_TXFPGARP	0x28
++#define timbdma_dmacfg_TXBEFINT	0x2C
++#define timbdma_dmacfg_BPERROW	0x30
++
++struct timbdma_dev {
++	void __iomem		*membase;
++	timbdma_interruptcb	callbacks[DMA_IRQS];
++	void			*callback_data[DMA_IRQS];
++	spinlock_t		lock; /* mutual exclusion */
++};
++
++void timb_start_dma(u32 flag, unsigned long buf, int len, int bytes_pe=
+r_row);
++
++void *timb_stop_dma(u32 flags);
++
++void timb_set_dma_interruptcb(u32 flags, timbdma_interruptcb icb, void=
+ *data);
++
++#endif /* _TIMBDMA_H */
 +
 _
 
