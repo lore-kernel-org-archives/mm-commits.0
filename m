@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-moxa-prevent-opening-unavailable-ports-fix.patch added to -mm tree
-Date: Tue, 09 Jun 2009 12:26:47 -0700
-Message-ID: <200906091926.n59JQlr9014449@imap1.linux-foundation.org>
+Subject: [folded] char-moxa-prevent-opening-unavailable-ports-fix.patch removed from -mm tree
+Date: Tue, 09 Jun 2009 12:26:54 -0700
+Message-ID: <200906091926.n59JQsSp014594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44351 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752386AbZFIT1A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 15:27:00 -0400
+	by vger.kernel.org with ESMTP id S1752386AbZFIT1E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 15:27:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, eibach@gdsys.de, jirislaby@gmail.com
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, eibach@gdsys.de, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      char-moxa-prevent-opening-unavailable-ports-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      char-moxa-prevent-opening-unavailable-ports-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into char-moxa-prevent-opening-unavailable-ports.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -124,6 +114,7 @@ fbdev-s1d13xxxfb-add-accelerated-bitblt-functions-checkpatch-fixes.patch
 documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
 cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
 drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-moxa-prevent-opening-unavailable-ports.patch
 char-moxa-prevent-opening-unavailable-ports-fix.patch
 edac-add-cpc925-memory-controller-driver-cleanup.patch
 edac-add-edac_device_alloc_index-cleanup.patch
