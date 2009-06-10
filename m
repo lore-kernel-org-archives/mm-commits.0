@@ -1,339 +1,492 @@
 From: akpm@linux-foundation.org
-Subject: + e100-add-non-mii-phy-support.patch added to -mm tree
-Date: Tue, 09 Jun 2009 17:04:47 -0700
-Message-ID: <200906100004.n5A04mQm013352@imap1.linux-foundation.org>
+Subject: - mfd-timberdale-add-timberdale-dma-driver.patch removed from -mm tree
+Date: Tue, 09 Jun 2009 17:23:57 -0700
+Message-ID: <200906100043.n5A0hqoQ012551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750725AbZFJAFC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 20:05:02 -0400
+	by vger.kernel.org with ESMTP id S1751341AbZFJAn5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 20:43:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: andim2@users.sourceforge.net, andi@lisas.de, bruce.w.allan@intel.com, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.com, peter.p.waskiewicz.jr@intel.com
+To: richard.rojfors.ext@mocean-labs.com, sameo@openedhand.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e100: add non-MII PHY support
-has been added to the -mm tree.  Its filename is
-     e100-add-non-mii-phy-support.patch
+     mfd: timberdale: add Timberdale DMA driver
+has been removed from the -mm tree.  Its filename was
+     mfd-timberdale-add-timberdale-dma-driver.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because of build problems due to the missing xil=
+inx patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: e100: add non-MII PHY support
-From: Andreas Mohr <andim2@users.sourceforge.net>
+Subject: mfd: timberdale: add Timberdale DMA driver
+=46rom: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
 
-Restore support for cards with MII-lacking PHYs as compared to removed
-pre-2.6.29 eepro100 driver: use full low-level MII I/O access abstraction
-by providing clean PHY-specific mdio_ctrl() functions for either standard
-MII-compliant cards, slightly special ones or non-MII PHY ones.
+Support for the Timberdale FPGA internal DMA engine
 
-We now have another netdev_priv member for mdio_ctrl(), thus we have some
-array indirection, but we save some additional opcodes for specific
-phy_82552_v handling in the common case.
+This driver gives other drivers the possibility to start DMA directly
+between IP block inside the FPGA and the main memory
 
-Signed-off-by: Andreas Mohr <andi@lisas.de>
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: Bruce Allan <bruce.w.allan@intel.com>
-Cc: PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>
-Cc: John Ronciak <john.ronciak@intel.com>
+Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e100.c |  190 +++++++++++++++++++++++++++++++++++++------
- 1 file changed, 164 insertions(+), 26 deletions(-)
+ drivers/mfd/Kconfig         |    7=20
+ drivers/mfd/Makefile        |    2=20
+ drivers/mfd/timbdma.c       |  302 ++++++++++++++++++++++++++++++++++
+ include/linux/mfd/timbdma.h |   76 ++++++++
+ 4 files changed, 387 insertions(+)
 
-diff -puN drivers/net/e100.c~e100-add-non-mii-phy-support drivers/net/e100.c
---- a/drivers/net/e100.c~e100-add-non-mii-phy-support
-+++ a/drivers/net/e100.c
-@@ -143,6 +143,8 @@
-  *	FIXES:
-  * 2005/12/02 - Michael O'Donnell <Michael.ODonnell at stratus dot com>
-  *	- Stratus87247: protect MDI control register manipulations
-+ * 2009/06/01 - Andreas Mohr <andi at lisas dot de>
-+ *      - add clean lowlevel I/O emulation for cards with MII-lacking PHYs
-  */
- 
- #include <linux/module.h>
-@@ -372,6 +374,7 @@ enum eeprom_op {
- 
- enum eeprom_offsets {
- 	eeprom_cnfg_mdix  = 0x03,
-+	eeprom_phy_iface  = 0x06,
- 	eeprom_id         = 0x0A,
- 	eeprom_config_asf = 0x0D,
- 	eeprom_smbus_addr = 0x90,
-@@ -381,6 +384,18 @@ enum eeprom_cnfg_mdix {
- 	eeprom_mdix_enabled = 0x0080,
- };
- 
-+enum eeprom_phy_iface {
-+	NonSuchPhy = 0,
-+	I82553AB,
-+	I82553C,
-+	I82503,
-+	DP83840,
-+	S80C240,
-+	S80C24,
-+	I82555,
-+	DP83840A = 10,
+diff -puN drivers/mfd/Kconfig~mfd-timberdale-add-timberdale-dma-driver =
+drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~mfd-timberdale-add-timberdale-dma-driver
++++ a/drivers/mfd/Kconfig
+@@ -262,6 +262,13 @@ config EZX_PCAP
+ 	  This enables the PCAP ASIC present on EZX Phones. This is
+ 	  needed for MMC, TouchScreen, Sound, USB, etc..
+=20
++config MFD_TIMBERDALE_DMA
++	tristate "Support for timberdale DMA"
++	depends on MFD_TIMBERDALE
++	---help---
++	Add support the DMA block inside the timberdale FPGA. This to be able
++	to do DMA transfers directly to some of the blocks inside the FPGA
++
+ endmenu
+=20
+ menu "Multimedia Capabilities Port drivers"
+diff -puN drivers/mfd/Makefile~mfd-timberdale-add-timberdale-dma-driver=
+ drivers/mfd/Makefile
+--- a/drivers/mfd/Makefile~mfd-timberdale-add-timberdale-dma-driver
++++ a/drivers/mfd/Makefile
+@@ -43,4 +43,6 @@ obj-$(CONFIG_PMIC_DA903X)	+=3D da903x.o
+ obj-$(CONFIG_MFD_PCF50633)	+=3D pcf50633-core.o
+ obj-$(CONFIG_PCF50633_ADC)	+=3D pcf50633-adc.o
+ obj-$(CONFIG_PCF50633_GPIO)	+=3D pcf50633-gpio.o
++
++obj-$(CONFIG_MFD_TIMBERDALE_DMA)	+=3D timbdma.o
+ obj-$(CONFIG_AB3100_CORE)	+=3D ab3100-core.o
+diff -puN /dev/null drivers/mfd/timbdma.c
+--- /dev/null
++++ a/drivers/mfd/timbdma.c
+@@ -0,0 +1,302 @@
++/*
++ * timbdma.c timberdale FPGA DMA driver
++ * Copyright (c) 2009 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++/* Supports:
++ * Timberdale FPGA DMA engine
++ */
++
++#include <linux/version.h>
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++
++#include <linux/mfd/timbdma.h>
++
++static struct timbdma_dev *self_g;
++
++static irqreturn_t timbdma_handleinterrupt(int irq, void *devid)
++{
++	struct timbdma_dev *dev =3D (struct timbdma_dev *)devid;
++	int ipr;
++	int i;
++
++	ipr =3D ioread32(dev->membase + timbdma_ctrlmap_TIMBPEND);
++
++	/* ack */
++	iowrite32(ipr, dev->membase + timbdma_ctrlmap_TIMBSTATUS);
++
++	/* call the callbacks */
++	for (i =3D 0; i < DMA_IRQS; i++) {
++		int mask =3D 1 << i;
++		if ((ipr & mask) && dev->callbacks[i])
++			dev->callbacks[i](mask, dev->callback_data[i]);
++	}
++
++	if (ipr)
++		return IRQ_HANDLED;
++	else
++		return IRQ_NONE;
++}
++
++
++void timb_start_dma(u32 flag, unsigned long buf, int len, int bytes_pe=
+r_row)
++{
++	int i;
++	unsigned long irqflags;
++	struct timbdma_dev *dev =3D self_g;
++
++	spin_lock_irqsave(&dev->lock, irqflags);
++
++	/* now enable the DMA transfer */
++	for (i =3D 0; i < DMA_IRQS; i++)
++		if (flag & (1 << i)) {
++			u32 offset =3D i / 2 * 0x40;
++
++			if (!(i % 2)) {
++				/* RX */
++				/* bytes per row */
++				iowrite32(bytes_per_row, dev->membase + offset +
++					timbdma_dmacfg_BPERROW);
++				/* address high */
++				iowrite32(0, dev->membase + offset +
++					timbdma_dmacfg_RXSTARTH);
++				/* address low */
++				iowrite32(buf, dev->membase + offset +
++					timbdma_dmacfg_RXSTARTL);
++				/* Length */
++				iowrite32(len, dev->membase + offset +
++					timbdma_dmacfg_RXLENGTH);
++				/* Clear rx sw read pointer */
++				iowrite32(0, dev->membase + offset +
++					timbdma_dmacfg_RXSWRP);
++				/* enable the transfer */
++				iowrite32(1, dev->membase + offset +
++					timbdma_dmacfg_RXENABLE);
++			} else {
++				/* TX */
++				/* address high */
++				iowrite32(0, dev->membase + offset +
++					timbdma_dmacfg_TXSTARTH);
++				/* address low */
++				iowrite32(buf, dev->membase + offset +
++					timbdma_dmacfg_TXSTARTL);
++				/* Length */
++				iowrite32(len, dev->membase + offset +
++					timbdma_dmacfg_TXLENGTH);
++				/* Set tx sw write pointer */
++				iowrite32(len, dev->membase + offset +
++					timbdma_dmacfg_TXSWWP);
++			}
++
++			/* only allow one bit in the flag field */
++			break;
++		}
++	spin_unlock_irqrestore(&dev->lock, irqflags);
++}
++EXPORT_SYMBOL(timb_start_dma);
++
++void *timb_stop_dma(u32 flags)
++{
++	int i;
++	unsigned long irqflags;
++	struct timbdma_dev *dev =3D self_g;
++	void *result =3D 0;
++
++	spin_lock_irqsave(&dev->lock, irqflags);
++
++	/* now disable the DMA transfers */
++	for (i =3D 0; i < DMA_IRQS; i++)
++		if (flags & (1 << i)) {
++			/*
++				RX enable registers are located at:
++				0x14
++				0x54
++				0x94
++
++				TX SW pointer registers are located at:
++				0x24
++				0x64
++			*/
++			u32 offset =3D i / 2 * 0x40;
++			u32 result_offset =3D offset;
++			if (!(i % 2)) {
++				/* even -> RX enable */
++				offset +=3D timbdma_dmacfg_RXENABLE;
++				result_offset +=3D timbdma_dmacfg_RXFPGAWP;
++			} else {
++				/* odd -> TX SW pointer reg */
++				offset +=3D timbdma_dmacfg_TXSWWP;
++				result_offset =3D timbdma_dmacfg_TXFPGARP;
++			}
++
++			iowrite32(0, dev->membase + offset);
++			/* check how far the FPGA has written/read */
++			result =3D (void *)ioread32(dev->membase + result_offset);
++		}
++
++	/* ack any pending IRQs */
++	iowrite32(flags, dev->membase + timbdma_ctrlmap_TIMBSTATUS);
++
++	spin_unlock_irqrestore(&dev->lock, irqflags);
++
++	return result;
++}
++EXPORT_SYMBOL(timb_stop_dma);
++
++void timb_set_dma_interruptcb(u32 flags, timbdma_interruptcb icb, void=
+ *data)
++{
++	int i;
++	unsigned long irqflags;
++	struct timbdma_dev *dev =3D self_g;
++	u32 ier;
++
++	spin_lock_irqsave(&dev->lock, irqflags);
++
++	for (i =3D 0; i < DMA_IRQS; i++)
++		if (flags & (1 << i)) {
++			dev->callbacks[i] =3D icb;
++			dev->callback_data[i] =3D data;
++		}
++
++	/* Ack any pending IRQ */
++	iowrite32(flags, dev->membase + timbdma_ctrlmap_TIMBSTATUS);
++
++	/* if a null callback is given -> clear interrupt, else -> enable */
++	ier =3D ioread32(dev->membase + timbdma_ctrlmap_TIMBENABLE);
++	if (icb !=3D NULL)
++		ier |=3D flags;
++	else
++		ier &=3D ~flags;
++	iowrite32(ier, dev->membase + timbdma_ctrlmap_TIMBENABLE);
++
++	spin_unlock_irqrestore(&dev->lock, irqflags);
++}
++EXPORT_SYMBOL(timb_set_dma_interruptcb);
++
++static int timbdma_probe(struct platform_device *dev)
++{
++	int err, irq;
++	struct timbdma_dev *self;
++	struct resource *iomem;
++
++	iomem =3D platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (!iomem) {
++		err =3D -EINVAL;
++		goto err_mem;
++	}
++
++	self =3D kzalloc(sizeof(*self), GFP_KERNEL);
++	if (!self) {
++		err =3D -EINVAL;
++		goto err_mem;
++	}
++
++	spin_lock_init(&self->lock);
++
++	if (!request_mem_region(iomem->start,
++		resource_size(iomem), "timb-dma")) {
++		err =3D -EBUSY;
++		goto err_request;
++	}
++
++	self->membase =3D ioremap(iomem->start, resource_size(iomem));
++	if (!self->membase) {
++		printk(KERN_ERR "timbdma: Failed to remap I/O memory\n");
++		err =3D -ENOMEM;
++		goto err_ioremap;
++	}
++
++	/* register interrupt */
++	irq =3D platform_get_irq(dev, 0);
++	if (irq < 0) {
++		err =3D irq;
++		goto err_get_irq;
++	}
++
++	/* request IRQ */
++	err =3D request_irq(irq, timbdma_handleinterrupt, IRQF_SHARED,
++			  "timb-dma", self);
++	if (err) {
++		printk(KERN_ERR "timbdma: Failed to request IRQ\n");
++		goto err_get_irq;
++	}
++
++	platform_set_drvdata(dev, self);
++
++	/* assign the global pointer */
++	self_g =3D self;
++
++	return 0;
++
++err_get_irq:
++	iounmap(self->membase);
++err_ioremap:
++	release_mem_region(iomem->start, resource_size(iomem));
++err_request:
++	kfree(self);
++err_mem:
++	printk(KERN_ERR "timberdale: Failed to register Timberdale DMA: %d\n"=
+,
++		err);
++
++	return err;
++}
++
++static int timbdma_remove(struct platform_device *dev)
++{
++	struct timbdma_dev *self =3D platform_get_drvdata(dev);
++	struct resource *iomem =3D platform_get_resource(dev, IORESOURCE_MEM,=
+ 0);
++
++	free_irq(platform_get_irq(dev, 0), self);
++	iounmap(self->membase);
++	release_mem_region(iomem->start, resource_size(iomem));
++	kfree(self);
++	self_g =3D NULL;
++	return 0;
++}
++
++static struct platform_driver timbdma_platform_driver =3D {
++	.driver =3D {
++		.name	=3D "timb-dma",
++		.owner	=3D THIS_MODULE,
++	},
++	.probe		=3D timbdma_probe,
++	.remove		=3D timbdma_remove,
 +};
 +
- enum eeprom_id {
- 	eeprom_id_wol = 0x0020,
- };
-@@ -545,6 +560,7 @@ struct nic {
- 	u32 msg_enable				____cacheline_aligned;
- 	struct net_device *netdev;
- 	struct pci_dev *pdev;
-+	u16 (*mdio_ctrl)(struct nic *nic, u32 addr, u32 dir, u32 reg, u16 data);
- 
- 	struct rx *rxs				____cacheline_aligned;
- 	struct rx *rx_to_use;
-@@ -899,7 +915,21 @@ err_unlock:
- 	return err;
- }
- 
--static u16 mdio_ctrl(struct nic *nic, u32 addr, u32 dir, u32 reg, u16 data)
-+static int mdio_read(struct net_device *netdev, int addr, int reg)
++/*--------------------------------------------------------------------=
+------*/
++
++static int __init timbdma_init(void)
 +{
-+	struct nic *nic = netdev_priv(netdev);
-+	return nic->mdio_ctrl(nic, addr, mdi_read, reg, 0);
++	self_g =3D NULL;
++	return platform_driver_register(&timbdma_platform_driver);
 +}
 +
-+static void mdio_write(struct net_device *netdev, int addr, int reg, int data)
++static void __exit timbdma_exit(void)
 +{
-+	struct nic *nic = netdev_priv(netdev);
-+
-+	nic->mdio_ctrl(nic, addr, mdi_write, reg, data);
++	platform_driver_unregister(&timbdma_platform_driver);
 +}
 +
-+/* the standard mdio_ctrl() function for usual MII-compliant hardware */
-+static u16 mdio_ctrl_hw(struct nic *nic, u32 addr, u32 dir, u32 reg, u16 data)
- {
- 	u32 data_out = 0;
- 	unsigned int i;
-@@ -938,30 +968,83 @@ static u16 mdio_ctrl(struct nic *nic, u3
- 	return (u16)data_out;
- }
- 
--static int mdio_read(struct net_device *netdev, int addr, int reg)
--{
--	return mdio_ctrl(netdev_priv(netdev), addr, mdi_read, reg, 0);
-+/* slightly tweaked mdio_ctrl() function for phy_82552_v specifics */
-+static u16 mdio_ctrl_phy_82552_v(struct nic *nic,
-+				 u32 addr,
-+				 u32 dir,
-+				 u32 reg,
-+				 u16 data)
-+{
-+	if ((reg == MII_BMCR) && (dir == mdi_write)) {
-+		if (data & (BMCR_ANRESTART | BMCR_ANENABLE)) {
-+			u16 advert = mdio_read(nic->netdev, nic->mii.phy_id,
-+							MII_ADVERTISE);
++module_init(timbdma_init);
++module_exit(timbdma_exit);
 +
-+			/*
-+			 * Workaround Si issue where sometimes the part will not
-+			 * autoneg to 100Mbps even when advertised.
-+			 */
-+			if (advert & ADVERTISE_100FULL)
-+				data |= BMCR_SPEED100 | BMCR_FULLDPLX;
-+			else if (advert & ADVERTISE_100HALF)
-+				data |= BMCR_SPEED100;
-+		}
-+	}
-+	return mdio_ctrl_hw(nic, addr, dir, reg, data);
- }
- 
--static void mdio_write(struct net_device *netdev, int addr, int reg, int data)
--{
--	struct nic *nic = netdev_priv(netdev);
--
--	if  ((nic->phy == phy_82552_v) && (reg == MII_BMCR) &&
--	     (data & (BMCR_ANRESTART | BMCR_ANENABLE))) {
--		u16 advert = mdio_read(netdev, nic->mii.phy_id, MII_ADVERTISE);
--
--		/*
--		 * Workaround Si issue where sometimes the part will not
--		 * autoneg to 100Mbps even when advertised.
--		 */
--		if (advert & ADVERTISE_100FULL)
--			data |= BMCR_SPEED100 | BMCR_FULLDPLX;
--		else if (advert & ADVERTISE_100HALF)
--			data |= BMCR_SPEED100;
-+/* Fully software-emulated mdio_ctrl() function for cards without
-+ * MII-compliant PHYs.
-+ * For now, this is mainly geared towards 80c24 support; in case of further
-+ * requirements for other types (i82503, ...?) either extend this mechanism
-+ * or split it, whichever is cleaner.
++MODULE_DESCRIPTION("Timberdale DMA driver");
++MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:timb-dma");
++
+diff -puN /dev/null include/linux/mfd/timbdma.h
+--- /dev/null
++++ a/include/linux/mfd/timbdma.h
+@@ -0,0 +1,76 @@
++/*
++ * timbdma.h timberdale FPGA DMA driver defines
++ * Copyright (c) 2009 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
-+static u16 mdio_ctrl_phy_mii_emulated(struct nic *nic,
-+				      u32 addr,
-+				      u32 dir,
-+				      u32 reg,
-+				      u16 data)
-+{
-+	/* might need to allocate a netdev_priv'ed register array eventually
-+	 * to be able to record state changes, but for now
-+	 * some fully hardcoded register handling ought to be ok I guess. */
 +
-+	if (dir == mdi_read) {
-+		switch (reg) {
-+		case MII_BMCR:
-+			/* Auto-negotiation, right? */
-+			return  BMCR_ANENABLE |
-+				BMCR_FULLDPLX;
-+		case MII_BMSR:
-+			return	BMSR_LSTATUS /* for mii_link_ok() */ |
-+				BMSR_ANEGCAPABLE |
-+				BMSR_10FULL;
-+		case MII_ADVERTISE:
-+			/* 80c24 is a "combo card" PHY, right? */
-+			return	ADVERTISE_10HALF |
-+				ADVERTISE_10FULL;
-+		default:
-+			DPRINTK(HW, DEBUG,
-+		"%s:addr=%d, reg=%d, data=0x%04X: unimplemented emulation!\n",
-+		dir == mdi_read ? "READ" : "WRITE", addr, reg, data);
-+			return 0xFFFF;
-+		}
-+	} else {
-+		switch (reg) {
-+		default:
-+			DPRINTK(HW, DEBUG,
-+		"%s:addr=%d, reg=%d, data=0x%04X: unimplemented emulation!\n",
-+		dir == mdi_read ? "READ" : "WRITE", addr, reg, data);
-+			return 0xFFFF;
-+		}
- 	}
--
--	mdio_ctrl(netdev_priv(netdev), addr, mdi_write, reg, data);
-+}
-+static inline int e100_phy_supports_mii(struct nic *nic)
-+{
-+	/* for now, just check it by comparing whether we
-+	   are using MII software emulation.
-+	*/
-+	return (nic->mdio_ctrl != mdio_ctrl_phy_mii_emulated);
- }
- 
- static void e100_get_defaults(struct nic *nic)
-@@ -1013,7 +1096,8 @@ static void e100_configure(struct nic *n
- 	config->standard_stat_counter = 0x1;	/* 1=standard, 0=extended */
- 	config->rx_discard_short_frames = 0x1;	/* 1=discard, 0=pass */
- 	config->tx_underrun_retry = 0x3;	/* # of underrun retries */
--	config->mii_mode = 0x1;			/* 1=MII mode, 0=503 mode */
-+	if (e100_phy_supports_mii(nic))
-+		config->mii_mode = 1;           /* 1=MII mode, 0=i82503 mode */
- 	config->pad10 = 0x6;
- 	config->no_source_addr_insertion = 0x1;	/* 1=no, 0=yes */
- 	config->preamble_length = 0x2;		/* 0=1, 1=3, 2=7, 3=15 bytes */
-@@ -1270,6 +1354,44 @@ static void e100_dump(struct nic *nic, s
- 		offsetof(struct mem, dump_buf));
- }
- 
-+static int e100_phy_check_without_mii(struct nic *nic)
-+{
-+	u8 phy_type;
-+	int without_mii;
++/* Supports:
++ * Timberdale FPGA DMA engine
++ */
 +
-+	phy_type = (nic->eeprom[eeprom_phy_iface] >> 8) & 0x0f;
++#ifndef _TIMBDMA_H
++#define _TIMBDMA_H
 +
-+	switch (phy_type) {
-+	case NonSuchPhy: /* Non-MII PHY; UNTESTED! */
-+	case I82503: /* Non-MII PHY; UNTESTED! */
-+	case S80C24: /* Non-MII PHY; tested and working */
-+	{
-+		/* paragraph from the FreeBSD driver, "FXP_PHY_80C24":
-+		 * The Seeq 80c24 AutoDUPLEX(tm) Ethernet Interface Adapter
-+		 * doesn't have a programming interface of any sort.  The
-+		 * media is sensed automatically based on how the link partner
-+		 * is configured.  This is, in essence, manual configuration.
-+		 */
-+		DPRINTK(PROBE, INFO,
-+			 "found MII-less i82503 or 80c24 or other PHY\n");
++#include <linux/spinlock.h>
 +
-+		nic->mdio_ctrl = mdio_ctrl_phy_mii_emulated;
-+		nic->mii.phy_id = 0; /* is this ok for an MII-less PHY? */
 +
-+		/* these might be needed for certain MII-less cards...
-+		 * nic->flags |= ich;
-+		 * nic->flags |= ich_10h_workaround; */
++#define DMA_IRQ_UART_RX		0x01
++#define DMA_IRQ_UART_TX		0x02
++#define DMA_IRQ_MLB_RX		0x04
++#define DMA_IRQ_MLB_TX		0x08
++#define DMA_IRQ_VIDEO_RX	0x10
++#define DMA_IRQ_VIDEO_DROP	0x20
++#define DMA_IRQS		6
 +
-+		without_mii = 1;
-+	}
-+	break;
-+	default:
-+		without_mii = 0;
-+		break;
-+	}
-+	return without_mii;
-+}
 +
- #define NCONFIG_AUTO_SWITCH	0x0080
- #define MII_NSC_CONG		MII_RESV1
- #define NSC_CONG_ENABLE		0x0100
-@@ -1290,9 +1412,21 @@ static int e100_phy_init(struct nic *nic
- 		if (!((bmcr == 0xFFFF) || ((stat == 0) && (bmcr == 0))))
- 			break;
- 	}
--	DPRINTK(HW, DEBUG, "phy_addr = %d\n", nic->mii.phy_id);
--	if (addr == 32)
--		return -EAGAIN;
-+	if (addr == 32) {
-+		/* uhoh, no PHY detected: check whether we seem to be some
-+		 * weird, rare variant which is *known* to not have any MII.
-+		 * But do this AFTER MII checking only, since this does
-+		 * lookup of EEPROM values which may easily be unreliable. */
-+		if (e100_phy_check_without_mii(nic))
-+			return 0; /* simply return and hope for the best */
-+		else {
-+			/* for unknown cases log a fatal error */
-+			DPRINTK(HW, ERR,
-+				"Failed to locate any known PHY, aborting.\n");
-+			return -EAGAIN;
-+		}
-+	} else
-+		DPRINTK(HW, DEBUG, "phy_addr = %d\n", nic->mii.phy_id);
- 
- 	/* Isolate all the PHY ids */
- 	for (addr = 0; addr < 32; addr++)
-@@ -1320,6 +1454,9 @@ static int e100_phy_init(struct nic *nic
- 	if (nic->phy == phy_82552_v) {
- 		u16 advert = mdio_read(netdev, nic->mii.phy_id, MII_ADVERTISE);
- 
-+		/* assign special tweaked mdio_ctrl() function */
-+		nic->mdio_ctrl = mdio_ctrl_phy_82552_v;
++typedef int (*timbdma_interruptcb)(u32 flag, void *data);
 +
- 		/* Workaround Si not advertising flow-control during autoneg */
- 		advert |= ADVERTISE_PAUSE_CAP | ADVERTISE_PAUSE_ASYM;
- 		mdio_write(netdev, nic->mii.phy_id, MII_ADVERTISE, advert);
-@@ -2585,6 +2722,7 @@ static int __devinit e100_probe(struct p
- 	nic->netdev = netdev;
- 	nic->pdev = pdev;
- 	nic->msg_enable = (1 << debug) - 1;
-+	nic->mdio_ctrl = mdio_ctrl_hw;
- 	pci_set_drvdata(pdev, netdev);
- 
- 	if ((err = pci_enable_device(pdev))) {
++#define timbdma_ctrlmap_DMACFGBTUART	0x000000
++#define timbdma_ctrlmap_DMACFGMLBSY	0x000040
++#define timbdma_ctrlmap_DMACFGVIDEO	0x000080
++#define timbdma_ctrlmap_TIMBSTATUS	0x080000
++#define timbdma_ctrlmap_TIMBPEND	0x080004
++#define timbdma_ctrlmap_TIMBENABLE	0x080008
++#define timbdma_ctrlmap_VIDEOBUFFER	0x200000
++
++#define timbdma_dmacfg_RXSTARTH	0x00
++#define timbdma_dmacfg_RXSTARTL	0x04
++#define timbdma_dmacfg_RXLENGTH	0x08
++#define timbdma_dmacfg_RXFPGAWP	0x0C
++#define timbdma_dmacfg_RXSWRP	0x10
++#define timbdma_dmacfg_RXENABLE	0x14
++#define timbdma_dmacfg_TXSTARTH	0x18
++#define timbdma_dmacfg_TXSTARTL	0x1C
++#define timbdma_dmacfg_TXLENGTH	0x20
++#define timbdma_dmacfg_TXSWWP	0x24
++#define timbdma_dmacfg_TXFPGARP	0x28
++#define timbdma_dmacfg_TXBEFINT	0x2C
++#define timbdma_dmacfg_BPERROW	0x30
++
++struct timbdma_dev {
++	void __iomem		*membase;
++	timbdma_interruptcb	callbacks[DMA_IRQS];
++	void			*callback_data[DMA_IRQS];
++	spinlock_t		lock; /* mutual exclusion */
++};
++
++void timb_start_dma(u32 flag, unsigned long buf, int len, int bytes_pe=
+r_row);
++
++void *timb_stop_dma(u32 flags);
++
++void timb_set_dma_interruptcb(u32 flags, timbdma_interruptcb icb, void=
+ *data);
++
++#endif /* _TIMBDMA_H */
++
 _
 
-Patches currently in -mm which might be from andim2@users.sourceforge.net are
+Patches currently in -mm which might be from richard.rojfors.ext@mocean=
+-labs.com are
 
-e100-add-non-mii-phy-support.patch
-e100-add-non-mii-phy-support-fix.patch
+linux-next.patch
+mfd-timberdale-add-timberdale-dma-driver.patch
+v4l2-timberdale-add-timberdale-logiwin-driver.patch
+v4l2-timberdale-add-timberdale-logiwin-driver-in-kconfig-and-makefile.p=
+atch
+mfd-timberdale-add-timberdale-driver.patch
+serial-timberdale-add-timberdale-uart-driver.patch
+gpio-timberdale-add-timbgpio.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
