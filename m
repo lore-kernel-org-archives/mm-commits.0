@@ -1,116 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs4-remove-hashed-check-in-validate_wait.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 10:44:02 -0700
-Message-ID: <200906101744.n5AHi2ts030795@imap1.linux-foundation.org>
+Subject: [merged] shm-fix-unused-warnings-on-nommu.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 10:43:59 -0700
+Message-ID: <200906101743.n5AHhxDR030722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54492 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756528AbZFJRoa (ORCPT
+	by vger.kernel.org with ESMTP id S1758335AbZFJRok (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 13:44:30 -0400
+	Wed, 10 Jun 2009 13:44:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: remove hashed check in validate_wait()
+     shm: fix unused warnings on nommu
 has been removed from the -mm tree.  Its filename was
-     autofs4-remove-hashed-check-in-validate_wait.patch
+     shm-fix-unused-warnings-on-nommu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: remove hashed check in validate_wait()
-From: Ian Kent <raven@themaw.net>
+Subject: shm: fix unused warnings on nommu
+From: Mike Frysinger <vapier@gentoo.org>
 
-The recent ->lookup() deadlock correction required the directory inode
-mutex to be dropped while waiting for expire completion.  We were
-concerned about side effects from this change and one has been identified.
+The massive nommu update (8feae131) resulted in these warnings:
+ipc/shm.c: In function `sys_shmdt':
+ipc/shm.c:974: warning: unused variable `size'
+ipc/shm.c:972: warning: unused variable `next'
 
-I saw several error messages.
-
-They cause autofs to become quite confused and don't really point to the
-actual problem.
-
-Things like:
-
-handle_packet_missing_direct:1376: can't find map entry for (43,1827932)
-
-which is usually totally fatal (although in this case it wouldn't be
-except that I treat is as such because it normally is).
-
-do_mount_direct: direct trigger not valid or already mounted
-/test/nested/g3c/s1/ss1
-
-which is recoverable, however if this problem is at play it can cause
-autofs to become quite confused as to the dependencies in the mount tree
-because mount triggers end up mounted multiple times.  It's hard to
-accurately check for this over mounting case and automount shouldn't need
-to if the kernel module is doing its job.
-
-There was one other message, similar in consequence of this last one but I
-can't locate a log example just now.
-
-
-
-When checking if a mount has already completed prior to adding a new mount
-request to the wait queue we check if the dentry is hashed and, if so, if
-it is a mount point.  But, if a mount successfully completed while we
-slept on the wait queue mutex the dentry must exist for the mount to have
-completed so the test is not really needed.
-
-Mounts can also be done on top of a global root dentry, so for the above
-case, where a mount request completes and the wait queue entry has already
-been removed, the hashed test returning false can cause an incorrect
-callback to the daemon.  Also, d_mountpoint() is not sufficient to check
-if a mount has completed for the multi-mount case when we don't have a
-real mount at the base of the tree.
-
-Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/waitq.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ ipc/shm.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/autofs4/waitq.c~autofs4-remove-hashed-check-in-validate_wait fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs4-remove-hashed-check-in-validate_wait
-+++ a/fs/autofs4/waitq.c
-@@ -297,20 +297,14 @@ static int validate_request(struct autof
- 	 */
- 	if (notify == NFY_MOUNT) {
- 		/*
--		 * If the dentry isn't hashed just go ahead and try the
--		 * mount again with a new wait (not much else we can do).
--		*/
--		if (!d_unhashed(dentry)) {
--			/*
--			 * But if the dentry is hashed, that means that we
--			 * got here through the revalidate path.  Thus, we
--			 * need to check if the dentry has been mounted
--			 * while we waited on the wq_mutex. If it has,
--			 * simply return success.
--			 */
--			if (d_mountpoint(dentry))
--				return 0;
--		}
-+		 * If the dentry was successfully mounted while we slept
-+		 * on the wait queue mutex we can return success. If it
-+		 * isn't mounted (doesn't have submounts for the case of
-+		 * a multi-mount with no mount at it's base) we can
-+		 * continue on and create a new request.
-+		 */
-+		if (have_submounts(dentry))
-+			return 0;
- 	}
+diff -puN ipc/shm.c~shm-fix-unused-warnings-on-nommu ipc/shm.c
+--- a/ipc/shm.c~shm-fix-unused-warnings-on-nommu
++++ a/ipc/shm.c
+@@ -969,10 +969,13 @@ SYSCALL_DEFINE3(shmat, int, shmid, char 
+ SYSCALL_DEFINE1(shmdt, char __user *, shmaddr)
+ {
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma, *next;
++	struct vm_area_struct *vma;
+ 	unsigned long addr = (unsigned long)shmaddr;
+-	loff_t size = 0;
+ 	int retval = -EINVAL;
++#ifdef CONFIG_MMU
++	loff_t size = 0;
++	struct vm_area_struct *next;
++#endif
  
- 	return 1;
+ 	if (addr & ~PAGE_MASK)
+ 		return retval;
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
+linux-next.patch
+pcmcia-yenta-add-missing-__devexit-marking.patch
+drivers-hvc-add-missing-__devexit_p.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
+gpio-max7301-add-missing-__devexit-marking.patch
+istallion-add-missing-__devexit-marking.patch
+edac-add-missing-__devexit_p.patch
 
