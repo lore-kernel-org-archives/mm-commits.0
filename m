@@ -1,195 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] 3x59x-fix-pci-resource-management.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 12:55:21 -0700
-Message-ID: <200906101955.n5AJtMg7008475@imap1.linux-foundation.org>
+Subject: [folded] watchdog-add-bcm47xx-driver-update.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 12:58:05 -0700
+Message-ID: <200906101958.n5AJw6gk010961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761529AbZFJT4L (ORCPT
+	by vger.kernel.org with ESMTP id S1762082AbZFJT7N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:56:11 -0400
+	Wed, 10 Jun 2009 15:59:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
+To: castet.matthieu@free.fr, biblbroks@sezampro.rs, ralf@linux-mips.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     3c59x: fix PCI resource management
+     watchdog-add-bcm47xx-driver-update
 has been removed from the -mm tree.  Its filename was
-     3x59x-fix-pci-resource-management.patch
+     watchdog-add-bcm47xx-driver-update.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into watchdog-add-bcm47xx-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 3c59x: fix PCI resource management
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: watchdog-add-bcm47xx-driver-update
+From: matthieu castet <castet.matthieu@free.fr>
 
-The driver wrongly claimed I/O ports at an address returned by pci_iomap()
--- even if it was passed an MMIO address.  Fix this by claiming/releasing
-all PCI resources in the PCI driver probe/remove handlers instead and get
-rid of the must_free_region flag weirdness (why would Cardbus claim
-anything for us?).
-
-Also, the remove handler was trying to talk to the chip after having
-disabled its address decoders (at least on x86) -- fix this and get rid of
-useless VORTEX_PCI() calls.
-
-While at it, fix some cases of the overly indented code...
-
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Aleksandar Radovanovic <biblbroks@sezampro.rs>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/3c59x.c |   66 ++++++++++++++++++++----------------------
- 1 file changed, 32 insertions(+), 34 deletions(-)
+ drivers/watchdog/Kconfig       |    8 +++----
+ drivers/watchdog/bcm47xx_wdt.c |   33 ++++++++++++++-----------------
+ 2 files changed, 19 insertions(+), 22 deletions(-)
 
-diff -puN drivers/net/3c59x.c~3x59x-fix-pci-resource-management drivers/net/3c59x.c
---- a/drivers/net/3c59x.c~3x59x-fix-pci-resource-management
-+++ a/drivers/net/3c59x.c
-@@ -629,7 +629,6 @@ struct vortex_private {
- 		pm_state_valid:1,				/* pci_dev->saved_config_space has sane contents */
- 		open:1,
- 		medialock:1,
--		must_free_region:1,				/* Flag: if zero, Cardbus owns the I/O region */
- 		large_frames:1;			/* accept large frames */
- 	int drv_flags;
- 	u16 status_enable;
-@@ -962,7 +961,13 @@ static int __devinit vortex_init_one(str
- 	/* wake up and enable device */
- 	rc = pci_enable_device(pdev);
- 	if (rc < 0)
--		goto out;
-+		return rc;
-+
-+	rc = pci_request_regions(pdev, "3c59x");
-+	if (rc < 0) {
-+		pci_disable_device(pdev);
-+		return rc;
-+	}
+diff -puN drivers/watchdog/Kconfig~watchdog-add-bcm47xx-driver-update drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~watchdog-add-bcm47xx-driver-update
++++ a/drivers/watchdog/Kconfig
+@@ -800,10 +800,10 @@ config TXX9_WDT
+ 	  Hardware driver for the built-in watchdog timer on TXx9 MIPS SoCs.
  
- 	unit = vortex_cards_found;
+ config BCM47XX_WDT
+-    tristate "Broadcom BCM47xx Watchdog Timer"
+-    depends on BCM47XX
+-    help
+-      Hardware driver for the Broadcom BCM47xx Watchog Timer.
++	tristate "Broadcom BCM47xx Watchdog Timer"
++	depends on BCM47XX
++	help
++	  Hardware driver for the Broadcom BCM47xx Watchog Timer.
  
-@@ -982,13 +987,13 @@ static int __devinit vortex_init_one(str
- 	rc = vortex_probe1(&pdev->dev, ioaddr, pdev->irq,
- 			   ent->driver_data, unit);
- 	if (rc < 0) {
--		pci_disable_device(pdev);
--		goto out;
-+		pci_release_regions(pdev);
-+		pci_disable_device (pdev);
-+		return rc;
+ # PARISC Architecture
+ 
+diff -puN drivers/watchdog/bcm47xx_wdt.c~watchdog-add-bcm47xx-driver-update drivers/watchdog/bcm47xx_wdt.c
+--- a/drivers/watchdog/bcm47xx_wdt.c~watchdog-add-bcm47xx-driver-update
++++ a/drivers/watchdog/bcm47xx_wdt.c
+@@ -2,6 +2,7 @@
+  *  Watchdog driver for Broadcom BCM47XX
+  *
+  *  Copyright (C) 2008 Aleksandar Radovanovic <biblbroks@sezampro.rs>
++ *  Copyright (C) 2009 Matthieu CASTET <castet.matthieu@free.fr>
+  *
+  *  This program is free software; you can redistribute it and/or
+  *  modify it under the terms of the GNU General Public License
+@@ -17,7 +18,7 @@
+ #include <linux/miscdevice.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+-#include <linux/notifier.h>
++#include <linux/reboot.h>
+ #include <linux/types.h>
+ #include <linux/uaccess.h>
+ #include <linux/watchdog.h>
+@@ -45,8 +46,6 @@ MODULE_PARM_DESC(nowayout,
+ 				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ #endif
+ 
+-static struct platform_device *bcm47xx_wdt_platform_device;
+-
+ static unsigned long bcm47xx_wdt_busy;
+ static char expect_release;
+ static struct timer_list wdt_timer;
+@@ -65,12 +64,11 @@ static inline int bcm47xx_wdt_hw_stop(vo
+ 
+ static void bcm47xx_timer_tick(unsigned long unused)
+ {
+-	if(!atomic_dec_and_test(&ticks)) {
++	if (!atomic_dec_and_test(&ticks)) {
+ 		bcm47xx_wdt_hw_start();
+ 		mod_timer(&wdt_timer, jiffies + HZ);
+-	}
+-	else {
+-		printk(KERN_CRIT PFX "Watchdog will fire soon!!!.\n");
++	} else {
++		printk(KERN_CRIT DRV_NAME "Watchdog will fire soon!!!\n");
+ 	}
+ }
+ 
+@@ -87,7 +85,7 @@ static void bcm47xx_wdt_start(void)
+ 
+ static void bcm47xx_wdt_pause(void)
+ {
+-	del_timer(&wdt_timer);
++	del_timer_sync(&wdt_timer);
+ 	bcm47xx_wdt_hw_stop();
+ }
+ 
+@@ -119,7 +117,8 @@ static int bcm47xx_wdt_release(struct in
+ 	if (expect_release == 42) {
+ 		bcm47xx_wdt_stop();
+ 	} else {
+-		printk(KERN_CRIT DRV_NAME ": Unexpected close, not stopping watchdog!\n");
++		printk(KERN_CRIT DRV_NAME
++			": Unexpected close, not stopping watchdog!\n");
+ 		bcm47xx_wdt_start();
  	}
  
- 	vortex_cards_found++;
- 
--out:
- 	return rc;
+@@ -128,8 +127,8 @@ static int bcm47xx_wdt_release(struct in
+ 	return 0;
  }
  
-@@ -1125,11 +1130,6 @@ static int __devinit vortex_probe1(struc
- 
- 	/* PCI-only startup logic */
- 	if (pdev) {
--		/* EISA resources already marked, so only PCI needs to do this here */
--		/* Ignore return value, because Cardbus drivers already allocate for us */
--		if (request_region(dev->base_addr, vci->io_size, print_name) != NULL)
--			vp->must_free_region = 1;
--
- 		/* enable bus-mastering if necessary */
- 		if (vci->flags & PCI_USES_MASTER)
- 			pci_set_master(pdev);
-@@ -1160,12 +1160,13 @@ static int __devinit vortex_probe1(struc
- 	vp->mii.reg_num_mask = 0x1f;
- 
- 	/* Makes sure rings are at least 16 byte aligned. */
--	vp->rx_ring = pci_alloc_consistent(pdev, sizeof(struct boom_rx_desc) * RX_RING_SIZE
--					   + sizeof(struct boom_tx_desc) * TX_RING_SIZE,
-+	vp->rx_ring = pci_alloc_consistent(pdev,
-+					   sizeof(struct boom_rx_desc) * RX_RING_SIZE +
-+					   sizeof(struct boom_tx_desc) * TX_RING_SIZE,
- 					   &vp->rx_ring_dma);
- 	retval = -ENOMEM;
- 	if (!vp->rx_ring)
--		goto free_region;
-+		goto free_device;
- 
- 	vp->tx_ring = (struct boom_tx_desc *)(vp->rx_ring + RX_RING_SIZE);
- 	vp->tx_ring_dma = vp->rx_ring_dma + sizeof(struct boom_rx_desc) * RX_RING_SIZE;
-@@ -1432,13 +1433,11 @@ static int __devinit vortex_probe1(struc
- 
- free_ring:
- 	pci_free_consistent(pdev,
--						sizeof(struct boom_rx_desc) * RX_RING_SIZE
--							+ sizeof(struct boom_tx_desc) * TX_RING_SIZE,
--						vp->rx_ring,
--						vp->rx_ring_dma);
--free_region:
--	if (vp->must_free_region)
--		release_region(dev->base_addr, vci->io_size);
-+			    sizeof(struct boom_rx_desc) * RX_RING_SIZE +
-+			    sizeof(struct boom_tx_desc) * TX_RING_SIZE,
-+			    vp->rx_ring,
-+			    vp->rx_ring_dma);
-+free_device:
- 	free_netdev(dev);
- 	pr_err(PFX "vortex_probe1 fails.  Returns %d\n", retval);
- out:
-@@ -3165,29 +3164,28 @@ static void __devexit vortex_remove_one(
- 	vp = netdev_priv(dev);
- 
- 	if (vp->cb_fn_base)
--		pci_iounmap(VORTEX_PCI(vp), vp->cb_fn_base);
-+		pci_iounmap(pdev, vp->cb_fn_base);
- 
- 	unregister_netdev(dev);
- 
--	if (VORTEX_PCI(vp)) {
--		pci_set_power_state(VORTEX_PCI(vp), PCI_D0);	/* Go active */
--		if (vp->pm_state_valid)
--			pci_restore_state(VORTEX_PCI(vp));
--		pci_disable_device(VORTEX_PCI(vp));
--	}
-+	pci_set_power_state(pdev, PCI_D0);	/* Go active */
-+	if (vp->pm_state_valid)
-+		pci_restore_state(pdev);
-+
- 	/* Should really use issue_and_wait() here */
- 	iowrite16(TotalReset | ((vp->drv_flags & EEPROM_RESET) ? 0x04 : 0x14),
- 	     vp->ioaddr + EL3_CMD);
- 
--	pci_iounmap(VORTEX_PCI(vp), vp->ioaddr);
-+	pci_iounmap(pdev, vp->ioaddr);
- 
- 	pci_free_consistent(pdev,
--						sizeof(struct boom_rx_desc) * RX_RING_SIZE
--							+ sizeof(struct boom_tx_desc) * TX_RING_SIZE,
--						vp->rx_ring,
--						vp->rx_ring_dma);
--	if (vp->must_free_region)
--		release_region(dev->base_addr, vp->io_size);
-+			    sizeof(struct boom_rx_desc) * RX_RING_SIZE +
-+			    sizeof(struct boom_tx_desc) * TX_RING_SIZE,
-+			    vp->rx_ring,
-+			    vp->rx_ring_dma);
-+
-+	pci_release_regions(pdev);
-+	pci_disable_device (pdev);
- 	free_netdev(dev);
+-static ssize_t bcm47xx_wdt_write (struct file *file, const char __user *data,
+-			      size_t len, loff_t * ppos)
++static ssize_t bcm47xx_wdt_write(struct file *file, const char __user *data,
++			      size_t len, loff_t *ppos)
+ {
+ 	if (len) {
+ 		if (!nowayout) {
+@@ -210,8 +209,8 @@ static long bcm47xx_wdt_ioctl(struct fil
+ 	}
  }
  
-_
-
-Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
-
-linux-next.patch
-3x59x-fix-pci-resource-management.patch
-lib-add-lib-gcdc.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
-sound-core-pcm_timerc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-
+-static int bcm47xx_wdt_notify_sys(struct notifier_block *this, unsigned long code,
+-	void *unused)
++static int bcm47xx_wdt_notify_sys(struct notifier_block *this,
++	   unsigned long code, void *unused)
+ {
+ 	if (code == SYS_DOWN || code == SYS_HALT)
+ 		bcm47xx_wdt_stop();
+@@ -248,13 +247,14 @@ static int __init bcm47xx_wdt_init(void)
+ 
+ 	if (bcm47xx_wdt_settimeout(wdt_time)) {
+ 		bcm47xx_wdt_settimeout(WDT_DEFAULT_TIME);
+-		printk(KERN_INFO DRV_NAME ": wdt_time value must be 1 <= wdt_time <= 256, using %d\n",
++		printk(KERN_INFO DRV_NAME
++			": wdt_time value must be 1 <= wdt_time <= 256, using %d\n",
+ 			wdt_time);
+ 	}
+ 
+ 	ret = register_reboot_notifier(&bcm47xx_wdt_notifier);
+ 	if (ret)
+-		ret;
++		return ret;
+ 
+ 	ret = misc_register(&bcm47xx_wdt_miscdev);
+ 	if (ret) {
+@@ -275,8 +275,6 @@ static void __exit bcm47xx_wdt_exit(void
+ 	misc_deregister(&bcm47xx_wdt_miscdev);
+ 
+ 	unregister_reboot_notifier(&bcm47xx_wdt_notifier);
