@@ -1,94 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kconfig-do-not-hardcode-config-filename.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 10:53:44 -0700
-Message-ID: <200906101753.n5AHri5F006319@imap1.linux-foundation.org>
+Subject: [merged] cciss-decode-unit-attention-in-scsi-error-handling-code.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 10:56:27 -0700
+Message-ID: <200906101756.n5AHuRDr008511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754888AbZFJR4c (ORCPT
+	by vger.kernel.org with ESMTP id S1754888AbZFJR4i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 13:56:32 -0400
+	Wed, 10 Jun 2009 13:56:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: markus.heidelberg@web.de, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: scameron@beardog.cca.cpqcorp.net, jens.axboe@oracle.com, mike.miller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kconfig: do not hardcode ".config" filename
+     cciss: decode unit attention in SCSI error handling code
 has been removed from the -mm tree.  Its filename was
-     kconfig-do-not-hardcode-config-filename.patch
+     cciss-decode-unit-attention-in-scsi-error-handling-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig: do not hardcode ".config" filename
-From: Markus Heidelberg <markus.heidelberg@web.de>
+Subject: cciss: decode unit attention in SCSI error handling code
+From: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
 
-Rather than hardcoding ".config" use conf_get_configname(), which also
-respects the environment variable KCONFIG_CONFIG.
+Make SCSI reset error handler decode unit attention ASC and after a target
+reset wait for a unit attention that indicates a reset occurred rather
+than just for any old unit attention.
 
-This fixes "make silentoldconfig" when KCONFIG_CONFIG is used and also
-suggests the given filename for "Load" and "Save as" in qconf.
-
-Signed-off-by: Markus Heidelberg <markus.heidelberg@web.de>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/conf.c   |    7 ++++---
- scripts/kconfig/qconf.cc |    4 ++--
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/block/cciss_scsi.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN scripts/kconfig/conf.c~kconfig-do-not-hardcode-config-filename scripts/kconfig/conf.c
---- a/scripts/kconfig/conf.c~kconfig-do-not-hardcode-config-filename
-+++ a/scripts/kconfig/conf.c
-@@ -498,14 +498,15 @@ int main(int ac, char **av)
- 	conf_parse(name);
- 	//zconfdump(stdout);
- 	if (sync_kconfig) {
--		if (stat(".config", &tmpstat)) {
-+		name = conf_get_configname();
-+		if (stat(name, &tmpstat)) {
- 			fprintf(stderr, _("***\n"
- 				"*** You have not yet configured your kernel!\n"
--				"*** (missing kernel .config file)\n"
-+				"*** (missing kernel config file \"%s\")\n"
- 				"***\n"
- 				"*** Please run some configurator (e.g. \"make oldconfig\" or\n"
- 				"*** \"make menuconfig\" or \"make xconfig\").\n"
--				"***\n"));
-+				"***\n"), name);
- 			exit(1);
- 		}
- 	}
-diff -puN scripts/kconfig/qconf.cc~kconfig-do-not-hardcode-config-filename scripts/kconfig/qconf.cc
---- a/scripts/kconfig/qconf.cc~kconfig-do-not-hardcode-config-filename
-+++ a/scripts/kconfig/qconf.cc
-@@ -1448,7 +1448,7 @@ ConfigMainWindow::ConfigMainWindow(void)
+diff -puN drivers/block/cciss_scsi.c~cciss-decode-unit-attention-in-scsi-error-handling-code drivers/block/cciss_scsi.c
+--- a/drivers/block/cciss_scsi.c~cciss-decode-unit-attention-in-scsi-error-handling-code
++++ a/drivers/block/cciss_scsi.c
+@@ -1604,16 +1604,25 @@ static int wait_for_device_to_become_rea
  
- void ConfigMainWindow::loadConfig(void)
- {
--	QString s = QFileDialog::getOpenFileName(".config", NULL, this);
-+	QString s = QFileDialog::getOpenFileName(conf_get_configname(), NULL, this);
- 	if (s.isNull())
- 		return;
- 	if (conf_read(QFile::encodeName(s)))
-@@ -1464,7 +1464,7 @@ void ConfigMainWindow::saveConfig(void)
+ 		(void) process_sendcmd_error(h, c);
  
- void ConfigMainWindow::saveConfigAs(void)
- {
--	QString s = QFileDialog::getSaveFileName(".config", NULL, this);
-+	QString s = QFileDialog::getSaveFileName(conf_get_configname(), NULL, this);
- 	if (s.isNull())
- 		return;
- 	if (conf_write(QFile::encodeName(s)))
+-		if (rc == 0 && c->err_info->CommandStatus == CMD_SUCCESS)
+-			break;
++		if (rc != 0)
++			goto retry_tur;
+ 
+-		if (rc == 0 &&
+-			c->err_info->CommandStatus == CMD_TARGET_STATUS &&
+-			c->err_info->ScsiStatus == SAM_STAT_CHECK_CONDITION &&
+-			(c->err_info->SenseInfo[2] == NO_SENSE ||
+-			c->err_info->SenseInfo[2] == UNIT_ATTENTION))
++		if (c->err_info->CommandStatus == CMD_SUCCESS)
+ 			break;
+ 
++		if (c->err_info->CommandStatus == CMD_TARGET_STATUS &&
++			c->err_info->ScsiStatus == SAM_STAT_CHECK_CONDITION) {
++			if (c->err_info->SenseInfo[2] == NO_SENSE)
++				break;
++			if (c->err_info->SenseInfo[2] == UNIT_ATTENTION) {
++				unsigned char asc;
++				asc = c->err_info->SenseInfo[12];
++				check_for_unit_attention(h, c);
++				if (asc == POWER_OR_RESET)
++					break;
++			}
++		}
++retry_tur:
+ 		printk(KERN_WARNING "cciss%d: Waiting %d secs "
+ 			"for device to become ready.\n",
+ 			h->ctlr, waittime / HZ);
 _
 
-Patches currently in -mm which might be from markus.heidelberg@web.de are
+Patches currently in -mm which might be from scameron@beardog.cca.cpqcorp.net are
 
 linux-next.patch
 
