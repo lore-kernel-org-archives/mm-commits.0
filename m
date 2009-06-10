@@ -1,75 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 12:51:20 -0700
-Message-ID: <200906101951.n5AJpK58005182@imap1.linux-foundation.org>
+Subject: [folded] e100-add-non-mii-phy-support-fix.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 12:53:39 -0700
+Message-ID: <200906101953.n5AJrdXb007115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43951 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755139AbZFJTwc (ORCPT
+	by vger.kernel.org with ESMTP id S1755824AbZFJTxs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:52:32 -0400
+	Wed, 10 Jun 2009 15:53:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cliff.cai@analog.com, cooloney@kernel.org, drzeus@drzeus.cx, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@lisas.de, andim2@users.sourceforge.net, bruce.w.allan@intel.com, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.com, peter
 
 
 The patch titled
-     mmc: align data size for host which only supports power-of-2 block
+     e100-add-non-mii-phy-support-fix
 has been removed from the -mm tree.  Its filename was
-     mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch
+     e100-add-non-mii-phy-support-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into e100-add-non-mii-phy-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: align data size for host which only supports power-of-2 block
-From: Cliff Cai <cliff.cai@analog.com>
+Subject: e100-add-non-mii-phy-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Cliff Cai <cliff.cai@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+- s/NonSuchPhy/NoSuchPhy/  (I think?)
+
+- fix layout in e100_phy_check_without_mii()
+
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Andreas Mohr <andim2@users.sourceforge.net>
+Cc: Bruce Allan <bruce.w.allan@intel.com>
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Cc: John Ronciak <john.ronciak@intel.com>
+Cc: PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c  |    8 +++++++-
- include/linux/mmc/host.h |    1 +
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/net/e100.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mmc/core/core.c~mmc-align-data-size-for-host-which-only-supports-power-of-2-block drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-align-data-size-for-host-which-only-supports-power-of-2-block
-+++ a/drivers/mmc/core/core.c
-@@ -337,7 +337,13 @@ unsigned int mmc_align_data_size(struct 
- 	 * the core about its problems yet, so for now we just 32-bit
- 	 * align the size.
- 	 */
--	sz = ((sz + 3) / 4) * 4;
-+
-+	/* Align size for host which only supports power-of-2 block */
-+	if (card->host->powerof2_block) {
-+		if (sz & (sz - 1))
-+			sz = 1 << fls(sz);
-+	} else
-+		sz = ((sz + 3) / 4) * 4;
- 
- 	return sz;
- }
-diff -puN include/linux/mmc/host.h~mmc-align-data-size-for-host-which-only-supports-power-of-2-block include/linux/mmc/host.h
---- a/include/linux/mmc/host.h~mmc-align-data-size-for-host-which-only-supports-power-of-2-block
-+++ a/include/linux/mmc/host.h
-@@ -162,6 +162,7 @@ struct mmc_host {
- 	struct dentry		*debugfs_root;
- 
- 	unsigned long		private[0] ____cacheline_aligned;
-+	unsigned int		powerof2_block;	/* host only supports power-of-2 block */
+diff -puN drivers/net/e100.c~e100-add-non-mii-phy-support-fix drivers/net/e100.c
+--- a/drivers/net/e100.c~e100-add-non-mii-phy-support-fix
++++ a/drivers/net/e100.c
+@@ -385,7 +385,7 @@ enum eeprom_cnfg_mdix {
  };
  
- extern struct mmc_host *mmc_alloc_host(int extra, struct device *);
+ enum eeprom_phy_iface {
+-	NonSuchPhy = 0,
++	NoSuchPhy = 0,
+ 	I82553AB,
+ 	I82553C,
+ 	I82503,
+@@ -1362,10 +1362,9 @@ static int e100_phy_check_without_mii(st
+ 	phy_type = (nic->eeprom[eeprom_phy_iface] >> 8) & 0x0f;
+ 
+ 	switch (phy_type) {
+-	case NonSuchPhy: /* Non-MII PHY; UNTESTED! */
++	case NoSuchPhy: /* Non-MII PHY; UNTESTED! */
+ 	case I82503: /* Non-MII PHY; UNTESTED! */
+ 	case S80C24: /* Non-MII PHY; tested and working */
+-	{
+ 		/* paragraph from the FreeBSD driver, "FXP_PHY_80C24":
+ 		 * The Seeq 80c24 AutoDUPLEX(tm) Ethernet Interface Adapter
+ 		 * doesn't have a programming interface of any sort.  The
+@@ -1383,8 +1382,7 @@ static int e100_phy_check_without_mii(st
+ 		 * nic->flags |= ich_10h_workaround; */
+ 
+ 		without_mii = 1;
+-	}
+-	break;
++		break;
+ 	default:
+ 		without_mii = 0;
+ 		break;
 _
 
-Patches currently in -mm which might be from cliff.cai@analog.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+e100-add-non-mii-phy-support.patch
+e100-add-non-mii-phy-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+firmware_map-fix-hang-with-x86-32bit-fix.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool-fix.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
