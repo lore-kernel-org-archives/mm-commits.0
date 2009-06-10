@@ -1,59 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded] firmware_map-fix-hang-with-x86-32bit-fix.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 12:59:00 -0700
-Message-ID: <200906101959.n5AJx0oq011672@imap1.linux-foundation.org>
+Subject: + input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix.patch added to -mm tree
+Date: Wed, 10 Jun 2009 13:50:13 -0700
+Message-ID: <200906102050.n5AKoDb3021207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752574AbZFJUHS (ORCPT
+	by vger.kernel.org with ESMTP id S1753493AbZFJUvM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 16:07:18 -0400
+	Wed, 10 Jun 2009 16:51:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, dtor@mail.ru, hcegtvedt@atmel.com, jirislaby@gmail.com, jkosina@suse.cz
 
 
 The patch titled
-     firmware_map-fix-hang-with-x86-32bit-fix
-has been removed from the -mm tree.  Its filename was
-     firmware_map-fix-hang-with-x86-32bit-fix.patch
+     input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix
+has been added to the -mm tree.  Its filename is
+     input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix.patch
 
-This patch was dropped because it was folded into firmware_map-fix-hang-with-x86-32bit.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware_map-fix-hang-with-x86-32bit-fix
+Subject: input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-explain why..
+fix leak, spotted by jirislaby@gmail.com.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <stable@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/input/touchscreen/at32-wm97xx.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit-fix drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit-fix
-+++ a/drivers/firmware/memmap.c
-@@ -31,6 +31,10 @@
-  * information is necessary as for the resource tree.
-  */
- struct firmware_map_entry {
-+	/*
-+	 * start and end must be u64 rather than resource_size_t, because e820
-+	 * resources can lie at addresses above 4G.
-+	 */
- 	u64			start;	/* start of the memory range */
- 	u64			end;	/* end of the memory range (incl.) */
- 	const char		*type;	/* type of the memory range */
+diff -puN drivers/input/touchscreen/at32-wm97xx.c~input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix drivers/input/touchscreen/at32-wm97xx.c
+--- a/drivers/input/touchscreen/at32-wm97xx.c~input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix
++++ a/drivers/input/touchscreen/at32-wm97xx.c
+@@ -339,6 +339,7 @@ static int __init at32_wm97xx_probe(stru
+ 			IRQF_SHARED, "at32-wm97xx-ch-b", at32_wm97xx);
+ 	if (ret) {
+ 		dev_dbg(&pdev->dev, "could not request ac97c irq\n");
++		kfree(at32_wm97xx);
+ 		return ret;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,12 +76,13 @@ devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
 dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix.patch
 e100-add-non-mii-phy-support.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 firmware_map-fix-hang-with-x86-32bit.patch
-firmware_map-fix-hang-with-x86-32bit-fix.patch
 drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
 mm-consolidate-init_mm-definition-fix.patch
 readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
