@@ -1,447 +1,655 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 10:56:17 -0700
-Message-ID: <200906101756.n5AHuH3k008358@imap1.linux-foundation.org>
+Subject: [merged] kernel-doc-cleanup-perl-script.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 10:56:31 -0700
+Message-ID: <200906101756.n5AHuVhU008519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54023 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754990AbZFJR4c (ORCPT
+	by vger.kernel.org with ESMTP id S1755977AbZFJR4w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 13:56:32 -0400
+	Wed, 10 Jun 2009 13:56:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scameron@beardog.cca.cpqcorp.net, jens.axboe@oracle.com, mike.miller@hp.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: simplify interface of sendcmd() and sendcmd_withirq()
+     kernel-doc: cleanup perl script
 has been removed from the -mm tree.  Its filename was
-     cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq.patch
+     kernel-doc-cleanup-perl-script.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: simplify interface of sendcmd() and sendcmd_withirq()
-From: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
+Subject: kernel-doc: cleanup perl script
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Simplify interfaces of sendcmd() and sendcmd_withirq() so that they
-provide only one way to address commands instead of three ways.
+Various cleanups of scripts/kernel-doc:
+- don't use **/ as an ending kernel-doc block since it's not preferred;
+- typos/spellos
+- add whitespace around ==, after comma, & around . operator;
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Mike Miller <mike.miller@hp.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c      |  115 ++++++++++++++++-------------------
- drivers/block/cciss_cmd.h  |    2 
- drivers/block/cciss_scsi.c |   26 +------
- 3 files changed, 59 insertions(+), 84 deletions(-)
+ scripts/kernel-doc |  174 +++++++++++++++++++++----------------------
+ 1 file changed, 87 insertions(+), 87 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq
-+++ a/drivers/block/cciss.c
-@@ -180,11 +180,10 @@ static void __devinit cciss_interrupt_mo
- 					   __u32);
- static void start_io(ctlr_info_t *h);
- static int sendcmd(__u8 cmd, int ctlr, void *buff, size_t size,
--		   unsigned int use_unit_num, unsigned int log_unit,
- 		   __u8 page_code, unsigned char *scsi3addr, int cmd_type);
- static int sendcmd_withirq(__u8 cmd, int ctlr, void *buff, size_t size,
--			   unsigned int use_unit_num, unsigned int log_unit,
--			   __u8 page_code, int cmd_type);
-+			__u8 page_code, unsigned char scsi3addr[],
-+			int cmd_type);
- 
- static void fail_all_cmds(unsigned long ctlr);
- static int scan_thread(void *data);
-@@ -1520,6 +1519,15 @@ static void cciss_softirq_done(struct re
- 	spin_unlock_irqrestore(&h->lock, flags);
+diff -puN scripts/kernel-doc~kernel-doc-cleanup-perl-script scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-cleanup-perl-script
++++ a/scripts/kernel-doc
+@@ -5,7 +5,7 @@ use strict;
+ ## Copyright (c) 1998 Michael Zucchi, All Rights Reserved        ##
+ ## Copyright (C) 2000, 1  Tim Waugh <twaugh@redhat.com>          ##
+ ## Copyright (C) 2001  Simon Huggins                             ##
+-## Copyright (C) 2005-2008  Randy Dunlap                         ##
++## Copyright (C) 2005-2009  Randy Dunlap                         ##
+ ## 								 ##
+ ## #define enhancements by Armin Kuster <akuster@mvista.com>	 ##
+ ## Copyright (c) 2000 MontaVista Software, Inc.			 ##
+@@ -85,7 +85,7 @@ use strict;
+ #
+ # /**
+ #  * my_function
+-#  **/
++#  */
+ #
+ # If the Description: header tag is omitted, then there must be a blank line
+ # after the last parameter specification.
+@@ -105,7 +105,7 @@ use strict;
+ #  */
+ # etc.
+ #
+-# Beside functions you can also write documentation for structs, unions,
++# Besides functions you can also write documentation for structs, unions,
+ # enums and typedefs. Instead of the function name you must write the name
+ # of the declaration;  the struct/union/enum/typedef must always precede
+ # the name. Nesting of declarations is not supported.
+@@ -223,7 +223,7 @@ sub usage {
  }
  
-+static void log_unit_to_scsi3addr(ctlr_info_t *h, unsigned char scsi3addr[],
-+	uint32_t log_unit)
-+{
-+	log_unit = h->drv[log_unit].LunID & 0x03fff;
-+	memset(&scsi3addr[4], 0, 4);
-+	memcpy(&scsi3addr[0], &log_unit, 4);
-+	scsi3addr[3] |= 0x40;
-+}
-+
- /* This function gets the SCSI vendor, model, and revision of a logical drive
-  * via the inquiry page 0.  Model, vendor, and rev are set to empty strings if
-  * they cannot be read.
-@@ -1529,6 +1537,7 @@ static void cciss_get_device_descr(int c
- {
- 	int rc;
- 	InquiryData_struct *inq_buf;
-+	unsigned char scsi3addr[8];
- 
- 	*vendor = '\0';
- 	*model = '\0';
-@@ -1538,14 +1547,15 @@ static void cciss_get_device_descr(int c
- 	if (!inq_buf)
- 		return;
- 
-+	log_unit_to_scsi3addr(hba[ctlr], scsi3addr, logvol);
- 	if (withirq)
- 		rc = sendcmd_withirq(CISS_INQUIRY, ctlr, inq_buf,
--				     sizeof(InquiryData_struct), 1, logvol,
--				     0, TYPE_CMD);
-+			     sizeof(InquiryData_struct), 0,
-+				scsi3addr, TYPE_CMD);
- 	else
- 		rc = sendcmd(CISS_INQUIRY, ctlr, inq_buf,
--			     sizeof(InquiryData_struct), 1, logvol, 0, NULL,
--			     TYPE_CMD);
-+			     sizeof(InquiryData_struct), 0,
-+				scsi3addr, TYPE_CMD);
- 	if (rc == IO_OK) {
- 		memcpy(vendor, &inq_buf->data_byte[8], VENDOR_LEN);
- 		vendor[VENDOR_LEN] = '\0';
-@@ -1570,6 +1580,7 @@ static void cciss_get_serial_no(int ctlr
- #define PAGE_83_INQ_BYTES 64
- 	int rc;
- 	unsigned char *buf;
-+	unsigned char scsi3addr[8];
- 
- 	if (buflen > 16)
- 		buflen = 16;
-@@ -1578,12 +1589,13 @@ static void cciss_get_serial_no(int ctlr
- 	if (!buf)
- 		return;
- 	memset(serial_no, 0, buflen);
-+	log_unit_to_scsi3addr(hba[ctlr], scsi3addr, logvol);
- 	if (withirq)
- 		rc = sendcmd_withirq(CISS_INQUIRY, ctlr, buf,
--			PAGE_83_INQ_BYTES, 1, logvol, 0x83, TYPE_CMD);
-+			PAGE_83_INQ_BYTES, 0x83, scsi3addr, TYPE_CMD);
- 	else
- 		rc = sendcmd(CISS_INQUIRY, ctlr, buf,
--			PAGE_83_INQ_BYTES, 1, logvol, 0x83, NULL, TYPE_CMD);
-+			PAGE_83_INQ_BYTES, 0x83, scsi3addr, TYPE_CMD);
- 	if (rc == IO_OK)
- 		memcpy(serial_no, &buf[8], buflen);
- 	kfree(buf);
-@@ -1902,8 +1914,8 @@ static int rebuild_lun_table(ctlr_info_t
- 		goto mem_msg;
- 
- 	return_code = sendcmd_withirq(CISS_REPORT_LOG, ctlr, ld_buff,
--				      sizeof(ReportLunData_struct), 0,
--				      0, 0, TYPE_CMD);
-+				      sizeof(ReportLunData_struct),
-+				      0, CTLR_LUNID, TYPE_CMD);
- 
- 	if (return_code == IO_OK)
- 		listlength = be32_to_cpu(*(__be32 *) ld_buff->LUNListLength);
-@@ -2112,11 +2124,9 @@ static int deregister_disk(ctlr_info_t *
- 	return 0;
+ # read arguments
+-if ($#ARGV==-1) {
++if ($#ARGV == -1) {
+     usage();
  }
  
--static int fill_cmd(CommandList_struct *c, __u8 cmd, int ctlr, void *buff, size_t size, unsigned int use_unit_num,	/* 0: address the controller,
--															   1: address logical volume log_unit,
--															   2: periph device address is scsi3addr */
--		    unsigned int log_unit, __u8 page_code,
--		    unsigned char *scsi3addr, int cmd_type)
-+static int fill_cmd(CommandList_struct *c, __u8 cmd, int ctlr, void *buff,
-+		size_t size, __u8 page_code, unsigned char *scsi3addr,
-+		int cmd_type)
- {
- 	ctlr_info_t *h = hba[ctlr];
- 	u64bit buff_dma_handle;
-@@ -2132,27 +2142,12 @@ static int fill_cmd(CommandList_struct *
- 		c->Header.SGTotal = 0;
- 	}
- 	c->Header.Tag.lower = c->busaddr;
-+	memcpy(c->Header.LUN.LunAddrBytes, scsi3addr, 8);
+@@ -240,12 +240,12 @@ my $man_date = ('January', 'February', '
+   " " . ((localtime)[5]+1900);
  
- 	c->Request.Type.Type = cmd_type;
- 	if (cmd_type == TYPE_CMD) {
- 		switch (cmd) {
- 		case CISS_INQUIRY:
--			/* If the logical unit number is 0 then, this is going
--			   to controller so It's a physical command
--			   mode = 0 target = 0.  So we have nothing to write.
--			   otherwise, if use_unit_num == 1,
--			   mode = 1(volume set addressing) target = LUNID
--			   otherwise, if use_unit_num == 2,
--			   mode = 0(periph dev addr) target = scsi3addr */
--			if (use_unit_num == 1) {
--				c->Header.LUN.LogDev.VolId =
--				    h->drv[log_unit].LunID;
--				c->Header.LUN.LogDev.Mode = 1;
--			} else if (use_unit_num == 2) {
--				memcpy(c->Header.LUN.LunAddrBytes, scsi3addr,
--				       8);
--				c->Header.LUN.LogDev.Mode = 0;
--			}
- 			/* are we trying to read a vital product page */
- 			if (page_code != 0) {
- 				c->Request.CDB[1] = 0x01;
-@@ -2182,8 +2177,6 @@ static int fill_cmd(CommandList_struct *
- 			break;
+ # Essentially these are globals
+-# They probably want to be tidied up made more localised or summat.
+-# CAVEAT EMPTOR!  Some of the others I localised may not want to be which
++# They probably want to be tidied up, made more localised or something.
++# CAVEAT EMPTOR!  Some of the others I localised may not want to be, which
+ # could cause "use of undefined value" or other bugs.
+-my ($function, %function_table,%parametertypes,$declaration_purpose);
+-my ($type,$declaration_name,$return_type);
+-my ($newsection,$newcontents,$prototype,$filelist, $brcount, %source_map);
++my ($function, %function_table, %parametertypes, $declaration_purpose);
++my ($type, $declaration_name, $return_type);
++my ($newsection, $newcontents, $prototype, $filelist, $brcount, %source_map);
  
- 		case CCISS_READ_CAPACITY:
--			c->Header.LUN.LogDev.VolId = h->drv[log_unit].LunID;
--			c->Header.LUN.LogDev.Mode = 1;
- 			c->Request.CDBLen = 10;
- 			c->Request.Type.Attribute = ATTR_SIMPLE;
- 			c->Request.Type.Direction = XFER_READ;
-@@ -2191,8 +2184,6 @@ static int fill_cmd(CommandList_struct *
- 			c->Request.CDB[0] = cmd;
- 			break;
- 		case CCISS_READ_CAPACITY_16:
--			c->Header.LUN.LogDev.VolId = h->drv[log_unit].LunID;
--			c->Header.LUN.LogDev.Mode = 1;
- 			c->Request.CDBLen = 16;
- 			c->Request.Type.Attribute = ATTR_SIMPLE;
- 			c->Request.Type.Direction = XFER_READ;
-@@ -2215,7 +2206,6 @@ static int fill_cmd(CommandList_struct *
- 			c->Request.CDB[6] = BMIC_CACHE_FLUSH;
- 			break;
- 		case TEST_UNIT_READY:
--			memcpy(c->Header. LUN.LunAddrBytes, scsi3addr, 8);
- 			c->Request.CDBLen = 6;
- 			c->Request.Type.Attribute = ATTR_SIMPLE;
- 			c->Request.Type.Direction = XFER_NONE;
-@@ -2239,7 +2229,6 @@ static int fill_cmd(CommandList_struct *
- 			memcpy(&c->Request.CDB[4], buff, 8);
- 			break;
- 		case 1:	/* RESET message */
--			memcpy(c->Header.LUN.LunAddrBytes, scsi3addr, 8);
- 			c->Request.CDBLen = 16;
- 			c->Request.Type.Attribute = ATTR_SIMPLE;
- 			c->Request.Type.Direction = XFER_NONE;
-@@ -2307,6 +2296,9 @@ resend_cmd2:
- 			printk(KERN_WARNING "cciss: cmd 0x%02x "
- 			       "has SCSI Status = %x\n",
- 			       c->Request.CDB[0], c->err_info->ScsiStatus);
-+			if (c->err_info->ScsiStatus == SAM_STAT_CHECK_CONDITION)
-+				printk(KERN_WARNING "sense key = 0x%02x\n",
-+					0xf & c->err_info->SenseInfo[2]);
- 		}
- 		break;
- 	case CMD_DATA_UNDERRUN:
-@@ -2377,12 +2369,9 @@ command_done:
- 	return return_status;
+ if (defined($ENV{'KBUILD_VERBOSE'})) {
+ 	$verbose = "$ENV{'KBUILD_VERBOSE'}";
+@@ -279,10 +279,10 @@ my $doc_special = "\@\%\$\&";
+ my $doc_start = '^/\*\*\s*$'; # Allow whitespace at end of comment start.
+ my $doc_end = '\*/';
+ my $doc_com = '\s*\*\s*';
+-my $doc_decl = $doc_com.'(\w+)';
+-my $doc_sect = $doc_com.'(['.$doc_special.']?[\w\s]+):(.*)';
+-my $doc_content = $doc_com.'(.*)';
+-my $doc_block = $doc_com.'DOC:\s*(.*)?';
++my $doc_decl = $doc_com . '(\w+)';
++my $doc_sect = $doc_com . '([' . $doc_special . ']?[\w\s]+):(.*)';
++my $doc_content = $doc_com . '(.*)';
++my $doc_block = $doc_com . 'DOC:\s*(.*)?';
+ 
+ my %constants;
+ my %parameterdescs;
+@@ -485,12 +485,12 @@ sub output_enum_html(%) {
+     my %args = %{$_[0]};
+     my ($parameter);
+     my $count;
+-    print "<h2>enum ".$args{'enum'}."</h2>\n";
++    print "<h2>enum " . $args{'enum'} . "</h2>\n";
+ 
+-    print "<b>enum ".$args{'enum'}."</b> {<br>\n";
++    print "<b>enum " . $args{'enum'} . "</b> {<br>\n";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+-	print " <b>".$parameter."</b>";
++	print " <b>" . $parameter . "</b>";
+ 	if ($count != $#{$args{'parameterlist'}}) {
+ 	    $count++;
+ 	    print ",\n";
+@@ -502,7 +502,7 @@ sub output_enum_html(%) {
+     print "<h3>Constants</h3>\n";
+     print "<dl>\n";
+     foreach $parameter (@{$args{'parameterlist'}}) {
+-	print "<dt><b>".$parameter."</b>\n";
++	print "<dt><b>" . $parameter . "</b>\n";
+ 	print "<dd>";
+ 	output_highlight($args{'parameterdescs'}{$parameter});
+     }
+@@ -516,9 +516,9 @@ sub output_typedef_html(%) {
+     my %args = %{$_[0]};
+     my ($parameter);
+     my $count;
+-    print "<h2>typedef ".$args{'typedef'}."</h2>\n";
++    print "<h2>typedef " . $args{'typedef'} . "</h2>\n";
+ 
+-    print "<b>typedef ".$args{'typedef'}."</b>\n";
++    print "<b>typedef " . $args{'typedef'} . "</b>\n";
+     output_section_html(@_);
+     print "<hr>\n";
  }
+@@ -528,8 +528,8 @@ sub output_struct_html(%) {
+     my %args = %{$_[0]};
+     my ($parameter);
  
--static int sendcmd_withirq(__u8 cmd,
--			   int ctlr,
--			   void *buff,
--			   size_t size,
--			   unsigned int use_unit_num,
--			   unsigned int log_unit, __u8 page_code, int cmd_type)
-+static int sendcmd_withirq(__u8 cmd, int ctlr, void *buff, size_t size,
-+			   __u8 page_code, unsigned char scsi3addr[],
-+			int cmd_type)
- {
- 	ctlr_info_t *h = hba[ctlr];
- 	CommandList_struct *c;
-@@ -2391,8 +2380,8 @@ static int sendcmd_withirq(__u8 cmd,
- 	c = cmd_alloc(h, 0);
- 	if (!c)
- 		return -ENOMEM;
--	return_status = fill_cmd(c, cmd, ctlr, buff, size, use_unit_num,
--				 log_unit, page_code, NULL, cmd_type);
-+	return_status = fill_cmd(c, cmd, ctlr, buff, size, page_code,
-+		scsi3addr, cmd_type);
- 	if (return_status == IO_OK)
- 		return_status = sendcmd_withirq_core(h, c);
- 	cmd_free(h, c, 0);
-@@ -2407,15 +2396,17 @@ static void cciss_geometry_inquiry(int c
- {
- 	int return_code;
- 	unsigned long t;
-+	unsigned char scsi3addr[8];
+-    print "<h2>".$args{'type'}." ".$args{'struct'}. " - " .$args{'purpose'}."</h2>\n";
+-    print "<b>".$args{'type'}." ".$args{'struct'}."</b> {<br>\n";
++    print "<h2>" . $args{'type'} . " " . $args{'struct'} . " - " . $args{'purpose'} . "</h2>\n";
++    print "<b>" . $args{'type'} . " " . $args{'struct'} . "</b> {<br>\n";
+     foreach $parameter (@{$args{'parameterlist'}}) {
+ 	if ($parameter =~ /^#/) {
+ 		print "$parameter<br>\n";
+@@ -561,7 +561,7 @@ sub output_struct_html(%) {
+ 	$parameter_name =~ s/\[.*//;
  
- 	memset(inq_buff, 0, sizeof(InquiryData_struct));
-+	log_unit_to_scsi3addr(hba[ctlr], scsi3addr, logvol);
- 	if (withirq)
- 		return_code = sendcmd_withirq(CISS_INQUIRY, ctlr,
--					      inq_buff, sizeof(*inq_buff), 1,
--					      logvol, 0xC1, TYPE_CMD);
-+					      inq_buff, sizeof(*inq_buff),
-+					      0xC1, scsi3addr, TYPE_CMD);
- 	else
- 		return_code = sendcmd(CISS_INQUIRY, ctlr, inq_buff,
--				      sizeof(*inq_buff), 1, logvol, 0xC1, NULL,
-+				      sizeof(*inq_buff), 0xC1, scsi3addr,
- 				      TYPE_CMD);
- 	if (return_code == IO_OK) {
- 		if (inq_buff->data_byte[8] == 0xFF) {
-@@ -2456,6 +2447,7 @@ cciss_read_capacity(int ctlr, int logvol
- {
- 	ReadCapdata_struct *buf;
- 	int return_code;
-+	unsigned char scsi3addr[8];
+ 	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+-	print "<dt><b>".$parameter."</b>\n";
++	print "<dt><b>" . $parameter . "</b>\n";
+ 	print "<dd>";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+     }
+@@ -576,9 +576,9 @@ sub output_function_html(%) {
+     my ($parameter, $section);
+     my $count;
  
- 	buf = kzalloc(sizeof(ReadCapdata_struct), GFP_KERNEL);
- 	if (!buf) {
-@@ -2463,14 +2455,15 @@ cciss_read_capacity(int ctlr, int logvol
- 		return;
- 	}
- 
-+	log_unit_to_scsi3addr(hba[ctlr], scsi3addr, logvol);
- 	if (withirq)
- 		return_code = sendcmd_withirq(CCISS_READ_CAPACITY,
- 				ctlr, buf, sizeof(ReadCapdata_struct),
--					1, logvol, 0, TYPE_CMD);
-+					0, scsi3addr, TYPE_CMD);
- 	else
- 		return_code = sendcmd(CCISS_READ_CAPACITY,
- 				ctlr, buf, sizeof(ReadCapdata_struct),
--					1, logvol, 0, NULL, TYPE_CMD);
-+					0, scsi3addr, TYPE_CMD);
- 	if (return_code == IO_OK) {
- 		*total_size = be32_to_cpu(*(__be32 *) buf->total_size);
- 		*block_size = be32_to_cpu(*(__be32 *) buf->block_size);
-@@ -2490,6 +2483,7 @@ cciss_read_capacity_16(int ctlr, int log
- {
- 	ReadCapdata_struct_16 *buf;
- 	int return_code;
-+	unsigned char scsi3addr[8];
- 
- 	buf = kzalloc(sizeof(ReadCapdata_struct_16), GFP_KERNEL);
- 	if (!buf) {
-@@ -2497,15 +2491,16 @@ cciss_read_capacity_16(int ctlr, int log
- 		return;
- 	}
- 
-+	log_unit_to_scsi3addr(hba[ctlr], scsi3addr, logvol);
- 	if (withirq) {
- 		return_code = sendcmd_withirq(CCISS_READ_CAPACITY_16,
- 			ctlr, buf, sizeof(ReadCapdata_struct_16),
--				1, logvol, 0, TYPE_CMD);
-+				0, scsi3addr, TYPE_CMD);
- 	}
- 	else {
- 		return_code = sendcmd(CCISS_READ_CAPACITY_16,
- 			ctlr, buf, sizeof(ReadCapdata_struct_16),
--				1, logvol, 0, NULL, TYPE_CMD);
-+				0, scsi3addr, TYPE_CMD);
- 	}
- 	if (return_code == IO_OK) {
- 		*total_size = be64_to_cpu(*(__be64 *) buf->total_size);
-@@ -2760,10 +2755,6 @@ cleanup1:
-  * Used at init time, and during SCSI error recovery.
-  */
- static int sendcmd(__u8 cmd, int ctlr, void *buff, size_t size,
--	unsigned int use_unit_num,/* 0: address the controller,
--				     1: address logical volume log_unit,
--				     2: periph device address is scsi3addr */
--	unsigned int log_unit,
- 	__u8 page_code, unsigned char *scsi3addr, int cmd_type)
- {
- 	CommandList_struct *c;
-@@ -2774,8 +2765,8 @@ static int sendcmd(__u8 cmd, int ctlr, v
- 		printk(KERN_WARNING "cciss: unable to get memory");
- 		return IO_ERROR;
- 	}
--	status = fill_cmd(c, cmd, ctlr, buff, size, use_unit_num,
--			  log_unit, page_code, scsi3addr, cmd_type);
-+	status = fill_cmd(c, cmd, ctlr, buff, size, page_code,
-+		scsi3addr, cmd_type);
- 	if (status == IO_OK)
- 		status = sendcmd_core(hba[ctlr], c);
- 	cmd_free(hba[ctlr], c, 1);
-@@ -4076,7 +4067,7 @@ static int __devinit cciss_init_one(stru
- 	}
- 
- 	return_code = sendcmd_withirq(CISS_INQUIRY, i, inq_buff,
--		sizeof(InquiryData_struct), 0, 0 , 0, TYPE_CMD);
-+		sizeof(InquiryData_struct), 0, CTLR_LUNID, TYPE_CMD);
- 	if (return_code == IO_OK) {
- 		hba[i]->firm_ver[0] = inq_buff->data_byte[32];
- 		hba[i]->firm_ver[1] = inq_buff->data_byte[33];
-@@ -4157,8 +4148,8 @@ static void cciss_shutdown(struct pci_de
- 	/* sendcmd will turn off interrupt, and send the flush...
- 	 * To write all data in the battery backed cache to disks */
- 	memset(flush_buf, 0, 4);
--	return_code = sendcmd(CCISS_CACHE_FLUSH, i, flush_buf, 4, 0, 0, 0, NULL,
--			      TYPE_CMD);
-+	return_code = sendcmd(CCISS_CACHE_FLUSH, i, flush_buf, 4, 0,
-+		CTLR_LUNID, TYPE_CMD);
- 	if (return_code == IO_OK) {
- 		printk(KERN_INFO "Completed flushing cache on controller %d\n", i);
+-    print "<h2>" .$args{'function'}." - ".$args{'purpose'}."</h2>\n";
+-    print "<i>".$args{'functiontype'}."</i>\n";
+-    print "<b>".$args{'function'}."</b>\n";
++    print "<h2>" . $args{'function'} . " - " . $args{'purpose'} . "</h2>\n";
++    print "<i>" . $args{'functiontype'} . "</i>\n";
++    print "<b>" . $args{'function'} . "</b>\n";
+     print "(";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+@@ -587,7 +587,7 @@ sub output_function_html(%) {
+ 	    # pointer-to-function
+ 	    print "<i>$1</i><b>$parameter</b>) <i>($2)</i>";
  	} else {
-diff -puN drivers/block/cciss_cmd.h~cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq drivers/block/cciss_cmd.h
---- a/drivers/block/cciss_cmd.h~cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq
-+++ a/drivers/block/cciss_cmd.h
-@@ -217,6 +217,8 @@ typedef union _LUNAddr_struct {
-   LogDevAddr_struct  LogDev;
- } LUNAddr_struct;
+-	    print "<i>".$type."</i> <b>".$parameter."</b>";
++	    print "<i>" . $type . "</i> <b>" . $parameter . "</b>";
+ 	}
+ 	if ($count != $#{$args{'parameterlist'}}) {
+ 	    $count++;
+@@ -603,7 +603,7 @@ sub output_function_html(%) {
+ 	$parameter_name =~ s/\[.*//;
  
-+#define CTLR_LUNID "\0\0\0\0\0\0\0\0"
-+
- typedef struct _CommandListHeader_struct {
-   BYTE              ReplyQueue;
-   BYTE              SGList;
-diff -puN drivers/block/cciss_scsi.c~cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq drivers/block/cciss_scsi.c
---- a/drivers/block/cciss_scsi.c~cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq
-+++ a/drivers/block/cciss_scsi.c
-@@ -44,26 +44,9 @@
- #define CCISS_ABORT_MSG 0x00
- #define CCISS_RESET_MSG 0x01
+ 	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+-	print "<dt><b>".$parameter."</b>\n";
++	print "<dt><b>" . $parameter . "</b>\n";
+ 	print "<dd>";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+     }
+@@ -657,7 +657,7 @@ sub output_function_xml(%) {
+     my $count;
+     my $id;
  
--/* some prototypes... */ 
--static int sendcmd(
--	__u8	cmd,
--	int	ctlr,
--	void	*buff,
--	size_t	size,
--	unsigned int use_unit_num, /* 0: address the controller,
--				      1: address logical volume log_unit, 
--				      2: address is in scsi3addr */
--	unsigned int log_unit,
--	__u8	page_code,
--	unsigned char *scsi3addr,
--	int cmd_type);
--
- static int fill_cmd(CommandList_struct *c, __u8 cmd, int ctlr, void *buff,
- 	size_t size,
--	unsigned int use_unit_num, /* 0: address the controller,
--				      1: address logical volume log_unit,
--				      2: periph device address is scsi3addr */
--	unsigned int log_unit, __u8 page_code, unsigned char *scsi3addr,
-+	__u8 page_code, unsigned char *scsi3addr,
- 	int cmd_type);
+-    $id = "API-".$args{'function'};
++    $id = "API-" . $args{'function'};
+     $id =~ s/[^A-Za-z0-9]/-/g;
  
- static int sendcmd_core(ctlr_info_t *h, CommandList_struct *c);
-@@ -1616,7 +1599,7 @@ static int wait_for_device_to_become_rea
- 			waittime = waittime * 2;
+     print "<refentry id=\"$id\">\n";
+@@ -667,12 +667,12 @@ sub output_function_xml(%) {
+     print " <date>$man_date</date>\n";
+     print "</refentryinfo>\n";
+     print "<refmeta>\n";
+-    print " <refentrytitle><phrase>".$args{'function'}."</phrase></refentrytitle>\n";
++    print " <refentrytitle><phrase>" . $args{'function'} . "</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
+     print " <refmiscinfo class=\"version\">" . $kernelversion . "</refmiscinfo>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+-    print " <refname>".$args{'function'}."</refname>\n";
++    print " <refname>" . $args{'function'} . "</refname>\n";
+     print " <refpurpose>\n";
+     print "  ";
+     output_highlight ($args{'purpose'});
+@@ -682,8 +682,8 @@ sub output_function_xml(%) {
+     print "<refsynopsisdiv>\n";
+     print " <title>Synopsis</title>\n";
+     print "  <funcsynopsis><funcprototype>\n";
+-    print "   <funcdef>".$args{'functiontype'}." ";
+-    print "<function>".$args{'function'}." </function></funcdef>\n";
++    print "   <funcdef>" . $args{'functiontype'} . " ";
++    print "<function>" . $args{'function'} . " </function></funcdef>\n";
  
- 		/* Send the Test Unit Ready */
--		rc = fill_cmd(c, TEST_UNIT_READY, h->ctlr, NULL, 0, 0, 0, 0,
-+		rc = fill_cmd(c, TEST_UNIT_READY, h->ctlr, NULL, 0, 0,
- 			lunaddr, TYPE_CMD);
- 		if (rc == 0) {
- 			rc = sendcmd_core(h, c);
-@@ -1680,7 +1663,7 @@ static int cciss_eh_device_reset_handler
- 		return FAILED;
- 	memcpy(lunaddr, &cmd_in_trouble->Header.LUN.LunAddrBytes[0], 8);
- 	/* send a reset to the SCSI LUN which the command was sent to */
--	rc = sendcmd(CCISS_RESET_MSG, ctlr, NULL, 0, 2, 0, 0, lunaddr,
-+	rc = sendcmd(CCISS_RESET_MSG, ctlr, NULL, 0, 0, lunaddr,
- 		TYPE_MSG);
- 	/* sendcmd turned off interrupts on the board, turn 'em back on. */
- 	(*c)->access.set_intr_mask(*c, CCISS_INTR_ON);
-@@ -1708,8 +1691,7 @@ static int  cciss_eh_abort_handler(struc
- 	cmd_to_abort = (CommandList_struct *) scsicmd->host_scribble;
- 	if (cmd_to_abort == NULL) /* paranoia */
- 		return FAILED;
--	rc = sendcmd(CCISS_ABORT_MSG, ctlr, &cmd_to_abort->Header.Tag, 
--		0, 2, 0, 0, 
-+	rc = sendcmd(CCISS_ABORT_MSG, ctlr, &cmd_to_abort->Header.Tag, 0, 0,
- 		(unsigned char *) &cmd_to_abort->Header.LUN.LunAddrBytes[0], 
- 		TYPE_MSG);
- 	/* sendcmd turned off interrupts on the board, turn 'em back on. */
+     $count = 0;
+     if ($#{$args{'parameterlist'}} >= 0) {
+@@ -694,7 +694,7 @@ sub output_function_xml(%) {
+ 		print "   <paramdef>$1<parameter>$parameter</parameter>)\n";
+ 		print "     <funcparams>$2</funcparams></paramdef>\n";
+ 	    } else {
+-		print "   <paramdef>".$type;
++		print "   <paramdef>" . $type;
+ 		print " <parameter>$parameter</parameter></paramdef>\n";
+ 	    }
+ 	}
+@@ -734,7 +734,7 @@ sub output_struct_xml(%) {
+     my ($parameter, $section);
+     my $id;
+ 
+-    $id = "API-struct-".$args{'struct'};
++    $id = "API-struct-" . $args{'struct'};
+     $id =~ s/[^A-Za-z0-9]/-/g;
+ 
+     print "<refentry id=\"$id\">\n";
+@@ -744,12 +744,12 @@ sub output_struct_xml(%) {
+     print " <date>$man_date</date>\n";
+     print "</refentryinfo>\n";
+     print "<refmeta>\n";
+-    print " <refentrytitle><phrase>".$args{'type'}." ".$args{'struct'}."</phrase></refentrytitle>\n";
++    print " <refentrytitle><phrase>" . $args{'type'} . " " . $args{'struct'} . "</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
+     print " <refmiscinfo class=\"version\">" . $kernelversion . "</refmiscinfo>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+-    print " <refname>".$args{'type'}." ".$args{'struct'}."</refname>\n";
++    print " <refname>" . $args{'type'} . " " . $args{'struct'} . "</refname>\n";
+     print " <refpurpose>\n";
+     print "  ";
+     output_highlight ($args{'purpose'});
+@@ -759,7 +759,7 @@ sub output_struct_xml(%) {
+     print "<refsynopsisdiv>\n";
+     print " <title>Synopsis</title>\n";
+     print "  <programlisting>\n";
+-    print $args{'type'}." ".$args{'struct'}." {\n";
++    print $args{'type'} . " " . $args{'struct'} . " {\n";
+     foreach $parameter (@{$args{'parameterlist'}}) {
+ 	if ($parameter =~ /^#/) {
+ 	    print "$parameter\n";
+@@ -779,7 +779,7 @@ sub output_struct_xml(%) {
+ 	    # bitfield
+ 	    print "  $1 $parameter$2;\n";
+ 	} else {
+-	    print "  ".$type." ".$parameter.";\n";
++	    print "  " . $type . " " . $parameter . ";\n";
+ 	}
+     }
+     print "};";
+@@ -824,7 +824,7 @@ sub output_enum_xml(%) {
+     my $count;
+     my $id;
+ 
+-    $id = "API-enum-".$args{'enum'};
++    $id = "API-enum-" . $args{'enum'};
+     $id =~ s/[^A-Za-z0-9]/-/g;
+ 
+     print "<refentry id=\"$id\">\n";
+@@ -834,12 +834,12 @@ sub output_enum_xml(%) {
+     print " <date>$man_date</date>\n";
+     print "</refentryinfo>\n";
+     print "<refmeta>\n";
+-    print " <refentrytitle><phrase>enum ".$args{'enum'}."</phrase></refentrytitle>\n";
++    print " <refentrytitle><phrase>enum " . $args{'enum'} . "</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
+     print " <refmiscinfo class=\"version\">" . $kernelversion . "</refmiscinfo>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+-    print " <refname>enum ".$args{'enum'}."</refname>\n";
++    print " <refname>enum " . $args{'enum'} . "</refname>\n";
+     print " <refpurpose>\n";
+     print "  ";
+     output_highlight ($args{'purpose'});
+@@ -849,7 +849,7 @@ sub output_enum_xml(%) {
+     print "<refsynopsisdiv>\n";
+     print " <title>Synopsis</title>\n";
+     print "  <programlisting>\n";
+-    print "enum ".$args{'enum'}." {\n";
++    print "enum " . $args{'enum'} . " {\n";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+ 	print "  $parameter";
+@@ -891,7 +891,7 @@ sub output_typedef_xml(%) {
+     my ($parameter, $section);
+     my $id;
+ 
+-    $id = "API-typedef-".$args{'typedef'};
++    $id = "API-typedef-" . $args{'typedef'};
+     $id =~ s/[^A-Za-z0-9]/-/g;
+ 
+     print "<refentry id=\"$id\">\n";
+@@ -901,11 +901,11 @@ sub output_typedef_xml(%) {
+     print " <date>$man_date</date>\n";
+     print "</refentryinfo>\n";
+     print "<refmeta>\n";
+-    print " <refentrytitle><phrase>typedef ".$args{'typedef'}."</phrase></refentrytitle>\n";
++    print " <refentrytitle><phrase>typedef " . $args{'typedef'} . "</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+-    print " <refname>typedef ".$args{'typedef'}."</refname>\n";
++    print " <refname>typedef " . $args{'typedef'} . "</refname>\n";
+     print " <refpurpose>\n";
+     print "  ";
+     output_highlight ($args{'purpose'});
+@@ -914,7 +914,7 @@ sub output_typedef_xml(%) {
+ 
+     print "<refsynopsisdiv>\n";
+     print " <title>Synopsis</title>\n";
+-    print "  <synopsis>typedef ".$args{'typedef'}.";</synopsis>\n";
++    print "  <synopsis>typedef " . $args{'typedef'} . ";</synopsis>\n";
+     print "</refsynopsisdiv>\n";
+ 
+     output_section_xml(@_);
+@@ -963,15 +963,15 @@ sub output_function_gnome {
+     my $count;
+     my $id;
+ 
+-    $id = $args{'module'}."-".$args{'function'};
++    $id = $args{'module'} . "-" . $args{'function'};
+     $id =~ s/[^A-Za-z0-9]/-/g;
+ 
+     print "<sect2>\n";
+-    print " <title id=\"$id\">".$args{'function'}."</title>\n";
++    print " <title id=\"$id\">" . $args{'function'} . "</title>\n";
+ 
+     print "  <funcsynopsis>\n";
+-    print "   <funcdef>".$args{'functiontype'}." ";
+-    print "<function>".$args{'function'}." ";
++    print "   <funcdef>" . $args{'functiontype'} . " ";
++    print "<function>" . $args{'function'} . " ";
+     print "</function></funcdef>\n";
+ 
+     $count = 0;
+@@ -983,7 +983,7 @@ sub output_function_gnome {
+ 		print "   <paramdef>$1 <parameter>$parameter</parameter>)\n";
+ 		print "     <funcparams>$2</funcparams></paramdef>\n";
+ 	    } else {
+-		print "   <paramdef>".$type;
++		print "   <paramdef>" . $type;
+ 		print " <parameter>$parameter</parameter></paramdef>\n";
+ 	    }
+ 	}
+@@ -1043,13 +1043,13 @@ sub output_function_man(%) {
+     print ".TH \"$args{'function'}\" 9 \"$args{'function'}\" \"$man_date\" \"Kernel Hacker's Manual\" LINUX\n";
+ 
+     print ".SH NAME\n";
+-    print $args{'function'}." \\- ".$args{'purpose'}."\n";
++    print $args{'function'} . " \\- " . $args{'purpose'} . "\n";
+ 
+     print ".SH SYNOPSIS\n";
+     if ($args{'functiontype'} ne "") {
+-	print ".B \"".$args{'functiontype'}."\" ".$args{'function'}."\n";
++	print ".B \"" . $args{'functiontype'} . "\" " . $args{'function'} . "\n";
+     } else {
+-	print ".B \"".$args{'function'}."\n";
++	print ".B \"" . $args{'function'} . "\n";
+     }
+     $count = 0;
+     my $parenth = "(";
+@@ -1061,10 +1061,10 @@ sub output_function_man(%) {
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+-	    print ".BI \"".$parenth.$1."\" ".$parameter." \") (".$2.")".$post."\"\n";
++	    print ".BI \"" . $parenth . $1 . "\" " . $parameter . " \") (" . $2 . ")" . $post . "\"\n";
+ 	} else {
+ 	    $type =~ s/([^\*])$/$1 /;
+-	    print ".BI \"".$parenth.$type."\" ".$parameter." \"".$post."\"\n";
++	    print ".BI \"" . $parenth . $type . "\" " . $parameter . " \"" . $post . "\"\n";
+ 	}
+ 	$count++;
+ 	$parenth = "";
+@@ -1075,7 +1075,7 @@ sub output_function_man(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-	print ".IP \"".$parameter."\" 12\n";
++	print ".IP \"" . $parameter . "\" 12\n";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+     }
+     foreach $section (@{$args{'sectionlist'}}) {
+@@ -1094,10 +1094,10 @@ sub output_enum_man(%) {
+     print ".TH \"$args{'module'}\" 9 \"enum $args{'enum'}\" \"$man_date\" \"API Manual\" LINUX\n";
+ 
+     print ".SH NAME\n";
+-    print "enum ".$args{'enum'}." \\- ".$args{'purpose'}."\n";
++    print "enum " . $args{'enum'} . " \\- " . $args{'purpose'} . "\n";
+ 
+     print ".SH SYNOPSIS\n";
+-    print "enum ".$args{'enum'}." {\n";
++    print "enum " . $args{'enum'} . " {\n";
+     $count = 0;
+     foreach my $parameter (@{$args{'parameterlist'}}) {
+ 	print ".br\n.BI \"    $parameter\"\n";
+@@ -1116,7 +1116,7 @@ sub output_enum_man(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-	print ".IP \"".$parameter."\" 12\n";
++	print ".IP \"" . $parameter . "\" 12\n";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+     }
+     foreach $section (@{$args{'sectionlist'}}) {
+@@ -1131,13 +1131,13 @@ sub output_struct_man(%) {
+     my %args = %{$_[0]};
+     my ($parameter, $section);
+ 
+-    print ".TH \"$args{'module'}\" 9 \"".$args{'type'}." ".$args{'struct'}."\" \"$man_date\" \"API Manual\" LINUX\n";
++    print ".TH \"$args{'module'}\" 9 \"" . $args{'type'} . " " . $args{'struct'} . "\" \"$man_date\" \"API Manual\" LINUX\n";
+ 
+     print ".SH NAME\n";
+-    print $args{'type'}." ".$args{'struct'}." \\- ".$args{'purpose'}."\n";
++    print $args{'type'} . " " . $args{'struct'} . " \\- " . $args{'purpose'} . "\n";
+ 
+     print ".SH SYNOPSIS\n";
+-    print $args{'type'}." ".$args{'struct'}." {\n.br\n";
++    print $args{'type'} . " " . $args{'struct'} . " {\n.br\n";
+ 
+     foreach my $parameter (@{$args{'parameterlist'}}) {
+ 	if ($parameter =~ /^#/) {
+@@ -1151,13 +1151,13 @@ sub output_struct_man(%) {
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+-	    print ".BI \"    ".$1."\" ".$parameter." \") (".$2.")"."\"\n;\n";
++	    print ".BI \"    " . $1 . "\" " . $parameter . " \") (" . $2 . ")" . "\"\n;\n";
+ 	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
+ 	    # bitfield
+-	    print ".BI \"    ".$1."\ \" ".$parameter.$2." \""."\"\n;\n";
++	    print ".BI \"    " . $1 . "\ \" " . $parameter . $2 . " \"" . "\"\n;\n";
+ 	} else {
+ 	    $type =~ s/([^\*])$/$1 /;
+-	    print ".BI \"    ".$type."\" ".$parameter." \""."\"\n;\n";
++	    print ".BI \"    " . $type . "\" " . $parameter . " \"" . "\"\n;\n";
+ 	}
+ 	print "\n.br\n";
+     }
+@@ -1171,7 +1171,7 @@ sub output_struct_man(%) {
+ 	$parameter_name =~ s/\[.*//;
+ 
+ 	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+-	print ".IP \"".$parameter."\" 12\n";
++	print ".IP \"" . $parameter . "\" 12\n";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+     }
+     foreach $section (@{$args{'sectionlist'}}) {
+@@ -1189,7 +1189,7 @@ sub output_typedef_man(%) {
+     print ".TH \"$args{'module'}\" 9 \"$args{'typedef'}\" \"$man_date\" \"API Manual\" LINUX\n";
+ 
+     print ".SH NAME\n";
+-    print "typedef ".$args{'typedef'}." \\- ".$args{'purpose'}."\n";
++    print "typedef " . $args{'typedef'} . " \\- " . $args{'purpose'} . "\n";
+ 
+     foreach $section (@{$args{'sectionlist'}}) {
+ 	print ".SH \"$section\"\n";
+@@ -1218,13 +1218,13 @@ sub output_function_text(%) {
+     my $start;
+ 
+     print "Name:\n\n";
+-    print $args{'function'}." - ".$args{'purpose'}."\n";
++    print $args{'function'} . " - " . $args{'purpose'} . "\n";
+ 
+     print "\nSynopsis:\n\n";
+     if ($args{'functiontype'} ne "") {
+-	$start = $args{'functiontype'}." ".$args{'function'}." (";
++	$start = $args{'functiontype'} . " " . $args{'function'} . " (";
+     } else {
+-	$start = $args{'function'}." (";
++	$start = $args{'function'} . " (";
+     }
+     print $start;
+ 
+@@ -1233,9 +1233,9 @@ sub output_function_text(%) {
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+-	    print $1.$parameter.") (".$2;
++	    print $1 . $parameter . ") (" . $2;
+ 	} else {
+-	    print $type." ".$parameter;
++	    print $type . " " . $parameter;
+ 	}
+ 	if ($count != $#{$args{'parameterlist'}}) {
+ 	    $count++;
+@@ -1251,7 +1251,7 @@ sub output_function_text(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-	print $parameter."\n\t".$args{'parameterdescs'}{$parameter_name}."\n";
++	print $parameter . "\n\t" . $args{'parameterdescs'}{$parameter_name} . "\n";
+     }
+     output_section_text(@_);
+ }
+@@ -1276,8 +1276,8 @@ sub output_enum_text(%) {
+     my $count;
+     print "Enum:\n\n";
+ 
+-    print "enum ".$args{'enum'}." - ".$args{'purpose'}."\n\n";
+-    print "enum ".$args{'enum'}." {\n";
++    print "enum " . $args{'enum'} . " - " . $args{'purpose'} . "\n\n";
++    print "enum " . $args{'enum'} . " {\n";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+ 	print "\t$parameter";
+@@ -1292,7 +1292,7 @@ sub output_enum_text(%) {
+     print "Constants:\n\n";
+     foreach $parameter (@{$args{'parameterlist'}}) {
+ 	print "$parameter\n\t";
+-	print $args{'parameterdescs'}{$parameter}."\n";
++	print $args{'parameterdescs'}{$parameter} . "\n";
+     }
+ 
+     output_section_text(@_);
+@@ -1305,7 +1305,7 @@ sub output_typedef_text(%) {
+     my $count;
+     print "Typedef:\n\n";
+ 
+-    print "typedef ".$args{'typedef'}." - ".$args{'purpose'}."\n";
++    print "typedef " . $args{'typedef'} . " - " . $args{'purpose'} . "\n";
+     output_section_text(@_);
+ }
+ 
+@@ -1314,8 +1314,8 @@ sub output_struct_text(%) {
+     my %args = %{$_[0]};
+     my ($parameter);
+ 
+-    print $args{'type'}." ".$args{'struct'}." - ".$args{'purpose'}."\n\n";
+-    print $args{'type'}." ".$args{'struct'}." {\n";
++    print $args{'type'} . " " . $args{'struct'} . " - " . $args{'purpose'} . "\n\n";
++    print $args{'type'} . " " . $args{'struct'} . " {\n";
+     foreach $parameter (@{$args{'parameterlist'}}) {
+ 	if ($parameter =~ /^#/) {
+ 	    print "$parameter\n";
+@@ -1334,7 +1334,7 @@ sub output_struct_text(%) {
+ 	    # bitfield
+ 	    print "\t$1 $parameter$2;\n";
+ 	} else {
+-	    print "\t".$type." ".$parameter.";\n";
++	    print "\t" . $type . " " . $parameter . ";\n";
+ 	}
+     }
+     print "};\n\n";
+@@ -1348,7 +1348,7 @@ sub output_struct_text(%) {
+ 
+ 	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	print "$parameter\n\t";
+-	print $args{'parameterdescs'}{$parameter_name}."\n";
++	print $args{'parameterdescs'}{$parameter_name} . "\n";
+     }
+     print "\n";
+     output_section_text(@_);
+@@ -1387,7 +1387,7 @@ sub output_declaration {
+ # generic output function - calls the right one based on current output mode.
+ sub output_blockhead {
+     no strict 'refs';
+-    my $func = "output_blockhead_".$output_mode;
++    my $func = "output_blockhead_" . $output_mode;
+     &$func(@_);
+     $section_counter++;
+ }
+@@ -1398,7 +1398,7 @@ sub output_blockhead {
+ sub dump_declaration($$) {
+     no strict 'refs';
+     my ($prototype, $file) = @_;
+-    my $func = "dump_".$decl_type;
++    my $func = "dump_" . $decl_type;
+     &$func(@_);
+ }
+ 
+@@ -1645,7 +1645,7 @@ sub push_parameter($$$) {
+ 		    "or member '$param' not " .
+ 		    "described in '$declaration_name'\n";
+ 	    }
+-	    print STDERR "Warning(${file}:$.):".
++	    print STDERR "Warning(${file}:$.):" .
+ 			 " No description found for parameter '$param'\n";
+ 	    ++$warnings;
+ 	}
+@@ -1907,7 +1907,7 @@ sub process_state3_type($$) {
+ 	    ($2 eq '{') && $brcount++;
+ 	    ($2 eq '}') && $brcount--;
+ 	    if (($2 eq ';') && ($brcount == 0)) {
+-		dump_declaration($prototype,$file);
++		dump_declaration($prototype, $file);
+ 		reset_state();
+ 		last;
+ 	    }
+@@ -2084,7 +2084,7 @@ sub process_file($) {
+ 		    $section = $section_default;
+ 		    $contents = "";
+ 		} else {
+-		    $contents .= $1."\n";
++		    $contents .= $1 . "\n";
+ 		}
+ 	    } else {
+ 		# i dont know - bad line?  ignore.
 _
 
-Patches currently in -mm which might be from scameron@beardog.cca.cpqcorp.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+qla2x-fix-printk-format-warnings.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+hexdump-remove-the-trailing-space.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+lis3-use-input_polled_device-fix.patch
+lis3-use-input_polled_device-fix-2.patch
+cgroups-make-messages-more-readable.patch
+rapidio-fix-kerneldoc-for-rio_mem_ops.patch
+linuxpps-core-support.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
