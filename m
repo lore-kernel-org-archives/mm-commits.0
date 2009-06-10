@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-timberdale-add-timbgpio.patch removed from -mm tree
-Date: Tue, 09 Jun 2009 17:24:07 -0700
-Message-ID: <200906100044.n5A0i21B012697@imap1.linux-foundation.org>
+Subject: - i2c-timberdale-i2c-ocores-can-add-i2c-devices-to-the-bus.patch removed from -mm tree
+Date: Tue, 09 Jun 2009 17:23:54 -0700
+Message-ID: <200906100043.n5A0hogB012542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752390AbZFJAoJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 20:44:09 -0400
+	by vger.kernel.org with ESMTP id S1752686AbZFJAoQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 20:44:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.rojfors.ext@mocean-labs.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: richard.rojfors.ext@mocean-labs.com, jacmet@sunsite.dk, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: timberdale: add timbgpio
+     i2c: timberdale: i2c-ocores: can add I2C devices to the bus
 has been removed from the -mm tree.  Its filename was
-     gpio-timberdale-add-timbgpio.patch
+     i2c-timberdale-i2c-ocores-can-add-i2c-devices-to-the-bus.patch
 
 This patch was dropped because of build problems due to the missing xil=
 inx patch
@@ -28,312 +28,125 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: gpio: timberdale: add timbgpio
+Subject: i2c: timberdale: i2c-ocores: can add I2C devices to the bus
 =46rom: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
 
-Supplied is a GPIO driver for the Timberdale FPGA found on the
-Intel Atom board Russellville.
+There is sometimes a need for the ocores driver to add devices to the b=
+us
+when installed.
+
+i2c_register_board_info can not always be used, because the I2C devices
+ are not known at an early state, they could for instance be connected
+ on a I2C bus on a PCI device which has the Open Cores IP.
+
+i2c_new_device can not be used in all cases either since the resulting
+bus nummer might be unknown.
+
+The solution is the pass a list of I2C devices in the platform data to
+the Open Cores driver. This is useful for MFD drivers.
 
 Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
-Cc: David Brownell <david-b@pacbell.net>
+Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig    |    6=20
- drivers/gpio/Makefile   |    1=20
- drivers/gpio/timbgpio.c |  247 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 254 insertions(+)
+ Documentation/i2c/busses/i2c-ocores |   17 +++++++++++++++++
+ drivers/i2c/busses/i2c-ocores.c     |    5 +++++
+ include/linux/i2c-ocores.h          |    2 ++
+ 3 files changed, 24 insertions(+)
 
-diff -puN drivers/gpio/Kconfig~gpio-timberdale-add-timbgpio drivers/gpi=
-o/Kconfig
---- a/drivers/gpio/Kconfig~gpio-timberdale-add-timbgpio
-+++ a/drivers/gpio/Kconfig
-@@ -167,6 +167,12 @@ config GPIO_BT8XX
+diff -puN Documentation/i2c/busses/i2c-ocores~i2c-timberdale-i2c-ocores=
+-can-add-i2c-devices-to-the-bus Documentation/i2c/busses/i2c-ocores
+--- a/Documentation/i2c/busses/i2c-ocores~i2c-timberdale-i2c-ocores-can=
+-add-i2c-devices-to-the-bus
++++ a/Documentation/i2c/busses/i2c-ocores
+@@ -20,6 +20,8 @@ platform_device with the base address an
+ dev.platform_data of the device should also point to a struct
+ ocores_i2c_platform_data (see linux/i2c-ocores.h) describing the
+ distance between registers and the input clock speed.
++There is also a possibility to attach a list of i2c_board_info which
++the i2c-ocores driver will add to the bus upon creation.
 =20
- 	  If unsure, say N.
+ E.G. something like:
 =20
-+config GPIO_TIMBERDALE
-+	tristate "Support for timberdale GPIO"
-+	depends on MFD_TIMBERDALE && GPIOLIB
-+	---help---
-+	Add support for GPIO usage of some pins of the timberdale FPGA.
-+
- comment "SPI GPIO expanders:"
+@@ -36,9 +38,24 @@ static struct resource ocores_resources[
+ 	},
+ };
 =20
- config GPIO_MAX7301
-diff -puN drivers/gpio/Makefile~gpio-timberdale-add-timbgpio drivers/gp=
-io/Makefile
---- a/drivers/gpio/Makefile~gpio-timberdale-add-timbgpio
-+++ a/drivers/gpio/Makefile
-@@ -13,5 +13,6 @@ obj-$(CONFIG_GPIO_PL061)	+=3D pl061.o
- obj-$(CONFIG_GPIO_TWL4030)	+=3D twl4030-gpio.o
- obj-$(CONFIG_GPIO_XILINX)	+=3D xilinx_gpio.o
- obj-$(CONFIG_GPIO_BT8XX)	+=3D bt8xxgpio.o
-+obj-$(CONFIG_GPIO_TIMBERDALE)	+=3D timbgpio.o
- obj-$(CONFIG_GPIO_MC33880)	+=3D mc33880.o
-=20
-diff -puN drivers/gpio/timbgpio.c~gpio-timberdale-add-timbgpio drivers/=
-gpio/timbgpio.c
---- a/drivers/gpio/timbgpio.c~gpio-timberdale-add-timbgpio
-+++ a/drivers/gpio/timbgpio.c
-@@ -0,0 +1,247 @@
-+/*
-+ * timbgpio.c timberdale FPGA GPIO driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* Supports:
-+ * Timberdale FPGA GPIO
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/gpio.h>
-+#include <linux/pci.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+
-+#define DRIVER_NAME "timb-gpio"
-+
-+#define TIMB_NR_GPIOS		16
-+
-+#define TGPIOVAL		0
-+#define TGPIODIR		0x04
-+#define TGPIOINT		0x08
-+#define TGPIOINT_STATUS		0x0c
-+#define TGPIOINT_PENDING	0x10
-+#define TGPIOINT_CLR		0x14
-+#define TGPIOFLK		0x18
-+#define TGPIOLVL		0x1c
-+
-+struct timbgpio {
-+	void __iomem		*membase;
-+	struct mutex		lock; /* mutual exclusion */
-+	struct pci_dev		*pdev;
-+	struct gpio_chip	gpio;
-+};
-+
-+static u32 timbgpio_configure(struct gpio_chip *gpio, unsigned nr,
-+						unsigned off, unsigned val)
-+{
-+	struct timbgpio *tgpio =3D container_of(gpio, struct timbgpio, gpio);
-+
-+	u32 config, oldconfig, wconfig;
-+
-+	mutex_lock(&tgpio->lock);
-+	config =3D ioread32(tgpio->membase + off);
-+	oldconfig =3D config;
-+
-+	if (val)
-+		config |=3D (1 << nr);
-+	else
-+		config &=3D ~(1 << nr);
-+
-+	iowrite32(config, tgpio->membase + off);
-+	wconfig =3D ioread32(tgpio->membase + off);
-+	mutex_unlock(&tgpio->lock);
-+
-+	return oldconfig;
-+}
-+
-+static int timbgpio_gpio_direction_input(struct gpio_chip *gpio, unsig=
-ned nr)
-+{
-+	timbgpio_configure(gpio, nr, TGPIODIR, 1);
-+	return 0;
-+}
-+
-+static int timbgpio_gpio_get(struct gpio_chip *gpio, unsigned nr)
-+{
-+	struct timbgpio *tgpio =3D container_of(gpio, struct timbgpio, gpio);
-+	u32 value;
-+
-+	value =3D ioread32(tgpio->membase + TGPIOVAL);
-+	return (value & (1 << nr)) ? 1 : 0;
-+}
-+
-+static int timbgpio_gpio_direction_output(struct gpio_chip *gpio,
-+						unsigned nr, int val)
-+{
-+	timbgpio_configure(gpio, nr, TGPIODIR, 0);
-+	return 0;
-+}
-+
-+
-+
-+static void timbgpio_gpio_set(struct gpio_chip *gpio,
-+				unsigned nr, int val)
-+{
-+	timbgpio_configure(gpio, nr, TGPIOVAL, val);
-+}
-+
-+static irqreturn_t timbgpio_handleinterrupt(int irq, void *devid)
-+{
-+	struct timbgpio *tgpio =3D (struct timbgpio *)devid;
-+
-+	iowrite32(0xffffffff, tgpio->membase + TGPIOINT_CLR);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int timbgpio_probe(struct platform_device *dev)
-+{
-+	int err, irq;
-+	struct gpio_chip *gc;
-+	struct timbgpio *tgpio;
-+	struct resource *iomem;
-+
-+	iomem =3D platform_get_resource(dev, IORESOURCE_MEM, 0);
-+	if (!iomem) {
-+		err =3D -EINVAL;
-+		goto err_mem;
-+	}
-+
-+	tgpio =3D kzalloc(sizeof(*tgpio), GFP_KERNEL);
-+	if (!tgpio) {
-+		err =3D -EINVAL;
-+		goto err_mem;
-+	}
-+
-+	mutex_init(&tgpio->lock);
-+
-+	if (!request_mem_region(iomem->start, resource_size(iomem),
-+		DRIVER_NAME)) {
-+		err =3D -EBUSY;
-+		goto err_request;
-+	}
-+
-+	tgpio->membase =3D ioremap(iomem->start, resource_size(iomem));
-+	if (!tgpio->membase) {
-+		err =3D -ENOMEM;
-+		goto err_ioremap;
-+	}
-+
-+	gc =3D &tgpio->gpio;
-+
-+	gc->label =3D DRIVER_NAME;
-+	gc->owner =3D THIS_MODULE;
-+	gc->direction_input =3D timbgpio_gpio_direction_input;
-+	gc->get =3D timbgpio_gpio_get;
-+	gc->direction_output =3D timbgpio_gpio_direction_output;
-+	gc->set =3D timbgpio_gpio_set;
-+	gc->dbg_show =3D NULL;
-+	gc->base =3D 0;
-+	gc->ngpio =3D TIMB_NR_GPIOS;
-+	gc->can_sleep =3D 0;
-+
-+	err =3D gpiochip_add(gc);
-+	if (err)
-+		goto err_chipadd;
-+
-+	platform_set_drvdata(dev, tgpio);
-+
-+	/* register interrupt */
-+	irq =3D platform_get_irq(dev, 0);
-+	if (irq < 0)
-+		goto err_get_irq;
-+
-+	/* clear pending interrupts */
-+	iowrite32(0xffffffff, tgpio->membase + TGPIOINT_CLR);
-+	iowrite32(0x0, tgpio->membase + TGPIOINT);
-+
-+	/* request IRQ */
-+	err =3D request_irq(irq, timbgpio_handleinterrupt, IRQF_SHARED,
-+		DRIVER_NAME, tgpio);
-+	if (err) {
-+		printk(KERN_ERR DRIVER_NAME": Failed to request IRQ\n");
-+		goto err_get_irq;
-+	}
-+
-+	return err;
-+
-+err_get_irq:
-+	err =3D gpiochip_remove(&tgpio->gpio);
-+	if (err)
-+		printk(KERN_ERR DRIVER_NAME": failed to remove gpio_chip\n");
-+err_chipadd:
-+	iounmap(tgpio->membase);
-+err_ioremap:
-+	release_mem_region(iomem->start, resource_size(iomem));
-+err_request:
-+	kfree(tgpio);
-+err_mem:
-+	printk(KERN_ERR DRIVER_NAME": Failed to register GPIOs: %d\n", err);
-+
-+	return err;
-+}
-+
-+static int timbgpio_remove(struct platform_device *dev)
-+{
-+	int err;
-+	struct timbgpio *tgpio =3D platform_get_drvdata(dev);
-+	struct resource *iomem =3D platform_get_resource(dev, IORESOURCE_MEM,=
- 0);
-+
-+	/* disable interrupts */
-+	iowrite32(0x0, tgpio->membase + TGPIOINT);
-+
-+	free_irq(platform_get_irq(dev, 0), tgpio);
-+	err =3D gpiochip_remove(&tgpio->gpio);
-+	if (err)
-+		printk(KERN_ERR DRIVER_NAME": failed to remove gpio_chip\n");
-+
-+	iounmap(tgpio->membase);
-+	release_mem_region(iomem->start, resource_size(iomem));
-+	kfree(tgpio);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver timbgpio_platform_driver =3D {
-+	.driver =3D {
-+		.name	=3D DRIVER_NAME,
-+		.owner	=3D THIS_MODULE,
++/* optional board info */
++struct i2c_board_info ocores_i2c_board_info[] =3D {
++	{
++		I2C_BOARD_INFO("tsc2003", 0x48),
++		.platform_data =3D &tsc2003_platform_data,
++		.irq =3D TSC_IRQ
 +	},
-+	.probe		=3D timbgpio_probe,
-+	.remove		=3D timbgpio_remove,
++	{
++		I2C_BOARD_INFO("adv7180", 0x42 >> 1),
++		.irq =3D ADV_IRQ
++	}
 +};
 +
-+/*--------------------------------------------------------------------=
-------*/
+ static struct ocores_i2c_platform_data myi2c_data =3D {
+ 	.regstep	=3D 2,		/* two bytes between registers */
+ 	.clock_khz	=3D 50000,	/* input clock of 50MHz */
++	.devices	=3D ocores_i2c_board_info, /* optional table of devices */
++	.num_devices	=3D ARRAY_SIZE(ocores_i2c_board_info), /* table size */
+ };
+=20
+ static struct platform_device myi2c =3D {
+diff -puN drivers/i2c/busses/i2c-ocores.c~i2c-timberdale-i2c-ocores-can=
+-add-i2c-devices-to-the-bus drivers/i2c/busses/i2c-ocores.c
+--- a/drivers/i2c/busses/i2c-ocores.c~i2c-timberdale-i2c-ocores-can-add=
+-i2c-devices-to-the-bus
++++ a/drivers/i2c/busses/i2c-ocores.c
+@@ -216,6 +216,7 @@ static int __devinit ocores_i2c_probe(st
+ 	struct ocores_i2c_platform_data *pdata;
+ 	struct resource *res, *res2;
+ 	int ret;
++	int i;
+=20
+ 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res)
+@@ -271,6 +272,10 @@ static int __devinit ocores_i2c_probe(st
+ 		goto add_adapter_failed;
+ 	}
+=20
++	/* add in known devices to the bus */
++	for (i =3D 0; i < pdata->num_devices; i++)
++		i2c_new_device(&i2c->adap, pdata->devices + i);
 +
-+static int __init timbgpio_init(void)
-+{
-+	return platform_driver_register(&timbgpio_platform_driver);
-+}
-+
-+static void __exit timbgpio_exit(void)
-+{
-+	platform_driver_unregister(&timbgpio_platform_driver);
-+}
-+
-+module_init(timbgpio_init);
-+module_exit(timbgpio_exit);
-+
-+MODULE_DESCRIPTION("Timberdale GPIO driver");
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Mocean Laboratories");
-+MODULE_ALIAS("platform:"DRIVER_NAME);
-+
+ 	return 0;
+=20
+ add_adapter_failed:
+diff -puN include/linux/i2c-ocores.h~i2c-timberdale-i2c-ocores-can-add-=
+i2c-devices-to-the-bus include/linux/i2c-ocores.h
+--- a/include/linux/i2c-ocores.h~i2c-timberdale-i2c-ocores-can-add-i2c-=
+devices-to-the-bus
++++ a/include/linux/i2c-ocores.h
+@@ -14,6 +14,8 @@
+ struct ocores_i2c_platform_data {
+ 	u32 regstep;   /* distance between registers */
+ 	u32 clock_khz; /* input clock in kHz */
++	u8 num_devices; /* number of devices in the devices list */
++	struct i2c_board_info const *devices; /* devices connected to the bus=
+ */
+ };
+=20
+ #endif /* _LINUX_I2C_OCORES_H */
 _
 
 Patches currently in -mm which might be from richard.rojfors.ext@mocean=
 -labs.com are
 
 linux-next.patch
+i2c-timberdale-i2c-ocores-can-add-i2c-devices-to-the-bus.patch
+mfd-timberdale-add-timberdale-dma-driver.patch
+v4l2-timberdale-add-timberdale-logiwin-driver.patch
+v4l2-timberdale-add-timberdale-logiwin-driver-in-kconfig-and-makefile.p=
+atch
+mfd-timberdale-add-timberdale-driver.patch
+serial-timberdale-add-timberdale-uart-driver.patch
 gpio-timberdale-add-timbgpio.patch
 
 --
