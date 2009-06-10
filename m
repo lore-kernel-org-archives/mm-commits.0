@@ -1,1175 +1,640 @@
 From: akpm@linux-foundation.org
-Subject: - v4l2-timberdale-add-timberdale-logiwin-driver.patch removed from -mm tree
-Date: Tue, 09 Jun 2009 17:23:59 -0700
-Message-ID: <200906100043.n5A0hs3m012558@imap1.linux-foundation.org>
+Subject: mmotm 2009-06-09-17-52 uploaded
+Date: Tue, 09 Jun 2009 17:53:03 -0700
+Message-ID: <200906100112.n5A1Cx55003675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752440AbZFJAoL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 20:44:11 -0400
+	by vger.kernel.org with ESMTP id S1751181AbZFJBNc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2009 21:13:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.rojfors.ext@mocean-labs.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2009-06-09-17-52 has been uploaded to
 
-The patch titled
-     v4l2: timberdale: add Timberdale Logiwin driver
-has been removed from the -mm tree.  Its filename was
-     v4l2-timberdale-add-timberdale-logiwin-driver.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-This patch was dropped because of build problems due to the missing xil=
-inx patch
+and will soon be available at
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+   git://git.zen-sources.org/zen/mmotm.git
 
-------------------------------------------------------
-Subject: v4l2: timberdale: add Timberdale Logiwin driver
-=46rom: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
+It contains the following patches against 2.6.30-rc8:
 
-V4L2 video capture driver for the logiwin IP on the Timberdale FPGA.
-
-The driver uses the Timberdale DMA engine
-
-Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/media/video/timblogiw.c |  949 ++++++++++++++++++++++++++++++
- drivers/media/video/timblogiw.h |   94 ++
- include/media/timb_video.h      |   30=20
- 3 files changed, 1073 insertions(+)
-
-diff -puN drivers/media/video/timblogiw.c~v4l2-timberdale-add-timberdal=
-e-logiwin-driver drivers/media/video/timblogiw.c
---- a/drivers/media/video/timblogiw.c~v4l2-timberdale-add-timberdale-lo=
-giwin-driver
-+++ a/drivers/media/video/timblogiw.c
-@@ -0,0 +1,949 @@
-+/*
-+ * timblogiw.c timberdale FPGA LogiWin Video In driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* Supports:
-+ * Timberdale FPGA LogiWin Video In
-+ */
-+
-+#include <linux/list.h>
-+#include <linux/version.h>
-+#include <linux/module.h>
-+#include <linux/pci.h>
-+#include <linux/dma-mapping.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-device.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include "timblogiw.h"
-+#include <linux/mfd/timbdma.h>
-+#include <linux/i2c.h>
-+#include <media/timb_video.h>
-+
-+#define TIMBLOGIW_CTRL 0x40
-+
-+#define TIMBLOGIW_H_SCALE 0x20
-+#define TIMBLOGIW_V_SCALE 0x28
-+
-+#define TIMBLOGIW_X_CROP 0x58
-+#define TIMBLOGIW_Y_CROP 0x60
-+
-+#define TIMBLOGIW_W_CROP 0x00
-+#define TIMBLOGIW_H_CROP 0x08
-+
-+#define TIMBLOGIW_VERSION_CODE 0x02
-+
-+#define TIMBLOGIW_BUF	0x04
-+#define TIMBLOGIW_TBI	0x2c
-+#define TIMBLOGIW_BPL	0x30
-+
-+#define dbg(...)
-+
-+#define DMA_BUFFER_SIZE (720 * 576 * 2)
-+
-+const struct timblogiw_tvnorm timblogiw_tvnorms[] =3D {
-+	{
-+		.std			=3D V4L2_STD_PAL,
-+		.name			=3D "PAL",
-+		.width			=3D 720,
-+		.height			=3D 576
-+	},
-+	{
-+		.std			=3D V4L2_STD_NTSC_M,
-+		.name			=3D "NTSC",
-+		.width			=3D 720,
-+		.height			=3D 480
-+	}
-+};
-+
-+static int timblogiw_bytes_per_line(const struct timblogiw_tvnorm *nor=
-m)
-+{
-+	return norm->width * 2;
-+}
-+
-+
-+static int timblogiw_frame_size(const struct timblogiw_tvnorm *norm)
-+{
-+	return norm->height * timblogiw_bytes_per_line(norm);
-+}
-+
-+static const struct timblogiw_tvnorm *timblogiw_get_norm(const v4l2_st=
-d_id std)
-+{
-+	int i;
-+	for (i =3D 0; i < ARRAY_SIZE(timblogiw_tvnorms); i++)
-+		if (timblogiw_tvnorms[i].std =3D=3D std)
-+			return timblogiw_tvnorms + i;
-+
-+	/* default to first element */
-+	return timblogiw_tvnorms;
-+}
-+
-+static void timblogiw_handleframe(unsigned long arg)
-+{
-+	struct timblogiw_frame *f;
-+	struct timblogiw *lw =3D (struct timblogiw *)arg;
-+
-+	spin_lock_bh(&lw->queue_lock);
-+	if (lw->dma.filled && !list_empty(&lw->inqueue)) {
-+		/* put the entry in the outqueue */
-+		f =3D list_entry(lw->inqueue.next, struct timblogiw_frame, frame);
-+
-+		/* copy data from the DMA buffer */
-+		memcpy(f->bufmem, lw->dma.filled->buf, f->buf.length);
-+		/* buffer consumed */
-+		lw->dma.filled =3D NULL;
-+
-+		do_gettimeofday(&f->buf.timestamp);
-+		f->buf.sequence =3D ++lw->frame_count;
-+		f->buf.field =3D V4L2_FIELD_NONE;
-+		f->state =3D F_DONE;
-+		f->buf.bytesused =3D f->buf.length;
-+		list_move_tail(&f->frame, &lw->outqueue);
-+		/* wake up any waiter */
-+		wake_up(&lw->wait_frame);
-+	} else {
-+		/* No user buffer available, consume buffer anyway
-+		 * who wants an old video frame?
-+		 */
-+		lw->dma.filled =3D NULL;
-+	}
-+	spin_unlock_bh(&lw->queue_lock);
-+}
-+
-+static int timblogiw_isr(u32 flag, void *pdev)
-+{
-+	struct timblogiw *lw =3D (struct timblogiw *)pdev;
-+
-+	if (!lw->dma.filled && (flag & DMA_IRQ_VIDEO_RX)) {
-+		/* Got a frame, store it, and flip to next DMA buffer */
-+		lw->dma.filled =3D lw->dma.transfer + lw->dma.curr;
-+		lw->dma.curr =3D !lw->dma.curr;
-+	}
-+
-+	if (lw->stream =3D=3D STREAM_ON)
-+		timb_start_dma(DMA_IRQ_VIDEO_RX,
-+			lw->dma.transfer[lw->dma.curr].handle,
-+			timblogiw_frame_size(lw->cur_norm),
-+			timblogiw_bytes_per_line(lw->cur_norm));
-+
-+	if (flag & DMA_IRQ_VIDEO_DROP)
-+		dbg("%s: frame dropped\n", __func__);
-+	if (flag & DMA_IRQ_VIDEO_RX) {
-+		dbg("%s: frame RX\n", __func__);
-+		tasklet_schedule(&lw->tasklet);
-+	}
-+	return 0;
-+}
-+
-+static void timblogiw_empty_framequeues(struct timblogiw *lw)
-+{
-+	u32 i;
-+
-+	dbg("%s\n", __func__);
-+
-+	INIT_LIST_HEAD(&lw->inqueue);
-+	INIT_LIST_HEAD(&lw->outqueue);
-+
-+	for (i =3D 0; i < lw->num_frames; i++) {
-+		lw->frame[i].state =3D F_UNUSED;
-+		lw->frame[i].buf.bytesused =3D 0;
-+	}
-+}
-+
-+u32 timblogiw_request_buffers(struct timblogiw *lw, u32 count)
-+{
-+	/* needs to be page aligned cause the */
-+	/* buffers can be mapped individually! */
-+	const size_t imagesize =3D PAGE_ALIGN(timblogiw_frame_size(lw->cur_no=
-rm));
-+	void *buff =3D NULL;
-+	u32 i;
-+
-+	dbg("%s - request of %i buffers of size %zi\n",
-+		__func__, count, imagesize);
-+
-+	lw->dma.transfer[0].buf =3D pci_alloc_consistent(lw->dev, DMA_BUFFER_=
-SIZE,
-+		&lw->dma.transfer[0].handle);
-+	lw->dma.transfer[1].buf =3D pci_alloc_consistent(lw->dev, DMA_BUFFER_=
-SIZE,
-+		&lw->dma.transfer[1].handle);
-+	if ((lw->dma.transfer[0].buf =3D=3D NULL) ||
-+		(lw->dma.transfer[1].buf =3D=3D NULL)) {
-+		printk(KERN_ALERT "alloc failed\n");
-+		if (lw->dma.transfer[0].buf !=3D NULL)
-+			pci_free_consistent(lw->dev, DMA_BUFFER_SIZE,
-+				lw->dma.transfer[0].buf,
-+				lw->dma.transfer[0].handle);
-+		if (lw->dma.transfer[1].buf !=3D NULL)
-+			pci_free_consistent(lw->dev, DMA_BUFFER_SIZE,
-+				lw->dma.transfer[1].buf,
-+				lw->dma.transfer[1].handle);
-+		return 0;
-+	}
-+
-+	if (count > TIMBLOGIW_NUM_FRAMES)
-+		count =3D TIMBLOGIW_NUM_FRAMES;
-+
-+	lw->num_frames =3D count;
-+	while (lw->num_frames > 0) {
-+		buff =3D vmalloc_32(lw->num_frames * imagesize);
-+		if (buff) {
-+			memset(buff, 0, lw->num_frames * imagesize);
-+			break;
-+		}
-+		lw->num_frames--;
-+	}
-+
-+	for (i =3D 0; i < lw->num_frames; i++) {
-+		lw->frame[i].bufmem =3D buff + i * imagesize;
-+		lw->frame[i].buf.index =3D i;
-+		lw->frame[i].buf.m.offset =3D i * imagesize;
-+		lw->frame[i].buf.length =3D timblogiw_frame_size(lw->cur_norm);
-+		lw->frame[i].buf.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		lw->frame[i].buf.sequence =3D 0;
-+		lw->frame[i].buf.field =3D V4L2_FIELD_NONE;
-+		lw->frame[i].buf.memory =3D V4L2_MEMORY_MMAP;
-+		lw->frame[i].buf.flags =3D 0;
-+	}
-+
-+	lw->dma.curr =3D 0;
-+	lw->dma.filled =3D NULL;
-+	return lw->num_frames;
-+}
-+
-+void timblogiw_release_buffers(struct timblogiw *lw)
-+{
-+	dbg("%s\n", __func__);
-+
-+	if (lw->frame[0].bufmem !=3D NULL) {
-+		vfree(lw->frame[0].bufmem);
-+		lw->frame[0].bufmem =3D NULL;
-+		lw->num_frames =3D TIMBLOGIW_NUM_FRAMES;
-+		pci_free_consistent(lw->dev, DMA_BUFFER_SIZE,
-+			lw->dma.transfer[0].buf, lw->dma.transfer[0].handle);
-+		pci_free_consistent(lw->dev, DMA_BUFFER_SIZE,
-+			lw->dma.transfer[1].buf, lw->dma.transfer[1].handle);
-+	}
-+}
-+
-+/* IOCTL functions */
-+
-+static int timblogiw_g_fmt(struct file *file, void  *priv,
-+	struct v4l2_format *format)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+
-+	dbg("%s\n",  __func__);
-+
-+	if (format->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	format->fmt.pix.width =3D lw->cur_norm->width;
-+	format->fmt.pix.height =3D lw->cur_norm->height;
-+	format->fmt.pix.pixelformat =3D V4L2_PIX_FMT_YUYV;
-+	format->fmt.pix.bytesperline =3D timblogiw_bytes_per_line(lw->cur_nor=
-m);
-+	format->fmt.pix.sizeimage =3D timblogiw_frame_size(lw->cur_norm);
-+	format->fmt.pix.colorspace =3D V4L2_COLORSPACE_SMPTE170M;
-+	format->fmt.pix.field =3D V4L2_FIELD_NONE;
-+	return 0;
-+}
-+
-+static int timblogiw_try_fmt(struct file *file, void  *priv,
-+	struct v4l2_format *format)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+	struct v4l2_pix_format *pix =3D &format->fmt.pix;
-+
-+	dbg("%s - width=3D%d, height=3D%d, pixelformat=3D%d, field=3D%d\n"
-+		"bytes per line %d, size image: %d, colorspace: %d\n",
-+		__func__,
-+		pix->width, pix->height, pix->pixelformat, pix->field,
-+		pix->bytesperline, pix->sizeimage, pix->colorspace);
-+
-+	if (format->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	if (format->fmt.pix.field !=3D V4L2_FIELD_NONE)
-+		return -EINVAL;
-+
-+	if ((lw->cur_norm->height !=3D pix->height) ||
-+		(lw->cur_norm->width !=3D pix->width)) {
-+		pix->width =3D lw->cur_norm->width;
-+		pix->height =3D lw->cur_norm->height;
-+	}
-+
-+	return 0;
-+}
-+
-+static int timblogiw_querycap(struct file *file, void  *priv,
-+	struct v4l2_capability *cap)
-+{
-+	dbg("%s\n",  __func__);
-+	memset(cap, 0, sizeof(*cap));
-+	strncpy(cap->card, "Timberdale Video", sizeof(cap->card)-1);
-+	strncpy(cap->driver, "Timblogiw", sizeof(cap->card)-1);
-+	cap->version =3D TIMBLOGIW_VERSION_CODE;
-+	cap->capabilities =3D V4L2_CAP_VIDEO_CAPTURE |
-+		V4L2_CAP_STREAMING;
-+
-+	return 0;
-+}
-+
-+static int timblogiw_enum_fmt(struct file *file, void  *priv,
-+	struct v4l2_fmtdesc *fmt)
-+{
-+	dbg("%s, index: %d\n",  __func__, fmt->index);
-+
-+	if (fmt->index !=3D 0)
-+		return -EINVAL;
-+	memset(fmt, 0, sizeof(*fmt));
-+	fmt->index =3D 0;
-+	fmt->type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	strncpy(fmt->description, "4:2:2, packed, YUYV",
-+		sizeof(fmt->description)-1);
-+	fmt->pixelformat =3D V4L2_PIX_FMT_YUYV;
-+	memset(fmt->reserved, 0, sizeof(fmt->reserved));
-+
-+	return 0;
-+}
-+
-+static int timblogiw_reqbufs(struct file *file, void  *priv,
-+	struct v4l2_requestbuffers *rb)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+
-+	dbg("%s\n",  __func__);
-+
-+	if (rb->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-+		rb->memory !=3D V4L2_MEMORY_MMAP)
-+		return -EINVAL;
-+
-+	timblogiw_empty_framequeues(lw);
-+
-+	timblogiw_release_buffers(lw);
-+	if (rb->count)
-+		rb->count =3D timblogiw_request_buffers(lw, rb->count);
-+
-+	dbg("%s - VIDIOC_REQBUFS: io method is mmap. num bufs %i\n",
-+		__func__, rb->count);
-+
-+	return 0;
-+}
-+
-+static int timblogiw_querybuf(struct file *file, void  *priv,
-+	struct v4l2_buffer *b)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+
-+	dbg("%s\n",  __func__);
-+
-+	if (b->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-+		b->index >=3D lw->num_frames)
-+		return -EINVAL;
-+
-+	memcpy(b, &lw->frame[b->index].buf, sizeof(*b));
-+
-+	if (lw->frame[b->index].vma_use_count)
-+		b->flags |=3D V4L2_BUF_FLAG_MAPPED;
-+
-+	if (lw->frame[b->index].state =3D=3D F_DONE)
-+		b->flags |=3D V4L2_BUF_FLAG_DONE;
-+	else if (lw->frame[b->index].state !=3D F_UNUSED)
-+		b->flags |=3D V4L2_BUF_FLAG_QUEUED;
-+
-+	return 0;
-+}
-+
-+static int timblogiw_qbuf(struct file *file, void  *priv, struct v4l2_=
-buffer *b)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+	unsigned long lock_flags;
-+
-+	if (b->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-+		b->index >=3D lw->num_frames)
-+		return -EINVAL;
-+
-+	if (lw->frame[b->index].state !=3D F_UNUSED)
-+		return -EAGAIN;
-+
-+	if (b->memory !=3D V4L2_MEMORY_MMAP)
-+		return -EINVAL;
-+
-+	lw->frame[b->index].state =3D F_QUEUED;
-+
-+	spin_lock_irqsave(&lw->queue_lock, lock_flags);
-+	list_add_tail(&lw->frame[b->index].frame, &lw->inqueue);
-+	spin_unlock_irqrestore(&lw->queue_lock, lock_flags);
-+
-+	return 0;
-+}
-+
-+static int timblogiw_dqbuf(struct file *file, void  *priv,
-+	struct v4l2_buffer *b)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+	struct timblogiw_frame *f;
-+	unsigned long lock_flags;
-+	int ret =3D 0;
-+
-+	if (b->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+		dbg("%s - VIDIOC_DQBUF, illegal buf type!\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	if (list_empty(&lw->outqueue)) {
-+		if (file->f_flags & O_NONBLOCK)
-+			return -EAGAIN;
-+
-+		ret =3D wait_event_interruptible(lw->wait_frame,
-+			!list_empty(&lw->outqueue));
-+		if (ret)
-+			return ret;
-+	}
-+
-+	spin_lock_irqsave(&lw->queue_lock, lock_flags);
-+	f =3D list_entry(lw->outqueue.next,
-+			struct timblogiw_frame, frame);
-+	list_del(lw->outqueue.next);
-+	spin_unlock_irqrestore(&lw->queue_lock, lock_flags);
-+
-+	f->state =3D F_UNUSED;
-+	memcpy(b, &f->buf, sizeof(*b));
-+
-+	if (f->vma_use_count)
-+		b->flags |=3D V4L2_BUF_FLAG_MAPPED;
-+
-+	return 0;
-+}
-+
-+static int timblogiw_g_std(struct file *file, void  *priv, v4l2_std_id=
- *std)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+
-+	dbg("%s\n",  __func__);
-+
-+	*std =3D lw->cur_norm->std;
-+	return 0;
-+}
-+
-+static int timblogiw_s_std(struct file *file, void  *priv, v4l2_std_id=
- *std)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+
-+	dbg("%s\n",  __func__);
-+
-+	if (!(*std & lw->cur_norm->std))
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static int timblogiw_enuminput(struct file *file, void  *priv,
-+	struct v4l2_input *inp)
-+{
-+	dbg("%s\n",  __func__);
-+
-+	if (inp->index !=3D 0)
-+		return -EINVAL;
-+
-+	memset(inp, 0, sizeof(*inp));
-+	inp->index =3D 0;
-+
-+	strncpy(inp->name, "Timb input 1", sizeof(inp->name) - 1);
-+	inp->type =3D V4L2_INPUT_TYPE_CAMERA;
-+	inp->std =3D V4L2_STD_ALL;
-+
-+	return 0;
-+}
-+
-+static int timblogiw_g_input(struct file *file, void  *priv,
-+	unsigned int *input)
-+{
-+	dbg("%s\n",  __func__);
-+
-+	*input =3D 0;
-+
-+	return 0;
-+}
-+
-+static int timblogiw_s_input(struct file *file, void  *priv, unsigned =
-int input)
-+{
-+	dbg("%s\n",  __func__);
-+
-+	if (input !=3D 0)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static int timblogiw_streamon(struct file *file, void  *priv, unsigned=
- int type)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+	struct timblogiw_frame *f;
-+
-+	dbg("%s\n",  __func__);
-+
-+	if (type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+		dbg("%s - No capture device\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	if (list_empty(&lw->inqueue)) {
-+		dbg("%s - inqueue is empty\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	if (lw->stream =3D=3D STREAM_ON)
-+		return 0;
-+
-+	lw->stream =3D STREAM_ON;
-+
-+	f =3D list_entry(lw->inqueue.next,
-+		struct timblogiw_frame, frame);
-+
-+	dbg("%s - f size: %d, bpr: %d, dma addr: %x\n", __func__,
-+		timblogiw_frame_size(lw->cur_norm),
-+		timblogiw_bytes_per_line(lw->cur_norm),
-+		(unsigned int)lw->dma.transfer[lw->dma.curr].handle);
-+
-+	timb_start_dma(DMA_IRQ_VIDEO_RX,
-+		lw->dma.transfer[lw->dma.curr].handle,
-+		timblogiw_frame_size(lw->cur_norm),
-+		timblogiw_bytes_per_line(lw->cur_norm));
-+
-+	return 0;
-+}
-+
-+static int timblogiw_streamoff(struct file *file, void  *priv,
-+	unsigned int type)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+
-+	dbg("%s\n",  __func__);
-+
-+	if (type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	if (lw->stream =3D=3D STREAM_ON) {
-+		unsigned long lock_flags;
-+		spin_lock_irqsave(&lw->queue_lock, lock_flags);
-+		timb_stop_dma(DMA_IRQ_VIDEO_RX);
-+		lw->stream =3D STREAM_OFF;
-+		spin_unlock_irqrestore(&lw->queue_lock, lock_flags);
-+	}
-+	timblogiw_empty_framequeues(lw);
-+
-+	return 0;
-+}
-+
-+static int timblogiw_querystd(struct file *file, void  *priv, v4l2_std=
-_id *std)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+
-+	dbg("%s\n",  __func__);
-+
-+	return v4l2_subdev_call(lw->sd_enc, video, querystd, std);
-+}
-+
-+static int timblogiw_enum_framesizes(struct file *file, void  *priv,
-+	struct v4l2_frmsizeenum *fsize)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+
-+	dbg("%s - index: %d, format: %d\n",  __func__,
-+		fsize->index, fsize->pixel_format);
-+
-+	if ((fsize->index !=3D 0) ||
-+		(fsize->pixel_format !=3D V4L2_PIX_FMT_YUYV))
-+		return -EINVAL;
-+
-+	fsize->type =3D V4L2_FRMSIZE_TYPE_DISCRETE;
-+	fsize->discrete.width =3D lw->cur_norm->width;
-+	fsize->discrete.height =3D lw->cur_norm->height;
-+
-+	return 0;
-+}
-+
-+/*******************************
-+ * Device Operations functions *
-+ *******************************/
-+
-+static int timblogiw_open(struct file *file)
-+{
-+	struct video_device *vdev =3D video_devdata(file);
-+	struct timblogiw *lw =3D video_get_drvdata(vdev);
-+	v4l2_std_id std =3D V4L2_STD_UNKNOWN;
-+
-+	dbg("%s -\n", __func__);
-+
-+	mutex_init(&lw->fileop_lock);
-+	spin_lock_init(&lw->queue_lock);
-+	init_waitqueue_head(&lw->wait_frame);
-+
-+	mutex_lock(&lw->lock);
-+
-+	timblogiw_querystd(file, NULL, &std);
-+	lw->video_dev->tvnorms =3D std;
-+	lw->cur_norm =3D timblogiw_get_norm(std);
-+
-+	file->private_data =3D lw;
-+	lw->stream =3D STREAM_OFF;
-+	lw->num_frames =3D TIMBLOGIW_NUM_FRAMES;
-+
-+	timblogiw_empty_framequeues(lw);
-+	timb_set_dma_interruptcb(DMA_IRQ_VIDEO_RX | DMA_IRQ_VIDEO_DROP,
-+		timblogiw_isr, (void *)lw);
-+	mutex_unlock(&lw->lock);
-+
-+	return 0;
-+}
-+
-+static int timblogiw_close(struct file *file)
-+{
-+	struct timblogiw *lw =3D file->private_data;
-+
-+	dbg("%s - entry\n", __func__);
-+
-+	mutex_lock(&lw->lock);
-+
-+	timb_stop_dma(DMA_IRQ_VIDEO_RX);
-+	timb_set_dma_interruptcb(DMA_IRQ_VIDEO_RX | DMA_IRQ_VIDEO_DROP, NULL,
-+		NULL);
-+	timblogiw_release_buffers(lw);
-+
-+	mutex_unlock(&lw->lock);
-+	return 0;
-+}
-+
-+static ssize_t timblogiw_read(struct file *file, char __user *data,
-+	size_t count, loff_t *ppos)
-+{
-+	dbg("%s - read request\n", __func__);
-+	return -EINVAL;
-+}
-+
-+static void timblogiw_vm_open(struct vm_area_struct *vma)
-+{
-+	struct timblogiw_frame *f =3D vma->vm_private_data;
-+	f->vma_use_count++;
-+}
-+
-+static void timblogiw_vm_close(struct vm_area_struct *vma)
-+{
-+	struct timblogiw_frame *f =3D vma->vm_private_data;
-+	f->vma_use_count--;
-+}
-+
-+static struct vm_operations_struct timblogiw_vm_ops =3D {
-+	.open =3D timblogiw_vm_open,
-+	.close =3D timblogiw_vm_close,
-+};
-+
-+static int timblogiw_mmap(struct file *filp, struct vm_area_struct *vm=
-a)
-+{
-+	unsigned long size =3D vma->vm_end - vma->vm_start, start =3D vma->vm=
-_start;
-+	void *pos;
-+	u32 i;
-+	int ret =3D -EINVAL;
-+
-+	struct timblogiw *lw =3D filp->private_data;
-+	dbg("%s\n", __func__);
-+
-+	if (mutex_lock_interruptible(&lw->fileop_lock))
-+		return -ERESTARTSYS;
-+
-+	if (!(vma->vm_flags & VM_WRITE) ||
-+		size !=3D PAGE_ALIGN(lw->frame[0].buf.length))
-+		goto error_unlock;
-+
-+	for (i =3D 0; i < lw->num_frames; i++)
-+		if ((lw->frame[i].buf.m.offset >> PAGE_SHIFT) =3D=3D vma->vm_pgoff)
-+			break;
-+
-+	if (i =3D=3D lw->num_frames) {
-+		dbg("%s - user supplied mapping address is out of range\n",
-+			__func__);
-+		goto error_unlock;
-+	}
-+
-+	vma->vm_flags |=3D VM_IO;
-+	vma->vm_flags |=3D VM_RESERVED;	/* Do not swap out this VMA */
-+
-+	pos =3D lw->frame[i].bufmem;
-+	while (size > 0) {		/* size is page-aligned */
-+		if (vm_insert_page(vma, start, vmalloc_to_page(pos))) {
-+			dbg("%s - vm_insert_page failed\n", __func__);
-+			ret =3D -EAGAIN;
-+			goto error_unlock;
-+		}
-+		start +=3D PAGE_SIZE;
-+		pos +=3D PAGE_SIZE;
-+		size -=3D PAGE_SIZE;
-+	}
-+
-+	vma->vm_ops =3D &timblogiw_vm_ops;
-+	vma->vm_private_data =3D &lw->frame[i];
-+	timblogiw_vm_open(vma);
-+	ret =3D 0;
-+
-+error_unlock:
-+	mutex_unlock(&lw->fileop_lock);
-+	return ret;
-+}
-+
-+
-+void timblogiw_vdev_release(struct video_device *vdev)
-+{
-+	kfree(vdev);
-+}
-+
-+static const struct v4l2_ioctl_ops timblogiw_ioctl_ops =3D {
-+	.vidioc_querycap      =3D timblogiw_querycap,
-+	.vidioc_enum_fmt_vid_cap  =3D timblogiw_enum_fmt,
-+	.vidioc_g_fmt_vid_cap     =3D timblogiw_g_fmt,
-+	.vidioc_try_fmt_vid_cap   =3D timblogiw_try_fmt,
-+	.vidioc_s_fmt_vid_cap     =3D timblogiw_try_fmt,
-+	.vidioc_reqbufs       =3D timblogiw_reqbufs,
-+	.vidioc_querybuf      =3D timblogiw_querybuf,
-+	.vidioc_qbuf          =3D timblogiw_qbuf,
-+	.vidioc_dqbuf         =3D timblogiw_dqbuf,
-+	.vidioc_g_std         =3D timblogiw_g_std,
-+	.vidioc_s_std         =3D timblogiw_s_std,
-+	.vidioc_enum_input    =3D timblogiw_enuminput,
-+	.vidioc_g_input       =3D timblogiw_g_input,
-+	.vidioc_s_input       =3D timblogiw_s_input,
-+	.vidioc_streamon      =3D timblogiw_streamon,
-+	.vidioc_streamoff     =3D timblogiw_streamoff,
-+	.vidioc_querystd      =3D timblogiw_querystd,
-+	.vidioc_enum_framesizes =3D timblogiw_enum_framesizes,
-+};
-+
-+static const struct v4l2_file_operations timblogiw_fops =3D {
-+	.owner		=3D THIS_MODULE,
-+	.open	 	=3D timblogiw_open,
-+	.release	=3D timblogiw_close,
-+	.ioctl		=3D video_ioctl2, /* V4L2 ioctl handler */
-+	.mmap		=3D timblogiw_mmap,
-+	.read		=3D timblogiw_read,
-+};
-+
-+static const struct video_device timblogiw_template =3D {
-+	.name		=3D TIMBLOGIWIN_NAME,
-+	.fops		=3D &timblogiw_fops,
-+	.ioctl_ops 	=3D &timblogiw_ioctl_ops,
-+	.release	=3D &timblogiw_vdev_release,
-+	.minor		=3D -1
-+};
-+
-+
-+struct find_addr_arg {
-+	char const *name;
-+	struct i2c_client *client;
-+};
-+
-+static int find_name(struct device *dev, void *argp)
-+{
-+	struct find_addr_arg	*arg =3D (struct find_addr_arg *)argp;
-+	struct i2c_client	*client =3D i2c_verify_client(dev);
-+
-+	if (client && !strcmp(arg->name, client->name) && client->driver)
-+		arg->client =3D client;
-+
-+	return 0;
-+}
-+
-+static int timblogiw_probe(struct platform_device *dev)
-+{
-+	int err;
-+	struct timblogiw *lw;
-+	struct resource *iomem;
-+	struct timb_video_platform_data *pdata =3D dev->dev.platform_data;
-+	struct i2c_adapter *adapt;
-+	struct i2c_client *encoder;
-+	struct find_addr_arg find_arg;
-+
-+	if (!pdata) {
-+		printk(KERN_ERR "timblogiw: Platform data missing\n");
-+		err =3D -EINVAL;
-+		goto err_mem;
-+	}
-+
-+	iomem =3D platform_get_resource(dev, IORESOURCE_MEM, 0);
-+	if (!iomem) {
-+		err =3D -EINVAL;
-+		goto err_mem;
-+	}
-+
-+	lw =3D kzalloc(sizeof(*lw), GFP_KERNEL);
-+	if (!lw) {
-+		err =3D -EINVAL;
-+		goto err_mem;
-+	}
-+
-+	/* find the PCI device from the parent... */
-+	if (!dev->dev.parent) {
-+		printk(KERN_ERR "timblogiw: No parent device found??\n");
-+		err =3D -ENODEV;
-+		goto err_encoder;
-+	}
-+
-+	lw->dev =3D container_of(dev->dev.parent, struct pci_dev, dev);
-+
-+	/* find the video decoder */
-+	adapt =3D i2c_get_adapter(pdata->i2c_adapter);
-+	if (!adapt) {
-+		printk(KERN_ERR "timblogiw: No I2C bus\n");
-+		err =3D -ENODEV;
-+		goto err_encoder;
-+	}
-+
-+	/* now find the encoder */
-+#ifdef MODULE
-+	request_module(pdata->encoder);
-+#endif
-+	/* Code for finding the I2C child */
-+	find_arg.name =3D pdata->encoder;
-+	find_arg.client =3D NULL;
-+	device_for_each_child(&adapt->dev, &find_arg, find_name);
-+	encoder =3D find_arg.client;
-+	i2c_put_adapter(adapt);
-+
-+	if (!encoder) {
-+		printk(KERN_ERR "timblogiw: Failed to get encoder\n");
-+		err =3D -ENODEV;
-+		goto err_encoder;
-+	}
-+
-+	/* Lock the module */
-+	if (!try_module_get(encoder->driver->driver.owner)) {
-+		err =3D -ENODEV;
-+		goto err_encoder;
-+	}
-+
-+	lw->sd_enc =3D i2c_get_clientdata(encoder);
-+
-+	mutex_init(&lw->lock);
-+
-+	lw->video_dev =3D video_device_alloc();
-+	if (!lw->video_dev) {
-+		err =3D -ENOMEM;
-+		goto err_video_req;
-+	}
-+	*lw->video_dev =3D timblogiw_template;
-+
-+	err =3D video_register_device(lw->video_dev, VFL_TYPE_GRABBER, 0);
-+	if (err) {
-+		video_device_release(lw->video_dev);
-+		printk(KERN_ALERT "Error reg video\n");
-+		goto err_video_req;
-+	}
-+
-+	tasklet_init(&lw->tasklet, timblogiw_handleframe, (unsigned long)lw);
-+
-+	if (!request_mem_region(iomem->start, resource_size(iomem),
-+		"timb-video")) {
-+		err =3D -EBUSY;
-+		goto err_request;
-+	}
-+
-+	lw->membase =3D ioremap(iomem->start, resource_size(iomem));
-+	if (!lw->membase) {
-+		err =3D -ENOMEM;
-+		goto err_ioremap;
-+	}
-+
-+	platform_set_drvdata(dev, lw);
-+	video_set_drvdata(lw->video_dev, lw);
-+
-+	return 0;
-+
-+err_ioremap:
-+	release_mem_region(iomem->start, resource_size(iomem));
-+err_request:
-+	if (-1 !=3D lw->video_dev->minor)
-+		video_unregister_device(lw->video_dev);
-+	else
-+		video_device_release(lw->video_dev);
-+err_video_req:
-+	module_put(lw->sd_enc->owner);
-+err_encoder:
-+	kfree(lw);
-+err_mem:
-+	printk(KERN_ERR
-+		"timblogiw: Failed to register Timberdale Video In: %d\n", err);
-+
-+	return err;
-+}
-+
-+static int timblogiw_remove(struct platform_device *dev)
-+{
-+	struct timblogiw *lw =3D platform_get_drvdata(dev);
-+	struct resource *iomem =3D platform_get_resource(dev, IORESOURCE_MEM,=
- 0);
-+
-+	if (-1 !=3D lw->video_dev->minor)
-+		video_unregister_device(lw->video_dev);
-+	else
-+		video_device_release(lw->video_dev);
-+
-+	module_put(lw->sd_enc->owner);
-+	tasklet_kill(&lw->tasklet);
-+	iounmap(lw->membase);
-+	release_mem_region(iomem->start, resource_size(iomem));
-+	kfree(lw);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver timblogiw_platform_driver =3D {
-+	.driver =3D {
-+		.name	=3D "timb-video",
-+		.owner	=3D THIS_MODULE,
-+	},
-+	.probe		=3D timblogiw_probe,
-+	.remove		=3D timblogiw_remove,
-+};
-+
-+/*--------------------------------------------------------------------=
-------*/
-+
-+static int __init timblogiw_init(void)
-+{
-+	return platform_driver_register(&timblogiw_platform_driver);
-+}
-+
-+static void __exit timblogiw_exit(void)
-+{
-+	platform_driver_unregister(&timblogiw_platform_driver);
-+}
-+
-+module_init(timblogiw_init);
-+module_exit(timblogiw_exit);
-+
-+MODULE_DESCRIPTION("Timberdale Video In driver");
-+MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:timb-video");
-+
-diff -puN drivers/media/video/timblogiw.h~v4l2-timberdale-add-timberdal=
-e-logiwin-driver drivers/media/video/timblogiw.h
---- a/drivers/media/video/timblogiw.h~v4l2-timberdale-add-timberdale-lo=
-giwin-driver
-+++ a/drivers/media/video/timblogiw.h
-@@ -0,0 +1,94 @@
-+/*
-+ * timblogiw.h timberdale FPGA LogiWin Video In driver defines
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* Supports:
-+ * Timberdale FPGA LogiWin Video In
-+ */
-+
-+#ifndef _TIMBLOGIW_H
-+#define _TIMBLOGIW_H
-+
-+#include <linux/interrupt.h>
-+
-+#define TIMBLOGIWIN_NAME    "Timberdale Video-In"
-+
-+#define TIMBLOGIW_NUM_FRAMES	10
-+
-+
-+enum timblogiw_stream_state {
-+	STREAM_OFF,
-+	STREAM_ON,
-+};
-+
-+enum timblogiw_frame_state {
-+	F_UNUSED =3D 0,
-+	F_QUEUED,
-+	F_GRABBING,
-+	F_DONE,
-+	F_ERROR,
-+};
-+
-+struct timblogiw_frame {
-+	void				*bufmem;
-+	struct v4l2_buffer		buf;
-+	enum timblogiw_frame_state	state;
-+	struct list_head		frame;
-+	unsigned long			vma_use_count;
-+};
-+
-+struct timblogiw_tvnorm {
-+	v4l2_std_id std;
-+	char    *name;
-+	u16     width;
-+	u16     height;
-+};
-+
-+
-+
-+struct timbdma_transfer {
-+	dma_addr_t	handle;
-+	void		*buf;
-+};
-+
-+struct timbdma_control {
-+	struct timbdma_transfer	transfer[2];
-+	struct timbdma_transfer *filled;
-+	int curr;
-+};
-+
-+struct timblogiw {
-+	struct i2c_client		*decoder;
-+	struct timblogiw_frame		frame[TIMBLOGIW_NUM_FRAMES];
-+	int				num_frames;
-+	unsigned int			frame_count;
-+	struct list_head		inqueue, outqueue;
-+	spinlock_t			queue_lock; /* mutual exclusion */
-+	enum timblogiw_stream_state	stream;
-+	struct video_device		*video_dev;
-+	struct mutex			lock, fileop_lock;
-+	wait_queue_head_t		wait_frame;
-+	struct timblogiw_tvnorm const	*cur_norm;
-+	struct pci_dev			*dev;
-+	struct timbdma_control		dma;
-+	void __iomem			*membase;
-+	struct tasklet_struct		tasklet;
-+	struct v4l2_subdev *sd_enc;	/* encoder */
-+};
-+
-+#endif /* _TIMBLOGIW_H */
-+
-diff -puN include/media/timb_video.h~v4l2-timberdale-add-timberdale-log=
-iwin-driver include/media/timb_video.h
---- a/include/media/timb_video.h~v4l2-timberdale-add-timberdale-logiwin=
--driver
-+++ a/include/media/timb_video.h
-@@ -0,0 +1,30 @@
-+/*
-+ * timb_video.h Platform struct for the Timberdale video driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef _TIMB_VIDEO_
-+#define _TIMB_VIDEO_ 1
-+
-+#include <linux/i2c.h>
-+
-+struct timb_video_platform_data {
-+	int i2c_adapter; /* The I2C adapter where the encoder is attached */
-+	char encoder[32];
-+};
-+
-+#endif
-+
-_
-
-Patches currently in -mm which might be from richard.rojfors.ext@mocean=
--labs.com are
-
+origin.patch
+shm-fix-unused-warnings-on-nommu.patch
+autofs4-remove-hashed-check-in-validate_wait.patch
+jbd-fix-race-in-buffer-processing-in-commit-code.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
-v4l2-timberdale-add-timberdale-logiwin-driver.patch
-v4l2-timberdale-add-timberdale-logiwin-driver-in-kconfig-and-makefile.p=
-atch
-mfd-timberdale-add-timberdale-driver.patch
-serial-timberdale-add-timberdale-uart-driver.patch
-gpio-timberdale-add-timbgpio.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+dell-wmi-mask-off-upper-bytes-of-event-response.patch
+dell-wmi-add-additional-keyboard-events.patch
+dell-wmi-dont-generate-errors-on-empty-messages.patch
+hp-wmi-add-support-for-reporting-tablet-state.patch
+eeepc-laptop-enable-camera-by-default.patch
+eeepc-laptop-enable-camera-by-default-fix.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+x86-apic-io_apicc-dmar_msi_type-should-be-static.patch
+x86-nmi-add-intel-processor-0x6f4-to-nmi-perfctr1-workaround.patch
+agpgart-detected-ali-m-chipset-with-m1621.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+pcmcia-yenta-add-missing-__devexit-marking.patch
+pcmcia-pccard-deadlock-fix.patch
+drivers-hvc-add-missing-__devexit_p.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+drm-fix-lock_test_with_return-macro.patch
+intelfb-fix-spelling-of-clock.patch
+drm-simplify-kcalloc-call-to-kzalloc.patch
+drm-intel-add-ignore-lvds-quirk-info-for-aopen-mini-pc.patch
+radio-mr800c-missing-mutex-include.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+vino-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
+v4l-pwc-use-usb_interface-as-parent-not-usb_device.patch
+v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices.patch
+tvp514x-try_count-off-by-one.patch
+time-move-pit_tick_rate-to-linux-timexh.patch
+clocksource-disallow-setting-jiffies-as-the-clocksource.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
+ia64-remove-obsolete-no_irq_type.patch
+ia64-remove-obsolete-irq_desc_t-typedef.patch
+ia64-remove-obsolete-hw_interrupt_type.patch
+ia64-msi_ia64c-dmar_msi_type-should-be-static.patch
+ib-mthca-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
+input-mouse-alpsc-handle-touchpoints-buttons-correctly.patch
+ads7846-pin-change-interrupt-support.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
+kernel-kallsymsc-replace-deprecated-__initcall-with-device_initcall-and-fix-whitespace.patch
+menu-fix-embedded-menu-presentation.patch
+scripts-headers_checkpl-correct-re-in-header-config-leak-check.patch
+remove-bashisms-from-scripts.patch
+kbuild-fix-a-compile-warning.patch
+kconfig-fix-typo-mconfig-to-menuconfig-in-a-comment.patch
+kconfig-add-a-note-about-the-deps-to-the-silentoldconfig-help.patch
+kconfig-resort-the-documentation-of-the-environment-variables.patch
+gitignore-ignore-kconfig-i18n-files.patch
+kconfig-qconf-fix-wall-compiler-warnings.patch
+kconfig-qconf-fix-namespace-for-horizontal-and-vertical-enum-values.patch
+kconfig-qconf-add-namespace-for-use-of-key_-enum-values.patch
+kconfig-qconf-fix-the-type-of-the-desktop-widget.patch
+kconfig-do-not-hardcode-config-filename.patch
+kconfig-do-not-hardcode-include-config-autoconf-filename.patch
+scripts-allow-docproc-invocation-from-external.patch
+leds-fix-led-bd2802-errors-while-resuming.patch
+leds-change-the-license-information.patch
+leds-add-the-sysfs-interface-into-the-leds-bd2802-driver-for-changing-wave-pattern-and-led-current.patch
+drivers-leds-leds-gpioc-fix-a-section-mismatch.patch
+leds-alix-leds2-fixed-for-award-bios.patch
+microblaze-remove-unused-flat_stack_align-definition.patch
+txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set.patch
+mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch
+mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
+omap-hsmmc-do-not-enable-buffer-ready-interrupt-if-using-dma.patch
+mmc_spi-use-eilseq-for-possible-transmission-errors.patch
+jffs2-move-jffs2_gcd_mtd-threads-to-the-new-kthread-api.patch
+jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup.patch
+sunrpc-align-cache_clean-works-timer.patch
+drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
+de2104x-support-for-systems-lacking-cache-coherence.patch
+drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch
+atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
+e100-add-non-mii-phy-support.patch
+e100-add-non-mii-phy-support-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+jbd2-clean-up-jbd2_journal_try_to_free_buffers.patch
+parisc-remove-obsolete-hw_interrupt_type.patch
+pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+pci-eliminate-redundant-pci_stop_dev-call-from-pci_destroy_dev.patch
+pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+sg_io-dont-perform-unneeded-copy-in-compat-code.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+qla2x-fix-printk-format-warnings.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+block-prevent-possible-io_context-refcount-overflow.patch
+fs-bioc-add-missing-__user-annotation.patch
+ramdisk-remove-long-deprecated-ramdisk=-boot-time-param.patch
+cciss-use-schedule_timeout_uninterruptible-in-scsi-error-handling-code.patch
+cciss-factor-out-core-of-sendcmd_withirq-for-use-by-scsi-error-handling-code.patch
+cciss-simplify-interface-of-sendcmd-and-sendcmd_withirq.patch
+cciss-factor-out-fix-target-status-processing-code-from-sendcmd-functions.patch
+cciss-separate-error-processing-and-command-retrying-code-in-sendcmd_withirq_core.patch
+cciss-change-scsi-error-handling-routines-to-work-with-interrupts-enabled.patch
+cciss-remove-no-longer-needed-sendcmd-reject-processing-code.patch
+cciss-decode-unit-attention-in-scsi-error-handling-code.patch
+floppy-fix-hibernation.patch
+sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh.patch
+sparc-add-sync_single_for_device-and-sync_sg_for_device-to-struct-dma_ops.patch
+sparc-use-dma_map_page-instead-of-dma_map_single.patch
+sparc-remove-dma-mapping_3264h.patch
+usb-mutually-exclusive-port_status.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-improve-comment-describing-fget_light.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch
+watchdog-add-bcm47xx-driver.patch
+watchdog-add-bcm47xx-driver-update.patch
+mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization.patch
+xtensa-variant-specific-code.patch
+xtensa-cache-inquiry-and-unaligned-cache-handling-functions.patch
+xtensa-s6000-dma-engine-support.patch
+xtensa-allow-platform-and-variant-to-initialize-own-irq-chips.patch
+xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+s6gmac-xtensa-s6000-on-chip-ethernet-driver.patch
+xtensa-s6105-specific-configuration-for-s6gmac.patch
+xtensa-enable-s6gmac-in-s6105_defconfig.patch
+xtensa-add-m41t62-rtc-to-s6105-platform.patch
+xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
+mm.patch
+spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch
+firmware_map-fix-hang-with-x86-32bit.patch
+firmware_map-fix-hang-with-x86-32bit-fix.patch
+mm-disable-preemption-in-apply_to_pte_range.patch
+rtc-add-ds1685-ds1687-rtc-driver.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+intelfb-fix-color-map-setting-with-an-lvds-display.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+x86-fix-cpufreq-tsc-scaling.patch
+mm-consolidate-init_mm-definition.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-make-mmap_miss-an-unsigned-int.patch
+readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
+readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
+readahead-remove-one-unnecessary-radix-tree-lookup.patch
+readahead-increase-interleaved-readahead-size.patch
+readahead-remove-sync-async-readahead-call-dependency.patch
+readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
+readahead-sequential-mmap-readahead.patch
+readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+radix-tree-add-radix_tree_prev_hole.patch
+readahead-move-the-random-read-case-to-bottom.patch
+readahead-introduce-context-readahead-algorithm.patch
+readahead-introduce-context-readahead-algorithm-update.patch
+readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
+readahead-enforce-full-sync-mmap-readahead-size.patch
+mm-clean-up-get_user_pages_fast-documentation.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
+ksm-mmu_notifiers-add-set_pte_at_notify.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch
+ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-prot-handling-to-use-the-generic-helper-functions.patch
+ksm-add-ksm-kernel-shared-memory-driver-use-another-miscdevice-minor-number.patch
+ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to-fix-losing-visibility-of-part-of-rmap_item-next-list.patch
+cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
+cpusets-update-tasks-page-slab-spread-flags-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+mm-alloc_large_system_hash-check-order.patch
+page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
+page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
+page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
+page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+page-allocator-inline-__rmqueue_smallest.patch
+page-allocator-inline-buffered_rmqueue.patch
+page-allocator-inline-__rmqueue_fallback.patch
+page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
+page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
+page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
+page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
+page-allocator-update-nr_free_pages-only-as-necessary.patch
+page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
+page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+page-allocator-move-free_page_mlock-to-page_allocc.patch
+page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
+mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
+pagemap-document-clarifications.patch
+pagemap-document-9-more-exported-page-flags.patch
+pagemap-add-page-types-tool.patch
+pagemap-add-page-types-tool-fix.patch
+pagemap-export-pg_hwpoison.patch
+pagemap-export-pg_hwpoison-fix.patch
+vmscan-evict-use-once-pages-first-v3.patch
+vmscan-cleanup-the-scan-batching-code.patch
+vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
+vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+mm-setup_per_zone_inactive_ratio-do-not-call-for-int_sqrt-if-not-needed.patch
+mm-setup_per_zone_inactive_ratio-fix-comment-and-make-it-__init.patch
+mm-introduce-follow_pte.patch
+mm-use-generic-follow_pte-in-follow_phys.patch
+mm-introduce-follow_pfn.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-madvise-correct-return-code.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
+vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
+vmscan-zone_reclaim-use-may_swap.patch
+migration-only-migrate_prep-once-per-move_pages.patch
+vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
+mm-check-the-argument-of-kunmap-on-architectures-without-highmem.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
+page-allocator-clean-up-functions-related-to-pages_min.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
+mm-remove-config_unevictable_lru-config-option.patch
+mm-add-swap-cache-interface-for-swap-reference.patch
+mm-modify-swap_map-and-add-swap_has_cache-flag.patch
+mm-modify-swap_map-and-add-swap_has_cache-flag-update.patch
+mm-reuse-unused-swap-entry-if-necessary.patch
+mm-reuse-unused-swap-entry-if-necessary-update.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
+oom-move-oom_adj-value-from-task_struct-to-mm_struct-fix.patch
+oom-avoid-unnecessary-mm-locking-and-scanning-for-oom_disable.patch
+oom-invoke-oom-killer-for-__gfp_nofail.patch
+mm-remove-__invalidate_mapping_pages-variant.patch
+page-allocator-clear-n_high_memory-map-before-se-set-it-again.patch
+mm-remove-annotation-of-gfp_mask-in-add_to_swap.patch
+mm-remove-file-argument-from-swap_readpage.patch
+mm-cleanup-shmem_file_setup-char-const-char-for-name-argument.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
+vmscan-report-vm_flags-in-page_referenced.patch
+vmscan-make-mapped-executable-pages-the-first-class-citizen.patch
+vmscan-merge-duplicate-code-in-shrink_active_list.patch
+vmscan-handle-may_swap-more-strictly.patch
+oom-only-oom-kill-exiting-tasks-with-attached-memory.patch
+writeback-skip-new-or-to-be-freed-inodes.patch
+frv-remove-in-kernel-strace-code.patch
+frv-implement-tif_notify_resume.patch
+frv-dont-turn-on-tif_syscall_trace-unconditionally-in-syscall-prologue.patch
+frv-implement-new-style-ptrace.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-remove-obsolete-hw_interrupt_type.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m32r-remove-obsolete-hw_interrupt_type.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+uml-uml-net-driver-does-not-allow-for-vlans.patch
+um-remove-obsolete-hw_interrupt_type.patch
+uml-fix-a-section-warning.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+slow_work_thread-should-do-the-exclusive-wait.patch
+rework-fix-is_single_threaded.patch
+utsnameh-make-new_utsname-fields-use-the-proper-length-constant.patch
+atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well.patch
+kernel-kfifoc-replace-conditional-test-with-is_power_of_2.patch
+ntfs-use-is_power_of_2-function-for-clarity.patch
+poll-avoid-extra-wakeups-in-select-poll.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+drbd-add-major-number-to-majorh.patch
+remove-put_cpu_no_resched.patch
+remove-put_cpu_no_resched-fix.patch
+groups-move-code-to-kernel-groupsc.patch
+lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot.patch
+lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update.patch
+use-round_jiffies-for-slow-work-thread-pools-cull-and-oom-timers.patch
+use-printk_once-in-several-places.patch
+use-printk_once-in-several-places-clean-up-printk_once-of-get_cpu_vendor.patch
+hexdump-remove-the-trailing-space.patch
+documentation-accounting-getdelaysc-intialize-the-variable-before-using-it.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+syscallsh-remove-duplicated-declarations-for-sys_pipe2.patch
+eisaids-add-network-peripherals-fddi-boards.patch
+documentation-atomic_opstxt-fix-sample-code.patch
+gitignore-ignore-patch-files.patch
+console-make-blank-timeout-value-a-boot-option.patch
+drivers-add-support-for-the-ti-vlynq-bus.patch
+scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch
+scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch
+scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
+scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch
+scripts-get_maintainerpl-support-m-lines-with-names-and-multiple-entries-per-m-line.patch
+scripts-get_maintainerpl-better-email-name-quoting.patch
+scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch
+scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch
+scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch
+scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
+maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
+maintainers-add-file-patterns-to-the-rest.patch
+maintainers-update-m32r-file-patterns-after-rename.patch
+maintainers-mark-alsa-lists-as-moderated.patch
+maintainers-remove-l-linux-kernel-vgerkernelorg-from-all-but-the-rest.patch
+maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
+maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
+maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
+maintainers-add-file-patterns-to-tty-layer.patch
+getrusage-fill-ru_maxrss-value.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+rb_tree-make-clear-distinction-between-two-different-cases-in-rb_erase.patch
+rb_tree-remove-redundant-if-condition-in-rb_erase.patch
+softirq-introduce-statistics-for-softirq.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+drivers-hwmon-coretempc-enable-the-intel-atom.patch
+lis3-fix-misc-device-unregistering-and-printk.patch
+lis3-remove-automatic-shutdown-of-the-device.patch
+lis3-use-input_polled_device.patch
+lis3-use-input_polled_device-fix.patch
+lis3-use-input_polled_device-fix-2.patch
+lis3-add-three-new-laptop-models.patch
+fs-remove-sparse-errors-in-proc_devtreec.patch
+proc-merge-arrayc-into-basec.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial-fix-off-by-one-errors.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+icom-converting-space-to-tabs.patch
+serial-8250c-irq-handling-race-and-spurious-iir-read.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
+spi_bfin5xx-limit-reaches-1.patch
+spi-move-common-spi_setup-functionality-into-core.patch
+spi-move-more-spi_setup-functionality-into-core.patch
+mpc52xx_psc_spi-convert-to-cs_control-callback.patch
+pxa2xx_spi-fix-for-spi_cs_high.patch
+spi-fix-spi_write_then_read-comment.patch
+spi_mpc83xx-handle-other-freescale-processors.patch
+spi_mpc83xx-quieten-down-the-requested-speed-is-too-low-message.patch
+spi_mpc83xx-add-small-delay-after-asserting-chip-select-line.patch
+powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards.patch
+spi_mpc83xx-fix-checkpatch-issues.patch
+spi_mpc83xx-split-mpc83xx_spi_work-into-two-routines.patch
+spi_mpc83xx-remove-dead-code.patch
+spi_mpc83xx-rename-spi_83xxc-to-spi_8xxxc.patch
+spi_mpc8xxx-s-83xx-8xxx-g.patch
+sunrpc-use-formatting-of-module-name-in-sunrpc.patch
+rtc-rtc-ds1742-nvram-attribute-fix.patch
+rtc-rtc-ds1307-add-ds1388.patch
+rtc-rtc-ds1307-add-ds3231.patch
+rtc-add-stand-alone-driver-for-rx8025-chip.patch
+rtc-add-stand-alone-driver-for-rx8025-chip-fix.patch
+rtc-tx4939-drop-irqf_shared.patch
+rtc-ds1553-drop-irqf_shared.patch
+drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
+rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
+pca953x-support-gpiolib-gpio-naming.patch
+gpio-max7301-add-missing-__devexit-marking.patch
+gpio-driver-for-primecell-pl061-gpio-controller.patch
+gpio-driver-for-primecell-pl061-gpio-controller-v4.patch
+fbdev-generated-logo-sources-depend-on-scripts-pnmtologo.patch
+fbdev-move-logo-externs-to-header-file.patch
+fbdev-add-video-modes-for-resolutions-and-timings-of-pal-rgb.patch
+documentation-fb-vesafbtxt-fix-typo.patch
+chipsfb-remove-redundant-assignment.patch
+igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
+offb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
+atmel-lcdc-fix-pixclock-upper-bound-detection.patch
+samsung-soc-framebuffer-driver-add-alpha-channel-support.patch
+mb862xxfb-restrict-compliation-of-platform-driver-to-ppc.patch
+mb862xxfb-use-config_of-instead-of-config_ppc_of.patch
+acornfb-remove-fb_mmap-function.patch
+carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
+s3c-fb-fix-resource-releasing-on-error-during-probing.patch
+s3c-fb-cpufreq-frequency-scaling-support.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+fbdev-use-framebuffer_release-for-freeing-fb_info-structures.patch
+platinumfb-misplaced-parenthesis.patch
+intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
+intelfb-fix-a-bug-when-changing-video-timing.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
+bw2-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+cg14-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+cg3-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+cg6-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+leo-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+p9100-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+tcx-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+ext2-do-not-update-mtime-of-a-moved-directory.patch
+doc-fix-ext2-can-only-have-32000-subdirs-not-32768.patch
+ext3-fix-chain-verification-in-ext3_get_blocks.patch
+jbd-clean-up-journal_try_to_free_buffers.patch
+ext3-make-sure-inode-is-deleted-from-orphan-list-after-truncate.patch
+isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch
+isofs-fix-setting-of-uid-and-gid-to-0.patch
+isofs-cleanup-mount-option-processing.patch
+hfsplus-identify-journal-info-block-in-volume-header.patch
+hfsplus-fix-journal-detection.patch
+ufs-sector_t-cannot-be-negative.patch
+reiserfs-fix-warnings-with-gcc-44.patch
+documentation-changes-perl-is-needed-to-build-the-kernel.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+documentation-connector-cn_testc-comment-unused-cn_test_want_notify.patch
+kernel-doc-cleanup-perl-script.patch
+documentation-make-version-fix.patch
+cgroups-make-messages-more-readable.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix2.patch
+devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+memcg-remove-mem_cgroup_cache_charge_swapin.patch
+memcg-remove-some-redundant-checks.patch
+memcg-remove-unneeded-forward-declaration-from-schedh.patch
+memcg-fix-swap-accounting.patch
+memcg-fix-swap-accounting-update.patch
+memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch
+memcg-add-interface-to-reset-limits.patch
+allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
+ptrace-remove-pt_dtrace-from-arch-h8300.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+ptrace-remove-pt_dtrace-from-arch-m32r.patch
+ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
+ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
+ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
+ptrace-do-not-use-task_lock-for-attach.patch
+ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
+ptrace-wait_task_zombie-s-parent-real_parent.patch
+ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage.patch
+ptrace-dont-take-tasklist-to-get-set-last_siginfo.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
+copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
+elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
+shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped.patch
+introduce-struct-wait_opts-to-simplify-do_wait-pathes.patch
+do_wait-simplify-retval-tsk_result-notask_error-mess.patch
+do_wait-kill-the-old-bug_on-use-while_each_thread.patch
+do_wait-fix-the-theoretical-race-with-stop-trace-cont.patch
+mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds.patch
+wait_task_-cleanups-split-wait_noreap_copyout.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_stopped.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-do_wait.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_zombie.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_continued.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
+ipc-use-__arch_want_ipc_parse_version-in-ipc-utilh.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-isicom-fix-build-warning.patch
+dtlk-off-by-one-in-readwrite_tts.patch
+istallion-add-missing-__devexit-marking.patch
+ppdev-reduce-kernel-log-spam.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+rapidio-add-common-mapping-apis-for-rapidio-memory-access.patch
+powerpc-add-memory-map-support-to-freescale-rapidio-block.patch
+rionet-add-memory-access-to-simulated-ethernet-over-rapidio.patch
+rio-warn_unused_result-warnings-fix.patch
+rapidio-fix-kerneldoc-for-rio_mem_ops.patch
+sysctlc-remove-unused-variable.patch
+pids-clean-up-find_task_by_pid-variants.patch
+pidns-make-create_pid_namespace-accept-parent-pidns.patch
+pidns-rewrite-copy_pid_ns.patch
+utsns-extract-creeate_uts_ns.patch
+ipcns-remove-useless-get-put-while-clone_newipc.patch
+ipcns-extract-create_ipc_ns.patch
+nsproxy-extract-create_nsproxy.patch
+ipcns-3-4-make-free_ipc_ns-static.patch
+ipcns-move-free_ipcs-proto.patch
+documentation-fix-inconsistent-description-of-futex-list_op_pending.patch
+edac-add-cpc925-memory-controller-driver.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch
+edac-add-edac_device_alloc_index.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-cpc925-mc-platform-device-setup.patch
+edac-cpc925-mc-platform-device-setup-v3.patch
+edac-add-missing-__devexit_p.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kernel-constructor-support.patch
+seq_file-add-function-to-write-binary-data.patch
+gcov-add-gcov-profiling-infrastructure.patch
+gcov-add-gcov-profiling-infrastructure-update.patch
+gcov-add-gcov-profiling-infrastructure-use-strict_strtoul.patch
+gcov-add-gcov-profiling-infrastructure-use-vmalloc-for-duplicating-counter-data.patch
+gcov-enable-gcov_profile_all-for-x86_64.patch
+dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
+dma-mapping-mark-dma_sync_single-and-dma_sync_sg-as-deprecated.patch
+dma-mapping-add-asm-generic-dma-mapping-commonh.patch
+dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch
+dma-mapping-ia64-use-asm-generic-dma-mapping-commonh.patch
+dma-mapping-ia64-add-config_dma_api_debug-support.patch
+dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch
+w1-gpio-add-external-pull-up-enable-callback.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-bug-fixes-for-gru-exception-handling.patch
+gru-dump-chiplet-state.patch
+gru-dump-chiplet-state-update.patch
+gru-dynamic-allocation-of-kernel-contexts.patch
+gru-dynamic-allocation-of-kernel-contexts-update.patch
+gru-change-context-load-and-unload.patch
+gru-support-cch_allocate-for-kernel-threads.patch
+gru-change-resource-assignment-for-kernel-threads.patch
+gru-support-contexts-with-zero-dsrs-or-cbrs.patch
+gru-fix-handling-of-mesq-failures.patch
+gru-check-context-state-on-reload.patch
+gru-support-instruction-completion-interrupts.patch
+gru-support-for-asynchronous-gru-instructions.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+gru-update-gru-kernel-self-tests.patch
+gru-update-gru-kernel-self-tests-fix.patch
+gru-update-to-rev-09-of-gru-spec.patch
+gru-fix-cache-coherency-issues-with-instruction-retry.patch
+gru-add-user-request-to-explicitly-unload-a-gru-context.patch
+gru-fix-automatic-retry-of-gru-instruction-failures.patch
+gru-collect-per-context-user-statistics.patch
+gru-delete-user-request-for-fetching-chiplet-status.patch
+gru-cleanup-gru-inline-functions.patch
+gru-generic-infrastructure-for-context-options.patch
+gru-add-user-request-to-specify-gru-slice.patch
+gru-fix-potential-use-after-free-when-purging-gru-tlbs.patch
+gru-fixes-to-grudump-utility.patch
+gru-remove-references-to-the-obsolete-global-status-handle.patch
+gru-copyright-fixes.patch
+linuxpps-core-support.patch
+lib-add-lib-gcdc.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
+sound-core-pcm_timerc-use-lib-gcdc.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+vfs-take-2add-set_page_dirty_notag.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-adjust-to-the-new-aops.patch
+reiser4-adjust-to-the-new-aops-fixup.patch
+reiser4-remove-simple_prepare_write-usage.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
+reiser4-update-names-of-quota-methods.patch
+reiser4-use-set_page_dirty_notag.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+releasing-resources-with-children.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
