@@ -1,165 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [folded] watchdog-add-bcm47xx-driver-update.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 12:58:05 -0700
-Message-ID: <200906101958.n5AJw6gk010961@imap1.linux-foundation.org>
+Subject: [folded] devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 12:42:39 -0700
+Message-ID: <200906101942.n5AJgdhU030376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38676 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762082AbZFJT7N (ORCPT
+	by vger.kernel.org with ESMTP id S1761015AbZFJUAu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:59:13 -0400
+	Wed, 10 Jun 2009 16:00:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: castet.matthieu@free.fr, biblbroks@sezampro.rs, ralf@linux-mips.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com, kay.sievers@vrfy.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog-add-bcm47xx-driver-update
+     devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup
 has been removed from the -mm tree.  Its filename was
-     watchdog-add-bcm47xx-driver-update.patch
+     devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
 
-This patch was dropped because it was folded into watchdog-add-bcm47xx-driver.patch
+This patch was dropped because it was folded into devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog-add-bcm47xx-driver-update
-From: matthieu castet <castet.matthieu@free.fr>
+Subject: devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Aleksandar Radovanovic <biblbroks@sezampro.rs>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig       |    8 +++----
- drivers/watchdog/bcm47xx_wdt.c |   33 ++++++++++++++-----------------
- 2 files changed, 19 insertions(+), 22 deletions(-)
+ drivers/base/devres.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~watchdog-add-bcm47xx-driver-update drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~watchdog-add-bcm47xx-driver-update
-+++ a/drivers/watchdog/Kconfig
-@@ -800,10 +800,10 @@ config TXX9_WDT
- 	  Hardware driver for the built-in watchdog timer on TXx9 MIPS SoCs.
+diff -puN drivers/base/devres.c~devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup drivers/base/devres.c
+--- a/drivers/base/devres.c~devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup
++++ a/drivers/base/devres.c
+@@ -429,10 +429,8 @@ int devres_release_all(struct device *de
+ 	unsigned long flags;
  
- config BCM47XX_WDT
--    tristate "Broadcom BCM47xx Watchdog Timer"
--    depends on BCM47XX
--    help
--      Hardware driver for the Broadcom BCM47xx Watchog Timer.
-+	tristate "Broadcom BCM47xx Watchdog Timer"
-+	depends on BCM47XX
-+	help
-+	  Hardware driver for the Broadcom BCM47xx Watchog Timer.
- 
- # PARISC Architecture
- 
-diff -puN drivers/watchdog/bcm47xx_wdt.c~watchdog-add-bcm47xx-driver-update drivers/watchdog/bcm47xx_wdt.c
---- a/drivers/watchdog/bcm47xx_wdt.c~watchdog-add-bcm47xx-driver-update
-+++ a/drivers/watchdog/bcm47xx_wdt.c
-@@ -2,6 +2,7 @@
-  *  Watchdog driver for Broadcom BCM47XX
-  *
-  *  Copyright (C) 2008 Aleksandar Radovanovic <biblbroks@sezampro.rs>
-+ *  Copyright (C) 2009 Matthieu CASTET <castet.matthieu@free.fr>
-  *
-  *  This program is free software; you can redistribute it and/or
-  *  modify it under the terms of the GNU General Public License
-@@ -17,7 +18,7 @@
- #include <linux/miscdevice.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
--#include <linux/notifier.h>
-+#include <linux/reboot.h>
- #include <linux/types.h>
- #include <linux/uaccess.h>
- #include <linux/watchdog.h>
-@@ -45,8 +46,6 @@ MODULE_PARM_DESC(nowayout,
- 				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- #endif
- 
--static struct platform_device *bcm47xx_wdt_platform_device;
--
- static unsigned long bcm47xx_wdt_busy;
- static char expect_release;
- static struct timer_list wdt_timer;
-@@ -65,12 +64,11 @@ static inline int bcm47xx_wdt_hw_stop(vo
- 
- static void bcm47xx_timer_tick(unsigned long unused)
- {
--	if(!atomic_dec_and_test(&ticks)) {
-+	if (!atomic_dec_and_test(&ticks)) {
- 		bcm47xx_wdt_hw_start();
- 		mod_timer(&wdt_timer, jiffies + HZ);
+ 	/* Looks like an uninitialized device structure */
+-	if (dev->devres_head.next == NULL) {
+-		WARN(1);
++	if (WARN_ON(dev->devres_head.next == NULL))
+ 		return -ENODEV;
 -	}
--	else {
--		printk(KERN_CRIT PFX "Watchdog will fire soon!!!.\n");
-+	} else {
-+		printk(KERN_CRIT DRV_NAME "Watchdog will fire soon!!!\n");
- 	}
- }
- 
-@@ -87,7 +85,7 @@ static void bcm47xx_wdt_start(void)
- 
- static void bcm47xx_wdt_pause(void)
- {
--	del_timer(&wdt_timer);
-+	del_timer_sync(&wdt_timer);
- 	bcm47xx_wdt_hw_stop();
- }
- 
-@@ -119,7 +117,8 @@ static int bcm47xx_wdt_release(struct in
- 	if (expect_release == 42) {
- 		bcm47xx_wdt_stop();
- 	} else {
--		printk(KERN_CRIT DRV_NAME ": Unexpected close, not stopping watchdog!\n");
-+		printk(KERN_CRIT DRV_NAME
-+			": Unexpected close, not stopping watchdog!\n");
- 		bcm47xx_wdt_start();
- 	}
- 
-@@ -128,8 +127,8 @@ static int bcm47xx_wdt_release(struct in
- 	return 0;
- }
- 
--static ssize_t bcm47xx_wdt_write (struct file *file, const char __user *data,
--			      size_t len, loff_t * ppos)
-+static ssize_t bcm47xx_wdt_write(struct file *file, const char __user *data,
-+			      size_t len, loff_t *ppos)
- {
- 	if (len) {
- 		if (!nowayout) {
-@@ -210,8 +209,8 @@ static long bcm47xx_wdt_ioctl(struct fil
- 	}
- }
- 
--static int bcm47xx_wdt_notify_sys(struct notifier_block *this, unsigned long code,
--	void *unused)
-+static int bcm47xx_wdt_notify_sys(struct notifier_block *this,
-+	   unsigned long code, void *unused)
- {
- 	if (code == SYS_DOWN || code == SYS_HALT)
- 		bcm47xx_wdt_stop();
-@@ -248,13 +247,14 @@ static int __init bcm47xx_wdt_init(void)
- 
- 	if (bcm47xx_wdt_settimeout(wdt_time)) {
- 		bcm47xx_wdt_settimeout(WDT_DEFAULT_TIME);
--		printk(KERN_INFO DRV_NAME ": wdt_time value must be 1 <= wdt_time <= 256, using %d\n",
-+		printk(KERN_INFO DRV_NAME
-+			": wdt_time value must be 1 <= wdt_time <= 256, using %d\n",
- 			wdt_time);
- 	}
- 
- 	ret = register_reboot_notifier(&bcm47xx_wdt_notifier);
- 	if (ret)
--		ret;
-+		return ret;
- 
- 	ret = misc_register(&bcm47xx_wdt_miscdev);
- 	if (ret) {
-@@ -275,8 +275,6 @@ static void __exit bcm47xx_wdt_exit(void
- 	misc_deregister(&bcm47xx_wdt_miscdev);
- 
- 	unregister_reboot_notifier(&bcm47xx_wdt_notifier);
+ 	spin_lock_irqsave(&dev->devres_lock, flags);
+ 	return release_nodes(dev, dev->devres_head.next, &dev->devres_head,
+ 			     flags);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+e100-add-non-mii-phy-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+firmware_map-fix-hang-with-x86-32bit-fix.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool-fix.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+
