@@ -1,125 +1,556 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] scsi-dpt_i2o-is-bust-on-ia64.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 11:34:56 -0700
-Message-ID: <200906101834.n5AIYuJl007398@imap1.linux-foundation.org>
+Subject: [to-be-updated] rtc-add-ds1685-ds1687-rtc-driver.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 11:35:07 -0700
+Message-ID: <200906101835.n5AIZ72M007555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751736AbZFJSfM (ORCPT
+	by vger.kernel.org with ESMTP id S1752089AbZFJSfZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 14:35:12 -0400
+	Wed, 10 Jun 2009 14:35:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, miquels@cistron.nl, mm-commits@vger.kernel.org
+To: matthias.fuchs@esd-electronics.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: dpt_i2o is bust on ia64
+     rtc: add DS1685/DS1687 rtc driver
 has been removed from the -mm tree.  Its filename was
-     scsi-dpt_i2o-is-bust-on-ia64.patch
+     rtc-add-ds1685-ds1687-rtc-driver.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: dpt_i2o is bust on ia64
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc: add DS1685/DS1687 rtc driver
+From: Matthias Fuchs <matthias.fuchs@esd-electronics.com>
 
-drivers/scsi/dpt_i2o.c:83: error: `PROC_IA64' undeclared here (not in a function)
-drivers/scsi/dpt_i2o.c:83: error: initializer element is not constant
-drivers/scsi/dpt_i2o.c:83: error: (near initialization for `DPTI_sig.dsProcessor')
+Add the rtc-ds1685 driver for DS1685/DS1687 rtc chips.
 
-Cc: Miquel van Smoorenburg <miquels@cistron.nl>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+[a.zummo@towertech.it: replaced __devinit/__devexit due to platform_driver_probe]
+Signed-off-by: Matthias Fuchs <matthias.fuchs@esd-electronics.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/Kconfig      |   12 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-ds1685.c |  470 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 483 insertions(+)
 
-diff -puN drivers/scsi/Kconfig~scsi-dpt_i2o-is-bust-on-ia64 drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~scsi-dpt_i2o-is-bust-on-ia64
-+++ a/drivers/scsi/Kconfig
-@@ -512,6 +512,7 @@ source "drivers/scsi/aic94xx/Kconfig"
- config SCSI_DPT_I2O
- 	tristate "Adaptec I2O RAID support "
- 	depends on SCSI && PCI && VIRT_TO_BUS
-+	depends on !IA64
+diff -puN drivers/rtc/Kconfig~rtc-add-ds1685-ds1687-rtc-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-ds1685-ds1687-rtc-driver
++++ a/drivers/rtc/Kconfig
+@@ -166,6 +166,18 @@ config RTC_DRV_DS1672
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1672.
+ 
++config RTC_DRV_DS1685
++	tristate "Dallas/Maxim DS1685/DS1687"
++	help
++	  If you say yes here you get support for the
++	  Dallas/Maxim DS1685/DS1687 timekeeping chip.
++
++	  This RTC chip is used on EPPC-405-UC modules
++	  by electronic system design gmbh.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-ds1685.
++
+ config RTC_DRV_MAX6900
+ 	tristate "Maxim MAX6900"
  	help
- 	  This driver supports all of Adaptec's I2O based RAID controllers as 
- 	  well as the DPT SmartRaid V cards.  This is an Adaptec maintained
+diff -puN drivers/rtc/Makefile~rtc-add-ds1685-ds1687-rtc-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-ds1685-ds1687-rtc-driver
++++ a/drivers/rtc/Makefile
+@@ -34,6 +34,7 @@ obj-$(CONFIG_RTC_DRV_DS1390)	+= rtc-ds13
+ obj-$(CONFIG_RTC_DRV_DS1511)	+= rtc-ds1511.o
+ obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
+ obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
++obj-$(CONFIG_RTC_DRV_DS1685)	+= rtc-ds1685.o
+ obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
+ obj-$(CONFIG_RTC_DRV_DS3234)	+= rtc-ds3234.o
+ obj-$(CONFIG_RTC_DRV_EFI)	+= rtc-efi.o
+diff -puN /dev/null drivers/rtc/rtc-ds1685.c
+--- /dev/null
++++ a/drivers/rtc/rtc-ds1685.c
+@@ -0,0 +1,470 @@
++/*
++ * An rtc driver for the Dallas DS1685/DS1687
++ *
++ * Copyright (C) 2009 Matthias Fuchs <matthias.fuchs@esd-electronics.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/bcd.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/jiffies.h>
++#include <linux/rtc.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
++
++#define DRV_VERSION		"0.1"
++
++#define NVRAM_SIZE_B0		114
++#define NVRAM_SIZE_B1		128
++#define NVRAM_SIZE		(NVRAM_SIZE_B0 + NVRAM_SIZE_B1)
++
++#define RTC_SECONDS		0
++#define RTC_MINUTES		2
++#define RTC_HOURS		4
++#define RTC_DAY			6
++#define RTC_DATE		7
++#define RTC_MONTH		8
++#define RTC_YEAR		9
++
++#define RTC_CONTROLA		0x0a
++#define RTC_CONTROLB		0x0b
++#define RTC_CONTROLC		0x0c
++#define RTC_CONTROLD		0x0d
++#define RTC_NVRAM_START_B0	0x0e
++
++/* bits in control A register */
++#define RTC_DV2			0x40
++#define RTC_DV1			0x20
++#define RTC_DV0			0x10
++
++/* bits in control B register */
++#define RTC_SET			0x80
++#define RTC_DM			0x04
++#define RTC_2412		0x02
++
++/* bits in control D register */
++#define RTC_VRT			0x80
++
++/* bank 1 only registers */
++#define RTC_MODEL		0x40
++#define RTC_CENTURY		0x48
++#define RTC_RAM_ADDR		0x50
++#define RTC_RAM_DATA		0x53
++
++struct rtc_plat_data {
++	struct rtc_device *rtc;
++	void __iomem *ioaddr;
++	size_t size;
++	resource_size_t baseaddr;
++	unsigned long last_jiffies;
++};
++
++static int ds1685_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	unsigned int ctrla, ctrlb;
++
++	/* set SET bit */
++	ctrlb = readb(ioaddr + RTC_CONTROLB);
++	ctrlb |= RTC_SET;
++	writeb(ctrlb, ioaddr + RTC_CONTROLB);
++
++	writeb(bin2bcd(tm->tm_year % 100), ioaddr + RTC_YEAR);
++	writeb(bin2bcd(tm->tm_mon + 1), ioaddr + RTC_MONTH);
++	writeb(bin2bcd(tm->tm_wday), ioaddr + RTC_DAY);
++	writeb(bin2bcd(tm->tm_mday), ioaddr + RTC_DATE);
++	writeb(bin2bcd(tm->tm_hour), ioaddr + RTC_HOURS);
++	writeb(bin2bcd(tm->tm_min), ioaddr + RTC_MINUTES);
++	writeb(bin2bcd(tm->tm_sec), ioaddr + RTC_SECONDS);
++
++	/* switch to 2nd bank */
++	ctrla = readb(ioaddr + RTC_CONTROLA);
++	ctrla |= RTC_DV0;
++	writeb(ctrla, ioaddr + RTC_CONTROLA);
++
++	writeb(bin2bcd((tm->tm_year + 1900) / 100), ioaddr + RTC_CENTURY);
++
++	/* switch back to original bank */
++	ctrla &= ~RTC_DV0;
++	writeb(ctrla, ioaddr + RTC_CONTROLA);
++
++	/* clear SET bit */
++	ctrlb &= ~RTC_SET;
++	writeb(ctrlb, ioaddr + RTC_CONTROLB);
++
++	return 0;
++}
++
++static int ds1685_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	unsigned int century, year, month, day, hour, minute, second, week;
++	unsigned int ctrla, ctrlb;
++
++	/* give enough time to update RTC in case of continuous read */
++	if (pdata->last_jiffies == jiffies)
++		msleep(1);
++	pdata->last_jiffies = jiffies;
++
++	/* set SET bit */
++	ctrlb = readb(ioaddr + RTC_CONTROLB);
++	ctrlb |= RTC_SET;
++	writeb(ctrlb, ioaddr + RTC_CONTROLB);
++
++	second = readb(ioaddr + RTC_SECONDS);
++	minute = readb(ioaddr + RTC_MINUTES);
++	hour = readb(ioaddr + RTC_HOURS);
++	day = readb(ioaddr + RTC_DATE);
++	week = readb(ioaddr + RTC_DAY);
++	month = readb(ioaddr + RTC_MONTH);
++	year = readb(ioaddr + RTC_YEAR);
++
++	/* switch to 2nd bank */
++	ctrla = readb(ioaddr + RTC_CONTROLA);
++	ctrla |= RTC_DV0;
++	writeb(ctrla, ioaddr + RTC_CONTROLA);
++
++	century = readb(ioaddr + RTC_CENTURY);
++
++	/* switch back to original bank */
++	ctrla &= ~RTC_DV0;
++	writeb(ctrla, ioaddr + RTC_CONTROLA);
++
++	/* clear SET bit */
++	ctrlb &= ~RTC_SET;
++	writeb(ctrlb, ioaddr + RTC_CONTROLB);
++
++	tm->tm_sec = bcd2bin(second);
++	tm->tm_min = bcd2bin(minute);
++	tm->tm_hour = bcd2bin(hour);
++	tm->tm_mday = bcd2bin(day);
++	tm->tm_wday = bcd2bin(week);
++	tm->tm_mon = bcd2bin(month) - 1;
++
++	/* year is 1900 + tm->tm_year */
++	tm->tm_year = bcd2bin(year) + bcd2bin(century) * 100 - 1900;
++
++	return rtc_valid_tm(tm);
++}
++
++static int ds1685_get_ssn(struct rtc_plat_data *pdata, u8 *ssn)
++{
++	void __iomem *ioaddr = pdata->ioaddr;
++	int i;
++	unsigned int ctrl;
++
++	/* switch to 2nd bank */
++	ctrl = readb(ioaddr + RTC_CONTROLA);
++	ctrl |= RTC_DV0;
++	writeb(ctrl, ioaddr + RTC_CONTROLA);
++
++	/* read silicon serial number */
++	for (i = 0; i < 8; i++)
++		ssn[i] = readb(ioaddr + RTC_MODEL + i);
++
++	/* switch back to original bank */
++	ctrl &= ~RTC_DV0;
++	writeb(ctrl, ioaddr + RTC_CONTROLA);
++
++	return 0;
++}
++
++static int ds1685_rtc_proc(struct device *dev, struct seq_file *seq)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	unsigned int val;
++	u8 ssn[8];
++
++	mutex_lock(&pdata->rtc->ops_lock);
++	val = readb(ioaddr + RTC_CONTROLD);
++	ds1685_get_ssn(pdata, ssn);
++	mutex_unlock(&pdata->rtc->ops_lock);
++
++	seq_printf(seq, "battery\t\t: %s\n",
++		   (val & RTC_VRT) ? "ok" : "exhausted");
++	seq_printf(seq, "serial#\t\t: "
++		   "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
++		   ssn[0], ssn[1], ssn[2], ssn[3],
++		   ssn[4], ssn[5], ssn[6], ssn[7]);
++	return 0;
++}
++
++static const struct rtc_class_ops ds1685_rtc_ops = {
++	.proc		= ds1685_rtc_proc,
++	.read_time	= ds1685_rtc_read_time,
++	.set_time	= ds1685_rtc_set_time,
++};
++
++static ssize_t ds1685_nvram_read(struct kobject *kobj,
++				 struct bin_attribute *bin_attr,
++				 char *buf, loff_t pos, size_t size)
++{
++	struct platform_device *pdev =
++		to_platform_device(container_of(kobj, struct device, kobj));
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	ssize_t count;
++
++	mutex_lock(&pdata->rtc->ops_lock);
++	for (count = 0; size > 0 && pos < NVRAM_SIZE_B0; count++, size--)
++		*buf++ = readb(ioaddr + RTC_NVRAM_START_B0 + pos++);
++
++	if (size > 0) {
++		unsigned int ctrl = readb(ioaddr + RTC_CONTROLA);
++		/* switch to 2nd bank */
++		ctrl |= RTC_DV0;
++		writeb(ctrl, ioaddr + RTC_CONTROLA);
++
++		for (count = 0; size > 0 && pos < NVRAM_SIZE; count++, size--) {
++			writeb(pos - NVRAM_SIZE_B0, ioaddr + RTC_RAM_ADDR);
++			*buf++ = readb(ioaddr + RTC_RAM_DATA);
++			pos++;
++		}
++
++		/* switch back to original bank */
++		ctrl &= ~RTC_DV0;
++		writeb(ctrl, ioaddr + RTC_CONTROLA);
++	}
++	mutex_unlock(&pdata->rtc->ops_lock);
++	return count;
++}
++
++static ssize_t ds1685_nvram_write(struct kobject *kobj,
++				  struct bin_attribute *bin_attr,
++				  char *buf, loff_t pos, size_t size)
++{
++	struct platform_device *pdev =
++		to_platform_device(container_of(kobj, struct device, kobj));
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	ssize_t count;
++
++	mutex_lock(&pdata->rtc->ops_lock);
++	for (count = 0; size > 0 && pos < NVRAM_SIZE_B0; count++, size--)
++		writeb(*buf++, ioaddr +  RTC_NVRAM_START_B0 + pos++);
++
++	if (size > 0) {
++		unsigned int ctrl = readb(ioaddr + RTC_CONTROLA);
++		/* switch to 2nd bank */
++		ctrl |= RTC_DV0;
++		writeb(ctrl, ioaddr + RTC_CONTROLA);
++
++		for (count = 0; size > 0 && pos < NVRAM_SIZE; count++, size--) {
++			writeb(pos - NVRAM_SIZE_B0, ioaddr + RTC_RAM_ADDR);
++			writeb(*buf++, ioaddr + RTC_RAM_DATA);
++			pos++;
++		}
++
++		/* switch back to original bank */
++		ctrl &= ~RTC_DV0;
++		writeb(ctrl, ioaddr + RTC_CONTROLA);
++	}
++	mutex_unlock(&pdata->rtc->ops_lock);
++
++	return count;
++}
++
++static struct bin_attribute ds1685_nvram_attr = {
++	.attr = {
++		.name = "nvram",
++		.mode = S_IRUGO | S_IWUSR,
++	},
++	.read = ds1685_nvram_read,
++	.write = ds1685_nvram_write,
++	.size = NVRAM_SIZE
++};
++
++static ssize_t
++ds1685_sysfs_show_battery(struct device *dev,
++			  struct device_attribute *attr, char *buf)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	unsigned int val;
++
++	mutex_lock(&pdata->rtc->ops_lock);
++	val = readb(ioaddr + RTC_CONTROLD);
++	mutex_unlock(&pdata->rtc->ops_lock);
++
++	return sprintf(buf, "%s\n", (val & RTC_VRT) ? "ok" : "exhausted");
++}
++
++static DEVICE_ATTR(battery, S_IRUGO, ds1685_sysfs_show_battery, NULL);
++
++static ssize_t
++ds1685_sysfs_show_serial(struct device *dev,
++			 struct device_attribute *attr, char *buf)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	u8 ssn[8];
++
++	mutex_lock(&pdata->rtc->ops_lock);
++	ds1685_get_ssn(pdata, ssn);
++	mutex_unlock(&pdata->rtc->ops_lock);
++
++	return sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
++		       ssn[0], ssn[1], ssn[2], ssn[3],
++		       ssn[4], ssn[5], ssn[6], ssn[7]);
++}
++
++static DEVICE_ATTR(serial, S_IRUGO, ds1685_sysfs_show_serial, NULL);
++
++static int ds1685_sysfs_register(struct device *dev)
++{
++	int err;
++
++	err = sysfs_create_bin_file(&dev->kobj, &ds1685_nvram_attr);
++	if (err)
++		return err;
++
++	err = device_create_file(dev, &dev_attr_battery);
++	if (err) {
++		sysfs_remove_bin_file(&dev->kobj, &ds1685_nvram_attr);
++		return err;
++	}
++
++	err = device_create_file(dev, &dev_attr_serial);
++	if (err) {
++		device_remove_file(dev, &dev_attr_battery);
++		sysfs_remove_bin_file(&dev->kobj, &ds1685_nvram_attr);
++		return err;
++	}
++
++	return 0;
++}
++
++static int ds1685_sysfs_unregister(struct device *dev)
++{
++	sysfs_remove_bin_file(&dev->kobj, &ds1685_nvram_attr);
++	device_remove_file(dev, &dev_attr_battery);
++	device_remove_file(dev, &dev_attr_serial);
++
++	return 0;
++}
++
++static int __init ds1685_rtc_probe(struct platform_device *pdev)
++{
++	struct rtc_device *rtc;
++	struct resource *res;
++	unsigned int ctrl;
++	struct rtc_plat_data *pdata = NULL;
++	void __iomem *ioaddr = NULL;
++	int ret = 0;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++
++	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return -ENOMEM;
++
++	pdata->size = resource_size(res);
++	if (!request_mem_region(res->start, pdata->size, pdev->name)) {
++		ret = -EBUSY;
++		goto out;
++	}
++	pdata->baseaddr = res->start;
++
++	ioaddr = ioremap(pdata->baseaddr, pdata->size);
++	if (!ioaddr) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	pdata->ioaddr = ioaddr;
++
++	/* turn RTC on if it was not on */
++	ctrl = readb(ioaddr + RTC_CONTROLA);
++	if (!(ctrl & RTC_DV1)) {
++		dev_warn(&pdev->dev,
++			 "oscillator stop detected - enabled!\n");
++		ctrl |= RTC_DV1;
++	}
++	ctrl &= ~RTC_DV2;
++	ctrl &= ~RTC_DV0; /* enable original bank */
++	writeb(ctrl, ioaddr + RTC_CONTROLA);
++
++	if (!(readb(ioaddr + RTC_CONTROLD) & RTC_VRT))
++		dev_warn(&pdev->dev, "low battery detected.\n");
++
++	ctrl = readb(ioaddr + RTC_CONTROLB);
++	if ((ctrl & RTC_DM) || (!(ctrl & RTC_2412))) {
++		dev_dbg(&pdev->dev, "only 24-hr BCD mode supported\n");
++		ret = -ENXIO;
++		goto out;
++	}
++
++	rtc = rtc_device_register(pdev->name, &pdev->dev,
++				  &ds1685_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc)) {
++		ret = PTR_ERR(rtc);
++		goto out;
++	}
++	pdata->rtc = rtc;
++	pdata->last_jiffies = jiffies;
++	platform_set_drvdata(pdev, pdata);
++	ret = ds1685_sysfs_register(&pdev->dev);
++	if (ret)
++		goto out;
++	return 0;
++ out:
++	if (pdata->rtc)
++		rtc_device_unregister(pdata->rtc);
++	if (pdata->ioaddr)
++		iounmap(pdata->ioaddr);
++	if (pdata->baseaddr)
++		release_mem_region(pdata->baseaddr, pdata->size);
++	kfree(pdata);
++	return ret;
++}
++
++static int __exit ds1685_rtc_remove(struct platform_device *pdev)
++{
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	ds1685_sysfs_unregister(&pdev->dev);
++	rtc_device_unregister(pdata->rtc);
++	iounmap(pdata->ioaddr);
++	release_mem_region(pdata->baseaddr, pdata->size);
++	kfree(pdata);
++	return 0;
++}
++
++static struct platform_driver ds1685_rtc_driver = {
++	.remove		= __exit_p(ds1685_rtc_remove),
++	.driver		= {
++		.name	= "rtc-ds1685",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static __init int ds1685_init(void)
++{
++	return platform_driver_probe(&ds1685_rtc_driver, ds1685_rtc_probe);
++}
++
++static __exit void ds1685_exit(void)
++{
++	platform_driver_unregister(&ds1685_rtc_driver);
++}
++
++module_init(ds1685_init);
++module_exit(ds1685_exit);
++
++MODULE_AUTHOR("Matthias Fuchs <matthias.fuchs@esd-electronics.com>");
++MODULE_DESCRIPTION("Dallas DS1685/DS1687 RTC driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
++MODULE_ALIAS("platform:rtc-ds1685");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matthias.fuchs@esd-electronics.com are
 
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-ds_selftest-is-borked.patch
-eeepc-laptop-enable-camera-by-default-fix.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-e100-add-non-mii-phy-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-firmware_map-fix-hang-with-x86-32bit-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool-fix.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-char-moxa-prevent-opening-unavailable-ports.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+rtc-add-ds1685-ds1687-rtc-driver.patch
 
