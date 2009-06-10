@@ -1,57 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded] devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 12:42:39 -0700
-Message-ID: <200906101942.n5AJgdhU030376@imap1.linux-foundation.org>
+Subject: [folded] firmware_map-fix-hang-with-x86-32bit-fix.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 12:59:00 -0700
+Message-ID: <200906101959.n5AJx0oq011672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38676 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761015AbZFJUAu (ORCPT
+	by vger.kernel.org with ESMTP id S1752574AbZFJUHS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 16:00:50 -0400
+	Wed, 10 Jun 2009 16:07:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com, kay.sievers@vrfy.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup
+     firmware_map-fix-hang-with-x86-32bit-fix
 has been removed from the -mm tree.  Its filename was
-     devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
+     firmware_map-fix-hang-with-x86-32bit-fix.patch
 
-This patch was dropped because it was folded into devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+This patch was dropped because it was folded into firmware_map-fix-hang-with-x86-32bit.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup
+Subject: firmware_map-fix-hang-with-x86-32bit-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Tejun Heo <tj@kernel.org>
+explain why..
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/devres.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/firmware/memmap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/base/devres.c~devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup drivers/base/devres.c
---- a/drivers/base/devres.c~devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup
-+++ a/drivers/base/devres.c
-@@ -429,10 +429,8 @@ int devres_release_all(struct device *de
- 	unsigned long flags;
- 
- 	/* Looks like an uninitialized device structure */
--	if (dev->devres_head.next == NULL) {
--		WARN(1);
-+	if (WARN_ON(dev->devres_head.next == NULL))
- 		return -ENODEV;
--	}
- 	spin_lock_irqsave(&dev->devres_lock, flags);
- 	return release_nodes(dev, dev->devres_head.next, &dev->devres_head,
- 			     flags);
+diff -puN drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit-fix drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit-fix
++++ a/drivers/firmware/memmap.c
+@@ -31,6 +31,10 @@
+  * information is necessary as for the resource tree.
+  */
+ struct firmware_map_entry {
++	/*
++	 * start and end must be u64 rather than resource_size_t, because e820
++	 * resources can lie at addresses above 4G.
++	 */
+ 	u64			start;	/* start of the memory range */
+ 	u64			end;	/* end of the memory range (incl.) */
+ 	const char		*type;	/* type of the memory range */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,14 +66,14 @@ ds_selftest-is-borked.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
 cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
 devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device-cleanup.patch
 dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-e100-add-non-mii-phy-support-fix.patch
+e100-add-non-mii-phy-support.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
+firmware_map-fix-hang-with-x86-32bit.patch
 firmware_map-fix-hang-with-x86-32bit-fix.patch
 drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
 mm-consolidate-init_mm-definition-fix.patch
