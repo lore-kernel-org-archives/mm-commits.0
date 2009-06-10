@@ -1,123 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] eeepc-laptop-enable-camera-by-default.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 12:40:21 -0700
-Message-ID: <200906101940.n5AJeM46028454__48862.2526675046$1244662908$gmane$org@imap1.linux-foundation.org>
+Subject: [to-be-updated] mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 12:51:20 -0700
+Message-ID: <200906101951.n5AJpK58005182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41126 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755337AbZFJTlY (ORCPT
+	by vger.kernel.org with ESMTP id S1755139AbZFJTwc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:41:24 -0400
+	Wed, 10 Jun 2009 15:52:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, acpi4asus-user@lists.sourceforge.net, corentincj@iksaif.net, len.brown@intel.com, mjg@redhat.com, mm-commits@vger.kernel.org
+To: cliff.cai@analog.com, cooloney@kernel.org, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eeepc-laptop: enable camera by default
+     mmc: align data size for host which only supports power-of-2 block
 has been removed from the -mm tree.  Its filename was
-     eeepc-laptop-enable-camera-by-default.patch
+     mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eeepc-laptop: enable camera by default
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: mmc: align data size for host which only supports power-of-2 block
+From: Cliff Cai <cliff.cai@analog.com>
 
-If we leave the camera disabled by default, userspace programs (e.g. 
-Skype, Cheese) leave the user out in the cold saying that the machine "has
-no camera." Therefore, it's better to enable camera by default and let
-people who really don't want it just disable the thing.
-
-Cc: <acpi4asus-user@lists.sourceforge.net>
-Cc: Len Brown <len.brown@intel.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Cliff Cai <cliff.cai@analog.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/eeepc-laptop.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/mmc/core/core.c  |    8 +++++++-
+ include/linux/mmc/host.h |    1 +
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-camera-by-default drivers/platform/x86/eeepc-laptop.c
---- a/drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-camera-by-default
-+++ a/drivers/platform/x86/eeepc-laptop.c
-@@ -331,6 +331,19 @@ static const struct rfkill_ops eeepc_rfk
+diff -puN drivers/mmc/core/core.c~mmc-align-data-size-for-host-which-only-supports-power-of-2-block drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-align-data-size-for-host-which-only-supports-power-of-2-block
++++ a/drivers/mmc/core/core.c
+@@ -337,7 +337,13 @@ unsigned int mmc_align_data_size(struct 
+ 	 * the core about its problems yet, so for now we just 32-bit
+ 	 * align the size.
+ 	 */
+-	sz = ((sz + 3) / 4) * 4;
++
++	/* Align size for host which only supports power-of-2 block */
++	if (card->host->powerof2_block) {
++		if (sz & (sz - 1))
++			sz = 1 << fls(sz);
++	} else
++		sz = ((sz + 3) / 4) * 4;
+ 
+ 	return sz;
+ }
+diff -puN include/linux/mmc/host.h~mmc-align-data-size-for-host-which-only-supports-power-of-2-block include/linux/mmc/host.h
+--- a/include/linux/mmc/host.h~mmc-align-data-size-for-host-which-only-supports-power-of-2-block
++++ a/include/linux/mmc/host.h
+@@ -162,6 +162,7 @@ struct mmc_host {
+ 	struct dentry		*debugfs_root;
+ 
+ 	unsigned long		private[0] ____cacheline_aligned;
++	unsigned int		powerof2_block;	/* host only supports power-of-2 block */
  };
  
- /*
-+ * Camera helpers
-+ */
-+
-+static void eeepc_enable_camera(void)
-+{
-+	int err;
-+
-+	err = set_acpi(CM_ASL_CAMERA, 1);
-+	if (err)
-+		printk(EEEPC_WARNING "Unable to enable camera %d\n", err);
-+}
-+
-+/*
-  * Sys helpers
-  */
- static int parse_arg(const char *buf, unsigned long count, int *val)
-@@ -1036,6 +1049,9 @@ static int __init eeepc_laptop_init(void
- 	result = eeepc_hwmon_init(dev);
- 	if (result)
- 		goto fail_hwmon;
-+
-+	eeepc_enable_camera();
-+
- 	/* Register platform stuff */
- 	result = platform_driver_register(&platform_driver);
- 	if (result)
+ extern struct mmc_host *mmc_alloc_host(int extra, struct device *);
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from cliff.cai@analog.com are
 
-repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
-eeepc-laptop-enable-camera-by-default.patch
-eeepc-laptop-enable-camera-by-default-fix.patch
-cpusets-restructure-the-function-cpuset_update_task_memory_state.patch
-cpusets-update-tasks-page-slab-spread-flags-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time.patch
-cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
-cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
-page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
-page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
-page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
-page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
-page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-inline-__rmqueue_smallest.patch
-page-allocator-inline-buffered_rmqueue.patch
-page-allocator-inline-__rmqueue_fallback.patch
-page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
-page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
-page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
-page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
-page-allocator-update-nr_free_pages-only-as-necessary.patch
-page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
-page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-page-allocator-move-free_page_mlock-to-page_allocc.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
-vmscan-merge-duplicate-code-in-shrink_active_list.patch
-slab-leaks3-default-y.patch
+mmc-align-data-size-for-host-which-only-supports-power-of-2-block.patch
 
