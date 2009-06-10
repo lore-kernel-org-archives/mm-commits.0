@@ -1,90 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jbd-fix-race-in-buffer-processing-in-commit-code.patch removed from -mm tree
-Date: Wed, 10 Jun 2009 10:44:05 -0700
-Message-ID: <200906101744.n5AHi56b030864@imap1.linux-foundation.org>
+Subject: [merged] kconfig-fix-typo-mconfig-to-menuconfig-in-a-comment.patch removed from -mm tree
+Date: Wed, 10 Jun 2009 10:44:17 -0700
+Message-ID: <200906101744.n5AHiH0X031013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45837 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752787AbZFJRpk (ORCPT
+	by vger.kernel.org with ESMTP id S1751612AbZFJRrB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 13:45:40 -0400
+	Wed, 10 Jun 2009 13:47:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, linux-ext4@vger.kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: markus.heidelberg@web.de, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: fix race in buffer processing in commit code
+     kconfig: fix typo "mconfig" to "menuconfig" in a comment
 has been removed from the -mm tree.  Its filename was
-     jbd-fix-race-in-buffer-processing-in-commit-code.patch
+     kconfig-fix-typo-mconfig-to-menuconfig-in-a-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: fix race in buffer processing in commit code
-From: Jan Kara <jack@suse.cz>
+Subject: kconfig: fix typo "mconfig" to "menuconfig" in a comment
+From: Markus Heidelberg <markus.heidelberg@web.de>
 
-In commit code, we scan buffers attached to a transaction.  During this
-scan, we sometimes have to drop j_list_lock and then we recheck whether
-the journal buffer head didn't get freed by journal_try_to_free_buffers().
- But checking for buffer_jbd(bh) isn't enough because a new journal head
-could get attached to our buffer head.  So add a check whether the journal
-head remained the same and whether it's still at the same transaction and
-list.
-
-This is a nasty bug and can cause problems like memory corruption (use after
-free) or trigger various assertions in JBD code (observed).
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: <stable@kernel.org>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Markus Heidelberg <markus.heidelberg@web.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/kconfig/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd/commit.c~jbd-fix-race-in-buffer-processing-in-commit-code fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-fix-race-in-buffer-processing-in-commit-code
-+++ a/fs/jbd/commit.c
-@@ -241,7 +241,7 @@ write_out_data:
- 			spin_lock(&journal->j_list_lock);
- 		}
- 		/* Someone already cleaned up the buffer? */
--		if (!buffer_jbd(bh)
-+		if (!buffer_jbd(bh) || bh2jh(bh) != jh
- 			|| jh->b_transaction != commit_transaction
- 			|| jh->b_jlist != BJ_SyncData) {
- 			jbd_unlock_bh_state(bh);
-@@ -478,7 +478,9 @@ void journal_commit_transaction(journal_
- 			spin_lock(&journal->j_list_lock);
- 			continue;
- 		}
--		if (buffer_jbd(bh) && jh->b_jlist == BJ_Locked) {
-+		if (buffer_jbd(bh) && bh2jh(bh) == jh &&
-+		    jh->b_transaction == commit_transaction &&
-+		    jh->b_jlist == BJ_Locked) {
- 			__journal_unfile_buffer(jh);
- 			jbd_unlock_bh_state(bh);
- 			journal_remove_journal_head(bh);
+diff -puN scripts/kconfig/Makefile~kconfig-fix-typo-mconfig-to-menuconfig-in-a-comment scripts/kconfig/Makefile
+--- a/scripts/kconfig/Makefile~kconfig-fix-typo-mconfig-to-menuconfig-in-a-comment
++++ a/scripts/kconfig/Makefile
+@@ -104,7 +104,7 @@ HOST_EXTRACFLAGS += -DLOCALE
+ # ===========================================================================
+ # Shared Makefile for the various kconfig executables:
+ # conf:	  Used for defconfig, oldconfig and related targets
+-# mconf:  Used for the mconfig target.
++# mconf:  Used for the menuconfig target
+ #         Utilizes the lxdialog package
+ # qconf:  Used for the xconfig target
+ #         Based on QT which needs to be installed to compile it
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from markus.heidelberg@web.de are
 
 linux-next.patch
-jbd2-clean-up-jbd2_journal_try_to_free_buffers.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-mm-remove-__invalidate_mapping_pages-variant.patch
-writeback-skip-new-or-to-be-freed-inodes.patch
-ext2-do-not-update-mtime-of-a-moved-directory.patch
-ext3-fix-chain-verification-in-ext3_get_blocks.patch
-jbd-clean-up-journal_try_to_free_buffers.patch
-ext3-make-sure-inode-is-deleted-from-orphan-list-after-truncate.patch
-isofs-let-mode-and-dmode-mount-options-override-rock-ridge-mode-setting.patch
-isofs-fix-setting-of-uid-and-gid-to-0.patch
-isofs-cleanup-mount-option-processing.patch
-reiser4-update-names-of-quota-methods.patch
 
