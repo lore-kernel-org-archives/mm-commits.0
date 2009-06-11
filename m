@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-pca953x-get-platform_data-from-openfirmware.patch added to -mm tree
-Date: Thu, 11 Jun 2009 15:29:25 -0700
-Message-ID: <200906112229.n5BMTPik007900@imap1.linux-foundation.org>
+Subject: + gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 11 Jun 2009 15:29:27 -0700
+Message-ID: <200906112229.n5BMTRS3007903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49078 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755516AbZFKW36 (ORCPT
+	by vger.kernel.org with ESMTP id S1758974AbZFKWaA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jun 2009 18:29:58 -0400
+	Thu, 11 Jun 2009 18:30:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ncase@xes-inc.com, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, ncase@xes-inc.com
 
 
 The patch titled
-     gpio: pca953x: Get platform_data from OpenFirmware
+     gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     gpio-pca953x-get-platform_data-from-openfirmware.patch
+     gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,160 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: pca953x: Get platform_data from OpenFirmware
-From: Nate Case <ncase@xes-inc.com>
+Subject: gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On OpenFirmware platforms, it makes the most sense to get platform_data
-from the device tree.  Make an attempt to translate OF node properties
-into platform_data struct before bailing out.
+WARNING: braces {} are not necessary for single statement blocks
+#82: FILE: drivers/gpio/pca953x.c:239:
++	if (val) {
++		pdata->invert = *val;
++	}
 
-Note that the implementation approach taken differs from other device
-drivers that make use of device tree information.  This is because I2C
-chips are already registered automatically by of_i2c, so we can get by
-with a small translator function in the driver.
+total: 0 errors, 1 warnings, 119 lines checked
 
-Signed-off-by: Nate Case <ncase@xes-inc.com>
+./patches/gpio-pca953x-get-platform_data-from-openfirmware.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Nate Case <ncase@xes-inc.com>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pca953x.c |   79 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 74 insertions(+), 5 deletions(-)
+ drivers/gpio/pca953x.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/gpio/pca953x.c~gpio-pca953x-get-platform_data-from-openfirmware drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-pca953x-get-platform_data-from-openfirmware
+diff -puN drivers/gpio/pca953x.c~gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes
 +++ a/drivers/gpio/pca953x.c
-@@ -15,6 +15,10 @@
- #include <linux/init.h>
- #include <linux/i2c.h>
- #include <linux/i2c/pca953x.h>
-+#ifdef CONFIG_OF_GPIO
-+#include <linux/of_platform.h>
-+#include <linux/of_gpio.h>
-+#endif
- 
- #include <asm/gpio.h>
- 
-@@ -49,6 +53,7 @@ struct pca953x_chip {
- 	uint16_t reg_direction;
- 
- 	struct i2c_client *client;
-+	struct pca953x_platform_data *dyn_pdata;
- 	struct gpio_chip gpio_chip;
- 	char **names;
- };
-@@ -196,6 +201,55 @@ static void pca953x_setup_gpio(struct pc
- 	gc->names = chip->names;
- }
- 
-+/*
-+ * Handlers for alternative sources of platform_data
-+ */
-+#ifdef CONFIG_OF_GPIO
-+/*
-+ * Translate OpenFirmware node properties into platform_data
-+ */
-+static struct pca953x_platform_data *
-+pca953x_get_alt_pdata(struct i2c_client *client)
-+{
-+	struct pca953x_platform_data *pdata;
-+	struct device_node *node;
-+	const uint16_t *val;
-+
-+	node = dev_archdata_get_node(&client->dev.archdata);
-+	if (node == NULL)
-+		return NULL;
-+
-+	pdata = kzalloc(sizeof(struct pca953x_platform_data), GFP_KERNEL);
-+	if (pdata == NULL) {
-+		dev_err(&client->dev, "Unable to allocate platform_data\n");
-+		return NULL;
-+	}
-+
-+	pdata->gpio_base = -1;
-+	val = of_get_property(node, "linux,gpio-base", NULL);
-+	if (val) {
-+		if (*val < 0)
-+			dev_warn(&client->dev,
-+				 "invalid gpio-base in device tree\n");
-+		else
-+			pdata->gpio_base = *val;
-+	}
-+
-+	val = of_get_property(node, "polarity", NULL);
-+	if (val) {
-+		pdata->invert = *val;
-+	}
-+
-+	return pdata;
-+}
-+#else
-+static struct pca953x_platform_data *
-+pca953x_get_alt_pdata(struct i2c_client *client)
-+{
-+	return NULL;
-+}
-+#endif
-+
- static int __devinit pca953x_probe(struct i2c_client *client,
- 				   const struct i2c_device_id *id)
- {
-@@ -203,15 +257,25 @@ static int __devinit pca953x_probe(struc
- 	struct pca953x_chip *chip;
- 	int ret;
- 
-+	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
-+	if (chip == NULL)
-+		return -ENOMEM;
-+
- 	pdata = client->dev.platform_data;
- 	if (pdata == NULL) {
--		dev_dbg(&client->dev, "no platform data\n");
--		return -EINVAL;
-+		pdata = pca953x_get_alt_pdata(client);
-+		/*
-+		 * Unlike normal platform_data, this is allocated
-+		 * dynamically and must be freed in the driver
-+		 */
-+		chip->dyn_pdata = pdata;
+@@ -236,9 +236,8 @@ pca953x_get_alt_pdata(struct i2c_client 
  	}
  
--	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
--	if (chip == NULL)
--		return -ENOMEM;
-+	if (pdata == NULL) {
-+		dev_dbg(&client->dev, "no platform data\n");
-+		ret = -EINVAL;
-+		goto out_failed;
-+	}
+ 	val = of_get_property(node, "polarity", NULL);
+-	if (val) {
++	if (val)
+ 		pdata->invert = *val;
+-	}
  
- 	chip->client = client;
- 
-@@ -253,6 +317,8 @@ static int __devinit pca953x_probe(struc
- 	return 0;
- 
- out_failed:
-+	if (chip->dyn_pdata != NULL)
-+		kfree(chip->dyn_pdata);
- 	kfree(chip);
- 	return ret;
- }
-@@ -280,6 +346,9 @@ static int pca953x_remove(struct i2c_cli
- 		return ret;
- 	}
- 
-+	if (chip->dyn_pdata != NULL)
-+		kfree(chip->dyn_pdata);
-+
- 	kfree(chip);
- 	return 0;
+ 	return pdata;
  }
 _
 
-Patches currently in -mm which might be from ncase@xes-inc.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-gpio-pca953x-get-platform_data-from-openfirmware.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix-fix.patch
+e100-add-non-mii-phy-support.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+firmware_map-fix-hang-with-x86-32bit.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool-fix.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
 gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
 gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes-gpio-pca953x-get-platform_data-from-openfirmware-cleanups.patch
-gpio-pca953x-add-support-for-pca9556.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
+fbdev-s1d13xxxfb-add-accelerated-bitblt-functions-checkpatch-fixes.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
