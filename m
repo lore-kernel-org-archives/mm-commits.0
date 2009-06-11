@@ -1,152 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix-fix.patch added to -mm tree
-Date: Wed, 10 Jun 2009 14:04:20 -0700
-Message-ID: <200906102104.n5AL4KQ9000351@imap1.linux-foundation.org>
+Subject: [merged] fs-bioc-add-missing-__user-annotation.patch removed from -mm tree
+Date: Thu, 11 Jun 2009 14:24:57 -0700
+Message-ID: <200906112124.n5BLOvbL017925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54180 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762034AbZFJVEd (ORCPT
+	by vger.kernel.org with ESMTP id S1750808AbZFKVZE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jun 2009 17:04:33 -0400
+	Thu, 11 Jun 2009 17:25:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, dtor@mail.ru, hcegtvedt@atmel.com, jirislaby@gmail.com, jkosina@suse.cz
+To: monstr@monstr.eu, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix-fix
-has been added to the -mm tree.  Its filename is
-     input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix-fix.patch
+     fs/bio.c: add missing __user annotation
+has been removed from the -mm tree.  Its filename was
+     fs-bioc-add-missing-__user-annotation.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/bio.c: add missing __user annotation
+From: Michal Simek <monstr@monstr.eu>
 
-handle wm97xx_register_mach_ops() failure, spotted by jirislaby@gmail.com.
+As reported by sparse:
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+fs/bio.c:720:13: warning: incorrect type in assignment (different address spaces)
+fs/bio.c:720:13:    expected char *iov_addr
+fs/bio.c:720:13:    got void [noderef] <asn:1>*
+fs/bio.c:724:36: warning: incorrect type in argument 2 (different address spaces)
+fs/bio.c:724:36:    expected void const [noderef] <asn:1>*from
+fs/bio.c:724:36:    got char *iov_addr
+
+Signed-off-by: Michal Simek <monstr@monstr.eu>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/at32-wm97xx.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ fs/bio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/at32-wm97xx.c~input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix-fix drivers/input/touchscreen/at32-wm97xx.c
---- a/drivers/input/touchscreen/at32-wm97xx.c~input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix-fix
-+++ a/drivers/input/touchscreen/at32-wm97xx.c
-@@ -339,13 +339,19 @@ static int __init at32_wm97xx_probe(stru
- 			IRQF_SHARED, "at32-wm97xx-ch-b", at32_wm97xx);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "could not request ac97c irq\n");
--		kfree(at32_wm97xx);
--		return ret;
-+		goto err;
- 	}
+diff -puN fs/bio.c~fs-bioc-add-missing-__user-annotation fs/bio.c
+--- a/fs/bio.c~fs-bioc-add-missing-__user-annotation
++++ a/fs/bio.c
+@@ -722,7 +722,7 @@ static int __bio_copy_iov(struct bio *bi
  
- 	platform_set_drvdata(pdev, at32_wm97xx);
+ 		while (bv_len && iov_idx < iov_count) {
+ 			unsigned int bytes;
+-			char *iov_addr;
++			char __user *iov_addr;
  
--	return wm97xx_register_mach_ops(wm, &at32_mach_ops);
-+	ret = wm97xx_register_mach_ops(wm, &at32_mach_ops);
-+	if (!ret)
-+		return 0;
-+
-+	free_irq(at32_wm97xx->ac97c_irq, at32_wm97xx);
-+err:
-+	kfree(at32_wm97xx);
-+	return ret;
- }
- 
- static int __exit at32_wm97xx_remove(struct platform_device *pdev)
+ 			bytes = min_t(unsigned int,
+ 				      iov[iov_idx].iov_len - iov_off, bv_len);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from monstr@monstr.eu are
 
+origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-ds_selftest-is-borked.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-cpufreq-powernow-k8-cleanup-msg-if-bios-does-not-export-acpi-_pss-cpufreq-data-cleanup.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
-dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix.patch
-input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors-fix-fix.patch
-e100-add-non-mii-phy-support.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-firmware_map-fix-hang-with-x86-32bit.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-consolidate-init_mm-definition-fix.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool-fix.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-char-moxa-prevent-opening-unavailable-ports.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+fs-remove-sparse-errors-in-proc_devtreec.patch
+mb862xxfb-restrict-compliation-of-platform-driver-to-ppc.patch
+mb862xxfb-use-config_of-instead-of-config_ppc_of.patch
 
