@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full.patch added to -mm tree
-Date: Thu, 11 Jun 2009 16:34:55 -0700
-Message-ID: <200906112334.n5BNYtwq031448@imap1.linux-foundation.org>
+Subject: + vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch added to -mm tree
+Date: Thu, 11 Jun 2009 16:34:57 -0700
+Message-ID: <200906112334.n5BNYwG4031481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757304AbZFKXff (ORCPT
+	by vger.kernel.org with ESMTP id S1759699AbZFKXfh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jun 2009 19:35:35 -0400
+	Thu, 11 Jun 2009 19:35:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, cl@linux-foundation.org, fengguang.wu@intel.com, kosaki.motoh
 
 
 The patch titled
-     vmscan: do not unconditionally treat zones that fail zone_reclaim() as full
+     vmscan: count the number of times zone_reclaim() scans and fails
 has been added to the -mm tree.  Its filename is
-     vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full.patch
+     vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: do not unconditionally treat zones that fail zone_reclaim() as full
+Subject: vmscan: count the number of times zone_reclaim() scans and fails
 From: Mel Gorman <mel@csn.ul.ie>
 
 On NUMA machines, the administrator can configure zone_reclaim_mode that
 is a more targetted form of direct reclaim.  On machines with large NUMA
 distances for example, a zone_reclaim_mode defaults to 1 meaning that
 clean unmapped pages will be reclaimed if the zone watermarks are not
-being met.  The problem is that zone_reclaim() failing at all means the
-zone gets marked full.
+being met.
 
-This can cause situations where a zone is usable, but is being skipped
-because it has been considered full.  Take a situation where a large tmpfs
-mount is occuping a large percentage of memory overall.  The pages do not
-get cleaned or reclaimed by zone_reclaim(), but the zone gets marked full
-and the zonelist cache considers them not worth trying in the future.
-
-This patch makes zone_reclaim() return more fine-grained information about
-what occured when zone_reclaim() failued.  The zone only gets marked full
-if it really is unreclaimable.  If it's a case that the scan did not occur
-or if enough pages were not reclaimed with the limited reclaim_mode, then
-the zone is simply skipped.
-
-There is a side-effect to this patch.  Currently, if zone_reclaim()
-successfully reclaimed SWAP_CLUSTER_MAX, an allocation attempt would go
-ahead.  With this patch applied, zone watermarks are rechecked after
-zone_reclaim() does some work.
+There is a heuristic that determines if the scan is worthwhile but it is
+possible that the heuristic will fail and the CPU gets tied up scanning
+uselessly.  Detecting the situation requires some guesswork and
+experimentation so this patch adds a counter "zreclaim_failed" to
+/proc/vmstat.  If during high CPU utilisation this counter is increasing
+rapidly, then the resolution to the problem may be to set
+/proc/sys/vm/zone_reclaim_mode to 0.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
 Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    4 ++++
- mm/page_alloc.c |   26 ++++++++++++++++++++++----
- mm/vmscan.c     |   11 ++++++-----
- 3 files changed, 32 insertions(+), 9 deletions(-)
+ include/linux/vmstat.h |    3 +++
+ mm/vmscan.c            |    3 +++
+ mm/vmstat.c            |    3 +++
+ 3 files changed, 9 insertions(+)
 
-diff -puN mm/internal.h~vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full mm/internal.h
---- a/mm/internal.h~vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full
-+++ a/mm/internal.h
-@@ -259,4 +259,8 @@ int __get_user_pages(struct task_struct 
- 		     unsigned long start, int len, int flags,
- 		     struct page **pages, struct vm_area_struct **vmas);
- 
-+#define ZONE_RECLAIM_NOSCAN	-2
-+#define ZONE_RECLAIM_FULL	-1
-+#define ZONE_RECLAIM_SOME	0
-+#define ZONE_RECLAIM_SUCCESS	1
- #endif
-diff -puN mm/page_alloc.c~vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full mm/page_alloc.c
---- a/mm/page_alloc.c~vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full
-+++ a/mm/page_alloc.c
-@@ -1477,15 +1477,33 @@ zonelist_scan:
- 		BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
- 		if (!(alloc_flags & ALLOC_NO_WATERMARKS)) {
- 			unsigned long mark;
-+			int ret;
-+
- 			mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
--			if (!zone_watermark_ok(zone, order, mark,
--				    classzone_idx, alloc_flags)) {
--				if (!zone_reclaim_mode ||
--				    !zone_reclaim(zone, gfp_mask, order))
-+			if (zone_watermark_ok(zone, order, mark,
-+				    classzone_idx, alloc_flags))
-+				goto try_this_zone;
-+
-+			if (zone_reclaim_mode == 0)
-+				goto this_zone_full;
-+
-+			ret = zone_reclaim(zone, gfp_mask, order);
-+			switch (ret) {
-+			case ZONE_RECLAIM_NOSCAN:
-+				/* did not scan */
-+				goto try_next_zone;
-+			case ZONE_RECLAIM_FULL:
-+				/* scanned but unreclaimable */
-+				goto this_zone_full;
-+			default:
-+				/* did we reclaim enough */
-+				if (!zone_watermark_ok(zone, order, mark,
-+						classzone_idx, alloc_flags))
- 					goto this_zone_full;
- 			}
- 		}
- 
-+try_this_zone:
- 		page = buffered_rmqueue(preferred_zone, zone, order,
- 						gfp_mask, migratetype);
- 		if (page)
-diff -puN mm/vmscan.c~vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full mm/vmscan.c
---- a/mm/vmscan.c~vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full
+diff -puN include/linux/vmstat.h~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails include/linux/vmstat.h
+--- a/include/linux/vmstat.h~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails
++++ a/include/linux/vmstat.h
+@@ -36,6 +36,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		FOR_ALL_ZONES(PGSTEAL),
+ 		FOR_ALL_ZONES(PGSCAN_KSWAPD),
+ 		FOR_ALL_ZONES(PGSCAN_DIRECT),
++#ifdef CONFIG_NUMA
++		PGSCAN_ZONERECLAIM_FAILED,
++#endif
+ 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
+ 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
+ #ifdef CONFIG_HUGETLB_PAGE
+diff -puN mm/vmscan.c~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails
 +++ a/mm/vmscan.c
-@@ -2488,16 +2488,16 @@ int zone_reclaim(struct zone *zone, gfp_
- 	 */
- 	if (zone_pagecache_reclaimable(zone) <= zone->min_unmapped_pages &&
- 	    zone_page_state(zone, NR_SLAB_RECLAIMABLE) <= zone->min_slab_pages)
--		return 0;
-+		return ZONE_RECLAIM_FULL;
- 
- 	if (zone_is_all_unreclaimable(zone))
--		return 0;
-+		return ZONE_RECLAIM_FULL;
- 
- 	/*
- 	 * Do not scan if the allocation should not be delayed.
- 	 */
- 	if (!(gfp_mask & __GFP_WAIT) || (current->flags & PF_MEMALLOC))
--			return 0;
-+		return ZONE_RECLAIM_NOSCAN;
- 
- 	/*
- 	 * Only run zone reclaim on the local zone or on zones that do not
-@@ -2507,10 +2507,11 @@ int zone_reclaim(struct zone *zone, gfp_
- 	 */
- 	node_id = zone_to_nid(zone);
- 	if (node_state(node_id, N_CPU) && node_id != numa_node_id())
--		return 0;
-+		return ZONE_RECLAIM_NOSCAN;
- 
- 	if (zone_test_and_set_flag(zone, ZONE_RECLAIM_LOCKED))
--		return 0;
-+		return ZONE_RECLAIM_NOSCAN;
-+
+@@ -2515,6 +2515,9 @@ int zone_reclaim(struct zone *zone, gfp_
  	ret = __zone_reclaim(zone, gfp_mask, order);
  	zone_clear_flag(zone, ZONE_RECLAIM_LOCKED);
  
++	if (!ret)
++		count_vm_event(PGSCAN_ZONERECLAIM_FAILED);
++
+ 	return ret;
+ }
+ #endif
+diff -puN mm/vmstat.c~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails mm/vmstat.c
+--- a/mm/vmstat.c~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails
++++ a/mm/vmstat.c
+@@ -673,6 +673,9 @@ static const char * const vmstat_text[] 
+ 	TEXTS_FOR_ZONES("pgscan_kswapd")
+ 	TEXTS_FOR_ZONES("pgscan_direct")
+ 
++#ifdef CONFIG_NUMA
++	"zreclaim_failed",
++#endif
+ 	"pginodesteal",
+ 	"slabs_scanned",
+ 	"kswapd_steal",
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
