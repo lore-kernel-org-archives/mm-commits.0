@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit.patch added to -mm tree
-Date: Thu, 11 Jun 2009 15:20:02 -0700
-Message-ID: <200906112220.n5BMK2oD032348@imap1.linux-foundation.org>
+Subject: + input-change-timer-function-to-workqueue-for-gpio_keys-driver.patch added to -mm tree
+Date: Thu, 11 Jun 2009 15:22:05 -0700
+Message-ID: <200906112222.n5BMM5Ev001644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755966AbZFKWVC (ORCPT
+	by vger.kernel.org with ESMTP id S1751535AbZFKWWi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jun 2009 18:21:02 -0400
+	Thu, 11 Jun 2009 18:22:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jacmet@sunsite.dk, alan@lxorguk.ukuu.org.uk, ben-linux@fluff.org
+Cc: alek.du@intel.com, dtor@mail.ru
 
 
 The patch titled
-     serial: samsung.c: mark s3c24xx_serial_remove as __devexit
+     input: change timer function to workqueue for gpio_keys driver
 has been added to the -mm tree.  Its filename is
-     serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit.patch
+     input-change-timer-function-to-workqueue-for-gpio_keys-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: samsung.c: mark s3c24xx_serial_remove as __devexit
-From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: input: change timer function to workqueue for gpio_keys driver
+From: Alek Du <alek.du@intel.com>
 
-Mark the remove function as __devexit so it gets eliminated in
-CONFIG_HOTPLUG=n builds.  Saves ~100 bytes.
+The gpio_get_value function of I2C/SPI GPIO expander may sleep thus this
+function call can not be called in a timer function.
 
-Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
-Acked-by: Ben Dooks <ben-linux@fluff.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Alek Du <alek.du@intel.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/s3c2400.c |    2 +-
- drivers/serial/s3c2410.c |    2 +-
- drivers/serial/s3c2412.c |    2 +-
- drivers/serial/s3c2440.c |    2 +-
- drivers/serial/s3c24a0.c |    2 +-
- drivers/serial/s3c6400.c |    2 +-
- drivers/serial/samsung.c |    2 +-
- drivers/serial/samsung.h |    2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/input/keyboard/gpio_keys.c |   32 +++++++++++----------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
-diff -puN drivers/serial/s3c2400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2400.c
---- a/drivers/serial/s3c2400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c2400.c
-@@ -78,7 +78,7 @@ static int s3c2400_serial_probe(struct p
+diff -puN drivers/input/keyboard/gpio_keys.c~input-change-timer-function-to-workqueue-for-gpio_keys-driver drivers/input/keyboard/gpio_keys.c
+--- a/drivers/input/keyboard/gpio_keys.c~input-change-timer-function-to-workqueue-for-gpio_keys-driver
++++ a/drivers/input/keyboard/gpio_keys.c
+@@ -22,13 +22,17 @@
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
+ #include <linux/gpio_keys.h>
++#include <linux/workqueue.h>
  
- static struct platform_driver s3c2400_serial_drv = {
- 	.probe		= s3c2400_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c2400-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c2410.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2410.c
---- a/drivers/serial/s3c2410.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c2410.c
-@@ -90,7 +90,7 @@ static int s3c2410_serial_probe(struct p
+ #include <asm/gpio.h>
  
- static struct platform_driver s3c2410_serial_drv = {
- 	.probe		= s3c2410_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c2410-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c2412.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2412.c
---- a/drivers/serial/s3c2412.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c2412.c
-@@ -123,7 +123,7 @@ static int s3c2412_serial_probe(struct p
+ struct gpio_button_data {
+ 	struct gpio_keys_button *button;
+ 	struct input_dev *input;
+-	struct timer_list timer;
++/* Change timer func to workqueue func due to the fact that gpio_get_value
++ * may sleep for some i2c and spi GPIO expander
++ */
++	struct delayed_work work;
+ };
  
- static struct platform_driver s3c2412_serial_drv = {
- 	.probe		= s3c2412_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c2412-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c2440.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2440.c
---- a/drivers/serial/s3c2440.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c2440.c
-@@ -153,7 +153,7 @@ static int s3c2440_serial_probe(struct p
+ struct gpio_keys_drvdata {
+@@ -36,8 +40,10 @@ struct gpio_keys_drvdata {
+ 	struct gpio_button_data data[0];
+ };
  
- static struct platform_driver s3c2440_serial_drv = {
- 	.probe		= s3c2440_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c2440-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c24a0.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c24a0.c
---- a/drivers/serial/s3c24a0.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c24a0.c
-@@ -94,7 +94,7 @@ static int s3c24a0_serial_probe(struct p
- 
- static struct platform_driver s3c24a0_serial_drv = {
- 	.probe		= s3c24a0_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c24a0-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c6400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c6400.c
---- a/drivers/serial/s3c6400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c6400.c
-@@ -124,7 +124,7 @@ static int s3c6400_serial_probe(struct p
- 
- static struct platform_driver s3c6400_serial_drv = {
- 	.probe		= s3c6400_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c6400-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/samsung.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/samsung.c
---- a/drivers/serial/samsung.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/samsung.c
-@@ -1174,7 +1174,7 @@ int s3c24xx_serial_probe(struct platform
- 
- EXPORT_SYMBOL_GPL(s3c24xx_serial_probe);
- 
--int s3c24xx_serial_remove(struct platform_device *dev)
-+int __devexit s3c24xx_serial_remove(struct platform_device *dev)
+-static void gpio_keys_report_event(struct gpio_button_data *bdata)
++static void gpio_keys_report_event(struct work_struct *work)
  {
- 	struct uart_port *port = s3c24xx_dev_to_port(&dev->dev);
++	struct gpio_button_data *bdata = container_of(work,
++			struct gpio_button_data, work.work);
+ 	struct gpio_keys_button *button = bdata->button;
+ 	struct input_dev *input = bdata->input;
+ 	unsigned int type = button->type ?: EV_KEY;
+@@ -47,13 +53,6 @@ static void gpio_keys_report_event(struc
+ 	input_sync(input);
+ }
  
-diff -puN drivers/serial/samsung.h~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/samsung.h
---- a/drivers/serial/samsung.h~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/samsung.h
-@@ -72,7 +72,7 @@ struct s3c24xx_uart_port {
- extern int s3c24xx_serial_probe(struct platform_device *dev,
- 				struct s3c24xx_uart_info *uart);
+-static void gpio_check_button(unsigned long _data)
+-{
+-	struct gpio_button_data *data = (struct gpio_button_data *)_data;
+-
+-	gpio_keys_report_event(data);
+-}
+-
+ static irqreturn_t gpio_keys_isr(int irq, void *dev_id)
+ {
+ 	struct gpio_button_data *bdata = dev_id;
+@@ -62,10 +61,10 @@ static irqreturn_t gpio_keys_isr(int irq
+ 	BUG_ON(irq != gpio_to_irq(button->gpio));
  
--extern int s3c24xx_serial_remove(struct platform_device *dev);
-+extern int __devexit s3c24xx_serial_remove(struct platform_device *dev);
+ 	if (button->debounce_interval)
+-		mod_timer(&bdata->timer,
+-			jiffies + msecs_to_jiffies(button->debounce_interval));
++		schedule_delayed_work(&bdata->work,
++			msecs_to_jiffies(button->debounce_interval));
+ 	else
+-		gpio_keys_report_event(bdata);
++		schedule_work(&bdata->work.work);
  
- extern int s3c24xx_serial_initconsole(struct platform_driver *drv,
- 				      struct s3c24xx_uart_info *uart);
+ 	return IRQ_HANDLED;
+ }
+@@ -112,8 +111,7 @@ static int __devinit gpio_keys_probe(str
+ 
+ 		bdata->input = input;
+ 		bdata->button = button;
+-		setup_timer(&bdata->timer,
+-			    gpio_check_button, (unsigned long)bdata);
++		INIT_DELAYED_WORK(&bdata->work, gpio_keys_report_event);
+ 
+ 		error = gpio_request(button->gpio, button->desc ?: "gpio_keys");
+ 		if (error < 0) {
+@@ -172,8 +170,7 @@ static int __devinit gpio_keys_probe(str
+  fail2:
+ 	while (--i >= 0) {
+ 		free_irq(gpio_to_irq(pdata->buttons[i].gpio), &ddata->data[i]);
+-		if (pdata->buttons[i].debounce_interval)
+-			del_timer_sync(&ddata->data[i].timer);
++		cancel_delayed_work_sync(&ddata->data[i].work);
+ 		gpio_free(pdata->buttons[i].gpio);
+ 	}
+ 
+@@ -197,8 +194,7 @@ static int __devexit gpio_keys_remove(st
+ 	for (i = 0; i < pdata->nbuttons; i++) {
+ 		int irq = gpio_to_irq(pdata->buttons[i].gpio);
+ 		free_irq(irq, &ddata->data[i]);
+-		if (pdata->buttons[i].debounce_interval)
+-			del_timer_sync(&ddata->data[i].timer);
++		cancel_delayed_work_sync(&ddata->data[i].work);
+ 		gpio_free(pdata->buttons[i].gpio);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from jacmet@sunsite.dk are
+Patches currently in -mm which might be from alek.du@intel.com are
 
-linux-next.patch
-serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit.patch
+input-change-timer-function-to-workqueue-for-gpio_keys-driver.patch
 
