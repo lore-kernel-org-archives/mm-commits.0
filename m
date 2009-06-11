@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-fix-hang-in-set_termios-when-crtscts-is-enabled.patch added to -mm tree
-Date: Thu, 11 Jun 2009 15:23:29 -0700
-Message-ID: <200906112223.n5BMNTAH002750@imap1.linux-foundation.org>
+Subject: + gpio-pca953x-get-platform_data-from-openfirmware.patch added to -mm tree
+Date: Thu, 11 Jun 2009 15:29:25 -0700
+Message-ID: <200906112229.n5BMTPik007900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59259 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49078 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751658AbZFKWYE (ORCPT
+	by vger.kernel.org with ESMTP id S1755516AbZFKW36 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jun 2009 18:24:04 -0400
+	Thu, 11 Jun 2009 18:29:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haavard.skinnemoen@atmel.com, alan@lxorguk.ukuu.org.uk, eaa@wprmedical.com
+Cc: ncase@xes-inc.com, david-b@pacbell.net
 
 
 The patch titled
-     atmel_serial: fix hang in set_termios when crtscts is enabled
+     gpio: pca953x: Get platform_data from OpenFirmware
 has been added to the -mm tree.  Its filename is
-     atmel_serial-fix-hang-in-set_termios-when-crtscts-is-enabled.patch
+     gpio-pca953x-get-platform_data-from-openfirmware.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,160 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: fix hang in set_termios when crtscts is enabled
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: gpio: pca953x: Get platform_data from OpenFirmware
+From: Nate Case <ncase@xes-inc.com>
 
-After enabling hardware flow control, any subsequent termios call may hang
-waiting for the transmitter to drain.  This appears to be caused by a
-busy-loop in set_termios() waiting for the transmitter to become empty,
-which may take a very long time (or hang indefinitely) if the device at
-the other end is blocking us.
+On OpenFirmware platforms, it makes the most sense to get platform_data
+from the device tree.  Make an attempt to translate OF node properties
+into platform_data struct before bailing out.
 
-A quick look through the tty and serial_core code indicates that any
-necessary flushing (which is optional) has already been done at this
-point, so there's no need for the driver to flush the transmitter on its
-own.
+Note that the implementation approach taken differs from other device
+drivers that make use of device tree information.  This is because I2C
+chips are already registered automatically by of_i2c, so we can get by
+with a small translator function in the driver.
 
-Fix it by removing the busy-loop altogether.
-
-Tested-by: Eirik Aanonsen <eaa@wprmedical.com>
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Nate Case <ncase@xes-inc.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/gpio/pca953x.c |   79 ++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 74 insertions(+), 5 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-hang-in-set_termios-when-crtscts-is-enabled drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-hang-in-set_termios-when-crtscts-is-enabled
-+++ a/drivers/serial/atmel_serial.c
-@@ -1104,11 +1104,13 @@ static void atmel_set_termios(struct uar
- 	/* update the per-port timeout */
- 	uart_update_timeout(port, termios->c_cflag, baud);
+diff -puN drivers/gpio/pca953x.c~gpio-pca953x-get-platform_data-from-openfirmware drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~gpio-pca953x-get-platform_data-from-openfirmware
++++ a/drivers/gpio/pca953x.c
+@@ -15,6 +15,10 @@
+ #include <linux/init.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c/pca953x.h>
++#ifdef CONFIG_OF_GPIO
++#include <linux/of_platform.h>
++#include <linux/of_gpio.h>
++#endif
  
--	/* save/disable interrupts and drain transmitter */
-+	/*
-+	 * save/disable interrupts. The tty layer will ensure that the
-+	 * transmitter is empty if requested by the caller, so there's
-+	 * no need to wait for it here.
-+	 */
- 	imr = UART_GET_IMR(port);
- 	UART_PUT_IDR(port, -1);
--	while (!(UART_GET_CSR(port) & ATMEL_US_TXEMPTY))
--		cpu_relax();
+ #include <asm/gpio.h>
  
- 	/* disable receiver and transmitter */
- 	UART_PUT_CR(port, ATMEL_US_TXDIS | ATMEL_US_RXDIS);
+@@ -49,6 +53,7 @@ struct pca953x_chip {
+ 	uint16_t reg_direction;
+ 
+ 	struct i2c_client *client;
++	struct pca953x_platform_data *dyn_pdata;
+ 	struct gpio_chip gpio_chip;
+ 	char **names;
+ };
+@@ -196,6 +201,55 @@ static void pca953x_setup_gpio(struct pc
+ 	gc->names = chip->names;
+ }
+ 
++/*
++ * Handlers for alternative sources of platform_data
++ */
++#ifdef CONFIG_OF_GPIO
++/*
++ * Translate OpenFirmware node properties into platform_data
++ */
++static struct pca953x_platform_data *
++pca953x_get_alt_pdata(struct i2c_client *client)
++{
++	struct pca953x_platform_data *pdata;
++	struct device_node *node;
++	const uint16_t *val;
++
++	node = dev_archdata_get_node(&client->dev.archdata);
++	if (node == NULL)
++		return NULL;
++
++	pdata = kzalloc(sizeof(struct pca953x_platform_data), GFP_KERNEL);
++	if (pdata == NULL) {
++		dev_err(&client->dev, "Unable to allocate platform_data\n");
++		return NULL;
++	}
++
++	pdata->gpio_base = -1;
++	val = of_get_property(node, "linux,gpio-base", NULL);
++	if (val) {
++		if (*val < 0)
++			dev_warn(&client->dev,
++				 "invalid gpio-base in device tree\n");
++		else
++			pdata->gpio_base = *val;
++	}
++
++	val = of_get_property(node, "polarity", NULL);
++	if (val) {
++		pdata->invert = *val;
++	}
++
++	return pdata;
++}
++#else
++static struct pca953x_platform_data *
++pca953x_get_alt_pdata(struct i2c_client *client)
++{
++	return NULL;
++}
++#endif
++
+ static int __devinit pca953x_probe(struct i2c_client *client,
+ 				   const struct i2c_device_id *id)
+ {
+@@ -203,15 +257,25 @@ static int __devinit pca953x_probe(struc
+ 	struct pca953x_chip *chip;
+ 	int ret;
+ 
++	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
++	if (chip == NULL)
++		return -ENOMEM;
++
+ 	pdata = client->dev.platform_data;
+ 	if (pdata == NULL) {
+-		dev_dbg(&client->dev, "no platform data\n");
+-		return -EINVAL;
++		pdata = pca953x_get_alt_pdata(client);
++		/*
++		 * Unlike normal platform_data, this is allocated
++		 * dynamically and must be freed in the driver
++		 */
++		chip->dyn_pdata = pdata;
+ 	}
+ 
+-	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
+-	if (chip == NULL)
+-		return -ENOMEM;
++	if (pdata == NULL) {
++		dev_dbg(&client->dev, "no platform data\n");
++		ret = -EINVAL;
++		goto out_failed;
++	}
+ 
+ 	chip->client = client;
+ 
+@@ -253,6 +317,8 @@ static int __devinit pca953x_probe(struc
+ 	return 0;
+ 
+ out_failed:
++	if (chip->dyn_pdata != NULL)
++		kfree(chip->dyn_pdata);
+ 	kfree(chip);
+ 	return ret;
+ }
+@@ -280,6 +346,9 @@ static int pca953x_remove(struct i2c_cli
+ 		return ret;
+ 	}
+ 
++	if (chip->dyn_pdata != NULL)
++		kfree(chip->dyn_pdata);
++
+ 	kfree(chip);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from ncase@xes-inc.com are
 
-linux-next.patch
-atmel_serial-fix-hang-in-set_termios-when-crtscts-is-enabled.patch
-atmel-lcdc-fix-pixclock-upper-bound-detection.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+gpio-pca953x-get-platform_data-from-openfirmware.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes-gpio-pca953x-get-platform_data-from-openfirmware-cleanups.patch
+gpio-pca953x-add-support-for-pca9556.patch
 
