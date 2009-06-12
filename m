@@ -1,81 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atl1c-wake_mcast-tested-twice-not-wake_ucast.patch removed from -mm tree
-Date: Fri, 12 Jun 2009 11:22:26 -0700
-Message-ID: <200906121822.n5CIMQm2031195@imap1.linux-foundation.org>
+Subject: [merged] input-mouse-alpsc-handle-touchpoints-buttons-correctly.patch removed from -mm tree
+Date: Fri, 12 Jun 2009 11:22:11 -0700
+Message-ID: <200906121822.n5CIMBsO030957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756462AbZFLSZ4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757416AbZFLSZ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jun 2009 14:25:56 -0400
+	Fri, 12 Jun 2009 14:25:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, csnook@redhat.com, jcliburn@gmail.com, jie.yang@atheros.com, mm-commits@vger.kernel.org
+To: uli-kernel@spamt.net, dtor@mail.ru, uli@spamt.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atl1c: WAKE_MCAST tested twice, not WAKE_UCAST
+     input/mouse/alps.c: handle touchpoints buttons correctly
 has been removed from the -mm tree.  Its filename was
-     atl1c-wake_mcast-tested-twice-not-wake_ucast.patch
+     input-mouse-alpsc-handle-touchpoints-buttons-correctly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atl1c: WAKE_MCAST tested twice, not WAKE_UCAST
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: input/mouse/alps.c: handle touchpoints buttons correctly
+From: Ulrich Dangel <uli-kernel@spamt.net>
 
-The WAKE_MCAST bit is tested twice, the first should be WAKE_UCAST.
+When pressing any button belonging to the touchpoint, the generated click
+events dont belong to the touchpoint but to the touchpad.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jie Yang <jie.yang@atheros.com>
-Cc: Jay Cliburn <jcliburn@gmail.com>
-Cc: Chris Snook <csnook@redhat.com>
+This patch fixes this behaviour, the events will be sent via the correct
+device, so scrolling with touchpoint is possible.
+
+The patch compiles cleanly and has been tested successfully on my machine.
+
+Signed-off-by: Ulrich Dangel <uli@spamt.net>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1c/atl1c_ethtool.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/mouse/alps.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/atl1c/atl1c_ethtool.c~atl1c-wake_mcast-tested-twice-not-wake_ucast drivers/net/atl1c/atl1c_ethtool.c
---- a/drivers/net/atl1c/atl1c_ethtool.c~atl1c-wake_mcast-tested-twice-not-wake_ucast
-+++ a/drivers/net/atl1c/atl1c_ethtool.c
-@@ -271,7 +271,7 @@ static int atl1c_set_wol(struct net_devi
- 	struct atl1c_adapter *adapter = netdev_priv(netdev);
+diff -puN drivers/input/mouse/alps.c~input-mouse-alpsc-handle-touchpoints-buttons-correctly drivers/input/mouse/alps.c
+--- a/drivers/input/mouse/alps.c~input-mouse-alpsc-handle-touchpoints-buttons-correctly
++++ a/drivers/input/mouse/alps.c
+@@ -132,18 +132,23 @@ static void alps_process_packet(struct p
+ 	ges = packet[2] & 1;
+ 	fin = packet[2] & 2;
  
- 	if (wol->wolopts & (WAKE_ARP | WAKE_MAGICSECURE |
--			    WAKE_MCAST | WAKE_BCAST | WAKE_MCAST))
-+			    WAKE_UCAST | WAKE_BCAST | WAKE_MCAST))
- 		return -EOPNOTSUPP;
- 	/* these settings will always override what we currently have */
- 	adapter->wol = 0;
+-	input_report_key(dev, BTN_LEFT, left);
+-	input_report_key(dev, BTN_RIGHT, right);
+-	input_report_key(dev, BTN_MIDDLE, middle);
+-
+ 	if ((priv->i->flags & ALPS_DUALPOINT) && z == 127) {
+ 		input_report_rel(dev2, REL_X,  (x > 383 ? (x - 768) : x));
+ 		input_report_rel(dev2, REL_Y, -(y > 255 ? (y - 512) : y));
++
++		input_report_key(dev2, BTN_LEFT, left);
++		input_report_key(dev2, BTN_RIGHT, right);
++		input_report_key(dev2, BTN_MIDDLE, middle);
++
+ 		input_sync(dev);
+ 		input_sync(dev2);
+ 		return;
+ 	}
+ 
++	input_report_key(dev, BTN_LEFT, left);
++	input_report_key(dev, BTN_RIGHT, right);
++	input_report_key(dev, BTN_MIDDLE, middle);
++
+ 	/* Convert hardware tap to a reasonable Z value */
+ 	if (ges && !fin) z = 40;
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from uli-kernel@spamt.net are
 
-origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-drm-fix-lock_test_with_return-macro.patch
-drivers-isdn-i4l-isdn_ttyc-fix-check-for-array-overindexing.patch
-serial-fix-off-by-one-errors.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-usb-mutually-exclusive-port_status.patch
-spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-bad-macro-expansion-parameter-is-member.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-spi_bfin5xx-limit-reaches-1.patch
-carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-platinumfb-misplaced-parenthesis.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
 
