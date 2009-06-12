@@ -1,57 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch removed from -mm tree
-Date: Fri, 12 Jun 2009 11:22:32 -0700
-Message-ID: <200906121822.n5CIMWEs031256@imap1.linux-foundation.org>
+Subject: [merged] pci-eliminate-redundant-pci_stop_dev-call-from-pci_destroy_dev.patch removed from -mm tree
+Date: Fri, 12 Jun 2009 11:22:37 -0700
+Message-ID: <200906121822.n5CIMbeg031354@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45201 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755745AbZFLSZ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755350AbZFLSZl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jun 2009 14:25:28 -0400
+	Fri, 12 Jun 2009 14:25:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mirq-linux@rere.qmqm.pl, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: achiang@hp.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-quirks: HP hides SMBus controller in Compaq nx9500 laptops
+     pci: eliminate redundant pci_stop_dev() call from pci_destroy_dev()
 has been removed from the -mm tree.  Its filename was
-     pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
+     pci-eliminate-redundant-pci_stop_dev-call-from-pci_destroy_dev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-quirks: HP hides SMBus controller in Compaq nx9500 laptops
-From: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Subject: pci: eliminate redundant pci_stop_dev() call from pci_destroy_dev()
+From: Alex Chiang <achiang@hp.com>
 
-I found no references to SMBus in ACPI DSDT disassembly on my laptop
-so this should be safe.
+We always call pci_stop_bus_device before calling pci_destroy_dev.
 
-Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Since pci_stop_bus_device calls pci_stop_dev, there is no need
+for pci_destroy_dev to repeat the call.
+
+Signed-off-by: Alex Chiang <achiang@hp.com>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/remove.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/pci/quirks.c~pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops
-+++ a/drivers/pci/quirks.c
-@@ -1163,6 +1163,7 @@ static void __init asus_hides_smbus_host
- 			switch (dev->subsystem_device) {
- 			case 0x12bc: /* HP D330L */
- 			case 0x12bd: /* HP D530 */
-+			case 0x006a: /* HP Compaq nx9500 */
- 				asus_hides_smbus = 1;
- 			}
- 		else if (dev->device == PCI_DEVICE_ID_INTEL_82875_HB)
-_
-
-Patches currently in -mm which might be from mirq-linux@rere.qmqm.pl are
-
-linux-next.patch
-
+diff -puN drivers/pci/remove.c~pci-eliminate-redundant-pci_stop_dev-call-from-pci_destroy_dev drivers/pci/remove.c
+--- a/drivers/pci/remove.c~pci-eliminate-redundant-pci_stop_dev-call-from-pci_destroy_dev
++++ a/drivers/pci/remove.c
+@@ -32,8 +32,6 @@ static void pci_stop_dev(struct pci_dev 
+ 
+ static void pci_destroy_dev(struct pci_dev *dev)
+ {
+-	pci_stop_dev(dev);
