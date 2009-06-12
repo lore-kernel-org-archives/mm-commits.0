@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch added to -mm tree
-Date: Thu, 11 Jun 2009 16:34:57 -0700
-Message-ID: <200906112334.n5BNYwG4031481@imap1.linux-foundation.org>
+Subject: + lis3-add-click-function.patch added to -mm tree
+Date: Fri, 12 Jun 2009 08:46:58 -0700
+Message-ID: <200906121546.n5CFkwoN026303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37960 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759699AbZFKXfh (ORCPT
+	by vger.kernel.org with ESMTP id S1757915AbZFLPrM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jun 2009 19:35:37 -0400
+	Fri, 12 Jun 2009 11:47:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, cl@linux-foundation.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@ucw.cz
 
 
 The patch titled
-     vmscan: count the number of times zone_reclaim() scans and fails
+     lis3: add click function
 has been added to the -mm tree.  Its filename is
-     vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
+     lis3-add-click-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,135 +29,191 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: vmscan: count the number of times zone_reclaim() scans and fails
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: lis3: add click function
+=46rom: Daniel Mack <daniel@caiaq.de>
 
-On NUMA machines, the administrator can configure zone_reclaim_mode that
-is a more targetted form of direct reclaim.  On machines with large NUMA
-distances for example, a zone_reclaim_mode defaults to 1 meaning that
-clean unmapped pages will be reclaimed if the zone watermarks are not
-being met.
+The LIS302DL accelerometer chip has a 'click' feature which can be used=
+ to
+detect sudden motion on any of the three axis.  Configuration data is
+passed via spi platform_data and no action is taken if that's not
+specified, so it won't harm any existing platform.
 
-There is a heuristic that determines if the scan is worthwhile but it is
-possible that the heuristic will fail and the CPU gets tied up scanning
-uselessly.  Detecting the situation requires some guesswork and
-experimentation so this patch adds a counter "zreclaim_failed" to
-/proc/vmstat.  If during high CPU utilisation this counter is increasing
-rapidly, then the resolution to the problem may be to set
-/proc/sys/vm/zone_reclaim_mode to 0.
+To make the configuration effective, the IRQ lines need to be set up
+appropriately.  This patch also adds a way to do that from board suppor=
+t
+code.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+The DD_* definitions were factored out to an own enum because they are
+specific to LIS3LV02D devices.
+
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    3 +++
- mm/vmscan.c            |    3 +++
- mm/vmstat.c            |    3 +++
- 3 files changed, 9 insertions(+)
+ drivers/hwmon/lis3lv02d.c     |   20 ++++++++++++++++
+ drivers/hwmon/lis3lv02d.h     |   19 ++++++++++++++-
+ drivers/hwmon/lis3lv02d_spi.c |    1=20
+ include/linux/lis3lv02d.h     |   39 ++++++++++++++++++++++++++++++++
+ 4 files changed, 78 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/vmstat.h~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails include/linux/vmstat.h
---- a/include/linux/vmstat.h~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails
-+++ a/include/linux/vmstat.h
-@@ -36,6 +36,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		FOR_ALL_ZONES(PGSTEAL),
- 		FOR_ALL_ZONES(PGSCAN_KSWAPD),
- 		FOR_ALL_ZONES(PGSCAN_DIRECT),
-+#ifdef CONFIG_NUMA
-+		PGSCAN_ZONERECLAIM_FAILED,
-+#endif
- 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
- 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
- #ifdef CONFIG_HUGETLB_PAGE
-diff -puN mm/vmscan.c~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails mm/vmscan.c
---- a/mm/vmscan.c~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails
-+++ a/mm/vmscan.c
-@@ -2515,6 +2515,9 @@ int zone_reclaim(struct zone *zone, gfp_
- 	ret = __zone_reclaim(zone, gfp_mask, order);
- 	zone_clear_flag(zone, ZONE_RECLAIM_LOCKED);
- 
-+	if (!ret)
-+		count_vm_event(PGSCAN_ZONERECLAIM_FAILED);
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-add-click-function drivers/hwm=
+on/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-add-click-function
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -438,6 +438,26 @@ int lis3lv02d_init_device(struct lis3lv0
+ 	if (lis3lv02d_joystick_enable())
+ 		printk(KERN_ERR DRIVER_NAME ": joystick initialization failed\n");
+=20
++	/* passing in platform specific data is purely optional and only
++	 * used by the SPI transport layer at the moment */
++	if (dev->pdata) {
++		struct lis3lv02d_platform_data *p =3D dev->pdata;
 +
- 	return ret;
- }
- #endif
-diff -puN mm/vmstat.c~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails mm/vmstat.c
---- a/mm/vmstat.c~vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails
-+++ a/mm/vmstat.c
-@@ -673,6 +673,9 @@ static const char * const vmstat_text[] 
- 	TEXTS_FOR_ZONES("pgscan_kswapd")
- 	TEXTS_FOR_ZONES("pgscan_direct")
- 
-+#ifdef CONFIG_NUMA
-+	"zreclaim_failed",
-+#endif
- 	"pginodesteal",
- 	"slabs_scanned",
- 	"kswapd_steal",
++		if (p->click_flags && (dev->whoami =3D=3D LIS_SINGLE_ID)) {
++			dev->write(dev, CLICK_CFG, p->click_flags);
++			dev->write(dev, CLICK_TIMELIMIT, p->click_time_limit);
++			dev->write(dev, CLICK_LATENCY, p->click_latency);
++			dev->write(dev, CLICK_WINDOW, p->click_window);
++			dev->write(dev, CLICK_THSZ, p->click_thresh_z & 0xf);
++			dev->write(dev, CLICK_THSY_X,
++					(p->click_thresh_x & 0xf) |
++					(p->click_thresh_y << 4));
++		}
++
++		if (p->irq_cfg)
++			dev->write(dev, CTRL_REG3, p->irq_cfg);
++	}
++
+ 	/* bail if we did not get an IRQ from the bus layer */
+ 	if (!dev->irq) {
+ 		printk(KERN_ERR DRIVER_NAME
+diff -puN drivers/hwmon/lis3lv02d.h~lis3-add-click-function drivers/hwm=
+on/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3-add-click-function
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -29,12 +29,14 @@
+  * They can also be connected via I=C2=B2C.
+  */
+=20
++#include <linux/lis3lv02d.h>
++
+ /* 2-byte registers */
+ #define LIS_DOUBLE_ID	0x3A /* LIS3LV02D[LQ] */
+ /* 1-byte registers */
+ #define LIS_SINGLE_ID	0x3B /* LIS[32]02DL and others */
+=20
+-enum lis3lv02d_reg {
++enum lis3_reg {
+ 	WHO_AM_I	=3D 0x0F,
+ 	OFFSET_X	=3D 0x16,
+ 	OFFSET_Y	=3D 0x17,
+@@ -62,6 +64,19 @@ enum lis3lv02d_reg {
+ 	FF_WU_THS_L	=3D 0x34,
+ 	FF_WU_THS_H	=3D 0x35,
+ 	FF_WU_DURATION	=3D 0x36,
++};
++
++enum lis302d_reg {
++	CLICK_CFG	=3D 0x38,
++	CLICK_SRC	=3D 0x39,
++	CLICK_THSY_X	=3D 0x3B,
++	CLICK_THSZ	=3D 0x3C,
++	CLICK_TIMELIMIT	=3D 0x3D,
++	CLICK_LATENCY	=3D 0x3E,
++	CLICK_WINDOW	=3D 0x3F,
++};
++
++enum lis3lv02d_reg {
+ 	DD_CFG		=3D 0x38,
+ 	DD_SRC		=3D 0x39,
+ 	DD_ACK		=3D 0x3A,
+@@ -183,6 +198,8 @@ struct lis3lv02d {
+ 	struct fasync_struct	*async_queue; /* queue for the misc device */
+ 	wait_queue_head_t	misc_wait; /* Wait queue for the misc device */
+ 	unsigned long		misc_opened; /* bit0: whether the device is open */
++
++	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
+ };
+=20
+ int lis3lv02d_init_device(struct lis3lv02d *lis3);
+diff -puN drivers/hwmon/lis3lv02d_spi.c~lis3-add-click-function drivers=
+/hwmon/lis3lv02d_spi.c
+--- a/drivers/hwmon/lis3lv02d_spi.c~lis3-add-click-function
++++ a/drivers/hwmon/lis3lv02d_spi.c
+@@ -72,6 +72,7 @@ static int __devinit lis302dl_spi_probe(
+ 	lis3_dev.write =3D lis3_spi_write;
+ 	lis3_dev.irq =3D spi->irq;
+ 	lis3_dev.ac =3D lis3lv02d_axis_normal;
++	lis3_dev.pdata =3D spi->dev.platform_data;
+ 	spi_set_drvdata(spi, &lis3_dev);
+=20
+ 	ret =3D lis3lv02d_init_device(&lis3_dev);
+diff -puN /dev/null include/linux/lis3lv02d.h
+--- /dev/null
++++ a/include/linux/lis3lv02d.h
+@@ -0,0 +1,39 @@
++#ifndef __LIS3LV02D_H_
++#define __LIS3LV02D_H_
++
++struct lis3lv02d_platform_data {
++	/* please note: the 'click' feature is only supported for
++	 * LIS[32]02DL variants of the chip and will be ignored for
++	 * others */
++#define LIS3_CLICK_SINGLE_X	(1 << 0)
++#define LIS3_CLICK_DOUBLE_X	(1 << 1)
++#define LIS3_CLICK_SINGLE_Y	(1 << 2)
++#define LIS3_CLICK_DOUBLE_Y	(1 << 3)
++#define LIS3_CLICK_SINGLE_Z	(1 << 4)
++#define LIS3_CLICK_DOUBLE_Z	(1 << 5)
++	unsigned char click_flags;
++	unsigned char click_thresh_x;
++	unsigned char click_thresh_y;
++	unsigned char click_thresh_z;
++	unsigned char click_time_limit;
++	unsigned char click_latency;
++	unsigned char click_window;
++
++#define LIS3_IRQ1_DISABLE	(0 << 0)
++#define LIS3_IRQ1_FF_WU_1	(1 << 0)
++#define LIS3_IRQ1_FF_WU_2	(2 << 0)
++#define LIS3_IRQ1_FF_WU_12	(3 << 0)
++#define LIS3_IRQ1_DATA_READY	(4 << 0)
++#define LIS3_IRQ1_CLICK		(7 << 0)
++#define LIS3_IRQ2_DISABLE	(0 << 3)
++#define LIS3_IRQ2_FF_WU_1	(1 << 3)
++#define LIS3_IRQ2_FF_WU_2	(2 << 3)
++#define LIS3_IRQ2_FF_WU_12	(3 << 3)
++#define LIS3_IRQ2_DATA_READY	(4 << 3)
++#define LIS3_IRQ2_CLICK		(7 << 3)
++#define LIS3_IRQ_OPEN_DRAIN	(1 << 6)
++#define LIS3_IRQ_ACTIVE_HIGH	(1 << 7)
++	unsigned char irq_cfg;
++};
++
++#endif /* __LIS3LV02D_H_ */
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
-origin.patch
 linux-next.patch
-vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
-mm-alloc_large_system_hash-check-order.patch
-page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
-page-allocator-check-only-once-if-the-zonelist-is-suitable-for-the-allocation.patch
-page-allocator-break-up-the-allocator-entry-point-into-fast-and-slow-paths.patch
-page-allocator-move-check-for-disabled-anti-fragmentation-out-of-fastpath.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-calculate-the-migratetype-for-allocation-only-once.patch
-page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-page-allocator-inline-__rmqueue_smallest.patch
-page-allocator-inline-buffered_rmqueue.patch
-page-allocator-inline-__rmqueue_fallback.patch
-page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
-page-allocator-do-not-disable-interrupts-in-free_page_mlock.patch
-page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
-page-allocator-do-not-check-for-compound-pages-during-the-page-allocator-sanity-checks.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark.patch
-page-allocator-use-allocation-flags-as-an-index-to-the-zone-watermark-replace-the-watermark-related-union-in-struct-zone-with-a-watermark-array.patch
-page-allocator-update-nr_free_pages-only-as-necessary.patch
-page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
-page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
-page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
-page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
-page-allocator-move-free_page_mlock-to-page_allocc.patch
-page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
-mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
-page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
-page-allocator-clean-up-functions-related-to-pages_min.patch
-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
-oom-avoid-unnecessary-mm-locking-and-scanning-for-oom_disable.patch
-oom-invoke-oom-killer-for-__gfp_nofail.patch
-page-allocator-clear-n_high_memory-map-before-se-set-it-again.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
-vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
-vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full.patch
-vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+console-make-blank-timeout-value-a-boot-option.patch
+lis3-add-click-function.patch
+w1-gpio-add-external-pull-up-enable-callback.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
