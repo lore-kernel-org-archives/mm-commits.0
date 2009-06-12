@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch removed from -mm tree
-Date: Fri, 12 Jun 2009 09:05:28 -0700
-Message-ID: <200906121605.n5CG5SZG009853@imap1.linux-foundation.org>
+Subject: + vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch added to -mm tree
+Date: Fri, 12 Jun 2009 09:06:35 -0700
+Message-ID: <200906121606.n5CG6ZMP010854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757852AbZFLQHL (ORCPT
+	by vger.kernel.org with ESMTP id S1758956AbZFLQH5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jun 2009 12:07:11 -0400
+	Fri, 12 Jun 2009 12:07:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, cl@linux-foundation.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mel@csn.ul.ie, cl@linux-foundation.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, stable@kernel.org
 
 
 The patch titled
      vmscan: properly account for the number of page cache pages zone_reclaim() can reclaim
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
 
-This patch was dropped because it was folded into vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -99,11 +109,12 @@ Reviewed-by: Rik van Riel <riel@redhat.com>
 Acked-by: Christoph Lameter <cl@linux-foundation.org>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   55 +++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 41 insertions(+), 14 deletions(-)
+ mm/vmscan.c |   48 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 41 insertions(+), 7 deletions(-)
 
 diff -puN mm/vmscan.c~vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim mm/vmscan.c
 --- a/mm/vmscan.c~vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim
@@ -153,46 +164,25 @@ diff -puN mm/vmscan.c~vmscan-properly-account-for-the-number-of-page-cache-pages
  /*
   * Try to free up some pages from this zone through reclaim.
   */
-@@ -2378,7 +2416,6 @@ static int __zone_reclaim(struct zone *z
- 		.isolate_pages = isolate_pages_global,
- 	};
- 	unsigned long slab_reclaimable;
--	long nr_unmapped_file_pages;
- 
- 	disable_swap_token();
- 	cond_resched();
-@@ -2391,11 +2428,7 @@ static int __zone_reclaim(struct zone *z
+@@ -2390,9 +2428,7 @@ static int __zone_reclaim(struct zone *z
  	reclaim_state.reclaimed_slab = 0;
  	p->reclaim_state = &reclaim_state;
  
--	nr_unmapped_file_pages = zone_page_state(zone, NR_INACTIVE_FILE) +
--				 zone_page_state(zone, NR_ACTIVE_FILE) -
--				 zone_page_state(zone, NR_FILE_MAPPED);
--
--	if (nr_unmapped_file_pages > zone->min_unmapped_pages) {
+-	if (zone_page_state(zone, NR_FILE_PAGES) -
+-		zone_page_state(zone, NR_FILE_MAPPED) >
+-		zone->min_unmapped_pages) {
 +	if (zone_pagecache_reclaimable(zone) > zone->min_unmapped_pages) {
  		/*
  		 * Free memory by calling shrink zone with increasing
  		 * priorities until we have enough memory freed.
-@@ -2442,8 +2475,6 @@ int zone_reclaim(struct zone *zone, gfp_
- {
- 	int node_id;
- 	int ret;
--	long nr_unmapped_file_pages;
--	long nr_slab_reclaimable;
- 
- 	/*
- 	 * Zone reclaim reclaims unmapped file backed pages and
-@@ -2455,12 +2486,8 @@ int zone_reclaim(struct zone *zone, gfp_
+@@ -2450,10 +2486,8 @@ int zone_reclaim(struct zone *zone, gfp_
  	 * if less than a specified percentage of the zone is used by
  	 * unmapped file backed pages.
  	 */
--	nr_unmapped_file_pages = zone_page_state(zone, NR_INACTIVE_FILE) +
--				 zone_page_state(zone, NR_ACTIVE_FILE) -
--				 zone_page_state(zone, NR_FILE_MAPPED);
--	nr_slab_reclaimable = zone_page_state(zone, NR_SLAB_RECLAIMABLE);
--	if (nr_unmapped_file_pages <= zone->min_unmapped_pages &&
--	    nr_slab_reclaimable <= zone->min_slab_pages)
+-	if (zone_page_state(zone, NR_FILE_PAGES) -
+-	    zone_page_state(zone, NR_FILE_MAPPED) <= zone->min_unmapped_pages
+-	    && zone_page_state(zone, NR_SLAB_RECLAIMABLE)
+-			<= zone->min_slab_pages)
 +	if (zone_pagecache_reclaimable(zone) <= zone->min_unmapped_pages &&
 +	    zone_page_state(zone, NR_SLAB_RECLAIMABLE) <= zone->min_slab_pages)
  		return 0;
@@ -248,7 +238,6 @@ oom-invoke-oom-killer-for-__gfp_nofail.patch
 page-allocator-clear-n_high_memory-map-before-se-set-it-again.patch
 mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
 mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
-vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
 vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
 vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full.patch
 vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
