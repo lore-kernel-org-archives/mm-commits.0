@@ -1,76 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] vmscan-drop-pf_swapwrite-from-zone_reclaim.patch removed from -mm tree
-Date: Fri, 12 Jun 2009 09:03:55 -0700
-Message-ID: <200906121603.n5CG3tIT008486@imap1.linux-foundation.org>
+Subject: [folded] vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch removed from -mm tree
+Date: Fri, 12 Jun 2009 09:05:28 -0700
+Message-ID: <200906121605.n5CG5SZG009853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44991 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758044AbZFLQEW (ORCPT
+	by vger.kernel.org with ESMTP id S1757852AbZFLQHL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jun 2009 12:04:22 -0400
+	Fri, 12 Jun 2009 12:07:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, hannes@cmpxchg.org, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, cl@linux-foundation.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: drop PF_SWAPWRITE from zone_reclaim
+     vmscan: properly account for the number of page cache pages zone_reclaim() can reclaim
 has been removed from the -mm tree.  Its filename was
-     vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
+     vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: drop PF_SWAPWRITE from zone_reclaim
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: vmscan: properly account for the number of page cache pages zone_reclaim() can reclaim
+From: Mel Gorman <mel@csn.ul.ie>
 
-PF_SWAPWRITE mean ignore write congestion. (see may_write_to_queue())
+A bug was brought to my attention against a distro kernel but it affects
+mainline and I believe problems like this have been reported in various
+guises on the mailing lists although I don't have specific examples at the
+moment.
 
-foreground reclaim shouldn't ignore it because writing to a write
-congested device cause large IO lantencies.  It isn't better than remote
-node allocation.
+The reported problem was that malloc() stalled for a long time (minutes in
+some cases) if a large tmpfs mount was occupying a large percentage of
+memory overall.  The pages did not get cleaned or reclaimed by
+zone_reclaim() because the zone_reclaim_mode was unsuitable, but the lists
+are uselessly scanned frequencly making the CPU spin at near 100%.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+This patchset intends to address that bug and bring the behaviour of
+zone_reclaim() more in line with expectations which were noticed during
+investigation.  It is based on top of mmotm and takes advantage of
+Kosaki's work with respect to zone_reclaim().
+
+Patch 1 fixes the heuristics that zone_reclaim() uses to determine if the
+	scan should go ahead. The broken heuristic is what was causing the
+	malloc() stall as it uselessly scanned the LRU constantly. Currently,
+	zone_reclaim is assuming zone_reclaim_mode is 1 and historically it
+	could not deal with tmpfs pages at all. This fixes up the heuristic so
+	that an unnecessary scan is more likely to be correctly avoided.
+
+Patch 2 notes that zone_reclaim() returning a failure automatically means
+	the zone is marked full. This is not always true. It could have
+	failed because the GFP mask or zone_reclaim_mode were unsuitable.
+
+Patch 3 introduces a counter zreclaim_failed that will increment each
+	time the zone_reclaim scan-avoidance heuristics fail. If that
+	counter is rapidly increasing, then zone_reclaim_mode should be
+	set to 0 as a temporarily resolution and a bug reported because
+	the scan-avoidance heuristic is still broken.
+
+
+This patch:
+
+On NUMA machines, the administrator can configure zone_reclaim_mode that
+is a more targetted form of direct reclaim.  On machines with large NUMA
+distances for example, a zone_reclaim_mode defaults to 1 meaning that
+clean unmapped pages will be reclaimed if the zone watermarks are not
+being met.
+
+There is a heuristic that determines if the scan is worthwhile but the
+problem is that the heuristic is not being properly applied and is
+basically assuming zone_reclaim_mode is 1 if it is enabled.  The lack of
+proper detection can manfiest as high CPU usage as the LRU list is scanned
+uselessly.
+
+Historically, once enabled it was depending on NR_FILE_PAGES which may
+include swapcache pages that the reclaim_mode cannot deal with.  Patch
+vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch by
+Kosaki Motohiro noted that zone_page_state(zone, NR_FILE_PAGES) included
+pages that were not file-backed such as swapcache and made a calculation
+based on the inactive, active and mapped files.  This is far superior when
+zone_reclaim==1 but if RECLAIM_SWAP is set, then NR_FILE_PAGES is a
+reasonable starting figure.
+
+This patch alters how zone_reclaim() works out how many pages it might be
+able to reclaim given the current reclaim_mode.  If RECLAIM_SWAP is set in
+the reclaim_mode it will either consider NR_FILE_PAGES as potential
+candidates or else use NR_{IN}ACTIVE}_PAGES-NR_FILE_MAPPED to discount
+swapcache and other non-file-backed pages.  If RECLAIM_WRITE is not set,
+then NR_FILE_DIRTY number of pages are not candidates.  If RECLAIM_SWAP is
+not set, then NR_FILE_MAPPED are not.
+
+[kosaki.motohiro@jp.fujitsu.com: Estimate unmapped pages minus tmpfs pages]
+[fengguang.wu@intel.com: Fix underflow problem in Kosaki's estimate]
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   55 +++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 41 insertions(+), 14 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-drop-pf_swapwrite-from-zone_reclaim mm/vmscan.c
---- a/mm/vmscan.c~vmscan-drop-pf_swapwrite-from-zone_reclaim
+diff -puN mm/vmscan.c~vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim
 +++ a/mm/vmscan.c
-@@ -2373,7 +2373,7 @@ static int __zone_reclaim(struct zone *z
- 	 * and we also need to be able to write out pages for RECLAIM_WRITE
- 	 * and RECLAIM_SWAP.
- 	 */
--	p->flags |= PF_MEMALLOC | PF_SWAPWRITE;
-+	p->flags |= PF_MEMALLOC;
+@@ -2356,6 +2356,44 @@ int sysctl_min_unmapped_ratio = 1;
+  */
+ int sysctl_min_slab_ratio = 5;
+ 
++static inline unsigned long zone_unmapped_file_pages(struct zone *zone)
++{
++	unsigned long file_mapped = zone_page_state(zone, NR_FILE_MAPPED);
++	unsigned long file_lru = zone_page_state(zone, NR_INACTIVE_FILE) +
++		zone_page_state(zone, NR_ACTIVE_FILE);
++
++	/*
++	 * It's possible for there to be more file mapped pages than
++	 * accounted for by the pages on the file LRU lists because
++	 * tmpfs pages accounted for as ANON can also be FILE_MAPPED
++	 */
++	return (file_lru > file_mapped) ? (file_lru - file_mapped) : 0;
++}
++
++/* Work out how many page cache pages we can reclaim in this reclaim_mode */
++static long zone_pagecache_reclaimable(struct zone *zone)
++{
++	long nr_pagecache_reclaimable;
++	long delta = 0;
++
++	/*
++	 * If RECLAIM_SWAP is set, then all file pages are considered
++	 * potentially reclaimable. Otherwise, we have to worry about
++	 * pages like swapcache and zone_unmapped_file_pages() provides
++	 * a better estimate
++	 */
++	if (zone_reclaim_mode & RECLAIM_SWAP)
++		nr_pagecache_reclaimable = zone_page_state(zone, NR_FILE_PAGES);
++	else
++		nr_pagecache_reclaimable = zone_unmapped_file_pages(zone);
++
++	/* If we can't clean pages, remove dirty pages from consideration */
++	if (!(zone_reclaim_mode & RECLAIM_WRITE))
++		delta += zone_page_state(zone, NR_FILE_DIRTY);
++
++	return nr_pagecache_reclaimable;
++}
++
+ /*
+  * Try to free up some pages from this zone through reclaim.
+  */
+@@ -2378,7 +2416,6 @@ static int __zone_reclaim(struct zone *z
+ 		.isolate_pages = isolate_pages_global,
+ 	};
+ 	unsigned long slab_reclaimable;
+-	long nr_unmapped_file_pages;
+ 
+ 	disable_swap_token();
+ 	cond_resched();
+@@ -2391,11 +2428,7 @@ static int __zone_reclaim(struct zone *z
  	reclaim_state.reclaimed_slab = 0;
  	p->reclaim_state = &reclaim_state;
  
-@@ -2420,7 +2420,7 @@ static int __zone_reclaim(struct zone *z
- 	}
+-	nr_unmapped_file_pages = zone_page_state(zone, NR_INACTIVE_FILE) +
+-				 zone_page_state(zone, NR_ACTIVE_FILE) -
+-				 zone_page_state(zone, NR_FILE_MAPPED);
+-
+-	if (nr_unmapped_file_pages > zone->min_unmapped_pages) {
++	if (zone_pagecache_reclaimable(zone) > zone->min_unmapped_pages) {
+ 		/*
+ 		 * Free memory by calling shrink zone with increasing
+ 		 * priorities until we have enough memory freed.
+@@ -2442,8 +2475,6 @@ int zone_reclaim(struct zone *zone, gfp_
+ {
+ 	int node_id;
+ 	int ret;
+-	long nr_unmapped_file_pages;
+-	long nr_slab_reclaimable;
  
- 	p->reclaim_state = NULL;
--	current->flags &= ~(PF_MEMALLOC | PF_SWAPWRITE);
-+	current->flags &= ~PF_MEMALLOC;
- 	return sc.nr_reclaimed >= nr_pages;
- }
+ 	/*
+ 	 * Zone reclaim reclaims unmapped file backed pages and
+@@ -2455,12 +2486,8 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	 * if less than a specified percentage of the zone is used by
+ 	 * unmapped file backed pages.
+ 	 */
+-	nr_unmapped_file_pages = zone_page_state(zone, NR_INACTIVE_FILE) +
+-				 zone_page_state(zone, NR_ACTIVE_FILE) -
+-				 zone_page_state(zone, NR_FILE_MAPPED);
+-	nr_slab_reclaimable = zone_page_state(zone, NR_SLAB_RECLAIMABLE);
+-	if (nr_unmapped_file_pages <= zone->min_unmapped_pages &&
+-	    nr_slab_reclaimable <= zone->min_slab_pages)
++	if (zone_pagecache_reclaimable(zone) <= zone->min_unmapped_pages &&
++	    zone_page_state(zone, NR_SLAB_RECLAIMABLE) <= zone->min_slab_pages)
+ 		return 0;
  
+ 	if (zone_is_all_unreclaimable(zone))
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
+linux-next.patch
 vmscan-low-order-lumpy-reclaim-also-should-use-pageout_io_sync.patch
+mm-alloc_large_system_hash-check-order.patch
 page-allocator-replace-__alloc_pages_internal-with-__alloc_pages_nodemask.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
@@ -96,47 +231,26 @@ page-allocator-update-nr_free_pages-only-as-necessary.patch
 page-allocator-update-nr_free_pages-only-as-necessary-fix.patch
 page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
 page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths.patch
+page-allocator-use-a-pre-calculated-value-instead-of-num_online_nodes-in-fast-paths-do-not-override-definition-of-node_set_online-with-macro.patch
 page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
 page-allocator-move-free_page_mlock-to-page_allocc.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+page-allocator-sanity-check-order-in-the-page-allocator-slow-path.patch
+mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
 mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
-pagemap-document-clarifications.patch
-pagemap-document-9-more-exported-page-flags.patch
-pagemap-add-page-types-tool.patch
-pagemap-add-page-types-tool-fix.patch
-pagemap-export-pg_hwpoison.patch
-pagemap-export-pg_hwpoison-fix.patch
-vmscan-evict-use-once-pages-first-v3.patch
-vmscan-cleanup-the-scan-batching-code.patch
-vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
-vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
 page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
-vmscan-drop-pf_swapwrite-from-zone_reclaim.patch
-vmscan-zone_reclaim-use-may_swap.patch
-migration-only-migrate_prep-once-per-move_pages.patch
-vmscan-prevent-shrinking-of-active-anon-lru-list-in-case-of-no-swap-space-v3.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
 page-allocator-clean-up-functions-related-to-pages_min.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
-page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
-mm-remove-config_unevictable_lru-config-option.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-vmscan-make-mapped-executable-pages-the-first-class-citizen.patch
-vmscan-handle-may_swap-more-strictly.patch
-oom-only-oom-kill-exiting-tasks-with-attached-memory.patch
+oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
+oom-avoid-unnecessary-mm-locking-and-scanning-for-oom_disable.patch
+oom-invoke-oom-killer-for-__gfp_nofail.patch
+page-allocator-clear-n_high_memory-map-before-se-set-it-again.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
+vmscan-change-the-number-of-the-unmapped-files-in-zone-reclaim.patch
 vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
 vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full.patch
 vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
-use-printk_once-in-several-places.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
