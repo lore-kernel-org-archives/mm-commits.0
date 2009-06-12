@@ -1,73 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch removed from -mm tree
-Date: Fri, 12 Jun 2009 11:22:39 -0700
-Message-ID: <200906121822.n5CIMduq031399@imap1.linux-foundation.org>
+Subject: [merged] drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch removed from -mm tree
+Date: Fri, 12 Jun 2009 11:22:23 -0700
+Message-ID: <200906121822.n5CIMNCA031109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49672 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759188AbZFLS0J (ORCPT
+	by vger.kernel.org with ESMTP id S1750941AbZFLS0V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jun 2009 14:26:09 -0400
+	Fri, 12 Jun 2009 14:26:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: sg.tweak@gmail.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, rjw@sisk.pl, shemminger@vyatta.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci pm: follow PCI_PM_CTRL_NO_SOFT_RESET during transitions from D3
+     drivers/net/macvlan.c: fix cloning of tagged VLAN interfaces
 has been removed from the -mm tree.  Its filename was
-     pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3.patch
+     drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci pm: follow PCI_PM_CTRL_NO_SOFT_RESET during transitions from D3
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: drivers/net/macvlan.c: fix cloning of tagged VLAN interfaces
+From: <sg.tweak@gmail.com>
 
-According to the PCI PM specification (PCI Bus Power Management Interface
-Specification, Rev.  1.2, Section 5.4.1) we are supposed to reinitialize
-devices that have PCI_PM_CTRL_NO_SOFT_RESET clear during all transitions
-from PCI_D3hot to PCI_D0, but we only do it if the device's current_state
-field is equal to PCI_UNKNOWN.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13348
 
-This may lead to problems if a device with PCI_PM_CTRL_NO_SOFT_RESET unset
-is put into PCI_D3hot at run time by its driver and pci_set_power_state()
-is used to put it back into PCI_D0, because in that case the device will
-remain uninitialized after pci_set_power_state() has returned.  Prevent
-that from happening by modifying pci_raw_set_power_state() to reinitialize
-devices with PCI_PM_CTRL_NO_SOFT_RESET unset during all transitions from
-D3 to D0.
+akpm: the reporter disappeared, so I typed it in again.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+
+It is not possible to make clone of tagged VLAN interface to be used as
+mac-based vlan interfave.
+
+How reproducible:
+Use any 802.1q tagged vlan interface, e.g. eth2.700 and clone it:
+
+  ip link add link eth2.700 address 00:04:75:cb:38:09 macvlan0 type macvlan
+  ip link set dev macvlan0 up
+  ip addr add 10.195.1.1/24 dev macvlan0
+
+So far, so good. Now try to ping anything via macvlan0:
+
+  ping 10.195.1.2
+
+
+Actual results:
+For every attempted packet tx kernel writes to console:
+
+------------[ cut here ]------------
+WARNING: at net/8021q/vlan_dev.c:254 vlan_dev_hard_header+0x36/0x126 [8021q]()
+Hardware name: M22ES
+Modules linked in: arptable_filter arp_tables bridge veth macvlan arc4 ecb
+ppp_mppe ppp_async crc_ccitt ppp_generic slhc autofs4 sunrpc 8021q garp stp
+ipt_REJECT nf_conntrack_ipv4 nf_defrag_ipv4 xt_state nf_conntrack xt_tcpudp
+x_tables dm_mirror dm_region_hash dm_log dm_multipath dm_mod sbs sbshc lp
+floppy snd_intel8x0 joydev snd_seq_dummy snd_intel8x0m snd_ac97_codec
+ide_cd_mod ac97_bus snd_seq_oss cdrom snd_seq_midi_event serio_raw snd_seq
+snd_seq_device snd_pcm_oss snd_mixer_oss parport_pc snd_pcm parport battery
+8139cp snd_timer i2c_sis96x ac button snd rtc_cmos rtc_core 8139too soundcore
+rtc_lib mii i2c_core pcspkr snd_page_alloc pata_sis libata sd_mod scsi_mod ext3
+jbd ehci_hcd ohci_hcd uhci_hcd [last unloaded: ip_tables]
+Pid: 0, comm: swapper Tainted: G        W  2.6.29.3 #1
+Call Trace:
+ [<c0425f48>] warn_slowpath+0x60/0x9f
+ [<c0425f6f>] warn_slowpath+0x87/0x9f
+ [<dffb850d>] vlan_dev_hard_header+0x0/0x126 [8021q]
+ [<dffb8543>] vlan_dev_hard_header+0x36/0x126 [8021q]
+ [<dffb850d>] vlan_dev_hard_header+0x0/0x126 [8021q]
+ [<df83155d>] macvlan_hard_header+0x3c/0x47 [macvlan]
+ [<df831521>] macvlan_hard_header+0x0/0x47 [macvlan]
+ [<c062bf3f>] arp_create+0xef/0x1ff
+ [<c062c08c>] arp_send+0x3d/0x54
+ [<c062c916>] arp_solicit+0x16c/0x177
+ [<c05fadd2>] neigh_timer_handler+0x227/0x269
+ [<c05fabab>] neigh_timer_handler+0x0/0x269
+ [<c042ce4d>] run_timer_softirq+0xf0/0x141
+ [<c0429e5a>] __do_softirq+0x76/0xf8
+ [<c0429de4>] __do_softirq+0x0/0xf8
+ <IRQ>  [<c044fb67>] handle_level_irq+0x0/0xad
+ [<c0429db7>] irq_exit+0x35/0x62
+ [<c04046bb>] do_IRQ+0xdf/0xf4
+ [<c04035a7>] common_interrupt+0x27/0x2c
+ [<c04079c5>] default_idle+0x2a/0x3d
+ [<c0401bb6>] cpu_idle+0x57/0x70
+
+
+Macvlan driver always uses standard ethernet header length for all types
+of interface to which it is linked.  This patch fixes this problem.
+
+Reported-by: <sg.tweak@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Hemminger <shemminger@vyatta.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/macvlan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pci/pci.c~pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3 drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-pm-follow-pci_pm_ctrl_no_soft_reset-during-transitions-from-d3
-+++ a/drivers/pci/pci.c
-@@ -485,6 +485,8 @@ static int pci_raw_set_power_state(struc
- 		pmcsr &= ~PCI_PM_CTRL_STATE_MASK;
- 		pmcsr |= state;
- 		break;
-+	case PCI_D3hot:
-+	case PCI_D3cold:
- 	case PCI_UNKNOWN: /* Boot-up */
- 		if ((pmcsr & PCI_PM_CTRL_STATE_MASK) == PCI_D3hot
- 		 && !(pmcsr & PCI_PM_CTRL_NO_SOFT_RESET))
+diff -puN drivers/net/macvlan.c~drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces drivers/net/macvlan.c
+--- a/drivers/net/macvlan.c~drivers-net-macvlanc-fix-cloning-of-tagged-vlan-interfaces
++++ a/drivers/net/macvlan.c
+@@ -359,6 +359,7 @@ static int macvlan_init(struct net_devic
+ 				  (lowerdev->state & MACVLAN_STATE_MASK);
+ 	dev->features 		= lowerdev->features & MACVLAN_FEATURES;
+ 	dev->iflink		= lowerdev->ifindex;
++	dev->hard_header_len	= lowerdev->hard_header_len;
+ 
+ 	macvlan_set_lockdep_class(dev);
+ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from sg.tweak@gmail.com are
 
-origin.patch
 linux-next.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-shrink_slab-handle-bad-shrinkers.patch
 
