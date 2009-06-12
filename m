@@ -1,80 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vino-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch removed from -mm tree
-Date: Fri, 12 Jun 2009 11:22:03 -0700
-Message-ID: <200906121822.n5CIM30o030805@imap1.linux-foundation.org>
+Subject: [merged] dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch removed from -mm tree
+Date: Fri, 12 Jun 2009 11:22:00 -0700
+Message-ID: <200906121822.n5CIM0hS030797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760052AbZFLSXH (ORCPT
+	by vger.kernel.org with ESMTP id S1762865AbZFLSXM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jun 2009 14:23:07 -0400
+	Fri, 12 Jun 2009 14:23:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: simon@fire.lp0.eu, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vino: replace dma_sync_single with dma_sync_single_for_cpu
+     dvb-core: fix potential mutex_unlock without mutex_lock in dvb_dvr_read
 has been removed from the -mm tree.  Its filename was
-     vino-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
+     dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vino: replace dma_sync_single with dma_sync_single_for_cpu
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: dvb-core: fix potential mutex_unlock without mutex_lock in dvb_dvr_read
+From: Simon Arlott <simon@fire.lp0.eu>
 
-This replaces dma_sync_single() with dma_sync_single_for_cpu() because
-dma_sync_single() is an obsolete API; include/linux/dma-mapping.h says:
+dvb_dvr_read may unlock the dmxdev mutex and return -ENODEV, except this
+function is a file op and will never be called with the mutex held.
 
-/* Backwards compat, remove in 2.7.x */
-#define dma_sync_single		dma_sync_single_for_cpu
-#define dma_sync_sg		dma_sync_sg_for_cpu
+There's existing mutex_lock and mutex_unlock around the actual read but
+it's commented out.  These should probably be uncommented but the read
+blocks and this could block another non-blocking reader on the mutex
+instead.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+This change comments out the extra mutex_unlock.
+
+[akpm@linux-foundation.org: cleanups, simplification]
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/vino.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/dvb/dvb-core/dmxdev.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN drivers/media/video/vino.c~vino-replace-dma_sync_single-with-dma_sync_single_for_cpu drivers/media/video/vino.c
---- a/drivers/media/video/vino.c~vino-replace-dma_sync_single-with-dma_sync_single_for_cpu
-+++ a/drivers/media/video/vino.c
-@@ -868,9 +868,9 @@ static void vino_sync_buffer(struct vino
- 	dprintk("vino_sync_buffer():\n");
+diff -puN drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read drivers/media/dvb/dvb-core/dmxdev.c
+--- a/drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read
++++ a/drivers/media/dvb/dvb-core/dmxdev.c
+@@ -244,19 +244,13 @@ static ssize_t dvb_dvr_read(struct file 
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dmxdev *dmxdev = dvbdev->priv;
+-	int ret;
  
- 	for (i = 0; i < fb->desc_table.page_count; i++)
--		dma_sync_single(NULL,
--				fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
--				PAGE_SIZE, DMA_FROM_DEVICE);
-+		dma_sync_single_for_cpu(NULL,
-+					fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
-+					PAGE_SIZE, DMA_FROM_DEVICE);
+-	if (dmxdev->exit) {
+-		mutex_unlock(&dmxdev->mutex);
++	if (dmxdev->exit)
+ 		return -ENODEV;
+-	}
+ 
+-	//mutex_lock(&dmxdev->mutex);
+-	ret = dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
+-				     file->f_flags & O_NONBLOCK,
+-				     buf, count, ppos);
+-	//mutex_unlock(&dmxdev->mutex);
+-	return ret;
++	return dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
++				      file->f_flags & O_NONBLOCK,
++				      buf, count, ppos);
  }
  
- /* Framebuffer fifo functions (need to be locked externally) */
+ static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from simon@fire.lp0.eu are
 
-origin.patch
 linux-next.patch
-ib-mthca-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
-sg_io-dont-perform-unneeded-copy-in-compat-code.patch
-sparc-move-the-duplication-in-dma-mapping_3264h-to-dma-mappingh.patch
-sparc-add-sync_single_for_device-and-sync_sg_for_device-to-struct-dma_ops.patch
-sparc-use-dma_map_page-instead-of-dma_map_single.patch
-sparc-remove-dma-mapping_3264h.patch
-dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
-dma-mapping-mark-dma_sync_single-and-dma_sync_sg-as-deprecated.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh.patch
-dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-add-config_dma_api_debug-support.patch
-dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch
 
