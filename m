@@ -1,103 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-driver-for-primecell-pl061-gpio-controller-v5.patch added to -mm tree
-Date: Mon, 15 Jun 2009 14:37:06 -0700
-Message-ID: <200906152137.n5FLb66s031699@imap1.linux-foundation.org>
+Subject: [folded] proc-merge-arrayc-into-basec-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 15 Jun 2009 14:38:26 -0700
+Message-ID: <200906152138.n5FLcQ0f000405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60837 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759923AbZFOViB (ORCPT
+	by vger.kernel.org with ESMTP id S1752585AbZFOVjc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 17:38:01 -0400
+	Mon, 15 Jun 2009 17:39:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: baruch@tkos.co.il, david-b@pacbell.net, rmk@arm.linux.org.uk
+To: akpm@linux-foundation.org, amwang@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio-driver-for-primecell-pl061-gpio-controller-v5
-has been added to the -mm tree.  Its filename is
-     gpio-driver-for-primecell-pl061-gpio-controller-v5.patch
+     proc-merge-arrayc-into-basec-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     proc-merge-arrayc-into-basec-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into proc-merge-arrayc-into-basec.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-driver-for-primecell-pl061-gpio-controller-v5
-From: Baruch Siach <baruch@tkos.co.il>
+Subject: proc-merge-arrayc-into-basec-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Changes in v5:
-	- Use resource_size() as suggested by Linus Walleij
-	- Add a comment about the list member of pl061_gpio
+ERROR: trailing statements should be on next line
+#755: FILE: fs/proc/base.c:2629:
++		if (sigismember(set, i+1)) x |= 1;
++		if (sigismember(set, i+1)) x |= 1;
+ERROR: trailing statements should be on next line
+#756: FILE: fs/proc/base.c:2630:
++		if (sigismember(set, i+2)) x |= 2;
++		if (sigismember(set, i+2)) x |= 2;
+ERROR: trailing statements should be on next line
+#757: FILE: fs/proc/base.c:2631:
++		if (sigismember(set, i+3)) x |= 4;
++		if (sigismember(set, i+3)) x |= 4;
+ERROR: trailing statements should be on next line
+#758: FILE: fs/proc/base.c:2632:
++		if (sigismember(set, i+4)) x |= 8;
++		if (sigismember(set, i+4)) x |= 8;
+total: 4 errors, 0 warnings, 519 lines checked
 
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+./patches/proc-merge-arrayc-into-basec.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: WANG Cong <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pl061.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ fs/proc/base.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/gpio/pl061.c~gpio-driver-for-primecell-pl061-gpio-controller-v5 drivers/gpio/pl061.c
---- a/drivers/gpio/pl061.c~gpio-driver-for-primecell-pl061-gpio-controller-v5
-+++ a/drivers/gpio/pl061.c
-@@ -36,9 +36,12 @@
+diff -puN fs/proc/base.c~proc-merge-arrayc-into-basec-checkpatch-fixes fs/proc/base.c
+--- a/fs/proc/base.c~proc-merge-arrayc-into-basec-checkpatch-fixes
++++ a/fs/proc/base.c
+@@ -2639,10 +2639,14 @@ static void render_sigset_t(struct seq_f
+ 		int x = 0;
  
- #define PL061_GPIO_NR	8
- 
--#define PL061_REG_SIZE	(4*1024)
--
- struct pl061_gpio {
-+	/* We use a list of pl061_gpio structs for each trigger IRQ in the main
-+	 * interrupts controller of the system. We need this to support systems
-+	 * in which more that one PL061s are connected to the same IRQ. The ISR
-+	 * interates through this list to find the source of the interrupt.
-+	 */
- 	struct list_head	list;
- 
- 	/* Each of the two spinlocks protects a different set of hardware
-@@ -238,12 +241,13 @@ static int __init pl061_probe(struct amb
- 	if (chip == NULL)
- 		return -ENOMEM;
- 
--	if (!request_mem_region(dev->res.start, PL061_REG_SIZE, "pl061")) {
-+	if (!request_mem_region(dev->res.start,
-+				resource_size(&dev->res), "pl061")) {
- 		ret = -EBUSY;
- 		goto free_mem;
- 	}
- 
--	chip->base = ioremap(dev->res.start, PL061_REG_SIZE);
-+	chip->base = ioremap(dev->res.start, resource_size(&dev->res));
- 	if (chip->base == NULL) {
- 		ret = -ENOMEM;
- 		goto release_region;
-@@ -308,7 +312,7 @@ static int __init pl061_probe(struct amb
- iounmap:
- 	iounmap(chip->base);
- release_region:
--	release_mem_region(dev->res.start, PL061_REG_SIZE);
-+	release_mem_region(dev->res.start, resource_size(&dev->res));
- free_mem:
- 	kfree(chip);
+ 		i -= 4;
+-		if (sigismember(set, i+1)) x |= 1;
+-		if (sigismember(set, i+2)) x |= 2;
+-		if (sigismember(set, i+3)) x |= 4;
+-		if (sigismember(set, i+4)) x |= 8;
++		if (sigismember(set, i+1))
++			x |= 1;
++		if (sigismember(set, i+2))
++			x |= 2;
++		if (sigismember(set, i+3))
++			x |= 4;
++		if (sigismember(set, i+4))
++			x |= 8;
+ 		seq_printf(m, "%x", x);
+ 	} while (i >= 4);
  
 _
 
-Patches currently in -mm which might be from baruch@tkos.co.il are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-gpio-driver-for-primecell-pl061-gpio-controller.patch
-gpio-driver-for-primecell-pl061-gpio-controller-v4.patch
-gpio-driver-for-primecell-pl061-gpio-controller-v5.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+firmware_map-fix-hang-with-x86-32bit.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool-fix.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
+vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+proc-merge-arrayc-into-basec.patch
+proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes-gpio-pca953x-get-platform_data-from-openfirmware-cleanups.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
+fbdev-s1d13xxxfb-add-accelerated-bitblt-functions-checkpatch-fixes.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
