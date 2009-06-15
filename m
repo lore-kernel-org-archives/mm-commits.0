@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-genallocc-remove-unmatched-write_lock-in-gen_pool_destroy.patch added to -mm tree
-Date: Mon, 15 Jun 2009 15:24:12 -0700
-Message-ID: <200906152224.n5FMOCIa008643@imap1.linux-foundation.org>
+Subject: + cciss-fix-the-termination-of-the-scanning-thread.patch added to -mm tree
+Date: Mon, 15 Jun 2009 15:42:42 -0700
+Message-ID: <200906152242.n5FMggeb025108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57792 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47439 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935592AbZFOWZP (ORCPT
+	by vger.kernel.org with ESMTP id S1750901AbZFOWnv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 18:25:15 -0400
+	Mon, 15 Jun 2009 18:43:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zygo.blaxell@xandros.com, stable@kernel.org, swise@opengridcomputing.com, trivial@kernel.org
+Cc: mike.miller@hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, stable@kernel.org
 
 
 The patch titled
-     lib/genalloc.c: remove unmatched write_lock() in gen_pool_destroy
+     cciss: fix the termination of the scanning thread
 has been added to the -mm tree.  Its filename is
-     lib-genallocc-remove-unmatched-write_lock-in-gen_pool_destroy.patch
+     cciss-fix-the-termination-of-the-scanning-thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/genalloc.c: remove unmatched write_lock() in gen_pool_destroy
-From: Zygo Blaxell <zygo.blaxell@xandros.com>
+Subject: cciss: fix the termination of the scanning thread
+From: Mike Miller <mike.miller@hp.com>
 
-There is a call to write_lock() in gen_pool_destroy which is not balanced
-by any corresponding write_unlock().  This causes problems with preemption
-because the preemption-disable counter is incremented in the write_lock()
-call, but never decremented by any call to write_unlock().  This bug is
-gen_pool_destroy, and one of them is non-x86 arch-specific code.
+scan_thread may be block in wait_for_completion(), and kthread_stop() is
+not sufficient to break a wait_for_completion().  Add the needed
+complete().
 
-Signed-off-by: Zygo Blaxell <zygo.blaxell@xandros.com>
-Cc: Jiri Kosina <trivial@kernel.org>
-Cc: Steve Wise <swise@opengridcomputing.com>
+This should fix hangs which some testers reported.
+
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/genalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/block/cciss.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/genalloc.c~lib-genallocc-remove-unmatched-write_lock-in-gen_pool_destroy lib/genalloc.c
---- a/lib/genalloc.c~lib-genallocc-remove-unmatched-write_lock-in-gen_pool_destroy
-+++ a/lib/genalloc.c
-@@ -85,7 +85,6 @@ void gen_pool_destroy(struct gen_pool *p
- 	int bit, end_bit;
+diff -puN drivers/block/cciss.c~cciss-fix-the-termination-of-the-scanning-thread drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-the-termination-of-the-scanning-thread
++++ a/drivers/block/cciss.c
+@@ -4115,6 +4115,7 @@ static void __devexit cciss_remove_one(s
+ 		return;
+ 	}
  
++	complete(hba[i]->rescan_wait);
+ 	kthread_stop(hba[i]->cciss_scan_thread);
  
--	write_lock(&pool->lock);
- 	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
- 		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
- 		list_del(&chunk->next_chunk);
+ 	remove_proc_entry(hba[i]->devname, proc_cciss);
 _
 
-Patches currently in -mm which might be from zygo.blaxell@xandros.com are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-lib-genallocc-remove-unmatched-write_lock-in-gen_pool_destroy.patch
+origin.patch
+cciss-fix-the-termination-of-the-scanning-thread.patch
 
