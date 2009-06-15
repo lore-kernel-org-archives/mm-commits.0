@@ -1,80 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atmel_serial-fix-hang-in-set_termios-when-crtscts-is-enabled.patch removed from -mm tree
-Date: Mon, 15 Jun 2009 12:01:48 -0700
-Message-ID: <200906151901.n5FJ1mT9023165@imap1.linux-foundation.org>
+Subject: [merged] documentation-make-version-fix.patch removed from -mm tree
+Date: Mon, 15 Jun 2009 12:01:53 -0700
+Message-ID: <200906151901.n5FJ1rYg023271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761717AbZFOTB7 (ORCPT
+	by vger.kernel.org with ESMTP id S1763743AbZFOTCD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 15:01:59 -0400
+	Mon, 15 Jun 2009 15:02:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haavard.skinnemoen@atmel.com, alan@lxorguk.ukuu.org.uk, eaa@wprmedical.com, mm-commits@vger.kernel.org
+To: adam@os.inf.tu-dresden.de, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: fix hang in set_termios when crtscts is enabled
+     documentation: make version fix
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-fix-hang-in-set_termios-when-crtscts-is-enabled.patch
+     documentation-make-version-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: fix hang in set_termios when crtscts is enabled
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: documentation: make version fix
+From: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
 
-After enabling hardware flow control, any subsequent termios call may hang
-waiting for the transmitter to drain.  This appears to be caused by a
-busy-loop in set_termios() waiting for the transmitter to become empty,
-which may take a very long time (or hang indefinitely) if the device at
-the other end is blocking us.
+The Makefiles in the build directories use the internal make variable
+MAKEFILE_LIST which is available from make 3.80 only.  (The patch would be
+valid back to 2.6.25)
 
-A quick look through the tty and serial_core code indicates that any
-necessary flushing (which is optional) has already been done at this
-point, so there's no need for the driver to flush the transmitter on its
-own.
-
-Fix it by removing the busy-loop altogether.
-
-Tested-by: Eirik Aanonsen <eaa@wprmedical.com>
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ Documentation/Changes |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-hang-in-set_termios-when-crtscts-is-enabled drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-hang-in-set_termios-when-crtscts-is-enabled
-+++ a/drivers/serial/atmel_serial.c
-@@ -1104,11 +1104,13 @@ static void atmel_set_termios(struct uar
- 	/* update the per-port timeout */
- 	uart_update_timeout(port, termios->c_cflag, baud);
+diff -puN Documentation/Changes~documentation-make-version-fix Documentation/Changes
+--- a/Documentation/Changes~documentation-make-version-fix
++++ a/Documentation/Changes
+@@ -29,7 +29,7 @@ hardware, for example, you probably need
+ isdn4k-utils.
  
--	/* save/disable interrupts and drain transmitter */
-+	/*
-+	 * save/disable interrupts. The tty layer will ensure that the
-+	 * transmitter is empty if requested by the caller, so there's
-+	 * no need to wait for it here.
-+	 */
- 	imr = UART_GET_IMR(port);
- 	UART_PUT_IDR(port, -1);
--	while (!(UART_GET_CSR(port) & ATMEL_US_TXEMPTY))
--		cpu_relax();
+ o  Gnu C                  3.2                     # gcc --version
+-o  Gnu make               3.79.1                  # make --version
++o  Gnu make               3.80                    # make --version
+ o  binutils               2.12                    # ld -v
+ o  util-linux             2.10o                   # fdformat --version
+ o  module-init-tools      0.9.10                  # depmod -V
+@@ -62,7 +62,7 @@ computer.
+ Make
+ ----
  
- 	/* disable receiver and transmitter */
- 	UART_PUT_CR(port, ATMEL_US_TXDIS | ATMEL_US_RXDIS);
+-You will need Gnu make 3.79.1 or later to build the kernel.
++You will need Gnu make 3.80 or later to build the kernel.
+ 
+ Binutils
+ --------
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from adam@os.inf.tu-dresden.de are
 
 origin.patch
-linux-next.patch
-atmel-lcdc-fix-pixclock-upper-bound-detection.patch
-ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
 
