@@ -1,151 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit.patch removed from -mm tree
-Date: Mon, 15 Jun 2009 12:01:45 -0700
-Message-ID: <200906151901.n5FJ1jX8023159@imap1.linux-foundation.org>
+Subject: [merged] maintainers-update-8250-section-give-alan-cox-a-name.patch removed from -mm tree
+Date: Mon, 15 Jun 2009 12:01:51 -0700
+Message-ID: <200906151901.n5FJ1pUN023168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42298 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60837 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758590AbZFOTCS (ORCPT
+	by vger.kernel.org with ESMTP id S1754276AbZFOTC2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 15:02:18 -0400
+	Mon, 15 Jun 2009 15:02:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jacmet@sunsite.dk, alan@lxorguk.ukuu.org.uk, ben-linux@fluff.org, mm-commits@vger.kernel.org
+To: joe@perches.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: samsung.c: mark s3c24xx_serial_remove as __devexit
+     MAINTAINERS: update 8250 section, give Alan Cox a name
 has been removed from the -mm tree.  Its filename was
-     serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit.patch
+     maintainers-update-8250-section-give-alan-cox-a-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: samsung.c: mark s3c24xx_serial_remove as __devexit
-From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: MAINTAINERS: update 8250 section, give Alan Cox a name
+From: Joe Perches <joe@perches.com>
 
-Mark the remove function as __devexit so it gets eliminated in
-CONFIG_HOTPLUG=n builds.  Saves ~100 bytes.
-
-Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
-Acked-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/s3c2400.c |    2 +-
- drivers/serial/s3c2410.c |    2 +-
- drivers/serial/s3c2412.c |    2 +-
- drivers/serial/s3c2440.c |    2 +-
- drivers/serial/s3c24a0.c |    2 +-
- drivers/serial/s3c6400.c |    2 +-
- drivers/serial/samsung.c |    2 +-
- drivers/serial/samsung.h |    2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/s3c2400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2400.c
---- a/drivers/serial/s3c2400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c2400.c
-@@ -78,7 +78,7 @@ static int s3c2400_serial_probe(struct p
+diff -puN MAINTAINERS~maintainers-update-8250-section-give-alan-cox-a-name MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-8250-section-give-alan-cox-a-name
++++ a/MAINTAINERS
+@@ -163,9 +163,10 @@ S:	Maintained
+ F:	drivers/net/r8169.c
  
- static struct platform_driver s3c2400_serial_drv = {
- 	.probe		= s3c2400_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c2400-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c2410.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2410.c
---- a/drivers/serial/s3c2410.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c2410.c
-@@ -90,7 +90,7 @@ static int s3c2410_serial_probe(struct p
- 
- static struct platform_driver s3c2410_serial_drv = {
- 	.probe		= s3c2410_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c2410-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c2412.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2412.c
---- a/drivers/serial/s3c2412.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c2412.c
-@@ -123,7 +123,7 @@ static int s3c2412_serial_probe(struct p
- 
- static struct platform_driver s3c2412_serial_drv = {
- 	.probe		= s3c2412_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c2412-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c2440.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2440.c
---- a/drivers/serial/s3c2440.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c2440.c
-@@ -153,7 +153,7 @@ static int s3c2440_serial_probe(struct p
- 
- static struct platform_driver s3c2440_serial_drv = {
- 	.probe		= s3c2440_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c2440-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c24a0.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c24a0.c
---- a/drivers/serial/s3c24a0.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c24a0.c
-@@ -94,7 +94,7 @@ static int s3c24a0_serial_probe(struct p
- 
- static struct platform_driver s3c24a0_serial_drv = {
- 	.probe		= s3c24a0_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c24a0-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/s3c6400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c6400.c
---- a/drivers/serial/s3c6400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/s3c6400.c
-@@ -124,7 +124,7 @@ static int s3c6400_serial_probe(struct p
- 
- static struct platform_driver s3c6400_serial_drv = {
- 	.probe		= s3c6400_serial_probe,
--	.remove		= s3c24xx_serial_remove,
-+	.remove		= __devexit_p(s3c24xx_serial_remove),
- 	.driver		= {
- 		.name	= "s3c6400-uart",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/serial/samsung.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/samsung.c
---- a/drivers/serial/samsung.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/samsung.c
-@@ -1174,7 +1174,7 @@ int s3c24xx_serial_probe(struct platform
- 
- EXPORT_SYMBOL_GPL(s3c24xx_serial_probe);
- 
--int s3c24xx_serial_remove(struct platform_device *dev)
-+int __devexit s3c24xx_serial_remove(struct platform_device *dev)
- {
- 	struct uart_port *port = s3c24xx_dev_to_port(&dev->dev);
- 
-diff -puN drivers/serial/samsung.h~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/samsung.h
---- a/drivers/serial/samsung.h~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
-+++ a/drivers/serial/samsung.h
-@@ -72,7 +72,7 @@ struct s3c24xx_uart_port {
- extern int s3c24xx_serial_probe(struct platform_device *dev,
- 				struct s3c24xx_uart_info *uart);
- 
--extern int s3c24xx_serial_remove(struct platform_device *dev);
-+extern int __devexit s3c24xx_serial_remove(struct platform_device *dev);
- 
- extern int s3c24xx_serial_initconsole(struct platform_driver *drv,
- 				      struct s3c24xx_uart_info *uart);
+ 8250/16?50 (AND CLONE UARTS) SERIAL DRIVER
++P:	Alan Cox
++M:	alan@lxorguk.ukuu.org.uk
+ L:	linux-serial@vger.kernel.org
+ W:	http://serial.sourceforge.net
+-M:	alan@lxorguk.ukuu.org.uk
+ S:	Odd Fixes
+ F:	drivers/serial/8250*
+ F:	include/linux/serial_8250.h
 _
 
-Patches currently in -mm which might be from jacmet@sunsite.dk are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
+scripts-get_maintainerpl-output-first-field-only-in-mailing-lists-and-after-maintainers.patch
+scripts-get_maintainerpl-better-fix-for-subscriber-only-mailing-lists.patch
+scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
+scripts-get_maintainerpl-warn-on-missing-git-or-git-repository.patch
+scripts-get_maintainerpl-support-m-lines-with-names-and-multiple-entries-per-m-line.patch
+scripts-get_maintainerpl-better-email-name-quoting.patch
+scripts-get_maintainerpl-support-both-p-m-and-integrated-m-lines.patch
+scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch
+scripts-get_maintainerpl-allow-8-bit-characters-in-email-addresses.patch
+scripts-get_maintainerpl-change-die-to-warn-when-command-line-file-is-not-a-patch.patch
+maintainers-swap-mismarked-ecrypt-fs-m-and-p-entries.patch
+maintainers-add-file-patterns-to-the-rest.patch
+maintainers-update-m32r-file-patterns-after-rename.patch
+maintainers-mark-alsa-lists-as-moderated.patch
+maintainers-remove-l-linux-kernel-vgerkernelorg-from-all-but-the-rest.patch
+maintainers-mention-scripts-get_maintainerpl-in-the-preface.patch
+maintainers-add-file-pattern-to-cisco-fcoe-hba-driver.patch
+maintainers-add-paul-mckenney-to-rcu-and-rcutorture.patch
+maintainers-add-file-patterns-to-tty-layer.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
 
