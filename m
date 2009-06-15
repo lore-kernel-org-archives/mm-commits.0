@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-wait_task_zombie-do-not-account-traced-sub-threads.patch added to -mm tree
-Date: Mon, 15 Jun 2009 15:08:39 -0700
-Message-ID: <200906152208.n5FM8d4x027281@imap1.linux-foundation.org>
+Subject: + wait_task_zombie-do-not-use-thread_group_cputime.patch added to -mm tree
+Date: Mon, 15 Jun 2009 15:08:42 -0700
+Message-ID: <200906152208.n5FM8hub027401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755662AbZFOWI6 (ORCPT
+	by vger.kernel.org with ESMTP id S1758092AbZFOWI7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 18:08:58 -0400
+	Mon, 15 Jun 2009 18:08:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, a.p.zijlstra@chello.nl, roland@redhat.com, sgruszka@redhat.
 
 
 The patch titled
-     ptrace: wait_task_zombie: do not account traced sub-threads
+     wait_task_zombie: do not use thread_group_cputime()
 has been added to the -mm tree.  Its filename is
-     ptrace-wait_task_zombie-do-not-account-traced-sub-threads.patch
+     wait_task_zombie-do-not-use-thread_group_cputime.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: wait_task_zombie: do not account traced sub-threads
+Subject: wait_task_zombie: do not use thread_group_cputime()
 From: Oleg Nesterov <oleg@redhat.com>
 
-The bug is ancient, the fix doesn't depend on other changes in -mm.
+There is no reason for thread_group_cputime() in wait_task_zombie(), there
+must be no other threads.
 
-If we trace the sub-thread of our natural child and this sub-thread exits,
-we update parent->signal->cxxx fields.  But we should not do this until
-the whole thread-group exits, otherwise we account this thread (and all
-other live threads) twice.
-
-Add the task_detached() check.  No need to check thread_group_empty(),
-wait_consider_task()->delay_group_leader() already did this.
+This call was previously needed to collect the per-cpu data which we do
+not have any longer.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -55,21 +51,50 @@ Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN kernel/exit.c~ptrace-wait_task_zombie-do-not-account-traced-sub-threads kernel/exit.c
---- a/kernel/exit.c~ptrace-wait_task_zombie-do-not-account-traced-sub-threads
+diff -puN kernel/exit.c~wait_task_zombie-do-not-use-thread_group_cputime kernel/exit.c
+--- a/kernel/exit.c~wait_task_zombie-do-not-use-thread_group_cputime
 +++ a/kernel/exit.c
-@@ -1194,7 +1194,7 @@ static int wait_task_zombie(struct task_
- 
- 	traced = ptrace_reparented(p);
- 
--	if (likely(!traced)) {
-+	if (likely(!traced) && likely(!task_detached(p))) {
+@@ -1197,7 +1197,6 @@ static int wait_task_zombie(struct task_
+ 	if (likely(!traced) && likely(!task_detached(p))) {
  		struct signal_struct *psig;
  		struct signal_struct *sig;
- 		struct task_cputime cputime;
+-		struct task_cputime cputime;
+ 		unsigned long maxrss;
+ 
+ 		/*
+@@ -1214,23 +1213,20 @@ static int wait_task_zombie(struct task_
+ 		 * need to protect the access to parent->signal fields,
+ 		 * as other threads in the parent group can be right
+ 		 * here reaping other children at the same time.
+-		 *
+-		 * We use thread_group_cputime() to get times for the thread
+-		 * group, which consolidates times for all threads in the
+-		 * group including the group leader.
+ 		 */
+-		thread_group_cputime(p, &cputime);
+ 		spin_lock_irq(&p->real_parent->sighand->siglock);
+ 		psig = p->real_parent->signal;
+ 		sig = p->signal;
+ 		psig->cutime =
+ 			cputime_add(psig->cutime,
+-			cputime_add(cputime.utime,
+-				    sig->cutime));
++			cputime_add(p->utime,
++			cputime_add(sig->utime,
++				    sig->cutime)));
+ 		psig->cstime =
+ 			cputime_add(psig->cstime,
+-			cputime_add(cputime.stime,
+-				    sig->cstime));
++			cputime_add(p->stime,
++			cputime_add(sig->stime,
++				    sig->cstime)));
+ 		psig->cgtime =
+ 			cputime_add(psig->cgtime,
+ 			cputime_add(p->gtime,
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
