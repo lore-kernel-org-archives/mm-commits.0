@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-lumpy-reclaim-lru-handling-at-isolate_lru_pages.patch added to -mm tree
-Date: Mon, 15 Jun 2009 14:09:27 -0700
-Message-ID: <200906152109.n5FL9R0T007192@imap1.linux-foundation.org>
+Subject: + memcg-fix-lru-rotation-in-isolate_pages.patch added to -mm tree
+Date: Mon, 15 Jun 2009 14:12:18 -0700
+Message-ID: <200906152112.n5FLCJnx009665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35704 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934632AbZFOVKR (ORCPT
+	by vger.kernel.org with ESMTP id S934810AbZFOVNp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 17:10:17 -0400
+	Mon, 15 Jun 2009 17:13:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     mm: fix lumpy reclaim lru handling at isolate_lru_pages
+     memcg: fix lru rotation in isolate_pages
 has been added to the -mm tree.  Its filename is
-     mm-fix-lumpy-reclaim-lru-handling-at-isolate_lru_pages.patch
+     memcg-fix-lru-rotation-in-isolate_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix lumpy reclaim lru handling at isolate_lru_pages
+Subject: memcg: fix lru rotation in isolate_pages
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-At lumpy reclaim, a page failed to be taken by __isolate_lru_page() can be
-pushed back to "src" list by list_move().  But the page may not be from
-"src" list.  This pushes the page back to wrong LRU.  And list_move()
-itself is unnecessary because the page is not on top of LRU.  Then, leave
-it as it is if __isolate_lru_page() fails.
+Try to fix memcg's lru rotation sanity: make memcg use the same logic as
+the global LRU does.
 
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Now, at __isolate_lru_page() retruns -EBUSY, the page is rotated to the
+tail of LRU in global LRU's isolate LRU pages.  But in memcg, it's not
+handled.  This makes memcg do the same behavior as global LRU and rotate
+LRU in the page is busy.
+
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ mm/memcontrol.c |   13 ++++++++++++-
+ mm/vmscan.c     |    4 +++-
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-fix-lumpy-reclaim-lru-handling-at-isolate_lru_pages mm/vmscan.c
---- a/mm/vmscan.c~mm-fix-lumpy-reclaim-lru-handling-at-isolate_lru_pages
-+++ a/mm/vmscan.c
-@@ -929,18 +929,10 @@ static unsigned long isolate_lru_pages(u
- 			/* Check that we have not crossed a zone boundary. */
- 			if (unlikely(page_zone_id(cursor_page) != zone_id))
- 				continue;
--			switch (__isolate_lru_page(cursor_page, mode, file)) {
--			case 0:
-+			if (__isolate_lru_page(cursor_page, mode, file) == 0) {
- 				list_move(&cursor_page->lru, dst);
- 				nr_taken++;
- 				scan++;
--				break;
--
--			case -EBUSY:
--				/* else it is being freed elsewhere */
--				list_move(&cursor_page->lru, src);
--			default:
--				break;	/* ! on LRU or wrong list */
- 			}
+diff -puN mm/memcontrol.c~memcg-fix-lru-rotation-in-isolate_pages mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-lru-rotation-in-isolate_pages
++++ a/mm/memcontrol.c
+@@ -649,6 +649,7 @@ unsigned long mem_cgroup_isolate_pages(u
+ 	int zid = zone_idx(z);
+ 	struct mem_cgroup_per_zone *mz;
+ 	int lru = LRU_FILE * !!file + !!active;
++	int ret;
+ 
+ 	BUG_ON(!mem_cont);
+ 	mz = mem_cgroup_zoneinfo(mem_cont, nid, zid);
+@@ -666,9 +667,19 @@ unsigned long mem_cgroup_isolate_pages(u
+ 			continue;
+ 
+ 		scan++;
+-		if (__isolate_lru_page(page, mode, file) == 0) {
++		ret = __isolate_lru_page(page, mode, file);
++		switch (ret) {
++		case 0:
+ 			list_move(&page->lru, dst);
++			mem_cgroup_del_lru(page);
+ 			nr_taken++;
++			break;
++		case -EBUSY:
++			/* we don't affect global LRU but rotate in our LRU */
++			mem_cgroup_rotate_lru_list(page, page_lru(page));
++			break;
++		default:
++			break;
  		}
  	}
+ 
+diff -puN mm/vmscan.c~memcg-fix-lru-rotation-in-isolate_pages mm/vmscan.c
+--- a/mm/vmscan.c~memcg-fix-lru-rotation-in-isolate_pages
++++ a/mm/vmscan.c
+@@ -837,7 +837,6 @@ int __isolate_lru_page(struct page *page
+ 		 */
+ 		ClearPageLRU(page);
+ 		ret = 0;
+-		mem_cgroup_del_lru(page);
+ 	}
+ 
+ 	return ret;
+@@ -885,12 +884,14 @@ static unsigned long isolate_lru_pages(u
+ 		switch (__isolate_lru_page(page, mode, file)) {
+ 		case 0:
+ 			list_move(&page->lru, dst);
++			mem_cgroup_del_lru(page);
+ 			nr_taken++;
+ 			break;
+ 
+ 		case -EBUSY:
+ 			/* else it is being freed elsewhere */
+ 			list_move(&page->lru, src);
++			mem_cgroup_rotate_lru_list(page, page_lru(page));
+ 			continue;
+ 
+ 		default:
+@@ -931,6 +932,7 @@ static unsigned long isolate_lru_pages(u
+ 				continue;
+ 			if (__isolate_lru_page(cursor_page, mode, file) == 0) {
+ 				list_move(&cursor_page->lru, dst);
++				mem_cgroup_del_lru(page);
+ 				nr_taken++;
+ 				scan++;
+ 			}
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -103,6 +151,6 @@ memcg-fix-swap-accounting.patch
 memcg-fix-swap-accounting-update.patch
 memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch
 memcg-add-interface-to-reset-limits.patch
-memcg-fix-lru-rotation-in-isolate_pages-v2.patch
+memcg-fix-lru-rotation-in-isolate_pages.patch
 elf-reduce-default-max_map_count-to-be-safe-value.patch
 
