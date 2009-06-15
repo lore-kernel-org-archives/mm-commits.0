@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-e100-fix-suspend-of-devices-that-cannot-be-power-managed.patch added to -mm tree
-Date: Mon, 15 Jun 2009 12:59:44 -0700
-Message-ID: <200906151959.n5FJxi0H009903@imap1.linux-foundation.org>
+Subject: + ramfs-ignore-unknown-mount-options.patch added to -mm tree
+Date: Mon, 15 Jun 2009 13:02:22 -0700
+Message-ID: <200906152002.n5FK2Mgb012269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752307AbZFOUAJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751534AbZFOUEH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 16:00:09 -0400
+	Mon, 15 Jun 2009 16:04:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, andi@lisas.de, bruce.w.allan@intel.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.com, peter.p.waskiewicz.jr@intel.com
+Cc: vapier@gentoo.org, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, mpm@selenic.com, stable@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     e100: fix suspend of devices that cannot be power managed
+     ramfs: ignore unknown mount options
 has been added to the -mm tree.  Its filename is
-     net-e100-fix-suspend-of-devices-that-cannot-be-power-managed.patch
+     ramfs-ignore-unknown-mount-options.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e100: fix suspend of devices that cannot be power managed
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ramfs: ignore unknown mount options
+From: Mike Frysinger <vapier@gentoo.org>
 
-If the adapter is not power-manageable using either ACPI, or the native
-PCI PM interface, __e100_power_off() returns error code, which causes
-every attempt to suspend to fail, although it should return 0 in such a
-case.  Fix this problem by ignoring the return value of
-pci_set_power_state() in __e100_power_off().
+On systems where CONFIG_SHMEM is disabled, mounting tmpfs filesystems can
+fail when tmpfs options are used.  This is because tmpfs creates a small
+wrapper around ramfs which rejects unknown options, and ramfs itself only
+supports a tiny subset of what tmpfs supports.  This makes it pretty hard
+to use the same userspace systems across different configuration systems. 
+As such, ramfs should ignore the tmpfs options when tmpfs is merely a
+wrapper around ramfs.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Andreas Mohr <andi@lisas.de>
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: Bruce Allan <bruce.w.allan@intel.com>
-Cc: PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>
-Cc: John Ronciak <john.ronciak@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+This used to work before commit c3b1b1cbf0 as previously, ramfs would
+ignore all options.  But now, we get: ramfs: bad mount option: size=10M
+mount: mounting mdev on /dev failed: Invalid argument
+
+Another option might be to restore the previous behavior, where ramfs
+simply ignored all unknown mount options ...  which is what Hugh prefers.
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Matt Mackall <mpm@selenic.com>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: <stable@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e100.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/ramfs/inode.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/e100.c~net-e100-fix-suspend-of-devices-that-cannot-be-power-managed drivers/net/e100.c
---- a/drivers/net/e100.c~net-e100-fix-suspend-of-devices-that-cannot-be-power-managed
-+++ a/drivers/net/e100.c
-@@ -2895,12 +2895,13 @@ static void __e100_shutdown(struct pci_d
+diff -puN fs/ramfs/inode.c~ramfs-ignore-unknown-mount-options fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~ramfs-ignore-unknown-mount-options
++++ a/fs/ramfs/inode.c
+@@ -202,9 +202,12 @@ static int ramfs_parse_options(char *dat
+ 				return -EINVAL;
+ 			opts->mode = option & S_IALLUGO;
+ 			break;
+-		default:
+-			printk(KERN_ERR "ramfs: bad mount option: %s\n", p);
+-			return -EINVAL;
++		/*
++		 * We might like to report bad mount options here;
++		 * but traditionally ramfs has ignored all mount options,
++		 * and as it is used as a !CONFIG_SHMEM simple substitute
++		 * for tmpfs, better continue to ignore other mount options.
++		 */
+ 		}
+ 	}
  
- static int __e100_power_off(struct pci_dev *pdev, bool wake)
- {
--	if (wake) {
-+	if (wake)
- 		return pci_prepare_to_sleep(pdev);
--	} else {
--		pci_wake_from_d3(pdev, false);
--		return pci_set_power_state(pdev, PCI_D3hot);
--	}
-+
-+	pci_wake_from_d3(pdev, false);
-+	pci_set_power_state(pdev, PCI_D3hot);
-+
-+	return 0;
- }
- 
- #ifdef CONFIG_PM
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
 linux-next.patch
-net-e100-fix-suspend-of-devices-that-cannot-be-power-managed.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-shrink_slab-handle-bad-shrinkers.patch
+pcmcia-yenta-add-missing-__devexit-marking.patch
+drivers-hvc-add-missing-__devexit_p.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+ramfs-ignore-unknown-mount-options.patch
+drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
+gpio-max7301-add-missing-__devexit-marking.patch
+istallion-add-missing-__devexit-marking.patch
+edac-add-missing-__devexit_p.patch
 
