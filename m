@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-blackfin-has-__raw-i-o-accessors-so-use-them-in-fbh.patch added to -mm tree
-Date: Mon, 15 Jun 2009 13:04:52 -0700
-Message-ID: <200906152004.n5FK4qvN014538@imap1.linux-foundation.org>
+Subject: + fbdev-bfin-t350mcqb-fb-drop-unused-local-variables.patch added to -mm tree
+Date: Mon, 15 Jun 2009 13:04:54 -0700
+Message-ID: <200906152004.n5FK4suP014542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59898 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752496AbZFOUE4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753682AbZFOUE5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 16:04:56 -0400
+	Mon, 15 Jun 2009 16:04:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: vapier@gentoo.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     fbdev: blackfin has __raw I/O accessors, so use them in fb.h
+     fbdev: bfin-t350mcqb-fb: drop unused local variables
 has been added to the -mm tree.  Its filename is
-     fbdev-blackfin-has-__raw-i-o-accessors-so-use-them-in-fbh.patch
+     fbdev-bfin-t350mcqb-fb-drop-unused-local-variables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: blackfin has __raw I/O accessors, so use them in fb.h
+Subject: fbdev: bfin-t350mcqb-fb: drop unused local variables
 From: Mike Frysinger <vapier@gentoo.org>
+
+The local fbinfo/info vars in the suspend functions don't actually get
+used which cause ugly gcc warnings, so drop them.
 
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/bfin-t350mcqb-fb.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN include/linux/fb.h~fbdev-blackfin-has-__raw-i-o-accessors-so-use-them-in-fbh include/linux/fb.h
---- a/include/linux/fb.h~fbdev-blackfin-has-__raw-i-o-accessors-so-use-them-in-fbh
-+++ a/include/linux/fb.h
-@@ -903,7 +903,7 @@ struct fb_info {
- #define fb_writeq sbus_writeq
- #define fb_memset sbus_memset_io
+diff -puN drivers/video/bfin-t350mcqb-fb.c~fbdev-bfin-t350mcqb-fb-drop-unused-local-variables drivers/video/bfin-t350mcqb-fb.c
+--- a/drivers/video/bfin-t350mcqb-fb.c~fbdev-bfin-t350mcqb-fb-drop-unused-local-variables
++++ a/drivers/video/bfin-t350mcqb-fb.c
+@@ -637,9 +637,6 @@ static int bfin_t350mcqb_remove(struct p
+ #ifdef CONFIG_PM
+ static int bfin_t350mcqb_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+-	struct fb_info *fbinfo = platform_get_drvdata(pdev);
+-	struct bfin_t350mcqbfb_info *info = fbinfo->par;
+-
+ 	bfin_t350mcqb_disable_ppi();
+ 	disable_dma(CH_PPI);
+ 	bfin_write_PPI_STATUS(0xFFFF);
+@@ -649,9 +646,6 @@ static int bfin_t350mcqb_suspend(struct 
  
--#elif defined(__i386__) || defined(__alpha__) || defined(__x86_64__) || defined(__hppa__) || defined(__sh__) || defined(__powerpc__) || defined(__avr32__)
-+#elif defined(__i386__) || defined(__alpha__) || defined(__x86_64__) || defined(__hppa__) || defined(__sh__) || defined(__powerpc__) || defined(__avr32__) || defined(__bfin__)
- 
- #define fb_readb __raw_readb
- #define fb_readw __raw_readw
-_
-
-Patches currently in -mm which might be from vapier@gentoo.org are
-
-origin.patch
-linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-drivers-hvc-add-missing-__devexit_p.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-ramfs-ignore-unknown-mount-options.patch
-drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
-gpio-max7301-add-missing-__devexit-marking.patch
-fbdev-blackfin-has-__raw-i-o-accessors-so-use-them-in-fbh.patch
-fbdev-bfin-t350mcqb-fb-drop-unused-local-variables.patch
-fbdev-bfin-drop-unnecessary-calls-to-memset.patch
-fbdev-bfin-fix-__devinitexit-markings.patch
-fbdev-bf54x-lq043fb-use-kzalloc-over-kmalloc-memset.patch
-istallion-add-missing-__devexit-marking.patch
-edac-add-missing-__devexit_p.patch
-
+ static int bfin_t350mcqb_resume(struct platform_device *pdev)
+ {
+-	struct fb_info *fbinfo = platform_get_drvdata(pdev);
+-	struct bfin_t350mcqbfb_info *info = fbinfo->par;
