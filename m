@@ -1,73 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kbuild-fix-a-compile-warning.patch removed from -mm tree
-Date: Mon, 15 Jun 2009 12:01:37 -0700
-Message-ID: <200906151901.n5FJ1bM9023011@imap1.linux-foundation.org>
+Subject: [merged] serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit.patch removed from -mm tree
+Date: Mon, 15 Jun 2009 12:01:45 -0700
+Message-ID: <200906151901.n5FJ1jX8023159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47042 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758703AbZFOTB5 (ORCPT
+	by vger.kernel.org with ESMTP id S1758590AbZFOTCS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 15:01:57 -0400
+	Mon, 15 Jun 2009 15:02:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: jacmet@sunsite.dk, alan@lxorguk.ukuu.org.uk, ben-linux@fluff.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: fix a compile warning
+     serial: samsung.c: mark s3c24xx_serial_remove as __devexit
 has been removed from the -mm tree.  Its filename was
-     kbuild-fix-a-compile-warning.patch
+     serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: fix a compile warning
-From: Amerigo Wang <amwang@redhat.com>
+Subject: serial: samsung.c: mark s3c24xx_serial_remove as __devexit
+From: Peter Korsgaard <jacmet@sunsite.dk>
 
-gcc-4.4.1:
+Mark the remove function as __devexit so it gets eliminated in
+CONFIG_HOTPLUG=n builds.  Saves ~100 bytes.
 
- HOSTCC  scripts/basic/fixdep
-scripts/basic/fixdep.c: In function 'traps':
-scripts/basic/fixdep.c:377: warning: dereferencing type-punned pointer will break strict-aliasing rules
-scripts/basic/fixdep.c:379: warning: dereferencing type-punned pointer will break strict-aliasing rules
-
-(Apparently -fno-strict-aliasing will fix this too)
-
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+Acked-by: Ben Dooks <ben-linux@fluff.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/basic/fixdep.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/serial/s3c2400.c |    2 +-
+ drivers/serial/s3c2410.c |    2 +-
+ drivers/serial/s3c2412.c |    2 +-
+ drivers/serial/s3c2440.c |    2 +-
+ drivers/serial/s3c24a0.c |    2 +-
+ drivers/serial/s3c6400.c |    2 +-
+ drivers/serial/samsung.c |    2 +-
+ drivers/serial/samsung.h |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN scripts/basic/fixdep.c~kbuild-fix-a-compile-warning scripts/basic/fixdep.c
---- a/scripts/basic/fixdep.c~kbuild-fix-a-compile-warning
-+++ a/scripts/basic/fixdep.c
-@@ -373,10 +373,11 @@ void print_deps(void)
- void traps(void)
- {
- 	static char test[] __attribute__((aligned(sizeof(int)))) = "CONF";
-+	int *p = (int *)test;
+diff -puN drivers/serial/s3c2400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2400.c
+--- a/drivers/serial/s3c2400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
++++ a/drivers/serial/s3c2400.c
+@@ -78,7 +78,7 @@ static int s3c2400_serial_probe(struct p
  
--	if (*(int *)test != INT_CONF) {
-+	if (*p != INT_CONF) {
- 		fprintf(stderr, "fixdep: sizeof(int) != 4 or wrong endianess? %#x\n",
--			*(int *)test);
-+			*p);
- 		exit(2);
- 	}
- }
+ static struct platform_driver s3c2400_serial_drv = {
+ 	.probe		= s3c2400_serial_probe,
+-	.remove		= s3c24xx_serial_remove,
++	.remove		= __devexit_p(s3c24xx_serial_remove),
+ 	.driver		= {
+ 		.name	= "s3c2400-uart",
+ 		.owner	= THIS_MODULE,
+diff -puN drivers/serial/s3c2410.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2410.c
+--- a/drivers/serial/s3c2410.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
++++ a/drivers/serial/s3c2410.c
+@@ -90,7 +90,7 @@ static int s3c2410_serial_probe(struct p
+ 
+ static struct platform_driver s3c2410_serial_drv = {
+ 	.probe		= s3c2410_serial_probe,
+-	.remove		= s3c24xx_serial_remove,
++	.remove		= __devexit_p(s3c24xx_serial_remove),
+ 	.driver		= {
+ 		.name	= "s3c2410-uart",
+ 		.owner	= THIS_MODULE,
+diff -puN drivers/serial/s3c2412.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2412.c
+--- a/drivers/serial/s3c2412.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
++++ a/drivers/serial/s3c2412.c
+@@ -123,7 +123,7 @@ static int s3c2412_serial_probe(struct p
+ 
+ static struct platform_driver s3c2412_serial_drv = {
+ 	.probe		= s3c2412_serial_probe,
+-	.remove		= s3c24xx_serial_remove,
++	.remove		= __devexit_p(s3c24xx_serial_remove),
+ 	.driver		= {
+ 		.name	= "s3c2412-uart",
+ 		.owner	= THIS_MODULE,
+diff -puN drivers/serial/s3c2440.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c2440.c
+--- a/drivers/serial/s3c2440.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
++++ a/drivers/serial/s3c2440.c
+@@ -153,7 +153,7 @@ static int s3c2440_serial_probe(struct p
+ 
+ static struct platform_driver s3c2440_serial_drv = {
+ 	.probe		= s3c2440_serial_probe,
+-	.remove		= s3c24xx_serial_remove,
++	.remove		= __devexit_p(s3c24xx_serial_remove),
+ 	.driver		= {
+ 		.name	= "s3c2440-uart",
+ 		.owner	= THIS_MODULE,
+diff -puN drivers/serial/s3c24a0.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c24a0.c
+--- a/drivers/serial/s3c24a0.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
++++ a/drivers/serial/s3c24a0.c
+@@ -94,7 +94,7 @@ static int s3c24a0_serial_probe(struct p
+ 
+ static struct platform_driver s3c24a0_serial_drv = {
+ 	.probe		= s3c24a0_serial_probe,
+-	.remove		= s3c24xx_serial_remove,
++	.remove		= __devexit_p(s3c24xx_serial_remove),
+ 	.driver		= {
+ 		.name	= "s3c24a0-uart",
+ 		.owner	= THIS_MODULE,
+diff -puN drivers/serial/s3c6400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/s3c6400.c
+--- a/drivers/serial/s3c6400.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
++++ a/drivers/serial/s3c6400.c
+@@ -124,7 +124,7 @@ static int s3c6400_serial_probe(struct p
+ 
+ static struct platform_driver s3c6400_serial_drv = {
+ 	.probe		= s3c6400_serial_probe,
+-	.remove		= s3c24xx_serial_remove,
++	.remove		= __devexit_p(s3c24xx_serial_remove),
+ 	.driver		= {
+ 		.name	= "s3c6400-uart",
+ 		.owner	= THIS_MODULE,
+diff -puN drivers/serial/samsung.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/samsung.c
+--- a/drivers/serial/samsung.c~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
++++ a/drivers/serial/samsung.c
+@@ -1174,7 +1174,7 @@ int s3c24xx_serial_probe(struct platform
+ 
+ EXPORT_SYMBOL_GPL(s3c24xx_serial_probe);
+ 
+-int s3c24xx_serial_remove(struct platform_device *dev)
++int __devexit s3c24xx_serial_remove(struct platform_device *dev)
+ {
+ 	struct uart_port *port = s3c24xx_dev_to_port(&dev->dev);
+ 
+diff -puN drivers/serial/samsung.h~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit drivers/serial/samsung.h
+--- a/drivers/serial/samsung.h~serial-samsungc-mark-s3c24xx_serial_remove-as-__devexit
++++ a/drivers/serial/samsung.h
+@@ -72,7 +72,7 @@ struct s3c24xx_uart_port {
+ extern int s3c24xx_serial_probe(struct platform_device *dev,
+ 				struct s3c24xx_uart_info *uart);
+ 
+-extern int s3c24xx_serial_remove(struct platform_device *dev);
++extern int __devexit s3c24xx_serial_remove(struct platform_device *dev);
+ 
+ extern int s3c24xx_serial_initconsole(struct platform_driver *drv,
+ 				      struct s3c24xx_uart_info *uart);
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from jacmet@sunsite.dk are
 
 origin.patch
-uml-fix-a-section-warning.patch
-uml-bad-macro-expansion-parameter-is-member.patch
-proc-merge-arrayc-into-basec.patch
-proc-merge-arrayc-into-basec-checkpatch-fixes.patch
+linux-next.patch
 
