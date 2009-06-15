@@ -1,99 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: + proc-update-document-for-proc-softirqs-and-proc-stat-update.patch added to -mm tree
-Date: Mon, 15 Jun 2009 09:19:48 -0700
-Message-ID: <200906151619.n5FGJmJH008975@imap1.linux-foundation.org>
+Subject: [to-be-updated] wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_stopped.patch removed from -mm tree
+Date: Mon, 15 Jun 2009 10:16:01 -0700
+Message-ID: <200906151716.n5FHG1GM025929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751083AbZFOQUK (ORCPT
+	by vger.kernel.org with ESMTP id S1764129AbZFORQV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 12:20:10 -0400
+	Mon, 15 Jun 2009 13:16:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kobayashi.kk@ncos.nec.co.jp, adobriyan@gmail.com, dada1@cosmosbay.com, h-shimamoto@ct.jp.nec.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu
+To: v.mayatskih@gmail.com, mingo@elte.hu, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc-update-document-for-proc-softirqs-and-proc-stat-update
-has been added to the -mm tree.  Its filename is
-     proc-update-document-for-proc-softirqs-and-proc-stat-update.patch
+     wait_task_* cleanups: use copy_wait_opts_to_user() in wait_task_stopped()
+has been removed from the -mm tree.  Its filename was
+     wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_stopped.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-update-document-for-proc-softirqs-and-proc-stat-update
-From: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
+Subject: wait_task_* cleanups: use copy_wait_opts_to_user() in wait_task_stopped()
+From: Vitaly Mayatskikh <v.mayatskih@gmail.com>
 
-> >
-> > It's dangerous and a bit of a hassle for me to hang onto incomplete
-> > patches.  But if I drop them, they can just get forgotten about
-> > altogether.  Please let's respond to reviewer comments promptly?
+All copy-paste getrusage() and put_user() code in wait_task_* functions is
+replaced by call to copy_wait_opts_to_user()
 
-Thank you so much for your advice.
-I just fixed the above point in the previous patch.
+Also, there's no reason to have two almost similar branches of copy out in
+wait_task_stopped().  The later branch also puts stat_addr to user, but it
+can't affect WNOWAIT flag, and it's ok to merge both branches.
 
-Similarly, here is update patch for documentation.
-
-Signed-off-by: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
-Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Vitaly Mayatskikh <v.mayatskih@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ kernel/exit.c |   20 +-------------------
+ 1 file changed, 1 insertion(+), 19 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-update-document-for-proc-softirqs-and-proc-stat-update Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-update-document-for-proc-softirqs-and-proc-stat-update
-+++ a/Documentation/filesystems/proc.txt
-@@ -606,14 +606,15 @@ Provides counts of softirq handlers serv
+diff -puN kernel/exit.c~wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_stopped kernel/exit.c
+--- a/kernel/exit.c~wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_stopped
++++ a/kernel/exit.c
+@@ -1351,7 +1351,6 @@ static int *task_stopped_code(struct tas
+ static int wait_task_stopped(struct wait_opts *wo,
+ 				int ptrace, struct task_struct *p)
+ {
+-	struct siginfo __user *infop;
+ 	int retval, exit_code, *p_code, why;
+ 	uid_t uid = 0; /* unneeded, required by compiler */
+ 	pid_t pid;
+@@ -1395,27 +1394,10 @@ unlock_sig:
+ 	why = ptrace ? CLD_TRAPPED : CLD_STOPPED;
+ 	read_unlock(&tasklist_lock);
  
- > cat /proc/softirqs
-                 CPU0       CPU1       CPU2       CPU3
--HI                 0          0          0          0
--TIMER          27166      27120      27097      27034
--NET_TX             0          0          0         17
--NET_RX            42          0          0         39
--BLOCK              0          0        107       1121
--TASKLET            0          0          0        290
--SCHED          27035      26983      26971      26746
--RCU             1678       1769       2178       2250
-+      HI:          0          0          0          0
-+   TIMER:      27166      27120      27097      27034
-+  NET_TX:          0          0          0         17
-+  NET_RX:         42          0          0         39
-+   BLOCK:          0          0        107       1121
-+ TASKLET:          0          0          0        290
-+   SCHED:      27035      26983      26971      26746
-+ HRTIMER:          0          0          0          0
-+     RCU:       1678       1769       2178       2250
+-	if (unlikely(wo->wo_flags & WNOWAIT))
+-		return wait_noreap_copyout(wo, p, pid, uid, why, exit_code);
++	retval = copy_wait_opts_to_user(wo, p, pid, uid, why, exit_code, SIGCHLD);
  
- 
- 1.3 IDE devices in /proc/ide
+-	retval = wo->wo_rusage
+-		? getrusage(p, RUSAGE_BOTH, wo->wo_rusage) : 0;
+ 	if (!retval && wo->wo_stat)
+ 		retval = put_user((exit_code << 8) | 0x7f, wo->wo_stat);
+-
+-	infop = wo->wo_info;
+-	if (!retval && infop)
+-		retval = put_user(SIGCHLD, &infop->si_signo);
+-	if (!retval && infop)
+-		retval = put_user(0, &infop->si_errno);
+-	if (!retval && infop)
+-		retval = put_user((short)why, &infop->si_code);
+-	if (!retval && infop)
+-		retval = put_user(exit_code, &infop->si_status);
+-	if (!retval && infop)
+-		retval = put_user(pid, &infop->si_pid);
+-	if (!retval && infop)
+-		retval = put_user(uid, &infop->si_uid);
+ 	if (!retval)
+ 		retval = pid;
+ 	put_task_struct(p);
 _
 
-Patches currently in -mm which might be from kobayashi.kk@ncos.nec.co.jp are
+Patches currently in -mm which might be from v.mayatskih@gmail.com are
 
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-update.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-proc-update-document-for-proc-softirqs-and-proc-stat-update.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_stopped.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-do_wait.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_zombie.patch
+wait_task_-cleanups-use-copy_wait_opts_to_user-in-wait_task_continued.patch
 
