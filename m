@@ -1,126 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:41:20 -0700
-Message-ID: <200906162241.n5GMfKwq003351@imap1.linux-foundation.org>
+Subject: [to-be-updated] ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:41:12 -0700
+Message-ID: <200906162241.n5GMfCi4003192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755710AbZFPWxP (ORCPT
+	by vger.kernel.org with ESMTP id S1757021AbZFPWxQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:53:15 -0400
+	Tue, 16 Jun 2009 18:53:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: don't allow overlap memory addresses registrations
+     ksm: fix unsafe pte fetching
 has been removed from the -mm tree.  Its filename was
-     ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch
+     ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: don't allow overlap memory addresses registrations
+Subject: ksm: fix unsafe pte fetching
 From: Izik Eidus <ieidus@redhat.com>
 
-subjects say it all.
+is_present_pte() was called inside ksm without anything protecting that
+pmd, pud, and pte would go away under our feets.
+
+This patch fix this problem by making sure that down_read(mmap_sem) will
+be used beacuse calling to is_present_pte()
 
 Signed-off-by: Izik Eidus <ieidus@redhat.com>
-Cc: Chris Wright <chrisw@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Avi Kivity <avi@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   58 +++++++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 54 insertions(+), 4 deletions(-)
+ mm/ksm.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations mm/ksm.c
---- a/mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations
+diff -puN mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching mm/ksm.c
+--- a/mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching
 +++ a/mm/ksm.c
-@@ -450,21 +450,71 @@ static void remove_page_from_tree(struct
- 	remove_rmap_item_from_tree(rmap_item);
- }
+@@ -783,8 +783,8 @@ static int is_zapped_item(struct rmap_it
+ 	struct vm_area_struct *vma;
  
-+static inline int is_intersecting_address(unsigned long addr,
-+					  unsigned long begin,
-+					  unsigned long end)
-+{
-+	if (addr >= begin && addr < end)
-+		return 1;
-+	return 0;
-+}
-+
-+/*
-+ * is_overlap_mem - check if there is overlapping with memory that was already
-+ * registred.
-+ *
-+ * note - this function must to be called under slots_lock
-+ */
-+static int is_overlap_mem(struct ksm_memory_region *mem)
-+{
-+	struct ksm_mem_slot *slot;
-+
-+	list_for_each_entry(slot, &slots, link) {
-+		unsigned long mem_end;
-+		unsigned long slot_end;
-+
-+		cond_resched();
-+
-+		if (current->mm != slot->mm)
-+			continue;
-+
-+		mem_end = mem->addr + (unsigned long)mem->npages * PAGE_SIZE;
-+		slot_end = slot->addr + (unsigned long)slot->npages * PAGE_SIZE;
-+
-+		if (is_intersecting_address(mem->addr, slot->addr, slot_end) ||
-+		    is_intersecting_address(mem_end - 1, slot->addr, slot_end))
-+			return 1;
-+		if (is_intersecting_address(slot->addr, mem->addr, mem_end) ||
-+		    is_intersecting_address(slot_end - 1, mem->addr, mem_end))
-+			return 1;
-+	}
-+
-+	return 0;
-+}
-+
- static int ksm_sma_ioctl_register_memory_region(struct ksm_sma *ksm_sma,
- 						struct ksm_memory_region *mem)
- {
- 	struct ksm_mem_slot *slot;
- 	int ret = -EPERM;
- 
-+	if (!mem->npages)
-+		goto out;
-+
-+	down_write(&slots_lock);
-+
- 	if ((ksm_sma->nregions + 1) > regions_per_fd) {
- 		ret = -EBUSY;
--		goto out;
-+		goto out_unlock;
+ 	cond_resched();
++	down_read(&rmap_item->mm->mmap_sem);
+ 	if (is_present_pte(rmap_item->mm, rmap_item->address)) {
+-		down_read(&rmap_item->mm->mmap_sem);
+ 		vma = find_vma(rmap_item->mm, rmap_item->address);
+ 		if (vma && !vma->vm_file) {
+ 			BUG_ON(vma->vm_flags & VM_SHARED);
+@@ -792,8 +792,8 @@ static int is_zapped_item(struct rmap_it
+ 					     rmap_item->address,
+ 					     1, 0, 0, page, NULL);
+ 		}
+-		up_read(&rmap_item->mm->mmap_sem);
  	}
++	up_read(&rmap_item->mm->mmap_sem);
  
-+	if (is_overlap_mem(mem))
-+		goto out_unlock;
-+
- 	slot = kzalloc(sizeof(struct ksm_mem_slot), GFP_KERNEL);
- 	if (!slot) {
- 		ret = -ENOMEM;
--		goto out;
-+		goto out_unlock;
+ 	if (ret != 1)
+ 		return 1;
+@@ -979,13 +979,15 @@ static struct tree_item *unstable_tree_s
+ 		rmap_item = tree_item->rmap_item;
+ 		BUG_ON(!rmap_item);
+ 
++		down_read(&rmap_item->mm->mmap_sem);
+ 		/*
+ 		 * We dont want to swap in pages
+ 		 */
+-		if (!is_present_pte(rmap_item->mm, rmap_item->address))
++		if (!is_present_pte(rmap_item->mm, rmap_item->address)) {
++			up_read(&rmap_item->mm->mmap_sem);
+ 			return NULL;
++		}
+ 
+-		down_read(&rmap_item->mm->mmap_sem);
+ 		ret = get_user_pages(current, rmap_item->mm, rmap_item->address,
+ 				     1, 0, 0, page2, NULL);
+ 		up_read(&rmap_item->mm->mmap_sem);
+@@ -1344,9 +1346,9 @@ static int ksm_scan_start(struct ksm_sca
+ 		 * If the page is swapped out or in swap cache, we don't want to
+ 		 * scan it (it is just for performance).
+ 		 */
++		down_read(&slot->mm->mmap_sem);
+ 		if (is_present_pte(slot->mm, slot->addr +
+ 				   ksm_scan->page_index * PAGE_SIZE)) {
+-			down_read(&slot->mm->mmap_sem);
+ 			val = get_user_pages(current, slot->mm, slot->addr +
+ 					     ksm_scan->page_index * PAGE_SIZE ,
+ 					      1, 0, 0, page, NULL);
+@@ -1356,6 +1358,8 @@ static int ksm_scan_start(struct ksm_sca
+ 					cmp_and_merge_page(ksm_scan, page[0]);
+ 				put_page(page[0]);
+ 			}
++		} else {
++			up_read(&slot->mm->mmap_sem);
+ 		}
+ 		scan_npages--;
  	}
- 
- 	/*
-@@ -477,8 +527,6 @@ static int ksm_sma_ioctl_register_memory
- 	slot->addr = mem->addr;
- 	slot->npages = mem->npages;
- 
--	down_write(&slots_lock);
+_
+
+Patches currently in -mm which might be from ieidus@redhat.com are
+
+linux-next.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch
+ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-prot-handling-to-use-the-generic-helper-functions.patch
+ksm-add-ksm-kernel-shared-memory-driver-use-another-miscdevice-minor-number.patch
+ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to-fix-losing-visibility-of-part-of-rmap_item-next-list.patch
+
