@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cg14-use-standard-fields-for-framebuffer-physical-address-and-length.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:21:51 -0700
-Message-ID: <200906162221.n5GMLpf1016946@imap1.linux-foundation.org>
+Subject: [merged] bw2-use-standard-fields-for-framebuffer-physical-address-and-length.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:21:48 -0700
+Message-ID: <200906162221.n5GMLmZC016943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33326 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756652AbZFPWWW (ORCPT
+	by vger.kernel.org with ESMTP id S1754476AbZFPWWV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:22:22 -0400
+	Tue, 16 Jun 2009 18:22:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cg14: use standard fields for framebuffer physical address and length
+     bw2: use standard fields for framebuffer physical address and length
 has been removed from the -mm tree.  Its filename was
-     cg14-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+     bw2-use-standard-fields-for-framebuffer-physical-address-and-length.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cg14: use standard fields for framebuffer physical address and length
+Subject: bw2: use standard fields for framebuffer physical address and length
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
 Use standard fields fbinfo.fix.smem_start and fbinfo.fix.smem_len for
@@ -38,86 +38,91 @@ Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cg14.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/video/bw2.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/cg14.c~cg14-use-standard-fields-for-framebuffer-physical-address-and-length drivers/video/cg14.c
---- a/drivers/video/cg14.c~cg14-use-standard-fields-for-framebuffer-physical-address-and-length
-+++ a/drivers/video/cg14.c
-@@ -196,9 +196,7 @@ struct cg14_par {
+diff -puN drivers/video/bw2.c~bw2-use-standard-fields-for-framebuffer-physical-address-and-length drivers/video/bw2.c
+--- a/drivers/video/bw2.c~bw2-use-standard-fields-for-framebuffer-physical-address-and-length
++++ a/drivers/video/bw2.c
+@@ -111,9 +111,7 @@ struct bw2_par {
  	u32			flags;
- #define CG14_FLAG_BLANKED	0x00000001
+ #define BW2_FLAG_BLANKED	0x00000001
  
 -	unsigned long		physbase;
- 	unsigned long		iospace;
+ 	unsigned long		which_io;
 -	unsigned long		fbsize;
+ };
  
- 	struct sbus_mmap_map	mmap_map[CG14_MMAP_ENTRIES];
+ /**
+@@ -167,17 +165,15 @@ static int bw2_mmap(struct fb_info *info
+ 	struct bw2_par *par = (struct bw2_par *)info->par;
  
-@@ -271,7 +269,7 @@ static int cg14_mmap(struct fb_info *inf
- 	struct cg14_par *par = (struct cg14_par *) info->par;
- 
- 	return sbusfb_mmap_helper(par->mmap_map,
+ 	return sbusfb_mmap_helper(bw2_mmap_map,
 -				  par->physbase, par->fbsize,
 +				  info->fix.smem_start, info->fix.smem_len,
- 				  par->iospace, vma);
+ 				  par->which_io,
+ 				  vma);
  }
  
-@@ -343,7 +341,8 @@ static int cg14_ioctl(struct fb_info *in
- 
- 	default:
- 		ret = sbusfb_ioctl_helper(cmd, arg, info,
--					  FBTYPE_MDICOLOR, 8, par->fbsize);
-+					  FBTYPE_MDICOLOR, 8,
-+					  info->fix.smem_len);
- 		break;
- 	};
- 
-@@ -462,7 +461,7 @@ static void cg14_unmap_regs(struct of_de
- 			   par->cursor, sizeof(struct cg14_cursor));
- 	if (info->screen_base)
- 		of_iounmap(&op->resource[1],
--			   info->screen_base, par->fbsize);
-+			   info->screen_base, info->fix.smem_len);
+ static int bw2_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
+ {
+-	struct bw2_par *par = (struct bw2_par *) info->par;
+-
+ 	return sbusfb_ioctl_helper(cmd, arg, info,
+-				   FBTYPE_SUN2BW, 1, par->fbsize);
++				   FBTYPE_SUN2BW, 1, info->fix.smem_len);
  }
  
- static int __devinit cg14_probe(struct of_device *op, const struct of_device_id *match)
-@@ -488,14 +487,14 @@ static int __devinit cg14_probe(struct o
+ /*
+@@ -294,7 +290,7 @@ static int __devinit bw2_probe(struct of
  
- 	linebytes = of_getintprop_default(dp, "linebytes",
- 					  info->var.xres);
+ 	spin_lock_init(&par->lock);
+ 
+-	par->physbase = op->resource[0].start;
++	info->fix.smem_start = op->resource[0].start;
+ 	par->which_io = op->resource[0].flags & IORESOURCE_BITS;
+ 
+ 	sbusfb_fill_var(&info->var, dp, 1);
+@@ -317,13 +313,13 @@ static int __devinit bw2_probe(struct of
+ 			goto out_unmap_regs;
+ 	}
+ 
 -	par->fbsize = PAGE_ALIGN(linebytes * info->var.yres);
 +	info->fix.smem_len = PAGE_ALIGN(linebytes * info->var.yres);
  
- 	if (!strcmp(dp->parent->name, "sbus") ||
- 	    !strcmp(dp->parent->name, "sbi")) {
--		par->physbase = op->resource[0].start;
-+		info->fix.smem_start = op->resource[0].start;
- 		par->iospace = op->resource[0].flags & IORESOURCE_BITS;
- 	} else {
--		par->physbase = op->resource[1].start;
-+		info->fix.smem_start = op->resource[1].start;
- 		par->iospace = op->resource[0].flags & IORESOURCE_BITS;
- 	}
+ 	info->flags = FBINFO_DEFAULT;
+ 	info->fbops = &bw2_ops;
  
-@@ -507,7 +506,7 @@ static int __devinit cg14_probe(struct o
- 				 sizeof(struct cg14_cursor), "cg14 cursor");
- 
- 	info->screen_base = of_ioremap(&op->resource[1], 0,
--				       par->fbsize, "cg14 ram");
-+				       info->fix.smem_len, "cg14 ram");
- 
- 	if (!par->regs || !par->clut || !par->cursor || !info->screen_base)
+ 	info->screen_base = of_ioremap(&op->resource[0], 0,
+-				       par->fbsize, "bw2 ram");
++				       info->fix.smem_len, "bw2 ram");
+ 	if (!info->screen_base)
  		goto out_unmap_regs;
-@@ -557,7 +556,7 @@ static int __devinit cg14_probe(struct o
  
- 	printk(KERN_INFO "%s: cgfourteen at %lx:%lx, %dMB\n",
- 	       dp->full_name,
--	       par->iospace, par->physbase,
-+	       par->iospace, info->fix.smem_start,
- 	       par->ramsize >> 20);
+@@ -338,12 +334,12 @@ static int __devinit bw2_probe(struct of
+ 	dev_set_drvdata(&op->dev, info);
+ 
+ 	printk(KERN_INFO "%s: bwtwo at %lx:%lx\n",
+-	       dp->full_name, par->which_io, par->physbase);
++	       dp->full_name, par->which_io, info->fix.smem_start);
  
  	return 0;
+ 
+ out_unmap_screen:
+-	of_iounmap(&op->resource[0], info->screen_base, par->fbsize);
++	of_iounmap(&op->resource[0], info->screen_base, info->fix.smem_len);
+ 
+ out_unmap_regs:
+ 	of_iounmap(&op->resource[0], par->regs, sizeof(struct bw2_regs));
+@@ -363,7 +359,7 @@ static int __devexit bw2_remove(struct o
+ 	unregister_framebuffer(info);
+ 
+ 	of_iounmap(&op->resource[0], par->regs, sizeof(struct bw2_regs));
+-	of_iounmap(&op->resource[0], info->screen_base, par->fbsize);
++	of_iounmap(&op->resource[0], info->screen_base, info->fix.smem_len);
+ 
+ 	framebuffer_release(info);
+ 
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
