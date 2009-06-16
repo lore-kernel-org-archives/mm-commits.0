@@ -1,37 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-modify-swap_map-and-add-swap_has_cache-flag-update.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 14:59:55 -0700
-Message-ID: <200906162159.n5GLxtBx029105@imap1.linux-foundation.org>
+Subject: [folded] mm-reuse-unused-swap-entry-if-necessary-update.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:00:16 -0700
+Message-ID: <200906162200.n5GM0HXI029442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43307 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51732 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756829AbZFPWAP (ORCPT
+	by vger.kernel.org with ESMTP id S1753864AbZFPWA1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:00:15 -0400
+	Tue, 16 Jun 2009 18:00:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, yamamot
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     mm-modify-swap_map-and-add-swap_has_cache-flag-update
+     mm-reuse-unused-swap-entry-if-necessary-update
 has been removed from the -mm tree.  Its filename was
-     mm-modify-swap_map-and-add-swap_has_cache-flag-update.patch
+     mm-reuse-unused-swap-entry-if-necessary-update.patch
 
-This patch was dropped because it was folded into mm-modify-swap_map-and-add-swap_has_cache-flag.patch
+This patch was dropped because it was folded into mm-reuse-unused-swap-entry-if-necessary.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-modify-swap_map-and-add-swap_has_cache-flag-update
+Subject: mm-reuse-unused-swap-entry-if-necessary-update
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
+This is a replacement for
+ mm-reuse-unused-swap-entry-if-necessary.patch in mmotm.
+ function is renamed and comments are added.
 
-Several style fix are done....maybe easier to read.
-
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
@@ -40,208 +42,58 @@ Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   67 ++++++++++++++++++++++++++++--------------------
- 1 file changed, 40 insertions(+), 27 deletions(-)
+ mm/swapfile.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-diff -puN mm/swapfile.c~mm-modify-swap_map-and-add-swap_has_cache-flag-update mm/swapfile.c
---- a/mm/swapfile.c~mm-modify-swap_map-and-add-swap_has_cache-flag-update
+diff -puN mm/swapfile.c~mm-reuse-unused-swap-entry-if-necessary-update mm/swapfile.c
+--- a/mm/swapfile.c~mm-reuse-unused-swap-entry-if-necessary-update
 +++ a/mm/swapfile.c
-@@ -54,17 +54,23 @@ static struct swap_info_struct swap_info
- static DEFINE_MUTEX(swapon_mutex);
- 
- /* For reference count accounting in swap_map */
-+/* enum for swap_map[] handling. internal use only */
-+enum {
-+	SWAP_MAP = 0,	/* ops for reference from swap users */
-+	SWAP_CACHE,	/* ops for reference from swap cache */
-+};
-+
- static inline int swap_count(unsigned short ent)
- {
- 	return ent & SWAP_COUNT_MASK;
- }
- 
--static inline int swap_has_cache(unsigned short ent)
-+static inline bool swap_has_cache(unsigned short ent)
- {
--	return ent & SWAP_HAS_CACHE;
-+	return !!(ent & SWAP_HAS_CACHE);
- }
- 
--static inline unsigned short make_swap_count(int count, int has_cache)
-+static inline unsigned short encode_swapmap(int count, bool has_cache)
- {
- 	unsigned short ret = count;
- 
-@@ -73,6 +79,7 @@ static inline unsigned short make_swap_c
+@@ -79,9 +79,9 @@ static inline unsigned short encode_swap
  	return ret;
  }
  
-+
- /*
-  * We need this because the bdev->unplug_fn can sleep and we cannot
-  * hold swap_lock while calling the unplug_fn. And swap_lock
-@@ -306,10 +313,10 @@ checks:
- 		si->lowest_bit = si->max;
- 		si->highest_bit = 0;
- 	}
--	if (cache) /* at usual swap-out via vmscan.c */
--		si->swap_map[offset] = make_swap_count(0, 1);
-+	if (cache == SWAP_CACHE) /* at usual swap-out via vmscan.c */
-+		si->swap_map[offset] = encode_swapmap(0, true);
- 	else /* at suspend */
--		si->swap_map[offset] = make_swap_count(1, 0);
-+		si->swap_map[offset] = encode_swapmap(1, false);
- 	si->cluster_next = offset + 1;
- 	si->flags -= SWP_SCANNING;
- 
-@@ -426,7 +433,7 @@ swp_entry_t get_swap_page(void)
- 
- 		swap_list.next = next;
- 		/* This is called for allocating swap entry for cache */
--		offset = scan_swap_map(si, 1);
-+		offset = scan_swap_map(si, SWAP_CACHE);
- 		if (offset) {
- 			spin_unlock(&swap_lock);
- 			return swp_entry(type, offset);
-@@ -451,7 +458,7 @@ swp_entry_t get_swap_page_of_type(int ty
- 	if (si->flags & SWP_WRITEOK) {
- 		nr_swap_pages--;
- 		/* This is called for allocating swap entry, not cache */
--		offset = scan_swap_map(si, 0);
-+		offset = scan_swap_map(si, SWAP_MAP);
- 		if (offset) {
- 			spin_unlock(&swap_lock);
- 			return swp_entry(type, offset);
-@@ -503,16 +510,18 @@ static int swap_entry_free(struct swap_i
+-
++/* returnes 1 if swap entry is freed */
+ static int
+-try_to_reuse_swap(struct swap_info_struct *si, unsigned long offset)
++__try_to_reclaim_swap(struct swap_info_struct *si, unsigned long offset)
  {
- 	unsigned long offset = swp_offset(ent);
- 	int count = swap_count(p->swap_map[offset]);
--	int has_cache = swap_has_cache(p->swap_map[offset]);
-+	bool has_cache;
-+
-+	has_cache = swap_has_cache(p->swap_map[offset]);
+ 	int type = si - swap_info;
+ 	swp_entry_t entry = swp_entry(type, offset);
+@@ -91,6 +91,13 @@ try_to_reuse_swap(struct swap_info_struc
+ 	page = find_get_page(&swapper_space, entry.val);
+ 	if (!page)
+ 		return 0;
++	/*
++	 * This function is called from scan_swap_map() and it's called
++	 * by vmscan.c at reclaiming pages. So, we hold a lock on a page, here.
++	 * We have to use trylock for avoiding deadlock. This is a special
++	 * case and you should use try_to_free_swap() with explicit lock_page()
++	 * in usual operations.
++	 */
+ 	if (trylock_page(page)) {
+ 		ret = try_to_free_swap(page);
+ 		unlock_page(page);
+@@ -323,13 +330,14 @@ checks:
  
--	if (!cache) { /* dropping usage count of swap */
-+	if (cache == SWAP_MAP) { /* dropping usage count of swap */
- 		if (count < SWAP_MAP_MAX) {
- 			count--;
--			p->swap_map[offset] = make_swap_count(count, has_cache);
-+			p->swap_map[offset] = encode_swapmap(count, has_cache);
- 		}
- 	} else { /* dropping swap cache flag */
- 		VM_BUG_ON(!has_cache);
--		p->swap_map[offset] = make_swap_count(count, 0);
-+		p->swap_map[offset] = encode_swapmap(count, false);
- 
- 	}
- 	/* return code. */
-@@ -542,7 +551,7 @@ void swap_free(swp_entry_t entry)
- 
- 	p = swap_info_get(entry);
- 	if (p) {
--		swap_entry_free(p, entry, 0);
-+		swap_entry_free(p, entry, SWAP_MAP);
+ 	/* reuse swap entry of cache-only swap if not busy. */
+ 	if (vm_swap_full() && si->swap_map[offset] == SWAP_HAS_CACHE) {
+-		int ret;
++		int swap_was_freed;
  		spin_unlock(&swap_lock);
+-		ret = try_to_reuse_swap(si, offset);
++		swap_was_freed = __try_to_reclaim_swap(si, offset);
+ 		spin_lock(&swap_lock);
+-		if (ret)
+-			goto checks; /* we released swap_lock. retry. */
+-		goto scan; /* In some racy case */
++		/* entry was freed successfully, try to use this again */
++		if (swap_was_freed)
++			goto checks;
++		goto scan; /* check next one */
  	}
- }
-@@ -558,7 +567,7 @@ void swapcache_free(swp_entry_t entry, s
- 		mem_cgroup_uncharge_swapcache(page, entry);
- 	p = swap_info_get(entry);
- 	if (p) {
--		swap_entry_free(p, entry, 1);
-+		swap_entry_free(p, entry, SWAP_CACHE);
- 		spin_unlock(&swap_lock);
- 	}
- 	return;
-@@ -638,7 +647,7 @@ int free_swap_and_cache(swp_entry_t entr
  
- 	p = swap_info_get(entry);
- 	if (p) {
--		if (swap_entry_free(p, entry, 0) == SWAP_HAS_CACHE) {
-+		if (swap_entry_free(p, entry, SWAP_MAP) == SWAP_HAS_CACHE) {
- 			page = find_get_page(&swapper_space, entry.val);
- 			if (page && !trylock_page(page)) {
- 				page_cache_release(page);
-@@ -1131,7 +1140,7 @@ static int try_to_unuse(unsigned int typ
- 
- 		if (swap_count(*swap_map) == SWAP_MAP_MAX) {
- 			spin_lock(&swap_lock);
--			*swap_map = make_swap_count(0, 1);
-+			*swap_map = encode_swapmap(0, true);
- 			spin_unlock(&swap_lock);
- 			reset_overflow = 1;
- 		}
-@@ -2011,12 +2020,13 @@ void si_swapinfo(struct sysinfo *val)
-  * - swap-cache reference is requested but there is already one. -> EEXIST
-  * - swap-cache reference is requested but the entry is not used. -> ENOENT
-  */
--static int __swap_duplicate(swp_entry_t entry, int cache)
-+static int __swap_duplicate(swp_entry_t entry, bool cache)
- {
- 	struct swap_info_struct * p;
- 	unsigned long offset, type;
- 	int result = -EINVAL;
--	int count, has_cache;
-+	int count;
-+	bool has_cache;
- 
- 	if (is_migration_entry(entry))
- 		return -EINVAL;
-@@ -2034,25 +2044,28 @@ static int __swap_duplicate(swp_entry_t 
- 
- 	count = swap_count(p->swap_map[offset]);
- 	has_cache = swap_has_cache(p->swap_map[offset]);
--	if (cache) { /* called for swapcache/swapin-readahead */
-+
-+	if (cache == SWAP_CACHE) { /* called for swapcache/swapin-readahead */
-+
- 		/* set SWAP_HAS_CACHE if there is no cache and entry is used */
- 		if (!has_cache && count) {
--			p->swap_map[offset] = make_swap_count(count, 1);
-+			p->swap_map[offset] = encode_swapmap(count, true);
- 			result = 0;
--		} else if (has_cache)
-+		} else if (has_cache) /* someone added cache */
- 			result = -EEXIST;
--		else if (!count)
-+		else if (!count) /* no users */
- 			result = -ENOENT;
-+
- 	} else if (count || has_cache) {
- 		if (count < SWAP_MAP_MAX - 1) {
--			p->swap_map[offset] = make_swap_count(count + 1,
--							      has_cache);
-+			p->swap_map[offset] = encode_swapmap(count + 1,
-+							     has_cache);
- 			result = 0;
- 		} else if (count <= SWAP_MAP_MAX) {
- 			if (swap_overflow++ < 5)
- 				printk(KERN_WARNING
- 				       "swap_dup: swap entry overflow\n");
--			p->swap_map[offset] = make_swap_count(SWAP_MAP_MAX,
-+			p->swap_map[offset] = encode_swapmap(SWAP_MAP_MAX,
- 							      has_cache);
- 			result = 0;
- 		}
-@@ -2072,7 +2085,7 @@ bad_file:
-  */
- void swap_duplicate(swp_entry_t entry)
- {
--	__swap_duplicate(entry, 0);
-+	__swap_duplicate(entry, SWAP_MAP);
- }
- 
- /*
-@@ -2085,7 +2098,7 @@ void swap_duplicate(swp_entry_t entry)
-  */
- int swapcache_prepare(swp_entry_t entry)
- {
--	return __swap_duplicate(entry, 1);
-+	return __swap_duplicate(entry, SWAP_CACHE);
- }
- 
- 
+ 	if (si->swap_map[offset])
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -251,7 +103,6 @@ migration-only-migrate_prep-once-per-move_pages.patch
 page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
 mm-add-swap-cache-interface-for-swap-reference.patch
 mm-modify-swap_map-and-add-swap_has_cache-flag.patch
-mm-modify-swap_map-and-add-swap_has_cache-flag-update.patch
 mm-reuse-unused-swap-entry-if-necessary.patch
 mm-reuse-unused-swap-entry-if-necessary-update.patch
 vmscan-handle-may_swap-more-strictly.patch
