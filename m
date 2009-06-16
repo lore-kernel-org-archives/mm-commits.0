@@ -1,56 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-consolidate-init_mm-definition-fix.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 14:48:40 -0700
-Message-ID: <200906162148.n5GLmfGD018530@imap1.linux-foundation.org>
+Subject: [folded] readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 14:49:22 -0700
+Message-ID: <200906162149.n5GLnMxv019172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751321AbZFPVtK (ORCPT
+	by vger.kernel.org with ESMTP id S1751646AbZFPVtx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 17:49:10 -0400
+	Tue, 16 Jun 2009 17:49:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, vapier.adi@gmail.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-consolidate-init_mm-definition-fix
+     readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-consolidate-init_mm-definition-fix.patch
+     readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-consolidate-init_mm-definition.patch
+This patch was dropped because it was folded into readahead-record-mmap-read-around-states-in-file_ra_state.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-consolidate-init_mm-definition-fix
+Subject: readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Americo Wang <xiyou.wangcong@gmail.com>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
+ERROR: code indent should use tabs where possible
+#42: FILE: include/linux/mm.h:1202:
++^I^I        struct address_space *mapping,$
+
+total: 1 errors, 0 warnings, 83 lines checked
+
+./patches/readahead-record-mmap-read-around-states-in-file_ra_state.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/init-mm.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/init-mm.c~mm-consolidate-init_mm-definition-fix mm/init-mm.c
---- a/mm/init-mm.c~mm-consolidate-init_mm-definition-fix
-+++ a/mm/init-mm.c
-@@ -1,4 +1,11 @@
- #include <linux/mm_types.h>
-+#include <linux/rbtree.h>
-+#include <linux/rwsem.h>
-+#include <linux/spinlock.h>
-+#include <linux/list.h>
-+#include <linux/cpumask.h>
-+
-+#include <asm/atomic.h>
- #include <asm/pgtable.h>
+diff -puN include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes include/linux/mm.h
+--- a/include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes
++++ a/include/linux/mm.h
+@@ -1196,7 +1196,7 @@ void page_cache_async_readahead(struct a
  
- struct mm_struct init_mm = {
+ unsigned long max_sane_readahead(unsigned long nr);
+ unsigned long ra_submit(struct file_ra_state *ra,
+-		        struct address_space *mapping,
++			struct address_space *mapping,
+ 			struct file *filp);
+ 
+ /* Do stack extension */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,7 +65,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 firmware_map-fix-hang-with-x86-32bit.patch
 mm-consolidate-init_mm-definition.patch
-mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
 readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
 mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
