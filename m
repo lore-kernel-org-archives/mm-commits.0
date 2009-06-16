@@ -1,174 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [folded] readahead-introduce-context-readahead-algorithm-update.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 14:49:43 -0700
-Message-ID: <200906162149.n5GLnhH3019599@imap1.linux-foundation.org>
+Subject: [folded] cpusetmm-update-tasks-mems_allowed-in-time-fix.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 14:50:38 -0700
+Message-ID: <200906162150.n5GLoc02020436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45103 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbZFPVvF (ORCPT
+	by vger.kernel.org with ESMTP id S1752506AbZFPVvf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 17:51:05 -0400
+	Tue, 16 Jun 2009 17:51:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, jens.axboe@oracle.com, jmoyer@redhat.com, vst@vlnb.net, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, menage@google.com, miaox@cn.fujitsu.com, mingo@elte.hu, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi, rien
 
 
 The patch titled
-     readahead: introduce context readahead algorithm
+     cpusetmm-update-tasks-mems_allowed-in-time-fix
 has been removed from the -mm tree.  Its filename was
-     readahead-introduce-context-readahead-algorithm-update.patch
+     cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
 
-This patch was dropped because it was folded into readahead-introduce-context-readahead-algorithm.patch
+This patch was dropped because it was folded into cpusetmm-update-tasks-mems_allowed-in-time.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: introduce context readahead algorithm
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: cpusetmm-update-tasks-mems_allowed-in-time-fix
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Introduce page cache context based readahead algorithm.
-This is to better support concurrent read streams in general.
+The rework of mpol_new() to extract the adjusting of the node mask to
+apply cpuset and mpol flags "context" breaks set_mempolicy() and mbind()
+with MPOL_PREFERRED and a NULL nodemask--i.e., explicit local allocation. 
+Fix this by adding the check for MPOL_PREFERRED and empty node mask to
+mpol_new_mpolicy().
 
-RATIONALE
----------
-The current readahead algorithm detects interleaved reads in a _passive_ way.
-Given a sequence of interleaved streams 1,1001,2,1002,3,4,1003,5,1004,1005,6,...
-By checking for (offset == prev_offset + 1), it will discover the sequentialness
-between 3,4 and between 1004,1005, and start doing sequential readahead for the
-individual streams since page 4 and page 1005.
+Remove the now unneeded 'nodes = NULL' from mpol_new().
 
-The context readahead algorithm guarantees to discover the sequentialness no
-matter how the streams are interleaved. For the above example, it will start
-sequential readahead since page 2 and 1002.
+Note that mpol_new_mempolicy() is always called with a non-NULL 'nodes'
+parameter now that it has been removed from mpol_new().  Therefore, we
+don't need to test nodes for NULL before testing it for 'empty'.  However,
+just to be extra paranoid, add a VM_BUG_ON() to verify this assumption.
 
-The trick is to poke for page @offset-1 in the page cache when it has no other
-clues on the sequentialness of request @offset: if the current requenst belongs
-to a sequential stream, that stream must have accessed page @offset-1 recently,
-and the page will still be cached now. So if page @offset-1 is there, we can
-take request @offset as a sequential access.
+Tested on x86_64 with numactl-2.0.3-rc2+ regression test.
 
-BENEFICIARIES
--------------
-- strictly interleaved reads  i.e. 1,1001,2,1002,3,1003,...
-  the current readahead will take them as silly random reads;
-  the context readahead will take them as two sequential streams.
-
-- cooperative IO processes   i.e. NFS and SCST
-  They create a thread pool, farming off (sequential) IO requests to different
-  threads which will be performing interleaved IO.
-
-  It was not easy(or possible) to reliably tell from file->f_ra all those
-  cooperative processes working on the same sequential stream, since they will
-  have different file->f_ra instances. And NFSD's file->f_ra is particularly
-  unusable, since their file objects are dynamically created for each request.
-  The nfsd does have code trying to restore the f_ra bits, but not satisfactory.
-
-  The new scheme is to detect the sequential pattern via looking up the page
-  cache, which provides one single and consistent view of the pages recently
-  accessed. That makes sequential detection for cooperative processes possible.
-
-USER REPORT
------------
-Vladislav recommends the addition of context readahead as a result of his SCST
-benchmarks. It leads to 6%~40% performance gains in various cases and achieves
-equal performance in others.                http://lkml.org/lkml/2009/3/19/239
-
-OVERHEADS
----------
-In theory, it introduces one extra page cache lookup per random read.  However
-the below benchmark shows context readahead to be slightly faster, wondering..
-
-Randomly reading 200MB amount of data on a sparse file, repeat 20 times for
-each block size. The average throughputs are:
-
-                       	original ra	context ra	gain
- 4K random reads:	 65.561MB/s	 65.648MB/s	+0.1%
-16K random reads:	124.767MB/s	124.951MB/s	+0.1%
-64K random reads: 	162.123MB/s	162.278MB/s	+0.1%
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Tested-by: Vladislav Bolkhovitin <vst@vlnb.net>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Paul Menage <menage@google.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/mempolicy.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/readahead.c~readahead-introduce-context-readahead-algorithm-update mm/readahead.c
---- a/mm/readahead.c~readahead-introduce-context-readahead-algorithm-update
-+++ a/mm/readahead.c
-@@ -330,14 +330,14 @@ static unsigned long get_next_ra_size(st
-  */
- 
+diff -puN mm/mempolicy.c~cpusetmm-update-tasks-mems_allowed-in-time-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~cpusetmm-update-tasks-mems_allowed-in-time-fix
++++ a/mm/mempolicy.c
+@@ -182,8 +182,9 @@ static int mpol_new_bind(struct mempolic
+ 	return 0;
+ }
  /*
-- * Count continuously cached pages from @offset-1 to @offset-@max,
-+ * Count contiguously cached pages from @offset-1 to @offset-@max,
-  * this count is a conservative estimation of
-  * 	- length of the sequential read sequence, or
-  * 	- thrashing threshold in memory tight systems
-  */
--static unsigned long count_history_pages(struct address_space *mapping,
--					 struct file_ra_state *ra,
--					 pgoff_t offset, unsigned long max)
-+static pgoff_t count_history_pages(struct address_space *mapping,
-+				   struct file_ra_state *ra,
-+				   pgoff_t offset, unsigned long max)
- {
- 	pgoff_t head;
+- * This function is called after mpol_new(). The parameter -- nodes needn't
+- * been check because mpol_new() has done it. Maybe this implement is ugly.
++ * This function is called after mpol_new().  mpol_new() has already validated
++ * the nodes parameter with respect to the policy mode and flags.  But, we
++ * need to handle an empty nodemaks with MPOL_PREFERRED here.
+  *
+  * We use task's alloc_lock to protect task's mems_allowed and mempolicy.
+  * so this function should be called with task's alloc_lock held.
+@@ -197,7 +198,10 @@ static int mpol_new_mempolicy(struct mem
+ 	if (pol == NULL)
+ 		return 0;
  
-@@ -357,7 +357,7 @@ static int try_context_readahead(struct 
- 				 unsigned long req_size,
- 				 unsigned long max)
- {
--	unsigned long size;
-+	pgoff_t size;
- 
- 	size = count_history_pages(mapping, ra, offset, max);
- 
+-	if (nodes) {
++	VM_BUG_ON(!nodes);
++	if (pol->mode == MPOL_PREFERRED && nodes_empty(*nodes))
++		nodes = NULL;	/* explicit local allocation */
++	else {
+ 		if (pol->flags & MPOL_F_RELATIVE_NODES)
+ 			mpol_relative_nodemask(&cpuset_context_nmask, nodes,
+ 					       &cpuset_current_mems_allowed);
+@@ -243,7 +247,6 @@ static struct mempolicy *mpol_new(unsign
+ 			if (((flags & MPOL_F_STATIC_NODES) ||
+ 			     (flags & MPOL_F_RELATIVE_NODES)))
+ 				return ERR_PTR(-EINVAL);
+-			nodes = NULL;	/* flag local alloc */
+ 		}
+ 	} else if (nodes_empty(*nodes))
+ 		return ERR_PTR(-EINVAL);
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
-origin.patch
-readahead-make-mmap_miss-an-unsigned-int.patch
-readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
-readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
-readahead-remove-one-unnecessary-radix-tree-lookup.patch
-readahead-increase-interleaved-readahead-size.patch
-readahead-remove-sync-async-readahead-call-dependency.patch
-readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
-readahead-sequential-mmap-readahead.patch
-readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-radix-tree-add-radix_tree_prev_hole.patch
-readahead-move-the-random-read-case-to-bottom.patch
-readahead-introduce-context-readahead-algorithm.patch
-readahead-introduce-context-readahead-algorithm-update.patch
-readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
-readahead-enforce-full-sync-mmap-readahead-size.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
-mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
-proc-kpagecount-kpageflags-code-cleanup.patch
-proc-export-more-page-flags-in-proc-kpageflags.patch
-pagemap-document-clarifications.patch
-pagemap-document-9-more-exported-page-flags.patch
-pagemap-add-page-types-tool.patch
-pagemap-add-page-types-tool-fix.patch
-vmscan-cleanup-the-scan-batching-code.patch
-vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
+cpusetmm-update-tasks-mems_allowed-in-time.patch
+cpusetmm-update-tasks-mems_allowed-in-time-fix.patch
+cpusetmm-update-tasks-mems_allowed-in-time-cleanup.patch
+vmscan-evict-use-once-pages-first-v3.patch
 vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
-mm-remove-__invalidate_mapping_pages-variant.patch
-vmscan-report-vm_flags-in-page_referenced.patch
-vmscan-make-mapped-executable-pages-the-first-class-citizen.patch
-vmscan-merge-duplicate-code-in-shrink_active_list.patch
-writeback-skip-new-or-to-be-freed-inodes.patch
-vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
-vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-vmscan-fix-use-of-delta-in-zone_pagecache_reclaimable.patch
-vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-mm-fix-documentation-of-min_unmapped_ratio.patch
-vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full.patch
-vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
-vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails-fix.patch
+migration-only-migrate_prep-once-per-move_pages.patch
+mm-remove-config_unevictable_lru-config-option.patch
+vmscan-handle-may_swap-more-strictly.patch
 
