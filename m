@@ -1,103 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [folded] lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:05:19 -0700
-Message-ID: <200906162205.n5GM5KIZ001670@imap1.linux-foundation.org>
+Subject: [folded] remove-put_cpu_no_resched-fix.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:04:51 -0700
+Message-ID: <200906162204.n5GM4qJk001202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753623AbZFPWFT (ORCPT
+	by vger.kernel.org with ESMTP id S1752640AbZFPWFR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:05:19 -0400
+	Tue, 16 Jun 2009 18:05:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shijie8@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, bfields@fieldses.org, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot update
+     remove-put_cpu_no_resched-fix
 has been removed from the -mm tree.  Its filename was
-     lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update.patch
+     remove-put_cpu_no_resched-fix.patch
 
-This patch was dropped because it was folded into lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot.patch
+This patch was dropped because it was folded into remove-put_cpu_no_resched.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot update
-From: Huang Shijie <shijie8@gmail.com>
+Subject: remove-put_cpu_no_resched-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Huang Shijie <shijie8@gmail.com>
+In file included from fs/nfs/client.c:46:
+fs/nfs/iostat.h: In function 'nfs_add_fscache_stats':
+fs/nfs/iostat.h:74: error: implicit declaration of function 'put_cpu_no_resched'
+
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ fs/nfs/iostat.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/radix-tree.c~lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update lib/radix-tree.c
---- a/lib/radix-tree.c~lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update
-+++ a/lib/radix-tree.c
-@@ -355,8 +355,8 @@ EXPORT_SYMBOL(radix_tree_insert);
-  * is_slot == 1 : search for the slot.
-  * is_slot == 0 : search for the node.
-  */
--static void * radix_tree_lookup_element(struct radix_tree_root *root,
--					unsigned long index, int is_slot)
-+static void *radix_tree_lookup_element(struct radix_tree_root *root,
-+				unsigned long index, int is_slot)
- {
- 	unsigned int height, shift;
- 	struct radix_tree_node *node, **slot;
-@@ -389,25 +389,25 @@ static void * radix_tree_lookup_element(
- 		height--;
- 	} while (height > 0);
- 
--	return is_slot ? (void *)slot : node;
-+	return is_slot ? (void *)slot:node;
+diff -puN fs/nfs/iostat.h~remove-put_cpu_no_resched-fix fs/nfs/iostat.h
+--- a/fs/nfs/iostat.h~remove-put_cpu_no_resched-fix
++++ a/fs/nfs/iostat.h
+@@ -71,7 +71,7 @@ static inline void nfs_add_fscache_stats
+ 	cpu = get_cpu();
+ 	iostats = per_cpu_ptr(NFS_SERVER(inode)->io_stats, cpu);
+ 	iostats->fscache[stat] += addend;
+-	put_cpu_no_resched();
++	put_cpu();
  }
- 
- /**
-- *    radix_tree_lookup_slot    -    lookup a slot in a radix tree
-- *    @root:        radix tree root
-- *    @index:        index key
-+ *	radix_tree_lookup_slot    -    lookup a slot in a radix tree
-+ *	@root:		radix tree root
-+ *	@index:		index key
-  *
-- *    Returns:  the slot corresponding to the position @index in the
-- *    radix tree @root. This is useful for update-if-exists operations.
-+ *	Returns:  the slot corresponding to the position @index in the
-+ *	radix tree @root. This is useful for update-if-exists operations.
-  *
-- *    This function can be called under rcu_read_lock iff the slot is not
-- *    modified by radix_tree_replace_slot, otherwise it must be called
-- *    exclusive from other writers. Any dereference of the slot must be done
-- *    using radix_tree_deref_slot.
-+ *	This function can be called under rcu_read_lock iff the slot is not
-+ *	modified by radix_tree_replace_slot, otherwise it must be called
-+ *	exclusive from other writers. Any dereference of the slot must be done
-+ *	using radix_tree_deref_slot.
-  */
- void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index)
- {
--	return (void**)radix_tree_lookup_element(root, index, 1);
-+	return (void **)radix_tree_lookup_element(root, index, 1);
- }
- EXPORT_SYMBOL(radix_tree_lookup_slot);
- 
-@@ -425,7 +425,7 @@ EXPORT_SYMBOL(radix_tree_lookup_slot);
-  */
- void *radix_tree_lookup(struct radix_tree_root *root, unsigned long index)
- {
--    return radix_tree_lookup_element(root, index, 0);
-+	return radix_tree_lookup_element(root, index, 0);
- }
- EXPORT_SYMBOL(radix_tree_lookup);
+ #endif
  
 _
 
-Patches currently in -mm which might be from shijie8@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot.patch
-lib-do-code-optimization-for-radix_tree_lookup-and-radix_tree_lookup_slot-update.patch
+origin.patch
+firmware_map-fix-hang-with-x86-32bit.patch
+mm-consolidate-init_mm-definition.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
+mm-clean-up-get_user_pages_fast-documentation.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
+vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
+fbdev-s1d13xxxfb-add-accelerated-bitblt-functions-checkpatch-fixes.patch
 
