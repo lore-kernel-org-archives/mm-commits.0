@@ -1,54 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [folded] radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:08:24 -0700
-Message-ID: <200906162208.n5GM8Oij004483@imap1.linux-foundation.org>
+Subject: [folded] fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:08:54 -0700
+Message-ID: <200906162208.n5GM8sGl004910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49442 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58543 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753880AbZFPWIb (ORCPT
+	by vger.kernel.org with ESMTP id S1751505AbZFPWJZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:08:31 -0400
+	Tue, 16 Jun 2009 18:09:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, krzysztof.h1@poczta.fm, roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@redhat.com, geert@linux-m68k.org, krzysztof.h1@poczta.fm, pjones@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix
+     fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+     fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+This patch was dropped because it was folded into fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix
+Subject: fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove duplicated bitwise-OR of PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb too.
+WARNING: line over 80 characters
+#86: FILE: drivers/video/fbmem.c:1471:
++	if (gen->aperture_base > hw->aperture_base && gen->aperture_base <= hw->aperture_base + hw->aperture_size)
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+WARNING: line over 80 characters
+#103: FILE: drivers/video/fbmem.c:1504:
++			if (fb_do_apertures_overlap(registered_fb[i], fb_info)) {
+
+WARNING: printk() should include KERN_ facility level
+#104: FILE: drivers/video/fbmem.c:1505:
++				printk("fb: conflicting fb hw usage %s vs %s - removing generic driver\n",
+
+WARNING: line over 80 characters
+#105: FILE: drivers/video/fbmem.c:1506:
++				       fb_info->fix.id, registered_fb[i]->fix.id);
+
+total: 0 errors, 4 warnings, 143 lines checked
+
+./patches/fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Roel Kluin <roel.kluin@gmail.com>
+Cc: Peter Jones <pjones@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/radeon_pm.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/video/fbmem.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix drivers/video/aty/radeon_pm.c
---- a/drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix
-+++ a/drivers/video/aty/radeon_pm.c
-@@ -213,7 +213,6 @@ static void radeon_pm_disable_dynamic_mo
- 			 PIXCLKS_CNTL__R300_PIXCLK_TRANS_ALWAYS_ONb	|
- 			 PIXCLKS_CNTL__R300_PIXCLK_TVO_ALWAYS_ONb	|
- 			 PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb		|
--			 PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb		|
- 			 PIXCLKS_CNTL__R300_DISP_DAC_PIXCLK_DAC2_BLANK_OFF);
-                 OUTPLL(pllPIXCLKS_CNTL, tmp);
+diff -puN drivers/video/fbmem.c~fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes
++++ a/drivers/video/fbmem.c
+@@ -1502,8 +1502,10 @@ register_framebuffer(struct fb_info *fb_
  
+ 		if (registered_fb[i]->flags & FBINFO_MISC_FIRMWARE) {
+ 			if (fb_do_apertures_overlap(registered_fb[i], fb_info)) {
+-				printk("fb: conflicting fb hw usage %s vs %s - removing generic driver\n",
+-				       fb_info->fix.id, registered_fb[i]->fix.id);
++				printk(KERN_ERR "fb: conflicting fb hw usage "
++				       "%s vs %s - removing generic driver\n",
++				       fb_info->fix.id,
++				       registered_fb[i]->fix.id);
+ 				unregister_framebuffer(registered_fb[i]);
+ 				break;
+ 			}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,7 +101,7 @@ headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.pat
 remove-put_cpu_no_resched.patch
 rb_tree-reorganize-code-in-rb_erase-for-additional-changes.patch
 radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers.patch
 fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
 fbdev-s1d13xxxfb-add-accelerated-bitblt-functions-checkpatch-fixes.patch
 
