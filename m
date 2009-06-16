@@ -1,56 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sg_io-dont-perform-unneeded-copy-in-compat-code.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 11:27:46 -0700
-Message-ID: <200906161827.n5GIRkPR028213@imap1.linux-foundation.org>
+Subject: [merged] ramfs-ignore-unknown-mount-options.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 11:27:56 -0700
+Message-ID: <200906161827.n5GIRuPX028372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57984 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756631AbZFPS2F (ORCPT
+	by vger.kernel.org with ESMTP id S1759461AbZFPS3V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 14:28:05 -0400
+	Tue, 16 Jun 2009 14:29:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexey.zaytsev@gmail.com, James.Bottomley@HansenPartnership.com, dgilbert@interlog.com, fujita.tomonori@lab.ntt.co.jp, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, mpm@selenic.com, stable@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sg_io: don't perform unneeded copy in compat code
+     ramfs: ignore unknown mount options
 has been removed from the -mm tree.  Its filename was
-     sg_io-dont-perform-unneeded-copy-in-compat-code.patch
+     ramfs-ignore-unknown-mount-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sg_io: don't perform unneeded copy in compat code
-From: Alexey Zaytsev <alexey.zaytsev@gmail.com>
+Subject: ramfs: ignore unknown mount options
+From: Mike Frysinger <vapier@gentoo.org>
 
-The members from 'status' in struct sg_io_hdr to the last are used to
-transfer information from kernel to user space.  The values that user
-space sets are just ignored.
+On systems where CONFIG_SHMEM is disabled, mounting tmpfs filesystems can
+fail when tmpfs options are used.  This is because tmpfs creates a small
+wrapper around ramfs which rejects unknown options, and ramfs itself only
+supports a tiny subset of what tmpfs supports.  This makes it pretty hard
+to use the same userspace systems across different configuration systems. 
+As such, ramfs should ignore the tmpfs options when tmpfs is merely a
+wrapper around ramfs.
 
-Signed-off-by: Alexey Zaytsev <alexey.zaytsev@gmail.com>
-Cc: Douglas Gilbert <dgilbert@interlog.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+This used to work before commit c3b1b1cbf0 as previously, ramfs would
+ignore all options.  But now, we get: ramfs: bad mount option: size=10M
+mount: mounting mdev on /dev failed: Invalid argument
+
+Another option might be to restore the previous behavior, where ramfs
+simply ignored all unknown mount options ...  which is what Hugh prefers.
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Matt Mackall <mpm@selenic.com>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: <stable@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    6 ------
- 1 file changed, 6 deletions(-)
+ fs/ramfs/inode.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/compat_ioctl.c~sg_io-dont-perform-unneeded-copy-in-compat-code fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~sg_io-dont-perform-unneeded-copy-in-compat-code
-+++ a/fs/compat_ioctl.c
-@@ -787,12 +787,6 @@ static int sg_ioctl_trans(unsigned int f
- 	if (put_user(compat_ptr(data), &sgio->usr_ptr))
- 		return -EFAULT;
+diff -puN fs/ramfs/inode.c~ramfs-ignore-unknown-mount-options fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~ramfs-ignore-unknown-mount-options
++++ a/fs/ramfs/inode.c
+@@ -202,9 +202,12 @@ static int ramfs_parse_options(char *dat
+ 				return -EINVAL;
+ 			opts->mode = option & S_IALLUGO;
+ 			break;
+-		default:
+-			printk(KERN_ERR "ramfs: bad mount option: %s\n", p);
+-			return -EINVAL;
++		/*
++		 * We might like to report bad mount options here;
++		 * but traditionally ramfs has ignored all mount options,
++		 * and as it is used as a !CONFIG_SHMEM simple substitute
++		 * for tmpfs, better continue to ignore other mount options.
++		 */
+ 		}
+ 	}
  
--	if (copy_in_user(&sgio->status, &sgio32->status,
--			 (4 * sizeof(unsigned char)) +
--			 (2 * sizeof(unsigned short)) +
--			 (3 * sizeof(int))))
--		return -EFAULT;
+_
+
+Patches currently in -mm which might be from vapier@gentoo.org are
+
+origin.patch
+linux-next.patch
+pcmcia-yenta-add-missing-__devexit-marking.patch
+drivers-hvc-add-missing-__devexit_p.patch
+kmap_types-make-most-arches-use-generic-header-file.patch
+drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
+gpio-max7301-add-missing-__devexit-marking.patch
+fbdev-blackfin-has-__raw-i-o-accessors-so-use-them-in-fbh.patch
+fbdev-bfin-t350mcqb-fb-drop-unused-local-variables.patch
+fbdev-bfin-drop-unnecessary-calls-to-memset.patch
+fbdev-bfin-fix-__devinitexit-markings.patch
+fbdev-bf54x-lq043fb-use-kzalloc-over-kmalloc-memset.patch
+istallion-add-missing-__devexit-marking.patch
+edac-add-missing-__devexit_p.patch
+
