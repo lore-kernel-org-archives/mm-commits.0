@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page_alloc-oops-when-setting-percpu_pagelist_fraction.patch added to -mm tree
-Date: Tue, 16 Jun 2009 12:01:50 -0700
-Message-ID: <200906161901.n5GJ1osY026940@imap1.linux-foundation.org>
+Subject: + epoll-fix-nested-calls-support.patch added to -mm tree
+Date: Tue, 16 Jun 2009 12:08:24 -0700
+Message-ID: <200906161908.n5GJ8OVW000367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755888AbZFPTDd (ORCPT
+	by vger.kernel.org with ESMTP id S1761226AbZFPTKI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 15:03:33 -0400
+	Tue, 16 Jun 2009 15:10:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sivanich@sgi.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, stable@kernel.org
+Cc: davidel@xmailserver.org, stable@kernel.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     page_alloc: Oops when setting percpu_pagelist_fraction
+     epoll: fix nested calls support
 has been added to the -mm tree.  Its filename is
-     page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
+     epoll-fix-nested-calls-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_alloc: Oops when setting percpu_pagelist_fraction
-From: Dimitri Sivanich <sivanich@sgi.com>
+Subject: epoll: fix nested calls support
+From: Davide Libenzi <davidel@xmailserver.org>
 
-After downing/upping a cpu, an attempt to set
-/proc/sys/vm/percpu_pagelist_fraction results in an oops in
-percpu_pagelist_fraction_sysctl_handler().
+This fixes a regression in 2.6.30.
 
-To reproduce this:
-  localhost:/sys/devices/system/cpu/cpu6 # echo 0 >online
-  localhost:/sys/devices/system/cpu/cpu6 # echo 1 >online
-  localhost:/sys/devices/system/cpu/cpu6 # cd /proc/sys/vm
-  localhost:/proc/sys/vm # echo 100000 >percpu_pagelist_fraction
+I unfortunately accepted a patch time ago, to drop the "current" usage
+from possible IRQ context, w/out proper thought over it.  The patch
+switched to using the CPU id by bounding the nested call callback with a
+get_cpu()/put_cpu().
 
-  BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
-  IP: [<ffffffff80286946>] percpu_pagelist_fraction_sysctl_handler+0x4a/0x96
+Unfortunately the ep_call_nested() function can be called with a callback
+that grabs sleepy locks (from own f_op->poll()), that results in epic
+fails.  The following patch uses the proper "context" depending on the
+path where it is called, and on the kind of callback.
 
-This is because the zone->pageset[cpu] value has not been set when the cpu
-has been brought back up for unpopulated zones (the "Movable" zone in the
-case I'm running into).  Prior to downing/upping the cpu it had been set
-to &boot_pageset[cpu].
+This has been reported by Stefan Richter, that has also verified the patch
+is his previously failing environment.
 
-There are two possible fixes that come to mind.  One is to check for an
-unpopulated zone or NULL zone pageset for that cpu in
-percpu_pagelist_fraction_sysctl_handler(), and simply not set a pagelist
-highmark for that zone/cpu combination.
-
-The other, and the one I'm proposing here, is to set the zone's pageset
-back to the boot_pageset when the cpu is brought back up if the zone is
-unpopulated.
-
-Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Reported-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/eventpoll.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction
-+++ a/mm/page_alloc.c
-@@ -2806,7 +2806,11 @@ static int __cpuinit process_zones(int c
+diff -puN fs/eventpoll.c~epoll-fix-nested-calls-support fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-fix-nested-calls-support
++++ a/fs/eventpoll.c
+@@ -98,7 +98,7 @@ struct epoll_filefd {
+ struct nested_call_node {
+ 	struct list_head llink;
+ 	void *cookie;
+-	int cpu;
++	void *ctx;
+ };
  
- 	node_set_state(node, N_CPU);	/* this node has a cpu */
+ /*
+@@ -317,17 +317,17 @@ static void ep_nested_calls_init(struct 
+  * @nproc: Nested call core function pointer.
+  * @priv: Opaque data to be passed to the @nproc callback.
+  * @cookie: Cookie to be used to identify this nested call.
++ * @ctx: This instance context.
+  *
+  * Returns: Returns the code returned by the @nproc callback, or -1 if
+  *          the maximum recursion limit has been exceeded.
+  */
+ static int ep_call_nested(struct nested_calls *ncalls, int max_nests,
+ 			  int (*nproc)(void *, void *, int), void *priv,
+-			  void *cookie)
++			  void *cookie, void *ctx)
+ {
+ 	int error, call_nests = 0;
+ 	unsigned long flags;
+-	int this_cpu = get_cpu();
+ 	struct list_head *lsthead = &ncalls->tasks_call_list;
+ 	struct nested_call_node *tncur;
+ 	struct nested_call_node tnode;
+@@ -340,7 +340,7 @@ static int ep_call_nested(struct nested_
+ 	 * very much limited.
+ 	 */
+ 	list_for_each_entry(tncur, lsthead, llink) {
+-		if (tncur->cpu == this_cpu &&
++		if (tncur->ctx == ctx &&
+ 		    (tncur->cookie == cookie || ++call_nests > max_nests)) {
+ 			/*
+ 			 * Ops ... loop detected or maximum nest level reached.
+@@ -352,7 +352,7 @@ static int ep_call_nested(struct nested_
+ 	}
  
--	for_each_populated_zone(zone) {
-+	for_each_zone(zone) {
-+		if (!populated_zone(zone)) {
-+			zone_pcp(zone, cpu) = &boot_pageset[cpu];
-+			continue;
-+		}
- 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
- 					 GFP_KERNEL, node);
- 		if (!zone_pcp(zone, cpu))
+ 	/* Add the current task and cookie to the list */
+-	tnode.cpu = this_cpu;
++	tnode.ctx = ctx;
+ 	tnode.cookie = cookie;
+ 	list_add(&tnode.llink, lsthead);
+ 
+@@ -364,10 +364,9 @@ static int ep_call_nested(struct nested_
+ 	/* Remove the current task from the list */
+ 	spin_lock_irqsave(&ncalls->lock, flags);
+ 	list_del(&tnode.llink);
+- out_unlock:
++out_unlock:
+ 	spin_unlock_irqrestore(&ncalls->lock, flags);
+ 
+-	put_cpu();
+ 	return error;
+ }
+ 
+@@ -408,8 +407,12 @@ static int ep_poll_wakeup_proc(void *pri
+  */
+ static void ep_poll_safewake(wait_queue_head_t *wq)
+ {
++	int this_cpu = get_cpu();
++
+ 	ep_call_nested(&poll_safewake_ncalls, EP_MAX_NESTS,
+-		       ep_poll_wakeup_proc, NULL, wq);
++		       ep_poll_wakeup_proc, NULL, wq, (void *) (long) this_cpu);
++
++	put_cpu();
+ }
+ 
+ /*
+@@ -663,7 +666,7 @@ static unsigned int ep_eventpoll_poll(st
+ 	 * could re-enter here.
+ 	 */
+ 	pollflags = ep_call_nested(&poll_readywalk_ncalls, EP_MAX_NESTS,
+-				   ep_poll_readyevents_proc, ep, ep);
++				   ep_poll_readyevents_proc, ep, ep, current);
+ 
+ 	return pollflags != -1 ? pollflags : 0;
+ }
 _
 
-Patches currently in -mm which might be from sivanich@sgi.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
-page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
+origin.patch
+linux-next.patch
+poll-avoid-extra-wakeups-in-select-poll.patch
+epoll-fix-nested-calls-support.patch
 
