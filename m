@@ -1,57 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ksm-add-get_pte-helper-function-fetching-pte-for-va.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:40:54 -0700
-Message-ID: <200906162240.n5GMesUi002871@imap1.linux-foundation.org>
+Subject: [to-be-updated] ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:40:57 -0700
+Message-ID: <200906162240.n5GMev8e002888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47365 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762250AbZFPWlk (ORCPT
+	by vger.kernel.org with ESMTP id S1762269AbZFPWlk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Jun 2009 18:41:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: add get_pte(): helper function: fetching pte for va
+     ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
 has been removed from the -mm tree.  Its filename was
-     ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+     ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: add get_pte(): helper function: fetching pte for va
-From: Izik Eidus <ieidus@redhat.com>
+Subject: ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-get_pte() receives the mm_struct of a task and a virtual address and
-returns the pte corresponding to it.
+In file included from include/linux/suspend.h:8,
+                 from arch/x86/kernel/asm-offsets_32.c:11,
+                 from arch/x86/kernel/asm-offsets.c:2:
+include/linux/mm.h: In function 'get_pte':
+include/linux/mm.h:906: error: implicit declaration of function 'kmap_atomic_pte'
 
-This function return NULL in case it couldnt fetch the pte.
-
-Signed-off-by: Izik Eidus <ieidus@redhat.com>
-Cc: Chris Wright <chrisw@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Avi Kivity <avi@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ include/linux/mm.h |   25 +------------------------
+ mm/util.c          |   26 ++++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/mm.h~ksm-add-get_pte-helper-function-fetching-pte-for-va include/linux/mm.h
---- a/include/linux/mm.h~ksm-add-get_pte-helper-function-fetching-pte-for-va
+diff -puN include/linux/mm.h~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix include/linux/mm.h
+--- a/include/linux/mm.h~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
 +++ a/include/linux/mm.h
-@@ -883,6 +883,30 @@ int vma_wants_writenotify(struct vm_area
+@@ -882,30 +882,7 @@ extern void unregister_shrinker(struct s
+ int vma_wants_writenotify(struct vm_area_struct *vma);
  
  extern pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl);
+-
+-static inline pte_t *get_pte(struct mm_struct *mm, unsigned long addr)
+-{
+-	pgd_t *pgd;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-	pte_t *ptep = NULL;
+-
+-	pgd = pgd_offset(mm, addr);
+-	if (!pgd_present(*pgd))
+-		goto out;
+-
+-	pud = pud_offset(pgd, addr);
+-	if (!pud_present(*pud))
+-		goto out;
+-
+-	pmd = pmd_offset(pud, addr);
+-	if (!pmd_present(*pmd))
+-		goto out;
+-
+-	ptep = pte_offset_map(pmd, addr);
+-out:
+-	return ptep;
+-}
++extern pte_t *get_pte(struct mm_struct *mm, unsigned long addr);
  
-+static inline pte_t *get_pte(struct mm_struct *mm, unsigned long addr)
+ #ifdef __PAGETABLE_PUD_FOLDED
+ static inline int __pud_alloc(struct mm_struct *mm, pgd_t *pgd,
+diff -puN mm/util.c~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix mm/util.c
+--- a/mm/util.c~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
++++ a/mm/util.c
+@@ -1,4 +1,5 @@
+ #include <linux/mm.h>
++#include <linux/highmem.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/module.h>
+@@ -264,6 +265,31 @@ int __attribute__((weak)) get_user_pages
+ }
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ 
++pte_t *get_pte(struct mm_struct *mm, unsigned long addr)
 +{
 +	pgd_t *pgd;
 +	pud_t *pud;
@@ -74,28 +117,79 @@ diff -puN include/linux/mm.h~ksm-add-get_pte-helper-function-fetching-pte-for-va
 +out:
 +	return ptep;
 +}
++EXPORT_SYMBOL_GPL(get_pte);
 +
- #ifdef __PAGETABLE_PUD_FOLDED
- static inline int __pud_alloc(struct mm_struct *mm, pgd_t *pgd,
- 						unsigned long address)
+ /* Tracepoints definitions. */
+ EXPORT_TRACEPOINT_SYMBOL(kmalloc);
+ EXPORT_TRACEPOINT_SYMBOL(kmem_cache_alloc);
 _
 
-Patches currently in -mm which might be from ieidus@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+firmware_map-fix-hang-with-x86-32bit.patch
+mm-consolidate-init_mm-definition.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
+mm-clean-up-get_user_pages_fast-documentation.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
+vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers.patch
+fbdev-s1d13xxxfb-add-accelerated-bitblt-functions.patch
 linux-next.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
 ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
-ksm-add-page_wrprotect-write-protecting-page.patch
-ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
-ksm-add-ksm-kernel-shared-memory-driver.patch
 ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
-ksm-add-ksm-kernel-shared-memory-driver-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch
-ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch
-ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
-ksm-add-ksm-kernel-shared-memory-driver-change-the-prot-handling-to-use-the-generic-helper-functions.patch
-ksm-add-ksm-kernel-shared-memory-driver-use-another-miscdevice-minor-number.patch
-ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch
-ksm-add-replace_page-change-the-page-pte-is-pointing-to-fix-losing-visibility-of-part-of-rmap_item-next-list.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes-gpio-pca953x-get-platform_data-from-openfirmware-cleanups.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
