@@ -1,94 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ramfs-ignore-unknown-mount-options.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 11:27:56 -0700
-Message-ID: <200906161827.n5GIRuPX028372@imap1.linux-foundation.org>
+Subject: + page_alloc-oops-when-setting-percpu_pagelist_fraction.patch added to -mm tree
+Date: Tue, 16 Jun 2009 12:01:50 -0700
+Message-ID: <200906161901.n5GJ1osY026940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759461AbZFPS3V (ORCPT
+	by vger.kernel.org with ESMTP id S1755888AbZFPTDd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 14:29:21 -0400
+	Tue, 16 Jun 2009 15:03:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, mpm@selenic.com, stable@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sivanich@sgi.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, stable@kernel.org
 
 
 The patch titled
-     ramfs: ignore unknown mount options
-has been removed from the -mm tree.  Its filename was
-     ramfs-ignore-unknown-mount-options.patch
+     page_alloc: Oops when setting percpu_pagelist_fraction
+has been added to the -mm tree.  Its filename is
+     page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ramfs: ignore unknown mount options
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: page_alloc: Oops when setting percpu_pagelist_fraction
+From: Dimitri Sivanich <sivanich@sgi.com>
 
-On systems where CONFIG_SHMEM is disabled, mounting tmpfs filesystems can
-fail when tmpfs options are used.  This is because tmpfs creates a small
-wrapper around ramfs which rejects unknown options, and ramfs itself only
-supports a tiny subset of what tmpfs supports.  This makes it pretty hard
-to use the same userspace systems across different configuration systems. 
-As such, ramfs should ignore the tmpfs options when tmpfs is merely a
-wrapper around ramfs.
+After downing/upping a cpu, an attempt to set
+/proc/sys/vm/percpu_pagelist_fraction results in an oops in
+percpu_pagelist_fraction_sysctl_handler().
 
-This used to work before commit c3b1b1cbf0 as previously, ramfs would
-ignore all options.  But now, we get: ramfs: bad mount option: size=10M
-mount: mounting mdev on /dev failed: Invalid argument
+To reproduce this:
+  localhost:/sys/devices/system/cpu/cpu6 # echo 0 >online
+  localhost:/sys/devices/system/cpu/cpu6 # echo 1 >online
+  localhost:/sys/devices/system/cpu/cpu6 # cd /proc/sys/vm
+  localhost:/proc/sys/vm # echo 100000 >percpu_pagelist_fraction
 
-Another option might be to restore the previous behavior, where ramfs
-simply ignored all unknown mount options ...  which is what Hugh prefers.
+  BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
+  IP: [<ffffffff80286946>] percpu_pagelist_fraction_sysctl_handler+0x4a/0x96
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Acked-by: Matt Mackall <mpm@selenic.com>
-Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+This is because the zone->pageset[cpu] value has not been set when the cpu
+has been brought back up for unpopulated zones (the "Movable" zone in the
+case I'm running into).  Prior to downing/upping the cpu it had been set
+to &boot_pageset[cpu].
+
+There are two possible fixes that come to mind.  One is to check for an
+unpopulated zone or NULL zone pageset for that cpu in
+percpu_pagelist_fraction_sysctl_handler(), and simply not set a pagelist
+highmark for that zone/cpu combination.
+
+The other, and the one I'm proposing here, is to set the zone's pageset
+back to the boot_pageset when the cpu is brought back up if the zone is
+unpopulated.
+
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: <stable@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/inode.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/ramfs/inode.c~ramfs-ignore-unknown-mount-options fs/ramfs/inode.c
---- a/fs/ramfs/inode.c~ramfs-ignore-unknown-mount-options
-+++ a/fs/ramfs/inode.c
-@@ -202,9 +202,12 @@ static int ramfs_parse_options(char *dat
- 				return -EINVAL;
- 			opts->mode = option & S_IALLUGO;
- 			break;
--		default:
--			printk(KERN_ERR "ramfs: bad mount option: %s\n", p);
--			return -EINVAL;
-+		/*
-+		 * We might like to report bad mount options here;
-+		 * but traditionally ramfs has ignored all mount options,
-+		 * and as it is used as a !CONFIG_SHMEM simple substitute
-+		 * for tmpfs, better continue to ignore other mount options.
-+		 */
- 		}
- 	}
+diff -puN mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction
++++ a/mm/page_alloc.c
+@@ -2806,7 +2806,11 @@ static int __cpuinit process_zones(int c
  
+ 	node_set_state(node, N_CPU);	/* this node has a cpu */
+ 
+-	for_each_populated_zone(zone) {
++	for_each_zone(zone) {
++		if (!populated_zone(zone)) {
++			zone_pcp(zone, cpu) = &boot_pageset[cpu];
++			continue;
++		}
+ 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
+ 					 GFP_KERNEL, node);
+ 		if (!zone_pcp(zone, cpu))
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from sivanich@sgi.com are
 
-origin.patch
-linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-drivers-hvc-add-missing-__devexit_p.patch
-kmap_types-make-most-arches-use-generic-header-file.patch
-drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
-gpio-max7301-add-missing-__devexit-marking.patch
-fbdev-blackfin-has-__raw-i-o-accessors-so-use-them-in-fbh.patch
-fbdev-bfin-t350mcqb-fb-drop-unused-local-variables.patch
-fbdev-bfin-drop-unnecessary-calls-to-memset.patch
-fbdev-bfin-fix-__devinitexit-markings.patch
-fbdev-bf54x-lq043fb-use-kzalloc-over-kmalloc-memset.patch
-istallion-add-missing-__devexit-marking.patch
-edac-add-missing-__devexit_p.patch
+page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
 
