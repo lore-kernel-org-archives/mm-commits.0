@@ -1,154 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:41:23 -0700
-Message-ID: <200906162241.n5GMfNDq003355@imap1.linux-foundation.org>
+Subject: [to-be-updated] ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:41:32 -0700
+Message-ID: <200906162241.n5GMfW5Y003536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46402 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762573AbZFPWl7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757488AbZFPWmO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:41:59 -0400
+	Tue, 16 Jun 2009 18:42:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: change the KSM_REMOVE_MEMORY_REGION ioctl.
+     ksm: fix rmap_item use after free
 has been removed from the -mm tree.  Its filename was
-     ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
+     ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: change the KSM_REMOVE_MEMORY_REGION ioctl.
-From: Izik Eidus <ieidus@redhat.com>
+Subject: ksm: fix rmap_item use after free
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-This patch change the KSM_REMOVE_MEMORY_REGION ioctl to be specific per
-memory region (instead of flushing all the registred memory regions inside
-the file descriptor like it happen now)
+This avoid crashing with slab debugging enabled by removing a window for
+memory corruption if freed slab entries are reused before we read the next
+pointer.  Against mmotm.
 
-The previoes api was: user register memory regions using
-KSM_REGISTER_MEMORY_REGION inside the fd, and then when he wanted to
-remove just one memory region, he had to remove them all using
-KSM_REMOVE_MEMORY_REGION.
-
-This patch change this beahivor by chaning the KSM_REMOVE_MEMORY_REGION
-ioctl to recive another paramter that it is the begining of the virtual
-address that is wanted to be removed.
-
-(user can still remove all the memory regions all at once, by just closing
-the file descriptor)
-
-Signed-off-by: Izik Eidus <ieidus@redhat.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Izik Eidus <ieidus@redhat.com>
 Cc: Chris Wright <chrisw@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Avi Kivity <avi@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   45 ++++++++++++++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 19 deletions(-)
+ mm/ksm.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl mm/ksm.c
---- a/mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl
+diff -puN mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free mm/ksm.c
+--- a/mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free
 +++ a/mm/ksm.c
-@@ -542,48 +542,55 @@ out:
- 	return ret;
- }
- 
--static void remove_mm_from_hash_and_tree(struct mm_struct *mm)
-+static void remove_slot_from_hash_and_tree(struct ksm_mem_slot *slot)
+@@ -892,7 +892,7 @@ static struct rmap_item *stable_tree_sea
  {
--	struct ksm_mem_slot *slot;
- 	int pages_count;
+ 	struct rb_node *node = root_stable_tree.rb_node;
+ 	struct tree_item *tree_item;
+-	struct rmap_item *found_rmap_item;
++	struct rmap_item *found_rmap_item, *next_rmap_item;
  
--	list_for_each_entry(slot, &slots, link)
--		if (slot->mm == mm)
--			break;
--	BUG_ON(!slot);
--
- 	root_unstable_tree = RB_ROOT;
- 	for (pages_count = 0; pages_count < slot->npages; ++pages_count)
--		remove_page_from_tree(mm, slot->addr +
-+		remove_page_from_tree(slot->mm, slot->addr +
- 				      pages_count * PAGE_SIZE);
- 	/* Called under slots_lock */
- 	list_del(&slot->link);
- }
+ 	while (node) {
+ 		int ret;
+@@ -907,9 +907,11 @@ static struct rmap_item *stable_tree_sea
+ 			      found_rmap_item->address == rmap_item->address)) {
+ 				if (!is_zapped_item(found_rmap_item, page2))
+ 					break;
++				next_rmap_item = found_rmap_item->next;
+ 				remove_rmap_item_from_tree(found_rmap_item);
+-			}
+-			found_rmap_item = found_rmap_item->next;
++				found_rmap_item = next_rmap_item;
++			} else
++				found_rmap_item = found_rmap_item->next;
+ 		}
+ 		if (!found_rmap_item)
+ 			goto out_didnt_find;
+@@ -959,7 +961,7 @@ static int stable_tree_insert(struct pag
  
--static int ksm_sma_ioctl_remove_memory_region(struct ksm_sma *ksm_sma)
-+static int ksm_sma_ioctl_remove_memory_region(struct ksm_sma *ksm_sma,
-+					      unsigned long addr)
- {
-+	int ret = -EFAULT;
- 	struct ksm_mem_slot *slot, *node;
+ 	while (*new) {
+ 		int ret;
+-		struct rmap_item *insert_rmap_item;
++		struct rmap_item *insert_rmap_item, *next_rmap_item;
  
- 	down_write(&slots_lock);
- 	list_for_each_entry_safe(slot, node, &ksm_sma->sma_slots, sma_link) {
--		remove_mm_from_hash_and_tree(slot->mm);
--		mmput(slot->mm);
--		list_del(&slot->sma_link);
--		kfree(slot);
--		ksm_sma->nregions--;
-+		if (addr == slot->addr) {
-+			remove_slot_from_hash_and_tree(slot);
-+			mmput(slot->mm);
-+			list_del(&slot->sma_link);
-+			kfree(slot);
-+			ksm_sma->nregions--;
-+			ret = 0;
-+		}
- 	}
- 	up_write(&slots_lock);
--	return 0;
-+	return ret;
- }
- 
- static int ksm_sma_release(struct inode *inode, struct file *filp)
- {
-+	struct ksm_mem_slot *slot, *node;
- 	struct ksm_sma *ksm_sma = filp->private_data;
--	int r;
- 
--	r = ksm_sma_ioctl_remove_memory_region(ksm_sma);
-+	down_write(&slots_lock);
-+	list_for_each_entry_safe(slot, node, &ksm_sma->sma_slots, sma_link) {
-+		remove_slot_from_hash_and_tree(slot);
-+		mmput(slot->mm);
-+		list_del(&slot->sma_link);
-+		kfree(slot);
-+	}
-+	up_write(&slots_lock);
-+
- 	kfree(ksm_sma);
--	return r;
-+	return 0;
- }
- 
- static long ksm_sma_ioctl(struct file *filp,
-@@ -606,7 +613,7 @@ static long ksm_sma_ioctl(struct file *f
- 		break;
- 	}
- 	case KSM_REMOVE_MEMORY_REGION:
--		r = ksm_sma_ioctl_remove_memory_region(sma);
-+		r = ksm_sma_ioctl_remove_memory_region(sma, arg);
- 		break;
- 	}
- 
+ 		tree_item = rb_entry(*new, struct tree_item, node);
+ 		BUG_ON(!tree_item);
+@@ -973,9 +975,11 @@ static int stable_tree_insert(struct pag
+ 			     insert_rmap_item->address == rmap_item->address)) {
+ 				if (!is_zapped_item(insert_rmap_item, page2))
+ 					break;
++				next_rmap_item = insert_rmap_item->next;
+ 				remove_rmap_item_from_tree(insert_rmap_item);
+-			}
+-			insert_rmap_item = insert_rmap_item->next;
++				insert_rmap_item = next_rmap_item;
++			} else
++				insert_rmap_item = insert_rmap_item->next;
+ 		}
+ 		if (!insert_rmap_item)
+ 			return 1;
 _
 
-Patches currently in -mm which might be from ieidus@redhat.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 linux-next.patch
-ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
-ksm-add-ksm-kernel-shared-memory-driver-change-the-prot-handling-to-use-the-generic-helper-functions.patch
-ksm-add-ksm-kernel-shared-memory-driver-use-another-miscdevice-minor-number.patch
 ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch
 ksm-add-replace_page-change-the-page-pte-is-pointing-to-fix-losing-visibility-of-part-of-rmap_item-next-list.patch
 
