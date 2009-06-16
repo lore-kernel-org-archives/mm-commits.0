@@ -1,63 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded] readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 14:49:22 -0700
-Message-ID: <200906162149.n5GLnMxv019172@imap1.linux-foundation.org>
+Subject: [folded] mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 14:50:10 -0700
+Message-ID: <200906162150.n5GLoB8B019979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49536 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751646AbZFPVtx (ORCPT
+	by vger.kernel.org with ESMTP id S1752142AbZFPVur (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 17:49:53 -0400
+	Tue, 16 Jun 2009 17:50:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andy.grover@oracle.com, nickpiggin@yahoo.com.au, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes
+     mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+     mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into readahead-record-mmap-read-around-states-in-file_ra_state.patch
+This patch was dropped because it was folded into mm-clean-up-get_user_pages_fast-documentation.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes
+Subject: mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#42: FILE: include/linux/mm.h:1202:
-+^I^I        struct address_space *mapping,$
+ERROR: space required after that ',' (ctx:VxV)
+#29: FILE: include/linux/mm.h:829:
++			unsigned long start, int len,int write, int force,
+ 			                            ^
 
-total: 1 errors, 0 warnings, 83 lines checked
+total: 1 errors, 0 warnings, 113 lines checked
 
-./patches/readahead-record-mmap-read-around-states-in-file_ra_state.patch has style problems, please review.  If any of these errors
+./patches/mm-clean-up-get_user_pages_fast-documentation.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Andy Grover <andy.grover@oracle.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/mm.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes include/linux/mm.h
---- a/include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes
+diff -puN include/linux/mm.h~mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes include/linux/mm.h
+--- a/include/linux/mm.h~mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes
 +++ a/include/linux/mm.h
-@@ -1196,7 +1196,7 @@ void page_cache_async_readahead(struct a
+@@ -825,7 +825,7 @@ extern int make_pages_present(unsigned l
+ extern int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write);
  
- unsigned long max_sane_readahead(unsigned long nr);
- unsigned long ra_submit(struct file_ra_state *ra,
--		        struct address_space *mapping,
-+			struct address_space *mapping,
- 			struct file *filp);
- 
- /* Do stack extension */
+ int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-			unsigned long start, int len,int write, int force,
++			unsigned long start, int len, int write, int force,
+ 			struct page **pages, struct vm_area_struct **vmas);
+ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			struct page **pages);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +69,7 @@ origin.patch
 firmware_map-fix-hang-with-x86-32bit.patch
 mm-consolidate-init_mm-definition.patch
 readahead-record-mmap-read-around-states-in-file_ra_state.patch
-readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation.patch
 mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
 page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
 page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
