@@ -1,91 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 14:50:10 -0700
-Message-ID: <200906162150.n5GLoB8B019979@imap1.linux-foundation.org>
+Subject: [folded] readahead-introduce-context-readahead-algorithm-update.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 14:49:43 -0700
+Message-ID: <200906162149.n5GLnhH3019599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60894 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752142AbZFPVur (ORCPT
+	by vger.kernel.org with ESMTP id S1752146AbZFPVvF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 17:50:47 -0400
+	Tue, 16 Jun 2009 17:51:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andy.grover@oracle.com, nickpiggin@yahoo.com.au, npiggin@suse.de, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, jens.axboe@oracle.com, jmoyer@redhat.com, vst@vlnb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes
+     readahead: introduce context readahead algorithm
 has been removed from the -mm tree.  Its filename was
-     mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+     readahead-introduce-context-readahead-algorithm-update.patch
 
-This patch was dropped because it was folded into mm-clean-up-get_user_pages_fast-documentation.patch
+This patch was dropped because it was folded into readahead-introduce-context-readahead-algorithm.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: readahead: introduce context readahead algorithm
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-ERROR: space required after that ',' (ctx:VxV)
-#29: FILE: include/linux/mm.h:829:
-+			unsigned long start, int len,int write, int force,
- 			                            ^
+Introduce page cache context based readahead algorithm.
+This is to better support concurrent read streams in general.
 
-total: 1 errors, 0 warnings, 113 lines checked
+RATIONALE
+---------
+The current readahead algorithm detects interleaved reads in a _passive_ way.
+Given a sequence of interleaved streams 1,1001,2,1002,3,4,1003,5,1004,1005,6,...
+By checking for (offset == prev_offset + 1), it will discover the sequentialness
+between 3,4 and between 1004,1005, and start doing sequential readahead for the
+individual streams since page 4 and page 1005.
 
-./patches/mm-clean-up-get_user_pages_fast-documentation.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+The context readahead algorithm guarantees to discover the sequentialness no
+matter how the streams are interleaved. For the above example, it will start
+sequential readahead since page 2 and 1002.
 
-Please run checkpatch prior to sending patches
+The trick is to poke for page @offset-1 in the page cache when it has no other
+clues on the sequentialness of request @offset: if the current requenst belongs
+to a sequential stream, that stream must have accessed page @offset-1 recently,
+and the page will still be cached now. So if page @offset-1 is there, we can
+take request @offset as a sequential access.
 
-Cc: Andy Grover <andy.grover@oracle.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Nick Piggin <npiggin@suse.de>
+BENEFICIARIES
+-------------
+- strictly interleaved reads  i.e. 1,1001,2,1002,3,1003,...
+  the current readahead will take them as silly random reads;
+  the context readahead will take them as two sequential streams.
+
+- cooperative IO processes   i.e. NFS and SCST
+  They create a thread pool, farming off (sequential) IO requests to different
+  threads which will be performing interleaved IO.
+
+  It was not easy(or possible) to reliably tell from file->f_ra all those
+  cooperative processes working on the same sequential stream, since they will
+  have different file->f_ra instances. And NFSD's file->f_ra is particularly
+  unusable, since their file objects are dynamically created for each request.
+  The nfsd does have code trying to restore the f_ra bits, but not satisfactory.
+
+  The new scheme is to detect the sequential pattern via looking up the page
+  cache, which provides one single and consistent view of the pages recently
+  accessed. That makes sequential detection for cooperative processes possible.
+
+USER REPORT
+-----------
+Vladislav recommends the addition of context readahead as a result of his SCST
+benchmarks. It leads to 6%~40% performance gains in various cases and achieves
+equal performance in others.                http://lkml.org/lkml/2009/3/19/239
+
+OVERHEADS
+---------
+In theory, it introduces one extra page cache lookup per random read.  However
+the below benchmark shows context readahead to be slightly faster, wondering..
+
+Randomly reading 200MB amount of data on a sparse file, repeat 20 times for
+each block size. The average throughputs are:
+
+                       	original ra	context ra	gain
+ 4K random reads:	 65.561MB/s	 65.648MB/s	+0.1%
+16K random reads:	124.767MB/s	124.951MB/s	+0.1%
+64K random reads: 	162.123MB/s	162.278MB/s	+0.1%
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Tested-by: Vladislav Bolkhovitin <vst@vlnb.net>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/readahead.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mm.h~mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes include/linux/mm.h
---- a/include/linux/mm.h~mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes
-+++ a/include/linux/mm.h
-@@ -825,7 +825,7 @@ extern int make_pages_present(unsigned l
- extern int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write);
+diff -puN mm/readahead.c~readahead-introduce-context-readahead-algorithm-update mm/readahead.c
+--- a/mm/readahead.c~readahead-introduce-context-readahead-algorithm-update
++++ a/mm/readahead.c
+@@ -330,14 +330,14 @@ static unsigned long get_next_ra_size(st
+  */
  
- int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
--			unsigned long start, int len,int write, int force,
-+			unsigned long start, int len, int write, int force,
- 			struct page **pages, struct vm_area_struct **vmas);
- int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 			struct page **pages);
+ /*
+- * Count continuously cached pages from @offset-1 to @offset-@max,
++ * Count contiguously cached pages from @offset-1 to @offset-@max,
+  * this count is a conservative estimation of
+  * 	- length of the sequential read sequence, or
+  * 	- thrashing threshold in memory tight systems
+  */
+-static unsigned long count_history_pages(struct address_space *mapping,
+-					 struct file_ra_state *ra,
+-					 pgoff_t offset, unsigned long max)
++static pgoff_t count_history_pages(struct address_space *mapping,
++				   struct file_ra_state *ra,
++				   pgoff_t offset, unsigned long max)
+ {
+ 	pgoff_t head;
+ 
+@@ -357,7 +357,7 @@ static int try_context_readahead(struct 
+ 				 unsigned long req_size,
+ 				 unsigned long max)
+ {
+-	unsigned long size;
++	pgoff_t size;
+ 
+ 	size = count_history_pages(mapping, ra, offset, max);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
-firmware_map-fix-hang-with-x86-32bit.patch
-mm-consolidate-init_mm-definition.patch
+readahead-make-mmap_miss-an-unsigned-int.patch
+readahead-move-max_sane_readahead-calls-into-force_page_cache_readahead.patch
+readahead-apply-max_sane_readahead-limit-in-ondemand_readahead.patch
+readahead-remove-one-unnecessary-radix-tree-lookup.patch
+readahead-increase-interleaved-readahead-size.patch
+readahead-remove-sync-async-readahead-call-dependency.patch
+readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
+readahead-sequential-mmap-readahead.patch
+readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
 readahead-record-mmap-read-around-states-in-file_ra_state.patch
-mm-clean-up-get_user_pages_fast-documentation.patch
-mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+radix-tree-add-radix_tree_prev_hole.patch
+readahead-move-the-random-read-case-to-bottom.patch
+readahead-introduce-context-readahead-algorithm.patch
+readahead-introduce-context-readahead-algorithm-update.patch
+readahead-remove-redundant-test-in-shrink_readahead_size_eio.patch
+readahead-enforce-full-sync-mmap-readahead-size.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages.patch
+mm-introduce-pagehuge-for-testing-huge-gigantic-pages-update.patch
+proc-kpagecount-kpageflags-code-cleanup.patch
+proc-export-more-page-flags-in-proc-kpageflags.patch
+pagemap-document-clarifications.patch
+pagemap-document-9-more-exported-page-flags.patch
+pagemap-add-page-types-tool.patch
 pagemap-add-page-types-tool-fix.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
+vmscan-cleanup-the-scan-batching-code.patch
+vmscan-dont-export-nr_saved_scan-in-proc-zoneinfo.patch
+vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+mm-remove-__invalidate_mapping_pages-variant.patch
+vmscan-report-vm_flags-in-page_referenced.patch
+vmscan-make-mapped-executable-pages-the-first-class-citizen.patch
+vmscan-merge-duplicate-code-in-shrink_active_list.patch
+writeback-skip-new-or-to-be-freed-inodes.patch
+vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
+vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-vmscan-fix-use-of-delta-in-zone_pagecache_reclaimable.patch
+vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-mm-fix-documentation-of-min_unmapped_ratio.patch
+vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full.patch
+vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
 vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails-fix.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
-fbdev-s1d13xxxfb-add-accelerated-bitblt-functions-checkpatch-fixes.patch
 
