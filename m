@@ -1,98 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [folded] page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 14:59:11 -0700
-Message-ID: <200906162159.n5GLxC7I028302@imap1.linux-foundation.org>
+Subject: [folded] page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 14:58:50 -0700
+Message-ID: <200906162158.n5GLwoIm027970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753212AbZFPV7L (ORCPT
+	by vger.kernel.org with ESMTP id S1752409AbZFPV7a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 17:59:11 -0400
+	Tue, 16 Jun 2009 17:59:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan.kim@gmail.com, mm-commits@vger.kernel.org
+To: cl@linux.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes
+     page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch
 has been removed from the -mm tree.  Its filename was
-     page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+     page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
 
-This patch was dropped because it was folded into page-allocator-clean-up-functions-related-to-pages_min.patch
+This patch was dropped because it was folded into page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch
+From: Christoph Lameter <cl@linux.com>
 
-ERROR: trailing whitespace
-#119: FILE: mm/page_alloc.c:4474:
-+ * setup_per_zone_wmarks - called when min_free_kbytes changes $
+On Mon, 25 May 2009, Mel Gorman wrote:
 
-WARNING: line over 80 characters
-#123: FILE: mm/page_alloc.c:4477:
-+ * Ensures that the watermark[min,low,high] values for each zone are set correctly
+> I expect that the machine would start running into reclaim issues with
+> enough uptime because it'll not be using Highmem as it should. Similarly,
+> the GFP_DMA32 may also be a problem as the new implementation is going
+> ZONE_DMA when ZONE_NORMAL would have been ok in this case.
 
-total: 1 errors, 1 warnings, 62 lines checked
+Right. The fallback for DMA32 is wrong. Should fall back to ZONE_NORMAL.
+Not to DMA. And the config variable to check for highmem was wrong.
 
-./patches/page-allocator-clean-up-functions-related-to-pages_min.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Subject: Fix gfp zone patch
 
-Please run checkpatch prior to sending patches
+1. If there is no DMA32 fall back to NORMAL instead of DMA
 
-Cc: Minchan Kim <minchan.kim@gmail.com>
+2. Use the correct config variable for HIGHMEM
+
+Signed-off-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/gfp.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -4483,11 +4483,11 @@ static void setup_per_zone_lowmem_reserv
+diff -puN include/linux/gfp.h~page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch include/linux/gfp.h
+--- a/include/linux/gfp.h~page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch
++++ a/include/linux/gfp.h
+@@ -125,7 +125,7 @@ static inline int allocflags_to_migratet
+ 		((gfp_flags & __GFP_RECLAIMABLE) != 0);
  }
  
- /**
-- * setup_per_zone_wmarks - called when min_free_kbytes changes 
-+ * setup_per_zone_wmarks - called when min_free_kbytes changes
-  * or when memory is hot-added
-  *
-- * Ensures that the watermark[min,low,high] values for each zone are set correctly
-- * with respect to min_free_kbytes.
-+ * Ensures that the watermark[min,low,high] values for each zone are set
-+ * correctly with respect to min_free_kbytes.
-  */
- void setup_per_zone_wmarks(void)
- {
+-#ifdef CONFIG_ZONE_HIGHMEM
++#ifdef CONFIG_HIGHMEM
+ #define OPT_ZONE_HIGHMEM ZONE_HIGHMEM
+ #else
+ #define OPT_ZONE_HIGHMEM ZONE_NORMAL
+@@ -140,7 +140,7 @@ static inline int allocflags_to_migratet
+ #ifdef CONFIG_ZONE_DMA32
+ #define OPT_ZONE_DMA32 ZONE_DMA32
+ #else
+-#define OPT_ZONE_DMA32 OPT_ZONE_DMA
++#define OPT_ZONE_DMA32 ZONE_NORMAL
+ #endif
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cl@linux.com are
 
 origin.patch
-firmware_map-fix-hang-with-x86-32bit.patch
-mm-consolidate-init_mm-definition.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-mm-clean-up-get_user_pages_fast-documentation.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min.patch
-page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
-vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails-fix.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched-fix.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
-fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
-fbdev-s1d13xxxfb-add-accelerated-bitblt-functions-checkpatch-fixes.patch
+mm-alloc_large_system_hash-check-order.patch
+page-allocator-slab-use-nr_online_nodes-to-check-for-a-numa-platform.patch
+mm-use-alloc_pages_exact-in-alloc_large_system_hash-to-avoid-duplicated-logic.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator.patch
+page-allocator-use-integer-fields-lookup-for-gfp_zone-and-check-for-errors-in-flags-passed-to-the-page-allocator-fix-gfp-zone-patch.patch
 
