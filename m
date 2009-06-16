@@ -1,55 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-ncr53c8xx-div-reaches-1.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 11:27:49 -0700
-Message-ID: <200906161827.n5GIRnab028218@imap1.linux-foundation.org>
+Subject: [merged] scsi-pcmcia-nsp_cs-time_out-reaches-1.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 11:27:54 -0700
+Message-ID: <200906161827.n5GIRspj028269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755070AbZFPS1u (ORCPT
+	by vger.kernel.org with ESMTP id S1755191AbZFPS1y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 14:27:50 -0400
+	Tue, 16 Jun 2009 14:27:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, matthew@wil.cx, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: ncr53c8xx: div reaches -1
+     scsi/pcmcia/nsp_cs: time_out reaches -1
 has been removed from the -mm tree.  Its filename was
-     scsi-ncr53c8xx-div-reaches-1.patch
+     scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: ncr53c8xx: div reaches -1
+Subject: scsi/pcmcia/nsp_cs: time_out reaches -1
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With while(--div >= 0) { ... } div reaches -1.
+With a postfix decrement timeouts will reach -1 rather than 0, so the
+errors do not appear.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ncr53c8xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/pcmcia/nsp_cs.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/ncr53c8xx.c~scsi-ncr53c8xx-div-reaches-1 drivers/scsi/ncr53c8xx.c
---- a/drivers/scsi/ncr53c8xx.c~scsi-ncr53c8xx-div-reaches-1
-+++ a/drivers/scsi/ncr53c8xx.c
-@@ -5444,7 +5444,7 @@ static void ncr_getsync(struct ncb *np, 
- 	**	input speed faster than the period.
- 	*/
- 	kpc = per * clk;
--	while (--div >= 0)
-+	while (--div > 0)
- 		if (kpc >= (div_10M[div] << 2)) break;
+diff -puN drivers/scsi/pcmcia/nsp_cs.c~scsi-pcmcia-nsp_cs-time_out-reaches-1 drivers/scsi/pcmcia/nsp_cs.c
+--- a/drivers/scsi/pcmcia/nsp_cs.c~scsi-pcmcia-nsp_cs-time_out-reaches-1
++++ a/drivers/scsi/pcmcia/nsp_cs.c
+@@ -530,7 +530,7 @@ static int nsp_negate_signal(struct scsi
+ 		if (reg == 0xff) {
+ 			break;
+ 		}
+-	} while ((time_out-- != 0) && (reg & mask) != 0);
++	} while ((--time_out != 0) && (reg & mask) != 0);
  
- 	/*
+ 	if (time_out == 0) {
+ 		nsp_msg(KERN_DEBUG, " %s signal off timeut", str);
+@@ -801,7 +801,7 @@ static void nsp_pio_read(struct scsi_cmn
+ 
+ 	data->FifoCount = ocount;
+ 
+-	if (time_out == 0) {
++	if (time_out < 0) {
+ 		nsp_msg(KERN_DEBUG, "pio read timeout resid=%d this_residual=%d buffers_residual=%d",
+ 			scsi_get_resid(SCpnt), SCpnt->SCp.this_residual,
+ 			SCpnt->SCp.buffers_residual);
+@@ -897,7 +897,7 @@ static void nsp_pio_write(struct scsi_cm
+ 
+ 	data->FifoCount = ocount;
+ 
+-	if (time_out == 0) {
++	if (time_out < 0) {
+ 		nsp_msg(KERN_DEBUG, "pio write timeout resid=0x%x",
+ 		                                        scsi_get_resid(SCpnt));
+ 	}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
