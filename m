@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bw2-use-standard-fields-for-framebuffer-physical-address-and-length.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:21:48 -0700
-Message-ID: <200906162221.n5GMLmZC016943@imap1.linux-foundation.org>
+Subject: [merged] cg3-use-standard-fields-for-framebuffer-physical-address-and-length.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:21:53 -0700
+Message-ID: <200906162221.n5GMLrfq016951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754476AbZFPWWV (ORCPT
+	by vger.kernel.org with ESMTP id S1756662AbZFPWWX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:22:21 -0400
+	Tue, 16 Jun 2009 18:22:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bw2: use standard fields for framebuffer physical address and length
+     cg3: use standard fields for framebuffer physical address and length
 has been removed from the -mm tree.  Its filename was
-     bw2-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+     cg3-use-standard-fields-for-framebuffer-physical-address-and-length.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bw2: use standard fields for framebuffer physical address and length
+Subject: cg3: use standard fields for framebuffer physical address and length
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
 Use standard fields fbinfo.fix.smem_start and fbinfo.fix.smem_len for
@@ -38,15 +38,15 @@ Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/bw2.c |   20 ++++++++------------
+ drivers/video/cg3.c |   20 ++++++++------------
  1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/bw2.c~bw2-use-standard-fields-for-framebuffer-physical-address-and-length drivers/video/bw2.c
---- a/drivers/video/bw2.c~bw2-use-standard-fields-for-framebuffer-physical-address-and-length
-+++ a/drivers/video/bw2.c
-@@ -111,9 +111,7 @@ struct bw2_par {
- 	u32			flags;
- #define BW2_FLAG_BLANKED	0x00000001
+diff -puN drivers/video/cg3.c~cg3-use-standard-fields-for-framebuffer-physical-address-and-length drivers/video/cg3.c
+--- a/drivers/video/cg3.c~cg3-use-standard-fields-for-framebuffer-physical-address-and-length
++++ a/drivers/video/cg3.c
+@@ -118,9 +118,7 @@ struct cg3_par {
+ #define CG3_FLAG_BLANKED	0x00000001
+ #define CG3_FLAG_RDI		0x00000002
  
 -	unsigned long		physbase;
  	unsigned long		which_io;
@@ -54,27 +54,27 @@ diff -puN drivers/video/bw2.c~bw2-use-standard-fields-for-framebuffer-physical-a
  };
  
  /**
-@@ -167,17 +165,15 @@ static int bw2_mmap(struct fb_info *info
- 	struct bw2_par *par = (struct bw2_par *)info->par;
+@@ -231,17 +229,15 @@ static int cg3_mmap(struct fb_info *info
+ 	struct cg3_par *par = (struct cg3_par *)info->par;
  
- 	return sbusfb_mmap_helper(bw2_mmap_map,
+ 	return sbusfb_mmap_helper(cg3_mmap_map,
 -				  par->physbase, par->fbsize,
 +				  info->fix.smem_start, info->fix.smem_len,
  				  par->which_io,
  				  vma);
  }
  
- static int bw2_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
+ static int cg3_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
  {
--	struct bw2_par *par = (struct bw2_par *) info->par;
+-	struct cg3_par *par = (struct cg3_par *) info->par;
 -
  	return sbusfb_ioctl_helper(cmd, arg, info,
--				   FBTYPE_SUN2BW, 1, par->fbsize);
-+				   FBTYPE_SUN2BW, 1, info->fix.smem_len);
+-				   FBTYPE_SUN3COLOR, 8, par->fbsize);
++				   FBTYPE_SUN3COLOR, 8, info->fix.smem_len);
  }
  
  /*
-@@ -294,7 +290,7 @@ static int __devinit bw2_probe(struct of
+@@ -368,7 +364,7 @@ static int __devinit cg3_probe(struct of
  
  	spin_lock_init(&par->lock);
  
@@ -82,42 +82,47 @@ diff -puN drivers/video/bw2.c~bw2-use-standard-fields-for-framebuffer-physical-a
 +	info->fix.smem_start = op->resource[0].start;
  	par->which_io = op->resource[0].flags & IORESOURCE_BITS;
  
- 	sbusfb_fill_var(&info->var, dp, 1);
-@@ -317,13 +313,13 @@ static int __devinit bw2_probe(struct of
- 			goto out_unmap_regs;
- 	}
+ 	sbusfb_fill_var(&info->var, dp, 8);
+@@ -382,7 +378,7 @@ static int __devinit cg3_probe(struct of
  
+ 	linebytes = of_getintprop_default(dp, "linebytes",
+ 					  info->var.xres);
 -	par->fbsize = PAGE_ALIGN(linebytes * info->var.yres);
 +	info->fix.smem_len = PAGE_ALIGN(linebytes * info->var.yres);
  
+ 	par->regs = of_ioremap(&op->resource[0], CG3_REGS_OFFSET,
+ 			       sizeof(struct cg3_regs), "cg3 regs");
+@@ -392,7 +388,7 @@ static int __devinit cg3_probe(struct of
  	info->flags = FBINFO_DEFAULT;
- 	info->fbops = &bw2_ops;
- 
- 	info->screen_base = of_ioremap(&op->resource[0], 0,
--				       par->fbsize, "bw2 ram");
-+				       info->fix.smem_len, "bw2 ram");
+ 	info->fbops = &cg3_ops;
+ 	info->screen_base = of_ioremap(&op->resource[0], CG3_RAM_OFFSET,
+-				       par->fbsize, "cg3 ram");
++				       info->fix.smem_len, "cg3 ram");
  	if (!info->screen_base)
  		goto out_unmap_regs;
  
-@@ -338,12 +334,12 @@ static int __devinit bw2_probe(struct of
+@@ -418,7 +414,7 @@ static int __devinit cg3_probe(struct of
  	dev_set_drvdata(&op->dev, info);
  
- 	printk(KERN_INFO "%s: bwtwo at %lx:%lx\n",
+ 	printk(KERN_INFO "%s: cg3 at %lx:%lx\n",
 -	       dp->full_name, par->which_io, par->physbase);
 +	       dp->full_name, par->which_io, info->fix.smem_start);
  
  	return 0;
+ 
+@@ -426,7 +422,7 @@ out_dealloc_cmap:
+ 	fb_dealloc_cmap(&info->cmap);
  
  out_unmap_screen:
 -	of_iounmap(&op->resource[0], info->screen_base, par->fbsize);
 +	of_iounmap(&op->resource[0], info->screen_base, info->fix.smem_len);
  
  out_unmap_regs:
- 	of_iounmap(&op->resource[0], par->regs, sizeof(struct bw2_regs));
-@@ -363,7 +359,7 @@ static int __devexit bw2_remove(struct o
- 	unregister_framebuffer(info);
+ 	of_iounmap(&op->resource[0], par->regs, sizeof(struct cg3_regs));
+@@ -447,7 +443,7 @@ static int __devexit cg3_remove(struct o
+ 	fb_dealloc_cmap(&info->cmap);
  
- 	of_iounmap(&op->resource[0], par->regs, sizeof(struct bw2_regs));
+ 	of_iounmap(&op->resource[0], par->regs, sizeof(struct cg3_regs));
 -	of_iounmap(&op->resource[0], info->screen_base, par->fbsize);
 +	of_iounmap(&op->resource[0], info->screen_base, info->fix.smem_len);
  
