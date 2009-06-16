@@ -1,39 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-mm-fix-documentation-of-min_unmapped_ratio.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:01:30 -0700
-Message-ID: <200906162201.n5GM1UEC030542@imap1.linux-foundation.org>
+Subject: [folded] vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-vmscan-fix-use-of-delta-in-zone_pagecache_reclaimable.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:01:27 -0700
+Message-ID: <200906162201.n5GM1Rop030539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751666AbZFPWCu (ORCPT
+	by vger.kernel.org with ESMTP id S1751666AbZFPWCv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:02:50 -0400
+	Tue, 16 Jun 2009 18:02:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, cl@linux-foundation.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix documentation of min_unmapped_ratio
+     vmscan: fix use of delta in zone_pagecache_reclaimable()
 has been removed from the -mm tree.  Its filename was
-     vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-mm-fix-documentation-of-min_unmapped_ratio.patch
+     vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-vmscan-fix-use-of-delta-in-zone_pagecache_reclaimable.patch
 
 This patch was dropped because it was folded into vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix documentation of min_unmapped_ratio
+Subject: vmscan: fix use of delta in zone_pagecache_reclaimable()
 From: Mel Gorman <mel@csn.ul.ie>
 
-Kosaki Motohiro pointed out that the documentation for min_unmapped_ratio
-no longer matches the implementation.  This patch updates the
-documentation.
+zone_pagecache_reclaimable() works out how many pages are in a state that
+zone_reclaim() can reclaim based on the current zone_reclaim_mode.  As
+part of this, it calculates a delta to the number of unmapped pages.  The
+code was meant to check delta would not cause underflows and then apply it
+but it got accidentally removed.
 
-This patch can be merged with
-vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-re
-claim.patch .
+This patch properly uses delta.  It's excessively paranoid at the moment
+because it's impossible to underflow but the current form will make future
+patches to zone_pagecache_reclaimable() fixing any other scan-heuristic
+breakage easier to read and acts as self-documentation reminding authors
+of future patches to consider underflow.
+
+This is a fix to patch
+vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
+and they should be merged together.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Rik van Riel <riel@redhat.com>
@@ -44,31 +52,25 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/vmscan.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-mm-fix-documentation-of-min_unmapped_ratio Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-mm-fix-documentation-of-min_unmapped_ratio
-+++ a/Documentation/sysctl/vm.txt
-@@ -315,10 +315,14 @@ min_unmapped_ratio:
+diff -puN mm/vmscan.c~vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-vmscan-fix-use-of-delta-in-zone_pagecache_reclaimable mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-vmscan-fix-use-of-delta-in-zone_pagecache_reclaimable
++++ a/mm/vmscan.c
+@@ -2391,7 +2391,11 @@ static long zone_pagecache_reclaimable(s
+ 	if (!(zone_reclaim_mode & RECLAIM_WRITE))
+ 		delta += zone_page_state(zone, NR_FILE_DIRTY);
  
- This is available only on NUMA kernels.
- 
--A percentage of the total pages in each zone.  Zone reclaim will only
--occur if more than this percentage of pages are file backed and unmapped.
--This is to insure that a minimal amount of local pages is still available for
--file I/O even if the node is overallocated.
-+This is a percentage of the total pages in each zone. Zone reclaim will
-+only occur if more than this percentage of pages are in a state that
-+zone_reclaim_mode allows to be reclaimed.
+-	return nr_pagecache_reclaimable;
++	/* Watch for any possible underflows due to delta */
++	if (unlikely(delta > nr_pagecache_reclaimable))
++		delta = nr_pagecache_reclaimable;
 +
-+If zone_reclaim_mode has the value 4 OR'd, then the percentage is compared
-+against all file-backed unmapped pages including swapcache pages and tmpfs
-+files. Otherwise, only unmapped pages backed by normal files but not tmpfs
-+files and similar are considered.
++	return nr_pagecache_reclaimable - delta;
+ }
  
- The default is 1 percent.
- 
+ /*
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -111,6 +113,7 @@ oom-invoke-oom-killer-for-__gfp_nofail.patch
 page-allocator-clear-n_high_memory-map-before-se-set-it-again.patch
 mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
 vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim.patch
+vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-vmscan-fix-use-of-delta-in-zone_pagecache_reclaimable.patch
 vmscan-properly-account-for-the-number-of-page-cache-pages-zone_reclaim-can-reclaim-mm-fix-documentation-of-min_unmapped_ratio.patch
 vmscan-do-not-unconditionally-treat-zones-that-fail-zone_reclaim-as-full.patch
 vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
