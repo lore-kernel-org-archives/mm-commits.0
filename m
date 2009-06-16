@@ -1,195 +1,254 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:40:57 -0700
-Message-ID: <200906162240.n5GMev8e002888@imap1.linux-foundation.org>
+Subject: [to-be-updated] ksm-add-page_wrprotect-write-protecting-page.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:41:00 -0700
+Message-ID: <200906162241.n5GMf0nd003025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762269AbZFPWlk (ORCPT
+	by vger.kernel.org with ESMTP id S1762142AbZFPWlo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:41:40 -0400
+	Tue, 16 Jun 2009 18:41:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
+     ksm: add page_wrprotect(): write protecting page
 has been removed from the -mm tree.  Its filename was
-     ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+     ksm-add-page_wrprotect-write-protecting-page.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ksm: add page_wrprotect(): write protecting page
+From: Izik Eidus <ieidus@redhat.com>
 
-In file included from include/linux/suspend.h:8,
-                 from arch/x86/kernel/asm-offsets_32.c:11,
-                 from arch/x86/kernel/asm-offsets.c:2:
-include/linux/mm.h: In function 'get_pte':
-include/linux/mm.h:906: error: implicit declaration of function 'kmap_atomic_pte'
+This patch add new function called page_wrprotect(), page_wrprotect() is
+used to take a page and mark all the pte that point into it as readonly.
 
+The function is working by walking the rmap of the page, and setting each
+pte realted to the page as readonly.
+
+The odirect_sync parameter is used to protect against possible races with
+odirect while we are marking the pte as readonly, as noted by Andrea
+Arcanglei:
+
+"While thinking at get_user_pages_fast I figured another worse way things
+can go wrong with ksm and o_direct: think a thread writing constantly to
+the last 512bytes of a page, while another thread read and writes to/from
+the first 512bytes of the page.  We can lose O_DIRECT reads, the very
+moment we mark any pte wrprotected..."
+
+Signed-off-by: Izik Eidus <ieidus@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Avi Kivity <avi@redhat.com>
-Cc: Chris Wright <chrisw@redhat.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Izik Eidus <ieidus@redhat.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   25 +------------------------
- mm/util.c          |   26 ++++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 24 deletions(-)
+ include/linux/rmap.h |   11 +++
+ mm/rmap.c            |  139 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 150 insertions(+)
 
-diff -puN include/linux/mm.h~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix include/linux/mm.h
---- a/include/linux/mm.h~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
-+++ a/include/linux/mm.h
-@@ -882,30 +882,7 @@ extern void unregister_shrinker(struct s
- int vma_wants_writenotify(struct vm_area_struct *vma);
- 
- extern pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl);
--
--static inline pte_t *get_pte(struct mm_struct *mm, unsigned long addr)
--{
--	pgd_t *pgd;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *ptep = NULL;
--
--	pgd = pgd_offset(mm, addr);
--	if (!pgd_present(*pgd))
--		goto out;
--
--	pud = pud_offset(pgd, addr);
--	if (!pud_present(*pud))
--		goto out;
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd))
--		goto out;
--
--	ptep = pte_offset_map(pmd, addr);
--out:
--	return ptep;
--}
-+extern pte_t *get_pte(struct mm_struct *mm, unsigned long addr);
- 
- #ifdef __PAGETABLE_PUD_FOLDED
- static inline int __pud_alloc(struct mm_struct *mm, pgd_t *pgd,
-diff -puN mm/util.c~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix mm/util.c
---- a/mm/util.c~ksm-add-get_pte-helper-function-fetching-pte-for-va-fix
-+++ a/mm/util.c
-@@ -1,4 +1,5 @@
- #include <linux/mm.h>
-+#include <linux/highmem.h>
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/module.h>
-@@ -264,6 +265,31 @@ int __attribute__((weak)) get_user_pages
+diff -puN include/linux/rmap.h~ksm-add-page_wrprotect-write-protecting-page include/linux/rmap.h
+--- a/include/linux/rmap.h~ksm-add-page_wrprotect-write-protecting-page
++++ a/include/linux/rmap.h
+@@ -118,6 +118,10 @@ static inline int try_to_munlock(struct 
  }
- EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ #endif
  
-+pte_t *get_pte(struct mm_struct *mm, unsigned long addr)
++#if defined(CONFIG_KSM) || defined(CONFIG_KSM_MODULE)
++int page_wrprotect(struct page *page, int *odirect_sync, int count_offset);
++#endif
++
+ #else	/* !CONFIG_MMU */
+ 
+ #define anon_vma_init()		do {} while (0)
+@@ -132,6 +136,13 @@ static inline int page_mkclean(struct pa
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_KSM) || defined(CONFIG_KSM_MODULE)
++static inline int page_wrprotect(struct page *page, int *odirect_sync,
++				 int count_offset)
 +{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *ptep = NULL;
-+
-+	pgd = pgd_offset(mm, addr);
-+	if (!pgd_present(*pgd))
-+		goto out;
-+
-+	pud = pud_offset(pgd, addr);
-+	if (!pud_present(*pud))
-+		goto out;
-+
-+	pmd = pmd_offset(pud, addr);
-+	if (!pmd_present(*pmd))
-+		goto out;
-+
-+	ptep = pte_offset_map(pmd, addr);
-+out:
-+	return ptep;
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(get_pte);
++#endif
+ 
+ #endif	/* CONFIG_MMU */
+ 
+diff -puN mm/rmap.c~ksm-add-page_wrprotect-write-protecting-page mm/rmap.c
+--- a/mm/rmap.c~ksm-add-page_wrprotect-write-protecting-page
++++ a/mm/rmap.c
+@@ -585,6 +585,145 @@ int page_mkclean(struct page *page)
+ }
+ EXPORT_SYMBOL_GPL(page_mkclean);
+ 
++#if defined(CONFIG_KSM) || defined(CONFIG_KSM_MODULE)
 +
- /* Tracepoints definitions. */
- EXPORT_TRACEPOINT_SYMBOL(kmalloc);
- EXPORT_TRACEPOINT_SYMBOL(kmem_cache_alloc);
++static int page_wrprotect_one(struct page *page, struct vm_area_struct *vma,
++			      int *odirect_sync, int count_offset)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned long address;
++	pte_t *pte;
++	spinlock_t *ptl;
++	int ret = 0;
++
++	address = vma_address(page, vma);
++	if (address == -EFAULT)
++		goto out;
++
++	pte = page_check_address(page, mm, address, &ptl, 0);
++	if (!pte)
++		goto out;
++
++	if (pte_write(*pte)) {
++		pte_t entry;
++
++		flush_cache_page(vma, address, pte_pfn(*pte));
++		/*
++		 * Ok this is tricky, when get_user_pages_fast() run it doesnt
++		 * take any lock, therefore the check that we are going to make
++		 * with the pagecount against the mapcount is racey and
++		 * O_DIRECT can happen right after the check.
++		 * So we clear the pte and flush the tlb before the check
++		 * this assure us that no O_DIRECT can happen after the check
++		 * or in the middle of the check.
++		 */
++		entry = ptep_clear_flush(vma, address, pte);
++		/*
++		 * Check that no O_DIRECT or similar I/O is in progress on the
++		 * page
++		 */
++		if ((page_mapcount(page) + count_offset) != page_count(page)) {
++			*odirect_sync = 0;
++			set_pte_at_notify(mm, address, pte, entry);
++			goto out_unlock;
++		}
++		entry = pte_wrprotect(entry);
++		set_pte_at_notify(mm, address, pte, entry);
++	}
++	ret = 1;
++
++out_unlock:
++	pte_unmap_unlock(pte, ptl);
++out:
++	return ret;
++}
++
++static int page_wrprotect_file(struct page *page, int *odirect_sync,
++			       int count_offset)
++{
++	struct address_space *mapping;
++	struct prio_tree_iter iter;
++	struct vm_area_struct *vma;
++	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	int ret = 0;
++
++	mapping = page_mapping(page);
++	if (!mapping)
++		return ret;
++
++	spin_lock(&mapping->i_mmap_lock);
++
++	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff)
++		ret += page_wrprotect_one(page, vma, odirect_sync,
++					  count_offset);
++
++	spin_unlock(&mapping->i_mmap_lock);
++
++	return ret;
++}
++
++static int page_wrprotect_anon(struct page *page, int *odirect_sync,
++			       int count_offset)
++{
++	struct vm_area_struct *vma;
++	struct anon_vma *anon_vma;
++	int ret = 0;
++
++	anon_vma = page_lock_anon_vma(page);
++	if (!anon_vma)
++		return ret;
++
++	/*
++	 * If the page is inside the swap cache, its _count number was
++	 * increased by one, therefore we have to increase count_offset by one.
++	 */
++	if (PageSwapCache(page))
++		count_offset++;
++
++	list_for_each_entry(vma, &anon_vma->head, anon_vma_node)
++		ret += page_wrprotect_one(page, vma, odirect_sync,
++					  count_offset);
++
++	page_unlock_anon_vma(anon_vma);
++
++	return ret;
++}
++
++/**
++ * page_wrprotect - set all ptes pointing to a page as readonly
++ * @page:         the page to set as readonly
++ * @odirect_sync: boolean value that is set to 0 when some of the ptes were not
++ *                marked as readonly beacuse page_wrprotect_one() was not able
++ *                to mark this ptes as readonly without opening window to a race
++ *                with odirect
++ * @count_offset: number of times page_wrprotect() caller had called get_page()
++ *                on the page
++ *
++ * returns the number of ptes which were marked as readonly.
++ * (ptes that were readonly before this function was called are counted as well)
++ */
++int page_wrprotect(struct page *page, int *odirect_sync, int count_offset)
++{
++	int ret = 0;
++
++	/*
++	 * Page lock is needed for anon pages for the PageSwapCache check,
++	 * and for page_mapping for filebacked pages
++	 */
++	BUG_ON(!PageLocked(page));
++
++	*odirect_sync = 1;
++	if (PageAnon(page))
++		ret = page_wrprotect_anon(page, odirect_sync, count_offset);
++	else
++		ret = page_wrprotect_file(page, odirect_sync, count_offset);
++
++	return ret;
++}
++EXPORT_SYMBOL(page_wrprotect);
++
++#endif
++
+ /**
+  * __page_set_anon_rmap - setup new anonymous rmap
+  * @page:	the page to add the mapping to
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ieidus@redhat.com are
 
-origin.patch
-firmware_map-fix-hang-with-x86-32bit.patch
-mm-consolidate-init_mm-definition.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-mm-clean-up-get_user_pages_fast-documentation.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
-vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers.patch
-fbdev-s1d13xxxfb-add-accelerated-bitblt-functions.patch
 linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-page_wrprotect-write-protecting-page.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to.patch
+ksm-add-ksm-kernel-shared-memory-driver.patch
 ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
-gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes-gpio-pca953x-get-platform_data-from-openfirmware-cleanups.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-char-moxa-prevent-opening-unavailable-ports.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+ksm-add-ksm-kernel-shared-memory-driver-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch
+ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
+ksm-add-ksm-kernel-shared-memory-driver-change-the-prot-handling-to-use-the-generic-helper-functions.patch
+ksm-add-ksm-kernel-shared-memory-driver-use-another-miscdevice-minor-number.patch
+ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch
+ksm-add-replace_page-change-the-page-pte-is-pointing-to-fix-losing-visibility-of-part-of-rmap_item-next-list.patch
 
