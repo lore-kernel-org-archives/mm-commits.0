@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leo-use-standard-fields-for-framebuffer-physical-address-and-length.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:21:57 -0700
-Message-ID: <200906162221.n5GMLv7e017057@imap1.linux-foundation.org>
+Subject: [merged] p9100-use-standard-fields-for-framebuffer-physical-address-and-length.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 15:21:59 -0700
+Message-ID: <200906162221.n5GMLxXq017111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45117 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757376AbZFPWW0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756662AbZFPWWa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:22:26 -0400
+	Tue, 16 Jun 2009 18:22:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leo: use standard fields for framebuffer physical address and length
+     p9100: use standard fields for framebuffer physical address and length
 has been removed from the -mm tree.  Its filename was
-     leo-use-standard-fields-for-framebuffer-physical-address-and-length.patch
+     p9100-use-standard-fields-for-framebuffer-physical-address-and-length.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leo: use standard fields for framebuffer physical address and length
+Subject: p9100: use standard fields for framebuffer physical address and length
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
 Use standard fields fbinfo.fix.smem_start and fbinfo.fix.smem_len for
@@ -38,67 +38,96 @@ Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/leo.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/video/p9100.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/leo.c~leo-use-standard-fields-for-framebuffer-physical-address-and-length drivers/video/leo.c
---- a/drivers/video/leo.c~leo-use-standard-fields-for-framebuffer-physical-address-and-length
-+++ a/drivers/video/leo.c
-@@ -191,9 +191,7 @@ struct leo_par {
+diff -puN drivers/video/p9100.c~p9100-use-standard-fields-for-framebuffer-physical-address-and-length drivers/video/p9100.c
+--- a/drivers/video/p9100.c~p9100-use-standard-fields-for-framebuffer-physical-address-and-length
++++ a/drivers/video/p9100.c
+@@ -134,9 +134,7 @@ struct p9100_par {
  	u32			flags;
- #define LEO_FLAG_BLANKED	0x00000001
+ #define P9100_FLAG_BLANKED	0x00000001
  
 -	unsigned long		physbase;
  	unsigned long		which_io;
 -	unsigned long		fbsize;
  };
  
- static void leo_wait(struct leo_lx_krn __iomem *lx_krn)
-@@ -420,16 +418,14 @@ static int leo_mmap(struct fb_info *info
- 	struct leo_par *par = (struct leo_par *)info->par;
+ /**
+@@ -224,18 +222,16 @@ static int p9100_mmap(struct fb_info *in
+ 	struct p9100_par *par = (struct p9100_par *)info->par;
  
- 	return sbusfb_mmap_helper(leo_mmap_map,
+ 	return sbusfb_mmap_helper(p9100_mmap_map,
 -				  par->physbase, par->fbsize,
 +				  info->fix.smem_start, info->fix.smem_len,
  				  par->which_io, vma);
  }
  
- static int leo_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
+ static int p9100_ioctl(struct fb_info *info, unsigned int cmd,
+ 		       unsigned long arg)
  {
--	struct leo_par *par = (struct leo_par *) info->par;
+-	struct p9100_par *par = (struct p9100_par *) info->par;
 -
+ 	/* Make it look like a cg3. */
  	return sbusfb_ioctl_helper(cmd, arg, info,
--				   FBTYPE_SUNLEO, 32, par->fbsize);
-+				   FBTYPE_SUNLEO, 32, info->fix.smem_len);
+-				   FBTYPE_SUN3COLOR, 8, par->fbsize);
++				   FBTYPE_SUN3COLOR, 8, info->fix.smem_len);
  }
  
  /*
-@@ -569,7 +565,7 @@ static int __devinit leo_probe(struct of
- 
+@@ -271,7 +267,7 @@ static int __devinit p9100_probe(struct 
  	spin_lock_init(&par->lock);
  
--	par->physbase = op->resource[0].start;
-+	info->fix.smem_start = op->resource[0].start;
- 	par->which_io = op->resource[0].flags & IORESOURCE_BITS;
+ 	/* This is the framebuffer and the only resource apps can mmap.  */
+-	par->physbase = op->resource[2].start;
++	info->fix.smem_start = op->resource[2].start;
+ 	par->which_io = op->resource[2].flags & IORESOURCE_BITS;
  
- 	sbusfb_fill_var(&info->var, dp, 32);
-@@ -577,7 +573,7 @@ static int __devinit leo_probe(struct of
+ 	sbusfb_fill_var(&info->var, dp, 8);
+@@ -280,7 +276,7 @@ static int __devinit p9100_probe(struct 
+ 	info->var.blue.length = 8;
  
- 	linebytes = of_getintprop_default(dp, "linebytes",
- 					  info->var.xres);
+ 	linebytes = of_getintprop_default(dp, "linebytes", info->var.xres);
 -	par->fbsize = PAGE_ALIGN(linebytes * info->var.yres);
 +	info->fix.smem_len = PAGE_ALIGN(linebytes * info->var.yres);
  
- 	par->lc_ss0_usr =
- 		of_ioremap(&op->resource[0], LEO_OFF_LC_SS0_USR,
-@@ -627,7 +623,7 @@ static int __devinit leo_probe(struct of
+ 	par->regs = of_ioremap(&op->resource[0], 0,
+ 			       sizeof(struct p9100_regs), "p9100 regs");
+@@ -290,7 +286,7 @@ static int __devinit p9100_probe(struct 
+ 	info->flags = FBINFO_DEFAULT;
+ 	info->fbops = &p9100_ops;
+ 	info->screen_base = of_ioremap(&op->resource[2], 0,
+-				       par->fbsize, "p9100 ram");
++				       info->fix.smem_len, "p9100 ram");
+ 	if (!info->screen_base)
+ 		goto out_unmap_regs;
  
- 	printk(KERN_INFO "%s: leo at %lx:%lx\n",
+@@ -311,7 +307,7 @@ static int __devinit p9100_probe(struct 
+ 
+ 	printk(KERN_INFO "%s: p9100 at %lx:%lx\n",
  	       dp->full_name,
 -	       par->which_io, par->physbase);
 +	       par->which_io, info->fix.smem_start);
  
  	return 0;
+ 
+@@ -319,7 +315,7 @@ out_dealloc_cmap:
+ 	fb_dealloc_cmap(&info->cmap);
+ 
+ out_unmap_screen:
+-	of_iounmap(&op->resource[2], info->screen_base, par->fbsize);
++	of_iounmap(&op->resource[2], info->screen_base, info->fix.smem_len);
+ 
+ out_unmap_regs:
+ 	of_iounmap(&op->resource[0], par->regs, sizeof(struct p9100_regs));
+@@ -340,7 +336,7 @@ static int __devexit p9100_remove(struct
+ 	fb_dealloc_cmap(&info->cmap);
+ 
+ 	of_iounmap(&op->resource[0], par->regs, sizeof(struct p9100_regs));
+-	of_iounmap(&op->resource[2], info->screen_base, par->fbsize);
++	of_iounmap(&op->resource[2], info->screen_base, info->fix.smem_len);
+ 
+ 	framebuffer_release(info);
  
 _
 
