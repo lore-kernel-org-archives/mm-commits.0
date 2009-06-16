@@ -1,73 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-fix-the-termination-of-the-scanning-thread.patch added to -mm tree
-Date: Mon, 15 Jun 2009 15:42:42 -0700
-Message-ID: <200906152242.n5FMggeb025108@imap1.linux-foundation.org>
+Subject: [merged] scsi-ncr53c8xx-div-reaches-1.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 11:27:49 -0700
+Message-ID: <200906161827.n5GIRnab028218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750901AbZFOWnv (ORCPT
+	by vger.kernel.org with ESMTP id S1755070AbZFPS1u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Jun 2009 18:43:51 -0400
+	Tue, 16 Jun 2009 14:27:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, stable@kernel.org
+To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: fix the termination of the scanning thread
-has been added to the -mm tree.  Its filename is
-     cciss-fix-the-termination-of-the-scanning-thread.patch
+     scsi: ncr53c8xx: div reaches -1
+has been removed from the -mm tree.  Its filename was
+     scsi-ncr53c8xx-div-reaches-1.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix the termination of the scanning thread
-From: Mike Miller <mike.miller@hp.com>
+Subject: scsi: ncr53c8xx: div reaches -1
+From: Roel Kluin <roel.kluin@gmail.com>
 
-scan_thread may be block in wait_for_completion(), and kthread_stop() is
-not sufficient to break a wait_for_completion().  Add the needed
-complete().
+With while(--div >= 0) { ... } div reaches -1.
 
-This should fix hangs which some testers reported.
-
-Signed-off-by: Mike Miller <mike.miller@hp.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/ncr53c8xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-the-termination-of-the-scanning-thread drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-the-termination-of-the-scanning-thread
-+++ a/drivers/block/cciss.c
-@@ -4115,6 +4115,7 @@ static void __devexit cciss_remove_one(s
- 		return;
- 	}
+diff -puN drivers/scsi/ncr53c8xx.c~scsi-ncr53c8xx-div-reaches-1 drivers/scsi/ncr53c8xx.c
+--- a/drivers/scsi/ncr53c8xx.c~scsi-ncr53c8xx-div-reaches-1
++++ a/drivers/scsi/ncr53c8xx.c
+@@ -5444,7 +5444,7 @@ static void ncr_getsync(struct ncb *np, 
+ 	**	input speed faster than the period.
+ 	*/
+ 	kpc = per * clk;
+-	while (--div >= 0)
++	while (--div > 0)
+ 		if (kpc >= (div_10M[div] << 2)) break;
  
-+	complete(hba[i]->rescan_wait);
- 	kthread_stop(hba[i]->cciss_scan_thread);
- 
- 	remove_proc_entry(hba[i]->devname, proc_cciss);
+ 	/*
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-cciss-fix-the-termination-of-the-scanning-thread.patch
+linux-next.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+serial-fix-off-by-one-errors.patch
+usb-mutually-exclusive-port_status.patch
+spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-bad-macro-expansion-parameter-is-member.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+uml-bad-macro-expansion-parameter-is-member.patch
+spi_bfin5xx-limit-reaches-1.patch
+carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+platinumfb-misplaced-parenthesis.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
