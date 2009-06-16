@@ -1,157 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-fix-nested-calls-support.patch added to -mm tree
-Date: Tue, 16 Jun 2009 12:08:24 -0700
-Message-ID: <200906161908.n5GJ8OVW000367@imap1.linux-foundation.org>
+Subject: [obsolete] ds_selftest-is-borked.patch removed from -mm tree
+Date: Tue, 16 Jun 2009 12:31:49 -0700
+Message-ID: <200906161931.n5GJVnDl021873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56272 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761226AbZFPTKI (ORCPT
+	by vger.kernel.org with ESMTP id S1751455AbZFPTb6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 15:10:08 -0400
+	Tue, 16 Jun 2009 15:31:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, stable@kernel.org, stefanr@s5r6.in-berlin.de
+To: akpm@linux-foundation.org, markus.t.metzger@intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll: fix nested calls support
-has been added to the -mm tree.  Its filename is
-     epoll-fix-nested-calls-support.patch
+     ds_selftest is borked
+has been removed from the -mm tree.  Its filename was
+     ds_selftest-is-borked.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: fix nested calls support
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: ds_selftest is borked
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This fixes a regression in 2.6.30.
+kconfig keeps on resurrecting this.  Make it (and its oops) go away.
 
-I unfortunately accepted a patch time ago, to drop the "current" usage
-from possible IRQ context, w/out proper thought over it.  The patch
-switched to using the CPU id by bounding the nested call callback with a
-get_cpu()/put_cpu().
-
-Unfortunately the ep_call_nested() function can be called with a callback
-that grabs sleepy locks (from own f_op->poll()), that results in epic
-fails.  The following patch uses the proper "context" depending on the
-path where it is called, and on the kind of callback.
-
-This has been reported by Stefan Richter, that has also verified the patch
-is his previously failing environment.
-
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Reported-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: <stable@kernel.org>
+Cc: Markus Metzger <markus.t.metzger@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ arch/x86/kernel/ds.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/eventpoll.c~epoll-fix-nested-calls-support fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-fix-nested-calls-support
-+++ a/fs/eventpoll.c
-@@ -98,7 +98,7 @@ struct epoll_filefd {
- struct nested_call_node {
- 	struct list_head llink;
- 	void *cookie;
--	int cpu;
-+	void *ctx;
- };
+diff -puN arch/x86/kernel/ds.c~ds_selftest-is-borked arch/x86/kernel/ds.c
+--- a/arch/x86/kernel/ds.c~ds_selftest-is-borked
++++ a/arch/x86/kernel/ds.c
+@@ -1412,6 +1412,8 @@ void ds_switch_to(struct task_struct *pr
  
- /*
-@@ -317,17 +317,17 @@ static void ep_nested_calls_init(struct 
-  * @nproc: Nested call core function pointer.
-  * @priv: Opaque data to be passed to the @nproc callback.
-  * @cookie: Cookie to be used to identify this nested call.
-+ * @ctx: This instance context.
-  *
-  * Returns: Returns the code returned by the @nproc callback, or -1 if
-  *          the maximum recursion limit has been exceeded.
-  */
- static int ep_call_nested(struct nested_calls *ncalls, int max_nests,
- 			  int (*nproc)(void *, void *, int), void *priv,
--			  void *cookie)
-+			  void *cookie, void *ctx)
+ static __init int ds_selftest(void)
  {
- 	int error, call_nests = 0;
- 	unsigned long flags;
--	int this_cpu = get_cpu();
- 	struct list_head *lsthead = &ncalls->tasks_call_list;
- 	struct nested_call_node *tncur;
- 	struct nested_call_node tnode;
-@@ -340,7 +340,7 @@ static int ep_call_nested(struct nested_
- 	 * very much limited.
- 	 */
- 	list_for_each_entry(tncur, lsthead, llink) {
--		if (tncur->cpu == this_cpu &&
-+		if (tncur->ctx == ctx &&
- 		    (tncur->cookie == cookie || ++call_nests > max_nests)) {
- 			/*
- 			 * Ops ... loop detected or maximum nest level reached.
-@@ -352,7 +352,7 @@ static int ep_call_nested(struct nested_
- 	}
- 
- 	/* Add the current task and cookie to the list */
--	tnode.cpu = this_cpu;
-+	tnode.ctx = ctx;
- 	tnode.cookie = cookie;
- 	list_add(&tnode.llink, lsthead);
- 
-@@ -364,10 +364,9 @@ static int ep_call_nested(struct nested_
- 	/* Remove the current task from the list */
- 	spin_lock_irqsave(&ncalls->lock, flags);
- 	list_del(&tnode.llink);
-- out_unlock:
-+out_unlock:
- 	spin_unlock_irqrestore(&ncalls->lock, flags);
- 
--	put_cpu();
- 	return error;
- }
- 
-@@ -408,8 +407,12 @@ static int ep_poll_wakeup_proc(void *pri
-  */
- static void ep_poll_safewake(wait_queue_head_t *wq)
- {
-+	int this_cpu = get_cpu();
++	return 0;
 +
- 	ep_call_nested(&poll_safewake_ncalls, EP_MAX_NESTS,
--		       ep_poll_wakeup_proc, NULL, wq);
-+		       ep_poll_wakeup_proc, NULL, wq, (void *) (long) this_cpu);
-+
-+	put_cpu();
- }
+ 	if (ds_cfg.sizeof_rec[ds_bts]) {
+ 		int error;
  
- /*
-@@ -663,7 +666,7 @@ static unsigned int ep_eventpoll_poll(st
- 	 * could re-enter here.
- 	 */
- 	pollflags = ep_call_nested(&poll_readywalk_ncalls, EP_MAX_NESTS,
--				   ep_poll_readyevents_proc, ep, ep);
-+				   ep_poll_readyevents_proc, ep, ep, current);
- 
- 	return pollflags != -1 ? pollflags : 0;
- }
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-poll-avoid-extra-wakeups-in-select-poll.patch
-epoll-fix-nested-calls-support.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ds_selftest-is-borked.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+firmware_map-fix-hang-with-x86-32bit.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-consolidate-init_mm-definition-fix.patch
+readahead-record-mmap-read-around-states-in-file_ra_state-checkpatch-fixes.patch
+mm-clean-up-get_user_pages_fast-documentation-checkpatch-fixes.patch
+ksm-add-get_pte-helper-function-fetching-pte-for-va-fix.patch
+ksm-add-ksm-kernel-shared-memory-driver-checkpatch-fixes.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path-fix.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once-fix.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool-fix.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3-comments-checkpatch-fixes.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min-checkpatch-fixes.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports-fix.patch
+vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched-fix.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes-checkpatch-fixes.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes-gpio-pca953x-get-platform_data-from-openfirmware-cleanups.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb-fix.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers-checkpatch-fixes.patch
+fbdev-s1d13xxxfb-add-accelerated-bitblt-functions-checkpatch-fixes.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
