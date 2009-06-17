@@ -1,120 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:38:08 -0700
-Message-ID: <200906171838.n5HIc8qY004134@imap1.linux-foundation.org>
+Subject: [merged] carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:39:33 -0700
+Message-ID: <200906171839.n5HIdXK9005613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757878AbZFQSqO (ORCPT
+	by vger.kernel.org with ESMTP id S1759290AbZFQSqK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:46:14 -0400
+	Wed, 17 Jun 2009 14:46:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, bigeasy@linutronix.de, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: improve --git-chief-penquins (Linus Torvalds) filtering
+     carminefb: fix possible access beyond end of carmine_modedb[]
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering.patch
+     carminefb-fix-possible-access-beyond-end-of-carmine_modedb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: improve --git-chief-penquins (Linus Torvalds) filtering
-From: Joe Perches <joe@perches.com>
+Subject: carminefb: fix possible access beyond end of carmine_modedb[]
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Moved linux-kernel@vger.kernel.org to MAINTAINERS
-lkml will be added to all CC lists via F: pattern match
+This check is off-by-one.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Sebastian Siewior <bigeasy@linutronix.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ drivers/video/carminefb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-improve-git-chief-penquins-linus-torvalds-filtering
-+++ a/scripts/get_maintainer.pl
-@@ -216,15 +216,19 @@ foreach my $file (@files) {
+diff -puN drivers/video/carminefb.c~carminefb-fix-possible-access-beyond-end-of-carmine_modedb drivers/video/carminefb.c
+--- a/drivers/video/carminefb.c~carminefb-fix-possible-access-beyond-end-of-carmine_modedb
++++ a/drivers/video/carminefb.c
+@@ -562,7 +562,7 @@ static int __devinit alloc_carmine_fb(vo
+ 	if (ret < 0)
+ 		goto err_free_fb;
  
- }
+-	if (fb_mode > ARRAY_SIZE(carmine_modedb))
++	if (fb_mode >= ARRAY_SIZE(carmine_modedb))
+ 		fb_mode = CARMINEFB_DEFAULT_VIDEO_MODE;
  
--if ($email_git_penguin_chiefs) {
-+if ($email) {
-     foreach my $chief (@penguin_chief) {
- 	if ($chief =~ m/^(.*):(.*)/) {
--	    my $chief_name = $1;
--	    my $chief_addr = $2;
-+	    my $email_address;
- 	    if ($email_usename) {
--		push(@email_to, format_email($chief_name, $chief_addr));
-+		$email_address = format_email($1, $2);
- 	    } else {
--		push(@email_to, $chief_addr);
-+		$email_address = $2;
-+	    }
-+	    if ($email_git_penguin_chiefs) {
-+		push(@email_to, $email_address);
-+	    } else {
-+		@email_to = grep(!/${email_address}/, @email_to);
- 	    }
- 	}
-     }
-@@ -236,10 +240,7 @@ if ($email || $email_list) {
- 	@to = (@to, @email_to);
-     }
-     if ($email_list) {
--	if (@list_to == 0) {
--	    push(@list_to, "linux-kernel\@vger.kernel.org");
- 	@to = (@to, @list_to);
--	}
-     }
-     output(uniq(@to));
- }
-@@ -314,7 +315,7 @@ Default options:
-   [--email --git --m --n --l --multiline]
- 
- Other options:
--  --version -> show version
-+  --version => show version
-   --help => show this help information
- 
- EOT
-@@ -423,7 +424,7 @@ sub add_categories {
- sub which {
-     my ($bin) = @_;
- 
--    foreach my $path (split /:/, $ENV{PATH}) {
-+    foreach my $path (split(/:/, $ENV{PATH})) {
- 	if (-e "$path/$bin") {
- 	    return "$path/$bin";
- 	}
-@@ -446,12 +447,8 @@ sub recent_git_signoffs {
-     }
- 
-     $cmd = "git log --since=${email_git_since} -- ${file}";
--    $cmd .= " | grep -Pi \"^[-_ 	a-z]+by:.*\\\@\"";
--    if (!$email_git_penguin_chiefs) {
--	$cmd .= " | grep -Pv \"${penguin_chiefs}\"";
--    }
-+    $cmd .= " | grep -Pi \"^[-_ 	a-z]+by:.*\\\@.*\$\"";
-     $cmd .= " | cut -f2- -d\":\"";
--    $cmd .= " | sed -e \"s/^\\s+//g\"";
-     $cmd .= " | sort | uniq -c | sort -rn";
- 
-     $output = `${cmd}`;
+ 	par->cur_mode = par->new_mode = ~0;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-maintainers-fbdev-is-orphaned.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+serial-fix-off-by-one-errors.patch
+usb-mutually-exclusive-port_status.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+spi_bfin5xx-limit-reaches-1.patch
+platinumfb-misplaced-parenthesis.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
