@@ -1,70 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:37:08 -0700
-Message-ID: <200906171837.n5HIb8qo003152@imap1.linux-foundation.org>
+Subject: [merged] poll-avoid-extra-wakeups-in-select-poll.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:37:14 -0700
+Message-ID: <200906171837.n5HIbEIm003310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56176 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760364AbZFQSiP (ORCPT
+	by vger.kernel.org with ESMTP id S1758810AbZFQSiV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:38:15 -0400
+	Wed, 17 Jun 2009 14:38:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, npiggin@suse.de, paulmck@linux.vnet.ibm.com, vaurora@redhat.com, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, ak@linux.intel.com, cl@linux-foundation.org, davem@davemloft.net, davidel@xmailserver.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atomic: only take lock when the counter drops to zero on UP as well
+     poll: avoid extra wakeups in select/poll
 has been removed from the -mm tree.  Its filename was
-     atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well.patch
+     poll-avoid-extra-wakeups-in-select-poll.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atomic: only take lock when the counter drops to zero on UP as well
-From: Jan Blunck <jblunck@suse.de>
+Subject: poll: avoid extra wakeups in select/poll
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-_atomic_dec_and_lock() should not unconditionally take the lock before
-calling atomic_dec_and_test() in the UP case.  For consistency reasons it
-should behave exactly like in the SMP case.
+After introduction of keyed wakeups Davide Libenzi did on epoll, we are
+able to avoid spurious wakeups in poll()/select() code too.
 
-Besides that this works around the problem that with CONFIG_DEBUG_SPINLOCK
-this spins in __spin_lock_debug() if the lock is already taken even if the
-counter doesn't drop to 0.
+For example, typical use of poll()/select() is to wait for incoming
+network frames on many sockets.  But TX completion for UDP/TCP frames call
+sock_wfree() which in turn schedules thread.
 
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
-Cc: Valerie Aurora <vaurora@redhat.com>
+When scheduled, thread does a full scan of all polled fds and can sleep
+again, because nothing is really available.  If number of fds is large,
+this cause significant load.
+
+This patch makes select()/poll() aware of keyed wakeups and useless
+wakeups are avoided.  This reduces number of context switches by about 50%
+on some setups, and work performed by sofirq handlers.
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dec_and_lock.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/select.c          |   40 ++++++++++++++++++++++++++++++++++++----
+ include/linux/poll.h |    3 +++
+ 2 files changed, 39 insertions(+), 4 deletions(-)
 
-diff -puN lib/dec_and_lock.c~atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well lib/dec_and_lock.c
---- a/lib/dec_and_lock.c~atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well
-+++ a/lib/dec_and_lock.c
-@@ -19,11 +19,10 @@
-  */
- int _atomic_dec_and_lock(atomic_t *atomic, spinlock_t *lock)
+diff -puN fs/select.c~poll-avoid-extra-wakeups-in-select-poll fs/select.c
+--- a/fs/select.c~poll-avoid-extra-wakeups-in-select-poll
++++ a/fs/select.c
+@@ -168,7 +168,7 @@ static struct poll_table_entry *poll_get
+ 	return table->entry++;
+ }
+ 
+-static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
++static int __pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
  {
--#ifdef CONFIG_SMP
- 	/* Subtract 1 from counter unless that drops it to 0 (ie. it was 1) */
- 	if (atomic_add_unless(atomic, -1, 1))
- 		return 0;
--#endif
+ 	struct poll_wqueues *pwq = wait->private;
+ 	DECLARE_WAITQUEUE(dummy_wait, pwq->polling_task);
+@@ -194,6 +194,16 @@ static int pollwake(wait_queue_t *wait, 
+ 	return default_wake_function(&dummy_wait, mode, sync, key);
+ }
+ 
++static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
++{
++	struct poll_table_entry *entry;
 +
- 	/* Otherwise do it the slow way */
- 	spin_lock(lock);
- 	if (atomic_dec_and_test(atomic))
++	entry = container_of(wait, struct poll_table_entry, wait);
++	if (key && !((unsigned long)key & entry->key))
++		return 0;
++	return __pollwake(wait, mode, sync, key);
++}
++
+ /* Add a new entry */
+ static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
+ 				poll_table *p)
+@@ -205,6 +215,7 @@ static void __pollwait(struct file *filp
+ 	get_file(filp);
+ 	entry->filp = filp;
+ 	entry->wait_address = wait_address;
++	entry->key = p->key;
+ 	init_waitqueue_func_entry(&entry->wait, pollwake);
+ 	entry->wait.private = pwq;
+ 	add_wait_queue(wait_address, &entry->wait);
+@@ -362,6 +373,18 @@ get_max:
+ #define POLLOUT_SET (POLLWRBAND | POLLWRNORM | POLLOUT | POLLERR)
+ #define POLLEX_SET (POLLPRI)
+ 
++static inline void wait_key_set(poll_table *wait, unsigned long in,
++				unsigned long out, unsigned long bit)
++{
++	if (wait) {
++		wait->key = POLLEX_SET;
++		if (in & bit)
++			wait->key |= POLLIN_SET;
++		if (out & bit)
++			wait->key |= POLLOUT_SET;
++	}
++}
++
+ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ {
+ 	ktime_t expire, *to = NULL;
+@@ -418,20 +441,25 @@ int do_select(int n, fd_set_bits *fds, s
+ 				if (file) {
+ 					f_op = file->f_op;
+ 					mask = DEFAULT_POLLMASK;
+-					if (f_op && f_op->poll)
+-						mask = (*f_op->poll)(file, retval ? NULL : wait);
++					if (f_op && f_op->poll) {
++						wait_key_set(wait, in, out, bit);
++						mask = (*f_op->poll)(file, wait);
++					}
+ 					fput_light(file, fput_needed);
+ 					if ((mask & POLLIN_SET) && (in & bit)) {
+ 						res_in |= bit;
+ 						retval++;
++						wait = NULL;
+ 					}
+ 					if ((mask & POLLOUT_SET) && (out & bit)) {
+ 						res_out |= bit;
+ 						retval++;
++						wait = NULL;
+ 					}
+ 					if ((mask & POLLEX_SET) && (ex & bit)) {
+ 						res_ex |= bit;
+ 						retval++;
++						wait = NULL;
+ 					}
+ 				}
+ 			}
+@@ -685,8 +713,12 @@ static inline unsigned int do_pollfd(str
+ 		mask = POLLNVAL;
+ 		if (file != NULL) {
+ 			mask = DEFAULT_POLLMASK;
+-			if (file->f_op && file->f_op->poll)
++			if (file->f_op && file->f_op->poll) {
++				if (pwait)
++					pwait->key = pollfd->events |
++							POLLERR | POLLHUP;
+ 				mask = file->f_op->poll(file, pwait);
++			}
+ 			/* Mask out unneeded events. */
+ 			mask &= pollfd->events | POLLERR | POLLHUP;
+ 			fput_light(file, fput_needed);
+diff -puN include/linux/poll.h~poll-avoid-extra-wakeups-in-select-poll include/linux/poll.h
+--- a/include/linux/poll.h~poll-avoid-extra-wakeups-in-select-poll
++++ a/include/linux/poll.h
+@@ -32,6 +32,7 @@ typedef void (*poll_queue_proc)(struct f
+ 
+ typedef struct poll_table_struct {
+ 	poll_queue_proc qproc;
++	unsigned long key;
+ } poll_table;
+ 
+ static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
+@@ -43,10 +44,12 @@ static inline void poll_wait(struct file
+ static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
+ {
+ 	pt->qproc = qproc;
++	pt->key   = ~0UL; /* all events enabled */
+ }
+ 
+ struct poll_table_entry {
+ 	struct file *filp;
++	unsigned long key;
+ 	wait_queue_t wait;
+ 	wait_queue_head_t *wait_address;
+ };
 _
 
-Patches currently in -mm which might be from jblunck@suse.de are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
-linux-next.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-update.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+proc-update-document-for-proc-softirqs-and-proc-stat-update.patch
 
