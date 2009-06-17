@@ -1,146 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:35:23 -0700
-Message-ID: <200906171835.n5HIZNuX001431@imap1.linux-foundation.org>
+Subject: [merged] oom-avoid-unnecessary-mm-locking-and-scanning-for-oom_disable.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:35:58 -0700
+Message-ID: <200906171835.n5HIZwwX001926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760528AbZFQShF (ORCPT
+	by vger.kernel.org with ESMTP id S1760123AbZFQShM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:37:05 -0400
+	Wed, 17 Jun 2009 14:37:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, fengguang.wu@gmail.com, mel@csn.ul.ie, pavel@ucw.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, mel@csn.ul.ie, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm, PM/Freezer: Disable OOM killer when tasks are frozen
+     oom: avoid unnecessary mm locking and scanning for OOM_DISABLE
 has been removed from the -mm tree.  Its filename was
-     mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+     oom-avoid-unnecessary-mm-locking-and-scanning-for-oom_disable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm, PM/Freezer: Disable OOM killer when tasks are frozen
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: oom: avoid unnecessary mm locking and scanning for OOM_DISABLE
+From: David Rientjes <rientjes@google.com>
 
-Currently, the following scenario appears to be possible in theory:
+This moves the check for OOM_DISABLE to the badness heuristic so it is
+only necessary to hold task_lock() once.  If the mm is OOM_DISABLE, the
+score is 0, which is also correctly exported via /proc/pid/oom_score. 
+This requires that tasks with badness scores of 0 are prohibited from
+being oom killed, which makes sense since they would not allow for future
+memory freeing anyway.
 
-* Tasks are frozen for hibernation or suspend.
-* Free pages are almost exhausted.
-* Certain piece of code in the suspend code path attempts to allocate
-  some memory using GFP_KERNEL and allocation order less than or
-  equal to PAGE_ALLOC_COSTLY_ORDER.
-* __alloc_pages_internal() cannot find a free page so it invokes the
-  OOM killer.
-* The OOM killer attempts to kill a task, but the task is frozen, so
-  it doesn't die immediately.
-* __alloc_pages_internal() jumps to 'restart', unsuccessfully tries
-  to find a free page and invokes the OOM killer.
-* No progress can be made.
+Since the oom_adj value is a characteristic of an mm and not a task, it is
+no longer necessary to check the oom_adj value for threads sharing the
+same memory (except when simply issuing SIGKILLs for threads in other
+thread groups).
 
-Although it is now hard to trigger during hibernation due to the memory
-shrinking carried out by the hibernation code, it is theoretically
-possible to trigger during suspend after the memory shrinking has been
-removed from that code path.  Moreover, since memory allocations are
-going to be used for the hibernation memory shrinking, it will be even
-more likely to happen during hibernation.
-
-To prevent it from happening, introduce the oom_killer_disabled switch
-that will cause __alloc_pages_internal() to fail in the situations in
-which the OOM killer would have been called and make the freezer set
-this switch after tasks have been successfully frozen.
-
-[akpm@linux-foundation.org: be nicer to the namespace]
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |   12 ++++++++++++
- kernel/power/process.c |    5 +++++
- mm/page_alloc.c        |    4 ++++
- 3 files changed, 21 insertions(+)
+ mm/oom_kill.c |   42 ++++++++++--------------------------------
+ 1 file changed, 10 insertions(+), 32 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen include/linux/gfp.h
---- a/include/linux/gfp.h~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen
-+++ a/include/linux/gfp.h
-@@ -243,4 +243,16 @@ void drain_zone_pages(struct zone *zone,
- void drain_all_pages(void);
- void drain_local_pages(void *dummy);
+diff -puN mm/oom_kill.c~oom-avoid-unnecessary-mm-locking-and-scanning-for-oom_disable mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-avoid-unnecessary-mm-locking-and-scanning-for-oom_disable
++++ a/mm/oom_kill.c
+@@ -67,6 +67,10 @@ unsigned long badness(struct task_struct
+ 		return 0;
+ 	}
+ 	oom_adj = mm->oom_adj;
++	if (oom_adj == OOM_DISABLE) {
++		task_unlock(p);
++		return 0;
++	}
  
-+extern bool oom_killer_disabled;
-+
-+static inline void oom_killer_disable(void)
-+{
-+	oom_killer_disabled = true;
-+}
-+
-+static inline void oom_killer_enable(void)
-+{
-+	oom_killer_disabled = false;
-+}
-+
- #endif /* __LINUX_GFP_H */
-diff -puN kernel/power/process.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen kernel/power/process.c
---- a/kernel/power/process.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen
-+++ a/kernel/power/process.c
-@@ -117,9 +117,12 @@ int freeze_processes(void)
- 	if (error)
- 		goto Exit;
- 	printk("done.");
-+
-+	oom_killer_disable();
-  Exit:
- 	BUG_ON(in_atomic());
- 	printk("\n");
-+
- 	return error;
- }
+ 	/*
+ 	 * The memory size of the process is the basis for the badness.
+@@ -253,15 +257,8 @@ static struct task_struct *select_bad_pr
+ 			*ppoints = ULONG_MAX;
+ 		}
  
-@@ -145,6 +148,8 @@ static void thaw_tasks(bool nosig_only)
+-		task_lock(p);
+-		if (p->mm && p->mm->oom_adj == OOM_DISABLE) {
+-			task_unlock(p);
+-			continue;
+-		}
+-		task_unlock(p);
+-
+ 		points = badness(p, uptime.tv_sec);
+-		if (points > *ppoints || !chosen) {
++		if (points > *ppoints) {
+ 			chosen = p;
+ 			*ppoints = points;
+ 		}
+@@ -354,32 +351,13 @@ static int oom_kill_task(struct task_str
+ 	struct mm_struct *mm;
+ 	struct task_struct *g, *q;
  
- void thaw_processes(void)
- {
-+	oom_killer_enable();
-+
- 	printk("Restarting tasks ... ");
- 	thaw_tasks(true);
- 	thaw_tasks(false);
-diff -puN mm/page_alloc.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen mm/page_alloc.c
---- a/mm/page_alloc.c~mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen
-+++ a/mm/page_alloc.c
-@@ -178,6 +178,8 @@ static void set_pageblock_migratetype(st
- 					PB_migrate, PB_migrate_end);
- }
- 
-+bool oom_killer_disabled __read_mostly;
-+
- #ifdef CONFIG_DEBUG_VM
- static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
- {
-@@ -1769,6 +1771,8 @@ rebalance:
- 	 */
- 	if (!did_some_progress) {
- 		if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
-+			if (oom_killer_disabled)
-+				goto nopage;
- 			page = __alloc_pages_may_oom(gfp_mask, order,
- 					zonelist, high_zoneidx,
- 					nodemask, preferred_zone,
-_
-
-Patches currently in -mm which might be from rjw@sisk.pl are
-
-origin.patch
-linux-next.patch
-net-e100-fix-suspend-of-devices-that-cannot-be-power-managed.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-shrink_slab-handle-bad-shrinkers.patch
-
++	task_lock(p);
+ 	mm = p->mm;
+-
+-	/* WARNING: mm may not be dereferenced since we did not obtain its
+-	 * value from get_task_mm(p).  This is OK since all we need to do is
+-	 * compare mm to q->mm below.
+-	 *
+-	 * Furthermore, even if mm contains a non-NULL value, p->mm may
+-	 * change to NULL at any time since we do not hold task_lock(p).
+-	 * However, this is of no concern to us.
+-	 */
+-
+-	if (mm == NULL)
++	if (!mm || mm->oom_adj == OOM_DISABLE) {
++		task_unlock(p);
+ 		return 1;
+-
+-	/*
+-	 * Don't kill the process if any threads are set to OOM_DISABLE
+-	 */
+-	do_each_thread(g, q) {
+-		task_lock(q);
+-		if (q->mm == mm && q->mm && q->mm->oom_adj == OOM_DISABLE) {
+-			task_unlock(q);
+-			return 1;
+-		}
+-		task_unlock(q);
+-	} while_each_thread(g, q);
