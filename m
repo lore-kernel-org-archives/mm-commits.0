@@ -1,187 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] readahead-introduce-context-readahead-algorithm.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:33:06 -0700
-Message-ID: <200906171833.n5HIX7ju031629@imap1.linux-foundation.org>
+Subject: [merged] spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:32:21 -0700
+Message-ID: <200906171832.n5HIWLl3030948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758410AbZFQSdx (ORCPT
+	by vger.kernel.org with ESMTP id S1759109AbZFQSdy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:33:53 -0400
+	Wed, 17 Jun 2009 14:33:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, jens.axboe@oracle.com, jmoyer@redhat.com, vst@vlnb.net, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: introduce context readahead algorithm
+     spi: takes size of a pointer to determine the size of the pointed-to type
 has been removed from the -mm tree.  Its filename was
-     readahead-introduce-context-readahead-algorithm.patch
+     spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: introduce context readahead algorithm
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: spi: takes size of a pointer to determine the size of the pointed-to type
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Introduce page cache context based readahead algorithm.
-This is to better support concurrent read streams in general.
+Do not take the size of a pointer to determine the size of the pointed-to
+type.
 
-RATIONALE
----------
-The current readahead algorithm detects interleaved reads in a _passive_ way.
-Given a sequence of interleaved streams 1,1001,2,1002,3,4,1003,5,1004,1005,6,...
-By checking for (offset == prev_offset + 1), it will discover the sequentialness
-between 3,4 and between 1004,1005, and start doing sequential readahead for the
-individual streams since page 4 and page 1005.
-
-The context readahead algorithm guarantees to discover the sequentialness no
-matter how the streams are interleaved. For the above example, it will start
-sequential readahead since page 2 and 1002.
-
-The trick is to poke for page @offset-1 in the page cache when it has no other
-clues on the sequentialness of request @offset: if the current requenst belongs
-to a sequential stream, that stream must have accessed page @offset-1 recently,
-and the page will still be cached now. So if page @offset-1 is there, we can
-take request @offset as a sequential access.
-
-BENEFICIARIES
--------------
-- strictly interleaved reads  i.e. 1,1001,2,1002,3,1003,...
-  the current readahead will take them as silly random reads;
-  the context readahead will take them as two sequential streams.
-
-- cooperative IO processes   i.e. NFS and SCST
-  They create a thread pool, farming off (sequential) IO requests to different
-  threads which will be performing interleaved IO.
-
-  It was not easy(or possible) to reliably tell from file->f_ra all those
-  cooperative processes working on the same sequential stream, since they will
-  have different file->f_ra instances. And NFSD's file->f_ra is particularly
-  unusable, since their file objects are dynamically created for each request.
-  The nfsd does have code trying to restore the f_ra bits, but not satisfactory.
-
-  The new scheme is to detect the sequential pattern via looking up the page
-  cache, which provides one single and consistent view of the pages recently
-  accessed. That makes sequential detection for cooperative processes possible.
-
-USER REPORT
------------
-Vladislav recommends the addition of context readahead as a result of his SCST
-benchmarks. It leads to 6%~40% performance gains in various cases and achieves
-equal performance in others.                http://lkml.org/lkml/2009/3/19/239
-
-OVERHEADS
----------
-In theory, it introduces one extra page cache lookup per random read.  However
-the below benchmark shows context readahead to be slightly faster, wondering..
-
-Randomly reading 200MB amount of data on a sparse file, repeat 20 times for
-each block size. The average throughputs are:
-
-                       	original ra	context ra	gain
- 4K random reads:	 65.561MB/s	 65.648MB/s	+0.1%
-16K random reads:	124.767MB/s	124.951MB/s	+0.1%
-64K random reads: 	162.123MB/s	162.278MB/s	+0.1%
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Tested-by: Vladislav Bolkhovitin <vst@vlnb.net>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   60 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+ drivers/spi/spi_mpc83xx.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/readahead.c~readahead-introduce-context-readahead-algorithm mm/readahead.c
---- a/mm/readahead.c~readahead-introduce-context-readahead-algorithm
-+++ a/mm/readahead.c
-@@ -330,6 +330,59 @@ static unsigned long get_next_ra_size(st
-  */
+diff -puN drivers/spi/spi_mpc83xx.c~spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi-size-of-a-pointer-to-determine-the-size-of-the-pointed-to-type
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -711,12 +711,12 @@ static int of_mpc83xx_spi_get_chipselect
+ 		return 0;
+ 	}
  
- /*
-+ * Count contiguously cached pages from @offset-1 to @offset-@max,
-+ * this count is a conservative estimation of
-+ * 	- length of the sequential read sequence, or
-+ * 	- thrashing threshold in memory tight systems
-+ */
-+static pgoff_t count_history_pages(struct address_space *mapping,
-+				   struct file_ra_state *ra,
-+				   pgoff_t offset, unsigned long max)
-+{
-+	pgoff_t head;
-+
-+	rcu_read_lock();
-+	head = radix_tree_prev_hole(&mapping->page_tree, offset - 1, max);
-+	rcu_read_unlock();
-+
-+	return offset - 1 - head;
-+}
-+
-+/*
-+ * page cache context based read-ahead
-+ */
-+static int try_context_readahead(struct address_space *mapping,
-+				 struct file_ra_state *ra,
-+				 pgoff_t offset,
-+				 unsigned long req_size,
-+				 unsigned long max)
-+{
-+	pgoff_t size;
-+
-+	size = count_history_pages(mapping, ra, offset, max);
-+
-+	/*
-+	 * no history pages:
-+	 * it could be a random read
-+	 */
-+	if (!size)
-+		return 0;
-+
-+	/*
-+	 * starts from beginning of file:
-+	 * it is a strong indication of long-run stream (or whole-file-read)
-+	 */
-+	if (size >= offset)
-+		size *= 2;
-+
-+	ra->start = offset;
-+	ra->size = get_init_ra_size(size + req_size, max);
-+	ra->async_size = ra->size;
-+
-+	return 1;
-+}
-+
-+/*
-  * A minimal readahead algorithm for trivial sequential/random reads.
-  */
- static unsigned long
-@@ -395,6 +448,13 @@ ondemand_readahead(struct address_space 
- 		goto initial_readahead;
+-	pinfo->gpios = kmalloc(ngpios * sizeof(pinfo->gpios), GFP_KERNEL);
++	pinfo->gpios = kmalloc(ngpios * sizeof(*pinfo->gpios), GFP_KERNEL);
+ 	if (!pinfo->gpios)
+ 		return -ENOMEM;
+-	memset(pinfo->gpios, -1, ngpios * sizeof(pinfo->gpios));
++	memset(pinfo->gpios, -1, ngpios * sizeof(*pinfo->gpios));
  
- 	/*
-+	 * Query the page cache and look for the traces(cached history pages)
-+	 * that a sequential stream would leave behind.
-+	 */
-+	if (try_context_readahead(mapping, ra, offset, req_size, max))
-+		goto readit;
-+
-+	/*
- 	 * standalone, small random read
- 	 * Read as is, and do not pollute the readahead state.
- 	 */
+-	pinfo->alow_flags = kzalloc(ngpios * sizeof(pinfo->alow_flags),
++	pinfo->alow_flags = kzalloc(ngpios * sizeof(*pinfo->alow_flags),
+ 				    GFP_KERNEL);
+ 	if (!pinfo->alow_flags) {
+ 		ret = -ENOMEM;
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 linux-next.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+serial-fix-off-by-one-errors.patch
+usb-mutually-exclusive-port_status.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+spi_bfin5xx-limit-reaches-1.patch
+platinumfb-misplaced-parenthesis.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
