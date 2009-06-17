@@ -1,352 +1,556 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:33:36 -0700
-Message-ID: <200906171833.n5HIXaGg032108@imap1.linux-foundation.org>
+Subject: [merged] mm-modify-swap_map-and-add-swap_has_cache-flag.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:35:50 -0700
+Message-ID: <200906171835.n5HIZoQ7001859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758108AbZFQS4e (ORCPT
+	by vger.kernel.org with ESMTP id S1752432AbZFQS4c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:56:34 -0400
+	Wed, 17 Jun 2009 14:56:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, Lee.Schermerhorn@hp.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, lethal@linux-sh.org, nickpiggin@yahoo
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, yamamot
 
 
 The patch titled
-     page allocator: do not check NUMA node ID when the caller knows the node is valid
+     mm: modify swap_map and add SWAP_HAS_CACHE flag
 has been removed from the -mm tree.  Its filename was
-     page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid.patch
+     mm-modify-swap_map-and-add-swap_has_cache-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: do not check NUMA node ID when the caller knows the node is valid
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: mm: modify swap_map and add SWAP_HAS_CACHE flag
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Callers of alloc_pages_node() can optionally specify -1 as a node to mean
-"allocate from the current node".  However, a number of the callers in
-fast paths know for a fact their node is valid.  To avoid a comparison and
-branch, this patch adds alloc_pages_exact_node() that only checks the nid
-with VM_BUG_ON().  Callers that know their node is valid are then
-converted.
+This is a part of the patches for fixing memcg's swap accountinf leak. 
+But, IMHO, not a bad patch even if no memcg.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Paul Mundt <lethal@linux-sh.org>	[for the SLOB NUMA bits]
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+There are 2 kinds of references to swap.
+ - reference from swap entry
+ - reference from swap cache
+
+Then,
+
+ - If there is swap cache && swap's refcnt is 1, there is only swap cache.
+  (*) swapcount(entry) == 1 && find_get_page(swapper_space, entry) != NULL
+
+This counting logic have worked well for a long time.  But considering
+that we cannot know there is a _real_ reference or not by swap_map[],
+current usage of counter is not very good.
+
+This patch adds a flag SWAP_HAS_CACHE and recored information that a swap
+entry has a cache or not.  This will remove -1 magic used in swapfile.c
+and be a help to avoid unnecessary find_get_page().
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/common/sba_iommu.c   |    2 +-
- arch/ia64/kernel/mca.c            |    3 +--
- arch/ia64/kernel/uncached.c       |    3 ++-
- arch/ia64/sn/pci/pci_dma.c        |    3 ++-
- arch/powerpc/platforms/cell/ras.c |    4 ++--
- arch/x86/kvm/vmx.c                |    2 +-
- drivers/misc/sgi-gru/grufile.c    |    2 +-
- drivers/misc/sgi-xp/xpc_uv.c      |    2 +-
- include/linux/gfp.h               |    9 +++++++++
- include/linux/mm.h                |    1 -
- kernel/profile.c                  |    8 ++++----
- mm/filemap.c                      |    2 +-
- mm/hugetlb.c                      |    4 ++--
- mm/mempolicy.c                    |    2 +-
- mm/migrate.c                      |    2 +-
- mm/slab.c                         |    4 ++--
- mm/slob.c                         |    4 ++--
- 17 files changed, 33 insertions(+), 24 deletions(-)
+ include/linux/swap.h |   14 +-
+ mm/swap_state.c      |    5 
+ mm/swapfile.c        |  216 ++++++++++++++++++++++++++++++-----------
+ 3 files changed, 173 insertions(+), 62 deletions(-)
 
-diff -puN arch/ia64/hp/common/sba_iommu.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid arch/ia64/hp/common/sba_iommu.c
---- a/arch/ia64/hp/common/sba_iommu.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/arch/ia64/hp/common/sba_iommu.c
-@@ -1131,7 +1131,7 @@ sba_alloc_coherent (struct device *dev, 
- #ifdef CONFIG_NUMA
- 	{
- 		struct page *page;
--		page = alloc_pages_node(ioc->node == MAX_NUMNODES ?
-+		page = alloc_pages_exact_node(ioc->node == MAX_NUMNODES ?
- 		                        numa_node_id() : ioc->node, flags,
- 		                        get_order(size));
+diff -puN include/linux/swap.h~mm-modify-swap_map-and-add-swap_has_cache-flag include/linux/swap.h
+--- a/include/linux/swap.h~mm-modify-swap_map-and-add-swap_has_cache-flag
++++ a/include/linux/swap.h
+@@ -129,9 +129,10 @@ enum {
  
-diff -puN arch/ia64/kernel/mca.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid arch/ia64/kernel/mca.c
---- a/arch/ia64/kernel/mca.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/arch/ia64/kernel/mca.c
-@@ -1829,8 +1829,7 @@ ia64_mca_cpu_init(void *cpu_data)
- 			data = mca_bootmem();
- 			first_time = 0;
- 		} else
--			data = page_address(alloc_pages_node(numa_node_id(),
--					GFP_KERNEL, get_order(sz)));
-+			data = __get_free_pages(GFP_KERNEL, get_order(sz));
- 		if (!data)
- 			panic("Could not allocate MCA memory for cpu %d\n",
- 					cpu);
-diff -puN arch/ia64/kernel/uncached.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid arch/ia64/kernel/uncached.c
---- a/arch/ia64/kernel/uncached.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/arch/ia64/kernel/uncached.c
-@@ -98,7 +98,8 @@ static int uncached_add_chunk(struct unc
+ #define SWAP_CLUSTER_MAX 32
  
- 	/* attempt to allocate a granule's worth of cached memory pages */
- 
--	page = alloc_pages_node(nid, GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
-+	page = alloc_pages_exact_node(nid,
-+				GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
- 				IA64_GRANULE_SHIFT-PAGE_SHIFT);
- 	if (!page) {
- 		mutex_unlock(&uc_pool->add_chunk_mutex);
-diff -puN arch/ia64/sn/pci/pci_dma.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid arch/ia64/sn/pci/pci_dma.c
---- a/arch/ia64/sn/pci/pci_dma.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/arch/ia64/sn/pci/pci_dma.c
-@@ -90,7 +90,8 @@ static void *sn_dma_alloc_coherent(struc
- 	 */
- 	node = pcibus_to_node(pdev->bus);
- 	if (likely(node >=0)) {
--		struct page *p = alloc_pages_node(node, flags, get_order(size));
-+		struct page *p = alloc_pages_exact_node(node,
-+						flags, get_order(size));
- 
- 		if (likely(p))
- 			cpuaddr = page_address(p);
-diff -puN arch/powerpc/platforms/cell/ras.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid arch/powerpc/platforms/cell/ras.c
---- a/arch/powerpc/platforms/cell/ras.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/arch/powerpc/platforms/cell/ras.c
-@@ -122,8 +122,8 @@ static int __init cbe_ptcal_enable_on_no
- 
- 	area->nid = nid;
- 	area->order = order;
--	area->pages = alloc_pages_node(area->nid, GFP_KERNEL | GFP_THISNODE,
--					area->order);
-+	area->pages = alloc_pages_exact_node(area->nid, GFP_KERNEL|GFP_THISNODE,
-+						area->order);
- 
- 	if (!area->pages) {
- 		printk(KERN_WARNING "%s: no page on node %d\n",
-diff -puN arch/x86/kvm/vmx.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid arch/x86/kvm/vmx.c
---- a/arch/x86/kvm/vmx.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/arch/x86/kvm/vmx.c
-@@ -1277,7 +1277,7 @@ static struct vmcs *alloc_vmcs_cpu(int c
- 	struct page *pages;
- 	struct vmcs *vmcs;
- 
--	pages = alloc_pages_node(node, GFP_KERNEL, vmcs_config.order);
-+	pages = alloc_pages_exact_node(node, GFP_KERNEL, vmcs_config.order);
- 	if (!pages)
- 		return NULL;
- 	vmcs = page_address(pages);
-diff -puN drivers/misc/sgi-gru/grufile.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -302,7 +302,7 @@ static int gru_init_tables(unsigned long
- 		pnode = uv_node_to_pnode(nid);
- 		if (bid < 0 || gru_base[bid])
- 			continue;
--		page = alloc_pages_node(nid, GFP_KERNEL, order);
-+		page = alloc_pages_exact_node(nid, GFP_KERNEL, order);
- 		if (!page)
- 			goto fail;
- 		gru_base[bid] = page_address(page);
-diff -puN drivers/misc/sgi-xp/xpc_uv.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid drivers/misc/sgi-xp/xpc_uv.c
---- a/drivers/misc/sgi-xp/xpc_uv.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -232,7 +232,7 @@ xpc_create_gru_mq_uv(unsigned int mq_siz
- 	mq->mmr_blade = uv_cpu_to_blade_id(cpu);
- 
- 	nid = cpu_to_node(cpu);
--	page = alloc_pages_node(nid, GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
-+	page = alloc_pages_exact_node(nid, GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
- 				pg_order);
- 	if (page == NULL) {
- 		dev_err(xpc_part, "xpc_create_gru_mq_uv() failed to alloc %d "
-diff -puN include/linux/gfp.h~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid include/linux/gfp.h
---- a/include/linux/gfp.h~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/include/linux/gfp.h
-@@ -5,6 +5,7 @@
- #include <linux/stddef.h>
- #include <linux/linkage.h>
- #include <linux/topology.h>
-+#include <linux/mmdebug.h>
- 
- struct vm_area_struct;
- 
-@@ -192,6 +193,14 @@ static inline struct page *alloc_pages_n
- 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
+-#define SWAP_MAP_MAX	0x7fff
+-#define SWAP_MAP_BAD	0x8000
+-
++#define SWAP_MAP_MAX	0x7ffe
++#define SWAP_MAP_BAD	0x7fff
++#define SWAP_HAS_CACHE  0x8000		/* There is a swap cache of entry. */
++#define SWAP_COUNT_MASK (~SWAP_HAS_CACHE)
+ /*
+  * The in-memory structure used to track swap areas.
+  */
+@@ -281,7 +282,7 @@ extern long total_swap_pages;
+ extern void si_swapinfo(struct sysinfo *);
+ extern swp_entry_t get_swap_page(void);
+ extern swp_entry_t get_swap_page_of_type(int);
+-extern int swap_duplicate(swp_entry_t);
++extern void swap_duplicate(swp_entry_t);
+ extern int swapcache_prepare(swp_entry_t);
+ extern int valid_swaphandles(swp_entry_t, unsigned long *);
+ extern void swap_free(swp_entry_t);
+@@ -353,9 +354,12 @@ static inline void show_swap_cache_info(
  }
  
-+static inline struct page *alloc_pages_exact_node(int nid, gfp_t gfp_mask,
-+						unsigned int order)
+ #define free_swap_and_cache(swp)	is_migration_entry(swp)
+-#define swap_duplicate(swp)		is_migration_entry(swp)
+ #define swapcache_prepare(swp)		is_migration_entry(swp)
+ 
++static inline void swap_duplicate(swp_entry_t swp)
 +{
-+	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
-+
-+	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
 +}
 +
- #ifdef CONFIG_NUMA
- extern struct page *alloc_pages_current(gfp_t gfp_mask, unsigned order);
- 
-diff -puN include/linux/mm.h~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid include/linux/mm.h
---- a/include/linux/mm.h~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/include/linux/mm.h
-@@ -7,7 +7,6 @@
- 
- #include <linux/gfp.h>
- #include <linux/list.h>
--#include <linux/mmdebug.h>
- #include <linux/mmzone.h>
- #include <linux/rbtree.h>
- #include <linux/prio_tree.h>
-diff -puN kernel/profile.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid kernel/profile.c
---- a/kernel/profile.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/kernel/profile.c
-@@ -365,7 +365,7 @@ static int __cpuinit profile_cpu_callbac
- 		node = cpu_to_node(cpu);
- 		per_cpu(cpu_profile_flip, cpu) = 0;
- 		if (!per_cpu(cpu_profile_hits, cpu)[1]) {
--			page = alloc_pages_node(node,
-+			page = alloc_pages_exact_node(node,
- 					GFP_KERNEL | __GFP_ZERO,
- 					0);
- 			if (!page)
-@@ -373,7 +373,7 @@ static int __cpuinit profile_cpu_callbac
- 			per_cpu(cpu_profile_hits, cpu)[1] = page_address(page);
- 		}
- 		if (!per_cpu(cpu_profile_hits, cpu)[0]) {
--			page = alloc_pages_node(node,
-+			page = alloc_pages_exact_node(node,
- 					GFP_KERNEL | __GFP_ZERO,
- 					0);
- 			if (!page)
-@@ -564,14 +564,14 @@ static int create_hash_tables(void)
- 		int node = cpu_to_node(cpu);
- 		struct page *page;
- 
--		page = alloc_pages_node(node,
-+		page = alloc_pages_exact_node(node,
- 				GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
- 				0);
- 		if (!page)
- 			goto out_cleanup;
- 		per_cpu(cpu_profile_hits, cpu)[1]
- 				= (struct profile_hit *)page_address(page);
--		page = alloc_pages_node(node,
-+		page = alloc_pages_exact_node(node,
- 				GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
- 				0);
- 		if (!page)
-diff -puN mm/filemap.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid mm/filemap.c
---- a/mm/filemap.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/mm/filemap.c
-@@ -521,7 +521,7 @@ struct page *__page_cache_alloc(gfp_t gf
+ static inline void swap_free(swp_entry_t swp)
  {
- 	if (cpuset_do_page_mem_spread()) {
- 		int n = cpuset_mem_spread_node();
--		return alloc_pages_node(n, gfp, 0);
-+		return alloc_pages_exact_node(n, gfp, 0);
- 	}
- 	return alloc_pages(gfp, 0);
  }
-diff -puN mm/hugetlb.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid mm/hugetlb.c
---- a/mm/hugetlb.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/mm/hugetlb.c
-@@ -630,7 +630,7 @@ static struct page *alloc_fresh_huge_pag
- 	if (h->order >= MAX_ORDER)
- 		return NULL;
+diff -puN mm/swap_state.c~mm-modify-swap_map-and-add-swap_has_cache-flag mm/swap_state.c
+--- a/mm/swap_state.c~mm-modify-swap_map-and-add-swap_has_cache-flag
++++ a/mm/swap_state.c
+@@ -292,7 +292,10 @@ struct page *read_swap_cache_async(swp_e
+ 		/*
+ 		 * Swap entry may have been freed since our caller observed it.
+ 		 */
+-		if (!swapcache_prepare(entry))
++		err = swapcache_prepare(entry);
++		if (err == -EEXIST) /* seems racy */
++			continue;
++		if (err)           /* swp entry is obsolete ? */
+ 			break;
  
--	page = alloc_pages_node(nid,
-+	page = alloc_pages_exact_node(nid,
- 		htlb_alloc_mask|__GFP_COMP|__GFP_THISNODE|
- 						__GFP_REPEAT|__GFP_NOWARN,
- 		huge_page_order(h));
-@@ -649,7 +649,7 @@ static struct page *alloc_fresh_huge_pag
-  * Use a helper variable to find the next node and then
-  * copy it back to hugetlb_next_nid afterwards:
-  * otherwise there's a window in which a racer might
-- * pass invalid nid MAX_NUMNODES to alloc_pages_node.
-+ * pass invalid nid MAX_NUMNODES to alloc_pages_exact_node.
-  * But we don't need to use a spin_lock here: it really
-  * doesn't matter if occasionally a racer chooses the
-  * same nid as we do.  Move nid forward in the mask even
-diff -puN mm/mempolicy.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid mm/mempolicy.c
---- a/mm/mempolicy.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/mm/mempolicy.c
-@@ -803,7 +803,7 @@ static void migrate_page_add(struct page
+ 		/*
+diff -puN mm/swapfile.c~mm-modify-swap_map-and-add-swap_has_cache-flag mm/swapfile.c
+--- a/mm/swapfile.c~mm-modify-swap_map-and-add-swap_has_cache-flag
++++ a/mm/swapfile.c
+@@ -53,6 +53,33 @@ static struct swap_info_struct swap_info
  
- static struct page *new_node_page(struct page *page, unsigned long node, int **x)
+ static DEFINE_MUTEX(swapon_mutex);
+ 
++/* For reference count accounting in swap_map */
++/* enum for swap_map[] handling. internal use only */
++enum {
++	SWAP_MAP = 0,	/* ops for reference from swap users */
++	SWAP_CACHE,	/* ops for reference from swap cache */
++};
++
++static inline int swap_count(unsigned short ent)
++{
++	return ent & SWAP_COUNT_MASK;
++}
++
++static inline bool swap_has_cache(unsigned short ent)
++{
++	return !!(ent & SWAP_HAS_CACHE);
++}
++
++static inline unsigned short encode_swapmap(int count, bool has_cache)
++{
++	unsigned short ret = count;
++
++	if (has_cache)
++		return SWAP_HAS_CACHE | ret;
++	return ret;
++}
++
++
+ /*
+  * We need this because the bdev->unplug_fn can sleep and we cannot
+  * hold swap_lock while calling the unplug_fn. And swap_lock
+@@ -167,7 +194,8 @@ static int wait_for_discard(void *word)
+ #define SWAPFILE_CLUSTER	256
+ #define LATENCY_LIMIT		256
+ 
+-static inline unsigned long scan_swap_map(struct swap_info_struct *si)
++static inline unsigned long scan_swap_map(struct swap_info_struct *si,
++					  int cache)
  {
--	return alloc_pages_node(node, GFP_HIGHUSER_MOVABLE, 0);
-+	return alloc_pages_exact_node(node, GFP_HIGHUSER_MOVABLE, 0);
+ 	unsigned long offset;
+ 	unsigned long scan_base;
+@@ -285,7 +313,10 @@ checks:
+ 		si->lowest_bit = si->max;
+ 		si->highest_bit = 0;
+ 	}
+-	si->swap_map[offset] = 1;
++	if (cache == SWAP_CACHE) /* at usual swap-out via vmscan.c */
++		si->swap_map[offset] = encode_swapmap(0, true);
++	else /* at suspend */
++		si->swap_map[offset] = encode_swapmap(1, false);
+ 	si->cluster_next = offset + 1;
+ 	si->flags -= SWP_SCANNING;
+ 
+@@ -401,7 +432,8 @@ swp_entry_t get_swap_page(void)
+ 			continue;
+ 
+ 		swap_list.next = next;
+-		offset = scan_swap_map(si);
++		/* This is called for allocating swap entry for cache */
++		offset = scan_swap_map(si, SWAP_CACHE);
+ 		if (offset) {
+ 			spin_unlock(&swap_lock);
+ 			return swp_entry(type, offset);
+@@ -415,6 +447,7 @@ noswap:
+ 	return (swp_entry_t) {0};
+ }
+ 
++/* The only caller of this function is now susupend routine */
+ swp_entry_t get_swap_page_of_type(int type)
+ {
+ 	struct swap_info_struct *si;
+@@ -424,7 +457,8 @@ swp_entry_t get_swap_page_of_type(int ty
+ 	si = swap_info + type;
+ 	if (si->flags & SWP_WRITEOK) {
+ 		nr_swap_pages--;
+-		offset = scan_swap_map(si);
++		/* This is called for allocating swap entry, not cache */
++		offset = scan_swap_map(si, SWAP_MAP);
+ 		if (offset) {
+ 			spin_unlock(&swap_lock);
+ 			return swp_entry(type, offset);
+@@ -471,25 +505,38 @@ out:
+ 	return NULL;
+ }
+ 
+-static int swap_entry_free(struct swap_info_struct *p, swp_entry_t ent)
++static int swap_entry_free(struct swap_info_struct *p,
++			   swp_entry_t ent, int cache)
+ {
+ 	unsigned long offset = swp_offset(ent);
+-	int count = p->swap_map[offset];
++	int count = swap_count(p->swap_map[offset]);
++	bool has_cache;
+ 
+-	if (count < SWAP_MAP_MAX) {
+-		count--;
+-		p->swap_map[offset] = count;
+-		if (!count) {
+-			if (offset < p->lowest_bit)
+-				p->lowest_bit = offset;
+-			if (offset > p->highest_bit)
+-				p->highest_bit = offset;
+-			if (p->prio > swap_info[swap_list.next].prio)
+-				swap_list.next = p - swap_info;
+-			nr_swap_pages++;
+-			p->inuse_pages--;
+-			mem_cgroup_uncharge_swap(ent);
+-		}
++	has_cache = swap_has_cache(p->swap_map[offset]);
++
++	if (cache == SWAP_MAP) { /* dropping usage count of swap */
++		if (count < SWAP_MAP_MAX) {
++			count--;
++			p->swap_map[offset] = encode_swapmap(count, has_cache);
++		}
++	} else { /* dropping swap cache flag */
++		VM_BUG_ON(!has_cache);
++		p->swap_map[offset] = encode_swapmap(count, false);
++
++	}
++	/* return code. */
++	count = p->swap_map[offset];
++	/* free if no reference */
++	if (!count) {
++		if (offset < p->lowest_bit)
++			p->lowest_bit = offset;
++		if (offset > p->highest_bit)
++			p->highest_bit = offset;
++		if (p->prio > swap_info[swap_list.next].prio)
++			swap_list.next = p - swap_info;
++		nr_swap_pages++;
++		p->inuse_pages--;
++		mem_cgroup_uncharge_swap(ent);
+ 	}
+ 	return count;
+ }
+@@ -504,7 +551,7 @@ void swap_free(swp_entry_t entry)
+ 
+ 	p = swap_info_get(entry);
+ 	if (p) {
+-		swap_entry_free(p, entry);
++		swap_entry_free(p, entry, SWAP_MAP);
+ 		spin_unlock(&swap_lock);
+ 	}
+ }
+@@ -514,9 +561,16 @@ void swap_free(swp_entry_t entry)
+  */
+ void swapcache_free(swp_entry_t entry, struct page *page)
+ {
++	struct swap_info_struct *p;
++
+ 	if (page)
+ 		mem_cgroup_uncharge_swapcache(page, entry);
+-	return swap_free(entry);
++	p = swap_info_get(entry);
++	if (p) {
++		swap_entry_free(p, entry, SWAP_CACHE);
++		spin_unlock(&swap_lock);
++	}
++	return;
  }
  
  /*
-diff -puN mm/migrate.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid mm/migrate.c
---- a/mm/migrate.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/mm/migrate.c
-@@ -802,7 +802,7 @@ static struct page *new_page_node(struct
+@@ -531,8 +585,7 @@ static inline int page_swapcount(struct 
+ 	entry.val = page_private(page);
+ 	p = swap_info_get(entry);
+ 	if (p) {
+-		/* Subtract the 1 for the swap cache itself */
+-		count = p->swap_map[swp_offset(entry)] - 1;
++		count = swap_count(p->swap_map[swp_offset(entry)]);
+ 		spin_unlock(&swap_lock);
+ 	}
+ 	return count;
+@@ -594,7 +647,7 @@ int free_swap_and_cache(swp_entry_t entr
  
- 	*result = &pm->status;
+ 	p = swap_info_get(entry);
+ 	if (p) {
+-		if (swap_entry_free(p, entry) == 1) {
++		if (swap_entry_free(p, entry, SWAP_MAP) == SWAP_HAS_CACHE) {
+ 			page = find_get_page(&swapper_space, entry.val);
+ 			if (page && !trylock_page(page)) {
+ 				page_cache_release(page);
+@@ -901,7 +954,7 @@ static unsigned int find_next_to_unuse(s
+ 			i = 1;
+ 		}
+ 		count = si->swap_map[i];
+-		if (count && count != SWAP_MAP_BAD)
++		if (count && swap_count(count) != SWAP_MAP_BAD)
+ 			break;
+ 	}
+ 	return i;
+@@ -1005,13 +1058,13 @@ static int try_to_unuse(unsigned int typ
+ 		 */
+ 		shmem = 0;
+ 		swcount = *swap_map;
+-		if (swcount > 1) {
++		if (swap_count(swcount)) {
+ 			if (start_mm == &init_mm)
+ 				shmem = shmem_unuse(entry, page);
+ 			else
+ 				retval = unuse_mm(start_mm, entry, page);
+ 		}
+-		if (*swap_map > 1) {
++		if (swap_count(*swap_map)) {
+ 			int set_start_mm = (*swap_map >= swcount);
+ 			struct list_head *p = &start_mm->mmlist;
+ 			struct mm_struct *new_start_mm = start_mm;
+@@ -1021,7 +1074,7 @@ static int try_to_unuse(unsigned int typ
+ 			atomic_inc(&new_start_mm->mm_users);
+ 			atomic_inc(&prev_mm->mm_users);
+ 			spin_lock(&mmlist_lock);
+-			while (*swap_map > 1 && !retval && !shmem &&
++			while (swap_count(*swap_map) && !retval && !shmem &&
+ 					(p = p->next) != &start_mm->mmlist) {
+ 				mm = list_entry(p, struct mm_struct, mmlist);
+ 				if (!atomic_inc_not_zero(&mm->mm_users))
+@@ -1033,14 +1086,16 @@ static int try_to_unuse(unsigned int typ
+ 				cond_resched();
  
--	return alloc_pages_node(pm->node,
-+	return alloc_pages_exact_node(pm->node,
- 				GFP_HIGHUSER_MOVABLE | GFP_THISNODE, 0);
+ 				swcount = *swap_map;
+-				if (swcount <= 1)
++				if (!swap_count(swcount)) /* any usage ? */
+ 					;
+ 				else if (mm == &init_mm) {
+ 					set_start_mm = 1;
+ 					shmem = shmem_unuse(entry, page);
+ 				} else
+ 					retval = unuse_mm(mm, entry, page);
+-				if (set_start_mm && *swap_map < swcount) {
++
++				if (set_start_mm &&
++				    swap_count(*swap_map) < swcount) {
+ 					mmput(new_start_mm);
+ 					atomic_inc(&mm->mm_users);
+ 					new_start_mm = mm;
+@@ -1067,21 +1122,25 @@ static int try_to_unuse(unsigned int typ
+ 		}
+ 
+ 		/*
+-		 * How could swap count reach 0x7fff when the maximum
+-		 * pid is 0x7fff, and there's no way to repeat a swap
+-		 * page within an mm (except in shmem, where it's the
+-		 * shared object which takes the reference count)?
+-		 * We believe SWAP_MAP_MAX cannot occur in Linux 2.4.
+-		 *
++		 * How could swap count reach 0x7ffe ?
++		 * There's no way to repeat a swap page within an mm
++		 * (except in shmem, where it's the shared object which takes
++		 * the reference count)?
++		 * We believe SWAP_MAP_MAX cannot occur.(if occur, unsigned
++		 * short is too small....)
+ 		 * If that's wrong, then we should worry more about
+ 		 * exit_mmap() and do_munmap() cases described above:
+ 		 * we might be resetting SWAP_MAP_MAX too early here.
+ 		 * We know "Undead"s can happen, they're okay, so don't
+ 		 * report them; but do report if we reset SWAP_MAP_MAX.
+ 		 */
+-		if (*swap_map == SWAP_MAP_MAX) {
++		/* We might release the lock_page() in unuse_mm(). */
++		if (!PageSwapCache(page) || page_private(page) != entry.val)
++			goto retry;
++
++		if (swap_count(*swap_map) == SWAP_MAP_MAX) {
+ 			spin_lock(&swap_lock);
+-			*swap_map = 1;
++			*swap_map = encode_swapmap(0, true);
+ 			spin_unlock(&swap_lock);
+ 			reset_overflow = 1;
+ 		}
+@@ -1099,7 +1158,8 @@ static int try_to_unuse(unsigned int typ
+ 		 * pages would be incorrect if swap supported "shared
+ 		 * private" pages, but they are handled by tmpfs files.
+ 		 */
+-		if ((*swap_map > 1) && PageDirty(page) && PageSwapCache(page)) {
++		if (swap_count(*swap_map) &&
++		     PageDirty(page) && PageSwapCache(page)) {
+ 			struct writeback_control wbc = {
+ 				.sync_mode = WB_SYNC_NONE,
+ 			};
+@@ -1126,6 +1186,7 @@ static int try_to_unuse(unsigned int typ
+ 		 * mark page dirty so shrink_page_list will preserve it.
+ 		 */
+ 		SetPageDirty(page);
++retry:
+ 		unlock_page(page);
+ 		page_cache_release(page);
+ 
+@@ -1952,15 +2013,23 @@ void si_swapinfo(struct sysinfo *val)
+  *
+  * Note: if swap_map[] reaches SWAP_MAP_MAX the entries are treated as
+  * "permanent", but will be reclaimed by the next swapoff.
++ * Returns error code in following case.
++ * - success -> 0
++ * - swp_entry is invalid -> EINVAL
++ * - swp_entry is migration entry -> EINVAL
++ * - swap-cache reference is requested but there is already one. -> EEXIST
++ * - swap-cache reference is requested but the entry is not used. -> ENOENT
+  */
+-int swap_duplicate(swp_entry_t entry)
++static int __swap_duplicate(swp_entry_t entry, bool cache)
+ {
+ 	struct swap_info_struct * p;
+ 	unsigned long offset, type;
+-	int result = 0;
++	int result = -EINVAL;
++	int count;
++	bool has_cache;
+ 
+ 	if (is_migration_entry(entry))
+-		return 1;
++		return -EINVAL;
+ 
+ 	type = swp_type(entry);
+ 	if (type >= nr_swapfiles)
+@@ -1969,17 +2038,40 @@ int swap_duplicate(swp_entry_t entry)
+ 	offset = swp_offset(entry);
+ 
+ 	spin_lock(&swap_lock);
+-	if (offset < p->max && p->swap_map[offset]) {
+-		if (p->swap_map[offset] < SWAP_MAP_MAX - 1) {
+-			p->swap_map[offset]++;
+-			result = 1;
+-		} else if (p->swap_map[offset] <= SWAP_MAP_MAX) {
++
++	if (unlikely(offset >= p->max))
++		goto unlock_out;
++
++	count = swap_count(p->swap_map[offset]);
++	has_cache = swap_has_cache(p->swap_map[offset]);
++
++	if (cache == SWAP_CACHE) { /* called for swapcache/swapin-readahead */
++
++		/* set SWAP_HAS_CACHE if there is no cache and entry is used */
++		if (!has_cache && count) {
++			p->swap_map[offset] = encode_swapmap(count, true);
++			result = 0;
++		} else if (has_cache) /* someone added cache */
++			result = -EEXIST;
++		else if (!count) /* no users */
++			result = -ENOENT;
++
++	} else if (count || has_cache) {
++		if (count < SWAP_MAP_MAX - 1) {
++			p->swap_map[offset] = encode_swapmap(count + 1,
++							     has_cache);
++			result = 0;
++		} else if (count <= SWAP_MAP_MAX) {
+ 			if (swap_overflow++ < 5)
+-				printk(KERN_WARNING "swap_dup: swap entry overflow\n");
+-			p->swap_map[offset] = SWAP_MAP_MAX;
+-			result = 1;
+-		}
+-	}
++				printk(KERN_WARNING
++				       "swap_dup: swap entry overflow\n");
++			p->swap_map[offset] = encode_swapmap(SWAP_MAP_MAX,
++							      has_cache);
++			result = 0;
++		}
++	} else
++		result = -ENOENT; /* unused swap entry */
++unlock_out:
+ 	spin_unlock(&swap_lock);
+ out:
+ 	return result;
+@@ -1988,13 +2080,25 @@ bad_file:
+ 	printk(KERN_ERR "swap_dup: %s%08lx\n", Bad_file, entry.val);
+ 	goto out;
+ }
++/*
++ * increase reference count of swap entry by 1.
++ */
++void swap_duplicate(swp_entry_t entry)
++{
++	__swap_duplicate(entry, SWAP_MAP);
++}
+ 
+ /*
++ * @entry: swap entry for which we allocate swap cache.
++ *
+  * Called when allocating swap cache for exising swap entry,
++ * This can return error codes. Returns 0 at success.
++ * -EBUSY means there is a swap cache.
++ * Note: return code is different from swap_duplicate().
+  */
+ int swapcache_prepare(swp_entry_t entry)
+ {
+-	return swap_duplicate(entry);
++	return __swap_duplicate(entry, SWAP_CACHE);
  }
  
-diff -puN mm/slab.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid mm/slab.c
---- a/mm/slab.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/mm/slab.c
-@@ -1707,7 +1707,7 @@ static void *kmem_getpages(struct kmem_c
- 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
- 		flags |= __GFP_RECLAIMABLE;
  
--	page = alloc_pages_node(nodeid, flags, cachep->gfporder);
-+	page = alloc_pages_exact_node(nodeid, flags, cachep->gfporder);
- 	if (!page)
- 		return NULL;
- 
-@@ -3261,7 +3261,7 @@ retry:
- 		if (local_flags & __GFP_WAIT)
- 			local_irq_enable();
- 		kmem_flagcheck(cache, flags);
--		obj = kmem_getpages(cache, local_flags, -1);
-+		obj = kmem_getpages(cache, local_flags, numa_node_id());
- 		if (local_flags & __GFP_WAIT)
- 			local_irq_disable();
- 		if (obj) {
-diff -puN mm/slob.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid mm/slob.c
---- a/mm/slob.c~page-allocator-do-not-check-numa-node-id-when-the-caller-knows-the-node-is-valid
-+++ a/mm/slob.c
-@@ -46,7 +46,7 @@
-  * NUMA support in SLOB is fairly simplistic, pushing most of the real
-  * logic down to the page allocator, and simply doing the node accounting
-  * on the upper levels. In the event that a node id is explicitly
-- * provided, alloc_pages_node() with the specified node id is used
-+ * provided, alloc_pages_exact_node() with the specified node id is used
-  * instead. The common case (or when the node id isn't explicitly provided)
-  * will default to the current node, as per numa_node_id().
-  *
-@@ -244,7 +244,7 @@ static void *slob_new_pages(gfp_t gfp, i
- 
- #ifdef CONFIG_NUMA
- 	if (node != -1)
--		page = alloc_pages_node(node, gfp, order);
-+		page = alloc_pages_exact_node(node, gfp, order);
- 	else
- #endif
- 		page = alloc_pages(gfp, order);
+@@ -2035,7 +2139,7 @@ int valid_swaphandles(swp_entry_t entry,
+ 		/* Don't read in free or bad pages */
+ 		if (!si->swap_map[toff])
+ 			break;
+-		if (si->swap_map[toff] == SWAP_MAP_BAD)
++		if (swap_count(si->swap_map[toff]) == SWAP_MAP_BAD)
+ 			break;
+ 	}
+ 	/* Count contiguous allocated slots below our target */
+@@ -2043,7 +2147,7 @@ int valid_swaphandles(swp_entry_t entry,
+ 		/* Don't read in free or bad pages */
+ 		if (!si->swap_map[toff])
+ 			break;
+-		if (si->swap_map[toff] == SWAP_MAP_BAD)
++		if (swap_count(si->swap_map[toff]) == SWAP_MAP_BAD)
+ 			break;
+ 	}
+ 	spin_unlock(&swap_lock);
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix2.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+memcg-remove-mem_cgroup_cache_charge_swapin.patch
+memcg-remove-some-redundant-checks.patch
+memcg-remove-unneeded-forward-declaration-from-schedh.patch
+memcg-fix-swap-accounting.patch
+memcg-fix-swap-accounting-update.patch
+memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch
+memcg-add-interface-to-reset-limits.patch
 memcg-fix-lru-rotation-in-isolate_pages.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+elf-reduce-default-max_map_count-to-be-safe-value.patch
 
