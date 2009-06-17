@@ -1,82 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [folded] edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 15:54:00 -0700
-Message-ID: <200906172254.n5HMs05p013684@imap1.linux-foundation.org>
+Subject: [folded] edac-add-edac_device_alloc_index-cleanup.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 15:54:31 -0700
+Message-ID: <200906172254.n5HMsVPE014143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60668 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762180AbZFQWyH (ORCPT
+	by vger.kernel.org with ESMTP id S1756592AbZFQWyf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 18:54:07 -0400
+	Wed, 17 Jun 2009 18:54:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qingtao.cao@windriver.com, benh@kernel.crashing.org, galak@gate.crashing.org, michael@ellerman.id.au, norsk5@yahoo.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, galak@gate.crashing.org, michael@ellerman.id.au, norsk5@yahoo.com, paulus@samba.org, qingtao.cao@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     EDAC: CPC925 MC check fixup
+     edac-add-edac_device_alloc_index-cleanup
 has been removed from the -mm tree.  Its filename was
-     edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch
+     edac-add-edac_device_alloc_index-cleanup.patch
 
-This patch was dropped because it was folded into edac-add-cpc925-memory-controller-driver.patch
+This patch was dropped because it was folded into edac-add-edac_device_alloc_index.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: EDAC: CPC925 MC check fixup
-From: Harry Ciao <qingtao.cao@windriver.com>
+Subject: edac-add-edac_device_alloc_index-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix an obvious bug in CPC925 Memory Controller's check routine -
-edac_mc_handle_ue() should have been called for UECC errors and
-edac_mc_handle_ce() for CECC errors.
+keep things neat.  Also avoids having global identifier device_index
+shadowed by local identifier device_index.
 
-Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
-Cc: Doug Thompson <norsk5@yahoo.com>
-Cc: Michael Ellerman <michael@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Doug Thompson <norsk5@yahoo.com>
+Cc: Harry Ciao <qingtao.cao@windriver.com>
 Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Michael Ellerman <michael@ellerman.id.au>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/cpc925_edac.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/edac/edac_device.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/edac/cpc925_edac.c~edac-add-cpc925-memory-controller-driver-mc-check-fixup drivers/edac/cpc925_edac.c
---- a/drivers/edac/cpc925_edac.c~edac-add-cpc925-memory-controller-driver-mc-check-fixup
-+++ a/drivers/edac/cpc925_edac.c
-@@ -544,17 +544,16 @@ static void cpc925_mc_check(struct mem_c
- 	/* Revert column/row addresses into page frame number, etc */
- 	cpc925_mc_get_pfn(mci, mear, &pfn, &offset, &csrow);
+diff -puN drivers/edac/edac_device.c~edac-add-edac_device_alloc_index-cleanup drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~edac-add-edac_device_alloc_index-cleanup
++++ a/drivers/edac/edac_device.c
+@@ -37,7 +37,6 @@
+  */
+ static DEFINE_MUTEX(device_ctls_mutex);
+ static LIST_HEAD(edac_device_list);
+-static atomic_t device_indexes = ATOMIC_INIT(0);
  
--	if (apiexcp & UECC_EXCP_DETECTED) {
--		cpc925_mc_printk(mci, KERN_INFO, "DRAM UECC Fault\n");
-+	if (apiexcp & CECC_EXCP_DETECTED) {
-+		cpc925_mc_printk(mci, KERN_INFO, "DRAM CECC Fault\n");
- 		channel = cpc925_mc_find_channel(mci, syndrome);
- 		edac_mc_handle_ce(mci, pfn, offset, syndrome,
- 				  csrow, channel, mci->ctl_name);
- 	}
- 
--	if (apiexcp & CECC_EXCP_DETECTED) {
--		cpc925_mc_printk(mci, KERN_INFO, "DRAM CECC Fault\n");
--		edac_mc_handle_ue(mci, pfn, offset,
--				  csrow, mci->ctl_name);
-+	if (apiexcp & UECC_EXCP_DETECTED) {
-+		cpc925_mc_printk(mci, KERN_INFO, "DRAM UECC Fault\n");
-+		edac_mc_handle_ue(mci, pfn, offset, csrow, mci->ctl_name);
- 	}
- 
- 	cpc925_mc_printk(mci, KERN_INFO, "Dump registers:\n");
+ #ifdef CONFIG_EDAC_DEBUG
+ static void edac_device_dump_device(struct edac_device_ctl_info *edac_dev)
+@@ -499,6 +498,8 @@ void edac_device_reset_delay_period(stru
+  */
+ int edac_device_alloc_index(void)
+ {
++	static atomic_t device_indexes = ATOMIC_INIT(0);
++
+ 	return atomic_inc_return(&device_indexes) - 1;
+ }
+ EXPORT_SYMBOL_GPL(edac_device_alloc_index);
 _
 
-Patches currently in -mm which might be from qingtao.cao@windriver.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
+maintainers-fbdev-is-orphaned.patch
+gpio-pca953x-get-platform_data-from-openfirmware.patch
+documentation-changes-perl-is-needed-to-build-the-kernel.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
 edac-add-cpc925-memory-controller-driver.patch
-edac-add-cpc925-memory-controller-driver-mc-check-fixup.patch
 edac-add-edac_device_alloc_index.patch
 edac-add-edac_device_alloc_index-cleanup.patch
-edac-cpc925-mc-platform-device-setup.patch
-edac-cpc925-mc-platform-device-setup-v3.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
 
