@@ -1,76 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uml-uml-net-driver-does-not-allow-for-vlans.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:36:55 -0700
-Message-ID: <200906171836.n5HIatJG002983@imap1.linux-foundation.org>
+Subject: [merged] mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:36:15 -0700
+Message-ID: <200906171836.n5HIaF3I002249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759040AbZFQSiE (ORCPT
+	by vger.kernel.org with ESMTP id S1758337AbZFQSiE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 17 Jun 2009 14:38:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@linux.intel.com, blaisorblade@yahoo.it, davem@davemloft.net, devzero@web.de, jdike@addtoit.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, hch@infradead.org, minchan.kim@gmail.com, penberg@cs.helsinki.fi, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: UML net driver does not allow for vlans
+     mm: add a gfp-translate script to help understand page allocation failure reports
 has been removed from the -mm tree.  Its filename was
-     uml-uml-net-driver-does-not-allow-for-vlans.patch
+     mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: UML net driver does not allow for vlans
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: mm: add a gfp-translate script to help understand page allocation failure reports
+From: Mel Gorman <mel@csn.ul.ie>
 
-See ancient discussion at
-http://marc.info/?l=user-mode-linux-devel&m=101990155831279&w=2
+The page allocation failure messages include a line that looks like
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=7854
+page allocation failure. order:1, mode:0x4020
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Reported-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Roland Kletzing <devzero@web.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+The mode is easy to translate but irritating for the lazy and a bit error
+prone.  This patch adds a very simple helper script gfp-translate for the
+mode: portion of the page allocation failure messages.  An example usage
+looks like
+
+  mel@machina:~/linux-2.6 $ scripts/gfp-translate 0x4020
+  Source: /home/mel/linux-2.6
+  Parsing: 0x4020
+  #define __GFP_HIGH	(0x20)	/* Should access emergency pools? */
+  #define __GFP_COMP	(0x4000) /* Add compound page metadata */
+
+The script is not a work of art but it has come in handy for me a few
+times so I thought I would share.
+
+[akpm@linux-foundation.org: clarify an error message]
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/shared/net_user.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gfp-translate |   81 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
-diff -puN arch/um/include/shared/net_user.h~uml-uml-net-driver-does-not-allow-for-vlans arch/um/include/shared/net_user.h
---- a/arch/um/include/shared/net_user.h~uml-uml-net-driver-does-not-allow-for-vlans
-+++ a/arch/um/include/shared/net_user.h
-@@ -8,7 +8,7 @@
- 
- #define ETH_ADDR_LEN (6)
- #define ETH_HEADER_ETHERTAP (16)
--#define ETH_HEADER_OTHER (14)
-+#define ETH_HEADER_OTHER (26) /* 14 for ethernet + VLAN + MPLS for crazy people */
- #define ETH_MAX_PACKET (1500)
- 
- #define UML_NET_VERSION (4)
+diff -puN /dev/null scripts/gfp-translate
+--- /dev/null
++++ a/scripts/gfp-translate
+@@ -0,0 +1,81 @@
++#!/bin/bash
++# Translate the bits making up a GFP mask
++# (c) 2009, Mel Gorman <mel@csn.ul.ie>
++# Licensed under the terms of the GNU GPL License version 2
++SOURCE=
++GFPMASK=none
++
++# Helper function to report failures and exit
++die() {
++	echo ERROR: $@
++	if [ "$TMPFILE" != "" ]; then
++		rm -f $TMPFILE
++	fi
++	exit -1
++}
++
++usage() {
++	echo "usage: gfp-translate [-h] [ --source DIRECTORY ] gfpmask"
++	exit 0
++}
++
++# Parse command-line arguements
++while [ $# -gt 0 ]; do
++	case $1 in
++		--source)
++			SOURCE=$2
++			shift 2
++			;;
++		-h)
++			usage
++			;;
++		--help)
++			usage
++			;;
++		*)
++			GFPMASK=$1
++			shift
++			;;
++	esac
++done
++
++# Guess the kernel source directory if it's not set. Preference is in order of
++# o current directory
++# o /usr/src/linux
++if [ "$SOURCE" = "" ]; then
++	if [ -r "/usr/src/linux/Makefile" ]; then
++		SOURCE=/usr/src/linux
++	fi
++	if [ -r "`pwd`/Makefile" ]; then
++		SOURCE=`pwd`
++	fi
++fi
++
++# Confirm that a source directory exists
++if [ ! -r "$SOURCE/Makefile" ]; then
++	die "Could not locate kernel source directory or it is invalid"
++fi
++
++# Confirm that a GFP mask has been specified
++if [ "$GFPMASK" = "none" ]; then
++	usage
++fi
++
++# Extract GFP flags from the kernel source
++TMPFILE=`mktemp -t gfptranslate-XXXXXX` || exit 1
++grep "^#define __GFP" $SOURCE/include/linux/gfp.h | sed -e 's/(__force gfp_t)//' | sed -e 's/u)/)/' | grep -v GFP_BITS | sed -e 's/)\//) \//' > $TMPFILE
++
++# Parse the flags
++IFS="
++"
++echo Source: $SOURCE
++echo Parsing: $GFPMASK
++for LINE in `cat $TMPFILE`; do
++	MASK=`echo $LINE | awk '{print $3}'`
++	if [ $(($GFPMASK&$MASK)) -ne 0 ]; then
++		echo $LINE
++	fi
++done
++
++rm -f $TMPFILE
++exit 0
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
 linux-next.patch
-pci-use-pci_ioremap_bar-in-drivers-serial.patch
-kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
-serial-fix-off-by-one-errors.patch
-serial_txx9-use-container_of-instead-of-direct-cast.patch
-serial-8250c-irq-handling-race-and-spurious-iir-read.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
-char-isicom-fix-build-warning.patch
-char-moxa-prevent-opening-unavailable-ports.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-linuxpps-core-support.patch
+page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
+memcg-fix-lru-rotation-in-isolate_pages.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
