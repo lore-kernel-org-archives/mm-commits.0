@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-vm-makefile-dont-try-to-build-slqbinfo.patch added to -mm tree
-Date: Tue, 16 Jun 2009 22:37:56 -0700
-Message-ID: <200906170537.n5H5buvs028861@imap1.linux-foundation.org>
+Subject: + maintainers-fbdev-is-orphaned.patch added to -mm tree
+Date: Tue, 16 Jun 2009 23:27:28 -0700
+Message-ID: <200906170627.n5H6RSmW009311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37923 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751333AbZFQFi1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752099AbZFQG2Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 01:38:27 -0400
+	Wed, 17 Jun 2009 02:28:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, andi@firstfloor.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mpm@selenic.com, penberg@cs.helsinki.fi
+Cc: akpm@linux-foundation.org, geert@linux-m68k.org, joe@perches.com, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     Documentation/vm/Makefile: don't try to build slqbinfo
+     MAINTAINERS: fbdev is orphaned
 has been added to the -mm tree.  Its filename is
-     documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
+     maintainers-fbdev-is-orphaned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/vm/Makefile: don't try to build slqbinfo
+Subject: MAINTAINERS: fbdev is orphaned
 From: Andrew Morton <akpm@linux-foundation.org>
 
-For it is only in linux-next at this stage.
+Tony hasn't been heard from in 18 months and people keep sending him
+things.
 
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Joe Perches <joe@perches.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN Documentation/vm/Makefile~documentation-vm-makefile-dont-try-to-build-slqbinfo Documentation/vm/Makefile
---- a/Documentation/vm/Makefile~documentation-vm-makefile-dont-try-to-build-slqbinfo
-+++ a/Documentation/vm/Makefile
-@@ -2,7 +2,7 @@
- obj- := dummy.o
+diff -puN MAINTAINERS~maintainers-fbdev-is-orphaned MAINTAINERS
+--- a/MAINTAINERS~maintainers-fbdev-is-orphaned
++++ a/MAINTAINERS
+@@ -2274,11 +2274,9 @@ F:	drivers/net/wan/dlci.c
+ F:	drivers/net/wan/sdla.c
  
- # List of programs to build
--hostprogs-y := slabinfo slqbinfo page-types
-+hostprogs-y := slabinfo page-types
- 
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
+ FRAMEBUFFER LAYER
+-P:	Antonino Daplas
+-M:	adaplas@gmail.com
+ L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://linux-fbdev.sourceforge.net/
+-S:	Maintained
++S:	Orphan
+ F:	Documentation/fb/
+ F:	drivers/video/fb*
+ F:	include/linux/fb.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +104,7 @@ input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
+maintainers-fbdev-is-orphaned.patch
 drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
 readahead-add-blk_run_backing_dev-fix.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
