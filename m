@@ -1,92 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-bad-macro-expansion-parameter-is-member.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:36:50 -0700
-Message-ID: <200906171836.n5HIaoTP002881@imap1.linux-foundation.org>
+Subject: [merged] ntfs-use-is_power_of_2-function-for-clarity.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:37:12 -0700
+Message-ID: <200906171837.n5HIbCBm003291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758188AbZFQSqD (ORCPT
+	by vger.kernel.org with ESMTP id S1757013AbZFQSp7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:46:03 -0400
+	Wed, 17 Jun 2009 14:45:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, aia21@cantab.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: bad macro expansion, parameter is member
+     ntfs: use is_power_of_2() function for clarity.
 has been removed from the -mm tree.  Its filename was
-     alpha-bad-macro-expansion-parameter-is-member.patch
+     ntfs-use-is_power_of_2-function-for-clarity.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: bad macro expansion, parameter is member
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: ntfs: use is_power_of_2() function for clarity.
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-`for_each_mem_cluster(x, y, z)' will expand to
-`for ((x) = (y)->x ...' but correct is `for ((x) = (y)->cluster ...'
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/setup.c |    6 +++---
- arch/alpha/mm/numa.c      |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ fs/ntfs/inode.c   |    3 ++-
+ fs/ntfs/logfile.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/kernel/setup.c~alpha-bad-macro-expansion-parameter-is-member arch/alpha/kernel/setup.c
---- a/arch/alpha/kernel/setup.c~alpha-bad-macro-expansion-parameter-is-member
-+++ a/arch/alpha/kernel/setup.c
-@@ -252,9 +252,9 @@ reserve_std_resources(void)
- }
+diff -puN fs/ntfs/inode.c~ntfs-use-is_power_of_2-function-for-clarity fs/ntfs/inode.c
+--- a/fs/ntfs/inode.c~ntfs-use-is_power_of_2-function-for-clarity
++++ a/fs/ntfs/inode.c
+@@ -27,6 +27,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/quotaops.h>
+ #include <linux/slab.h>
++#include <linux/log2.h>
  
- #define PFN_MAX		PFN_DOWN(0x80000000)
--#define for_each_mem_cluster(memdesc, cluster, i)		\
--	for ((cluster) = (memdesc)->cluster, (i) = 0;		\
--	     (i) < (memdesc)->numclusters; (i)++, (cluster)++)
-+#define for_each_mem_cluster(memdesc, _cluster, i)		\
-+	for ((_cluster) = (memdesc)->cluster, (i) = 0;		\
-+	     (i) < (memdesc)->numclusters; (i)++, (_cluster)++)
+ #include "aops.h"
+ #include "attrib.h"
+@@ -1570,7 +1571,7 @@ static int ntfs_read_locked_index_inode(
+ 	ntfs_debug("Index collation rule is 0x%x.",
+ 			le32_to_cpu(ir->collation_rule));
+ 	ni->itype.index.block_size = le32_to_cpu(ir->index_block_size);
+-	if (ni->itype.index.block_size & (ni->itype.index.block_size - 1)) {
++	if (!is_power_of_2(ni->itype.index.block_size)) {
+ 		ntfs_error(vi->i_sb, "Index block size (%u) is not a power of "
+ 				"two.", ni->itype.index.block_size);
+ 		goto unm_err_out;
+diff -puN fs/ntfs/logfile.c~ntfs-use-is_power_of_2-function-for-clarity fs/ntfs/logfile.c
+--- a/fs/ntfs/logfile.c~ntfs-use-is_power_of_2-function-for-clarity
++++ a/fs/ntfs/logfile.c
+@@ -26,6 +26,7 @@
+ #include <linux/highmem.h>
+ #include <linux/buffer_head.h>
+ #include <linux/bitops.h>
++#include <linux/log2.h>
  
- static unsigned long __init
- get_mem_size_limit(char *s)
-diff -puN arch/alpha/mm/numa.c~alpha-bad-macro-expansion-parameter-is-member arch/alpha/mm/numa.c
---- a/arch/alpha/mm/numa.c~alpha-bad-macro-expansion-parameter-is-member
-+++ a/arch/alpha/mm/numa.c
-@@ -28,9 +28,9 @@ EXPORT_SYMBOL(node_data);
- #define DBGDCONT(args...)
- #endif
- 
--#define for_each_mem_cluster(memdesc, cluster, i)		\
--	for ((cluster) = (memdesc)->cluster, (i) = 0;		\
--	     (i) < (memdesc)->numclusters; (i)++, (cluster)++)
-+#define for_each_mem_cluster(memdesc, _cluster, i)		\
-+	for ((_cluster) = (memdesc)->cluster, (i) = 0;		\
-+	     (i) < (memdesc)->numclusters; (i)++, (_cluster)++)
- 
- static void __init show_mem_layout(void)
- {
+ #include "attrib.h"
+ #include "aops.h"
+@@ -65,7 +66,7 @@ static bool ntfs_check_restart_page_head
+ 			logfile_log_page_size < NTFS_BLOCK_SIZE ||
+ 			logfile_system_page_size &
+ 			(logfile_system_page_size - 1) ||
+-			logfile_log_page_size & (logfile_log_page_size - 1)) {
++			!is_power_of_2(logfile_log_page_size)) {
+ 		ntfs_error(vi->i_sb, "$LogFile uses unsupported page size.");
+ 		return false;
+ 	}
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-serial-fix-off-by-one-errors.patch
-usb-mutually-exclusive-port_status.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-spi_bfin5xx-limit-reaches-1.patch
-platinumfb-misplaced-parenthesis.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
 
