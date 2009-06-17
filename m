@@ -1,114 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uml-bad-macro-expansion-parameter-is-member.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:37:04 -0700
-Message-ID: <200906171837.n5HIb42h003140@imap1.linux-foundation.org>
+Subject: [merged] atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:37:08 -0700
+Message-ID: <200906171837.n5HIb8qo003152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760637AbZFQSiL (ORCPT
+	by vger.kernel.org with ESMTP id S1760364AbZFQSiP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:38:11 -0400
+	Wed, 17 Jun 2009 14:38:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, amwang@redhat.com, jdike@addtoit.com, mm-commits@vger.kernel.org
+To: jblunck@suse.de, npiggin@suse.de, paulmck@linux.vnet.ibm.com, vaurora@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: bad macro expansion, parameter is member
+     atomic: only take lock when the counter drops to zero on UP as well
 has been removed from the -mm tree.  Its filename was
-     uml-bad-macro-expansion-parameter-is-member.patch
+     atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: bad macro expansion, parameter is member
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: atomic: only take lock when the counter drops to zero on UP as well
+From: Jan Blunck <jblunck@suse.de>
 
-`ELF_CORE_COPY_REGS(x, y)' will make expansions like:
-`(y)[0] = (x)->x.gp[0]' but correct is `(y)[0] = (x)->regs.gp[0]'
+_atomic_dec_and_lock() should not unconditionally take the lock before
+calling atomic_dec_and_test() in the UP case.  For consistency reasons it
+should behave exactly like in the SMP case.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: WANG Cong <amwang@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Besides that this works around the problem that with CONFIG_DEBUG_SPINLOCK
+this spins in __spin_lock_debug() if the lock is already taken even if the
+counter doesn't drop to 0.
 
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: Valerie Aurora <vaurora@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-x86_64/asm/elf.h |   44 ++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ lib/dec_and_lock.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/um/sys-x86_64/asm/elf.h~uml-bad-macro-expansion-parameter-is-member arch/um/sys-x86_64/asm/elf.h
---- a/arch/um/sys-x86_64/asm/elf.h~uml-bad-macro-expansion-parameter-is-member
-+++ a/arch/um/sys-x86_64/asm/elf.h
-@@ -66,28 +66,28 @@ typedef struct user_i387_struct elf_fpre
- 	PT_REGS_R15(regs) = 0; \
- } while (0)
- 
--#define ELF_CORE_COPY_REGS(pr_reg, regs)		\
--	(pr_reg)[0] = (regs)->regs.gp[0];			\
--	(pr_reg)[1] = (regs)->regs.gp[1];			\
--	(pr_reg)[2] = (regs)->regs.gp[2];			\
--	(pr_reg)[3] = (regs)->regs.gp[3];			\
--	(pr_reg)[4] = (regs)->regs.gp[4];			\
--	(pr_reg)[5] = (regs)->regs.gp[5];			\
--	(pr_reg)[6] = (regs)->regs.gp[6];			\
--	(pr_reg)[7] = (regs)->regs.gp[7];			\
--	(pr_reg)[8] = (regs)->regs.gp[8];			\
--	(pr_reg)[9] = (regs)->regs.gp[9];			\
--	(pr_reg)[10] = (regs)->regs.gp[10];			\
--	(pr_reg)[11] = (regs)->regs.gp[11];			\
--	(pr_reg)[12] = (regs)->regs.gp[12];			\
--	(pr_reg)[13] = (regs)->regs.gp[13];			\
--	(pr_reg)[14] = (regs)->regs.gp[14];			\
--	(pr_reg)[15] = (regs)->regs.gp[15];			\
--	(pr_reg)[16] = (regs)->regs.gp[16];			\
--	(pr_reg)[17] = (regs)->regs.gp[17];			\
--	(pr_reg)[18] = (regs)->regs.gp[18];			\
--	(pr_reg)[19] = (regs)->regs.gp[19];			\
--	(pr_reg)[20] = (regs)->regs.gp[20];			\
-+#define ELF_CORE_COPY_REGS(pr_reg, _regs)		\
-+	(pr_reg)[0] = (_regs)->regs.gp[0];			\
-+	(pr_reg)[1] = (_regs)->regs.gp[1];			\
-+	(pr_reg)[2] = (_regs)->regs.gp[2];			\
-+	(pr_reg)[3] = (_regs)->regs.gp[3];			\
-+	(pr_reg)[4] = (_regs)->regs.gp[4];			\
-+	(pr_reg)[5] = (_regs)->regs.gp[5];			\
-+	(pr_reg)[6] = (_regs)->regs.gp[6];			\
-+	(pr_reg)[7] = (_regs)->regs.gp[7];			\
-+	(pr_reg)[8] = (_regs)->regs.gp[8];			\
-+	(pr_reg)[9] = (_regs)->regs.gp[9];			\
-+	(pr_reg)[10] = (_regs)->regs.gp[10];			\
-+	(pr_reg)[11] = (_regs)->regs.gp[11];			\
-+	(pr_reg)[12] = (_regs)->regs.gp[12];			\
-+	(pr_reg)[13] = (_regs)->regs.gp[13];			\
-+	(pr_reg)[14] = (_regs)->regs.gp[14];			\
-+	(pr_reg)[15] = (_regs)->regs.gp[15];			\
-+	(pr_reg)[16] = (_regs)->regs.gp[16];			\
-+	(pr_reg)[17] = (_regs)->regs.gp[17];			\
-+	(pr_reg)[18] = (_regs)->regs.gp[18];			\
-+	(pr_reg)[19] = (_regs)->regs.gp[19];			\
-+	(pr_reg)[20] = (_regs)->regs.gp[20];			\
- 	(pr_reg)[21] = current->thread.arch.fs;			\
- 	(pr_reg)[22] = 0;					\
- 	(pr_reg)[23] = 0;					\
+diff -puN lib/dec_and_lock.c~atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well lib/dec_and_lock.c
+--- a/lib/dec_and_lock.c~atomic-only-take-lock-when-the-counter-drops-to-zero-on-up-as-well
++++ a/lib/dec_and_lock.c
+@@ -19,11 +19,10 @@
+  */
+ int _atomic_dec_and_lock(atomic_t *atomic, spinlock_t *lock)
+ {
+-#ifdef CONFIG_SMP
+ 	/* Subtract 1 from counter unless that drops it to 0 (ie. it was 1) */
+ 	if (atomic_add_unless(atomic, -1, 1))
+ 		return 0;
+-#endif
++
+ 	/* Otherwise do it the slow way */
+ 	spin_lock(lock);
+ 	if (atomic_dec_and_test(atomic))
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from jblunck@suse.de are
 
 origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-serial-fix-off-by-one-errors.patch
-usb-mutually-exclusive-port_status.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-spi_bfin5xx-limit-reaches-1.patch
-platinumfb-misplaced-parenthesis.patch
-ufs-sector_t-cannot-be-negative.patch
-dtlk-off-by-one-in-readwrite_tts.patch
 
