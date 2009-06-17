@@ -1,266 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: [merged] readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:32:44 -0700
-Message-ID: <200906171832.n5HIWi8O031295@imap1.linux-foundation.org>
+Subject: [merged] mm-clean-up-get_user_pages_fast-documentation.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:33:09 -0700
+Message-ID: <200906171833.n5HIX9AO031645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759286AbZFQSdR (ORCPT
+	by vger.kernel.org with ESMTP id S1758252AbZFQSdm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:33:17 -0400
+	Wed, 17 Jun 2009 14:33:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, fengguang.wu@intel.com, lpk@581.spb.su, npiggin@suse.de, wli@movementarian.org, mm-commits@vger.kernel.org
+To: nickpiggin@yahoo.com.au, andy.grover@oracle.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: clean up and simplify the code for filemap page fault readahead
+     mm: clean up get_user_pages_fast() documentation
 has been removed from the -mm tree.  Its filename was
-     readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
+     mm-clean-up-get_user_pages_fast-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: clean up and simplify the code for filemap page fault readahead
-From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: mm: clean up get_user_pages_fast() documentation
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-This shouldn't really change behavior all that much, but the single rather
-complex function with read-ahead inside a loop etc is broken up into more
-manageable pieces.
+Move more documentation for get_user_pages_fast into the new kerneldoc comment.
+Add some comments for get_user_pages as well.
 
-The behaviour is also less subtle, with the read-ahead being done up-front
-rather than inside some subtle loop and thus avoiding the now unnecessary
-extra state variables (ie "did_readaround" is gone).
+Also, move get_user_pages_fast declaration up to get_user_pages. It wasn't
+there initially because it was once a static inline function.
 
-Fengguang: the code split in fact fixed a bug reported by Pavel Levshin:
-the PGMAJFAULT accounting used to be bypassed when MADV_RANDOM is set, in
-which case the original code will directly jump to no_cached_page reading.
-
-Cc: Pavel Levshin <lpk@581.spb.su>
-Cc: <wli@movementarian.org>
-Cc: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Andy Grover <andy.grover@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  156 +++++++++++++++++++++++++++----------------------
- 1 file changed, 89 insertions(+), 67 deletions(-)
+ include/linux/mm.h |   20 ++++-------------
+ mm/memory.c        |   50 +++++++++++++++++++++++++++++++++++++++++++
+ mm/util.c          |   16 ++++++++++---
+ 3 files changed, 67 insertions(+), 19 deletions(-)
 
-diff -puN mm/filemap.c~readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead mm/filemap.c
---- a/mm/filemap.c~readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead
-+++ a/mm/filemap.c
-@@ -1456,6 +1456,68 @@ static int page_cache_read(struct file *
+diff -puN include/linux/mm.h~mm-clean-up-get_user_pages_fast-documentation include/linux/mm.h
+--- a/include/linux/mm.h~mm-clean-up-get_user_pages_fast-documentation
++++ a/include/linux/mm.h
+@@ -824,8 +824,11 @@ static inline int handle_mm_fault(struct
+ extern int make_pages_present(unsigned long addr, unsigned long end);
+ extern int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write);
  
- #define MMAP_LOTSAMISS  (100)
+-int get_user_pages(struct task_struct *tsk, struct mm_struct *mm, unsigned long start,
+-		int len, int write, int force, struct page **pages, struct vm_area_struct **vmas);
++int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
++			unsigned long start, int len, int write, int force,
++			struct page **pages, struct vm_area_struct **vmas);
++int get_user_pages_fast(unsigned long start, int nr_pages, int write,
++			struct page **pages);
  
-+/*
-+ * Synchronous readahead happens when we don't even find
-+ * a page in the page cache at all.
+ extern int try_to_release_page(struct page * page, gfp_t gfp_mask);
+ extern void do_invalidatepage(struct page *page, unsigned long offset);
+@@ -850,19 +853,6 @@ extern int mprotect_fixup(struct vm_area
+ 			  unsigned long end, unsigned long newflags);
+ 
+ /*
+- * get_user_pages_fast provides equivalent functionality to get_user_pages,
+- * operating on current and current->mm (force=0 and doesn't return any vmas).
+- *
+- * get_user_pages_fast may take mmap_sem and page tables, so no assumptions
+- * can be made about locking. get_user_pages_fast is to be implemented in a
+- * way that is advantageous (vs get_user_pages()) when the user memory area is
+- * already faulted in and present in ptes. However if the pages have to be
+- * faulted in, it may turn out to be slightly slower).
+- */
+-int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+-			struct page **pages);
+-
+-/*
+  * A callback you can register to apply pressure to ageable caches.
+  *
+  * 'shrink' is passed a count 'nr_to_scan' and a 'gfpmask'.  It should
+diff -puN mm/memory.c~mm-clean-up-get_user_pages_fast-documentation mm/memory.c
+--- a/mm/memory.c~mm-clean-up-get_user_pages_fast-documentation
++++ a/mm/memory.c
+@@ -1360,6 +1360,56 @@ int __get_user_pages(struct task_struct 
+ 	return i;
+ }
+ 
++/**
++ * get_user_pages() - pin user pages in memory
++ * @tsk:	task_struct of target task
++ * @mm:		mm_struct of target mm
++ * @start:	starting user address
++ * @len:	number of pages from start to pin
++ * @write:	whether pages will be written to by the caller
++ * @force:	whether to force write access even if user mapping is
++ *		readonly. This will result in the page being COWed even
++ *		in MAP_SHARED mappings. You do not want this.
++ * @pages:	array that receives pointers to the pages pinned.
++ *		Should be at least nr_pages long. Or NULL, if caller
++ *		only intends to ensure the pages are faulted in.
++ * @vmas:	array of pointers to vmas corresponding to each page.
++ *		Or NULL if the caller does not require them.
++ *
++ * Returns number of pages pinned. This may be fewer than the number
++ * requested. If len is 0 or negative, returns 0. If no pages
++ * were pinned, returns -errno. Each page returned must be released
++ * with a put_page() call when it is finished with. vmas will only
++ * remain valid while mmap_sem is held.
++ *
++ * Must be called with mmap_sem held for read or write.
++ *
++ * get_user_pages walks a process's page tables and takes a reference to
++ * each struct page that each user address corresponds to at a given
++ * instant. That is, it takes the page that would be accessed if a user
++ * thread accesses the given user virtual address at that instant.
++ *
++ * This does not guarantee that the page exists in the user mappings when
++ * get_user_pages returns, and there may even be a completely different
++ * page there in some cases (eg. if mmapped pagecache has been invalidated
++ * and subsequently re faulted). However it does guarantee that the page
++ * won't be freed completely. And mostly callers simply care that the page
++ * contains data that was valid *at some point in time*. Typically, an IO
++ * or similar operation cannot guarantee anything stronger anyway because
++ * locks can't be held over the syscall boundary.
++ *
++ * If write=0, the page must not be written to. If the page is written to,
++ * set_page_dirty (or set_page_dirty_lock, as appropriate) must be called
++ * after the page is finished with, and before put_page is called.
++ *
++ * get_user_pages is typically used for fewer-copy IO operations, to get a
++ * handle on the memory by some means other than accesses via the user virtual
++ * addresses. The pages may be submitted for DMA to devices or accessed via
++ * their kernel linear mapping (via the kmap APIs). Care should be taken to
++ * use the correct cache flushing APIs.
++ *
++ * See also get_user_pages_fast, for performance critical applications.
 + */
-+static void do_sync_mmap_readahead(struct vm_area_struct *vma,
-+				   struct file_ra_state *ra,
-+				   struct file *file,
-+				   pgoff_t offset)
-+{
-+	unsigned long ra_pages;
-+	struct address_space *mapping = file->f_mapping;
-+
-+	/* If we don't want any read-ahead, don't bother */
-+	if (VM_RandomReadHint(vma))
-+		return;
-+
-+	if (VM_SequentialReadHint(vma)) {
-+		page_cache_sync_readahead(mapping, ra, file, offset, 1);
-+		return;
-+	}
-+
-+	if (ra->mmap_miss < INT_MAX)
-+		ra->mmap_miss++;
-+
-+	/*
-+	 * Do we miss much more than hit in this file? If so,
-+	 * stop bothering with read-ahead. It will only hurt.
-+	 */
-+	if (ra->mmap_miss > MMAP_LOTSAMISS)
-+		return;
-+
-+	ra_pages = max_sane_readahead(ra->ra_pages);
-+	if (ra_pages) {
-+		pgoff_t start = 0;
-+
-+		if (offset > ra_pages / 2)
-+			start = offset - ra_pages / 2;
-+		do_page_cache_readahead(mapping, file, start, ra_pages);
-+	}
-+}
-+
-+/*
-+ * Asynchronous readahead happens when we find the page and PG_readahead,
-+ * so we want to possibly extend the readahead further..
-+ */
-+static void do_async_mmap_readahead(struct vm_area_struct *vma,
-+				    struct file_ra_state *ra,
-+				    struct file *file,
-+				    struct page *page,
-+				    pgoff_t offset)
-+{
-+	struct address_space *mapping = file->f_mapping;
-+
-+	/* If we don't want any read-ahead, don't bother */
-+	if (VM_RandomReadHint(vma))
-+		return;
-+	if (ra->mmap_miss > 0)
-+		ra->mmap_miss--;
-+	if (PageReadahead(page))
-+		page_cache_async_readahead(mapping, ra, file, page, offset, 1);
-+}
-+
- /**
-  * filemap_fault - read in file data for page fault handling
-  * @vma:	vma in which the fault was taken
-@@ -1475,78 +1537,44 @@ int filemap_fault(struct vm_area_struct 
- 	struct address_space *mapping = file->f_mapping;
- 	struct file_ra_state *ra = &file->f_ra;
- 	struct inode *inode = mapping->host;
-+	pgoff_t offset = vmf->pgoff;
- 	struct page *page;
- 	pgoff_t size;
--	int did_readaround = 0;
- 	int ret = 0;
- 
- 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
--	if (vmf->pgoff >= size)
-+	if (offset >= size)
- 		return VM_FAULT_SIGBUS;
- 
--	/* If we don't want any read-ahead, don't bother */
--	if (VM_RandomReadHint(vma))
--		goto no_cached_page;
--
- 	/*
- 	 * Do we have something in the page cache already?
- 	 */
--retry_find:
--	page = find_lock_page(mapping, vmf->pgoff);
--	/*
--	 * For sequential accesses, we use the generic readahead logic.
--	 */
--	if (VM_SequentialReadHint(vma)) {
--		if (!page) {
--			page_cache_sync_readahead(mapping, ra, file,
--							   vmf->pgoff, 1);
--			page = find_lock_page(mapping, vmf->pgoff);
--			if (!page)
--				goto no_cached_page;
--		}
--		if (PageReadahead(page)) {
--			page_cache_async_readahead(mapping, ra, file, page,
--							   vmf->pgoff, 1);
--		}
--	}
--
--	if (!page) {
--		unsigned long ra_pages;
--
--		ra->mmap_miss++;
--
-+	page = find_get_page(mapping, offset);
-+	if (likely(page)) {
- 		/*
--		 * Do we miss much more than hit in this file? If so,
--		 * stop bothering with read-ahead. It will only hurt.
-+		 * We found the page, so try async readahead before
-+		 * waiting for the lock.
- 		 */
--		if (ra->mmap_miss > MMAP_LOTSAMISS)
--			goto no_cached_page;
-+		do_async_mmap_readahead(vma, ra, file, page, offset);
-+		lock_page(page);
- 
--		/*
--		 * To keep the pgmajfault counter straight, we need to
--		 * check did_readaround, as this is an inner loop.
--		 */
--		if (!did_readaround) {
--			ret = VM_FAULT_MAJOR;
--			count_vm_event(PGMAJFAULT);
--		}
--		did_readaround = 1;
--		ra_pages = max_sane_readahead(file->f_ra.ra_pages);
--		if (ra_pages) {
--			pgoff_t start = 0;
--
--			if (vmf->pgoff > ra_pages / 2)
--				start = vmf->pgoff - ra_pages / 2;
--			do_page_cache_readahead(mapping, file, start, ra_pages);
-+		/* Did it get truncated? */
-+		if (unlikely(page->mapping != mapping)) {
-+			unlock_page(page);
-+			put_page(page);
-+			goto no_cached_page;
- 		}
--		page = find_lock_page(mapping, vmf->pgoff);
-+	} else {
-+		/* No page in the page cache at all */
-+		do_sync_mmap_readahead(vma, ra, file, offset);
-+		count_vm_event(PGMAJFAULT);
-+		ret = VM_FAULT_MAJOR;
-+retry_find:
-+		page = find_lock_page(mapping, offset);
- 		if (!page)
- 			goto no_cached_page;
- 	}
- 
--	if (!did_readaround)
--		ra->mmap_miss--;
--
- 	/*
- 	 * We have a locked page in the page cache, now we need to check
- 	 * that it's up-to-date. If not, it is going to be due to an error.
-@@ -1554,18 +1582,18 @@ retry_find:
- 	if (unlikely(!PageUptodate(page)))
- 		goto page_not_uptodate;
- 
--	/* Must recheck i_size under page lock */
-+	/*
-+	 * Found the page and have a reference on it.
-+	 * We must recheck i_size under page lock.
-+	 */
- 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
--	if (unlikely(vmf->pgoff >= size)) {
-+	if (unlikely(offset >= size)) {
- 		unlock_page(page);
- 		page_cache_release(page);
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	/*
--	 * Found the page and have a reference on it.
--	 */
--	ra->prev_pos = (loff_t)page->index << PAGE_CACHE_SHIFT;
-+	ra->prev_pos = (loff_t)offset << PAGE_CACHE_SHIFT;
- 	vmf->page = page;
- 	return ret | VM_FAULT_LOCKED;
- 
-@@ -1574,7 +1602,7 @@ no_cached_page:
- 	 * We're only likely to ever get here if MADV_RANDOM is in
- 	 * effect.
- 	 */
--	error = page_cache_read(file, vmf->pgoff);
-+	error = page_cache_read(file, offset);
- 
- 	/*
- 	 * The page we want has now been added to the page cache.
-@@ -1594,12 +1622,6 @@ no_cached_page:
- 	return VM_FAULT_SIGBUS;
- 
- page_not_uptodate:
--	/* IO error path */
--	if (!did_readaround) {
--		ret = VM_FAULT_MAJOR;
--		count_vm_event(PGMAJFAULT);
--	}
+ int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		unsigned long start, int len, int write, int force,
+ 		struct page **pages, struct vm_area_struct **vmas)
+diff -puN mm/util.c~mm-clean-up-get_user_pages_fast-documentation mm/util.c
+--- a/mm/util.c~mm-clean-up-get_user_pages_fast-documentation
++++ a/mm/util.c
+@@ -233,13 +233,21 @@ void arch_pick_mmap_layout(struct mm_str
+  * @pages:	array that receives pointers to the pages pinned.
+  *		Should be at least nr_pages long.
+  *
+- * Attempt to pin user pages in memory without taking mm->mmap_sem.
+- * If not successful, it will fall back to taking the lock and
+- * calling get_user_pages().
+- *
+  * Returns number of pages pinned. This may be fewer than the number
+  * requested. If nr_pages is 0 or negative, returns 0. If no pages
+  * were pinned, returns -errno.
++ *
++ * get_user_pages_fast provides equivalent functionality to get_user_pages,
++ * operating on current and current->mm, with force=0 and vma=NULL. However
++ * unlike get_user_pages, it must be called without mmap_sem held.
++ *
++ * get_user_pages_fast may take mmap_sem and page table locks, so no
++ * assumptions can be made about lack of locking. get_user_pages_fast is to be
++ * implemented in a way that is advantageous (vs get_user_pages()) when the
++ * user memory area is already faulted in and present in ptes. However if the
++ * pages have to be faulted in, it may turn out to be slightly slower so
++ * callers need to carefully consider what to use. On many architectures,
++ * get_user_pages_fast simply falls back to get_user_pages.
+  */
+ int __attribute__((weak)) get_user_pages_fast(unsigned long start,
+ 				int nr_pages, int write, struct page **pages)
+_
+
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+
+origin.patch
+linux-next.patch
+page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
+vfs-take-2add-set_page_dirty_notag.patch
+reiser4.patch
+
