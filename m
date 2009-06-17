@@ -1,208 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:33:53 -0700
-Message-ID: <200906171833.n5HIXr0n032422@imap1.linux-foundation.org>
+Subject: [merged] page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:34:06 -0700
+Message-ID: <200906171834.n5HIY6uv032593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43747 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760031AbZFQSeh (ORCPT
+	by vger.kernel.org with ESMTP id S1760021AbZFQSee (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:34:37 -0400
+	Wed, 17 Jun 2009 14:34:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, Lee.Schermerhorn@hp.com, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, neilb@suse.de, nickpiggin@yahoo.com.a
+To: mel@csn.ul.ie, Lee.Schermerhorn@hp.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, penberg@cs.h
 
 
 The patch titled
-     page allocator: calculate the alloc_flags for allocation only once
+     page allocator: do not call get_pageblock_migratetype() more than necessary
 has been removed from the -mm tree.  Its filename was
-     page-allocator-calculate-the-alloc_flags-for-allocation-only-once.patch
+     page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: calculate the alloc_flags for allocation only once
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: page allocator: do not call get_pageblock_migratetype() more than necessary
+From: Mel Gorman <mel@csn.ul.ie>
 
-Factor out the mapping between GFP and alloc_flags only once.  Once
-factored out, it only needs to be calculated once but some care must be
-taken.
+get_pageblock_migratetype() is potentially called twice for every page
+free.  Once, when being freed to the pcp lists and once when being freed
+back to buddy.  When freeing from the pcp lists, it is known what the
+pageblock type was at the time of free so use it rather than rechecking. 
+In low memory situations under memory pressure, this might skew
+anti-fragmentation slightly but the interference is minimal and decisions
+that are fragmenting memory are being made anyway.
 
-[neilb@suse.de says]
-As the test:
-
--       if (((p->flags & PF_MEMALLOC) || unlikely(test_thread_flag(TIF_MEMDIE)))
--                       && !in_interrupt()) {
--               if (!(gfp_mask & __GFP_NOMEMALLOC)) {
-
-has been replaced with a slightly weaker one:
-
-+       if (alloc_flags & ALLOC_NO_WATERMARKS) {
-
-Without care, this would allow recursion into the allocator via direct
-reclaim.  This patch ensures we do not recurse when PF_MEMALLOC is set but
-TF_MEMDIE callers are now allowed to directly reclaim where they would
-have been prevented in the past.
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   94 ++++++++++++++++++++++++----------------------
- 1 file changed, 50 insertions(+), 44 deletions(-)
+ mm/page_alloc.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-calculate-the-alloc_flags-for-allocation-only-once mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-calculate-the-alloc_flags-for-allocation-only-once
+diff -puN mm/page_alloc.c~page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-do-not-call-get_pageblock_migratetype-more-than-necessary
 +++ a/mm/page_alloc.c
-@@ -1574,15 +1574,6 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- 	return page;
- }
+@@ -452,16 +452,18 @@ static inline int page_is_buddy(struct p
+  */
  
--static inline int
--is_allocation_high_priority(struct task_struct *p, gfp_t gfp_mask)
--{
--	if (((p->flags & PF_MEMALLOC) || unlikely(test_thread_flag(TIF_MEMDIE)))
--			&& !in_interrupt())
--		return 1;
--	return 0;
--}
--
- /*
-  * This is called in the allocator slow-path if the allocation request is of
-  * sufficient urgency to ignore watermarks and take other desperate measures
-@@ -1618,6 +1609,42 @@ void wake_all_kswapd(unsigned int order,
- 		wakeup_kswapd(zone, order);
- }
+ static inline void __free_one_page(struct page *page,
+-		struct zone *zone, unsigned int order)
++		struct zone *zone, unsigned int order,
++		int migratetype)
+ {
+ 	unsigned long page_idx;
+ 	int order_size = 1 << order;
+-	int migratetype = get_pageblock_migratetype(page);
  
-+static inline int
-+gfp_to_alloc_flags(gfp_t gfp_mask)
-+{
-+	struct task_struct *p = current;
-+	int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
-+	const gfp_t wait = gfp_mask & __GFP_WAIT;
-+
-+	/*
-+	 * The caller may dip into page reserves a bit more if the caller
-+	 * cannot run direct reclaim, or if the caller has realtime scheduling
-+	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
-+	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
-+	 */
-+	if (gfp_mask & __GFP_HIGH)
-+		alloc_flags |= ALLOC_HIGH;
-+
-+	if (!wait) {
-+		alloc_flags |= ALLOC_HARDER;
-+		/*
-+		 * Ignore cpuset if GFP_ATOMIC (!wait) rather than fail alloc.
-+		 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
-+		 */
-+		alloc_flags &= ~ALLOC_CPUSET;
-+	} else if (unlikely(rt_task(p)))
-+		alloc_flags |= ALLOC_HARDER;
-+
-+	if (likely(!(gfp_mask & __GFP_NOMEMALLOC))) {
-+		if (!in_interrupt() &&
-+		    ((p->flags & PF_MEMALLOC) ||
-+		     unlikely(test_thread_flag(TIF_MEMDIE))))
-+			alloc_flags |= ALLOC_NO_WATERMARKS;
-+	}
-+
-+	return alloc_flags;
-+}
-+
- static inline struct page *
- __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
-@@ -1648,56 +1675,35 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	 * OK, we're below the kswapd watermark and have kicked background
- 	 * reclaim. Now things get more complex, so set up alloc_flags according
- 	 * to how we want to proceed.
--	 *
--	 * The caller may dip into page reserves a bit more if the caller
--	 * cannot run direct reclaim, or if the caller has realtime scheduling
--	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
--	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
- 	 */
--	alloc_flags = ALLOC_WMARK_MIN;
--	if ((unlikely(rt_task(p)) && !in_interrupt()) || !wait)
--		alloc_flags |= ALLOC_HARDER;
--	if (gfp_mask & __GFP_HIGH)
--		alloc_flags |= ALLOC_HIGH;
--	if (wait)
--		alloc_flags |= ALLOC_CPUSET;
-+	alloc_flags = gfp_to_alloc_flags(gfp_mask);
+ 	if (unlikely(PageCompound(page)))
+ 		if (unlikely(destroy_compound_page(page, order)))
+ 			return;
  
- restart:
--	/*
--	 * Go through the zonelist again. Let __GFP_HIGH and allocations
--	 * coming from realtime tasks go deeper into reserves.
--	 *
--	 * This is the last chance, in general, before the goto nopage.
--	 * Ignore cpuset if GFP_ATOMIC (!wait) rather than fail alloc.
--	 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
--	 */
-+	/* This is the last chance, in general, before the goto nopage. */
- 	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
--						high_zoneidx, alloc_flags,
--						preferred_zone,
--						migratetype);
-+			high_zoneidx, alloc_flags & ~ALLOC_NO_WATERMARKS,
-+			preferred_zone, migratetype);
- 	if (page)
- 		goto got_pg;
++	VM_BUG_ON(migratetype == -1);
++
+ 	page_idx = page_to_pfn(page) & ((1 << MAX_ORDER) - 1);
  
- rebalance:
- 	/* Allocate without watermarks if the context allows */
--	if (is_allocation_high_priority(p, gfp_mask)) {
--		/* Do not dip into emergency reserves if specified */
--		if (!(gfp_mask & __GFP_NOMEMALLOC)) {
--			page = __alloc_pages_high_priority(gfp_mask, order,
--				zonelist, high_zoneidx, nodemask, preferred_zone,
--				migratetype);
--			if (page)
--				goto got_pg;
--		}
--
--		/* Ensure no recursion into the allocator */
--		goto nopage;
-+	if (alloc_flags & ALLOC_NO_WATERMARKS) {
-+		page = __alloc_pages_high_priority(gfp_mask, order,
-+				zonelist, high_zoneidx, nodemask,
-+				preferred_zone, migratetype);
-+		if (page)
-+			goto got_pg;
+ 	VM_BUG_ON(page_idx & (order_size - 1));
+@@ -530,17 +532,18 @@ static void free_pages_bulk(struct zone 
+ 		page = list_entry(list->prev, struct page, lru);
+ 		/* have to delete it as __free_one_page list manipulates */
+ 		list_del(&page->lru);
+-		__free_one_page(page, zone, order);
++		__free_one_page(page, zone, order, page_private(page));
  	}
+ 	spin_unlock(&zone->lock);
+ }
  
- 	/* Atomic allocations - we can't balance anything */
- 	if (!wait)
- 		goto nopage;
+-static void free_one_page(struct zone *zone, struct page *page, int order)
++static void free_one_page(struct zone *zone, struct page *page, int order,
++				int migratetype)
+ {
+ 	spin_lock(&zone->lock);
+ 	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
+ 	zone->pages_scanned = 0;
+-	__free_one_page(page, zone, order);
++	__free_one_page(page, zone, order, migratetype);
+ 	spin_unlock(&zone->lock);
+ }
  
-+	/* Avoid recursion of direct reclaim */
-+	if (p->flags & PF_MEMALLOC)
-+		goto nopage;
-+
- 	/* Try direct reclaim and then allocating */
- 	page = __alloc_pages_direct_reclaim(gfp_mask, order,
- 					zonelist, high_zoneidx,
+@@ -565,7 +568,8 @@ static void __free_pages_ok(struct page 
+ 
+ 	local_irq_save(flags);
+ 	__count_vm_events(PGFREE, 1 << order);
+-	free_one_page(page_zone(page), page, order);
++	free_one_page(page_zone(page), page, order,
++					get_pageblock_migratetype(page));
+ 	local_irq_restore(flags);
+ }
+ 
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
 linux-next.patch
-x86-fix-cpufreq-tsc-scaling.patch
-procfs-provide-stack-information-for-threads-v08.patch
-ptrace-wait_task_zombie-do-not-account-traced-sub-threads.patch
-wait_task_zombie-do-not-use-thread_group_cputime.patch
+page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
+memcg-fix-lru-rotation-in-isolate_pages.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
