@@ -1,136 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] readahead-record-mmap-read-around-states-in-file_ra_state.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:32:53 -0700
-Message-ID: <200906171832.n5HIWrAe031460@imap1.linux-foundation.org>
+Subject: [merged] readahead-move-the-random-read-case-to-bottom.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:32:59 -0700
+Message-ID: <200906171832.n5HIWxq8031481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759557AbZFQSdd (ORCPT
+	by vger.kernel.org with ESMTP id S1758410AbZFQSds (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:33:33 -0400
+	Wed, 17 Jun 2009 14:33:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, npiggin@suse.de, torvalds@linux-foundation.org, wfg@mail.ustc.edu.cn, yinghan@google.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, jens.axboe@oracle.com, jmoyer@redhat.com, nickpiggin@yahoo.com.au, vst@vlnb.net, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: record mmap read-around states in file_ra_state
+     readahead: move the random read case to bottom
 has been removed from the -mm tree.  Its filename was
-     readahead-record-mmap-read-around-states-in-file_ra_state.patch
+     readahead-move-the-random-read-case-to-bottom.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: record mmap read-around states in file_ra_state
+Subject: readahead: move the random read case to bottom
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Mmap read-around now shares the same code style and data structure with
-readahead code.
+Split all readahead cases, and move the random one to bottom.
 
-This also removes do_page_cache_readahead().  Its last user, mmap
-read-around, has been changed to call ra_submit().
+No behavior changes.
 
-The no-readahead-if-congested logic is dumped by the way.  Users will be
-pretty sensitive about the slow loading of executables.  So it's
-unfavorable to disabled mmap read-around on a congested queue.
+This is to prepare for the introduction of context readahead, and make it
+easy for inserting accounting/tracing points for each case.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Vladislav Bolkhovitin <vst@vlnb.net>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    5 +++--
- mm/filemap.c       |   12 +++++++-----
- mm/readahead.c     |   23 ++---------------------
- 3 files changed, 12 insertions(+), 28 deletions(-)
+ mm/readahead.c |   46 +++++++++++++++++++++++++---------------------
+ 1 file changed, 25 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state include/linux/mm.h
---- a/include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state
-+++ a/include/linux/mm.h
-@@ -1178,8 +1178,6 @@ void task_dirty_inc(struct task_struct *
- #define VM_MAX_READAHEAD	128	/* kbytes */
- #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
- 
--int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
--			pgoff_t offset, unsigned long nr_to_read);
- int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
- 			pgoff_t offset, unsigned long nr_to_read);
- 
-@@ -1197,6 +1195,9 @@ void page_cache_async_readahead(struct a
- 				unsigned long size);
- 
- unsigned long max_sane_readahead(unsigned long nr);
-+unsigned long ra_submit(struct file_ra_state *ra,
-+			struct address_space *mapping,
-+			struct file *filp);
- 
- /* Do stack extension */
- extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
-diff -puN mm/filemap.c~readahead-record-mmap-read-around-states-in-file_ra_state mm/filemap.c
---- a/mm/filemap.c~readahead-record-mmap-read-around-states-in-file_ra_state
-+++ a/mm/filemap.c
-@@ -1488,13 +1488,15 @@ static void do_sync_mmap_readahead(struc
- 	if (ra->mmap_miss > MMAP_LOTSAMISS)
- 		return;
- 
-+	/*
-+	 * mmap read-around
-+	 */
- 	ra_pages = max_sane_readahead(ra->ra_pages);
- 	if (ra_pages) {
--		pgoff_t start = 0;
--
--		if (offset > ra_pages / 2)
--			start = offset - ra_pages / 2;
--		do_page_cache_readahead(mapping, file, start, ra_pages);
-+		ra->start = max_t(long, 0, offset - ra_pages/2);
-+		ra->size = ra_pages;
-+		ra->async_size = 0;
-+		ra_submit(ra, mapping, file);
- 	}
- }
- 
-diff -puN mm/readahead.c~readahead-record-mmap-read-around-states-in-file_ra_state mm/readahead.c
---- a/mm/readahead.c~readahead-record-mmap-read-around-states-in-file_ra_state
+diff -puN mm/readahead.c~readahead-move-the-random-read-case-to-bottom mm/readahead.c
+--- a/mm/readahead.c~readahead-move-the-random-read-case-to-bottom
 +++ a/mm/readahead.c
-@@ -133,15 +133,12 @@ out:
- }
+@@ -339,33 +339,25 @@ ondemand_readahead(struct address_space 
+ 		   unsigned long req_size)
+ {
+ 	unsigned long max = max_sane_readahead(ra->ra_pages);
+-	pgoff_t prev_offset;
+-	int	sequential;
++
++	/*
++	 * start of file
++	 */
++	if (!offset)
++		goto initial_readahead;
  
- /*
-- * do_page_cache_readahead actually reads a chunk of disk.  It allocates all
-+ * __do_page_cache_readahead() actually reads a chunk of disk.  It allocates all
-  * the pages first, then submits them all for I/O. This avoids the very bad
-  * behaviour which would occur if page allocations are causing VM writeback.
-  * We really don't want to intermingle reads and writes like that.
-  *
-  * Returns the number of pages requested, or the maximum amount of I/O allowed.
-- *
-- * do_page_cache_readahead() returns -1 if it encountered request queue
-- * congestion.
-  */
- static int
- __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
-@@ -232,22 +229,6 @@ int force_page_cache_readahead(struct ad
- }
+ 	/*
+ 	 * It's the expected callback offset, assume sequential access.
+ 	 * Ramp up sizes, and push forward the readahead window.
+ 	 */
+-	if (offset && (offset == (ra->start + ra->size - ra->async_size) ||
+-			offset == (ra->start + ra->size))) {
++	if ((offset == (ra->start + ra->size - ra->async_size) ||
++	     offset == (ra->start + ra->size))) {
+ 		ra->start += ra->size;
+ 		ra->size = get_next_ra_size(ra, max);
+ 		ra->async_size = ra->size;
+ 		goto readit;
+ 	}
  
- /*
-- * This version skips the IO if the queue is read-congested, and will tell the
-- * block layer to abandon the readahead if request allocation would block.
-- *
-- * force_page_cache_readahead() will ignore queue congestion and will block on
-- * request queues.
-- */
--int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
--			pgoff_t offset, unsigned long nr_to_read)
--{
--	if (bdi_read_congested(mapping->backing_dev_info))
--		return -1;
+-	prev_offset = ra->prev_pos >> PAGE_CACHE_SHIFT;
+-	sequential = offset - prev_offset <= 1UL || req_size > max;
 -
--	return __do_page_cache_readahead(mapping, filp, offset, nr_to_read, 0);
--}
+-	/*
+-	 * Standalone, small read.
+-	 * Read as is, and do not pollute the readahead state.
+-	 */
+-	if (!hit_readahead_marker && !sequential) {
+-		return __do_page_cache_readahead(mapping, filp,
+-						offset, req_size, 0);
+-	}
+-
+ 	/*
+ 	 * Hit a marked page without valid readahead state.
+ 	 * E.g. interleaved reads.
+@@ -391,12 +383,24 @@ ondemand_readahead(struct address_space 
+ 	}
+ 
+ 	/*
+-	 * It may be one of
+-	 * 	- first read on start of file
+-	 * 	- sequential cache miss
+-	 * 	- oversize random read
+-	 * Start readahead for it.
++	 * oversize read
+ 	 */
++	if (req_size > max)
++		goto initial_readahead;
++
++	/*
++	 * sequential cache miss
++	 */
++	if (offset - (ra->prev_pos >> PAGE_CACHE_SHIFT) <= 1UL)
++		goto initial_readahead;
++
++	/*
++	 * standalone, small random read
++	 * Read as is, and do not pollute the readahead state.
++	 */
++	return __do_page_cache_readahead(mapping, filp, offset, req_size, 0);
++
++initial_readahead:
+ 	ra->start = offset;
+ 	ra->size = get_init_ra_size(req_size, max);
+ 	ra->async_size = ra->size > req_size ? ra->size - req_size : ra->size;
+_
+
+Patches currently in -mm which might be from fengguang.wu@intel.com are
+
+origin.patch
+documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
+linux-next.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+
