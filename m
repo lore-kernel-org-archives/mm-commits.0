@@ -1,120 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:35:17 -0700
-Message-ID: <200906171835.n5HIZHGr001272@imap1.linux-foundation.org>
+Subject: [merged] videobuf-dma-contig-zero-copy-userptr-support-v3.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:35:14 -0700
+Message-ID: <200906171835.n5HIZEEe001269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49626 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42814 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760259AbZFQSgL (ORCPT
+	by vger.kernel.org with ESMTP id S1760217AbZFQSgQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:36:11 -0400
+	Wed, 17 Jun 2009 14:36:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
+To: damm@igel.co.jp, hannes@cmpxchg.org, hverkuil@xs4all.nl, lethal@linux-sh.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-allocator: warn if __GFP_NOFAIL is used for a large allocation
+     videobuf-dma-contig: zero copy USERPTR support
 has been removed from the -mm tree.  Its filename was
-     page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+     videobuf-dma-contig-zero-copy-userptr-support-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator: warn if __GFP_NOFAIL is used for a large allocation
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: videobuf-dma-contig: zero copy USERPTR support
+From: Magnus Damm <damm@igel.co.jp>
 
-__GFP_NOFAIL is a bad fiction.  Allocations _can_ fail, and callers should
-detect and suitably handle this (and not by lamely moving the infinite
-loop up to the caller level either).
+Since videobuf-dma-contig is designed to handle physically contiguous
+memory, this patch modifies the videobuf-dma-contig code to only accept a
+user space pointer to physically contiguous memory.  For now only
+VM_PFNMAP vmas are supported, so forget hotplug.
 
-Attempting to use __GFP_NOFAIL for a higher-order allocation is even
-worse, so add a once-off runtime check for this to slap people around for
-even thinking about trying it.
+On SuperH Mobile we use this with our sh_mobile_ceu_camera driver together
+with various multimedia accelerator blocks that are exported to user space
+using UIO.  The UIO kernel code exports physically contiguous memory to
+user space and lets the user space application mmap() this memory and pass
+a pointer using the USERPTR interface for V4L2 zero copy operation.
 
-Cc: David Rientjes <rientjes@google.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+With this approach we support zero copy capture, hardware scaling and
+various forms of hardware encoding and decoding.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/media/video/videobuf-dma-contig.c |   94 ++++++++++++++++++--
+ 1 file changed, 89 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation
-+++ a/mm/page_alloc.c
-@@ -1128,6 +1128,19 @@ again:
- 		list_del(&page->lru);
- 		pcp->count--;
- 	} else {
-+		if (unlikely(gfp_flags & __GFP_NOFAIL)) {
-+			/*
-+			 * __GFP_NOFAIL is not to be used in new code.
-+			 *
-+			 * All __GFP_NOFAIL callers should be fixed so that they
-+			 * properly detect and handle allocation failures.
-+			 *
-+			 * We most definitely don't want callers attempting to
-+			 * allocate greater than single-page units with
-+			 * __GFP_NOFAIL.
-+			 */
-+			WARN_ON_ONCE(order > 0);
-+		}
- 		spin_lock_irqsave(&zone->lock, flags);
- 		page = __rmqueue(zone, order, migratetype);
- 		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1 << order));
+diff -puN drivers/media/video/videobuf-dma-contig.c~videobuf-dma-contig-zero-copy-userptr-support-v3 drivers/media/video/videobuf-dma-contig.c
+--- a/drivers/media/video/videobuf-dma-contig.c~videobuf-dma-contig-zero-copy-userptr-support-v3
++++ a/drivers/media/video/videobuf-dma-contig.c
+@@ -17,6 +17,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/mm.h>
++#include <linux/pagemap.h>
+ #include <linux/dma-mapping.h>
+ #include <media/videobuf-dma-contig.h>
+ 
+@@ -25,6 +26,7 @@ struct videobuf_dma_contig_memory {
+ 	void *vaddr;
+ 	dma_addr_t dma_handle;
+ 	unsigned long size;
++	int is_userptr;
+ };
+ 
+ #define MAGIC_DC_MEM 0x0733ac61
+@@ -108,6 +110,82 @@ static struct vm_operations_struct video
+ 	.close    = videobuf_vm_close,
+ };
+ 
++/**
++ * videobuf_dma_contig_user_put() - reset pointer to user space buffer
++ * @mem: per-buffer private videobuf-dma-contig data
++ *
++ * This function resets the user space pointer
++ */
++static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
++{
++	mem->is_userptr = 0;
++	mem->dma_handle = 0;
++	mem->size = 0;
++}
++
++/**
++ * videobuf_dma_contig_user_get() - setup user space memory pointer
++ * @mem: per-buffer private videobuf-dma-contig data
++ * @vb: video buffer to map
++ *
++ * This function validates and sets up a pointer to user space memory.
++ * Only physically contiguous pfn-mapped memory is accepted.
++ *
++ * Returns 0 if successful.
++ */
++static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
++					struct videobuf_buffer *vb)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma;
++	unsigned long prev_pfn, this_pfn;
++	unsigned long pages_done, user_address;
++	int ret;
++
++	mem->size = PAGE_ALIGN(vb->size);
++	mem->is_userptr = 0;
++	ret = -EINVAL;
++
++	down_read(&mm->mmap_sem);
++
++	vma = find_vma(mm, vb->baddr);
++	if (!vma)
++		goto out_up;
++
++	if ((vb->baddr + mem->size) > vma->vm_end)
++		goto out_up;
++
++	pages_done = 0;
++	prev_pfn = 0; /* kill warning */
++	user_address = vb->baddr;
++
++	while (pages_done < (mem->size >> PAGE_SHIFT)) {
++		ret = follow_pfn(vma, user_address, &this_pfn);
++		if (ret)
++			break;
++
++		if (pages_done == 0)
++			mem->dma_handle = this_pfn << PAGE_SHIFT;
++		else if (this_pfn != (prev_pfn + 1))
++			ret = -EFAULT;
++
++		if (ret)
++			break;
++
++		prev_pfn = this_pfn;
++		user_address += PAGE_SIZE;
++		pages_done++;
++	}
++
++	if (!ret)
++		mem->is_userptr = 1;
++
++ out_up:
++	up_read(&current->mm->mmap_sem);
++
++	return ret;
++}
++
+ static void *__videobuf_alloc(size_t size)
+ {
+ 	struct videobuf_dma_contig_memory *mem;
+@@ -154,12 +232,11 @@ static int __videobuf_iolock(struct vide
+ 	case V4L2_MEMORY_USERPTR:
+ 		dev_dbg(q->dev, "%s memory method USERPTR\n", __func__);
+ 
+-		/* The only USERPTR currently supported is the one needed for
+-		   read() method.
+-		 */
++		/* handle pointer from user space */
+ 		if (vb->baddr)
+-			return -EINVAL;
++			return videobuf_dma_contig_user_get(mem, vb);
+ 
++		/* allocate memory for the read() method */
+ 		mem->size = PAGE_ALIGN(vb->size);
+ 		mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
+ 						&mem->dma_handle, GFP_KERNEL);
+@@ -400,7 +477,7 @@ void videobuf_dma_contig_free(struct vid
+ 	   So, it should free memory only if the memory were allocated for
+ 	   read() operation.
+ 	 */
+-	if ((buf->memory != V4L2_MEMORY_USERPTR) || buf->baddr)
++	if (buf->memory != V4L2_MEMORY_USERPTR)
+ 		return;
+ 
+ 	if (!mem)
+@@ -408,6 +485,13 @@ void videobuf_dma_contig_free(struct vid
+ 
+ 	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
+ 
++	/* handle user space pointer case */
++	if (buf->baddr) {
++		videobuf_dma_contig_user_put(mem);
++		return;
++	}
++
++	/* read() method */
+ 	dma_free_coherent(q->dev, mem->size, mem->vaddr, mem->dma_handle);
+ 	mem->vaddr = NULL;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from damm@igel.co.jp are
 
 origin.patch
-documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-maintainers-fbdev-is-orphaned.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
-gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes-gpio-pca953x-get-platform_data-from-openfirmware-cleanups.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-char-moxa-prevent-opening-unavailable-ports.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
