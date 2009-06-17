@@ -1,92 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] gpio-driver-for-primecell-pl061-gpio-controller-v5.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 15:45:40 -0700
-Message-ID: <200906172245.n5HMjegO005932@imap1.linux-foundation.org>
+Subject: [folded] cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 15:46:51 -0700
+Message-ID: <200906172246.n5HMkpUD006979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760385AbZFQWrC (ORCPT
+	by vger.kernel.org with ESMTP id S1755981AbZFQWrW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 18:47:02 -0400
+	Wed, 17 Jun 2009 18:47:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: baruch@tkos.co.il, david-b@pacbell.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio-driver-for-primecell-pl061-gpio-controller-v5
+     cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix
 has been removed from the -mm tree.  Its filename was
-     gpio-driver-for-primecell-pl061-gpio-controller-v5.patch
+     cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
 
-This patch was dropped because it was folded into gpio-driver-for-primecell-pl061-gpio-controller.patch
+This patch was dropped because it was folded into cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-driver-for-primecell-pl061-gpio-controller-v5
-From: Baruch Siach <baruch@tkos.co.il>
+Subject: cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Changes in v5:
-	- Use resource_size() as suggested by Linus Walleij
-	- Add a comment about the list member of pl061_gpio
+Fix shift for cpuset_subsys_id >= 32.
 
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pl061.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/pl061.c~gpio-driver-for-primecell-pl061-gpio-controller-v5 drivers/gpio/pl061.c
---- a/drivers/gpio/pl061.c~gpio-driver-for-primecell-pl061-gpio-controller-v5
-+++ a/drivers/gpio/pl061.c
-@@ -36,9 +36,12 @@
+diff -puN kernel/cgroup.c~cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix
++++ a/kernel/cgroup.c
+@@ -845,7 +845,7 @@ static int parse_cgroupfs_options(char *
+ 	unsigned long mask = (unsigned long)-1;
  
- #define PL061_GPIO_NR	8
+ #ifdef CONFIG_CPUSETS
+-	mask = ~(1 << cpuset_subsys_id);
++	mask = ~(1UL << cpuset_subsys_id);
+ #endif
  
--#define PL061_REG_SIZE	(4*1024)
--
- struct pl061_gpio {
-+	/* We use a list of pl061_gpio structs for each trigger IRQ in the main
-+	 * interrupts controller of the system. We need this to support systems
-+	 * in which more that one PL061s are connected to the same IRQ. The ISR
-+	 * interates through this list to find the source of the interrupt.
-+	 */
- 	struct list_head	list;
- 
- 	/* Each of the two spinlocks protects a different set of hardware
-@@ -238,12 +241,13 @@ static int __init pl061_probe(struct amb
- 	if (chip == NULL)
- 		return -ENOMEM;
- 
--	if (!request_mem_region(dev->res.start, PL061_REG_SIZE, "pl061")) {
-+	if (!request_mem_region(dev->res.start,
-+				resource_size(&dev->res), "pl061")) {
- 		ret = -EBUSY;
- 		goto free_mem;
- 	}
- 
--	chip->base = ioremap(dev->res.start, PL061_REG_SIZE);
-+	chip->base = ioremap(dev->res.start, resource_size(&dev->res));
- 	if (chip->base == NULL) {
- 		ret = -ENOMEM;
- 		goto release_region;
-@@ -308,7 +312,7 @@ static int __init pl061_probe(struct amb
- iounmap:
- 	iounmap(chip->base);
- release_region:
--	release_mem_region(dev->res.start, PL061_REG_SIZE);
-+	release_mem_region(dev->res.start, resource_size(&dev->res));
- free_mem:
- 	kfree(chip);
- 
+ 	opts->subsys_bits = 0;
 _
 
-Patches currently in -mm which might be from baruch@tkos.co.il are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-gpio-driver-for-primecell-pl061-gpio-controller.patch
-gpio-driver-for-primecell-pl061-gpio-controller-v5.patch
+documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
+maintainers-fbdev-is-orphaned.patch
+gpio-pca953x-get-platform_data-from-openfirmware.patch
+documentation-changes-perl-is-needed-to-build-the-kernel.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
 
