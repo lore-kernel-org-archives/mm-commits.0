@@ -1,84 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded] edac-add-edac_device_alloc_index-cleanup.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 15:54:31 -0700
-Message-ID: <200906172254.n5HMsVPE014143@imap1.linux-foundation.org>
+Subject: [folded] edac-cpc925-mc-platform-device-setup-v3.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 15:55:06 -0700
+Message-ID: <200906172255.n5HMt6TU014725@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756592AbZFQWyf (ORCPT
+	by vger.kernel.org with ESMTP id S1759081AbZFQWzO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 18:54:35 -0400
+	Wed, 17 Jun 2009 18:55:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, galak@gate.crashing.org, michael@ellerman.id.au, norsk5@yahoo.com, paulus@samba.org, qingtao.cao@windriver.com, mm-commits@vger.kernel.org
+To: qingtao.cao@windriver.com, benh@kernel.crashing.org, galak@gate.crashing.org, michael@ellerman.id.au, norsk5@yahoo.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac-add-edac_device_alloc_index-cleanup
+     edac-cpc925-mc-platform-device-setup-v3
 has been removed from the -mm tree.  Its filename was
-     edac-add-edac_device_alloc_index-cleanup.patch
+     edac-cpc925-mc-platform-device-setup-v3.patch
 
-This patch was dropped because it was folded into edac-add-edac_device_alloc_index.patch
+This patch was dropped because it was folded into edac-cpc925-mc-platform-device-setup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac-add-edac_device_alloc_index-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: edac-cpc925-mc-platform-device-setup-v3
+From: Harry Ciao <qingtao.cao@windriver.com>
 
-keep things neat.  Also avoids having global identifier device_index
-shadowed by local identifier device_index.
+Fixup the number of cells for the values of CPC925 Memory Controller,
+and setup related platform device during system booting up, against
+which CPC925 Memory Controller EDAC driver would be matched.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
 Cc: Doug Thompson <norsk5@yahoo.com>
-Cc: Harry Ciao <qingtao.cao@windriver.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
 Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_device.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/powerpc/kernel/prom_init.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/edac/edac_device.c~edac-add-edac_device_alloc_index-cleanup drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~edac-add-edac_device_alloc_index-cleanup
-+++ a/drivers/edac/edac_device.c
-@@ -37,7 +37,6 @@
-  */
- static DEFINE_MUTEX(device_ctls_mutex);
- static LIST_HEAD(edac_device_list);
--static atomic_t device_indexes = ATOMIC_INIT(0);
+diff -puN arch/powerpc/kernel/prom_init.c~edac-cpc925-mc-platform-device-setup-v3 arch/powerpc/kernel/prom_init.c
+--- a/arch/powerpc/kernel/prom_init.c~edac-cpc925-mc-platform-device-setup-v3
++++ a/arch/powerpc/kernel/prom_init.c
+@@ -1956,6 +1956,8 @@ static void __init fixup_device_tree_map
+ 	phandle mc;
+ 	u32 mc_reg[4];
+ 	char *name = "/hostbridge@f8000000";
++	struct prom_t *_prom = &RELOC(prom);
++	u32 ac, sc;
  
- #ifdef CONFIG_EDAC_DEBUG
- static void edac_device_dump_device(struct edac_device_ctl_info *edac_dev)
-@@ -499,6 +498,8 @@ void edac_device_reset_delay_period(stru
-  */
- int edac_device_alloc_index(void)
- {
-+	static atomic_t device_indexes = ATOMIC_INIT(0);
+ 	mc = call_prom("finddevice", 1, 1, ADDR(name));
+ 	if (!PHANDLE_VALID(mc))
+@@ -1964,6 +1966,11 @@ static void __init fixup_device_tree_map
+ 	if (prom_getproplen(mc, "reg") != 8)
+ 		return;
+ 
++	prom_getprop(_prom->root, "#address-cells", &ac, sizeof(ac));
++	prom_getprop(_prom->root, "#size-cells", &sc, sizeof(sc));
++	if ((ac != 2) || (sc != 2))
++		return;
 +
- 	return atomic_inc_return(&device_indexes) - 1;
- }
- EXPORT_SYMBOL_GPL(edac_device_alloc_index);
+ 	if (prom_getprop(mc, "reg", mc_reg, sizeof(mc_reg)) == PROM_ERROR)
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from qingtao.cao@windriver.com are
 
-origin.patch
-documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
-maintainers-fbdev-is-orphaned.patch
-gpio-pca953x-get-platform_data-from-openfirmware.patch
-documentation-changes-perl-is-needed-to-build-the-kernel.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
 edac-add-cpc925-memory-controller-driver.patch
 edac-add-edac_device_alloc_index.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
+edac-cpc925-mc-platform-device-setup.patch
+edac-cpc925-mc-platform-device-setup-v3.patch
 
