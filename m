@@ -1,61 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] gru-dump-chiplet-state-update.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 15:56:42 -0700
-Message-ID: <200906172256.n5HMug3F016099@imap1.linux-foundation.org>
+Subject: [folded] gru-dynamic-allocation-of-kernel-contexts-update.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 15:56:57 -0700
+Message-ID: <200906172256.n5HMuwVk016468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50047 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757054AbZFQW5M (ORCPT
+	by vger.kernel.org with ESMTP id S1757153AbZFQW51 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 18:57:12 -0400
+	Wed, 17 Jun 2009 18:57:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru-dump-chiplet-state-update
+     gru-dynamic-allocation-of-kernel-contexts-update
 has been removed from the -mm tree.  Its filename was
-     gru-dump-chiplet-state-update.patch
+     gru-dynamic-allocation-of-kernel-contexts-update.patch
 
-This patch was dropped because it was folded into gru-dump-chiplet-state.patch
+This patch was dropped because it was folded into gru-dynamic-allocation-of-kernel-contexts.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru-dump-chiplet-state-update
+Subject: gru-dynamic-allocation-of-kernel-contexts-update
 From: Jack Steiner <steiner@sgi.com>
 
-Updated per comments received from Andrew
+Added fixes from Andrew.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grukdump.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/misc/sgi-gru/grumain.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grukdump.c~gru-dump-chiplet-state-update drivers/misc/sgi-gru/grukdump.c
---- a/drivers/misc/sgi-gru/grukdump.c~gru-dump-chiplet-state-update
-+++ a/drivers/misc/sgi-gru/grukdump.c
-@@ -15,6 +15,7 @@
- #include <linux/spinlock.h>
- #include <linux/uaccess.h>
- #include <linux/delay.h>
-+#include <linux/bitops.h>
- #include <asm/uv/uv_hub.h>
- #include "gru.h"
- #include "grutables.h"
-@@ -25,7 +26,7 @@
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts-update drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts-update
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -804,8 +804,9 @@ again:
  
- static int gru_user_copy_handle(void __user **dp, void *s)
- {
--	if (copy_to_user(*(void __user **)dp, s, GRU_HANDLE_BYTES))
-+	if (copy_to_user(dp, s, GRU_HANDLE_BYTES))
- 		return -1;
- 	*dp += GRU_HANDLE_BYTES;
- 	return 0;
+ 	if (!gts->ts_gru) {
+ 		if (!gru_assign_gru_context(gts, blade_id)) {
+-			mutex_unlock(&gts->ts_ctxlock);
+ 			preempt_enable();
++			mutex_unlock(&gts->ts_ctxlock);
++			set_current_state(TASK_INTERRUPTIBLE);
+ 			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
+ 			blade_id = uv_numa_blade_id();
+ 			if (gts->ts_steal_jiffies + GRU_STEAL_DELAY < jiffies)
+@@ -819,8 +820,8 @@ again:
+ 				vma->vm_page_prot);
+ 	}
+ 
+-	mutex_unlock(&gts->ts_ctxlock);
+ 	preempt_enable();
++	mutex_unlock(&gts->ts_ctxlock);
+ 
+ 	return VM_FAULT_NOPAGE;
+ }
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
@@ -63,7 +67,6 @@ Patches currently in -mm which might be from steiner@sgi.com are
 origin.patch
 gru-bug-fixes-for-gru-exception-handling.patch
 gru-dump-chiplet-state.patch
-gru-dump-chiplet-state-update.patch
 gru-dynamic-allocation-of-kernel-contexts.patch
 gru-dynamic-allocation-of-kernel-contexts-update.patch
 gru-change-context-load-and-unload.patch
