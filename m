@@ -1,40 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:34:12 -0700
-Message-ID: <200906171834.n5HIYCTG032754@imap1.linux-foundation.org>
+Subject: [merged] page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:34:23 -0700
+Message-ID: <200906171834.n5HIYNa5000451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51480 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759931AbZFQSel (ORCPT
+	by vger.kernel.org with ESMTP id S1760038AbZFQSev (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:34:41 -0400
+	Wed, 17 Jun 2009 14:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, Lee.Schermerhorn@hp.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, penberg@cs.h
 
 
 The patch titled
-     page allocator: do not setup zonelist cache when there is only one node
+     page allocator: get the pageblock migratetype without disabling interrupts
 has been removed from the -mm tree.  Its filename was
-     page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node.patch
+     page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: do not setup zonelist cache when there is only one node
+Subject: page allocator: get the pageblock migratetype without disabling interrupts
 From: Mel Gorman <mel@csn.ul.ie>
 
-There is a zonelist cache which is used to track zones that are not in the
-allowed cpuset or found to be recently full.  This is to reduce cache
-footprint on large machines.  On smaller machines, it just incurs cost for
-no gain.  This patch only uses the zonelist cache when there are NUMA
-nodes.
+Local interrupts are disabled when freeing pages to the PCP list.  Part of
+that free checks what the migratetype of the pageblock the page is in but
+it checks this with interrupts disabled and interupts should never be
+disabled longer than necessary.  This patch checks the pagetype with
+interrupts enabled with the impact that it is possible a page is freed to
+the wrong list when a pageblock changes type.  As that block is now
+already considered mixed from an anti-fragmentation perspective, it's not
+of vital importance.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -44,26 +47,28 @@ Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-do-not-setup-zonelist-cache-when-there-is-only-one-node
+diff -puN mm/page_alloc.c~page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-get-the-pageblock-migratetype-without-disabling-interrupts
 +++ a/mm/page_alloc.c
-@@ -1464,8 +1464,11 @@ this_zone_full:
- 		if (NUMA_BUILD)
- 			zlc_mark_zone_full(zonelist, z);
- try_next_zone:
--		if (NUMA_BUILD && !did_zlc_setup) {
--			/* we do zlc_setup after the first zone is tried */
-+		if (NUMA_BUILD && !did_zlc_setup && num_online_nodes() > 1) {
-+			/*
-+			 * we do zlc_setup after the first zone is tried but only
-+			 * if there are multiple nodes make it worthwhile
-+			 */
- 			allowednodes = zlc_setup(zonelist, alloc_flags);
- 			zlc_active = 1;
- 			did_zlc_setup = 1;
+@@ -1030,6 +1030,7 @@ static void free_hot_cold_page(struct pa
+ 	kernel_map_pages(page, 1, 0);
+ 
+ 	pcp = &zone_pcp(zone, get_cpu())->pcp;
++	set_page_private(page, get_pageblock_migratetype(page));
+ 	local_irq_save(flags);
+ 	if (unlikely(clearMlocked))
+ 		free_page_mlock(page);
+@@ -1039,7 +1040,6 @@ static void free_hot_cold_page(struct pa
+ 		list_add_tail(&page->lru, &pcp->list);
+ 	else
+ 		list_add(&page->lru, &pcp->list);
+-	set_page_private(page, get_pageblock_migratetype(page));
+ 	pcp->count++;
+ 	if (pcp->count >= pcp->high) {
+ 		free_pages_bulk(zone, pcp->batch, &pcp->list, 0);
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
