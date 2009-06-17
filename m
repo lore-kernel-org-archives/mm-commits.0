@@ -1,103 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:33:16 -0700
-Message-ID: <200906171833.n5HIXGYF031790@imap1.linux-foundation.org>
+Subject: [merged] readahead-record-mmap-read-around-states-in-file_ra_state.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:32:53 -0700
+Message-ID: <200906171832.n5HIWrAe031460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759403AbZFQSdo (ORCPT
+	by vger.kernel.org with ESMTP id S1759557AbZFQSdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:33:44 -0400
+	Wed, 17 Jun 2009 14:33:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hartleys@visionengravers.com, a.p.zijlstra@chello.nl, hannes@cmpxchg.org, hsweeten@visionengravers.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, npiggin@suse.de, torvalds@linux-foundation.org, wfg@mail.ustc.edu.cn, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/page-writeback.c: dirty limit type should be unsigned long
+     readahead: record mmap read-around states in file_ra_state
 has been removed from the -mm tree.  Its filename was
-     mm-page-writebackc-dirty-limit-type-should-be-unsigned-long.patch
+     readahead-record-mmap-read-around-states-in-file_ra_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page-writeback.c: dirty limit type should be unsigned long
-From: "H Hartley Sweeten" <hartleys@visionengravers.com>
+Subject: readahead: record mmap read-around states in file_ra_state
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-get_dirty_limits() calls clip_bdi_dirty_limit() and task_dirty_limit()
-with variable pbdi_dirty as one of the arguments.  This variable is an
-unsigned long * but both functions expect it to be a long *.  This causes
-the following sparse warnings:
+Mmap read-around now shares the same code style and data structure with
+readahead code.
 
-  warning: incorrect type in argument 3 (different signedness)
-     expected long *pbdi_dirty
-     got unsigned long *pbdi_dirty
-  warning: incorrect type in argument 2 (different signedness)
-     expected long *pdirty
-     got unsigned long *pbdi_dirty
+This also removes do_page_cache_readahead().  Its last user, mmap
+read-around, has been changed to call ra_submit().
 
-Fix the warnings by changing the long * to unsigned long * in both
-functions.
+The no-readahead-if-congested logic is dumped by the way.  Users will be
+pretty sensitive about the slow loading of executables.  So it's
+unfavorable to disabled mmap read-around on a congested queue.
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+[akpm@linux-foundation.org: coding-style fixes]
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ include/linux/mm.h |    5 +++--
+ mm/filemap.c       |   12 +++++++-----
+ mm/readahead.c     |   23 ++---------------------
+ 3 files changed, 12 insertions(+), 28 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-page-writebackc-dirty-limit-type-should-be-unsigned-long mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page-writebackc-dirty-limit-type-should-be-unsigned-long
-+++ a/mm/page-writeback.c
-@@ -265,18 +265,19 @@ static void bdi_writeout_fraction(struct
-  * This avoids exceeding the total dirty_limit when the floating averages
-  * fluctuate too quickly.
-  */
--static void
--clip_bdi_dirty_limit(struct backing_dev_info *bdi, long dirty, long *pbdi_dirty)
-+static void clip_bdi_dirty_limit(struct backing_dev_info *bdi,
-+		unsigned long dirty, unsigned long *pbdi_dirty)
- {
--	long avail_dirty;
-+	unsigned long avail_dirty;
+diff -puN include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state include/linux/mm.h
+--- a/include/linux/mm.h~readahead-record-mmap-read-around-states-in-file_ra_state
++++ a/include/linux/mm.h
+@@ -1178,8 +1178,6 @@ void task_dirty_inc(struct task_struct *
+ #define VM_MAX_READAHEAD	128	/* kbytes */
+ #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
  
--	avail_dirty = dirty -
--		(global_page_state(NR_FILE_DIRTY) +
-+	avail_dirty = global_page_state(NR_FILE_DIRTY) +
- 		 global_page_state(NR_WRITEBACK) +
- 		 global_page_state(NR_UNSTABLE_NFS) +
--		 global_page_state(NR_WRITEBACK_TEMP));
-+		 global_page_state(NR_WRITEBACK_TEMP);
+-int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
+-			pgoff_t offset, unsigned long nr_to_read);
+ int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
+ 			pgoff_t offset, unsigned long nr_to_read);
  
--	if (avail_dirty < 0)
-+	if (avail_dirty < dirty)
-+		avail_dirty = dirty - avail_dirty;
-+	else
- 		avail_dirty = 0;
+@@ -1197,6 +1195,9 @@ void page_cache_async_readahead(struct a
+ 				unsigned long size);
  
- 	avail_dirty += bdi_stat(bdi, BDI_RECLAIMABLE) +
-@@ -299,10 +300,10 @@ static inline void task_dirties_fraction
+ unsigned long max_sane_readahead(unsigned long nr);
++unsigned long ra_submit(struct file_ra_state *ra,
++			struct address_space *mapping,
++			struct file *filp);
+ 
+ /* Do stack extension */
+ extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
+diff -puN mm/filemap.c~readahead-record-mmap-read-around-states-in-file_ra_state mm/filemap.c
+--- a/mm/filemap.c~readahead-record-mmap-read-around-states-in-file_ra_state
++++ a/mm/filemap.c
+@@ -1488,13 +1488,15 @@ static void do_sync_mmap_readahead(struc
+ 	if (ra->mmap_miss > MMAP_LOTSAMISS)
+ 		return;
+ 
++	/*
++	 * mmap read-around
++	 */
+ 	ra_pages = max_sane_readahead(ra->ra_pages);
+ 	if (ra_pages) {
+-		pgoff_t start = 0;
+-
+-		if (offset > ra_pages / 2)
+-			start = offset - ra_pages / 2;
+-		do_page_cache_readahead(mapping, file, start, ra_pages);
++		ra->start = max_t(long, 0, offset - ra_pages/2);
++		ra->size = ra_pages;
++		ra->async_size = 0;
++		ra_submit(ra, mapping, file);
+ 	}
+ }
+ 
+diff -puN mm/readahead.c~readahead-record-mmap-read-around-states-in-file_ra_state mm/readahead.c
+--- a/mm/readahead.c~readahead-record-mmap-read-around-states-in-file_ra_state
++++ a/mm/readahead.c
+@@ -133,15 +133,12 @@ out:
+ }
+ 
+ /*
+- * do_page_cache_readahead actually reads a chunk of disk.  It allocates all
++ * __do_page_cache_readahead() actually reads a chunk of disk.  It allocates all
+  * the pages first, then submits them all for I/O. This avoids the very bad
+  * behaviour which would occur if page allocations are causing VM writeback.
+  * We really don't want to intermingle reads and writes like that.
   *
-  *   dirty -= (dirty/8) * p_{t}
+  * Returns the number of pages requested, or the maximum amount of I/O allowed.
+- *
+- * do_page_cache_readahead() returns -1 if it encountered request queue
+- * congestion.
   */
--static void task_dirty_limit(struct task_struct *tsk, long *pdirty)
-+static void task_dirty_limit(struct task_struct *tsk, unsigned long *pdirty)
- {
- 	long numerator, denominator;
--	long dirty = *pdirty;
-+	unsigned long dirty = *pdirty;
- 	u64 inv = dirty >> 3;
+ static int
+ __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
+@@ -232,22 +229,6 @@ int force_page_cache_readahead(struct ad
+ }
  
- 	task_dirties_fraction(tsk, &numerator, &denominator);
-_
-
-Patches currently in -mm which might be from hartleys@visionengravers.com are
-
-origin.patch
-linux-next.patch
-
+ /*
+- * This version skips the IO if the queue is read-congested, and will tell the
+- * block layer to abandon the readahead if request allocation would block.
+- *
+- * force_page_cache_readahead() will ignore queue congestion and will block on
+- * request queues.
+- */
+-int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
+-			pgoff_t offset, unsigned long nr_to_read)
+-{
+-	if (bdi_read_congested(mapping->backing_dev_info))
+-		return -1;
+-
+-	return __do_page_cache_readahead(mapping, filp, offset, nr_to_read, 0);
+-}
