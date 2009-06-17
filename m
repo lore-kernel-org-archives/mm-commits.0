@@ -1,108 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-generic-follow_pte-in-follow_phys.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:35:10 -0700
-Message-ID: <200906171835.n5HIZAlb001184@imap1.linux-foundation.org>
+Subject: [merged] drivers-hvc-add-missing-__devexit_p.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:40:03 -0700
+Message-ID: <200906171840.n5HIe3cv006104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54929 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757032AbZFQSza (ORCPT
+	by vger.kernel.org with ESMTP id S1754690AbZFQSzn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:55:30 -0400
+	Wed, 17 Jun 2009 14:55:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hch@infradead.org, hugh.dickins@tiscali.co.uk, hverkuil@xs4all.nl, lethal@linux-sh.org, magnus.damm@gmail.com, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, anton@samba.org, benh@kernel.crashing.org, miltonm@bga.com, paulus@samba.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: use generic follow_pte() in follow_phys()
+     drivers/hvc: add missing __devexit_p()
 has been removed from the -mm tree.  Its filename was
-     mm-use-generic-follow_pte-in-follow_phys.patch
+     drivers-hvc-add-missing-__devexit_p.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use generic follow_pte() in follow_phys()
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: drivers/hvc: add missing __devexit_p()
+From: Mike Frysinger <vapier@gentoo.org>
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Acked-by: Magnus Damm <magnus.damm@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+The remove function uses __devexit, so the .remove assignment needs
+__devexit_p() to fix a build error with hotplug disabled.
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Milton Miller <miltonm@bga.com>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   36 +++++-------------------------------
- 1 file changed, 5 insertions(+), 31 deletions(-)
+ drivers/char/hvc_iseries.c |    2 +-
+ drivers/char/hvc_vio.c     |    2 +-
+ drivers/char/hvcs.c        |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory.c~mm-use-generic-follow_pte-in-follow_phys mm/memory.c
---- a/mm/memory.c~mm-use-generic-follow_pte-in-follow_phys
-+++ a/mm/memory.c
-@@ -3145,50 +3145,24 @@ int follow_phys(struct vm_area_struct *v
- 		unsigned long address, unsigned int flags,
- 		unsigned long *prot, resource_size_t *phys)
- {
--	pgd_t *pgd;
--	pud_t *pud;
--	pmd_t *pmd;
-+	int ret = -EINVAL;
- 	pte_t *ptep, pte;
- 	spinlock_t *ptl;
--	resource_size_t phys_addr = 0;
--	struct mm_struct *mm = vma->vm_mm;
--	int ret = -EINVAL;
- 
- 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
- 		goto out;
- 
--	pgd = pgd_offset(mm, address);
--	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
--		goto out;
--
--	pud = pud_offset(pgd, address);
--	if (pud_none(*pud) || unlikely(pud_bad(*pud)))
--		goto out;
--
--	pmd = pmd_offset(pud, address);
--	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
--		goto out;
--
--	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
--	if (pmd_huge(*pmd))
-+	if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
- 		goto out;
--
--	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
--	if (!ptep)
--		goto out;
--
- 	pte = *ptep;
--	if (!pte_present(pte))
--		goto unlock;
-+
- 	if ((flags & FOLL_WRITE) && !pte_write(pte))
- 		goto unlock;
--	phys_addr = pte_pfn(pte);
--	phys_addr <<= PAGE_SHIFT; /* Shift here to avoid overflow on PAE */
- 
- 	*prot = pgprot_val(pte_pgprot(pte));
--	*phys = phys_addr;
--	ret = 0;
-+	*phys = (resource_size_t)pte_pfn(pte) << PAGE_SHIFT;
- 
-+	ret = 0;
- unlock:
- 	pte_unmap_unlock(ptep, ptl);
- out:
+diff -puN drivers/char/hvc_iseries.c~drivers-hvc-add-missing-__devexit_p drivers/char/hvc_iseries.c
+--- a/drivers/char/hvc_iseries.c~drivers-hvc-add-missing-__devexit_p
++++ a/drivers/char/hvc_iseries.c
+@@ -241,7 +241,7 @@ static int __devexit hvc_vio_remove(stru
+ static struct vio_driver hvc_vio_driver = {
+ 	.id_table	= hvc_driver_table,
+ 	.probe		= hvc_vio_probe,
+-	.remove		= hvc_vio_remove,
++	.remove		= __devexit_p(hvc_vio_remove),
+ 	.driver		= {
+ 		.name	= hvc_driver_name,
+ 		.owner	= THIS_MODULE,
+diff -puN drivers/char/hvc_vio.c~drivers-hvc-add-missing-__devexit_p drivers/char/hvc_vio.c
+--- a/drivers/char/hvc_vio.c~drivers-hvc-add-missing-__devexit_p
++++ a/drivers/char/hvc_vio.c
+@@ -113,7 +113,7 @@ static int __devexit hvc_vio_remove(stru
+ static struct vio_driver hvc_vio_driver = {
+ 	.id_table	= hvc_driver_table,
+ 	.probe		= hvc_vio_probe,
+-	.remove		= hvc_vio_remove,
++	.remove		= __devexit_p(hvc_vio_remove),
+ 	.driver		= {
+ 		.name	= hvc_driver_name,
+ 		.owner	= THIS_MODULE,
+diff -puN drivers/char/hvcs.c~drivers-hvc-add-missing-__devexit_p drivers/char/hvcs.c
+--- a/drivers/char/hvcs.c~drivers-hvc-add-missing-__devexit_p
++++ a/drivers/char/hvcs.c
+@@ -868,7 +868,7 @@ static int __devexit hvcs_remove(struct 
+ static struct vio_driver hvcs_vio_driver = {
+ 	.id_table	= hvcs_driver_table,
+ 	.probe		= hvcs_probe,
+-	.remove		= hvcs_remove,
++	.remove		= __devexit_p(hvcs_remove),
+ 	.driver		= {
+ 		.name	= hvcs_driver_name,
+ 		.owner	= THIS_MODULE,
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-memcg-fix-swap-accounting.patch
-memcg-fix-swap-accounting-update.patch
+linux-next.patch
+pcmcia-yenta-add-missing-__devexit-marking.patch
+drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
+gpio-max7301-add-missing-__devexit-marking.patch
+istallion-add-missing-__devexit-marking.patch
+edac-add-missing-__devexit_p.patch
 
