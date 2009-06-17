@@ -1,89 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [folded] proc-export-statistics-for-softirq-to-proc-update.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 13:05:03 -0700
-Message-ID: <200906172005.n5HK53r8019994@imap1.linux-foundation.org>
+Subject: [folded] proc-update-document-for-proc-softirqs-and-proc-stat.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 13:05:32 -0700
+Message-ID: <200906172005.n5HK5W53020462@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38503 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752644AbZFQUF1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754123AbZFQUFu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 16:05:27 -0400
+	Wed, 17 Jun 2009 16:05:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kobayashi.kk@ncos.nec.co.jp, adobriyan@gmail.com, dada1@cosmosbay.com, h-shimamoto@ct.jp.nec.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc-export-statistics-for-softirq-to-proc-update
+     proc: update document for /proc/softirqs and /proc/stat
 has been removed from the -mm tree.  Its filename was
-     proc-export-statistics-for-softirq-to-proc-update.patch
+     proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
 This patch was dropped because it was folded into proc-export-statistics-for-softirq-to-proc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-export-statistics-for-softirq-to-proc-update
+Subject: proc: update document for /proc/softirqs and /proc/stat
 From: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
 
-Regarding /proc/softirq,
-Ingo pointed out the difference from /proc/interrupts style.
-# Thank you!
-So, I inserted colon between softirq name and its statistics.
-
-Here is update patch.
+/proc/softirqs and /proc/stat have been changed.
+This patch updates proc.txt for these usage.
 
 Signed-off-by: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
-Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Eric Dumazet <dada1@cosmosbay.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/softirqs.c |   15 +--------------
- fs/proc/stat.c     |    4 +---
- 2 files changed, 2 insertions(+), 17 deletions(-)
+ Documentation/filesystems/proc.txt |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN fs/proc/softirqs.c~proc-export-statistics-for-softirq-to-proc-update fs/proc/softirqs.c
---- a/fs/proc/softirqs.c~proc-export-statistics-for-softirq-to-proc-update
-+++ a/fs/proc/softirqs.c
-@@ -3,19 +3,6 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
+diff -puN Documentation/filesystems/proc.txt~proc-update-document-for-proc-softirqs-and-proc-stat Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~proc-update-document-for-proc-softirqs-and-proc-stat
++++ a/Documentation/filesystems/proc.txt
+@@ -283,6 +283,7 @@ Table 1-4: Kernel info in /proc
+  rtc         Real time clock                                   
+  scsi        SCSI info (see text)                              
+  slabinfo    Slab pool info                                    
++ softirqs    softirq usage
+  stat        Overall statistics                                
+  swaps       Swap space utilization                            
+  sys         See chapter 2                                     
+@@ -597,6 +598,24 @@ on the kind of area :
+ 0xffffffffa0017000-0xffffffffa0022000   45056 sys_init_module+0xc27/0x1d00 ...
+    pages=10 vmalloc N0=10
  
--static const char *desc_array[] = {
--	"HI",
--	"TIMER",
--	"NET_TX",
--	"NET_RX",
--	"BLOCK",
--	"TASKLET",
--	"SCHED",
--#ifdef CONFIG_HIGH_RES_TIMERS
--	"HRTIMER",
--#endif
--	"RCU"};
--
- /*
-  * /proc/softirqs  ... display the number of softirqs
-  */
-@@ -29,7 +16,7 @@ static int show_softirqs(struct seq_file
- 	seq_printf(p, "\n");
++..............................................................................
++
++softirqs:
++
++Provides counts of softirq handlers serviced since boot time, for each cpu.
++
++> cat /proc/softirqs
++                CPU0       CPU1       CPU2       CPU3
++HI                 0          0          0          0
++TIMER          27166      27120      27097      27034
++NET_TX             0          0          0         17
++NET_RX            42          0          0         39
++BLOCK              0          0        107       1121
++TASKLET            0          0          0        290
++SCHED          27035      26983      26971      26746
++RCU             1678       1769       2178       2250
++
++
+ 1.3 IDE devices in /proc/ide
+ ----------------------------
  
- 	for (i = 0; i < NR_SOFTIRQS; i++) {
--		seq_printf(p, "%-9s", desc_array[i]);
-+		seq_printf(p, "%8s:", softirq_to_name[i]);
- 		for_each_possible_cpu(j)
- 			seq_printf(p, " %10u", kstat_softirqs_cpu(i, j));
- 		seq_printf(p, "\n");
-diff -puN fs/proc/stat.c~proc-export-statistics-for-softirq-to-proc-update fs/proc/stat.c
---- a/fs/proc/stat.c~proc-export-statistics-for-softirq-to-proc-update
-+++ a/fs/proc/stat.c
-@@ -62,7 +62,6 @@ static int show_stat(struct seq_file *p,
- 			per_softirq_sums[j] += softirq_stat;
- 			sum_softirq += softirq_stat;
- 		}
+@@ -883,6 +902,7 @@ since the system first booted.  For a qu
+   processes 2915
+   procs_running 1
+   procs_blocked 0
++  softirq 183433 0 21755 12 39 1137 231 21459 2263
+ 
+ The very first  "cpu" line aggregates the  numbers in all  of the other "cpuN"
+ lines.  These numbers identify the amount of time the CPU has spent performing
+@@ -918,6 +938,11 @@ CPUs.
+ The   "procs_blocked" line gives  the  number of  processes currently blocked,
+ waiting for I/O to complete.
+ 
++The "softirq" line gives counts of softirqs serviced since boot time, for each
++of the possible system softirqs. The first column is the total of all
++softirqs serviced; each subsequent column is the total for that particular
++softirq.
++
+ 
+ 1.9 Ext4 file system parameters
+ ------------------------------
+_
+
+Patches currently in -mm which might be from kobayashi.kk@ncos.nec.co.jp are
+
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+proc-update-document-for-proc-softirqs-and-proc-stat-update.patch
+
