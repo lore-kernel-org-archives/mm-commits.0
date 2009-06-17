@@ -1,213 +1,268 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fbdev-move-logo-externs-to-header-file.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:39:04 -0700
-Message-ID: <200906171839.n5HId4dq005131@imap1.linux-foundation.org>
+Subject: [merged] oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:35:56 -0700
+Message-ID: <200906171835.n5HIZuog001923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756371AbZFQSv5 (ORCPT
+	by vger.kernel.org with ESMTP id S1756371AbZFQSw2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:51:57 -0400
+	Wed, 17 Jun 2009 14:52:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, jsimmons@infradead.org, krzysztof.h1@poczta.fm, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, mel@csn.ul.ie, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: move logo externs to header file
+     oom: move oom_adj value from task_struct to mm_struct
 has been removed from the -mm tree.  Its filename was
-     fbdev-move-logo-externs-to-header-file.patch
+     oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: move logo externs to header file
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: oom: move oom_adj value from task_struct to mm_struct
+From: David Rientjes <rientjes@google.com>
 
-Now we have __initconst, we can finally move the external declarations for
-the various Linux logo structures to <linux/linux_logo.h>.
+The per-task oom_adj value is a characteristic of its mm more than the
+task itself since it's not possible to oom kill any thread that shares the
+mm.  If a task were to be killed while attached to an mm that could not be
+freed because another thread were set to OOM_DISABLE, it would have
+needlessly been terminated since there is no potential for future memory
+freeing.
 
-James' ack dates back to the previous submission (way to long ago), when the
-logos were still __initdata, which caused failures on some platforms with some
-toolchain versions.
+This patch moves oomkilladj (now more appropriately named oom_adj) from
+struct task_struct to struct mm_struct.  This requires task_lock() on a
+task to check its oom_adj value to protect against exec, but it's already
+necessary to take the lock when dereferencing the mm to find the total VM
+size for the badness heuristic.
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Acked-by: James Simmons <jsimmons@infradead.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+This fixes a livelock if the oom killer chooses a task and another thread
+sharing the same memory has an oom_adj value of OOM_DISABLE.  This occurs
+because oom_kill_task() repeatedly returns 1 and refuses to kill the
+chosen task while select_bad_process() will repeatedly choose the same
+task during the next retry.
+
+Taking task_lock() in select_bad_process() to check for OOM_DISABLE and in
+oom_kill_task() to check for threads sharing the same memory will be
+removed in the next patch in this series where it will no longer be
+necessary.
+
+Writing to /proc/pid/oom_adj for a kthread will now return -EINVAL since
+these threads are immune from oom killing already.  They simply report an
+oom_adj value of OOM_DISABLE.
+
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/prom_init.c        |    3 ---
- arch/powerpc/platforms/cell/spu_base.c |   11 +----------
- arch/um/include/shared/init.h          |    2 +-
- drivers/video/logo/logo.c              |   15 ---------------
- include/linux/init.h                   |    2 +-
- include/linux/linux_logo.h             |   16 ++++++++++++++++
- scripts/pnmtologo.c                    |   18 +++++++++---------
- 7 files changed, 28 insertions(+), 39 deletions(-)
+ Documentation/filesystems/proc.txt |   15 +++++++----
+ fs/proc/base.c                     |   19 ++++++++++++---
+ include/linux/mm_types.h           |    2 +
+ include/linux/sched.h              |    1 
+ mm/oom_kill.c                      |   34 +++++++++++++++++----------
+ 5 files changed, 50 insertions(+), 21 deletions(-)
 
-diff -puN arch/powerpc/kernel/prom_init.c~fbdev-move-logo-externs-to-header-file arch/powerpc/kernel/prom_init.c
---- a/arch/powerpc/kernel/prom_init.c~fbdev-move-logo-externs-to-header-file
-+++ a/arch/powerpc/kernel/prom_init.c
-@@ -44,10 +44,7 @@
- #include <asm/sections.h>
- #include <asm/machdep.h>
+diff -puN Documentation/filesystems/proc.txt~oom-move-oom_adj-value-from-task_struct-to-mm_struct Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~oom-move-oom_adj-value-from-task_struct-to-mm_struct
++++ a/Documentation/filesystems/proc.txt
+@@ -1003,11 +1003,13 @@ CHAPTER 3: PER-PROCESS PARAMETERS
+ 3.1 /proc/<pid>/oom_adj - Adjust the oom-killer score
+ ------------------------------------------------------
  
--#ifdef CONFIG_LOGO_LINUX_CLUT224
- #include <linux/linux_logo.h>
--extern const struct linux_logo logo_linux_clut224;
--#endif
+-This file can be used to adjust the score used to select which processes
+-should be killed in an  out-of-memory  situation.  Giving it a high score will
+-increase the likelihood of this process being killed by the oom-killer.  Valid
+-values are in the range -16 to +15, plus the special value -17, which disables
+-oom-killing altogether for this process.
++This file can be used to adjust the score used to select which processes should
++be killed in an out-of-memory situation.  The oom_adj value is a characteristic
++of the task's mm, so all threads that share an mm with pid will have the same
++oom_adj value.  A high value will increase the likelihood of this process being
++killed by the oom-killer.  Valid values are in the range -16 to +15 as
++explained below and a special value of -17, which disables oom-killing
++altogether for threads sharing pid's mm.
  
- /*
-  * Properties whose value is longer than this get excluded from our
-diff -puN arch/powerpc/platforms/cell/spu_base.c~fbdev-move-logo-externs-to-header-file arch/powerpc/platforms/cell/spu_base.c
---- a/arch/powerpc/platforms/cell/spu_base.c~fbdev-move-logo-externs-to-header-file
-+++ a/arch/powerpc/platforms/cell/spu_base.c
-@@ -752,17 +752,8 @@ static int __init init_spu_base(void)
- 		goto out_unregister_sysdev_class;
+ The process to be killed in an out-of-memory situation is selected among all others
+ based on its badness score. This value equals the original memory size of the process
+@@ -1021,6 +1023,9 @@ the parent's score if they do not share 
+ are the prime candidates to be killed. Having only one 'hungry' child will make
+ parent less preferable than the child.
+ 
++/proc/<pid>/oom_adj cannot be changed for kthreads since they are immune from
++oom-killing already.
++
+ /proc/<pid>/oom_score shows process' current badness score.
+ 
+ The following heuristics are then applied:
+diff -puN fs/proc/base.c~oom-move-oom_adj-value-from-task_struct-to-mm_struct fs/proc/base.c
+--- a/fs/proc/base.c~oom-move-oom_adj-value-from-task_struct-to-mm_struct
++++ a/fs/proc/base.c
+@@ -1006,7 +1006,12 @@ static ssize_t oom_adjust_read(struct fi
+ 
+ 	if (!task)
+ 		return -ESRCH;
+-	oom_adjust = task->oomkilladj;
++	task_lock(task);
++	if (task->mm)
++		oom_adjust = task->mm->oom_adj;
++	else
++		oom_adjust = OOM_DISABLE;
++	task_unlock(task);
+ 	put_task_struct(task);
+ 
+ 	len = snprintf(buffer, sizeof(buffer), "%i\n", oom_adjust);
+@@ -1035,11 +1040,19 @@ static ssize_t oom_adjust_write(struct f
+ 	task = get_proc_task(file->f_path.dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
+-	if (oom_adjust < task->oomkilladj && !capable(CAP_SYS_RESOURCE)) {
++	task_lock(task);
++	if (!task->mm) {
++		task_unlock(task);
++		put_task_struct(task);
++		return -EINVAL;
++	}
++	if (oom_adjust < task->mm->oom_adj && !capable(CAP_SYS_RESOURCE)) {
++		task_unlock(task);
+ 		put_task_struct(task);
+ 		return -EACCES;
+ 	}
+-	task->oomkilladj = oom_adjust;
++	task->mm->oom_adj = oom_adjust;
++	task_unlock(task);
+ 	put_task_struct(task);
+ 	if (end - buffer == 0)
+ 		return -EIO;
+diff -puN include/linux/mm_types.h~oom-move-oom_adj-value-from-task_struct-to-mm_struct include/linux/mm_types.h
+--- a/include/linux/mm_types.h~oom-move-oom_adj-value-from-task_struct-to-mm_struct
++++ a/include/linux/mm_types.h
+@@ -232,6 +232,8 @@ struct mm_struct {
+ 
+ 	unsigned long saved_auxv[AT_VECTOR_SIZE]; /* for /proc/PID/auxv */
+ 
++	s8 oom_adj;	/* OOM kill score adjustment (bit shift) */
++
+ 	cpumask_t cpu_vm_mask;
+ 
+ 	/* Architecture-specific MM context */
+diff -puN include/linux/sched.h~oom-move-oom_adj-value-from-task_struct-to-mm_struct include/linux/sched.h
+--- a/include/linux/sched.h~oom-move-oom_adj-value-from-task_struct-to-mm_struct
++++ a/include/linux/sched.h
+@@ -1178,7 +1178,6 @@ struct task_struct {
+ 	 * a short time
+ 	 */
+ 	unsigned char fpu_counter;
+-	s8 oomkilladj; /* OOM kill score adjustment (bit shift). */
+ #ifdef CONFIG_BLK_DEV_IO_TRACE
+ 	unsigned int btrace_seq;
+ #endif
+diff -puN mm/oom_kill.c~oom-move-oom_adj-value-from-task_struct-to-mm_struct mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-move-oom_adj-value-from-task_struct-to-mm_struct
++++ a/mm/oom_kill.c
+@@ -58,6 +58,7 @@ unsigned long badness(struct task_struct
+ 	unsigned long points, cpu_time, run_time;
+ 	struct mm_struct *mm;
+ 	struct task_struct *child;
++	int oom_adj;
+ 
+ 	task_lock(p);
+ 	mm = p->mm;
+@@ -65,6 +66,7 @@ unsigned long badness(struct task_struct
+ 		task_unlock(p);
+ 		return 0;
+ 	}
++	oom_adj = mm->oom_adj;
+ 
+ 	/*
+ 	 * The memory size of the process is the basis for the badness.
+@@ -148,15 +150,15 @@ unsigned long badness(struct task_struct
+ 		points /= 8;
+ 
+ 	/*
+-	 * Adjust the score by oomkilladj.
++	 * Adjust the score by oom_adj.
+ 	 */
+-	if (p->oomkilladj) {
+-		if (p->oomkilladj > 0) {
++	if (oom_adj) {
++		if (oom_adj > 0) {
+ 			if (!points)
+ 				points = 1;
+-			points <<= p->oomkilladj;
++			points <<= oom_adj;
+ 		} else
+-			points >>= -(p->oomkilladj);
++			points >>= -(oom_adj);
  	}
  
--	if (ret > 0) {
--		/*
--		 * We cannot put the forward declaration in
--		 * <linux/linux_logo.h> because of conflicting session type
--		 * conflicts for const and __initdata with different compiler
--		 * versions
--		 */
--		extern const struct linux_logo logo_spe_clut224;
--
-+	if (ret > 0)
- 		fb_append_extra_logo(&logo_spe_clut224, ret);
--	}
+ #ifdef DEBUG
+@@ -251,8 +253,12 @@ static struct task_struct *select_bad_pr
+ 			*ppoints = ULONG_MAX;
+ 		}
  
- 	mutex_lock(&spu_full_list_mutex);
- 	xmon_register_spus(&spu_full_list);
-diff -puN arch/um/include/shared/init.h~fbdev-move-logo-externs-to-header-file arch/um/include/shared/init.h
---- a/arch/um/include/shared/init.h~fbdev-move-logo-externs-to-header-file
-+++ a/arch/um/include/shared/init.h
-@@ -27,7 +27,7 @@
-  * sign followed by value, e.g.:
-  *
-  * static int init_variable __initdata = 0;
-- * static char linux_logo[] __initdata = { 0x32, 0x36, ... };
-+ * static const char linux_logo[] __initconst = { 0x32, 0x36, ... };
-  *
-  * Don't forget to initialize data not at file scope, i.e. within a function,
-  * as gcc otherwise puts the data into the bss section and not into the init
-diff -puN drivers/video/logo/logo.c~fbdev-move-logo-externs-to-header-file drivers/video/logo/logo.c
---- a/drivers/video/logo/logo.c~fbdev-move-logo-externs-to-header-file
-+++ a/drivers/video/logo/logo.c
-@@ -21,21 +21,6 @@
- #include <asm/bootinfo.h>
- #endif
+-		if (p->oomkilladj == OOM_DISABLE)
++		task_lock(p);
++		if (p->mm && p->mm->oom_adj == OOM_DISABLE) {
++			task_unlock(p);
+ 			continue;
++		}
++		task_unlock(p);
  
--extern const struct linux_logo logo_linux_mono;
--extern const struct linux_logo logo_linux_vga16;
--extern const struct linux_logo logo_linux_clut224;
--extern const struct linux_logo logo_blackfin_vga16;
--extern const struct linux_logo logo_blackfin_clut224;
--extern const struct linux_logo logo_dec_clut224;
--extern const struct linux_logo logo_mac_clut224;
--extern const struct linux_logo logo_parisc_clut224;
--extern const struct linux_logo logo_sgi_clut224;
--extern const struct linux_logo logo_sun_clut224;
--extern const struct linux_logo logo_superh_mono;
--extern const struct linux_logo logo_superh_vga16;
--extern const struct linux_logo logo_superh_clut224;
--extern const struct linux_logo logo_m32r_clut224;
--
- static int nologo;
- module_param(nologo, bool, 0);
- MODULE_PARM_DESC(nologo, "Disables startup logo");
-diff -puN include/linux/init.h~fbdev-move-logo-externs-to-header-file include/linux/init.h
---- a/include/linux/init.h~fbdev-move-logo-externs-to-header-file
-+++ a/include/linux/init.h
-@@ -29,7 +29,7 @@
-  * sign followed by value, e.g.:
-  *
-  * static int init_variable __initdata = 0;
-- * static char linux_logo[] __initdata = { 0x32, 0x36, ... };
-+ * static const char linux_logo[] __initconst = { 0x32, 0x36, ... };
-  *
-  * Don't forget to initialize data not at file scope, i.e. within a function,
-  * as gcc otherwise puts the data into the bss section and not into the init
-diff -puN include/linux/linux_logo.h~fbdev-move-logo-externs-to-header-file include/linux/linux_logo.h
---- a/include/linux/linux_logo.h~fbdev-move-logo-externs-to-header-file
-+++ a/include/linux/linux_logo.h
-@@ -32,6 +32,22 @@ struct linux_logo {
- 	const unsigned char *data;
- };
- 
-+extern const struct linux_logo logo_linux_mono;
-+extern const struct linux_logo logo_linux_vga16;
-+extern const struct linux_logo logo_linux_clut224;
-+extern const struct linux_logo logo_blackfin_vga16;
-+extern const struct linux_logo logo_blackfin_clut224;
-+extern const struct linux_logo logo_dec_clut224;
-+extern const struct linux_logo logo_mac_clut224;
-+extern const struct linux_logo logo_parisc_clut224;
-+extern const struct linux_logo logo_sgi_clut224;
-+extern const struct linux_logo logo_sun_clut224;
-+extern const struct linux_logo logo_superh_mono;
-+extern const struct linux_logo logo_superh_vga16;
-+extern const struct linux_logo logo_superh_clut224;
-+extern const struct linux_logo logo_m32r_clut224;
-+extern const struct linux_logo logo_spe_clut224;
-+
- extern const struct linux_logo *fb_find_logo(int depth);
- #ifdef CONFIG_FB_LOGO_EXTRA
- extern void fb_append_extra_logo(const struct linux_logo *logo,
-diff -puN scripts/pnmtologo.c~fbdev-move-logo-externs-to-header-file scripts/pnmtologo.c
---- a/scripts/pnmtologo.c~fbdev-move-logo-externs-to-header-file
-+++ a/scripts/pnmtologo.c
-@@ -237,22 +237,22 @@ static void write_header(void)
-     fprintf(out, " *  Linux logo %s\n", logoname);
-     fputs(" */\n\n", out);
-     fputs("#include <linux/linux_logo.h>\n\n", out);
--    fprintf(out, "static unsigned char %s_data[] __initdata = {\n",
-+    fprintf(out, "static const unsigned char %s_data[] __initconst = {\n",
- 	    logoname);
+ 		points = badness(p, uptime.tv_sec);
+ 		if (points > *ppoints || !chosen) {
+@@ -304,8 +310,7 @@ static void dump_tasks(const struct mem_
+ 		}
+ 		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
+ 		       p->pid, __task_cred(p)->uid, p->tgid, mm->total_vm,
+-		       get_mm_rss(mm), (int)task_cpu(p), p->oomkilladj,
+-		       p->comm);
++		       get_mm_rss(mm), (int)task_cpu(p), mm->oom_adj, p->comm);
+ 		task_unlock(p);
+ 	} while_each_thread(g, p);
  }
+@@ -367,8 +372,12 @@ static int oom_kill_task(struct task_str
+ 	 * Don't kill the process if any threads are set to OOM_DISABLE
+ 	 */
+ 	do_each_thread(g, q) {
+-		if (q->mm == mm && q->oomkilladj == OOM_DISABLE)
++		task_lock(q);
++		if (q->mm == mm && q->mm && q->mm->oom_adj == OOM_DISABLE) {
++			task_unlock(q);
+ 			return 1;
++		}
++		task_unlock(q);
+ 	} while_each_thread(g, q);
  
- static void write_footer(void)
- {
-     fputs("\n};\n\n", out);
--    fprintf(out, "struct linux_logo %s __initdata = {\n", logoname);
--    fprintf(out, "    .type\t= %s,\n", logo_types[logo_type]);
--    fprintf(out, "    .width\t= %d,\n", logo_width);
--    fprintf(out, "    .height\t= %d,\n", logo_height);
-+    fprintf(out, "const struct linux_logo %s __initconst = {\n", logoname);
-+    fprintf(out, "\t.type\t\t= %s,\n", logo_types[logo_type]);
-+    fprintf(out, "\t.width\t\t= %d,\n", logo_width);
-+    fprintf(out, "\t.height\t\t= %d,\n", logo_height);
-     if (logo_type == LINUX_LOGO_CLUT224) {
--	fprintf(out, "    .clutsize\t= %d,\n", logo_clutsize);
--	fprintf(out, "    .clut\t= %s_clut,\n", logoname);
-+	fprintf(out, "\t.clutsize\t= %d,\n", logo_clutsize);
-+	fprintf(out, "\t.clut\t\t= %s_clut,\n", logoname);
-     }
--    fprintf(out, "    .data\t= %s_data\n", logoname);
-+    fprintf(out, "\t.data\t\t= %s_data\n", logoname);
-     fputs("};\n\n", out);
+ 	__oom_kill_task(p, 1);
+@@ -393,10 +402,11 @@ static int oom_kill_process(struct task_
+ 	struct task_struct *c;
  
-     /* close logo file */
-@@ -374,7 +374,7 @@ static void write_logo_clut224(void)
-     fputs("\n};\n\n", out);
- 
-     /* write logo clut */
--    fprintf(out, "static unsigned char %s_clut[] __initdata = {\n",
-+    fprintf(out, "static const unsigned char %s_clut[] __initconst = {\n",
- 	    logoname);
-     write_hex_cnt = 0;
-     for (i = 0; i < logo_clutsize; i++) {
+ 	if (printk_ratelimit()) {
+-		printk(KERN_WARNING "%s invoked oom-killer: "
+-			"gfp_mask=0x%x, order=%d, oomkilladj=%d\n",
+-			current->comm, gfp_mask, order, current->oomkilladj);
+ 		task_lock(current);
++		printk(KERN_WARNING "%s invoked oom-killer: "
++			"gfp_mask=0x%x, order=%d, oom_adj=%d\n",
++			current->comm, gfp_mask, order,
++			current->mm ? current->mm->oom_adj : OOM_DISABLE);
+ 		cpuset_print_task_mems_allowed(current);
+ 		task_unlock(current);
+ 		dump_stack();
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
+oom-move-oom_adj-value-from-task_struct-to-mm_struct-fix.patch
+memcg-add-file-based-rss-accounting.patch
+memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
 
