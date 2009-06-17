@@ -1,106 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:35:39 -0700
-Message-ID: <200906171835.n5HIZd48001601@imap1.linux-foundation.org>
+Subject: [merged] atmel-lcdc-fix-pixclock-upper-bound-detection.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:39:18 -0700
+Message-ID: <200906171839.n5HIdIdL005305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49325 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755459AbZFQSvN (ORCPT
+	by vger.kernel.org with ESMTP id S1754480AbZFQSvI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:51:13 -0400
+	Wed, 17 Jun 2009 14:51:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: bn@niasdigital.com, dg@emlix.com, haavard.skinnemoen@atmel.com, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-allocator: add inactive ratio calculation function of each zone
+     atmel-lcdc: fix pixclock upper bound detection
 has been removed from the -mm tree.  Its filename was
-     page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
+     atmel-lcdc-fix-pixclock-upper-bound-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator: add inactive ratio calculation function of each zone
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: atmel-lcdc: fix pixclock upper bound detection
+From: Ben Nizette <bn@niasdigital.com>
 
-Factor the per-zone arithemetic inside setup_per_zone_inactive_ratio()'s
-loop into a a separate function, calculate_zone_inactive_ratio().  This
-function will be used in a later patch
+AFAICT the code which checks that the requested pixclock value is within
+bounds is incorrect.  It ensures that the lcdc core clock is at least
+(bytes per pixel) times higher than the pixel clock rather than just
+greater than or equal to.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+There are tighter restrictions on the pixclock value as a function of bus
+width for STN panels but even then it isn't a simple relationship as
+currently checked for.  IMO either something like the below patch should
+be applied or else more detailed checking logic should be implemented
+which takes in to account the panel type as well.
+
+Signed-off-by: Ben Nizette <bn@niasdigital.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Cc: Daniel Glockner <dg@emlix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/page_alloc.c    |   28 ++++++++++++++++------------
- 2 files changed, 17 insertions(+), 12 deletions(-)
+ drivers/video/atmel_lcdfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~page-allocator-add-inactive-ratio-calculation-function-of-each-zone include/linux/mm.h
---- a/include/linux/mm.h~page-allocator-add-inactive-ratio-calculation-function-of-each-zone
-+++ a/include/linux/mm.h
-@@ -1053,6 +1053,7 @@ extern void set_dma_reserve(unsigned lon
- extern void memmap_init_zone(unsigned long, int, unsigned long,
- 				unsigned long, enum memmap_context);
- extern void setup_per_zone_wmarks(void);
-+extern void calculate_zone_inactive_ratio(struct zone *zone);
- extern void mem_init(void);
- extern void __init mmap_init(void);
- extern void show_mem(void);
-diff -puN mm/page_alloc.c~page-allocator-add-inactive-ratio-calculation-function-of-each-zone mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-add-inactive-ratio-calculation-function-of-each-zone
-+++ a/mm/page_alloc.c
-@@ -4478,22 +4478,26 @@ void setup_per_zone_wmarks(void)
-  *    1TB     101        10GB
-  *   10TB     320        32GB
-  */
--static void __init setup_per_zone_inactive_ratio(void)
-+void calculate_zone_inactive_ratio(struct zone *zone)
- {
--	struct zone *zone;
-+	unsigned int gb, ratio;
+diff -puN drivers/video/atmel_lcdfb.c~atmel-lcdc-fix-pixclock-upper-bound-detection drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel-lcdc-fix-pixclock-upper-bound-detection
++++ a/drivers/video/atmel_lcdfb.c
+@@ -345,7 +345,7 @@ static int atmel_lcdfb_check_var(struct 
+ 	dev_dbg(dev, "  bpp:        %u\n", var->bits_per_pixel);
+ 	dev_dbg(dev, "  clk:        %lu KHz\n", clk_value_khz);
  
--	for_each_zone(zone) {
--		unsigned int gb, ratio;
-+	/* Zone size in gigabytes */
-+	gb = zone->present_pages >> (30 - PAGE_SHIFT);
-+	if (gb)
-+		ratio = int_sqrt(10 * gb);
-+	else
-+		ratio = 1;
- 
--		/* Zone size in gigabytes */
--		gb = zone->present_pages >> (30 - PAGE_SHIFT);
--		if (gb)
--			ratio = int_sqrt(10 * gb);
--		else
--			ratio = 1;
-+	zone->inactive_ratio = ratio;
-+}
- 
--		zone->inactive_ratio = ratio;
--	}
-+static void __init setup_per_zone_inactive_ratio(void)
-+{
-+	struct zone *zone;
-+
-+	for_each_zone(zone)
-+		calculate_zone_inactive_ratio(zone);
- }
- 
- /*
+-	if ((PICOS2KHZ(var->pixclock) * var->bits_per_pixel / 8) > clk_value_khz) {
++	if (PICOS2KHZ(var->pixclock) > clk_value_khz) {
+ 		dev_err(dev, "%lu KHz pixel clock is too fast\n", PICOS2KHZ(var->pixclock));
+ 		return -EINVAL;
+ 	}
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from bn@niasdigital.com are
 
 origin.patch
-linux-next.patch
-memcg-fix-lru-rotation-in-isolate_pages.patch
 
