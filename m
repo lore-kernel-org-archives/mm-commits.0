@@ -1,190 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] poll-avoid-extra-wakeups-in-select-poll.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:37:14 -0700
-Message-ID: <200906171837.n5HIbEIm003310@imap1.linux-foundation.org>
+Subject: [merged] hexdump-remove-the-trailing-space.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:37:36 -0700
+Message-ID: <200906171837.n5HIba5Z003627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758810AbZFQSiV (ORCPT
+	by vger.kernel.org with ESMTP id S1760354AbZFQSiZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:38:21 -0400
+	Wed, 17 Jun 2009 14:38:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, ak@linux.intel.com, cl@linux-foundation.org, davem@davemloft.net, davidel@xmailserver.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     poll: avoid extra wakeups in select/poll
+     hexdump: remove the trailing space
 has been removed from the -mm tree.  Its filename was
-     poll-avoid-extra-wakeups-in-select-poll.patch
+     hexdump-remove-the-trailing-space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: poll: avoid extra wakeups in select/poll
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: hexdump: remove the trailing space
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-After introduction of keyed wakeups Davide Libenzi did on epoll, we are
-able to avoid spurious wakeups in poll()/select() code too.
+For example:
+        hex_dump_to_buffer("AB", 2, 16, 1, buf, 100, 0);
+        pr_info("[%s]\n", buf);
 
-For example, typical use of poll()/select() is to wait for incoming
-network frames on many sockets.  But TX completion for UDP/TCP frames call
-sock_wfree() which in turn schedules thread.
+I'd expect the output to be "[41 42]", but actually it's "[41 42 ]"
 
-When scheduled, thread does a full scan of all polled fds and can sleep
-again, because nothing is really available.  If number of fds is large,
-this cause significant load.
+This patch also makes the required buf to be minimum.  To print the hex
+format of "AB", a buf with size 6 should be sufficient, but
+hex_dump_to_buffer() required at least 8.
 
-This patch makes select()/poll() aware of keyed wakeups and useless
-wakeups are avoided.  This reduces number of context switches by about 50%
-on some setups, and work performed by sofirq handlers.
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c          |   40 ++++++++++++++++++++++++++++++++++++----
- include/linux/poll.h |    3 +++
- 2 files changed, 39 insertions(+), 4 deletions(-)
+ lib/hexdump.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN fs/select.c~poll-avoid-extra-wakeups-in-select-poll fs/select.c
---- a/fs/select.c~poll-avoid-extra-wakeups-in-select-poll
-+++ a/fs/select.c
-@@ -168,7 +168,7 @@ static struct poll_table_entry *poll_get
- 	return table->entry++;
- }
+diff -puN lib/hexdump.c~hexdump-remove-the-trailing-space lib/hexdump.c
+--- a/lib/hexdump.c~hexdump-remove-the-trailing-space
++++ a/lib/hexdump.c
+@@ -65,7 +65,8 @@ void hex_dump_to_buffer(const void *buf,
  
--static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
-+static int __pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
- {
- 	struct poll_wqueues *pwq = wait->private;
- 	DECLARE_WAITQUEUE(dummy_wait, pwq->polling_task);
-@@ -194,6 +194,16 @@ static int pollwake(wait_queue_t *wait, 
- 	return default_wake_function(&dummy_wait, mode, sync, key);
- }
+ 		for (j = 0; j < ngroups; j++)
+ 			lx += scnprintf(linebuf + lx, linebuflen - lx,
+-				"%16.16llx ", (unsigned long long)*(ptr8 + j));
++				"%s%16.16llx", j ? " " : "",
++				(unsigned long long)*(ptr8 + j));
+ 		ascii_column = 17 * ngroups + 2;
+ 		break;
+ 	}
+@@ -76,7 +77,7 @@ void hex_dump_to_buffer(const void *buf,
  
-+static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
-+{
-+	struct poll_table_entry *entry;
+ 		for (j = 0; j < ngroups; j++)
+ 			lx += scnprintf(linebuf + lx, linebuflen - lx,
+-				"%8.8x ", *(ptr4 + j));
++				"%s%8.8x", j ? " " : "", *(ptr4 + j));
+ 		ascii_column = 9 * ngroups + 2;
+ 		break;
+ 	}
+@@ -87,19 +88,21 @@ void hex_dump_to_buffer(const void *buf,
+ 
+ 		for (j = 0; j < ngroups; j++)
+ 			lx += scnprintf(linebuf + lx, linebuflen - lx,
+-				"%4.4x ", *(ptr2 + j));
++				"%s%4.4x", j ? " " : "", *(ptr2 + j));
+ 		ascii_column = 5 * ngroups + 2;
+ 		break;
+ 	}
+ 
+ 	default:
+-		for (j = 0; (j < rowsize) && (j < len) && (lx + 4) < linebuflen;
+-		     j++) {
++		for (j = 0; (j < len) && (lx + 3) <= linebuflen; j++) {
+ 			ch = ptr[j];
+ 			linebuf[lx++] = hex_asc_hi(ch);
+ 			linebuf[lx++] = hex_asc_lo(ch);
+ 			linebuf[lx++] = ' ';
+ 		}
++		if (j)
++			lx--;
 +
-+	entry = container_of(wait, struct poll_table_entry, wait);
-+	if (key && !((unsigned long)key & entry->key))
-+		return 0;
-+	return __pollwake(wait, mode, sync, key);
-+}
-+
- /* Add a new entry */
- static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
- 				poll_table *p)
-@@ -205,6 +215,7 @@ static void __pollwait(struct file *filp
- 	get_file(filp);
- 	entry->filp = filp;
- 	entry->wait_address = wait_address;
-+	entry->key = p->key;
- 	init_waitqueue_func_entry(&entry->wait, pollwake);
- 	entry->wait.private = pwq;
- 	add_wait_queue(wait_address, &entry->wait);
-@@ -362,6 +373,18 @@ get_max:
- #define POLLOUT_SET (POLLWRBAND | POLLWRNORM | POLLOUT | POLLERR)
- #define POLLEX_SET (POLLPRI)
+ 		ascii_column = 3 * rowsize + 2;
+ 		break;
+ 	}
+@@ -108,7 +111,7 @@ void hex_dump_to_buffer(const void *buf,
  
-+static inline void wait_key_set(poll_table *wait, unsigned long in,
-+				unsigned long out, unsigned long bit)
-+{
-+	if (wait) {
-+		wait->key = POLLEX_SET;
-+		if (in & bit)
-+			wait->key |= POLLIN_SET;
-+		if (out & bit)
-+			wait->key |= POLLOUT_SET;
-+	}
-+}
-+
- int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- {
- 	ktime_t expire, *to = NULL;
-@@ -418,20 +441,25 @@ int do_select(int n, fd_set_bits *fds, s
- 				if (file) {
- 					f_op = file->f_op;
- 					mask = DEFAULT_POLLMASK;
--					if (f_op && f_op->poll)
--						mask = (*f_op->poll)(file, retval ? NULL : wait);
-+					if (f_op && f_op->poll) {
-+						wait_key_set(wait, in, out, bit);
-+						mask = (*f_op->poll)(file, wait);
-+					}
- 					fput_light(file, fput_needed);
- 					if ((mask & POLLIN_SET) && (in & bit)) {
- 						res_in |= bit;
- 						retval++;
-+						wait = NULL;
- 					}
- 					if ((mask & POLLOUT_SET) && (out & bit)) {
- 						res_out |= bit;
- 						retval++;
-+						wait = NULL;
- 					}
- 					if ((mask & POLLEX_SET) && (ex & bit)) {
- 						res_ex |= bit;
- 						retval++;
-+						wait = NULL;
- 					}
- 				}
- 			}
-@@ -685,8 +713,12 @@ static inline unsigned int do_pollfd(str
- 		mask = POLLNVAL;
- 		if (file != NULL) {
- 			mask = DEFAULT_POLLMASK;
--			if (file->f_op && file->f_op->poll)
-+			if (file->f_op && file->f_op->poll) {
-+				if (pwait)
-+					pwait->key = pollfd->events |
-+							POLLERR | POLLHUP;
- 				mask = file->f_op->poll(file, pwait);
-+			}
- 			/* Mask out unneeded events. */
- 			mask &= pollfd->events | POLLERR | POLLHUP;
- 			fput_light(file, fput_needed);
-diff -puN include/linux/poll.h~poll-avoid-extra-wakeups-in-select-poll include/linux/poll.h
---- a/include/linux/poll.h~poll-avoid-extra-wakeups-in-select-poll
-+++ a/include/linux/poll.h
-@@ -32,6 +32,7 @@ typedef void (*poll_queue_proc)(struct f
- 
- typedef struct poll_table_struct {
- 	poll_queue_proc qproc;
-+	unsigned long key;
- } poll_table;
- 
- static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
-@@ -43,10 +44,12 @@ static inline void poll_wait(struct file
- static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
- {
- 	pt->qproc = qproc;
-+	pt->key   = ~0UL; /* all events enabled */
- }
- 
- struct poll_table_entry {
- 	struct file *filp;
-+	unsigned long key;
- 	wait_queue_t wait;
- 	wait_queue_head_t *wait_address;
- };
+ 	while (lx < (linebuflen - 1) && lx < (ascii_column - 1))
+ 		linebuf[lx++] = ' ';
+-	for (j = 0; (j < rowsize) && (j < len) && (lx + 2) < linebuflen; j++)
++	for (j = 0; (j < len) && (lx + 2) < linebuflen; j++)
+ 		linebuf[lx++] = (isascii(ptr[j]) && isprint(ptr[j])) ? ptr[j]
+ 				: '.';
+ nil:
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-update.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-proc-update-document-for-proc-softirqs-and-proc-stat-update.patch
+linux-next.patch
+cgroups-make-messages-more-readable.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix2.patch
+devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
+memcg-remove-some-redundant-checks.patch
+memcg-remove-unneeded-forward-declaration-from-schedh.patch
+memcg-fix-swap-accounting.patch
+memcg-fix-swap-accounting-update.patch
+memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch
+memcg-add-interface-to-reset-limits.patch
 
