@@ -1,168 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rio-warn_unused_result-warnings-fix.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:40:09 -0700
-Message-ID: <200906171840.n5HIe9VW006113@imap1.linux-foundation.org>
+Subject: [merged] page-allocator-clean-up-functions-related-to-pages_min.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:35:36 -0700
+Message-ID: <200906171835.n5HIZaW5001596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33833 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758298AbZFQSyf (ORCPT
+	by vger.kernel.org with ESMTP id S1754005AbZFQSzS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:54:35 -0400
+	Wed, 17 Jun 2009 14:55:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: leoli@freescale.com, benh@kernel.crashing.org, galak@gate.crashing.org, mporter@kernel.crashing.org, zw@zh-kernel.org, mm-commits@vger.kernel.org
+To: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rio: warn_unused_result warnings fix
+     page-allocator: clean up functions related to pages_min
 has been removed from the -mm tree.  Its filename was
-     rio-warn_unused_result-warnings-fix.patch
+     page-allocator-clean-up-functions-related-to-pages_min.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rio: warn_unused_result warnings fix
-From: Li Yang <leoli@freescale.com>
+Subject: page-allocator: clean up functions related to pages_min
+From: Minchan Kim <minchan.kim@gmail.com>
 
-Adding failure path for the following two cases.
+Change the names of two functions. It doesn't affect behavior. 
 
-warning: ignoring return value of 'device_add', declared with attribute warn_unused_result
-warning: ignoring return value of 'sysfs_create_bin_file', declared with attribute warn_unused_result
+Presently, setup_per_zone_pages_min() changes low, high of zone as well as
+min.  So a better name is setup_per_zone_wmarks().  That's because Mel
+changed zone->pages_[hig/low/min] to zone->watermark array in "page
+allocator: replace the watermark-related union in struct zone with a
+watermark[] array".
 
-Signed-off-by: Li Yang <leoli@freescale.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Zhang Wei <zw@zh-kernel.org>
+ * setup_per_zone_pages_min => setup_per_zone_wmarks
+
+Of course, we have to change init_per_zone_pages_min, too.  There are not
+pages_min any more.  
+
+ * init_per_zone_pages_min => init_per_zone_wmark_min
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c  |   44 ++++++++++++++++++++--------------
- drivers/rapidio/rio-sysfs.c |    6 +++-
- 2 files changed, 31 insertions(+), 19 deletions(-)
+ include/linux/mm.h  |    2 +-
+ mm/memory_hotplug.c |    2 +-
+ mm/page_alloc.c     |   17 +++++++++--------
+ 3 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rapidio/rio-scan.c~rio-warn_unused_result-warnings-fix drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rio-warn_unused_result-warnings-fix
-+++ a/drivers/rapidio/rio-scan.c
-@@ -263,15 +263,21 @@ static void rio_route_set_ops(struct rio
-  * device to the RIO device list.  Creates the generic sysfs nodes
-  * for an RIO device.
+diff -puN include/linux/mm.h~page-allocator-clean-up-functions-related-to-pages_min include/linux/mm.h
+--- a/include/linux/mm.h~page-allocator-clean-up-functions-related-to-pages_min
++++ a/include/linux/mm.h
+@@ -1052,7 +1052,7 @@ extern int __meminit __early_pfn_to_nid(
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
+ extern void memmap_init_zone(unsigned long, int, unsigned long,
+ 				unsigned long, enum memmap_context);
+-extern void setup_per_zone_pages_min(void);
++extern void setup_per_zone_wmarks(void);
+ extern void mem_init(void);
+ extern void __init mmap_init(void);
+ extern void show_mem(void);
+diff -puN mm/memory_hotplug.c~page-allocator-clean-up-functions-related-to-pages_min mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~page-allocator-clean-up-functions-related-to-pages_min
++++ a/mm/memory_hotplug.c
+@@ -422,7 +422,7 @@ int online_pages(unsigned long pfn, unsi
+ 	zone->present_pages += onlined_pages;
+ 	zone->zone_pgdat->node_present_pages += onlined_pages;
+ 
+-	setup_per_zone_pages_min();
++	setup_per_zone_wmarks();
+ 	if (onlined_pages) {
+ 		kswapd_run(zone_to_nid(zone));
+ 		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
+diff -puN mm/page_alloc.c~page-allocator-clean-up-functions-related-to-pages_min mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-clean-up-functions-related-to-pages_min
++++ a/mm/page_alloc.c
+@@ -4396,12 +4396,13 @@ static void setup_per_zone_lowmem_reserv
+ }
+ 
+ /**
+- * setup_per_zone_pages_min - called when min_free_kbytes changes.
++ * setup_per_zone_wmarks - called when min_free_kbytes changes
++ * or when memory is hot-added
+  *
+- * Ensures that the pages_{min,low,high} values for each zone are set correctly
+- * with respect to min_free_kbytes.
++ * Ensures that the watermark[min,low,high] values for each zone are set
++ * correctly with respect to min_free_kbytes.
   */
--static void __devinit rio_add_device(struct rio_dev *rdev)
-+static int __devinit rio_add_device(struct rio_dev *rdev)
+-void setup_per_zone_pages_min(void)
++void setup_per_zone_wmarks(void)
  {
--	device_add(&rdev->dev);
-+	int err;
-+
-+	err = device_add(&rdev->dev);
-+	if (err)
-+		return err;
- 
- 	spin_lock(&rio_global_list_lock);
- 	list_add_tail(&rdev->global_list, &rio_devices);
- 	spin_unlock(&rio_global_list_lock);
- 
- 	rio_create_sysfs_dev_files(rdev);
-+
-+	return 0;
- }
- 
- /**
-@@ -294,13 +300,14 @@ static struct rio_dev *rio_setup_device(
- 					struct rio_mport *port, u16 destid,
- 					u8 hopcount, int do_enum)
- {
-+	int ret = 0;
- 	struct rio_dev *rdev;
--	struct rio_switch *rswitch;
-+	struct rio_switch *rswitch = NULL;
- 	int result, rdid;
- 
- 	rdev = kzalloc(sizeof(struct rio_dev), GFP_KERNEL);
- 	if (!rdev)
--		goto out;
-+		return NULL;
- 
- 	rdev->net = net;
- 	rio_mport_read_config_32(port, destid, hopcount, RIO_DEV_ID_CAR,
-@@ -343,23 +350,16 @@ static struct rio_dev *rio_setup_device(
- 		rio_mport_read_config_32(port, destid, hopcount,
- 					 RIO_SWP_INFO_CAR, &rdev->swpinfo);
- 		rswitch = kmalloc(sizeof(struct rio_switch), GFP_KERNEL);
--		if (!rswitch) {
--			kfree(rdev);
--			rdev = NULL;
--			goto out;
--		}
-+		if (!rswitch)
-+			goto cleanup;
- 		rswitch->switchid = next_switchid;
- 		rswitch->hopcount = hopcount;
- 		rswitch->destid = destid;
- 		rswitch->route_table = kzalloc(sizeof(u8)*
- 					RIO_MAX_ROUTE_ENTRIES(port->sys_size),
- 					GFP_KERNEL);
--		if (!rswitch->route_table) {
--			kfree(rdev);
--			rdev = NULL;
--			kfree(rswitch);
--			goto out;
--		}
-+		if (!rswitch->route_table)
-+			goto cleanup;
- 		/* Initialize switch route table */
- 		for (rdid = 0; rdid < RIO_MAX_ROUTE_ENTRIES(port->sys_size);
- 				rdid++)
-@@ -390,10 +390,20 @@ static struct rio_dev *rio_setup_device(
- 		rio_init_dbell_res(&rdev->riores[RIO_DOORBELL_RESOURCE],
- 				   0, 0xffff);
- 
--	rio_add_device(rdev);
-+	ret = rio_add_device(rdev);
-+	if (ret)
-+		goto cleanup;
- 
--      out:
- 	return rdev;
-+
-+cleanup:
-+	if (rswitch) {
-+		if (rswitch->route_table)
-+			kfree(rswitch->route_table);
-+		kfree(rswitch);
-+	}
-+	kfree(rdev);
-+	return NULL;
- }
- 
- /**
-diff -puN drivers/rapidio/rio-sysfs.c~rio-warn_unused_result-warnings-fix drivers/rapidio/rio-sysfs.c
---- a/drivers/rapidio/rio-sysfs.c~rio-warn_unused_result-warnings-fix
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -214,9 +214,11 @@ static struct bin_attribute rio_config_a
+ 	unsigned long pages_min = min_free_kbytes >> (PAGE_SHIFT - 10);
+ 	unsigned long lowmem_pages = 0;
+@@ -4519,7 +4520,7 @@ static void __init setup_per_zone_inacti
+  * 8192MB:	11584k
+  * 16384MB:	16384k
   */
- int rio_create_sysfs_dev_files(struct rio_dev *rdev)
+-static int __init init_per_zone_pages_min(void)
++static int __init init_per_zone_wmark_min(void)
  {
--	sysfs_create_bin_file(&rdev->dev.kobj, &rio_config_attr);
-+	int err = 0;
+ 	unsigned long lowmem_kbytes;
  
--	return 0;
-+	err = sysfs_create_bin_file(&rdev->dev.kobj, &rio_config_attr);
-+
-+	return err;
+@@ -4530,12 +4531,12 @@ static int __init init_per_zone_pages_mi
+ 		min_free_kbytes = 128;
+ 	if (min_free_kbytes > 65536)
+ 		min_free_kbytes = 65536;
+-	setup_per_zone_pages_min();
++	setup_per_zone_wmarks();
+ 	setup_per_zone_lowmem_reserve();
+ 	setup_per_zone_inactive_ratio();
+ 	return 0;
+ }
+-module_init(init_per_zone_pages_min)
++module_init(init_per_zone_wmark_min)
+ 
+ /*
+  * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so 
+@@ -4547,7 +4548,7 @@ int min_free_kbytes_sysctl_handler(ctl_t
+ {
+ 	proc_dointvec(table, write, file, buffer, length, ppos);
+ 	if (write)
+-		setup_per_zone_pages_min();
++		setup_per_zone_wmarks();
+ 	return 0;
  }
  
- /**
 _
 
-Patches currently in -mm which might be from leoli@freescale.com are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
 origin.patch
 linux-next.patch
-rapidio-add-common-mapping-apis-for-rapidio-memory-access.patch
-powerpc-add-memory-map-support-to-freescale-rapidio-block.patch
-rionet-add-memory-access-to-simulated-ethernet-over-rapidio.patch
+memcg-fix-lru-rotation-in-isolate_pages.patch
 
