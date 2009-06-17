@@ -1,164 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-evict-use-once-pages-first-v3.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:34:53 -0700
-Message-ID: <200906171834.n5HIYr2d000940@imap1.linux-foundation.org>
+Subject: [merged] pagemap-document-9-more-exported-page-flags.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:34:48 -0700
+Message-ID: <200906171834.n5HIYmbq000784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53473 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759647AbZFQSfx (ORCPT
+	by vger.kernel.org with ESMTP id S1758378AbZFQSfx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 17 Jun 2009 14:35:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, elladan@eskimo.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: evict use-once pages first
+     pagemap: document 9 more exported page flags
 has been removed from the -mm tree.  Its filename was
-     vmscan-evict-use-once-pages-first-v3.patch
+     pagemap-document-9-more-exported-page-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: evict use-once pages first
-From: Rik van Riel <riel@redhat.com>
+Subject: pagemap: document 9 more exported page flags
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-When the file LRU lists are dominated by streaming IO pages, evict those
-pages first, before considering evicting other pages.
+Also add short descriptions for all of the 20 exported page flags.
 
-This should be safe from deadlocks or performance problems
-because only three things can happen to an inactive file page:
-
-1) referenced twice and promoted to the active list
-2) evicted by the pageout code
-3) under IO, after which it will get evicted or promoted
-
-The pages freed in this way can either be reused for streaming IO, or
-allocated for something else.  If the pages are used for streaming IO,
-this pageout pattern continues.  Otherwise, we will fall back to the
-normal pageout pattern.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Elladan <elladan@eskimo.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 ++++++
- mm/memcontrol.c            |   11 ++++++++++
- mm/vmscan.c                |   38 ++++++++++++++++++++++++++++++++++-
- 3 files changed, 55 insertions(+), 1 deletion(-)
+ Documentation/vm/pagemap.txt |   62 +++++++++++++++++++++++++++++++++
+ 1 file changed, 62 insertions(+)
 
-diff -puN include/linux/memcontrol.h~vmscan-evict-use-once-pages-first-v3 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~vmscan-evict-use-once-pages-first-v3
-+++ a/include/linux/memcontrol.h
-@@ -94,6 +94,7 @@ extern void mem_cgroup_note_reclaim_prio
- extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
- 							int priority);
- int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg);
-+int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg);
- unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
- 				       struct zone *zone,
- 				       enum lru_list lru);
-@@ -239,6 +240,12 @@ mem_cgroup_inactive_anon_is_low(struct m
- 	return 1;
- }
+diff -puN Documentation/vm/pagemap.txt~pagemap-document-9-more-exported-page-flags Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-document-9-more-exported-page-flags
++++ a/Documentation/vm/pagemap.txt
+@@ -49,6 +49,68 @@ There are three components to pagemap:
+      8. WRITEBACK
+      9. RECLAIM
+     10. BUDDY
++    11. MMAP
++    12. ANON
++    13. SWAPCACHE
++    14. SWAPBACKED
++    15. COMPOUND_HEAD
++    16. COMPOUND_TAIL
++    16. HUGE
++    18. UNEVICTABLE
++    20. NOPAGE
++
++Short descriptions to the page flags:
++
++ 0. LOCKED
++    page is being locked for exclusive access, eg. by undergoing read/write IO
++
++ 7. SLAB
++    page is managed by the SLAB/SLOB/SLUB/SLQB kernel memory allocator
++    When compound page is used, SLUB/SLQB will only set this flag on the head
++    page; SLOB will not flag it at all.
++
++10. BUDDY
++    a free memory block managed by the buddy system allocator
++    The buddy system organizes free memory in blocks of various orders.
++    An order N block has 2^N physically contiguous pages, with the BUDDY flag
++    set for and _only_ for the first page.
++
++15. COMPOUND_HEAD
++16. COMPOUND_TAIL
++    A compound page with order N consists of 2^N physically contiguous pages.
++    A compound page with order 2 takes the form of "HTTT", where H donates its
++    head page and T donates its tail page(s).  The major consumers of compound
++    pages are hugeTLB pages (Documentation/vm/hugetlbpage.txt), the SLUB etc.
++    memory allocators and various device drivers. However in this interface,
++    only huge/giga pages are made visible to end users.
++17. HUGE
++    this is an integral part of a HugeTLB page
++
++20. NOPAGE
++    no page frame exists at the requested address
++
++    [IO related page flags]
++ 1. ERROR     IO error occurred
++ 3. UPTODATE  page has up-to-date data
++              ie. for file backed page: (in-memory data revision >= on-disk one)
++ 4. DIRTY     page has been written to, hence contains new data
++              ie. for file backed page: (in-memory data revision >  on-disk one)
++ 8. WRITEBACK page is being synced to disk
++
++    [LRU related page flags]
++ 5. LRU         page is in one of the LRU lists
++ 6. ACTIVE      page is in the active LRU list
++18. UNEVICTABLE page is in the unevictable (non-)LRU list
++                It is somehow pinned and not a candidate for LRU page reclaims,
++		eg. ramfs pages, shmctl(SHM_LOCK) and mlock() memory segments
++ 2. REFERENCED  page has been referenced since last LRU list enqueue/requeue
++ 9. RECLAIM     page will be reclaimed soon after its pageout IO completed
++11. MMAP        a memory mapped page
++12. ANON        a memory mapped page that is not part of a file
++13. SWAPCACHE   page is mapped to swap space, ie. has an associated swap entry
++14. SWAPBACKED  page is backed by swap/RAM
++
++The page-types tool in this directory can be used to query the above flags.
  
-+static inline int
-+mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg)
-+{
-+	return 1;
-+}
-+
- static inline unsigned long
- mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg, struct zone *zone,
- 			 enum lru_list lru)
-diff -puN mm/memcontrol.c~vmscan-evict-use-once-pages-first-v3 mm/memcontrol.c
---- a/mm/memcontrol.c~vmscan-evict-use-once-pages-first-v3
-+++ a/mm/memcontrol.c
-@@ -570,6 +570,17 @@ int mem_cgroup_inactive_anon_is_low(stru
- 	return 0;
- }
+ Using pagemap to do something useful:
  
-+int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg)
-+{
-+	unsigned long active;
-+	unsigned long inactive;
-+
-+	inactive = mem_cgroup_get_local_zonestat(memcg, LRU_INACTIVE_FILE);
-+	active = mem_cgroup_get_local_zonestat(memcg, LRU_ACTIVE_FILE);
-+
-+	return (active > inactive);
-+}
-+
- unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
- 				       struct zone *zone,
- 				       enum lru_list lru)
-diff -puN mm/vmscan.c~vmscan-evict-use-once-pages-first-v3 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-evict-use-once-pages-first-v3
-+++ a/mm/vmscan.c
-@@ -1351,12 +1351,48 @@ static int inactive_anon_is_low(struct z
- 	return low;
- }
- 
-+static int inactive_file_is_low_global(struct zone *zone)
-+{
-+	unsigned long active, inactive;
-+
-+	active = zone_page_state(zone, NR_ACTIVE_FILE);
-+	inactive = zone_page_state(zone, NR_INACTIVE_FILE);
-+
-+	return (active > inactive);
-+}
-+
-+/**
-+ * inactive_file_is_low - check if file pages need to be deactivated
-+ * @zone: zone to check
-+ * @sc:   scan control of this context
-+ *
-+ * When the system is doing streaming IO, memory pressure here
-+ * ensures that active file pages get deactivated, until more
-+ * than half of the file pages are on the inactive list.
-+ *
-+ * Once we get to that situation, protect the system's working
-+ * set from being evicted by disabling active file page aging.
-+ *
-+ * This uses a different ratio than the anonymous pages, because
-+ * the page cache uses a use-once replacement algorithm.
-+ */
-+static int inactive_file_is_low(struct zone *zone, struct scan_control *sc)
-+{
-+	int low;
-+
-+	if (scanning_global_lru(sc))
-+		low = inactive_file_is_low_global(zone);
-+	else
-+		low = mem_cgroup_inactive_file_is_low(sc->mem_cgroup);
-+	return low;
-+}
-+
- static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
- 	struct zone *zone, struct scan_control *sc, int priority)
- {
- 	int file = is_file_lru(lru);
- 
--	if (lru == LRU_ACTIVE_FILE) {
-+	if (lru == LRU_ACTIVE_FILE && inactive_file_is_low(zone, sc)) {
- 		shrink_active_list(nr_to_scan, zone, sc, priority, file);
- 		return 0;
- 	}
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
+documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 linux-next.patch
-mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
 
