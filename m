@@ -1,109 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:35:01 -0700
-Message-ID: <200906171835.n5HIZ1mn001082@imap1.linux-foundation.org>
+Subject: [merged] vmscan-evict-use-once-pages-first-v3.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:34:53 -0700
+Message-ID: <200906171834.n5HIYr2d000940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53033 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758215AbZFQSfn (ORCPT
+	by vger.kernel.org with ESMTP id S1759647AbZFQSfx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:35:43 -0400
+	Wed, 17 Jun 2009 14:35:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redha
+To: riel@redhat.com, elladan@eskimo.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: ZVC updates in shrink_active_list() can be done once
+     vmscan: evict use-once pages first
 has been removed from the -mm tree.  Its filename was
-     vmscan-zvc-updates-in-shrink_active_list-can-be-done-once.patch
+     vmscan-evict-use-once-pages-first-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: ZVC updates in shrink_active_list() can be done once
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: vmscan: evict use-once pages first
+From: Rik van Riel <riel@redhat.com>
 
-This effectively lifts the unit of updates to nr_inactive_* and
-pgdeactivate from PAGEVEC_SIZE=14 to SWAP_CLUSTER_MAX=32, or
-MAX_ORDER_NR_PAGES=1024 for reclaim_zone().
+When the file LRU lists are dominated by streaming IO pages, evict those
+pages first, before considering evicting other pages.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+This should be safe from deadlocks or performance problems
+because only three things can happen to an inactive file page:
+
+1) referenced twice and promoted to the active list
+2) evicted by the pageout code
+3) under IO, after which it will get evicted or promoted
+
+The pages freed in this way can either be reused for streaming IO, or
+allocated for something else.  If the pages are used for streaming IO,
+this pageout pattern continues.  Otherwise, we will fall back to the
+normal pageout pattern.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Elladan <elladan@eskimo.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ include/linux/memcontrol.h |    7 ++++++
+ mm/memcontrol.c            |   11 ++++++++++
+ mm/vmscan.c                |   38 ++++++++++++++++++++++++++++++++++-
+ 3 files changed, 55 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-zvc-updates-in-shrink_active_list-can-be-done-once mm/vmscan.c
---- a/mm/vmscan.c~vmscan-zvc-updates-in-shrink_active_list-can-be-done-once
+diff -puN include/linux/memcontrol.h~vmscan-evict-use-once-pages-first-v3 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~vmscan-evict-use-once-pages-first-v3
++++ a/include/linux/memcontrol.h
+@@ -94,6 +94,7 @@ extern void mem_cgroup_note_reclaim_prio
+ extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
+ 							int priority);
+ int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg);
++int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg);
+ unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
+ 				       struct zone *zone,
+ 				       enum lru_list lru);
+@@ -239,6 +240,12 @@ mem_cgroup_inactive_anon_is_low(struct m
+ 	return 1;
+ }
+ 
++static inline int
++mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg)
++{
++	return 1;
++}
++
+ static inline unsigned long
+ mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg, struct zone *zone,
+ 			 enum lru_list lru)
+diff -puN mm/memcontrol.c~vmscan-evict-use-once-pages-first-v3 mm/memcontrol.c
+--- a/mm/memcontrol.c~vmscan-evict-use-once-pages-first-v3
++++ a/mm/memcontrol.c
+@@ -570,6 +570,17 @@ int mem_cgroup_inactive_anon_is_low(stru
+ 	return 0;
+ }
+ 
++int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg)
++{
++	unsigned long active;
++	unsigned long inactive;
++
++	inactive = mem_cgroup_get_local_zonestat(memcg, LRU_INACTIVE_FILE);
++	active = mem_cgroup_get_local_zonestat(memcg, LRU_ACTIVE_FILE);
++
++	return (active > inactive);
++}
++
+ unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
+ 				       struct zone *zone,
+ 				       enum lru_list lru)
+diff -puN mm/vmscan.c~vmscan-evict-use-once-pages-first-v3 mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-evict-use-once-pages-first-v3
 +++ a/mm/vmscan.c
-@@ -1223,7 +1223,6 @@ static void shrink_active_list(unsigned 
- 			struct scan_control *sc, int priority, int file)
+@@ -1351,12 +1351,48 @@ static int inactive_anon_is_low(struct z
+ 	return low;
+ }
+ 
++static int inactive_file_is_low_global(struct zone *zone)
++{
++	unsigned long active, inactive;
++
++	active = zone_page_state(zone, NR_ACTIVE_FILE);
++	inactive = zone_page_state(zone, NR_INACTIVE_FILE);
++
++	return (active > inactive);
++}
++
++/**
++ * inactive_file_is_low - check if file pages need to be deactivated
++ * @zone: zone to check
++ * @sc:   scan control of this context
++ *
++ * When the system is doing streaming IO, memory pressure here
++ * ensures that active file pages get deactivated, until more
++ * than half of the file pages are on the inactive list.
++ *
++ * Once we get to that situation, protect the system's working
++ * set from being evicted by disabling active file page aging.
++ *
++ * This uses a different ratio than the anonymous pages, because
++ * the page cache uses a use-once replacement algorithm.
++ */
++static int inactive_file_is_low(struct zone *zone, struct scan_control *sc)
++{
++	int low;
++
++	if (scanning_global_lru(sc))
++		low = inactive_file_is_low_global(zone);
++	else
++		low = mem_cgroup_inactive_file_is_low(sc->mem_cgroup);
++	return low;
++}
++
+ static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
+ 	struct zone *zone, struct scan_control *sc, int priority)
  {
- 	unsigned long pgmoved;
--	int pgdeactivate = 0;
- 	unsigned long pgscanned;
- 	LIST_HEAD(l_hold);	/* The pages which were snipped off */
- 	LIST_HEAD(l_inactive);
-@@ -1252,7 +1251,7 @@ static void shrink_active_list(unsigned 
- 		__mod_zone_page_state(zone, NR_ACTIVE_ANON, -pgmoved);
- 	spin_unlock_irq(&zone->lru_lock);
+ 	int file = is_file_lru(lru);
  
--	pgmoved = 0;
-+	pgmoved = 0;  /* count referenced (mapping) mapped pages */
- 	while (!list_empty(&l_hold)) {
- 		cond_resched();
- 		page = lru_to_page(&l_hold);
-@@ -1286,7 +1285,7 @@ static void shrink_active_list(unsigned 
- 	 */
- 	reclaim_stat->recent_rotated[!!file] += pgmoved;
- 
--	pgmoved = 0;
-+	pgmoved = 0;  /* count pages moved to inactive list */
- 	while (!list_empty(&l_inactive)) {
- 		page = lru_to_page(&l_inactive);
- 		prefetchw_prev_lru_page(page, &l_inactive, flags);
-@@ -1299,10 +1298,7 @@ static void shrink_active_list(unsigned 
- 		mem_cgroup_add_lru_list(page, lru);
- 		pgmoved++;
- 		if (!pagevec_add(&pvec, page)) {
--			__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
- 			spin_unlock_irq(&zone->lru_lock);
--			pgdeactivate += pgmoved;
--			pgmoved = 0;
- 			if (buffer_heads_over_limit)
- 				pagevec_strip(&pvec);
- 			__pagevec_release(&pvec);
-@@ -1310,9 +1306,8 @@ static void shrink_active_list(unsigned 
- 		}
+-	if (lru == LRU_ACTIVE_FILE) {
++	if (lru == LRU_ACTIVE_FILE && inactive_file_is_low(zone, sc)) {
+ 		shrink_active_list(nr_to_scan, zone, sc, priority, file);
+ 		return 0;
  	}
- 	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
--	pgdeactivate += pgmoved;
- 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
--	__count_vm_events(PGDEACTIVATE, pgdeactivate);
-+	__count_vm_events(PGDEACTIVATE, pgmoved);
- 	spin_unlock_irq(&zone->lru_lock);
- 	if (buffer_heads_over_limit)
- 		pagevec_strip(&pvec);
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
-documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 linux-next.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mac80211-use-kzfree-in-key-handling-to-enforce-data-sanitization.patch
 
