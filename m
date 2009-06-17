@@ -1,139 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-__invalidate_mapping_pages-variant.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:36:03 -0700
-Message-ID: <200906171836.n5HIa3EQ002081@imap1.linux-foundation.org>
+Subject: [merged] mm-cleanup-shmem_file_setup-char-const-char-for-name-argument.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:36:12 -0700
+Message-ID: <200906171836.n5HIaCHl002232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53722 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57142 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760266AbZFQShD (ORCPT
+	by vger.kernel.org with ESMTP id S1760637AbZFQShH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:37:03 -0400
+	Wed, 17 Jun 2009 14:37:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikew@google.com, david@fromorbit.com, fengguang.wu@intel.com, jack@suse.cz, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: slyfox@inbox.ru, hugh.dickins@tiscali.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove __invalidate_mapping_pages variant
+     mm cleanup: shmem_file_setup: 'char *' -> 'const char *' for name argument
 has been removed from the -mm tree.  Its filename was
-     mm-remove-__invalidate_mapping_pages-variant.patch
+     mm-cleanup-shmem_file_setup-char-const-char-for-name-argument.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove __invalidate_mapping_pages variant
-From: Mike Waychison <mikew@google.com>
+Subject: mm cleanup: shmem_file_setup: 'char *' -> 'const char *' for name argument
+From: Sergei Trofimovich <slyfox@inbox.ru>
 
-Remove __invalidate_mapping_pages atomic variant now that its sole caller
-can sleep (fixed in eccb95cee4f0d56faa46ef22fb94dd4a3578d3eb ("vfs: fix
-lock inversion in drop_pagecache_sb()")).
+As function shmem_file_setup does not modify/allocate/free/pass given
+filename - mark it as const.
 
-This fixes softlockups that can occur while in the drop_caches path.
-
-Signed-off-by: Mike Waychison <mikew@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Acked-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Sergei Trofimovich <slyfox@inbox.ru>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c   |    2 +-
- include/linux/fs.h |    3 ---
- mm/truncate.c      |   39 ++++++++++++++++-----------------------
- 3 files changed, 17 insertions(+), 27 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/shmem.c         |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/drop_caches.c~mm-remove-__invalidate_mapping_pages-variant fs/drop_caches.c
---- a/fs/drop_caches.c~mm-remove-__invalidate_mapping_pages-variant
-+++ a/fs/drop_caches.c
-@@ -24,7 +24,7 @@ static void drop_pagecache_sb(struct sup
- 			continue;
- 		__iget(inode);
- 		spin_unlock(&inode_lock);
--		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
-+		invalidate_mapping_pages(inode->i_mapping, 0, -1);
- 		iput(toput_inode);
- 		toput_inode = inode;
- 		spin_lock(&inode_lock);
-diff -puN include/linux/fs.h~mm-remove-__invalidate_mapping_pages-variant include/linux/fs.h
---- a/include/linux/fs.h~mm-remove-__invalidate_mapping_pages-variant
-+++ a/include/linux/fs.h
-@@ -2036,9 +2036,6 @@ extern int __invalidate_device(struct bl
- extern int invalidate_partition(struct gendisk *, int);
+diff -puN include/linux/mm.h~mm-cleanup-shmem_file_setup-char-const-char-for-name-argument include/linux/mm.h
+--- a/include/linux/mm.h~mm-cleanup-shmem_file_setup-char-const-char-for-name-argument
++++ a/include/linux/mm.h
+@@ -724,7 +724,7 @@ static inline int shmem_lock(struct file
+ 	return 0;
+ }
  #endif
- extern int invalidate_inodes(struct super_block *);
--unsigned long __invalidate_mapping_pages(struct address_space *mapping,
--					pgoff_t start, pgoff_t end,
--					bool be_atomic);
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 					pgoff_t start, pgoff_t end);
+-struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags);
++struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags);
  
-diff -puN mm/truncate.c~mm-remove-__invalidate_mapping_pages-variant mm/truncate.c
---- a/mm/truncate.c~mm-remove-__invalidate_mapping_pages-variant
-+++ a/mm/truncate.c
-@@ -267,8 +267,21 @@ void truncate_inode_pages(struct address
- }
- EXPORT_SYMBOL(truncate_inode_pages);
+ int shmem_zero_setup(struct vm_area_struct *);
  
--unsigned long __invalidate_mapping_pages(struct address_space *mapping,
--				pgoff_t start, pgoff_t end, bool be_atomic)
-+/**
-+ * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-+ * @mapping: the address_space which holds the pages to invalidate
-+ * @start: the offset 'from' which to invalidate
-+ * @end: the offset 'to' which to invalidate (inclusive)
-+ *
-+ * This function only removes the unlocked pages, if you want to
-+ * remove all the pages of one inode, you must call truncate_inode_pages.
-+ *
-+ * invalidate_mapping_pages() will not block on IO activity. It will not
-+ * invalidate pages which are dirty, locked, under writeback or mapped into
-+ * pagetables.
-+ */
-+unsigned long invalidate_mapping_pages(struct address_space *mapping,
-+				       pgoff_t start, pgoff_t end)
+diff -puN mm/shmem.c~mm-cleanup-shmem_file_setup-char-const-char-for-name-argument mm/shmem.c
+--- a/mm/shmem.c~mm-cleanup-shmem_file_setup-char-const-char-for-name-argument
++++ a/mm/shmem.c
+@@ -2612,7 +2612,7 @@ int shmem_unuse(swp_entry_t entry, struc
+  * @size: size to be set for the file
+  * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
+  */
+-struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags)
++struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags)
  {
- 	struct pagevec pvec;
- 	pgoff_t next = start;
-@@ -309,30 +322,10 @@ unlock:
- 				break;
- 		}
- 		pagevec_release(&pvec);
--		if (likely(!be_atomic))
--			cond_resched();
-+		cond_resched();
- 	}
- 	return ret;
- }
--
--/**
-- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-- * @mapping: the address_space which holds the pages to invalidate
-- * @start: the offset 'from' which to invalidate
-- * @end: the offset 'to' which to invalidate (inclusive)
-- *
-- * This function only removes the unlocked pages, if you want to
-- * remove all the pages of one inode, you must call truncate_inode_pages.
-- *
-- * invalidate_mapping_pages() will not block on IO activity. It will not
-- * invalidate pages which are dirty, locked, under writeback or mapped into
-- * pagetables.
-- */
--unsigned long invalidate_mapping_pages(struct address_space *mapping,
--				pgoff_t start, pgoff_t end)
--{
--	return __invalidate_mapping_pages(mapping, start, end, false);
--}
- EXPORT_SYMBOL(invalidate_mapping_pages);
- 
- /*
+ 	int error;
+ 	struct file *file;
 _
 
-Patches currently in -mm which might be from mikew@google.com are
+Patches currently in -mm which might be from slyfox@inbox.ru are
 
 origin.patch
 
