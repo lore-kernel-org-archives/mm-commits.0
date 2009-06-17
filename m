@@ -1,93 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-remove-obsolete-hw_interrupt_type.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:36:59 -0700
-Message-ID: <200906171836.n5HIaxXX002986@imap1.linux-foundation.org>
+Subject: [merged] uml-uml-net-driver-does-not-allow-for-vlans.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:36:55 -0700
+Message-ID: <200906171836.n5HIatJG002983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39126 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760259AbZFQSiA (ORCPT
+	by vger.kernel.org with ESMTP id S1759040AbZFQSiE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:38:00 -0400
+	Wed, 17 Jun 2009 14:38:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, jdike@addtoit.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@linux.intel.com, blaisorblade@yahoo.it, davem@davemloft.net, devzero@web.de, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     um: remove obsolete hw_interrupt_type
+     uml: UML net driver does not allow for vlans
 has been removed from the -mm tree.  Its filename was
-     um-remove-obsolete-hw_interrupt_type.patch
+     uml-uml-net-driver-does-not-allow-for-vlans.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: remove obsolete hw_interrupt_type
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: uml: UML net driver does not allow for vlans
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The defines and typedefs (hw_interrupt_type, no_irq_type, irq_desc_t) have
-been kept around for migration reasons.  After more than two years it's
-time to remove them finally.
+See ancient discussion at
+http://marc.info/?l=user-mode-linux-devel&m=101990155831279&w=2
 
-This patch cleans up one of the remaining users.  When all such patches
-hit mainline we can remove the defines and typedefs finally.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=7854
 
-Impact: cleanup
-
-Convert the last remaining users to struct irq_chip and remove the
-define.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Reported-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Roland Kletzing <devzero@web.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/irq.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/um/include/shared/net_user.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/kernel/irq.c~um-remove-obsolete-hw_interrupt_type arch/um/kernel/irq.c
---- a/arch/um/kernel/irq.c~um-remove-obsolete-hw_interrupt_type
-+++ a/arch/um/kernel/irq.c
-@@ -358,7 +358,7 @@ EXPORT_SYMBOL(um_request_irq);
- EXPORT_SYMBOL(reactivate_fd);
+diff -puN arch/um/include/shared/net_user.h~uml-uml-net-driver-does-not-allow-for-vlans arch/um/include/shared/net_user.h
+--- a/arch/um/include/shared/net_user.h~uml-uml-net-driver-does-not-allow-for-vlans
++++ a/arch/um/include/shared/net_user.h
+@@ -8,7 +8,7 @@
  
- /*
-- * hw_interrupt_type must define (startup || enable) &&
-+ * irq_chip must define (startup || enable) &&
-  * (shutdown || disable) && end
-  */
- static void dummy(unsigned int irq)
-@@ -366,7 +366,7 @@ static void dummy(unsigned int irq)
- }
+ #define ETH_ADDR_LEN (6)
+ #define ETH_HEADER_ETHERTAP (16)
+-#define ETH_HEADER_OTHER (14)
++#define ETH_HEADER_OTHER (26) /* 14 for ethernet + VLAN + MPLS for crazy people */
+ #define ETH_MAX_PACKET (1500)
  
- /* This is used for everything else than the timer. */
--static struct hw_interrupt_type normal_irq_type = {
-+static struct irq_chip normal_irq_type = {
- 	.typename = "SIGIO",
- 	.release = free_irq_by_irq_and_dev,
- 	.disable = dummy,
-@@ -375,7 +375,7 @@ static struct hw_interrupt_type normal_i
- 	.end = dummy
- };
- 
--static struct hw_interrupt_type SIGVTALRM_irq_type = {
-+static struct irq_chip SIGVTALRM_irq_type = {
- 	.typename = "SIGVTALRM",
- 	.release = free_irq_by_irq_and_dev,
- 	.shutdown = dummy, /* never called */
+ #define UML_NET_VERSION (4)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
 linux-next.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-ia64-remove-obsolete-no_irq_type.patch
-ia64-remove-obsolete-irq_desc_t-typedef.patch
-ia64-remove-obsolete-hw_interrupt_type.patch
-parisc-remove-obsolete-hw_interrupt_type.patch
-x86-fix-cpufreq-tsc-scaling.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial-fix-off-by-one-errors.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
+serial-8250c-irq-handling-race-and-spurious-iir-read.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
+char-isicom-fix-build-warning.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+linuxpps-core-support.patch
 
