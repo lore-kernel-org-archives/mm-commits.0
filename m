@@ -1,125 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch removed from -mm tree
-Date: Tue, 16 Jun 2009 15:41:12 -0700
-Message-ID: <200906162241.n5GMfCi4003192@imap1.linux-foundation.org>
+Subject: + documentation-vm-makefile-dont-try-to-build-slqbinfo.patch added to -mm tree
+Date: Tue, 16 Jun 2009 22:37:56 -0700
+Message-ID: <200906170537.n5H5buvs028861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47549 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757021AbZFPWxQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751333AbZFQFi1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:53:16 -0400
+	Wed, 17 Jun 2009 01:38:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ieidus@redhat.com, aarcange@redhat.com, avi@redhat.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, andi@firstfloor.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mpm@selenic.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     ksm: fix unsafe pte fetching
-has been removed from the -mm tree.  Its filename was
-     ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
+     Documentation/vm/Makefile: don't try to build slqbinfo
+has been added to the -mm tree.  Its filename is
+     documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: fix unsafe pte fetching
-From: Izik Eidus <ieidus@redhat.com>
+Subject: Documentation/vm/Makefile: don't try to build slqbinfo
+From: Andrew Morton <akpm@linux-foundation.org>
 
-is_present_pte() was called inside ksm without anything protecting that
-pmd, pud, and pte would go away under our feets.
+For it is only in linux-next at this stage.
 
-This patch fix this problem by making sure that down_read(mmap_sem) will
-be used beacuse calling to is_present_pte()
-
-Signed-off-by: Izik Eidus <ieidus@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Chris Wright <chrisw@redhat.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ Documentation/vm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching mm/ksm.c
---- a/mm/ksm.c~ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching
-+++ a/mm/ksm.c
-@@ -783,8 +783,8 @@ static int is_zapped_item(struct rmap_it
- 	struct vm_area_struct *vma;
+diff -puN Documentation/vm/Makefile~documentation-vm-makefile-dont-try-to-build-slqbinfo Documentation/vm/Makefile
+--- a/Documentation/vm/Makefile~documentation-vm-makefile-dont-try-to-build-slqbinfo
++++ a/Documentation/vm/Makefile
+@@ -2,7 +2,7 @@
+ obj- := dummy.o
  
- 	cond_resched();
-+	down_read(&rmap_item->mm->mmap_sem);
- 	if (is_present_pte(rmap_item->mm, rmap_item->address)) {
--		down_read(&rmap_item->mm->mmap_sem);
- 		vma = find_vma(rmap_item->mm, rmap_item->address);
- 		if (vma && !vma->vm_file) {
- 			BUG_ON(vma->vm_flags & VM_SHARED);
-@@ -792,8 +792,8 @@ static int is_zapped_item(struct rmap_it
- 					     rmap_item->address,
- 					     1, 0, 0, page, NULL);
- 		}
--		up_read(&rmap_item->mm->mmap_sem);
- 	}
-+	up_read(&rmap_item->mm->mmap_sem);
+ # List of programs to build
+-hostprogs-y := slabinfo slqbinfo page-types
++hostprogs-y := slabinfo page-types
  
- 	if (ret != 1)
- 		return 1;
-@@ -979,13 +979,15 @@ static struct tree_item *unstable_tree_s
- 		rmap_item = tree_item->rmap_item;
- 		BUG_ON(!rmap_item);
- 
-+		down_read(&rmap_item->mm->mmap_sem);
- 		/*
- 		 * We dont want to swap in pages
- 		 */
--		if (!is_present_pte(rmap_item->mm, rmap_item->address))
-+		if (!is_present_pte(rmap_item->mm, rmap_item->address)) {
-+			up_read(&rmap_item->mm->mmap_sem);
- 			return NULL;
-+		}
- 
--		down_read(&rmap_item->mm->mmap_sem);
- 		ret = get_user_pages(current, rmap_item->mm, rmap_item->address,
- 				     1, 0, 0, page2, NULL);
- 		up_read(&rmap_item->mm->mmap_sem);
-@@ -1344,9 +1346,9 @@ static int ksm_scan_start(struct ksm_sca
- 		 * If the page is swapped out or in swap cache, we don't want to
- 		 * scan it (it is just for performance).
- 		 */
-+		down_read(&slot->mm->mmap_sem);
- 		if (is_present_pte(slot->mm, slot->addr +
- 				   ksm_scan->page_index * PAGE_SIZE)) {
--			down_read(&slot->mm->mmap_sem);
- 			val = get_user_pages(current, slot->mm, slot->addr +
- 					     ksm_scan->page_index * PAGE_SIZE ,
- 					      1, 0, 0, page, NULL);
-@@ -1356,6 +1358,8 @@ static int ksm_scan_start(struct ksm_sca
- 					cmp_and_merge_page(ksm_scan, page[0]);
- 				put_page(page[0]);
- 			}
-+		} else {
-+			up_read(&slot->mm->mmap_sem);
- 		}
- 		scan_npages--;
- 	}
+ # Tell kbuild to always build the programs
+ always := $(hostprogs-y)
 _
 
-Patches currently in -mm which might be from ieidus@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+firmware_map-fix-hang-with-x86-32bit.patch
+mm-consolidate-init_mm-definition.patch
+readahead-record-mmap-read-around-states-in-file_ra_state.patch
+mm-clean-up-get_user_pages_fast-documentation.patch
+page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
+page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
+page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
+pagemap-add-page-types-tool.patch
+videobuf-dma-contig-zero-copy-userptr-support-v3.patch
+page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
+mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
+page-allocator-clean-up-functions-related-to-pages_min.patch
+page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
+mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
+vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
+headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
+remove-put_cpu_no_resched.patch
+rb_tree-reorganize-code-in-rb_erase-for-additional-changes.patch
+radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
+fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers.patch
+fbdev-s1d13xxxfb-add-accelerated-bitblt-functions.patch
+documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 linux-next.patch
-ksm-add-ksm-kernel-shared-memory-driver-fix-unsafe-pte-fetching.patch
-ksm-add-ksm-kernel-shared-memory-driver-fix.patch
-ksm-add-ksm-kernel-shared-memory-driver-limiting-the-num-of-mem-regions-user-can-register-per-fd.patch
-ksm-add-ksm-kernel-shared-memory-driver-dont-allow-overlap-memory-addresses-registrations.patch
-ksm-add-ksm-kernel-shared-memory-driver-change-the-ksm_remove_memory_region-ioctl.patch
-ksm-add-ksm-kernel-shared-memory-driver-change-the-prot-handling-to-use-the-generic-helper-functions.patch
-ksm-add-ksm-kernel-shared-memory-driver-use-another-miscdevice-minor-number.patch
-ksm-add-ksm-kernel-shared-memory-driver-ksm-fix-rmap_item-use-after-free.patch
-ksm-add-replace_page-change-the-page-pte-is-pointing-to-fix-losing-visibility-of-part-of-rmap_item-next-list.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
+gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes-gpio-pca953x-get-platform_data-from-openfirmware-cleanups.patch
+documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+edac-add-cpc925-memory-controller-driver-cleanup.patch
+edac-add-edac_device_alloc_index-cleanup.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
+gru-support-for-asynchronous-gru-instructions-fix.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
