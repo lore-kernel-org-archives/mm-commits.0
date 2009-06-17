@@ -1,96 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fbdev-is-orphaned.patch added to -mm tree
-Date: Tue, 16 Jun 2009 23:27:28 -0700
-Message-ID: <200906170627.n5H6RSmW009311@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-fixups.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:12:09 -0700
+Message-ID: <200906171812.n5HIC92B012250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752099AbZFQG2Q (ORCPT
+	by vger.kernel.org with ESMTP id S1752614AbZFQSMJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 02:28:16 -0400
+	Wed, 17 Jun 2009 14:12:09 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n5HIC9eR004053
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 17 Jun 2009 11:12:11 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, geert@linux-m68k.org, joe@perches.com, krzysztof.h1@poczta.fm
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: fbdev is orphaned
-has been added to the -mm tree.  Its filename is
-     maintainers-fbdev-is-orphaned.patch
+     linux-next-fixups
+has been removed from the -mm tree.  Its filename was
+     linux-next-fixups.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: fbdev is orphaned
+Subject: linux-next-fixups
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Tony hasn't been heard from in 18 months and people keep sending him
-things.
-
-Cc: Joe Perches <joe@perches.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/slab.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-fbdev-is-orphaned MAINTAINERS
---- a/MAINTAINERS~maintainers-fbdev-is-orphaned
-+++ a/MAINTAINERS
-@@ -2274,11 +2274,9 @@ F:	drivers/net/wan/dlci.c
- F:	drivers/net/wan/sdla.c
+diff -puN mm/slab.c~linux-next-fixups mm/slab.c
+--- a/mm/slab.c~linux-next-fixups
++++ a/mm/slab.c
+@@ -1625,7 +1625,8 @@ static void *kmem_getpages(struct kmem_c
+ 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
+ 		flags |= __GFP_RECLAIMABLE;
  
- FRAMEBUFFER LAYER
--P:	Antonino Daplas
--M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	http://linux-fbdev.sourceforge.net/
--S:	Maintained
-+S:	Orphan
- F:	Documentation/fb/
- F:	drivers/video/fb*
- F:	include/linux/fb.h
+-	page = alloc_pages_exact_node(nodeid, flags, cachep->gfporder);
++	page = alloc_pages_exact_node(nodeid, flags & ~__GFP_NOTRACK,
++					cachep->gfporder);
+ 	if (!page)
+ 		return NULL;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-firmware_map-fix-hang-with-x86-32bit.patch
-mm-consolidate-init_mm-definition.patch
-readahead-record-mmap-read-around-states-in-file_ra_state.patch
-mm-clean-up-get_user_pages_fast-documentation.patch
-page-allocator-do-not-sanity-check-order-in-the-fast-path.patch
-page-allocator-calculate-the-preferred-zone-for-allocation-only-once.patch
-page-allocator-remove-a-branch-by-assuming-__gfp_high-==-alloc_high.patch
-pagemap-add-page-types-tool.patch
-videobuf-dma-contig-zero-copy-userptr-support-v3.patch
-page-allocator-warn-if-__gfp_nofail-is-used-for-a-large-allocation.patch
-mm-pm-freezer-disable-oom-killer-when-tasks-are-frozen.patch
-page-allocator-clean-up-functions-related-to-pages_min.patch
-page-allocator-add-inactive-ratio-calculation-function-of-each-zone.patch
-mm-add-a-gfp-translate-script-to-help-understand-page-allocation-failure-reports.patch
-vmscan-count-the-number-of-times-zone_reclaim-scans-and-fails.patch
-headers-move-module_bug_finalize-module_bug_cleanup-definitions-into-moduleh.patch
-remove-put_cpu_no_resched.patch
-rb_tree-reorganize-code-in-rb_erase-for-additional-changes.patch
-radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
-fbdev-add-support-for-handoff-from-firmware-to-hw-framebuffers.patch
-fbdev-s1d13xxxfb-add-accelerated-bitblt-functions.patch
 documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 linux-next.patch
 linux-next-fixups.patch
