@@ -1,114 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-swap-accounting-update.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 15:49:03 -0700
-Message-ID: <200906172249.n5HMn3u3009068@imap1.linux-foundation.org>
+Subject: [folded] ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 15:49:27 -0700
+Message-ID: <200906172249.n5HMnRJM009507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756596AbZFQWtV (ORCPT
+	by vger.kernel.org with ESMTP id S1762055AbZFQWtg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 18:49:21 -0400
+	Wed, 17 Jun 2009 18:49:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+To: oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-fix-swap-accounting-update
+     ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-swap-accounting-update.patch
+     ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
 
-This patch was dropped because it was folded into memcg-fix-swap-accounting.patch
+This patch was dropped because it was folded into ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-swap-accounting-update
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix
+From: Oleg Nesterov <oleg@redhat.com>
 
-This is a replacement for
-  memcg-fix-swap-accounting.patch in mmotm.
-Adjusted to style changes in 2/4 and 3/4.
+On 04/23, Roland McGrath wrote:
+>
+> > tracehook_unsafe_exec() doesn't need task_lock(), remove the old comment.
+>
+> Please make it instead say that cred_exec_mutex is held by the caller
+> through the exec.
 
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 ++--
- mm/memcontrol.c      |    2 +-
- mm/swapfile.c        |    8 +++++---
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ include/linux/tracehook.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/swap.h~memcg-fix-swap-accounting-update include/linux/swap.h
---- a/include/linux/swap.h~memcg-fix-swap-accounting-update
-+++ a/include/linux/swap.h
-@@ -320,10 +320,10 @@ static inline void disable_swap_token(vo
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
- extern void
--mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, int swapout);
-+mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout);
- #else
- static inline void
--mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, int swapout)
-+mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout)
- {
- }
- #endif
-diff -puN mm/memcontrol.c~memcg-fix-swap-accounting-update mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-swap-accounting-update
-+++ a/mm/memcontrol.c
-@@ -1559,7 +1559,7 @@ void mem_cgroup_uncharge_cache_page(stru
-  * memcg information is recorded to swap_cgroup of "ent"
+diff -puN include/linux/tracehook.h~ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix include/linux/tracehook.h
+--- a/include/linux/tracehook.h~ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix
++++ a/include/linux/tracehook.h
+@@ -142,6 +142,8 @@ static inline void tracehook_report_sysc
+  * @task:		current task doing exec
+  *
+  * Return %LSM_UNSAFE_* bits applied to an exec because of tracing.
++ *
++ * task->cred_exec_mutex is held by the caller through the do_execve().
   */
- void
--mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, int swapout)
-+mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout)
+ static inline int tracehook_unsafe_exec(struct task_struct *task)
  {
- 	struct mem_cgroup *memcg;
- 	int ctype = MEM_CGROUP_CHARGE_TYPE_SWAPOUT;
-diff -puN mm/swapfile.c~memcg-fix-swap-accounting-update mm/swapfile.c
---- a/mm/swapfile.c~memcg-fix-swap-accounting-update
-+++ a/mm/swapfile.c
-@@ -614,12 +614,14 @@ void swapcache_free(swp_entry_t entry, s
- 
- 	p = swap_info_get(entry);
- 	if (p) {
--		ret = swap_entry_free(p, entry, 1);
-+		ret = swap_entry_free(p, entry, SWAP_CACHE);
- 		if (page) {
-+			bool swapout;
- 			if (ret)
--				mem_cgroup_uncharge_swapcache(page, entry, 1);
-+				swapout = true; /* the end of swap out */
- 			else
--				mem_cgroup_uncharge_swapcache(page, entry, 0);
-+				swapout = false; /* no more swap users! */
-+			mem_cgroup_uncharge_swapcache(page, entry, swapout);
- 		}
- 		spin_unlock(&swap_lock);
- 	}
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
-memcg-add-file-based-rss-accounting.patch
-memcg-remove-mem_cgroup_cache_charge_swapin.patch
-memcg-remove-some-redundant-checks.patch
-memcg-remove-unneeded-forward-declaration-from-schedh.patch
-memcg-fix-swap-accounting.patch
-memcg-fix-swap-accounting-update.patch
-memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch
-memcg-add-interface-to-reset-limits.patch
-memcg-fix-lru-rotation-in-isolate_pages.patch
+allow_signal-kill-the-bogus-mm-check-add-a-note-about-clone_sighand.patch
+ptrace-remove-pt_dtrace-from-arch-h8300.patch
+ptrace-remove-pt_dtrace-from-avr32-mn10300-parisc-s390-sh-xtensa.patch
+ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+ptrace-remove-pt_dtrace-from-arch-m32r.patch
+ptrace-mm_need_new_owner-use-real_parent-to-search-in-the-siblings.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment.patch
+ptrace-tracehook_unsafe_exec-remove-the-stale-comment-fix.patch
+ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
+ptrace-ptrace_attach-check-pf_kthread-exit_state-instead-of-mm.patch
+ptrace-cleanup-check-set-of-pt_ptraced-during-attach.patch
+ptrace-do-not-use-task_lock-for-attach.patch
+ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
+ptrace-wait_task_zombie-s-parent-real_parent.patch
+ptrace-do_notify_parent_cldstop-fix-the-wrong-nsproxy-usage.patch
+ptrace-dont-take-tasklist-to-get-set-last_siginfo.patch
+wait_task_zombie-do-not-use-thread_group_cputime.patch
+copy_process-remove-the-unneeded-clear_tsk_thread_flagtif_sigpending.patch
+elf_core_dump-use-rcu_read_lock-to-access-real_parent.patch
+shift-ptrace-implies-wuntraced-from-ptrace_do_wait-to-wait_task_stopped.patch
+introduce-struct-wait_opts-to-simplify-do_wait-pathes.patch
+do_wait-simplify-retval-tsk_result-notask_error-mess.patch
+do_wait-kill-the-old-bug_on-use-while_each_thread.patch
+do_wait-fix-the-theoretical-race-with-stop-trace-cont.patch
+mm-exitc-reorder-wait_opts-to-remove-padding-on-64-bit-builds.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
+pids-clean-up-find_task_by_pid-variants.patch
 
