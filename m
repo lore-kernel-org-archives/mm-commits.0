@@ -1,93 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [folded] gru-update-gru-kernel-self-tests-fix.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 15:57:45 -0700
-Message-ID: <200906172257.n5HMvkIZ017199@imap1.linux-foundation.org>
+Subject: [folded] lib-add-lib-gcdc-fix-fix.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 15:58:14 -0700
+Message-ID: <200906172258.n5HMwEpR017581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40262 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757444AbZFQW6M (ORCPT
+	by vger.kernel.org with ESMTP id S1754030AbZFQXAV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 18:58:12 -0400
+	Wed, 17 Jun 2009 19:00:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, florian@openwrt.org, horms@verge.net.au, joe@perches.com, juliusv@google.com, kaber@trash.net, sshtylyov@ru.mvista.com, tiwai@suse.de
 
 
 The patch titled
-     gru-update-gru-kernel-self-tests-fix
+     lib-add-lib-gcdc-fix-fix
 has been removed from the -mm tree.  Its filename was
-     gru-update-gru-kernel-self-tests-fix.patch
+     lib-add-lib-gcdc-fix-fix.patch
 
-This patch was dropped because it was folded into gru-update-gru-kernel-self-tests.patch
+This patch was dropped because it was folded into lib-add-lib-gcdc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru-update-gru-kernel-self-tests-fix
-From: Jack Steiner <steiner@sgi.com>
+Subject: lib-add-lib-gcdc-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add fixes suggested by Andrew.
+doh.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Florian Fainelli <florian@openwrt.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Julius Volz <juliusv@google.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grukservices.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ lib/Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grukservices.c~gru-update-gru-kernel-self-tests-fix drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~gru-update-gru-kernel-self-tests-fix
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -933,8 +933,7 @@ done:
+diff -puN lib/Makefile~lib-add-lib-gcdc-fix-fix lib/Makefile
+--- a/lib/Makefile~lib-add-lib-gcdc-fix-fix
++++ a/lib/Makefile
+@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 idr.o int_sqrt.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
+ 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
+-	 is_single_threaded.o plist.o decompress.o gcd.o
++	 is_single_threaded.o plist.o decompress.o
  
- static int quicktest2(unsigned long arg)
- {
--	static struct completion cmp;
--	static int inited;
-+	static DECLARE_COMPLETION(cmp);
- 	unsigned long han;
- 	int blade_id = 0;
- 	int numcb = 4;
-@@ -949,9 +948,6 @@ static int quicktest2(unsigned long arg)
- 		return -ENOMEM;
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
+@@ -21,7 +21,7 @@ lib-y	+= kobject.o kref.o klist.o
  
- 	ret = -EBUSY;
--	if (!inited)
--		init_completion(&cmp);
--	inited = 1;
- 	han = gru_reserve_async_resources(blade_id, numcb, 0, &cmp);
- 	if (!han)
- 		goto done;
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+-	 string_helpers.o
++	 string_helpers.o gcd.o
+ 
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-gru-bug-fixes-for-gru-exception-handling.patch
-gru-dump-chiplet-state.patch
-gru-dynamic-allocation-of-kernel-contexts.patch
-gru-change-context-load-and-unload.patch
-gru-support-cch_allocate-for-kernel-threads.patch
-gru-change-resource-assignment-for-kernel-threads.patch
-gru-support-contexts-with-zero-dsrs-or-cbrs.patch
-gru-fix-handling-of-mesq-failures.patch
-gru-check-context-state-on-reload.patch
-gru-support-instruction-completion-interrupts.patch
+documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
+maintainers-fbdev-is-orphaned.patch
+gpio-pca953x-get-platform_data-from-openfirmware.patch
+documentation-changes-perl-is-needed-to-build-the-kernel.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
+edac-add-cpc925-memory-controller-driver.patch
+edac-add-edac_device_alloc_index.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
 gru-support-for-asynchronous-gru-instructions.patch
-gru-update-gru-kernel-self-tests.patch
-gru-update-gru-kernel-self-tests-fix.patch
-gru-update-to-rev-09-of-gru-spec.patch
-gru-fix-cache-coherency-issues-with-instruction-retry.patch
-gru-add-user-request-to-explicitly-unload-a-gru-context.patch
-gru-fix-automatic-retry-of-gru-instruction-failures.patch
-gru-collect-per-context-user-statistics.patch
-gru-delete-user-request-for-fetching-chiplet-status.patch
-gru-cleanup-gru-inline-functions.patch
-gru-generic-infrastructure-for-context-options.patch
-gru-add-user-request-to-specify-gru-slice.patch
-gru-fix-potential-use-after-free-when-purging-gru-tlbs.patch
-gru-fixes-to-grudump-utility.patch
-gru-remove-references-to-the-obsolete-global-status-handle.patch
-gru-copyright-fixes.patch
+lib-add-lib-gcdc.patch
+lib-add-lib-gcdc-fix-fix.patch
 
