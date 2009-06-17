@@ -1,422 +1,442 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 17 Jun 2009 11:16:31 -0700
-Message-ID: <200906171816.n5HIGVI9016291@imap1.linux-foundation.org>
+Subject: [merged] mm-consolidate-init_mm-definition.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:32:27 -0700
+Message-ID: <200906171832.n5HIWRvC030970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56676 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752495AbZFQSRM (ORCPT
+	by vger.kernel.org with ESMTP id S1759761AbZFQSc2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:17:12 -0400
+	Wed, 17 Jun 2009 14:32:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+To: adobriyan@gmail.com, vapier.adi@gmail.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm: consolidate init_mm definition
+has been removed from the -mm tree.  Its filename was
+     mm-consolidate-init_mm-definition.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: consolidate init_mm definition
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+* create mm/init-mm.c, move init_mm there
+* remove INIT_MM, initialize init_mm with C99 initializer
+* unexport init_mm on all arches:
+
+  init_mm is already unexported on x86.
+
+  One strange place is some OMAP driver (drivers/video/omap/) which
+  won't build modular, but it's already wants get_vm_area() export.
+  Somebody should look there.
+
+[akpm@linux-foundation.org: add missing #includes]
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Americo Wang <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_32.c                  |    4 -
- arch/x86/mm/init_64.c                  |   10 ----
- arch/x86/mm/kmemcheck/kmemcheck.c      |   16 -------
- drivers/net/wireless/ath/ath5k/Kconfig |    4 -
- drivers/scsi/lpfc/lpfc_debugfs.c       |    3 -
- include/linux/kmemcheck.h              |   11 -----
- kernel/sysctl.c                        |    3 -
- kernel/trace/trace.c                   |    3 -
- mm/Makefile                            |    3 -
- mm/page_alloc.c                        |   48 -----------------------
- mm/slab.c                              |    4 -
- mm/slub.c                              |    6 --
- scripts/tracing/draw_functrace.py      |    4 -
- 13 files changed, 119 deletions(-)
+ arch/alpha/kernel/init_task.c     |    3 ---
+ arch/arm/kernel/init_task.c       |    4 ----
+ arch/avr32/kernel/init_task.c     |    4 ----
+ arch/blackfin/kernel/init_task.c  |    4 ----
+ arch/cris/kernel/process.c        |    4 ----
+ arch/frv/kernel/init_task.c       |    4 ----
+ arch/h8300/kernel/init_task.c     |    4 ----
+ arch/ia64/kernel/init_task.c      |    4 ----
+ arch/m32r/kernel/init_task.c      |    4 ----
+ arch/m68k/kernel/process.c        |    4 ----
+ arch/m68knommu/kernel/init_task.c |    4 ----
+ arch/mips/kernel/init_task.c      |    4 ----
+ arch/mn10300/kernel/init_task.c   |    3 ---
+ arch/parisc/kernel/init_task.c    |    4 ----
+ arch/powerpc/kernel/init_task.c   |    4 ----
+ arch/s390/kernel/init_task.c      |    4 ----
+ arch/sh/kernel/init_task.c        |    3 ---
+ arch/sparc/kernel/init_task.c     |    3 ---
+ arch/um/kernel/init_task.c        |    3 ---
+ arch/x86/kernel/init_task.c       |    1 -
+ arch/xtensa/kernel/init_task.c    |    4 ----
+ include/linux/init_task.h         |   12 ------------
+ mm/Makefile                       |    1 +
+ mm/init-mm.c                      |   20 ++++++++++++++++++++
+ 24 files changed, 21 insertions(+), 88 deletions(-)
 
-diff -puN arch/x86/mm/init_32.c~linux-next-git-rejects arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~linux-next-git-rejects
-+++ a/arch/x86/mm/init_32.c
-@@ -116,12 +116,8 @@ static pte_t * __init one_page_table_ini
- 	if (!(pmd_val(*pmd) & _PAGE_PRESENT)) {
- 		pte_t *page_table = NULL;
+diff -puN arch/alpha/kernel/init_task.c~mm-consolidate-init_mm-definition arch/alpha/kernel/init_task.c
+--- a/arch/alpha/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/alpha/kernel/init_task.c
+@@ -10,10 +10,7 @@
  
--<<<<<<< HEAD:arch/x86/mm/init_32.c
--		if (after_bootmem) {
--=======
- 		switch (bootmem_state) {
- 		case DURING_BOOTMEM:
-->>>>>>> FETCH_HEAD:arch/x86/mm/init_32.c
- #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_KMEMCHECK)
- 			page_table = (pte_t *) alloc_bootmem_pages(PAGE_SIZE);
- #endif
-diff -puN arch/x86/mm/init_64.c~linux-next-git-rejects arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~linux-next-git-rejects
-+++ a/arch/x86/mm/init_64.c
-@@ -103,17 +103,11 @@ static __ref void *spp_getpage(void)
- {
- 	void *ptr = NULL;
- 
--<<<<<<< HEAD:arch/x86/mm/init_64.c
--	if (after_bootmem)
--		ptr = (void *) get_zeroed_page(GFP_ATOMIC | __GFP_NOTRACK);
--	else
--=======
- 	switch (bootmem_state) {
- 	case AFTER_BOOTMEM:
- 		ptr = (void *) get_zeroed_page(GFP_ATOMIC | __GFP_NOTRACK);
- 		break;
- 	case DURING_BOOTMEM:
-->>>>>>> FETCH_HEAD:arch/x86/mm/init_64.c
- 		ptr = alloc_bootmem_pages(PAGE_SIZE);
- 		break;
- 	default:
-@@ -292,11 +286,7 @@ static __ref void *alloc_low_page(unsign
- 	unsigned long pfn;
- 	void *adr;
- 
--<<<<<<< HEAD:arch/x86/mm/init_64.c
--	if (after_bootmem) {
--=======
- 	if (bootmem_state == AFTER_BOOTMEM) {
-->>>>>>> FETCH_HEAD:arch/x86/mm/init_64.c
- 		adr = (void *)get_zeroed_page(GFP_ATOMIC | __GFP_NOTRACK);
- 		*phys = __pa(adr);
- 
-diff -puN arch/x86/mm/kmemcheck/kmemcheck.c~linux-next-git-rejects arch/x86/mm/kmemcheck/kmemcheck.c
---- a/arch/x86/mm/kmemcheck/kmemcheck.c~linux-next-git-rejects
-+++ a/arch/x86/mm/kmemcheck/kmemcheck.c
-@@ -47,11 +47,7 @@
- 
- int kmemcheck_enabled = KMEMCHECK_ENABLED;
- 
--<<<<<<< HEAD:arch/x86/mm/kmemcheck/kmemcheck.c
--int __init kmemcheck_init(void)
--=======
- void __init kmemcheck_init(void)
-->>>>>>> FETCH_HEAD:arch/x86/mm/kmemcheck/kmemcheck.c
- {
- #ifdef CONFIG_SMP
- 	/*
-@@ -68,24 +64,12 @@ void __init kmemcheck_init(void)
- 	if (!kmemcheck_selftest()) {
- 		printk(KERN_INFO "kmemcheck: self-tests failed; disabling\n");
- 		kmemcheck_enabled = 0;
--<<<<<<< HEAD:arch/x86/mm/kmemcheck/kmemcheck.c
--		return -EINVAL;
--	}
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+ struct task_struct init_task = INIT_TASK(init_task);
 -
--	printk(KERN_INFO "kmemcheck: Initialized\n");
--	return 0;
--}
--
--early_initcall(kmemcheck_init);
--
--=======
- 		return;
- 	}
+-EXPORT_SYMBOL(init_mm);
+ EXPORT_SYMBOL(init_task);
  
- 	printk(KERN_INFO "kmemcheck: Initialized\n");
- }
+ union thread_union init_thread_union
+diff -puN arch/arm/kernel/init_task.c~mm-consolidate-init_mm-definition arch/arm/kernel/init_task.c
+--- a/arch/arm/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/arm/kernel/init_task.c
+@@ -14,10 +14,6 @@
  
-->>>>>>> FETCH_HEAD:arch/x86/mm/kmemcheck/kmemcheck.c
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
  /*
-  * We need to parse the kmemcheck= option before any memory is allocated.
+  * Initial thread structure.
+  *
+diff -puN arch/avr32/kernel/init_task.c~mm-consolidate-init_mm-definition arch/avr32/kernel/init_task.c
+--- a/arch/avr32/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/avr32/kernel/init_task.c
+@@ -15,10 +15,6 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial thread structure. Must be aligned on an 8192-byte boundary.
   */
-diff -puN drivers/net/wireless/ath/ath5k/Kconfig~linux-next-git-rejects drivers/net/wireless/ath/ath5k/Kconfig
---- a/drivers/net/wireless/ath/ath5k/Kconfig~linux-next-git-rejects
-+++ a/drivers/net/wireless/ath/ath5k/Kconfig
-@@ -28,12 +28,8 @@ config ATH5K_DEBUG
- 	  Say Y, if and you will get debug options for ath5k.
- 	  To use this, you need to mount debugfs:
+diff -puN arch/blackfin/kernel/init_task.c~mm-consolidate-init_mm-definition arch/blackfin/kernel/init_task.c
+--- a/arch/blackfin/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/blackfin/kernel/init_task.c
+@@ -35,10 +35,6 @@
  
--<<<<<<< HEAD:drivers/net/wireless/ath/ath5k/Kconfig
--	  mount -t debugfs debug /sys/kernel/debug
--=======
- 	  mkdir /sys/kernel/debug/
- 	  mount -t debugfs debug /sys/kernel/debug/
-->>>>>>> FETCH_HEAD:drivers/net/wireless/ath/ath5k/Kconfig
- 
- 	  You will get access to files under:
- 	  /sys/kernel/debug/ath5k/phy0/
-diff -puN drivers/scsi/lpfc/lpfc_debugfs.c~linux-next-git-rejects drivers/scsi/lpfc/lpfc_debugfs.c
---- a/drivers/scsi/lpfc/lpfc_debugfs.c~linux-next-git-rejects
-+++ a/drivers/scsi/lpfc/lpfc_debugfs.c
-@@ -53,10 +53,7 @@
-  * debugfs interface
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial task structure.
   *
-  * To access this interface the user should:
--<<<<<<< HEAD:drivers/scsi/lpfc/lpfc_debugfs.c
--=======
-  * # mkdir /sys/kernel/debug
-->>>>>>> FETCH_HEAD:drivers/scsi/lpfc/lpfc_debugfs.c
-  * # mount -t debugfs none /sys/kernel/debug
+diff -puN arch/cris/kernel/process.c~mm-consolidate-init_mm-definition arch/cris/kernel/process.c
+--- a/arch/cris/kernel/process.c~mm-consolidate-init_mm-definition
++++ a/arch/cris/kernel/process.c
+@@ -38,10 +38,6 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial thread structure.
   *
-  * The lpfc debugfs directory hierarchy is:
-diff -puN include/linux/kmemcheck.h~linux-next-git-rejects include/linux/kmemcheck.h
---- a/include/linux/kmemcheck.h~linux-next-git-rejects
-+++ a/include/linux/kmemcheck.h
-@@ -7,11 +7,8 @@
- #ifdef CONFIG_KMEMCHECK
- extern int kmemcheck_enabled;
+diff -puN arch/frv/kernel/init_task.c~mm-consolidate-init_mm-definition arch/frv/kernel/init_task.c
+--- a/arch/frv/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/frv/kernel/init_task.c
+@@ -12,10 +12,6 @@
  
--<<<<<<< HEAD:include/linux/kmemcheck.h
--=======
- void kmemcheck_init(void);
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial thread structure.
+  *
+diff -puN arch/h8300/kernel/init_task.c~mm-consolidate-init_mm-definition arch/h8300/kernel/init_task.c
+--- a/arch/h8300/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/h8300/kernel/init_task.c
+@@ -14,10 +14,6 @@
  
-->>>>>>> FETCH_HEAD:include/linux/kmemcheck.h
- /* The slab-related functions. */
- void kmemcheck_alloc_shadow(struct page *page, int order, gfp_t flags, int node);
- void kmemcheck_free_shadow(struct page *page, int order);
-@@ -42,13 +39,10 @@ int kmemcheck_hide_addr(unsigned long ad
- #else
- #define kmemcheck_enabled 0
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial task structure.
+  *
+diff -puN arch/ia64/kernel/init_task.c~mm-consolidate-init_mm-definition arch/ia64/kernel/init_task.c
+--- a/arch/ia64/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/ia64/kernel/init_task.c
+@@ -19,10 +19,6 @@
  
--<<<<<<< HEAD:include/linux/kmemcheck.h
--=======
- static inline void kmemcheck_init(void)
- {
- }
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial task structure.
+  *
+diff -puN arch/m32r/kernel/init_task.c~mm-consolidate-init_mm-definition arch/m32r/kernel/init_task.c
+--- a/arch/m32r/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/m32r/kernel/init_task.c
+@@ -13,10 +13,6 @@
  
-->>>>>>> FETCH_HEAD:include/linux/kmemcheck.h
- static inline void
- kmemcheck_alloc_shadow(struct page *page, int order, gfp_t flags, int node)
- {
-@@ -114,11 +108,6 @@ static inline void kmemcheck_mark_initia
- #endif /* CONFIG_KMEMCHECK */
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial thread structure.
+  *
+diff -puN arch/m68k/kernel/process.c~mm-consolidate-init_mm-definition arch/m68k/kernel/process.c
+--- a/arch/m68k/kernel/process.c~mm-consolidate-init_mm-definition
++++ a/arch/m68k/kernel/process.c
+@@ -42,10 +42,6 @@
+  */
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ union thread_union init_thread_union
+ __attribute__((section(".data.init_task"), aligned(THREAD_SIZE)))
+        = { INIT_THREAD_INFO(init_task) };
+diff -puN arch/m68knommu/kernel/init_task.c~mm-consolidate-init_mm-definition arch/m68knommu/kernel/init_task.c
+--- a/arch/m68knommu/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/m68knommu/kernel/init_task.c
+@@ -14,10 +14,6 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial task structure.
+  *
+diff -puN arch/mips/kernel/init_task.c~mm-consolidate-init_mm-definition arch/mips/kernel/init_task.c
+--- a/arch/mips/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/mips/kernel/init_task.c
+@@ -11,10 +11,6 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial thread structure.
+  *
+diff -puN arch/mn10300/kernel/init_task.c~mm-consolidate-init_mm-definition arch/mn10300/kernel/init_task.c
+--- a/arch/mn10300/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/mn10300/kernel/init_task.c
+@@ -20,9 +20,6 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial thread structure.
+  *
+diff -puN arch/parisc/kernel/init_task.c~mm-consolidate-init_mm-definition arch/parisc/kernel/init_task.c
+--- a/arch/parisc/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/parisc/kernel/init_task.c
+@@ -36,10 +36,6 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial task structure.
+  *
+diff -puN arch/powerpc/kernel/init_task.c~mm-consolidate-init_mm-definition arch/powerpc/kernel/init_task.c
+--- a/arch/powerpc/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/powerpc/kernel/init_task.c
+@@ -9,10 +9,6 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial thread structure.
+  *
+diff -puN arch/s390/kernel/init_task.c~mm-consolidate-init_mm-definition arch/s390/kernel/init_task.c
+--- a/arch/s390/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/s390/kernel/init_task.c
+@@ -18,10 +18,6 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial thread structure.
+  *
+diff -puN arch/sh/kernel/init_task.c~mm-consolidate-init_mm-definition arch/sh/kernel/init_task.c
+--- a/arch/sh/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/sh/kernel/init_task.c
+@@ -10,9 +10,6 @@
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+ struct pt_regs fake_swapper_regs;
+-struct mm_struct init_mm = INIT_MM(init_mm);
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial thread structure.
+  *
+diff -puN arch/sparc/kernel/init_task.c~mm-consolidate-init_mm-definition arch/sparc/kernel/init_task.c
+--- a/arch/sparc/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/sparc/kernel/init_task.c
+@@ -10,10 +10,7 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
+ struct task_struct init_task = INIT_TASK(init_task);
+-
+-EXPORT_SYMBOL(init_mm);
+ EXPORT_SYMBOL(init_task);
+ 
+ /* .text section in head.S is aligned at 8k boundary and this gets linked
+diff -puN arch/um/kernel/init_task.c~mm-consolidate-init_mm-definition arch/um/kernel/init_task.c
+--- a/arch/um/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/um/kernel/init_task.c
+@@ -10,11 +10,8 @@
+ #include "linux/mqueue.h"
+ #include "asm/uaccess.h"
+ 
+-struct mm_struct init_mm = INIT_MM(init_mm);
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-EXPORT_SYMBOL(init_mm);
+-
+ /*
+  * Initial task structure.
+  *
+diff -puN arch/x86/kernel/init_task.c~mm-consolidate-init_mm-definition arch/x86/kernel/init_task.c
+--- a/arch/x86/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/x86/kernel/init_task.c
+@@ -12,7 +12,6 @@
+ 
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
  
  /*
--<<<<<<< HEAD:include/linux/kmemcheck.h
-- * Bitfield annotations
-- *
--=======
-->>>>>>> FETCH_HEAD:include/linux/kmemcheck.h
-  * How to use: If you have a struct using bitfields, for example
-  *
-  *     struct a {
-diff -puN kernel/sysctl.c~linux-next-git-rejects kernel/sysctl.c
---- a/kernel/sysctl.c~linux-next-git-rejects
-+++ a/kernel/sysctl.c
-@@ -1337,8 +1337,6 @@ static struct ctl_table vm_table[] = {
- 		.extra2		= &one,
- 	},
- #endif
--<<<<<<< HEAD:kernel/sysctl.c
--=======
- #ifdef CONFIG_KMEMCHECK
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
-@@ -1350,7 +1348,6 @@ static struct ctl_table vm_table[] = {
- 	},
- #endif
- #ifdef CONFIG_UNEVICTABLE_LRU
-->>>>>>> FETCH_HEAD:kernel/sysctl.c
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "scan_unevictable_pages",
-diff -puN kernel/trace/trace.c~linux-next-git-rejects kernel/trace/trace.c
---- a/kernel/trace/trace.c~linux-next-git-rejects
-+++ a/kernel/trace/trace.c
-@@ -2412,10 +2412,7 @@ static const struct file_operations trac
+  * Initial thread structure.
+diff -puN arch/xtensa/kernel/init_task.c~mm-consolidate-init_mm-definition arch/xtensa/kernel/init_task.c
+--- a/arch/xtensa/kernel/init_task.c~mm-consolidate-init_mm-definition
++++ a/arch/xtensa/kernel/init_task.c
+@@ -23,10 +23,6 @@
  
- static const char readme_msg[] =
- 	"tracing mini-HOWTO:\n\n"
--<<<<<<< HEAD:kernel/trace/trace.c
--=======
- 	"# mkdir /sys/kernel/debug\n"
-->>>>>>> FETCH_HEAD:kernel/trace/trace.c
- 	"# mount -t debugfs nodev /sys/kernel/debug\n\n"
- 	"# cat /sys/kernel/debug/tracing/available_tracers\n"
- 	"wakeup preemptirqsoff preemptoff irqsoff function sched_switch nop\n\n"
-diff -puN mm/Makefile~linux-next-git-rejects mm/Makefile
---- a/mm/Makefile~linux-next-git-rejects
-+++ a/mm/Makefile
-@@ -28,10 +28,7 @@ obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifi
- obj-$(CONFIG_PAGE_POISONING) += debug-pagealloc.o
- obj-$(CONFIG_SLAB) += slab.o
- obj-$(CONFIG_SLUB) += slub.o
--<<<<<<< HEAD:mm/Makefile
--=======
- obj-$(CONFIG_SLQB) += slqb.o
-->>>>>>> FETCH_HEAD:mm/Makefile
- obj-$(CONFIG_KMEMCHECK) += kmemcheck.o
- obj-$(CONFIG_FAILSLAB) += failslab.o
- obj-$(CONFIG_MEMORY_HOTPLUG) += memory_hotplug.o
-diff -puN mm/page_alloc.c~linux-next-git-rejects mm/page_alloc.c
---- a/mm/page_alloc.c~linux-next-git-rejects
-+++ a/mm/page_alloc.c
-@@ -1851,54 +1851,6 @@ nopage:
- got_pg:
- 	if (kmemcheck_enabled)
- 		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
--<<<<<<< HEAD:mm/page_alloc.c
--	return page;
+ static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
+ static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
+-struct mm_struct init_mm = INIT_MM(init_mm);
 -
+-EXPORT_SYMBOL(init_mm);
+-
+ union thread_union init_thread_union
+ 	__attribute__((__section__(".data.init_task"))) =
+ { INIT_THREAD_INFO(init_task) };
+diff -puN include/linux/init_task.h~mm-consolidate-init_mm-definition include/linux/init_task.h
+--- a/include/linux/init_task.h~mm-consolidate-init_mm-definition
++++ a/include/linux/init_task.h
+@@ -15,18 +15,6 @@
+ extern struct files_struct init_files;
+ extern struct fs_struct init_fs;
+ 
+-#define INIT_MM(name) \
+-{			 					\
+-	.mm_rb		= RB_ROOT,				\
+-	.pgd		= swapper_pg_dir, 			\
+-	.mm_users	= ATOMIC_INIT(2), 			\
+-	.mm_count	= ATOMIC_INIT(1), 			\
+-	.mmap_sem	= __RWSEM_INITIALIZER(name.mmap_sem),	\
+-	.page_table_lock =  __SPIN_LOCK_UNLOCKED(name.page_table_lock),	\
+-	.mmlist		= LIST_HEAD_INIT(name.mmlist),		\
+-	.cpu_vm_mask	= CPU_MASK_ALL,				\
 -}
 -
--/*
-- * This is the 'heart' of the zoned buddy allocator.
-- */
--struct page *
--__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
--			struct zonelist *zonelist, nodemask_t *nodemask)
--{
--	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
--	struct zone *preferred_zone;
--	struct page *page;
--	int migratetype = allocflags_to_migratetype(gfp_mask);
--
--	lockdep_trace_alloc(gfp_mask);
--
--	might_sleep_if(gfp_mask & __GFP_WAIT);
--
--	if (should_fail_alloc_page(gfp_mask, order))
--		return NULL;
--
--	/*
--	 * Check the zones suitable for the gfp_mask contain at least one
--	 * valid zone. It's possible to have an empty zonelist as a result
--	 * of GFP_THISNODE and a memoryless node
--	 */
--	if (unlikely(!zonelist->_zonerefs->zone))
--		return NULL;
--
--	/* The preferred zone is used for statistics later */
--	first_zones_zonelist(zonelist, high_zoneidx, nodemask, &preferred_zone);
--	if (!preferred_zone)
--		return NULL;
--
--	/* First allocation attempt */
--	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
--			zonelist, high_zoneidx, ALLOC_WMARK_LOW|ALLOC_CPUSET,
--			preferred_zone, migratetype);
--	if (unlikely(!page))
--		page = __alloc_pages_slowpath(gfp_mask, order,
--				zonelist, high_zoneidx, nodemask,
--				preferred_zone, migratetype);
--
--=======
-->>>>>>> FETCH_HEAD:mm/page_alloc.c
- 	return page;
- }
- EXPORT_SYMBOL(__alloc_pages_nodemask);
-diff -puN mm/slab.c~linux-next-git-rejects mm/slab.c
---- a/mm/slab.c~linux-next-git-rejects
-+++ a/mm/slab.c
-@@ -1625,11 +1625,7 @@ static void *kmem_getpages(struct kmem_c
- 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
- 		flags |= __GFP_RECLAIMABLE;
+ #define INIT_SIGNALS(sig) {						\
+ 	.count		= ATOMIC_INIT(1), 				\
+ 	.wait_chldexit	= __WAIT_QUEUE_HEAD_INITIALIZER(sig.wait_chldexit),\
+diff -puN mm/Makefile~mm-consolidate-init_mm-definition mm/Makefile
+--- a/mm/Makefile~mm-consolidate-init_mm-definition
++++ a/mm/Makefile
+@@ -12,6 +12,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+ 			   page_isolation.o mm_init.o $(mmu-y)
++obj-y += init-mm.o
  
--<<<<<<< HEAD:mm/slab.c
--	page = alloc_pages_exact_node(nodeid, flags | __GFP_NOTRACK, cachep->gfporder);
--=======
- 	page = alloc_pages_node(nodeid, flags & ~__GFP_NOTRACK, cachep->gfporder);
-->>>>>>> FETCH_HEAD:mm/slab.c
- 	if (!page)
- 		return NULL;
- 
-diff -puN mm/slub.c~linux-next-git-rejects mm/slub.c
---- a/mm/slub.c~linux-next-git-rejects
-+++ a/mm/slub.c
-@@ -2738,13 +2738,7 @@ static noinline struct kmem_cache *dma_k
- 		slabflags |= __SYSFS_ADD_DEFERRED;
- 
- 	if (!s || !text || !kmem_cache_open(s, flags, text,
--<<<<<<< HEAD:mm/slub.c
--			realsize, ARCH_KMALLOC_MINALIGN,
--			SLAB_CACHE_DMA|SLAB_NOTRACK|__SYSFS_ADD_DEFERRED,
--			NULL)) {
--=======
- 			realsize, ARCH_KMALLOC_MINALIGN, slabflags, NULL)) {
-->>>>>>> FETCH_HEAD:mm/slub.c
- 		kfree(s);
- 		kfree(text);
- 		goto unlock_out;
-diff -puN scripts/tracing/draw_functrace.py~linux-next-git-rejects scripts/tracing/draw_functrace.py
---- a/scripts/tracing/draw_functrace.py~linux-next-git-rejects
-+++ a/scripts/tracing/draw_functrace.py
-@@ -12,12 +12,8 @@ calls. Only the functions's names and th
- 
- Usage:
- 	Be sure that you have CONFIG_FUNCTION_TRACER
--<<<<<<< HEAD:scripts/tracing/draw_functrace.py
--	# mount -t debugfs nodev /sys/kernel/debug
--=======
- 	# mkdir /sys/kernel/debug
- 	# mount -t debug debug /sys/kernel/debug
-->>>>>>> FETCH_HEAD:scripts/tracing/draw_functrace.py
- 	# echo function > /sys/kernel/debug/tracing/current_tracer
- 	$ cat /sys/kernel/debug/tracing/trace_pipe > ~/raw_trace_func
- 	Wait some times but not too much, the script is a bit slow.
+ obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+diff -puN /dev/null mm/init-mm.c
+--- /dev/null
++++ a/mm/init-mm.c
+@@ -0,0 +1,20 @@
++#include <linux/mm_types.h>
++#include <linux/rbtree.h>
++#include <linux/rwsem.h>
++#include <linux/spinlock.h>
++#include <linux/list.h>
++#include <linux/cpumask.h>
++
++#include <asm/atomic.h>
++#include <asm/pgtable.h>
++
++struct mm_struct init_mm = {
++	.mm_rb		= RB_ROOT,
++	.pgd		= swapper_pg_dir,
++	.mm_users	= ATOMIC_INIT(2),
++	.mm_count	= ATOMIC_INIT(1),
++	.mmap_sem	= __RWSEM_INITIALIZER(init_mm.mmap_sem),
++	.page_table_lock =  __SPIN_LOCK_UNLOCKED(init_mm.page_table_lock),
++	.mmlist		= LIST_HEAD_INIT(init_mm.mmlist),
++	.cpu_vm_mask	= CPU_MASK_ALL,
++};
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-maintainers-fbdev-is-orphaned.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes.patch
-gpio-pca953x-get-platform_data-from-openfirmware-checkpatch-fixes-gpio-pca953x-get-platform_data-from-openfirmware-cleanups.patch
-documentation-changes-perl-is-needed-to-build-the-kernel-fix.patch
-cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem-fix.patch
-drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist-checkpatch-fixes.patch
-char-moxa-prevent-opening-unavailable-ports.patch
-edac-add-cpc925-memory-controller-driver-cleanup.patch
-edac-add-edac_device_alloc_index-cleanup.patch
-edac-kconfig-fix-the-meaning-of-edac-abbreviation-fix.patch
-kexec-sysrq-simplify-sysrq-c-handler.patch
-gru-support-for-asynchronous-gru-instructions-fix.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-update.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+proc-update-document-for-proc-softirqs-and-proc-stat-update.patch
+fs-remove-sparse-errors-in-proc_devtreec.patch
+procfs-provide-stack-information-for-threads-v08.patch
+pidns-make-create_pid_namespace-accept-parent-pidns.patch
+pidns-rewrite-copy_pid_ns.patch
+utsns-extract-creeate_uts_ns.patch
+ipcns-remove-useless-get-put-while-clone_newipc.patch
+ipcns-extract-create_ipc_ns.patch
+nsproxy-extract-create_nsproxy.patch
+ipcns-3-4-make-free_ipc_ns-static.patch
+ipcns-move-free_ipcs-proto.patch
 
