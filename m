@@ -1,126 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: [merged] remove-put_cpu_no_resched.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:37:22 -0700
-Message-ID: <200906171837.n5HIbMXH003456@imap1.linux-foundation.org>
+Subject: [merged] rio-warn_unused_result-warnings-fix.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:40:09 -0700
+Message-ID: <200906171840.n5HIe9VW006113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755030AbZFQSyS (ORCPT
+	by vger.kernel.org with ESMTP id S1758298AbZFQSyf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:54:18 -0400
+	Wed, 17 Jun 2009 14:54:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, Trond.Myklebust@netapp.com, bfields@fieldses.org, mingo@elte.hu, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: leoli@freescale.com, benh@kernel.crashing.org, galak@gate.crashing.org, mporter@kernel.crashing.org, zw@zh-kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove put_cpu_no_resched()
+     rio: warn_unused_result warnings fix
 has been removed from the -mm tree.  Its filename was
-     remove-put_cpu_no_resched.patch
+     rio-warn_unused_result-warnings-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove put_cpu_no_resched()
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: rio: warn_unused_result warnings fix
+From: Li Yang <leoli@freescale.com>
 
-put_cpu_no_resched() is an optimization of put_cpu() which unfortunately
-can cause high latencies.
+Adding failure path for the following two cases.
 
-The nfs iostats code uses put_cpu_no_resched() in a code sequence where a
-reschedule request caused by an interrupt between the get_cpu() and the
-put_cpu_no_resched() can delay the reschedule for at least HZ.
+warning: ignoring return value of 'device_add', declared with attribute warn_unused_result
+warning: ignoring return value of 'sysfs_create_bin_file', declared with attribute warn_unused_result
 
-The other users of put_cpu_no_resched() optimize correctly in interrupt
-code, but there is no real harm in using the put_cpu() function which is
-an alias for preempt_enable().  The extra check of the preemmpt count is
-not as critical as the potential source of missing a reschedule.
-
-Debugged in the preempt-rt tree and verified in mainline.
-
-Impact: remove a high latency source
-
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Signed-off-by: Li Yang <leoli@freescale.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Zhang Wei <zw@zh-kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |    2 +-
- fs/nfs/iostat.h            |    6 +++---
- include/linux/smp.h        |    1 -
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/rapidio/rio-scan.c  |   44 ++++++++++++++++++++--------------
+ drivers/rapidio/rio-sysfs.c |    6 +++-
+ 2 files changed, 31 insertions(+), 19 deletions(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~remove-put_cpu_no_resched arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~remove-put_cpu_no_resched
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -5595,7 +5595,7 @@ pfm_interrupt_handler(int irq, void *arg
- 		(*pfm_alt_intr_handler->handler)(irq, arg, regs);
- 	}
+diff -puN drivers/rapidio/rio-scan.c~rio-warn_unused_result-warnings-fix drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rio-warn_unused_result-warnings-fix
++++ a/drivers/rapidio/rio-scan.c
+@@ -263,15 +263,21 @@ static void rio_route_set_ops(struct rio
+  * device to the RIO device list.  Creates the generic sysfs nodes
+  * for an RIO device.
+  */
+-static void __devinit rio_add_device(struct rio_dev *rdev)
++static int __devinit rio_add_device(struct rio_dev *rdev)
+ {
+-	device_add(&rdev->dev);
++	int err;
++
++	err = device_add(&rdev->dev);
++	if (err)
++		return err;
  
--	put_cpu_no_resched();
-+	put_cpu();
- 	return IRQ_HANDLED;
+ 	spin_lock(&rio_global_list_lock);
+ 	list_add_tail(&rdev->global_list, &rio_devices);
+ 	spin_unlock(&rio_global_list_lock);
+ 
+ 	rio_create_sysfs_dev_files(rdev);
++
++	return 0;
  }
  
-diff -puN fs/nfs/iostat.h~remove-put_cpu_no_resched fs/nfs/iostat.h
---- a/fs/nfs/iostat.h~remove-put_cpu_no_resched
-+++ a/fs/nfs/iostat.h
-@@ -31,7 +31,7 @@ static inline void nfs_inc_server_stats(
- 	cpu = get_cpu();
- 	iostats = per_cpu_ptr(server->io_stats, cpu);
- 	iostats->events[stat]++;
--	put_cpu_no_resched();
-+	put_cpu();
+ /**
+@@ -294,13 +300,14 @@ static struct rio_dev *rio_setup_device(
+ 					struct rio_mport *port, u16 destid,
+ 					u8 hopcount, int do_enum)
+ {
++	int ret = 0;
+ 	struct rio_dev *rdev;
+-	struct rio_switch *rswitch;
++	struct rio_switch *rswitch = NULL;
+ 	int result, rdid;
+ 
+ 	rdev = kzalloc(sizeof(struct rio_dev), GFP_KERNEL);
+ 	if (!rdev)
+-		goto out;
++		return NULL;
+ 
+ 	rdev->net = net;
+ 	rio_mport_read_config_32(port, destid, hopcount, RIO_DEV_ID_CAR,
+@@ -343,23 +350,16 @@ static struct rio_dev *rio_setup_device(
+ 		rio_mport_read_config_32(port, destid, hopcount,
+ 					 RIO_SWP_INFO_CAR, &rdev->swpinfo);
+ 		rswitch = kmalloc(sizeof(struct rio_switch), GFP_KERNEL);
+-		if (!rswitch) {
+-			kfree(rdev);
+-			rdev = NULL;
+-			goto out;
+-		}
++		if (!rswitch)
++			goto cleanup;
+ 		rswitch->switchid = next_switchid;
+ 		rswitch->hopcount = hopcount;
+ 		rswitch->destid = destid;
+ 		rswitch->route_table = kzalloc(sizeof(u8)*
+ 					RIO_MAX_ROUTE_ENTRIES(port->sys_size),
+ 					GFP_KERNEL);
+-		if (!rswitch->route_table) {
+-			kfree(rdev);
+-			rdev = NULL;
+-			kfree(rswitch);
+-			goto out;
+-		}
++		if (!rswitch->route_table)
++			goto cleanup;
+ 		/* Initialize switch route table */
+ 		for (rdid = 0; rdid < RIO_MAX_ROUTE_ENTRIES(port->sys_size);
+ 				rdid++)
+@@ -390,10 +390,20 @@ static struct rio_dev *rio_setup_device(
+ 		rio_init_dbell_res(&rdev->riores[RIO_DOORBELL_RESOURCE],
+ 				   0, 0xffff);
+ 
+-	rio_add_device(rdev);
++	ret = rio_add_device(rdev);
++	if (ret)
++		goto cleanup;
+ 
+-      out:
+ 	return rdev;
++
++cleanup:
++	if (rswitch) {
++		if (rswitch->route_table)
++			kfree(rswitch->route_table);
++		kfree(rswitch);
++	}
++	kfree(rdev);
++	return NULL;
  }
  
- static inline void nfs_inc_stats(const struct inode *inode,
-@@ -50,7 +50,7 @@ static inline void nfs_add_server_stats(
- 	cpu = get_cpu();
- 	iostats = per_cpu_ptr(server->io_stats, cpu);
- 	iostats->bytes[stat] += addend;
--	put_cpu_no_resched();
-+	put_cpu();
+ /**
+diff -puN drivers/rapidio/rio-sysfs.c~rio-warn_unused_result-warnings-fix drivers/rapidio/rio-sysfs.c
+--- a/drivers/rapidio/rio-sysfs.c~rio-warn_unused_result-warnings-fix
++++ a/drivers/rapidio/rio-sysfs.c
+@@ -214,9 +214,11 @@ static struct bin_attribute rio_config_a
+  */
+ int rio_create_sysfs_dev_files(struct rio_dev *rdev)
+ {
+-	sysfs_create_bin_file(&rdev->dev.kobj, &rio_config_attr);
++	int err = 0;
+ 
+-	return 0;
++	err = sysfs_create_bin_file(&rdev->dev.kobj, &rio_config_attr);
++
++	return err;
  }
  
- static inline void nfs_add_stats(const struct inode *inode,
-@@ -71,7 +71,7 @@ static inline void nfs_add_fscache_stats
- 	cpu = get_cpu();
- 	iostats = per_cpu_ptr(NFS_SERVER(inode)->io_stats, cpu);
- 	iostats->fscache[stat] += addend;
--	put_cpu_no_resched();
-+	put_cpu();
- }
- #endif
- 
-diff -puN include/linux/smp.h~remove-put_cpu_no_resched include/linux/smp.h
---- a/include/linux/smp.h~remove-put_cpu_no_resched
-+++ a/include/linux/smp.h
-@@ -177,7 +177,6 @@ static inline void init_call_single_data
- 
- #define get_cpu()		({ preempt_disable(); smp_processor_id(); })
- #define put_cpu()		preempt_enable()
--#define put_cpu_no_resched()	preempt_enable_no_resched()
- 
- /*
-  * Callback to arch code if there's nosmp or maxcpus=0 on the
+ /**
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from leoli@freescale.com are
 
 origin.patch
 linux-next.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
-ia64-remove-obsolete-no_irq_type.patch
-ia64-remove-obsolete-irq_desc_t-typedef.patch
-ia64-remove-obsolete-hw_interrupt_type.patch
-parisc-remove-obsolete-hw_interrupt_type.patch
-x86-fix-cpufreq-tsc-scaling.patch
+rapidio-add-common-mapping-apis-for-rapidio-memory-access.patch
+powerpc-add-memory-map-support-to-freescale-rapidio-block.patch
+rionet-add-memory-access-to-simulated-ethernet-over-rapidio.patch
 
