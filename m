@@ -1,70 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mb862xxfb-use-config_of-instead-of-config_ppc_of.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:39:29 -0700
-Message-ID: <200906171839.n5HIdTi6005460@imap1.linux-foundation.org>
+Subject: [merged] radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:39:40 -0700
+Message-ID: <200906171839.n5HIde0t005659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752228AbZFQSkU (ORCPT
+	by vger.kernel.org with ESMTP id S1753474AbZFQSk2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:40:20 -0400
+	Wed, 17 Jun 2009 14:40:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, agust@denx.de, davem@davemloft.net, monstr@monstr.eu, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, benh@kernel.crashing.org, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mb862xxfb: use CONFIG_OF instead of CONFIG_PPC_OF
+     radeon: P2G2CLK_ALWAYS_ONb tested twice, should 2nd be P2G2CLK_DAC_ALWAYS_ONb?
 has been removed from the -mm tree.  Its filename was
-     mb862xxfb-use-config_of-instead-of-config_ppc_of.patch
+     radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mb862xxfb: use CONFIG_OF instead of CONFIG_PPC_OF
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: radeon: P2G2CLK_ALWAYS_ONb tested twice, should 2nd be P2G2CLK_DAC_ALWAYS_ONb?
+From: Roel Kluin <roel.kluin@gmail.com>
 
-With this change, the driver builds fine on Microblaze, which helps
-allyesconfig compile tests.
+P2G2CLK_ALWAYS_ONb is tested twice, 2nd should be P2G2CLK_DAC_ALWAYS_ONb.
 
-I did not test sparc, but the change should have the same effect there.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Anatolij Gustschin <agust@denx.de>
-Tested-by: Anatolij Gustschin <agust@denx.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Michal Simek <monstr@monstr.eu>
+[akpm@linux-foundation.org: remove duplicated bitwise-OR of PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb too]
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mb862xx/mb862xxfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/aty/radeon_pm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/video/mb862xx/mb862xxfb.c~mb862xxfb-use-config_of-instead-of-config_ppc_of drivers/video/mb862xx/mb862xxfb.c
---- a/drivers/video/mb862xx/mb862xxfb.c~mb862xxfb-use-config_of-instead-of-config_ppc_of
-+++ a/drivers/video/mb862xx/mb862xxfb.c
-@@ -19,7 +19,7 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/pci.h>
--#if defined(CONFIG_PPC_OF)
-+#if defined(CONFIG_OF)
- #include <linux/of_platform.h>
- #endif
- #include "mb862xxfb.h"
+diff -puN drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb drivers/video/aty/radeon_pm.c
+--- a/drivers/video/aty/radeon_pm.c~radeon-p2g2clk_always_onb-tested-twice-should-2nd-be-p2g2clk_dac_always_onb
++++ a/drivers/video/aty/radeon_pm.c
+@@ -213,7 +213,6 @@ static void radeon_pm_disable_dynamic_mo
+ 			 PIXCLKS_CNTL__R300_PIXCLK_TRANS_ALWAYS_ONb	|
+ 			 PIXCLKS_CNTL__R300_PIXCLK_TVO_ALWAYS_ONb	|
+ 			 PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb		|
+-			 PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb		|
+ 			 PIXCLKS_CNTL__R300_DISP_DAC_PIXCLK_DAC2_BLANK_OFF);
+                 OUTPLL(pllPIXCLKS_CNTL, tmp);
+ 
+@@ -395,7 +394,7 @@ static void radeon_pm_enable_dynamic_mod
+ 			PIXCLKS_CNTL__R300_PIXCLK_TRANS_ALWAYS_ONb      |
+ 			PIXCLKS_CNTL__R300_PIXCLK_TVO_ALWAYS_ONb        |
+ 			PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb           |
+-			PIXCLKS_CNTL__R300_P2G2CLK_ALWAYS_ONb);
++			PIXCLKS_CNTL__R300_P2G2CLK_DAC_ALWAYS_ONb);
+ 		OUTPLL(pllPIXCLKS_CNTL, tmp);
+ 
+ 		tmp = INPLL(pllMCLK_MISC);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-ipc-use-__arch_want_ipc_parse_version-in-ipc-utilh.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh.patch
-dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-add-config_dma_api_debug-support.patch
-dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+serial-fix-off-by-one-errors.patch
+usb-mutually-exclusive-port_status.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+spi_bfin5xx-limit-reaches-1.patch
+platinumfb-misplaced-parenthesis.patch
+ufs-sector_t-cannot-be-negative.patch
+dtlk-off-by-one-in-readwrite_tts.patch
 
