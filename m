@@ -1,93 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:32:50 -0700
-Message-ID: <200906171832.n5HIWoim031438@imap1.linux-foundation.org>
+Subject: [merged] readahead-enforce-full-sync-mmap-readahead-size.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:33:03 -0700
+Message-ID: <200906171833.n5HIX301031619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56280 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54130 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759842AbZFQSdX (ORCPT
+	by vger.kernel.org with ESMTP id S1759710AbZFQSdT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:33:23 -0400
+	Wed, 17 Jun 2009 14:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, npiggin@suse.de, torvalds@linux-foundation.org, yinghan@google.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: enforce full readahead size on async mmap readahead
+     readahead: enforce full sync mmap readahead size
 has been removed from the -mm tree.  Its filename was
-     readahead-enforce-full-readahead-size-on-async-mmap-readahead.patch
+     readahead-enforce-full-sync-mmap-readahead-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: enforce full readahead size on async mmap readahead
+Subject: readahead: enforce full sync mmap readahead size
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-We need this in one particular case and two more general ones.
+Now that we do readahead for sequential mmap reads, here is a simple
+evaluation of the impacts, and one further optimization.
 
-Now we do async readahead for sequential mmap reads, and do it with the
-help of PG_readahead.  For normal reads, PG_readahead is the sufficient
-condition to do a sequential readahead.  But unfortunately, for mmap
-reads, there is a tiny nuisance:
+It's an NFS-root debian desktop system, readahead size = 60 pages.
+The numbers are grabbed after a fresh boot into console.
 
-[11736.998347] readahead-init0(process: sh/23926, file: sda1/w3m, offset=0:4503599627370495, ra=0+4-3) = 4
-[11737.014985] readahead-around(process: w3m/23926, file: sda1/w3m, offset=0:0, ra=290+32-0) = 17
-[11737.019488] readahead-around(process: w3m/23926, file: sda1/w3m, offset=0:0, ra=118+32-0) = 32
-[11737.024921] readahead-interleaved(process: w3m/23926, file: sda1/w3m, offset=0:2, ra=4+6-6) = 6
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 ~~~~~~~~~~~~~
+approach        pgmajfault      RA miss ratio   mmap IO count   avg IO size(pages)
+   A            383             31.6%           383             11
+   B            225             32.4%           390             11
+   C            224             32.6%           307             13
 
-An unfavorably small readahead.  The original dumb read-around size could
-be more efficient.
+case A: mmap sync/async readahead disabled
+case B: mmap sync/async readahead enabled, with enforced full async readahead size
+case C: mmap sync/async readahead enabled, with enforced full sync/async readahead size
+or:
+A = vanilla 2.6.30-rc1
+B = A plus mmap readahead
+C = B plus this patch
 
-That happened because ld-linux.so does a read(832) in L1 before mmap(),
-which triggers a 4-page readahead, with the second page tagged
-PG_readahead.
+The numbers show that
+- there are good possibilities for random mmap reads to trigger readahead
+- 'pgmajfault' is reduced by 1/3, due to the _async_ nature of readahead
+- case C can further reduce IO count by 1/4
+- readahead miss ratios are not quite affected
 
-L0: open("/lib/libc.so.6", O_RDONLY)        = 3
-L1: read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\340\342"..., 832) = 832
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-L2: fstat(3, {st_mode=S_IFREG|0755, st_size=1420624, ...}) = 0
-L3: mmap(NULL, 3527256, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fac6e51d000
-L4: mprotect(0x7fac6e671000, 2097152, PROT_NONE) = 0
-L5: mmap(0x7fac6e871000, 20480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x154000) = 0x7fac6e871000
-L6: mmap(0x7fac6e876000, 16984, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fac6e876000
-L7: close(3)                                = 0
+The theory is
+- readahead is _good_ for clustered random reads, and can perform
+  _better_ than readaround because they could be _async_.
+- async readahead size is guaranteed to be larger than readaround
+  size, and they are _async_, hence will mostly behave better
+However for B
+- sync readahead size could be smaller than readaround size, hence may
+  make things worse by produce more smaller IOs
+which will be fixed by this patch.
 
-In general, the PG_readahead flag will also be hit in cases
+Final conclusion:
+- mmap readahead reduced major faults by 1/3 and no obvious overheads;
+- mmap io can be further reduced by 1/4 with this patch.
 
-- sequential reads
-
-- clustered random reads
-
-A full readahead size is desirable in both cases.
-
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/filemap.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~readahead-enforce-full-readahead-size-on-async-mmap-readahead mm/filemap.c
---- a/mm/filemap.c~readahead-enforce-full-readahead-size-on-async-mmap-readahead
+diff -puN mm/filemap.c~readahead-enforce-full-sync-mmap-readahead-size mm/filemap.c
+--- a/mm/filemap.c~readahead-enforce-full-sync-mmap-readahead-size
 +++ a/mm/filemap.c
-@@ -1516,7 +1516,8 @@ static void do_async_mmap_readahead(stru
- 	if (ra->mmap_miss > 0)
- 		ra->mmap_miss--;
- 	if (PageReadahead(page))
--		page_cache_async_readahead(mapping, ra, file, page, offset, 1);
-+		page_cache_async_readahead(mapping, ra, file,
-+					   page, offset, ra->ra_pages);
- }
+@@ -1471,7 +1471,8 @@ static void do_sync_mmap_readahead(struc
  
- /**
+ 	if (VM_SequentialReadHint(vma) ||
+ 			offset - 1 == (ra->prev_pos >> PAGE_CACHE_SHIFT)) {
+-		page_cache_sync_readahead(mapping, ra, file, offset, 1);
++		page_cache_sync_readahead(mapping, ra, file, offset,
++					  ra->ra_pages);
+ 		return;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
