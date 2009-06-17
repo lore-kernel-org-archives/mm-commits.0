@@ -1,81 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 15:47:23 -0700
-Message-ID: <200906172247.n5HMlN8X007584@imap1.linux-foundation.org>
+Subject: [folded] memcg-fix-swap-accounting-update.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 15:49:03 -0700
+Message-ID: <200906172249.n5HMn3u3009068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54287 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756336AbZFQWs6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756596AbZFQWtV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 18:48:58 -0400
+	Wed, 17 Jun 2009 18:49:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.cn, menage@google.com
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: fix mem_cgroup_update_mapped_file_stat oops
+     memcg-fix-swap-accounting-update
 has been removed from the -mm tree.  Its filename was
-     memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+     memcg-fix-swap-accounting-update.patch
 
-This patch was dropped because it was folded into memcg-add-file-based-rss-accounting.patch
+This patch was dropped because it was folded into memcg-fix-swap-accounting.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix mem_cgroup_update_mapped_file_stat oops
-From: Hugh Dickins <hugh@veritas.com>
+Subject: memcg-fix-swap-accounting-update
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-CONFIG_SPARSEMEM=y CONFIG_CGROUP_MEM_RES_CTLR=y cgroup_disable=memory
-bootup is oopsing in mem_cgroup_update_mapped_file_stat().  !SPARSEMEM is
-fine because its lookup_page_cgroup() contains an explicit check for NULL
-node_page_cgroup, but the SPARSEMEM version was missing a check for NULL
-section->page_cgroup.
+This is a replacement for
+  memcg-fix-swap-accounting.patch in mmotm.
+Adjusted to style changes in 2/4 and 3/4.
 
-Should go in as a fix to memcg-add-file-based-rss-accounting.patch but
-it's curious that's the first thing to suffer from this divergence.
-
-Perhaps this is the wrong fix, and there should be an explicit
-mem_cgroup_disable() check somewhere else; but it would then seem
-dangerous that SPARSEMEM and !SPARSEMEM diverge in this way, and there are
-lots of lookup_page_cgroup NULL tests around.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.cn>
-Cc: Paul Menage <menage@google.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/swap.h |    4 ++--
+ mm/memcontrol.c      |    2 +-
+ mm/swapfile.c        |    8 +++++---
+ 3 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_cgroup.c~memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops
-+++ a/mm/page_cgroup.c
-@@ -99,6 +99,8 @@ struct page_cgroup *lookup_page_cgroup(s
- 	unsigned long pfn = page_to_pfn(page);
- 	struct mem_section *section = __pfn_to_section(pfn);
+diff -puN include/linux/swap.h~memcg-fix-swap-accounting-update include/linux/swap.h
+--- a/include/linux/swap.h~memcg-fix-swap-accounting-update
++++ a/include/linux/swap.h
+@@ -320,10 +320,10 @@ static inline void disable_swap_token(vo
  
-+	if (!section->page_cgroup)
-+		return NULL;
- 	return section->page_cgroup + pfn;
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ extern void
+-mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, int swapout);
++mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout);
+ #else
+ static inline void
+-mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, int swapout)
++mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout)
+ {
  }
+ #endif
+diff -puN mm/memcontrol.c~memcg-fix-swap-accounting-update mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-swap-accounting-update
++++ a/mm/memcontrol.c
+@@ -1559,7 +1559,7 @@ void mem_cgroup_uncharge_cache_page(stru
+  * memcg information is recorded to swap_cgroup of "ent"
+  */
+ void
+-mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, int swapout)
++mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout)
+ {
+ 	struct mem_cgroup *memcg;
+ 	int ctype = MEM_CGROUP_CHARGE_TYPE_SWAPOUT;
+diff -puN mm/swapfile.c~memcg-fix-swap-accounting-update mm/swapfile.c
+--- a/mm/swapfile.c~memcg-fix-swap-accounting-update
++++ a/mm/swapfile.c
+@@ -614,12 +614,14 @@ void swapcache_free(swp_entry_t entry, s
  
+ 	p = swap_info_get(entry);
+ 	if (p) {
+-		ret = swap_entry_free(p, entry, 1);
++		ret = swap_entry_free(p, entry, SWAP_CACHE);
+ 		if (page) {
++			bool swapout;
+ 			if (ret)
+-				mem_cgroup_uncharge_swapcache(page, entry, 1);
++				swapout = true; /* the end of swap out */
+ 			else
+-				mem_cgroup_uncharge_swapcache(page, entry, 0);
++				swapout = false; /* no more swap users! */
++			mem_cgroup_uncharge_swapcache(page, entry, swapout);
+ 		}
+ 		spin_unlock(&swap_lock);
+ 	}
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
 memcg-add-file-based-rss-accounting.patch
-memcg-add-file-based-rss-accounting-fix-mem_cgroup_update_mapped_file_stat-oops.patch
+memcg-remove-mem_cgroup_cache_charge_swapin.patch
+memcg-remove-some-redundant-checks.patch
+memcg-remove-unneeded-forward-declaration-from-schedh.patch
 memcg-fix-swap-accounting.patch
 memcg-fix-swap-accounting-update.patch
+memcg-fix-behavior-under-memorylimit-equals-to-memswlimit.patch
+memcg-add-interface-to-reset-limits.patch
+memcg-fix-lru-rotation-in-isolate_pages.patch
 
