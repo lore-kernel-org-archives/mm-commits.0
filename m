@@ -1,93 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] use-printk_once-in-several-places.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:37:33 -0700
-Message-ID: <200906171837.n5HIbX7J003624@imap1.linux-foundation.org>
+Subject: [merged] page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:35:41 -0700
+Message-ID: <200906171835.n5HIZfmk001741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754936AbZFQSxH (ORCPT
+	by vger.kernel.org with ESMTP id S1754856AbZFQSxs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:53:07 -0400
+	Wed, 17 Jun 2009 14:53:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, davem@davemloft.net, kosaki.motohiro@jp.fujitsu.com, linux@dominikbrodowski.net, mingo@elte.hu, mm-commits@vger.kernel.org
+To: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use printk_once() in several places
+     page-allocator: reset wmark_min and inactive ratio of zone when hotplug happens
 has been removed from the -mm tree.  Its filename was
-     use-printk_once-in-several-places.patch
+     page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: use printk_once() in several places
+Subject: page-allocator: reset wmark_min and inactive ratio of zone when hotplug happens
 From: Minchan Kim <minchan.kim@gmail.com>
 
-There are some places to be able to use printk_once instead of hard coding.
+Solve two problems.
+
+Whenever memory hotplug sucessfully happens, zone->present_pages
+have to be changed.
+
+1) Now memory hotplug calls setup_per_zone_wmark_min only when
+   online_pages called, not offline_pages.
+
+   It breaks balance.
+
+2) If zone->present_pages is changed, we also have to change
+   zone->inactive_ratio.  That's because inactive_ratio depends on
+   zone->present_pages.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common.c  |   11 +++--------
- drivers/pcmcia/pcmcia_ioctl.c |    9 +++------
- 2 files changed, 6 insertions(+), 14 deletions(-)
+ mm/memory_hotplug.c |    4 ++++
+ mm/page_alloc.c     |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/common.c~use-printk_once-in-several-places arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~use-printk_once-in-several-places
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -487,7 +487,6 @@ out:
- static void __cpuinit get_cpu_vendor(struct cpuinfo_x86 *c)
- {
- 	char *v = c->x86_vendor_id;
--	static int printed;
- 	int i;
+diff -puN mm/memory_hotplug.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens
++++ a/mm/memory_hotplug.c
+@@ -423,6 +423,7 @@ int online_pages(unsigned long pfn, unsi
+ 	zone->zone_pgdat->node_present_pages += onlined_pages;
  
- 	for (i = 0; i < X86_VENDOR_NUM; i++) {
-@@ -504,13 +503,9 @@ static void __cpuinit get_cpu_vendor(str
- 		}
- 	}
+ 	setup_per_zone_wmarks();
++	calculate_zone_inactive_ratio(zone);
+ 	if (onlined_pages) {
+ 		kswapd_run(zone_to_nid(zone));
+ 		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
+@@ -832,6 +833,9 @@ repeat:
+ 	totalram_pages -= offlined_pages;
+ 	num_physpages -= offlined_pages;
  
--	if (!printed) {
--		printed++;
--		printk(KERN_ERR
--		    "CPU: vendor_id '%s' unknown, using generic init.\n", v);
--
--		printk(KERN_ERR "CPU: Your system may be unstable.\n");
--	}
-+	printk_once(KERN_ERR
-+			"CPU: vendor_id '%s' unknown, using generic init.\n" \
-+			"CPU: Your system may be unstable.\n", v);
++	setup_per_zone_wmarks();
++	calculate_zone_inactive_ratio(zone);
++
+ 	vm_total_pages = nr_free_pagecache_pages();
+ 	writeback_set_ratelimit();
  
- 	c->x86_vendor = X86_VENDOR_UNKNOWN;
- 	this_cpu = &default_cpu;
-diff -puN drivers/pcmcia/pcmcia_ioctl.c~use-printk_once-in-several-places drivers/pcmcia/pcmcia_ioctl.c
---- a/drivers/pcmcia/pcmcia_ioctl.c~use-printk_once-in-several-places
-+++ a/drivers/pcmcia/pcmcia_ioctl.c
-@@ -915,12 +915,9 @@ static int ds_ioctl(struct inode * inode
- 		err = -EPERM;
- 		goto free_out;
- 	} else {
--		static int printed = 0;
--		if (!printed) {
--			printk(KERN_WARNING "2.6. kernels use pcmciamtd instead of memory_cs.c and do not require special\n");
--			printk(KERN_WARNING "MTD handling any more.\n");
--			printed++;
--		}
-+			printk_once(KERN_WARNING
-+				"2.6. kernels use pcmciamtd instead of memory_cs.c and do not require special\n");
-+			printk_once(KERN_WARNING "MTD handling any more.\n");
- 	}
- 	err = -EINVAL;
- 	goto free_out;
+diff -puN mm/page_alloc.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens
++++ a/mm/page_alloc.c
+@@ -4397,7 +4397,7 @@ static void setup_per_zone_lowmem_reserv
+ 
+ /**
+  * setup_per_zone_wmarks - called when min_free_kbytes changes
+- * or when memory is hot-added
++ * or when memory is hot-{added|removed}
+  *
+  * Ensures that the watermark[min,low,high] values for each zone are set
+  * correctly with respect to min_free_kbytes.
 _
 
 Patches currently in -mm which might be from minchan.kim@gmail.com are
