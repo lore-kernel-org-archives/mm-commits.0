@@ -1,68 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:38:19 -0700
-Message-ID: <200906171838.n5HIcJ74004305@imap1.linux-foundation.org>
+Subject: [merged] igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:39:14 -0700
+Message-ID: <200906171839.n5HIdE1L005297@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37040 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759537AbZFQSqM (ORCPT
+	by vger.kernel.org with ESMTP id S1758628AbZFQSqP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:46:12 -0400
+	Wed, 17 Jun 2009 14:46:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, davem@davemloft.net, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: don't print maintainers when not requested
+     igafb: use framebuffer_alloc() to allocate fb_info struct
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-dont-print-maintainers-when-not-requested.patch
+     igafb-use-framebuffer_alloc-to-allocate-fb_info-struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: don't print maintainers when not requested
-From: Joe Perches <joe@perches.com>
+Subject: igafb: use framebuffer_alloc() to allocate fb_info struct
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Fixed bug introduced after using rfc822 address checking.
+Use the framebuffer_alloc() function to allocate the fb_info
+structure so the structure is correctly initialized after allocation.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/video/igafb.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-dont-print-maintainers-when-not-requested scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-dont-print-maintainers-when-not-requested
-+++ a/scripts/get_maintainer.pl
-@@ -436,10 +436,12 @@ sub push_email_address {
- 	$email_address = $2;
-     }
+diff -puN drivers/video/igafb.c~igafb-use-framebuffer_alloc-to-allocate-fb_info-struct drivers/video/igafb.c
+--- a/drivers/video/igafb.c~igafb-use-framebuffer_alloc-to-allocate-fb_info-struct
++++ a/drivers/video/igafb.c
+@@ -395,17 +395,16 @@ int __init igafb_init(void)
+ 	/* We leak a reference here but as it cannot be unloaded this is
+ 	   fine. If you write unload code remember to free it in unload */
+ 	
+-	size = sizeof(struct fb_info) + sizeof(struct iga_par) + sizeof(u32)*16;
++	size = sizeof(struct iga_par) + sizeof(u32)*16;
  
--    if ($email_usename && $email_name) {
--	push(@email_to,	format_email($email_name, $email_address));
--    } else {
--	push(@email_to, $email_address);
-+    if ($email_maintainer) {
-+	if ($email_usename && $email_name) {
-+	    push(@email_to, format_email($email_name, $email_address));
-+	} else {
-+	    push(@email_to, $email_address);
-+	}
-     }
- }
+-        info = kzalloc(size, GFP_ATOMIC);
++	info = framebuffer_alloc(size, &pdev->dev);
+         if (!info) {
+                 printk("igafb_init: can't alloc fb_info\n");
+ 		 pci_dev_put(pdev);
+                 return -ENOMEM;
+         }
  
+-	par = (struct iga_par *) (info + 1);
+-	
++	par = info->par;
+ 
+ 	if ((addr = pdev->resource[0].start) == 0) {
+                 printk("igafb_init: no memory start\n");
+@@ -526,7 +525,6 @@ int __init igafb_init(void)
+ 	info->var = default_var;
+ 	info->fix = igafb_fix;
+ 	info->pseudo_palette = (void *)(par + 1);
+-	info->device = &pdev->dev;
+ 
+ 	if (!iga_init(info, par)) {
+ 		iounmap((void *)par->io_base);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 linux-next.patch
-maintainers-fbdev-is-orphaned.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
+intelfb-fix-color-map-setting-with-an-lvds-display.patch
+intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
 
