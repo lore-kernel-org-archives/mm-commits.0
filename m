@@ -1,68 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] config_file_locking-should-not-depend-on-config_block.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:37:58 -0700
-Message-ID: <200906171837.n5HIbwCE003965@imap1.linux-foundation.org>
+Subject: [merged] chipsfb-remove-redundant-assignment.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:39:11 -0700
+Message-ID: <200906171839.n5HIdBkP005268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53447 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760702AbZFQSkA (ORCPT
+	by vger.kernel.org with ESMTP id S1760833AbZFQSj5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:40:00 -0400
+	Wed, 17 Jun 2009 14:39:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: szepe@pinerecords.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CONFIG_FILE_LOCKING should not depend on CONFIG_BLOCK
+     chipsfb: remove redundant assignment
 has been removed from the -mm tree.  Its filename was
-     config_file_locking-should-not-depend-on-config_block.patch
+     chipsfb-remove-redundant-assignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CONFIG_FILE_LOCKING should not depend on CONFIG_BLOCK
-From: Tomas Szepe <szepe@pinerecords.com>
+Subject: chipsfb: remove redundant assignment
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-CONFIG_FILE_LOCKING should not depend on CONFIG_BLOCK.
+The removed assignment is done inside the framebuffer_alloc() earlier.
 
-This makes it possible to run complete systems out of a CONFIG_BLOCK=n
-initramfs on current kernels again (this last worked on 2.6.27.*).
-
-Cc: <stable@kernel.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/video/chipsfb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/Kconfig~config_file_locking-should-not-depend-on-config_block fs/Kconfig
---- a/fs/Kconfig~config_file_locking-should-not-depend-on-config_block
-+++ a/fs/Kconfig
-@@ -39,6 +39,13 @@ config FS_POSIX_ACL
- 	bool
- 	default n
+diff -puN drivers/video/chipsfb.c~chipsfb-remove-redundant-assignment drivers/video/chipsfb.c
+--- a/drivers/video/chipsfb.c~chipsfb-remove-redundant-assignment
++++ a/drivers/video/chipsfb.c
+@@ -414,7 +414,6 @@ chipsfb_pci_init(struct pci_dev *dp, con
+ 	}
  
-+source "fs/xfs/Kconfig"
-+source "fs/gfs2/Kconfig"
-+source "fs/ocfs2/Kconfig"
-+source "fs/btrfs/Kconfig"
-+
-+endif # BLOCK
-+
- config FILE_LOCKING
- 	bool "Enable POSIX file locking API" if EMBEDDED
- 	default y
-@@ -47,13 +54,6 @@ config FILE_LOCKING
-           for filesystems like NFS and for the flock() system
-           call. Disabling this option saves about 11k.
+ 	pci_set_drvdata(dp, p);
+-	p->device = &dp->dev;
  
--source "fs/xfs/Kconfig"
--source "fs/gfs2/Kconfig"
--source "fs/ocfs2/Kconfig"
--source "fs/btrfs/Kconfig"
--
--endif # BLOCK
+ 	init_chips(p, addr);
+ 
+_
+
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+
+origin.patch
+linux-next.patch
+intelfb-fix-color-map-setting-with-an-lvds-display.patch
+intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
+
