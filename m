@@ -1,90 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] readahead-sequential-mmap-readahead.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:32:47 -0700
-Message-ID: <200906171832.n5HIWlBE031300@imap1.linux-foundation.org>
+Subject: [merged] firmware_map-fix-hang-with-x86-32bit.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:32:24 -0700
+Message-ID: <200906171832.n5HIWOg4030967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41538 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34340 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759636AbZFQSdV (ORCPT
+	by vger.kernel.org with ESMTP id S1758252AbZFQSdh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:33:21 -0400
+	Wed, 17 Jun 2009 14:33:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, npiggin@suse.de, torvalds@linux-foundation.org, yinghan@google.com, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, hpa@zytor.com, mingo@elte.hu, pchen@nvidia.com, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: sequential mmap readahead
+     firmware_map: fix hang with x86/32bit
 has been removed from the -mm tree.  Its filename was
-     readahead-sequential-mmap-readahead.patch
+     firmware_map-fix-hang-with-x86-32bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: sequential mmap readahead
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: firmware_map: fix hang with x86/32bit
+From: Yinghai Lu <yinghai@kernel.org>
 
-Auto-detect sequential mmap reads and do readahead for them.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13484
 
-The sequential mmap readahead will be triggered when
-- sync readahead: it's a major fault and (prev_offset == offset-1);
-- async readahead: minor fault on PG_readahead page with valid readahead state.
+Peer reported:
+| The bug is introduced from kernel 2.6.27, if E820 table reserve the memory
+| above 4G in 32bit OS(BIOS-e820: 00000000fff80000 - 0000000120000000
+| (reserved)), system will report Int 6 error and hang up. The bug is caused by
+| the following code in drivers/firmware/memmap.c, the resource_size_t is 32bit
+| variable in 32bit OS, the BUG_ON() will be invoked to result in the Int 6
+| error. I try the latest 32bit Ubuntu and Fedora distributions, all hit this
+| bug.
+|======
+|static int firmware_map_add_entry(resource_size_t start, resource_size_t end,
+|                  const char *type,
+|                  struct firmware_map_entry *entry)
 
-The benefits of doing readahead instead of read-around:
-- less I/O wait thanks to async readahead
-- double real I/O size and no more cache hits
+and it only happen with CONFIG_PHYS_ADDR_T_64BIT is not set.
 
-The single stream case is improved a little.
-For 100,000 sequential mmap reads:
+it turns out we need to pass u64 instead of resource_size_t for that.
 
-                                    user       system    cpu        total
-(1-1)  plain -mm, 128KB readaround: 3.224      2.554     48.40%     11.838
-(1-2)  plain -mm, 256KB readaround: 3.170      2.392     46.20%     11.976
-(2)  patched -mm, 128KB readahead:  3.117      2.448     47.33%     11.607
-
-The patched (2) has smallest total time, since it has no cache hit overheads
-and less I/O block time(thanks to async readahead). Here the I/O size
-makes no much difference, since there's only one single stream.
-
-Note that (1-1)'s real I/O size is 64KB and (1-2)'s real I/O size is 128KB,
-since the half of the read-around pages will be readahead cache hits.
-
-This is going to make _real_ differences for _concurrent_ IO streams.
-
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Ying Han <yinghan@google.com>
+[akpm@linux-foundation.org: add comment]
+Reported-and-tested-by: Peer Chen <pchen@nvidia.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/firmware/memmap.c    |   16 +++++++++-------
+ include/linux/firmware-map.h |   12 ++++--------
+ 2 files changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN mm/filemap.c~readahead-sequential-mmap-readahead mm/filemap.c
---- a/mm/filemap.c~readahead-sequential-mmap-readahead
-+++ a/mm/filemap.c
-@@ -1472,7 +1472,8 @@ static void do_sync_mmap_readahead(struc
- 	if (VM_RandomReadHint(vma))
- 		return;
+diff -puN drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit
++++ a/drivers/firmware/memmap.c
+@@ -31,8 +31,12 @@
+  * information is necessary as for the resource tree.
+  */
+ struct firmware_map_entry {
+-	resource_size_t		start;	/* start of the memory range */
+-	resource_size_t		end;	/* end of the memory range (incl.) */
++	/*
++	 * start and end must be u64 rather than resource_size_t, because e820
++	 * resources can lie at addresses above 4G.
++	 */
++	u64			start;	/* start of the memory range */
++	u64			end;	/* end of the memory range (incl.) */
+ 	const char		*type;	/* type of the memory range */
+ 	struct list_head	list;	/* entry for the linked list */
+ 	struct kobject		kobj;   /* kobject for each entry */
+@@ -101,7 +105,7 @@ static LIST_HEAD(map_entries);
+  * Common implementation of firmware_map_add() and firmware_map_add_early()
+  * which expects a pre-allocated struct firmware_map_entry.
+  **/
+-static int firmware_map_add_entry(resource_size_t start, resource_size_t end,
++static int firmware_map_add_entry(u64 start, u64 end,
+ 				  const char *type,
+ 				  struct firmware_map_entry *entry)
+ {
+@@ -132,8 +136,7 @@ static int firmware_map_add_entry(resour
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int firmware_map_add(resource_size_t start, resource_size_t end,
+-		     const char *type)
++int firmware_map_add(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
  
--	if (VM_SequentialReadHint(vma)) {
-+	if (VM_SequentialReadHint(vma) ||
-+			offset - 1 == (ra->prev_pos >> PAGE_CACHE_SHIFT)) {
- 		page_cache_sync_readahead(mapping, ra, file, offset, 1);
- 		return;
- 	}
+@@ -157,8 +160,7 @@ int firmware_map_add(resource_size_t sta
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int __init firmware_map_add_early(resource_size_t start, resource_size_t end,
+-				  const char *type)
++int __init firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+ 
+diff -puN include/linux/firmware-map.h~firmware_map-fix-hang-with-x86-32bit include/linux/firmware-map.h
+--- a/include/linux/firmware-map.h~firmware_map-fix-hang-with-x86-32bit
++++ a/include/linux/firmware-map.h
+@@ -24,21 +24,17 @@
+  */
+ #ifdef CONFIG_FIRMWARE_MEMMAP
+ 
+-int firmware_map_add(resource_size_t start, resource_size_t end,
+-		     const char *type);
+-int firmware_map_add_early(resource_size_t start, resource_size_t end,
+-			   const char *type);
++int firmware_map_add(u64 start, u64 end, const char *type);
++int firmware_map_add_early(u64 start, u64 end, const char *type);
+ 
+ #else /* CONFIG_FIRMWARE_MEMMAP */
+ 
+-static inline int firmware_map_add(resource_size_t start, resource_size_t end,
+-				   const char *type)
++static inline int firmware_map_add(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
+ 
+-static inline int firmware_map_add_early(resource_size_t start,
+-					 resource_size_t end, const char *type)
++static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
 origin.patch
-documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 linux-next.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
 
