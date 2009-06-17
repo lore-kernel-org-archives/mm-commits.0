@@ -1,104 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-introduce-follow_pfn.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:35:12 -0700
-Message-ID: <200906171835.n5HIZCrw001262@imap1.linux-foundation.org>
+Subject: [merged] mm-madvise-correct-return-code.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:35:20 -0700
+Message-ID: <200906171835.n5HIZKtS001356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57665 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760240AbZFQSgM (ORCPT
+	by vger.kernel.org with ESMTP id S1760259AbZFQSgN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:36:12 -0400
+	Wed, 17 Jun 2009 14:36:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hch@infradead.org, hugh.dickins@tiscali.co.uk, hverkuil@xs4all.nl, lethal@linux-sh.org, magnus.damm@gmail.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, jdluhos@novell.com, mtk.manpages@googlemail.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: introduce follow_pfn()
+     mm: madvise(): correct return code
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-follow_pfn.patch
+     mm-madvise-correct-return-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce follow_pfn()
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: madvise(): correct return code
+From: Nick Piggin <npiggin@suse.de>
 
-Analoguous to follow_phys(), add a helper that looks up the PFN at a
-user virtual address in an IO mapping or a raw PFN mapping.
+The posix_madvise() function succeeds (and does nothing) when called with
+parameters (NULL, 0, -1); according to LSB tests, it should fail with
+EINVAL because -1 is not a valid flag.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Acked-by: Magnus Damm <magnus.damm@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+When called with a valid address and size, it correctly fails.
+
+So perform an initial check for valid flags first.
+
+Reported-by: Jiri Dluhos <jdluhos@novell.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Reviewed-and-Tested-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/memory.c        |   29 +++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ mm/madvise.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-introduce-follow_pfn include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-follow_pfn
-+++ a/include/linux/mm.h
-@@ -792,6 +792,8 @@ int copy_page_range(struct mm_struct *ds
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
-+int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-+	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
- 		unsigned int flags, unsigned long *prot, resource_size_t *phys);
- int generic_access_phys(struct vm_area_struct *vma, unsigned long addr,
-diff -puN mm/memory.c~mm-introduce-follow_pfn mm/memory.c
---- a/mm/memory.c~mm-introduce-follow_pfn
-+++ a/mm/memory.c
-@@ -3140,6 +3140,35 @@ out:
- 	return -EINVAL;
+diff -puN mm/madvise.c~mm-madvise-correct-return-code mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-correct-return-code
++++ a/mm/madvise.c
+@@ -238,12 +238,30 @@ madvise_vma(struct vm_area_struct *vma, 
+ 		break;
+ 
+ 	default:
+-		error = -EINVAL;
++		BUG();
+ 		break;
+ 	}
+ 	return error;
  }
  
-+/**
-+ * follow_pfn - look up PFN at a user virtual address
-+ * @vma: memory mapping
-+ * @address: user virtual address
-+ * @pfn: location to store found PFN
-+ *
-+ * Only IO mappings and raw PFN mappings are allowed.
-+ *
-+ * Returns zero and the pfn at @pfn on success, -ve otherwise.
-+ */
-+int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-+	unsigned long *pfn)
++static int
++madvise_behavior_valid(int behavior)
 +{
-+	int ret = -EINVAL;
-+	spinlock_t *ptl;
-+	pte_t *ptep;
++	switch (behavior) {
++	case MADV_DOFORK:
++	case MADV_DONTFORK:
++	case MADV_NORMAL:
++	case MADV_SEQUENTIAL:
++	case MADV_RANDOM:
++	case MADV_REMOVE:
++	case MADV_WILLNEED:
++	case MADV_DONTNEED:
++		return 1;
 +
-+	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
-+		return ret;
-+
-+	ret = follow_pte(vma->vm_mm, address, &ptep, &ptl);
-+	if (ret)
-+		return ret;
-+	*pfn = pte_pfn(*ptep);
-+	pte_unmap_unlock(ptep, ptl);
-+	return 0;
++	default:
++		return 0;
++	}
 +}
-+EXPORT_SYMBOL(follow_pfn);
+ /*
+  * The madvise(2) system call.
+  *
+@@ -289,6 +307,9 @@ SYSCALL_DEFINE3(madvise, unsigned long, 
+ 	int write;
+ 	size_t len;
+ 
++	if (!madvise_behavior_valid(behavior))
++		return error;
 +
- #ifdef CONFIG_HAVE_IOREMAP_PROT
- int follow_phys(struct vm_area_struct *vma,
- 		unsigned long address, unsigned int flags,
+ 	write = madvise_need_mmap_write(behavior);
+ 	if (write)
+ 		down_write(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-memcg-fix-swap-accounting.patch
-memcg-fix-swap-accounting-update.patch
+linux-next.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
