@@ -1,145 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: [merged] firmware_map-fix-hang-with-x86-32bit.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:32:24 -0700
-Message-ID: <200906171832.n5HIWOg4030967@imap1.linux-foundation.org>
+Subject: [merged] readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:32:44 -0700
+Message-ID: <200906171832.n5HIWi8O031295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48169 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758252AbZFQSdh (ORCPT
+	by vger.kernel.org with ESMTP id S1759286AbZFQSdR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:33:37 -0400
+	Wed, 17 Jun 2009 14:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, hpa@zytor.com, mingo@elte.hu, pchen@nvidia.com, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, fengguang.wu@intel.com, lpk@581.spb.su, npiggin@suse.de, wli@movementarian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     firmware_map: fix hang with x86/32bit
+     readahead: clean up and simplify the code for filemap page fault readahead
 has been removed from the -mm tree.  Its filename was
-     firmware_map-fix-hang-with-x86-32bit.patch
+     readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware_map: fix hang with x86/32bit
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: readahead: clean up and simplify the code for filemap page fault readahead
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13484
+This shouldn't really change behavior all that much, but the single rather
+complex function with read-ahead inside a loop etc is broken up into more
+manageable pieces.
 
-Peer reported:
-| The bug is introduced from kernel 2.6.27, if E820 table reserve the memory
-| above 4G in 32bit OS(BIOS-e820: 00000000fff80000 - 0000000120000000
-| (reserved)), system will report Int 6 error and hang up. The bug is caused by
-| the following code in drivers/firmware/memmap.c, the resource_size_t is 32bit
-| variable in 32bit OS, the BUG_ON() will be invoked to result in the Int 6
-| error. I try the latest 32bit Ubuntu and Fedora distributions, all hit this
-| bug.
-|======
-|static int firmware_map_add_entry(resource_size_t start, resource_size_t end,
-|                  const char *type,
-|                  struct firmware_map_entry *entry)
+The behaviour is also less subtle, with the read-ahead being done up-front
+rather than inside some subtle loop and thus avoiding the now unnecessary
+extra state variables (ie "did_readaround" is gone).
 
-and it only happen with CONFIG_PHYS_ADDR_T_64BIT is not set.
+Fengguang: the code split in fact fixed a bug reported by Pavel Levshin:
+the PGMAJFAULT accounting used to be bypassed when MADV_RANDOM is set, in
+which case the original code will directly jump to no_cached_page reading.
 
-it turns out we need to pass u64 instead of resource_size_t for that.
-
-[akpm@linux-foundation.org: add comment]
-Reported-and-tested-by: Peer Chen <pchen@nvidia.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@kernel.org>
+Cc: Pavel Levshin <lpk@581.spb.su>
+Cc: <wli@movementarian.org>
+Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c    |   16 +++++++++-------
- include/linux/firmware-map.h |   12 ++++--------
- 2 files changed, 13 insertions(+), 15 deletions(-)
+ mm/filemap.c |  156 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 89 insertions(+), 67 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~firmware_map-fix-hang-with-x86-32bit
-+++ a/drivers/firmware/memmap.c
-@@ -31,8 +31,12 @@
-  * information is necessary as for the resource tree.
-  */
- struct firmware_map_entry {
--	resource_size_t		start;	/* start of the memory range */
--	resource_size_t		end;	/* end of the memory range (incl.) */
+diff -puN mm/filemap.c~readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead mm/filemap.c
+--- a/mm/filemap.c~readahead-clean-up-and-simplify-the-code-for-filemap-page-fault-readahead
++++ a/mm/filemap.c
+@@ -1456,6 +1456,68 @@ static int page_cache_read(struct file *
+ 
+ #define MMAP_LOTSAMISS  (100)
+ 
++/*
++ * Synchronous readahead happens when we don't even find
++ * a page in the page cache at all.
++ */
++static void do_sync_mmap_readahead(struct vm_area_struct *vma,
++				   struct file_ra_state *ra,
++				   struct file *file,
++				   pgoff_t offset)
++{
++	unsigned long ra_pages;
++	struct address_space *mapping = file->f_mapping;
++
++	/* If we don't want any read-ahead, don't bother */
++	if (VM_RandomReadHint(vma))
++		return;
++
++	if (VM_SequentialReadHint(vma)) {
++		page_cache_sync_readahead(mapping, ra, file, offset, 1);
++		return;
++	}
++
++	if (ra->mmap_miss < INT_MAX)
++		ra->mmap_miss++;
++
 +	/*
-+	 * start and end must be u64 rather than resource_size_t, because e820
-+	 * resources can lie at addresses above 4G.
++	 * Do we miss much more than hit in this file? If so,
++	 * stop bothering with read-ahead. It will only hurt.
 +	 */
-+	u64			start;	/* start of the memory range */
-+	u64			end;	/* end of the memory range (incl.) */
- 	const char		*type;	/* type of the memory range */
- 	struct list_head	list;	/* entry for the linked list */
- 	struct kobject		kobj;   /* kobject for each entry */
-@@ -101,7 +105,7 @@ static LIST_HEAD(map_entries);
-  * Common implementation of firmware_map_add() and firmware_map_add_early()
-  * which expects a pre-allocated struct firmware_map_entry.
-  **/
--static int firmware_map_add_entry(resource_size_t start, resource_size_t end,
-+static int firmware_map_add_entry(u64 start, u64 end,
- 				  const char *type,
- 				  struct firmware_map_entry *entry)
- {
-@@ -132,8 +136,7 @@ static int firmware_map_add_entry(resour
-  *
-  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-  **/
--int firmware_map_add(resource_size_t start, resource_size_t end,
--		     const char *type)
-+int firmware_map_add(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
++	if (ra->mmap_miss > MMAP_LOTSAMISS)
++		return;
++
++	ra_pages = max_sane_readahead(ra->ra_pages);
++	if (ra_pages) {
++		pgoff_t start = 0;
++
++		if (offset > ra_pages / 2)
++			start = offset - ra_pages / 2;
++		do_page_cache_readahead(mapping, file, start, ra_pages);
++	}
++}
++
++/*
++ * Asynchronous readahead happens when we find the page and PG_readahead,
++ * so we want to possibly extend the readahead further..
++ */
++static void do_async_mmap_readahead(struct vm_area_struct *vma,
++				    struct file_ra_state *ra,
++				    struct file *file,
++				    struct page *page,
++				    pgoff_t offset)
++{
++	struct address_space *mapping = file->f_mapping;
++
++	/* If we don't want any read-ahead, don't bother */
++	if (VM_RandomReadHint(vma))
++		return;
++	if (ra->mmap_miss > 0)
++		ra->mmap_miss--;
++	if (PageReadahead(page))
++		page_cache_async_readahead(mapping, ra, file, page, offset, 1);
++}
++
+ /**
+  * filemap_fault - read in file data for page fault handling
+  * @vma:	vma in which the fault was taken
+@@ -1475,78 +1537,44 @@ int filemap_fault(struct vm_area_struct 
+ 	struct address_space *mapping = file->f_mapping;
+ 	struct file_ra_state *ra = &file->f_ra;
+ 	struct inode *inode = mapping->host;
++	pgoff_t offset = vmf->pgoff;
+ 	struct page *page;
+ 	pgoff_t size;
+-	int did_readaround = 0;
+ 	int ret = 0;
  
-@@ -157,8 +160,7 @@ int firmware_map_add(resource_size_t sta
-  *
-  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-  **/
--int __init firmware_map_add_early(resource_size_t start, resource_size_t end,
--				  const char *type)
-+int __init firmware_map_add_early(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
+ 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (vmf->pgoff >= size)
++	if (offset >= size)
+ 		return VM_FAULT_SIGBUS;
  
-diff -puN include/linux/firmware-map.h~firmware_map-fix-hang-with-x86-32bit include/linux/firmware-map.h
---- a/include/linux/firmware-map.h~firmware_map-fix-hang-with-x86-32bit
-+++ a/include/linux/firmware-map.h
-@@ -24,21 +24,17 @@
-  */
- #ifdef CONFIG_FIRMWARE_MEMMAP
+-	/* If we don't want any read-ahead, don't bother */
+-	if (VM_RandomReadHint(vma))
+-		goto no_cached_page;
+-
+ 	/*
+ 	 * Do we have something in the page cache already?
+ 	 */
+-retry_find:
+-	page = find_lock_page(mapping, vmf->pgoff);
+-	/*
+-	 * For sequential accesses, we use the generic readahead logic.
+-	 */
+-	if (VM_SequentialReadHint(vma)) {
+-		if (!page) {
+-			page_cache_sync_readahead(mapping, ra, file,
+-							   vmf->pgoff, 1);
+-			page = find_lock_page(mapping, vmf->pgoff);
+-			if (!page)
+-				goto no_cached_page;
+-		}
+-		if (PageReadahead(page)) {
+-			page_cache_async_readahead(mapping, ra, file, page,
+-							   vmf->pgoff, 1);
+-		}
+-	}
+-
+-	if (!page) {
+-		unsigned long ra_pages;
+-
+-		ra->mmap_miss++;
+-
++	page = find_get_page(mapping, offset);
++	if (likely(page)) {
+ 		/*
+-		 * Do we miss much more than hit in this file? If so,
+-		 * stop bothering with read-ahead. It will only hurt.
++		 * We found the page, so try async readahead before
++		 * waiting for the lock.
+ 		 */
+-		if (ra->mmap_miss > MMAP_LOTSAMISS)
+-			goto no_cached_page;
++		do_async_mmap_readahead(vma, ra, file, page, offset);
++		lock_page(page);
  
--int firmware_map_add(resource_size_t start, resource_size_t end,
--		     const char *type);
--int firmware_map_add_early(resource_size_t start, resource_size_t end,
--			   const char *type);
-+int firmware_map_add(u64 start, u64 end, const char *type);
-+int firmware_map_add_early(u64 start, u64 end, const char *type);
+-		/*
+-		 * To keep the pgmajfault counter straight, we need to
+-		 * check did_readaround, as this is an inner loop.
+-		 */
+-		if (!did_readaround) {
+-			ret = VM_FAULT_MAJOR;
+-			count_vm_event(PGMAJFAULT);
+-		}
+-		did_readaround = 1;
+-		ra_pages = max_sane_readahead(file->f_ra.ra_pages);
+-		if (ra_pages) {
+-			pgoff_t start = 0;
+-
+-			if (vmf->pgoff > ra_pages / 2)
+-				start = vmf->pgoff - ra_pages / 2;
+-			do_page_cache_readahead(mapping, file, start, ra_pages);
++		/* Did it get truncated? */
++		if (unlikely(page->mapping != mapping)) {
++			unlock_page(page);
++			put_page(page);
++			goto no_cached_page;
+ 		}
+-		page = find_lock_page(mapping, vmf->pgoff);
++	} else {
++		/* No page in the page cache at all */
++		do_sync_mmap_readahead(vma, ra, file, offset);
++		count_vm_event(PGMAJFAULT);
++		ret = VM_FAULT_MAJOR;
++retry_find:
++		page = find_lock_page(mapping, offset);
+ 		if (!page)
+ 			goto no_cached_page;
+ 	}
  
- #else /* CONFIG_FIRMWARE_MEMMAP */
+-	if (!did_readaround)
+-		ra->mmap_miss--;
+-
+ 	/*
+ 	 * We have a locked page in the page cache, now we need to check
+ 	 * that it's up-to-date. If not, it is going to be due to an error.
+@@ -1554,18 +1582,18 @@ retry_find:
+ 	if (unlikely(!PageUptodate(page)))
+ 		goto page_not_uptodate;
  
--static inline int firmware_map_add(resource_size_t start, resource_size_t end,
--				   const char *type)
-+static inline int firmware_map_add(u64 start, u64 end, const char *type)
- {
- 	return 0;
- }
+-	/* Must recheck i_size under page lock */
++	/*
++	 * Found the page and have a reference on it.
++	 * We must recheck i_size under page lock.
++	 */
+ 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (unlikely(vmf->pgoff >= size)) {
++	if (unlikely(offset >= size)) {
+ 		unlock_page(page);
+ 		page_cache_release(page);
+ 		return VM_FAULT_SIGBUS;
+ 	}
  
--static inline int firmware_map_add_early(resource_size_t start,
--					 resource_size_t end, const char *type)
-+static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
- {
- 	return 0;
- }
-_
-
-Patches currently in -mm which might be from yinghai@kernel.org are
-
-origin.patch
-linux-next.patch
-
+-	/*
+-	 * Found the page and have a reference on it.
+-	 */
+-	ra->prev_pos = (loff_t)page->index << PAGE_CACHE_SHIFT;
++	ra->prev_pos = (loff_t)offset << PAGE_CACHE_SHIFT;
+ 	vmf->page = page;
+ 	return ret | VM_FAULT_LOCKED;
+ 
+@@ -1574,7 +1602,7 @@ no_cached_page:
+ 	 * We're only likely to ever get here if MADV_RANDOM is in
+ 	 * effect.
+ 	 */
+-	error = page_cache_read(file, vmf->pgoff);
++	error = page_cache_read(file, offset);
+ 
+ 	/*
+ 	 * The page we want has now been added to the page cache.
+@@ -1594,12 +1622,6 @@ no_cached_page:
+ 	return VM_FAULT_SIGBUS;
+ 
+ page_not_uptodate:
+-	/* IO error path */
+-	if (!did_readaround) {
+-		ret = VM_FAULT_MAJOR;
+-		count_vm_event(PGMAJFAULT);
+-	}
