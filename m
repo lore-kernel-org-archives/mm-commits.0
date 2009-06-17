@@ -1,96 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [folded] gru-dynamic-allocation-of-kernel-contexts-update.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 15:56:57 -0700
-Message-ID: <200906172256.n5HMuwVk016468@imap1.linux-foundation.org>
+Subject: [folded] gru-support-for-asynchronous-gru-instructions-fix.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 15:57:16 -0700
+Message-ID: <200906172257.n5HMvGQh016771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40169 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757153AbZFQW51 (ORCPT
+	by vger.kernel.org with ESMTP id S1755288AbZFQW5o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 18:57:27 -0400
+	Wed, 17 Jun 2009 18:57:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru-dynamic-allocation-of-kernel-contexts-update
+     gru-support-for-asynchronous-gru-instructions-fix
 has been removed from the -mm tree.  Its filename was
-     gru-dynamic-allocation-of-kernel-contexts-update.patch
+     gru-support-for-asynchronous-gru-instructions-fix.patch
 
-This patch was dropped because it was folded into gru-dynamic-allocation-of-kernel-contexts.patch
+This patch was dropped because it was folded into gru-support-for-asynchronous-gru-instructions.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru-dynamic-allocation-of-kernel-contexts-update
-From: Jack Steiner <steiner@sgi.com>
+Subject: gru-support-for-asynchronous-gru-instructions-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Added fixes from Andrew.
+x86_64 allmodconfig:
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+drivers/misc/sgi-gru/grufault.c: In function 'gru_intr':
+drivers/misc/sgi-gru/grufault.c:475: error: 'chiplet' undeclared (first use in this function)
+drivers/misc/sgi-gru/grufault.c:475: error: (Each undeclared identifier is reported only once
+drivers/misc/sgi-gru/grufault.c:475: error: for each function it appears in.)
+
+
+and what's this?
+
+drivers/misc/sgi-gru/grufault.c: In function 'gru_try_dropin':
+drivers/misc/sgi-gru/grufault.c:281: warning: 'ps' may be used uninitialized in this function
+drivers/misc/sgi-gru/grufault.c:280: warning: 'paddr' may be used uninitialized in this function
+
+Cc: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grumain.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/misc/sgi-gru/grufault.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts-update drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts-update
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -804,8 +804,9 @@ again:
- 
- 	if (!gts->ts_gru) {
- 		if (!gru_assign_gru_context(gts, blade_id)) {
--			mutex_unlock(&gts->ts_ctxlock);
- 			preempt_enable();
-+			mutex_unlock(&gts->ts_ctxlock);
-+			set_current_state(TASK_INTERRUPTIBLE);
- 			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
- 			blade_id = uv_numa_blade_id();
- 			if (gts->ts_steal_jiffies + GRU_STEAL_DELAY < jiffies)
-@@ -819,8 +820,8 @@ again:
- 				vma->vm_page_prot);
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-support-for-asynchronous-gru-instructions-fix drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-support-for-asynchronous-gru-instructions-fix
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -468,10 +468,6 @@ irqreturn_t gru_intr(int irq, void *dev_
+ 		return IRQ_NONE;
  	}
+ 	get_clear_fault_map(gru, &imap, &dmap);
+-	gru_dbg(grudev,
+-		"chiplet %d, gid %d, imap %016lx %016lx, dmap %016lx %016lx\n",
+-		chiplet, gru->gs_gid, imap.fault_bits[0], imap.fault_bits[1],
+-		dmap.fault_bits[0], dmap.fault_bits[1]);
  
--	mutex_unlock(&gts->ts_ctxlock);
- 	preempt_enable();
-+	mutex_unlock(&gts->ts_ctxlock);
- 
- 	return VM_FAULT_NOPAGE;
- }
+ 	for_each_cbr_in_tfm(cbrnum, dmap.fault_bits) {
+ 		complete(gru->gs_blade->bs_async_wq);
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-gru-bug-fixes-for-gru-exception-handling.patch
-gru-dump-chiplet-state.patch
-gru-dynamic-allocation-of-kernel-contexts.patch
-gru-dynamic-allocation-of-kernel-contexts-update.patch
-gru-change-context-load-and-unload.patch
-gru-support-cch_allocate-for-kernel-threads.patch
-gru-change-resource-assignment-for-kernel-threads.patch
-gru-support-contexts-with-zero-dsrs-or-cbrs.patch
-gru-fix-handling-of-mesq-failures.patch
-gru-check-context-state-on-reload.patch
-gru-support-instruction-completion-interrupts.patch
+documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
+maintainers-fbdev-is-orphaned.patch
+gpio-pca953x-get-platform_data-from-openfirmware.patch
+documentation-changes-perl-is-needed-to-build-the-kernel.patch
+cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
+drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
+edac-add-cpc925-memory-controller-driver.patch
+edac-add-edac_device_alloc_index.patch
+edac-kconfig-fix-the-meaning-of-edac-abbreviation.patch
+kexec-sysrq-simplify-sysrq-c-handler.patch
 gru-support-for-asynchronous-gru-instructions.patch
 gru-support-for-asynchronous-gru-instructions-fix.patch
-gru-update-gru-kernel-self-tests.patch
-gru-update-gru-kernel-self-tests-fix.patch
-gru-update-to-rev-09-of-gru-spec.patch
-gru-fix-cache-coherency-issues-with-instruction-retry.patch
-gru-add-user-request-to-explicitly-unload-a-gru-context.patch
-gru-fix-automatic-retry-of-gru-instruction-failures.patch
-gru-collect-per-context-user-statistics.patch
-gru-delete-user-request-for-fetching-chiplet-status.patch
-gru-cleanup-gru-inline-functions.patch
-gru-generic-infrastructure-for-context-options.patch
-gru-add-user-request-to-specify-gru-slice.patch
-gru-fix-potential-use-after-free-when-purging-gru-tlbs.patch
-gru-fixes-to-grudump-utility.patch
-gru-remove-references-to-the-obsolete-global-status-handle.patch
-gru-copyright-fixes.patch
+lib-add-lib-gcdc-fix.patch
+lib-add-lib-gcdc-fix-fix.patch
 
