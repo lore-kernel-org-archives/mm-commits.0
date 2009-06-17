@@ -1,101 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-madvise-correct-return-code.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:35:20 -0700
-Message-ID: <200906171835.n5HIZKtS001356@imap1.linux-foundation.org>
+Subject: [merged] mm-remove-__invalidate_mapping_pages-variant.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:36:03 -0700
+Message-ID: <200906171836.n5HIa3EQ002081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760259AbZFQSgN (ORCPT
+	by vger.kernel.org with ESMTP id S1760266AbZFQShD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:36:13 -0400
+	Wed, 17 Jun 2009 14:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, jdluhos@novell.com, mtk.manpages@googlemail.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: mikew@google.com, david@fromorbit.com, fengguang.wu@intel.com, jack@suse.cz, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: madvise(): correct return code
+     mm: remove __invalidate_mapping_pages variant
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-correct-return-code.patch
+     mm-remove-__invalidate_mapping_pages-variant.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: madvise(): correct return code
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm: remove __invalidate_mapping_pages variant
+From: Mike Waychison <mikew@google.com>
 
-The posix_madvise() function succeeds (and does nothing) when called with
-parameters (NULL, 0, -1); according to LSB tests, it should fail with
-EINVAL because -1 is not a valid flag.
+Remove __invalidate_mapping_pages atomic variant now that its sole caller
+can sleep (fixed in eccb95cee4f0d56faa46ef22fb94dd4a3578d3eb ("vfs: fix
+lock inversion in drop_pagecache_sb()")).
 
-When called with a valid address and size, it correctly fails.
+This fixes softlockups that can occur while in the drop_caches path.
 
-So perform an initial check for valid flags first.
-
-Reported-by: Jiri Dluhos <jdluhos@novell.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Reviewed-and-Tested-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Signed-off-by: Mike Waychison <mikew@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ fs/drop_caches.c   |    2 +-
+ include/linux/fs.h |    3 ---
+ mm/truncate.c      |   39 ++++++++++++++++-----------------------
+ 3 files changed, 17 insertions(+), 27 deletions(-)
 
-diff -puN mm/madvise.c~mm-madvise-correct-return-code mm/madvise.c
---- a/mm/madvise.c~mm-madvise-correct-return-code
-+++ a/mm/madvise.c
-@@ -238,12 +238,30 @@ madvise_vma(struct vm_area_struct *vma, 
- 		break;
+diff -puN fs/drop_caches.c~mm-remove-__invalidate_mapping_pages-variant fs/drop_caches.c
+--- a/fs/drop_caches.c~mm-remove-__invalidate_mapping_pages-variant
++++ a/fs/drop_caches.c
+@@ -24,7 +24,7 @@ static void drop_pagecache_sb(struct sup
+ 			continue;
+ 		__iget(inode);
+ 		spin_unlock(&inode_lock);
+-		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
++		invalidate_mapping_pages(inode->i_mapping, 0, -1);
+ 		iput(toput_inode);
+ 		toput_inode = inode;
+ 		spin_lock(&inode_lock);
+diff -puN include/linux/fs.h~mm-remove-__invalidate_mapping_pages-variant include/linux/fs.h
+--- a/include/linux/fs.h~mm-remove-__invalidate_mapping_pages-variant
++++ a/include/linux/fs.h
+@@ -2036,9 +2036,6 @@ extern int __invalidate_device(struct bl
+ extern int invalidate_partition(struct gendisk *, int);
+ #endif
+ extern int invalidate_inodes(struct super_block *);
+-unsigned long __invalidate_mapping_pages(struct address_space *mapping,
+-					pgoff_t start, pgoff_t end,
+-					bool be_atomic);
+ unsigned long invalidate_mapping_pages(struct address_space *mapping,
+ 					pgoff_t start, pgoff_t end);
  
- 	default:
--		error = -EINVAL;
-+		BUG();
- 		break;
- 	}
- 	return error;
+diff -puN mm/truncate.c~mm-remove-__invalidate_mapping_pages-variant mm/truncate.c
+--- a/mm/truncate.c~mm-remove-__invalidate_mapping_pages-variant
++++ a/mm/truncate.c
+@@ -267,8 +267,21 @@ void truncate_inode_pages(struct address
  }
+ EXPORT_SYMBOL(truncate_inode_pages);
  
-+static int
-+madvise_behavior_valid(int behavior)
-+{
-+	switch (behavior) {
-+	case MADV_DOFORK:
-+	case MADV_DONTFORK:
-+	case MADV_NORMAL:
-+	case MADV_SEQUENTIAL:
-+	case MADV_RANDOM:
-+	case MADV_REMOVE:
-+	case MADV_WILLNEED:
-+	case MADV_DONTNEED:
-+		return 1;
-+
-+	default:
-+		return 0;
-+	}
-+}
+-unsigned long __invalidate_mapping_pages(struct address_space *mapping,
+-				pgoff_t start, pgoff_t end, bool be_atomic)
++/**
++ * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
++ * @mapping: the address_space which holds the pages to invalidate
++ * @start: the offset 'from' which to invalidate
++ * @end: the offset 'to' which to invalidate (inclusive)
++ *
++ * This function only removes the unlocked pages, if you want to
++ * remove all the pages of one inode, you must call truncate_inode_pages.
++ *
++ * invalidate_mapping_pages() will not block on IO activity. It will not
++ * invalidate pages which are dirty, locked, under writeback or mapped into
++ * pagetables.
++ */
++unsigned long invalidate_mapping_pages(struct address_space *mapping,
++				       pgoff_t start, pgoff_t end)
+ {
+ 	struct pagevec pvec;
+ 	pgoff_t next = start;
+@@ -309,30 +322,10 @@ unlock:
+ 				break;
+ 		}
+ 		pagevec_release(&pvec);
+-		if (likely(!be_atomic))
+-			cond_resched();
++		cond_resched();
+ 	}
+ 	return ret;
+ }
+-
+-/**
+- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
+- * @mapping: the address_space which holds the pages to invalidate
+- * @start: the offset 'from' which to invalidate
+- * @end: the offset 'to' which to invalidate (inclusive)
+- *
+- * This function only removes the unlocked pages, if you want to
+- * remove all the pages of one inode, you must call truncate_inode_pages.
+- *
+- * invalidate_mapping_pages() will not block on IO activity. It will not
+- * invalidate pages which are dirty, locked, under writeback or mapped into
+- * pagetables.
+- */
+-unsigned long invalidate_mapping_pages(struct address_space *mapping,
+-				pgoff_t start, pgoff_t end)
+-{
+-	return __invalidate_mapping_pages(mapping, start, end, false);
+-}
+ EXPORT_SYMBOL(invalidate_mapping_pages);
+ 
  /*
-  * The madvise(2) system call.
-  *
-@@ -289,6 +307,9 @@ SYSCALL_DEFINE3(madvise, unsigned long, 
- 	int write;
- 	size_t len;
- 
-+	if (!madvise_behavior_valid(behavior))
-+		return error;
-+
- 	write = madvise_need_mmap_write(behavior);
- 	if (write)
- 		down_write(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from mikew@google.com are
 
 origin.patch
-linux-next.patch
-reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
