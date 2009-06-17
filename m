@@ -1,96 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:35:41 -0700
-Message-ID: <200906171835.n5HIZfmk001741@imap1.linux-foundation.org>
+Subject: [merged] remove-put_cpu_no_resched.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:37:22 -0700
+Message-ID: <200906171837.n5HIbMXH003456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754856AbZFQSxs (ORCPT
+	by vger.kernel.org with ESMTP id S1755030AbZFQSyS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:53:48 -0400
+	Wed, 17 Jun 2009 14:54:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, Trond.Myklebust@netapp.com, bfields@fieldses.org, mingo@elte.hu, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-allocator: reset wmark_min and inactive ratio of zone when hotplug happens
+     remove put_cpu_no_resched()
 has been removed from the -mm tree.  Its filename was
-     page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens.patch
+     remove-put_cpu_no_resched.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator: reset wmark_min and inactive ratio of zone when hotplug happens
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: remove put_cpu_no_resched()
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Solve two problems.
+put_cpu_no_resched() is an optimization of put_cpu() which unfortunately
+can cause high latencies.
 
-Whenever memory hotplug sucessfully happens, zone->present_pages
-have to be changed.
+The nfs iostats code uses put_cpu_no_resched() in a code sequence where a
+reschedule request caused by an interrupt between the get_cpu() and the
+put_cpu_no_resched() can delay the reschedule for at least HZ.
 
-1) Now memory hotplug calls setup_per_zone_wmark_min only when
-   online_pages called, not offline_pages.
+The other users of put_cpu_no_resched() optimize correctly in interrupt
+code, but there is no real harm in using the put_cpu() function which is
+an alias for preempt_enable().  The extra check of the preemmpt count is
+not as critical as the potential source of missing a reschedule.
 
-   It breaks balance.
+Debugged in the preempt-rt tree and verified in mainline.
 
-2) If zone->present_pages is changed, we also have to change
-   zone->inactive_ratio.  That's because inactive_ratio depends on
-   zone->present_pages.
+Impact: remove a high latency source
 
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 ++++
- mm/page_alloc.c     |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ arch/ia64/kernel/perfmon.c |    2 +-
+ fs/nfs/iostat.h            |    6 +++---
+ include/linux/smp.h        |    1 -
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/memory_hotplug.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens
-+++ a/mm/memory_hotplug.c
-@@ -423,6 +423,7 @@ int online_pages(unsigned long pfn, unsi
- 	zone->zone_pgdat->node_present_pages += onlined_pages;
+diff -puN arch/ia64/kernel/perfmon.c~remove-put_cpu_no_resched arch/ia64/kernel/perfmon.c
+--- a/arch/ia64/kernel/perfmon.c~remove-put_cpu_no_resched
++++ a/arch/ia64/kernel/perfmon.c
+@@ -5595,7 +5595,7 @@ pfm_interrupt_handler(int irq, void *arg
+ 		(*pfm_alt_intr_handler->handler)(irq, arg, regs);
+ 	}
  
- 	setup_per_zone_wmarks();
-+	calculate_zone_inactive_ratio(zone);
- 	if (onlined_pages) {
- 		kswapd_run(zone_to_nid(zone));
- 		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
-@@ -832,6 +833,9 @@ repeat:
- 	totalram_pages -= offlined_pages;
- 	num_physpages -= offlined_pages;
+-	put_cpu_no_resched();
++	put_cpu();
+ 	return IRQ_HANDLED;
+ }
  
-+	setup_per_zone_wmarks();
-+	calculate_zone_inactive_ratio(zone);
-+
- 	vm_total_pages = nr_free_pagecache_pages();
- 	writeback_set_ratelimit();
+diff -puN fs/nfs/iostat.h~remove-put_cpu_no_resched fs/nfs/iostat.h
+--- a/fs/nfs/iostat.h~remove-put_cpu_no_resched
++++ a/fs/nfs/iostat.h
+@@ -31,7 +31,7 @@ static inline void nfs_inc_server_stats(
+ 	cpu = get_cpu();
+ 	iostats = per_cpu_ptr(server->io_stats, cpu);
+ 	iostats->events[stat]++;
+-	put_cpu_no_resched();
++	put_cpu();
+ }
  
-diff -puN mm/page_alloc.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-reset-wmark_min-and-inactive-ratio-of-zone-when-hotplug-happens
-+++ a/mm/page_alloc.c
-@@ -4397,7 +4397,7 @@ static void setup_per_zone_lowmem_reserv
+ static inline void nfs_inc_stats(const struct inode *inode,
+@@ -50,7 +50,7 @@ static inline void nfs_add_server_stats(
+ 	cpu = get_cpu();
+ 	iostats = per_cpu_ptr(server->io_stats, cpu);
+ 	iostats->bytes[stat] += addend;
+-	put_cpu_no_resched();
++	put_cpu();
+ }
  
- /**
-  * setup_per_zone_wmarks - called when min_free_kbytes changes
-- * or when memory is hot-added
-+ * or when memory is hot-{added|removed}
-  *
-  * Ensures that the watermark[min,low,high] values for each zone are set
-  * correctly with respect to min_free_kbytes.
+ static inline void nfs_add_stats(const struct inode *inode,
+@@ -71,7 +71,7 @@ static inline void nfs_add_fscache_stats
+ 	cpu = get_cpu();
+ 	iostats = per_cpu_ptr(NFS_SERVER(inode)->io_stats, cpu);
+ 	iostats->fscache[stat] += addend;
+-	put_cpu_no_resched();
++	put_cpu();
+ }
+ #endif
+ 
+diff -puN include/linux/smp.h~remove-put_cpu_no_resched include/linux/smp.h
+--- a/include/linux/smp.h~remove-put_cpu_no_resched
++++ a/include/linux/smp.h
+@@ -177,7 +177,6 @@ static inline void init_call_single_data
+ 
+ #define get_cpu()		({ preempt_disable(); smp_processor_id(); })
+ #define put_cpu()		preempt_enable()
+-#define put_cpu_no_resched()	preempt_enable_no_resched()
+ 
+ /*
+  * Callback to arch code if there's nosmp or maxcpus=0 on the
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
 linux-next.patch
-memcg-fix-lru-rotation-in-isolate_pages.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
+ia64-remove-obsolete-no_irq_type.patch
+ia64-remove-obsolete-irq_desc_t-typedef.patch
+ia64-remove-obsolete-hw_interrupt_type.patch
+parisc-remove-obsolete-hw_interrupt_type.patch
+x86-fix-cpufreq-tsc-scaling.patch
 
