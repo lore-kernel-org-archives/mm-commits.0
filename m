@@ -1,124 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [folded] lib-add-lib-gcdc-fix.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 15:58:10 -0700
-Message-ID: <200906172258.n5HMwAKe017518@imap1.linux-foundation.org>
+Subject: [merged] documentation-vm-makefile-dont-try-to-build-slqbinfo.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 16:15:07 -0700
+Message-ID: <200906172315.n5HNF73q000640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41772 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756370AbZFQXAf (ORCPT
+	by vger.kernel.org with ESMTP id S1755388AbZFQXPe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 19:00:35 -0400
+	Wed, 17 Jun 2009 19:15:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, florian@openwrt.org, horms@verge.net.au, joe@perches.com, juliusv@google.com, kaber@trash.net, sshtylyov@ru.mvista.com, tiwai@suse.de
+To: akpm@linux-foundation.org, adobriyan@gmail.com, andi@firstfloor.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mpm@selenic.com, penberg@cs.helsinki.fi, mm
 
 
 The patch titled
-     lib-add-lib-gcdc-fix
+     Documentation/vm/Makefile: don't try to build slqbinfo
 has been removed from the -mm tree.  Its filename was
-     lib-add-lib-gcdc-fix.patch
+     documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
 
-This patch was dropped because it was folded into lib-add-lib-gcdc.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-add-lib-gcdc-fix
+Subject: Documentation/vm/Makefile: don't try to build slqbinfo
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- use swap() (pointed out by Joe)
+For it is only in linux-next at this stage.
 
-- Just add gcd.o to lib-y, reove Kconfig changes.
-
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Florian Fainelli <florian@openwrt.org>
-Cc: Julius Volz <juliusv@google.com>
-Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Joe Perches <joe@perches.com>
-Cc: Patrick McHardy <kaber@trash.net>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig  |    3 ---
- lib/Makefile |    3 +--
- lib/gcd.c    |    8 +++-----
- 3 files changed, 4 insertions(+), 10 deletions(-)
+ Documentation/vm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Kconfig~lib-add-lib-gcdc-fix lib/Kconfig
---- a/lib/Kconfig~lib-add-lib-gcdc-fix
-+++ a/lib/Kconfig
-@@ -13,9 +13,6 @@ config BITREVERSE
- config RATIONAL
- 	boolean
+diff -puN Documentation/vm/Makefile~documentation-vm-makefile-dont-try-to-build-slqbinfo Documentation/vm/Makefile
+--- a/Documentation/vm/Makefile~documentation-vm-makefile-dont-try-to-build-slqbinfo
++++ a/Documentation/vm/Makefile
+@@ -2,7 +2,7 @@
+ obj- := dummy.o
  
--config GCD
--	bool
--
- config GENERIC_FIND_FIRST_BIT
- 	bool
+ # List of programs to build
+-hostprogs-y := slabinfo slqbinfo page-types
++hostprogs-y := slabinfo page-types
  
-diff -puN lib/Makefile~lib-add-lib-gcdc-fix lib/Makefile
---- a/lib/Makefile~lib-add-lib-gcdc-fix
-+++ a/lib/Makefile
-@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 idr.o int_sqrt.o extable.o prio_tree.o \
- 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
- 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
--	 is_single_threaded.o plist.o decompress.o
-+	 is_single_threaded.o plist.o decompress.o gcd.o
- 
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-@@ -58,7 +58,6 @@ obj-$(CONFIG_CRC_ITU_T)	+= crc-itu-t.o
- obj-$(CONFIG_CRC32)	+= crc32.o
- obj-$(CONFIG_CRC7)	+= crc7.o
- obj-$(CONFIG_LIBCRC32C)	+= libcrc32c.o
--obj-$(CONFIG_GCD)	+= gcd.o
- obj-$(CONFIG_GENERIC_ALLOCATOR) += genalloc.o
- 
- obj-$(CONFIG_ZLIB_INFLATE) += zlib_inflate/
-diff -puN lib/gcd.c~lib-add-lib-gcdc-fix lib/gcd.c
---- a/lib/gcd.c~lib-add-lib-gcdc-fix
-+++ a/lib/gcd.c
-@@ -1,3 +1,4 @@
-+#include <linux/kernel.h>
- #include <linux/gcd.h>
- #include <linux/module.h>
- 
-@@ -6,11 +7,8 @@ unsigned long gcd(unsigned long a, unsig
- {
- 	unsigned long r;
- 
--	if (a < b) {
--		r = a;
--		a = b;
--		b = r;
--	}
-+	if (a < b)
-+		swap(a, b);
- 	while ((r = a % b) != 0) {
- 		a = b;
- 		b = r;
+ # Tell kbuild to always build the programs
+ always := $(hostprogs-y)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
 maintainers-fbdev-is-orphaned.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
 gpio-pca953x-get-platform_data-from-openfirmware.patch
 documentation-changes-perl-is-needed-to-build-the-kernel.patch
 cgroups-forbid-noprefix-if-mounting-more-than-just-cpuset-subsystem.patch
+ptrace-wait_task_zombie-do-not-account-traced-sub-threads-fix.patch
 drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
+char-moxa-prevent-opening-unavailable-ports.patch
 edac-add-cpc925-memory-controller-driver.patch
 edac-add-edac_device_alloc_index.patch
 edac-kconfig-fix-the-meaning-of-edac-abbreviation.patch
 kexec-sysrq-simplify-sysrq-c-handler.patch
 gru-support-for-asynchronous-gru-instructions.patch
 lib-add-lib-gcdc.patch
-lib-add-lib-gcdc-fix.patch
-lib-add-lib-gcdc-fix-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
