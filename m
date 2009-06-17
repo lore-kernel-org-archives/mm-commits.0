@@ -1,79 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pagemap-document-clarifications.patch removed from -mm tree
-Date: Wed, 17 Jun 2009 11:34:46 -0700
-Message-ID: <200906171834.n5HIYkWQ000780@imap1.linux-foundation.org>
+Subject: [merged] mm-introduce-follow_pte.patch removed from -mm tree
+Date: Wed, 17 Jun 2009 11:35:07 -0700
+Message-ID: <200906171835.n5HIZ75e001112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760214AbZFQSgI (ORCPT
+	by vger.kernel.org with ESMTP id S1760191AbZFQSgH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:36:08 -0400
+	Wed, 17 Jun 2009 14:36:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, adobriyan@gmail.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mpm@selenic.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hch@infradead.org, hugh.dickins@tiscali.co.uk, hverkuil@xs4all.nl, lethal@linux-sh.org, magnus.damm@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pagemap: document clarifications
+     mm: introduce follow_pte()
 has been removed from the -mm tree.  Its filename was
-     pagemap-document-clarifications.patch
+     mm-introduce-follow_pte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: document clarifications
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: mm: introduce follow_pte()
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Some bit ranges were inclusive and some not.  Fix them to be consistently
-inclusive.
+A generic readonly page table lookup helper to map an address space and an
+address from it to a pte.
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Acked-by: Magnus Damm <magnus.damm@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory.c |   37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff -puN Documentation/vm/pagemap.txt~pagemap-document-clarifications Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~pagemap-document-clarifications
-+++ a/Documentation/vm/pagemap.txt
-@@ -12,9 +12,9 @@ There are three components to pagemap:
-    value for each virtual page, containing the following data (from
-    fs/proc/task_mmu.c, above pagemap_read):
+diff -puN mm/memory.c~mm-introduce-follow_pte mm/memory.c
+--- a/mm/memory.c~mm-introduce-follow_pte
++++ a/mm/memory.c
+@@ -3103,6 +3103,43 @@ int in_gate_area_no_task(unsigned long a
  
--    * Bits 0-55  page frame number (PFN) if present
-+    * Bits 0-54  page frame number (PFN) if present
-     * Bits 0-4   swap type if swapped
--    * Bits 5-55  swap offset if swapped
-+    * Bits 5-54  swap offset if swapped
-     * Bits 55-60 page shift (page size = 1<<page shift)
-     * Bit  61    reserved for future use
-     * Bit  62    page swapped
-@@ -36,7 +36,7 @@ There are three components to pagemap:
-  * /proc/kpageflags.  This file contains a 64-bit set of flags for each
-    page, indexed by PFN.
+ #endif	/* __HAVE_ARCH_GATE_AREA */
  
--   The flags are (from fs/proc/proc_misc, above kpageflags_read):
-+   The flags are (from fs/proc/page.c, above kpageflags_read):
- 
-      0. LOCKED
-      1. ERROR
++static int follow_pte(struct mm_struct *mm, unsigned long address,
++		pte_t **ptepp, spinlock_t **ptlp)
++{
++	pgd_t *pgd;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *ptep;
++
++	pgd = pgd_offset(mm, address);
++	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
++		goto out;
++
++	pud = pud_offset(pgd, address);
++	if (pud_none(*pud) || unlikely(pud_bad(*pud)))
++		goto out;
++
++	pmd = pmd_offset(pud, address);
++	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
++		goto out;
++
++	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
++	if (pmd_huge(*pmd))
++		goto out;
++
++	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
++	if (!ptep)
++		goto out;
++	if (!pte_present(*ptep))
++		goto unlock;
++	*ptepp = ptep;
++	return 0;
++unlock:
++	pte_unmap_unlock(ptep, *ptlp);
++out:
++	return -EINVAL;
++}
++
+ #ifdef CONFIG_HAVE_IOREMAP_PROT
+ int follow_phys(struct vm_area_struct *vma,
+ 		unsigned long address, unsigned int flags,
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-documentation-vm-makefile-dont-try-to-build-slqbinfo.patch
-linux-next.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memcg-fix-swap-accounting.patch
+memcg-fix-swap-accounting-update.patch
 
