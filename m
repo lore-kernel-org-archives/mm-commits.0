@@ -1,166 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-generic-infrastructure-for-context-options.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:49:06 -0700
-Message-ID: <200906182249.n5IMn6Ld008154@imap1.linux-foundation.org>
+Subject: [merged] gru-collect-per-context-user-statistics.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:49:00 -0700
+Message-ID: <200906182249.n5IMn0jE008137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48846 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754570AbZFRW4U (ORCPT
+	by vger.kernel.org with ESMTP id S1755071AbZFRW4j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:56:20 -0400
+	Thu, 18 Jun 2009 18:56:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: generic infrastructure for context options
+     gru: collect per-context user statistics
 has been removed from the -mm tree.  Its filename was
-     gru-generic-infrastructure-for-context-options.patch
+     gru-collect-per-context-user-statistics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: generic infrastructure for context options
+Subject: gru: collect per-context user statistics
 From: Jack Steiner <steiner@sgi.com>
 
-Change the user GRU request for specifying the "task_slice" option to use
-a generic infrastructure that can be expanded in the future to include
-additional context options.  No new capabilities are added with this
-patch.
+Collect GRU statistics for each user GRU context.  Statistics are kept for
+TLB misses & content resource contention.  Add user request for retrieving
+the statistics.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c  |   24 ++++++++++++++++++------
- drivers/misc/sgi-gru/grufile.c   |    4 ++--
- drivers/misc/sgi-gru/grulib.h    |   14 ++++++++++++--
- drivers/misc/sgi-gru/gruprocfs.c |    2 +-
- drivers/misc/sgi-gru/grutables.h |    4 ++--
- 5 files changed, 35 insertions(+), 13 deletions(-)
+ drivers/misc/sgi-gru/grufault.c  |   27 +++++++++++++++++++++++++++
+ drivers/misc/sgi-gru/grufile.c   |    3 +++
+ drivers/misc/sgi-gru/grulib.h    |   18 ++++++++++++++++++
+ drivers/misc/sgi-gru/grumain.c   |    1 +
+ drivers/misc/sgi-gru/grutables.h |    3 +++
+ 5 files changed, 52 insertions(+)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-generic-infrastructure-for-context-options
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-collect-per-context-user-statistics
 +++ a/drivers/misc/sgi-gru/grufault.c
-@@ -749,18 +749,30 @@ long gru_get_gseg_statistics(unsigned lo
+@@ -498,6 +498,7 @@ irqreturn_t gru_intr(int irq, void *dev_
+ 		 */
+ 		if (!gts->ts_force_cch_reload &&
+ 					down_read_trylock(&gts->ts_mm->mmap_sem)) {
++			gts->ustats.fmm_tlbdropin++;
+ 			gru_try_dropin(gts, tfh, NULL);
+ 			up_read(&gts->ts_mm->mmap_sem);
+ 		} else {
+@@ -516,6 +517,7 @@ static int gru_user_dropin(struct gru_th
+ 	struct gru_mm_struct *gms = gts->ts_gms;
+ 	int ret;
+ 
++	gts->ustats.upm_tlbdropin++;
+ 	while (1) {
+ 		wait_event(gms->ms_wait_queue,
+ 			   atomic_read(&gms->ms_range_active) == 0);
+@@ -719,6 +721,31 @@ int gru_user_flush_tlb(unsigned long arg
+ }
+ 
+ /*
++ * Fetch GSEG statisticss
++ */
++long gru_get_gseg_statistics(unsigned long arg)
++{
++	struct gru_thread_state *gts;
++	struct gru_get_gseg_statistics_req req;
++
++	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
++		return -EFAULT;
++
++	gts = gru_find_lock_gts(req.gseg);
++	if (gts) {
++		memcpy(&req.stats, &gts->ustats, sizeof(gts->ustats));
++		gru_unlock_gts(gts);
++	} else {
++		memset(&req.stats, 0, sizeof(gts->ustats));
++	}
++
++	if (copy_to_user((void __user *)arg, &req, sizeof(req)))
++		return -EFAULT;
++
++	return 0;
++}
++
++/*
   * Register the current task as the user of the GSEG slice.
   * Needed for TLB fault interrupt targeting.
   */
--int gru_set_task_slice(long address)
-+int gru_set_context_option(unsigned long arg)
- {
- 	struct gru_thread_state *gts;
-+	struct gru_set_context_option_req req;
-+	int ret = 0;
- 
--	STAT(set_task_slice);
--	gru_dbg(grudev, "address 0x%lx\n", address);
--	gts = gru_alloc_locked_gts(address);
-+	STAT(set_context_option);
-+	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
-+		return -EFAULT;
-+	gru_dbg(grudev, "op %d, gseg 0x%lx, value1 0x%lx\n", req.op, req.gseg, req.val1);
-+
-+	gts = gru_alloc_locked_gts(req.gseg);
- 	if (!gts)
- 		return -EINVAL;
- 
--	gts->ts_tgid_owner = current->tgid;
-+	switch (req.op) {
-+	case sco_gseg_owner:
-+ 		/* Register the current task as the GSEG owner */
-+		gts->ts_tgid_owner = current->tgid;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
- 	gru_unlock_gts(gts);
- 
--	return 0;
-+	return ret;
- }
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-generic-infrastructure-for-context-options
+diff -puN drivers/misc/sgi-gru/grufile.c~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~gru-collect-per-context-user-statistics
 +++ a/drivers/misc/sgi-gru/grufile.c
-@@ -198,8 +198,8 @@ static long gru_file_unlocked_ioctl(stru
- 	case GRU_CREATE_CONTEXT:
- 		err = gru_create_new_context(arg);
+@@ -251,6 +251,9 @@ static long gru_file_unlocked_ioctl(stru
+ 	case GRU_USER_CALL_OS:
+ 		err = gru_handle_user_call_os(arg);
  		break;
--	case GRU_SET_TASK_SLICE:
--		err = gru_set_task_slice(arg);
-+	case GRU_SET_CONTEXT_OPTION:
-+		err = gru_set_context_option(arg);
++	case GRU_GET_GSEG_STATISTICS:
++		err = gru_get_gseg_statistics(arg);
++		break;
+ 	case GRU_KTEST:
+ 		err = gru_ktest(arg);
  		break;
- 	case GRU_USER_GET_EXCEPTION_DETAIL:
- 		err = gru_get_exception_detail(arg);
-diff -puN drivers/misc/sgi-gru/grulib.h~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/grulib.h
---- a/drivers/misc/sgi-gru/grulib.h~gru-generic-infrastructure-for-context-options
+diff -puN drivers/misc/sgi-gru/grulib.h~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grulib.h
+--- a/drivers/misc/sgi-gru/grulib.h~gru-collect-per-context-user-statistics
 +++ a/drivers/misc/sgi-gru/grulib.h
-@@ -32,8 +32,8 @@
- /* Set Number of Request Blocks */
- #define GRU_CREATE_CONTEXT		_IOWR(GRU_IOCTL_NUM, 1, void *)
+@@ -50,6 +50,9 @@
+ /* For dumpping GRU chiplet state */
+ #define GRU_DUMP_CHIPLET_STATE		_IOWR(GRU_IOCTL_NUM, 11, void *)
  
--/* Register task as using the slice */
--#define GRU_SET_TASK_SLICE		_IOWR(GRU_IOCTL_NUM, 5, void *)
-+/*  Set Context Options */
-+#define GRU_SET_CONTEXT_OPTION		_IOWR(GRU_IOCTL_NUM, 4, void *)
++/* For getting gseg statistics */
++#define GRU_GET_GSEG_STATISTICS		_IOWR(GRU_IOCTL_NUM, 12, void *)
++
+ /* For user TLB flushing (primarily for tests) */
+ #define GRU_USER_FLUSH_TLB		_IOWR(GRU_IOCTL_NUM, 50, void *)
  
- /* Fetch exception detail */
- #define GRU_USER_GET_EXCEPTION_DETAIL	_IOWR(GRU_IOCTL_NUM, 6, void *)
-@@ -96,6 +96,16 @@ struct gru_unload_context_req {
- };
+@@ -61,6 +64,21 @@
  
- /*
-+ * Structure used to set context options
-+ */
-+enum {sco_gseg_owner};
-+struct gru_set_context_option_req {
-+	unsigned long	gseg;
-+	int		op;
-+	unsigned long	val1;
-+};
+ #define CONTEXT_WINDOW_BYTES(th)        (GRU_GSEG_PAGESIZE * (th))
+ #define THREAD_POINTER(p, th)		(p + GRU_GSEG_PAGESIZE * (th))
++#define GSEG_START(cb)			((void *)((unsigned long)(cb) & ~(GRU_GSEG_PAGESIZE - 1)))
 +
 +/*
++ * Statictics kept on a per-GTS basis.
++ */
++struct gts_statistics {
++	unsigned long	fmm_tlbdropin;
++	unsigned long	upm_tlbdropin;
++	unsigned long	context_stolen;
++};
++
++struct gru_get_gseg_statistics_req {
++	unsigned long		gseg;
++	struct gts_statistics	stats;
++};
+ 
+ /*
   * Structure used to pass TLB flush parameters to the driver
-  */
- struct gru_flush_tlb_req {
-diff -puN drivers/misc/sgi-gru/gruprocfs.c~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/gruprocfs.c
---- a/drivers/misc/sgi-gru/gruprocfs.c~gru-generic-infrastructure-for-context-options
-+++ a/drivers/misc/sgi-gru/gruprocfs.c
-@@ -73,7 +73,7 @@ static int statistics_show(struct seq_fi
- 	printstat(s, user_flush_tlb);
- 	printstat(s, user_unload_context);
- 	printstat(s, user_exception);
--	printstat(s, set_task_slice);
-+	printstat(s, set_context_option);
- 	printstat(s, migrate_check);
- 	printstat(s, migrated_retarget);
- 	printstat(s, migrated_unload);
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-generic-infrastructure-for-context-options
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-collect-per-context-user-statistics
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -744,6 +744,7 @@ void gru_steal_context(struct gru_thread
+ 	spin_unlock(&blade->bs_lock);
+ 
+ 	if (ngts) {
++		gts->ustats.context_stolen++;
+ 		ngts->ts_steal_jiffies = jiffies;
+ 		gru_unload_context(ngts, is_kernel_context(ngts) ? 0 : 1);
+ 		gts_stolen(ngts, blade);
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-collect-per-context-user-statistics
 +++ a/drivers/misc/sgi-gru/grutables.h
-@@ -198,7 +198,7 @@ struct gru_stats_s {
- 	atomic_long_t user_flush_tlb;
- 	atomic_long_t user_unload_context;
- 	atomic_long_t user_exception;
--	atomic_long_t set_task_slice;
-+	atomic_long_t set_context_option;
- 	atomic_long_t migrate_check;
- 	atomic_long_t migrated_retarget;
- 	atomic_long_t migrated_unload;
-@@ -649,7 +649,7 @@ extern int gru_handle_user_call_os(unsig
+@@ -148,6 +148,7 @@
+ #include <linux/wait.h>
+ #include <linux/mmu_notifier.h>
+ #include "gru.h"
++#include "grulib.h"
+ #include "gruhandles.h"
+ 
+ extern struct gru_stats_s gru_stats;
+@@ -388,6 +389,7 @@ struct gru_thread_state {
+ 							  allocated CB */
+ 	int			ts_data_valid;	/* Indicates if ts_gdata has
+ 						   valid data */
++	struct gts_statistics	ustats;		/* User statistics */
+ 	unsigned long		ts_gdata[0];	/* save area for GRU data (CB,
+ 						   DS, CBE) */
+ };
+@@ -641,6 +643,7 @@ extern void gru_tgh_flush_init(struct gr
+ extern int gru_kservices_init(void);
+ extern void gru_kservices_exit(void);
+ extern int gru_dump_chiplet_request(unsigned long arg);
++extern long gru_get_gseg_statistics(unsigned long arg);
+ extern irqreturn_t gru_intr(int irq, void *dev_id);
+ extern int gru_handle_user_call_os(unsigned long address);
  extern int gru_user_flush_tlb(unsigned long arg);
- extern int gru_user_unload_context(unsigned long arg);
- extern int gru_get_exception_detail(unsigned long arg);
--extern int gru_set_task_slice(long address);
-+extern int gru_set_context_option(unsigned long address);
- extern int gru_cpu_fault_map_id(void);
- extern struct vm_area_struct *gru_find_vma(unsigned long vaddr);
- extern void gru_flush_all_tlb(struct gru_state *gru);
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
