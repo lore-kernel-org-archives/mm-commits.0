@@ -1,101 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-fix-led-bd2802-errors-while-resuming.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 11:20:32 -0700
-Message-ID: <200906181820.n5IIKWbR018043@imap1.linux-foundation.org>
+Subject: [merged] leds-alix-leds2-fixed-for-award-bios.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 11:20:41 -0700
+Message-ID: <200906181820.n5IIKfeL018207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753157AbZFRSVM (ORCPT
+	by vger.kernel.org with ESMTP id S1753104AbZFRSVV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 14:21:12 -0400
+	Thu, 18 Jun 2009 14:21:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chammoru@gmail.com, q1.kim@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: Tobias_Mueller@twam.info, const@mimas.ru, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: fix led-bd2802 errors while resuming
+     leds: alix-leds2 fixed for Award  BIOS
 has been removed from the -mm tree.  Its filename was
-     leds-fix-led-bd2802-errors-while-resuming.patch
+     leds-alix-leds2-fixed-for-award-bios.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: fix led-bd2802 errors while resuming
-From: Kim Kyuwon <chammoru@gmail.com>
+Subject: leds: alix-leds2 fixed for Award  BIOS
+From: Tobias Mueller <Tobias_Mueller@twam.info>
 
-LED_CORE_SUSPENDRESUME flag is not needed in the bd2802 driver, because
-all works for suspend/resume is done in bd2802_suspend and bd2802_suspend
-functions.  And this patch allows bd2802 to be configured again when it
-resumes from suspend.
+Add initialisation of GPIO ports for compatibility with boards with Award
+BIOS (e.g.  ALIX.3D3).
 
-Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
+Signed-off-by: Tobias Mueller <Tobias_Mueller@twam.info>
+Reviewed-by: Constantin Baranov <const@mimas.ru>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-bd2802.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/leds/Kconfig      |    1 +
+ drivers/leds/leds-alix2.c |    7 ++++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-bd2802.c~leds-fix-led-bd2802-errors-while-resuming drivers/leds/leds-bd2802.c
---- a/drivers/leds/leds-bd2802.c~leds-fix-led-bd2802-errors-while-resuming
-+++ a/drivers/leds/leds-bd2802.c
-@@ -538,7 +538,6 @@ static int bd2802_register_led_classdev(
- 	led->cdev_led1r.brightness = LED_OFF;
- 	led->cdev_led1r.brightness_set = bd2802_set_led1r_brightness;
- 	led->cdev_led1r.blink_set = bd2802_set_led1r_blink;
--	led->cdev_led1r.flags |= LED_CORE_SUSPENDRESUME;
+diff -puN drivers/leds/Kconfig~leds-alix-leds2-fixed-for-award-bios drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-alix-leds2-fixed-for-award-bios
++++ a/drivers/leds/Kconfig
+@@ -75,6 +75,7 @@ config LEDS_ALIX2
+ 	depends on LEDS_CLASS && X86 && EXPERIMENTAL
+ 	help
+ 	  This option enables support for the PCEngines ALIX.2 and ALIX.3 LEDs.
++	  You have to set leds-alix2.force=1 for boards with Award BIOS.
  
- 	ret = led_classdev_register(&led->client->dev, &led->cdev_led1r);
- 	if (ret < 0) {
-@@ -551,7 +550,6 @@ static int bd2802_register_led_classdev(
- 	led->cdev_led1g.brightness = LED_OFF;
- 	led->cdev_led1g.brightness_set = bd2802_set_led1g_brightness;
- 	led->cdev_led1g.blink_set = bd2802_set_led1g_blink;
--	led->cdev_led1g.flags |= LED_CORE_SUSPENDRESUME;
+ config LEDS_H1940
+ 	tristate "LED Support for iPAQ H1940 device"
+diff -puN drivers/leds/leds-alix2.c~leds-alix-leds2-fixed-for-award-bios drivers/leds/leds-alix2.c
+--- a/drivers/leds/leds-alix2.c~leds-alix-leds2-fixed-for-award-bios
++++ a/drivers/leds/leds-alix2.c
+@@ -14,7 +14,7 @@
  
- 	ret = led_classdev_register(&led->client->dev, &led->cdev_led1g);
- 	if (ret < 0) {
-@@ -564,7 +562,6 @@ static int bd2802_register_led_classdev(
- 	led->cdev_led1b.brightness = LED_OFF;
- 	led->cdev_led1b.brightness_set = bd2802_set_led1b_brightness;
- 	led->cdev_led1b.blink_set = bd2802_set_led1b_blink;
--	led->cdev_led1b.flags |= LED_CORE_SUSPENDRESUME;
+ static int force = 0;
+ module_param(force, bool, 0444);
+-MODULE_PARM_DESC(force, "Assume system has ALIX.2 style LEDs");
++MODULE_PARM_DESC(force, "Assume system has ALIX.2/ALIX.3 style LEDs");
  
- 	ret = led_classdev_register(&led->client->dev, &led->cdev_led1b);
- 	if (ret < 0) {
-@@ -577,7 +574,6 @@ static int bd2802_register_led_classdev(
- 	led->cdev_led2r.brightness = LED_OFF;
- 	led->cdev_led2r.brightness_set = bd2802_set_led2r_brightness;
- 	led->cdev_led2r.blink_set = bd2802_set_led2r_blink;
--	led->cdev_led2r.flags |= LED_CORE_SUSPENDRESUME;
- 
- 	ret = led_classdev_register(&led->client->dev, &led->cdev_led2r);
- 	if (ret < 0) {
-@@ -590,7 +586,6 @@ static int bd2802_register_led_classdev(
- 	led->cdev_led2g.brightness = LED_OFF;
- 	led->cdev_led2g.brightness_set = bd2802_set_led2g_brightness;
- 	led->cdev_led2g.blink_set = bd2802_set_led2g_blink;
--	led->cdev_led2g.flags |= LED_CORE_SUSPENDRESUME;
- 
- 	ret = led_classdev_register(&led->client->dev, &led->cdev_led2g);
- 	if (ret < 0) {
-@@ -723,8 +718,7 @@ static int bd2802_resume(struct i2c_clie
- 	struct bd2802_led *led = i2c_get_clientdata(client);
- 
- 	if (!bd2802_is_all_off(led) || led->adf_on) {
--		gpio_set_value(led->pdata->reset_gpio, 1);
--		udelay(100);
-+		bd2802_reset_cancel(led);
- 		bd2802_restore_state(led);
+ struct alix_led {
+ 	struct led_classdev cdev;
+@@ -155,6 +155,11 @@ static int __init alix_led_init(void)
+ 		goto out;
  	}
  
++	/* enable output on GPIO for LED 1,2,3 */
++	outl(1 << 6, 0x6104);
++	outl(1 << 9, 0x6184);
++	outl(1 << 11, 0x6184);
++
+ 	pdev = platform_device_register_simple(KBUILD_MODNAME, -1, NULL, 0);
+ 	if (!IS_ERR(pdev)) {
+ 		ret = platform_driver_probe(&alix_led_driver, alix_led_probe);
 _
 
-Patches currently in -mm which might be from chammoru@gmail.com are
+Patches currently in -mm which might be from Tobias_Mueller@twam.info are
 
 linux-next.patch
 
