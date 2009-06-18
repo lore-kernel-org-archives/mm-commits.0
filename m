@@ -1,175 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kthreads-rework-kthread_stop.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:47:09 -0700
-Message-ID: <200906182247.n5IMl9ET006294@imap1.linux-foundation.org>
+Subject: [merged] edac-add-edac_device_alloc_index.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:47:51 -0700
+Message-ID: <200906182247.n5IMlpOq006985@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60036 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758725AbZFRWsW (ORCPT
+	by vger.kernel.org with ESMTP id S1759184AbZFRWsZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:48:22 -0400
+	Thu, 18 Jun 2009 18:48:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, ebiederm@xmission.com, hch@lst.de, mingo@elte.hu, rusty@rustcorp.com.au, vgusev@openvz.org, xemul@openvz.org, mm-commits@vger.kernel.org
+To: qingtao.cao@windriver.com, benh@kernel.crashing.org, galak@gate.crashing.org, michael@ellerman.id.au, norsk5@yahoo.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kthreads: rework kthread_stop()
+     edac: add edac_device_alloc_index()
 has been removed from the -mm tree.  Its filename was
-     kthreads-rework-kthread_stop.patch
+     edac-add-edac_device_alloc_index.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthreads: rework kthread_stop()
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: edac: add edac_device_alloc_index()
+From: Harry Ciao <qingtao.cao@windriver.com>
 
-Based on Eric's patch which in turn was based on my patch.
+Add edac_device_alloc_index(), because for MAPLE platform there may
+exist several EDAC driver modules that could make use of
+edac_device_ctl_info structure at the same time. The index allocation
+for these structures should be taken care of by EDAC core.
 
-kthread_stop() has the nasty problems:
-
-- it runs unpredictably long with the global semaphore held.
-
-- it deadlocks if kthread itself does kthread_stop() before it obeys
-  the kthread_should_stop() request.
-
-- it is not useable if kthread exits on its own, see for example the
-  ugly "wait_to_die:" hack in migration_thread()
-
-- it is not possible to just tell kthread it should stop, we must always
-  wait for its exit.
-
-With this patch kthread() allocates all neccesary data (struct kthread) on
-its own stack, globals kthread_stop_xxx are deleted.  ->vfork_done is used
-as a pointer into "struct kthread", this means kthread_stop() can easily
-wait for kthread's exit.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Vitaliy Gusev <vgusev@openvz.org
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Harry Ciao <qingtao.cao@windriver.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
+Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   69 ++++++++++++++++++---------------------------
- 1 file changed, 28 insertions(+), 41 deletions(-)
+ drivers/edac/amd8111_edac.c |    3 +--
+ drivers/edac/edac_core.h    |    1 +
+ drivers/edac/edac_device.c  |   14 ++++++++++++++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN kernel/kthread.c~kthreads-rework-kthread_stop kernel/kthread.c
---- a/kernel/kthread.c~kthreads-rework-kthread_stop
-+++ a/kernel/kthread.c
-@@ -35,17 +35,13 @@ struct kthread_create_info
- 	struct list_head list;
- };
+diff -puN drivers/edac/amd8111_edac.c~edac-add-edac_device_alloc_index drivers/edac/amd8111_edac.c
+--- a/drivers/edac/amd8111_edac.c~edac-add-edac_device_alloc_index
++++ a/drivers/edac/amd8111_edac.c
+@@ -37,7 +37,6 @@
+ #define AMD8111_EDAC_MOD_STR	"amd8111_edac"
  
--struct kthread_stop_info
--{
--	struct task_struct *k;
--	int err;
--	struct completion done;
-+struct kthread {
-+	int should_stop;
-+	struct completion exited;
- };
+ #define PCI_DEVICE_ID_AMD_8111_PCI	0x7460
+-static int edac_dev_idx;
  
--/* Thread stopping is done by setthing this var: lock serializes
-- * multiple kthread_stop calls. */
--static DEFINE_MUTEX(kthread_stop_lock);
--static struct kthread_stop_info kthread_stop_info;
-+#define to_kthread(tsk)	\
-+	container_of((tsk)->vfork_done, struct kthread, exited)
+ enum amd8111_edac_devs {
+ 	LPC_BRIDGE = 0,
+@@ -377,7 +376,7 @@ static int amd8111_dev_probe(struct pci_
+ 	 * edac_device_ctl_info, but make use of existing
+ 	 * one instead.
+ 	*/
+-	dev_info->edac_idx = edac_dev_idx++;
++	dev_info->edac_idx = edac_device_alloc_index();
+ 	dev_info->edac_dev =
+ 		edac_device_alloc_ctl_info(0, dev_info->ctl_name, 1,
+ 					   NULL, 0, 0,
+diff -puN drivers/edac/edac_core.h~edac-add-edac_device_alloc_index drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~edac-add-edac_device_alloc_index
++++ a/drivers/edac/edac_core.h
+@@ -841,6 +841,7 @@ extern void edac_device_handle_ue(struct
+ 				int inst_nr, int block_nr, const char *msg);
+ extern void edac_device_handle_ce(struct edac_device_ctl_info *edac_dev,
+ 				int inst_nr, int block_nr, const char *msg);
++extern int edac_device_alloc_index(void);
  
+ /*
+  * edac_pci APIs
+diff -puN drivers/edac/edac_device.c~edac-add-edac_device_alloc_index drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~edac-add-edac_device_alloc_index
++++ a/drivers/edac/edac_device.c
+@@ -490,6 +490,20 @@ void edac_device_reset_delay_period(stru
+ 	mutex_unlock(&device_ctls_mutex);
+ }
+ 
++/*
++ * edac_device_alloc_index: Allocate a unique device index number
++ *
++ * Return:
++ *	allocated index number
++ */
++int edac_device_alloc_index(void)
++{
++	static atomic_t device_indexes = ATOMIC_INIT(0);
++
++	return atomic_inc_return(&device_indexes) - 1;
++}
++EXPORT_SYMBOL_GPL(edac_device_alloc_index);
++
  /**
-  * kthread_should_stop - should this kthread return now?
-@@ -56,20 +52,22 @@ static struct kthread_stop_info kthread_
-  */
- int kthread_should_stop(void)
- {
--	return (kthread_stop_info.k == current);
-+	return to_kthread(current)->should_stop;
- }
- EXPORT_SYMBOL(kthread_should_stop);
- 
- static int kthread(void *_create)
- {
-+	/* Copy data: it's on kthread's stack */
- 	struct kthread_create_info *create = _create;
--	int (*threadfn)(void *data);
--	void *data;
--	int ret = -EINTR;
-+	int (*threadfn)(void *data) = create->threadfn;
-+	void *data = create->data;
-+	struct kthread self;
-+	int ret;
- 
--	/* Copy data: it's on kthread's stack */
--	threadfn = create->threadfn;
--	data = create->data;
-+	self.should_stop = 0;
-+	init_completion(&self.exited);
-+	current->vfork_done = &self.exited;
- 
- 	/* OK, tell user we're spawned, wait for stop or wakeup */
- 	__set_current_state(TASK_UNINTERRUPTIBLE);
-@@ -77,15 +75,12 @@ static int kthread(void *_create)
- 	complete(&create->done);
- 	schedule();
- 
--	if (!kthread_should_stop())
-+	ret = -EINTR;
-+	if (!self.should_stop)
- 		ret = threadfn(data);
- 
--	/* It might have exited on its own, w/o kthread_stop.  Check. */
--	if (kthread_should_stop()) {
--		kthread_stop_info.err = ret;
--		complete(&kthread_stop_info.done);
--	}
--	return 0;
-+	/* we can't just return, we must preserve "self" on stack */
-+	do_exit(ret);
- }
- 
- static void create_kthread(struct kthread_create_info *create)
-@@ -195,30 +190,22 @@ EXPORT_SYMBOL(kthread_bind);
-  */
- int kthread_stop(struct task_struct *k)
- {
-+	struct kthread *kthread;
- 	int ret;
- 
--	mutex_lock(&kthread_stop_lock);
--
--	/* It could exit after stop_info.k set, but before wake_up_process. */
-+	trace_sched_kthread_stop(k);
- 	get_task_struct(k);
- 
--	trace_sched_kthread_stop(k);
-+	kthread = to_kthread(k);
-+	barrier(); /* it might have exited */
-+	if (k->vfork_done != NULL) {
-+		kthread->should_stop = 1;
-+		wake_up_process(k);
-+		wait_for_completion(&kthread->exited);
-+	}
-+	ret = k->exit_code;
- 
--	/* Must init completion *before* thread sees kthread_stop_info.k */
--	init_completion(&kthread_stop_info.done);
--	smp_wmb();
--
--	/* Now set kthread_should_stop() to true, and wake it up. */
--	kthread_stop_info.k = k;
--	wake_up_process(k);
- 	put_task_struct(k);
--
--	/* Once it dies, reset stop ptr, gather result and we're done. */
--	wait_for_completion(&kthread_stop_info.done);
--	kthread_stop_info.k = NULL;
--	ret = kthread_stop_info.err;
--	mutex_unlock(&kthread_stop_lock);
+  * edac_device_add_device: Insert the 'edac_dev' structure into the
+  * edac_device global list and create sysfs entries associated with
+_
+
+Patches currently in -mm which might be from qingtao.cao@windriver.com are
+
+origin.patch
+
