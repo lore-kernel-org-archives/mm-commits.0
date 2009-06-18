@@ -1,80 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-fix-inconsistent-description-of-futex-list_op_pending.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:47:46 -0700
-Message-ID: <200906182247.n5IMlkod006828@imap1.linux-foundation.org>
+Subject: [merged] ptrace-remove-pt_dtrace-from-arch-h8300.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:46:18 -0700
+Message-ID: <200906182246.n5IMkIsJ005330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758558AbZFRW6K (ORCPT
+	by vger.kernel.org with ESMTP id S1757252AbZFRW6M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:58:10 -0400
+	Thu, 18 Jun 2009 18:58:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthltc@us.ibm.com, mingo@redhat.com, tglx@linuxtronix.de, mm-commits@vger.kernel.org
+To: oleg@redhat.com, roland@redhat.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: documentation: fix inconsistent description of futex list_op_pending
+     ptrace: remove PT_DTRACE from arch/h8300
 has been removed from the -mm tree.  Its filename was
-     documentation-fix-inconsistent-description-of-futex-list_op_pending.patch
+     ptrace-remove-pt_dtrace-from-arch-h8300.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: futex: documentation: fix inconsistent description of futex list_op_pending
-From: Matt Helsley <matthltc@us.ibm.com>
+Subject: ptrace: remove PT_DTRACE from arch/h8300
+From: Oleg Nesterov <oleg@redhat.com>
 
-Strictly speaking list_op_pending points to the 'lock entry', not the
-'lock word' (which is actually at 'offset' from 'lock entry').  We can
-infer this based on reading the code in kernel/futex.c:
+h8300 defines PT_DTRACE for asm but never uses it.
 
-	    struct robust_list __user *entry, *next_entry, *pending;
-		...
-            if (fetch_robust_entry(&pending, &head->list_op_pending, &pip))
-                    return;
-            ...
-            if (pending)
-                    handle_futex_death((void __user *)pending + futex_offset,
-                                       curr, pip);
+DEFINE(PT_PTRACED, PT_PTRACED) seems to be unused too.
 
-Which is also consistent with the rest of the docs on robust futex lists.
-
-Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linuxtronix.de>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/robust-futex-ABI.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/h8300/kernel/asm-offsets.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/robust-futex-ABI.txt~documentation-fix-inconsistent-description-of-futex-list_op_pending Documentation/robust-futex-ABI.txt
---- a/Documentation/robust-futex-ABI.txt~documentation-fix-inconsistent-description-of-futex-list_op_pending
-+++ a/Documentation/robust-futex-ABI.txt
-@@ -135,7 +135,7 @@ manipulating this list), the user code m
- protocol on 'lock entry' insertion and removal:
+diff -puN arch/h8300/kernel/asm-offsets.c~ptrace-remove-pt_dtrace-from-arch-h8300 arch/h8300/kernel/asm-offsets.c
+--- a/arch/h8300/kernel/asm-offsets.c~ptrace-remove-pt_dtrace-from-arch-h8300
++++ a/arch/h8300/kernel/asm-offsets.c
+@@ -55,7 +55,6 @@ int main(void)
+ 	DEFINE(LRET,  offsetof(struct pt_regs, pc)       - sizeof(long));
  
- On insertion:
-- 1) set the 'list_op_pending' word to the address of the 'lock word'
-+ 1) set the 'list_op_pending' word to the address of the 'lock entry'
-     to be inserted,
-  2) acquire the futex lock,
-  3) add the lock entry, with its thread id (TID) in the bottom 29 bits
-@@ -143,7 +143,7 @@ On insertion:
-  4) clear the 'list_op_pending' word.
+ 	DEFINE(PT_PTRACED, PT_PTRACED);
+-	DEFINE(PT_DTRACE, PT_DTRACE);
  
- On removal:
-- 1) set the 'list_op_pending' word to the address of the 'lock word'
-+ 1) set the 'list_op_pending' word to the address of the 'lock entry'
-     to be removed,
-  2) remove the lock entry for this lock from the 'head' list,
-  2) release the futex lock, and
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from matthltc@us.ibm.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+ptrace-wait_task_zombie-do-not-account-traced-sub-threads.patch
+linux-next.patch
+rework-fix-is_single_threaded.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
 
