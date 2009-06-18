@@ -1,137 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-fix-cache-coherency-issues-with-instruction-retry.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:48:54 -0700
-Message-ID: <200906182248.n5IMmsCI007980@imap1.linux-foundation.org>
+Subject: [merged] w1-gpio-add-external-pull-up-enable-callback.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:48:21 -0700
+Message-ID: <200906182248.n5IMmL4x007482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758162AbZFRWtW (ORCPT
+	by vger.kernel.org with ESMTP id S1758171AbZFRWtX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:49:22 -0400
+	Thu, 18 Jun 2009 18:49:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mm-commits@vger.kernel.org
+To: daniel@caiaq.de, johnpol@2ka.mipt.ru, syrjala@sci.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: fix cache coherency issues with instruction retry
+     w1-gpio: add external pull-up enable callback
 has been removed from the -mm tree.  Its filename was
-     gru-fix-cache-coherency-issues-with-instruction-retry.patch
+     w1-gpio-add-external-pull-up-enable-callback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: fix cache coherency issues with instruction retry
-From: Jack Steiner <steiner@sgi.com>
+Subject: w1-gpio: add external pull-up enable callback
+From: Daniel Mack <daniel@caiaq.de>
 
-Fix two problems related to GRU instruction failures.  Cache coherency is
-not maintained for CBEs except when loading or unloading contexts.  When
-reading a CBE to extract error information, the CBE must first be flushed
-from the cache.
+On embedded devices, sleep mode conditions can be tricky to handle,
+Especially when processors tend to pull-down the w1 bus during sleep.  Bus
+slaves (such as the ds2760) may interpret this as a reason for power-down
+conditions and entirely switch off the device.
 
-The function that reads kerrnel CBEs was reading the wrong CBE.
+This patch adds a callback function pointer to let users switch on and off
+the external pull-up resistor.  This lets the outside world know whether
+the processor is currently actively driving the bus or not.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+When this callback is not provided, the code behaviour won't change.
+
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Acked-by: Ville Syrjala <syrjala@sci.fi>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c     |    3 ++-
- drivers/misc/sgi-gru/grufile.c      |    2 +-
- drivers/misc/sgi-gru/grukservices.c |   12 ++++++++++--
- drivers/misc/sgi-gru/grutables.h    |    1 +
- 4 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/w1/masters/w1-gpio.c |   35 +++++++++++++++++++++++++++++++++
+ include/linux/w1-gpio.h      |    1 
+ 2 files changed, 36 insertions(+)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-fix-cache-coherency-issues-with-instruction-retry drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-fix-cache-coherency-issues-with-instruction-retry
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -614,7 +614,7 @@ int gru_get_exception_detail(unsigned lo
- 	} else if (gts->ts_gru) {
- 		cbrnum = thread_cbr_number(gts, ucbnum);
- 		cbe = get_cbe_by_index(gts->ts_gru, cbrnum);
--		prefetchw(cbe);/* Harmless on hardware, required for emulator */
-+		gru_flush_cache(cbe);	/* CBE not coherent */
- 		excdet.opc = cbe->opccpy;
- 		excdet.exopc = cbe->exopccpy;
- 		excdet.ecause = cbe->ecause;
-@@ -622,6 +622,7 @@ int gru_get_exception_detail(unsigned lo
- 		excdet.exceptdet1 = cbe->idef3upd;
- 		excdet.cbrstate = cbe->cbrstate;
- 		excdet.cbrexecstatus = cbe->cbrexecstatus;
-+		gru_flush_cache(cbe);
- 		ret = 0;
- 	} else {
- 		ret = -EAGAIN;
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-fix-cache-coherency-issues-with-instruction-retry drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-fix-cache-coherency-issues-with-instruction-retry
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -46,6 +46,7 @@
+diff -puN drivers/w1/masters/w1-gpio.c~w1-gpio-add-external-pull-up-enable-callback drivers/w1/masters/w1-gpio.c
+--- a/drivers/w1/masters/w1-gpio.c~w1-gpio-add-external-pull-up-enable-callback
++++ a/drivers/w1/masters/w1-gpio.c
+@@ -74,6 +74,9 @@ static int __init w1_gpio_probe(struct p
+ 	if (err)
+ 		goto free_gpio;
  
- struct gru_blade_state *gru_base[GRU_MAX_BLADES] __read_mostly;
- unsigned long gru_start_paddr __read_mostly;
-+void *gru_start_vaddr __read_mostly;
- unsigned long gru_end_paddr __read_mostly;
- unsigned int gru_max_gids __read_mostly;
- struct gru_stats_s gru_stats;
-@@ -376,7 +377,6 @@ static int __init gru_init(void)
- {
- 	int ret, irq, chip;
- 	char id[10];
--	void *gru_start_vaddr;
++	if (pdata->enable_external_pullup)
++		pdata->enable_external_pullup(1);
++
+ 	platform_set_drvdata(pdev, master);
  
- 	if (!is_uv_system())
- 		return 0;
-diff -puN drivers/misc/sgi-gru/grukservices.c~gru-fix-cache-coherency-issues-with-instruction-retry drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~gru-fix-cache-coherency-issues-with-instruction-retry
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -98,6 +98,9 @@
- #define ASYNC_HAN_TO_BID(h)	((h) - 1)
- #define ASYNC_BID_TO_HAN(b)	((b) + 1)
- #define ASYNC_HAN_TO_BS(h)	gru_base[ASYNC_HAN_TO_BID(h)]
-+#define KCB_TO_GID(cb)		((cb - gru_start_vaddr) /		\
-+					(GRU_SIZE * GRU_CHIPLETS_PER_BLADE))
-+#define KCB_TO_BS(cb)		gru_base[KCB_TO_GID(cb)]
+ 	return 0;
+@@ -91,6 +94,9 @@ static int __exit w1_gpio_remove(struct 
+ 	struct w1_bus_master *master = platform_get_drvdata(pdev);
+ 	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
  
- #define GRU_NUM_KERNEL_CBR	1
- #define GRU_NUM_KERNEL_DSR_BYTES 256
-@@ -354,14 +357,19 @@ int gru_get_cb_exception_detail(void *cb
- 		struct control_block_extended_exc_detail *excdet)
- {
- 	struct gru_control_block_extended *cbe;
-+	struct gru_blade_state *bs;
-+	int cbrnum;
- 
--	cbe = get_cbe(GRUBASE(cb), get_cb_number(cb));
--	prefetchw(cbe);	/* Harmless on hardware, required for emulator */
-+	bs = KCB_TO_BS(cb);
-+	cbrnum = thread_cbr_number(bs->bs_kgts, get_cb_number(cb));
-+	cbe = get_cbe(GRUBASE(cb), cbrnum);
-+	gru_flush_cache(cbe);	/* CBE not coherent */
- 	excdet->opc = cbe->opccpy;
- 	excdet->exopc = cbe->exopccpy;
- 	excdet->ecause = cbe->ecause;
- 	excdet->exceptdet0 = cbe->idef1upd;
- 	excdet->exceptdet1 = cbe->idef3upd;
-+	gru_flush_cache(cbe);
++	if (pdata->enable_external_pullup)
++		pdata->enable_external_pullup(0);
++
+ 	w1_remove_master_device(master);
+ 	gpio_free(pdata->pin);
+ 	kfree(master);
+@@ -98,12 +104,41 @@ static int __exit w1_gpio_remove(struct 
  	return 0;
  }
  
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-fix-cache-coherency-issues-with-instruction-retry drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-fix-cache-coherency-issues-with-instruction-retry
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -153,6 +153,7 @@
- extern struct gru_stats_s gru_stats;
- extern struct gru_blade_state *gru_base[];
- extern unsigned long gru_start_paddr, gru_end_paddr;
-+extern void *gru_start_vaddr;
- extern unsigned int gru_max_gids;
++#ifdef CONFIG_PM
++
++static int w1_gpio_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
++
++	if (pdata->enable_external_pullup)
++		pdata->enable_external_pullup(0);
++
++	return 0;
++}
++
++static int w1_gpio_resume(struct platform_device *pdev)
++{
++	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
++
++	if (pdata->enable_external_pullup)
++		pdata->enable_external_pullup(1);
++
++	return 0;
++}
++
++#else
++#define w1_gpio_suspend	NULL
++#define w1_gpio_resume	NULL
++#endif
++
+ static struct platform_driver w1_gpio_driver = {
+ 	.driver = {
+ 		.name	= "w1-gpio",
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.remove	= __exit_p(w1_gpio_remove),
++	.suspend = w1_gpio_suspend,
++	.resume = w1_gpio_resume,
+ };
  
- #define GRU_MAX_BLADES		MAX_NUMNODES
+ static int __init w1_gpio_init(void)
+diff -puN include/linux/w1-gpio.h~w1-gpio-add-external-pull-up-enable-callback include/linux/w1-gpio.h
+--- a/include/linux/w1-gpio.h~w1-gpio-add-external-pull-up-enable-callback
++++ a/include/linux/w1-gpio.h
+@@ -18,6 +18,7 @@
+ struct w1_gpio_platform_data {
+ 	unsigned int pin;
+ 	unsigned int is_open_drain:1;
++	void (*enable_external_pullup)(int enable);
+ };
+ 
+ #endif /* _LINUX_W1_GPIO_H */
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
 origin.patch
+linux-next.patch
 
