@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kthreads-simplify-the-startup-synchronization.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:47:06 -0700
-Message-ID: <200906182247.n5IMl64d006174@imap1.linux-foundation.org>
+Subject: [merged] kthreads-simplify-migration_thread-exit-path.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:47:12 -0700
+Message-ID: <200906182247.n5IMlCqq006331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759043AbZFRWsJ (ORCPT
+	by vger.kernel.org with ESMTP id S1758878AbZFRWsJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Jun 2009 18:48:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,29 +15,26 @@ To: oleg@redhat.com, ebiederm@xmission.com, hch@lst.de, mingo@elte.hu, rusty@rus
 
 
 The patch titled
-     kthreads: simplify the startup synchronization
+     kthreads: simplify migration_thread() exit path
 has been removed from the -mm tree.  Its filename was
-     kthreads-simplify-the-startup-synchronization.patch
+     kthreads-simplify-migration_thread-exit-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthreads: simplify the startup synchronization
+Subject: kthreads: simplify migration_thread() exit path
 From: Oleg Nesterov <oleg@redhat.com>
 
-We use two completions two create the kernel thread, this is a bit ugly. 
-kthread() wakes up create_kthread() via ->started, then create_kthread()
-wakes up the caller kthread_create() via ->done.  But kthread() does not
-need to wait for kthread(), it can just return.  Instead kthread() itself
-can wake up the caller of kthread_create().
+Now that kthread_stop() can be used even if the task has already exited,
+we can kill the "wait_to_die:" loop in migration_thread().  But we must
+pin rq->migration_thread after creation.
 
-Kill kthread_create_info->started, ->done is enough.  This improves the
-scalability a bit and sijmplifies the code.
-
-The only problem if kernel_thread() fails, in that case create_kthread()
-must do complete(&create->done).
+Actually, I don't think CPU_UP_CANCELED or CPU_DEAD should wait for
+->migration_thread exit.  Perhaps we can simplify this code a bit more. 
+migration_call() can set ->should_stop and forget about this thread.  But
+we need a new helper in kthred.c for that.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -49,52 +46,62 @@ Cc: Vitaliy Gusev <vgusev@openvz.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ kernel/sched.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN kernel/kthread.c~kthreads-simplify-the-startup-synchronization kernel/kthread.c
---- a/kernel/kthread.c~kthreads-simplify-the-startup-synchronization
-+++ a/kernel/kthread.c
-@@ -27,7 +27,6 @@ struct kthread_create_info
- 	/* Information passed to kthread() from kthreadd. */
- 	int (*threadfn)(void *data);
- 	void *data;
--	struct completion started;
+diff -puN kernel/sched.c~kthreads-simplify-migration_thread-exit-path kernel/sched.c
+--- a/kernel/sched.c~kthreads-simplify-migration_thread-exit-path
++++ a/kernel/sched.c
+@@ -7045,7 +7045,7 @@ static int migration_thread(void *data)
  
- 	/* Result passed back to kthread_create() from kthreadd. */
- 	struct task_struct *result;
-@@ -75,7 +74,7 @@ static int kthread(void *_create)
- 	/* OK, tell user we're spawned, wait for stop or wakeup */
- 	__set_current_state(TASK_UNINTERRUPTIBLE);
- 	create->result = current;
--	complete(&create->started);
-+	complete(&create->done);
- 	schedule();
+ 		if (cpu_is_offline(cpu)) {
+ 			spin_unlock_irq(&rq->lock);
+-			goto wait_to_die;
++			break;
+ 		}
  
- 	if (!kthread_should_stop())
-@@ -95,11 +94,10 @@ static void create_kthread(struct kthrea
+ 		if (rq->active_balance) {
+@@ -7071,16 +7071,7 @@ static int migration_thread(void *data)
+ 		complete(&req->done);
+ 	}
+ 	__set_current_state(TASK_RUNNING);
+-	return 0;
  
- 	/* We want our own signal handler (we take no signals by default). */
- 	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
--	if (pid < 0)
-+	if (pid < 0) {
- 		create->result = ERR_PTR(pid);
--	else
--		wait_for_completion(&create->started);
--	complete(&create->done);
-+		complete(&create->done);
-+	}
+-wait_to_die:
+-	/* Wait for kthread_stop */
+-	set_current_state(TASK_INTERRUPTIBLE);
+-	while (!kthread_should_stop()) {
+-		schedule();
+-		set_current_state(TASK_INTERRUPTIBLE);
+-	}
+-	__set_current_state(TASK_RUNNING);
+ 	return 0;
  }
  
- /**
-@@ -130,7 +128,6 @@ struct task_struct *kthread_create(int (
+@@ -7494,6 +7485,7 @@ migration_call(struct notifier_block *nf
+ 		rq = task_rq_lock(p, &flags);
+ 		__setscheduler(rq, p, SCHED_FIFO, MAX_RT_PRIO-1);
+ 		task_rq_unlock(rq, &flags);
++		get_task_struct(p);
+ 		cpu_rq(cpu)->migration_thread = p;
+ 		break;
  
- 	create.threadfn = threadfn;
- 	create.data = data;
--	init_completion(&create.started);
- 	init_completion(&create.done);
+@@ -7524,6 +7516,7 @@ migration_call(struct notifier_block *nf
+ 		kthread_bind(cpu_rq(cpu)->migration_thread,
+ 			     cpumask_any(cpu_online_mask));
+ 		kthread_stop(cpu_rq(cpu)->migration_thread);
++		put_task_struct(cpu_rq(cpu)->migration_thread);
+ 		cpu_rq(cpu)->migration_thread = NULL;
+ 		break;
  
- 	spin_lock(&kthread_create_lock);
+@@ -7533,6 +7526,7 @@ migration_call(struct notifier_block *nf
+ 		migrate_live_tasks(cpu);
+ 		rq = cpu_rq(cpu);
+ 		kthread_stop(rq->migration_thread);
++		put_task_struct(rq->migration_thread);
+ 		rq->migration_thread = NULL;
+ 		/* Idle task back to normal (off runqueue, low prio) */
+ 		spin_lock_irq(&rq->lock);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
