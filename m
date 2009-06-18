@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ia64-remove-obsolete-hw_interrupt_type.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 11:20:28 -0700
-Message-ID: <200906181820.n5IIKS1J018037@imap1.linux-foundation.org>
+Subject: [merged] ia64-remove-obsolete-irq_desc_t-typedef.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 11:20:26 -0700
+Message-ID: <200906181820.n5IIKQYA018032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51811 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753301AbZFRSVH (ORCPT
+	by vger.kernel.org with ESMTP id S1752815AbZFRSVC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 14:21:07 -0400
+	Thu, 18 Jun 2009 14:21:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: remove obsolete hw_interrupt_type
+     ia64: remove obsolete irq_desc_t typedef
 has been removed from the -mm tree.  Its filename was
-     ia64-remove-obsolete-hw_interrupt_type.patch
+     ia64-remove-obsolete-irq_desc_t-typedef.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: remove obsolete hw_interrupt_type
+Subject: ia64: remove obsolete irq_desc_t typedef
 From: Thomas Gleixner <tglx@linutronix.de>
 
 The defines and typedefs (hw_interrupt_type, no_irq_type, irq_desc_t) have
@@ -36,8 +36,7 @@ hit mainline we can remove the defines and typedefs finally.
 
 Impact: cleanup
 
-Convert the last remaining users to struct irq_chip and remove the
-define.
+Convert the last remaining users and remove the typedef.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tony Luck <tony.luck@intel.com>
@@ -47,58 +46,150 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
  arch/ia64/hp/sim/hpsim_irq.c   |    2 +-
  arch/ia64/include/asm/hw_irq.h |    2 +-
- arch/ia64/kernel/iosapic.c     |    2 +-
- arch/ia64/kernel/irq_lsapic.c  |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/ia64/kernel/iosapic.c     |    6 +++---
+ arch/ia64/kernel/irq.c         |    2 +-
+ arch/ia64/kernel/irq_ia64.c    |    2 +-
+ arch/ia64/kernel/mca.c         |    2 +-
+ arch/ia64/kernel/smpboot.c     |    2 +-
+ arch/ia64/sn/kernel/irq.c      |    4 ++--
+ arch/ia64/xen/irq_xen.c        |    2 +-
+ 9 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-hw_interrupt_type arch/ia64/hp/sim/hpsim_irq.c
---- a/arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-hw_interrupt_type
+diff -puN arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/hp/sim/hpsim_irq.c
+--- a/arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-irq_desc_t-typedef
 +++ a/arch/ia64/hp/sim/hpsim_irq.c
-@@ -27,7 +27,7 @@ hpsim_set_affinity_noop(unsigned int a, 
- 	return 0;
- }
+@@ -41,7 +41,7 @@ static struct hw_interrupt_type irq_type
+ void __init
+ hpsim_irq_init (void)
+ {
+-	irq_desc_t *idesc;
++	struct irq_desc *idesc;
+ 	int i;
  
--static struct hw_interrupt_type irq_type_hp_sim = {
-+static struct irq_chip irq_type_hp_sim = {
- 	.name =		"hpsim",
- 	.startup =	hpsim_irq_startup,
- 	.shutdown =	hpsim_irq_noop,
-diff -puN arch/ia64/include/asm/hw_irq.h~ia64-remove-obsolete-hw_interrupt_type arch/ia64/include/asm/hw_irq.h
---- a/arch/ia64/include/asm/hw_irq.h~ia64-remove-obsolete-hw_interrupt_type
+ 	for (i = 0; i < NR_IRQS; ++i) {
+diff -puN arch/ia64/include/asm/hw_irq.h~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/include/asm/hw_irq.h
+--- a/arch/ia64/include/asm/hw_irq.h~ia64-remove-obsolete-irq_desc_t-typedef
 +++ a/arch/ia64/include/asm/hw_irq.h
-@@ -106,7 +106,7 @@ extern struct irq_cfg irq_cfg[NR_IRQS];
- #define irq_to_domain(x)	irq_cfg[(x)].domain
- DECLARE_PER_CPU(int[IA64_NUM_VECTORS], vector_irq);
+@@ -146,7 +146,7 @@ static inline void ia64_native_resend_ir
+  * Default implementations for the irq-descriptor API:
+  */
  
--extern struct hw_interrupt_type irq_type_ia64_lsapic;	/* CPU-internal interrupt controller */
-+extern struct irq_chip irq_type_ia64_lsapic;	/* CPU-internal interrupt controller */
+-extern irq_desc_t irq_desc[NR_IRQS];
++extern struct irq_desc irq_desc[NR_IRQS];
  
- #ifdef CONFIG_PARAVIRT_GUEST
- #include <asm/paravirt.h>
-diff -puN arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-hw_interrupt_type arch/ia64/kernel/iosapic.c
---- a/arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-hw_interrupt_type
+ #ifndef CONFIG_IA64_GENERIC
+ static inline ia64_vector __ia64_irq_to_vector(int irq)
+diff -puN arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/iosapic.c
+--- a/arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-irq_desc_t-typedef
 +++ a/arch/ia64/kernel/iosapic.c
-@@ -601,7 +601,7 @@ register_intr (unsigned int gsi, int irq
+@@ -451,7 +451,7 @@ iosapic_startup_edge_irq (unsigned int i
+ static void
+ iosapic_ack_edge_irq (unsigned int irq)
+ {
+-	irq_desc_t *idesc = irq_desc + irq;
++	struct irq_desc *idesc = irq_desc + irq;
+ 
+ 	irq_complete_move(irq);
+ 	move_native_irq(irq);
+@@ -600,7 +600,7 @@ static int
+ register_intr (unsigned int gsi, int irq, unsigned char delivery,
  	       unsigned long polarity, unsigned long trigger)
  {
- 	struct irq_desc *idesc;
--	struct hw_interrupt_type *irq_type;
-+	struct irq_chip *irq_type;
+-	irq_desc_t *idesc;
++	struct irq_desc *idesc;
+ 	struct hw_interrupt_type *irq_type;
  	int index;
  	struct iosapic_rte_info *rte;
+@@ -828,7 +828,7 @@ iosapic_unregister_intr (unsigned int gs
+ {
+ 	unsigned long flags;
+ 	int irq, index;
+-	irq_desc_t *idesc;
++	struct irq_desc *idesc;
+ 	u32 low32;
+ 	unsigned long trigger, polarity;
+ 	unsigned int dest;
+diff -puN arch/ia64/kernel/irq.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/irq.c
+--- a/arch/ia64/kernel/irq.c~ia64-remove-obsolete-irq_desc_t-typedef
++++ a/arch/ia64/kernel/irq.c
+@@ -130,7 +130,7 @@ unsigned int vectors_in_migration[NR_IRQ
+  */
+ static void migrate_irqs(void)
+ {
+-	irq_desc_t *desc;
++	struct irq_desc *desc;
+ 	int 		irq, new_cpu;
  
-diff -puN arch/ia64/kernel/irq_lsapic.c~ia64-remove-obsolete-hw_interrupt_type arch/ia64/kernel/irq_lsapic.c
---- a/arch/ia64/kernel/irq_lsapic.c~ia64-remove-obsolete-hw_interrupt_type
-+++ a/arch/ia64/kernel/irq_lsapic.c
-@@ -33,7 +33,7 @@ static int lsapic_retrigger(unsigned int
- 	return 1;
- }
+ 	for (irq=0; irq < NR_IRQS; irq++) {
+diff -puN arch/ia64/kernel/irq_ia64.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/irq_ia64.c
+--- a/arch/ia64/kernel/irq_ia64.c~ia64-remove-obsolete-irq_desc_t-typedef
++++ a/arch/ia64/kernel/irq_ia64.c
+@@ -630,7 +630,7 @@ static struct irqaction tlb_irqaction = 
+ void
+ ia64_native_register_percpu_irq (ia64_vector vec, struct irqaction *action)
+ {
+-	irq_desc_t *desc;
++	struct irq_desc *desc;
+ 	unsigned int irq;
  
--struct hw_interrupt_type irq_type_ia64_lsapic = {
-+struct irq_chip irq_type_ia64_lsapic = {
- 	.name =		"LSAPIC",
- 	.startup =	lsapic_noop_startup,
- 	.shutdown =	lsapic_noop,
+ 	irq = vec;
+diff -puN arch/ia64/kernel/mca.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/mca.c
+--- a/arch/ia64/kernel/mca.c~ia64-remove-obsolete-irq_desc_t-typedef
++++ a/arch/ia64/kernel/mca.c
+@@ -2093,7 +2093,7 @@ ia64_mca_late_init(void)
+ 	cpe_poll_timer.function = ia64_mca_cpe_poll;
+ 
+ 	{
+-		irq_desc_t *desc;
++		struct irq_desc *desc;
+ 		unsigned int irq;
+ 
+ 		if (cpe_vector >= 0) {
+diff -puN arch/ia64/kernel/smpboot.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/kernel/smpboot.c
+--- a/arch/ia64/kernel/smpboot.c~ia64-remove-obsolete-irq_desc_t-typedef
++++ a/arch/ia64/kernel/smpboot.c
+@@ -678,7 +678,7 @@ extern void fixup_irqs(void);
+ int migrate_platform_irqs(unsigned int cpu)
+ {
+ 	int new_cpei_cpu;
+-	irq_desc_t *desc = NULL;
++	struct irq_desc *desc = NULL;
+ 	const struct cpumask *mask;
+ 	int 		retval = 0;
+ 
+diff -puN arch/ia64/sn/kernel/irq.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/sn/kernel/irq.c
+--- a/arch/ia64/sn/kernel/irq.c~ia64-remove-obsolete-irq_desc_t-typedef
++++ a/arch/ia64/sn/kernel/irq.c
+@@ -295,7 +295,7 @@ unsigned int sn_local_vector_to_irq(u8 v
+ void sn_irq_init(void)
+ {
+ 	int i;
+-	irq_desc_t *base_desc = irq_desc;
++	struct irq_desc *base_desc = irq_desc;
+ 
+ 	ia64_first_device_vector = IA64_SN2_FIRST_DEVICE_VECTOR;
+ 	ia64_last_device_vector = IA64_SN2_LAST_DEVICE_VECTOR;
+@@ -377,7 +377,7 @@ void sn_irq_fixup(struct pci_dev *pci_de
+ 	int cpu = nasid_slice_to_cpuid(nasid, slice);
+ #ifdef CONFIG_SMP
+ 	int cpuphys;
+-	irq_desc_t *desc;
++	struct irq_desc *desc;
+ #endif
+ 
+ 	pci_dev_get(pci_dev);
+diff -puN arch/ia64/xen/irq_xen.c~ia64-remove-obsolete-irq_desc_t-typedef arch/ia64/xen/irq_xen.c
+--- a/arch/ia64/xen/irq_xen.c~ia64-remove-obsolete-irq_desc_t-typedef
++++ a/arch/ia64/xen/irq_xen.c
+@@ -138,7 +138,7 @@ static void
+ __xen_register_percpu_irq(unsigned int cpu, unsigned int vec,
+ 			struct irqaction *action, int save)
+ {
+-	irq_desc_t *desc;
++	struct irq_desc *desc;
+ 	int irq = 0;
+ 
+ 	if (xen_slab_ready) {
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
