@@ -1,137 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:46:32 -0700
-Message-ID: <200906182246.n5IMkWrd005591@imap1.linux-foundation.org>
+Subject: [merged] documentation-fix-inconsistent-description-of-futex-list_op_pending.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:47:46 -0700
+Message-ID: <200906182247.n5IMlkod006828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44395 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758440AbZFRW6I (ORCPT
+	by vger.kernel.org with ESMTP id S1758558AbZFRW6K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:58:08 -0400
+	Thu, 18 Jun 2009 18:58:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: matthltc@us.ibm.com, mingo@redhat.com, tglx@linuxtronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: do not use task->ptrace directly in core kernel
+     futex: documentation: fix inconsistent description of futex list_op_pending
 has been removed from the -mm tree.  Its filename was
-     ptrace-do-not-use-task-ptrace-directly-in-core-kernel.patch
+     documentation-fix-inconsistent-description-of-futex-list_op_pending.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: do not use task->ptrace directly in core kernel
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: futex: documentation: fix inconsistent description of futex list_op_pending
+From: Matt Helsley <matthltc@us.ibm.com>
 
-No functional changes.
+Strictly speaking list_op_pending points to the 'lock entry', not the
+'lock word' (which is actually at 'offset' from 'lock entry').  We can
+infer this based on reading the code in kernel/futex.c:
 
-- Nobody except ptrace.c & co should use ptrace flags directly, we have
-  task_ptrace() for that.
+	    struct robust_list __user *entry, *next_entry, *pending;
+		...
+            if (fetch_robust_entry(&pending, &head->list_op_pending, &pip))
+                    return;
+            ...
+            if (pending)
+                    handle_futex_death((void __user *)pending + futex_offset,
+                                       curr, pip);
 
-- No need to specially check PT_PTRACED, we must not have other PT_ bits
-  set without PT_PTRACED. And no need to know this flag exists.
+Which is also consistent with the rest of the docs on robust futex lists.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linuxtronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c   |    6 +++---
- kernel/signal.c |   10 +++++-----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/robust-futex-ABI.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel kernel/exit.c
---- a/kernel/exit.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel
-+++ a/kernel/exit.c
-@@ -757,7 +757,7 @@ static void reparent_thread(struct task_
- 	p->exit_signal = SIGCHLD;
+diff -puN Documentation/robust-futex-ABI.txt~documentation-fix-inconsistent-description-of-futex-list_op_pending Documentation/robust-futex-ABI.txt
+--- a/Documentation/robust-futex-ABI.txt~documentation-fix-inconsistent-description-of-futex-list_op_pending
++++ a/Documentation/robust-futex-ABI.txt
+@@ -135,7 +135,7 @@ manipulating this list), the user code m
+ protocol on 'lock entry' insertion and removal:
  
- 	/* If it has exited notify the new parent about this child's death. */
--	if (!p->ptrace &&
-+	if (!task_ptrace(p) &&
- 	    p->exit_state == EXIT_ZOMBIE && thread_group_empty(p)) {
- 		do_notify_parent(p, p->exit_signal);
- 		if (task_detached(p)) {
-@@ -782,7 +782,7 @@ static void forget_original_parent(struc
- 	list_for_each_entry_safe(p, n, &father->children, sibling) {
- 		p->real_parent = reaper;
- 		if (p->parent == father) {
--			BUG_ON(p->ptrace);
-+			BUG_ON(task_ptrace(p));
- 			p->parent = p->real_parent;
- 		}
- 		reparent_thread(father, p, &dead_children);
-@@ -1482,7 +1482,7 @@ static int wait_consider_task(struct tas
- 		return 0;
- 	}
+ On insertion:
+- 1) set the 'list_op_pending' word to the address of the 'lock word'
++ 1) set the 'list_op_pending' word to the address of the 'lock entry'
+     to be inserted,
+  2) acquire the futex lock,
+  3) add the lock entry, with its thread id (TID) in the bottom 29 bits
+@@ -143,7 +143,7 @@ On insertion:
+  4) clear the 'list_op_pending' word.
  
--	if (likely(!ptrace) && unlikely(p->ptrace)) {
-+	if (likely(!ptrace) && unlikely(task_ptrace(p))) {
- 		/*
- 		 * This child is hidden by ptrace.
- 		 * We aren't allowed to see it now, but eventually we will.
-diff -puN kernel/signal.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel kernel/signal.c
---- a/kernel/signal.c~ptrace-do-not-use-task-ptrace-directly-in-core-kernel
-+++ a/kernel/signal.c
-@@ -1410,7 +1410,7 @@ int do_notify_parent(struct task_struct 
-  	/* do_notify_parent_cldstop should have been called instead.  */
-  	BUG_ON(task_is_stopped_or_traced(tsk));
- 
--	BUG_ON(!tsk->ptrace &&
-+	BUG_ON(!task_ptrace(tsk) &&
- 	       (tsk->group_leader != tsk || !thread_group_empty(tsk)));
- 
- 	info.si_signo = sig;
-@@ -1449,7 +1449,7 @@ int do_notify_parent(struct task_struct 
- 
- 	psig = tsk->parent->sighand;
- 	spin_lock_irqsave(&psig->siglock, flags);
--	if (!tsk->ptrace && sig == SIGCHLD &&
-+	if (!task_ptrace(tsk) && sig == SIGCHLD &&
- 	    (psig->action[SIGCHLD-1].sa.sa_handler == SIG_IGN ||
- 	     (psig->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT))) {
- 		/*
-@@ -1486,7 +1486,7 @@ static void do_notify_parent_cldstop(str
- 	struct task_struct *parent;
- 	struct sighand_struct *sighand;
- 
--	if (tsk->ptrace & PT_PTRACED)
-+	if (task_ptrace(tsk))
- 		parent = tsk->parent;
- 	else {
- 		tsk = tsk->group_leader;
-@@ -1535,7 +1535,7 @@ static void do_notify_parent_cldstop(str
- 
- static inline int may_ptrace_stop(void)
- {
--	if (!likely(current->ptrace & PT_PTRACED))
-+	if (!likely(task_ptrace(current)))
- 		return 0;
- 	/*
- 	 * Are we in the middle of do_coredump?
-@@ -1753,7 +1753,7 @@ static int do_signal_stop(int signr)
- static int ptrace_signal(int signr, siginfo_t *info,
- 			 struct pt_regs *regs, void *cookie)
- {
--	if (!(current->ptrace & PT_PTRACED))
-+	if (!task_ptrace(current))
- 		return signr;
- 
- 	ptrace_signal_deliver(regs, cookie);
+ On removal:
+- 1) set the 'list_op_pending' word to the address of the 'lock word'
++ 1) set the 'list_op_pending' word to the address of the 'lock entry'
+     to be removed,
+  2) remove the lock entry for this lock from the 'head' list,
+  2) release the futex lock, and
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from matthltc@us.ibm.com are
 
 origin.patch
-ptrace-wait_task_zombie-do-not-account-traced-sub-threads.patch
-linux-next.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
 
