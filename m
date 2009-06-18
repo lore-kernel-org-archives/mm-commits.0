@@ -1,128 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-ds1742-nvram-attribute-fix.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:44:13 -0700
-Message-ID: <200906182244.n5IMiDbi003283@imap1.linux-foundation.org>
+Subject: [merged] rtc-tx4939-drop-irqf_shared.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:44:26 -0700
+Message-ID: <200906182244.n5IMiQoE003444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57711 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758191AbZFRWo0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758851AbZFRWoh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:44:26 -0400
+	Thu, 18 Jun 2009 18:44:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ertbjerg@gmail.com, a.zummo@towertech.it, anemo@mba.ocn.ne.jp, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: rtc-ds1742 nvram attribute fix
+     rtc-tx4939: drop IRQF_SHARED
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-ds1742-nvram-attribute-fix.patch
+     rtc-tx4939-drop-irqf_shared.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-ds1742 nvram attribute fix
-From: Torsten Ertbjerg Rasmussen <ertbjerg@gmail.com>
+Subject: rtc-tx4939: drop IRQF_SHARED
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-The RTC driver for ds1742 / ds1743 uses a static nvram attribute.  This
-patch replaces this static attribute with one nvram attribute for each
-ds174x registered.
+IRQF_SHARED should not be used with IRQF_DISABLED.  This RTC have a
+dedicated irq line to SoC's internal interrupt controller so there is
+no reason to use IRQF_SHARED.
 
-The nvram size is not the same for all types of ds174x.  The nvram size is
-accessible as the file size of the nvram attribute in sysfs.  With only a
-single nvram attribute, this file size will be incorrect if more than one
-type of ds174x is present on a system.  See the comment in the removed
-code below.
-
-This patch have been tested with linux-2.6.28 and linux-2.6.29-rc5/6 on a
-custom board with one ds1743.
-
-Signed-off-by: Torsten Ertbjerg Rasmussen <ertbjerg@gmail.com>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1742.c |   31 ++++++++++++++-----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+ drivers/rtc/rtc-tx4939.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-nvram-attribute-fix drivers/rtc/rtc-ds1742.c
---- a/drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-nvram-attribute-fix
-+++ a/drivers/rtc/rtc-ds1742.c
-@@ -57,6 +57,7 @@ struct rtc_plat_data {
- 	size_t size;
- 	resource_size_t baseaddr;
- 	unsigned long last_jiffies;
-+	struct bin_attribute nvram_attr;
- };
+diff -puN drivers/rtc/rtc-tx4939.c~rtc-tx4939-drop-irqf_shared drivers/rtc/rtc-tx4939.c
+--- a/drivers/rtc/rtc-tx4939.c~rtc-tx4939-drop-irqf_shared
++++ a/drivers/rtc/rtc-tx4939.c
+@@ -261,10 +261,8 @@ static int __init tx4939_rtc_probe(struc
  
- static int ds1742_rtc_set_time(struct device *dev, struct rtc_time *tm)
-@@ -157,18 +158,6 @@ static ssize_t ds1742_nvram_write(struct
- 	return count;
- }
- 
--static struct bin_attribute ds1742_nvram_attr = {
--	.attr = {
--		.name = "nvram",
--		.mode = S_IRUGO | S_IWUSR,
--	},
--	.read = ds1742_nvram_read,
--	.write = ds1742_nvram_write,
--	/* REVISIT: size in sysfs won't match actual size... if it's
--	 * not a constant, each RTC should have its own attribute.
--	 */
--};
--
- static int __devinit ds1742_rtc_probe(struct platform_device *pdev)
- {
- 	struct rtc_device *rtc;
-@@ -199,6 +188,12 @@ static int __devinit ds1742_rtc_probe(st
- 	pdata->size_nvram = pdata->size - RTC_SIZE;
- 	pdata->ioaddr_rtc = ioaddr + pdata->size_nvram;
- 
-+	pdata->nvram_attr.attr.name = "nvram";
-+	pdata->nvram_attr.attr.mode = S_IRUGO | S_IWUSR;
-+	pdata->nvram_attr.read = ds1742_nvram_read;
-+	pdata->nvram_attr.write = ds1742_nvram_write;
-+	pdata->nvram_attr.size = pdata->size_nvram;
-+
- 	/* turn RTC on if it was not on */
- 	ioaddr = pdata->ioaddr_rtc;
- 	sec = readb(ioaddr + RTC_SECONDS);
-@@ -221,11 +216,13 @@ static int __devinit ds1742_rtc_probe(st
- 	pdata->rtc = rtc;
- 	pdata->last_jiffies = jiffies;
- 	platform_set_drvdata(pdev, pdata);
--	ds1742_nvram_attr.size = max(ds1742_nvram_attr.size,
--				     pdata->size_nvram);
--	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1742_nvram_attr);
--	if (ret)
-+
-+	ret = sysfs_create_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
-+	if (ret) {
-+		dev_err(&pdev->dev, "creating nvram file in sysfs failed\n");
- 		goto out;
-+	}
-+
- 	return 0;
-  out:
- 	if (pdata->rtc)
-@@ -242,7 +239,7 @@ static int __devexit ds1742_rtc_remove(s
- {
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 
--	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1742_nvram_attr);
-+	sysfs_remove_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
- 	rtc_device_unregister(pdata->rtc);
- 	iounmap(pdata->ioaddr_nvram);
- 	release_mem_region(pdata->baseaddr, pdata->size);
+ 	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
+ 	if (devm_request_irq(&pdev->dev, irq, tx4939_rtc_interrupt,
+-			     IRQF_DISABLED | IRQF_SHARED,
+-			     pdev->name, &pdev->dev) < 0) {
++			     IRQF_DISABLED, pdev->name, &pdev->dev) < 0)
+ 		return -EBUSY;
+-	}
+ 	rtc = rtc_device_register(pdev->name, &pdev->dev,
+ 				  &tx4939_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc))
 _
 
-Patches currently in -mm which might be from ertbjerg@gmail.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
+rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
+linux-next.patch
+txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set.patch
+kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
+serial_txx9-use-container_of-instead-of-direct-cast.patch
 
