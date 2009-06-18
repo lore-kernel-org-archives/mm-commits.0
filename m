@@ -1,248 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 11:20:12 -0700
-Message-ID: <200906181820.n5IIKC6d017725@imap1.linux-foundation.org>
+Subject: [merged] ia64-remove-obsolete-no_irq_type.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 11:20:24 -0700
+Message-ID: <200906181820.n5IIKOJC017965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53853 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751920AbZFRSUz (ORCPT
+	by vger.kernel.org with ESMTP id S1752954AbZFRSVE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 14:20:55 -0400
+	Thu, 18 Jun 2009 14:21:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, arnd@arndb.de, davem@davemloft.net, joerg.roedel@amd.com, mingo@elte.hu, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping: dma-debug: fix compiler warnings on IA64
+     ia64: remove obsolete no_irq_type
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch
+     ia64-remove-obsolete-no_irq_type.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: dma-debug: fix compiler warnings on IA64
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: ia64: remove obsolete no_irq_type
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Hopefully, we don't need such cast in the future (uses int-ll64.h) but for
-now we get the following warnings:
+The defines and typedefs (hw_interrupt_type, no_irq_type, irq_desc_t) have
+been kept around for migration reasons.  After more than two years it's
+time to remove them finally.
 
-lib/dma-debug.c: In function 'debug_dma_dump_mappings':
-lib/dma-debug.c:233: warning: format '%Lx' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:233: warning: format '%Lx' expects type 'long long unsigned int', but argument 8 has type 'u64'
-lib/dma-debug.c: In function 'check_unmap':
-lib/dma-debug.c:553: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:553: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:561: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:561: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:561: warning: format '%llu' expects type 'long long unsigned int', but argument 8 has type 'u64'
-lib/dma-debug.c:569: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:569: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:577: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:577: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:598: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:598: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c: In function 'check_for_illegal_area':
-lib/dma-debug.c:634: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c: In function 'check_sync':
-lib/dma-debug.c:657: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:665: warning: format '%016llx' expects type 'long long unsigned int', but argument 6 has type 'u64'
-lib/dma-debug.c:665: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:665: warning: format '%llu' expects type 'long long unsigned int', but argument 8 has type 'u64'
-lib/dma-debug.c:665: warning: format '%llu' expects type 'long long unsigned int', but argument 9 has type 'u64'
-lib/dma-debug.c:674: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:688: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
-lib/dma-debug.c:698: warning: format '%llu' expects type 'long long unsigned int', but argument 7 has type 'u64'
+This patch cleans up one of the remaining users.  When all such patches
+hit mainline we can remove the defines and typedefs finally.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc; "David S. Miller" <davem@davemloft.net>
+Impact: cleanup
+
+convert the last remaining users to no_irq_chip
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |   82 ++++++++++++++++++++++++++--------------------
- 1 file changed, 48 insertions(+), 34 deletions(-)
+ arch/ia64/hp/sim/hpsim_irq.c |    2 +-
+ arch/ia64/kernel/iosapic.c   |    2 +-
+ arch/ia64/sn/kernel/irq.c    |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-mapping-dma-debug-fix-compiler-warnings-on-ia64 lib/dma-debug.c
---- a/lib/dma-debug.c~dma-mapping-dma-debug-fix-compiler-warnings-on-ia64
-+++ a/lib/dma-debug.c
-@@ -234,7 +234,8 @@ void debug_dma_dump_mappings(struct devi
- 					 "%s idx %d P=%Lx D=%Lx L=%Lx %s\n",
- 					 type2name[entry->type], idx,
- 					 (unsigned long long)entry->paddr,
--					 entry->dev_addr, entry->size,
-+					 (unsigned long long)entry->dev_addr,
-+					 (unsigned long long)entry->size,
- 					 dir2name[entry->direction]);
- 			}
- 		}
-@@ -553,7 +554,8 @@ static void check_unmap(struct dma_debug
- 		err_printk(ref->dev, NULL, "DMA-API: device driver tries "
- 			   "to free DMA memory it has not allocated "
- 			   "[device address=0x%016llx] [size=%llu bytes]\n",
--			   ref->dev_addr, ref->size);
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)ref->size);
- 		goto out;
- 	}
+diff -puN arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-no_irq_type arch/ia64/hp/sim/hpsim_irq.c
+--- a/arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-no_irq_type
++++ a/arch/ia64/hp/sim/hpsim_irq.c
+@@ -46,7 +46,7 @@ hpsim_irq_init (void)
  
-@@ -562,7 +564,9 @@ static void check_unmap(struct dma_debug
- 			   "DMA memory with different size "
- 			   "[device address=0x%016llx] [map size=%llu bytes] "
- 			   "[unmap size=%llu bytes]\n",
--			   ref->dev_addr, entry->size, ref->size);
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)entry->size,
-+			   (unsigned long long)ref->size);
+ 	for (i = 0; i < NR_IRQS; ++i) {
+ 		idesc = irq_desc + i;
+-		if (idesc->chip == &no_irq_type)
++		if (idesc->chip == &no_irq_chip)
+ 			idesc->chip = &irq_type_hp_sim;
  	}
- 
- 	if (ref->type != entry->type) {
-@@ -570,7 +574,8 @@ static void check_unmap(struct dma_debug
- 			   "DMA memory with wrong function "
- 			   "[device address=0x%016llx] [size=%llu bytes] "
- 			   "[mapped as %s] [unmapped as %s]\n",
--			   ref->dev_addr, ref->size,
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)ref->size,
- 			   type2name[entry->type], type2name[ref->type]);
- 	} else if ((entry->type == dma_debug_coherent) &&
- 		   (ref->paddr != entry->paddr)) {
-@@ -578,7 +583,8 @@ static void check_unmap(struct dma_debug
- 			   "DMA memory with different CPU address "
- 			   "[device address=0x%016llx] [size=%llu bytes] "
- 			   "[cpu alloc address=%p] [cpu free address=%p]",
--			   ref->dev_addr, ref->size,
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)ref->size,
- 			   (void *)entry->paddr, (void *)ref->paddr);
- 	}
- 
-@@ -599,7 +605,8 @@ static void check_unmap(struct dma_debug
- 			   "DMA memory with different direction "
- 			   "[device address=0x%016llx] [size=%llu bytes] "
- 			   "[mapped with %s] [unmapped with %s]\n",
--			   ref->dev_addr, ref->size,
-+			   (unsigned long long)ref->dev_addr,
-+			   (unsigned long long)ref->size,
- 			   dir2name[entry->direction],
- 			   dir2name[ref->direction]);
- 	}
-@@ -632,8 +639,9 @@ static void check_for_illegal_area(struc
- 	if (overlap(addr, size, _text, _etext) ||
- 	    overlap(addr, size, __start_rodata, __end_rodata))
- 		err_printk(dev, NULL, "DMA-API: device driver maps "
--				"memory from kernel text or rodata "
--				"[addr=%p] [size=%llu]\n", addr, size);
-+			   "memory from kernel text or rodata "
-+			   "[addr=%p] [size=%llu]\n", addr,
-+			   (unsigned long long)size);
  }
+diff -puN arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-no_irq_type arch/ia64/kernel/iosapic.c
+--- a/arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-no_irq_type
++++ a/arch/ia64/kernel/iosapic.c
+@@ -650,7 +650,7 @@ register_intr (unsigned int gsi, int irq
  
- static void check_sync(struct device *dev, dma_addr_t addr,
-@@ -655,29 +663,33 @@ static void check_sync(struct device *de
+ 	idesc = irq_desc + irq;
+ 	if (irq_type != NULL && idesc->chip != irq_type) {
+-		if (idesc->chip != &no_irq_type)
++		if (idesc->chip != &no_irq_chip)
+ 			printk(KERN_WARNING
+ 			       "%s: changing vector %d from %s to %s\n",
+ 			       __func__, irq_to_vector(irq),
+diff -puN arch/ia64/sn/kernel/irq.c~ia64-remove-obsolete-no_irq_type arch/ia64/sn/kernel/irq.c
+--- a/arch/ia64/sn/kernel/irq.c~ia64-remove-obsolete-no_irq_type
++++ a/arch/ia64/sn/kernel/irq.c
+@@ -301,7 +301,7 @@ void sn_irq_init(void)
+ 	ia64_last_device_vector = IA64_SN2_LAST_DEVICE_VECTOR;
  
- 	if (!entry) {
- 		err_printk(dev, NULL, "DMA-API: device driver tries "
--				"to sync DMA memory it has not allocated "
--				"[device address=0x%016llx] [size=%llu bytes]\n",
--				(unsigned long long)addr, size);
-+			   "to sync DMA memory it has not allocated "
-+			   "[device address=0x%016llx] [size=%llu bytes]\n",
-+			   (unsigned long long)addr, (unsigned long long)size);
- 		goto out;
+ 	for (i = 0; i < NR_IRQS; i++) {
+-		if (base_desc[i].chip == &no_irq_type) {
++		if (base_desc[i].chip == &no_irq_chip) {
+ 			base_desc[i].chip = &irq_type_sn;
+ 		}
  	}
- 
- 	if ((offset + size) > entry->size) {
- 		err_printk(dev, entry, "DMA-API: device driver syncs"
--				" DMA memory outside allocated range "
--				"[device address=0x%016llx] "
--				"[allocation size=%llu bytes] [sync offset=%llu] "
--				"[sync size=%llu]\n", entry->dev_addr, entry->size,
--				offset, size);
-+			   " DMA memory outside allocated range "
-+			   "[device address=0x%016llx] "
-+			   "[allocation size=%llu bytes] [sync offset=%llu] "
-+			   "[sync size=%llu]\n",
-+			   (unsigned long long)entry->dev_addr,
-+			   (unsigned long long)entry->size,
-+			   (unsigned long long)offset,
-+			   (unsigned long long)size);
- 	}
- 
- 	if (direction != entry->direction) {
- 		err_printk(dev, entry, "DMA-API: device driver syncs "
--				"DMA memory with different direction "
--				"[device address=0x%016llx] [size=%llu bytes] "
--				"[mapped with %s] [synced with %s]\n",
--				(unsigned long long)addr, entry->size,
--				dir2name[entry->direction],
--				dir2name[direction]);
-+			   "DMA memory with different direction "
-+			   "[device address=0x%016llx] [size=%llu bytes] "
-+			   "[mapped with %s] [synced with %s]\n",
-+			   (unsigned long long)addr,
-+			   (unsigned long long)entry->size,
-+			   dir2name[entry->direction],
-+			   dir2name[direction]);
- 	}
- 
- 	if (entry->direction == DMA_BIDIRECTIONAL)
-@@ -686,22 +698,24 @@ static void check_sync(struct device *de
- 	if (to_cpu && !(entry->direction == DMA_FROM_DEVICE) &&
- 		      !(direction == DMA_TO_DEVICE))
- 		err_printk(dev, entry, "DMA-API: device driver syncs "
--				"device read-only DMA memory for cpu "
--				"[device address=0x%016llx] [size=%llu bytes] "
--				"[mapped with %s] [synced with %s]\n",
--				(unsigned long long)addr, entry->size,
--				dir2name[entry->direction],
--				dir2name[direction]);
-+			   "device read-only DMA memory for cpu "
-+			   "[device address=0x%016llx] [size=%llu bytes] "
-+			   "[mapped with %s] [synced with %s]\n",
-+			   (unsigned long long)addr,
-+			   (unsigned long long)entry->size,
-+			   dir2name[entry->direction],
-+			   dir2name[direction]);
- 
- 	if (!to_cpu && !(entry->direction == DMA_TO_DEVICE) &&
- 		       !(direction == DMA_FROM_DEVICE))
- 		err_printk(dev, entry, "DMA-API: device driver syncs "
--				"device write-only DMA memory to device "
--				"[device address=0x%016llx] [size=%llu bytes] "
--				"[mapped with %s] [synced with %s]\n",
--				(unsigned long long)addr, entry->size,
--				dir2name[entry->direction],
--				dir2name[direction]);
-+			   "device write-only DMA memory to device "
-+			   "[device address=0x%016llx] [size=%llu bytes] "
-+			   "[mapped with %s] [synced with %s]\n",
-+			   (unsigned long long)addr,
-+			   (unsigned long long)entry->size,
-+			   dir2name[entry->direction],
-+			   dir2name[direction]);
- 
- out:
- 	put_hash_bucket(bucket, &flags);
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-dma-mapping-add-asm-generic-dma-mapping-commonh.patch
-dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-use-asm-generic-dma-mapping-commonh.patch
-dma-mapping-ia64-add-config_dma_api_debug-support.patch
+irqs-add-irqf_sample_random-to-the-feature-removal-scheduletxt-deprecated-list.patch
 linux-next.patch
-ib-mthca-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
-dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
-dma-mapping-mark-dma_sync_single-and-dma_sync_sg-as-deprecated.patch
-dma-mapping-dma-debug-fix-compiler-warnings-on-ia64.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+parisc-remove-obsolete-hw_interrupt_type.patch
 
