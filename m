@@ -1,63 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:44:30 -0700
-Message-ID: <200906182244.n5IMiUdU003601@imap1.linux-foundation.org>
+Subject: [merged] jbd-clean-up-journal_try_to_free_buffers.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:44:53 -0700
+Message-ID: <200906182244.n5IMirSM003948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53846 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758931AbZFRWom (ORCPT
+	by vger.kernel.org with ESMTP id S1758160AbZFRWo7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:44:42 -0400
+	Thu, 18 Jun 2009 18:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, a.zummo@towertech.it, david-b@pacbell.net, hch@lst.de, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: hifumi.hisashi@oss.ntt.co.jp, cmm@us.ibm.com, jack@suse.cz, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/rtc: disable legacy RTC driver on Blackfin systems
+     jbd: clean up journal_try_to_free_buffers()
 has been removed from the -mm tree.  Its filename was
-     drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems.patch
+     jbd-clean-up-journal_try_to_free_buffers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/rtc: disable legacy RTC driver on Blackfin systems
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: jbd: clean up journal_try_to_free_buffers()
+From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 
-Blackfin platforms do not support the hardware which this driver drives.
+I delete the following patch
+"commit 3f31fddfa26b7594b44ff2b34f9a04ba409e0f91
+Author: Mingming Cao <cmm@us.ibm.com>
+Date:   Fri Jul 25 01:46:22 2008 -0700
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+    jbd: fix race between free buffer and commit transaction
+
+
+This patch is no longer needed because if race between freeing buffer and
+committing transaction functionality occurs and dio gets error, currently
+dio falls back to buffered IO by the following patch.
+
+	commit 6ccfa806a9cfbbf1cd43d5b6aa47ef2c0eb518fd
+	Author: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+	Date:   Tue Sep 2 14:35:40 2008 -0700
+
+   	VFS: fix dio write returning EIO when try_to_release_page fails
+
+Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Cc: Theodore Tso <tytso@mit.edu>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jbd/transaction.c |   48 -----------------------------------------
+ 1 file changed, 48 deletions(-)
 
-diff -puN drivers/char/Kconfig~drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems drivers/char/Kconfig
---- a/drivers/char/Kconfig~drivers-char-rtc-disable-legacy-rtc-driver-on-blackfin-systems
-+++ a/drivers/char/Kconfig
-@@ -807,7 +807,7 @@ if RTC_LIB=n
- config RTC
- 	tristate "Enhanced Real Time Clock Support (legacy PC RTC driver)"
- 	depends on !PPC && !PARISC && !IA64 && !M68K && !SPARC && !FRV \
--			&& !ARM && !SUPERH && !S390 && !AVR32
-+			&& !ARM && !SUPERH && !S390 && !AVR32 && !BLACKFIN
- 	---help---
- 	  If you say Y here and create a character special file /dev/rtc with
- 	  major number 10 and minor number 135 using mknod ("man mknod"), you
-_
-
-Patches currently in -mm which might be from vapier@gentoo.org are
-
-origin.patch
-istallion-add-missing-__devexit-marking.patch
-linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-
+diff -puN fs/jbd/transaction.c~jbd-clean-up-journal_try_to_free_buffers fs/jbd/transaction.c
+--- a/fs/jbd/transaction.c~jbd-clean-up-journal_try_to_free_buffers
++++ a/fs/jbd/transaction.c
+@@ -1686,35 +1686,6 @@ out:
+ 	return;
+ }
+ 
+-/*
+- * journal_try_to_free_buffers() could race with journal_commit_transaction()
+- * The latter might still hold the a count on buffers when inspecting
+- * them on t_syncdata_list or t_locked_list.
+- *
+- * journal_try_to_free_buffers() will call this function to
+- * wait for the current transaction to finish syncing data buffers, before
+- * tryinf to free that buffer.
+- *
+- * Called with journal->j_state_lock held.
+- */
+-static void journal_wait_for_transaction_sync_data(journal_t *journal)
+-{
+-	transaction_t *transaction = NULL;
+-	tid_t tid;
+-
+-	spin_lock(&journal->j_state_lock);
+-	transaction = journal->j_committing_transaction;
+-
+-	if (!transaction) {
+-		spin_unlock(&journal->j_state_lock);
+-		return;
+-	}
+-
+-	tid = transaction->t_tid;
+-	spin_unlock(&journal->j_state_lock);
+-	log_wait_commit(journal, tid);
+-}
+-
+ /**
+  * int journal_try_to_free_buffers() - try to free page buffers.
+  * @journal: journal for operation
+@@ -1786,25 +1757,6 @@ int journal_try_to_free_buffers(journal_
+ 
+ 	ret = try_to_free_buffers(page);
+ 
+-	/*
+-	 * There are a number of places where journal_try_to_free_buffers()
+-	 * could race with journal_commit_transaction(), the later still
+-	 * holds the reference to the buffers to free while processing them.
+-	 * try_to_free_buffers() failed to free those buffers. Some of the
+-	 * caller of releasepage() request page buffers to be dropped, otherwise
+-	 * treat the fail-to-free as errors (such as generic_file_direct_IO())
+-	 *
+-	 * So, if the caller of try_to_release_page() wants the synchronous
+-	 * behaviour(i.e make sure buffers are dropped upon return),
+-	 * let's wait for the current transaction to finish flush of
+-	 * dirty data buffers, then try to free those buffers again,
+-	 * with the journal locked.
+-	 */
+-	if (ret == 0 && (gfp_mask & __GFP_WAIT) && (gfp_mask & __GFP_FS)) {
+-		journal_wait_for_transaction_sync_data(journal);
+-		ret = try_to_free_buffers(page);
+-	}
