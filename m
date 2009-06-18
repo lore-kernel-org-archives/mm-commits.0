@@ -1,178 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:47:17 -0700
-Message-ID: <200906182247.n5IMlHwO006337@imap1.linux-foundation.org>
+Subject: [merged] gru-generic-infrastructure-for-context-options.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:49:06 -0700
+Message-ID: <200906182249.n5IMn6Ld008154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56133 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750925AbZFRW4C (ORCPT
+	by vger.kernel.org with ESMTP id S1754570AbZFRW4U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:56:02 -0400
+	Thu, 18 Jun 2009 18:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrianosf@uol.com.br, mm-commits@vger.kernel.org
+To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/mem.c: memory_open() cleanup: lookup minor device number from devlist
+     gru: generic infrastructure for context options
 has been removed from the -mm tree.  Its filename was
-     drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
+     gru-generic-infrastructure-for-context-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/mem.c: memory_open() cleanup: lookup minor device number from devlist
-From: Adriano dos Santos Fernandes <adrianosf@uol.com.br>
+Subject: gru: generic infrastructure for context options
+From: Jack Steiner <steiner@sgi.com>
 
-memory_open() ignores devlist and does a switch for each item, duplicating
-code and conditional definitions.
+Change the user GRU request for specifying the "task_slice" option to use
+a generic infrastructure that can be expanded in the future to include
+additional context options.  No new capabilities are added with this
+patch.
 
-Clean it up by adding backing_dev_info to devlist and use it to lookup for
-the minor device.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Adriano dos Santos Fernandes <adrianosf@uol.com.br>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |  115 ++++++++++++++++---------------------------
- 1 file changed, 45 insertions(+), 70 deletions(-)
+ drivers/misc/sgi-gru/grufault.c  |   24 ++++++++++++++++++------
+ drivers/misc/sgi-gru/grufile.c   |    4 ++--
+ drivers/misc/sgi-gru/grulib.h    |   14 ++++++++++++--
+ drivers/misc/sgi-gru/gruprocfs.c |    2 +-
+ drivers/misc/sgi-gru/grutables.h |    4 ++--
+ 5 files changed, 35 insertions(+), 13 deletions(-)
 
-diff -puN drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist drivers/char/mem.c
---- a/drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist
-+++ a/drivers/char/mem.c
-@@ -863,59 +863,58 @@ static const struct file_operations kmsg
- 	.write =	kmsg_write,
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-generic-infrastructure-for-context-options
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -749,18 +749,30 @@ long gru_get_gseg_statistics(unsigned lo
+  * Register the current task as the user of the GSEG slice.
+  * Needed for TLB fault interrupt targeting.
+  */
+-int gru_set_task_slice(long address)
++int gru_set_context_option(unsigned long arg)
+ {
+ 	struct gru_thread_state *gts;
++	struct gru_set_context_option_req req;
++	int ret = 0;
+ 
+-	STAT(set_task_slice);
+-	gru_dbg(grudev, "address 0x%lx\n", address);
+-	gts = gru_alloc_locked_gts(address);
++	STAT(set_context_option);
++	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
++		return -EFAULT;
++	gru_dbg(grudev, "op %d, gseg 0x%lx, value1 0x%lx\n", req.op, req.gseg, req.val1);
++
++	gts = gru_alloc_locked_gts(req.gseg);
+ 	if (!gts)
+ 		return -EINVAL;
+ 
+-	gts->ts_tgid_owner = current->tgid;
++	switch (req.op) {
++	case sco_gseg_owner:
++ 		/* Register the current task as the GSEG owner */
++		gts->ts_tgid_owner = current->tgid;
++		break;
++	default:
++		ret = -EINVAL;
++	}
+ 	gru_unlock_gts(gts);
+ 
+-	return 0;
++	return ret;
+ }
+diff -puN drivers/misc/sgi-gru/grufile.c~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~gru-generic-infrastructure-for-context-options
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -198,8 +198,8 @@ static long gru_file_unlocked_ioctl(stru
+ 	case GRU_CREATE_CONTEXT:
+ 		err = gru_create_new_context(arg);
+ 		break;
+-	case GRU_SET_TASK_SLICE:
+-		err = gru_set_task_slice(arg);
++	case GRU_SET_CONTEXT_OPTION:
++		err = gru_set_context_option(arg);
+ 		break;
+ 	case GRU_USER_GET_EXCEPTION_DETAIL:
+ 		err = gru_get_exception_detail(arg);
+diff -puN drivers/misc/sgi-gru/grulib.h~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/grulib.h
+--- a/drivers/misc/sgi-gru/grulib.h~gru-generic-infrastructure-for-context-options
++++ a/drivers/misc/sgi-gru/grulib.h
+@@ -32,8 +32,8 @@
+ /* Set Number of Request Blocks */
+ #define GRU_CREATE_CONTEXT		_IOWR(GRU_IOCTL_NUM, 1, void *)
+ 
+-/* Register task as using the slice */
+-#define GRU_SET_TASK_SLICE		_IOWR(GRU_IOCTL_NUM, 5, void *)
++/*  Set Context Options */
++#define GRU_SET_CONTEXT_OPTION		_IOWR(GRU_IOCTL_NUM, 4, void *)
+ 
+ /* Fetch exception detail */
+ #define GRU_USER_GET_EXCEPTION_DETAIL	_IOWR(GRU_IOCTL_NUM, 6, void *)
+@@ -96,6 +96,16 @@ struct gru_unload_context_req {
  };
  
--static int memory_open(struct inode * inode, struct file * filp)
--{
--	int ret = 0;
--
--	lock_kernel();
--	switch (iminor(inode)) {
--		case 1:
--			filp->f_op = &mem_fops;
--			filp->f_mapping->backing_dev_info =
--				&directly_mappable_cdev_bdi;
--			break;
-+static const struct {
-+	unsigned int		minor;
-+	char			*name;
-+	umode_t			mode;
-+	const struct file_operations	*fops;
-+	struct backing_dev_info	*dev_info;
-+} devlist[] = { /* list of minor devices */
-+	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops,
-+		&directly_mappable_cdev_bdi},
- #ifdef CONFIG_DEVKMEM
--		case 2:
--			filp->f_op = &kmem_fops;
--			filp->f_mapping->backing_dev_info =
--				&directly_mappable_cdev_bdi;
--			break;
-+	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops,
-+		&directly_mappable_cdev_bdi},
- #endif
--		case 3:
--			filp->f_op = &null_fops;
--			break;
-+	{3, "null",    S_IRUGO | S_IWUGO,           &null_fops, NULL},
- #ifdef CONFIG_DEVPORT
--		case 4:
--			filp->f_op = &port_fops;
--			break;
-+	{4, "port",    S_IRUSR | S_IWUSR | S_IRGRP, &port_fops, NULL},
- #endif
--		case 5:
--			filp->f_mapping->backing_dev_info = &zero_bdi;
--			filp->f_op = &zero_fops;
--			break;
--		case 7:
--			filp->f_op = &full_fops;
--			break;
--		case 8:
--			filp->f_op = &random_fops;
--			break;
--		case 9:
--			filp->f_op = &urandom_fops;
--			break;
--		case 11:
--			filp->f_op = &kmsg_fops;
--			break;
-+	{5, "zero",    S_IRUGO | S_IWUGO,           &zero_fops, &zero_bdi},
-+	{7, "full",    S_IRUGO | S_IWUGO,           &full_fops, NULL},
-+	{8, "random",  S_IRUGO | S_IWUSR,           &random_fops, NULL},
-+	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops, NULL},
-+	{11,"kmsg",    S_IRUGO | S_IWUSR,           &kmsg_fops, NULL},
- #ifdef CONFIG_CRASH_DUMP
--		case 12:
--			filp->f_op = &oldmem_fops;
--			break;
-+	{12,"oldmem",    S_IRUSR | S_IWUSR | S_IRGRP, &oldmem_fops, NULL},
- #endif
--		default:
--			unlock_kernel();
--			return -ENXIO;
+ /*
++ * Structure used to set context options
++ */
++enum {sco_gseg_owner};
++struct gru_set_context_option_req {
++	unsigned long	gseg;
++	int		op;
++	unsigned long	val1;
 +};
 +
-+static int memory_open(struct inode *inode, struct file *filp)
-+{
-+	int ret = 0;
-+	int i;
-+
-+	lock_kernel();
-+
-+	for (i = 0; i < ARRAY_SIZE(devlist); i++) {
-+		if (devlist[i].minor == iminor(inode)) {
-+			filp->f_op = devlist[i].fops;
-+			if (devlist[i].dev_info) {
-+				filp->f_mapping->backing_dev_info =
-+					devlist[i].dev_info;
-+			}
-+
-+			break;
-+		}
- 	}
--	if (filp->f_op && filp->f_op->open)
--		ret = filp->f_op->open(inode,filp);
-+
-+	if (i == ARRAY_SIZE(devlist))
-+		ret = -ENXIO;
-+	else
-+		if (filp->f_op && filp->f_op->open)
-+			ret = filp->f_op->open(inode, filp);
-+
- 	unlock_kernel();
- 	return ret;
- }
-@@ -924,30 +923,6 @@ static const struct file_operations memo
- 	.open		= memory_open,	/* just a selector for the real open */
- };
- 
--static const struct {
--	unsigned int		minor;
--	char			*name;
--	umode_t			mode;
--	const struct file_operations	*fops;
--} devlist[] = { /* list of minor devices */
--	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops},
--#ifdef CONFIG_DEVKMEM
--	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops},
--#endif
--	{3, "null",    S_IRUGO | S_IWUGO,           &null_fops},
--#ifdef CONFIG_DEVPORT
--	{4, "port",    S_IRUSR | S_IWUSR | S_IRGRP, &port_fops},
--#endif
--	{5, "zero",    S_IRUGO | S_IWUGO,           &zero_fops},
--	{7, "full",    S_IRUGO | S_IWUGO,           &full_fops},
--	{8, "random",  S_IRUGO | S_IWUSR,           &random_fops},
--	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops},
--	{11,"kmsg",    S_IRUGO | S_IWUSR,           &kmsg_fops},
--#ifdef CONFIG_CRASH_DUMP
--	{12,"oldmem",    S_IRUSR | S_IWUSR | S_IRGRP, &oldmem_fops},
--#endif
--};
++/*
+  * Structure used to pass TLB flush parameters to the driver
+  */
+ struct gru_flush_tlb_req {
+diff -puN drivers/misc/sgi-gru/gruprocfs.c~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/gruprocfs.c
+--- a/drivers/misc/sgi-gru/gruprocfs.c~gru-generic-infrastructure-for-context-options
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -73,7 +73,7 @@ static int statistics_show(struct seq_fi
+ 	printstat(s, user_flush_tlb);
+ 	printstat(s, user_unload_context);
+ 	printstat(s, user_exception);
+-	printstat(s, set_task_slice);
++	printstat(s, set_context_option);
+ 	printstat(s, migrate_check);
+ 	printstat(s, migrated_retarget);
+ 	printstat(s, migrated_unload);
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-generic-infrastructure-for-context-options drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-generic-infrastructure-for-context-options
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -198,7 +198,7 @@ struct gru_stats_s {
+ 	atomic_long_t user_flush_tlb;
+ 	atomic_long_t user_unload_context;
+ 	atomic_long_t user_exception;
+-	atomic_long_t set_task_slice;
++	atomic_long_t set_context_option;
+ 	atomic_long_t migrate_check;
+ 	atomic_long_t migrated_retarget;
+ 	atomic_long_t migrated_unload;
+@@ -649,7 +649,7 @@ extern int gru_handle_user_call_os(unsig
+ extern int gru_user_flush_tlb(unsigned long arg);
+ extern int gru_user_unload_context(unsigned long arg);
+ extern int gru_get_exception_detail(unsigned long arg);
+-extern int gru_set_task_slice(long address);
++extern int gru_set_context_option(unsigned long address);
+ extern int gru_cpu_fault_map_id(void);
+ extern struct vm_area_struct *gru_find_vma(unsigned long vaddr);
+ extern void gru_flush_all_tlb(struct gru_state *gru);
+_
+
+Patches currently in -mm which might be from steiner@sgi.com are
+
+origin.patch
+
