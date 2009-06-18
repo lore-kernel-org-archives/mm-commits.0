@@ -1,88 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-wait_task_zombie-s-parent-real_parent.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:46:43 -0700
-Message-ID: <200906182246.n5IMkh31005757@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-lru-rotation-in-isolate_pages.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:46:13 -0700
+Message-ID: <200906182246.n5IMkDI1005268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758715AbZFRWr0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758943AbZFRWrX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:47:26 -0400
+	Thu, 18 Jun 2009 18:47:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: wait_task_zombie: s/->parent/->real_parent/
+     memcg: fix lru rotation in isolate_pages
 has been removed from the -mm tree.  Its filename was
-     ptrace-wait_task_zombie-s-parent-real_parent.patch
+     memcg-fix-lru-rotation-in-isolate_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: wait_task_zombie: s/->parent/->real_parent/
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: memcg: fix lru rotation in isolate_pages
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Change wait_task_zombie() to use ->real_parent instead of ->parent.  We
-could even use current afaics, but ->real_parent is more clean.
+Try to fix memcg's lru rotation sanity: make memcg use the same logic as
+the global LRU does.
 
-We know that the child is not ptrace_reparented() and thus they are equal.
- But we should avoid using task_struct->parent, we are going to remove it.
+Now, at __isolate_lru_page() retruns -EBUSY, the page is rotated to the
+tail of LRU in global LRU's isolate LRU pages.  But in memcg, it's not
+handled.  This makes memcg do the same behavior as global LRU and rotate
+LRU in the page is busy.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   13 ++++++++++++-
+ mm/vmscan.c     |    4 +++-
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~ptrace-wait_task_zombie-s-parent-real_parent kernel/exit.c
---- a/kernel/exit.c~ptrace-wait_task_zombie-s-parent-real_parent
-+++ a/kernel/exit.c
-@@ -1204,7 +1204,7 @@ static int wait_task_zombie(struct task_
- 		 * p->signal fields, because they are only touched by
- 		 * __exit_signal, which runs with tasklist_lock
- 		 * write-locked anyway, and so is excluded here.  We do
--		 * need to protect the access to p->parent->signal fields,
-+		 * need to protect the access to parent->signal fields,
- 		 * as other threads in the parent group can be right
- 		 * here reaping other children at the same time.
- 		 *
-@@ -1213,8 +1213,8 @@ static int wait_task_zombie(struct task_
- 		 * group including the group leader.
- 		 */
- 		thread_group_cputime(p, &cputime);
--		spin_lock_irq(&p->parent->sighand->siglock);
--		psig = p->parent->signal;
-+		spin_lock_irq(&p->real_parent->sighand->siglock);
-+		psig = p->real_parent->signal;
- 		sig = p->signal;
- 		psig->cutime =
- 			cputime_add(psig->cutime,
-@@ -1245,7 +1245,7 @@ static int wait_task_zombie(struct task_
- 			sig->oublock + sig->coublock;
- 		task_io_accounting_add(&psig->ioac, &p->ioac);
- 		task_io_accounting_add(&psig->ioac, &sig->ioac);
--		spin_unlock_irq(&p->parent->sighand->siglock);
-+		spin_unlock_irq(&p->real_parent->sighand->siglock);
+diff -puN mm/memcontrol.c~memcg-fix-lru-rotation-in-isolate_pages mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-lru-rotation-in-isolate_pages
++++ a/mm/memcontrol.c
+@@ -649,6 +649,7 @@ unsigned long mem_cgroup_isolate_pages(u
+ 	int zid = zone_idx(z);
+ 	struct mem_cgroup_per_zone *mz;
+ 	int lru = LRU_FILE * !!file + !!active;
++	int ret;
+ 
+ 	BUG_ON(!mem_cont);
+ 	mz = mem_cgroup_zoneinfo(mem_cont, nid, zid);
+@@ -666,9 +667,19 @@ unsigned long mem_cgroup_isolate_pages(u
+ 			continue;
+ 
+ 		scan++;
+-		if (__isolate_lru_page(page, mode, file) == 0) {
++		ret = __isolate_lru_page(page, mode, file);
++		switch (ret) {
++		case 0:
+ 			list_move(&page->lru, dst);
++			mem_cgroup_del_lru(page);
+ 			nr_taken++;
++			break;
++		case -EBUSY:
++			/* we don't affect global LRU but rotate in our LRU */
++			mem_cgroup_rotate_lru_list(page, page_lru(page));
++			break;
++		default:
++			break;
+ 		}
  	}
  
- 	/*
+diff -puN mm/vmscan.c~memcg-fix-lru-rotation-in-isolate_pages mm/vmscan.c
+--- a/mm/vmscan.c~memcg-fix-lru-rotation-in-isolate_pages
++++ a/mm/vmscan.c
+@@ -837,7 +837,6 @@ int __isolate_lru_page(struct page *page
+ 		 */
+ 		ClearPageLRU(page);
+ 		ret = 0;
+-		mem_cgroup_del_lru(page);
+ 	}
+ 
+ 	return ret;
+@@ -885,12 +884,14 @@ static unsigned long isolate_lru_pages(u
+ 		switch (__isolate_lru_page(page, mode, file)) {
+ 		case 0:
+ 			list_move(&page->lru, dst);
++			mem_cgroup_del_lru(page);
+ 			nr_taken++;
+ 			break;
+ 
+ 		case -EBUSY:
+ 			/* else it is being freed elsewhere */
+ 			list_move(&page->lru, src);
++			mem_cgroup_rotate_lru_list(page, page_lru(page));
+ 			continue;
+ 
+ 		default:
+@@ -931,6 +932,7 @@ static unsigned long isolate_lru_pages(u
+ 				continue;
+ 			if (__isolate_lru_page(cursor_page, mode, file) == 0) {
+ 				list_move(&cursor_page->lru, dst);
++				mem_cgroup_del_lru(page);
+ 				nr_taken++;
+ 				scan++;
+ 			}
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-ptrace-wait_task_zombie-do-not-account-traced-sub-threads.patch
-linux-next.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
+elf-reduce-default-max_map_count-to-be-safe-value.patch
 
