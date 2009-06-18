@@ -1,282 +1,250 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-update-gru-kernel-self-tests.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:48:50 -0700
-Message-ID: <200906182248.n5IMmojg007972@imap1.linux-foundation.org>
+Subject: [merged] gru-bug-fixes-for-gru-exception-handling.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:48:28 -0700
+Message-ID: <200906182248.n5IMmSti007534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755231AbZFRW5R (ORCPT
+	by vger.kernel.org with ESMTP id S1756592AbZFRW5h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:57:17 -0400
+	Thu, 18 Jun 2009 18:57:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: update gru kernel self tests
+     gru: bug fixes for GRU exception handling
 has been removed from the -mm tree.  Its filename was
-     gru-update-gru-kernel-self-tests.patch
+     gru-bug-fixes-for-gru-exception-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: update gru kernel self tests
+Subject: gru: bug fixes for GRU exception handling
 From: Jack Steiner <steiner@sgi.com>
 
-Change the kernel self tests that can be optionally executed on GRU
-initialization.  This is primarily for testing.
+Bug fixes for GRU exception handling.  Additional fields from the CBR must
+be returned to the user to allow the user to correctly diagnose GRU
+exceptions.
 
-Eliminate the BUG statements on failure and return bad status.  Add ioctl
-interface to execute the tests on demand.
+Handle endcase in TFH TLB miss handling.  Verify that TFH actually
+indicates a pending exception.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufile.c      |    3 
- drivers/misc/sgi-gru/grukservices.c |  150 +++++++++++++++++++++++---
- drivers/misc/sgi-gru/grulib.h       |    3 
- drivers/misc/sgi-gru/grutables.h    |    2 
- 4 files changed, 142 insertions(+), 16 deletions(-)
+ drivers/misc/sgi-gru/gru_instructions.h |   20 ++++++++++++++++-
+ drivers/misc/sgi-gru/grufault.c         |   25 ++++++++++++++++++----
+ drivers/misc/sgi-gru/gruhandles.h       |   23 +++-----------------
+ drivers/misc/sgi-gru/grumain.c          |    3 ++
+ drivers/misc/sgi-gru/gruprocfs.c        |    5 ++--
+ drivers/misc/sgi-gru/grutables.h        |    2 +
+ 6 files changed, 52 insertions(+), 26 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-update-gru-kernel-self-tests drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-update-gru-kernel-self-tests
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -250,6 +250,9 @@ static long gru_file_unlocked_ioctl(stru
- 	case GRU_USER_CALL_OS:
- 		err = gru_handle_user_call_os(arg);
- 		break;
-+	case GRU_KTEST:
-+		err = gru_ktest(arg);
-+		break;
- 	case GRU_GET_CONFIG_INFO:
- 		err = gru_get_config_info(arg);
- 		break;
-diff -puN drivers/misc/sgi-gru/grukservices.c~gru-update-gru-kernel-self-tests drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~gru-update-gru-kernel-self-tests
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -846,13 +846,14 @@ EXPORT_SYMBOL_GPL(gru_copy_gpa);
- /* ------------------- KERNEL QUICKTESTS RUN AT STARTUP ----------------*/
- /* 	Temp - will delete after we gain confidence in the GRU		*/
+diff -puN drivers/misc/sgi-gru/gru_instructions.h~gru-bug-fixes-for-gru-exception-handling drivers/misc/sgi-gru/gru_instructions.h
+--- a/drivers/misc/sgi-gru/gru_instructions.h~gru-bug-fixes-for-gru-exception-handling
++++ a/drivers/misc/sgi-gru/gru_instructions.h
+@@ -81,6 +81,8 @@ struct control_block_extended_exc_detail
+ 	int		exopc;
+ 	long		exceptdet0;
+ 	int		exceptdet1;
++	int		cbrstate;
++	int		cbrexecstatus;
+ };
  
--int quicktest(void)
-+static int quicktest0(unsigned long arg)
- {
- 	unsigned long word0;
- 	unsigned long word1;
- 	void *cb;
- 	void *dsr;
- 	unsigned long *p;
-+	int ret = -EIO;
+ /*
+@@ -107,7 +109,8 @@ struct gru_instruction_bits {
+     unsigned char		reserved2: 2;
+     unsigned char		istatus:   2;
+     unsigned char		isubstatus:4;
+-    unsigned char		reserved3: 2;
++    unsigned char		reserved3: 1;
++    unsigned char		tlb_fault_color: 1;
+     /* DW 1 */
+     unsigned long		idef4;		/* 42 bits: TRi1, BufSize */
+     /* DW 2-6 */
+@@ -253,6 +256,21 @@ struct gru_instruction {
+ #define CBE_CAUSE_RESPONSE_DATA_ERROR		(1 << 16)
+ #define CBE_CAUSE_PROTOCOL_STATE_DATA_ERROR	(1 << 17)
  
- 	if (gru_get_cpu_resources(GRU_CACHE_LINE_BYTES, &cb, &dsr))
- 		return MQE_BUG_NO_RESOURCES;
-@@ -861,26 +862,148 @@ int quicktest(void)
- 	word1 = 0;
- 
- 	gru_vload(cb, uv_gpa(&word0), gru_get_tri(dsr), XTYPE_DW, 1, 1, IMA);
--	if (gru_wait(cb) != CBS_IDLE)
--		BUG();
-+	if (gru_wait(cb) != CBS_IDLE) {
-+		printk(KERN_DEBUG "GRU quicktest0: CBR failure 1\n");
-+		goto done;
-+	}
- 
--	if (*p != MAGIC)
--		BUG();
-+	if (*p != MAGIC) {
-+		printk(KERN_DEBUG "GRU: quicktest0 bad magic 0x%lx\n", *p);
-+		goto done;
-+	}
- 	gru_vstore(cb, uv_gpa(&word1), gru_get_tri(dsr), XTYPE_DW, 1, 1, IMA);
--	if (gru_wait(cb) != CBS_IDLE)
--		BUG();
--	gru_free_cpu_resources(cb, dsr);
-+	if (gru_wait(cb) != CBS_IDLE) {
-+		printk(KERN_DEBUG "GRU quicktest0: CBR failure 2\n");
-+		goto done;
-+	}
- 
- 	if (word0 != word1 || word1 != MAGIC) {
--		printk
--		    ("GRU quicktest err: found 0x%lx, expected 0x%lx\n",
-+		printk(KERN_DEBUG
-+		       "GRU quicktest0 err: found 0x%lx, expected 0x%lx\n",
- 		     word1, MAGIC);
--		BUG();		/* ZZZ should not be fatal */
-+		goto done;
- 	}
-+	ret = 0;
- 
--	return 0;
-+done:
-+	gru_free_cpu_resources(cb, dsr);
-+	return ret;
- }
- 
-+#define ALIGNUP(p, q)	((void *)(((unsigned long)(p) + (q) - 1) & ~(q - 1)))
++/* CBE cbrexecstatus bits */
++#define CBR_EXS_ABORT_OCC_BIT			0
++#define CBR_EXS_INT_OCC_BIT			1
++#define CBR_EXS_PENDING_BIT			2
++#define CBR_EXS_QUEUED_BIT			3
++#define CBR_EXS_TLBHW_BIT			4
++#define CBR_EXS_EXCEPTION_BIT			5
 +
-+static int quicktest1(unsigned long arg)
-+{
-+	struct gru_message_queue_desc mqd;
-+	void *p, *mq;
-+	unsigned long *dw;
-+	int i, ret = -EIO;
-+	char mes[GRU_CACHE_LINE_BYTES], *m;
++#define CBR_EXS_ABORT_OCC			(1 << CBR_EXS_ABORT_OCC_BIT)
++#define CBR_EXS_INT_OCC				(1 << CBR_EXS_INT_OCC_BIT)
++#define CBR_EXS_PENDING				(1 << CBR_EXS_PENDING_BIT)
++#define CBR_EXS_QUEUED				(1 << CBR_EXS_QUEUED_BIT)
++#define CBR_EXS_TLBHW				(1 << CBR_EXS_TLBHW_BIT)
++#define CBR_EXS_EXCEPTION			(1 << CBR_EXS_EXCEPTION_BIT)
 +
-+	/* Need  1K cacheline aligned that does not cross page boundary */
-+	p = kmalloc(4096, 0);
-+	mq = ALIGNUP(p, 1024);
-+	memset(mes, 0xee, sizeof(mes));
-+	dw = mq;
-+
-+	gru_create_message_queue(&mqd, mq, 8 * GRU_CACHE_LINE_BYTES, 0, 0, 0);
-+	for (i = 0; i < 6; i++) {
-+		mes[8] = i;
-+		do {
-+			ret = gru_send_message_gpa(&mqd, mes, sizeof(mes));
-+		} while (ret == MQE_CONGESTION);
-+		if (ret)
-+			break;
-+	}
-+	if (ret != MQE_QUEUE_FULL || i != 4)
-+		goto done;
-+
-+	for (i = 0; i < 6; i++) {
-+		m = gru_get_next_message(&mqd);
-+		if (!m || m[8] != i)
-+			break;
-+		gru_free_message(&mqd, m);
-+	}
-+	ret = (i == 4) ? 0 : -EIO;
-+
-+done:
-+	kfree(p);
-+	return ret;
-+}
-+
-+static int quicktest2(unsigned long arg)
-+{
-+	static DECLARE_COMPLETION(cmp);
-+	unsigned long han;
-+	int blade_id = 0;
-+	int numcb = 4;
-+	int ret = 0;
-+	unsigned long *buf;
-+	void *cb0, *cb;
-+	int i, k, istatus, bytes;
-+
-+	bytes = numcb * 4 * 8;
-+	buf = kmalloc(bytes, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	ret = -EBUSY;
-+	han = gru_reserve_async_resources(blade_id, numcb, 0, &cmp);
-+	if (!han)
-+		goto done;
-+
-+	gru_lock_async_resource(han, &cb0, NULL);
-+	memset(buf, 0xee, bytes);
-+	for (i = 0; i < numcb; i++)
-+		gru_vset(cb0 + i * GRU_HANDLE_STRIDE, uv_gpa(&buf[i * 4]), 0,
-+				XTYPE_DW, 4, 1, IMA_INTERRUPT);
-+
-+	ret = 0;
-+	for (k = 0; k < numcb; k++) {
-+		gru_wait_async_cbr(han);
-+		for (i = 0; i < numcb; i++) {
-+			cb = cb0 + i * GRU_HANDLE_STRIDE;
-+			istatus = gru_check_status(cb);
-+			if (istatus == CBS_ACTIVE)
-+				continue;
-+			if (istatus == CBS_EXCEPTION)
-+				ret = -EFAULT;
-+			else if (buf[i] || buf[i + 1] || buf[i + 2] ||
-+					buf[i + 3])
-+				ret = -EIO;
-+		}
-+	}
-+	BUG_ON(cmp.done);
-+
-+	gru_unlock_async_resource(han);
-+	gru_release_async_resources(han);
-+done:
-+	kfree(buf);
-+	return ret;
-+}
-+
-+/*
-+ * Debugging only. User hook for various kernel tests
-+ * of driver & gru.
-+ */
-+int gru_ktest(unsigned long arg)
-+{
-+	int ret = -EINVAL;
-+
-+	switch (arg & 0xff) {
-+	case 0:
-+		ret = quicktest0(arg);
-+		break;
-+	case 1:
-+		ret = quicktest1(arg);
-+		break;
-+	case 2:
-+		ret = quicktest2(arg);
-+		break;
-+	}
-+	return ret;
-+
-+}
- 
- int gru_kservices_init(struct gru_state *gru)
- {
-@@ -891,9 +1014,6 @@ int gru_kservices_init(struct gru_state 
- 		return 0;
- 
- 	init_rwsem(&bs->bs_kgts_sema);
--
--	if (gru_options & GRU_QUICKLOOK)
--		quicktest();
+ /*
+  * Exceptions are retried for the following cases. If any OTHER bits are set
+  * in ecause, the exception is not retryable.
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-bug-fixes-for-gru-exception-handling drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-bug-fixes-for-gru-exception-handling
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -334,6 +334,8 @@ static int gru_try_dropin(struct gru_thr
+ 	 * Might be a hardware race OR a stupid user. Ignore FMM because FMM
+ 	 * is a transient state.
+ 	 */
++	if (tfh->status != TFHSTATUS_EXCEPTION)
++		goto failnoexception;
+ 	if (tfh->state == TFHSTATE_IDLE)
+ 		goto failidle;
+ 	if (tfh->state == TFHSTATE_MISS_FMM && cb)
+@@ -401,8 +403,17 @@ failfmm:
+ 	gru_dbg(grudev, "FAILED fmm tfh: 0x%p, state %d\n", tfh, tfh->state);
  	return 0;
- }
  
-diff -puN drivers/misc/sgi-gru/grulib.h~gru-update-gru-kernel-self-tests drivers/misc/sgi-gru/grulib.h
---- a/drivers/misc/sgi-gru/grulib.h~gru-update-gru-kernel-self-tests
-+++ a/drivers/misc/sgi-gru/grulib.h
-@@ -56,6 +56,9 @@
- /* Get some config options (primarily for tests & emulator) */
- #define GRU_GET_CONFIG_INFO		_IOWR(GRU_IOCTL_NUM, 51, void *)
- 
-+/* Various kernel self-tests */
-+#define GRU_KTEST			_IOWR(GRU_IOCTL_NUM, 52, void *)
++failnoexception:
++	/* TFH status did not show exception pending */
++	gru_flush_cache(tfh);
++	if (cb)
++		gru_flush_cache(cb);
++	STAT(tlb_dropin_fail_no_exception);
++	gru_dbg(grudev, "FAILED non-exception tfh: 0x%p, status %d, state %d\n", tfh, tfh->status, tfh->state);
++	return 0;
 +
- #define CONTEXT_WINDOW_BYTES(th)        (GRU_GSEG_PAGESIZE * (th))
- #define THREAD_POINTER(p, th)		(p + GRU_GSEG_PAGESIZE * (th))
+ failidle:
+-	/* TFH was idle  - no miss pending */
++	/* TFH state was idle  - no miss pending */
+ 	gru_flush_cache(tfh);
+ 	if (cb)
+ 		gru_flush_cache(cb);
+@@ -472,7 +483,8 @@ irqreturn_t gru_intr(int irq, void *dev_
+ 		 * This is running in interrupt context. Trylock the mmap_sem.
+ 		 * If it fails, retry the fault in user context.
+ 		 */
+-		if (down_read_trylock(&gts->ts_mm->mmap_sem)) {
++		if (!gts->ts_force_cch_reload &&
++					down_read_trylock(&gts->ts_mm->mmap_sem)) {
+ 			gru_try_dropin(gts, tfh, NULL);
+ 			up_read(&gts->ts_mm->mmap_sem);
+ 		} else {
+@@ -595,14 +607,19 @@ int gru_get_exception_detail(unsigned lo
+ 		excdet.ecause = cbe->ecause;
+ 		excdet.exceptdet0 = cbe->idef1upd;
+ 		excdet.exceptdet1 = cbe->idef3upd;
++		excdet.cbrstate = cbe->cbrstate;
++		excdet.cbrexecstatus = cbe->cbrexecstatus;
+ 		ret = 0;
+ 	} else {
+ 		ret = -EAGAIN;
+ 	}
+ 	gru_unlock_gts(gts);
  
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-update-gru-kernel-self-tests drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-update-gru-kernel-self-tests
+-	gru_dbg(grudev, "address 0x%lx, ecause 0x%x\n", excdet.cb,
+-		excdet.ecause);
++	gru_dbg(grudev,
++		"cb 0x%lx, op %d, exopc %d, cbrstate %d, cbrexecstatus 0x%x, ecause 0x%x, "
++		"exdet0 0x%lx, exdet1 0x%x\n",
++		excdet.cb, excdet.opc, excdet.exopc, excdet.cbrstate, excdet.cbrexecstatus,
++		excdet.ecause, excdet.exceptdet0, excdet.exceptdet1);
+ 	if (!ret && copy_to_user((void __user *)arg, &excdet, sizeof(excdet)))
+ 		ret = -EFAULT;
+ 	return ret;
+diff -puN drivers/misc/sgi-gru/gruhandles.h~gru-bug-fixes-for-gru-exception-handling drivers/misc/sgi-gru/gruhandles.h
+--- a/drivers/misc/sgi-gru/gruhandles.h~gru-bug-fixes-for-gru-exception-handling
++++ a/drivers/misc/sgi-gru/gruhandles.h
+@@ -251,15 +251,14 @@ struct gru_tlb_fault_handle {
+ 	unsigned int fill1:9;
+ 
+ 	unsigned int status:2;
+-	unsigned int fill2:1;
+-	unsigned int color:1;
++	unsigned int fill2:2;
+ 	unsigned int state:3;
+ 	unsigned int fill3:1;
+ 
+-	unsigned int cause:7;		/* DW 0 - high 32 */
++	unsigned int cause:7;
+ 	unsigned int fill4:1;
+ 
+-	unsigned int indexway:12;
++	unsigned int indexway:12;	/* DW 0 - high 32 */
+ 	unsigned int fill5:4;
+ 
+ 	unsigned int ctxnum:4;
+@@ -457,21 +456,7 @@ enum gru_cbr_state {
+ 	CBRSTATE_BUSY_INTERRUPT,
+ };
+ 
+-/* CBE cbrexecstatus bits */
+-#define CBR_EXS_ABORT_OCC_BIT			0
+-#define CBR_EXS_INT_OCC_BIT			1
+-#define CBR_EXS_PENDING_BIT			2
+-#define CBR_EXS_QUEUED_BIT			3
+-#define CBR_EXS_TLBHW_BIT			4
+-#define CBR_EXS_EXCEPTION_BIT			5
+-
+-#define CBR_EXS_ABORT_OCC			(1 << CBR_EXS_ABORT_OCC_BIT)
+-#define CBR_EXS_INT_OCC				(1 << CBR_EXS_INT_OCC_BIT)
+-#define CBR_EXS_PENDING				(1 << CBR_EXS_PENDING_BIT)
+-#define CBR_EXS_QUEUED				(1 << CBR_EXS_QUEUED_BIT)
+-#define CBR_EXS_TLBHW				(1 << CBR_EXS_TLBHW_BIT)
+-#define CBR_EXS_EXCEPTION			(1 << CBR_EXS_EXCEPTION_BIT)
+-
++/* CBE cbrexecstatus bits  - defined in gru_instructions.h*/
+ /* CBE ecause bits  - defined in gru_instructions.h */
+ 
+ /*
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-bug-fixes-for-gru-exception-handling drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-bug-fixes-for-gru-exception-handling
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -599,6 +599,9 @@ int gru_update_cch(struct gru_thread_sta
+ 				cch->sizeavail[i] = gts->ts_sizeavail;
+ 			gts->ts_tlb_int_select = gru_cpu_fault_map_id();
+ 			cch->tlb_int_select = gru_cpu_fault_map_id();
++			cch->tfm_fault_bit_enable =
++	    		    (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
++	     		    || gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
+ 		} else {
+ 			for (i = 0; i < 8; i++)
+ 				cch->asid[i] = 0;
+diff -puN drivers/misc/sgi-gru/gruprocfs.c~gru-bug-fixes-for-gru-exception-handling drivers/misc/sgi-gru/gruprocfs.c
+--- a/drivers/misc/sgi-gru/gruprocfs.c~gru-bug-fixes-for-gru-exception-handling
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -84,6 +84,8 @@ static int statistics_show(struct seq_fi
+ 	printstat(s, tlb_dropin_fail_range_active);
+ 	printstat(s, tlb_dropin_fail_idle);
+ 	printstat(s, tlb_dropin_fail_fmm);
++	printstat(s, tlb_dropin_fail_no_exception);
++	printstat(s, tlb_dropin_fail_no_exception_war);
+ 	printstat(s, mmu_invalidate_range);
+ 	printstat(s, mmu_invalidate_page);
+ 	printstat(s, mmu_clear_flush_young);
+@@ -158,8 +160,7 @@ static ssize_t options_write(struct file
+ 	unsigned long val;
+ 	char buf[80];
+ 
+-	if (copy_from_user
+-	    (buf, userbuf, count < sizeof(buf) ? count : sizeof(buf)))
++	if (strncpy_from_user(buf, userbuf, sizeof(buf) - 1) < 0)
+ 		return -EFAULT;
+ 	buf[count - 1] = '\0';
+ 	if (!strict_strtoul(buf, 10, &val))
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-bug-fixes-for-gru-exception-handling drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-bug-fixes-for-gru-exception-handling
 +++ a/drivers/misc/sgi-gru/grutables.h
-@@ -258,7 +258,6 @@ extern struct mcs_op_statistic mcs_op_st
- 
- #define OPT_DPRINT	1
- #define OPT_STATS	2
--#define GRU_QUICKLOOK	4
- 
- 
- #define IRQ_GRU			110	/* Starting IRQ number for interrupts */
-@@ -662,6 +661,7 @@ extern int gru_fault(struct vm_area_stru
- extern struct gru_mm_struct *gru_register_mmu_notifier(void);
- extern void gru_drop_mmu_notifier(struct gru_mm_struct *gms);
- 
-+extern int gru_ktest(unsigned long arg);
- extern void gru_flush_tlb_range(struct gru_mm_struct *gms, unsigned long start,
- 					unsigned long len);
- 
+@@ -207,6 +207,8 @@ struct gru_stats_s {
+ 	atomic_long_t tlb_dropin_fail_range_active;
+ 	atomic_long_t tlb_dropin_fail_idle;
+ 	atomic_long_t tlb_dropin_fail_fmm;
++	atomic_long_t tlb_dropin_fail_no_exception;
++	atomic_long_t tlb_dropin_fail_no_exception_war;
+ 	atomic_long_t mmu_invalidate_range;
+ 	atomic_long_t mmu_invalidate_page;
+ 	atomic_long_t mmu_clear_flush_young;
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
