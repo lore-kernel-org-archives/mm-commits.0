@@ -1,83 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-alix-leds2-fixed-for-award-bios.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 11:20:41 -0700
-Message-ID: <200906181820.n5IIKfeL018207@imap1.linux-foundation.org>
+Subject: [merged] x86-fix-cpufreq-tsc-scaling.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 11:20:44 -0700
+Message-ID: <200906181820.n5IIKi9V018316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753104AbZFRSVV (ORCPT
+	by vger.kernel.org with ESMTP id S1753388AbZFRSVe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 14:21:21 -0400
+	Thu, 18 Jun 2009 14:21:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Tobias_Mueller@twam.info, const@mimas.ru, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: peterz@infradead.org, a.p.zijlstra@chello.nl, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: alix-leds2 fixed for Award  BIOS
+     x86: fix cpufreq tsc scaling
 has been removed from the -mm tree.  Its filename was
-     leds-alix-leds2-fixed-for-award-bios.patch
+     x86-fix-cpufreq-tsc-scaling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: alix-leds2 fixed for Award  BIOS
-From: Tobias Mueller <Tobias_Mueller@twam.info>
+Subject: x86: fix cpufreq tsc scaling
+From: Peter Zijlstra <peterz@infradead.org>
 
-Add initialisation of GPIO ports for compatibility with boards with Award
-BIOS (e.g.  ALIX.3D3).
+For freqency dependent TSCs we only scale the cycles, we do not account
+for the discrepancy in absolute value.  Add a constant factor so that:
 
-Signed-off-by: Tobias Mueller <Tobias_Mueller@twam.info>
-Reviewed-by: Constantin Baranov <const@mimas.ru>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+  c1 + f1*cyc == c2 + f2*cyc
+
+LKML-Reference: <new-submission>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Chucked-on-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig      |    1 +
- drivers/leds/leds-alix2.c |    7 ++++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/timer.h |    6 +++++-
+ arch/x86/kernel/tsc.c        |    8 ++++++--
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-alix-leds2-fixed-for-award-bios drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-alix-leds2-fixed-for-award-bios
-+++ a/drivers/leds/Kconfig
-@@ -75,6 +75,7 @@ config LEDS_ALIX2
- 	depends on LEDS_CLASS && X86 && EXPERIMENTAL
- 	help
- 	  This option enables support for the PCEngines ALIX.2 and ALIX.3 LEDs.
-+	  You have to set leds-alix2.force=1 for boards with Award BIOS.
+diff -puN arch/x86/include/asm/timer.h~x86-fix-cpufreq-tsc-scaling arch/x86/include/asm/timer.h
+--- a/arch/x86/include/asm/timer.h~x86-fix-cpufreq-tsc-scaling
++++ a/arch/x86/include/asm/timer.h
+@@ -45,12 +45,16 @@ extern int no_timer_check;
+  */
  
- config LEDS_H1940
- 	tristate "LED Support for iPAQ H1940 device"
-diff -puN drivers/leds/leds-alix2.c~leds-alix-leds2-fixed-for-award-bios drivers/leds/leds-alix2.c
---- a/drivers/leds/leds-alix2.c~leds-alix-leds2-fixed-for-award-bios
-+++ a/drivers/leds/leds-alix2.c
-@@ -14,7 +14,7 @@
+ DECLARE_PER_CPU(unsigned long, cyc2ns);
++DECLARE_PER_CPU(unsigned long long, cyc2ns_offset);
  
- static int force = 0;
- module_param(force, bool, 0444);
--MODULE_PARM_DESC(force, "Assume system has ALIX.2 style LEDs");
-+MODULE_PARM_DESC(force, "Assume system has ALIX.2/ALIX.3 style LEDs");
+ #define CYC2NS_SCALE_FACTOR 10 /* 2^10, carefully chosen */
  
- struct alix_led {
- 	struct led_classdev cdev;
-@@ -155,6 +155,11 @@ static int __init alix_led_init(void)
- 		goto out;
- 	}
+ static inline unsigned long long __cycles_2_ns(unsigned long long cyc)
+ {
+-	return cyc * per_cpu(cyc2ns, smp_processor_id()) >> CYC2NS_SCALE_FACTOR;
++	int cpu = smp_processor_id();
++	unsigned long long ns = per_cpu(cyc2ns_offset, cpu);
++	ns += cyc * per_cpu(cyc2ns, cpu) >> CYC2NS_SCALE_FACTOR;
++	return ns;
+ }
  
-+	/* enable output on GPIO for LED 1,2,3 */
-+	outl(1 << 6, 0x6104);
-+	outl(1 << 9, 0x6184);
-+	outl(1 << 11, 0x6184);
-+
- 	pdev = platform_device_register_simple(KBUILD_MODNAME, -1, NULL, 0);
- 	if (!IS_ERR(pdev)) {
- 		ret = platform_driver_probe(&alix_led_driver, alix_led_probe);
+ static inline unsigned long long cycles_2_ns(unsigned long long cyc)
+diff -puN arch/x86/kernel/tsc.c~x86-fix-cpufreq-tsc-scaling arch/x86/kernel/tsc.c
+--- a/arch/x86/kernel/tsc.c~x86-fix-cpufreq-tsc-scaling
++++ a/arch/x86/kernel/tsc.c
+@@ -590,22 +590,26 @@ EXPORT_SYMBOL(recalibrate_cpu_khz);
+  */
+ 
+ DEFINE_PER_CPU(unsigned long, cyc2ns);
++DEFINE_PER_CPU(unsigned long long, cyc2ns_offset);
+ 
+ static void set_cyc2ns_scale(unsigned long cpu_khz, int cpu)
+ {
+-	unsigned long long tsc_now, ns_now;
++	unsigned long long tsc_now, ns_now, *offset;
+ 	unsigned long flags, *scale;
+ 
+ 	local_irq_save(flags);
+ 	sched_clock_idle_sleep_event();
+ 
+ 	scale = &per_cpu(cyc2ns, cpu);
++	offset = &per_cpu(cyc2ns_offset, cpu);
+ 
+ 	rdtscll(tsc_now);
+ 	ns_now = __cycles_2_ns(tsc_now);
+ 
+-	if (cpu_khz)
++	if (cpu_khz) {
+ 		*scale = (NSEC_PER_MSEC << CYC2NS_SCALE_FACTOR)/cpu_khz;
++		*offset = ns_now - (tsc_now * *scale >> CYC2NS_SCALE_FACTOR);
++	}
+ 
+ 	sched_clock_idle_wakeup_event(0);
+ 	local_irq_restore(flags);
 _
 
-Patches currently in -mm which might be from Tobias_Mueller@twam.info are
+Patches currently in -mm which might be from peterz@infradead.org are
 
+origin.patch
 linux-next.patch
 
