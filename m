@@ -1,241 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:48:15 -0700
-Message-ID: <200906182248.n5IMmFKh007324@imap1.linux-foundation.org>
+Subject: [merged] gru-support-cch_allocate-for-kernel-threads.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:48:36 -0700
+Message-ID: <200906182248.n5IMmaas007655@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33685 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42499 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756107AbZFRWtE (ORCPT
+	by vger.kernel.org with ESMTP id S1757351AbZFRWtF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:49:04 -0400
+	Thu, 18 Jun 2009 18:49:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, arnd@arndb.de, catalin.marinas@arm.com, davem@davemloft.net, joerg.roedel@amd.com, mingo@elte.hu, tony.luck@intel
+To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping: x86: use asm-generic/dma-mapping-common.h
+     gru: support cch_allocate for kernel threads
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-x86-use-asm-generic-dma-mapping-commonh.patch
+     gru-support-cch_allocate-for-kernel-threads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: x86: use asm-generic/dma-mapping-common.h
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: gru: support cch_allocate for kernel threads
+From: Jack Steiner <steiner@sgi.com>
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: Joerg Roedel <joerg.roedel@amd.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Change the interface to cch_allocate so that it can be used to allocate
+GRU contexts for kernel threads.  Kernel threads use the GRU in unmapped
+mode and do not require ASIDs for the GRU TLB.
+
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                   |    1 
- arch/x86/include/asm/dma-mapping.h |  173 ---------------------------
- 2 files changed, 3 insertions(+), 171 deletions(-)
+ drivers/misc/sgi-gru/gruhandles.c   |   14 ++------------
+ drivers/misc/sgi-gru/gruhandles.h   |    4 +---
+ drivers/misc/sgi-gru/grukservices.c |    5 ++++-
+ drivers/misc/sgi-gru/grumain.c      |   15 +++++++++++----
+ 4 files changed, 18 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86/Kconfig~dma-mapping-x86-use-asm-generic-dma-mapping-commonh arch/x86/Kconfig
---- a/arch/x86/Kconfig~dma-mapping-x86-use-asm-generic-dma-mapping-commonh
-+++ a/arch/x86/Kconfig
-@@ -28,6 +28,7 @@ config X86
- 	select HAVE_KPROBES
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select ARCH_WANT_FRAME_POINTERS
-+	select HAVE_DMA_ATTRS
- 	select HAVE_KRETPROBES
- 	select HAVE_FTRACE_MCOUNT_RECORD
- 	select HAVE_DYNAMIC_FTRACE
-diff -puN arch/x86/include/asm/dma-mapping.h~dma-mapping-x86-use-asm-generic-dma-mapping-commonh arch/x86/include/asm/dma-mapping.h
---- a/arch/x86/include/asm/dma-mapping.h~dma-mapping-x86-use-asm-generic-dma-mapping-commonh
-+++ a/arch/x86/include/asm/dma-mapping.h
-@@ -33,6 +33,8 @@ static inline struct dma_map_ops *get_dm
- #endif
+diff -puN drivers/misc/sgi-gru/gruhandles.c~gru-support-cch_allocate-for-kernel-threads drivers/misc/sgi-gru/gruhandles.c
+--- a/drivers/misc/sgi-gru/gruhandles.c~gru-support-cch_allocate-for-kernel-threads
++++ a/drivers/misc/sgi-gru/gruhandles.c
+@@ -72,18 +72,8 @@ static int wait_instruction_complete(voi
+ 	return status;
  }
  
-+#include <asm-generic/dma-mapping-common.h>
-+
- /* Make sure we keep the same behaviour */
- static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
-@@ -53,177 +55,6 @@ extern int dma_set_mask(struct device *d
- extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
- 					dma_addr_t *dma_addr, gfp_t flag);
- 
--static inline dma_addr_t
--dma_map_single(struct device *hwdev, void *ptr, size_t size,
--	       enum dma_data_direction dir)
+-int cch_allocate(struct gru_context_configuration_handle *cch,
+-		int asidval, int sizeavail, unsigned long cbrmap,
+-		unsigned long dsrmap)
 -{
--	struct dma_map_ops *ops = get_dma_ops(hwdev);
--	dma_addr_t addr;
--
--	BUG_ON(!valid_dma_direction(dir));
--	kmemcheck_mark_initialized(ptr, size);
--	addr = ops->map_page(hwdev, virt_to_page(ptr),
--			     (unsigned long)ptr & ~PAGE_MASK, size,
--			     dir, NULL);
--	debug_dma_map_page(hwdev, virt_to_page(ptr),
--			   (unsigned long)ptr & ~PAGE_MASK, size,
--			   dir, addr, true);
--	return addr;
--}
--
--static inline void
--dma_unmap_single(struct device *dev, dma_addr_t addr, size_t size,
--		 enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(dev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->unmap_page)
--		ops->unmap_page(dev, addr, size, dir, NULL);
--	debug_dma_unmap_page(dev, addr, size, dir, true);
--}
--
--static inline int
--dma_map_sg(struct device *hwdev, struct scatterlist *sg,
--	   int nents, enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(hwdev);
--	int ents;
--	struct scatterlist *s;
 -	int i;
 -
--	BUG_ON(!valid_dma_direction(dir));
--	for_each_sg(sg, s, nents, i)
--		kmemcheck_mark_initialized(sg_virt(s), s->length);
--	ents = ops->map_sg(hwdev, sg, nents, dir, NULL);
--	debug_dma_map_sg(hwdev, sg, nents, ents, dir);
+-	for (i = 0; i < 8; i++) {
+-		cch->asid[i] = (asidval++);
+-		cch->sizeavail[i] = sizeavail;
+-	}
+-	cch->dsr_allocation_map = dsrmap;
+-	cch->cbr_allocation_map = cbrmap;
++int cch_allocate(struct gru_context_configuration_handle *cch)
++{
+ 	cch->opc = CCHOP_ALLOCATE;
+ 	start_instruction(cch);
+ 	return wait_instruction_complete(cch, cchop_allocate);
+diff -puN drivers/misc/sgi-gru/gruhandles.h~gru-support-cch_allocate-for-kernel-threads drivers/misc/sgi-gru/gruhandles.h
+--- a/drivers/misc/sgi-gru/gruhandles.h~gru-support-cch_allocate-for-kernel-threads
++++ a/drivers/misc/sgi-gru/gruhandles.h
+@@ -480,9 +480,7 @@ enum gru_cbr_state {
+ /* minimum TLB purge count to ensure a full purge */
+ #define GRUMAXINVAL		1024UL
+ 
+-int cch_allocate(struct gru_context_configuration_handle *cch,
+-       int asidval, int sizeavail, unsigned long cbrmap, unsigned long dsrmap);
 -
--	return ents;
--}
--
--static inline void
--dma_unmap_sg(struct device *hwdev, struct scatterlist *sg, int nents,
--	     enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(hwdev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	debug_dma_unmap_sg(hwdev, sg, nents, dir);
--	if (ops->unmap_sg)
--		ops->unmap_sg(hwdev, sg, nents, dir, NULL);
--}
--
--static inline void
--dma_sync_single_for_cpu(struct device *hwdev, dma_addr_t dma_handle,
--			size_t size, enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(hwdev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->sync_single_for_cpu)
--		ops->sync_single_for_cpu(hwdev, dma_handle, size, dir);
--	debug_dma_sync_single_for_cpu(hwdev, dma_handle, size, dir);
--	flush_write_buffers();
--}
--
--static inline void
--dma_sync_single_for_device(struct device *hwdev, dma_addr_t dma_handle,
--			   size_t size, enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(hwdev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->sync_single_for_device)
--		ops->sync_single_for_device(hwdev, dma_handle, size, dir);
--	debug_dma_sync_single_for_device(hwdev, dma_handle, size, dir);
--	flush_write_buffers();
--}
--
--static inline void
--dma_sync_single_range_for_cpu(struct device *hwdev, dma_addr_t dma_handle,
--			      unsigned long offset, size_t size,
--			      enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(hwdev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->sync_single_range_for_cpu)
--		ops->sync_single_range_for_cpu(hwdev, dma_handle, offset,
--					       size, dir);
--	debug_dma_sync_single_range_for_cpu(hwdev, dma_handle,
--					    offset, size, dir);
--	flush_write_buffers();
--}
--
--static inline void
--dma_sync_single_range_for_device(struct device *hwdev, dma_addr_t dma_handle,
--				 unsigned long offset, size_t size,
--				 enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(hwdev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->sync_single_range_for_device)
--		ops->sync_single_range_for_device(hwdev, dma_handle,
--						  offset, size, dir);
--	debug_dma_sync_single_range_for_device(hwdev, dma_handle,
--					       offset, size, dir);
--	flush_write_buffers();
--}
--
--static inline void
--dma_sync_sg_for_cpu(struct device *hwdev, struct scatterlist *sg,
--		    int nelems, enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(hwdev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->sync_sg_for_cpu)
--		ops->sync_sg_for_cpu(hwdev, sg, nelems, dir);
--	debug_dma_sync_sg_for_cpu(hwdev, sg, nelems, dir);
--	flush_write_buffers();
--}
--
--static inline void
--dma_sync_sg_for_device(struct device *hwdev, struct scatterlist *sg,
--		       int nelems, enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(hwdev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->sync_sg_for_device)
--		ops->sync_sg_for_device(hwdev, sg, nelems, dir);
--	debug_dma_sync_sg_for_device(hwdev, sg, nelems, dir);
--
--	flush_write_buffers();
--}
--
--static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
--				      size_t offset, size_t size,
--				      enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(dev);
--	dma_addr_t addr;
--
--	BUG_ON(!valid_dma_direction(dir));
--	kmemcheck_mark_initialized(page_address(page) + offset, size);
--	addr = ops->map_page(dev, page, offset, size, dir, NULL);
--	debug_dma_map_page(dev, page, offset, size, dir, addr, false);
--
--	return addr;
--}
--
--static inline void dma_unmap_page(struct device *dev, dma_addr_t addr,
--				  size_t size, enum dma_data_direction dir)
--{
--	struct dma_map_ops *ops = get_dma_ops(dev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->unmap_page)
--		ops->unmap_page(dev, addr, size, dir, NULL);
--	debug_dma_unmap_page(dev, addr, size, dir, false);
--}
++int cch_allocate(struct gru_context_configuration_handle *cch);
+ int cch_start(struct gru_context_configuration_handle *cch);
+ int cch_interrupt(struct gru_context_configuration_handle *cch);
+ int cch_deallocate(struct gru_context_configuration_handle *cch);
+diff -puN drivers/misc/sgi-gru/grukservices.c~gru-support-cch_allocate-for-kernel-threads drivers/misc/sgi-gru/grukservices.c
+--- a/drivers/misc/sgi-gru/grukservices.c~gru-support-cch_allocate-for-kernel-threads
++++ a/drivers/misc/sgi-gru/grukservices.c
+@@ -672,7 +672,10 @@ int gru_kservices_init(struct gru_state 
+ 	cch->tlb_int_enable = 0;
+ 	cch->tfm_done_bit_enable = 0;
+ 	cch->unmap_enable = 1;
+-	err = cch_allocate(cch, 0, 0, cbr_map, dsr_map);
++	cch->dsr_allocation_map = dsr_map;
++	cch->cbr_allocation_map = cbr_map;
++
++	err = cch_allocate(cch);
+ 	if (err) {
+ 		gru_dbg(grudev,
+ 			"Unable to allocate kernel CCH: gid %d, err %d\n",
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-support-cch_allocate-for-kernel-threads drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-support-cch_allocate-for-kernel-threads
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -537,13 +537,12 @@ void gru_load_context(struct gru_thread_
+ {
+ 	struct gru_state *gru = gts->ts_gru;
+ 	struct gru_context_configuration_handle *cch;
+-	int err, asid, ctxnum = gts->ts_ctxnum;
++	int i, err, asid, ctxnum = gts->ts_ctxnum;
+ 
+ 	gru_dbg(grudev, "gts %p\n", gts);
+ 	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
+ 
+ 	lock_cch_handle(cch);
+-	asid = gru_load_mm_tracker(gru, gts);
+ 	cch->tfm_fault_bit_enable =
+ 	    (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
+ 	     || gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
+@@ -553,8 +552,16 @@ void gru_load_context(struct gru_thread_
+ 		cch->tlb_int_select = gts->ts_tlb_int_select;
+ 	}
+ 	cch->tfm_done_bit_enable = 0;
+-	err = cch_allocate(cch, asid, gts->ts_sizeavail, gts->ts_cbr_map,
+-				gts->ts_dsr_map);
++	cch->dsr_allocation_map = gts->ts_dsr_map;
++	cch->cbr_allocation_map = gts->ts_cbr_map;
++	asid = gru_load_mm_tracker(gru, gts);
++	cch->unmap_enable = 0;
++	for (i = 0; i < 8; i++) {
++		cch->asid[i] = asid + i;
++		cch->sizeavail[i] = gts->ts_sizeavail;
++	}
++
++	err = cch_allocate(cch);
+ 	if (err) {
+ 		gru_dbg(grudev,
+ 			"err %d: cch %p, gts %p, cbr 0x%lx, dsr 0x%lx\n",
+_
+
+Patches currently in -mm which might be from steiner@sgi.com are
+
+origin.patch
+
