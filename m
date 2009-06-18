@@ -1,94 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:45:20 -0700
-Message-ID: <200906182245.n5IMjKjD004451@imap1.linux-foundation.org>
+Subject: [merged] nsproxy-extract-create_nsproxy.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:47:40 -0700
+Message-ID: <200906182247.n5IMlelc006814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758098AbZFRW5t (ORCPT
+	by vger.kernel.org with ESMTP id S1756933AbZFRW5x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:57:49 -0400
+	Thu, 18 Jun 2009 18:57:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, ebiederm@xmission.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devcgroup: skip superfluous checks when found the DEV_ALL elem
+     nsproxy: extract create_nsproxy()
 has been removed from the -mm tree.  Its filename was
-     devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem.patch
+     nsproxy-extract-create_nsproxy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devcgroup: skip superfluous checks when found the DEV_ALL elem
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: nsproxy: extract create_nsproxy()
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-While walking through the whitelist, if the DEV_ALL item is found, no more
-check is needed.
+clone_nsproxy() does useless copying of old nsproxy -- every pointer will
+be rewritten to new ns or to old ns.  Remove copying, rename
+clone_nsproxy(), create_nsproxy() will be used by C/R code to create fresh
+nsproxy on restart.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ kernel/nsproxy.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN security/device_cgroup.c~devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem security/device_cgroup.c
---- a/security/device_cgroup.c~devcgroup-skip-superfluous-checks-when-found-the-dev_all-elem
-+++ a/security/device_cgroup.c
-@@ -490,7 +490,7 @@ int devcgroup_inode_permission(struct in
+diff -puN kernel/nsproxy.c~nsproxy-extract-create_nsproxy kernel/nsproxy.c
+--- a/kernel/nsproxy.c~nsproxy-extract-create_nsproxy
++++ a/kernel/nsproxy.c
+@@ -26,19 +26,14 @@ static struct kmem_cache *nsproxy_cachep
  
- 	list_for_each_entry_rcu(wh, &dev_cgroup->whitelist, list) {
- 		if (wh->type & DEV_ALL)
--			goto acc_check;
-+			goto found;
- 		if ((wh->type & DEV_BLOCK) && !S_ISBLK(inode->i_mode))
- 			continue;
- 		if ((wh->type & DEV_CHAR) && !S_ISCHR(inode->i_mode))
-@@ -499,11 +499,12 @@ int devcgroup_inode_permission(struct in
- 			continue;
- 		if (wh->minor != ~0 && wh->minor != iminor(inode))
- 			continue;
--acc_check:
-+
- 		if ((mask & MAY_WRITE) && !(wh->access & ACC_WRITE))
- 			continue;
- 		if ((mask & MAY_READ) && !(wh->access & ACC_READ))
- 			continue;
-+found:
- 		rcu_read_unlock();
- 		return 0;
- 	}
-@@ -527,7 +528,7 @@ int devcgroup_inode_mknod(int mode, dev_
+ struct nsproxy init_nsproxy = INIT_NSPROXY(init_nsproxy);
  
- 	list_for_each_entry_rcu(wh, &dev_cgroup->whitelist, list) {
- 		if (wh->type & DEV_ALL)
--			goto acc_check;
-+			goto found;
- 		if ((wh->type & DEV_BLOCK) && !S_ISBLK(mode))
- 			continue;
- 		if ((wh->type & DEV_CHAR) && !S_ISCHR(mode))
-@@ -536,9 +537,10 @@ int devcgroup_inode_mknod(int mode, dev_
- 			continue;
- 		if (wh->minor != ~0 && wh->minor != MINOR(dev))
- 			continue;
--acc_check:
-+
- 		if (!(wh->access & ACC_MKNOD))
- 			continue;
-+found:
- 		rcu_read_unlock();
- 		return 0;
- 	}
+-/*
+- * creates a copy of "orig" with refcount 1.
+- */
+-static inline struct nsproxy *clone_nsproxy(struct nsproxy *orig)
++static inline struct nsproxy *create_nsproxy(void)
+ {
+-	struct nsproxy *ns;
++	struct nsproxy *nsproxy;
+ 
+-	ns = kmem_cache_alloc(nsproxy_cachep, GFP_KERNEL);
+-	if (ns) {
+-		memcpy(ns, orig, sizeof(struct nsproxy));
+-		atomic_set(&ns->count, 1);
+-	}
+-	return ns;
++	nsproxy = kmem_cache_alloc(nsproxy_cachep, GFP_KERNEL);
++	if (nsproxy)
++		atomic_set(&nsproxy->count, 1);
++	return nsproxy;
+ }
+ 
+ /*
+@@ -52,7 +47,7 @@ static struct nsproxy *create_new_namesp
+ 	struct nsproxy *new_nsp;
+ 	int err;
+ 
+-	new_nsp = clone_nsproxy(tsk->nsproxy);
++	new_nsp = create_nsproxy();
+ 	if (!new_nsp)
+ 		return ERR_PTR(-ENOMEM);
+ 
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-linux-next.patch
+procfs-provide-stack-information-for-threads-v08.patch
 
