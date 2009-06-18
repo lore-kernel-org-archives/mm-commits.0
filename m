@@ -1,184 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-collect-per-context-user-statistics.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:49:00 -0700
-Message-ID: <200906182249.n5IMn0jE008137@imap1.linux-foundation.org>
+Subject: [merged] gru-dynamic-allocation-of-kernel-contexts.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:48:32 -0700
+Message-ID: <200906182248.n5IMmWdE007643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48846 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755071AbZFRW4j (ORCPT
+	by vger.kernel.org with ESMTP id S1755231AbZFRW46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:56:39 -0400
+	Thu, 18 Jun 2009 18:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: collect per-context user statistics
+     gru: dynamic allocation of kernel contexts
 has been removed from the -mm tree.  Its filename was
-     gru-collect-per-context-user-statistics.patch
+     gru-dynamic-allocation-of-kernel-contexts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: collect per-context user statistics
+Subject: gru: dynamic allocation of kernel contexts
 From: Jack Steiner <steiner@sgi.com>
 
-Collect GRU statistics for each user GRU context.  Statistics are kept for
-TLB misses & content resource contention.  Add user request for retrieving
-the statistics.
+Change the interface to gru_alloc_gts() so that it can be used to allocate
+GRU contexts for kernel threads.  Kernel threads do not have vdata
+structures for the GRU contexts.  The GRU resource count are now passed
+explicitly instead of inside the vdata structure.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c  |   27 +++++++++++++++++++++++++++
- drivers/misc/sgi-gru/grufile.c   |    3 +++
- drivers/misc/sgi-gru/grulib.h    |   18 ++++++++++++++++++
- drivers/misc/sgi-gru/grumain.c   |    1 +
- drivers/misc/sgi-gru/grutables.h |    3 +++
- 5 files changed, 52 insertions(+)
+ drivers/misc/sgi-gru/grumain.c   |   60 ++++++++++++++---------------
+ drivers/misc/sgi-gru/grutables.h |    2 
+ 2 files changed, 33 insertions(+), 29 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-collect-per-context-user-statistics
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -498,6 +498,7 @@ irqreturn_t gru_intr(int irq, void *dev_
- 		 */
- 		if (!gts->ts_force_cch_reload &&
- 					down_read_trylock(&gts->ts_mm->mmap_sem)) {
-+			gts->ustats.fmm_tlbdropin++;
- 			gru_try_dropin(gts, tfh, NULL);
- 			up_read(&gts->ts_mm->mmap_sem);
- 		} else {
-@@ -516,6 +517,7 @@ static int gru_user_dropin(struct gru_th
- 	struct gru_mm_struct *gms = gts->ts_gms;
- 	int ret;
- 
-+	gts->ustats.upm_tlbdropin++;
- 	while (1) {
- 		wait_event(gms->ms_wait_queue,
- 			   atomic_read(&gms->ms_range_active) == 0);
-@@ -719,6 +721,31 @@ int gru_user_flush_tlb(unsigned long arg
- }
- 
- /*
-+ * Fetch GSEG statisticss
-+ */
-+long gru_get_gseg_statistics(unsigned long arg)
-+{
-+	struct gru_thread_state *gts;
-+	struct gru_get_gseg_statistics_req req;
-+
-+	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
-+		return -EFAULT;
-+
-+	gts = gru_find_lock_gts(req.gseg);
-+	if (gts) {
-+		memcpy(&req.stats, &gts->ustats, sizeof(gts->ustats));
-+		gru_unlock_gts(gts);
-+	} else {
-+		memset(&req.stats, 0, sizeof(gts->ustats));
-+	}
-+
-+	if (copy_to_user((void __user *)arg, &req, sizeof(req)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+/*
-  * Register the current task as the user of the GSEG slice.
-  * Needed for TLB fault interrupt targeting.
-  */
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-collect-per-context-user-statistics
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -251,6 +251,9 @@ static long gru_file_unlocked_ioctl(stru
- 	case GRU_USER_CALL_OS:
- 		err = gru_handle_user_call_os(arg);
- 		break;
-+	case GRU_GET_GSEG_STATISTICS:
-+		err = gru_get_gseg_statistics(arg);
-+		break;
- 	case GRU_KTEST:
- 		err = gru_ktest(arg);
- 		break;
-diff -puN drivers/misc/sgi-gru/grulib.h~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grulib.h
---- a/drivers/misc/sgi-gru/grulib.h~gru-collect-per-context-user-statistics
-+++ a/drivers/misc/sgi-gru/grulib.h
-@@ -50,6 +50,9 @@
- /* For dumpping GRU chiplet state */
- #define GRU_DUMP_CHIPLET_STATE		_IOWR(GRU_IOCTL_NUM, 11, void *)
- 
-+/* For getting gseg statistics */
-+#define GRU_GET_GSEG_STATISTICS		_IOWR(GRU_IOCTL_NUM, 12, void *)
-+
- /* For user TLB flushing (primarily for tests) */
- #define GRU_USER_FLUSH_TLB		_IOWR(GRU_IOCTL_NUM, 50, void *)
- 
-@@ -61,6 +64,21 @@
- 
- #define CONTEXT_WINDOW_BYTES(th)        (GRU_GSEG_PAGESIZE * (th))
- #define THREAD_POINTER(p, th)		(p + GRU_GSEG_PAGESIZE * (th))
-+#define GSEG_START(cb)			((void *)((unsigned long)(cb) & ~(GRU_GSEG_PAGESIZE - 1)))
-+
-+/*
-+ * Statictics kept on a per-GTS basis.
-+ */
-+struct gts_statistics {
-+	unsigned long	fmm_tlbdropin;
-+	unsigned long	upm_tlbdropin;
-+	unsigned long	context_stolen;
-+};
-+
-+struct gru_get_gseg_statistics_req {
-+	unsigned long		gseg;
-+	struct gts_statistics	stats;
-+};
- 
- /*
-  * Structure used to pass TLB flush parameters to the driver
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-collect-per-context-user-statistics
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-dynamic-allocation-of-kernel-contexts
 +++ a/drivers/misc/sgi-gru/grumain.c
-@@ -744,6 +744,7 @@ void gru_steal_context(struct gru_thread
+@@ -299,15 +299,13 @@ static struct gru_thread_state *gru_find
+ /*
+  * Allocate a thread state structure.
+  */
+-static struct gru_thread_state *gru_alloc_gts(struct vm_area_struct *vma,
+-					      struct gru_vma_data *vdata,
+-					      int tsid)
++struct gru_thread_state *gru_alloc_gts(struct vm_area_struct *vma,
++		int cbr_au_count, int dsr_au_count, int options, int tsid)
+ {
+ 	struct gru_thread_state *gts;
+ 	int bytes;
+ 
+-	bytes = DSR_BYTES(vdata->vd_dsr_au_count) +
+-				CBR_BYTES(vdata->vd_cbr_au_count);
++	bytes = DSR_BYTES(dsr_au_count) + CBR_BYTES(cbr_au_count);
+ 	bytes += sizeof(struct gru_thread_state);
+ 	gts = kzalloc(bytes, GFP_KERNEL);
+ 	if (!gts)
+@@ -316,21 +314,22 @@ static struct gru_thread_state *gru_allo
+ 	STAT(gts_alloc);
+ 	atomic_set(&gts->ts_refcnt, 1);
+ 	mutex_init(&gts->ts_ctxlock);
+-	gts->ts_cbr_au_count = vdata->vd_cbr_au_count;
+-	gts->ts_dsr_au_count = vdata->vd_dsr_au_count;
+-	gts->ts_user_options = vdata->vd_user_options;
++	gts->ts_cbr_au_count = cbr_au_count;
++	gts->ts_dsr_au_count = dsr_au_count;
++	gts->ts_user_options = options;
+ 	gts->ts_tsid = tsid;
+-	gts->ts_user_options = vdata->vd_user_options;
+ 	gts->ts_ctxnum = NULLCTX;
+-	gts->ts_mm = current->mm;
+-	gts->ts_vma = vma;
+ 	gts->ts_tlb_int_select = -1;
+-	gts->ts_gms = gru_register_mmu_notifier();
+ 	gts->ts_sizeavail = GRU_SIZEAVAIL(PAGE_SHIFT);
+-	if (!gts->ts_gms)
+-		goto err;
++	if (vma) {
++		gts->ts_mm = current->mm;
++		gts->ts_vma = vma;
++		gts->ts_gms = gru_register_mmu_notifier();
++		if (!gts->ts_gms)
++			goto err;
++	}
+ 
+-	gru_dbg(grudev, "alloc vdata %p, new gts %p\n", vdata, gts);
++	gru_dbg(grudev, "alloc gts %p\n", gts);
+ 	return gts;
+ 
+ err:
+@@ -381,7 +380,8 @@ struct gru_thread_state *gru_alloc_threa
+ 	struct gru_vma_data *vdata = vma->vm_private_data;
+ 	struct gru_thread_state *gts, *ngts;
+ 
+-	gts = gru_alloc_gts(vma, vdata, tsid);
++	gts = gru_alloc_gts(vma, vdata->vd_cbr_au_count, vdata->vd_dsr_au_count,
++			    vdata->vd_user_options, tsid);
+ 	if (!gts)
+ 		return NULL;
+ 
+@@ -645,7 +645,7 @@ static int gru_retarget_intr(struct gru_
+ #define next_gru(b, g)	(((g) < &(b)->bs_grus[GRU_CHIPLETS_PER_BLADE - 1]) ?  \
+ 				 ((g)+1) : &(b)->bs_grus[0])
+ 
+-static void gru_steal_context(struct gru_thread_state *gts)
++static void gru_steal_context(struct gru_thread_state *gts, int blade_id)
+ {
+ 	struct gru_blade_state *blade;
+ 	struct gru_state *gru, *gru0;
+@@ -655,8 +655,7 @@ static void gru_steal_context(struct gru
+ 	cbr = gts->ts_cbr_au_count;
+ 	dsr = gts->ts_dsr_au_count;
+ 
+-	preempt_disable();
+-	blade = gru_base[uv_numa_blade_id()];
++	blade = gru_base[blade_id];
+ 	spin_lock(&blade->bs_lock);
+ 
+ 	ctxnum = next_ctxnum(blade->bs_lru_ctxnum);
+@@ -693,7 +692,6 @@ static void gru_steal_context(struct gru
+ 	blade->bs_lru_gru = gru;
+ 	blade->bs_lru_ctxnum = ctxnum;
  	spin_unlock(&blade->bs_lock);
+-	preempt_enable();
  
  	if (ngts) {
-+		gts->ustats.context_stolen++;
- 		ngts->ts_steal_jiffies = jiffies;
- 		gru_unload_context(ngts, is_kernel_context(ngts) ? 0 : 1);
- 		gts_stolen(ngts, blade);
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-collect-per-context-user-statistics drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-collect-per-context-user-statistics
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -148,6 +148,7 @@
- #include <linux/wait.h>
- #include <linux/mmu_notifier.h>
- #include "gru.h"
-+#include "grulib.h"
- #include "gruhandles.h"
+ 		STAT(steal_context);
+@@ -713,17 +711,17 @@ static void gru_steal_context(struct gru
+ /*
+  * Scan the GRUs on the local blade & assign a GRU context.
+  */
+-static struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts)
++static struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts,
++						int blade)
+ {
+ 	struct gru_state *gru, *grux;
+ 	int i, max_active_contexts;
  
- extern struct gru_stats_s gru_stats;
-@@ -388,6 +389,7 @@ struct gru_thread_state {
- 							  allocated CB */
- 	int			ts_data_valid;	/* Indicates if ts_gdata has
- 						   valid data */
-+	struct gts_statistics	ustats;		/* User statistics */
- 	unsigned long		ts_gdata[0];	/* save area for GRU data (CB,
- 						   DS, CBE) */
- };
-@@ -641,6 +643,7 @@ extern void gru_tgh_flush_init(struct gr
- extern int gru_kservices_init(void);
- extern void gru_kservices_exit(void);
- extern int gru_dump_chiplet_request(unsigned long arg);
-+extern long gru_get_gseg_statistics(unsigned long arg);
- extern irqreturn_t gru_intr(int irq, void *dev_id);
- extern int gru_handle_user_call_os(unsigned long address);
- extern int gru_user_flush_tlb(unsigned long arg);
+-	preempt_disable();
+ 
+ again:
+ 	gru = NULL;
+ 	max_active_contexts = GRU_NUM_CCH;
+-	for_each_gru_on_blade(grux, uv_numa_blade_id(), i) {
++	for_each_gru_on_blade(grux, blade, i) {
+ 		if (check_gru_resources(grux, gts->ts_cbr_au_count,
+ 					gts->ts_dsr_au_count,
+ 					max_active_contexts)) {
+@@ -763,7 +761,6 @@ again:
+ 		STAT(assign_context_failed);
+ 	}
+ 
+-	preempt_enable();
+ 	return gru;
+ }
+ 
+@@ -778,6 +775,7 @@ int gru_fault(struct vm_area_struct *vma
+ {
+ 	struct gru_thread_state *gts;
+ 	unsigned long paddr, vaddr;
++	int blade_id;
+ 
+ 	vaddr = (unsigned long)vmf->virtual_address;
+ 	gru_dbg(grudev, "vma %p, vaddr 0x%lx (0x%lx)\n",
+@@ -792,8 +790,10 @@ int gru_fault(struct vm_area_struct *vma
+ again:
+ 	mutex_lock(&gts->ts_ctxlock);
+ 	preempt_disable();
++	blade_id = uv_numa_blade_id();
++
+ 	if (gts->ts_gru) {
+-		if (gts->ts_gru->gs_blade_id != uv_numa_blade_id()) {
++		if (gts->ts_gru->gs_blade_id != blade_id) {
+ 			STAT(migrated_nopfn_unload);
+ 			gru_unload_context(gts, 1);
+ 		} else {
+@@ -803,12 +803,14 @@ again:
+ 	}
+ 
+ 	if (!gts->ts_gru) {
+-		if (!gru_assign_gru_context(gts)) {
+-			mutex_unlock(&gts->ts_ctxlock);
++		if (!gru_assign_gru_context(gts, blade_id)) {
+ 			preempt_enable();
++			mutex_unlock(&gts->ts_ctxlock);
++			set_current_state(TASK_INTERRUPTIBLE);
+ 			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
++			blade_id = uv_numa_blade_id();
+ 			if (gts->ts_steal_jiffies + GRU_STEAL_DELAY < jiffies)
+-				gru_steal_context(gts);
++				gru_steal_context(gts, blade_id);
+ 			goto again;
+ 		}
+ 		gru_load_context(gts);
+@@ -818,8 +820,8 @@ again:
+ 				vma->vm_page_prot);
+ 	}
+ 
+-	mutex_unlock(&gts->ts_ctxlock);
+ 	preempt_enable();
++	mutex_unlock(&gts->ts_ctxlock);
+ 
+ 	return VM_FAULT_NOPAGE;
+ }
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-dynamic-allocation-of-kernel-contexts drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-dynamic-allocation-of-kernel-contexts
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -630,6 +630,8 @@ extern void gru_flush_all_tlb(struct gru
+ extern int gru_proc_init(void);
+ extern void gru_proc_exit(void);
+ 
++extern struct gru_thread_state *gru_alloc_gts(struct vm_area_struct *vma,
++		int cbr_au_count, int dsr_au_count, int options, int tsid);
+ extern unsigned long gru_reserve_cb_resources(struct gru_state *gru,
+ 		int cbr_au_count, char *cbmap);
+ extern unsigned long gru_reserve_ds_resources(struct gru_state *gru,
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
