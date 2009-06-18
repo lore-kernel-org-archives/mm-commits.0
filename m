@@ -1,193 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-add-user-request-to-explicitly-unload-a-gru-context.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:48:56 -0700
-Message-ID: <200906182248.n5IMmu0N007983@imap1.linux-foundation.org>
+Subject: [merged] drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:47:17 -0700
+Message-ID: <200906182247.n5IMlHwO006337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56133 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753350AbZFRWz6 (ORCPT
+	by vger.kernel.org with ESMTP id S1750925AbZFRW4C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:55:58 -0400
+	Thu, 18 Jun 2009 18:56:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mm-commits@vger.kernel.org
+To: adrianosf@uol.com.br, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: add user request to explicitly unload a gru context
+     drivers/char/mem.c: memory_open() cleanup: lookup minor device number from devlist
 has been removed from the -mm tree.  Its filename was
-     gru-add-user-request-to-explicitly-unload-a-gru-context.patch
+     drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: add user request to explicitly unload a gru context
-From: Jack Steiner <steiner@sgi.com>
+Subject: drivers/char/mem.c: memory_open() cleanup: lookup minor device number from devlist
+From: Adriano dos Santos Fernandes <adrianosf@uol.com.br>
 
-Add user function to explicitly unload GRU kernel contexts from the GRU. 
-Only contexts that are not in-use will be unloaded.
+memory_open() ignores devlist and does a switch for each item, duplicating
+code and conditional definitions.
 
-This function is primarily for testing.  It is not expected that this will
-be used in normal production systems.
+Clean it up by adding backing_dev_info to devlist and use it to lookup for
+the minor device.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Adriano dos Santos Fernandes <adrianosf@uol.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufile.c      |   10 +---
- drivers/misc/sgi-gru/grukservices.c |   55 ++++++++++++++++----------
- drivers/misc/sgi-gru/grutables.h    |    4 -
- 3 files changed, 41 insertions(+), 28 deletions(-)
+ drivers/char/mem.c |  115 ++++++++++++++++---------------------------
+ 1 file changed, 45 insertions(+), 70 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-add-user-request-to-explicitly-unload-a-gru-context drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-add-user-request-to-explicitly-unload-a-gru-context
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -287,7 +287,6 @@ static void gru_init_chiplet(struct gru_
- 	gru_dbg(grudev, "bid %d, nid %d, gid %d, vaddr %p (0x%lx)\n",
- 		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
- 		gru->gs_gru_base_paddr);
--	gru_kservices_init(gru);
- }
+diff -puN drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist drivers/char/mem.c
+--- a/drivers/char/mem.c~drivers-char-memc-memory_open-cleanup-lookup-minor-device-number-from-devlist
++++ a/drivers/char/mem.c
+@@ -863,59 +863,58 @@ static const struct file_operations kmsg
+ 	.write =	kmsg_write,
+ };
  
- static int gru_init_tables(unsigned long gru_base_paddr, void *gru_base_vaddr)
-@@ -314,6 +313,7 @@ static int gru_init_tables(unsigned long
- 		memset(gru_base[bid], 0, sizeof(struct gru_blade_state));
- 		gru_base[bid]->bs_lru_gru = &gru_base[bid]->bs_grus[0];
- 		spin_lock_init(&gru_base[bid]->bs_lock);
-+		init_rwsem(&gru_base[bid]->bs_kgts_sema);
- 
- 		dsrbytes = 0;
- 		cbrs = 0;
-@@ -426,6 +426,7 @@ static int __init gru_init(void)
- 		printk(KERN_ERR "%s: init tables failed\n", GRU_DRIVER_ID_STR);
- 		goto exit3;
- 	}
-+	gru_kservices_init();
- 
- 	printk(KERN_INFO "%s: v%s\n", GRU_DRIVER_ID_STR,
- 	       GRU_DRIVER_VERSION_STR);
-@@ -444,7 +445,7 @@ exit1:
- 
- static void __exit gru_exit(void)
- {
--	int i, bid, gid;
-+	int i, bid;
- 	int order = get_order(sizeof(struct gru_state) *
- 			      GRU_CHIPLETS_PER_BLADE);
- 
-@@ -453,10 +454,7 @@ static void __exit gru_exit(void)
- 
- 	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
- 		free_irq(IRQ_GRU + i, NULL);
+-static int memory_open(struct inode * inode, struct file * filp)
+-{
+-	int ret = 0;
 -
--	foreach_gid(gid)
--		gru_kservices_exit(GID_TO_GRU(gid));
--
-+	gru_kservices_exit();
- 	for (bid = 0; bid < GRU_MAX_BLADES; bid++)
- 		free_pages((unsigned long)gru_base[bid], order);
- 
-diff -puN drivers/misc/sgi-gru/grukservices.c~gru-add-user-request-to-explicitly-unload-a-gru-context drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~gru-add-user-request-to-explicitly-unload-a-gru-context
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -188,6 +188,34 @@ static void gru_load_kernel_context(stru
- }
- 
- /*
-+ * Free all kernel contexts that are not currently in use.
-+ *   Returns 0 if all freed, else number of inuse context.
-+ */
-+static int gru_free_kernel_contexts(void)
+-	lock_kernel();
+-	switch (iminor(inode)) {
+-		case 1:
+-			filp->f_op = &mem_fops;
+-			filp->f_mapping->backing_dev_info =
+-				&directly_mappable_cdev_bdi;
+-			break;
++static const struct {
++	unsigned int		minor;
++	char			*name;
++	umode_t			mode;
++	const struct file_operations	*fops;
++	struct backing_dev_info	*dev_info;
++} devlist[] = { /* list of minor devices */
++	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops,
++		&directly_mappable_cdev_bdi},
+ #ifdef CONFIG_DEVKMEM
+-		case 2:
+-			filp->f_op = &kmem_fops;
+-			filp->f_mapping->backing_dev_info =
+-				&directly_mappable_cdev_bdi;
+-			break;
++	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops,
++		&directly_mappable_cdev_bdi},
+ #endif
+-		case 3:
+-			filp->f_op = &null_fops;
+-			break;
++	{3, "null",    S_IRUGO | S_IWUGO,           &null_fops, NULL},
+ #ifdef CONFIG_DEVPORT
+-		case 4:
+-			filp->f_op = &port_fops;
+-			break;
++	{4, "port",    S_IRUSR | S_IWUSR | S_IRGRP, &port_fops, NULL},
+ #endif
+-		case 5:
+-			filp->f_mapping->backing_dev_info = &zero_bdi;
+-			filp->f_op = &zero_fops;
+-			break;
+-		case 7:
+-			filp->f_op = &full_fops;
+-			break;
+-		case 8:
+-			filp->f_op = &random_fops;
+-			break;
+-		case 9:
+-			filp->f_op = &urandom_fops;
+-			break;
+-		case 11:
+-			filp->f_op = &kmsg_fops;
+-			break;
++	{5, "zero",    S_IRUGO | S_IWUGO,           &zero_fops, &zero_bdi},
++	{7, "full",    S_IRUGO | S_IWUGO,           &full_fops, NULL},
++	{8, "random",  S_IRUGO | S_IWUSR,           &random_fops, NULL},
++	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops, NULL},
++	{11,"kmsg",    S_IRUGO | S_IWUSR,           &kmsg_fops, NULL},
+ #ifdef CONFIG_CRASH_DUMP
+-		case 12:
+-			filp->f_op = &oldmem_fops;
+-			break;
++	{12,"oldmem",    S_IRUSR | S_IWUSR | S_IRGRP, &oldmem_fops, NULL},
+ #endif
+-		default:
+-			unlock_kernel();
+-			return -ENXIO;
++};
++
++static int memory_open(struct inode *inode, struct file *filp)
 +{
-+	struct gru_blade_state *bs;
-+	struct gru_thread_state *kgts;
-+	int bid, ret = 0;
++	int ret = 0;
++	int i;
 +
-+	for (bid = 0; bid < GRU_MAX_BLADES; bid++) {
-+		bs = gru_base[bid];
-+		if (!bs)
-+			continue;
-+		if (down_write_trylock(&bs->bs_kgts_sema)) {
-+			kgts = bs->bs_kgts;
-+			if (kgts && kgts->ts_gru)
-+				gru_unload_context(kgts, 0);
-+			kfree(kgts);
-+			bs->bs_kgts = NULL;
-+			up_write(&bs->bs_kgts_sema);
-+		} else {
-+			ret++;
++	lock_kernel();
++
++	for (i = 0; i < ARRAY_SIZE(devlist); i++) {
++		if (devlist[i].minor == iminor(inode)) {
++			filp->f_op = devlist[i].fops;
++			if (devlist[i].dev_info) {
++				filp->f_mapping->backing_dev_info =
++					devlist[i].dev_info;
++			}
++
++			break;
 +		}
-+	}
-+	return ret;
-+}
-+
-+/*
-  * Lock & load the kernel context for the specified blade.
-  */
- static struct gru_blade_state *gru_lock_kernel_context(int blade_id)
-@@ -1009,35 +1037,22 @@ int gru_ktest(unsigned long arg)
- 	case 2:
- 		ret = quicktest2(arg);
- 		break;
-+	case 99:
-+		ret = gru_free_kernel_contexts();
-+		break;
  	}
+-	if (filp->f_op && filp->f_op->open)
+-		ret = filp->f_op->open(inode,filp);
++
++	if (i == ARRAY_SIZE(devlist))
++		ret = -ENXIO;
++	else
++		if (filp->f_op && filp->f_op->open)
++			ret = filp->f_op->open(inode, filp);
++
+ 	unlock_kernel();
  	return ret;
- 
  }
+@@ -924,30 +923,6 @@ static const struct file_operations memo
+ 	.open		= memory_open,	/* just a selector for the real open */
+ };
  
--int gru_kservices_init(struct gru_state *gru)
-+int gru_kservices_init(void)
- {
--	struct gru_blade_state *bs;
--
--	bs = gru->gs_blade;
--	if (gru != &bs->bs_grus[0])
--		return 0;
--
--	init_rwsem(&bs->bs_kgts_sema);
- 	return 0;
- }
- 
--void gru_kservices_exit(struct gru_state *gru)
-+void gru_kservices_exit(void)
- {
--	struct gru_blade_state *bs;
--	struct gru_thread_state *kgts;
--
--	bs = gru->gs_blade;
--	if (gru != &bs->bs_grus[0])
--		return;
--
--	kgts = bs->bs_kgts;
--	if (kgts && kgts->ts_gru)
--		gru_unload_context(kgts, 0);
--	kfree(kgts);
-+	if (gru_free_kernel_contexts())
-+		BUG();
- }
- 
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-add-user-request-to-explicitly-unload-a-gru-context drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-add-user-request-to-explicitly-unload-a-gru-context
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -638,8 +638,8 @@ extern void gru_unload_context(struct gr
- extern int gru_update_cch(struct gru_thread_state *gts, int force_unload);
- extern void gts_drop(struct gru_thread_state *gts);
- extern void gru_tgh_flush_init(struct gru_state *gru);
--extern int gru_kservices_init(struct gru_state *gru);
--extern void gru_kservices_exit(struct gru_state *gru);
-+extern int gru_kservices_init(void);
-+extern void gru_kservices_exit(void);
- extern int gru_dump_chiplet_request(unsigned long arg);
- extern irqreturn_t gru_intr(int irq, void *dev_id);
- extern int gru_handle_user_call_os(unsigned long address);
-_
-
-Patches currently in -mm which might be from steiner@sgi.com are
-
-origin.patch
-
+-static const struct {
+-	unsigned int		minor;
+-	char			*name;
+-	umode_t			mode;
+-	const struct file_operations	*fops;
+-} devlist[] = { /* list of minor devices */
+-	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops},
+-#ifdef CONFIG_DEVKMEM
+-	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops},
+-#endif
+-	{3, "null",    S_IRUGO | S_IWUGO,           &null_fops},
+-#ifdef CONFIG_DEVPORT
+-	{4, "port",    S_IRUSR | S_IWUSR | S_IRGRP, &port_fops},
+-#endif
+-	{5, "zero",    S_IRUGO | S_IWUGO,           &zero_fops},
+-	{7, "full",    S_IRUGO | S_IWUGO,           &full_fops},
+-	{8, "random",  S_IRUGO | S_IWUSR,           &random_fops},
+-	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops},
+-	{11,"kmsg",    S_IRUGO | S_IWUSR,           &kmsg_fops},
+-#ifdef CONFIG_CRASH_DUMP
+-	{12,"oldmem",    S_IRUSR | S_IWUSR | S_IRGRP, &oldmem_fops},
+-#endif
+-};
