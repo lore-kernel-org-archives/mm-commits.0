@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ia64-remove-obsolete-no_irq_type.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 11:20:24 -0700
-Message-ID: <200906181820.n5IIKOJC017965@imap1.linux-foundation.org>
+Subject: [merged] ia64-remove-obsolete-hw_interrupt_type.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 11:20:28 -0700
+Message-ID: <200906181820.n5IIKS1J018037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752954AbZFRSVE (ORCPT
+	by vger.kernel.org with ESMTP id S1753301AbZFRSVH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 14:21:04 -0400
+	Thu, 18 Jun 2009 14:21:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: remove obsolete no_irq_type
+     ia64: remove obsolete hw_interrupt_type
 has been removed from the -mm tree.  Its filename was
-     ia64-remove-obsolete-no_irq_type.patch
+     ia64-remove-obsolete-hw_interrupt_type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: remove obsolete no_irq_type
+Subject: ia64: remove obsolete hw_interrupt_type
 From: Thomas Gleixner <tglx@linutronix.de>
 
 The defines and typedefs (hw_interrupt_type, no_irq_type, irq_desc_t) have
@@ -36,54 +36,69 @@ hit mainline we can remove the defines and typedefs finally.
 
 Impact: cleanup
 
-convert the last remaining users to no_irq_chip
+Convert the last remaining users to struct irq_chip and remove the
+define.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tony Luck <tony.luck@intel.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/sim/hpsim_irq.c |    2 +-
- arch/ia64/kernel/iosapic.c   |    2 +-
- arch/ia64/sn/kernel/irq.c    |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ arch/ia64/hp/sim/hpsim_irq.c   |    2 +-
+ arch/ia64/include/asm/hw_irq.h |    2 +-
+ arch/ia64/kernel/iosapic.c     |    2 +-
+ arch/ia64/kernel/irq_lsapic.c  |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-no_irq_type arch/ia64/hp/sim/hpsim_irq.c
---- a/arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-no_irq_type
+diff -puN arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-hw_interrupt_type arch/ia64/hp/sim/hpsim_irq.c
+--- a/arch/ia64/hp/sim/hpsim_irq.c~ia64-remove-obsolete-hw_interrupt_type
 +++ a/arch/ia64/hp/sim/hpsim_irq.c
-@@ -46,7 +46,7 @@ hpsim_irq_init (void)
- 
- 	for (i = 0; i < NR_IRQS; ++i) {
- 		idesc = irq_desc + i;
--		if (idesc->chip == &no_irq_type)
-+		if (idesc->chip == &no_irq_chip)
- 			idesc->chip = &irq_type_hp_sim;
- 	}
+@@ -27,7 +27,7 @@ hpsim_set_affinity_noop(unsigned int a, 
+ 	return 0;
  }
-diff -puN arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-no_irq_type arch/ia64/kernel/iosapic.c
---- a/arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-no_irq_type
+ 
+-static struct hw_interrupt_type irq_type_hp_sim = {
++static struct irq_chip irq_type_hp_sim = {
+ 	.name =		"hpsim",
+ 	.startup =	hpsim_irq_startup,
+ 	.shutdown =	hpsim_irq_noop,
+diff -puN arch/ia64/include/asm/hw_irq.h~ia64-remove-obsolete-hw_interrupt_type arch/ia64/include/asm/hw_irq.h
+--- a/arch/ia64/include/asm/hw_irq.h~ia64-remove-obsolete-hw_interrupt_type
++++ a/arch/ia64/include/asm/hw_irq.h
+@@ -106,7 +106,7 @@ extern struct irq_cfg irq_cfg[NR_IRQS];
+ #define irq_to_domain(x)	irq_cfg[(x)].domain
+ DECLARE_PER_CPU(int[IA64_NUM_VECTORS], vector_irq);
+ 
+-extern struct hw_interrupt_type irq_type_ia64_lsapic;	/* CPU-internal interrupt controller */
++extern struct irq_chip irq_type_ia64_lsapic;	/* CPU-internal interrupt controller */
+ 
+ #ifdef CONFIG_PARAVIRT_GUEST
+ #include <asm/paravirt.h>
+diff -puN arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-hw_interrupt_type arch/ia64/kernel/iosapic.c
+--- a/arch/ia64/kernel/iosapic.c~ia64-remove-obsolete-hw_interrupt_type
 +++ a/arch/ia64/kernel/iosapic.c
-@@ -650,7 +650,7 @@ register_intr (unsigned int gsi, int irq
+@@ -601,7 +601,7 @@ register_intr (unsigned int gsi, int irq
+ 	       unsigned long polarity, unsigned long trigger)
+ {
+ 	struct irq_desc *idesc;
+-	struct hw_interrupt_type *irq_type;
++	struct irq_chip *irq_type;
+ 	int index;
+ 	struct iosapic_rte_info *rte;
  
- 	idesc = irq_desc + irq;
- 	if (irq_type != NULL && idesc->chip != irq_type) {
--		if (idesc->chip != &no_irq_type)
-+		if (idesc->chip != &no_irq_chip)
- 			printk(KERN_WARNING
- 			       "%s: changing vector %d from %s to %s\n",
- 			       __func__, irq_to_vector(irq),
-diff -puN arch/ia64/sn/kernel/irq.c~ia64-remove-obsolete-no_irq_type arch/ia64/sn/kernel/irq.c
---- a/arch/ia64/sn/kernel/irq.c~ia64-remove-obsolete-no_irq_type
-+++ a/arch/ia64/sn/kernel/irq.c
-@@ -301,7 +301,7 @@ void sn_irq_init(void)
- 	ia64_last_device_vector = IA64_SN2_LAST_DEVICE_VECTOR;
+diff -puN arch/ia64/kernel/irq_lsapic.c~ia64-remove-obsolete-hw_interrupt_type arch/ia64/kernel/irq_lsapic.c
+--- a/arch/ia64/kernel/irq_lsapic.c~ia64-remove-obsolete-hw_interrupt_type
++++ a/arch/ia64/kernel/irq_lsapic.c
+@@ -33,7 +33,7 @@ static int lsapic_retrigger(unsigned int
+ 	return 1;
+ }
  
- 	for (i = 0; i < NR_IRQS; i++) {
--		if (base_desc[i].chip == &no_irq_type) {
-+		if (base_desc[i].chip == &no_irq_chip) {
- 			base_desc[i].chip = &irq_type_sn;
- 		}
- 	}
+-struct hw_interrupt_type irq_type_ia64_lsapic = {
++struct irq_chip irq_type_ia64_lsapic = {
+ 	.name =		"LSAPIC",
+ 	.startup =	lsapic_noop_startup,
+ 	.shutdown =	lsapic_noop,
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
