@@ -1,91 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-dont-take-tasklist-to-get-set-last_siginfo.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:46:45 -0700
-Message-ID: <200906182246.n5IMkj3Y005761@imap1.linux-foundation.org>
+Subject: [merged] ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:46:41 -0700
+Message-ID: <200906182246.n5IMkfEu005754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59394 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759182AbZFRWra (ORCPT
+	by vger.kernel.org with ESMTP id S1759043AbZFRWrW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:47:30 -0400
+	Thu, 18 Jun 2009 18:47:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: don't take tasklist to get/set ->last_siginfo
+     ptrace_get_task_struct: s/tasklist/rcu/, make it static
 has been removed from the -mm tree.  Its filename was
-     ptrace-dont-take-tasklist-to-get-set-last_siginfo.patch
+     ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: don't take tasklist to get/set ->last_siginfo
+Subject: ptrace_get_task_struct: s/tasklist/rcu/, make it static
 From: Oleg Nesterov <oleg@redhat.com>
 
-Change ptrace_getsiginfo/ptrace_setsiginfo to use lock_task_sighand()
-without tasklist_lock.  Perhaps it makes sense to make a single helper
-with "bool rw" argument.
+- Use rcu_read_lock() instead of tasklist_lock to find/get the task
+  in ptrace_get_task_struct().
+
+- Make it static, it has no callers outside of ptrace.c.
+
+- The comment doesn't match the reality, this helper does not do
+  any checks. Beacuse it is really trivial and static I removed the
+  whole comment.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ include/linux/ptrace.h |    1 -
+ kernel/ptrace.c        |   16 +++-------------
+ 2 files changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-dont-take-tasklist-to-get-set-last_siginfo kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-dont-take-tasklist-to-get-set-last_siginfo
+diff -puN include/linux/ptrace.h~ptrace_get_task_struct-s-tasklist-rcu-make-it-static include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace_get_task_struct-s-tasklist-rcu-make-it-static
++++ a/include/linux/ptrace.h
+@@ -81,7 +81,6 @@
+ 
+ 
+ extern long arch_ptrace(struct task_struct *child, long request, long addr, long data);
+-extern struct task_struct *ptrace_get_task_struct(pid_t pid);
+ extern int ptrace_traceme(void);
+ extern int ptrace_readdata(struct task_struct *tsk, unsigned long src, char __user *dst, int len);
+ extern int ptrace_writedata(struct task_struct *tsk, char __user *src, unsigned long dst, int len);
+diff -puN kernel/ptrace.c~ptrace_get_task_struct-s-tasklist-rcu-make-it-static kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace_get_task_struct-s-tasklist-rcu-make-it-static
 +++ a/kernel/ptrace.c
-@@ -424,37 +424,33 @@ static int ptrace_setoptions(struct task
- 
- static int ptrace_getsiginfo(struct task_struct *child, siginfo_t *info)
- {
-+	unsigned long flags;
- 	int error = -ESRCH;
- 
--	read_lock(&tasklist_lock);
--	if (likely(child->sighand != NULL)) {
-+	if (lock_task_sighand(child, &flags)) {
- 		error = -EINVAL;
--		spin_lock_irq(&child->sighand->siglock);
- 		if (likely(child->last_siginfo != NULL)) {
- 			*info = *child->last_siginfo;
- 			error = 0;
- 		}
--		spin_unlock_irq(&child->sighand->siglock);
-+		unlock_task_sighand(child, &flags);
- 	}
--	read_unlock(&tasklist_lock);
- 	return error;
+@@ -581,26 +581,16 @@ int ptrace_request(struct task_struct *c
+ 	return ret;
  }
  
- static int ptrace_setsiginfo(struct task_struct *child, const siginfo_t *info)
+-/**
+- * ptrace_get_task_struct  --  grab a task struct reference for ptrace
+- * @pid:       process id to grab a task_struct reference of
+- *
+- * This function is a helper for ptrace implementations.  It checks
+- * permissions and then grabs a task struct for use of the actual
+- * ptrace implementation.
+- *
+- * Returns the task_struct for @pid or an ERR_PTR() on failure.
+- */
+-struct task_struct *ptrace_get_task_struct(pid_t pid)
++static struct task_struct *ptrace_get_task_struct(pid_t pid)
  {
-+	unsigned long flags;
- 	int error = -ESRCH;
+ 	struct task_struct *child;
  
 -	read_lock(&tasklist_lock);
--	if (likely(child->sighand != NULL)) {
-+	if (lock_task_sighand(child, &flags)) {
- 		error = -EINVAL;
--		spin_lock_irq(&child->sighand->siglock);
- 		if (likely(child->last_siginfo != NULL)) {
- 			*child->last_siginfo = *info;
- 			error = 0;
- 		}
--		spin_unlock_irq(&child->sighand->siglock);
-+		unlock_task_sighand(child, &flags);
- 	}
--	read_unlock(&tasklist_lock);
- 	return error;
- }
++	rcu_read_lock();
+ 	child = find_task_by_vpid(pid);
+ 	if (child)
+ 		get_task_struct(child);
++	rcu_read_unlock();
  
+-	read_unlock(&tasklist_lock);
+ 	if (!child)
+ 		return ERR_PTR(-ESRCH);
+ 	return child;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
