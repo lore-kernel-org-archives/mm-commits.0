@@ -1,118 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jbd-clean-up-journal_try_to_free_buffers.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:44:53 -0700
-Message-ID: <200906182244.n5IMirSM003948@imap1.linux-foundation.org>
+Subject: [merged] spi_bfin5xx-limit-reaches-1.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:44:00 -0700
+Message-ID: <200906182244.n5IMi0Qs003109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758160AbZFRWo7 (ORCPT
+	by vger.kernel.org with ESMTP id S1758166AbZFRWpD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:44:59 -0400
+	Thu, 18 Jun 2009 18:45:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hifumi.hisashi@oss.ntt.co.jp, cmm@us.ibm.com, jack@suse.cz, tytso@mit.edu, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, cooloney@kernel.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: clean up journal_try_to_free_buffers()
+     spi_bfin5xx: limit reaches -1
 has been removed from the -mm tree.  Its filename was
-     jbd-clean-up-journal_try_to_free_buffers.patch
+     spi_bfin5xx-limit-reaches-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: clean up journal_try_to_free_buffers()
-From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Subject: spi_bfin5xx: limit reaches -1
+From: Roel Kluin <roel.kluin@gmail.com>
 
-I delete the following patch
-"commit 3f31fddfa26b7594b44ff2b34f9a04ba409e0f91
-Author: Mingming Cao <cmm@us.ibm.com>
-Date:   Fri Jul 25 01:46:22 2008 -0700
+bfin_spi_flush() returns limit, which reaches -1 upon timeout.  but in
+function bfin_spi_pump_transfers() it is compared with 0.
 
-    jbd: fix race between free buffer and commit transaction
-
-
-This patch is no longer needed because if race between freeing buffer and
-committing transaction functionality occurs and dio gets error, currently
-dio falls back to buffered IO by the following patch.
-
-	commit 6ccfa806a9cfbbf1cd43d5b6aa47ef2c0eb518fd
-	Author: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-	Date:   Tue Sep 2 14:35:40 2008 -0700
-
-   	VFS: fix dio write returning EIO when try_to_release_page fails
-
-Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-Cc: Theodore Tso <tytso@mit.edu>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Acked-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Bryan Wu <cooloney@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/transaction.c |   48 -----------------------------------------
- 1 file changed, 48 deletions(-)
+ drivers/spi/spi_bfin5xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd/transaction.c~jbd-clean-up-journal_try_to_free_buffers fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-clean-up-journal_try_to_free_buffers
-+++ a/fs/jbd/transaction.c
-@@ -1686,35 +1686,6 @@ out:
- 	return;
- }
+diff -puN drivers/spi/spi_bfin5xx.c~spi_bfin5xx-limit-reaches-1 drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~spi_bfin5xx-limit-reaches-1
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -169,7 +169,7 @@ static int bfin_spi_flush(struct driver_
+ 	unsigned long limit = loops_per_jiffy << 1;
  
--/*
-- * journal_try_to_free_buffers() could race with journal_commit_transaction()
-- * The latter might still hold the a count on buffers when inspecting
-- * them on t_syncdata_list or t_locked_list.
-- *
-- * journal_try_to_free_buffers() will call this function to
-- * wait for the current transaction to finish syncing data buffers, before
-- * tryinf to free that buffer.
-- *
-- * Called with journal->j_state_lock held.
-- */
--static void journal_wait_for_transaction_sync_data(journal_t *journal)
--{
--	transaction_t *transaction = NULL;
--	tid_t tid;
--
--	spin_lock(&journal->j_state_lock);
--	transaction = journal->j_committing_transaction;
--
--	if (!transaction) {
--		spin_unlock(&journal->j_state_lock);
--		return;
--	}
--
--	tid = transaction->t_tid;
--	spin_unlock(&journal->j_state_lock);
--	log_wait_commit(journal, tid);
--}
--
- /**
-  * int journal_try_to_free_buffers() - try to free page buffers.
-  * @journal: journal for operation
-@@ -1786,25 +1757,6 @@ int journal_try_to_free_buffers(journal_
+ 	/* wait for stop and clear stat */
+-	while (!(read_STAT(drv_data) & BIT_STAT_SPIF) && limit--)
++	while (!(read_STAT(drv_data) & BIT_STAT_SPIF) && --limit)
+ 		cpu_relax();
  
- 	ret = try_to_free_buffers(page);
- 
--	/*
--	 * There are a number of places where journal_try_to_free_buffers()
--	 * could race with journal_commit_transaction(), the later still
--	 * holds the reference to the buffers to free while processing them.
--	 * try_to_free_buffers() failed to free those buffers. Some of the
--	 * caller of releasepage() request page buffers to be dropped, otherwise
--	 * treat the fail-to-free as errors (such as generic_file_direct_IO())
--	 *
--	 * So, if the caller of try_to_release_page() wants the synchronous
--	 * behaviour(i.e make sure buffers are dropped upon return),
--	 * let's wait for the current transaction to finish flush of
--	 * dirty data buffers, then try to free those buffers again,
--	 * with the journal locked.
--	 */
--	if (ret == 0 && (gfp_mask & __GFP_WAIT) && (gfp_mask & __GFP_FS)) {
--		journal_wait_for_transaction_sync_data(journal);
--		ret = try_to_free_buffers(page);
--	}
+ 	write_STAT(drv_data, BIT_STAT_CLR);
+_
+
+Patches currently in -mm which might be from roel.kluin@gmail.com are
+
+origin.patch
+dtlk-off-by-one-in-readwrite_tts.patch
+linux-next.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+serial-fix-off-by-one-errors.patch
+usb-mutually-exclusive-port_status.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+platinumfb-misplaced-parenthesis.patch
+
