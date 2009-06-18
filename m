@@ -1,94 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:46:41 -0700
-Message-ID: <200906182246.n5IMkfEu005754@imap1.linux-foundation.org>
+Subject: [merged] ptrace-wait_task_zombie-s-parent-real_parent.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:46:43 -0700
+Message-ID: <200906182246.n5IMkh31005757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53595 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759043AbZFRWrW (ORCPT
+	by vger.kernel.org with ESMTP id S1758715AbZFRWr0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:47:22 -0400
+	Thu, 18 Jun 2009 18:47:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace_get_task_struct: s/tasklist/rcu/, make it static
+     ptrace: wait_task_zombie: s/->parent/->real_parent/
 has been removed from the -mm tree.  Its filename was
-     ptrace_get_task_struct-s-tasklist-rcu-make-it-static.patch
+     ptrace-wait_task_zombie-s-parent-real_parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace_get_task_struct: s/tasklist/rcu/, make it static
+Subject: ptrace: wait_task_zombie: s/->parent/->real_parent/
 From: Oleg Nesterov <oleg@redhat.com>
 
-- Use rcu_read_lock() instead of tasklist_lock to find/get the task
-  in ptrace_get_task_struct().
+Change wait_task_zombie() to use ->real_parent instead of ->parent.  We
+could even use current afaics, but ->real_parent is more clean.
 
-- Make it static, it has no callers outside of ptrace.c.
-
-- The comment doesn't match the reality, this helper does not do
-  any checks. Beacuse it is really trivial and static I removed the
-  whole comment.
+We know that the child is not ptrace_reparented() and thus they are equal.
+ But we should avoid using task_struct->parent, we are going to remove it.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    1 -
- kernel/ptrace.c        |   16 +++-------------
- 2 files changed, 3 insertions(+), 14 deletions(-)
+ kernel/exit.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/ptrace.h~ptrace_get_task_struct-s-tasklist-rcu-make-it-static include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace_get_task_struct-s-tasklist-rcu-make-it-static
-+++ a/include/linux/ptrace.h
-@@ -81,7 +81,6 @@
+diff -puN kernel/exit.c~ptrace-wait_task_zombie-s-parent-real_parent kernel/exit.c
+--- a/kernel/exit.c~ptrace-wait_task_zombie-s-parent-real_parent
++++ a/kernel/exit.c
+@@ -1204,7 +1204,7 @@ static int wait_task_zombie(struct task_
+ 		 * p->signal fields, because they are only touched by
+ 		 * __exit_signal, which runs with tasklist_lock
+ 		 * write-locked anyway, and so is excluded here.  We do
+-		 * need to protect the access to p->parent->signal fields,
++		 * need to protect the access to parent->signal fields,
+ 		 * as other threads in the parent group can be right
+ 		 * here reaping other children at the same time.
+ 		 *
+@@ -1213,8 +1213,8 @@ static int wait_task_zombie(struct task_
+ 		 * group including the group leader.
+ 		 */
+ 		thread_group_cputime(p, &cputime);
+-		spin_lock_irq(&p->parent->sighand->siglock);
+-		psig = p->parent->signal;
++		spin_lock_irq(&p->real_parent->sighand->siglock);
++		psig = p->real_parent->signal;
+ 		sig = p->signal;
+ 		psig->cutime =
+ 			cputime_add(psig->cutime,
+@@ -1245,7 +1245,7 @@ static int wait_task_zombie(struct task_
+ 			sig->oublock + sig->coublock;
+ 		task_io_accounting_add(&psig->ioac, &p->ioac);
+ 		task_io_accounting_add(&psig->ioac, &sig->ioac);
+-		spin_unlock_irq(&p->parent->sighand->siglock);
++		spin_unlock_irq(&p->real_parent->sighand->siglock);
+ 	}
  
- 
- extern long arch_ptrace(struct task_struct *child, long request, long addr, long data);
--extern struct task_struct *ptrace_get_task_struct(pid_t pid);
- extern int ptrace_traceme(void);
- extern int ptrace_readdata(struct task_struct *tsk, unsigned long src, char __user *dst, int len);
- extern int ptrace_writedata(struct task_struct *tsk, char __user *src, unsigned long dst, int len);
-diff -puN kernel/ptrace.c~ptrace_get_task_struct-s-tasklist-rcu-make-it-static kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace_get_task_struct-s-tasklist-rcu-make-it-static
-+++ a/kernel/ptrace.c
-@@ -581,26 +581,16 @@ int ptrace_request(struct task_struct *c
- 	return ret;
- }
- 
--/**
-- * ptrace_get_task_struct  --  grab a task struct reference for ptrace
-- * @pid:       process id to grab a task_struct reference of
-- *
-- * This function is a helper for ptrace implementations.  It checks
-- * permissions and then grabs a task struct for use of the actual
-- * ptrace implementation.
-- *
-- * Returns the task_struct for @pid or an ERR_PTR() on failure.
-- */
--struct task_struct *ptrace_get_task_struct(pid_t pid)
-+static struct task_struct *ptrace_get_task_struct(pid_t pid)
- {
- 	struct task_struct *child;
- 
--	read_lock(&tasklist_lock);
-+	rcu_read_lock();
- 	child = find_task_by_vpid(pid);
- 	if (child)
- 		get_task_struct(child);
-+	rcu_read_unlock();
- 
--	read_unlock(&tasklist_lock);
- 	if (!child)
- 		return ERR_PTR(-ESRCH);
- 	return child;
+ 	/*
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
