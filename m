@@ -1,60 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] doc-fix-ext2-can-only-have-32000-subdirs-not-32768.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:44:49 -0700
-Message-ID: <200906182244.n5IMinX1003898@imap1.linux-foundation.org>
+Subject: [merged] maintainers-fbdev-is-orphaned.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:43:49 -0700
+Message-ID: <200906182243.n5IMhnDi002901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57898 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758330AbZFRWou (ORCPT
+	by vger.kernel.org with ESMTP id S1758720AbZFRWol (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:44:50 -0400
+	Thu, 18 Jun 2009 18:44:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mshields@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, joe@perches.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Doc fix: ext2 can only have 32,000 subdirs, not 32,768
+     MAINTAINERS: fbdev is orphaned
 has been removed from the -mm tree.  Its filename was
-     doc-fix-ext2-can-only-have-32000-subdirs-not-32768.patch
+     maintainers-fbdev-is-orphaned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Doc fix: ext2 can only have 32,000 subdirs, not 32,768
-From: Michael Shields <mshields@google.com>
+Subject: MAINTAINERS: fbdev is orphaned
+From: Andrew Morton <akpm@linux-foundation.org>
 
-ext2.txt says that dirs can have 32,768 subdirs, but the actual value of
-EXT2_LINK_MAX is 32000.
+Tony hasn't been heard from in 18 months and people keep sending him
+things.
 
-ext3 is the same, but the doc does not mention it.  One of ext4's features
-is to "fix 32000 subdirectory limit".
-
-
+Cc: Joe Perches <joe@perches.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/ext2.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN Documentation/filesystems/ext2.txt~doc-fix-ext2-can-only-have-32000-subdirs-not-32768 Documentation/filesystems/ext2.txt
---- a/Documentation/filesystems/ext2.txt~doc-fix-ext2-can-only-have-32000-subdirs-not-32768
-+++ a/Documentation/filesystems/ext2.txt
-@@ -322,7 +322,7 @@ an upper limit on the block size imposed
- so 8kB blocks are only allowed on Alpha systems (and other architectures
- which support larger pages).
+diff -puN MAINTAINERS~maintainers-fbdev-is-orphaned MAINTAINERS
+--- a/MAINTAINERS~maintainers-fbdev-is-orphaned
++++ a/MAINTAINERS
+@@ -2274,11 +2274,9 @@ F:	drivers/net/wan/dlci.c
+ F:	drivers/net/wan/sdla.c
  
--There is an upper limit of 32768 subdirectories in a single directory.
-+There is an upper limit of 32000 subdirectories in a single directory.
- 
- There is a "soft" upper limit of about 10-15k files in a single directory
- with the current linear linked-list directory implementation.  This limit
+ FRAMEBUFFER LAYER
+-P:	Antonino Daplas
+-M:	adaplas@gmail.com
+ L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://linux-fbdev.sourceforge.net/
+-S:	Maintained
++S:	Orphan
+ F:	Documentation/fb/
+ F:	drivers/video/fb*
+ F:	include/linux/fb.h
 _
 
-Patches currently in -mm which might be from mshields@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+bootmemc-avoid-c90-declaration-warning-cleanup.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
