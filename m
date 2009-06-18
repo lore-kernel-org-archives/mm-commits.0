@@ -1,238 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] isofs-cleanup-mount-option-processing.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:45:02 -0700
-Message-ID: <200906182245.n5IMj28E004112@imap1.linux-foundation.org>
+Subject: [merged] epoll-fix-nested-calls-support.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:43:52 -0700
+Message-ID: <200906182243.n5IMhqtX002937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758125AbZFRWpd (ORCPT
+	by vger.kernel.org with ESMTP id S1756613AbZFRWpM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:45:33 -0400
+	Thu, 18 Jun 2009 18:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, stable@kernel.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isofs: cleanup mount option processing
+     epoll: fix nested calls support
 has been removed from the -mm tree.  Its filename was
-     isofs-cleanup-mount-option-processing.patch
+     epoll-fix-nested-calls-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isofs: cleanup mount option processing
-From: Jan Kara <jack@suse.cz>
+Subject: epoll: fix nested calls support
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Remove unused variables from isofs_sb_info (used to be some mount
-options), unify variables for option to use 0/1 (some options used
-'y'/'n'), use bit fields for option flags in superblock.
+This fixes a regression in 2.6.30.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+I unfortunately accepted a patch time ago, to drop the "current" usage
+from possible IRQ context, w/out proper thought over it.  The patch
+switched to using the CPU id by bounding the nested call callback with a
+get_cpu()/put_cpu().
+
+Unfortunately the ep_call_nested() function can be called with a callback
+that grabs sleepy locks (from own f_op->poll()), that results in epic
+fails.  The following patch uses the proper "context" depending on the
+path where it is called, and on the kind of callback.
+
+This has been reported by Stefan Richter, that has also verified the patch
+is his previously failing environment.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Reported-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/dir.c   |    5 +---
- fs/isofs/inode.c |   48 ++++++++++++++++++++++-----------------------
- fs/isofs/isofs.h |   28 +++++++++++---------------
- fs/isofs/namei.c |    4 +--
- 4 files changed, 40 insertions(+), 45 deletions(-)
+ fs/eventpoll.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN fs/isofs/dir.c~isofs-cleanup-mount-option-processing fs/isofs/dir.c
---- a/fs/isofs/dir.c~isofs-cleanup-mount-option-processing
-+++ a/fs/isofs/dir.c
-@@ -195,9 +195,8 @@ static int do_isofs_readdir(struct inode
- 		 * Do not report hidden files if so instructed, or associated
- 		 * files unless instructed to do so
- 		 */
--		if ((sbi->s_hide == 'y' &&
--				(de->flags[-sbi->s_high_sierra] & 1)) ||
--				(sbi->s_showassoc =='n' &&
-+		if ((sbi->s_hide && (de->flags[-sbi->s_high_sierra] & 1)) ||
-+		    (!sbi->s_showassoc &&
- 				(de->flags[-sbi->s_high_sierra] & 4))) {
- 			filp->f_pos += de_len;
- 			continue;
-diff -puN fs/isofs/inode.c~isofs-cleanup-mount-option-processing fs/isofs/inode.c
---- a/fs/isofs/inode.c~isofs-cleanup-mount-option-processing
-+++ a/fs/isofs/inode.c
-@@ -141,24 +141,24 @@ static const struct dentry_operations is
+diff -puN fs/eventpoll.c~epoll-fix-nested-calls-support fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-fix-nested-calls-support
++++ a/fs/eventpoll.c
+@@ -98,7 +98,7 @@ struct epoll_filefd {
+ struct nested_call_node {
+ 	struct list_head llink;
+ 	void *cookie;
+-	int cpu;
++	void *ctx;
  };
  
- struct iso9660_options{
--	char map;
--	char rock;
-+	unsigned int rock:1;
-+	unsigned int cruft:1;
-+	unsigned int hide:1;
-+	unsigned int showassoc:1;
-+	unsigned int nocompress:1;
-+	unsigned int overriderockperm:1;
-+	unsigned int uid_set:1;
-+	unsigned int gid_set:1;
-+	unsigned int utf8:1;
-+	unsigned char map;
- 	char joliet;
--	char cruft;
--	char hide;
--	char showassoc;
--	char nocompress;
--	char overriderockperm;
- 	unsigned char check;
- 	unsigned int blocksize;
- 	mode_t fmode;
- 	mode_t dmode;
--	char uid_set;
--	char gid_set;
- 	gid_t gid;
- 	uid_t uid;
- 	char *iocharset;
--	unsigned char utf8;
- 	/* LVE */
- 	s32 session;
- 	s32 sbsector;
-@@ -363,11 +363,11 @@ static int parse_options(char *options, 
- 	int option;
- 
- 	popt->map = 'n';
--	popt->rock = 'y';
--	popt->joliet = 'y';
--	popt->cruft = 'n';
--	popt->hide = 'n';
--	popt->showassoc = 'n';
-+	popt->rock = 1;
-+	popt->joliet = 1;
-+	popt->cruft = 0;
-+	popt->hide = 0;
-+	popt->showassoc = 0;
- 	popt->check = 'u';		/* unset */
- 	popt->nocompress = 0;
- 	popt->blocksize = 1024;
-@@ -395,20 +395,20 @@ static int parse_options(char *options, 
- 		token = match_token(p, tokens, args);
- 		switch (token) {
- 		case Opt_norock:
--			popt->rock = 'n';
-+			popt->rock = 0;
- 			break;
- 		case Opt_nojoliet:
--			popt->joliet = 'n';
-+			popt->joliet = 0;
- 			break;
- 		case Opt_hide:
--			popt->hide = 'y';
-+			popt->hide = 1;
- 			break;
- 		case Opt_unhide:
- 		case Opt_showassoc:
--			popt->showassoc = 'y';
-+			popt->showassoc = 1;
- 			break;
- 		case Opt_cruft:
--			popt->cruft = 'y';
-+			popt->cruft = 1;
- 			break;
- 		case Opt_utf8:
- 			popt->utf8 = 1;
-@@ -657,7 +657,7 @@ static int isofs_fill_super(struct super
- 					goto out_freebh;
- 
- 				sbi->s_high_sierra = 1;
--				opt.rock = 'n';
-+				opt.rock = 0;
- 				h_pri = (struct hs_primary_descriptor *)vdp;
- 				goto root_found;
- 			}
-@@ -680,7 +680,7 @@ static int isofs_fill_super(struct super
- 
- root_found:
- 
--	if (joliet_level && (pri == NULL || opt.rock == 'n')) {
-+	if (joliet_level && (pri == NULL || !opt.rock)) {
- 		/* This is the case of Joliet with the norock mount flag.
- 		 * A disc with both Joliet and Rock Ridge is handled later
- 		 */
-@@ -809,7 +809,7 @@ root_found:
- 	s->s_op = &isofs_sops;
- 	s->s_export_op = &isofs_export_ops;
- 	sbi->s_mapping = opt.map;
--	sbi->s_rock = (opt.rock == 'y' ? 2 : 0);
-+	sbi->s_rock = (opt.rock ? 2 : 0);
- 	sbi->s_rock_offset = -1; /* initial offset, will guess until SP is found*/
- 	sbi->s_cruft = opt.cruft;
- 	sbi->s_hide = opt.hide;
-@@ -1315,7 +1315,7 @@ static int isofs_read_inode(struct inode
- 	 * this CDROM was mounted with the cruft option.
+ /*
+@@ -317,17 +317,17 @@ static void ep_nested_calls_init(struct 
+  * @nproc: Nested call core function pointer.
+  * @priv: Opaque data to be passed to the @nproc callback.
+  * @cookie: Cookie to be used to identify this nested call.
++ * @ctx: This instance context.
+  *
+  * Returns: Returns the code returned by the @nproc callback, or -1 if
+  *          the maximum recursion limit has been exceeded.
+  */
+ static int ep_call_nested(struct nested_calls *ncalls, int max_nests,
+ 			  int (*nproc)(void *, void *, int), void *priv,
+-			  void *cookie)
++			  void *cookie, void *ctx)
+ {
+ 	int error, call_nests = 0;
+ 	unsigned long flags;
+-	int this_cpu = get_cpu();
+ 	struct list_head *lsthead = &ncalls->tasks_call_list;
+ 	struct nested_call_node *tncur;
+ 	struct nested_call_node tnode;
+@@ -340,7 +340,7 @@ static int ep_call_nested(struct nested_
+ 	 * very much limited.
  	 */
+ 	list_for_each_entry(tncur, lsthead, llink) {
+-		if (tncur->cpu == this_cpu &&
++		if (tncur->ctx == ctx &&
+ 		    (tncur->cookie == cookie || ++call_nests > max_nests)) {
+ 			/*
+ 			 * Ops ... loop detected or maximum nest level reached.
+@@ -352,7 +352,7 @@ static int ep_call_nested(struct nested_
+ 	}
  
--	if (sbi->s_cruft == 'y')
-+	if (sbi->s_cruft)
- 		inode->i_size &= 0x00ffffff;
+ 	/* Add the current task and cookie to the list */
+-	tnode.cpu = this_cpu;
++	tnode.ctx = ctx;
+ 	tnode.cookie = cookie;
+ 	list_add(&tnode.llink, lsthead);
  
- 	if (de->interleave[0]) {
-diff -puN fs/isofs/isofs.h~isofs-cleanup-mount-option-processing fs/isofs/isofs.h
---- a/fs/isofs/isofs.h~isofs-cleanup-mount-option-processing
-+++ a/fs/isofs/isofs.h
-@@ -35,24 +35,20 @@ struct isofs_sb_info {
- 	unsigned long s_log_zone_size;
- 	unsigned long s_max_size;
- 	
--	unsigned char s_high_sierra; /* A simple flag */
--	unsigned char s_mapping;
- 	int           s_rock_offset; /* offset of SUSP fields within SU area */
--	unsigned char s_rock;
- 	unsigned char s_joliet_level;
--	unsigned char s_utf8;
--	unsigned char s_cruft; /* Broken disks with high
--				  byte of length containing
--				  junk */
--	unsigned char s_unhide;
--	unsigned char s_nosuid;
--	unsigned char s_nodev;
--	unsigned char s_nocompress;
--	unsigned char s_hide;
--	unsigned char s_showassoc;
--	unsigned char s_overriderockperm;
--	unsigned char s_uid_set;
--	unsigned char s_gid_set;
-+	unsigned char s_mapping;
-+	unsigned int  s_high_sierra:1;
-+	unsigned int  s_rock:2;
-+	unsigned int  s_utf8:1;
-+	unsigned int  s_cruft:1; /* Broken disks with high byte of length
-+				  * containing junk */
-+	unsigned int  s_nocompress:1;
-+	unsigned int  s_hide:1;
-+	unsigned int  s_showassoc:1;
-+	unsigned int  s_overriderockperm:1;
-+	unsigned int  s_uid_set:1;
-+	unsigned int  s_gid_set:1;
+@@ -364,10 +364,9 @@ static int ep_call_nested(struct nested_
+ 	/* Remove the current task from the list */
+ 	spin_lock_irqsave(&ncalls->lock, flags);
+ 	list_del(&tnode.llink);
+- out_unlock:
++out_unlock:
+ 	spin_unlock_irqrestore(&ncalls->lock, flags);
  
- 	mode_t s_fmode;
- 	mode_t s_dmode;
-diff -puN fs/isofs/namei.c~isofs-cleanup-mount-option-processing fs/isofs/namei.c
---- a/fs/isofs/namei.c~isofs-cleanup-mount-option-processing
-+++ a/fs/isofs/namei.c
-@@ -142,9 +142,9 @@ isofs_find_entry(struct inode *dir, stru
- 		 */
- 		match = 0;
- 		if (dlen > 0 &&
--			(sbi->s_hide =='n' ||
-+			(!sbi->s_hide ||
- 				(!(de->flags[-sbi->s_high_sierra] & 1))) &&
--			(sbi->s_showassoc =='y' ||
-+			(sbi->s_showassoc ||
- 				(!(de->flags[-sbi->s_high_sierra] & 4)))) {
- 			match = (isofs_cmp(dentry, dpnt, dlen) == 0);
- 		}
+-	put_cpu();
+ 	return error;
+ }
+ 
+@@ -408,8 +407,12 @@ static int ep_poll_wakeup_proc(void *pri
+  */
+ static void ep_poll_safewake(wait_queue_head_t *wq)
+ {
++	int this_cpu = get_cpu();
++
+ 	ep_call_nested(&poll_safewake_ncalls, EP_MAX_NESTS,
+-		       ep_poll_wakeup_proc, NULL, wq);
++		       ep_poll_wakeup_proc, NULL, wq, (void *) (long) this_cpu);
++
++	put_cpu();
+ }
+ 
+ /*
+@@ -663,7 +666,7 @@ static unsigned int ep_eventpoll_poll(st
+ 	 * could re-enter here.
+ 	 */
+ 	pollflags = ep_call_nested(&poll_readywalk_ncalls, EP_MAX_NESTS,
+-				   ep_poll_readyevents_proc, ep, ep);
++				   ep_poll_readyevents_proc, ep, ep, current);
+ 
+ 	return pollflags != -1 ? pollflags : 0;
+ }
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-reiser4-update-names-of-quota-methods.patch
+linux-next.patch
 
