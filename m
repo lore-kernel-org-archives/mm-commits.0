@@ -1,48 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-vmcore-use-kzalloc-in-get_new_element.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:43:56 -0700
-Message-ID: <200906182243.n5IMhuEc002948@imap1.linux-foundation.org>
+Subject: [merged] rtc-rtc-ds1742-nvram-attribute-fix.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:44:13 -0700
+Message-ID: <200906182244.n5IMiDbi003283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57711 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758017AbZFRWoN (ORCPT
+	by vger.kernel.org with ESMTP id S1758191AbZFRWo0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:44:13 -0400
+	Thu, 18 Jun 2009 18:44:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, gorcunov@openvz.org, vgoyal@redhat.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: ertbjerg@gmail.com, a.zummo@towertech.it, anemo@mba.ocn.ne.jp, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: vmcore - use kzalloc in get_new_element()
+     rtc: rtc-ds1742 nvram attribute fix
 has been removed from the -mm tree.  Its filename was
-     proc-vmcore-use-kzalloc-in-get_new_element.patch
+     rtc-rtc-ds1742-nvram-attribute-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: vmcore - use kzalloc in get_new_element()
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: rtc: rtc-ds1742 nvram attribute fix
+From: Torsten Ertbjerg Rasmussen <ertbjerg@gmail.com>
 
-Instead of kmalloc+memset better use straight kzalloc
+The RTC driver for ds1742 / ds1743 uses a static nvram attribute.  This
+patch replaces this static attribute with one nvram attribute for each
+ds174x registered.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
+The nvram size is not the same for all types of ds174x.  The nvram size is
+accessible as the file size of the nvram attribute in sysfs.  With only a
+single nvram attribute, this file size will be incorrect if more than one
+type of ds174x is present on a system.  See the comment in the removed
+code below.
+
+This patch have been tested with linux-2.6.28 and linux-2.6.29-rc5/6 on a
+custom board with one ds1743.
+
+Signed-off-by: Torsten Ertbjerg Rasmussen <ertbjerg@gmail.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/rtc/rtc-ds1742.c |   31 ++++++++++++++-----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
-diff -puN fs/proc/vmcore.c~proc-vmcore-use-kzalloc-in-get_new_element fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~proc-vmcore-use-kzalloc-in-get_new_element
-+++ a/fs/proc/vmcore.c
-@@ -166,12 +166,7 @@ static const struct file_operations proc
+diff -puN drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-nvram-attribute-fix drivers/rtc/rtc-ds1742.c
+--- a/drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-nvram-attribute-fix
++++ a/drivers/rtc/rtc-ds1742.c
+@@ -57,6 +57,7 @@ struct rtc_plat_data {
+ 	size_t size;
+ 	resource_size_t baseaddr;
+ 	unsigned long last_jiffies;
++	struct bin_attribute nvram_attr;
+ };
  
- static struct vmcore* __init get_new_element(void)
+ static int ds1742_rtc_set_time(struct device *dev, struct rtc_time *tm)
+@@ -157,18 +158,6 @@ static ssize_t ds1742_nvram_write(struct
+ 	return count;
+ }
+ 
+-static struct bin_attribute ds1742_nvram_attr = {
+-	.attr = {
+-		.name = "nvram",
+-		.mode = S_IRUGO | S_IWUSR,
+-	},
+-	.read = ds1742_nvram_read,
+-	.write = ds1742_nvram_write,
+-	/* REVISIT: size in sysfs won't match actual size... if it's
+-	 * not a constant, each RTC should have its own attribute.
+-	 */
+-};
+-
+ static int __devinit ds1742_rtc_probe(struct platform_device *pdev)
  {
--	struct vmcore *p;
+ 	struct rtc_device *rtc;
+@@ -199,6 +188,12 @@ static int __devinit ds1742_rtc_probe(st
+ 	pdata->size_nvram = pdata->size - RTC_SIZE;
+ 	pdata->ioaddr_rtc = ioaddr + pdata->size_nvram;
+ 
++	pdata->nvram_attr.attr.name = "nvram";
++	pdata->nvram_attr.attr.mode = S_IRUGO | S_IWUSR;
++	pdata->nvram_attr.read = ds1742_nvram_read;
++	pdata->nvram_attr.write = ds1742_nvram_write;
++	pdata->nvram_attr.size = pdata->size_nvram;
++
+ 	/* turn RTC on if it was not on */
+ 	ioaddr = pdata->ioaddr_rtc;
+ 	sec = readb(ioaddr + RTC_SECONDS);
+@@ -221,11 +216,13 @@ static int __devinit ds1742_rtc_probe(st
+ 	pdata->rtc = rtc;
+ 	pdata->last_jiffies = jiffies;
+ 	platform_set_drvdata(pdev, pdata);
+-	ds1742_nvram_attr.size = max(ds1742_nvram_attr.size,
+-				     pdata->size_nvram);
+-	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1742_nvram_attr);
+-	if (ret)
++
++	ret = sysfs_create_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
++	if (ret) {
++		dev_err(&pdev->dev, "creating nvram file in sysfs failed\n");
+ 		goto out;
++	}
++
+ 	return 0;
+  out:
+ 	if (pdata->rtc)
+@@ -242,7 +239,7 @@ static int __devexit ds1742_rtc_remove(s
+ {
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1742_nvram_attr);
++	sysfs_remove_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
+ 	rtc_device_unregister(pdata->rtc);
+ 	iounmap(pdata->ioaddr_nvram);
+ 	release_mem_region(pdata->baseaddr, pdata->size);
+_
+
+Patches currently in -mm which might be from ertbjerg@gmail.com are
+
+origin.patch
+
