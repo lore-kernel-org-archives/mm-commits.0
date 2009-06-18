@@ -1,179 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gpio-pca953x-get-platform_data-from-openfirmware.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:44:37 -0700
-Message-ID: <200906182244.n5IMib1j003616@imap1.linux-foundation.org>
+Subject: [merged] mpc52xx_psc_spi-convert-to-cs_control-callback.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:44:07 -0700
+Message-ID: <200906182244.n5IMi7kG003124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39207 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758807AbZFRWom (ORCPT
+	by vger.kernel.org with ESMTP id S1758897AbZFRWoo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:44:42 -0400
+	Thu, 18 Jun 2009 18:44:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ncase@xes-inc.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: pca953x: Get platform_data from OpenFirmware
+     mpc52xx_psc_spi: convert to cs_control callback
 has been removed from the -mm tree.  Its filename was
-     gpio-pca953x-get-platform_data-from-openfirmware.patch
+     mpc52xx_psc_spi-convert-to-cs_control-callback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: pca953x: Get platform_data from OpenFirmware
-From: Nate Case <ncase@xes-inc.com>
+Subject: mpc52xx_psc_spi: convert to cs_control callback
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-On OpenFirmware platforms, it makes the most sense to get platform_data
-from the device tree.  Make an attempt to translate OF node properties
-into platform_data struct before bailing out.
+mpc52xx_psc_spi driver is the last user of the legacy activate_cs and
+deactivate_cs callbacks, so convert the driver to the cs_control hook and
+remove the legacy callbacks from fsl_spi_platform_data struct.
 
-Note that the implementation approach taken differs from other device
-drivers that make use of device tree information.  This is because I2C
-chips are already registered automatically by of_i2c, so we can get by
-with a small translator function in the driver.
-
-[akpm@linux-foundation.org: coding-style fixes]
-[akpm@linux-foundation.org: kfree(NULL) is legal]
-Signed-off-by: Nate Case <ncase@xes-inc.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pca953x.c |   75 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 70 insertions(+), 5 deletions(-)
+ drivers/spi/mpc52xx_psc_spi.c |   22 +++++++++-------------
+ include/linux/fsl_devices.h   |    4 ----
+ 2 files changed, 9 insertions(+), 17 deletions(-)
 
-diff -puN drivers/gpio/pca953x.c~gpio-pca953x-get-platform_data-from-openfirmware drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-pca953x-get-platform_data-from-openfirmware
-+++ a/drivers/gpio/pca953x.c
-@@ -15,6 +15,10 @@
+diff -puN drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-convert-to-cs_control-callback drivers/spi/mpc52xx_psc_spi.c
+--- a/drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-convert-to-cs_control-callback
++++ a/drivers/spi/mpc52xx_psc_spi.c
+@@ -13,6 +13,7 @@
+ 
+ #include <linux/module.h>
  #include <linux/init.h>
- #include <linux/i2c.h>
- #include <linux/i2c/pca953x.h>
-+#ifdef CONFIG_OF_GPIO
-+#include <linux/of_platform.h>
-+#include <linux/of_gpio.h>
-+#endif
++#include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
+ #include <linux/of_platform.h>
+@@ -30,8 +31,7 @@
  
- #include <asm/gpio.h>
+ struct mpc52xx_psc_spi {
+ 	/* fsl_spi_platform data */
+-	void (*activate_cs)(u8, u8);
+-	void (*deactivate_cs)(u8, u8);
++	void (*cs_control)(struct spi_device *spi, bool on);
+ 	u32 sysclk;
  
-@@ -49,6 +53,7 @@ struct pca953x_chip {
- 	uint16_t reg_direction;
+ 	/* driver internal data */
+@@ -111,18 +111,16 @@ static void mpc52xx_psc_spi_activate_cs(
+ 	out_be16((u16 __iomem *)&psc->ccr, ccr);
+ 	mps->bits_per_word = cs->bits_per_word;
  
- 	struct i2c_client *client;
-+	struct pca953x_platform_data *dyn_pdata;
- 	struct gpio_chip gpio_chip;
- 	char **names;
- };
-@@ -196,6 +201,54 @@ static void pca953x_setup_gpio(struct pc
- 	gc->names = chip->names;
+-	if (mps->activate_cs)
+-		mps->activate_cs(spi->chip_select,
+-				(spi->mode & SPI_CS_HIGH) ? 1 : 0);
++	if (mps->cs_control)
++		mps->cs_control(spi, (spi->mode & SPI_CS_HIGH) ? 1 : 0);
  }
  
-+/*
-+ * Handlers for alternative sources of platform_data
-+ */
-+#ifdef CONFIG_OF_GPIO
-+/*
-+ * Translate OpenFirmware node properties into platform_data
-+ */
-+static struct pca953x_platform_data *
-+pca953x_get_alt_pdata(struct i2c_client *client)
-+{
-+	struct pca953x_platform_data *pdata;
-+	struct device_node *node;
-+	const uint16_t *val;
-+
-+	node = dev_archdata_get_node(&client->dev.archdata);
-+	if (node == NULL)
-+		return NULL;
-+
-+	pdata = kzalloc(sizeof(struct pca953x_platform_data), GFP_KERNEL);
-+	if (pdata == NULL) {
-+		dev_err(&client->dev, "Unable to allocate platform_data\n");
-+		return NULL;
-+	}
-+
-+	pdata->gpio_base = -1;
-+	val = of_get_property(node, "linux,gpio-base", NULL);
-+	if (val) {
-+		if (*val < 0)
-+			dev_warn(&client->dev,
-+				 "invalid gpio-base in device tree\n");
-+		else
-+			pdata->gpio_base = *val;
-+	}
-+
-+	val = of_get_property(node, "polarity", NULL);
-+	if (val)
-+		pdata->invert = *val;
-+
-+	return pdata;
-+}
-+#else
-+static struct pca953x_platform_data *
-+pca953x_get_alt_pdata(struct i2c_client *client)
-+{
-+	return NULL;
-+}
-+#endif
-+
- static int __devinit pca953x_probe(struct i2c_client *client,
- 				   const struct i2c_device_id *id)
+ static void mpc52xx_psc_spi_deactivate_cs(struct spi_device *spi)
  {
-@@ -203,15 +256,25 @@ static int __devinit pca953x_probe(struc
- 	struct pca953x_chip *chip;
- 	int ret;
+ 	struct mpc52xx_psc_spi *mps = spi_master_get_devdata(spi->master);
  
-+	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
-+	if (chip == NULL)
-+		return -ENOMEM;
-+
- 	pdata = client->dev.platform_data;
+-	if (mps->deactivate_cs)
+-		mps->deactivate_cs(spi->chip_select,
+-				(spi->mode & SPI_CS_HIGH) ? 1 : 0);
++	if (mps->cs_control)
++		mps->cs_control(spi, (spi->mode & SPI_CS_HIGH) ? 0 : 1);
+ }
+ 
+ #define MPC52xx_PSC_BUFSIZE (MPC52xx_PSC_RFNUM_MASK + 1)
+@@ -382,15 +380,13 @@ static int __init mpc52xx_psc_spi_do_pro
+ 	mps->irq = irq;
  	if (pdata == NULL) {
--		dev_dbg(&client->dev, "no platform data\n");
--		return -EINVAL;
-+		pdata = pca953x_get_alt_pdata(client);
-+		/*
-+		 * Unlike normal platform_data, this is allocated
-+		 * dynamically and must be freed in the driver
-+		 */
-+		chip->dyn_pdata = pdata;
- 	}
- 
--	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
--	if (chip == NULL)
--		return -ENOMEM;
-+	if (pdata == NULL) {
-+		dev_dbg(&client->dev, "no platform data\n");
-+		ret = -EINVAL;
-+		goto out_failed;
-+	}
- 
- 	chip->client = client;
- 
-@@ -253,6 +316,7 @@ static int __devinit pca953x_probe(struc
- 	return 0;
- 
- out_failed:
-+	kfree(chip->dyn_pdata);
- 	kfree(chip);
- 	return ret;
- }
-@@ -280,6 +344,7 @@ static int pca953x_remove(struct i2c_cli
- 		return ret;
- 	}
- 
-+	kfree(chip->dyn_pdata);
- 	kfree(chip);
- 	return 0;
- }
-_
-
-Patches currently in -mm which might be from ncase@xes-inc.com are
-
-origin.patch
-linux-next.patch
-
+ 		dev_warn(dev, "probe called without platform data, no "
+-				"(de)activate_cs function will be called\n");
+-		mps->activate_cs = NULL;
+-		mps->deactivate_cs = NULL;
++				"cs_control function will be called\n");
++		mps->cs_control = NULL;
+ 		mps->sysclk = 0;
+ 		master->bus_num = bus_num;
+ 		master->num_chipselect = 255;
+ 	} else {
+-		mps->activate_cs = pdata->activate_cs;
+-		mps->deactivate_cs = pdata->deactivate_cs;
++		mps->cs_control = pdata->cs_control;
+ 		mps->sysclk = pdata->sysclk;
+ 		master->bus_num = pdata->bus_num;
+ 		master->num_chipselect = pdata->max_chipselect;
+diff -puN include/linux/fsl_devices.h~mpc52xx_psc_spi-convert-to-cs_control-callback include/linux/fsl_devices.h
+--- a/include/linux/fsl_devices.h~mpc52xx_psc_spi-convert-to-cs_control-callback
++++ a/include/linux/fsl_devices.h
+@@ -79,10 +79,6 @@ struct fsl_spi_platform_data {
+ 	u16	max_chipselect;
+ 	void	(*cs_control)(struct spi_device *spi, bool on);
+ 	u32	sysclk;
