@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-pair-names-addresses-in-edac-i82975x.patch added to -mm tree
-Date: Thu, 18 Jun 2009 13:52:59 -0700
-Message-ID: <200906182052.n5IKqx53029349@imap1.linux-foundation.org>
+Subject: + fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers.patch added to -mm tree
+Date: Thu, 18 Jun 2009 14:22:04 -0700
+Message-ID: <200906182122.n5ILM4pn023786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57216 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752373AbZFRUyH (ORCPT
+	by vger.kernel.org with ESMTP id S1754076AbZFRVWJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 16:54:07 -0400
+	Thu, 18 Jun 2009 17:22:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, arvind@acarlab.com, norsk5@yahoo.com, rdesikan@jetzbroadband.com
+Cc: krzysztof.h1@wp.pl, spock@gentoo.org, wl@gnu.org
 
 
 The patch titled
-     MAINTAINERS: pair names/addresses in EDAC-I82975X
+     fbdev: does not allow VESA modes without compiled-in drivers
 has been added to the -mm tree.  Its filename is
-     maintainers-pair-names-addresses-in-edac-i82975x.patch
+     fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: pair names/addresses in EDAC-I82975X
-From: Joe Perches <joe@perches.com>
+Subject: fbdev: does not allow VESA modes without compiled-in drivers
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Ranganathan Desikan <rdesikan@jetzbroadband.com>
-Cc: "Arvind R." <arvind@acarlab.com>
-Cc: Doug Thompson <norsk5@yahoo.com>
+Does not allow to accept VESA modes by the "vga=" kernel parameter if
+there is no frame buffer driver compiled-in to handle it.
+
+Also, there is a comment added to the Kconfig description after Werner
+Lemberg's suggestion
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13249
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Reported-by: Werner Lemberg <wl@gnu.org>
+Cc: Michal Januszewski <spock@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/Kconfig |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-pair-names-addresses-in-edac-i82975x MAINTAINERS
---- a/MAINTAINERS~maintainers-pair-names-addresses-in-edac-i82975x
-+++ a/MAINTAINERS
-@@ -2053,8 +2053,8 @@ F:	drivers/edac/i5400_edac.c
+diff -puN drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers
++++ a/drivers/video/Kconfig
+@@ -1122,12 +1122,14 @@ config FB_INTEL
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-	select FB_BOOT_VESA_SUPPORT
++	select FB_BOOT_VESA_SUPPORT if FB_INTEL = y
+ 	help
+ 	  This driver supports the on-board graphics built in to the Intel
+           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
+           Say Y if you have and plan to use such a board.
  
- EDAC-I82975X
- P:	Ranganathan Desikan
--P:	Arvind R.
- M:	rdesikan@jetzbroadband.com
-+P:	Arvind R.
- M:	arvind@acarlab.com
- L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
++	  To make FB_INTELFB=Y work you need to say AGP_INTEL=y too.
++
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called intelfb.
+ 
+@@ -1460,7 +1462,7 @@ config FB_SIS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-	select FB_BOOT_VESA_SUPPORT
++	select FB_BOOT_VESA_SUPPORT if FB_SIS = y
+ 	help
+ 	  This is the frame buffer device driver for the SiS 300, 315, 330
+ 	  and 340 series as well as XGI V3XT, V5, V8, Z7 graphics chipsets.
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-maintainers-fbdev-is-orphaned.patch
-bootmemc-avoid-c90-declaration-warning.patch
-bootmemc-avoid-c90-declaration-warning-cleanup.patch
-maintainers-pair-names-addresses-in-edac-i82975x.patch
+fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers.patch
+intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
 
