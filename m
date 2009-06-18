@@ -1,122 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-change-context-load-and-unload.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:48:34 -0700
-Message-ID: <200906182248.n5IMmYY1007649@imap1.linux-foundation.org>
+Subject: [merged] gru-check-context-state-on-reload.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:48:44 -0700
+Message-ID: <200906182248.n5IMmit2007817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751314AbZFRWyd (ORCPT
+	by vger.kernel.org with ESMTP id S1752691AbZFRWzS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:54:33 -0400
+	Thu, 18 Jun 2009 18:55:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: change context load and unload
+     gru: check context state on reload
 has been removed from the -mm tree.  Its filename was
-     gru-change-context-load-and-unload.patch
+     gru-check-context-state-on-reload.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: change context load and unload
+Subject: gru: check context state on reload
 From: Jack Steiner <steiner@sgi.com>
 
-Remove "static" from the functions for loading/unloading GRU contexts. 
-These functions will be called from other GRU files.  Fix bug in unlocking
-gru context.
+Check whether the gru state being loaded into a gru is from a new context
+or a previously unloaded context.  If new, simply zero out the hardware
+context; if unloaded and valid, reload the old state.
+
+This change is primarily for reloading kernel contexts where the previous
+is not required to be saved.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c  |    4 ++--
- drivers/misc/sgi-gru/grumain.c   |   10 +++++-----
- drivers/misc/sgi-gru/grutables.h |    4 ++++
- 3 files changed, 11 insertions(+), 7 deletions(-)
+ drivers/misc/sgi-gru/grumain.c   |   32 ++++++++++++++++++++---------
+ drivers/misc/sgi-gru/grutables.h |    2 +
+ 2 files changed, 25 insertions(+), 9 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-change-context-load-and-unload drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-change-context-load-and-unload
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -558,8 +558,8 @@ int gru_handle_user_call_os(unsigned lon
- 	 * CCH may contain stale data if ts_force_cch_reload is set.
- 	 */
- 	if (gts->ts_gru && gts->ts_force_cch_reload) {
--		gru_update_cch(gts, 0);
- 		gts->ts_force_cch_reload = 0;
-+		gru_update_cch(gts, 0);
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-check-context-state-on-reload drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-check-context-state-on-reload
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -307,11 +307,12 @@ struct gru_thread_state *gru_alloc_gts(s
+ 
+ 	bytes = DSR_BYTES(dsr_au_count) + CBR_BYTES(cbr_au_count);
+ 	bytes += sizeof(struct gru_thread_state);
+-	gts = kzalloc(bytes, GFP_KERNEL);
++	gts = kmalloc(bytes, GFP_KERNEL);
+ 	if (!gts)
+ 		return NULL;
+ 
+ 	STAT(gts_alloc);
++	memset(gts, 0, sizeof(struct gru_thread_state)); /* zero out header */
+ 	atomic_set(&gts->ts_refcnt, 1);
+ 	mutex_init(&gts->ts_ctxlock);
+ 	gts->ts_cbr_au_count = cbr_au_count;
+@@ -458,7 +459,8 @@ static void gru_prefetch_context(void *g
+ }
+ 
+ static void gru_load_context_data(void *save, void *grubase, int ctxnum,
+-				  unsigned long cbrmap, unsigned long dsrmap)
++				  unsigned long cbrmap, unsigned long dsrmap,
++				  int data_valid)
+ {
+ 	void *gseg, *cb, *cbe;
+ 	unsigned long length;
+@@ -471,12 +473,22 @@ static void gru_load_context_data(void *
+ 	gru_prefetch_context(gseg, cb, cbe, cbrmap, length);
+ 
+ 	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
+-		save += gru_copy_handle(cb, save);
+-		save += gru_copy_handle(cbe + i * GRU_HANDLE_STRIDE, save);
++		if (data_valid) {
++			save += gru_copy_handle(cb, save);
++			save += gru_copy_handle(cbe + i * GRU_HANDLE_STRIDE,
++						save);
++		} else {
++			memset(cb, 0, GRU_CACHE_LINE_BYTES);
++			memset(cbe + i * GRU_HANDLE_STRIDE, 0,
++						GRU_CACHE_LINE_BYTES);
++		}
+ 		cb += GRU_HANDLE_STRIDE;
  	}
  
- 	ret = -EAGAIN;
-@@ -644,7 +644,7 @@ static int gru_unload_all_contexts(void)
- 			if (gts && mutex_trylock(&gts->ts_ctxlock)) {
- 				spin_unlock(&gru->gs_lock);
- 				gru_unload_context(gts, 1);
--				gru_unlock_gts(gts);
-+				mutex_unlock(&gts->ts_ctxlock);
- 				spin_lock(&gru->gs_lock);
- 			}
- 		}
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-change-context-load-and-unload drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-change-context-load-and-unload
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -533,7 +533,7 @@ void gru_unload_context(struct gru_threa
-  * Load a GRU context by copying it from the thread data structure in memory
-  * to the GRU.
-  */
--static void gru_load_context(struct gru_thread_state *gts)
-+void gru_load_context(struct gru_thread_state *gts)
- {
- 	struct gru_state *gru = gts->ts_gru;
- 	struct gru_context_configuration_handle *cch;
-@@ -600,8 +600,8 @@ int gru_update_cch(struct gru_thread_sta
+-	memcpy(gseg + GRU_DS_BASE, save, length);
++	if (data_valid)
++		memcpy(gseg + GRU_DS_BASE, save, length);
++	else
++		memset(gseg + GRU_DS_BASE, 0, length);
+ }
+ 
+ static void gru_unload_context_data(void *save, void *grubase, int ctxnum,
+@@ -517,10 +529,12 @@ void gru_unload_context(struct gru_threa
+ 
+ 	if (!is_kernel_context(gts))
+ 		gru_unload_mm_tracker(gru, gts);
+-	if (savestate)
++	if (savestate) {
+ 		gru_unload_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr,
+ 					ctxnum, gts->ts_cbr_map,
+ 					gts->ts_dsr_map);
++		gts->ts_data_valid = 1;
++	}
+ 
+ 	if (cch_deallocate(cch))
+ 		BUG();
+@@ -576,7 +590,7 @@ void gru_load_context(struct gru_thread_
+ 	}
+ 
+ 	gru_load_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr, ctxnum,
+-			      gts->ts_cbr_map, gts->ts_dsr_map);
++			gts->ts_cbr_map, gts->ts_dsr_map, gts->ts_data_valid);
+ 
+ 	if (cch_start(cch))
+ 		BUG();
+@@ -611,8 +625,8 @@ int gru_update_cch(struct gru_thread_sta
  			gts->ts_tlb_int_select = gru_cpu_fault_map_id();
  			cch->tlb_int_select = gru_cpu_fault_map_id();
  			cch->tfm_fault_bit_enable =
--	    		    (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
--	     		    || gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
-+				(gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
-+				|| gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
+-				(gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
+-				|| gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
++			  (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
++			    || gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
  		} else {
  			for (i = 0; i < 8; i++)
  				cch->asid[i] = 0;
-@@ -645,7 +645,7 @@ static int gru_retarget_intr(struct gru_
- #define next_gru(b, g)	(((g) < &(b)->bs_grus[GRU_CHIPLETS_PER_BLADE - 1]) ?  \
- 				 ((g)+1) : &(b)->bs_grus[0])
- 
--static void gru_steal_context(struct gru_thread_state *gts, int blade_id)
-+void gru_steal_context(struct gru_thread_state *gts, int blade_id)
- {
- 	struct gru_blade_state *blade;
- 	struct gru_state *gru, *gru0;
-@@ -711,7 +711,7 @@ static void gru_steal_context(struct gru
- /*
-  * Scan the GRUs on the local blade & assign a GRU context.
-  */
--static struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts,
-+struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts,
- 						int blade)
- {
- 	struct gru_state *gru, *grux;
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-change-context-load-and-unload drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-change-context-load-and-unload
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-check-context-state-on-reload drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-check-context-state-on-reload
 +++ a/drivers/misc/sgi-gru/grutables.h
-@@ -611,6 +611,10 @@ extern struct gru_thread_state *gru_find
- 				*vma, int tsid);
- extern struct gru_thread_state *gru_alloc_thread_state(struct vm_area_struct
- 				*vma, int tsid);
-+extern struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts,
-+		int blade);
-+extern void gru_load_context(struct gru_thread_state *gts);
-+extern void gru_steal_context(struct gru_thread_state *gts, int blade_id);
- extern void gru_unload_context(struct gru_thread_state *gts, int savestate);
- extern int gru_update_cch(struct gru_thread_state *gts, int force_unload);
- extern void gts_drop(struct gru_thread_state *gts);
+@@ -385,6 +385,8 @@ struct gru_thread_state {
+ 						   after migration */
+ 	char			ts_cbr_idx[GRU_CBR_AU];/* CBR numbers of each
+ 							  allocated CB */
++	int			ts_data_valid;	/* Indicates if ts_gdata has
++						   valid data */
+ 	unsigned long		ts_gdata[0];	/* save area for GRU data (CB,
+ 						   DS, CBE) */
+ };
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
