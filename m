@@ -1,146 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-check-context-state-on-reload.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:48:44 -0700
-Message-ID: <200906182248.n5IMmit2007817@imap1.linux-foundation.org>
+Subject: [merged] gru-add-user-request-to-explicitly-unload-a-gru-context.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:48:56 -0700
+Message-ID: <200906182248.n5IMmu0N007983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47646 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40158 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752691AbZFRWzS (ORCPT
+	by vger.kernel.org with ESMTP id S1753350AbZFRWz6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:55:18 -0400
+	Thu, 18 Jun 2009 18:55:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: check context state on reload
+     gru: add user request to explicitly unload a gru context
 has been removed from the -mm tree.  Its filename was
-     gru-check-context-state-on-reload.patch
+     gru-add-user-request-to-explicitly-unload-a-gru-context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: check context state on reload
+Subject: gru: add user request to explicitly unload a gru context
 From: Jack Steiner <steiner@sgi.com>
 
-Check whether the gru state being loaded into a gru is from a new context
-or a previously unloaded context.  If new, simply zero out the hardware
-context; if unloaded and valid, reload the old state.
+Add user function to explicitly unload GRU kernel contexts from the GRU. 
+Only contexts that are not in-use will be unloaded.
 
-This change is primarily for reloading kernel contexts where the previous
-is not required to be saved.
+This function is primarily for testing.  It is not expected that this will
+be used in normal production systems.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grumain.c   |   32 ++++++++++++++++++++---------
- drivers/misc/sgi-gru/grutables.h |    2 +
- 2 files changed, 25 insertions(+), 9 deletions(-)
+ drivers/misc/sgi-gru/grufile.c      |   10 +---
+ drivers/misc/sgi-gru/grukservices.c |   55 ++++++++++++++++----------
+ drivers/misc/sgi-gru/grutables.h    |    4 -
+ 3 files changed, 41 insertions(+), 28 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-check-context-state-on-reload drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-check-context-state-on-reload
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -307,11 +307,12 @@ struct gru_thread_state *gru_alloc_gts(s
- 
- 	bytes = DSR_BYTES(dsr_au_count) + CBR_BYTES(cbr_au_count);
- 	bytes += sizeof(struct gru_thread_state);
--	gts = kzalloc(bytes, GFP_KERNEL);
-+	gts = kmalloc(bytes, GFP_KERNEL);
- 	if (!gts)
- 		return NULL;
- 
- 	STAT(gts_alloc);
-+	memset(gts, 0, sizeof(struct gru_thread_state)); /* zero out header */
- 	atomic_set(&gts->ts_refcnt, 1);
- 	mutex_init(&gts->ts_ctxlock);
- 	gts->ts_cbr_au_count = cbr_au_count;
-@@ -458,7 +459,8 @@ static void gru_prefetch_context(void *g
+diff -puN drivers/misc/sgi-gru/grufile.c~gru-add-user-request-to-explicitly-unload-a-gru-context drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~gru-add-user-request-to-explicitly-unload-a-gru-context
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -287,7 +287,6 @@ static void gru_init_chiplet(struct gru_
+ 	gru_dbg(grudev, "bid %d, nid %d, gid %d, vaddr %p (0x%lx)\n",
+ 		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
+ 		gru->gs_gru_base_paddr);
+-	gru_kservices_init(gru);
  }
  
- static void gru_load_context_data(void *save, void *grubase, int ctxnum,
--				  unsigned long cbrmap, unsigned long dsrmap)
-+				  unsigned long cbrmap, unsigned long dsrmap,
-+				  int data_valid)
+ static int gru_init_tables(unsigned long gru_base_paddr, void *gru_base_vaddr)
+@@ -314,6 +313,7 @@ static int gru_init_tables(unsigned long
+ 		memset(gru_base[bid], 0, sizeof(struct gru_blade_state));
+ 		gru_base[bid]->bs_lru_gru = &gru_base[bid]->bs_grus[0];
+ 		spin_lock_init(&gru_base[bid]->bs_lock);
++		init_rwsem(&gru_base[bid]->bs_kgts_sema);
+ 
+ 		dsrbytes = 0;
+ 		cbrs = 0;
+@@ -426,6 +426,7 @@ static int __init gru_init(void)
+ 		printk(KERN_ERR "%s: init tables failed\n", GRU_DRIVER_ID_STR);
+ 		goto exit3;
+ 	}
++	gru_kservices_init();
+ 
+ 	printk(KERN_INFO "%s: v%s\n", GRU_DRIVER_ID_STR,
+ 	       GRU_DRIVER_VERSION_STR);
+@@ -444,7 +445,7 @@ exit1:
+ 
+ static void __exit gru_exit(void)
  {
- 	void *gseg, *cb, *cbe;
- 	unsigned long length;
-@@ -471,12 +473,22 @@ static void gru_load_context_data(void *
- 	gru_prefetch_context(gseg, cb, cbe, cbrmap, length);
+-	int i, bid, gid;
++	int i, bid;
+ 	int order = get_order(sizeof(struct gru_state) *
+ 			      GRU_CHIPLETS_PER_BLADE);
  
- 	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
--		save += gru_copy_handle(cb, save);
--		save += gru_copy_handle(cbe + i * GRU_HANDLE_STRIDE, save);
-+		if (data_valid) {
-+			save += gru_copy_handle(cb, save);
-+			save += gru_copy_handle(cbe + i * GRU_HANDLE_STRIDE,
-+						save);
-+		} else {
-+			memset(cb, 0, GRU_CACHE_LINE_BYTES);
-+			memset(cbe + i * GRU_HANDLE_STRIDE, 0,
-+						GRU_CACHE_LINE_BYTES);
-+		}
- 		cb += GRU_HANDLE_STRIDE;
- 	}
+@@ -453,10 +454,7 @@ static void __exit gru_exit(void)
  
--	memcpy(gseg + GRU_DS_BASE, save, length);
-+	if (data_valid)
-+		memcpy(gseg + GRU_DS_BASE, save, length);
-+	else
-+		memset(gseg + GRU_DS_BASE, 0, length);
+ 	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
+ 		free_irq(IRQ_GRU + i, NULL);
+-
+-	foreach_gid(gid)
+-		gru_kservices_exit(GID_TO_GRU(gid));
+-
++	gru_kservices_exit();
+ 	for (bid = 0; bid < GRU_MAX_BLADES; bid++)
+ 		free_pages((unsigned long)gru_base[bid], order);
+ 
+diff -puN drivers/misc/sgi-gru/grukservices.c~gru-add-user-request-to-explicitly-unload-a-gru-context drivers/misc/sgi-gru/grukservices.c
+--- a/drivers/misc/sgi-gru/grukservices.c~gru-add-user-request-to-explicitly-unload-a-gru-context
++++ a/drivers/misc/sgi-gru/grukservices.c
+@@ -188,6 +188,34 @@ static void gru_load_kernel_context(stru
  }
  
- static void gru_unload_context_data(void *save, void *grubase, int ctxnum,
-@@ -517,10 +529,12 @@ void gru_unload_context(struct gru_threa
- 
- 	if (!is_kernel_context(gts))
- 		gru_unload_mm_tracker(gru, gts);
--	if (savestate)
-+	if (savestate) {
- 		gru_unload_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr,
- 					ctxnum, gts->ts_cbr_map,
- 					gts->ts_dsr_map);
-+		gts->ts_data_valid = 1;
+ /*
++ * Free all kernel contexts that are not currently in use.
++ *   Returns 0 if all freed, else number of inuse context.
++ */
++static int gru_free_kernel_contexts(void)
++{
++	struct gru_blade_state *bs;
++	struct gru_thread_state *kgts;
++	int bid, ret = 0;
++
++	for (bid = 0; bid < GRU_MAX_BLADES; bid++) {
++		bs = gru_base[bid];
++		if (!bs)
++			continue;
++		if (down_write_trylock(&bs->bs_kgts_sema)) {
++			kgts = bs->bs_kgts;
++			if (kgts && kgts->ts_gru)
++				gru_unload_context(kgts, 0);
++			kfree(kgts);
++			bs->bs_kgts = NULL;
++			up_write(&bs->bs_kgts_sema);
++		} else {
++			ret++;
++		}
 +	}
- 
- 	if (cch_deallocate(cch))
- 		BUG();
-@@ -576,7 +590,7 @@ void gru_load_context(struct gru_thread_
++	return ret;
++}
++
++/*
+  * Lock & load the kernel context for the specified blade.
+  */
+ static struct gru_blade_state *gru_lock_kernel_context(int blade_id)
+@@ -1009,35 +1037,22 @@ int gru_ktest(unsigned long arg)
+ 	case 2:
+ 		ret = quicktest2(arg);
+ 		break;
++	case 99:
++		ret = gru_free_kernel_contexts();
++		break;
  	}
+ 	return ret;
  
- 	gru_load_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr, ctxnum,
--			      gts->ts_cbr_map, gts->ts_dsr_map);
-+			gts->ts_cbr_map, gts->ts_dsr_map, gts->ts_data_valid);
+ }
  
- 	if (cch_start(cch))
- 		BUG();
-@@ -611,8 +625,8 @@ int gru_update_cch(struct gru_thread_sta
- 			gts->ts_tlb_int_select = gru_cpu_fault_map_id();
- 			cch->tlb_int_select = gru_cpu_fault_map_id();
- 			cch->tfm_fault_bit_enable =
--				(gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
--				|| gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
-+			  (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
-+			    || gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
- 		} else {
- 			for (i = 0; i < 8; i++)
- 				cch->asid[i] = 0;
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-check-context-state-on-reload drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-check-context-state-on-reload
+-int gru_kservices_init(struct gru_state *gru)
++int gru_kservices_init(void)
+ {
+-	struct gru_blade_state *bs;
+-
+-	bs = gru->gs_blade;
+-	if (gru != &bs->bs_grus[0])
+-		return 0;
+-
+-	init_rwsem(&bs->bs_kgts_sema);
+ 	return 0;
+ }
+ 
+-void gru_kservices_exit(struct gru_state *gru)
++void gru_kservices_exit(void)
+ {
+-	struct gru_blade_state *bs;
+-	struct gru_thread_state *kgts;
+-
+-	bs = gru->gs_blade;
+-	if (gru != &bs->bs_grus[0])
+-		return;
+-
+-	kgts = bs->bs_kgts;
+-	if (kgts && kgts->ts_gru)
+-		gru_unload_context(kgts, 0);
+-	kfree(kgts);
++	if (gru_free_kernel_contexts())
++		BUG();
+ }
+ 
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-add-user-request-to-explicitly-unload-a-gru-context drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-add-user-request-to-explicitly-unload-a-gru-context
 +++ a/drivers/misc/sgi-gru/grutables.h
-@@ -385,6 +385,8 @@ struct gru_thread_state {
- 						   after migration */
- 	char			ts_cbr_idx[GRU_CBR_AU];/* CBR numbers of each
- 							  allocated CB */
-+	int			ts_data_valid;	/* Indicates if ts_gdata has
-+						   valid data */
- 	unsigned long		ts_gdata[0];	/* save area for GRU data (CB,
- 						   DS, CBE) */
- };
+@@ -638,8 +638,8 @@ extern void gru_unload_context(struct gr
+ extern int gru_update_cch(struct gru_thread_state *gts, int force_unload);
+ extern void gts_drop(struct gru_thread_state *gts);
+ extern void gru_tgh_flush_init(struct gru_state *gru);
+-extern int gru_kservices_init(struct gru_state *gru);
+-extern void gru_kservices_exit(struct gru_state *gru);
++extern int gru_kservices_init(void);
++extern void gru_kservices_exit(void);
+ extern int gru_dump_chiplet_request(unsigned long arg);
+ extern irqreturn_t gru_intr(int irq, void *dev_id);
+ extern int gru_handle_user_call_os(unsigned long address);
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
