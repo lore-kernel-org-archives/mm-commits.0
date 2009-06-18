@@ -1,90 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:46:23 -0700
-Message-ID: <200906182246.n5IMkNRC005430@imap1.linux-foundation.org>
+Subject: [merged] documentation-connector-cn_testc-comment-unused-cn_test_want_notify.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:45:13 -0700
+Message-ID: <200906182245.n5IMjDHM004279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758065AbZFRW6l (ORCPT
+	by vger.kernel.org with ESMTP id S1758230AbZFRW6t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:58:41 -0400
+	Thu, 18 Jun 2009 18:58:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, geert@linux-m68k.org, gerg@snapgear.com, roland@redhat.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: jaswinder@kernel.org, jaswinderrajput@gmail.com, zbr@ioremap.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: remove PT_DTRACE from m68k, m68knommu
+     Documentation/connector/cn_test.c comment unused cn_test_want_notify()
 has been removed from the -mm tree.  Its filename was
-     ptrace-remove-pt_dtrace-from-m68k-m68knommu.patch
+     documentation-connector-cn_testc-comment-unused-cn_test_want_notify.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: remove PT_DTRACE from m68k, m68knommu
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: Documentation/connector/cn_test.c comment unused cn_test_want_notify()
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-m68k sets PT_DTRACE in trap_c() but never uses it.
+Currently cn_test_want_notify() has no user.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Greg Ungerer <gerg@snapgear.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Acked-by: Roland McGrath <roland@redhat.com>
+So add an ifdef and a comment which tells us to not remove it.
+
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/traps.c            |    1 -
- arch/m68knommu/kernel/asm-offsets.c |    1 -
- arch/m68knommu/kernel/traps.c       |    1 -
- 3 files changed, 3 deletions(-)
+ Documentation/connector/cn_test.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/m68k/kernel/traps.c~ptrace-remove-pt_dtrace-from-m68k-m68knommu arch/m68k/kernel/traps.c
---- a/arch/m68k/kernel/traps.c~ptrace-remove-pt_dtrace-from-m68k-m68knommu
-+++ a/arch/m68k/kernel/traps.c
-@@ -1057,7 +1057,6 @@ asmlinkage void trap_c(struct frame *fp)
- 	if (fp->ptregs.sr & PS_S) {
- 		if ((fp->ptregs.vector >> 2) == VEC_TRACE) {
- 			/* traced a trapping instruction */
--			current->ptrace |= PT_DTRACE;
- 		} else
- 			bad_super_trap(fp);
- 		return;
-diff -puN arch/m68knommu/kernel/asm-offsets.c~ptrace-remove-pt_dtrace-from-m68k-m68knommu arch/m68knommu/kernel/asm-offsets.c
---- a/arch/m68knommu/kernel/asm-offsets.c~ptrace-remove-pt_dtrace-from-m68k-m68knommu
-+++ a/arch/m68knommu/kernel/asm-offsets.c
-@@ -73,7 +73,6 @@ int main(void)
- 	DEFINE(TRAP_TRACE, TRAP_TRACE);
+diff -puN Documentation/connector/cn_test.c~documentation-connector-cn_testc-comment-unused-cn_test_want_notify Documentation/connector/cn_test.c
+--- a/Documentation/connector/cn_test.c~documentation-connector-cn_testc-comment-unused-cn_test_want_notify
++++ a/Documentation/connector/cn_test.c
+@@ -41,6 +41,12 @@ void cn_test_callback(void *data)
+ 	       msg->seq, msg->ack, msg->len, (char *)msg->data);
+ }
  
- 	DEFINE(PT_PTRACED, PT_PTRACED);
--	DEFINE(PT_DTRACE, PT_DTRACE);
++/*
++ * Do not remove this function even if no one is using it as
++ * this is an example of how to get notifications about new
++ * connector user registration
++ */
++#if 0
+ static int cn_test_want_notify(void)
+ {
+ 	struct cn_ctl_msg *ctl;
+@@ -117,6 +123,7 @@ nlmsg_failure:
+ 	kfree_skb(skb);
+ 	return -EINVAL;
+ }
++#endif
  
- 	DEFINE(THREAD_SIZE, THREAD_SIZE);
- 
-diff -puN arch/m68knommu/kernel/traps.c~ptrace-remove-pt_dtrace-from-m68k-m68knommu arch/m68knommu/kernel/traps.c
---- a/arch/m68knommu/kernel/traps.c~ptrace-remove-pt_dtrace-from-m68k-m68knommu
-+++ a/arch/m68knommu/kernel/traps.c
-@@ -200,7 +200,6 @@ asmlinkage void trap_c(struct frame *fp)
- 	if (fp->ptregs.sr & PS_S) {
- 		if ((fp->ptregs.vector >> 2) == VEC_TRACE) {
- 			/* traced a trapping instruction */
--			current->ptrace |= PT_DTRACE;
- 		} else
- 			bad_super_trap(fp);
- 		return;
+ static u32 cn_test_timer_counter;
+ static void cn_test_timer_func(unsigned long __data)
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jaswinder@kernel.org are
 
 origin.patch
-ptrace-wait_task_zombie-do-not-account-traced-sub-threads.patch
 linux-next.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+x86-apic-io_apicc-dmar_msi_type-should-be-static.patch
 
