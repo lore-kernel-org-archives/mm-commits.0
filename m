@@ -1,86 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] do_wait-fix-the-theoretical-race-with-stop-trace-cont.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 15:47:02 -0700
-Message-ID: <200906182247.n5IMl2c8006160@imap1.linux-foundation.org>
+Subject: [merged] char-isicom-fix-build-warning.patch removed from -mm tree
+Date: Thu, 18 Jun 2009 15:47:19 -0700
+Message-ID: <200906182247.n5IMlJAr006436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33536 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36529 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759058AbZFRWrv (ORCPT
+	by vger.kernel.org with ESMTP id S1759220AbZFRWry (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:47:51 -0400
+	Thu, 18 Jun 2009 18:47:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_wait: fix the theoretical race with stop/trace/cont
+     Char: isicom: fix build warning
 has been removed from the -mm tree.  Its filename was
-     do_wait-fix-the-theoretical-race-with-stop-trace-cont.patch
+     char-isicom-fix-build-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_wait: fix the theoretical race with stop/trace/cont
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: Char: isicom: fix build warning
+From: Jiri Slaby <jirislaby@gmail.com>
 
-do_wait:
+Fix this:
+isicom.c: In function `isicom_probe':
+isicom.c:1587: warning: `signature' may be used uninitialized in this function
+by uninitialized_var(), because if the signature is not initialized in
+reset_card(), we won't use it.
 
-	current->state = TASK_INTERRUPTIBLE;
-
-	read_lock(&tasklist_lock);
-	... search for the task to reap ...
-
-In theory, the ->state changing can leak into the critical section.  Since
-the child can change its status under read_lock(tasklist) in parallel
-(finish_stop/ptrace_stop), we can miss the wakeup if __wake_up_parent()
-sees us in TASK_RUNNING state.  Add the barrier.
-
-Also, use __set_current_state() to set TASK_RUNNING.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/isicom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~do_wait-fix-the-theoretical-race-with-stop-trace-cont kernel/exit.c
---- a/kernel/exit.c~do_wait-fix-the-theoretical-race-with-stop-trace-cont
-+++ a/kernel/exit.c
-@@ -1581,7 +1581,7 @@ repeat:
- 	   (!wo->wo_pid || hlist_empty(&wo->wo_pid->tasks[wo->wo_type])))
- 		goto notask;
+diff -puN drivers/char/isicom.c~char-isicom-fix-build-warning drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-fix-build-warning
++++ a/drivers/char/isicom.c
+@@ -1593,7 +1593,7 @@ static unsigned int card_count;
+ static int __devinit isicom_probe(struct pci_dev *pdev,
+ 	const struct pci_device_id *ent)
+ {
+-	unsigned int signature, index;
++	unsigned int uninitialized_var(signature), index;
+ 	int retval = -EPERM;
+ 	struct isi_board *board = NULL;
  
--	current->state = TASK_INTERRUPTIBLE;
-+	set_current_state(TASK_INTERRUPTIBLE);
- 	read_lock(&tasklist_lock);
- 	tsk = current;
- 	do {
-@@ -1608,7 +1608,7 @@ notask:
- 		}
- 	}
- end:
--	current->state = TASK_RUNNING;
-+	__set_current_state(TASK_RUNNING);
- 	remove_wait_queue(&current->signal->wait_chldexit,&wait);
- 	if (wo->wo_info) {
- 		struct siginfo __user *infop = wo->wo_info;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-ptrace-wait_task_zombie-do-not-account-traced-sub-threads.patch
+char-moxa-prevent-opening-unavailable-ports.patch
+dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
+dma-mapping-mark-dma_nbits_mask-as-deprecated-fix.patch
 linux-next.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
+icom-converting-space-to-tabs.patch
+rapidio-fix-kerneldoc-for-rio_mem_ops.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
