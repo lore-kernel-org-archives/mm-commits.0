@@ -1,99 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [folded] bootmemc-avoid-c90-declaration-warning-cleanup.patch removed from -mm tree
-Date: Thu, 18 Jun 2009 16:44:01 -0700
-Message-ID: <200906182344.n5INi1dt026812@imap1.linux-foundation.org>
+Subject: + rmap-fixup-page_referenced-for-nommu-systems.patch added to -mm tree
+Date: Thu, 18 Jun 2009 17:48:00 -0700
+Message-ID: <200906190048.n5J0m0kq021597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754240AbZFRXqL (ORCPT
+	by vger.kernel.org with ESMTP id S1751253AbZFSAs1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Jun 2009 19:46:11 -0400
+	Thu, 18 Jun 2009 20:48:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, hannes@cmpxchg.org, joe@perches.com, penberg@cs.helsinki.fi, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: vapier@gentoo.org, davidm@snapgear.com, dhowells@redhat.com, fengguang.wu@intel.com, gerg@uclinux.org, lethal@linux-sh.org
 
 
 The patch titled
-     bootmemc-avoid-c90-declaration-warning-cleanup
-has been removed from the -mm tree.  Its filename was
-     bootmemc-avoid-c90-declaration-warning-cleanup.patch
+     rmap: fixup page_referenced() for nommu systems
+has been added to the -mm tree.  Its filename is
+     rmap-fixup-page_referenced-for-nommu-systems.patch
 
-This patch was dropped because it was folded into bootmemc-avoid-c90-declaration-warning.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmemc-avoid-c90-declaration-warning-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rmap: fixup page_referenced() for nommu systems
+From: Mike Frysinger <vapier@gentoo.org>
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Tejun Heo <tj@kernel.org>
+After the recent changes that went into mm/vmscan.c to overhaul stuff, we
+ended up with these warnings on no-mmu systems:
+mm/vmscan.c: In function `shrink_page_list':
+mm/vmscan.c:580: warning: unused variable `vm_flags'
+mm/vmscan.c: In function `shrink_active_list':
+mm/vmscan.c:1294: warning: `vm_flags' may be used uninitialized in this function
+mm/vmscan.c:1242: note: `vm_flags' was declared here
+
+This is because the no-mmu function defines page_referenced() to work on
+the first argument only (the page).  It does not clear the vm_flags given
+to it because for no-mmu systems, they never actually get utilized.  Since
+that is no longer strictly true, we need to set vm_flags to 0 like
+everyone else so gcc can do proper dead code elimination without annoying
+us with unused warnings.
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: David McCullough <davidm@snapgear.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/rmap.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN mm/bootmem.c~bootmemc-avoid-c90-declaration-warning-cleanup mm/bootmem.c
---- a/mm/bootmem.c~bootmemc-avoid-c90-declaration-warning-cleanup
-+++ a/mm/bootmem.c
-@@ -537,11 +537,13 @@ static void * __init alloc_arch_preferre
+diff -puN include/linux/rmap.h~rmap-fixup-page_referenced-for-nommu-systems include/linux/rmap.h
+--- a/include/linux/rmap.h~rmap-fixup-page_referenced-for-nommu-systems
++++ a/include/linux/rmap.h
+@@ -118,7 +118,14 @@ int try_to_munlock(struct page *);
+ #define anon_vma_prepare(vma)	(0)
+ #define anon_vma_link(vma)	do {} while (0)
  
- #ifdef CONFIG_HAVE_ARCH_BOOTMEM
- 	{
--	bootmem_data_t *p_bdata;
-+		bootmem_data_t *p_bdata;
+-#define page_referenced(page, locked, cnt, flags) TestClearPageReferenced(page)
++static inline int page_referenced(struct page *page, int is_locked,
++				  struct mem_cgroup *cnt,
++				  unsigned long *vm_flags)
++{
++	*vm_flags = 0;
++	return TestClearPageReferenced(page);
++}
++
+ #define try_to_unmap(page, refs) SWAP_FAIL
  
--	p_bdata = bootmem_arch_preferred_node(bdata, size, align, goal, limit);
--	if (p_bdata)
--		return alloc_bootmem_core(p_bdata, size, align, goal, limit);
-+		p_bdata = bootmem_arch_preferred_node(bdata, size, align,
-+							goal, limit);
-+		if (p_bdata)
-+			return alloc_bootmem_core(p_bdata, size, align,
-+							goal, limit);
- 	}
- #endif
- 	return NULL;
+ static inline int page_mkclean(struct page *page)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-bootmemc-avoid-c90-declaration-warning.patch
-bootmemc-avoid-c90-declaration-warning-cleanup.patch
-char-moxa-prevent-opening-unavailable-ports.patch
-convert-some-dma_nnbit_mask-callers.patch
+istallion-add-missing-__devexit-marking.patch
+rmap-fixup-page_referenced-for-nommu-systems.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+pcmcia-yenta-add-missing-__devexit-marking.patch
 
