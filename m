@@ -1,105 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dell-wmi-add-additional-keyboard-events.patch removed from -mm tree
-Date: Mon, 22 Jun 2009 10:01:00 -0700
-Message-ID: <200906221701.n5MH107A010385@imap1.linux-foundation.org>
+Subject: + page_alloc-oops-when-setting-percpu_pagelist_fraction.patch added to -mm tree
+Date: Mon, 22 Jun 2009 10:03:24 -0700
+Message-ID: <200906221703.n5MH3OCi012881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49146 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752571AbZFVRDe (ORCPT
+	by vger.kernel.org with ESMTP id S1751372AbZFVRFg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 13:03:34 -0400
+	Mon, 22 Jun 2009 13:05:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mario_limonciello@dell.com, lenb@kernel.org, mjg@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sivanich@sgi.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, stable@kernel.org
 
 
 The patch titled
-     dell-wmi: add additional keyboard events
-has been removed from the -mm tree.  Its filename was
-     dell-wmi-add-additional-keyboard-events.patch
+     page_alloc: Oops when setting percpu_pagelist_fraction
+has been added to the -mm tree.  Its filename is
+     page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dell-wmi: add additional keyboard events
-From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: page_alloc: Oops when setting percpu_pagelist_fraction
+From: Dimitri Sivanich <sivanich@sgi.com>
 
-Upcoming Dell hardware will send more keyboard events via WMI.  Add
-support for them.
+After downing/upping a cpu, an attempt to set
+/proc/sys/vm/percpu_pagelist_fraction results in an oops in
+percpu_pagelist_fraction_sysctl_handler().
 
-Signed-off-by: Mario Limonciello <mario_limonciello@dell.com>
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
+To reproduce this:
+  localhost:/sys/devices/system/cpu/cpu6 # echo 0 >online
+  localhost:/sys/devices/system/cpu/cpu6 # echo 1 >online
+  localhost:/sys/devices/system/cpu/cpu6 # cd /proc/sys/vm
+  localhost:/proc/sys/vm # echo 100000 >percpu_pagelist_fraction
+
+  BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
+  IP: [<ffffffff80286946>] percpu_pagelist_fraction_sysctl_handler+0x4a/0x96
+
+This is because the zone->pageset[cpu] value has not been set when the cpu
+has been brought back up for unpopulated zones (the "Movable" zone in the
+case I'm running into).  Prior to downing/upping the cpu it had been set
+to &boot_pageset[cpu].
+
+There are two possible fixes that come to mind.  One is to check for an
+unpopulated zone or NULL zone pageset for that cpu in
+percpu_pagelist_fraction_sysctl_handler(), and simply not set a pagelist
+highmark for that zone/cpu combination.
+
+The other, and the one I'm proposing here, is to set the zone's pageset
+back to the boot_pageset when the cpu is brought back up if the zone is
+unpopulated.
+
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/dell-wmi.c |   45 +++++++++++++++++++++++++++++-
- 1 file changed, 44 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/dell-wmi.c~dell-wmi-add-additional-keyboard-events drivers/platform/x86/dell-wmi.c
---- a/drivers/platform/x86/dell-wmi.c~dell-wmi-add-additional-keyboard-events
-+++ a/drivers/platform/x86/dell-wmi.c
-@@ -46,10 +46,53 @@ struct key_entry {
- 	u16 keycode;
- };
+diff -puN mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction
++++ a/mm/page_alloc.c
+@@ -3005,7 +3005,11 @@ static int __cpuinit process_zones(int c
  
--enum { KE_KEY, KE_SW, KE_END };
-+enum { KE_KEY, KE_SW, KE_IGNORE, KE_END };
-+
-+/*
-+ * Certain keys are flagged as KE_IGNORE. All of these are either
-+ * notifications (rather than requests for change) or are also sent
-+ * via the keyboard controller so should not be sent again.
-+ */
+ 	node_set_state(node, N_CPU);	/* this node has a cpu */
  
- static struct key_entry dell_wmi_keymap[] = {
- 	{KE_KEY, 0xe045, KEY_PROG1},
-+	{KE_KEY, 0xe009, KEY_EJECTCD},
-+
-+	/* These also contain the brightness level at offset 6 */
-+	{KE_KEY, 0xe006, KEY_BRIGHTNESSUP},
-+	{KE_KEY, 0xe005, KEY_BRIGHTNESSDOWN},
-+
-+	/* Battery health status button */
-+	{KE_KEY, 0xe007, KEY_BATTERY},
-+
-+	/* This is actually for all radios. Although physically a
-+	 * switch, the notification does not provide an indication of
-+	 * state and so it should be reported as a key */
-+	{KE_KEY, 0xe008, KEY_WLAN},
-+
-+	/* The next device is at offset 6, the active devices are at
-+	   offset 8 and the attached devices at offset 10 */
-+	{KE_KEY, 0xe00b, KEY_DISPLAYTOGGLE},
-+
-+	{KE_IGNORE, 0xe00c, KEY_KBDILLUMTOGGLE},
-+
-+	/* BIOS error detected */
-+	{KE_IGNORE, 0xe00d, KEY_RESERVED},
-+
-+	/* Wifi Catcher */
-+	{KE_KEY, 0xe011, KEY_PROG2},
-+
-+	/* Ambient light sensor toggle */
-+	{KE_IGNORE, 0xe013, KEY_RESERVED},
-+
-+	{KE_IGNORE, 0xe020, KEY_MUTE},
-+	{KE_IGNORE, 0xe02e, KEY_VOLUMEDOWN},
-+	{KE_IGNORE, 0xe030, KEY_VOLUMEUP},
-+	{KE_IGNORE, 0xe033, KEY_KBDILLUMUP},
-+	{KE_IGNORE, 0xe034, KEY_KBDILLUMDOWN},
-+	{KE_IGNORE, 0xe03a, KEY_CAPSLOCK},
-+	{KE_IGNORE, 0xe045, KEY_NUMLOCK},
-+	{KE_IGNORE, 0xe046, KEY_SCROLLLOCK},
- 	{KE_END, 0}
- };
- 
+-	for_each_populated_zone(zone) {
++	for_each_zone(zone) {
++		if (!populated_zone(zone)) {
++			zone_pcp(zone, cpu) = &boot_pageset[cpu];
++			continue;
++		}
+ 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
+ 					 GFP_KERNEL, node);
+ 		if (!zone_pcp(zone, cpu))
 _
 
-Patches currently in -mm which might be from mario_limonciello@dell.com are
+Patches currently in -mm which might be from sivanich@sgi.com are
 
-linux-next.patch
+page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
 
