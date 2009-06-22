@@ -1,180 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch removed from -mm tree
-Date: Mon, 22 Jun 2009 10:00:23 -0700
-Message-ID: <200906221700.n5MH0Nqr009629@imap1.linux-foundation.org>
+Subject: [merged] convert-some-dma_nnbit_mask-callers.patch removed from -mm tree
+Date: Mon, 22 Jun 2009 10:00:36 -0700
+Message-ID: <200906221700.n5MH0aFZ009951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35720 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51998 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752561AbZFVRBF (ORCPT
+	by vger.kernel.org with ESMTP id S1752863AbZFVRBN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 13:01:05 -0400
+	Mon, 22 Jun 2009 13:01:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Eric.Moore@lsil.com, James.Bottomley@HansenPartnership.com, alexander.h.duyck@intel.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, tiwai@suse.de
 
 
 The patch titled
-     rtc: make rtc_update_irq callable with irqs enabled
+     convert some DMA_nnBIT_MASK() callers
 has been removed from the -mm tree.  Its filename was
-     rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2.patch
+     convert-some-dma_nnbit_mask-callers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: make rtc_update_irq callable with irqs enabled
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: convert some DMA_nnBIT_MASK() callers
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The rtc_update_irq() might be called with irqs enabled, if a interrupt
-handler was registered without IRQF_DISABLED.  Use
-spin_lock_irqsave/spin_unlock_irqrestore instead of spin_lock/spin_unlock.
+We're about to make DMA_nnBIT_MASK() emit `deprecated' warnings.  Convert the
+remaining stragglers which are visible to the x86_64 build.
 
-Also update kerneldoc and drivers which do extra work to follow the
-current interface spec, as suggestted by David Brownell.
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Eric Moore <Eric.Moore@lsil.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: Yi Zou <yi.zou@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c  |   12 +++++++-----
- drivers/rtc/rtc-dev.c    |    6 ++----
- drivers/rtc/rtc-ds1305.c |    3 ---
- drivers/rtc/rtc-ds1307.c |    5 -----
- drivers/rtc/rtc-ds1374.c |    5 -----
- drivers/rtc/rtc-test.c   |    2 --
- 6 files changed, 9 insertions(+), 24 deletions(-)
+ drivers/message/fusion/mptbase.c |    8 ++++----
+ drivers/net/igbvf/netdev.c       |   13 +++++++------
+ drivers/net/ixgbe/ixgbe_fcoe.c   |    2 +-
+ sound/pci/lx6464es/lx6464es.c    |    2 +-
+ 4 files changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN drivers/rtc/interface.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/interface.c
-@@ -371,19 +371,21 @@ EXPORT_SYMBOL_GPL(rtc_update_irq_enable)
-  * @rtc: the rtc device
-  * @num: how many irqs are being reported (usually one)
-  * @events: mask of RTC_IRQF with one or more of RTC_PF, RTC_AF, RTC_UF
-- * Context: in_interrupt(), irqs blocked
-+ * Context: any
-  */
- void rtc_update_irq(struct rtc_device *rtc,
- 		unsigned long num, unsigned long events)
- {
--	spin_lock(&rtc->irq_lock);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&rtc->irq_lock, flags);
- 	rtc->irq_data = (rtc->irq_data + (num << 8)) | events;
--	spin_unlock(&rtc->irq_lock);
-+	spin_unlock_irqrestore(&rtc->irq_lock, flags);
- 
--	spin_lock(&rtc->irq_task_lock);
-+	spin_lock_irqsave(&rtc->irq_task_lock, flags);
- 	if (rtc->irq_task)
- 		rtc->irq_task->func(rtc->irq_task->private_data);
--	spin_unlock(&rtc->irq_task_lock);
-+	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
- 
- 	wake_up_interruptible(&rtc->irq_queue);
- 	kill_fasync(&rtc->async_queue, SIGIO, POLL_IN);
-diff -puN drivers/rtc/rtc-dev.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-dev.c
-@@ -60,8 +60,7 @@ static void rtc_uie_task(struct work_str
- 
- 	err = rtc_read_time(rtc, &tm);
- 
--	local_irq_disable();
--	spin_lock(&rtc->irq_lock);
-+	spin_lock_irq(&rtc->irq_lock);
- 	if (rtc->stop_uie_polling || err) {
- 		rtc->uie_task_active = 0;
- 	} else if (rtc->oldsecs != tm.tm_sec) {
-@@ -74,10 +73,9 @@ static void rtc_uie_task(struct work_str
- 	} else if (schedule_work(&rtc->uie_task) == 0) {
- 		rtc->uie_task_active = 0;
- 	}
--	spin_unlock(&rtc->irq_lock);
-+	spin_unlock_irq(&rtc->irq_lock);
- 	if (num)
- 		rtc_update_irq(rtc, num, RTC_UF | RTC_IRQF);
--	local_irq_enable();
- }
- static void rtc_uie_timer(unsigned long data)
- {
-diff -puN drivers/rtc/rtc-ds1305.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-ds1305.c
---- a/drivers/rtc/rtc-ds1305.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-ds1305.c
-@@ -499,10 +499,7 @@ static void ds1305_work(struct work_stru
- 	if (!test_bit(FLAG_EXITING, &ds1305->flags))
- 		enable_irq(spi->irq);
- 
--	/* rtc_update_irq() requires an IRQ-disabled context */
--	local_irq_disable();
- 	rtc_update_irq(ds1305->rtc, 1, RTC_AF | RTC_IRQF);
--	local_irq_enable();
- }
- 
- /*
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -267,12 +267,7 @@ static void ds1307_work(struct work_stru
- 		control &= ~DS1337_BIT_A1IE;
- 		i2c_smbus_write_byte_data(client, DS1337_REG_CONTROL, control);
- 
--		/* rtc_update_irq() assumes that it is called
--		 * from IRQ-disabled context.
--		 */
--		local_irq_disable();
- 		rtc_update_irq(ds1307->rtc, 1, RTC_AF | RTC_IRQF);
--		local_irq_enable();
+diff -puN drivers/message/fusion/mptbase.c~convert-some-dma_nnbit_mask-callers drivers/message/fusion/mptbase.c
+--- a/drivers/message/fusion/mptbase.c~convert-some-dma_nnbit_mask-callers
++++ a/drivers/message/fusion/mptbase.c
+@@ -4414,11 +4414,11 @@ PrimeIocFifos(MPT_ADAPTER *ioc)
+ 		 * 1078 errata workaround for the 36GB limitation
+ 		 */
+ 		if (ioc->pcidev->device == MPI_MANUFACTPAGE_DEVID_SAS1078 &&
+-		    ioc->dma_mask > DMA_35BIT_MASK) {
++		    ioc->dma_mask > DMA_BIT_MASK(35)) {
+ 			if (!pci_set_dma_mask(ioc->pcidev, DMA_BIT_MASK(32))
+ 			    && !pci_set_consistent_dma_mask(ioc->pcidev,
+ 			    DMA_BIT_MASK(32))) {
+-				dma_mask = DMA_35BIT_MASK;
++				dma_mask = DMA_BIT_MASK(35);
+ 				d36memprintk(ioc, printk(MYIOC_s_DEBUG_FMT
+ 				    "setting 35 bit addressing for "
+ 				    "Request/Reply/Chain and Sense Buffers\n",
+@@ -4575,7 +4575,7 @@ PrimeIocFifos(MPT_ADAPTER *ioc)
+ 		alloc_dma += ioc->reply_sz;
  	}
  
- out:
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -296,12 +296,7 @@ static void ds1374_work(struct work_stru
- 		control &= ~(DS1374_REG_CR_WACE | DS1374_REG_CR_AIE);
- 		i2c_smbus_write_byte_data(client, DS1374_REG_CR, control);
- 
--		/* rtc_update_irq() assumes that it is called
--		 * from IRQ-disabled context.
--		 */
--		local_irq_disable();
- 		rtc_update_irq(ds1374->rtc, 1, RTC_AF | RTC_IRQF);
--		local_irq_enable();
+-	if (dma_mask == DMA_35BIT_MASK && !pci_set_dma_mask(ioc->pcidev,
++	if (dma_mask == DMA_BIT_MASK(35) && !pci_set_dma_mask(ioc->pcidev,
+ 	    ioc->dma_mask) && !pci_set_consistent_dma_mask(ioc->pcidev,
+ 	    ioc->dma_mask))
+ 		d36memprintk(ioc, printk(MYIOC_s_DEBUG_FMT
+@@ -4602,7 +4602,7 @@ out_fail:
+ 		ioc->sense_buf_pool = NULL;
  	}
  
- out:
-diff -puN drivers/rtc/rtc-test.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2 drivers/rtc/rtc-test.c
---- a/drivers/rtc/rtc-test.c~rtc-make-rtc_update_irq-callable-with-irqs-enabled-v2
-+++ a/drivers/rtc/rtc-test.c
-@@ -93,7 +93,6 @@ static ssize_t test_irq_store(struct dev
- 	struct rtc_device *rtc = platform_get_drvdata(plat_dev);
+-	if (dma_mask == DMA_35BIT_MASK && !pci_set_dma_mask(ioc->pcidev,
++	if (dma_mask == DMA_BIT_MASK(35) && !pci_set_dma_mask(ioc->pcidev,
+ 	    DMA_BIT_MASK(64)) && !pci_set_consistent_dma_mask(ioc->pcidev,
+ 	    DMA_BIT_MASK(64)))
+ 		d36memprintk(ioc, printk(MYIOC_s_DEBUG_FMT
+diff -puN drivers/net/igbvf/netdev.c~convert-some-dma_nnbit_mask-callers drivers/net/igbvf/netdev.c
+--- a/drivers/net/igbvf/netdev.c~convert-some-dma_nnbit_mask-callers
++++ a/drivers/net/igbvf/netdev.c
+@@ -1281,7 +1281,7 @@ static void igbvf_configure_tx(struct ig
+ 	/* Setup the HW Tx Head and Tail descriptor pointers */
+ 	ew32(TDLEN(0), tx_ring->count * sizeof(union e1000_adv_tx_desc));
+ 	tdba = tx_ring->dma;
+-	ew32(TDBAL(0), (tdba & DMA_32BIT_MASK));
++	ew32(TDBAL(0), (tdba & DMA_BIT_MASK(32)));
+ 	ew32(TDBAH(0), (tdba >> 32));
+ 	ew32(TDH(0), 0);
+ 	ew32(TDT(0), 0);
+@@ -1367,7 +1367,7 @@ static void igbvf_configure_rx(struct ig
+ 	 * the Base and Length of the Rx Descriptor Ring
+ 	 */
+ 	rdba = rx_ring->dma;
+-	ew32(RDBAL(0), (rdba & DMA_32BIT_MASK));
++	ew32(RDBAL(0), (rdba & DMA_BIT_MASK(32)));
+ 	ew32(RDBAH(0), (rdba >> 32));
+ 	ew32(RDLEN(0), rx_ring->count * sizeof(union e1000_adv_rx_desc));
+ 	rx_ring->head = E1000_RDH(0);
+@@ -2628,15 +2628,16 @@ static int __devinit igbvf_probe(struct 
+ 		return err;
  
- 	retval = count;
--	local_irq_disable();
- 	if (strncmp(buf, "tick", 4) == 0)
- 		rtc_update_irq(rtc, 1, RTC_PF | RTC_IRQF);
- 	else if (strncmp(buf, "alarm", 5) == 0)
-@@ -102,7 +101,6 @@ static ssize_t test_irq_store(struct dev
- 		rtc_update_irq(rtc, 1, RTC_UF | RTC_IRQF);
- 	else
- 		retval = -EINVAL;
--	local_irq_enable();
+ 	pci_using_dac = 0;
+-	err = pci_set_dma_mask(pdev, DMA_64BIT_MASK);
++	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(64));
+ 	if (!err) {
+-		err = pci_set_consistent_dma_mask(pdev, DMA_64BIT_MASK);
++		err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
+ 		if (!err)
+ 			pci_using_dac = 1;
+ 	} else {
+-		err = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
++		err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+ 		if (err) {
+-			err = pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK);
++			err = pci_set_consistent_dma_mask(pdev,
++							  DMA_BIT_MASK(32));
+ 			if (err) {
+ 				dev_err(&pdev->dev, "No usable DMA "
+ 				        "configuration, aborting\n");
+diff -puN drivers/net/ixgbe/ixgbe_fcoe.c~convert-some-dma_nnbit_mask-callers drivers/net/ixgbe/ixgbe_fcoe.c
+--- a/drivers/net/ixgbe/ixgbe_fcoe.c~convert-some-dma_nnbit_mask-callers
++++ a/drivers/net/ixgbe/ixgbe_fcoe.c
+@@ -251,7 +251,7 @@ int ixgbe_fcoe_ddp_get(struct net_device
+ 	/* program DMA context */
+ 	hw = &adapter->hw;
+ 	spin_lock_bh(&fcoe->lock);
+-	IXGBE_WRITE_REG(hw, IXGBE_FCPTRL, ddp->udp & DMA_32BIT_MASK);
++	IXGBE_WRITE_REG(hw, IXGBE_FCPTRL, ddp->udp & DMA_BIT_MASK(32));
+ 	IXGBE_WRITE_REG(hw, IXGBE_FCPTRH, (u64)ddp->udp >> 32);
+ 	IXGBE_WRITE_REG(hw, IXGBE_FCBUFF, fcbuff);
+ 	IXGBE_WRITE_REG(hw, IXGBE_FCDMARW, fcdmarw);
+diff -puN sound/pci/lx6464es/lx6464es.c~convert-some-dma_nnbit_mask-callers sound/pci/lx6464es/lx6464es.c
+--- a/sound/pci/lx6464es/lx6464es.c~convert-some-dma_nnbit_mask-callers
++++ a/sound/pci/lx6464es/lx6464es.c
+@@ -988,7 +988,7 @@ static int __devinit snd_lx6464es_create
+ 	pci_set_master(pci);
  
- 	return retval;
- }
+ 	/* check if we can restrict PCI DMA transfers to 32 bits */
+-	err = pci_set_dma_mask(pci, DMA_32BIT_MASK);
++	err = pci_set_dma_mask(pci, DMA_BIT_MASK(32));
+ 	if (err < 0) {
+ 		snd_printk(KERN_ERR "architecture does not support "
+ 			   "32bit PCI busmaster DMA\n");
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-txx9dmac-use-dma_unmap_single-if-dma_compl_srcdest_unmap_single-was-set.patch
-kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
-serial_txx9-use-container_of-instead-of-direct-cast.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
