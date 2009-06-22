@@ -1,79 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch added to -mm tree
-Date: Mon, 22 Jun 2009 11:37:42 -0700
-Message-ID: <200906221837.n5MIbhES015220@imap1.linux-foundation.org>
+Subject: [to-be-updated] arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch removed from -mm tree
+Date: Mon, 22 Jun 2009 11:38:52 -0700
+Message-ID: <200906221838.n5MIcra7016428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54322 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751327AbZFVSjR (ORCPT
+	by vger.kernel.org with ESMTP id S1751599AbZFVSk3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 14:39:17 -0400
+	Mon, 22 Jun 2009 14:40:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, efault@gmx.de, jaswinder@kernel.org, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
+To: akpm@linux-foundation.org, davej@redhat.com, efault@gmx.de, jaswinder@kernel.org, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@in
 
 
 The patch titled
-     arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU interrupts by using smp_call_function_any()
-has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+     arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU interrupts
+has been removed from the -mm tree.  Its filename was
+     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU interrupts by using smp_call_function_any()
+Subject: arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU interrupts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Presently acpi-cpufreq will perform the MSR read on the first CPU in the
-mask.  That's inefficient if that CPU differs from the current CPU. 
-Because we have to perform a cross-CPU call, but we could have run the
-rdmsr on the current CPU.
+In drv_read(), check to see whether we can run the rdmsr() on the current
+CPU.  If so, do that.  So smp_call_function_single() can avoid the IPI.
 
-So switch to using the new smp_call_function_any(), whcih will perform the
-call on the current CPU if that CPU is present in the mask (it is).
+Arguably, cpumask_any() should do this.
 
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Mike Galbraith <efault@gmx.de>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Mike Galbraith <efault@gmx.de>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any
+diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts
 +++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -197,9 +197,11 @@ static void do_drv_write(void *_cmd)
+@@ -201,9 +201,22 @@ static void do_drv_write(void *_cmd)
  
  static void drv_read(struct drv_cmd *cmd)
  {
-+	int err;
- 	cmd->val = 0;
+-	cmd->val = 0;
++	int target_cpu;		/* The CPU on which to perform the rdmsr() */
++	int this_cpu;
  
 -	smp_call_function_single(cpumask_any(cmd->mask), do_drv_read, cmd, 1);
-+	err = smp_call_function_any(cmd->mask, do_drv_read, cmd, 1);
-+	WARN_ON_ONCE(err);	/* smp_call_function_any() was buggy? */
++	/*
++	 * If the current CPU is in cmd->mask then run the rdmsr() on this
++	 * CPU to avoid the cross-cpu interrupt.
++	 */
++	this_cpu = get_cpu();
++	if (cpu_isset(this_cpu, *(cmd->mask)))
++		target_cpu = this_cpu;
++	else
++		target_cpu = cpumask_any(cmd->mask);
++
++	cmd->val = 0;
++	smp_call_function_single(target_cpu, do_drv_read, cmd, 1);
++	put_cpu();
  }
  
  static void drv_write(struct drv_cmd *cmd)
