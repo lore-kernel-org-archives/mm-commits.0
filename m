@@ -1,40 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi_mpc83xx-split-mpc83xx_spi_work-into-two-routines.patch removed from -mm tree
-Date: Mon, 22 Jun 2009 10:00:15 -0700
-Message-ID: <200906221700.n5MH0F79009434@imap1.linux-foundation.org>
+Subject: [merged] powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards.patch removed from -mm tree
+Date: Mon, 22 Jun 2009 10:00:10 -0700
+Message-ID: <200906221700.n5MH0AfN009408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755476AbZFVRMH (ORCPT
+	by vger.kernel.org with ESMTP id S1750731AbZFVRMF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 13:12:07 -0400
+	Mon, 22 Jun 2009 13:12:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_mpc83xx: split mpc83xx_spi_work() into two routines
+     powerpc/86xx: add MMC SPI support for MPC8610HPCD boards
 has been removed from the -mm tree.  Its filename was
-     spi_mpc83xx-split-mpc83xx_spi_work-into-two-routines.patch
+     powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_mpc83xx: split mpc83xx_spi_work() into two routines
+Subject: powerpc/86xx: add MMC SPI support for MPC8610HPCD boards
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-mpc83xx_spi_work() is quite large, with up to five indentation levels and
-is quite difficult to read.
-
-So, split the function in two parts:
-1. mpc83xx_spi_work() now only traverse queued spi messages;
-2. mpc83xx_spi_do_one_msg() only manages single messages.
-
-There should be no functional changes.
+This patch adds spi and mmc-spi-slot nodes, plus a gpio-controller for
+PIXIS' sdcsr bank that is used for managing SPI chip-select and for
+reading card's states.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Kumar Gala <galak@gate.crashing.org>
@@ -43,144 +38,82 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c |  115 ++++++++++++++++++------------------
- 1 file changed, 60 insertions(+), 55 deletions(-)
+ arch/powerpc/boot/dts/mpc8610_hpcd.dts     |   32 +++++++++++++++++++
+ arch/powerpc/platforms/86xx/mpc8610_hpcd.c |    4 ++
+ 2 files changed, 36 insertions(+)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-split-mpc83xx_spi_work-into-two-routines drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-split-mpc83xx_spi_work-into-two-routines
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -350,71 +350,76 @@ static int mpc83xx_spi_bufs(struct spi_d
- 	return mpc83xx_spi->count;
- }
+diff -puN arch/powerpc/boot/dts/mpc8610_hpcd.dts~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards arch/powerpc/boot/dts/mpc8610_hpcd.dts
+--- a/arch/powerpc/boot/dts/mpc8610_hpcd.dts~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards
++++ a/arch/powerpc/boot/dts/mpc8610_hpcd.dts
+@@ -100,8 +100,18 @@
+ 		};
  
--static void mpc83xx_spi_work(struct work_struct *work)
-+static void mpc83xx_spi_do_one_msg(struct spi_message *m)
+ 		board-control@3,0 {
++			#address-cells = <1>;
++			#size-cells = <1>;
+ 			compatible = "fsl,fpga-pixis";
+ 			reg = <3 0 0x20>;
++			ranges = <0 3 0 0x20>;
++
++			sdcsr_pio: gpio-controller@a {
++				#gpio-cells = <2>;
++				compatible = "fsl,fpga-pixis-gpio-bank";
++				reg = <0xa 1>;
++				gpio-controller;
++			};
+ 		};
+ 	};
+ 
+@@ -176,6 +186,28 @@
+ 			interrupt-parent = <&mpic>;
+ 		};
+ 
++		spi@7000 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			compatible = "fsl,mpc8610-spi", "fsl,spi";
++			reg = <0x7000 0x40>;
++			cell-index = <0>;
++			interrupts = <59 2>;
++			interrupt-parent = <&mpic>;
++			mode = "cpu";
++			gpios = <&sdcsr_pio 7 0>;
++
++			mmc-slot@0 {
++				compatible = "fsl,mpc8610hpcd-mmc-slot",
++					     "mmc-spi-slot";
++				reg = <0>;
++				gpios = <&sdcsr_pio 0 1   /* nCD */
++					 &sdcsr_pio 1 0>; /*  WP */
++				voltage-ranges = <3300 3300>;
++				spi-max-frequency = <50000000>;
++			};
++		};
++
+ 		display@2c000 {
+ 			compatible = "fsl,diu";
+ 			reg = <0x2c000 100>;
+diff -puN arch/powerpc/platforms/86xx/mpc8610_hpcd.c~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards arch/powerpc/platforms/86xx/mpc8610_hpcd.c
+--- a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards
++++ a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c
+@@ -37,6 +37,7 @@
+ #include <linux/of_platform.h>
+ #include <sysdev/fsl_pci.h>
+ #include <sysdev/fsl_soc.h>
++#include <sysdev/simple_gpio.h>
+ 
+ #include "mpc86xx.h"
+ 
+@@ -51,6 +52,9 @@ static struct of_device_id __initdata mp
+ 
+ static int __init mpc8610_declare_of_platform_devices(void)
  {
--	struct mpc83xx_spi *mpc83xx_spi =
--		container_of(work, struct mpc83xx_spi, work);
--
--	spin_lock_irq(&mpc83xx_spi->lock);
--	mpc83xx_spi->busy = 1;
--	while (!list_empty(&mpc83xx_spi->queue)) {
--		struct spi_message *m;
--		struct spi_device *spi;
--		struct spi_transfer *t = NULL;
--		unsigned cs_change;
--		int status, nsecs = 50;
--
--		m = container_of(mpc83xx_spi->queue.next,
--				struct spi_message, queue);
--		list_del_init(&m->queue);
--		spin_unlock_irq(&mpc83xx_spi->lock);
--
--		spi = m->spi;
--		cs_change = 1;
--		status = 0;
--		list_for_each_entry(t, &m->transfers, transfer_list) {
--			if (t->bits_per_word || t->speed_hz) {
--				/* Don't allow changes if CS is active */
--				status = -EINVAL;
--
--				if (cs_change)
--					status = mpc83xx_spi_setup_transfer(spi, t);
--				if (status < 0)
--					break;
--			}
--
--			if (cs_change) {
--				mpc83xx_spi_chipselect(spi, BITBANG_CS_ACTIVE);
--				ndelay(nsecs);
--			}
--			cs_change = t->cs_change;
--			if (t->len)
--				status = mpc83xx_spi_bufs(spi, t);
--			if (status) {
--				status = -EMSGSIZE;
-+	struct spi_device *spi = m->spi;
-+	struct spi_transfer *t;
-+	unsigned int cs_change;
-+	const int nsecs = 50;
-+	int status;
++	/* Firstly, register PIXIS GPIOs. */
++	simple_gpiochip_init("fsl,fpga-pixis-gpio-bank");
 +
-+	cs_change = 1;
-+	status = 0;
-+	list_for_each_entry(t, &m->transfers, transfer_list) {
-+		if (t->bits_per_word || t->speed_hz) {
-+			/* Don't allow changes if CS is active */
-+			status = -EINVAL;
-+
-+			if (cs_change)
-+				status = mpc83xx_spi_setup_transfer(spi, t);
-+			if (status < 0)
- 				break;
--			}
--			m->actual_length += t->len;
--
--			if (t->delay_usecs)
--				udelay(t->delay_usecs);
-+		}
+ 	/* Without this call, the SSI device driver won't get probed. */
+ 	of_platform_bus_probe(NULL, mpc8610_ids, NULL);
  
--			if (cs_change) {
--				ndelay(nsecs);
--				mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
--				ndelay(nsecs);
--			}
-+		if (cs_change) {
-+			mpc83xx_spi_chipselect(spi, BITBANG_CS_ACTIVE);
-+			ndelay(nsecs);
- 		}
-+		cs_change = t->cs_change;
-+		if (t->len)
-+			status = mpc83xx_spi_bufs(spi, t);
-+		if (status) {
-+			status = -EMSGSIZE;
-+			break;
-+		}
-+		m->actual_length += t->len;
- 
--		m->status = status;
--		m->complete(m->context);
-+		if (t->delay_usecs)
-+			udelay(t->delay_usecs);
- 
--		if (status || !cs_change) {
-+		if (cs_change) {
- 			ndelay(nsecs);
- 			mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
-+			ndelay(nsecs);
- 		}
-+	}
-+
-+	m->status = status;
-+	m->complete(m->context);
-+
-+	if (status || !cs_change) {
-+		ndelay(nsecs);
-+		mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
-+	}
-+
-+	mpc83xx_spi_setup_transfer(spi, NULL);
-+}
-+
-+static void mpc83xx_spi_work(struct work_struct *work)
-+{
-+	struct mpc83xx_spi *mpc83xx_spi = container_of(work, struct mpc83xx_spi,
-+						       work);
-+
-+	spin_lock_irq(&mpc83xx_spi->lock);
-+	mpc83xx_spi->busy = 1;
-+	while (!list_empty(&mpc83xx_spi->queue)) {
-+		struct spi_message *m = container_of(mpc83xx_spi->queue.next,
-+						   struct spi_message, queue);
-+
-+		list_del_init(&m->queue);
-+		spin_unlock_irq(&mpc83xx_spi->lock);
- 
--		mpc83xx_spi_setup_transfer(spi, NULL);
-+		mpc83xx_spi_do_one_msg(m);
- 
- 		spin_lock_irq(&mpc83xx_spi->lock);
- 	}
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com are
