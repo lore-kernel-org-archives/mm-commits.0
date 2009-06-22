@@ -1,124 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards.patch removed from -mm tree
-Date: Mon, 22 Jun 2009 10:00:10 -0700
-Message-ID: <200906221700.n5MH0AfN009408@imap1.linux-foundation.org>
+Subject: [to-be-updated] page_alloc-oops-when-setting-percpu_pagelist_fraction.patch removed from -mm tree
+Date: Mon, 22 Jun 2009 10:40:37 -0700
+Message-ID: <200906221740.n5MHebOV019638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57551 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750731AbZFVRMF (ORCPT
+	by vger.kernel.org with ESMTP id S1751228AbZFVRmG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 13:12:05 -0400
+	Mon, 22 Jun 2009 13:42:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, mm-commits@vger.kernel.org
+To: sivanich@sgi.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc/86xx: add MMC SPI support for MPC8610HPCD boards
+     page_alloc: Oops when setting percpu_pagelist_fraction
 has been removed from the -mm tree.  Its filename was
-     powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards.patch
+     page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/86xx: add MMC SPI support for MPC8610HPCD boards
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: page_alloc: Oops when setting percpu_pagelist_fraction
+From: Dimitri Sivanich <sivanich@sgi.com>
 
-This patch adds spi and mmc-spi-slot nodes, plus a gpio-controller for
-PIXIS' sdcsr bank that is used for managing SPI chip-select and for
-reading card's states.
+After downing/upping a cpu, an attempt to set
+/proc/sys/vm/percpu_pagelist_fraction results in an oops in
+percpu_pagelist_fraction_sysctl_handler().
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To reproduce this:
+  localhost:/sys/devices/system/cpu/cpu6 # echo 0 >online
+  localhost:/sys/devices/system/cpu/cpu6 # echo 1 >online
+  localhost:/sys/devices/system/cpu/cpu6 # cd /proc/sys/vm
+  localhost:/proc/sys/vm # echo 100000 >percpu_pagelist_fraction
+
+  BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
+  IP: [<ffffffff80286946>] percpu_pagelist_fraction_sysctl_handler+0x4a/0x96
+
+This is because the zone->pageset[cpu] value has not been set when the cpu
+has been brought back up for unpopulated zones (the "Movable" zone in the
+case I'm running into).  Prior to downing/upping the cpu it had been set
+to &boot_pageset[cpu].
+
+There are two possible fixes that come to mind.  One is to check for an
+unpopulated zone or NULL zone pageset for that cpu in
+percpu_pagelist_fraction_sysctl_handler(), and simply not set a pagelist
+highmark for that zone/cpu combination.
+
+The other, and the one I'm proposing here, is to set the zone's pageset
+back to the boot_pageset when the cpu is brought back up if the zone is
+unpopulated.
+
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/dts/mpc8610_hpcd.dts     |   32 +++++++++++++++++++
- arch/powerpc/platforms/86xx/mpc8610_hpcd.c |    4 ++
- 2 files changed, 36 insertions(+)
+ mm/page_alloc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/boot/dts/mpc8610_hpcd.dts~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards arch/powerpc/boot/dts/mpc8610_hpcd.dts
---- a/arch/powerpc/boot/dts/mpc8610_hpcd.dts~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards
-+++ a/arch/powerpc/boot/dts/mpc8610_hpcd.dts
-@@ -100,8 +100,18 @@
- 		};
+diff -puN mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction
++++ a/mm/page_alloc.c
+@@ -3005,7 +3005,11 @@ static int __cpuinit process_zones(int c
  
- 		board-control@3,0 {
-+			#address-cells = <1>;
-+			#size-cells = <1>;
- 			compatible = "fsl,fpga-pixis";
- 			reg = <3 0 0x20>;
-+			ranges = <0 3 0 0x20>;
-+
-+			sdcsr_pio: gpio-controller@a {
-+				#gpio-cells = <2>;
-+				compatible = "fsl,fpga-pixis-gpio-bank";
-+				reg = <0xa 1>;
-+				gpio-controller;
-+			};
- 		};
- 	};
+ 	node_set_state(node, N_CPU);	/* this node has a cpu */
  
-@@ -176,6 +186,28 @@
- 			interrupt-parent = <&mpic>;
- 		};
- 
-+		spi@7000 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			compatible = "fsl,mpc8610-spi", "fsl,spi";
-+			reg = <0x7000 0x40>;
-+			cell-index = <0>;
-+			interrupts = <59 2>;
-+			interrupt-parent = <&mpic>;
-+			mode = "cpu";
-+			gpios = <&sdcsr_pio 7 0>;
-+
-+			mmc-slot@0 {
-+				compatible = "fsl,mpc8610hpcd-mmc-slot",
-+					     "mmc-spi-slot";
-+				reg = <0>;
-+				gpios = <&sdcsr_pio 0 1   /* nCD */
-+					 &sdcsr_pio 1 0>; /*  WP */
-+				voltage-ranges = <3300 3300>;
-+				spi-max-frequency = <50000000>;
-+			};
-+		};
-+
- 		display@2c000 {
- 			compatible = "fsl,diu";
- 			reg = <0x2c000 100>;
-diff -puN arch/powerpc/platforms/86xx/mpc8610_hpcd.c~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards arch/powerpc/platforms/86xx/mpc8610_hpcd.c
---- a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c~powerpc-86xx-add-mmc-spi-support-for-mpc8610hpcd-boards
-+++ a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c
-@@ -37,6 +37,7 @@
- #include <linux/of_platform.h>
- #include <sysdev/fsl_pci.h>
- #include <sysdev/fsl_soc.h>
-+#include <sysdev/simple_gpio.h>
- 
- #include "mpc86xx.h"
- 
-@@ -51,6 +52,9 @@ static struct of_device_id __initdata mp
- 
- static int __init mpc8610_declare_of_platform_devices(void)
- {
-+	/* Firstly, register PIXIS GPIOs. */
-+	simple_gpiochip_init("fsl,fpga-pixis-gpio-bank");
-+
- 	/* Without this call, the SSI device driver won't get probed. */
- 	of_platform_bus_probe(NULL, mpc8610_ids, NULL);
- 
+-	for_each_populated_zone(zone) {
++	for_each_zone(zone) {
++		if (!populated_zone(zone)) {
++			zone_pcp(zone, cpu) = &boot_pageset[cpu];
++			continue;
++		}
+ 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
+ 					 GFP_KERNEL, node);
+ 		if (!zone_pcp(zone, cpu))
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from sivanich@sgi.com are
 
-origin.patch
-linux-next.patch
-usb-mutually-exclusive-port_status.patch
+page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
 
