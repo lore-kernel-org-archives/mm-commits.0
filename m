@@ -1,81 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers.patch removed from -mm tree
-Date: Mon, 22 Jun 2009 10:00:45 -0700
-Message-ID: <200906221700.n5MH0ju0010041@imap1.linux-foundation.org>
+Subject: [merged] dma-mapping-mark-dma_nbits_mask-as-deprecated.patch removed from -mm tree
+Date: Mon, 22 Jun 2009 10:00:39 -0700
+Message-ID: <200906221700.n5MH0dJW010013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752993AbZFVRBT (ORCPT
+	by vger.kernel.org with ESMTP id S1753248AbZFVRBU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 13:01:19 -0400
+	Mon, 22 Jun 2009 13:01:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, spock@gentoo.org, wl@gnu.org, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, yanghy@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: does not allow VESA modes without compiled-in drivers
+     dma-mapping: mark DMA_nBITS_MASK as deprecated
 has been removed from the -mm tree.  Its filename was
-     fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers.patch
+     dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: does not allow VESA modes without compiled-in drivers
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: dma-mapping: mark DMA_nBITS_MASK as deprecated
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Does not allow to accept VESA modes by the "vga=" kernel parameter if
-there is no frame buffer driver compiled-in to handle it.
+Mark them deprecated so that out-of-tree developers get notified about
+this before their modules break when these macros are removed.
 
-Also, there is a comment added to the Kconfig description after Werner
-Lemberg's suggestion
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13249
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Reported-by: Werner Lemberg <wl@gnu.org>
-Cc: Michal Januszewski <spock@gentoo.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Yang Hongyang <yanghy@cn.fujitsu.com>
+Acked-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/dma-mapping.h |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-does-not-allow-vesa-modes-without-compiled-in-drivers
-+++ a/drivers/video/Kconfig
-@@ -1122,12 +1122,14 @@ config FB_INTEL
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
--	select FB_BOOT_VESA_SUPPORT
-+	select FB_BOOT_VESA_SUPPORT if FB_INTEL = y
- 	help
- 	  This driver supports the on-board graphics built in to the Intel
-           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
-           Say Y if you have and plan to use such a board.
+diff -puN include/linux/dma-mapping.h~dma-mapping-mark-dma_nbits_mask-as-deprecated include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~dma-mapping-mark-dma_nbits_mask-as-deprecated
++++ a/include/linux/dma-mapping.h
+@@ -63,24 +63,26 @@ struct dma_map_ops {
  
-+	  To make FB_INTELFB=Y work you need to say AGP_INTEL=y too.
+ #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
+ 
++typedef u64 DMA_nnBIT_MASK __deprecated;
 +
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called intelfb.
+ /*
+  * NOTE: do not use the below macros in new code and do not add new definitions
+  * here.
+  *
+  * Instead, just open-code DMA_BIT_MASK(n) within your driver
+  */
+-#define DMA_64BIT_MASK	DMA_BIT_MASK(64)
+-#define DMA_48BIT_MASK	DMA_BIT_MASK(48)
+-#define DMA_47BIT_MASK	DMA_BIT_MASK(47)
+-#define DMA_40BIT_MASK	DMA_BIT_MASK(40)
+-#define DMA_39BIT_MASK	DMA_BIT_MASK(39)
+-#define DMA_35BIT_MASK	DMA_BIT_MASK(35)
+-#define DMA_32BIT_MASK	DMA_BIT_MASK(32)
+-#define DMA_31BIT_MASK	DMA_BIT_MASK(31)
+-#define DMA_30BIT_MASK	DMA_BIT_MASK(30)
+-#define DMA_29BIT_MASK	DMA_BIT_MASK(29)
+-#define DMA_28BIT_MASK	DMA_BIT_MASK(28)
+-#define DMA_24BIT_MASK	DMA_BIT_MASK(24)
++#define DMA_64BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(64)
++#define DMA_48BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(48)
++#define DMA_47BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(47)
++#define DMA_40BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(40)
++#define DMA_39BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(39)
++#define DMA_35BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(35)
++#define DMA_32BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(32)
++#define DMA_31BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(31)
++#define DMA_30BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(30)
++#define DMA_29BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(29)
++#define DMA_28BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(28)
++#define DMA_24BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(24)
  
-@@ -1460,7 +1462,7 @@ config FB_SIS
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
--	select FB_BOOT_VESA_SUPPORT
-+	select FB_BOOT_VESA_SUPPORT if FB_SIS = y
- 	help
- 	  This is the frame buffer device driver for the SiS 300, 315, 330
- 	  and 340 series as well as XGI V3XT, V5, V8, Z7 graphics chipsets.
+ #define DMA_MASK_NONE	0x0ULL
+ 
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
+linux-next.patch
+icom-converting-space-to-tabs.patch
+rapidio-fix-kerneldoc-for-rio_mem_ops.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
