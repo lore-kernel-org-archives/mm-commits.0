@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu.patch added to -mm tree
-Date: Mon, 22 Jun 2009 14:56:05 -0700
-Message-ID: <200906222156.n5MLu5OF030663@imap1.linux-foundation.org>
+Subject: + memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch added to -mm tree
+Date: Mon, 22 Jun 2009 15:44:23 -0700
+Message-ID: <200906222244.n5MMiNb9016772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129AbZFVV4u (ORCPT
+	by vger.kernel.org with ESMTP id S1751010AbZFVWob (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 17:56:50 -0400
+	Mon, 22 Jun 2009 18:44:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca, ysato@users.sourceforge.jp
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     h8/300: fix incorrect "select" directives in arch/h8300/Kconfig.cpu.
+     memcg-remove-the-overhead-associated-with-the-root-cgroup-fix
 has been added to the -mm tree.  Its filename is
-     h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu.patch
+     memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8/300: fix incorrect "select" directives in arch/h8300/Kconfig.cpu.
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: memcg-remove-the-overhead-associated-with-the-root-cgroup-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix the incorrect "select" directives by dropping the "CONFIG_"
-prefixes, and correcting the typo "H8S2768" to "H8S2678".
+Fix a few documentation glitches
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Kconfig.cpu |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/cgroups/memory.txt |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/h8300/Kconfig.cpu~h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu arch/h8300/Kconfig.cpu
---- a/arch/h8300/Kconfig.cpu~h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu
-+++ a/arch/h8300/Kconfig.cpu
-@@ -13,7 +13,7 @@ config H8300H_GENERIC
+diff -puN Documentation/cgroups/memory.txt~memcg-remove-the-overhead-associated-with-the-root-cgroup-fix Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-remove-the-overhead-associated-with-the-root-cgroup-fix
++++ a/Documentation/cgroups/memory.txt
+@@ -179,8 +179,8 @@ The reclaim algorithm has not been modif
+ pages that are selected for reclaiming come from the per cgroup LRU
+ list.
  
- config H8300H_AKI3068NET
- 	bool "AE-3068/69"
--	select CONFIG_H83068
-+	select H83068
- 	help
- 	  AKI-H8/3068F / AKI-H8/3069F Flashmicom LAN Board Support
- 	  More Information. (Japanese Only)
-@@ -24,7 +24,7 @@ config H8300H_AKI3068NET
+-NOTE: Reclaim does not works for the root cgroup, since we cannot
+-set any limits on the root cgroup
++NOTE: Reclaim does not work for the root cgroup, since we cannot set any
++limits on the root cgroup.
  
- config H8300H_H8MAX
- 	bool "H8MAX"
--	select CONFIG_H83068
-+	select H83068
- 	help
- 	  H8MAX Evaluation Board Support
- 	  More Information. (Japanese Only)
-@@ -32,7 +32,7 @@ config H8300H_H8MAX
+ 2. Locking
  
- config H8300H_SIM
- 	bool "H8/300H Simulator"
--	select CONFIG_H83007
-+	select H83007
- 	help
- 	  GDB Simulator Support
- 	  More Information.
-@@ -45,7 +45,7 @@ config H8S_GENERIC
+@@ -213,7 +213,7 @@ We can alter the memory limit:
+ NOTE: We can use a suffix (k, K, m, M, g or G) to indicate values in kilo,
+ mega or gigabytes.
+ NOTE: We can write "-1" to reset the *.limit_in_bytes(unlimited).
+-NOTE: We cannot set limits on the root cgroup anymore.
++NOTE: We cannot set limits on the root cgroup any more.
  
- config H8S_EDOSK2674
- 	bool "EDOSK-2674"
--	select CONFIG_H8S2768
-+	select H8S2678
- 	help
- 	  Renesas EDOSK-2674 Evaluation Board Support
- 	  More Information.
+ # cat /cgroups/0/memory.limit_in_bytes
+ 4194304
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
