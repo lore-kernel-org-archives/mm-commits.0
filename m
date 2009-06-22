@@ -1,95 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-mapping-mark-dma_nbits_mask-as-deprecated.patch removed from -mm tree
-Date: Mon, 22 Jun 2009 10:00:39 -0700
-Message-ID: <200906221700.n5MH0dJW010013@imap1.linux-foundation.org>
+Subject: [merged] char-moxa-prevent-opening-unavailable-ports.patch removed from -mm tree
+Date: Mon, 22 Jun 2009 10:00:33 -0700
+Message-ID: <200906221700.n5MH0XZX009846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753248AbZFVRBU (ORCPT
+	by vger.kernel.org with ESMTP id S1753839AbZFVRBU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 22 Jun 2009 13:01:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, yanghy@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: eibach@gdsys.de, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping: mark DMA_nBITS_MASK as deprecated
+     char: moxa, prevent opening unavailable ports
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-mark-dma_nbits_mask-as-deprecated.patch
+     char-moxa-prevent-opening-unavailable-ports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: mark DMA_nBITS_MASK as deprecated
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: char: moxa, prevent opening unavailable ports
+From: Dirk Eibach <eibach@gdsys.de>
 
-Mark them deprecated so that out-of-tree developers get notified about
-this before their modules break when these macros are removed.
+In moxa.c there are 32 minor numbers reserved for each device.  The number
+of ports actually available per device is stored in
+moxa_board_conf->numPorts.  This number is not considered in moxa_open(). 
+Opening a port that is not available results in a kernel oops.  This patch
+adds a test to moxa_open() that prevents opening unavailable ports.
 
+[akpm@linux-foundation.org: avoid multiple returns]
+Signed-off-by: Dirk Eibach <eibach@gdsys.de>
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Yang Hongyang <yanghy@cn.fujitsu.com>
-Acked-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ drivers/char/moxa.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/dma-mapping.h~dma-mapping-mark-dma_nbits_mask-as-deprecated include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-mark-dma_nbits_mask-as-deprecated
-+++ a/include/linux/dma-mapping.h
-@@ -63,24 +63,26 @@ struct dma_map_ops {
+diff -puN drivers/char/moxa.c~char-moxa-prevent-opening-unavailable-ports drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-prevent-opening-unavailable-ports
++++ a/drivers/char/moxa.c
+@@ -1189,6 +1189,11 @@ static int moxa_open(struct tty_struct *
+ 		return -ENODEV;
+ 	}
  
- #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
- 
-+typedef u64 DMA_nnBIT_MASK __deprecated;
++	if (port % MAX_PORTS_PER_BOARD >= brd->numPorts) {
++		retval = -ENODEV;
++		goto out_unlock;
++	}
 +
- /*
-  * NOTE: do not use the below macros in new code and do not add new definitions
-  * here.
-  *
-  * Instead, just open-code DMA_BIT_MASK(n) within your driver
-  */
--#define DMA_64BIT_MASK	DMA_BIT_MASK(64)
--#define DMA_48BIT_MASK	DMA_BIT_MASK(48)
--#define DMA_47BIT_MASK	DMA_BIT_MASK(47)
--#define DMA_40BIT_MASK	DMA_BIT_MASK(40)
--#define DMA_39BIT_MASK	DMA_BIT_MASK(39)
--#define DMA_35BIT_MASK	DMA_BIT_MASK(35)
--#define DMA_32BIT_MASK	DMA_BIT_MASK(32)
--#define DMA_31BIT_MASK	DMA_BIT_MASK(31)
--#define DMA_30BIT_MASK	DMA_BIT_MASK(30)
--#define DMA_29BIT_MASK	DMA_BIT_MASK(29)
--#define DMA_28BIT_MASK	DMA_BIT_MASK(28)
--#define DMA_24BIT_MASK	DMA_BIT_MASK(24)
-+#define DMA_64BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(64)
-+#define DMA_48BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(48)
-+#define DMA_47BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(47)
-+#define DMA_40BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(40)
-+#define DMA_39BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(39)
-+#define DMA_35BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(35)
-+#define DMA_32BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(32)
-+#define DMA_31BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(31)
-+#define DMA_30BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(30)
-+#define DMA_29BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(29)
-+#define DMA_28BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(28)
-+#define DMA_24BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(24)
- 
- #define DMA_MASK_NONE	0x0ULL
- 
-_
-
-Patches currently in -mm which might be from jirislaby@gmail.com are
-
-origin.patch
-linux-next.patch
-icom-converting-space-to-tabs.patch
-rapidio-fix-kerneldoc-for-rio_mem_ops.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
-
+ 	ch = &brd->ports[port % MAX_PORTS_PER_BOARD];
+ 	ch->port.count++;
+ 	tty->driver_data = ch;
+@@ -1213,8 +1218,8 @@ static int moxa_open(struct tty_struct *
+ 				moxa_close_port(tty);
+ 	} else
+ 		ch->port.flags |= ASYNC_NORMAL_ACTIVE;
++out_unlock:
+ 	mutex_unlock(&moxa_openlock);
