@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch added to -mm tree
-Date: Mon, 22 Jun 2009 12:24:58 -0700
-Message-ID: <200906221924.n5MJOwST032758@imap1.linux-foundation.org>
+Subject: + edac-add-ddr3-memory-type-for-mpc85xx-edac.patch added to -mm tree
+Date: Mon, 22 Jun 2009 12:32:32 -0700
+Message-ID: <200906221932.n5MJWWjx008479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752344AbZFVT0O (ORCPT
+	by vger.kernel.org with ESMTP id S1751645AbZFVTct (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 15:26:14 -0400
+	Mon, 22 Jun 2009 15:32:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ext-jani.1.nikula@nokia.com, david-b@pacbell.net, dsilvers@simtec.co.uk
+Cc: yang.shi@windriver.com, norsk5@yahoo.com
 
 
 The patch titled
-     gpiolib: allow exported GPIO nodes to be named using sysfs links
+     edac: add DDR3 memory type for MPC85xx EDAC
 has been added to the -mm tree.  Its filename is
-     gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
+     edac-add-ddr3-memory-type-for-mpc85xx-edac.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,159 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: allow exported GPIO nodes to be named using sysfs links
-From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: edac: add DDR3 memory type for MPC85xx EDAC
+From: Yang Shi <yang.shi@windriver.com>
 
-Commit 926b663ce8215ba448960e1ff6e58b67a2c3b99b (gpiolib: allow GPIOs to
-be named) already provides naming on the chip level. This patch provides
-more flexibility by allowing multiple names where ever in sysfs on a per
-GPIO basis.
+Since some new MPC85xx SOCs support DDR3 memory now, so add DDR3 memory
+type for MPC85xx EDAC.
 
-Adapted from David Brownell's comments on a similar concept:
-http://lkml.org/lkml/2009/4/20/203.
-
-Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Daniel Silverstone <dsilvers@simtec.co.uk>
+Signed-off-by: Yang Shi <yang.shi@windriver.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt     |   10 +++++++
- drivers/gpio/gpiolib.c     |   48 +++++++++++++++++++++++++++++++++++
- include/asm-generic/gpio.h |    8 +++++
- include/linux/gpio.h       |    9 ++++++
- 4 files changed, 75 insertions(+)
+ drivers/edac/edac_core.h     |    4 ++++
+ drivers/edac/edac_mc_sysfs.c |    4 +++-
+ drivers/edac/mpc85xx_edac.c  |    6 ++++++
+ drivers/edac/mpc85xx_edac.h  |    1 +
+ 4 files changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/gpio.txt~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
-+++ a/Documentation/gpio.txt
-@@ -555,6 +555,11 @@ requested using gpio_request():
- 	/* reverse gpio_export() */
- 	void gpio_unexport();
+diff -puN drivers/edac/edac_core.h~edac-add-ddr3-memory-type-for-mpc85xx-edac drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~edac-add-ddr3-memory-type-for-mpc85xx-edac
++++ a/drivers/edac/edac_core.h
+@@ -150,6 +150,8 @@ enum mem_type {
+ 	MEM_FB_DDR2,		/* fully buffered DDR2 */
+ 	MEM_RDDR2,		/* Registered DDR2 RAM */
+ 	MEM_XDR,		/* Rambus XDR */
++	MEM_DDR3,		/* DDR3 RAM */
++	MEM_RDDR3,		/* Registered DDR3 RAM */
+ };
  
-+	/* create a sysfs link to an exported GPIO node */
-+	int gpio_export_link(struct device *dev, const char *name,
-+		unsigned gpio)
-+
-+
- After a kernel driver requests a GPIO, it may only be made available in
- the sysfs interface by gpio_export().  The driver can control whether the
- signal direction may change.  This helps drivers prevent userspace code
-@@ -563,3 +568,8 @@ from accidentally clobbering important s
- This explicit exporting can help with debugging (by making some kinds
- of experiments easier), or can provide an always-there interface that's
- suitable for documenting as part of a board support package.
-+
-+After the GPIO has been exported, gpio_export_link() allows creating
-+symlinks from elsewhere in sysfs to the GPIO sysfs node.  Drivers can
-+use this to provide the interface under their own device in sysfs with
-+a descriptive name.
-diff -puN drivers/gpio/gpiolib.c~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
-+++ a/drivers/gpio/gpiolib.c
-@@ -505,6 +505,54 @@ static int match_export(struct device *d
- }
+ #define MEM_FLAG_EMPTY		BIT(MEM_EMPTY)
+@@ -167,6 +169,8 @@ enum mem_type {
+ #define MEM_FLAG_FB_DDR2        BIT(MEM_FB_DDR2)
+ #define MEM_FLAG_RDDR2          BIT(MEM_RDDR2)
+ #define MEM_FLAG_XDR            BIT(MEM_XDR)
++#define MEM_FLAG_DDR3		 BIT(MEM_DDR3)
++#define MEM_FLAG_RDDR3		 BIT(MEM_RDDR3)
  
- /**
-+ * gpio_export_link - create a sysfs link to an exported GPIO node
-+ * @dev: device under which to create symlink
-+ * @name: name of the symlink
-+ * @gpio: gpio to create symlink to, already exported
-+ *
-+ * Set up a symlink from /sys/.../dev/name to /sys/class/gpio/gpioN
-+ * node. Caller is responsible for unlinking.
-+ *
-+ * Returns zero on success, else an error.
-+ */
-+int gpio_export_link(struct device *dev, const char *name, unsigned gpio)
-+{
-+	struct gpio_desc	*desc;
-+	int			status = -EINVAL;
-+
-+	BUG_ON(dev == NULL);
-+	BUG_ON(name == NULL);
-+
-+	if (!gpio_is_valid(gpio))
-+		goto done;
-+
-+	mutex_lock(&sysfs_lock);
-+
-+	desc = &gpio_desc[gpio];
-+
-+	if (test_bit(FLAG_EXPORT, &desc->flags)) {
-+		struct device *tdev;
-+
-+		tdev = class_find_device(&gpio_class, NULL, desc, match_export);
-+		if (tdev != NULL) {
-+			status = sysfs_create_link(&dev->kobj, &tdev->kobj,
-+						name);
-+		} else {
-+			status = -ENODEV;
-+		}
-+	}
-+
-+	mutex_unlock(&sysfs_lock);
-+
-+done:
-+	if (status)
-+		pr_debug("%s: gpio%d status %d\n", __func__, gpio, status);
-+
-+	return status;
-+}
-+EXPORT_SYMBOL_GPL(gpio_export_link);
-+
-+/**
-  * gpio_unexport - reverse effect of gpio_export()
-  * @gpio: gpio to make unavailable
-  *
-diff -puN include/asm-generic/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
-+++ a/include/asm-generic/gpio.h
-@@ -141,6 +141,8 @@ extern int __gpio_to_irq(unsigned gpio);
-  * but more typically is configured entirely from userspace.
-  */
- extern int gpio_export(unsigned gpio, bool direction_may_change);
-+extern int gpio_export_link(struct device *dev, const char *name,
-+			unsigned gpio);
- extern void gpio_unexport(unsigned gpio);
+ /* chipset Error Detection and Correction capabilities and mode */
+ enum edac_type {
+diff -puN drivers/edac/edac_mc_sysfs.c~edac-add-ddr3-memory-type-for-mpc85xx-edac drivers/edac/edac_mc_sysfs.c
+--- a/drivers/edac/edac_mc_sysfs.c~edac-add-ddr3-memory-type-for-mpc85xx-edac
++++ a/drivers/edac/edac_mc_sysfs.c
+@@ -94,7 +94,9 @@ static const char *mem_types[] = {
+ 	[MEM_DDR2] = "Unbuffered-DDR2",
+ 	[MEM_FB_DDR2] = "FullyBuffered-DDR2",
+ 	[MEM_RDDR2] = "Registered-DDR2",
+-	[MEM_XDR] = "XDR"
++	[MEM_XDR] = "XDR",
++	[MEM_DDR3] = "Unbuffered-DDR3",
++	[MEM_RDDR3] = "Registered-DDR3"
+ };
  
- #endif	/* CONFIG_GPIO_SYSFS */
-@@ -185,6 +187,12 @@ static inline int gpio_export(unsigned g
- 	return -ENOSYS;
- }
+ static const char *dev_types[] = {
+diff -puN drivers/edac/mpc85xx_edac.c~edac-add-ddr3-memory-type-for-mpc85xx-edac drivers/edac/mpc85xx_edac.c
+--- a/drivers/edac/mpc85xx_edac.c~edac-add-ddr3-memory-type-for-mpc85xx-edac
++++ a/drivers/edac/mpc85xx_edac.c
+@@ -757,6 +757,9 @@ static void __devinit mpc85xx_init_csrow
+ 		case DSC_SDTYPE_DDR2:
+ 			mtype = MEM_RDDR2;
+ 			break;
++		case DSC_SDTYPE_DDR3:
++			mtype = MEM_RDDR3;
++			break;
+ 		default:
+ 			mtype = MEM_UNKNOWN;
+ 			break;
+@@ -769,6 +772,9 @@ static void __devinit mpc85xx_init_csrow
+ 		case DSC_SDTYPE_DDR2:
+ 			mtype = MEM_DDR2;
+ 			break;
++		case DSC_SDTYPE_DDR3:
++			mtype = MEM_DDR3;
++			break;
+ 		default:
+ 			mtype = MEM_UNKNOWN;
+ 			break;
+diff -puN drivers/edac/mpc85xx_edac.h~edac-add-ddr3-memory-type-for-mpc85xx-edac drivers/edac/mpc85xx_edac.h
+--- a/drivers/edac/mpc85xx_edac.h~edac-add-ddr3-memory-type-for-mpc85xx-edac
++++ a/drivers/edac/mpc85xx_edac.h
+@@ -53,6 +53,7 @@
  
-+static inline int gpio_export_link(struct device *dev, const char *name,
-+				unsigned gpio)
-+{
-+	return -ENOSYS;
-+}
-+
- static inline void gpio_unexport(unsigned gpio)
- {
- }
-diff -puN include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links include/linux/gpio.h
---- a/include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
-+++ a/include/linux/gpio.h
-@@ -89,6 +89,15 @@ static inline int gpio_export(unsigned g
- 	return -EINVAL;
- }
+ #define DSC_SDTYPE_DDR		0x02000000
+ #define DSC_SDTYPE_DDR2		0x03000000
++#define DSC_SDTYPE_DDR3		0x07000000
+ #define DSC_X32_EN	0x00000020
  
-+static inline int gpio_export_link(struct device *dev, const char *name,
-+				unsigned gpio)
-+{
-+	/* GPIO can never have been exported */
-+	WARN_ON(1);
-+	return -EINVAL;
-+}
-+
-+
- static inline void gpio_unexport(unsigned gpio)
- {
- 	/* GPIO can never have been exported */
+ /* Err_Int_En */
 _
 
-Patches currently in -mm which might be from ext-jani.1.nikula@nokia.com are
+Patches currently in -mm which might be from yang.shi@windriver.com are
 
-origin.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
+edac-add-ddr3-memory-type-for-mpc85xx-edac.patch
 
