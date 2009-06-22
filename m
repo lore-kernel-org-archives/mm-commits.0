@@ -1,100 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + page_alloc-oops-when-setting-percpu_pagelist_fraction.patch added to -mm tree
-Date: Mon, 22 Jun 2009 10:03:24 -0700
-Message-ID: <200906221703.n5MH3OCi012881@imap1.linux-foundation.org>
+Subject: [merged] dtlk-off-by-one-in-readwrite_tts.patch removed from -mm tree
+Date: Mon, 22 Jun 2009 10:00:28 -0700
+Message-ID: <200906221700.n5MH0SgU009826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57473 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751372AbZFVRFg (ORCPT
+	by vger.kernel.org with ESMTP id S1751299AbZFVRJr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 13:05:36 -0400
+	Mon, 22 Jun 2009 13:09:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sivanich@sgi.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, stable@kernel.org
+To: roel.kluin@gmail.com, jrv@vanzandt.mv.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page_alloc: Oops when setting percpu_pagelist_fraction
-has been added to the -mm tree.  Its filename is
-     page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
+     dtlk: off by one in {read,write}_tts()
+has been removed from the -mm tree.  Its filename was
+     dtlk-off-by-one-in-readwrite_tts.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_alloc: Oops when setting percpu_pagelist_fraction
-From: Dimitri Sivanich <sivanich@sgi.com>
+Subject: dtlk: off by one in {read,write}_tts()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-After downing/upping a cpu, an attempt to set
-/proc/sys/vm/percpu_pagelist_fraction results in an oops in
-percpu_pagelist_fraction_sysctl_handler().
+With a postfix increment retries is incremented beyond DTLK_MAX_RETRIES so
+the error message is not displayed correctly.
 
-To reproduce this:
-  localhost:/sys/devices/system/cpu/cpu6 # echo 0 >online
-  localhost:/sys/devices/system/cpu/cpu6 # echo 1 >online
-  localhost:/sys/devices/system/cpu/cpu6 # cd /proc/sys/vm
-  localhost:/proc/sys/vm # echo 100000 >percpu_pagelist_fraction
-
-  BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
-  IP: [<ffffffff80286946>] percpu_pagelist_fraction_sysctl_handler+0x4a/0x96
-
-This is because the zone->pageset[cpu] value has not been set when the cpu
-has been brought back up for unpopulated zones (the "Movable" zone in the
-case I'm running into).  Prior to downing/upping the cpu it had been set
-to &boot_pageset[cpu].
-
-There are two possible fixes that come to mind.  One is to check for an
-unpopulated zone or NULL zone pageset for that cpu in
-percpu_pagelist_fraction_sysctl_handler(), and simply not set a pagelist
-highmark for that zone/cpu combination.
-
-The other, and the one I'm proposing here, is to set the zone's pageset
-back to the boot_pageset when the cpu is brought back up if the zone is
-unpopulated.
-
-Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: <stable@kernel.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: James R. Van Zandt <jrv@vanzandt.mv.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/char/dtlk.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-oops-when-setting-percpu_pagelist_fraction
-+++ a/mm/page_alloc.c
-@@ -3005,7 +3005,11 @@ static int __cpuinit process_zones(int c
+diff -puN drivers/char/dtlk.c~dtlk-off-by-one-in-readwrite_tts drivers/char/dtlk.c
+--- a/drivers/char/dtlk.c~dtlk-off-by-one-in-readwrite_tts
++++ a/drivers/char/dtlk.c
+@@ -571,7 +571,7 @@ static char dtlk_read_tts(void)
+ 		portval = inb_p(dtlk_port_tts);
+ 	} while ((portval & TTS_READABLE) == 0 &&
+ 		 retries++ < DTLK_MAX_RETRIES);
+-	if (retries == DTLK_MAX_RETRIES)
++	if (retries > DTLK_MAX_RETRIES)
+ 		printk(KERN_ERR "dtlk_read_tts() timeout\n");
  
- 	node_set_state(node, N_CPU);	/* this node has a cpu */
+ 	ch = inb_p(dtlk_port_tts);	/* input from TTS port */
+@@ -583,7 +583,7 @@ static char dtlk_read_tts(void)
+ 		portval = inb_p(dtlk_port_tts);
+ 	} while ((portval & TTS_READABLE) != 0 &&
+ 		 retries++ < DTLK_MAX_RETRIES);
+-	if (retries == DTLK_MAX_RETRIES)
++	if (retries > DTLK_MAX_RETRIES)
+ 		printk(KERN_ERR "dtlk_read_tts() timeout\n");
  
--	for_each_populated_zone(zone) {
-+	for_each_zone(zone) {
-+		if (!populated_zone(zone)) {
-+			zone_pcp(zone, cpu) = &boot_pageset[cpu];
-+			continue;
-+		}
- 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
- 					 GFP_KERNEL, node);
- 		if (!zone_pcp(zone, cpu))
+ 	TRACE_RET;
+@@ -640,7 +640,7 @@ static char dtlk_write_tts(char ch)
+ 		while ((inb_p(dtlk_port_tts) & TTS_WRITABLE) == 0 &&
+ 		       retries++ < DTLK_MAX_RETRIES)	/* DT ready? */
+ 			;
+-	if (retries == DTLK_MAX_RETRIES)
++	if (retries > DTLK_MAX_RETRIES)
+ 		printk(KERN_ERR "dtlk_write_tts() timeout\n");
+ 
+ 	outb_p(ch, dtlk_port_tts);	/* output to TTS port */
 _
 
-Patches currently in -mm which might be from sivanich@sgi.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-page_alloc-oops-when-setting-percpu_pagelist_fraction.patch
+origin.patch
+linux-next.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+serial-fix-off-by-one-errors.patch
+usb-mutually-exclusive-port_status.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+platinumfb-misplaced-parenthesis.patch
 
