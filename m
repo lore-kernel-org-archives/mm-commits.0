@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parport-serial-add-support-for-netmos-9901-multi-io-card.patch added to -mm tree
-Date: Mon, 22 Jun 2009 11:48:03 -0700
-Message-ID: <200906221848.n5MIm3FO026184@imap1.linux-foundation.org>
+Subject: + gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch added to -mm tree
+Date: Mon, 22 Jun 2009 12:24:58 -0700
+Message-ID: <200906221924.n5MJOwST032758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755031AbZFVSsS (ORCPT
+	by vger.kernel.org with ESMTP id S1752344AbZFVT0O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 14:48:18 -0400
+	Mon, 22 Jun 2009 15:26:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mb@bu3sch.de, alan@lxorguk.ukuu.org.uk
+Cc: ext-jani.1.nikula@nokia.com, david-b@pacbell.net, dsilvers@simtec.co.uk
 
 
 The patch titled
-     parport/serial: add support for NetMos 9901 Multi-IO card
+     gpiolib: allow exported GPIO nodes to be named using sysfs links
 has been added to the -mm tree.  Its filename is
-     parport-serial-add-support-for-netmos-9901-multi-io-card.patch
+     gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,159 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport/serial: add support for NetMos 9901 Multi-IO card
-From: Michael Buesch <mb@bu3sch.de>
+Subject: gpiolib: allow exported GPIO nodes to be named using sysfs links
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-Add support for the PCI-Express NetMos 9901 Multi-IO card.
+Commit 926b663ce8215ba448960e1ff6e58b67a2c3b99b (gpiolib: allow GPIOs to
+be named) already provides naming on the chip level. This patch provides
+more flexibility by allowing multiple names where ever in sysfs on a per
+GPIO basis.
 
-0001:06:00.0 Serial controller [0700]: NetMos Technology Device [9710:9901] (prog-if 02 [16550])
-        Subsystem: Device [a000:1000]
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 0, Cache Line Size: 64 bytes
-        Interrupt: pin A routed to IRQ 65
-        Region 0: I/O ports at 0030 [size=8]
-        Region 1: Memory at 80105000 (32-bit, non-prefetchable) [size=4K]
-        Region 4: Memory at 80104000 (32-bit, non-prefetchable) [size=4K]
-        Capabilities: <access denied>
-        Kernel driver in use: serial
-        Kernel modules: 8250_pci
+Adapted from David Brownell's comments on a similar concept:
+http://lkml.org/lkml/2009/4/20/203.
 
-0001:06:00.1 Serial controller [0700]: NetMos Technology Device [9710:9901] (prog-if 02 [16550])
-        Subsystem: Device [a000:1000]
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 0, Cache Line Size: 64 bytes
-        Interrupt: pin B routed to IRQ 65
-        Region 0: I/O ports at 0020 [size=8]
-        Region 1: Memory at 80103000 (32-bit, non-prefetchable) [size=4K]
-        Region 4: Memory at 80102000 (32-bit, non-prefetchable) [size=4K]
-        Capabilities: <access denied>
-        Kernel driver in use: serial
-        Kernel modules: 8250_pci
-
-0001:06:00.2 Parallel controller [0701]: NetMos Technology Device [9710:9901] (prog-if 03 [IEEE1284])
-        Subsystem: Device [a000:2000]
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 0, Cache Line Size: 64 bytes
-        Interrupt: pin C routed to IRQ 65
-        Region 0: I/O ports at 0010 [size=8]
-        Region 1: I/O ports at <unassigned>
-        Region 2: Memory at 80101000 (32-bit, non-prefetchable) [size=4K]
-        Region 4: Memory at 80100000 (32-bit, non-prefetchable) [size=4K]
-        Capabilities: <access denied>
-        Kernel driver in use: parport_pc
-        Kernel modules: parport_pc
-
-[   16.760181] PCI parallel port detected: 416c:0100, I/O at 0x812010(0x0), IRQ 65
-[   16.760225] parport0: PC-style at 0x812010, irq 65 [PCSPP,TRISTATE,EPP]
-[   16.851842] serial 0001:06:00.0: enabling device (0004 -> 0007)
-[   16.883776] 0001:06:00.0: ttyS0 at I/O 0x812030 (irq = 65) is a ST16650V2
-[   16.893832] serial 0001:06:00.1: enabling device (0004 -> 0007)
-[   16.926537] 0001:06:00.1: ttyS1 at I/O 0x812020 (irq = 65) is a ST16650V2
-
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Daniel Silverstone <dsilvers@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    5 ++++-
- drivers/serial/8250_pci.c    |    6 ++++++
- include/linux/pci_ids.h      |    1 +
- 3 files changed, 11 insertions(+), 1 deletion(-)
+ Documentation/gpio.txt     |   10 +++++++
+ drivers/gpio/gpiolib.c     |   48 +++++++++++++++++++++++++++++++++++
+ include/asm-generic/gpio.h |    8 +++++
+ include/linux/gpio.h       |    9 ++++++
+ 4 files changed, 75 insertions(+)
 
-diff -puN drivers/parport/parport_pc.c~parport-serial-add-support-for-netmos-9901-multi-io-card drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport-serial-add-support-for-netmos-9901-multi-io-card
-+++ a/drivers/parport/parport_pc.c
-@@ -2885,6 +2885,7 @@ enum parport_pc_pci_cards {
- 	netmos_9755,
- 	netmos_9805,
- 	netmos_9815,
-+	netmos_9901,
- 	quatech_sppxp100,
- };
+diff -puN Documentation/gpio.txt~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links Documentation/gpio.txt
+--- a/Documentation/gpio.txt~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
++++ a/Documentation/gpio.txt
+@@ -555,6 +555,11 @@ requested using gpio_request():
+ 	/* reverse gpio_export() */
+ 	void gpio_unexport();
  
-@@ -2965,7 +2966,7 @@ static struct parport_pc_pci {
- 	/* netmos_9755 */               { 2, { { 0, 1 }, { 2, 3 },} },
- 	/* netmos_9805 */               { 1, { { 0, -1 }, } },
- 	/* netmos_9815 */               { 2, { { 0, -1 }, { 2, -1 }, } },
--
-+	/* netmos_9901 */               { 1, { { 0, -1 }, } },
- 	/* quatech_sppxp100 */		{ 1, { { 0, 1 }, } },
- };
- 
-@@ -3067,6 +3068,8 @@ static const struct pci_device_id parpor
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9805 },
- 	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9815,
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9815 },
-+	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9901,
-+	  0xA000, 0x2000, 0, 0, netmos_9901 },
- 	/* Quatech SPPXP-100 Parallel port PCI ExpressCard */
- 	{ PCI_VENDOR_ID_QUATECH, PCI_DEVICE_ID_QUATECH_SPPXP_100,
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, quatech_sppxp100 },
-diff -puN drivers/serial/8250_pci.c~parport-serial-add-support-for-netmos-9901-multi-io-card drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~parport-serial-add-support-for-netmos-9901-multi-io-card
-+++ a/drivers/serial/8250_pci.c
-@@ -759,6 +759,8 @@ static int pci_netmos_init(struct pci_de
- 	/* subdevice 0x00PS means <P> parallel, <S> serial */
- 	unsigned int num_serial = dev->subsystem_device & 0xf;
- 
-+	if (dev->device == PCI_DEVICE_ID_NETMOS_9901)
-+		return 0;
- 	if (dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
- 			dev->subsystem_device == 0x0299)
- 		return 0;
-@@ -3557,6 +3559,10 @@ static struct pci_device_id serial_pci_t
- 		PCI_VENDOR_ID_IBM, 0x0299,
- 		0, 0, pbn_b0_bt_2_115200 },
- 
-+	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9901,
-+		0xA000, 0x1000,
-+		0, 0, pbn_b0_1_115200 },
++	/* create a sysfs link to an exported GPIO node */
++	int gpio_export_link(struct device *dev, const char *name,
++		unsigned gpio)
 +
- 	/*
- 	 * These entries match devices with class COMMUNICATION_SERIAL,
- 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
-diff -puN include/linux/pci_ids.h~parport-serial-add-support-for-netmos-9901-multi-io-card include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~parport-serial-add-support-for-netmos-9901-multi-io-card
-+++ a/include/linux/pci_ids.h
-@@ -2645,6 +2645,7 @@
- #define PCI_DEVICE_ID_NETMOS_9835	0x9835
- #define PCI_DEVICE_ID_NETMOS_9845	0x9845
- #define PCI_DEVICE_ID_NETMOS_9855	0x9855
-+#define PCI_DEVICE_ID_NETMOS_9901	0x9901
++
+ After a kernel driver requests a GPIO, it may only be made available in
+ the sysfs interface by gpio_export().  The driver can control whether the
+ signal direction may change.  This helps drivers prevent userspace code
+@@ -563,3 +568,8 @@ from accidentally clobbering important s
+ This explicit exporting can help with debugging (by making some kinds
+ of experiments easier), or can provide an always-there interface that's
+ suitable for documenting as part of a board support package.
++
++After the GPIO has been exported, gpio_export_link() allows creating
++symlinks from elsewhere in sysfs to the GPIO sysfs node.  Drivers can
++use this to provide the interface under their own device in sysfs with
++a descriptive name.
+diff -puN drivers/gpio/gpiolib.c~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
++++ a/drivers/gpio/gpiolib.c
+@@ -505,6 +505,54 @@ static int match_export(struct device *d
+ }
  
- #define PCI_VENDOR_ID_3COM_2		0xa727
+ /**
++ * gpio_export_link - create a sysfs link to an exported GPIO node
++ * @dev: device under which to create symlink
++ * @name: name of the symlink
++ * @gpio: gpio to create symlink to, already exported
++ *
++ * Set up a symlink from /sys/.../dev/name to /sys/class/gpio/gpioN
++ * node. Caller is responsible for unlinking.
++ *
++ * Returns zero on success, else an error.
++ */
++int gpio_export_link(struct device *dev, const char *name, unsigned gpio)
++{
++	struct gpio_desc	*desc;
++	int			status = -EINVAL;
++
++	BUG_ON(dev == NULL);
++	BUG_ON(name == NULL);
++
++	if (!gpio_is_valid(gpio))
++		goto done;
++
++	mutex_lock(&sysfs_lock);
++
++	desc = &gpio_desc[gpio];
++
++	if (test_bit(FLAG_EXPORT, &desc->flags)) {
++		struct device *tdev;
++
++		tdev = class_find_device(&gpio_class, NULL, desc, match_export);
++		if (tdev != NULL) {
++			status = sysfs_create_link(&dev->kobj, &tdev->kobj,
++						name);
++		} else {
++			status = -ENODEV;
++		}
++	}
++
++	mutex_unlock(&sysfs_lock);
++
++done:
++	if (status)
++		pr_debug("%s: gpio%d status %d\n", __func__, gpio, status);
++
++	return status;
++}
++EXPORT_SYMBOL_GPL(gpio_export_link);
++
++/**
+  * gpio_unexport - reverse effect of gpio_export()
+  * @gpio: gpio to make unavailable
+  *
+diff -puN include/asm-generic/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
++++ a/include/asm-generic/gpio.h
+@@ -141,6 +141,8 @@ extern int __gpio_to_irq(unsigned gpio);
+  * but more typically is configured entirely from userspace.
+  */
+ extern int gpio_export(unsigned gpio, bool direction_may_change);
++extern int gpio_export_link(struct device *dev, const char *name,
++			unsigned gpio);
+ extern void gpio_unexport(unsigned gpio);
  
+ #endif	/* CONFIG_GPIO_SYSFS */
+@@ -185,6 +187,12 @@ static inline int gpio_export(unsigned g
+ 	return -ENOSYS;
+ }
+ 
++static inline int gpio_export_link(struct device *dev, const char *name,
++				unsigned gpio)
++{
++	return -ENOSYS;
++}
++
+ static inline void gpio_unexport(unsigned gpio)
+ {
+ }
+diff -puN include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links include/linux/gpio.h
+--- a/include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
++++ a/include/linux/gpio.h
+@@ -89,6 +89,15 @@ static inline int gpio_export(unsigned g
+ 	return -EINVAL;
+ }
+ 
++static inline int gpio_export_link(struct device *dev, const char *name,
++				unsigned gpio)
++{
++	/* GPIO can never have been exported */
++	WARN_ON(1);
++	return -EINVAL;
++}
++
++
+ static inline void gpio_unexport(unsigned gpio)
+ {
+ 	/* GPIO can never have been exported */
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from ext-jani.1.nikula@nokia.com are
 
 origin.patch
-linux-next.patch
-parport-serial-add-support-for-netmos-9901-multi-io-card.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
 
