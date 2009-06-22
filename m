@@ -1,80 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-mapping-mark-dma_sync_single-and-dma_sync_sg-as-deprecated.patch removed from -mm tree
-Date: Mon, 22 Jun 2009 10:00:41 -0700
-Message-ID: <200906221700.n5MH0fGm010021@imap1.linux-foundation.org>
+Subject: [merged] spi_mpc83xx-add-small-delay-after-asserting-chip-select-line.patch removed from -mm tree
+Date: Mon, 22 Jun 2009 10:00:08 -0700
+Message-ID: <200906221700.n5MH08qH009405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57955 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45495 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751315AbZFVRJ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751994AbZFVRKL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 13:09:58 -0400
+	Mon, 22 Jun 2009 13:10:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, davem@davemloft.net, mingo@elte.hu, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping: mark dma_sync_single and dma_sync_sg as deprecated
+     spi_mpc83xx: add small delay after asserting chip-select line
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-mark-dma_sync_single-and-dma_sync_sg-as-deprecated.patch
+     spi_mpc83xx-add-small-delay-after-asserting-chip-select-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: mark dma_sync_single and dma_sync_sg as deprecated
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: spi_mpc83xx: add small delay after asserting chip-select line
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-dma_sync_single() and dma_sync_sg() have been described as "Backwards
-compat, remove in 2.7.x" for a long time (since 2.6.5).
+This is needed for some underlaying GPIO controllers that may be a bit
+slow, or if chip-select signal need some time to stabilize.
 
-This marks dma_sync_single() and dma_sync_sg() as deprecated so the users
-get notified before removing them.
+For what it's worth, we already have the similar delay for chip-select
+de-assertion case.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ drivers/spi/spi_mpc83xx.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/dma-mapping.h~dma-mapping-mark-dma_sync_single-and-dma_sync_sg-as-deprecated include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-mark-dma_sync_single-and-dma_sync_sg-as-deprecated
-+++ a/include/linux/dma-mapping.h
-@@ -109,9 +109,20 @@ static inline int is_buffer_dma_capable(
- #include <asm-generic/dma-mapping-broken.h>
- #endif
+diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-add-small-delay-after-asserting-chip-select-line drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-add-small-delay-after-asserting-chip-select-line
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -383,8 +383,10 @@ static void mpc83xx_spi_work(struct work
+ 					break;
+ 			}
  
--/* Backwards compat, remove in 2.7.x */
--#define dma_sync_single		dma_sync_single_for_cpu
--#define dma_sync_sg		dma_sync_sg_for_cpu
-+/* for backwards compatibility, removed soon */
-+static inline void __deprecated dma_sync_single(struct device *dev,
-+						dma_addr_t addr, size_t size,
-+						enum dma_data_direction dir)
-+{
-+	dma_sync_single_for_cpu(dev, addr, size, dir);
-+}
-+
-+static inline void __deprecated dma_sync_sg(struct device *dev,
-+					    struct scatterlist *sg, int nelems,
-+					    enum dma_data_direction dir)
-+{
-+	dma_sync_sg_for_cpu(dev, sg, nelems, dir);
-+}
- 
- static inline u64 dma_get_mask(struct device *dev)
- {
+-			if (cs_change)
++			if (cs_change) {
+ 				mpc83xx_spi_chipselect(spi, BITBANG_CS_ACTIVE);
++				ndelay(nsecs);
++			}
+ 			cs_change = t->cs_change;
+ 			if (t->len)
+ 				status = mpc83xx_spi_bufs(spi, t);
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
 linux-next.patch
-ib-mthca-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
+usb-mutually-exclusive-port_status.patch
 
