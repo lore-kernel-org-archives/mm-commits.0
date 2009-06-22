@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch added to -mm tree
-Date: Mon, 22 Jun 2009 14:54:52 -0700
-Message-ID: <200906222154.n5MLsqM1029308@imap1.linux-foundation.org>
+Subject: + h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu.patch added to -mm tree
+Date: Mon, 22 Jun 2009 14:56:05 -0700
+Message-ID: <200906222156.n5MLu5OF030663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751585AbZFVV4V (ORCPT
+	by vger.kernel.org with ESMTP id S1751129AbZFVV4u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 17:56:21 -0400
+	Mon, 22 Jun 2009 17:56:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, alan@lxorguk.ukuu.org.uk, stable@kernel.org
+Cc: rpjday@crashcourse.ca, ysato@users.sourceforge.jp
 
 
 The patch titled
-     serial: bfin_5xx: fix building as module when early printk is enabled
+     h8/300: fix incorrect "select" directives in arch/h8300/Kconfig.cpu.
 has been added to the -mm tree.  Its filename is
-     serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch
+     h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: bfin_5xx: fix building as module when early printk is enabled
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: h8/300: fix incorrect "select" directives in arch/h8300/Kconfig.cpu.
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Since early printk only makes sense/works when the serial driver is built
-into the kernel, disable the option for this driver when it is going to be
-built as a module.  Otherwise we get build failures due to the ifdef
-handling.
+Fix the incorrect "select" directives by dropping the "CONFIG_"
+prefixes, and correcting the typo "H8S2768" to "H8S2678".
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: <stable@kernel.org>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/bfin_5xx.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/h8300/Kconfig.cpu |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/bfin_5xx.c~serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled drivers/serial/bfin_5xx.c
---- a/drivers/serial/bfin_5xx.c~serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled
-+++ a/drivers/serial/bfin_5xx.c
-@@ -38,6 +38,10 @@
- #include <asm/cacheflush.h>
- #endif
+diff -puN arch/h8300/Kconfig.cpu~h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu arch/h8300/Kconfig.cpu
+--- a/arch/h8300/Kconfig.cpu~h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu
++++ a/arch/h8300/Kconfig.cpu
+@@ -13,7 +13,7 @@ config H8300H_GENERIC
  
-+#ifdef CONFIG_SERIAL_BFIN_MODULE
-+# undef CONFIG_EARLY_PRINTK
-+#endif
-+
- /* UART name and device definitions */
- #define BFIN_SERIAL_NAME	"ttyBF"
- #define BFIN_SERIAL_MAJOR	204
+ config H8300H_AKI3068NET
+ 	bool "AE-3068/69"
+-	select CONFIG_H83068
++	select H83068
+ 	help
+ 	  AKI-H8/3068F / AKI-H8/3069F Flashmicom LAN Board Support
+ 	  More Information. (Japanese Only)
+@@ -24,7 +24,7 @@ config H8300H_AKI3068NET
+ 
+ config H8300H_H8MAX
+ 	bool "H8MAX"
+-	select CONFIG_H83068
++	select H83068
+ 	help
+ 	  H8MAX Evaluation Board Support
+ 	  More Information. (Japanese Only)
+@@ -32,7 +32,7 @@ config H8300H_H8MAX
+ 
+ config H8300H_SIM
+ 	bool "H8/300H Simulator"
+-	select CONFIG_H83007
++	select H83007
+ 	help
+ 	  GDB Simulator Support
+ 	  More Information.
+@@ -45,7 +45,7 @@ config H8S_GENERIC
+ 
+ config H8S_EDOSK2674
+ 	bool "EDOSK-2674"
+-	select CONFIG_H8S2768
++	select H8S2678
+ 	help
+ 	  Renesas EDOSK-2674 Evaluation Board Support
+ 	  More Information.
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
-rmap-fixup-page_referenced-for-nommu-systems.patch
 linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-serial-bfin_5xx-add-missing-spin_lock-init.patch
-serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch
+h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu.patch
 
