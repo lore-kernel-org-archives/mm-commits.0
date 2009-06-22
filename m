@@ -1,1963 +1,375 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi_mpc83xx-rename-spi_83xxc-to-spi_8xxxc.patch removed from -mm tree
-Date: Mon, 22 Jun 2009 10:00:19 -0700
-Message-ID: <200906221700.n5MH0Jff009609@imap1.linux-foundation.org>
+Subject: [merged] watchdog-add-bcm47xx-driver.patch removed from -mm tree
+Date: Mon, 22 Jun 2009 10:01:13 -0700
+Message-ID: <200906221701.n5MH1DAX010581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751679AbZFVRKT (ORCPT
+	by vger.kernel.org with ESMTP id S1753252AbZFVRKc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jun 2009 13:10:19 -0400
+	Mon, 22 Jun 2009 13:10:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, galak@kernel.crashing.org, mm-commits@vger.kernel.org
+To: castet.matthieu@free.fr, biblbroks@sezampro.rs, florian@openwrt.org, ralf@linux-mips.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_mpc83xx: rename spi_83xx.c to spi_8xxx.c
+     watchdog: add bcm47xx driver
 has been removed from the -mm tree.  Its filename was
-     spi_mpc83xx-rename-spi_83xxc-to-spi_8xxxc.patch
+     watchdog-add-bcm47xx-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_mpc83xx: rename spi_83xx.c to spi_8xxx.c
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: watchdog: add bcm47xx driver
+From: matthieu castet <castet.matthieu@free.fr>
 
-The driver handles MPC83xx, MPC85xx and MPC86xx SPI controllers, so rename
-the file for clarity.
+Add a watchdog driver for the broadcom 47xx device.  It uses the ssb
+subsytem to access embeded watchdog device.
 
-Suggested-by: Kumar Gala <galak@kernel.crashing.org>
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Because the watchdog timeout is very short (about 2s), a soft timer is
+used to increase the watchdog period.
+
+A patch for exporting the ssb_watchdog_timer_set will be submitted on next
+linux-mips merge.  Without this patch it can't be build as a module.
+
+Signed-off-by: Aleksandar Radovanovic <biblbroks@sezampro.rs>
+Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Tested-by: Florian Fainelli <florian@openwrt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Makefile      |    2 
- drivers/spi/spi_mpc83xx.c |  945 ------------------------------------
- drivers/spi/spi_mpc8xxx.c |  945 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 946 insertions(+), 946 deletions(-)
+ drivers/watchdog/Kconfig       |    6 
+ drivers/watchdog/Makefile      |    1 
+ drivers/watchdog/bcm47xx_wdt.c |  286 +++++++++++++++++++++++++++++++
+ 3 files changed, 293 insertions(+)
 
-diff -puN drivers/spi/Makefile~spi_mpc83xx-rename-spi_83xxc-to-spi_8xxxc drivers/spi/Makefile
---- a/drivers/spi/Makefile~spi_mpc83xx-rename-spi_83xxc-to-spi_8xxxc
-+++ a/drivers/spi/Makefile
-@@ -25,7 +25,7 @@ obj-$(CONFIG_SPI_OMAP24XX)		+= omap2_mcs
- obj-$(CONFIG_SPI_ORION)			+= orion_spi.o
- obj-$(CONFIG_SPI_PL022)			+= amba-pl022.o
- obj-$(CONFIG_SPI_MPC52xx_PSC)		+= mpc52xx_psc_spi.o
--obj-$(CONFIG_SPI_MPC83xx)		+= spi_mpc83xx.o
-+obj-$(CONFIG_SPI_MPC83xx)		+= spi_mpc8xxx.o
- obj-$(CONFIG_SPI_S3C24XX_GPIO)		+= spi_s3c24xx_gpio.o
- obj-$(CONFIG_SPI_S3C24XX)		+= spi_s3c24xx.o
- obj-$(CONFIG_SPI_TXX9)			+= spi_txx9.o
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-rename-spi_83xxc-to-spi_8xxxc /dev/null
---- a/drivers/spi/spi_mpc83xx.c
-+++ /dev/null
-@@ -1,945 +0,0 @@
--/*
-- * MPC83xx SPI controller driver.
-- *
-- * Maintainer: Kumar Gala
-- *
-- * Copyright (C) 2006 Polycom, Inc.
-- *
-- * This program is free software; you can redistribute  it and/or modify it
-- * under  the terms of  the GNU General  Public License as published by the
-- * Free Software Foundation;  either version 2 of the  License, or (at your
-- * option) any later version.
-- */
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/types.h>
--#include <linux/kernel.h>
--#include <linux/bug.h>
--#include <linux/errno.h>
--#include <linux/err.h>
--#include <linux/io.h>
--#include <linux/completion.h>
--#include <linux/interrupt.h>
--#include <linux/delay.h>
--#include <linux/irq.h>
--#include <linux/device.h>
--#include <linux/spi/spi.h>
--#include <linux/spi/spi_bitbang.h>
--#include <linux/platform_device.h>
--#include <linux/fsl_devices.h>
--#include <linux/of.h>
--#include <linux/of_platform.h>
--#include <linux/gpio.h>
--#include <linux/of_gpio.h>
--#include <linux/of_spi.h>
--
--#include <sysdev/fsl_soc.h>
--#include <asm/irq.h>
--
--/* SPI Controller registers */
--struct mpc83xx_spi_reg {
--	u8 res1[0x20];
--	__be32 mode;
--	__be32 event;
--	__be32 mask;
--	__be32 command;
--	__be32 transmit;
--	__be32 receive;
--};
--
--/* SPI Controller mode register definitions */
--#define	SPMODE_LOOP		(1 << 30)
--#define	SPMODE_CI_INACTIVEHIGH	(1 << 29)
--#define	SPMODE_CP_BEGIN_EDGECLK	(1 << 28)
--#define	SPMODE_DIV16		(1 << 27)
--#define	SPMODE_REV		(1 << 26)
--#define	SPMODE_MS		(1 << 25)
--#define	SPMODE_ENABLE		(1 << 24)
--#define	SPMODE_LEN(x)		((x) << 20)
--#define	SPMODE_PM(x)		((x) << 16)
--#define	SPMODE_OP		(1 << 14)
--#define	SPMODE_CG(x)		((x) << 7)
--
--/*
-- * Default for SPI Mode:
-- * 	SPI MODE 0 (inactive low, phase middle, MSB, 8-bit length, slow clk
-- */
--#define	SPMODE_INIT_VAL (SPMODE_CI_INACTIVEHIGH | SPMODE_DIV16 | SPMODE_REV | \
--			 SPMODE_MS | SPMODE_LEN(7) | SPMODE_PM(0xf))
--
--/* SPIE register values */
--#define	SPIE_NE		0x00000200	/* Not empty */
--#define	SPIE_NF		0x00000100	/* Not full */
--
--/* SPIM register values */
--#define	SPIM_NE		0x00000200	/* Not empty */
--#define	SPIM_NF		0x00000100	/* Not full */
--
--/* SPI Controller driver's private data. */
--struct mpc83xx_spi {
--	struct mpc83xx_spi_reg __iomem *base;
--
--	/* rx & tx bufs from the spi_transfer */
--	const void *tx;
--	void *rx;
--
--	/* functions to deal with different sized buffers */
--	void (*get_rx) (u32 rx_data, struct mpc83xx_spi *);
--	u32(*get_tx) (struct mpc83xx_spi *);
--
--	unsigned int count;
--	unsigned int irq;
--
--	unsigned nsecs;		/* (clock cycle time)/2 */
--
--	u32 spibrg;		/* SPIBRG input clock */
--	u32 rx_shift;		/* RX data reg shift when in qe mode */
--	u32 tx_shift;		/* TX data reg shift when in qe mode */
--
--	bool qe_mode;
--
--	struct workqueue_struct *workqueue;
--	struct work_struct work;
--
--	struct list_head queue;
--	spinlock_t lock;
--
--	struct completion done;
--};
--
--struct spi_mpc83xx_cs {
--	/* functions to deal with different sized buffers */
--	void (*get_rx) (u32 rx_data, struct mpc83xx_spi *);
--	u32 (*get_tx) (struct mpc83xx_spi *);
--	u32 rx_shift;		/* RX data reg shift when in qe mode */
--	u32 tx_shift;		/* TX data reg shift when in qe mode */
--	u32 hw_mode;		/* Holds HW mode register settings */
--};
--
--static inline void mpc83xx_spi_write_reg(__be32 __iomem *reg, u32 val)
--{
--	out_be32(reg, val);
--}
--
--static inline u32 mpc83xx_spi_read_reg(__be32 __iomem *reg)
--{
--	return in_be32(reg);
--}
--
--#define MPC83XX_SPI_RX_BUF(type) 					  \
--static									  \
--void mpc83xx_spi_rx_buf_##type(u32 data, struct mpc83xx_spi *mpc83xx_spi) \
--{									  \
--	type *rx = mpc83xx_spi->rx;					  \
--	*rx++ = (type)(data >> mpc83xx_spi->rx_shift);			  \
--	mpc83xx_spi->rx = rx;						  \
--}
--
--#define MPC83XX_SPI_TX_BUF(type)				\
--static								\
--u32 mpc83xx_spi_tx_buf_##type(struct mpc83xx_spi *mpc83xx_spi)	\
--{								\
--	u32 data;						\
--	const type *tx = mpc83xx_spi->tx;			\
--	if (!tx)						\
--		return 0;					\
--	data = *tx++ << mpc83xx_spi->tx_shift;			\
--	mpc83xx_spi->tx = tx;					\
--	return data;						\
--}
--
--MPC83XX_SPI_RX_BUF(u8)
--MPC83XX_SPI_RX_BUF(u16)
--MPC83XX_SPI_RX_BUF(u32)
--MPC83XX_SPI_TX_BUF(u8)
--MPC83XX_SPI_TX_BUF(u16)
--MPC83XX_SPI_TX_BUF(u32)
--
--static void mpc83xx_spi_chipselect(struct spi_device *spi, int value)
--{
--	struct mpc83xx_spi *mpc83xx_spi = spi_master_get_devdata(spi->master);
--	struct fsl_spi_platform_data *pdata = spi->dev.parent->platform_data;
--	bool pol = spi->mode & SPI_CS_HIGH;
--	struct spi_mpc83xx_cs	*cs = spi->controller_state;
--
--	if (value == BITBANG_CS_INACTIVE) {
--		if (pdata->cs_control)
--			pdata->cs_control(spi, !pol);
--	}
--
--	if (value == BITBANG_CS_ACTIVE) {
--		u32 regval = mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
--
--		mpc83xx_spi->rx_shift = cs->rx_shift;
--		mpc83xx_spi->tx_shift = cs->tx_shift;
--		mpc83xx_spi->get_rx = cs->get_rx;
--		mpc83xx_spi->get_tx = cs->get_tx;
--
--		if (cs->hw_mode != regval) {
--			unsigned long flags;
--			__be32 __iomem *mode = &mpc83xx_spi->base->mode;
--
--			regval = cs->hw_mode;
--			/* Turn off IRQs locally to minimize time that
--			 * SPI is disabled
--			 */
--			local_irq_save(flags);
--			/* Turn off SPI unit prior changing mode */
--			mpc83xx_spi_write_reg(mode, regval & ~SPMODE_ENABLE);
--			mpc83xx_spi_write_reg(mode, regval);
--			local_irq_restore(flags);
--		}
--		if (pdata->cs_control)
--			pdata->cs_control(spi, pol);
--	}
--}
--
--static
--int mpc83xx_spi_setup_transfer(struct spi_device *spi, struct spi_transfer *t)
--{
--	struct mpc83xx_spi *mpc83xx_spi;
--	u32 regval;
--	u8 bits_per_word, pm;
--	u32 hz;
--	struct spi_mpc83xx_cs	*cs = spi->controller_state;
--
--	mpc83xx_spi = spi_master_get_devdata(spi->master);
--
--	if (t) {
--		bits_per_word = t->bits_per_word;
--		hz = t->speed_hz;
--	} else {
--		bits_per_word = 0;
--		hz = 0;
--	}
--
--	/* spi_transfer level calls that work per-word */
--	if (!bits_per_word)
--		bits_per_word = spi->bits_per_word;
--
--	/* Make sure its a bit width we support [4..16, 32] */
--	if ((bits_per_word < 4)
--	    || ((bits_per_word > 16) && (bits_per_word != 32)))
--		return -EINVAL;
--
--	if (!hz)
--		hz = spi->max_speed_hz;
--
--	cs->rx_shift = 0;
--	cs->tx_shift = 0;
--	if (bits_per_word <= 8) {
--		cs->get_rx = mpc83xx_spi_rx_buf_u8;
--		cs->get_tx = mpc83xx_spi_tx_buf_u8;
--		if (mpc83xx_spi->qe_mode) {
--			cs->rx_shift = 16;
--			cs->tx_shift = 24;
--		}
--	} else if (bits_per_word <= 16) {
--		cs->get_rx = mpc83xx_spi_rx_buf_u16;
--		cs->get_tx = mpc83xx_spi_tx_buf_u16;
--		if (mpc83xx_spi->qe_mode) {
--			cs->rx_shift = 16;
--			cs->tx_shift = 16;
--		}
--	} else if (bits_per_word <= 32) {
--		cs->get_rx = mpc83xx_spi_rx_buf_u32;
--		cs->get_tx = mpc83xx_spi_tx_buf_u32;
--	} else
--		return -EINVAL;
--
--	if (mpc83xx_spi->qe_mode && spi->mode & SPI_LSB_FIRST) {
--		cs->tx_shift = 0;
--		if (bits_per_word <= 8)
--			cs->rx_shift = 8;
--		else
--			cs->rx_shift = 0;
--	}
--
--	mpc83xx_spi->rx_shift = cs->rx_shift;
--	mpc83xx_spi->tx_shift = cs->tx_shift;
--	mpc83xx_spi->get_rx = cs->get_rx;
--	mpc83xx_spi->get_tx = cs->get_tx;
--
--	if (bits_per_word == 32)
--		bits_per_word = 0;
--	else
--		bits_per_word = bits_per_word - 1;
--
--	/* mask out bits we are going to set */
--	cs->hw_mode &= ~(SPMODE_LEN(0xF) | SPMODE_DIV16
--				  | SPMODE_PM(0xF));
--
--	cs->hw_mode |= SPMODE_LEN(bits_per_word);
--
--	if ((mpc83xx_spi->spibrg / hz) > 64) {
--		cs->hw_mode |= SPMODE_DIV16;
--		pm = mpc83xx_spi->spibrg / (hz * 64);
--
--		WARN_ONCE(pm > 16, "%s: Requested speed is too low: %d Hz. "
--			  "Will use %d Hz instead.\n", dev_name(&spi->dev),
--			  hz, mpc83xx_spi->spibrg / 1024);
--		if (pm > 16)
--			pm = 16;
--	} else
--		pm = mpc83xx_spi->spibrg / (hz * 4);
--	if (pm)
--		pm--;
--
--	cs->hw_mode |= SPMODE_PM(pm);
--	regval =  mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
--	if (cs->hw_mode != regval) {
--		unsigned long flags;
--		__be32 __iomem *mode = &mpc83xx_spi->base->mode;
--
--		regval = cs->hw_mode;
--		/* Turn off IRQs locally to minimize time
--		 * that SPI is disabled
--		 */
--		local_irq_save(flags);
--		/* Turn off SPI unit prior changing mode */
--		mpc83xx_spi_write_reg(mode, regval & ~SPMODE_ENABLE);
--		mpc83xx_spi_write_reg(mode, regval);
--		local_irq_restore(flags);
--	}
--	return 0;
--}
--
--static int mpc83xx_spi_bufs(struct spi_device *spi, struct spi_transfer *t)
--{
--	struct mpc83xx_spi *mpc83xx_spi;
--	u32 word, len, bits_per_word;
--
--	mpc83xx_spi = spi_master_get_devdata(spi->master);
--
--	mpc83xx_spi->tx = t->tx_buf;
--	mpc83xx_spi->rx = t->rx_buf;
--	bits_per_word = spi->bits_per_word;
--	if (t->bits_per_word)
--		bits_per_word = t->bits_per_word;
--	len = t->len;
--	if (bits_per_word > 8) {
--		/* invalid length? */
--		if (len & 1)
--			return -EINVAL;
--		len /= 2;
--	}
--	if (bits_per_word > 16) {
--		/* invalid length? */
--		if (len & 1)
--			return -EINVAL;
--		len /= 2;
--	}
--	mpc83xx_spi->count = len;
--
--	INIT_COMPLETION(mpc83xx_spi->done);
--
--	/* enable rx ints */
--	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, SPIM_NE);
--
--	/* transmit word */
--	word = mpc83xx_spi->get_tx(mpc83xx_spi);
--	mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit, word);
--
--	wait_for_completion(&mpc83xx_spi->done);
--
--	/* disable rx ints */
--	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, 0);
--
--	return mpc83xx_spi->count;
--}
--
--static void mpc83xx_spi_do_one_msg(struct spi_message *m)
--{
--	struct spi_device *spi = m->spi;
--	struct spi_transfer *t;
--	unsigned int cs_change;
--	const int nsecs = 50;
--	int status;
--
--	cs_change = 1;
--	status = 0;
--	list_for_each_entry(t, &m->transfers, transfer_list) {
--		if (t->bits_per_word || t->speed_hz) {
--			/* Don't allow changes if CS is active */
--			status = -EINVAL;
--
--			if (cs_change)
--				status = mpc83xx_spi_setup_transfer(spi, t);
--			if (status < 0)
--				break;
--		}
--
--		if (cs_change) {
--			mpc83xx_spi_chipselect(spi, BITBANG_CS_ACTIVE);
--			ndelay(nsecs);
--		}
--		cs_change = t->cs_change;
--		if (t->len)
--			status = mpc83xx_spi_bufs(spi, t);
--		if (status) {
--			status = -EMSGSIZE;
--			break;
--		}
--		m->actual_length += t->len;
--
--		if (t->delay_usecs)
--			udelay(t->delay_usecs);
--
--		if (cs_change) {
--			ndelay(nsecs);
--			mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
--			ndelay(nsecs);
--		}
--	}
--
--	m->status = status;
--	m->complete(m->context);
--
--	if (status || !cs_change) {
--		ndelay(nsecs);
--		mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
--	}
--
--	mpc83xx_spi_setup_transfer(spi, NULL);
--}
--
--static void mpc83xx_spi_work(struct work_struct *work)
--{
--	struct mpc83xx_spi *mpc83xx_spi = container_of(work, struct mpc83xx_spi,
--						       work);
--
--	spin_lock_irq(&mpc83xx_spi->lock);
--	while (!list_empty(&mpc83xx_spi->queue)) {
--		struct spi_message *m = container_of(mpc83xx_spi->queue.next,
--						   struct spi_message, queue);
--
--		list_del_init(&m->queue);
--		spin_unlock_irq(&mpc83xx_spi->lock);
--
--		mpc83xx_spi_do_one_msg(m);
--
--		spin_lock_irq(&mpc83xx_spi->lock);
--	}
--	spin_unlock_irq(&mpc83xx_spi->lock);
--}
--
--static int mpc83xx_spi_setup(struct spi_device *spi)
--{
--	struct mpc83xx_spi *mpc83xx_spi;
--	int retval;
--	u32 hw_mode;
--	struct spi_mpc83xx_cs	*cs = spi->controller_state;
--
--	if (!spi->max_speed_hz)
--		return -EINVAL;
--
--	if (!cs) {
--		cs = kzalloc(sizeof *cs, GFP_KERNEL);
--		if (!cs)
--			return -ENOMEM;
--		spi->controller_state = cs;
--	}
--	mpc83xx_spi = spi_master_get_devdata(spi->master);
--
--	hw_mode = cs->hw_mode; /* Save orginal settings */
--	cs->hw_mode = mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
--	/* mask out bits we are going to set */
--	cs->hw_mode &= ~(SPMODE_CP_BEGIN_EDGECLK | SPMODE_CI_INACTIVEHIGH
--			 | SPMODE_REV | SPMODE_LOOP);
--
--	if (spi->mode & SPI_CPHA)
--		cs->hw_mode |= SPMODE_CP_BEGIN_EDGECLK;
--	if (spi->mode & SPI_CPOL)
--		cs->hw_mode |= SPMODE_CI_INACTIVEHIGH;
--	if (!(spi->mode & SPI_LSB_FIRST))
--		cs->hw_mode |= SPMODE_REV;
--	if (spi->mode & SPI_LOOP)
--		cs->hw_mode |= SPMODE_LOOP;
--
--	retval = mpc83xx_spi_setup_transfer(spi, NULL);
--	if (retval < 0) {
--		cs->hw_mode = hw_mode; /* Restore settings */
--		return retval;
--	}
--	return 0;
--}
--
--static irqreturn_t mpc83xx_spi_irq(s32 irq, void *context_data)
--{
--	struct mpc83xx_spi *mpc83xx_spi = context_data;
--	u32 event;
--	irqreturn_t ret = IRQ_NONE;
--
--	/* Get interrupt events(tx/rx) */
--	event = mpc83xx_spi_read_reg(&mpc83xx_spi->base->event);
--
--	/* We need handle RX first */
--	if (event & SPIE_NE) {
--		u32 rx_data = mpc83xx_spi_read_reg(&mpc83xx_spi->base->receive);
--
--		if (mpc83xx_spi->rx)
--			mpc83xx_spi->get_rx(rx_data, mpc83xx_spi);
--
--		ret = IRQ_HANDLED;
--	}
--
--	if ((event & SPIE_NF) == 0)
--		/* spin until TX is done */
--		while (((event =
--			 mpc83xx_spi_read_reg(&mpc83xx_spi->base->event)) &
--						SPIE_NF) == 0)
--			cpu_relax();
--
--	mpc83xx_spi->count -= 1;
--	if (mpc83xx_spi->count) {
--		u32 word = mpc83xx_spi->get_tx(mpc83xx_spi);
--		mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit, word);
--	} else {
--		complete(&mpc83xx_spi->done);
--	}
--
--	/* Clear the events */
--	mpc83xx_spi_write_reg(&mpc83xx_spi->base->event, event);
--
--	return ret;
--}
--static int mpc83xx_spi_transfer(struct spi_device *spi,
--				struct spi_message *m)
--{
--	struct mpc83xx_spi *mpc83xx_spi = spi_master_get_devdata(spi->master);
--	unsigned long flags;
--
--	m->actual_length = 0;
--	m->status = -EINPROGRESS;
--
--	spin_lock_irqsave(&mpc83xx_spi->lock, flags);
--	list_add_tail(&m->queue, &mpc83xx_spi->queue);
--	queue_work(mpc83xx_spi->workqueue, &mpc83xx_spi->work);
--	spin_unlock_irqrestore(&mpc83xx_spi->lock, flags);
--
--	return 0;
--}
--
--
--static void mpc83xx_spi_cleanup(struct spi_device *spi)
--{
--	kfree(spi->controller_state);
--}
--
--static struct spi_master * __devinit
--mpc83xx_spi_probe(struct device *dev, struct resource *mem, unsigned int irq)
--{
--	struct fsl_spi_platform_data *pdata = dev->platform_data;
--	struct spi_master *master;
--	struct mpc83xx_spi *mpc83xx_spi;
--	u32 regval;
--	int ret = 0;
--
--	master = spi_alloc_master(dev, sizeof(struct mpc83xx_spi));
--	if (master == NULL) {
--		ret = -ENOMEM;
--		goto err;
--	}
--
--	dev_set_drvdata(dev, master);
--
--	/* the spi->mode bits understood by this driver: */
--	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH
--			| SPI_LSB_FIRST | SPI_LOOP;
--
--	master->setup = mpc83xx_spi_setup;
--	master->transfer = mpc83xx_spi_transfer;
--	master->cleanup = mpc83xx_spi_cleanup;
--
--	mpc83xx_spi = spi_master_get_devdata(master);
--	mpc83xx_spi->qe_mode = pdata->qe_mode;
--	mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
--	mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
--	mpc83xx_spi->spibrg = pdata->sysclk;
--
--	mpc83xx_spi->rx_shift = 0;
--	mpc83xx_spi->tx_shift = 0;
--	if (mpc83xx_spi->qe_mode) {
--		mpc83xx_spi->rx_shift = 16;
--		mpc83xx_spi->tx_shift = 24;
--	}
--
--	init_completion(&mpc83xx_spi->done);
--
--	mpc83xx_spi->base = ioremap(mem->start, mem->end - mem->start + 1);
--	if (mpc83xx_spi->base == NULL) {
--		ret = -ENOMEM;
--		goto put_master;
--	}
--
--	mpc83xx_spi->irq = irq;
--
--	/* Register for SPI Interrupt */
--	ret = request_irq(mpc83xx_spi->irq, mpc83xx_spi_irq,
--			  0, "mpc83xx_spi", mpc83xx_spi);
--
--	if (ret != 0)
--		goto unmap_io;
--
--	master->bus_num = pdata->bus_num;
--	master->num_chipselect = pdata->max_chipselect;
--
--	/* SPI controller initializations */
--	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, 0);
--	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, 0);
--	mpc83xx_spi_write_reg(&mpc83xx_spi->base->command, 0);
--	mpc83xx_spi_write_reg(&mpc83xx_spi->base->event, 0xffffffff);
--
--	/* Enable SPI interface */
--	regval = pdata->initial_spmode | SPMODE_INIT_VAL | SPMODE_ENABLE;
--	if (pdata->qe_mode)
--		regval |= SPMODE_OP;
--
--	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, regval);
--	spin_lock_init(&mpc83xx_spi->lock);
--	init_completion(&mpc83xx_spi->done);
--	INIT_WORK(&mpc83xx_spi->work, mpc83xx_spi_work);
--	INIT_LIST_HEAD(&mpc83xx_spi->queue);
--
--	mpc83xx_spi->workqueue = create_singlethread_workqueue(
--		dev_name(master->dev.parent));
--	if (mpc83xx_spi->workqueue == NULL) {
--		ret = -EBUSY;
--		goto free_irq;
--	}
--
--	ret = spi_register_master(master);
--	if (ret < 0)
--		goto unreg_master;
--
--	printk(KERN_INFO
--	       "%s: MPC83xx SPI Controller driver at 0x%p (irq = %d)\n",
--	       dev_name(dev), mpc83xx_spi->base, mpc83xx_spi->irq);
--
--	return master;
--
--unreg_master:
--	destroy_workqueue(mpc83xx_spi->workqueue);
--free_irq:
--	free_irq(mpc83xx_spi->irq, mpc83xx_spi);
--unmap_io:
--	iounmap(mpc83xx_spi->base);
--put_master:
--	spi_master_put(master);
--err:
--	return ERR_PTR(ret);
--}
--
--static int __devexit mpc83xx_spi_remove(struct device *dev)
--{
--	struct mpc83xx_spi *mpc83xx_spi;
--	struct spi_master *master;
--
--	master = dev_get_drvdata(dev);
--	mpc83xx_spi = spi_master_get_devdata(master);
--
--	flush_workqueue(mpc83xx_spi->workqueue);
--	destroy_workqueue(mpc83xx_spi->workqueue);
--	spi_unregister_master(master);
--
--	free_irq(mpc83xx_spi->irq, mpc83xx_spi);
--	iounmap(mpc83xx_spi->base);
--
--	return 0;
--}
--
--struct mpc83xx_spi_probe_info {
--	struct fsl_spi_platform_data pdata;
--	int *gpios;
--	bool *alow_flags;
--};
--
--static struct mpc83xx_spi_probe_info *
--to_of_pinfo(struct fsl_spi_platform_data *pdata)
--{
--	return container_of(pdata, struct mpc83xx_spi_probe_info, pdata);
--}
--
--static void mpc83xx_spi_cs_control(struct spi_device *spi, bool on)
--{
--	struct device *dev = spi->dev.parent;
--	struct mpc83xx_spi_probe_info *pinfo = to_of_pinfo(dev->platform_data);
--	u16 cs = spi->chip_select;
--	int gpio = pinfo->gpios[cs];
--	bool alow = pinfo->alow_flags[cs];
--
--	gpio_set_value(gpio, on ^ alow);
--}
--
--static int of_mpc83xx_spi_get_chipselects(struct device *dev)
--{
--	struct device_node *np = dev_archdata_get_node(&dev->archdata);
--	struct fsl_spi_platform_data *pdata = dev->platform_data;
--	struct mpc83xx_spi_probe_info *pinfo = to_of_pinfo(pdata);
--	unsigned int ngpios;
--	int i = 0;
--	int ret;
--
--	ngpios = of_gpio_count(np);
--	if (!ngpios) {
--		/*
--		 * SPI w/o chip-select line. One SPI device is still permitted
--		 * though.
--		 */
--		pdata->max_chipselect = 1;
--		return 0;
--	}
--
--	pinfo->gpios = kmalloc(ngpios * sizeof(*pinfo->gpios), GFP_KERNEL);
--	if (!pinfo->gpios)
--		return -ENOMEM;
--	memset(pinfo->gpios, -1, ngpios * sizeof(*pinfo->gpios));
--
--	pinfo->alow_flags = kzalloc(ngpios * sizeof(*pinfo->alow_flags),
--				    GFP_KERNEL);
--	if (!pinfo->alow_flags) {
--		ret = -ENOMEM;
--		goto err_alloc_flags;
--	}
--
--	for (; i < ngpios; i++) {
--		int gpio;
--		enum of_gpio_flags flags;
--
--		gpio = of_get_gpio_flags(np, i, &flags);
--		if (!gpio_is_valid(gpio)) {
--			dev_err(dev, "invalid gpio #%d: %d\n", i, gpio);
--			goto err_loop;
--		}
--
--		ret = gpio_request(gpio, dev_name(dev));
--		if (ret) {
--			dev_err(dev, "can't request gpio #%d: %d\n", i, ret);
--			goto err_loop;
--		}
--
--		pinfo->gpios[i] = gpio;
--		pinfo->alow_flags[i] = flags & OF_GPIO_ACTIVE_LOW;
--
--		ret = gpio_direction_output(pinfo->gpios[i],
--					    pinfo->alow_flags[i]);
--		if (ret) {
--			dev_err(dev, "can't set output direction for gpio "
--				"#%d: %d\n", i, ret);
--			goto err_loop;
--		}
--	}
--
--	pdata->max_chipselect = ngpios;
--	pdata->cs_control = mpc83xx_spi_cs_control;
--
--	return 0;
--
--err_loop:
--	while (i >= 0) {
--		if (gpio_is_valid(pinfo->gpios[i]))
--			gpio_free(pinfo->gpios[i]);
--		i--;
--	}
--
--	kfree(pinfo->alow_flags);
--	pinfo->alow_flags = NULL;
--err_alloc_flags:
--	kfree(pinfo->gpios);
--	pinfo->gpios = NULL;
--	return ret;
--}
--
--static int of_mpc83xx_spi_free_chipselects(struct device *dev)
--{
--	struct fsl_spi_platform_data *pdata = dev->platform_data;
--	struct mpc83xx_spi_probe_info *pinfo = to_of_pinfo(pdata);
--	int i;
--
--	if (!pinfo->gpios)
--		return 0;
--
--	for (i = 0; i < pdata->max_chipselect; i++) {
--		if (gpio_is_valid(pinfo->gpios[i]))
--			gpio_free(pinfo->gpios[i]);
--	}
--
--	kfree(pinfo->gpios);
--	kfree(pinfo->alow_flags);
--	return 0;
--}
--
--static int __devinit of_mpc83xx_spi_probe(struct of_device *ofdev,
--					  const struct of_device_id *ofid)
--{
--	struct device *dev = &ofdev->dev;
--	struct device_node *np = ofdev->node;
--	struct mpc83xx_spi_probe_info *pinfo;
--	struct fsl_spi_platform_data *pdata;
--	struct spi_master *master;
--	struct resource mem;
--	struct resource irq;
--	const void *prop;
--	int ret = -ENOMEM;
--
--	pinfo = kzalloc(sizeof(*pinfo), GFP_KERNEL);
--	if (!pinfo)
--		return -ENOMEM;
--
--	pdata = &pinfo->pdata;
--	dev->platform_data = pdata;
--
--	/* Allocate bus num dynamically. */
--	pdata->bus_num = -1;
--
--	/* SPI controller is either clocked from QE or SoC clock. */
--	pdata->sysclk = get_brgfreq();
--	if (pdata->sysclk == -1) {
--		pdata->sysclk = fsl_get_sys_freq();
--		if (pdata->sysclk == -1) {
--			ret = -ENODEV;
--			goto err_clk;
--		}
--	}
--
--	prop = of_get_property(np, "mode", NULL);
--	if (prop && !strcmp(prop, "cpu-qe"))
--		pdata->qe_mode = 1;
--
--	ret = of_mpc83xx_spi_get_chipselects(dev);
--	if (ret)
--		goto err;
--
--	ret = of_address_to_resource(np, 0, &mem);
--	if (ret)
--		goto err;
--
--	ret = of_irq_to_resource(np, 0, &irq);
--	if (!ret) {
--		ret = -EINVAL;
--		goto err;
--	}
--
--	master = mpc83xx_spi_probe(dev, &mem, irq.start);
--	if (IS_ERR(master)) {
--		ret = PTR_ERR(master);
--		goto err;
--	}
--
--	of_register_spi_devices(master, np);
--
--	return 0;
--
--err:
--	of_mpc83xx_spi_free_chipselects(dev);
--err_clk:
--	kfree(pinfo);
--	return ret;
--}
--
--static int __devexit of_mpc83xx_spi_remove(struct of_device *ofdev)
--{
--	int ret;
--
--	ret = mpc83xx_spi_remove(&ofdev->dev);
--	if (ret)
--		return ret;
--	of_mpc83xx_spi_free_chipselects(&ofdev->dev);
--	return 0;
--}
--
--static const struct of_device_id of_mpc83xx_spi_match[] = {
--	{ .compatible = "fsl,spi" },
--	{},
--};
--MODULE_DEVICE_TABLE(of, of_mpc83xx_spi_match);
--
--static struct of_platform_driver of_mpc83xx_spi_driver = {
--	.name		= "mpc83xx_spi",
--	.match_table	= of_mpc83xx_spi_match,
--	.probe		= of_mpc83xx_spi_probe,
--	.remove		= __devexit_p(of_mpc83xx_spi_remove),
--};
--
--#ifdef CONFIG_MPC832x_RDB
--/*
-- * 				XXX XXX XXX
-- * This is "legacy" platform driver, was used by the MPC8323E-RDB boards
-- * only. The driver should go away soon, since newer MPC8323E-RDB's device
-- * tree can work with OpenFirmware driver. But for now we support old trees
-- * as well.
-- */
--static int __devinit plat_mpc83xx_spi_probe(struct platform_device *pdev)
--{
--	struct resource *mem;
--	unsigned int irq;
--	struct spi_master *master;
--
--	if (!pdev->dev.platform_data)
--		return -EINVAL;
--
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!mem)
--		return -EINVAL;
--
--	irq = platform_get_irq(pdev, 0);
--	if (!irq)
--		return -EINVAL;
--
--	master = mpc83xx_spi_probe(&pdev->dev, mem, irq);
--	if (IS_ERR(master))
--		return PTR_ERR(master);
--	return 0;
--}
--
--static int __devexit plat_mpc83xx_spi_remove(struct platform_device *pdev)
--{
--	return mpc83xx_spi_remove(&pdev->dev);
--}
--
--MODULE_ALIAS("platform:mpc83xx_spi");
--static struct platform_driver mpc83xx_spi_driver = {
--	.probe = plat_mpc83xx_spi_probe,
--	.remove = __exit_p(plat_mpc83xx_spi_remove),
--	.driver = {
--		.name = "mpc83xx_spi",
--		.owner = THIS_MODULE,
--	},
--};
--
--static bool legacy_driver_failed;
--
--static void __init legacy_driver_register(void)
--{
--	legacy_driver_failed = platform_driver_register(&mpc83xx_spi_driver);
--}
--
--static void __exit legacy_driver_unregister(void)
--{
--	if (legacy_driver_failed)
--		return;
--	platform_driver_unregister(&mpc83xx_spi_driver);
--}
--#else
--static void __init legacy_driver_register(void) {}
--static void __exit legacy_driver_unregister(void) {}
--#endif /* CONFIG_MPC832x_RDB */
--
--static int __init mpc83xx_spi_init(void)
--{
--	legacy_driver_register();
--	return of_register_platform_driver(&of_mpc83xx_spi_driver);
--}
--
--static void __exit mpc83xx_spi_exit(void)
--{
--	of_unregister_platform_driver(&of_mpc83xx_spi_driver);
--	legacy_driver_unregister();
--}
--
--module_init(mpc83xx_spi_init);
--module_exit(mpc83xx_spi_exit);
--
--MODULE_AUTHOR("Kumar Gala");
--MODULE_DESCRIPTION("Simple MPC83xx SPI Driver");
--MODULE_LICENSE("GPL");
-diff -puN /dev/null drivers/spi/spi_mpc8xxx.c
+diff -puN drivers/watchdog/Kconfig~watchdog-add-bcm47xx-driver drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~watchdog-add-bcm47xx-driver
++++ a/drivers/watchdog/Kconfig
+@@ -764,6 +764,12 @@ config TXX9_WDT
+ 	help
+ 	  Hardware driver for the built-in watchdog timer on TXx9 MIPS SoCs.
+ 
++config BCM47XX_WDT
++	tristate "Broadcom BCM47xx Watchdog Timer"
++	depends on BCM47XX
++	help
++	  Hardware driver for the Broadcom BCM47xx Watchog Timer.
++
+ # PARISC Architecture
+ 
+ # POWERPC Architecture
+diff -puN drivers/watchdog/Makefile~watchdog-add-bcm47xx-driver drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~watchdog-add-bcm47xx-driver
++++ a/drivers/watchdog/Makefile
+@@ -105,6 +105,7 @@ obj-$(CONFIG_WDT_RM9K_GPI) += rm9k_wdt.o
+ obj-$(CONFIG_SIBYTE_WDOG) += sb_wdog.o
+ obj-$(CONFIG_AR7_WDT) += ar7_wdt.o
+ obj-$(CONFIG_TXX9_WDT) += txx9wdt.o
++obj-$(CONFIG_BCM47XX_WDT) += bcm47xx_wdt.o
+ 
+ # PARISC Architecture
+ 
+diff -puN /dev/null drivers/watchdog/bcm47xx_wdt.c
 --- /dev/null
-+++ a/drivers/spi/spi_mpc8xxx.c
-@@ -0,0 +1,945 @@
++++ a/drivers/watchdog/bcm47xx_wdt.c
+@@ -0,0 +1,286 @@
 +/*
-+ * MPC83xx SPI controller driver.
++ *  Watchdog driver for Broadcom BCM47XX
 + *
-+ * Maintainer: Kumar Gala
++ *  Copyright (C) 2008 Aleksandar Radovanovic <biblbroks@sezampro.rs>
++ *  Copyright (C) 2009 Matthieu CASTET <castet.matthieu@free.fr>
 + *
-+ * Copyright (C) 2006 Polycom, Inc.
-+ *
-+ * This program is free software; you can redistribute  it and/or modify it
-+ * under  the terms of  the GNU General  Public License as published by the
-+ * Free Software Foundation;  either version 2 of the  License, or (at your
-+ * option) any later version.
++ *  This program is free software; you can redistribute it and/or
++ *  modify it under the terms of the GNU General Public License
++ *  as published by the Free Software Foundation; either version
++ *  2 of the License, or (at your option) any later version.
 + */
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/kernel.h>
-+#include <linux/bug.h>
++
++#include <linux/bitops.h>
 +#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/completion.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/irq.h>
-+#include <linux/device.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/spi_bitbang.h>
-+#include <linux/platform_device.h>
-+#include <linux/fsl_devices.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/gpio.h>
-+#include <linux/of_gpio.h>
-+#include <linux/of_spi.h>
++#include <linux/fs.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/miscdevice.h>
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/reboot.h>
++#include <linux/types.h>
++#include <linux/uaccess.h>
++#include <linux/watchdog.h>
++#include <linux/timer.h>
++#include <linux/jiffies.h>
++#include <linux/ssb/ssb_embedded.h>
++#include <asm/mach-bcm47xx/bcm47xx.h>
 +
-+#include <sysdev/fsl_soc.h>
-+#include <asm/irq.h>
++#define DRV_NAME		"bcm47xx_wdt"
 +
-+/* SPI Controller registers */
-+struct mpc83xx_spi_reg {
-+	u8 res1[0x20];
-+	__be32 mode;
-+	__be32 event;
-+	__be32 mask;
-+	__be32 command;
-+	__be32 transmit;
-+	__be32 receive;
-+};
++#define WDT_DEFAULT_TIME	30	/* seconds */
++#define WDT_MAX_TIME		256	/* seconds */
 +
-+/* SPI Controller mode register definitions */
-+#define	SPMODE_LOOP		(1 << 30)
-+#define	SPMODE_CI_INACTIVEHIGH	(1 << 29)
-+#define	SPMODE_CP_BEGIN_EDGECLK	(1 << 28)
-+#define	SPMODE_DIV16		(1 << 27)
-+#define	SPMODE_REV		(1 << 26)
-+#define	SPMODE_MS		(1 << 25)
-+#define	SPMODE_ENABLE		(1 << 24)
-+#define	SPMODE_LEN(x)		((x) << 20)
-+#define	SPMODE_PM(x)		((x) << 16)
-+#define	SPMODE_OP		(1 << 14)
-+#define	SPMODE_CG(x)		((x) << 7)
++static int wdt_time = WDT_DEFAULT_TIME;
++static int nowayout = WATCHDOG_NOWAYOUT;
 +
-+/*
-+ * Default for SPI Mode:
-+ * 	SPI MODE 0 (inactive low, phase middle, MSB, 8-bit length, slow clk
-+ */
-+#define	SPMODE_INIT_VAL (SPMODE_CI_INACTIVEHIGH | SPMODE_DIV16 | SPMODE_REV | \
-+			 SPMODE_MS | SPMODE_LEN(7) | SPMODE_PM(0xf))
++module_param(wdt_time, int, 0);
++MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="
++				__MODULE_STRING(WDT_DEFAULT_TIME) ")");
 +
-+/* SPIE register values */
-+#define	SPIE_NE		0x00000200	/* Not empty */
-+#define	SPIE_NF		0x00000100	/* Not full */
++#ifdef CONFIG_WATCHDOG_NOWAYOUT
++module_param(nowayout, int, 0);
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++#endif
 +
-+/* SPIM register values */
-+#define	SPIM_NE		0x00000200	/* Not empty */
-+#define	SPIM_NF		0x00000100	/* Not full */
++static unsigned long bcm47xx_wdt_busy;
++static char expect_release;
++static struct timer_list wdt_timer;
++static atomic_t ticks;
 +
-+/* SPI Controller driver's private data. */
-+struct mpc83xx_spi {
-+	struct mpc83xx_spi_reg __iomem *base;
-+
-+	/* rx & tx bufs from the spi_transfer */
-+	const void *tx;
-+	void *rx;
-+
-+	/* functions to deal with different sized buffers */
-+	void (*get_rx) (u32 rx_data, struct mpc83xx_spi *);
-+	u32(*get_tx) (struct mpc83xx_spi *);
-+
-+	unsigned int count;
-+	unsigned int irq;
-+
-+	unsigned nsecs;		/* (clock cycle time)/2 */
-+
-+	u32 spibrg;		/* SPIBRG input clock */
-+	u32 rx_shift;		/* RX data reg shift when in qe mode */
-+	u32 tx_shift;		/* TX data reg shift when in qe mode */
-+
-+	bool qe_mode;
-+
-+	struct workqueue_struct *workqueue;
-+	struct work_struct work;
-+
-+	struct list_head queue;
-+	spinlock_t lock;
-+
-+	struct completion done;
-+};
-+
-+struct spi_mpc83xx_cs {
-+	/* functions to deal with different sized buffers */
-+	void (*get_rx) (u32 rx_data, struct mpc83xx_spi *);
-+	u32 (*get_tx) (struct mpc83xx_spi *);
-+	u32 rx_shift;		/* RX data reg shift when in qe mode */
-+	u32 tx_shift;		/* TX data reg shift when in qe mode */
-+	u32 hw_mode;		/* Holds HW mode register settings */
-+};
-+
-+static inline void mpc83xx_spi_write_reg(__be32 __iomem *reg, u32 val)
++static inline void bcm47xx_wdt_hw_start(void)
 +{
-+	out_be32(reg, val);
++	/* this is 2,5s on 100Mhz clock  and 2s on 133 Mhz */
++	ssb_watchdog_timer_set(&ssb_bcm47xx, 0xfffffff);
 +}
 +
-+static inline u32 mpc83xx_spi_read_reg(__be32 __iomem *reg)
++static inline int bcm47xx_wdt_hw_stop(void)
 +{
-+	return in_be32(reg);
++	return ssb_watchdog_timer_set(&ssb_bcm47xx, 0);
 +}
 +
-+#define MPC83XX_SPI_RX_BUF(type) 					  \
-+static									  \
-+void mpc83xx_spi_rx_buf_##type(u32 data, struct mpc83xx_spi *mpc83xx_spi) \
-+{									  \
-+	type *rx = mpc83xx_spi->rx;					  \
-+	*rx++ = (type)(data >> mpc83xx_spi->rx_shift);			  \
-+	mpc83xx_spi->rx = rx;						  \
-+}
-+
-+#define MPC83XX_SPI_TX_BUF(type)				\
-+static								\
-+u32 mpc83xx_spi_tx_buf_##type(struct mpc83xx_spi *mpc83xx_spi)	\
-+{								\
-+	u32 data;						\
-+	const type *tx = mpc83xx_spi->tx;			\
-+	if (!tx)						\
-+		return 0;					\
-+	data = *tx++ << mpc83xx_spi->tx_shift;			\
-+	mpc83xx_spi->tx = tx;					\
-+	return data;						\
-+}
-+
-+MPC83XX_SPI_RX_BUF(u8)
-+MPC83XX_SPI_RX_BUF(u16)
-+MPC83XX_SPI_RX_BUF(u32)
-+MPC83XX_SPI_TX_BUF(u8)
-+MPC83XX_SPI_TX_BUF(u16)
-+MPC83XX_SPI_TX_BUF(u32)
-+
-+static void mpc83xx_spi_chipselect(struct spi_device *spi, int value)
++static void bcm47xx_timer_tick(unsigned long unused)
 +{
-+	struct mpc83xx_spi *mpc83xx_spi = spi_master_get_devdata(spi->master);
-+	struct fsl_spi_platform_data *pdata = spi->dev.parent->platform_data;
-+	bool pol = spi->mode & SPI_CS_HIGH;
-+	struct spi_mpc83xx_cs	*cs = spi->controller_state;
-+
-+	if (value == BITBANG_CS_INACTIVE) {
-+		if (pdata->cs_control)
-+			pdata->cs_control(spi, !pol);
-+	}
-+
-+	if (value == BITBANG_CS_ACTIVE) {
-+		u32 regval = mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
-+
-+		mpc83xx_spi->rx_shift = cs->rx_shift;
-+		mpc83xx_spi->tx_shift = cs->tx_shift;
-+		mpc83xx_spi->get_rx = cs->get_rx;
-+		mpc83xx_spi->get_tx = cs->get_tx;
-+
-+		if (cs->hw_mode != regval) {
-+			unsigned long flags;
-+			__be32 __iomem *mode = &mpc83xx_spi->base->mode;
-+
-+			regval = cs->hw_mode;
-+			/* Turn off IRQs locally to minimize time that
-+			 * SPI is disabled
-+			 */
-+			local_irq_save(flags);
-+			/* Turn off SPI unit prior changing mode */
-+			mpc83xx_spi_write_reg(mode, regval & ~SPMODE_ENABLE);
-+			mpc83xx_spi_write_reg(mode, regval);
-+			local_irq_restore(flags);
-+		}
-+		if (pdata->cs_control)
-+			pdata->cs_control(spi, pol);
-+	}
-+}
-+
-+static
-+int mpc83xx_spi_setup_transfer(struct spi_device *spi, struct spi_transfer *t)
-+{
-+	struct mpc83xx_spi *mpc83xx_spi;
-+	u32 regval;
-+	u8 bits_per_word, pm;
-+	u32 hz;
-+	struct spi_mpc83xx_cs	*cs = spi->controller_state;
-+
-+	mpc83xx_spi = spi_master_get_devdata(spi->master);
-+
-+	if (t) {
-+		bits_per_word = t->bits_per_word;
-+		hz = t->speed_hz;
++	if (!atomic_dec_and_test(&ticks)) {
++		bcm47xx_wdt_hw_start();
++		mod_timer(&wdt_timer, jiffies + HZ);
 +	} else {
-+		bits_per_word = 0;
-+		hz = 0;
++		printk(KERN_CRIT DRV_NAME "Watchdog will fire soon!!!\n");
 +	}
++}
 +
-+	/* spi_transfer level calls that work per-word */
-+	if (!bits_per_word)
-+		bits_per_word = spi->bits_per_word;
++static inline void bcm47xx_wdt_pet(void)
++{
++	atomic_set(&ticks, wdt_time);
++}
 +
-+	/* Make sure its a bit width we support [4..16, 32] */
-+	if ((bits_per_word < 4)
-+	    || ((bits_per_word > 16) && (bits_per_word != 32)))
++static void bcm47xx_wdt_start(void)
++{
++	bcm47xx_wdt_pet();
++	bcm47xx_timer_tick(0);
++}
++
++static void bcm47xx_wdt_pause(void)
++{
++	del_timer_sync(&wdt_timer);
++	bcm47xx_wdt_hw_stop();
++}
++
++static void bcm47xx_wdt_stop(void)
++{
++	bcm47xx_wdt_pause();
++}
++
++static int bcm47xx_wdt_settimeout(int new_time)
++{
++	if ((new_time <= 0) || (new_time > WDT_MAX_TIME))
 +		return -EINVAL;
 +
-+	if (!hz)
-+		hz = spi->max_speed_hz;
-+
-+	cs->rx_shift = 0;
-+	cs->tx_shift = 0;
-+	if (bits_per_word <= 8) {
-+		cs->get_rx = mpc83xx_spi_rx_buf_u8;
-+		cs->get_tx = mpc83xx_spi_tx_buf_u8;
-+		if (mpc83xx_spi->qe_mode) {
-+			cs->rx_shift = 16;
-+			cs->tx_shift = 24;
-+		}
-+	} else if (bits_per_word <= 16) {
-+		cs->get_rx = mpc83xx_spi_rx_buf_u16;
-+		cs->get_tx = mpc83xx_spi_tx_buf_u16;
-+		if (mpc83xx_spi->qe_mode) {
-+			cs->rx_shift = 16;
-+			cs->tx_shift = 16;
-+		}
-+	} else if (bits_per_word <= 32) {
-+		cs->get_rx = mpc83xx_spi_rx_buf_u32;
-+		cs->get_tx = mpc83xx_spi_tx_buf_u32;
-+	} else
-+		return -EINVAL;
-+
-+	if (mpc83xx_spi->qe_mode && spi->mode & SPI_LSB_FIRST) {
-+		cs->tx_shift = 0;
-+		if (bits_per_word <= 8)
-+			cs->rx_shift = 8;
-+		else
-+			cs->rx_shift = 0;
-+	}
-+
-+	mpc83xx_spi->rx_shift = cs->rx_shift;
-+	mpc83xx_spi->tx_shift = cs->tx_shift;
-+	mpc83xx_spi->get_rx = cs->get_rx;
-+	mpc83xx_spi->get_tx = cs->get_tx;
-+
-+	if (bits_per_word == 32)
-+		bits_per_word = 0;
-+	else
-+		bits_per_word = bits_per_word - 1;
-+
-+	/* mask out bits we are going to set */
-+	cs->hw_mode &= ~(SPMODE_LEN(0xF) | SPMODE_DIV16
-+				  | SPMODE_PM(0xF));
-+
-+	cs->hw_mode |= SPMODE_LEN(bits_per_word);
-+
-+	if ((mpc83xx_spi->spibrg / hz) > 64) {
-+		cs->hw_mode |= SPMODE_DIV16;
-+		pm = mpc83xx_spi->spibrg / (hz * 64);
-+
-+		WARN_ONCE(pm > 16, "%s: Requested speed is too low: %d Hz. "
-+			  "Will use %d Hz instead.\n", dev_name(&spi->dev),
-+			  hz, mpc83xx_spi->spibrg / 1024);
-+		if (pm > 16)
-+			pm = 16;
-+	} else
-+		pm = mpc83xx_spi->spibrg / (hz * 4);
-+	if (pm)
-+		pm--;
-+
-+	cs->hw_mode |= SPMODE_PM(pm);
-+	regval =  mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
-+	if (cs->hw_mode != regval) {
-+		unsigned long flags;
-+		__be32 __iomem *mode = &mpc83xx_spi->base->mode;
-+
-+		regval = cs->hw_mode;
-+		/* Turn off IRQs locally to minimize time
-+		 * that SPI is disabled
-+		 */
-+		local_irq_save(flags);
-+		/* Turn off SPI unit prior changing mode */
-+		mpc83xx_spi_write_reg(mode, regval & ~SPMODE_ENABLE);
-+		mpc83xx_spi_write_reg(mode, regval);
-+		local_irq_restore(flags);
-+	}
++	wdt_time = new_time;
 +	return 0;
 +}
 +
-+static int mpc83xx_spi_bufs(struct spi_device *spi, struct spi_transfer *t)
++static int bcm47xx_wdt_open(struct inode *inode, struct file *file)
 +{
-+	struct mpc83xx_spi *mpc83xx_spi;
-+	u32 word, len, bits_per_word;
++	if (test_and_set_bit(0, &bcm47xx_wdt_busy))
++		return -EBUSY;
 +
-+	mpc83xx_spi = spi_master_get_devdata(spi->master);
-+
-+	mpc83xx_spi->tx = t->tx_buf;
-+	mpc83xx_spi->rx = t->rx_buf;
-+	bits_per_word = spi->bits_per_word;
-+	if (t->bits_per_word)
-+		bits_per_word = t->bits_per_word;
-+	len = t->len;
-+	if (bits_per_word > 8) {
-+		/* invalid length? */
-+		if (len & 1)
-+			return -EINVAL;
-+		len /= 2;
-+	}
-+	if (bits_per_word > 16) {
-+		/* invalid length? */
-+		if (len & 1)
-+			return -EINVAL;
-+		len /= 2;
-+	}
-+	mpc83xx_spi->count = len;
-+
-+	INIT_COMPLETION(mpc83xx_spi->done);
-+
-+	/* enable rx ints */
-+	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, SPIM_NE);
-+
-+	/* transmit word */
-+	word = mpc83xx_spi->get_tx(mpc83xx_spi);
-+	mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit, word);
-+
-+	wait_for_completion(&mpc83xx_spi->done);
-+
-+	/* disable rx ints */
-+	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, 0);
-+
-+	return mpc83xx_spi->count;
++	bcm47xx_wdt_start();
++	return nonseekable_open(inode, file);
 +}
 +
-+static void mpc83xx_spi_do_one_msg(struct spi_message *m)
++static int bcm47xx_wdt_release(struct inode *inode, struct file *file)
 +{
-+	struct spi_device *spi = m->spi;
-+	struct spi_transfer *t;
-+	unsigned int cs_change;
-+	const int nsecs = 50;
-+	int status;
-+
-+	cs_change = 1;
-+	status = 0;
-+	list_for_each_entry(t, &m->transfers, transfer_list) {
-+		if (t->bits_per_word || t->speed_hz) {
-+			/* Don't allow changes if CS is active */
-+			status = -EINVAL;
-+
-+			if (cs_change)
-+				status = mpc83xx_spi_setup_transfer(spi, t);
-+			if (status < 0)
-+				break;
-+		}
-+
-+		if (cs_change) {
-+			mpc83xx_spi_chipselect(spi, BITBANG_CS_ACTIVE);
-+			ndelay(nsecs);
-+		}
-+		cs_change = t->cs_change;
-+		if (t->len)
-+			status = mpc83xx_spi_bufs(spi, t);
-+		if (status) {
-+			status = -EMSGSIZE;
-+			break;
-+		}
-+		m->actual_length += t->len;
-+
-+		if (t->delay_usecs)
-+			udelay(t->delay_usecs);
-+
-+		if (cs_change) {
-+			ndelay(nsecs);
-+			mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
-+			ndelay(nsecs);
-+		}
++	if (expect_release == 42) {
++		bcm47xx_wdt_stop();
++	} else {
++		printk(KERN_CRIT DRV_NAME
++			": Unexpected close, not stopping watchdog!\n");
++		bcm47xx_wdt_start();
 +	}
 +
-+	m->status = status;
-+	m->complete(m->context);
-+
-+	if (status || !cs_change) {
-+		ndelay(nsecs);
-+		mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
-+	}
-+
-+	mpc83xx_spi_setup_transfer(spi, NULL);
++	clear_bit(0, &bcm47xx_wdt_busy);
++	expect_release = 0;
++	return 0;
 +}
 +
-+static void mpc83xx_spi_work(struct work_struct *work)
++static ssize_t bcm47xx_wdt_write(struct file *file, const char __user *data,
++			      size_t len, loff_t *ppos)
 +{
-+	struct mpc83xx_spi *mpc83xx_spi = container_of(work, struct mpc83xx_spi,
-+						       work);
++	if (len) {
++		if (!nowayout) {
++			size_t i;
 +
-+	spin_lock_irq(&mpc83xx_spi->lock);
-+	while (!list_empty(&mpc83xx_spi->queue)) {
-+		struct spi_message *m = container_of(mpc83xx_spi->queue.next,
-+						   struct spi_message, queue);
++			expect_release = 0;
 +
-+		list_del_init(&m->queue);
-+		spin_unlock_irq(&mpc83xx_spi->lock);
-+
-+		mpc83xx_spi_do_one_msg(m);
-+
-+		spin_lock_irq(&mpc83xx_spi->lock);
++			for (i = 0; i != len; i++) {
++				char c;
++				if (get_user(c, data + i))
++					return -EFAULT;
++				if (c == 'V')
++					expect_release = 42;
++			}
++		}
++		bcm47xx_wdt_pet();
 +	}
-+	spin_unlock_irq(&mpc83xx_spi->lock);
++	return len;
 +}
 +
-+static int mpc83xx_spi_setup(struct spi_device *spi)
++static struct watchdog_info bcm47xx_wdt_info = {
++	.identity 	= DRV_NAME,
++	.options 	= WDIOF_SETTIMEOUT |
++				WDIOF_KEEPALIVEPING |
++				WDIOF_MAGICCLOSE,
++};
++
++static long bcm47xx_wdt_ioctl(struct file *file,
++					unsigned int cmd, unsigned long arg)
 +{
-+	struct mpc83xx_spi *mpc83xx_spi;
-+	int retval;
-+	u32 hw_mode;
-+	struct spi_mpc83xx_cs	*cs = spi->controller_state;
++	void __user *argp = (void __user *)arg;
++	int __user *p = argp;
++	int new_value, retval = -EINVAL;;
 +
-+	if (!spi->max_speed_hz)
-+		return -EINVAL;
++	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		return copy_to_user(argp, &bcm47xx_wdt_info,
++				sizeof(bcm47xx_wdt_info)) ? -EFAULT : 0;
 +
-+	if (!cs) {
-+		cs = kzalloc(sizeof *cs, GFP_KERNEL);
-+		if (!cs)
-+			return -ENOMEM;
-+		spi->controller_state = cs;
-+	}
-+	mpc83xx_spi = spi_master_get_devdata(spi->master);
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, p);
 +
-+	hw_mode = cs->hw_mode; /* Save orginal settings */
-+	cs->hw_mode = mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
-+	/* mask out bits we are going to set */
-+	cs->hw_mode &= ~(SPMODE_CP_BEGIN_EDGECLK | SPMODE_CI_INACTIVEHIGH
-+			 | SPMODE_REV | SPMODE_LOOP);
++	case WDIOC_SETOPTIONS:
++		if (get_user(new_value, p))
++			return -EFAULT;
 +
-+	if (spi->mode & SPI_CPHA)
-+		cs->hw_mode |= SPMODE_CP_BEGIN_EDGECLK;
-+	if (spi->mode & SPI_CPOL)
-+		cs->hw_mode |= SPMODE_CI_INACTIVEHIGH;
-+	if (!(spi->mode & SPI_LSB_FIRST))
-+		cs->hw_mode |= SPMODE_REV;
-+	if (spi->mode & SPI_LOOP)
-+		cs->hw_mode |= SPMODE_LOOP;
++		if (new_value & WDIOS_DISABLECARD) {
++			bcm47xx_wdt_stop();
++			retval = 0;
++		}
 +
-+	retval = mpc83xx_spi_setup_transfer(spi, NULL);
-+	if (retval < 0) {
-+		cs->hw_mode = hw_mode; /* Restore settings */
++		if (new_value & WDIOS_ENABLECARD) {
++			bcm47xx_wdt_start();
++			retval = 0;
++		}
++
 +		return retval;
++
++	case WDIOC_KEEPALIVE:
++		bcm47xx_wdt_pet();
++		return 0;
++
++	case WDIOC_SETTIMEOUT:
++		if (get_user(new_value, p))
++			return -EFAULT;
++
++		if (bcm47xx_wdt_settimeout(new_value))
++			return -EINVAL;
++
++		bcm47xx_wdt_pet();
++
++	case WDIOC_GETTIMEOUT:
++		return put_user(wdt_time, p);
++
++	default:
++		return -ENOTTY;
 +	}
-+	return 0;
 +}
 +
-+static irqreturn_t mpc83xx_spi_irq(s32 irq, void *context_data)
++static int bcm47xx_wdt_notify_sys(struct notifier_block *this,
++	   unsigned long code, void *unused)
 +{
-+	struct mpc83xx_spi *mpc83xx_spi = context_data;
-+	u32 event;
-+	irqreturn_t ret = IRQ_NONE;
-+
-+	/* Get interrupt events(tx/rx) */
-+	event = mpc83xx_spi_read_reg(&mpc83xx_spi->base->event);
-+
-+	/* We need handle RX first */
-+	if (event & SPIE_NE) {
-+		u32 rx_data = mpc83xx_spi_read_reg(&mpc83xx_spi->base->receive);
-+
-+		if (mpc83xx_spi->rx)
-+			mpc83xx_spi->get_rx(rx_data, mpc83xx_spi);
-+
-+		ret = IRQ_HANDLED;
-+	}
-+
-+	if ((event & SPIE_NF) == 0)
-+		/* spin until TX is done */
-+		while (((event =
-+			 mpc83xx_spi_read_reg(&mpc83xx_spi->base->event)) &
-+						SPIE_NF) == 0)
-+			cpu_relax();
-+
-+	mpc83xx_spi->count -= 1;
-+	if (mpc83xx_spi->count) {
-+		u32 word = mpc83xx_spi->get_tx(mpc83xx_spi);
-+		mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit, word);
-+	} else {
-+		complete(&mpc83xx_spi->done);
-+	}
-+
-+	/* Clear the events */
-+	mpc83xx_spi_write_reg(&mpc83xx_spi->base->event, event);
-+
-+	return ret;
-+}
-+static int mpc83xx_spi_transfer(struct spi_device *spi,
-+				struct spi_message *m)
-+{
-+	struct mpc83xx_spi *mpc83xx_spi = spi_master_get_devdata(spi->master);
-+	unsigned long flags;
-+
-+	m->actual_length = 0;
-+	m->status = -EINPROGRESS;
-+
-+	spin_lock_irqsave(&mpc83xx_spi->lock, flags);
-+	list_add_tail(&m->queue, &mpc83xx_spi->queue);
-+	queue_work(mpc83xx_spi->workqueue, &mpc83xx_spi->work);
-+	spin_unlock_irqrestore(&mpc83xx_spi->lock, flags);
-+
-+	return 0;
++	if (code == SYS_DOWN || code == SYS_HALT)
++		bcm47xx_wdt_stop();
++	return NOTIFY_DONE;
 +}
 +
-+
-+static void mpc83xx_spi_cleanup(struct spi_device *spi)
-+{
-+	kfree(spi->controller_state);
-+}
-+
-+static struct spi_master * __devinit
-+mpc83xx_spi_probe(struct device *dev, struct resource *mem, unsigned int irq)
-+{
-+	struct fsl_spi_platform_data *pdata = dev->platform_data;
-+	struct spi_master *master;
-+	struct mpc83xx_spi *mpc83xx_spi;
-+	u32 regval;
-+	int ret = 0;
-+
-+	master = spi_alloc_master(dev, sizeof(struct mpc83xx_spi));
-+	if (master == NULL) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	dev_set_drvdata(dev, master);
-+
-+	/* the spi->mode bits understood by this driver: */
-+	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH
-+			| SPI_LSB_FIRST | SPI_LOOP;
-+
-+	master->setup = mpc83xx_spi_setup;
-+	master->transfer = mpc83xx_spi_transfer;
-+	master->cleanup = mpc83xx_spi_cleanup;
-+
-+	mpc83xx_spi = spi_master_get_devdata(master);
-+	mpc83xx_spi->qe_mode = pdata->qe_mode;
-+	mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
-+	mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
-+	mpc83xx_spi->spibrg = pdata->sysclk;
-+
-+	mpc83xx_spi->rx_shift = 0;
-+	mpc83xx_spi->tx_shift = 0;
-+	if (mpc83xx_spi->qe_mode) {
-+		mpc83xx_spi->rx_shift = 16;
-+		mpc83xx_spi->tx_shift = 24;
-+	}
-+
-+	init_completion(&mpc83xx_spi->done);
-+
-+	mpc83xx_spi->base = ioremap(mem->start, mem->end - mem->start + 1);
-+	if (mpc83xx_spi->base == NULL) {
-+		ret = -ENOMEM;
-+		goto put_master;
-+	}
-+
-+	mpc83xx_spi->irq = irq;
-+
-+	/* Register for SPI Interrupt */
-+	ret = request_irq(mpc83xx_spi->irq, mpc83xx_spi_irq,
-+			  0, "mpc83xx_spi", mpc83xx_spi);
-+
-+	if (ret != 0)
-+		goto unmap_io;
-+
-+	master->bus_num = pdata->bus_num;
-+	master->num_chipselect = pdata->max_chipselect;
-+
-+	/* SPI controller initializations */
-+	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, 0);
-+	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, 0);
-+	mpc83xx_spi_write_reg(&mpc83xx_spi->base->command, 0);
-+	mpc83xx_spi_write_reg(&mpc83xx_spi->base->event, 0xffffffff);
-+
-+	/* Enable SPI interface */
-+	regval = pdata->initial_spmode | SPMODE_INIT_VAL | SPMODE_ENABLE;
-+	if (pdata->qe_mode)
-+		regval |= SPMODE_OP;
-+
-+	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, regval);
-+	spin_lock_init(&mpc83xx_spi->lock);
-+	init_completion(&mpc83xx_spi->done);
-+	INIT_WORK(&mpc83xx_spi->work, mpc83xx_spi_work);
-+	INIT_LIST_HEAD(&mpc83xx_spi->queue);
-+
-+	mpc83xx_spi->workqueue = create_singlethread_workqueue(
-+		dev_name(master->dev.parent));
-+	if (mpc83xx_spi->workqueue == NULL) {
-+		ret = -EBUSY;
-+		goto free_irq;
-+	}
-+
-+	ret = spi_register_master(master);
-+	if (ret < 0)
-+		goto unreg_master;
-+
-+	printk(KERN_INFO
-+	       "%s: MPC83xx SPI Controller driver at 0x%p (irq = %d)\n",
-+	       dev_name(dev), mpc83xx_spi->base, mpc83xx_spi->irq);
-+
-+	return master;
-+
-+unreg_master:
-+	destroy_workqueue(mpc83xx_spi->workqueue);
-+free_irq:
-+	free_irq(mpc83xx_spi->irq, mpc83xx_spi);
-+unmap_io:
-+	iounmap(mpc83xx_spi->base);
-+put_master:
-+	spi_master_put(master);
-+err:
-+	return ERR_PTR(ret);
-+}
-+
-+static int __devexit mpc83xx_spi_remove(struct device *dev)
-+{
-+	struct mpc83xx_spi *mpc83xx_spi;
-+	struct spi_master *master;
-+
-+	master = dev_get_drvdata(dev);
-+	mpc83xx_spi = spi_master_get_devdata(master);
-+
-+	flush_workqueue(mpc83xx_spi->workqueue);
-+	destroy_workqueue(mpc83xx_spi->workqueue);
-+	spi_unregister_master(master);
-+
-+	free_irq(mpc83xx_spi->irq, mpc83xx_spi);
-+	iounmap(mpc83xx_spi->base);
-+
-+	return 0;
-+}
-+
-+struct mpc83xx_spi_probe_info {
-+	struct fsl_spi_platform_data pdata;
-+	int *gpios;
-+	bool *alow_flags;
++static const struct file_operations bcm47xx_wdt_fops = {
++	.owner		= THIS_MODULE,
++	.llseek		= no_llseek,
++	.unlocked_ioctl	= bcm47xx_wdt_ioctl,
++	.open		= bcm47xx_wdt_open,
++	.release	= bcm47xx_wdt_release,
++	.write		= bcm47xx_wdt_write,
 +};
 +
-+static struct mpc83xx_spi_probe_info *
-+to_of_pinfo(struct fsl_spi_platform_data *pdata)
-+{
-+	return container_of(pdata, struct mpc83xx_spi_probe_info, pdata);
-+}
++static struct miscdevice bcm47xx_wdt_miscdev = {
++	.minor		= WATCHDOG_MINOR,
++	.name		= "watchdog",
++	.fops		= &bcm47xx_wdt_fops,
++};
 +
-+static void mpc83xx_spi_cs_control(struct spi_device *spi, bool on)
-+{
-+	struct device *dev = spi->dev.parent;
-+	struct mpc83xx_spi_probe_info *pinfo = to_of_pinfo(dev->platform_data);
-+	u16 cs = spi->chip_select;
-+	int gpio = pinfo->gpios[cs];
-+	bool alow = pinfo->alow_flags[cs];
++static struct notifier_block bcm47xx_wdt_notifier = {
++	.notifier_call = bcm47xx_wdt_notify_sys,
++};
 +
-+	gpio_set_value(gpio, on ^ alow);
-+}
-+
-+static int of_mpc83xx_spi_get_chipselects(struct device *dev)
-+{
-+	struct device_node *np = dev_archdata_get_node(&dev->archdata);
-+	struct fsl_spi_platform_data *pdata = dev->platform_data;
-+	struct mpc83xx_spi_probe_info *pinfo = to_of_pinfo(pdata);
-+	unsigned int ngpios;
-+	int i = 0;
-+	int ret;
-+
-+	ngpios = of_gpio_count(np);
-+	if (!ngpios) {
-+		/*
-+		 * SPI w/o chip-select line. One SPI device is still permitted
-+		 * though.
-+		 */
-+		pdata->max_chipselect = 1;
-+		return 0;
-+	}
-+
-+	pinfo->gpios = kmalloc(ngpios * sizeof(*pinfo->gpios), GFP_KERNEL);
-+	if (!pinfo->gpios)
-+		return -ENOMEM;
-+	memset(pinfo->gpios, -1, ngpios * sizeof(*pinfo->gpios));
-+
-+	pinfo->alow_flags = kzalloc(ngpios * sizeof(*pinfo->alow_flags),
-+				    GFP_KERNEL);
-+	if (!pinfo->alow_flags) {
-+		ret = -ENOMEM;
-+		goto err_alloc_flags;
-+	}
-+
-+	for (; i < ngpios; i++) {
-+		int gpio;
-+		enum of_gpio_flags flags;
-+
-+		gpio = of_get_gpio_flags(np, i, &flags);
-+		if (!gpio_is_valid(gpio)) {
-+			dev_err(dev, "invalid gpio #%d: %d\n", i, gpio);
-+			goto err_loop;
-+		}
-+
-+		ret = gpio_request(gpio, dev_name(dev));
-+		if (ret) {
-+			dev_err(dev, "can't request gpio #%d: %d\n", i, ret);
-+			goto err_loop;
-+		}
-+
-+		pinfo->gpios[i] = gpio;
-+		pinfo->alow_flags[i] = flags & OF_GPIO_ACTIVE_LOW;
-+
-+		ret = gpio_direction_output(pinfo->gpios[i],
-+					    pinfo->alow_flags[i]);
-+		if (ret) {
-+			dev_err(dev, "can't set output direction for gpio "
-+				"#%d: %d\n", i, ret);
-+			goto err_loop;
-+		}
-+	}
-+
-+	pdata->max_chipselect = ngpios;
-+	pdata->cs_control = mpc83xx_spi_cs_control;
-+
-+	return 0;
-+
-+err_loop:
-+	while (i >= 0) {
-+		if (gpio_is_valid(pinfo->gpios[i]))
-+			gpio_free(pinfo->gpios[i]);
-+		i--;
-+	}
-+
-+	kfree(pinfo->alow_flags);
-+	pinfo->alow_flags = NULL;
-+err_alloc_flags:
-+	kfree(pinfo->gpios);
-+	pinfo->gpios = NULL;
-+	return ret;
-+}
-+
-+static int of_mpc83xx_spi_free_chipselects(struct device *dev)
-+{
-+	struct fsl_spi_platform_data *pdata = dev->platform_data;
-+	struct mpc83xx_spi_probe_info *pinfo = to_of_pinfo(pdata);
-+	int i;
-+
-+	if (!pinfo->gpios)
-+		return 0;
-+
-+	for (i = 0; i < pdata->max_chipselect; i++) {
-+		if (gpio_is_valid(pinfo->gpios[i]))
-+			gpio_free(pinfo->gpios[i]);
-+	}
-+
-+	kfree(pinfo->gpios);
-+	kfree(pinfo->alow_flags);
-+	return 0;
-+}
-+
-+static int __devinit of_mpc83xx_spi_probe(struct of_device *ofdev,
-+					  const struct of_device_id *ofid)
-+{
-+	struct device *dev = &ofdev->dev;
-+	struct device_node *np = ofdev->node;
-+	struct mpc83xx_spi_probe_info *pinfo;
-+	struct fsl_spi_platform_data *pdata;
-+	struct spi_master *master;
-+	struct resource mem;
-+	struct resource irq;
-+	const void *prop;
-+	int ret = -ENOMEM;
-+
-+	pinfo = kzalloc(sizeof(*pinfo), GFP_KERNEL);
-+	if (!pinfo)
-+		return -ENOMEM;
-+
-+	pdata = &pinfo->pdata;
-+	dev->platform_data = pdata;
-+
-+	/* Allocate bus num dynamically. */
-+	pdata->bus_num = -1;
-+
-+	/* SPI controller is either clocked from QE or SoC clock. */
-+	pdata->sysclk = get_brgfreq();
-+	if (pdata->sysclk == -1) {
-+		pdata->sysclk = fsl_get_sys_freq();
-+		if (pdata->sysclk == -1) {
-+			ret = -ENODEV;
-+			goto err_clk;
-+		}
-+	}
-+
-+	prop = of_get_property(np, "mode", NULL);
-+	if (prop && !strcmp(prop, "cpu-qe"))
-+		pdata->qe_mode = 1;
-+
-+	ret = of_mpc83xx_spi_get_chipselects(dev);
-+	if (ret)
-+		goto err;
-+
-+	ret = of_address_to_resource(np, 0, &mem);
-+	if (ret)
-+		goto err;
-+
-+	ret = of_irq_to_resource(np, 0, &irq);
-+	if (!ret) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	master = mpc83xx_spi_probe(dev, &mem, irq.start);
-+	if (IS_ERR(master)) {
-+		ret = PTR_ERR(master);
-+		goto err;
-+	}
-+
-+	of_register_spi_devices(master, np);
-+
-+	return 0;
-+
-+err:
-+	of_mpc83xx_spi_free_chipselects(dev);
-+err_clk:
-+	kfree(pinfo);
-+	return ret;
-+}
-+
-+static int __devexit of_mpc83xx_spi_remove(struct of_device *ofdev)
++static int __init bcm47xx_wdt_init(void)
 +{
 +	int ret;
 +
-+	ret = mpc83xx_spi_remove(&ofdev->dev);
++	if (bcm47xx_wdt_hw_stop() < 0)
++		return -ENODEV;
++
++	setup_timer(&wdt_timer, bcm47xx_timer_tick, 0L);
++
++	if (bcm47xx_wdt_settimeout(wdt_time)) {
++		bcm47xx_wdt_settimeout(WDT_DEFAULT_TIME);
++		printk(KERN_INFO DRV_NAME
++			": wdt_time value must be 1 <= wdt_time <= 256, using %d\n",
++			wdt_time);
++	}
++
++	ret = register_reboot_notifier(&bcm47xx_wdt_notifier);
 +	if (ret)
 +		return ret;
-+	of_mpc83xx_spi_free_chipselects(&ofdev->dev);
++
++	ret = misc_register(&bcm47xx_wdt_miscdev);
++	if (ret) {
++		unregister_reboot_notifier(&bcm47xx_wdt_notifier);
++		return ret;
++	}
++
++	printk(KERN_INFO "BCM47xx Watchdog Timer enabled (%d seconds%s)\n",
++				wdt_time, nowayout ? ", nowayout" : "");
 +	return 0;
 +}
 +
-+static const struct of_device_id of_mpc83xx_spi_match[] = {
-+	{ .compatible = "fsl,spi" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, of_mpc83xx_spi_match);
-+
-+static struct of_platform_driver of_mpc83xx_spi_driver = {
-+	.name		= "mpc83xx_spi",
-+	.match_table	= of_mpc83xx_spi_match,
-+	.probe		= of_mpc83xx_spi_probe,
-+	.remove		= __devexit_p(of_mpc83xx_spi_remove),
-+};
-+
-+#ifdef CONFIG_MPC832x_RDB
-+/*
-+ * 				XXX XXX XXX
-+ * This is "legacy" platform driver, was used by the MPC8323E-RDB boards
-+ * only. The driver should go away soon, since newer MPC8323E-RDB's device
-+ * tree can work with OpenFirmware driver. But for now we support old trees
-+ * as well.
-+ */
-+static int __devinit plat_mpc83xx_spi_probe(struct platform_device *pdev)
++static void __exit bcm47xx_wdt_exit(void)
 +{
-+	struct resource *mem;
-+	unsigned int irq;
-+	struct spi_master *master;
++	if (!nowayout)
++		bcm47xx_wdt_stop();
 +
-+	if (!pdev->dev.platform_data)
-+		return -EINVAL;
++	misc_deregister(&bcm47xx_wdt_miscdev);
 +
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!mem)
-+		return -EINVAL;
-+
-+	irq = platform_get_irq(pdev, 0);
-+	if (!irq)
-+		return -EINVAL;
-+
-+	master = mpc83xx_spi_probe(&pdev->dev, mem, irq);
-+	if (IS_ERR(master))
-+		return PTR_ERR(master);
-+	return 0;
++	unregister_reboot_notifier(&bcm47xx_wdt_notifier);
 +}
 +
-+static int __devexit plat_mpc83xx_spi_remove(struct platform_device *pdev)
-+{
-+	return mpc83xx_spi_remove(&pdev->dev);
-+}
++module_init(bcm47xx_wdt_init);
++module_exit(bcm47xx_wdt_exit);
 +
-+MODULE_ALIAS("platform:mpc83xx_spi");
-+static struct platform_driver mpc83xx_spi_driver = {
-+	.probe = plat_mpc83xx_spi_probe,
-+	.remove = __exit_p(plat_mpc83xx_spi_remove),
-+	.driver = {
-+		.name = "mpc83xx_spi",
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static bool legacy_driver_failed;
-+
-+static void __init legacy_driver_register(void)
-+{
-+	legacy_driver_failed = platform_driver_register(&mpc83xx_spi_driver);
-+}
-+
-+static void __exit legacy_driver_unregister(void)
-+{
-+	if (legacy_driver_failed)
-+		return;
-+	platform_driver_unregister(&mpc83xx_spi_driver);
-+}
-+#else
-+static void __init legacy_driver_register(void) {}
-+static void __exit legacy_driver_unregister(void) {}
-+#endif /* CONFIG_MPC832x_RDB */
-+
-+static int __init mpc83xx_spi_init(void)
-+{
-+	legacy_driver_register();
-+	return of_register_platform_driver(&of_mpc83xx_spi_driver);
-+}
-+
-+static void __exit mpc83xx_spi_exit(void)
-+{
-+	of_unregister_platform_driver(&of_mpc83xx_spi_driver);
-+	legacy_driver_unregister();
-+}
-+
-+module_init(mpc83xx_spi_init);
-+module_exit(mpc83xx_spi_exit);
-+
-+MODULE_AUTHOR("Kumar Gala");
-+MODULE_DESCRIPTION("Simple MPC83xx SPI Driver");
++MODULE_AUTHOR("Aleksandar Radovanovic");
++MODULE_DESCRIPTION("Watchdog driver for Broadcom BCM47xx");
 +MODULE_LICENSE("GPL");
++MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from castet.matthieu@free.fr are
 
 origin.patch
 linux-next.patch
-usb-mutually-exclusive-port_status.patch
 
