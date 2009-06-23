@@ -1,102 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-enable-s6gmac-in-s6105_defconfig.patch removed from -mm tree
-Date: Tue, 23 Jun 2009 11:05:43 -0700
-Message-ID: <200906231805.n5NI5hMA009803@imap1.linux-foundation.org>
+Subject: [merged] xtensa-add-m41t62-rtc-to-s6105-platform.patch removed from -mm tree
+Date: Tue, 23 Jun 2009 11:05:45 -0700
+Message-ID: <200906231805.n5NI5jdd009806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55701 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753507AbZFWSGE (ORCPT
+	by vger.kernel.org with ESMTP id S1750800AbZFWSGQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 14:06:04 -0400
+	Tue, 23 Jun 2009 14:06:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dg@emlix.com, chris@zankel.net, davem@davemloft.net, jw@emlix.com, os@emlix.com, mm-commits@vger.kernel.org
+To: dg@emlix.com, a.zummo@towertech.it, chris@zankel.net, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: enable s6gmac in s6105_defconfig
+     xtensa: add m41t62 rtc to s6105 platform
 has been removed from the -mm tree.  Its filename was
-     xtensa-enable-s6gmac-in-s6105_defconfig.patch
+     xtensa-add-m41t62-rtc-to-s6105-platform.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: enable s6gmac in s6105_defconfig
+Subject: xtensa: add m41t62 rtc to s6105 platform
 From: Daniel Glockner <dg@emlix.com>
 
 Signed-off-by: Daniel Glockner <dg@emlix.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Johannes Weiner <jw@emlix.com>
-Cc: Oskar Schirmer <os@emlix.com>
-Cc: Christian Zankel <chris@zankel.net>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/configs/s6105_defconfig |   49 +++++++++++++++++++++++++-
- 1 file changed, 48 insertions(+), 1 deletion(-)
+ arch/xtensa/platforms/s6105/device.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/xtensa/configs/s6105_defconfig~xtensa-enable-s6gmac-in-s6105_defconfig arch/xtensa/configs/s6105_defconfig
---- a/arch/xtensa/configs/s6105_defconfig~xtensa-enable-s6gmac-in-s6105_defconfig
-+++ a/arch/xtensa/configs/s6105_defconfig
-@@ -263,7 +263,54 @@ CONFIG_HAVE_IDE=y
- # CONFIG_SCSI_NETLINK is not set
- # CONFIG_ATA is not set
- # CONFIG_MD is not set
--# CONFIG_NETDEVICES is not set
-+CONFIG_NETDEVICES=y
-+# CONFIG_DUMMY is not set
-+# CONFIG_BONDING is not set
-+# CONFIG_MACVLAN is not set
-+# CONFIG_EQUALIZER is not set
-+# CONFIG_TUN is not set
-+# CONFIG_VETH is not set
-+CONFIG_PHYLIB=y
-+
-+#
-+# MII PHY device drivers
-+#
-+# CONFIG_MARVELL_PHY is not set
-+# CONFIG_DAVICOM_PHY is not set
-+# CONFIG_QSEMI_PHY is not set
-+# CONFIG_LXT_PHY is not set
-+# CONFIG_CICADA_PHY is not set
-+# CONFIG_VITESSE_PHY is not set
-+CONFIG_SMSC_PHY=y
-+# CONFIG_BROADCOM_PHY is not set
-+# CONFIG_ICPLUS_PHY is not set
-+# CONFIG_REALTEK_PHY is not set
-+# CONFIG_NATIONAL_PHY is not set
-+# CONFIG_STE10XP is not set
-+# CONFIG_LSI_ET1011C_PHY is not set
-+# CONFIG_FIXED_PHY is not set
-+# CONFIG_MDIO_BITBANG is not set
-+# CONFIG_NET_ETHERNET is not set
-+CONFIG_NETDEV_1000=y
-+CONFIG_S6GMAC=y
-+# CONFIG_NETDEV_10000 is not set
-+
-+#
-+# Wireless LAN
-+#
-+# CONFIG_WLAN_PRE80211 is not set
-+# CONFIG_WLAN_80211 is not set
-+# CONFIG_IWLWIFI_LEDS is not set
-+
-+#
-+# Enable WiMAX (Networking options) to see the WiMAX drivers
-+#
-+# CONFIG_WAN is not set
-+# CONFIG_PPP is not set
-+# CONFIG_SLIP is not set
-+# CONFIG_NETCONSOLE is not set
-+# CONFIG_NETPOLL is not set
-+# CONFIG_NET_POLL_CONTROLLER is not set
- # CONFIG_ISDN is not set
- # CONFIG_PHONE is not set
+diff -puN arch/xtensa/platforms/s6105/device.c~xtensa-add-m41t62-rtc-to-s6105-platform arch/xtensa/platforms/s6105/device.c
+--- a/arch/xtensa/platforms/s6105/device.c~xtensa-add-m41t62-rtc-to-s6105-platform
++++ a/arch/xtensa/platforms/s6105/device.c
+@@ -143,6 +143,9 @@ static struct platform_device platform_d
+ 		.resource = s6_gmac_resource,
+ 		.num_resources = ARRAY_SIZE(s6_gmac_resource),
+ 	},
++	{
++		I2C_BOARD_INFO("m41t62", S6I2C_ADDR_M41T62),
++	},
+ };
  
+ static int __init device_init(void)
 _
 
 Patches currently in -mm which might be from dg@emlix.com are
