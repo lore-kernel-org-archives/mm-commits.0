@@ -1,122 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch removed from -mm tree
-Date: Tue, 23 Jun 2009 11:05:35 -0700
-Message-ID: <200906231805.n5NI5Z1r009618@imap1.linux-foundation.org>
+Subject: [merged] parport_pc-after-superio-probing-restore-original-register-values.patch removed from -mm tree
+Date: Tue, 23 Jun 2009 11:05:50 -0700
+Message-ID: <200906231805.n5NI5oUw009981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54174 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753581AbZFWSFz (ORCPT
+	by vger.kernel.org with ESMTP id S1753325AbZFWSGB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 14:05:55 -0400
+	Tue, 23 Jun 2009 14:06:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dg@emlix.com, chris@zankel.net, jw@emlix.com, os@emlix.com, mm-commits@vger.kernel.org
+To: JRottmann@LiPPERTEmbedded.de, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: support s6000 gpio irqs and alternate function selection
+     parport_pc: after superio probing, restore original register values
 has been removed from the -mm tree.  Its filename was
-     xtensa-support-s6000-gpio-irqs-and-alternate-function-selection.patch
+     parport_pc-after-superio-probing-restore-original-register-values.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: support s6000 gpio irqs and alternate function selection
-From: Daniel Glockner <dg@emlix.com>
+Subject: parport_pc: after superio probing, restore original register values
+From: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
 
-The patch implements an irq chip to handle interrupts via gpio.
+CONFIG_PARPORT_PC_SUPERIO probes for various superio chips by writing byte
+sequences to a set of different potential I/O ranges.  But the probed
+ranges are not exclusive to parallel ports.  Some of our boards just
+happen to have a watchdog in one of them.  Took us almost a week to figure
+out why some distros reboot without warning after running flawlessly for 3
+hours.  For exactly 170 = 0xAA minutes, that is ...
 
-As interrupts may be needed very early it is up to platform setup code
-to initialize gpio by calling s6_setup_gpio. Its parameter is a bitmask
-of those pins that should be configured for their alternative function.
+Fixed by restoring original values after probing.  Also fixed too small
+request_region() in detect_and_report_it87().
 
-Signed-off-by: Daniel Glockner <dg@emlix.com>
-Cc: Johannes Weiner <jw@emlix.com>
-Cc: Oskar Schirmer <os@emlix.com>
-Cc: Christian Zankel <chris@zankel.net>
+Signed-off-by: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/gpio.h                    |    8 ++++----
- arch/xtensa/variants/s6000/gpio.c                 |    5 +++++
- arch/xtensa/variants/s6000/include/variant/gpio.h |    1 +
- arch/xtensa/variants/s6000/include/variant/irq.h  |    1 +
- 4 files changed, 11 insertions(+), 4 deletions(-)
+ drivers/parport/parport_pc.c |   31 +++++++++++++++++++++++++------
+ 1 file changed, 25 insertions(+), 6 deletions(-)
 
-diff -puN arch/xtensa/include/asm/gpio.h~xtensa-support-s6000-gpio-irqs-and-alternate-function-selection arch/xtensa/include/asm/gpio.h
---- a/arch/xtensa/include/asm/gpio.h~xtensa-support-s6000-gpio-irqs-and-alternate-function-selection
-+++ a/arch/xtensa/include/asm/gpio.h
-@@ -38,14 +38,14 @@ static inline int gpio_cansleep(unsigned
- 	return __gpio_cansleep(gpio);
- }
+diff -puN drivers/parport/parport_pc.c~parport_pc-after-superio-probing-restore-original-register-values drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~parport_pc-after-superio-probing-restore-original-register-values
++++ a/drivers/parport/parport_pc.c
+@@ -1471,11 +1471,13 @@ static void __devinit decode_smsc(int ef
  
--/*
-- * Not implemented, yet.
-- */
- static inline int gpio_to_irq(unsigned int gpio)
+ static void __devinit winbond_check(int io, int key)
  {
--	return -ENOSYS;
-+	return __gpio_to_irq(gpio);
- }
+-	int devid, devrev, oldid, x_devid, x_devrev, x_oldid;
++	int origval, devid, devrev, oldid, x_devid, x_devrev, x_oldid;
  
-+/*
-+ * Not implemented, yet.
-+ */
- static inline int irq_to_gpio(unsigned int irq)
- {
- 	return -EINVAL;
-diff -puN arch/xtensa/variants/s6000/gpio.c~xtensa-support-s6000-gpio-irqs-and-alternate-function-selection arch/xtensa/variants/s6000/gpio.c
---- a/arch/xtensa/variants/s6000/gpio.c~xtensa-support-s6000-gpio-irqs-and-alternate-function-selection
-+++ a/arch/xtensa/variants/s6000/gpio.c
-@@ -4,15 +4,20 @@
-  * Copyright (c) 2009 emlix GmbH
-  * Authors:	Oskar Schirmer <os@emlix.com>
-  *		Johannes Weiner <jw@emlix.com>
-+ *		Daniel Gloeckner <dg@emlix.com>
-  */
-+#include <linux/bitops.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/io.h>
-+#include <linux/irq.h>
- #include <linux/gpio.h>
+ 	if (!request_region(io, 3, __func__))
+ 		return;
  
- #include <variant/hardware.h>
- 
-+#define IRQ_BASE XTENSA_NR_IRQS
++	origval = inb(io); /* Save original value */
 +
- #define S6_GPIO_DATA		0x000
- #define S6_GPIO_IS		0x404
- #define S6_GPIO_IBE		0x408
-diff -puN arch/xtensa/variants/s6000/include/variant/gpio.h~xtensa-support-s6000-gpio-irqs-and-alternate-function-selection arch/xtensa/variants/s6000/include/variant/gpio.h
---- a/arch/xtensa/variants/s6000/include/variant/gpio.h~xtensa-support-s6000-gpio-irqs-and-alternate-function-selection
-+++ a/arch/xtensa/variants/s6000/include/variant/gpio.h
-@@ -2,5 +2,6 @@
- #define _XTENSA_VARIANT_S6000_GPIO_H
+ 	/* First probe without key */
+ 	outb(0x20, io);
+ 	x_devid = inb(io + 1);
+@@ -1495,6 +1497,8 @@ static void __devinit winbond_check(int 
+ 	oldid = inb(io + 1);
+ 	outb(0xaa, io);    /* Magic Seal */
  
- extern int s6_gpio_init(void);
-+extern int __init s6_setup_gpio(u32 afsel);
++	outb(origval, io); /* in case we poked some entirely different hardware */
++
+ 	if ((x_devid == devid) && (x_devrev == devrev) && (x_oldid == oldid))
+ 		goto out; /* protection against false positives */
  
- #endif /* _XTENSA_VARIANT_S6000_GPIO_H */
-diff -puN arch/xtensa/variants/s6000/include/variant/irq.h~xtensa-support-s6000-gpio-irqs-and-alternate-function-selection arch/xtensa/variants/s6000/include/variant/irq.h
---- a/arch/xtensa/variants/s6000/include/variant/irq.h~xtensa-support-s6000-gpio-irqs-and-alternate-function-selection
-+++ a/arch/xtensa/variants/s6000/include/variant/irq.h
-@@ -2,6 +2,7 @@
- #define __XTENSA_S6000_IRQ_H
+@@ -1505,11 +1509,15 @@ out:
  
- #define NO_IRQ		(-1)
-+#define VARIANT_NR_IRQS 8 /* GPIO interrupts */
+ static void __devinit winbond_check2(int io, int key)
+ {
+-	int devid, devrev, oldid, x_devid, x_devrev, x_oldid;
++	int origval[3], devid, devrev, oldid, x_devid, x_devrev, x_oldid;
  
- extern void variant_irq_enable(unsigned int irq);
- extern void variant_irq_disable(unsigned int irq);
+ 	if (!request_region(io, 3, __func__))
+ 		return;
+ 
++	origval[0] = inb(io); /* Save original values */
++	origval[1] = inb(io + 1);
++	origval[2] = inb(io + 2);
++
+ 	/* First probe without the key */
+ 	outb(0x20, io + 2);
+ 	x_devid = inb(io + 2);
+@@ -1528,6 +1536,10 @@ static void __devinit winbond_check2(int
+ 	oldid = inb(io + 2);
+ 	outb(0xaa, io);    /* Magic Seal */
+ 
++	outb(origval[0], io); /* in case we poked some entirely different hardware */
++	outb(origval[1], io + 1);
++	outb(origval[2], io + 2);
++
+ 	if (x_devid == devid && x_devrev == devrev && x_oldid == oldid)
+ 		goto out; /* protection against false positives */
+ 
+@@ -1538,11 +1550,13 @@ out:
+ 
+ static void __devinit smsc_check(int io, int key)
+ {
+-	int id, rev, oldid, oldrev, x_id, x_rev, x_oldid, x_oldrev;
++	int origval, id, rev, oldid, oldrev, x_id, x_rev, x_oldid, x_oldrev;
+ 
+ 	if (!request_region(io, 3, __func__))
+ 		return;
+ 
++	origval = inb(io); /* Save original value */
++
+ 	/* First probe without the key */
+ 	outb(0x0d, io);
+ 	x_oldid = inb(io + 1);
+@@ -1566,6 +1580,8 @@ static void __devinit smsc_check(int io,
+ 	rev = inb(io + 1);
+ 	outb(0xaa, io);    /* Magic Seal */
+ 
++	outb(origval, io); /* in case we poked some entirely different hardware */
++
+ 	if (x_id == id && x_oldrev == oldrev &&
+ 	    x_oldid == oldid && x_rev == rev)
+ 		goto out; /* protection against false positives */
+@@ -1602,11 +1618,12 @@ static void __devinit detect_and_report_
+ static void __devinit detect_and_report_it87(void)
+ {
+ 	u16 dev;
+-	u8 r;
++	u8 origval, r;
+ 	if (verbose_probing)
+ 		printk(KERN_DEBUG "IT8705 Super-IO detection, now testing port 2E ...\n");
+-	if (!request_region(0x2e, 1, __func__))
++	if (!request_region(0x2e, 2, __func__))
+ 		return;
++	origval = inb(0x2e);		/* Save original value */
+ 	outb(0x87, 0x2e);
+ 	outb(0x01, 0x2e);
+ 	outb(0x55, 0x2e);
+@@ -1626,8 +1643,10 @@ static void __devinit detect_and_report_
+ 		outb(r | 8, 0x2F);
+ 		outb(0x02, 0x2E);	/* Lock */
+ 		outb(0x02, 0x2F);
++	} else {
++		outb(origval, 0x2e);	/* Oops, sorry to disturb */
+ 	}
+-	release_region(0x2e, 1);
++	release_region(0x2e, 2);
+ }
+ #endif /* CONFIG_PARPORT_PC_SUPERIO */
+ 
 _
 
-Patches currently in -mm which might be from dg@emlix.com are
+Patches currently in -mm which might be from JRottmann@LiPPERTEmbedded.de are
 
 origin.patch
-xtensa-variant-specific-code.patch
 
