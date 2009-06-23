@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch added to -mm tree
-Date: Tue, 23 Jun 2009 00:31:17 -0700
-Message-ID: <200906230731.n5N7VHEb019851@imap1.linux-foundation.org>
+Subject: + printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch added to -mm tree
+Date: Tue, 23 Jun 2009 00:32:22 -0700
+Message-ID: <200906230732.n5N7WMMQ021152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752205AbZFWHb1 (ORCPT
+	by vger.kernel.org with ESMTP id S1758514AbZFWHc2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 03:31:27 -0400
+	Tue, 23 Jun 2009 03:32:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, hidave.darkstar@gmail.com, mingo@elte.hu
 
 
 The patch titled
-     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup
+     printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix
 has been added to the -mm tree.  Its filename is
-     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+     printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup
+Subject: printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Dave Young <hidave.darkstar@gmail.com>
@@ -42,27 +42,21 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/printk.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup kernel/printk.c
---- a/kernel/printk.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup
+diff -puN kernel/printk.c~printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix kernel/printk.c
+--- a/kernel/printk.c~printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix
 +++ a/kernel/printk.c
-@@ -638,12 +638,13 @@ static int recursion_bug;
- static int new_text_line = 1;
- static char printk_buf[1024];
+@@ -198,7 +198,7 @@ __setup("log_buf_len=", log_buf_len_setu
+ #ifdef CONFIG_BOOT_PRINTK_DELAY
  
--int printk_delay_msec;
-+int printk_delay_msec __read_mostly;
+ static unsigned int boot_delay; /* msecs delay after each printk during bootup */
+-static unsigned long long loops_per_msec;
++static unsigned long long loops_per_msec;	/* based on boot_delay */
  
- static inline void printk_delay(void)
+ static int __init boot_delay_setup(char *str)
  {
- 	if (unlikely(printk_delay_msec)) {
- 		int m = printk_delay_msec;
-+
- 		while (m--) {
- 			mdelay(1);
- 			touch_nmi_watchdog();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +79,7 @@ readahead-add-blk_run_backing_dev-fix-fix-2.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
 arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
 proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
