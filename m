@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + kallsyms-use-new-arch_is_kernel_text.patch added to -mm tree
-Date: Tue, 23 Jun 2009 15:40:35 -0700
-Message-ID: <200906232240.n5NMeZk7008333@imap1.linux-foundation.org>
+Subject: + asm-sections-add-text-data-checking-functions-for-arches-to-override.patch added to -mm tree
+Date: Tue, 23 Jun 2009 15:40:33 -0700
+Message-ID: <200906232240.n5NMeX4m008236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40087 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757501AbZFWWmI (ORCPT
+	by vger.kernel.org with ESMTP id S1758053AbZFWWmI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 23 Jun 2009 18:42:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: vapier@gentoo.org, a.p.zijlstra@chello.nl, arnd@arndb.de, mingo@elte.hu, rge
 
 
 The patch titled
-     kallsyms: use new arch_is_kernel_text()
+     asm/sections: add text/data checking functions for arches to override
 has been added to the -mm tree.  Its filename is
-     kallsyms-use-new-arch_is_kernel_text.patch
+     asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kallsyms: use new arch_is_kernel_text()
+Subject: asm/sections: add text/data checking functions for arches to override
 From: Mike Frysinger <vapier@gentoo.org>
 
-This allows kallsyms to locate symbols that are in arch-specific text
-sections (such as text in Blackfin on-chip SRAM regions).
+Some ports (like the Blackfin arch) have a discontiguous memory map which
+means there may be text or data that falls outside of the standard range
+of the start/end text/data symbols.  Creating some helper functions allows
+these non-standard ports to declare these regions without adversely
+affecting anyone else.
 
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -49,22 +52,33 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/asm-generic/sections.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN kernel/kallsyms.c~kallsyms-use-new-arch_is_kernel_text kernel/kallsyms.c
---- a/kernel/kallsyms.c~kallsyms-use-new-arch_is_kernel_text
-+++ a/kernel/kallsyms.c
-@@ -59,7 +59,8 @@ static inline int is_kernel_inittext(uns
+diff -puN include/asm-generic/sections.h~asm-sections-add-text-data-checking-functions-for-arches-to-override include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~asm-sections-add-text-data-checking-functions-for-arches-to-override
++++ a/include/asm-generic/sections.h
+@@ -23,4 +23,20 @@ extern char __ctors_start[], __ctors_end
+ #define dereference_function_descriptor(p) (p)
+ #endif
  
- static inline int is_kernel_text(unsigned long addr)
- {
--	if (addr >= (unsigned long)_stext && addr <= (unsigned long)_etext)
-+	if ((addr >= (unsigned long)_stext && addr <= (unsigned long)_etext) ||
-+	    arch_is_kernel_text(addr))
- 		return 1;
- 	return in_gate_area_no_task(addr);
- }
++/* random extra sections (if any).  Override
++ * in asm/sections.h */
++#ifndef arch_is_kernel_text
++static inline int arch_is_kernel_text(unsigned long addr)
++{
++	return 0;
++}
++#endif
++
++#ifndef arch_is_kernel_data
++static inline int arch_is_kernel_data(unsigned long addr)
++{
++	return 0;
++}
++#endif
++
+ #endif /* _ASM_GENERIC_SECTIONS_H_ */
 _
 
 Patches currently in -mm which might be from vapier@gentoo.org are
