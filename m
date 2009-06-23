@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + asm-sections-add-text-data-checking-functions-for-arches-to-override.patch added to -mm tree
-Date: Tue, 23 Jun 2009 15:40:33 -0700
-Message-ID: <200906232240.n5NMeX4m008236@imap1.linux-foundation.org>
+Subject: + blackfin-override-text-data-checking-functions.patch added to -mm tree
+Date: Tue, 23 Jun 2009 15:40:39 -0700
+Message-ID: <200906232240.n5NMedFN008339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55998 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758053AbZFWWmI (ORCPT
+	by vger.kernel.org with ESMTP id S1758414AbZFWWm1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 18:42:08 -0400
+	Tue, 23 Jun 2009 18:42:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: vapier@gentoo.org, a.p.zijlstra@chello.nl, arnd@arndb.de, mingo@elte.hu, rge
 
 
 The patch titled
-     asm/sections: add text/data checking functions for arches to override
+     Blackfin: override text/data checking functions
 has been added to the -mm tree.  Its filename is
-     asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
+     blackfin-override-text-data-checking-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm/sections: add text/data checking functions for arches to override
+Subject: Blackfin: override text/data checking functions
 From: Mike Frysinger <vapier@gentoo.org>
-
-Some ports (like the Blackfin arch) have a discontiguous memory map which
-means there may be text or data that falls outside of the standard range
-of the start/end text/data symbols.  Creating some helper functions allows
-these non-standard ports to declare these regions without adversely
-affecting anyone else.
 
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -52,33 +46,62 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/sections.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ arch/blackfin/include/asm/sections.h |   38 +++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-generic/sections.h~asm-sections-add-text-data-checking-functions-for-arches-to-override include/asm-generic/sections.h
---- a/include/asm-generic/sections.h~asm-sections-add-text-data-checking-functions-for-arches-to-override
-+++ a/include/asm-generic/sections.h
-@@ -23,4 +23,20 @@ extern char __ctors_start[], __ctors_end
- #define dereference_function_descriptor(p) (p)
- #endif
+diff -puN arch/blackfin/include/asm/sections.h~blackfin-override-text-data-checking-functions arch/blackfin/include/asm/sections.h
+--- a/arch/blackfin/include/asm/sections.h~blackfin-override-text-data-checking-functions
++++ a/arch/blackfin/include/asm/sections.h
+@@ -1,9 +1,6 @@
+ #ifndef _BLACKFIN_SECTIONS_H
+ #define _BLACKFIN_SECTIONS_H
  
-+/* random extra sections (if any).  Override
-+ * in asm/sections.h */
-+#ifndef arch_is_kernel_text
+-/* nothing to see, move along */
+-#include <asm-generic/sections.h>
+-
+ /* only used when MTD_UCLINUX */
+ extern unsigned long memory_mtd_start, memory_mtd_end, mtd_size;
+ 
+@@ -15,4 +12,39 @@ extern char _stext_l1[], _etext_l1[], _s
+ 	_stext_l2[], _etext_l2[], _sdata_l2[], _edata_l2[], _sbss_l2[],
+ 	_ebss_l2[], _l2_lma_start[];
+ 
++#include <asm/mem_map.h>
++
++/* Blackfin systems have discontinuous memory map and no virtualized memory */
 +static inline int arch_is_kernel_text(unsigned long addr)
 +{
-+	return 0;
++	return
++		(L1_CODE_LENGTH &&
++		 addr >= (unsigned long)_stext_l1 &&
++		 addr <  (unsigned long)_etext_l1)
++		||
++		(L2_LENGTH &&
++		 addr >= (unsigned long)_stext_l2 &&
++		 addr <  (unsigned long)_etext_l2);
 +}
-+#endif
++#define arch_is_kernel_text(addr) arch_is_kernel_text(addr)
 +
-+#ifndef arch_is_kernel_data
 +static inline int arch_is_kernel_data(unsigned long addr)
 +{
-+	return 0;
++	return
++		(L1_DATA_A_LENGTH &&
++		 addr >= (unsigned long)_sdata_l1 &&
++		 addr <  (unsigned long)_ebss_l1)
++		||
++		(L1_DATA_B_LENGTH &&
++		 addr >= (unsigned long)_sdata_b_l1 &&
++		 addr <  (unsigned long)_ebss_b_l1)
++		||
++		(L2_LENGTH &&
++		 addr >= (unsigned long)_sdata_l2 &&
++		 addr <  (unsigned long)_ebss_l2);
 +}
-+#endif
++#define arch_is_kernel_data(addr) arch_is_kernel_data(addr)
 +
- #endif /* _ASM_GENERIC_SECTIONS_H_ */
++#include <asm-generic/sections.h>
++
+ #endif
 _
 
 Patches currently in -mm which might be from vapier@gentoo.org are
