@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 23 Jun 2009 12:28:49 -0700
-Message-ID: <200906231949.n5NJn5Fb021688@imap1.linux-foundation.org>
+Subject: + arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch added to -mm tree
+Date: Tue, 23 Jun 2009 12:36:08 -0700
+Message-ID: <200906231956.n5NJuNdo029398@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753413AbZFWTtE (ORCPT
+	by vger.kernel.org with ESMTP id S1751247AbZFWT4y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 15:49:04 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n5NJn60w013432
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jun 2009 12:49:07 -0700
+	Tue, 23 Jun 2009 15:56:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, robert.richter@amd.com
 
 
 The patch titled
-     linux-next-git-rejects
+     arch/x86/oprofile/op_model_amd.c: fix op_amd_handle_ibs() return type
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,32 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: arch/x86/oprofile/op_model_amd.c: fix op_amd_handle_ibs() return type
 From: Andrew Morton <akpm@linux-foundation.org>
 
+arch/x86/oprofile/op_model_amd.c: In function 'op_amd_handle_ibs':
+arch/x86/oprofile/op_model_amd.c:217: warning: no return statement in function returning non-void
+
+Fix this by making op_amd_handle_ibs() return void.
+
+Cc: Robert Richter <robert.richter@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/x86/oprofile/op_model_amd.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN kernel/cpu.c~linux-next-git-rejects kernel/cpu.c
---- a/kernel/cpu.c~linux-next-git-rejects
-+++ a/kernel/cpu.c
-@@ -35,13 +35,7 @@ static struct {
- 	 */
- 	int refcount;
- } cpu_hotplug = {
--<<<<<<< HEAD:kernel/cpu.c
--	.active_writer = NULL,
- 	.lock = __MUTEX_INITIALIZER(cpu_hotplug.lock),
--	.refcount = 0,
--=======
--	.lock = __MUTEX_INITIALIZER(cpu_hotplug.lock),
-->>>>>>> FETCH_HEAD:kernel/cpu.c
- };
+diff -puN arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type arch/x86/oprofile/op_model_amd.c
+--- a/arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type
++++ a/arch/x86/oprofile/op_model_amd.c
+@@ -124,7 +124,7 @@ static void op_amd_setup_ctrs(struct op_
  
- #ifdef CONFIG_HOTPLUG_CPU
+ #ifdef CONFIG_OPROFILE_IBS
+ 
+-static inline int
++static inline void
+ op_amd_handle_ibs(struct pt_regs * const regs,
+ 		  struct op_msrs const * const msrs)
+ {
+@@ -132,7 +132,7 @@ op_amd_handle_ibs(struct pt_regs * const
+ 	struct op_entry entry;
+ 
+ 	if (!has_ibs)
+-		return 1;
++		return;
+ 
+ 	if (ibs_config.fetch_enabled) {
+ 		rdmsrl(MSR_AMD64_IBSFETCHCTL, ctl);
+@@ -178,8 +178,6 @@ op_amd_handle_ibs(struct pt_regs * const
+ 			wrmsrl(MSR_AMD64_IBSOPCTL, ctl);
+ 		}
+ 	}
+-
+-	return 1;
+ }
+ 
+ static inline void op_amd_start_ibs(void)
+@@ -213,7 +211,7 @@ static void op_amd_stop_ibs(void)
+ 
+ #else
+ 
+-static inline int op_amd_handle_ibs(struct pt_regs * const regs,
++static inline void op_amd_handle_ibs(struct pt_regs * const regs,
+ 				    struct op_msrs const * const msrs) { }
+ static inline void op_amd_start_ibs(void) { }
+ static inline void op_amd_stop_ibs(void) { }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,4 +128,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
 
