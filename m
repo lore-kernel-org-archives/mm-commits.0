@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch added to -mm tree
-Date: Tue, 23 Jun 2009 09:16:17 -0700
-Message-ID: <200906231616.n5NGGH0Y023518@imap1.linux-foundation.org>
+Subject: + dmapools-protect-page_list-walk-in-show_pools.patch added to -mm tree
+Date: Tue, 23 Jun 2009 09:22:57 -0700
+Message-ID: <200906231622.n5NGMvmF030608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56999 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753653AbZFWQQ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1756435AbZFWQXd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 12:16:28 -0400
+	Tue, 23 Jun 2009 12:23:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, mingo@elte.hu
+Cc: tglx@linutronix.de, willy@linux.intel.com
 
 
 The patch titled
-     printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix 2
+     dmapools: protect page_list walk in show_pools()
 has been added to the -mm tree.  Its filename is
-     printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
+     dmapools-protect-page_list-walk-in-show_pools.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix 2
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: dmapools: protect page_list walk in show_pools()
+From: Thomas Gleixner <tglx@linutronix.de>
 
-use pr_debug for debug printk.
+show_pools() walks the page_list of a pool w/o protection against the list
+modifications in alloc/free.  Take pool->lock to avoid stomping into
+nirvana.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/dmapool.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/printk.c~printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2 kernel/printk.c
---- a/kernel/printk.c~printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2
-+++ a/kernel/printk.c
-@@ -211,7 +211,7 @@ static int __init boot_delay_setup(char 
- 	if (boot_delay > 10 * 1000)
- 		boot_delay = 0;
+diff -puN mm/dmapool.c~dmapools-protect-page_list-walk-in-show_pools mm/dmapool.c
+--- a/mm/dmapool.c~dmapools-protect-page_list-walk-in-show_pools
++++ a/mm/dmapool.c
+@@ -86,10 +86,12 @@ show_pools(struct device *dev, struct de
+ 		unsigned pages = 0;
+ 		unsigned blocks = 0;
  
--	printk(KERN_DEBUG "boot_delay: %u, preset_lpj: %ld, lpj: %lu, "
-+	pr_debug("boot_delay: %u, preset_lpj: %ld, lpj: %lu, "
- 		"HZ: %d, loops_per_msec: %llu\n",
- 		boot_delay, preset_lpj, lpj, HZ, loops_per_msec);
- 	return 1;
++		spin_lock_irq(&pool->lock);
+ 		list_for_each_entry(page, &pool->page_list, page_list) {
+ 			pages++;
+ 			blocks += page->in_use;
+ 		}
++		spin_unlock_irq(&pool->lock);
+ 
+ 		/* per-pool info, no real statistics yet */
+ 		temp = scnprintf(next, size, "%-16s %4u %4Zu %4Zu %2u\n",
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+linux-next.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+parisc-remove-obsolete-hw_interrupt_type.patch
+genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
+dmapools-protect-page_list-walk-in-show_pools.patch
 
