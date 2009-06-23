@@ -1,71 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] devpts-remove-module-related-code.patch removed from -mm tree
-Date: Tue, 23 Jun 2009 14:30:51 -0700
-Message-ID: <200906232130.n5NLUqlX031812@imap1.linux-foundation.org>
+Subject: + posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch added to -mm tree
+Date: Tue, 23 Jun 2009 15:24:17 -0700
+Message-ID: <200906232224.n5NMOH4x023589@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758160AbZFWVau (ORCPT
+	by vger.kernel.org with ESMTP id S1753896AbZFWWYs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 17:30:50 -0400
+	Tue, 23 Jun 2009 18:24:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sgruszka@redhat.com, a.p.zijlstra@chello.nl, roland@redhat.com, tglx@linutronix.de, vmayatsk@redhat.com
 
 
 The patch titled
-     devpts: remove module-related code
-has been removed from the -mm tree.  Its filename was
-     devpts-remove-module-related-code.patch
+     posix_cpu_timers_exit_group(): do not use thread_group_cputimer()
+has been added to the -mm tree.  Its filename is
+     posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: remove module-related code
-From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: posix_cpu_timers_exit_group(): do not use thread_group_cputimer()
+From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-These days, the devpts filesystem is closely integrated with the pty
-memory management, and cannot be built as a module, even less removed from
-the kernel.  Accordingly, remove all module-related stuff from this
-filesystem.
+When the process exits we don't have to run new cputimer nor use running
+one (as it not accounts when tsk->exit_state != 0) to get process CPU
+times.  As there is only one thread we can just use CPU times fields from
+task and signal structs.
 
-Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ kernel/posix-cpu-timers.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/devpts/inode.c~devpts-remove-module-related-code fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-remove-module-related-code
-+++ a/fs/devpts/inode.c
-@@ -10,7 +10,6 @@
-  *
-  * ------------------------------------------------------------------------- */
+diff -puN kernel/posix-cpu-timers.c~posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer
++++ a/kernel/posix-cpu-timers.c
+@@ -521,11 +521,12 @@ void posix_cpu_timers_exit(struct task_s
+ }
+ void posix_cpu_timers_exit_group(struct task_struct *tsk)
+ {
+-	struct task_cputime cputime;
++	struct signal_struct *const sig = tsk->signal;
  
--#include <linux/module.h>
- #include <linux/init.h>
- #include <linux/fs.h>
- #include <linux/sched.h>
-@@ -423,7 +422,6 @@ static void devpts_kill_sb(struct super_
+-	thread_group_cputimer(tsk, &cputime);
+ 	cleanup_timers(tsk->signal->cpu_timers,
+-		       cputime.utime, cputime.stime, cputime.sum_exec_runtime);
++		       cputime_add(tsk->utime, sig->utime),
++		       cputime_add(tsk->stime, sig->stime),
++		       tsk->se.sum_exec_runtime + sig->sum_sched_runtime);
  }
  
- static struct file_system_type devpts_fs_type = {
--	.owner		= THIS_MODULE,
- 	.name		= "devpts",
- 	.get_sb		= devpts_get_sb,
- 	.kill_sb	= devpts_kill_sb,
-@@ -564,13 +562,3 @@ static int __init init_devpts_fs(void)
- 	}
- 	return err;
- }
--
--static void __exit exit_devpts_fs(void)
--{
--	unregister_filesystem(&devpts_fs_type);
--	mntput(devpts_mnt);
--}
+ static void clear_dead_task(struct k_itimer *timer, union cpu_time_count now)
+_
+
+Patches currently in -mm which might be from sgruszka@redhat.com are
+
+origin.patch
+posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch
+
