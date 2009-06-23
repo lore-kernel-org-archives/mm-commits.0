@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + devpts-remove-module-related-code.patch added to -mm tree
-Date: Tue, 23 Jun 2009 14:08:38 -0700
-Message-ID: <200906232108.n5NL8cib008367@imap1.linux-foundation.org>
+Subject: [to-be-updated] devpts-remove-module-related-code.patch removed from -mm tree
+Date: Tue, 23 Jun 2009 14:30:51 -0700
+Message-ID: <200906232130.n5NLUqlX031812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754449AbZFWVIw (ORCPT
+	by vger.kernel.org with ESMTP id S1758160AbZFWVau (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 17:08:52 -0400
+	Tue, 23 Jun 2009 17:30:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hpa@zytor.com, viro@zeniv.linux.org.uk
+To: hpa@zytor.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
      devpts: remove module-related code
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      devpts-remove-module-related-code.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
