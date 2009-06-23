@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-add-m41t62-rtc-to-s6105-platform.patch removed from -mm tree
-Date: Tue, 23 Jun 2009 11:05:45 -0700
-Message-ID: <200906231805.n5NI5jdd009806@imap1.linux-foundation.org>
+Subject: [merged] xtensa-enable-m41t80-driver-in-s6105_defconfig.patch removed from -mm tree
+Date: Tue, 23 Jun 2009 11:05:48 -0700
+Message-ID: <200906231805.n5NI5mnv009871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59488 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750800AbZFWSGQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752731AbZFWSGR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 14:06:16 -0400
+	Tue, 23 Jun 2009 14:06:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dg@emlix.com, a.zummo@towertech.it, chris@zankel.net, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: add m41t62 rtc to s6105 platform
+     xtensa: enable m41t80 driver in s6105_defconfig
 has been removed from the -mm tree.  Its filename was
-     xtensa-add-m41t62-rtc-to-s6105-platform.patch
+     xtensa-enable-m41t80-driver-in-s6105_defconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: add m41t62 rtc to s6105 platform
+Subject: xtensa: enable m41t80 driver in s6105_defconfig
 From: Daniel Glockner <dg@emlix.com>
 
 Signed-off-by: Daniel Glockner <dg@emlix.com>
@@ -34,22 +34,82 @@ Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/platforms/s6105/device.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/xtensa/configs/s6105_defconfig |   56 ++++++++++++++++++++++++--
+ 1 file changed, 53 insertions(+), 3 deletions(-)
 
-diff -puN arch/xtensa/platforms/s6105/device.c~xtensa-add-m41t62-rtc-to-s6105-platform arch/xtensa/platforms/s6105/device.c
---- a/arch/xtensa/platforms/s6105/device.c~xtensa-add-m41t62-rtc-to-s6105-platform
-+++ a/arch/xtensa/platforms/s6105/device.c
-@@ -143,6 +143,9 @@ static struct platform_device platform_d
- 		.resource = s6_gmac_resource,
- 		.num_resources = ARRAY_SIZE(s6_gmac_resource),
- 	},
-+	{
-+		I2C_BOARD_INFO("m41t62", S6I2C_ADDR_M41T62),
-+	},
- };
- 
- static int __init device_init(void)
+diff -puN arch/xtensa/configs/s6105_defconfig~xtensa-enable-m41t80-driver-in-s6105_defconfig arch/xtensa/configs/s6105_defconfig
+--- a/arch/xtensa/configs/s6105_defconfig~xtensa-enable-m41t80-driver-in-s6105_defconfig
++++ a/arch/xtensa/configs/s6105_defconfig
+@@ -351,8 +351,6 @@ CONFIG_UNIX98_PTYS=y
+ # CONFIG_LEGACY_PTYS is not set
+ # CONFIG_IPMI_HANDLER is not set
+ # CONFIG_HW_RANDOM is not set
+-# CONFIG_RTC is not set
+-# CONFIG_GEN_RTC is not set
+ # CONFIG_R3964 is not set
+ # CONFIG_RAW_DRIVER is not set
+ # CONFIG_TCG_TPM is not set
+@@ -434,7 +432,59 @@ CONFIG_SSB_POSSIBLE=y
+ # CONFIG_MEMSTICK is not set
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+-# CONFIG_RTC_CLASS is not set
++CONFIG_RTC_LIB=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_HCTOSYS=y
++CONFIG_RTC_HCTOSYS_DEVICE="rtc0"
++# CONFIG_RTC_DEBUG is not set
++
++#
++# RTC interfaces
++#
++# CONFIG_RTC_INTF_SYSFS is not set
++# CONFIG_RTC_INTF_PROC is not set
++# CONFIG_RTC_INTF_DEV is not set
++# CONFIG_RTC_DRV_TEST is not set
++
++#
++# I2C RTC drivers
++#
++# CONFIG_RTC_DRV_DS1307 is not set
++# CONFIG_RTC_DRV_DS1374 is not set
++# CONFIG_RTC_DRV_DS1672 is not set
++# CONFIG_RTC_DRV_MAX6900 is not set
++# CONFIG_RTC_DRV_RS5C372 is not set
++# CONFIG_RTC_DRV_ISL1208 is not set
++# CONFIG_RTC_DRV_X1205 is not set
++# CONFIG_RTC_DRV_PCF8563 is not set
++# CONFIG_RTC_DRV_PCF8583 is not set
++CONFIG_RTC_DRV_M41T80=y
++# CONFIG_RTC_DRV_M41T80_WDT is not set
++# CONFIG_RTC_DRV_S35390A is not set
++# CONFIG_RTC_DRV_FM3130 is not set
++# CONFIG_RTC_DRV_RX8581 is not set
++
++#
++# SPI RTC drivers
++#
++
++#
++# Platform RTC drivers
++#
++# CONFIG_RTC_DRV_DS1286 is not set
++# CONFIG_RTC_DRV_DS1511 is not set
++# CONFIG_RTC_DRV_DS1553 is not set
++# CONFIG_RTC_DRV_DS1742 is not set
++# CONFIG_RTC_DRV_STK17TA8 is not set
++# CONFIG_RTC_DRV_M48T86 is not set
++# CONFIG_RTC_DRV_M48T35 is not set
++# CONFIG_RTC_DRV_M48T59 is not set
++# CONFIG_RTC_DRV_BQ4802 is not set
++# CONFIG_RTC_DRV_V3020 is not set
++
++#
++# on-CPU RTC drivers
++#
+ # CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ # CONFIG_STAGING is not set
 _
 
 Patches currently in -mm which might be from dg@emlix.com are
