@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch added to -mm tree
-Date: Mon, 22 Jun 2009 22:52:05 -0700
-Message-ID: <200906230552.n5N5q51a012884@imap1.linux-foundation.org>
+Subject: + printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch added to -mm tree
+Date: Mon, 22 Jun 2009 22:56:16 -0700
+Message-ID: <200906230556.n5N5uG3a017246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752734AbZFWFwM (ORCPT
+	by vger.kernel.org with ESMTP id S1752491AbZFWF4W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 01:52:12 -0400
+	Tue, 23 Jun 2009 01:56:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hidave.darkstar@gmail.com, mingo@elte.hu
+Cc: hidave.darkstar@gmail.com, mingo@elte.hu
 
 
 The patch titled
-     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
+     printk boot_delay: rename printk_delay_msec to loops_per_msec
 has been added to the -mm tree.  Its filename is
-     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+     printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: printk boot_delay: rename printk_delay_msec to loops_per_msec
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Rename `printk_delay_msec' to `loops_per_msec', because the patch "printk:
+add printk_delay to make messages readable for some scenarios" wishes to
+more appropriately use the `printk_delay_msec' identifier.
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    1 -
- kernel/sysctl.c        |    4 +++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/printk.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/sysctl.h~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix include/linux/sysctl.h
---- a/include/linux/sysctl.h~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
-+++ a/include/linux/sysctl.h
-@@ -163,7 +163,6 @@ enum
- 	KERN_MAX_LOCK_DEPTH=74,
- 	KERN_NMI_WATCHDOG=75, /* int: enable/disable nmi watchdog */
- 	KERN_PANIC_ON_NMI=76, /* int: whether we will panic on an unrecovered */
--	KERN_PRINTK_DELAY = 77,	/* int: tune printk delay*/
- };
+diff -puN kernel/printk.c~printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec kernel/printk.c
+--- a/kernel/printk.c~printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec
++++ a/kernel/printk.c
+@@ -198,12 +198,11 @@ __setup("log_buf_len=", log_buf_len_setu
+ #ifdef CONFIG_BOOT_PRINTK_DELAY
  
+ static unsigned int boot_delay; /* msecs delay after each printk during bootup */
+-static unsigned long long printk_delay_msec; /* per msec, based on boot_delay */
++static unsigned long long loops_per_msec;
  
-diff -puN kernel/sysctl.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix kernel/sysctl.c
---- a/kernel/sysctl.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
-+++ a/kernel/sysctl.c
-@@ -103,7 +103,9 @@ static int __maybe_unused one = 1;
- static int __maybe_unused two = 2;
- static unsigned long one_ul = 1;
- static int one_hundred = 100;
-+#ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
-+#endif
+ static int __init boot_delay_setup(char *str)
+ {
+ 	unsigned long lpj;
+-	unsigned long long loops_per_msec;
  
- /* this is needed for the proc_doulongvec_minmax of vm_dirty_bytes */
- static unsigned long dirty_bytes_min = 2 * PAGE_SIZE;
-@@ -710,7 +712,7 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
--		.ctl_name	= KERN_PRINTK_DELAY,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "printk_delay",
- 		.data		= &printk_delay_msec,
- 		.maxlen		= sizeof(int),
+ 	lpj = preset_lpj ? preset_lpj : 1000000;	/* some guess */
+ 	loops_per_msec = (unsigned long long)lpj / 1000 * HZ;
+@@ -212,10 +211,9 @@ static int __init boot_delay_setup(char 
+ 	if (boot_delay > 10 * 1000)
+ 		boot_delay = 0;
+ 
+-	printk_delay_msec = loops_per_msec;
+ 	printk(KERN_DEBUG "boot_delay: %u, preset_lpj: %ld, lpj: %lu, "
+-		"HZ: %d, printk_delay_msec: %llu\n",
+-		boot_delay, preset_lpj, lpj, HZ, printk_delay_msec);
++		"HZ: %d, loops_per_msec: %llu\n",
++		boot_delay, preset_lpj, lpj, HZ, loops_per_msec);
+ 	return 1;
+ }
+ __setup("boot_delay=", boot_delay_setup);
+@@ -228,7 +226,7 @@ static void boot_delay_msec(void)
+ 	if (boot_delay == 0 || system_state != SYSTEM_BOOTING)
+ 		return;
+ 
+-	k = (unsigned long long)printk_delay_msec * boot_delay;
++	k = (unsigned long long)loops_per_msec * boot_delay;
+ 
+ 	timeout = jiffies + msecs_to_jiffies(boot_delay);
+ 	while (k) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-jsm-clean-up-serial-jsm-correctly-support-4-8-port-boards.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
