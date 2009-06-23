@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch added to -mm tree
-Date: Tue, 23 Jun 2009 15:24:17 -0700
-Message-ID: <200906232224.n5NMOH4x023589@imap1.linux-foundation.org>
+Subject: + kallsyms-use-new-arch_is_kernel_text.patch added to -mm tree
+Date: Tue, 23 Jun 2009 15:40:35 -0700
+Message-ID: <200906232240.n5NMeZk7008333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40659 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753896AbZFWWYs (ORCPT
+	by vger.kernel.org with ESMTP id S1757501AbZFWWmI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jun 2009 18:24:48 -0400
+	Tue, 23 Jun 2009 18:42:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sgruszka@redhat.com, a.p.zijlstra@chello.nl, roland@redhat.com, tglx@linutronix.de, vmayatsk@redhat.com
+Cc: vapier@gentoo.org, a.p.zijlstra@chello.nl, arnd@arndb.de, mingo@elte.hu, rgetz@blackfin.uclinux.org, sam@ravnborg.org
 
 
 The patch titled
-     posix_cpu_timers_exit_group(): do not use thread_group_cputimer()
+     kallsyms: use new arch_is_kernel_text()
 has been added to the -mm tree.  Its filename is
-     posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch
+     kallsyms-use-new-arch_is_kernel_text.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix_cpu_timers_exit_group(): do not use thread_group_cputimer()
-From: Stanislaw Gruszka <sgruszka@redhat.com>
+Subject: kallsyms: use new arch_is_kernel_text()
+From: Mike Frysinger <vapier@gentoo.org>
 
-When the process exits we don't have to run new cputimer nor use running
-one (as it not accounts when tsk->exit_state != 0) to get process CPU
-times.  As there is only one thread we can just use CPU times fields from
-task and signal structs.
+This allows kallsyms to locate symbols that are in arch-specific text
+sections (such as text in Blackfin on-chip SRAM regions).
 
-Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Robin Getz <rgetz@blackfin.uclinux.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/kallsyms.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/posix-cpu-timers.c~posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer
-+++ a/kernel/posix-cpu-timers.c
-@@ -521,11 +521,12 @@ void posix_cpu_timers_exit(struct task_s
- }
- void posix_cpu_timers_exit_group(struct task_struct *tsk)
+diff -puN kernel/kallsyms.c~kallsyms-use-new-arch_is_kernel_text kernel/kallsyms.c
+--- a/kernel/kallsyms.c~kallsyms-use-new-arch_is_kernel_text
++++ a/kernel/kallsyms.c
+@@ -59,7 +59,8 @@ static inline int is_kernel_inittext(uns
+ 
+ static inline int is_kernel_text(unsigned long addr)
  {
--	struct task_cputime cputime;
-+	struct signal_struct *const sig = tsk->signal;
- 
--	thread_group_cputimer(tsk, &cputime);
- 	cleanup_timers(tsk->signal->cpu_timers,
--		       cputime.utime, cputime.stime, cputime.sum_exec_runtime);
-+		       cputime_add(tsk->utime, sig->utime),
-+		       cputime_add(tsk->stime, sig->stime),
-+		       tsk->se.sum_exec_runtime + sig->sum_sched_runtime);
+-	if (addr >= (unsigned long)_stext && addr <= (unsigned long)_etext)
++	if ((addr >= (unsigned long)_stext && addr <= (unsigned long)_etext) ||
++	    arch_is_kernel_text(addr))
+ 		return 1;
+ 	return in_gate_area_no_task(addr);
  }
- 
- static void clear_dead_task(struct k_itimer *timer, union cpu_time_count now)
 _
 
-Patches currently in -mm which might be from sgruszka@redhat.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch
+rmap-fixup-page_referenced-for-nommu-systems.patch
+linux-next.patch
+pcmcia-yenta-add-missing-__devexit-marking.patch
+serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch
+asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
+kallsyms-use-new-arch_is_kernel_text.patch
+lockdep-use-new-arch_is_kernel_data.patch
+blackfin-override-text-data-checking-functions.patch
 
