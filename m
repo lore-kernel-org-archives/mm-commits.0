@@ -1,85 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-use-pci_ioremap_bar-in-drivers-serial.patch removed from -mm tree
-Date: Wed, 24 Jun 2009 12:11:04 -0700
-Message-ID: <200906241911.n5OJB4VF011327@imap1.linux-foundation.org>
+Subject: [merged] rt2870-add-usb-id-for-sitecom-wl-608.patch removed from -mm tree
+Date: Wed, 24 Jun 2009 12:11:10 -0700
+Message-ID: <200906241911.n5OJBA8i011436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33727 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757176AbZFXTLK (ORCPT
+	by vger.kernel.org with ESMTP id S1757839AbZFXTLO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 15:11:10 -0400
+	Wed, 24 Jun 2009 15:11:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: jorrit@ncode.nl, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: use pci_ioremap_bar() in drivers/serial
+     rt2870: add USB ID for Sitecom WL-608
 has been removed from the -mm tree.  Its filename was
-     pci-use-pci_ioremap_bar-in-drivers-serial.patch
+     rt2870-add-usb-id-for-sitecom-wl-608.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: use pci_ioremap_bar() in drivers/serial
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: rt2870: add USB ID for Sitecom WL-608
+From: Jorrit Schippers <jorrit@ncode.nl>
 
-Use the newly introduced pci_ioremap_bar() function in drivers/serial. 
-pci_ioremap_bar() just takes a pci device and a bar number, with the goal
-of making it really hard to get wrong, while also having a central place
-to stick sanity checks.
+Add the USB id 0x0DF6,0x003F to the rt2870.h file such that the Sitecom
+WL-608 device will be recognized by this driver.
 
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Jorrit Schippers <jorrit@ncode.nl>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |    6 ++----
- drivers/serial/icom.c     |    3 +--
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/staging/rt2870/rt2870.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/serial/8250_pci.c~pci-use-pci_ioremap_bar-in-drivers-serial drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~pci-use-pci_ioremap_bar-in-drivers-serial
-+++ a/drivers/serial/8250_pci.c
-@@ -398,8 +398,7 @@ static int sbs_init(struct pci_dev *dev)
- {
- 	u8 __iomem *p;
- 
--	p = ioremap_nocache(pci_resource_start(dev, 0),
--						pci_resource_len(dev, 0));
-+	p = pci_ioremap_bar(dev, 0);
- 
- 	if (p == NULL)
- 		return -ENOMEM;
-@@ -423,8 +422,7 @@ static void __devexit sbs_exit(struct pc
- {
- 	u8 __iomem *p;
- 
--	p = ioremap_nocache(pci_resource_start(dev, 0),
--					pci_resource_len(dev, 0));
-+	p = pci_ioremap_bar(dev, 0);
- 	/* FIXME: What if resource_len < OCT_REG_CR_OFF */
- 	if (p != NULL)
- 		writeb(0, p + OCT_REG_CR_OFF);
-diff -puN drivers/serial/icom.c~pci-use-pci_ioremap_bar-in-drivers-serial drivers/serial/icom.c
---- a/drivers/serial/icom.c~pci-use-pci_ioremap_bar-in-drivers-serial
-+++ a/drivers/serial/icom.c
-@@ -1548,8 +1548,7 @@ static int __devinit icom_probe(struct p
- 		goto probe_exit1;
- 	}
- 
--	 icom_adapter->base_addr = ioremap(icom_adapter->base_addr_pci,
--						pci_resource_len(dev, 0));
-+	 icom_adapter->base_addr = pci_ioremap_bar(dev, 0);
- 
- 	if (!icom_adapter->base_addr)
- 		goto probe_exit1;
+diff -puN drivers/staging/rt2870/rt2870.h~rt2870-add-usb-id-for-sitecom-wl-608 drivers/staging/rt2870/rt2870.h
+--- a/drivers/staging/rt2870/rt2870.h~rt2870-add-usb-id-for-sitecom-wl-608
++++ a/drivers/staging/rt2870/rt2870.h
+@@ -89,6 +89,7 @@
+ 	{USB_DEVICE(0x0DF6,0x002C)}, /* Sitecom */		\
+ 	{USB_DEVICE(0x0DF6,0x002D)}, /* Sitecom */		\
+ 	{USB_DEVICE(0x0DF6,0x0039)}, /* Sitecom */		\
++	{USB_DEVICE(0x0DF6,0x003F)}, /* Sitecom WL-608 */	\
+ 	{USB_DEVICE(0x14B2,0x3C06)}, /* Conceptronic */		\
+ 	{USB_DEVICE(0x14B2,0x3C28)}, /* Conceptronic */		\
+ 	{USB_DEVICE(0x2019,0xED06)}, /* Planex Communications, Inc. */		\
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from jorrit@ncode.nl are
 
-origin.patch
+linux-next.patch
 
