@@ -1,170 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [merged] synclink_gt-fix-transmit-race-and-timeout.patch removed from -mm tree
-Date: Wed, 24 Jun 2009 12:11:14 -0700
-Message-ID: <200906241911.n5OJBEAE011512@imap1.linux-foundation.org>
+Subject: [merged] kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch removed from -mm tree
+Date: Wed, 24 Jun 2009 12:11:06 -0700
+Message-ID: <200906241911.n5OJB6c0011332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35610 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758782AbZFXTLX (ORCPT
+	by vger.kernel.org with ESMTP id S1757356AbZFXTL0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 15:11:23 -0400
+	Wed, 24 Jun 2009 15:11:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, jason.wessel@windriver.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synclink_gt: fix transmit race and timeout
+     kgdb: kgdboc console poll hooks for serial_txx9 uart
 has been removed from the -mm tree.  Its filename was
-     synclink_gt-fix-transmit-race-and-timeout.patch
+     kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt: fix transmit race and timeout
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: kgdb: kgdboc console poll hooks for serial_txx9 uart
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-If after adding transmit data to the transmit DMA ring the transmit DMA
-controller has become inactive before reading the new data and the serial
-transmitter is still active sending data already in the transmit FIFO
-and/or shift register, then wait for the serial transmitter to become idle
-before reactivating the transmit DMA controller.
+Implement the serial polling hooks for the serial_txx9 uart for use with
+kgdboc.
 
-Otherwise the transmit DMA controller may present the new data to the
-serial transmitter in a small timing window just as the serial transmitter
-transitions to the idle state.  Hitting this window results in the serial
-transmitter entering an inconsistent state where it does not process the
-new data and does not signal the transition to the idle state.
+This patch once got SOB from Jason on Jul 2008 and (perhaps) merged
+into kgdb-next branch, but lost somewhere then.
+I resend it now with Jason's Acked-by.
 
-From the driver perspective, this condition appears as an active transmit
-DMA controller (correct) with unsent DMA buffers (correct) and an active
-serial transmitter (wrong), even though no data is actually being sent. 
-When all the DMA buffers are full, no further data is accepted from a user
-application calling write() until a timeout occurs and the transmitter and
-DMA controller are reset.
-
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Acked-by: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |   72 ++++++++++++++---------------------
- 1 file changed, 30 insertions(+), 42 deletions(-)
+ drivers/serial/serial_txx9.c |  113 ++++++++++++++++++++++++++-------
+ 1 file changed, 92 insertions(+), 21 deletions(-)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-fix-transmit-race-and-timeout drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-fix-transmit-race-and-timeout
-+++ a/drivers/char/synclink_gt.c
-@@ -467,7 +467,6 @@ static unsigned int free_tbuf_count(stru
- static unsigned int tbuf_bytes(struct slgt_info *info);
- static void reset_tbufs(struct slgt_info *info);
- static void tdma_reset(struct slgt_info *info);
--static void tdma_start(struct slgt_info *info);
- static void tx_load(struct slgt_info *info, const char *buf, unsigned int count);
- 
- static void get_signals(struct slgt_info *info);
-@@ -795,6 +794,18 @@ static void set_termios(struct tty_struc
- 	}
+diff -puN drivers/serial/serial_txx9.c~kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart drivers/serial/serial_txx9.c
+--- a/drivers/serial/serial_txx9.c~kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart
++++ a/drivers/serial/serial_txx9.c
+@@ -461,6 +461,94 @@ static void serial_txx9_break_ctl(struct
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
  }
  
-+static void update_tx_timer(struct slgt_info *info)
++#if defined(CONFIG_SERIAL_TXX9_CONSOLE) || (CONFIG_CONSOLE_POLL)
++/*
++ *	Wait for transmitter & holding register to empty
++ */
++static void wait_for_xmitr(struct uart_txx9_port *up)
 +{
-+	/*
-+	 * use worst case speed of 1200bps to calculate transmit timeout
-+	 * based on data in buffers (tbuf_bytes) and FIFO (128 bytes)
-+	 */
-+	if (info->params.mode == MGSL_MODE_HDLC) {
-+		int timeout  = (tbuf_bytes(info) * 7) + 1000;
-+		mod_timer(&info->tx_timer, jiffies + msecs_to_jiffies(timeout));
++	unsigned int tmout = 10000;
++
++	/* Wait up to 10ms for the character(s) to be sent. */
++	while (--tmout &&
++	       !(sio_in(up, TXX9_SICISR) & TXX9_SICISR_TXALS))
++		udelay(1);
++
++	/* Wait up to 1s for flow control if necessary */
++	if (up->port.flags & UPF_CONS_FLOW) {
++		tmout = 1000000;
++		while (--tmout &&
++		       (sio_in(up, TXX9_SICISR) & TXX9_SICISR_CTSS))
++			udelay(1);
 +	}
 +}
++#endif
 +
- static int write(struct tty_struct *tty,
- 		 const unsigned char *buf, int count)
++#ifdef CONFIG_CONSOLE_POLL
++/*
++ * Console polling routines for writing and reading from the uart while
++ * in an interrupt or debug context.
++ */
++
++static int serial_txx9_get_poll_char(struct uart_port *port)
++{
++	unsigned int ier;
++	unsigned char c;
++	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
++
++	/*
++	 *	First save the IER then disable the interrupts
++	 */
++	ier = sio_in(up, TXX9_SIDICR);
++	sio_out(up, TXX9_SIDICR, 0);
++
++	while (sio_in(up, TXX9_SIDISR) & TXX9_SIDISR_UVALID)
++		;
++
++	c = sio_in(up, TXX9_SIRFIFO);
++
++	/*
++	 *	Finally, clear RX interrupt status
++	 *	and restore the IER
++	 */
++	sio_mask(up, TXX9_SIDISR, TXX9_SIDISR_RDIS);
++	sio_out(up, TXX9_SIDICR, ier);
++	return c;
++}
++
++
++static void serial_txx9_put_poll_char(struct uart_port *port, unsigned char c)
++{
++	unsigned int ier;
++	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
++
++	/*
++	 *	First save the IER then disable the interrupts
++	 */
++	ier = sio_in(up, TXX9_SIDICR);
++	sio_out(up, TXX9_SIDICR, 0);
++
++	wait_for_xmitr(up);
++	/*
++	 *	Send the character out.
++	 *	If a LF, also do CR...
++	 */
++	sio_out(up, TXX9_SITFIFO, c);
++	if (c == 10) {
++		wait_for_xmitr(up);
++		sio_out(up, TXX9_SITFIFO, 13);
++	}
++
++	/*
++	 *	Finally, wait for transmitter to become empty
++	 *	and restore the IER
++	 */
++	wait_for_xmitr(up);
++	sio_out(up, TXX9_SIDICR, ier);
++}
++
++#endif /* CONFIG_CONSOLE_POLL */
++
+ static int serial_txx9_startup(struct uart_port *port)
  {
-@@ -838,8 +849,18 @@ start:
- 		spin_lock_irqsave(&info->lock,flags);
- 		if (!info->tx_active)
- 		 	tx_start(info);
--		else
--			tdma_start(info);
-+		else if (!(rd_reg32(info, TDCSR) & BIT0)) {
-+			/* transmit still active but transmit DMA stopped */
-+			unsigned int i = info->tbuf_current;
-+			if (!i)
-+				i = info->tbuf_count;
-+			i--;
-+			/* if DMA buf unsent must try later after tx idle */
-+			if (desc_count(info->tbufs[i]))
-+				ret = 0;
-+		}
-+		if (ret > 0)
-+			update_tx_timer(info);
- 		spin_unlock_irqrestore(&info->lock,flags);
-  	}
+ 	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
+@@ -781,6 +869,10 @@ static struct uart_ops serial_txx9_pops 
+ 	.release_port	= serial_txx9_release_port,
+ 	.request_port	= serial_txx9_request_port,
+ 	.config_port	= serial_txx9_config_port,
++#ifdef CONFIG_CONSOLE_POLL
++	.poll_get_char	= serial_txx9_get_poll_char,
++	.poll_put_char	= serial_txx9_put_poll_char,
++#endif
+ };
  
-@@ -1502,10 +1523,9 @@ static int hdlcdev_xmit(struct sk_buff *
- 	/* save start time for transmit timeout detection */
- 	dev->trans_start = jiffies;
+ static struct uart_txx9_port serial_txx9_ports[UART_NR];
+@@ -803,27 +895,6 @@ static void __init serial_txx9_register_
  
--	/* start hardware transmitter if necessary */
- 	spin_lock_irqsave(&info->lock,flags);
--	if (!info->tx_active)
--	 	tx_start(info);
-+	tx_start(info);
-+	update_tx_timer(info);
- 	spin_unlock_irqrestore(&info->lock,flags);
- 
- 	return 0;
-@@ -3946,50 +3966,19 @@ static void tx_start(struct slgt_info *i
- 			slgt_irq_on(info, IRQ_TXUNDER + IRQ_TXIDLE);
- 			/* clear tx idle and underrun status bits */
- 			wr_reg16(info, SSR, (unsigned short)(IRQ_TXIDLE + IRQ_TXUNDER));
--			if (info->params.mode == MGSL_MODE_HDLC)
--				mod_timer(&info->tx_timer, jiffies +
--						msecs_to_jiffies(5000));
- 		} else {
- 			slgt_irq_off(info, IRQ_TXDATA);
- 			slgt_irq_on(info, IRQ_TXIDLE);
- 			/* clear tx idle status bit */
- 			wr_reg16(info, SSR, IRQ_TXIDLE);
- 		}
--		tdma_start(info);
-+		/* set 1st descriptor address and start DMA */
-+		wr_reg32(info, TDDAR, info->tbufs[info->tbuf_start].pdesc);
-+		wr_reg32(info, TDCSR, BIT2 + BIT0);
- 		info->tx_active = true;
- 	}
- }
+ #ifdef CONFIG_SERIAL_TXX9_CONSOLE
  
 -/*
-- * start transmit DMA if inactive and there are unsent buffers
+- *	Wait for transmitter & holding register to empty
 - */
--static void tdma_start(struct slgt_info *info)
+-static inline void wait_for_xmitr(struct uart_txx9_port *up)
 -{
--	unsigned int i;
+-	unsigned int tmout = 10000;
 -
--	if (rd_reg32(info, TDCSR) & BIT0)
--		return;
+-	/* Wait up to 10ms for the character(s) to be sent. */
+-	while (--tmout &&
+-	       !(sio_in(up, TXX9_SICISR) & TXX9_SICISR_TXALS))
+-		udelay(1);
 -
--	/* transmit DMA inactive, check for unsent buffers */
--	i = info->tbuf_start;
--	while (!desc_count(info->tbufs[i])) {
--		if (++i == info->tbuf_count)
--			i = 0;
--		if (i == info->tbuf_current)
--			return;
+-	/* Wait up to 1s for flow control if necessary */
+-	if (up->port.flags & UPF_CONS_FLOW) {
+-		tmout = 1000000;
+-		while (--tmout &&
+-		       (sio_in(up, TXX9_SICISR) & TXX9_SICISR_CTSS))
+-			udelay(1);
 -	}
--	info->tbuf_start = i;
--
--	/* there are unsent buffers, start transmit DMA */
--
--	/* reset needed if previous error condition */
--	tdma_reset(info);
--
--	/* set 1st descriptor address */
--	wr_reg32(info, TDDAR, info->tbufs[info->tbuf_start].pdesc);
--	wr_reg32(info, TDCSR, BIT2 + BIT0); /* IRQ + DMA enable */
 -}
