@@ -1,72 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] partitions-fix-broken-uevent_suppress-conversion.patch removed from -mm tree
-Date: Wed, 24 Jun 2009 12:10:54 -0700
-Message-ID: <200906241910.n5OJAsl1011139@imap1.linux-foundation.org>
+Subject: [merged] devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch removed from -mm tree
+Date: Wed, 24 Jun 2009 12:10:51 -0700
+Message-ID: <200906241910.n5OJApX7011136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58442 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758782AbZFXTLx (ORCPT
+	by vger.kernel.org with ESMTP id S1758791AbZFXTLz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 15:11:53 -0400
+	Wed, 24 Jun 2009 15:11:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, greg@kroah.com, kay.sievers@vrfy.org, stable@kernel.org, tom.leiming@gmail.com, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, greg@kroah.com, kay.sievers@vrfy.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     partitions: fix broken uevent_suppress conversion
+     devres: WARN() and return, don't crash on device_del() of uninitialized device
 has been removed from the -mm tree.  Its filename was
-     partitions-fix-broken-uevent_suppress-conversion.patch
+     devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: partitions: fix broken uevent_suppress conversion
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: devres: WARN() and return, don't crash on device_del() of uninitialized device
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-git commit f67f129e "Driver core: implement uevent suppress in kobject"
-contains this chunk for fs/partitions/check.c:
+I just debugged an obscure crash caused by a device_del() of a all NULL'd
+out struct device (in usb-serial) and found that a patch like this one would
+have saved me time (in addition to improved chances of a bug report from
+users hitting similar driver bugs).
 
- 	/* suppress uevent if the disk supresses it */
--	if (!ddev->uevent_suppress)
-+	if (!dev_get_uevent_suppress(pdev))
- 		kobject_uevent(&pdev->kobj, KOBJ_ADD);
-
-However that should have been
-
--	if (!ddev->uevent_suppress)
-+	if (!dev_get_uevent_suppress(ddev))
-
-Acked-by: Ming Lei <tom.leiming@gmail.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+[akpm@linux-foundation.org: cleanup]
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Greg KH <greg@kroah.com>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: <stable@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/devres.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/partitions/check.c~partitions-fix-broken-uevent_suppress-conversion fs/partitions/check.c
---- a/fs/partitions/check.c~partitions-fix-broken-uevent_suppress-conversion
-+++ a/fs/partitions/check.c
-@@ -436,7 +436,7 @@ struct hd_struct *add_partition(struct g
- 	rcu_assign_pointer(ptbl->part[partno], p);
+diff -puN drivers/base/devres.c~devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device drivers/base/devres.c
+--- a/drivers/base/devres.c~devres-warn-and-return-dont-crash-on-device_del-of-uninitialized-device
++++ a/drivers/base/devres.c
+@@ -428,6 +428,9 @@ int devres_release_all(struct device *de
+ {
+ 	unsigned long flags;
  
- 	/* suppress uevent if the disk supresses it */
--	if (!dev_get_uevent_suppress(pdev))
-+	if (!dev_get_uevent_suppress(ddev))
- 		kobject_uevent(&pdev->kobj, KOBJ_ADD);
- 
- 	return p;
++	/* Looks like an uninitialized device structure */
++	if (WARN_ON(dev->devres_head.next == NULL))
++		return -ENODEV;
+ 	spin_lock_irqsave(&dev->devres_lock, flags);
+ 	return release_nodes(dev, dev->devres_head.next, &dev->devres_head,
+ 			     flags);
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
 linux-next.patch
+platinumfb-misplaced-parenthesis.patch
 
