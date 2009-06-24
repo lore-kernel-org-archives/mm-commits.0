@@ -1,57 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ehca-enforce-a-positive-guid_entry-index.patch removed from -mm tree
-Date: Wed, 24 Jun 2009 12:10:59 -0700
-Message-ID: <200906241910.n5OJAxGk011191@imap1.linux-foundation.org>
+Subject: [merged] usb-mutually-exclusive-port_status.patch removed from -mm tree
+Date: Wed, 24 Jun 2009 12:11:12 -0700
+Message-ID: <200906241911.n5OJBCa8011509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34040 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754777AbZFXTL2 (ORCPT
+	by vger.kernel.org with ESMTP id S1758715AbZFXTLf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 15:11:28 -0400
+	Wed, 24 Jun 2009 15:11:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, alexs@linux.vnet.ibm.com, hnguyen@de.ibm.com, raisch@de.ibm.com, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, avorontsov@ru.mvista.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ehca: enforce a positive guid_entry index
+     usb: mutually exclusive port_status
 has been removed from the -mm tree.  Its filename was
-     ehca-enforce-a-positive-guid_entry-index.patch
+     usb-mutually-exclusive-port_status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ehca: enforce a positive guid_entry index
+Subject: usb: mutually exclusive port_status
 From: Roel Kluin <roel.kluin@gmail.com>
 
-This prevents the memcpy of a guid_entries element using a negative index.
+FHCI_PORT_DISABLED, -LOW and -FULL are mutually exclusive as status.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Alexander Schmidt <alexs@linux.vnet.ibm.com>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_hca.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/host/fhci-sched.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_hca.c~ehca-enforce-a-positive-guid_entry-index drivers/infiniband/hw/ehca/ehca_hca.c
---- a/drivers/infiniband/hw/ehca/ehca_hca.c~ehca-enforce-a-positive-guid_entry-index
-+++ a/drivers/infiniband/hw/ehca/ehca_hca.c
-@@ -319,7 +319,7 @@ int ehca_query_gid(struct ib_device *ibd
- 					      ib_device);
- 	struct hipz_query_port *rblock;
- 
--	if (index > 255) {
-+	if (index > 255 || index < 0) {
- 		ehca_err(&shca->ib_device, "Invalid index: %x.", index);
- 		return -EINVAL;
+diff -puN drivers/usb/host/fhci-sched.c~usb-mutually-exclusive-port_status drivers/usb/host/fhci-sched.c
+--- a/drivers/usb/host/fhci-sched.c~usb-mutually-exclusive-port_status
++++ a/drivers/usb/host/fhci-sched.c
+@@ -576,9 +576,7 @@ irqreturn_t fhci_irq(struct usb_hcd *hcd
+ 			out_be16(&usb->fhci->regs->usb_event,
+ 				 usb->saved_msk);
+ 		} else if (usb->port_status == FHCI_PORT_DISABLED) {
+-			if (fhci_ioports_check_bus_state(fhci) == 1 &&
+-					usb->port_status != FHCI_PORT_LOW &&
+-					usb->port_status != FHCI_PORT_FULL)
++			if (fhci_ioports_check_bus_state(fhci) == 1)
+ 				fhci_device_connected_interrupt(fhci);
+ 		}
+ 		usb_er &= ~USB_E_RESET_MASK;
+@@ -605,9 +603,7 @@ irqreturn_t fhci_irq(struct usb_hcd *hcd
  	}
+ 
+ 	if (usb_er & USB_E_IDLE_MASK) {
+-		if (usb->port_status == FHCI_PORT_DISABLED &&
+-				usb->port_status != FHCI_PORT_LOW &&
+-				usb->port_status != FHCI_PORT_FULL) {
++		if (usb->port_status == FHCI_PORT_DISABLED) {
+ 			usb_er &= ~USB_E_RESET_MASK;
+ 			fhci_device_connected_interrupt(fhci);
+ 		} else if (usb->port_status ==
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
