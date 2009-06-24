@@ -1,86 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [merged] h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu.patch removed from -mm tree
-Date: Wed, 24 Jun 2009 12:10:43 -0700
-Message-ID: <200906241910.n5OJAhN9010952@imap1.linux-foundation.org>
+Subject: [merged] mm-pass-mm-to-grab_swap_token.patch removed from -mm tree
+Date: Wed, 24 Jun 2009 12:10:33 -0700
+Message-ID: <200906241910.n5OJAXQj010766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754176AbZFXTK4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754997AbZFXTK5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 15:10:56 -0400
+	Wed, 24 Jun 2009 15:10:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, hannes@cmpxchg.org, ieidus@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     h8/300: fix incorrect "select" directives in arch/h8300/Kconfig.cpu.
+     mm: pass mm to grab_swap_token
 has been removed from the -mm tree.  Its filename was
-     h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu.patch
+     mm-pass-mm-to-grab_swap_token.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8/300: fix incorrect "select" directives in arch/h8300/Kconfig.cpu.
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: mm: pass mm to grab_swap_token
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Fix the incorrect "select" directives by dropping the "CONFIG_"
-prefixes, and correcting the typo "H8S2768" to "H8S2678".
+If a kthread happens to use get_user_pages() on an mm (as KSM does),
+there's a chance that it will end up trying to read in a swap page, then
+oops in grab_swap_token() because the kthread has no mm: GUP passes down
+the right mm, so grab_swap_token() ought to be using it.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+We have not identified a stronger case than KSM's daemon (not yet in
+mainline), but the issue must have come up before, since RHEL has included
+a fix for this for years (though a different fix, they just back out of
+grab_swap_token if current->mm is unset: which is what we first proposed,
+but using the right mm here seems more correct).
+
+Reported-by: Izik Eidus <ieidus@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Kconfig.cpu |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/swap.h |   12 ++++++------
+ mm/memory.c          |    2 +-
+ mm/thrash.c          |   32 +++++++++++++++-----------------
+ 3 files changed, 22 insertions(+), 24 deletions(-)
 
-diff -puN arch/h8300/Kconfig.cpu~h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu arch/h8300/Kconfig.cpu
---- a/arch/h8300/Kconfig.cpu~h8-300-fix-incorrect-select-directives-in-arch-h8300-kconfigcpu
-+++ a/arch/h8300/Kconfig.cpu
-@@ -13,7 +13,7 @@ config H8300H_GENERIC
+diff -puN include/linux/swap.h~mm-pass-mm-to-grab_swap_token include/linux/swap.h
+--- a/include/linux/swap.h~mm-pass-mm-to-grab_swap_token
++++ a/include/linux/swap.h
+@@ -298,8 +298,8 @@ extern int try_to_free_swap(struct page 
+ struct backing_dev_info;
  
- config H8300H_AKI3068NET
- 	bool "AE-3068/69"
--	select CONFIG_H83068
-+	select H83068
- 	help
- 	  AKI-H8/3068F / AKI-H8/3069F Flashmicom LAN Board Support
- 	  More Information. (Japanese Only)
-@@ -24,7 +24,7 @@ config H8300H_AKI3068NET
+ /* linux/mm/thrash.c */
+-extern struct mm_struct * swap_token_mm;
+-extern void grab_swap_token(void);
++extern struct mm_struct *swap_token_mm;
++extern void grab_swap_token(struct mm_struct *);
+ extern void __put_swap_token(struct mm_struct *);
  
- config H8300H_H8MAX
- 	bool "H8MAX"
--	select CONFIG_H83068
-+	select H83068
- 	help
- 	  H8MAX Evaluation Board Support
- 	  More Information. (Japanese Only)
-@@ -32,7 +32,7 @@ config H8300H_H8MAX
+ static inline int has_swap_token(struct mm_struct *mm)
+@@ -419,10 +419,10 @@ static inline swp_entry_t get_swap_page(
+ }
  
- config H8300H_SIM
- 	bool "H8/300H Simulator"
--	select CONFIG_H83007
-+	select H83007
- 	help
- 	  GDB Simulator Support
- 	  More Information.
-@@ -45,7 +45,7 @@ config H8S_GENERIC
+ /* linux/mm/thrash.c */
+-#define put_swap_token(x) do { } while(0)
+-#define grab_swap_token()  do { } while(0)
+-#define has_swap_token(x) 0
+-#define disable_swap_token() do { } while(0)
++#define put_swap_token(mm)	do { } while (0)
++#define grab_swap_token(mm)	do { } while (0)
++#define has_swap_token(mm)	0
++#define disable_swap_token()	do { } while (0)
  
- config H8S_EDOSK2674
- 	bool "EDOSK-2674"
--	select CONFIG_H8S2768
-+	select H8S2678
- 	help
- 	  Renesas EDOSK-2674 Evaluation Board Support
- 	  More Information.
+ static inline void
+ mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent)
+diff -puN mm/memory.c~mm-pass-mm-to-grab_swap_token mm/memory.c
+--- a/mm/memory.c~mm-pass-mm-to-grab_swap_token
++++ a/mm/memory.c
+@@ -2517,7 +2517,7 @@ static int do_swap_page(struct mm_struct
+ 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
+ 	page = lookup_swap_cache(entry);
+ 	if (!page) {
+-		grab_swap_token(); /* Contend for token _before_ read-in */
++		grab_swap_token(mm); /* Contend for token _before_ read-in */
+ 		page = swapin_readahead(entry,
+ 					GFP_HIGHUSER_MOVABLE, vma, address);
+ 		if (!page) {
+diff -puN mm/thrash.c~mm-pass-mm-to-grab_swap_token mm/thrash.c
+--- a/mm/thrash.c~mm-pass-mm-to-grab_swap_token
++++ a/mm/thrash.c
+@@ -26,47 +26,45 @@ static DEFINE_SPINLOCK(swap_token_lock);
+ struct mm_struct *swap_token_mm;
+ static unsigned int global_faults;
+ 
+-void grab_swap_token(void)
++void grab_swap_token(struct mm_struct *mm)
+ {
+ 	int current_interval;
+ 
+ 	global_faults++;
+ 
+-	current_interval = global_faults - current->mm->faultstamp;
++	current_interval = global_faults - mm->faultstamp;
+ 
+ 	if (!spin_trylock(&swap_token_lock))
+ 		return;
+ 
+ 	/* First come first served */
+ 	if (swap_token_mm == NULL) {
+-		current->mm->token_priority = current->mm->token_priority + 2;
+-		swap_token_mm = current->mm;
++		mm->token_priority = mm->token_priority + 2;
++		swap_token_mm = mm;
+ 		goto out;
+ 	}
+ 
+-	if (current->mm != swap_token_mm) {
+-		if (current_interval < current->mm->last_interval)
+-			current->mm->token_priority++;
++	if (mm != swap_token_mm) {
++		if (current_interval < mm->last_interval)
++			mm->token_priority++;
+ 		else {
+-			if (likely(current->mm->token_priority > 0))
+-				current->mm->token_priority--;
++			if (likely(mm->token_priority > 0))
++				mm->token_priority--;
+ 		}
+ 		/* Check if we deserve the token */
+-		if (current->mm->token_priority >
+-				swap_token_mm->token_priority) {
+-			current->mm->token_priority += 2;
+-			swap_token_mm = current->mm;
++		if (mm->token_priority > swap_token_mm->token_priority) {
++			mm->token_priority += 2;
++			swap_token_mm = mm;
+ 		}
+ 	} else {
+ 		/* Token holder came in again! */
+-		current->mm->token_priority += 2;
++		mm->token_priority += 2;
+ 	}
+ 
+ out:
+-	current->mm->faultstamp = global_faults;
+-	current->mm->last_interval = current_interval;
++	mm->faultstamp = global_faults;
++	mm->last_interval = current_interval;
+ 	spin_unlock(&swap_token_lock);
+-return;
+ }
+ 
+ /* Called on process exit. */
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
-linux-next.patch
+elf-limit-max-map-count-to-safe-value.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+prio_tree-debugging-patch.patch
 
