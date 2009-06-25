@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omapfb-add-support-for-mipi-dcs-compatible-lcds.patch added to -mm tree
-Date: Wed, 24 Jun 2009 17:07:32 -0700
-Message-ID: <200906250007.n5P07Xev004301@imap1.linux-foundation.org>
+Subject: + omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch added to -mm tree
+Date: Wed, 24 Jun 2009 17:08:02 -0700
+Message-ID: <200906250008.n5P082rr004858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758553AbZFYAIg (ORCPT
+	by vger.kernel.org with ESMTP id S1756325AbZFYAIj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 20:08:36 -0400
+	Wed, 24 Jun 2009 20:08:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: imre.deak@nokia.com, Hiroshi.DOYU@nokia.com, arnaud.patard@rtp-net.org, ext-mike.wege@nokia.com, imre.deak@solidboot.com, juha.yrjola@solidboot.com, krzysztof.h1@wp.pl, soni.trilok@gmail.com, tsavola@movial.fi
+Cc: rodrigo.vivi@openbossa.org, imre.deak@nokia.com, krzysztof.h1@wp.pl, siarhei.siamashka@nokia.com, tony@atomide.com
 
 
 The patch titled
-     omapfb: add support for MIPI-DCS compatible LCDs
+     omapfb: add support for rotation on the Blizzard LCD ctrl
 has been added to the -mm tree.  Its filename is
-     omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
+     omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,724 +34,281 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omapfb: add support for MIPI-DCS compatible LCDs
-From: Imre Deak <imre.deak@nokia.com>
+Subject: omapfb: add support for rotation on the Blizzard LCD ctrl
+From: Rodrigo Vivi <rodrigo.vivi@openbossa.org>
 
-Fixed-by: Mike Wege <ext-mike.wege@nokia.com>
-Fixed-by: Arnaud Patard <arnaud.patard@rtp-net.org>
-Fixed-by: Timo Savola <tsavola@movial.fi>
-Fixed-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Fixed-by: Trilok Soni <soni.trilok@gmail.com>
-Signed-off-by: Imre Deak <imre.deak@solidboot.com>
-Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+The LCD controller (EPSON S1D13744) supports rotation (0, 90, 180 and 270
+degrees) on hardware just setting the bits 0 and 1 of 0x28 register (LCD
+Panel Configuration Register).  Now it is possible to use this caps only
+setting the angle degree on var rotate of fb_var_screeninfo using the
+FBIOPUT_VSCREENINFO ioctl.
+
+Fixed-by: Siarhei Siamashka <siarhei.siamashka@nokia.com>
+Signed-off-by: Rodrigo Vivi <rodrigo.vivi@openbossa.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
 Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-omap/include/mach/lcd_mipid.h |    5 
- drivers/video/omap/Kconfig                  |    8 
- drivers/video/omap/Makefile                 |    1 
- drivers/video/omap/lcd_mipid.c              |  625 ++++++++++++++++++
- 4 files changed, 639 insertions(+)
+ drivers/video/omap/blizzard.c    |   91 +++++++++++++++++++++++++++--
+ drivers/video/omap/omapfb_main.c |   52 ++++++++++++----
+ 2 files changed, 124 insertions(+), 19 deletions(-)
 
-diff -puN arch/arm/plat-omap/include/mach/lcd_mipid.h~omapfb-add-support-for-mipi-dcs-compatible-lcds arch/arm/plat-omap/include/mach/lcd_mipid.h
---- a/arch/arm/plat-omap/include/mach/lcd_mipid.h~omapfb-add-support-for-mipi-dcs-compatible-lcds
-+++ a/arch/arm/plat-omap/include/mach/lcd_mipid.h
-@@ -16,7 +16,12 @@ enum mipid_test_result {
- struct mipid_platform_data {
- 	int	nreset_gpio;
- 	int	data_lines;
+diff -puN drivers/video/omap/blizzard.c~omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl drivers/video/omap/blizzard.c
+--- a/drivers/video/omap/blizzard.c~omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl
++++ a/drivers/video/omap/blizzard.c
+@@ -44,6 +44,7 @@
+ #define BLIZZARD_CLK_SRC			0x0e
+ #define BLIZZARD_MEM_BANK0_ACTIVATE		0x10
+ #define BLIZZARD_MEM_BANK0_STATUS		0x14
++#define BLIZZARD_PANEL_CONFIGURATION		0x28
+ #define BLIZZARD_HDISP				0x2a
+ #define BLIZZARD_HNDP				0x2c
+ #define BLIZZARD_VDISP0				0x2e
+@@ -162,6 +163,10 @@ struct blizzard_struct {
+ 	int			vid_scaled;
+ 	int			last_color_mode;
+ 	int			zoom_on;
++	int			zoom_area_gx1;
++	int			zoom_area_gx2;
++	int			zoom_area_gy1;
++	int			zoom_area_gy2;
+ 	int			screen_width;
+ 	int			screen_height;
+ 	unsigned		te_connected:1;
+@@ -513,6 +518,13 @@ static int do_full_screen_update(struct 
+ 	return REQ_PENDING;
+ }
+ 
++static int check_1d_intersect(int a1, int a2, int b1, int b2)
++{
++	if (a2 <= b1 || b2 <= a1)
++		return 0;
++	return 1;
++}
 +
- 	void	(*shutdown)(struct mipid_platform_data *pdata);
-+	void	(*set_bklight_level)(struct mipid_platform_data *pdata,
-+				     int level);
-+	int	(*get_bklight_level)(struct mipid_platform_data *pdata);
-+	int	(*get_bklight_max)(struct mipid_platform_data *pdata);
+ /* Setup all planes with an overlapping area with the update window. */
+ static int do_partial_update(struct blizzard_request *req, int plane,
+ 			     int x, int y, int w, int h,
+@@ -525,6 +537,7 @@ static int do_partial_update(struct bliz
+ 	int color_mode;
+ 	int flags;
+ 	int zoom_off;
++	int have_zoom_for_this_update = 0;
+ 
+ 	/* Global coordinates, relative to pixel 0,0 of the LCD */
+ 	gx1 = x + blizzard.plane[plane].pos_x;
+@@ -544,10 +557,6 @@ static int do_partial_update(struct bliz
+ 		gx2_out = gx1_out + w_out;
+ 		gy2_out = gy1_out + h_out;
+ 	}
+-	zoom_off = blizzard.zoom_on && gx1 == 0 && gy1 == 0 &&
+-		w == blizzard.screen_width && h == blizzard.screen_height;
+-	blizzard.zoom_on = (!zoom_off && blizzard.zoom_on) ||
+-			   (w < w_out || h < h_out);
+ 
+ 	for (i = 0; i < OMAPFB_PLANE_NUM; i++) {
+ 		struct plane_info *p = &blizzard.plane[i];
+@@ -653,8 +662,49 @@ static int do_partial_update(struct bliz
+ 	else
+ 		disable_tearsync();
+ 
++	if ((gx2_out - gx1_out) != (gx2 - gx1) ||
++	    (gy2_out - gy1_out) != (gy2 - gy1))
++		have_zoom_for_this_update = 1;
++
++	/* 'background' type of screen update (as opposed to 'destructive')
++	   can be used to disable scaling if scaling is active */
++	zoom_off = blizzard.zoom_on && !have_zoom_for_this_update &&
++	    (gx1_out == 0) && (gx2_out == blizzard.screen_width) &&
++	    (gy1_out == 0) && (gy2_out == blizzard.screen_height) &&
++	    (gx1 == 0) && (gy1 == 0);
++
++	if (blizzard.zoom_on && !have_zoom_for_this_update && !zoom_off &&
++	    check_1d_intersect(blizzard.zoom_area_gx1, blizzard.zoom_area_gx2,
++			       gx1_out, gx2_out) &&
++	    check_1d_intersect(blizzard.zoom_area_gy1, blizzard.zoom_area_gy2,
++			       gy1_out, gy2_out)) {
++		/* Previous screen update was using scaling, current update
++		 * is not using it. Additionally, current screen update is
++		 * going to overlap with the scaled area. Scaling needs to be
++		 * disabled in order to avoid 'magnifying glass' effect.
++		 * Dummy setup of background window can be used for this.
++		 */
++		set_window_regs(0, 0, blizzard.screen_width,
++				blizzard.screen_height,
++				0, 0, blizzard.screen_width,
++				blizzard.screen_height,
++				BLIZZARD_COLOR_RGB565, 1, flags);
++		blizzard.zoom_on = 0;
++	}
++
++	/* remember scaling settings if we have scaled update */
++	if (have_zoom_for_this_update) {
++		blizzard.zoom_on = 1;
++		blizzard.zoom_area_gx1 = gx1_out;
++		blizzard.zoom_area_gx2 = gx2_out;
++		blizzard.zoom_area_gy1 = gy1_out;
++		blizzard.zoom_area_gy2 = gy2_out;
++	}
++
+ 	set_window_regs(gx1, gy1, gx2, gy2, gx1_out, gy1_out, gx2_out, gy2_out,
+ 			color_mode, zoom_off, flags);
++	if (zoom_off)
++		blizzard.zoom_on = 0;
+ 
+ 	blizzard.extif->set_bits_per_cycle(16);
+ 	/* set_window_regs has left the register index at the right
+@@ -908,6 +958,35 @@ static int blizzard_set_scale(int plane,
+ 	return 0;
+ }
+ 
++static int blizzard_set_rotate(int angle)
++{
++	u32 l;
++
++	l = blizzard_read_reg(BLIZZARD_PANEL_CONFIGURATION);
++	l &= ~0x03;
++
++	switch (angle) {
++	case 0:
++		l = l | 0x00;
++		break;
++	case 90:
++		l = l | 0x03;
++		break;
++	case 180:
++		l = l | 0x02;
++		break;
++	case 270:
++		l = l | 0x01;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	blizzard_write_reg(BLIZZARD_PANEL_CONFIGURATION, l);
++
++	return 0;
++}
++
+ static int blizzard_enable_plane(int plane, int enable)
+ {
+ 	if (enable)
+@@ -1285,7 +1364,8 @@ static void blizzard_get_caps(int plane,
+ 	caps->ctrl |= OMAPFB_CAPS_MANUAL_UPDATE |
+ 		OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE |
+ 		OMAPFB_CAPS_WINDOW_SCALE |
+-		OMAPFB_CAPS_WINDOW_OVERLAY;
++		OMAPFB_CAPS_WINDOW_OVERLAY |
++		OMAPFB_CAPS_WINDOW_ROTATE;
+ 	if (blizzard.te_connected)
+ 		caps->ctrl |= OMAPFB_CAPS_TEARSYNC;
+ 	caps->wnd_color |= (1 << OMAPFB_COLOR_RGB565) |
+@@ -1560,6 +1640,7 @@ struct lcd_ctrl blizzard_ctrl = {
+ 	.setup_plane		= blizzard_setup_plane,
+ 	.set_scale		= blizzard_set_scale,
+ 	.enable_plane		= blizzard_enable_plane,
++	.set_rotate		= blizzard_set_rotate,
+ 	.update_window		= blizzard_update_window_async,
+ 	.sync			= blizzard_sync,
+ 	.suspend		= blizzard_suspend,
+diff -puN drivers/video/omap/omapfb_main.c~omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl drivers/video/omap/omapfb_main.c
+--- a/drivers/video/omap/omapfb_main.c~omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl
++++ a/drivers/video/omap/omapfb_main.c
+@@ -67,6 +67,7 @@ static struct caps_table_struct ctrl_cap
+ 	{ OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE, "pixel double window" },
+ 	{ OMAPFB_CAPS_WINDOW_SCALE,   "scale window" },
+ 	{ OMAPFB_CAPS_WINDOW_OVERLAY, "overlay window" },
++	{ OMAPFB_CAPS_WINDOW_ROTATE,  "rotate window" },
+ 	{ OMAPFB_CAPS_SET_BACKLIGHT,  "backlight setting" },
  };
  
- #endif
-diff -puN drivers/video/omap/Kconfig~omapfb-add-support-for-mipi-dcs-compatible-lcds drivers/video/omap/Kconfig
---- a/drivers/video/omap/Kconfig~omapfb-add-support-for-mipi-dcs-compatible-lcds
-+++ a/drivers/video/omap/Kconfig
-@@ -7,6 +7,14 @@ config FB_OMAP
- 	help
-           Frame buffer driver for OMAP based boards.
- 
-+config FB_OMAP_LCD_MIPID
-+	bool "MIPI DBI-C/DCS compatible LCD support"
-+	depends on FB_OMAP && SPI_MASTER
-+	help
-+	  Say Y here if you want to have support for LCDs compatible with
-+	  the Mobile Industry Processor Interface DBI-C/DCS
-+	  specification. (Supported LCDs: Philips LPH8923, Sharp LS041Y3)
-+
- config FB_OMAP_BOOTLOADER_INIT
- 	bool "Check bootloader initialization"
- 	depends on FB_OMAP
-diff -puN drivers/video/omap/Makefile~omapfb-add-support-for-mipi-dcs-compatible-lcds drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile~omapfb-add-support-for-mipi-dcs-compatible-lcds
-+++ a/drivers/video/omap/Makefile
-@@ -25,6 +25,7 @@ objs-$(CONFIG_ARCH_OMAP15XX)$(CONFIG_MAC
- objs-y$(CONFIG_MACH_OMAP_OSK) += lcd_osk.o
- 
- objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
-+objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
- 
- omapfb-objs := $(objs-yy)
- 
-diff -puN /dev/null drivers/video/omap/lcd_mipid.c
---- /dev/null
-+++ a/drivers/video/omap/lcd_mipid.c
-@@ -0,0 +1,625 @@
-+/*
-+ * LCD driver for MIPI DBI-C / DCS compatible LCDs
-+ *
-+ * Copyright (C) 2006 Nokia Corporation
-+ * Author: Imre Deak <imre.deak@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
-+#include <linux/device.h>
-+#include <linux/delay.h>
-+#include <linux/workqueue.h>
-+#include <linux/spi/spi.h>
-+
-+#include <mach/omapfb.h>
-+#include <mach/lcd_mipid.h>
-+
-+#define MIPID_MODULE_NAME		"lcd_mipid"
-+
-+#define MIPID_CMD_READ_DISP_ID		0x04
-+#define MIPID_CMD_READ_RED		0x06
-+#define MIPID_CMD_READ_GREEN		0x07
-+#define MIPID_CMD_READ_BLUE		0x08
-+#define MIPID_CMD_READ_DISP_STATUS	0x09
-+#define MIPID_CMD_RDDSDR		0x0F
-+#define MIPID_CMD_SLEEP_IN		0x10
-+#define MIPID_CMD_SLEEP_OUT		0x11
-+#define MIPID_CMD_DISP_OFF		0x28
-+#define MIPID_CMD_DISP_ON		0x29
-+
-+#define MIPID_ESD_CHECK_PERIOD		msecs_to_jiffies(5000)
-+
-+#define to_mipid_device(p)		container_of(p, struct mipid_device, \
-+						panel)
-+struct mipid_device {
-+	int		enabled;
-+	int		revision;
-+	unsigned int	saved_bklight_level;
-+	unsigned long	hw_guard_end;		/* next value of jiffies
-+						   when we can issue the
-+						   next sleep in/out command */
-+	unsigned long	hw_guard_wait;		/* max guard time in jiffies */
-+
-+	struct omapfb_device	*fbdev;
-+	struct spi_device	*spi;
-+	struct mutex		mutex;
-+	struct lcd_panel	panel;
-+
-+	struct workqueue_struct	*esd_wq;
-+	struct delayed_work	esd_work;
-+	void			(*esd_check)(struct mipid_device *m);
-+};
-+
-+static void mipid_transfer(struct mipid_device *md, int cmd, const u8 *wbuf,
-+			   int wlen, u8 *rbuf, int rlen)
-+{
-+	struct spi_message	m;
-+	struct spi_transfer	*x, xfer[4];
-+	u16			w;
-+	int			r;
-+
-+	BUG_ON(md->spi == NULL);
-+
-+	spi_message_init(&m);
-+
-+	memset(xfer, 0, sizeof(xfer));
-+	x = &xfer[0];
-+
-+	cmd &=  0xff;
-+	x->tx_buf		= &cmd;
-+	x->bits_per_word	= 9;
-+	x->len			= 2;
-+	spi_message_add_tail(x, &m);
-+
-+	if (wlen) {
-+		x++;
-+		x->tx_buf		= wbuf;
-+		x->len			= wlen;
-+		x->bits_per_word	= 9;
-+		spi_message_add_tail(x, &m);
-+	}
-+
-+	if (rlen) {
-+		x++;
-+		x->rx_buf	= &w;
-+		x->len		= 1;
-+		spi_message_add_tail(x, &m);
-+
-+		if (rlen > 1) {
-+			/* Arrange for the extra clock before the first
-+			 * data bit.
-+			 */
-+			x->bits_per_word = 9;
-+			x->len		 = 2;
-+
-+			x++;
-+			x->rx_buf	 = &rbuf[1];
-+			x->len		 = rlen - 1;
-+			spi_message_add_tail(x, &m);
-+		}
-+	}
-+
-+	r = spi_sync(md->spi, &m);
-+	if (r < 0)
-+		dev_dbg(&md->spi->dev, "spi_sync %d\n", r);
-+
-+	if (rlen)
-+		rbuf[0] = w & 0xff;
-+}
-+
-+static inline void mipid_cmd(struct mipid_device *md, int cmd)
-+{
-+	mipid_transfer(md, cmd, NULL, 0, NULL, 0);
-+}
-+
-+static inline void mipid_write(struct mipid_device *md,
-+			       int reg, const u8 *buf, int len)
-+{
-+	mipid_transfer(md, reg, buf, len, NULL, 0);
-+}
-+
-+static inline void mipid_read(struct mipid_device *md,
-+			      int reg, u8 *buf, int len)
-+{
-+	mipid_transfer(md, reg, NULL, 0, buf, len);
-+}
-+
-+static void set_data_lines(struct mipid_device *md, int data_lines)
-+{
-+	u16 par;
-+
-+	switch (data_lines) {
-+	case 16:
-+		par = 0x150;
-+		break;
-+	case 18:
-+		par = 0x160;
-+		break;
-+	case 24:
-+		par = 0x170;
-+		break;
-+	}
-+	mipid_write(md, 0x3a, (u8 *)&par, 2);
-+}
-+
-+static void send_init_string(struct mipid_device *md)
-+{
-+	u16 initpar[] = { 0x0102, 0x0100, 0x0100 };
-+
-+	mipid_write(md, 0xc2, (u8 *)initpar, sizeof(initpar));
-+	set_data_lines(md, md->panel.data_lines);
-+}
-+
-+static void hw_guard_start(struct mipid_device *md, int guard_msec)
-+{
-+	md->hw_guard_wait = msecs_to_jiffies(guard_msec);
-+	md->hw_guard_end = jiffies + md->hw_guard_wait;
-+}
-+
-+static void hw_guard_wait(struct mipid_device *md)
-+{
-+	unsigned long wait = md->hw_guard_end - jiffies;
-+
-+	if ((long)wait > 0 && wait <= md->hw_guard_wait) {
-+		set_current_state(TASK_UNINTERRUPTIBLE);
-+		schedule_timeout(wait);
-+	}
-+}
-+
-+static void set_sleep_mode(struct mipid_device *md, int on)
-+{
-+	int cmd, sleep_time = 50;
-+
-+	if (on)
-+		cmd = MIPID_CMD_SLEEP_IN;
-+	else
-+		cmd = MIPID_CMD_SLEEP_OUT;
-+	hw_guard_wait(md);
-+	mipid_cmd(md, cmd);
-+	hw_guard_start(md, 120);
-+	/*
-+	 * When we enable the panel, it seems we _have_ to sleep
-+	 * 120 ms before sending the init string. When disabling the
-+	 * panel we'll sleep for the duration of 2 frames, so that the
-+	 * controller can still provide the PCLK,HS,VS signals.
-+	 */
-+	if (!on)
-+		sleep_time = 120;
-+	msleep(sleep_time);
-+}
-+
-+static void set_display_state(struct mipid_device *md, int enabled)
-+{
-+	int cmd = enabled ? MIPID_CMD_DISP_ON : MIPID_CMD_DISP_OFF;
-+
-+	mipid_cmd(md, cmd);
-+}
-+
-+static int mipid_set_bklight_level(struct lcd_panel *panel, unsigned int level)
-+{
-+	struct mipid_device *md = to_mipid_device(panel);
-+	struct mipid_platform_data *pd = md->spi->dev.platform_data;
-+
-+	if (pd->get_bklight_max == NULL || pd->set_bklight_level == NULL)
-+		return -ENODEV;
-+	if (level > pd->get_bklight_max(pd))
-+		return -EINVAL;
-+	if (!md->enabled) {
-+		md->saved_bklight_level = level;
-+		return 0;
-+	}
-+	pd->set_bklight_level(pd, level);
-+
-+	return 0;
-+}
-+
-+static unsigned int mipid_get_bklight_level(struct lcd_panel *panel)
-+{
-+	struct mipid_device *md = to_mipid_device(panel);
-+	struct mipid_platform_data *pd = md->spi->dev.platform_data;
-+
-+	if (pd->get_bklight_level == NULL)
-+		return -ENODEV;
-+	return pd->get_bklight_level(pd);
-+}
-+
-+static unsigned int mipid_get_bklight_max(struct lcd_panel *panel)
-+{
-+	struct mipid_device *md = to_mipid_device(panel);
-+	struct mipid_platform_data *pd = md->spi->dev.platform_data;
-+
-+	if (pd->get_bklight_max == NULL)
-+		return -ENODEV;
-+
-+	return pd->get_bklight_max(pd);
-+}
-+
-+static unsigned long mipid_get_caps(struct lcd_panel *panel)
-+{
-+	return OMAPFB_CAPS_SET_BACKLIGHT;
-+}
-+
-+static u16 read_first_pixel(struct mipid_device *md)
-+{
-+	u16 pixel;
-+	u8 red, green, blue;
-+
-+	mutex_lock(&md->mutex);
-+	mipid_read(md, MIPID_CMD_READ_RED, &red, 1);
-+	mipid_read(md, MIPID_CMD_READ_GREEN, &green, 1);
-+	mipid_read(md, MIPID_CMD_READ_BLUE, &blue, 1);
-+	mutex_unlock(&md->mutex);
-+
-+	switch (md->panel.data_lines) {
-+	case 16:
-+		pixel = ((red >> 1) << 11) | (green << 5) | (blue >> 1);
-+		break;
-+	case 24:
-+		/* 24 bit -> 16 bit */
-+		pixel = ((red >> 3) << 11) | ((green >> 2) << 5) |
-+			(blue >> 3);
-+		break;
-+	default:
-+		pixel = 0;
-+		BUG();
-+	}
-+
-+	return pixel;
-+}
-+
-+static int mipid_run_test(struct lcd_panel *panel, int test_num)
-+{
-+	struct mipid_device *md = to_mipid_device(panel);
-+	static const u16 test_values[4] = {
-+		0x0000, 0xffff, 0xaaaa, 0x5555,
-+	};
-+	int i;
-+
-+	if (test_num != MIPID_TEST_RGB_LINES)
-+		return MIPID_TEST_INVALID;
-+
-+	for (i = 0; i < ARRAY_SIZE(test_values); i++) {
-+		int delay;
-+		unsigned long tmo;
-+
-+		omapfb_write_first_pixel(md->fbdev, test_values[i]);
-+		tmo = jiffies + msecs_to_jiffies(100);
-+		delay = 25;
-+		while (1) {
-+			u16 pixel;
-+
-+			msleep(delay);
-+			pixel = read_first_pixel(md);
-+			if (pixel == test_values[i])
-+				break;
-+			if (time_after(jiffies, tmo)) {
-+				dev_err(&md->spi->dev,
-+					"MIPI LCD RGB I/F test failed: "
-+					"expecting %04x, got %04x\n",
-+					test_values[i], pixel);
-+				return MIPID_TEST_FAILED;
-+			}
-+			delay = 10;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void ls041y3_esd_recover(struct mipid_device *md)
-+{
-+	dev_err(&md->spi->dev, "performing LCD ESD recovery\n");
-+	set_sleep_mode(md, 1);
-+	set_sleep_mode(md, 0);
-+}
-+
-+static void ls041y3_esd_check_mode1(struct mipid_device *md)
-+{
-+	u8 state1, state2;
-+
-+	mipid_read(md, MIPID_CMD_RDDSDR, &state1, 1);
-+	set_sleep_mode(md, 0);
-+	mipid_read(md, MIPID_CMD_RDDSDR, &state2, 1);
-+	dev_dbg(&md->spi->dev, "ESD mode 1 state1 %02x state2 %02x\n",
-+		state1, state2);
-+	/* Each sleep out command will trigger a self diagnostic and flip
-+	* Bit6 if the test passes.
-+	*/
-+	if (!((state1 ^ state2) & (1 << 6)))
-+		ls041y3_esd_recover(md);
-+}
-+
-+static void ls041y3_esd_check_mode2(struct mipid_device *md)
-+{
-+	int i;
-+	u8 rbuf[2];
-+	static const struct {
-+		int	cmd;
-+		int	wlen;
-+		u16	wbuf[3];
-+	} *rd, rd_ctrl[7] = {
-+		{ 0xb0, 4, { 0x0101, 0x01fe, } },
-+		{ 0xb1, 4, { 0x01de, 0x0121, } },
-+		{ 0xc2, 4, { 0x0100, 0x0100, } },
-+		{ 0xbd, 2, { 0x0100, } },
-+		{ 0xc2, 4, { 0x01fc, 0x0103, } },
-+		{ 0xb4, 0, },
-+		{ 0x00, 0, },
-+	};
-+
-+	rd = rd_ctrl;
-+	for (i = 0; i < 3; i++, rd++)
-+		mipid_write(md, rd->cmd, (u8 *)rd->wbuf, rd->wlen);
-+
-+	udelay(10);
-+	mipid_read(md, rd->cmd, rbuf, 2);
-+	rd++;
-+
-+	for (i = 0; i < 3; i++, rd++) {
-+		udelay(10);
-+		mipid_write(md, rd->cmd, (u8 *)rd->wbuf, rd->wlen);
-+	}
-+
-+	dev_dbg(&md->spi->dev, "ESD mode 2 state %02x\n", rbuf[1]);
-+	if (rbuf[1] == 0x00)
-+		ls041y3_esd_recover(md);
-+}
-+
-+static void ls041y3_esd_check(struct mipid_device *md)
-+{
-+	ls041y3_esd_check_mode1(md);
-+	if (md->revision >= 0x88)
-+		ls041y3_esd_check_mode2(md);
-+}
-+
-+static void mipid_esd_start_check(struct mipid_device *md)
-+{
-+	if (md->esd_check != NULL)
-+		queue_delayed_work(md->esd_wq, &md->esd_work,
-+				   MIPID_ESD_CHECK_PERIOD);
-+}
-+
-+static void mipid_esd_stop_check(struct mipid_device *md)
-+{
-+	if (md->esd_check != NULL)
-+		cancel_rearming_delayed_workqueue(md->esd_wq, &md->esd_work);
-+}
-+
-+static void mipid_esd_work(struct work_struct *work)
-+{
-+	struct mipid_device *md = container_of(work, struct mipid_device,
-+					       esd_work.work);
-+
-+	mutex_lock(&md->mutex);
-+	md->esd_check(md);
-+	mutex_unlock(&md->mutex);
-+	mipid_esd_start_check(md);
-+}
-+
-+static int mipid_enable(struct lcd_panel *panel)
-+{
-+	struct mipid_device *md = to_mipid_device(panel);
-+
-+	mutex_lock(&md->mutex);
-+
-+	if (md->enabled) {
-+		mutex_unlock(&md->mutex);
-+		return 0;
-+	}
-+	set_sleep_mode(md, 0);
-+	md->enabled = 1;
-+	send_init_string(md);
-+	set_display_state(md, 1);
-+	mipid_set_bklight_level(panel, md->saved_bklight_level);
-+	mipid_esd_start_check(md);
-+
-+	mutex_unlock(&md->mutex);
-+	return 0;
-+}
-+
-+static void mipid_disable(struct lcd_panel *panel)
-+{
-+	struct mipid_device *md = to_mipid_device(panel);
-+
-+	/*
-+	 * A final ESD work might be called before returning,
-+	 * so do this without holding the lock.
-+	 */
-+	mipid_esd_stop_check(md);
-+	mutex_lock(&md->mutex);
-+
-+	if (!md->enabled) {
-+		mutex_unlock(&md->mutex);
-+		return;
-+	}
-+	md->saved_bklight_level = mipid_get_bklight_level(panel);
-+	mipid_set_bklight_level(panel, 0);
-+	set_display_state(md, 0);
-+	set_sleep_mode(md, 1);
-+	md->enabled = 0;
-+
-+	mutex_unlock(&md->mutex);
-+}
-+
-+static int panel_enabled(struct mipid_device *md)
-+{
-+	u32 disp_status;
-+	int enabled;
-+
-+	mipid_read(md, MIPID_CMD_READ_DISP_STATUS, (u8 *)&disp_status, 4);
-+	disp_status = __be32_to_cpu(disp_status);
-+	enabled = (disp_status & (1 << 17)) && (disp_status & (1 << 10));
-+	dev_dbg(&md->spi->dev,
-+		"LCD panel %senabled by bootloader (status 0x%04x)\n",
-+		enabled ? "" : "not ", disp_status);
-+	return enabled;
-+}
-+
-+static int mipid_init(struct lcd_panel *panel,
-+			    struct omapfb_device *fbdev)
-+{
-+	struct mipid_device *md = to_mipid_device(panel);
-+
-+	md->fbdev = fbdev;
-+	md->esd_wq = create_singlethread_workqueue("mipid_esd");
-+	if (md->esd_wq == NULL) {
-+		dev_err(&md->spi->dev, "can't create ESD workqueue\n");
-+		return -ENOMEM;
-+	}
-+	INIT_DELAYED_WORK(&md->esd_work, mipid_esd_work);
-+	mutex_init(&md->mutex);
-+
-+	md->enabled = panel_enabled(md);
-+
-+	if (md->enabled)
-+		mipid_esd_start_check(md);
-+	else
-+		md->saved_bklight_level = mipid_get_bklight_level(panel);
-+
-+	return 0;
-+}
-+
-+static void mipid_cleanup(struct lcd_panel *panel)
-+{
-+	struct mipid_device *md = to_mipid_device(panel);
-+
-+	if (md->enabled)
-+		mipid_esd_stop_check(md);
-+	destroy_workqueue(md->esd_wq);
-+}
-+
-+static struct lcd_panel mipid_panel = {
-+	.config		= OMAP_LCDC_PANEL_TFT,
-+
-+	.bpp		= 16,
-+	.x_res		= 800,
-+	.y_res		= 480,
-+	.pixel_clock	= 21940,
-+	.hsw		= 50,
-+	.hfp		= 20,
-+	.hbp		= 15,
-+	.vsw		= 2,
-+	.vfp		= 1,
-+	.vbp		= 3,
-+
-+	.init			= mipid_init,
-+	.cleanup		= mipid_cleanup,
-+	.enable			= mipid_enable,
-+	.disable		= mipid_disable,
-+	.get_caps		= mipid_get_caps,
-+	.set_bklight_level	= mipid_set_bklight_level,
-+	.get_bklight_level	= mipid_get_bklight_level,
-+	.get_bklight_max	= mipid_get_bklight_max,
-+	.run_test		= mipid_run_test,
-+};
-+
-+static int mipid_detect(struct mipid_device *md)
-+{
-+	struct mipid_platform_data *pdata;
-+	u8 display_id[3];
-+
-+	pdata = md->spi->dev.platform_data;
-+	if (pdata == NULL) {
-+		dev_err(&md->spi->dev, "missing platform data\n");
-+		return -ENOENT;
-+	}
-+
-+	mipid_read(md, MIPID_CMD_READ_DISP_ID, display_id, 3);
-+	dev_dbg(&md->spi->dev, "MIPI display ID: %02x%02x%02x\n",
-+		display_id[0], display_id[1], display_id[2]);
-+
-+	switch (display_id[0]) {
-+	case 0x45:
-+		md->panel.name = "lph8923";
-+		break;
-+	case 0x83:
-+		md->panel.name = "ls041y3";
-+		md->esd_check = ls041y3_esd_check;
-+		break;
-+	default:
-+		md->panel.name = "unknown";
-+		dev_err(&md->spi->dev, "invalid display ID\n");
-+		return -ENODEV;
-+	}
-+
-+	md->revision = display_id[1];
-+	md->panel.data_lines = pdata->data_lines;
-+	pr_info("omapfb: %s rev %02x LCD detected, %d data lines\n",
-+			md->panel.name, md->revision, md->panel.data_lines);
-+
-+	return 0;
-+}
-+
-+static int mipid_spi_probe(struct spi_device *spi)
-+{
-+	struct mipid_device *md;
-+	int r;
-+
-+	md = kzalloc(sizeof(*md), GFP_KERNEL);
-+	if (md == NULL) {
-+		dev_err(&spi->dev, "out of memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	spi->mode = SPI_MODE_0;
-+	md->spi = spi;
-+	dev_set_drvdata(&spi->dev, md);
-+	md->panel = mipid_panel;
-+
-+	r = mipid_detect(md);
+@@ -215,6 +216,15 @@ static int ctrl_change_mode(struct fb_in
+ 				 offset, var->xres_virtual,
+ 				 plane->info.pos_x, plane->info.pos_y,
+ 				 var->xres, var->yres, plane->color_mode);
 +	if (r < 0)
 +		return r;
 +
-+	omapfb_register_panel(&md->panel);
++	if (fbdev->ctrl->set_rotate != NULL) {
++		r = fbdev->ctrl->set_rotate(var->rotate);
++		if (r < 0)
++			return r;
++	}
 +
-+	return 0;
-+}
+ 	if (fbdev->ctrl->set_scale != NULL)
+ 		r = fbdev->ctrl->set_scale(plane->idx,
+ 				   var->xres, var->yres,
+@@ -600,7 +610,7 @@ static void omapfb_rotate(struct fb_info
+ 	struct omapfb_device *fbdev = plane->fbdev;
+ 
+ 	omapfb_rqueue_lock(fbdev);
+-	if (cpu_is_omap15xx() && rotate != fbi->var.rotate) {
++	if (rotate != fbi->var.rotate) {
+ 		struct fb_var_screeninfo *new_var = &fbdev->new_var;
+ 
+ 		memcpy(new_var, &fbi->var, sizeof(*new_var));
+@@ -707,28 +717,42 @@ int omapfb_update_window_async(struct fb
+ 				void (*callback)(void *),
+ 				void *callback_data)
+ {
++	int xres, yres;
+ 	struct omapfb_plane_struct *plane = fbi->par;
+ 	struct omapfb_device *fbdev = plane->fbdev;
+-	struct fb_var_screeninfo *var;
++	struct fb_var_screeninfo *var = &fbi->var;
 +
-+static int mipid_spi_remove(struct spi_device *spi)
-+{
-+	struct mipid_device *md = dev_get_drvdata(&spi->dev);
-+
-+	mipid_disable(&md->panel);
-+	kfree(md);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver mipid_spi_driver = {
-+	.driver = {
-+		.name	= MIPID_MODULE_NAME,
-+		.bus	= &spi_bus_type,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= mipid_spi_probe,
-+	.remove	= __devexit_p(mipid_spi_remove),
-+};
-+
-+static int mipid_drv_init(void)
-+{
-+	spi_register_driver(&mipid_spi_driver);
-+
-+	return 0;
-+}
-+module_init(mipid_drv_init);
-+
-+static void mipid_drv_cleanup(void)
-+{
-+	spi_unregister_driver(&mipid_spi_driver);
-+}
-+module_exit(mipid_drv_cleanup);
-+
-+MODULE_DESCRIPTION("MIPI display driver");
-+MODULE_LICENSE("GPL");
++	switch (var->rotate) {
++	case 0:
++	case 180:
++		xres = fbdev->panel->x_res;
++		yres = fbdev->panel->y_res;
++		break;
++	case 90:
++	case 270:
++		xres = fbdev->panel->y_res;
++		yres = fbdev->panel->x_res;
++		break;
++	default:
++		return -EINVAL;
++	}
+ 
+-	var = &fbi->var;
+-	if (win->x >= var->xres || win->y >= var->yres ||
+-	    win->out_x > var->xres || win->out_y >= var->yres)
++	if (win->x >= xres || win->y >= yres ||
++	    win->out_x > xres || win->out_y > yres)
+ 		return -EINVAL;
+ 
+ 	if (!fbdev->ctrl->update_window ||
+ 	    fbdev->ctrl->get_update_mode() != OMAPFB_MANUAL_UPDATE)
+ 		return -ENODEV;
+ 
+-	if (win->x + win->width >= var->xres)
+-		win->width = var->xres - win->x;
+-	if (win->y + win->height >= var->yres)
+-		win->height = var->yres - win->y;
+-	/* The out sizes should be cropped to the LCD size */
+-	if (win->out_x + win->out_width > fbdev->panel->x_res)
+-		win->out_width = fbdev->panel->x_res - win->out_x;
+-	if (win->out_y + win->out_height > fbdev->panel->y_res)
+-		win->out_height = fbdev->panel->y_res - win->out_y;
++	if (win->x + win->width > xres)
++		win->width = xres - win->x;
++	if (win->y + win->height > yres)
++		win->height = yres - win->y;
++	if (win->out_x + win->out_width > xres)
++		win->out_width = xres - win->out_x;
++	if (win->out_y + win->out_height > yres)
++		win->out_height = yres - win->out_y;
+ 	if (!win->width || !win->height || !win->out_width || !win->out_height)
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from imre.deak@nokia.com are
+Patches currently in -mm which might be from rodrigo.vivi@openbossa.org are
 
-origin.patch
-linux-next.patch
-omapfb-add-support-for-the-apollon-lcd.patch
-omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
-omapfb-add-support-for-the-amstrad-delta-lcd.patch
-omapfb-add-support-for-the-2430sdp-lcd.patch
-omapfb-add-support-for-the-omap2evm-lcd.patch
-omapfb-add-support-for-the-3430sdp-lcd.patch
-omapfb-add-support-for-the-omap3-evm-lcd.patch
-omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
-omapfb-add-support-for-the-gumstix-overo-lcd.patch
-omapfb-add-support-for-the-zoom-mdk-lcd.patch
 omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
-n770-enable-lcd-mipi-dcs-in-kconfig.patch
-omapfb-dispc-various-typo-fixes.patch
-omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
-omapfb-dispc-enable-wake-up-capability.patch
-omapfb-dispc-allow-multiple-external-irq-handlers.patch
-omapfb-suspend-resume-only-if-fb-device-is-already-initialized.patch
-omapfb-fix-coding-style-remove-dead-line.patch
-omapfb-add-fb-manual-update-option-to-kconfig.patch
-omapfb-hwa742-fix-pointer-to-be-const.patch
 
