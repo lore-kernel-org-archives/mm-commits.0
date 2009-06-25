@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-sst25l-non-jedec-spi-flash-driver-fix.patch added to -mm tree
-Date: Wed, 24 Jun 2009 20:14:10 -0700
-Message-ID: <200906250314.n5P3EA6Y010067@imap1.linux-foundation.org>
+Subject: + kernel-resourcec-fix-sign-extension-in-reserve_setup.patch added to -mm tree
+Date: Wed, 24 Jun 2009 20:28:48 -0700
+Message-ID: <200906250328.n5P3Smhq025823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50775 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752576AbZFYDPC (ORCPT
+	by vger.kernel.org with ESMTP id S1751861AbZFYDaB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 23:15:02 -0400
+	Wed, 24 Jun 2009 23:30:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ryan@bluewatersys.com, andre@bluewatersys.com, avorontsov@ru.mvista.com, dwmw2@infradead.org, hartleys@visionengravers.com, linus.walleij@stericsson.com
+Cc: rui.zhang@intel.com, drzeus@drzeus.cx, jbarnes@virtuousgeek.org, leann@ubuntu.com, pablomme@googlemail.com, stable@kernel.org
 
 
 The patch titled
-     mtd-sst25l-non-jedec-spi-flash-driver-fix
+     kernel/resource.c: fix sign extension in reserve_setup()
 has been added to the -mm tree.  Its filename is
-     mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
+     kernel-resourcec-fix-sign-extension-in-reserve_setup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd-sst25l-non-jedec-spi-flash-driver-fix
-From: Ryan Mallon <ryan@bluewatersys.com>
+Subject: kernel/resource.c: fix sign extension in reserve_setup()
+From: Zhang Rui <rui.zhang@intel.com>
 
-Cc: "H Hartley Sweeten" <hartleys@visionengravers.com>
-Cc: Andre Renaud <andre@bluewatersys.com>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
-Signed-off-by: Ryan Mallon <ryan@bluewatersys.com>
+When the 32-bit signed quantities get assigned to the u64 resource_size_t,
+they are incorrectly sign-extended.
+
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13253
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9905
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Reported-by: Leann Ogasawara <leann@ubuntu.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+Reported-by: <pablomme@googlemail.com>
+Tested-by: <pablomme@googlemail.com>
+Cc: <stable@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/sst25l.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ kernel/resource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/devices/sst25l.c~mtd-sst25l-non-jedec-spi-flash-driver-fix drivers/mtd/devices/sst25l.c
---- a/drivers/mtd/devices/sst25l.c~mtd-sst25l-non-jedec-spi-flash-driver-fix
-+++ a/drivers/mtd/devices/sst25l.c
-@@ -298,7 +298,7 @@ static int sst25l_write(struct mtd_info 
- 		 * Write the remaining bytes using auto address
- 		 * increment mode
- 		 */
--		bytes = min(mtd->writesize, (u32)(len - i));
-+		bytes = min_t(u32, mtd->writesize, len - i);
- 		for (j = 1; j < bytes; j++, copied++) {
- 			ret = sst25l_wait_till_ready(flash);
- 			if (ret)
-@@ -367,7 +367,7 @@ static int __init sst25l_probe(struct sp
- 	struct flash_info *flash_info;
- 	struct sst25l_flash *flash;
- 	struct flash_platform_data *data;
--	int i;
-+	int ret, i;
+diff -puN kernel/resource.c~kernel-resourcec-fix-sign-extension-in-reserve_setup kernel/resource.c
+--- a/kernel/resource.c~kernel-resourcec-fix-sign-extension-in-reserve_setup
++++ a/kernel/resource.c
+@@ -787,7 +787,7 @@ static int __init reserve_setup(char *st
+ 	static struct resource reserve[MAXRESERVE];
  
- 	flash_info = sst25l_match_device(spi);
- 	if (!flash_info)
-@@ -457,7 +457,14 @@ static int __init sst25l_probe(struct sp
- 			 data->nr_parts, data->name);
- 	}
+ 	for (;;) {
+-		int io_start, io_num;
++		unsigned int io_start, io_num;
+ 		int x = reserved;
  
--	return add_mtd_device(&flash->mtd) == 1 ? -ENODEV : 0;
-+	ret = add_mtd_device(&flash->mtd);
-+	if (ret == 1) {
-+		kfree(flash);
-+		dev_set_drvdata(&spi->dev, NULL);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
- }
- 
- static int __exit sst25l_remove(struct spi_device *spi)
+ 		if (get_option (&str, &io_start) != 2)
 _
 
-Patches currently in -mm which might be from ryan@bluewatersys.com are
+Patches currently in -mm which might be from rui.zhang@intel.com are
 
 origin.patch
-mtd-sst25l-non-jedec-spi-flash-driver.patch
-mtd-sst25l-non-jedec-spi-flash-driver-update.patch
-mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
+kernel-resourcec-fix-sign-extension-in-reserve_setup.patch
 
