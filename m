@@ -1,67 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup.patch removed from -mm tree
-Date: Wed, 24 Jun 2009 20:00:46 -0700
-Message-ID: <200906250300.n5P30k4S028147@imap1.linux-foundation.org>
+Subject: + mtd-sst25l-non-jedec-spi-flash-driver-fix.patch added to -mm tree
+Date: Wed, 24 Jun 2009 20:14:10 -0700
+Message-ID: <200906250314.n5P3EA6Y010067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757875AbZFYDAy (ORCPT
+	by vger.kernel.org with ESMTP id S1752576AbZFYDPC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 23:00:54 -0400
+	Wed, 24 Jun 2009 23:15:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerard.lledo@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ryan@bluewatersys.com, andre@bluewatersys.com, avorontsov@ru.mvista.com, dwmw2@infradead.org, hartleys@visionengravers.com, linus.walleij@stericsson.com
 
 
 The patch titled
-     jffs2: jffs2_start_garbage_collect_thread() return value cleanup
-has been removed from the -mm tree.  Its filename was
-     jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup.patch
+     mtd-sst25l-non-jedec-spi-flash-driver-fix
+has been added to the -mm tree.  Its filename is
+     mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2: jffs2_start_garbage_collect_thread() return value cleanup
-From: Gerard Lledo <gerard.lledo@gmail.com>
+Subject: mtd-sst25l-non-jedec-spi-flash-driver-fix
+From: Ryan Mallon <ryan@bluewatersys.com>
 
-There is no user of this return value in the kernel.  Change it to return void
-instead.
-
-Signed-off-by: Gerard Lledo <gerard.lledo@gmail.com>
+Cc: "H Hartley Sweeten" <hartleys@visionengravers.com>
+Cc: Andre Renaud <andre@bluewatersys.com>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
+Signed-off-by: Ryan Mallon <ryan@bluewatersys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/background.c |    7 +------
- fs/jffs2/os-linux.h   |    2 +-
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ drivers/mtd/devices/sst25l.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN fs/jffs2/background.c~jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup fs/jffs2/background.c
---- a/fs/jffs2/background.c~jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup
-+++ a/fs/jffs2/background.c
-@@ -30,10 +30,9 @@ void jffs2_garbage_collect_trigger(struc
+diff -puN drivers/mtd/devices/sst25l.c~mtd-sst25l-non-jedec-spi-flash-driver-fix drivers/mtd/devices/sst25l.c
+--- a/drivers/mtd/devices/sst25l.c~mtd-sst25l-non-jedec-spi-flash-driver-fix
++++ a/drivers/mtd/devices/sst25l.c
+@@ -298,7 +298,7 @@ static int sst25l_write(struct mtd_info 
+ 		 * Write the remaining bytes using auto address
+ 		 * increment mode
+ 		 */
+-		bytes = min(mtd->writesize, (u32)(len - i));
++		bytes = min_t(u32, mtd->writesize, len - i);
+ 		for (j = 1; j < bytes; j++, copied++) {
+ 			ret = sst25l_wait_till_ready(flash);
+ 			if (ret)
+@@ -367,7 +367,7 @@ static int __init sst25l_probe(struct sp
+ 	struct flash_info *flash_info;
+ 	struct sst25l_flash *flash;
+ 	struct flash_platform_data *data;
+-	int i;
++	int ret, i;
+ 
+ 	flash_info = sst25l_match_device(spi);
+ 	if (!flash_info)
+@@ -457,7 +457,14 @@ static int __init sst25l_probe(struct sp
+ 			 data->nr_parts, data->name);
+ 	}
+ 
+-	return add_mtd_device(&flash->mtd) == 1 ? -ENODEV : 0;
++	ret = add_mtd_device(&flash->mtd);
++	if (ret == 1) {
++		kfree(flash);
++		dev_set_drvdata(&spi->dev, NULL);
++		return -ENODEV;
++	}
++
++	return 0;
  }
  
- /* This must only ever be called when no GC thread is currently running */
--int jffs2_start_garbage_collect_thread(struct jffs2_sb_info *c)
-+void jffs2_start_garbage_collect_thread(struct jffs2_sb_info *c)
- {
- 	struct task_struct *tsk;
--	int ret = 0;
- 
- 	BUG_ON(c->gc_task);
- 
-@@ -44,15 +43,11 @@ int jffs2_start_garbage_collect_thread(s
- 	if (IS_ERR(tsk)) {
- 		printk(KERN_WARNING "fork failed for JFFS2 garbage collect thread: %ld\n", -PTR_ERR(tsk));
- 		complete(&c->gc_thread_exit);
--		ret = PTR_ERR(tsk);
- 	} else {
- 		/* Wait for it... */
- 		D1(printk(KERN_DEBUG "JFFS2: Garbage collect thread is pid %d\n", tsk->pid));
- 		wait_for_completion(&c->gc_thread_start);
--		ret = tsk->pid;
- 	}
+ static int __exit sst25l_remove(struct spi_device *spi)
+_
+
+Patches currently in -mm which might be from ryan@bluewatersys.com are
+
+origin.patch
+mtd-sst25l-non-jedec-spi-flash-driver.patch
+mtd-sst25l-non-jedec-spi-flash-driver-update.patch
+mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
+
