@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omapfb-add-support-for-the-zoom-mdk-lcd.patch added to -mm tree
-Date: Wed, 24 Jun 2009 17:07:59 -0700
-Message-ID: <200906250008.n5P07xQm004848@imap1.linux-foundation.org>
+Subject: + omapfb-add-support-for-the-omap3-beagle-dvi-output.patch added to -mm tree
+Date: Wed, 24 Jun 2009 17:07:54 -0700
+Message-ID: <200906250007.n5P07sjr004673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44308 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53538 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755332AbZFYALY (ORCPT
+	by vger.kernel.org with ESMTP id S1755346AbZFYALd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 20:11:24 -0400
+	Wed, 24 Jun 2009 20:11:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stanley.miao@windriver.com, imre.deak@nokia.com, jarkko.nikula@gmail.com, krzysztof.h1@wp.pl, tony@atomide.com
+Cc: koen@openembedded.org, dbrownell@users.sourceforge.net, felipe.contreras@gmail.com, imre.deak@nokia.com, jarkko.nikula@gmail.com, krzysztof.h1@wp.pl, steve@sakoman.com, tony@atomide.com
 
 
 The patch titled
-     omapfb: add support for the ZOOM MDK LCD
+     omapfb: add support for the OMAP3 Beagle DVI output
 has been added to the -mm tree.  Its filename is
-     omapfb-add-support-for-the-zoom-mdk-lcd.patch
+     omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omapfb: add support for the ZOOM MDK LCD
-From: Stanley.Miao <stanley.miao@windriver.com>
+Subject: omapfb: add support for the OMAP3 Beagle DVI output
+From: Koen Kooi <koen@openembedded.org>
 
-Add glue to control the OMAP_LDP LCD as a frame buffer device using the
-existing dispc.c driver under omapfb.
+The default resolution is 1024x768@24bit
 
-Patch updated for mainline kernel.  Note that the drivers/video/omap
-should be updated to pass omap_lcd_config in platform_data.  The patch
-should also be updated to compile if twl4030 is not selected, and
-eventually to use the regulator framework.
+This version addresses the comments from Felipe Balbi adn Arun Edarath
 
+Fixed-by: Felipe Contreras <felipe.contreras@gmail.com>
+Fixed-by: Steve Sakoman <steve@sakoman.com>
 Fixed-by: Jarkko Nikula <jarkko.nikula@gmail.com>
-Fixed-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+Fixed-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Koen Kooi <koen@openembedded.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Imre Deak <imre.deak@nokia.com>
 Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/configs/omap_ldp_defconfig |   54 ++++++-
- drivers/video/omap/Kconfig          |    4 
- drivers/video/omap/Makefile         |    1 
- drivers/video/omap/lcd_ldp.c        |  200 ++++++++++++++++++++++++++
- 4 files changed, 257 insertions(+), 2 deletions(-)
+ arch/arm/configs/omap3_beagle_defconfig |   47 +++++++
+ drivers/video/omap/Makefile             |    1 
+ drivers/video/omap/lcd_omap3beagle.c    |  130 ++++++++++++++++++++++
+ 3 files changed, 177 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/configs/omap_ldp_defconfig~omapfb-add-support-for-the-zoom-mdk-lcd arch/arm/configs/omap_ldp_defconfig
---- a/arch/arm/configs/omap_ldp_defconfig~omapfb-add-support-for-the-zoom-mdk-lcd
-+++ a/arch/arm/configs/omap_ldp_defconfig
-@@ -690,6 +690,7 @@ CONFIG_GPIOLIB=y
- # CONFIG_GPIO_MAX732X is not set
- # CONFIG_GPIO_PCA953X is not set
- # CONFIG_GPIO_PCF857X is not set
-+CONFIG_GPIO_TWL4030=y
- 
- #
- # PCI GPIO expanders:
-@@ -742,6 +743,7 @@ CONFIG_SSB_POSSIBLE=y
- # CONFIG_MFD_SM501 is not set
- # CONFIG_HTC_EGPIO is not set
- # CONFIG_HTC_PASIC3 is not set
-+CONFIG_TWL4030_CORE=y
- # CONFIG_MFD_TMIO is not set
- # CONFIG_MFD_T7L66XB is not set
- # CONFIG_MFD_TC6387XB is not set
-@@ -767,8 +769,46 @@ CONFIG_DAB=y
+diff -puN arch/arm/configs/omap3_beagle_defconfig~omapfb-add-support-for-the-omap3-beagle-dvi-output arch/arm/configs/omap3_beagle_defconfig
+--- a/arch/arm/configs/omap3_beagle_defconfig~omapfb-add-support-for-the-omap3-beagle-dvi-output
++++ a/arch/arm/configs/omap3_beagle_defconfig
+@@ -769,7 +769,33 @@ CONFIG_DAB=y
  #
  # CONFIG_VGASTATE is not set
- CONFIG_VIDEO_OUTPUT_CONTROL=m
+ # CONFIG_VIDEO_OUTPUT_CONTROL is not set
 -# CONFIG_FB is not set
--# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
 +CONFIG_FB=y
-+CONFIG_FIRMWARE_EDID=y
++# CONFIG_FIRMWARE_EDID is not set
 +# CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
 +CONFIG_FB_CFB_FILLRECT=y
 +CONFIG_FB_CFB_COPYAREA=y
 +CONFIG_FB_CFB_IMAGEBLIT=y
@@ -101,86 +80,68 @@ diff -puN arch/arm/configs/omap_ldp_defconfig~omapfb-add-support-for-the-zoom-md
 +# CONFIG_FB_SVGALIB is not set
 +# CONFIG_FB_MACMODES is not set
 +# CONFIG_FB_BACKLIGHT is not set
-+CONFIG_FB_MODE_HELPERS=y
-+CONFIG_FB_TILEBLITTING=y
++# CONFIG_FB_MODE_HELPERS is not set
++# CONFIG_FB_TILEBLITTING is not set
 +
 +#
 +# Frame buffer hardware drivers
 +#
 +# CONFIG_FB_S1D13XXX is not set
 +# CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
 +CONFIG_FB_OMAP=y
-+CONFIG_FB_OMAP_LCD_VGA=y
 +# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
 +# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-+CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=4
-+CONFIG_BACKLIGHT_LCD_SUPPORT=y
-+CONFIG_LCD_CLASS_DEVICE=y
-+# CONFIG_LCD_LTV350QV is not set
-+# CONFIG_LCD_ILI9320 is not set
-+# CONFIG_LCD_TDO24M is not set
-+# CONFIG_LCD_VGG2432A4 is not set
-+CONFIG_LCD_PLATFORM=y
-+CONFIG_BACKLIGHT_CLASS_DEVICE=y
-+# CONFIG_BACKLIGHT_CORGI is not set
-+# CONFIG_BACKLIGHT_GENERIC is not set
++CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
+ # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
  
  #
- # Display device support
-@@ -780,6 +820,16 @@ CONFIG_VIDEO_OUTPUT_CONTROL=m
+@@ -782,6 +808,25 @@ CONFIG_DAB=y
  #
  # CONFIG_VGA_CONSOLE is not set
  CONFIG_DUMMY_CONSOLE=y
 +CONFIG_FRAMEBUFFER_CONSOLE=y
 +# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
-+# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
-+# CONFIG_FONTS is not set
++CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
++CONFIG_FONTS=y
 +CONFIG_FONT_8x8=y
 +CONFIG_FONT_8x16=y
-+CONFIG_LOGO=y
-+CONFIG_LOGO_LINUX_MONO=y
-+CONFIG_LOGO_LINUX_VGA16=y
-+CONFIG_LOGO_LINUX_CLUT224=y
- CONFIG_SOUND=y
- CONFIG_SND=y
- # CONFIG_SND_SEQUENCER is not set
-diff -puN drivers/video/omap/Kconfig~omapfb-add-support-for-the-zoom-mdk-lcd drivers/video/omap/Kconfig
---- a/drivers/video/omap/Kconfig~omapfb-add-support-for-the-zoom-mdk-lcd
-+++ a/drivers/video/omap/Kconfig
-@@ -7,6 +7,10 @@ config FB_OMAP
- 	help
-           Frame buffer driver for OMAP based boards.
- 
-+config FB_OMAP_LCD_VGA
-+        bool "Use LCD in VGA mode"
-+	        depends on MACH_OMAP_3430SDP || MACH_OMAP_LDP
++# CONFIG_FONT_6x11 is not set
++# CONFIG_FONT_7x14 is not set
++# CONFIG_FONT_PEARL_8x8 is not set
++# CONFIG_FONT_ACORN_8x8 is not set
++# CONFIG_FONT_MINI_4x6 is not set
++# CONFIG_FONT_SUN8x16 is not set
++# CONFIG_FONT_SUN12x22 is not set
++# CONFIG_FONT_10x18 is not set
++# CONFIG_LOGO is not set
 +
- choice
- 	depends on FB_OMAP && MACH_OVERO
- 	prompt "Screen resolution"
-diff -puN drivers/video/omap/Makefile~omapfb-add-support-for-the-zoom-mdk-lcd drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile~omapfb-add-support-for-the-zoom-mdk-lcd
++#
++# Sound
++#
+ # CONFIG_SOUND is not set
+ # CONFIG_HID_SUPPORT is not set
+ CONFIG_USB_SUPPORT=y
+diff -puN drivers/video/omap/Makefile~omapfb-add-support-for-the-omap3-beagle-dvi-output drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omapfb-add-support-for-the-omap3-beagle-dvi-output
 +++ a/drivers/video/omap/Makefile
-@@ -29,6 +29,7 @@ objs-y$(CONFIG_MACH_OMAP_OSK) += lcd_osk
- objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
- objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+@@ -31,6 +31,7 @@ objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd
  objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
-+objs-y$(CONFIG_MACH_OMAP_LDP) += lcd_ldp.o
  objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
  objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
- objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
-diff -puN /dev/null drivers/video/omap/lcd_ldp.c
++objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+ 
+ omapfb-objs := $(objs-yy)
+diff -puN /dev/null drivers/video/omap/lcd_omap3beagle.c
 --- /dev/null
-+++ a/drivers/video/omap/lcd_ldp.c
-@@ -0,0 +1,200 @@
++++ a/drivers/video/omap/lcd_omap3beagle.c
+@@ -0,0 +1,130 @@
 +/*
-+ * LCD panel support for the TI LDP board
++ * LCD panel support for the TI OMAP3 Beagle board
 + *
-+ * Copyright (C) 2007 WindRiver
-+ * Author: Stanley Miao <stanley.miao@windriver.com>
++ * Author: Koen Kooi <koen@openembedded.org>
 + *
-+ * Derived from drivers/video/omap/lcd-2430sdp.c
++ * Derived from drivers/video/omap/lcd-omap3evm.c
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License as published by the
@@ -199,121 +160,51 @@ diff -puN /dev/null drivers/video/omap/lcd_ldp.c
 +
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
-+#include <linux/delay.h>
++#include <linux/gpio.h>
 +#include <linux/i2c/twl4030.h>
 +
-+#include <mach/gpio.h>
 +#include <mach/mux.h>
 +#include <mach/omapfb.h>
 +#include <asm/mach-types.h>
 +
-+#define LCD_PANEL_BACKLIGHT_GPIO	(15 + OMAP_MAX_GPIO_LINES)
-+#define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
++#define LCD_PANEL_ENABLE_GPIO       170
 +
-+#define LCD_PANEL_RESET_GPIO		55
-+#define LCD_PANEL_QVGA_GPIO		56
-+
-+#ifdef CONFIG_FB_OMAP_LCD_VGA
-+#define LCD_XRES		480
-+#define LCD_YRES		640
-+#define LCD_PIXCLOCK_MAX	41700
-+#else
-+#define LCD_XRES		240
-+#define LCD_YRES		320
-+#define LCD_PIXCLOCK_MAX	185186
-+#endif
-+
-+#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
-+#define ENABLE_VAUX2_DEDICATED  0x09
-+#define ENABLE_VAUX2_DEV_GRP    0x20
-+#define ENABLE_VAUX3_DEDICATED	0x03
-+#define ENABLE_VAUX3_DEV_GRP	0x20
-+
-+#define ENABLE_VPLL2_DEDICATED          0x05
-+#define ENABLE_VPLL2_DEV_GRP            0xE0
-+#define TWL4030_VPLL2_DEV_GRP           0x33
-+#define TWL4030_VPLL2_DEDICATED         0x36
-+
-+#define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
-+
-+
-+static int ldp_panel_init(struct lcd_panel *panel,
++static int omap3beagle_panel_init(struct lcd_panel *panel,
 +				struct omapfb_device *fbdev)
 +{
-+	gpio_request(LCD_PANEL_RESET_GPIO, "lcd reset");
-+	gpio_request(LCD_PANEL_QVGA_GPIO, "lcd qvga");
-+	gpio_request(LCD_PANEL_ENABLE_GPIO, "lcd panel");
-+	gpio_request(LCD_PANEL_BACKLIGHT_GPIO, "lcd backlight");
-+
-+	gpio_direction_output(LCD_PANEL_QVGA_GPIO, 0);
-+	gpio_direction_output(LCD_PANEL_RESET_GPIO, 0);
-+	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
-+	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
-+
-+#ifdef CONFIG_FB_OMAP_LCD_VGA
-+	gpio_set_value(LCD_PANEL_QVGA_GPIO, 0);
-+#else
-+	gpio_set_value(LCD_PANEL_QVGA_GPIO, 1);
-+#endif
-+	gpio_set_value(LCD_PANEL_RESET_GPIO, 1);
-+
++	gpio_request(LCD_PANEL_ENABLE_GPIO, "LCD enable");
 +	return 0;
 +}
 +
-+static void ldp_panel_cleanup(struct lcd_panel *panel)
++static void omap3beagle_panel_cleanup(struct lcd_panel *panel)
 +{
-+	gpio_free(LCD_PANEL_BACKLIGHT_GPIO);
 +	gpio_free(LCD_PANEL_ENABLE_GPIO);
-+	gpio_free(LCD_PANEL_QVGA_GPIO);
-+	gpio_free(LCD_PANEL_RESET_GPIO);
 +}
 +
-+static int ldp_panel_enable(struct lcd_panel *panel)
++static int omap3beagle_panel_enable(struct lcd_panel *panel)
 +{
-+	if (0 != t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
-+			TWL4030_VPLL2_DEDICATED))
-+		return -EIO;
-+	if (0 != t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
-+			TWL4030_VPLL2_DEV_GRP))
-+		return -EIO;
-+
-+	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
-+	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 1);
-+
-+	if (0 != t2_out(PM_RECEIVER, ENABLE_VAUX3_DEDICATED,
-+				TWL4030_VAUX3_DEDICATED))
-+		return -EIO;
-+	if (0 != t2_out(PM_RECEIVER, ENABLE_VAUX3_DEV_GRP,
-+				TWL4030_VAUX3_DEV_GRP))
-+		return -EIO;
-+
++	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 1);
 +	return 0;
 +}
 +
-+static void ldp_panel_disable(struct lcd_panel *panel)
++static void omap3beagle_panel_disable(struct lcd_panel *panel)
 +{
-+	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
-+	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
-+
-+	t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
-+	t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
-+	msleep(4);
++	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 0);
 +}
 +
-+static unsigned long ldp_panel_get_caps(struct lcd_panel *panel)
++static unsigned long omap3beagle_panel_get_caps(struct lcd_panel *panel)
 +{
 +	return 0;
 +}
 +
-+struct lcd_panel ldp_panel = {
-+	.name		= "ldp",
-+	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-+			  OMAP_LCDC_INV_HSYNC,
++struct lcd_panel omap3beagle_panel = {
++	.name		= "omap3beagle",
++	.config		= OMAP_LCDC_PANEL_TFT,
 +
 +	.bpp		= 16,
-+	.data_lines	= 18,
-+	.x_res		= LCD_XRES,
-+	.y_res		= LCD_YRES,
++	.data_lines	= 24,
++	.x_res		= 1024,
++	.y_res		= 768,
 +	.hsw		= 3,		/* hsync_len (4) - 1 */
 +	.hfp		= 3,		/* right_margin (4) - 1 */
 +	.hbp		= 39,		/* left_margin (40) - 1 */
@@ -321,63 +212,63 @@ diff -puN /dev/null drivers/video/omap/lcd_ldp.c
 +	.vfp		= 2,		/* lower_margin */
 +	.vbp		= 7,		/* upper_margin (8) - 1 */
 +
-+	.pixel_clock	= LCD_PIXCLOCK_MAX,
++	.pixel_clock	= 64000,
 +
-+	.init		= ldp_panel_init,
-+	.cleanup	= ldp_panel_cleanup,
-+	.enable		= ldp_panel_enable,
-+	.disable	= ldp_panel_disable,
-+	.get_caps	= ldp_panel_get_caps,
++	.init		= omap3beagle_panel_init,
++	.cleanup	= omap3beagle_panel_cleanup,
++	.enable		= omap3beagle_panel_enable,
++	.disable	= omap3beagle_panel_disable,
++	.get_caps	= omap3beagle_panel_get_caps,
 +};
 +
-+static int ldp_panel_probe(struct platform_device *pdev)
++static int omap3beagle_panel_probe(struct platform_device *pdev)
 +{
-+	omapfb_register_panel(&ldp_panel);
++	omapfb_register_panel(&omap3beagle_panel);
 +	return 0;
 +}
 +
-+static int ldp_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int ldp_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
++static int omap3beagle_panel_remove(struct platform_device *pdev)
 +{
 +	return 0;
 +}
 +
-+static int ldp_panel_resume(struct platform_device *pdev)
++static int omap3beagle_panel_suspend(struct platform_device *pdev,
++				   pm_message_t mesg)
 +{
 +	return 0;
 +}
 +
-+struct platform_driver ldp_panel_driver = {
-+	.probe		= ldp_panel_probe,
-+	.remove		= ldp_panel_remove,
-+	.suspend	= ldp_panel_suspend,
-+	.resume		= ldp_panel_resume,
++static int omap3beagle_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver omap3beagle_panel_driver = {
++	.probe		= omap3beagle_panel_probe,
++	.remove		= omap3beagle_panel_remove,
++	.suspend	= omap3beagle_panel_suspend,
++	.resume		= omap3beagle_panel_resume,
 +	.driver		= {
-+		.name	= "ldp_lcd",
++		.name	= "omap3beagle_lcd",
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+static int __init ldp_panel_drv_init(void)
++static int __init omap3beagle_panel_drv_init(void)
 +{
-+	return platform_driver_register(&ldp_panel_driver);
++	return platform_driver_register(&omap3beagle_panel_driver);
 +}
 +
-+static void __exit ldp_panel_drv_exit(void)
++static void __exit omap3beagle_panel_drv_exit(void)
 +{
-+	platform_driver_unregister(&ldp_panel_driver);
++	platform_driver_unregister(&omap3beagle_panel_driver);
 +}
 +
-+module_init(ldp_panel_drv_init);
-+module_exit(ldp_panel_drv_exit);
++module_init(omap3beagle_panel_drv_init);
++module_exit(omap3beagle_panel_drv_exit);
 _
 
-Patches currently in -mm which might be from stanley.miao@windriver.com are
+Patches currently in -mm which might be from koen@openembedded.org are
 
-origin.patch
-omapfb-add-support-for-the-zoom-mdk-lcd.patch
+omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
 
