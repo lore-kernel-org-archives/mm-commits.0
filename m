@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bsdacct-fix-access-to-invalid-filp-in-acct_on.patch added to -mm tree
-Date: Thu, 25 Jun 2009 11:37:35 -0700
-Message-ID: <200906251837.n5PIbZwZ032236@imap1.linux-foundation.org>
+Subject: + nand-add-new-ecc-mode-ecc_hw_oob_first.patch added to -mm tree
+Date: Thu, 25 Jun 2009 11:38:49 -0700
+Message-ID: <200906251838.n5PIcnSr001040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55977 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752191AbZFYShk (ORCPT
+	by vger.kernel.org with ESMTP id S1751820AbZFYSjO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jun 2009 14:37:40 -0400
+	Thu, 25 Jun 2009 14:39:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: renaud.lottiaux@kerlabs.com, louis.rilling@kerlabs.com, viro@zeniv.linux.org.uk
+Cc: s-paulraj@ti.com, dbrownell@users.sourceforge.net, dwmw2@infradead.org, nsnehaprabha@ti.com, tglx@linutronix.de
 
 
 The patch titled
-     bsdacct: fix access to invalid filp in acct_on()
+     nand: add new ECC mode - ECC_HW_OOB_FIRST
 has been added to the -mm tree.  Its filename is
-     bsdacct-fix-access-to-invalid-filp-in-acct_on.patch
+     nand-add-new-ecc-mode-ecc_hw_oob_first.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bsdacct: fix access to invalid filp in acct_on()
-From: Renaud Lottiaux <renaud.lottiaux@kerlabs.com>
+Subject: nand: add new ECC mode - ECC_HW_OOB_FIRST
+From: Sandeep Paulraj <s-paulraj@ti.com>
 
-The file opened in acct_on and freshly stored in the ns->bacct struct can
-be closed in acct_file_reopen by a concurrent call after we release
-acct_lock and before we call mntput(file->f_path.mnt).
+tAdd adds the new mode NAND_ECC_HW_OOB_FIRST in the nand code to support
+4-bit ECC on TI DaVinci devices with large page (up to 4K) NAND chips. 
+This ECC mode is similar to NAND_ECC_HW, with the exception of read_page
+API that first reads the OOB area, reads the data in chunks, feeds the ECC
+from OOB area to the ECC hw engine and perform any correction on the data
+as per the ECC status reported by the engine.
 
-Record file->f_path.mnt in a local variable and use this variable only.
+"ECC_HW_OOB_FIRST" name suggested by Thomas Gleixner
 
-Signed-off-by: Renaud Lottiaux <renaud.lottiaux@kerlabs.com>
-Signed-off-by: Louis Rilling <louis.rilling@kerlabs.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Reviewed-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Sneha Narnakaje <nsnehaprabha@ti.com>
+Signed-off-by: Sandeep Paulraj <s-paulraj@ti.com
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/nand_base.c |   59 +++++++++++++++++++++++++++++++++
+ include/linux/mtd/nand.h     |    1 
+ 2 files changed, 60 insertions(+)
 
-diff -puN kernel/acct.c~bsdacct-fix-access-to-invalid-filp-in-acct_on kernel/acct.c
---- a/kernel/acct.c~bsdacct-fix-access-to-invalid-filp-in-acct_on
-+++ a/kernel/acct.c
-@@ -215,6 +215,7 @@ static void acct_file_reopen(struct bsd_
- static int acct_on(char *name)
- {
- 	struct file *file;
-+	struct vfsmount *mnt;
- 	int error;
- 	struct pid_namespace *ns;
- 	struct bsd_acct_struct *acct = NULL;
-@@ -256,11 +257,12 @@ static int acct_on(char *name)
- 		acct = NULL;
- 	}
+diff -puN drivers/mtd/nand/nand_base.c~nand-add-new-ecc-mode-ecc_hw_oob_first drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~nand-add-new-ecc-mode-ecc_hw_oob_first
++++ a/drivers/mtd/nand/nand_base.c
+@@ -980,6 +980,54 @@ static int nand_read_page_hwecc(struct m
+ }
  
--	mnt_pin(file->f_path.mnt);
-+	mnt = file->f_path.mnt;
-+	mnt_pin(mnt);
- 	acct_file_reopen(ns->bacct, file, ns);
- 	spin_unlock(&acct_lock);
+ /**
++ * nand_read_page_hwecc_oob_first - [REPLACABLE] hw ecc, read oob first
++ * @mtd:	mtd info structure
++ * @chip:	nand chip info structure
++ * @buf:	buffer to store read data
++ *
++ * Hardware ECC for large page chips, require OOB to be read first.
++ * For this ECC mode, the write_page method is re-used from ECC_HW.
++ * These methods read/write ECC from the OOB area, unlike the
++ * ECC_HW_SYNDROME support with multiple ECC steps, follows the
++ * "infix ECC" scheme and reads/writes ECC from the data area, by
++ * overwriting the NAND manufacturer bad block markings.
++ */
++static int nand_read_page_hwecc_oob_first(struct mtd_info *mtd,
++	struct nand_chip *chip, uint8_t *buf, int page)
++{
++	int i, eccsize = chip->ecc.size;
++	int eccbytes = chip->ecc.bytes;
++	int eccsteps = chip->ecc.steps;
++	uint8_t *p = buf;
++	uint8_t *ecc_code = chip->buffers->ecccode;
++	uint32_t *eccpos = chip->ecc.layout->eccpos;
++	uint8_t *ecc_calc = chip->buffers->ecccalc;
++
++	/* Read the OOB area first */
++	chip->cmdfunc(mtd, NAND_CMD_READOOB, 0, page);
++	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
++	chip->cmdfunc(mtd, NAND_CMD_READ0, 0, page);
++
++	for (i = 0; i < chip->ecc.total; i++)
++		ecc_code[i] = chip->oob_poi[eccpos[i]];
++
++	for (i = 0; eccsteps; eccsteps--, i += eccbytes, p += eccsize) {
++		int stat;
++
++		chip->ecc.hwctl(mtd, NAND_ECC_READ);
++		chip->read_buf(mtd, p, eccsize);
++		chip->ecc.calculate(mtd, p, &ecc_calc[i]);
++
++		stat = chip->ecc.correct(mtd, p, &ecc_code[i], NULL);
++		if (stat < 0)
++			mtd->ecc_stats.failed++;
++		else
++			mtd->ecc_stats.corrected += stat;
++	}
++	return 0;
++}
++
++/**
+  * nand_read_page_syndrome - [REPLACABLE] hardware ecc syndrom based page read
+  * @mtd:	mtd info structure
+  * @chip:	nand chip info structure
+@@ -2671,6 +2719,17 @@ int nand_scan_tail(struct mtd_info *mtd)
+ 	 */
  
--	mntput(file->f_path.mnt); /* it's pinned, now give up active reference */
-+	mntput(mnt); /* it's pinned, now give up active reference */
- 	kfree(acct);
+ 	switch (chip->ecc.mode) {
++	case NAND_ECC_HW_OOB_FIRST:
++		/* Similar to NAND_ECC_HW, but a separate read_page handle */
++		if (!chip->ecc.calculate || !chip->ecc.correct ||
++		     !chip->ecc.hwctl) {
++			printk(KERN_WARNING "No ECC functions supplied, "
++			       "Hardware ECC not possible\n");
++			BUG();
++		}
++		if (!chip->ecc.read_page)
++			chip->ecc.read_page = nand_read_page_hwecc_oob_first;
++
+ 	case NAND_ECC_HW:
+ 		/* Use standard hwecc read page function ? */
+ 		if (!chip->ecc.read_page)
+diff -puN include/linux/mtd/nand.h~nand-add-new-ecc-mode-ecc_hw_oob_first include/linux/mtd/nand.h
+--- a/include/linux/mtd/nand.h~nand-add-new-ecc-mode-ecc_hw_oob_first
++++ a/include/linux/mtd/nand.h
+@@ -121,6 +121,7 @@ typedef enum {
+ 	NAND_ECC_SOFT,
+ 	NAND_ECC_HW,
+ 	NAND_ECC_HW_SYNDROME,
++	NAND_ECC_HW_OOB_FIRST,
+ } nand_ecc_modes_t;
  
- 	return 0;
+ /*
 _
 
-Patches currently in -mm which might be from renaud.lottiaux@kerlabs.com are
+Patches currently in -mm which might be from s-paulraj@ti.com are
 
-bsdacct-fix-access-to-invalid-filp-in-acct_on.patch
+nand-add-new-ecc-mode-ecc_hw_oob_first.patch
+spi-new-spi-mode-bits.patch
 
