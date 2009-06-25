@@ -1,81 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-add-__init-__exit-macros-to-ibmvstgtc.patch added to -mm tree
-Date: Wed, 24 Jun 2009 19:49:21 -0700
-Message-ID: <200906250249.n5P2nLCU015811@imap1.linux-foundation.org>
+Subject: [nacked] jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup.patch removed from -mm tree
+Date: Wed, 24 Jun 2009 20:00:46 -0700
+Message-ID: <200906250300.n5P30k4S028147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751548AbZFYCth (ORCPT
+	by vger.kernel.org with ESMTP id S1757875AbZFYDAy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 22:49:37 -0400
+	Wed, 24 Jun 2009 23:00:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: peterhuewe@gmx.de, James.Bottomley@SteelEye.com, fujita.tomonori@lab.ntt.co.jp, sfr@canb.auug.org.au
+To: gerard.lledo@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: add __init/__exit macros to ibmvstgt.c
-has been added to the -mm tree.  Its filename is
-     scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+     jffs2: jffs2_start_garbage_collect_thread() return value cleanup
+has been removed from the -mm tree.  Its filename was
+     jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: add __init/__exit macros to ibmvstgt.c
-From: Peter Huewe <peterhuewe@gmx.de>
+Subject: jffs2: jffs2_start_garbage_collect_thread() return value cleanup
+From: Gerard Lledo <gerard.lledo@gmail.com>
 
-Add the __init and __exit macros to the module_init / module_exit
-functions from drivers/scsi/ibmvscsi/ibmvstgt.c
+There is no user of this return value in the kernel.  Change it to return void
+instead.
 
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Signed-off-by: Gerard Lledo <gerard.lledo@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ibmvscsi/ibmvstgt.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/jffs2/background.c |    7 +------
+ fs/jffs2/os-linux.h   |    2 +-
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/scsi/ibmvscsi/ibmvstgt.c~scsi-add-__init-__exit-macros-to-ibmvstgtc drivers/scsi/ibmvscsi/ibmvstgt.c
---- a/drivers/scsi/ibmvscsi/ibmvstgt.c~scsi-add-__init-__exit-macros-to-ibmvstgtc
-+++ a/drivers/scsi/ibmvscsi/ibmvstgt.c
-@@ -955,7 +955,7 @@ static struct srp_function_template ibmv
- 	.it_nexus_response = ibmvstgt_it_nexus_response,
- };
- 
--static int ibmvstgt_init(void)
-+static int __init ibmvstgt_init(void)
- {
- 	int err = -ENOMEM;
- 
-@@ -986,7 +986,7 @@ release_transport:
- 	return err;
+diff -puN fs/jffs2/background.c~jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup fs/jffs2/background.c
+--- a/fs/jffs2/background.c~jffs2-jffs2_start_garbage_collect_thread-return-value-cleanup
++++ a/fs/jffs2/background.c
+@@ -30,10 +30,9 @@ void jffs2_garbage_collect_trigger(struc
  }
  
--static void ibmvstgt_exit(void)
-+static void __exit ibmvstgt_exit(void)
+ /* This must only ever be called when no GC thread is currently running */
+-int jffs2_start_garbage_collect_thread(struct jffs2_sb_info *c)
++void jffs2_start_garbage_collect_thread(struct jffs2_sb_info *c)
  {
- 	printk("Unregister IBM virtual SCSI driver\n");
+ 	struct task_struct *tsk;
+-	int ret = 0;
  
-_
-
-Patches currently in -mm which might be from peterhuewe@gmx.de are
-
-origin.patch
-linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-
+ 	BUG_ON(c->gc_task);
+ 
+@@ -44,15 +43,11 @@ int jffs2_start_garbage_collect_thread(s
+ 	if (IS_ERR(tsk)) {
+ 		printk(KERN_WARNING "fork failed for JFFS2 garbage collect thread: %ld\n", -PTR_ERR(tsk));
+ 		complete(&c->gc_thread_exit);
+-		ret = PTR_ERR(tsk);
+ 	} else {
+ 		/* Wait for it... */
+ 		D1(printk(KERN_DEBUG "JFFS2: Garbage collect thread is pid %d\n", tsk->pid));
+ 		wait_for_completion(&c->gc_thread_start);
+-		ret = tsk->pid;
+ 	}
