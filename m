@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + bzip2-lzma-remove-nasty-uncompressed-size-hack-in-pre-boot-environment.patch added to -mm tree
-Date: Thu, 25 Jun 2009 15:13:08 -0700
-Message-ID: <200906252213.n5PMD8qU010045@imap1.linux-foundation.org>
+Subject: + lzma-gzip-fix-potential-oops-when-input-data-is-truncated.patch added to -mm tree
+Date: Thu, 25 Jun 2009 15:13:10 -0700
+Message-ID: <200906252213.n5PMDBu5010080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751897AbZFYWNy (ORCPT
+	by vger.kernel.org with ESMTP id S1751924AbZFYWOA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jun 2009 18:13:54 -0400
+	Thu, 25 Jun 2009 18:14:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: phillip@lougher.demon.co.uk, hpa@zytor.com
 
 
 The patch titled
-     bzip2/lzma: remove nasty uncompressed size hack in pre-boot environment
+     lzma/gzip: fix potential oops when input data is truncated
 has been added to the -mm tree.  Its filename is
-     bzip2-lzma-remove-nasty-uncompressed-size-hack-in-pre-boot-environment.patch
+     lzma-gzip-fix-potential-oops-when-input-data-is-truncated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bzip2/lzma: remove nasty uncompressed size hack in pre-boot environment
+Subject: lzma/gzip: fix potential oops when input data is truncated
 From: Phillip Lougher <phillip@lougher.demon.co.uk>
 
-decompress_bunzip2 and decompress_unlzma have a nasty hack that subtracts
-4 from the input length if being called in the pre-boot environment.
-
-This is a nasty hack because it relies on the fact that flush = NULL only
-when called from the pre-boot environment (i.e. 
-arch/x86/boot/compressed/misc.c).  initramfs.c/do_mounts_rd.c pass in a
-flush buffer (flush != NULL).
-
-This hack prevents the decompressors from being used with flush = NULL by
-other callers unless knowledge of the hack is propagated to them.
-
-This patch removes the hack by making decompress (called only from the
-pre-boot environment) a wrapper function that subtracts 4 from the input
-length before calling the decompressor.
+If the lzma/gzip decompressors are called with insufficient input data
+(len > 0 & fill = NULL), they will attempt to call the fill function to
+obtain more data, leading to a kernel oops.
 
 Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_bunzip2.c |   22 ++++++++++++++++------
- lib/decompress_unlzma.c  |   21 ++++++++++++++++-----
- 2 files changed, 32 insertions(+), 11 deletions(-)
+ lib/decompress_inflate.c |    8 ++++++++
+ lib/decompress_unlzma.c  |   10 +++++++++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN lib/decompress_bunzip2.c~bzip2-lzma-remove-nasty-uncompressed-size-hack-in-pre-boot-environment lib/decompress_bunzip2.c
---- a/lib/decompress_bunzip2.c~bzip2-lzma-remove-nasty-uncompressed-size-hack-in-pre-boot-environment
-+++ a/lib/decompress_bunzip2.c
-@@ -45,9 +45,11 @@
- */
+diff -puN lib/decompress_inflate.c~lzma-gzip-fix-potential-oops-when-input-data-is-truncated lib/decompress_inflate.c
+--- a/lib/decompress_inflate.c~lzma-gzip-fix-potential-oops-when-input-data-is-truncated
++++ a/lib/decompress_inflate.c
+@@ -27,6 +27,11 @@
  
+ #define GZIP_IOBUF_SIZE (16*1024)
  
--#ifndef STATIC
-+#ifdef STATIC
-+#define PREBOOT
-+#else
- #include <linux/decompress/bunzip2.h>
--#endif /* !STATIC */
-+#endif /* STATIC */
- 
- #include <linux/decompress/mm.h>
- #include <linux/slab.h>
-@@ -681,9 +683,7 @@ STATIC int INIT bunzip2(unsigned char *b
- 	set_error_fn(error_fn);
- 	if (flush)
- 		outbuf = malloc(BZIP2_IOBUF_SIZE);
--	else
--		len -= 4; /* Uncompressed size hack active in pre-boot
--			     environment */
-+
- 	if (!outbuf) {
- 		error("Could not allocate output bufer");
- 		return -1;
-@@ -733,4 +733,14 @@ exit_0:
- 	return i;
- }
- 
--#define decompress bunzip2
-+#ifdef PREBOOT
-+STATIC int INIT decompress(unsigned char *buf, int len,
-+			int(*fill)(void*, unsigned int),
-+			int(*flush)(void*, unsigned int),
-+			unsigned char *outbuf,
-+			int *pos,
-+			void(*error_fn)(char *x))
++static int nofill(void *buffer, unsigned int len)
 +{
-+	return bunzip2(buf, len - 4, fill, flush, outbuf, pos, error_fn);
++	return -1;
 +}
-+#endif
-diff -puN lib/decompress_unlzma.c~bzip2-lzma-remove-nasty-uncompressed-size-hack-in-pre-boot-environment lib/decompress_unlzma.c
---- a/lib/decompress_unlzma.c~bzip2-lzma-remove-nasty-uncompressed-size-hack-in-pre-boot-environment
++
+ /* Included from initramfs et al code */
+ STATIC int INIT gunzip(unsigned char *buf, int len,
+ 		       int(*fill)(void*, unsigned int),
+@@ -76,6 +81,9 @@ STATIC int INIT gunzip(unsigned char *bu
+ 		goto gunzip_nomem4;
+ 	}
+ 
++	if (!fill)
++		fill = nofill;
++
+ 	if (len == 0)
+ 		len = fill(zbuf, GZIP_IOBUF_SIZE);
+ 
+diff -puN lib/decompress_unlzma.c~lzma-gzip-fix-potential-oops-when-input-data-is-truncated lib/decompress_unlzma.c
+--- a/lib/decompress_unlzma.c~lzma-gzip-fix-potential-oops-when-input-data-is-truncated
 +++ a/lib/decompress_unlzma.c
-@@ -29,7 +29,9 @@
-  *Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  */
+@@ -82,6 +82,11 @@ struct rc {
+ #define RC_MODEL_TOTAL_BITS 11
  
--#ifndef STATIC
-+#ifdef STATIC
-+#define PREBOOT
-+#else
- #include <linux/decompress/unlzma.h>
- #endif /* STATIC */
  
-@@ -543,9 +545,7 @@ STATIC inline int INIT unlzma(unsigned c
- 	int ret = -1;
- 
- 	set_error_fn(error_fn);
--	if (!flush)
--		in_len -= 4; /* Uncompressed size hack active in pre-boot
--				environment */
-+
- 	if (buf)
- 		inbuf = buf;
- 	else
-@@ -645,4 +645,15 @@ exit_0:
- 	return ret;
- }
- 
--#define decompress unlzma
-+#ifdef PREBOOT
-+STATIC int INIT decompress(unsigned char *buf, int in_len,
-+			      int(*fill)(void*, unsigned int),
-+			      int(*flush)(void*, unsigned int),
-+			      unsigned char *output,
-+			      int *posp,
-+			      void(*error_fn)(char *x)
-+	)
++static int nofill(void *buffer, unsigned int len)
 +{
-+	return unlzma(buf, in_len - 4, fill, flush, output, posp, error_fn);
++	return -1;
 +}
-+#endif
++
+ /* Called twice: once at startup and once in rc_normalize() */
+ static void INIT rc_read(struct rc *rc)
+ {
+@@ -97,7 +102,10 @@ static inline void INIT rc_init(struct r
+ 				       int (*fill)(void*, unsigned int),
+ 				       char *buffer, int buffer_size)
+ {
+-	rc->fill = fill;
++	if (fill)
++		rc->fill = fill;
++	else
++		rc->fill = nofill;
+ 	rc->buffer = (uint8_t *)buffer;
+ 	rc->buffer_size = buffer_size;
+ 	rc->buffer_end = rc->buffer + rc->buffer_size;
 _
 
 Patches currently in -mm which might be from phillip@lougher.demon.co.uk are
