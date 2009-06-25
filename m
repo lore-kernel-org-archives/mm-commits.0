@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + eventfd-revised-interface-and-cleanups-4th-rev.patch added to -mm tree
-Date: Wed, 24 Jun 2009 20:33:00 -0700
-Message-ID: <200906250333.n5P3X026030329@imap1.linux-foundation.org>
+Subject: [to-be-updated] eventfd-revised-interface-and-cleanups-2nd-rev.patch removed from -mm tree
+Date: Wed, 24 Jun 2009 20:33:03 -0700
+Message-ID: <200906250333.n5P3X3WA030339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724AbZFYDdX (ORCPT
+	by vger.kernel.org with ESMTP id S1751679AbZFYDd0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 23:33:23 -0400
+	Wed, 24 Jun 2009 23:33:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, avi@redhat.com, bcrl@kvack.org, ghaskins@novell.com, rusty@rustcorp.com.au
+To: davidel@xmailserver.org, avi@redhat.com, bcrl@kvack.org, ghaskins@novell.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
      eventfd: revised interface and cleanups
-has been added to the -mm tree.  Its filename is
-     eventfd-revised-interface-and-cleanups-4th-rev.patch
+has been removed from the -mm tree.  Its filename was
+     eventfd-revised-interface-and-cleanups-2nd-rev.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -45,6 +35,10 @@ POLLHUP event sent when the last instance of the file* goes away.  Also,
 now the internal eventfd APIs are using the eventfd context instead of the
 file*.
 
+Another cleanup this patch does is to make AIO select EVENTFD, instead of
+adding a bunch of empty function stubs inside eventfd.h in order to handle
+the (AIO && !EVENTFD) case.
+
 This patch is required by KVM's IRQfd code, which is still under
 development.
 
@@ -58,14 +52,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
  drivers/lguest/lg.h          |    2 
  drivers/lguest/lguest_user.c |    4 -
- fs/aio.c                     |   24 +-----
- fs/eventfd.c                 |  122 +++++++++++++++++++++++++++++----
+ fs/aio.c                     |   24 ++----
+ fs/eventfd.c                 |  115 +++++++++++++++++++++++++++++----
  include/linux/aio.h          |    4 -
- include/linux/eventfd.h      |   35 +++++++--
- 6 files changed, 149 insertions(+), 42 deletions(-)
+ include/linux/eventfd.h      |   18 +----
+ init/Kconfig                 |    1 
+ 7 files changed, 122 insertions(+), 46 deletions(-)
 
-diff -puN drivers/lguest/lg.h~eventfd-revised-interface-and-cleanups-4th-rev drivers/lguest/lg.h
---- a/drivers/lguest/lg.h~eventfd-revised-interface-and-cleanups-4th-rev
+diff -puN drivers/lguest/lg.h~eventfd-revised-interface-and-cleanups-2nd-rev drivers/lguest/lg.h
+--- a/drivers/lguest/lg.h~eventfd-revised-interface-and-cleanups-2nd-rev
 +++ a/drivers/lguest/lg.h
 @@ -82,7 +82,7 @@ struct lg_cpu {
  
@@ -76,8 +71,8 @@ diff -puN drivers/lguest/lg.h~eventfd-revised-interface-and-cleanups-4th-rev dri
  };
  
  struct lg_eventfd_map {
-diff -puN drivers/lguest/lguest_user.c~eventfd-revised-interface-and-cleanups-4th-rev drivers/lguest/lguest_user.c
---- a/drivers/lguest/lguest_user.c~eventfd-revised-interface-and-cleanups-4th-rev
+diff -puN drivers/lguest/lguest_user.c~eventfd-revised-interface-and-cleanups-2nd-rev drivers/lguest/lguest_user.c
+--- a/drivers/lguest/lguest_user.c~eventfd-revised-interface-and-cleanups-2nd-rev
 +++ a/drivers/lguest/lguest_user.c
 @@ -50,7 +50,7 @@ static int add_eventfd(struct lguest *lg
  
@@ -97,8 +92,8 @@ diff -puN drivers/lguest/lguest_user.c~eventfd-revised-interface-and-cleanups-4t
  	kfree(lg->eventfds);
  
  	/* If lg->dead doesn't contain an error code it will be NULL or a
-diff -puN fs/aio.c~eventfd-revised-interface-and-cleanups-4th-rev fs/aio.c
---- a/fs/aio.c~eventfd-revised-interface-and-cleanups-4th-rev
+diff -puN fs/aio.c~eventfd-revised-interface-and-cleanups-2nd-rev fs/aio.c
+--- a/fs/aio.c~eventfd-revised-interface-and-cleanups-2nd-rev
 +++ a/fs/aio.c
 @@ -485,6 +485,8 @@ static inline void really_put_req(struct
  {
@@ -165,10 +160,10 @@ diff -puN fs/aio.c~eventfd-revised-interface-and-cleanups-4th-rev fs/aio.c
  		if (IS_ERR(req->ki_eventfd)) {
  			ret = PTR_ERR(req->ki_eventfd);
  			req->ki_eventfd = NULL;
-diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd.c
---- a/fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev
+diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-2nd-rev fs/eventfd.c
+--- a/fs/eventfd.c~eventfd-revised-interface-and-cleanups-2nd-rev
 +++ a/fs/eventfd.c
-@@ -14,35 +14,44 @@
+@@ -14,35 +14,41 @@
  #include <linux/list.h>
  #include <linux/spinlock.h>
  #include <linux/anon_inodes.h>
@@ -205,17 +200,14 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
 + * eventfd_signal - Adds @n to the eventfd counter.
 + * @ctx: [in] Pointer to the eventfd context.
 + * @n: [in] Value of the counter to be added to the eventfd internal counter.
-+ *          The value cannot be negative.
 + *
 + * This function is supposed to be called by the kernel in paths that do not
 + * allow sleeping. In this function we allow the counter to reach the ULLONG_MAX
 + * value, and we signal this as overflow condition by returining a POLLERR
 + * to poll(2).
 + *
-+ * Returns @n in case of success, a non-negative number lower than @n in case
-+ * of overflow, or the following error codes:
-+ *
-+ * -EINVAL    : The value of @n is negative.
++ * Returns: In case of success, it returns @n, otherwise (in case of overflow
++ *          of the eventfd 64bit internal counter) a value lower than @n.
   */
 -int eventfd_signal(struct file *file, int n)
 +int eventfd_signal(struct eventfd_ctx *ctx, int n)
@@ -224,7 +216,7 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
  	unsigned long flags;
  
  	if (n < 0)
-@@ -59,9 +68,45 @@ int eventfd_signal(struct file *file, in
+@@ -59,9 +65,48 @@ int eventfd_signal(struct file *file, in
  }
  EXPORT_SYMBOL_GPL(eventfd_signal);
  
@@ -239,7 +231,8 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
 + * eventfd_ctx_get - Acquires a reference to the internal eventfd context.
 + * @ctx: [in] Pointer to the eventfd context.
 + *
-+ * Returns: In case of success, returns a pointer to the eventfd context.
++ * Returns: In case of success, returns a pointer to the eventfd context,
++ *          otherwise a proper error code.
 + */
 +struct eventfd_ctx *eventfd_ctx_get(struct eventfd_ctx *ctx)
 +{
@@ -254,6 +247,8 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
 + *
 + * The eventfd context reference must have been previously acquired either
 + * with eventfd_ctx_get() or eventfd_ctx_fdget()).
++ *
++ * Returns: Nothing.
 + */
 +void eventfd_ctx_put(struct eventfd_ctx *ctx)
 +{
@@ -271,7 +266,7 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
  	return 0;
  }
  
-@@ -185,6 +230,16 @@ static const struct file_operations even
+@@ -185,6 +230,13 @@ static const struct file_operations even
  	.write		= eventfd_write,
  };
  
@@ -279,16 +274,13 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
 + * eventfd_fget - Acquire a reference of an eventfd file descriptor.
 + * @fd: [in] Eventfd file descriptor.
 + *
-+ * Returns a pointer to the eventfd file structure in case of success, or the
-+ * following error pointer:
-+ *
-+ * -EBADF    : Invalid @fd file descriptor.
-+ * -EINVAL   : The @fd file descriptor is not an eventfd file.
++ * Returns: A pointer to the eventfd file structure in case of success, or a
++ *          proper error pointer in case of failure.
 + */
  struct file *eventfd_fget(int fd)
  {
  	struct file *file;
-@@ -201,6 +256,48 @@ struct file *eventfd_fget(int fd)
+@@ -201,6 +253,44 @@ struct file *eventfd_fget(int fd)
  }
  EXPORT_SYMBOL_GPL(eventfd_fget);
  
@@ -296,10 +288,8 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
 + * eventfd_ctx_fdget - Acquires a reference to the internal eventfd context.
 + * @fd: [in] Eventfd file descriptor.
 + *
-+ * Returns a pointer to the internal eventfd context, otherwise the error
-+ * pointers returned by the following functions:
-+ *
-+ * eventfd_fget
++ * Returns: In case of success, it returns a pointer to the internal eventfd
++ *          context, otherwise a proper error code.
 + */
 +struct eventfd_ctx *eventfd_ctx_fdget(int fd)
 +{
@@ -320,10 +310,8 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
 + * eventfd_ctx_fileget - Acquires a reference to the internal eventfd context.
 + * @file: [in] Eventfd file pointer.
 + *
-+ * Returns a pointer to the internal eventfd context, otherwise the error
-+ * pointer:
-+ *
-+ * -EINVAL   : The @fd file descriptor is not an eventfd file.
++ * Returns: In case of success, it returns a pointer to the internal eventfd
++ *          context, otherwise a proper error code.
 + */
 +struct eventfd_ctx *eventfd_ctx_fileget(struct file *file)
 +{
@@ -337,7 +325,7 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
  SYSCALL_DEFINE2(eventfd2, unsigned int, count, int, flags)
  {
  	int fd;
-@@ -217,6 +314,7 @@ SYSCALL_DEFINE2(eventfd2, unsigned int, 
+@@ -217,6 +307,7 @@ SYSCALL_DEFINE2(eventfd2, unsigned int, 
  	if (!ctx)
  		return -ENOMEM;
  
@@ -345,8 +333,8 @@ diff -puN fs/eventfd.c~eventfd-revised-interface-and-cleanups-4th-rev fs/eventfd
  	init_waitqueue_head(&ctx->wqh);
  	ctx->count = count;
  	ctx->flags = flags;
-diff -puN include/linux/aio.h~eventfd-revised-interface-and-cleanups-4th-rev include/linux/aio.h
---- a/include/linux/aio.h~eventfd-revised-interface-and-cleanups-4th-rev
+diff -puN include/linux/aio.h~eventfd-revised-interface-and-cleanups-2nd-rev include/linux/aio.h
+--- a/include/linux/aio.h~eventfd-revised-interface-and-cleanups-2nd-rev
 +++ a/include/linux/aio.h
 @@ -121,9 +121,9 @@ struct kiocb {
  
@@ -360,8 +348,8 @@ diff -puN include/linux/aio.h~eventfd-revised-interface-and-cleanups-4th-rev inc
  };
  
  #define is_sync_kiocb(iocb)	((iocb)->ki_key == KIOCB_SYNC_KEY)
-diff -puN include/linux/eventfd.h~eventfd-revised-interface-and-cleanups-4th-rev include/linux/eventfd.h
---- a/include/linux/eventfd.h~eventfd-revised-interface-and-cleanups-4th-rev
+diff -puN include/linux/eventfd.h~eventfd-revised-interface-and-cleanups-2nd-rev include/linux/eventfd.h
+--- a/include/linux/eventfd.h~eventfd-revised-interface-and-cleanups-2nd-rev
 +++ a/include/linux/eventfd.h
 @@ -8,10 +8,8 @@
  #ifndef _LINUX_EVENTFD_H
@@ -375,49 +363,39 @@ diff -puN include/linux/eventfd.h~eventfd-revised-interface-and-cleanups-4th-rev
  
  /*
   * CAREFUL: Check include/asm-generic/fcntl.h when defining
-@@ -27,16 +25,37 @@
+@@ -27,16 +25,12 @@
  #define EFD_SHARED_FCNTL_FLAGS (O_CLOEXEC | O_NONBLOCK)
  #define EFD_FLAGS_SET (EFD_SHARED_FCNTL_FLAGS | EFD_SEMAPHORE)
  
-+#ifdef CONFIG_EVENTFD
-+
 +struct eventfd_ctx *eventfd_ctx_get(struct eventfd_ctx *ctx);
 +void eventfd_ctx_put(struct eventfd_ctx *ctx);
  struct file *eventfd_fget(int fd);
 -int eventfd_signal(struct file *file, int n);
+-
+-#else /* CONFIG_EVENTFD */
+-
+-#define eventfd_fget(fd) ERR_PTR(-ENOSYS)
+-static inline int eventfd_signal(struct file *file, int n)
+-{ return 0; }
+-
+-#endif /* CONFIG_EVENTFD */
 +struct eventfd_ctx *eventfd_ctx_fdget(int fd);
 +struct eventfd_ctx *eventfd_ctx_fileget(struct file *file);
 +int eventfd_signal(struct eventfd_ctx *ctx, int n);
  
- #else /* CONFIG_EVENTFD */
- 
--#define eventfd_fget(fd) ERR_PTR(-ENOSYS)
--static inline int eventfd_signal(struct file *file, int n)
--{ return 0; }
-+/*
-+ * Ugly ugly ugly error layer to support modules that uses eventfd but
-+ * pretend to work in !CONFIG_EVENTFD configurations. Namely, AIO.
-+ */
-+static inline struct eventfd_ctx *eventfd_ctx_fdget(int fd)
-+{
-+	return ERR_PTR(-ENOSYS);
-+}
-+
-+static inline int eventfd_signal(struct eventfd_ctx *ctx, int n)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline void eventfd_ctx_put(struct eventfd_ctx *ctx)
-+{
-+
-+}
- 
--#endif /* CONFIG_EVENTFD */
-+#endif
- 
  #endif /* _LINUX_EVENTFD_H */
  
+diff -puN init/Kconfig~eventfd-revised-interface-and-cleanups-2nd-rev init/Kconfig
+--- a/init/Kconfig~eventfd-revised-interface-and-cleanups-2nd-rev
++++ a/init/Kconfig
+@@ -925,6 +925,7 @@ config SHMEM
+ 
+ config AIO
+ 	bool "Enable AIO support" if EMBEDDED
++	select EVENTFD
+ 	default y
+ 	help
+ 	  This option enables POSIX asynchronous I/O which may by used
 _
 
 Patches currently in -mm which might be from davidel@xmailserver.org are
