@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-fix-2630-smp-build.patch added to -mm tree
-Date: Thu, 25 Jun 2009 11:56:35 -0700
-Message-ID: <200906251856.n5PIuZqi022653@imap1.linux-foundation.org>
+Subject: + kernel-core-add-smp_call_function_any-update.patch added to -mm tree
+Date: Thu, 25 Jun 2009 12:08:27 -0700
+Message-ID: <200906251908.n5PJ8ROe004832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752191AbZFYS5l (ORCPT
+	by vger.kernel.org with ESMTP id S1757011AbZFYTLU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jun 2009 14:57:41 -0400
+	Thu, 25 Jun 2009 15:11:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: max@stro.at, ink@jurassic.park.msu.ru, rth@twiddle.net, stable@kernel.org, tj@kernel.org
+Cc: rusty@rustcorp.com.au, davej@redhat.com, efault@gmx.de, jaswinder@kernel.org, len.brown@intel.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
 
 
 The patch titled
-     alpha: fix 2.6.30 smp build
+     kernel-core-add-smp_call_function_any-update
 has been added to the -mm tree.  Its filename is
-     alpha-fix-2630-smp-build.patch
+     kernel-core-add-smp_call_function_any-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: fix 2.6.30 smp build
-From: maximilian attems <max@stro.at>
+Subject: kernel-core-add-smp_call_function_any-update
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-In file included from include/linux/percpu.h:10,
-                 from /usr/src/devel/arch/alpha/include/asm/local.h:4,
-                 from include/linux/module.h:20,
-                 from arch/alpha/kernel/srm_env.c:33:
-arch/alpha/include/asm/percpu.h:100:1: error: "PER_CPU_ATTRIBUTES" redefined
-arch/alpha/include/asm/percpu.h:52:1: error: this is the location of the previous definition
+Updated header comment and implementation comment.
 
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/percpu.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/smp.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/alpha/include/asm/percpu.h~alpha-fix-2630-smp-build arch/alpha/include/asm/percpu.h
---- a/arch/alpha/include/asm/percpu.h~alpha-fix-2630-smp-build
-+++ a/arch/alpha/include/asm/percpu.h
-@@ -95,8 +95,8 @@ extern unsigned long __per_cpu_offset[NR
- #define PER_CPU_SHARED_ALIGNED_SECTION ""
- #define PER_CPU_FIRST_SECTION ""
+diff -puN kernel/smp.c~kernel-core-add-smp_call_function_any-update kernel/smp.c
+--- a/kernel/smp.c~kernel-core-add-smp_call_function_any-update
++++ a/kernel/smp.c
+@@ -322,9 +322,9 @@ EXPORT_SYMBOL(smp_call_function_single);
+  * @info: An arbitrary pointer to pass to the function.
+  * @wait: If true, wait until function has completed.
+  *
+- * Returns 0 on success, else a negative status code. Note that @wait
+- * will be implicitly turned on in case of allocation failures, since
+- * we fall back to on-stack allocation.
++ * Returns 0 on success, else a negative status code (if no cpus were online).
++ * Note that @wait will be implicitly turned on in case of allocation failures,
++ * since we fall back to on-stack allocation.
+  */
+ int smp_call_function_any(const struct cpumask *mask,
+ 			  void (*func)(void *info), void *info, int wait)
+@@ -346,7 +346,7 @@ int smp_call_function_any(const struct c
+ 			goto call;
+ 	}
  
--#endif
+-	/* Any online will do. */
++	/* Any online will do: smp_call_function_single handles nr_cpu_ids. */
+ 	cpu = cpumask_any_and(mask, cpu_online_mask);
+ call:
+ 	ret = smp_call_function_single(cpu, func, info, wait);
+_
+
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
+
+eventfd-revised-interface-and-cleanups-4th-rev.patch
+linux-next.patch
+kernel-core-add-smp_call_function_any.patch
+kernel-core-add-smp_call_function_any-update.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+reiser4.patch
+
