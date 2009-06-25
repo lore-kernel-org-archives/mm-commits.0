@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch added to -mm tree
-Date: Wed, 24 Jun 2009 17:08:02 -0700
-Message-ID: <200906250008.n5P082rr004858@imap1.linux-foundation.org>
+Subject: + omapfb-add-support-for-the-omap3-evm-lcd.patch added to -mm tree
+Date: Wed, 24 Jun 2009 17:07:51 -0700
+Message-ID: <200906250007.n5P07pkK004666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756325AbZFYAIj (ORCPT
+	by vger.kernel.org with ESMTP id S1756186AbZFYAIi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jun 2009 20:08:39 -0400
+	Wed, 24 Jun 2009 20:08:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rodrigo.vivi@openbossa.org, imre.deak@nokia.com, krzysztof.h1@wp.pl, siarhei.siamashka@nokia.com, tony@atomide.com
+Cc: steve@sakoman.com, arunedarath@mistralsolutions.com, dbrownell@users.sourceforge.net, imre.deak@nokia.com, jarkko.nikula@gmail.com, khasim@ti.com, krzysztof.h1@wp.pl, tony@atomide.com
 
 
 The patch titled
-     omapfb: add support for rotation on the Blizzard LCD ctrl
+     omapfb: add support for the OMAP3 EVM LCD
 has been added to the -mm tree.  Its filename is
-     omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
+     omapfb-add-support-for-the-omap3-evm-lcd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,281 +34,239 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omapfb: add support for rotation on the Blizzard LCD ctrl
-From: Rodrigo Vivi <rodrigo.vivi@openbossa.org>
+Subject: omapfb: add support for the OMAP3 EVM LCD
+From: Steve Sakoman <steve@sakoman.com>
 
-The LCD controller (EPSON S1D13744) supports rotation (0, 90, 180 and 270
-degrees) on hardware just setting the bits 0 and 1 of 0x28 register (LCD
-Panel Configuration Register).  Now it is possible to use this caps only
-setting the angle degree on var rotate of fb_var_screeninfo using the
-FBIOPUT_VSCREENINFO ioctl.
+Add LCD support for OMAP3 EVM
 
-Fixed-by: Siarhei Siamashka <siarhei.siamashka@nokia.com>
-Signed-off-by: Rodrigo Vivi <rodrigo.vivi@openbossa.org>
+Backlight support by Arun C <arunedarath@mistralsolutions.com>
+
+Fixed-by: Jarkko Nikula <jarkko.nikula@gmail.com>
+Fixed-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+Acked-by: Syed Mohammed Khasim <khasim@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Imre Deak <imre.deak@nokia.com>
 Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap/blizzard.c    |   91 +++++++++++++++++++++++++++--
- drivers/video/omap/omapfb_main.c |   52 ++++++++++++----
- 2 files changed, 124 insertions(+), 19 deletions(-)
+ drivers/video/omap/Makefile       |    1 
+ drivers/video/omap/lcd_omap3evm.c |  192 ++++++++++++++++++++++++++++
+ 2 files changed, 193 insertions(+)
 
-diff -puN drivers/video/omap/blizzard.c~omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl drivers/video/omap/blizzard.c
---- a/drivers/video/omap/blizzard.c~omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl
-+++ a/drivers/video/omap/blizzard.c
-@@ -44,6 +44,7 @@
- #define BLIZZARD_CLK_SRC			0x0e
- #define BLIZZARD_MEM_BANK0_ACTIVATE		0x10
- #define BLIZZARD_MEM_BANK0_STATUS		0x14
-+#define BLIZZARD_PANEL_CONFIGURATION		0x28
- #define BLIZZARD_HDISP				0x2a
- #define BLIZZARD_HNDP				0x2c
- #define BLIZZARD_VDISP0				0x2e
-@@ -162,6 +163,10 @@ struct blizzard_struct {
- 	int			vid_scaled;
- 	int			last_color_mode;
- 	int			zoom_on;
-+	int			zoom_area_gx1;
-+	int			zoom_area_gx2;
-+	int			zoom_area_gy1;
-+	int			zoom_area_gy2;
- 	int			screen_width;
- 	int			screen_height;
- 	unsigned		te_connected:1;
-@@ -513,6 +518,13 @@ static int do_full_screen_update(struct 
- 	return REQ_PENDING;
- }
+diff -puN drivers/video/omap/Makefile~omapfb-add-support-for-the-omap3-evm-lcd drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omapfb-add-support-for-the-omap3-evm-lcd
++++ a/drivers/video/omap/Makefile
+@@ -30,6 +30,7 @@ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd
+ objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+ objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
+ objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
++objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
  
-+static int check_1d_intersect(int a1, int a2, int b1, int b2)
+ omapfb-objs := $(objs-yy)
+diff -puN /dev/null drivers/video/omap/lcd_omap3evm.c
+--- /dev/null
++++ a/drivers/video/omap/lcd_omap3evm.c
+@@ -0,0 +1,192 @@
++/*
++ * LCD panel support for the TI OMAP3 EVM board
++ *
++ * Author: Steve Sakoman <steve@sakoman.com>
++ *
++ * Derived from drivers/video/omap/lcd-apollon.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/gpio.h>
++#include <linux/i2c/twl4030.h>
++
++#include <mach/mux.h>
++#include <mach/omapfb.h>
++#include <asm/mach-types.h>
++
++#define LCD_PANEL_ENABLE_GPIO       153
++#define LCD_PANEL_LR                2
++#define LCD_PANEL_UD                3
++#define LCD_PANEL_INI               152
++#define LCD_PANEL_QVGA              154
++#define LCD_PANEL_RESB              155
++
++#define ENABLE_VDAC_DEDICATED	0x03
++#define ENABLE_VDAC_DEV_GRP	0x20
++#define ENABLE_VPLL2_DEDICATED	0x05
++#define ENABLE_VPLL2_DEV_GRP	0xE0
++
++#define TWL_LED_LEDEN		0x00
++#define TWL_PWMA_PWMAON		0x00
++#define TWL_PWMA_PWMAOFF	0x01
++
++static unsigned int bklight_level;
++
++static int omap3evm_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
 +{
-+	if (a2 <= b1 || b2 <= a1)
-+		return 0;
-+	return 1;
-+}
++	gpio_request(LCD_PANEL_LR, "LCD lr");
++	gpio_request(LCD_PANEL_UD, "LCD ud");
++	gpio_request(LCD_PANEL_INI, "LCD ini");
++	gpio_request(LCD_PANEL_RESB, "LCD resb");
++	gpio_request(LCD_PANEL_QVGA, "LCD qvga");
 +
- /* Setup all planes with an overlapping area with the update window. */
- static int do_partial_update(struct blizzard_request *req, int plane,
- 			     int x, int y, int w, int h,
-@@ -525,6 +537,7 @@ static int do_partial_update(struct bliz
- 	int color_mode;
- 	int flags;
- 	int zoom_off;
-+	int have_zoom_for_this_update = 0;
- 
- 	/* Global coordinates, relative to pixel 0,0 of the LCD */
- 	gx1 = x + blizzard.plane[plane].pos_x;
-@@ -544,10 +557,6 @@ static int do_partial_update(struct bliz
- 		gx2_out = gx1_out + w_out;
- 		gy2_out = gy1_out + h_out;
- 	}
--	zoom_off = blizzard.zoom_on && gx1 == 0 && gy1 == 0 &&
--		w == blizzard.screen_width && h == blizzard.screen_height;
--	blizzard.zoom_on = (!zoom_off && blizzard.zoom_on) ||
--			   (w < w_out || h < h_out);
- 
- 	for (i = 0; i < OMAPFB_PLANE_NUM; i++) {
- 		struct plane_info *p = &blizzard.plane[i];
-@@ -653,8 +662,49 @@ static int do_partial_update(struct bliz
- 	else
- 		disable_tearsync();
- 
-+	if ((gx2_out - gx1_out) != (gx2 - gx1) ||
-+	    (gy2_out - gy1_out) != (gy2 - gy1))
-+		have_zoom_for_this_update = 1;
++	gpio_direction_output(LCD_PANEL_RESB, 1);
++	gpio_direction_output(LCD_PANEL_INI, 1);
++	gpio_direction_output(LCD_PANEL_QVGA, 0);
++	gpio_direction_output(LCD_PANEL_LR, 1);
++	gpio_direction_output(LCD_PANEL_UD, 1);
 +
-+	/* 'background' type of screen update (as opposed to 'destructive')
-+	   can be used to disable scaling if scaling is active */
-+	zoom_off = blizzard.zoom_on && !have_zoom_for_this_update &&
-+	    (gx1_out == 0) && (gx2_out == blizzard.screen_width) &&
-+	    (gy1_out == 0) && (gy2_out == blizzard.screen_height) &&
-+	    (gx1 == 0) && (gy1 == 0);
-+
-+	if (blizzard.zoom_on && !have_zoom_for_this_update && !zoom_off &&
-+	    check_1d_intersect(blizzard.zoom_area_gx1, blizzard.zoom_area_gx2,
-+			       gx1_out, gx2_out) &&
-+	    check_1d_intersect(blizzard.zoom_area_gy1, blizzard.zoom_area_gy2,
-+			       gy1_out, gy2_out)) {
-+		/* Previous screen update was using scaling, current update
-+		 * is not using it. Additionally, current screen update is
-+		 * going to overlap with the scaled area. Scaling needs to be
-+		 * disabled in order to avoid 'magnifying glass' effect.
-+		 * Dummy setup of background window can be used for this.
-+		 */
-+		set_window_regs(0, 0, blizzard.screen_width,
-+				blizzard.screen_height,
-+				0, 0, blizzard.screen_width,
-+				blizzard.screen_height,
-+				BLIZZARD_COLOR_RGB565, 1, flags);
-+		blizzard.zoom_on = 0;
-+	}
-+
-+	/* remember scaling settings if we have scaled update */
-+	if (have_zoom_for_this_update) {
-+		blizzard.zoom_on = 1;
-+		blizzard.zoom_area_gx1 = gx1_out;
-+		blizzard.zoom_area_gx2 = gx2_out;
-+		blizzard.zoom_area_gy1 = gy1_out;
-+		blizzard.zoom_area_gy2 = gy2_out;
-+	}
-+
- 	set_window_regs(gx1, gy1, gx2, gy2, gx1_out, gy1_out, gx2_out, gy2_out,
- 			color_mode, zoom_off, flags);
-+	if (zoom_off)
-+		blizzard.zoom_on = 0;
- 
- 	blizzard.extif->set_bits_per_cycle(16);
- 	/* set_window_regs has left the register index at the right
-@@ -908,6 +958,35 @@ static int blizzard_set_scale(int plane,
- 	return 0;
- }
- 
-+static int blizzard_set_rotate(int angle)
-+{
-+	u32 l;
-+
-+	l = blizzard_read_reg(BLIZZARD_PANEL_CONFIGURATION);
-+	l &= ~0x03;
-+
-+	switch (angle) {
-+	case 0:
-+		l = l | 0x00;
-+		break;
-+	case 90:
-+		l = l | 0x03;
-+		break;
-+	case 180:
-+		l = l | 0x02;
-+		break;
-+	case 270:
-+		l = l | 0x01;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	blizzard_write_reg(BLIZZARD_PANEL_CONFIGURATION, l);
++	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
++	bklight_level = 100;
 +
 +	return 0;
 +}
 +
- static int blizzard_enable_plane(int plane, int enable)
- {
- 	if (enable)
-@@ -1285,7 +1364,8 @@ static void blizzard_get_caps(int plane,
- 	caps->ctrl |= OMAPFB_CAPS_MANUAL_UPDATE |
- 		OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE |
- 		OMAPFB_CAPS_WINDOW_SCALE |
--		OMAPFB_CAPS_WINDOW_OVERLAY;
-+		OMAPFB_CAPS_WINDOW_OVERLAY |
-+		OMAPFB_CAPS_WINDOW_ROTATE;
- 	if (blizzard.te_connected)
- 		caps->ctrl |= OMAPFB_CAPS_TEARSYNC;
- 	caps->wnd_color |= (1 << OMAPFB_COLOR_RGB565) |
-@@ -1560,6 +1640,7 @@ struct lcd_ctrl blizzard_ctrl = {
- 	.setup_plane		= blizzard_setup_plane,
- 	.set_scale		= blizzard_set_scale,
- 	.enable_plane		= blizzard_enable_plane,
-+	.set_rotate		= blizzard_set_rotate,
- 	.update_window		= blizzard_update_window_async,
- 	.sync			= blizzard_sync,
- 	.suspend		= blizzard_suspend,
-diff -puN drivers/video/omap/omapfb_main.c~omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl drivers/video/omap/omapfb_main.c
---- a/drivers/video/omap/omapfb_main.c~omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl
-+++ a/drivers/video/omap/omapfb_main.c
-@@ -67,6 +67,7 @@ static struct caps_table_struct ctrl_cap
- 	{ OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE, "pixel double window" },
- 	{ OMAPFB_CAPS_WINDOW_SCALE,   "scale window" },
- 	{ OMAPFB_CAPS_WINDOW_OVERLAY, "overlay window" },
-+	{ OMAPFB_CAPS_WINDOW_ROTATE,  "rotate window" },
- 	{ OMAPFB_CAPS_SET_BACKLIGHT,  "backlight setting" },
- };
- 
-@@ -215,6 +216,15 @@ static int ctrl_change_mode(struct fb_in
- 				 offset, var->xres_virtual,
- 				 plane->info.pos_x, plane->info.pos_y,
- 				 var->xres, var->yres, plane->color_mode);
-+	if (r < 0)
-+		return r;
++static void omap3evm_panel_cleanup(struct lcd_panel *panel)
++{
++	gpio_free(LCD_PANEL_QVGA);
++	gpio_free(LCD_PANEL_RESB);
++	gpio_free(LCD_PANEL_INI);
++	gpio_free(LCD_PANEL_UD);
++	gpio_free(LCD_PANEL_LR);
++}
 +
-+	if (fbdev->ctrl->set_rotate != NULL) {
-+		r = fbdev->ctrl->set_rotate(var->rotate);
-+		if (r < 0)
-+			return r;
++static int omap3evm_panel_enable(struct lcd_panel *panel)
++{
++	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 0);
++	return 0;
++}
++
++static void omap3evm_panel_disable(struct lcd_panel *panel)
++{
++	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 1);
++}
++
++static unsigned long omap3evm_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
++						unsigned int level)
++{
++	u8 c;
++	if ((level >= 0) && (level <= 100)) {
++		c = (125 * (100 - level)) / 100 + 2;
++		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
++		bklight_level = level;
 +	}
++	return 0;
++}
 +
- 	if (fbdev->ctrl->set_scale != NULL)
- 		r = fbdev->ctrl->set_scale(plane->idx,
- 				   var->xres, var->yres,
-@@ -600,7 +610,7 @@ static void omapfb_rotate(struct fb_info
- 	struct omapfb_device *fbdev = plane->fbdev;
- 
- 	omapfb_rqueue_lock(fbdev);
--	if (cpu_is_omap15xx() && rotate != fbi->var.rotate) {
-+	if (rotate != fbi->var.rotate) {
- 		struct fb_var_screeninfo *new_var = &fbdev->new_var;
- 
- 		memcpy(new_var, &fbi->var, sizeof(*new_var));
-@@ -707,28 +717,42 @@ int omapfb_update_window_async(struct fb
- 				void (*callback)(void *),
- 				void *callback_data)
- {
-+	int xres, yres;
- 	struct omapfb_plane_struct *plane = fbi->par;
- 	struct omapfb_device *fbdev = plane->fbdev;
--	struct fb_var_screeninfo *var;
-+	struct fb_var_screeninfo *var = &fbi->var;
++static unsigned int omap3evm_bklight_getlevel(struct lcd_panel *panel)
++{
++	return bklight_level;
++}
 +
-+	switch (var->rotate) {
-+	case 0:
-+	case 180:
-+		xres = fbdev->panel->x_res;
-+		yres = fbdev->panel->y_res;
-+		break;
-+	case 90:
-+	case 270:
-+		xres = fbdev->panel->y_res;
-+		yres = fbdev->panel->x_res;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 
--	var = &fbi->var;
--	if (win->x >= var->xres || win->y >= var->yres ||
--	    win->out_x > var->xres || win->out_y >= var->yres)
-+	if (win->x >= xres || win->y >= yres ||
-+	    win->out_x > xres || win->out_y > yres)
- 		return -EINVAL;
- 
- 	if (!fbdev->ctrl->update_window ||
- 	    fbdev->ctrl->get_update_mode() != OMAPFB_MANUAL_UPDATE)
- 		return -ENODEV;
- 
--	if (win->x + win->width >= var->xres)
--		win->width = var->xres - win->x;
--	if (win->y + win->height >= var->yres)
--		win->height = var->yres - win->y;
--	/* The out sizes should be cropped to the LCD size */
--	if (win->out_x + win->out_width > fbdev->panel->x_res)
--		win->out_width = fbdev->panel->x_res - win->out_x;
--	if (win->out_y + win->out_height > fbdev->panel->y_res)
--		win->out_height = fbdev->panel->y_res - win->out_y;
-+	if (win->x + win->width > xres)
-+		win->width = xres - win->x;
-+	if (win->y + win->height > yres)
-+		win->height = yres - win->y;
-+	if (win->out_x + win->out_width > xres)
-+		win->out_width = xres - win->out_x;
-+	if (win->out_y + win->out_height > yres)
-+		win->out_height = yres - win->out_y;
- 	if (!win->width || !win->height || !win->out_width || !win->out_height)
- 		return 0;
- 
++static unsigned int omap3evm_bklight_getmaxlevel(struct lcd_panel *panel)
++{
++	return 100;
++}
++
++struct lcd_panel omap3evm_panel = {
++	.name		= "omap3evm",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_HSYNC,
++
++	.bpp		= 16,
++	.data_lines	= 18,
++	.x_res		= 480,
++	.y_res		= 640,
++	.hsw		= 3,		/* hsync_len (4) - 1 */
++	.hfp		= 3,		/* right_margin (4) - 1 */
++	.hbp		= 39,		/* left_margin (40) - 1 */
++	.vsw		= 1,		/* vsync_len (2) - 1 */
++	.vfp		= 2,		/* lower_margin */
++	.vbp		= 7,		/* upper_margin (8) - 1 */
++
++	.pixel_clock	= 26000,
++
++	.init		= omap3evm_panel_init,
++	.cleanup	= omap3evm_panel_cleanup,
++	.enable		= omap3evm_panel_enable,
++	.disable	= omap3evm_panel_disable,
++	.get_caps	= omap3evm_panel_get_caps,
++	.set_bklight_level      = omap3evm_bklight_setlevel,
++	.get_bklight_level      = omap3evm_bklight_getlevel,
++	.get_bklight_max        = omap3evm_bklight_getmaxlevel,
++};
++
++static int omap3evm_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&omap3evm_panel);
++	return 0;
++}
++
++static int omap3evm_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int omap3evm_panel_suspend(struct platform_device *pdev,
++				   pm_message_t mesg)
++{
++	return 0;
++}
++
++static int omap3evm_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver omap3evm_panel_driver = {
++	.probe		= omap3evm_panel_probe,
++	.remove		= omap3evm_panel_remove,
++	.suspend	= omap3evm_panel_suspend,
++	.resume		= omap3evm_panel_resume,
++	.driver		= {
++		.name	= "omap3evm_lcd",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init omap3evm_panel_drv_init(void)
++{
++	return platform_driver_register(&omap3evm_panel_driver);
++}
++
++static void __exit omap3evm_panel_drv_exit(void)
++{
++	platform_driver_unregister(&omap3evm_panel_driver);
++}
++
++module_init(omap3evm_panel_drv_init);
++module_exit(omap3evm_panel_drv_exit);
 _
 
-Patches currently in -mm which might be from rodrigo.vivi@openbossa.org are
+Patches currently in -mm which might be from steve@sakoman.com are
 
-omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
+omapfb-add-support-for-the-omap3-evm-lcd.patch
+omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
+omapfb-add-support-for-the-gumstix-overo-lcd.patch
 
