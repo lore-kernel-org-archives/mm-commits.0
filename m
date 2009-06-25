@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-edac-i82975x.patch added to -mm tree
-Date: Thu, 25 Jun 2009 12:31:07 -0700
-Message-ID: <200906251931.n5PJV7GO029332@imap1.linux-foundation.org>
+Subject: + cpusets-document-adding-removing-cpus-to-cpuset-elaborately.patch added to -mm tree
+Date: Thu, 25 Jun 2009 12:45:44 -0700
+Message-ID: <200906251945.n5PJjiJq012696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43397 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758951AbZFYTbk (ORCPT
+	by vger.kernel.org with ESMTP id S1753248AbZFYTqZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jun 2009 15:31:40 -0400
+	Thu, 25 Jun 2009 15:46:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, arvind@jetztechnologies.com, norsk5@yahoo.com, ravi@jetztechnologies.com
+Cc: knikanth@suse.de, lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     MAINTAINERS: update EDAC-I82975X
+     cpusets: document adding/removing cpus to cpuset elaborately
 has been added to the -mm tree.  Its filename is
-     maintainers-update-edac-i82975x.patch
+     cpusets-document-adding-removing-cpus-to-cpuset-elaborately.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update EDAC-I82975X
-From: Joe Perches <joe@perches.com>
+Subject: cpusets: document adding/removing cpus to cpuset elaborately
+From: Nikanth Karthikesan <knikanth@suse.de>
 
-As per Ranganathan's request.
+By writing a tasks's pid to the file, a process adds that task to that
+cgroup/cpuset.  But to add a cpu/mem to a cpuset, the new list of cpus
+should be written to the cpuset.mems file which would replace the old list
+of cpus.  Make this clearer in the documentation.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Ranganathan Desikan <ravi@jetztechnologies.com>
-Cc: Arvind R. <arvind@jetztechnologies.com>
-Cc: Doug Thompson <norsk5@yahoo.com>
+Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/cgroups/cpusets.txt |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-update-edac-i82975x MAINTAINERS
---- a/MAINTAINERS~maintainers-update-edac-i82975x
-+++ a/MAINTAINERS
-@@ -2087,9 +2087,9 @@ F:	drivers/edac/i5400_edac.c
+diff -puN Documentation/cgroups/cpusets.txt~cpusets-document-adding-removing-cpus-to-cpuset-elaborately Documentation/cgroups/cpusets.txt
+--- a/Documentation/cgroups/cpusets.txt~cpusets-document-adding-removing-cpus-to-cpuset-elaborately
++++ a/Documentation/cgroups/cpusets.txt
+@@ -777,6 +777,18 @@ in cpuset directories:
+ # /bin/echo 1-4 > cpus		-> set cpus list to cpus 1,2,3,4
+ # /bin/echo 1,2,3,4 > cpus	-> set cpus list to cpus 1,2,3,4
  
- EDAC-I82975X
- P:	Ranganathan Desikan
--M:	rdesikan@jetzbroadband.com
-+M:	ravi@jetztechnologies.com
- P:	Arvind R.
--M:	arvind@acarlab.com
-+M:	arvind@jetztechnologies.com
- L:	bluesmoke-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	bluesmoke.sourceforge.net
- S:	Maintained
++To add a CPU to a cpuset, write the new list of CPUs including the
++CPU to be added. To add 6 to the above cpuset:
++
++# /bin/echo 1-4,6 > cpus	-> set cpus list to cpus 1,2,3,4,6
++
++Similarly to remove a CPU from a cpuset, write the new list of CPUs
++without the CPU to be removed.
++
++To remove all the CPUs:
++
++# /bin/echo "" > cpus		-> clear cpus list
++
+ 2.3 Setting flags
+ -----------------
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from knikanth@suse.de are
 
-maintainers-update-edac-i82975x.patch
-linux-next.patch
-maintainers-starfire-duralan-update.patch
+cpusets-document-adding-removing-cpus-to-cpuset-elaborately.patch
 
