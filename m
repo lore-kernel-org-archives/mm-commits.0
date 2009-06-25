@@ -1,110 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-fix-__ctors_start-alignment.patch added to -mm tree
-Date: Thu, 25 Jun 2009 08:46:32 -0700
-Message-ID: <200906251546.n5PFkWXc009529@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 25 Jun 2009 10:24:34 -0700
+Message-ID: <200906251724.n5PHOYoi018231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752423AbZFYPrN (ORCPT
+	by vger.kernel.org with ESMTP id S1752600AbZFYRYv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jun 2009 11:47:13 -0400
+	Thu, 25 Jun 2009 13:24:51 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n5PHOZrj015222
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2009 10:24:36 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, mingo@elte.hu, oberpar@linux.vnet.ibm.com, schwidefsky@de.ibm.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gcov: fix __ctors_start alignment
-has been added to the -mm tree.  Its filename is
-     gcov-fix-__ctors_start-alignment.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcov: fix __ctors_start alignment
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The ctors section for each object file is eight byte aligned (on 64 bit). 
-However the __ctors_start symbol starts at an arbitrary address dependent
-on the size of the previous sections.
-
-Therefore the linker may add some zeroes after __ctors_start to make sure
-the ctors contents are properly aligned.  However the extra zeroes at the
-beginning aren't expected by the code.  When walking the functions
-pointers contained in there and extra zeroes are added this may result in
-random jumps.  So make sure that the __ctors_start symbol is always
-aligned as well.
-
-Fixes this crash on an allyesconfig on s390:
-
-[    0.582482] Kernel BUG at 0000000000000012 [verbose debug info unavailable]
-[    0.582489] illegal operation: 0001 [#1] SMP DEBUG_PAGEALLOC
-[    0.582496] Modules linked in:
-[    0.582501] CPU: 0 Tainted: G        W  2.6.31-rc1-dirty #273
-[    0.582506] Process swapper (pid: 1, task: 000000003f218000, ksp: 000000003f2238e8)
-[    0.582510] Krnl PSW : 0704200180000000 0000000000000012 (0x12)
-[    0.582518]            R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:0 CC:2 PM:0 EA:3
-[    0.582524] Krnl GPRS: 0000000000036727 0000000000000010 0000000000000001 0000000000000001
-[    0.582529]            00000000001dfefa 0000000000000000 0000000000000000 0000000000000040
-[    0.582534]            0000000001fff0f0 0000000001790628 0000000002296048 0000000002296048
-[    0.582540]            00000000020c438e 0000000001786000 0000000002014a66 000000003f223e60
-[    0.582553] Krnl Code:>0000000000000012: 0000                unknown
-[    0.582559]            0000000000000014: 0000                unknown
-[    0.582564]            0000000000000016: 0000                unknown
-[    0.582570]            0000000000000018: 0000                unknown
-[    0.582575]            000000000000001a: 0000                unknown
-[    0.582580]            000000000000001c: 0000                unknown
-[    0.582585]            000000000000001e: 0000                unknown
-[    0.582591]            0000000000000020: 0000                unknown
-[    0.582596] Call Trace:
-[    0.582599] ([<0000000002014a46>] kernel_init+0x622/0x7a0)
-[    0.582607]  [<0000000000113e22>] kernel_thread_starter+0x6/0xc
-[    0.582615]  [<0000000000113e1c>] kernel_thread_starter+0x0/0xc
-[    0.582621] INFO: lockdep is turned off.
-[    0.582624] Last Breaking-Event-Address:
-[    0.582627]  [<0000000002014a64>] kernel_init+0x640/0x7a0
-
-Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/platform/x86/eeepc-laptop.c |   19 --------------
+ fs/fs-writeback.c                   |   35 --------------------------
+ 2 files changed, 54 deletions(-)
 
-diff -puN include/asm-generic/vmlinux.lds.h~gcov-fix-__ctors_start-alignment include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~gcov-fix-__ctors_start-alignment
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -441,7 +441,8 @@
- 	}
+diff -puN drivers/platform/x86/eeepc-laptop.c~linux-next-git-rejects drivers/platform/x86/eeepc-laptop.c
+--- a/drivers/platform/x86/eeepc-laptop.c~linux-next-git-rejects
++++ a/drivers/platform/x86/eeepc-laptop.c
+@@ -191,13 +191,8 @@ static struct key_entry eeepc_keymap[] =
+  */
+ static int eeepc_hotk_add(struct acpi_device *device);
+ static int eeepc_hotk_remove(struct acpi_device *device, int type);
+-<<<<<<< HEAD:drivers/platform/x86/eeepc-laptop.c
+-static int eeepc_hotk_resume(struct acpi_device *device);
+-static void eeepc_hotk_notify(struct acpi_device *device, u32 event);
+-=======
+ static void eeepc_hotk_notify(struct acpi_device *device, u32 event);
+ static int eeepc_hotk_resume(struct acpi_device *device);
+->>>>>>> FETCH_HEAD:drivers/platform/x86/eeepc-laptop.c
  
- #ifdef CONFIG_CONSTRUCTORS
--#define KERNEL_CTORS()	VMLINUX_SYMBOL(__ctors_start) = .; \
-+#define KERNEL_CTORS()	. = ALIGN(8);			   \
-+			VMLINUX_SYMBOL(__ctors_start) = .; \
- 			*(.ctors)			   \
- 			VMLINUX_SYMBOL(__ctors_end) = .;
- #else
+ static const struct acpi_device_id eeepc_device_ids[] = {
+ 	{EEEPC_HOTK_HID, 0},
+@@ -213,13 +208,8 @@ static struct acpi_driver eeepc_hotk_dri
+ 	.ops = {
+ 		.add = eeepc_hotk_add,
+ 		.remove = eeepc_hotk_remove,
+-<<<<<<< HEAD:drivers/platform/x86/eeepc-laptop.c
+-		.resume = eeepc_hotk_resume,
+-		.notify = eeepc_hotk_notify,
+-=======
+ 		.notify = eeepc_hotk_notify,
+ 		.resume = eeepc_hotk_resume,
+->>>>>>> FETCH_HEAD:drivers/platform/x86/eeepc-laptop.c
+ 	},
+ };
+ 
+@@ -1197,15 +1187,6 @@ static int __init eeepc_laptop_init(void
+ 
+ 	eeepc_enable_camera();
+ 
+-<<<<<<< HEAD:drivers/platform/x86/eeepc-laptop.c
+-	result = eeepc_hwmon_init(dev);
+-	if (result)
+-		goto fail_hwmon;
+-
+-	eeepc_enable_camera();
+-
+-=======
+->>>>>>> FETCH_HEAD:drivers/platform/x86/eeepc-laptop.c
+ 	/* Register platform stuff */
+ 	result = platform_driver_register(&platform_driver);
+ 	if (result)
+diff -puN fs/fs-writeback.c~linux-next-git-rejects fs/fs-writeback.c
+--- a/fs/fs-writeback.c~linux-next-git-rejects
++++ a/fs/fs-writeback.c
+@@ -952,34 +952,6 @@ writeback_single_inode(struct inode *ino
+ }
+ 
+ /*
+-<<<<<<< HEAD:fs/fs-writeback.c
+- * Write out a superblock's list of dirty inodes.  A wait will be performed
+- * upon no inodes, all inodes or the final one, depending upon sync_mode.
+- *
+- * If older_than_this is non-NULL, then only write out inodes which
+- * had their first dirtying at a time earlier than *older_than_this.
+- *
+- * If we're a pdflush thread, then implement pdflush collision avoidance
+- * against the entire list.
+- *
+- * If `bdi' is non-zero then we're being asked to writeback a specific queue.
+- * This function assumes that the blockdev superblock's inodes are backed by
+- * a variety of queues, so all inodes are searched.  For other superblocks,
+- * assume that all inodes are backed by the same queue.
+- *
+- * FIXME: this linear search could get expensive with many fileystems.  But
+- * how to fix?  We need to go from an address_space to all inodes which share
+- * a queue with that address_space.  (Easy: have a global "dirty superblocks"
+- * list).
+- *
+- * The inodes to be written are parked on sb->s_io.  They are moved back onto
+- * sb->s_dirty as they are selected for writing.  This way, none can be missed
+- * on the writer throttling path, and we get decent balancing between many
+- * throttled threads: we don't want them all piling up on inode_sync_wait.
+- */
+-void generic_sync_sb_inodes(struct super_block *sb,
+-				struct writeback_control *wbc)
+-=======
+  * Write out an inode's dirty pages.  Called under inode_lock.  Either the
+  * caller has ref on the inode (either via __iget or via syscall against an fd)
+  * or the inode has I_WILL_FREE set (via generic_forget_inode)
+@@ -1026,7 +998,6 @@ __writeback_single_inode(struct inode *i
+ static void generic_sync_wb_inodes(struct bdi_writeback *wb,
+ 				   struct super_block *sb,
+ 				   struct writeback_control *wbc)
+->>>>>>> FETCH_HEAD:fs/fs-writeback.c
+ {
+ 	const int is_blkdev_sb = sb_is_blkdev_sb(sb);
+ 	const unsigned long start = jiffies;	/* livelock avoidance */
+@@ -1089,13 +1060,7 @@ static void generic_sync_wb_inodes(struc
+ 		BUG_ON(inode->i_state & (I_FREEING | I_CLEAR));
+ 		__iget(inode);
+ 		pages_skipped = wbc->pages_skipped;
+-<<<<<<< HEAD:fs/fs-writeback.c
+-		writeback_single_inode(inode, wbc);
+-		if (current_is_pdflush())
+-			writeback_release(bdi);
+-=======
+ 		__writeback_single_inode(inode, wbc);
+->>>>>>> FETCH_HEAD:fs/fs-writeback.c
+ 		if (wbc->pages_skipped != pages_skipped) {
+ 			/*
+ 			 * writeback is not making progress due to locked
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-gcov-fix-__ctors_start-alignment.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
