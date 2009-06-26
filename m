@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-remove-redundant-tests-on-unsigned.patch added to -mm tree
-Date: Fri, 26 Jun 2009 14:28:19 -0700
-Message-ID: <200906262128.n5QLSJNi018655@imap1.linux-foundation.org>
+Subject: + lis3-add-free-fall-wakeup-function-via-platform_data.patch added to -mm tree
+Date: Fri, 26 Jun 2009 14:32:47 -0700
+Message-ID: <200906262132.n5QLWl74023523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751799AbZFZV2a (ORCPT
+	by vger.kernel.org with ESMTP id S1751799AbZFZVc7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 17:28:30 -0400
+	Fri, 26 Jun 2009 17:32:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, takata@linux-m32r.org
+Cc: daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@ucw.cz
 
 
 The patch titled
-     m32r: remove redundant tests on unsigned
+     lis3: add free-fall/wakeup function via platform_data
 has been added to the -mm tree.  Its filename is
-     m32r-remove-redundant-tests-on-unsigned.patch
+     lis3-add-free-fall-wakeup-function-via-platform_data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: remove redundant tests on unsigned
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: lis3: add free-fall/wakeup function via platform_data
+From: Daniel Mack <daniel@caiaq.de>
 
-`off' and `max_cpus' are unsigned.  When negative they are wrapped and
-caught by the other test.
+This offers a way for platforms to define flags and thresholds for the
+free-fall/wakeup functions of the lis302d chips.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+More registers needed to be seperated as they are specific to the
+
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/ptrace.c  |    5 ++---
- arch/m32r/kernel/smpboot.c |    2 +-
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/hwmon/lis3lv02d.c |    9 +++++++++
+ drivers/hwmon/lis3lv02d.h |   24 ++++++++++++++++++------
+ include/linux/lis3lv02d.h |    9 +++++++++
+ 3 files changed, 36 insertions(+), 6 deletions(-)
 
-diff -puN arch/m32r/kernel/ptrace.c~m32r-remove-redundant-tests-on-unsigned arch/m32r/kernel/ptrace.c
---- a/arch/m32r/kernel/ptrace.c~m32r-remove-redundant-tests-on-unsigned
-+++ a/arch/m32r/kernel/ptrace.c
-@@ -78,7 +78,7 @@ static int ptrace_read_user(struct task_
- 	struct user * dummy = NULL;
- #endif
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-add-free-fall-wakeup-function-via-platform_data drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-add-free-fall-wakeup-function-via-platform_data
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -454,6 +454,15 @@ int lis3lv02d_init_device(struct lis3lv0
+ 					(p->click_thresh_y << 4));
+ 		}
  
--	if ((off & 3) || (off < 0) || (off > sizeof(struct user) - 3))
-+	if ((off & 3) || off > sizeof(struct user) - 3)
- 		return -EIO;
++		if (p->wakeup_flags && (dev->whoami == LIS_SINGLE_ID)) {
++			dev->write(dev, FF_WU_CFG_1, p->wakeup_flags);
++			dev->write(dev, FF_WU_THS_1, p->wakeup_thresh & 0x7f);
++			/* default to 2.5ms for now */
++			dev->write(dev, FF_WU_DURATION_1, 1);
++			/* enable high pass filter for both free-fall units */
++			dev->write(dev, CTRL_REG2, HP_FF_WU1 | HP_FF_WU2);
++		}
++
+ 		if (p->irq_cfg)
+ 			dev->write(dev, CTRL_REG3, p->irq_cfg);
+ 	}
+diff -puN drivers/hwmon/lis3lv02d.h~lis3-add-free-fall-wakeup-function-via-platform_data drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3-add-free-fall-wakeup-function-via-platform_data
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -58,15 +58,17 @@ enum lis3_reg {
+ 	OUTZ_L		= 0x2C,
+ 	OUTZ_H		= 0x2D,
+ 	OUTZ		= 0x2D,
+-	FF_WU_CFG	= 0x30,
+-	FF_WU_SRC	= 0x31,
+-	FF_WU_ACK	= 0x32,
+-	FF_WU_THS_L	= 0x34,
+-	FF_WU_THS_H	= 0x35,
+-	FF_WU_DURATION	= 0x36,
+ };
  
- 	off >>= 2;
-@@ -140,8 +140,7 @@ static int ptrace_write_user(struct task
- 	struct user * dummy = NULL;
- #endif
+ enum lis302d_reg {
++	FF_WU_CFG_1	= 0x30,
++	FF_WU_SRC_1	= 0x31,
++	FF_WU_THS_1	= 0x32,
++	FF_WU_DURATION_1 = 0x33,
++	FF_WU_CFG_2	= 0x34,
++	FF_WU_SRC_2	= 0x35,
++	FF_WU_THS_2	= 0x36,
++	FF_WU_DURATION_2 = 0x37,
+ 	CLICK_CFG	= 0x38,
+ 	CLICK_SRC	= 0x39,
+ 	CLICK_THSY_X	= 0x3B,
+@@ -77,6 +79,12 @@ enum lis302d_reg {
+ };
  
--	if ((off & 3) || off < 0 ||
--	    off > sizeof(struct user) - 3)
-+	if ((off & 3) || off > sizeof(struct user) - 3)
- 		return -EIO;
+ enum lis3lv02d_reg {
++	FF_WU_CFG	= 0x30,
++	FF_WU_SRC	= 0x31,
++	FF_WU_ACK	= 0x32,
++	FF_WU_THS_L	= 0x34,
++	FF_WU_THS_H	= 0x35,
++	FF_WU_DURATION	= 0x36,
+ 	DD_CFG		= 0x38,
+ 	DD_SRC		= 0x39,
+ 	DD_ACK		= 0x3A,
+@@ -107,6 +115,10 @@ enum lis3lv02d_ctrl2 {
+ 	CTRL2_FS	= 0x80, /* Full Scale selection */
+ };
  
- 	off >>= 2;
-diff -puN arch/m32r/kernel/smpboot.c~m32r-remove-redundant-tests-on-unsigned arch/m32r/kernel/smpboot.c
---- a/arch/m32r/kernel/smpboot.c~m32r-remove-redundant-tests-on-unsigned
-+++ a/arch/m32r/kernel/smpboot.c
-@@ -213,7 +213,7 @@ void __init smp_prepare_cpus(unsigned in
- 		if (!physid_isset(phys_id, phys_cpu_present_map))
- 			continue;
++enum lis302d_ctrl2 {
++	HP_FF_WU2	= 0x08,
++	HP_FF_WU1	= 0x04,
++};
  
--		if ((max_cpus >= 0) && (max_cpus <= cpucount + 1))
-+		if (max_cpus <= cpucount + 1)
- 			continue;
+ enum lis3lv02d_ctrl3 {
+ 	CTRL3_CFS0	= 0x01,
+diff -puN include/linux/lis3lv02d.h~lis3-add-free-fall-wakeup-function-via-platform_data include/linux/lis3lv02d.h
+--- a/include/linux/lis3lv02d.h~lis3-add-free-fall-wakeup-function-via-platform_data
++++ a/include/linux/lis3lv02d.h
+@@ -34,6 +34,15 @@ struct lis3lv02d_platform_data {
+ #define LIS3_IRQ_OPEN_DRAIN	(1 << 6)
+ #define LIS3_IRQ_ACTIVE_LOW	(1 << 7)
+ 	unsigned char irq_cfg;
++
++#define LIS3_WAKEUP_X_LO	(1 << 0)
++#define LIS3_WAKEUP_X_HI	(1 << 1)
++#define LIS3_WAKEUP_Y_LO	(1 << 2)
++#define LIS3_WAKEUP_Y_HI	(1 << 3)
++#define LIS3_WAKEUP_Z_LO	(1 << 4)
++#define LIS3_WAKEUP_Z_HI	(1 << 5)
++	unsigned char wakeup_flags;
++	unsigned char wakeup_thresh;
+ };
  
- 		do_boot_cpu(phys_id);
+ #endif /* __LIS3LV02D_H_ */
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
-linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-media-remove-redundant-tests-on-unsigned.patch
-ext4-remove-redundant-test-on-unsigned.patch
-wireless-remove-redundant-tests-on-unsigned.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-platinumfb-misplaced-parenthesis.patch
-adfs-remove-redundant-test-on-unsigned.patch
+lis3-fix-typo.patch
+lis3-add-free-fall-wakeup-function-via-platform_data.patch
+lis3-add-power-management-functions.patch
+lis3_spi-code-cleanups.patch
 
