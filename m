@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwlat-depend-on-ring_buffer.patch added to -mm tree
-Date: Fri, 26 Jun 2009 13:44:10 -0700
-Message-ID: <200906262044.n5QKiA4P003608@imap1.linux-foundation.org>
+Subject: + wireless-remove-redundant-tests-on-unsigned.patch added to -mm tree
+Date: Fri, 26 Jun 2009 13:45:30 -0700
+Message-ID: <200906262045.n5QKjUDK005127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750768AbZFZUpC (ORCPT
+	by vger.kernel.org with ESMTP id S1754049AbZFZUps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 16:45:02 -0400
+	Fri, 26 Jun 2009 16:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jcm@jonmasters.org, mingo@elte.hu, tglx@linutronix.de
+Cc: roel.kluin@gmail.com, linville@tuxdriver.com, proski@gnu.org
 
 
 The patch titled
-     hwlat: depend on RING_BUFFER
+     wireless: remove redundant tests on unsigned
 has been added to the -mm tree.  Its filename is
-     hwlat-depend-on-ring_buffer.patch
+     wireless-remove-redundant-tests-on-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwlat: depend on RING_BUFFER
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: wireless: remove redundant tests on unsigned
+From: Roel Kluin <roel.kluin@gmail.com>
 
-hwlat_detector.c:(.text+0x8d906): undefined reference to `ring_buffer_reset'
-hwlat_detector.c:(.text+0x8d98c): undefined reference to `ring_buffer_free'
-hwlat_detector.c:(.text+0x8dd16): undefined reference to `__ring_buffer_alloc'
-hwlat_detector.c:(.text+0x8df15): undefined reference to `ring_buffer_free'
-hwlat_detector.c:(.text+0x8e100): undefined reference to `ring_buffer_write'
-hwlat_detector.c:(.text+0x8e239): undefined reference to `ring_buffer_consume'
-hwlat_detector.c:(.text+0x8e2ac): undefined reference to `ring_buffer_event_data'
+bufsize and remainder are unsigned.  When negative they are wrapped and
+caught by the other test.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jon Masters <jcm@jonmasters.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Pavel Roskin <proski@gnu.org>		[hermes.c]
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/wireless/orinoco/hermes.c      |    2 +-
+ drivers/net/wireless/rtl818x/rtl8180_dev.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/Kconfig~hwlat-depend-on-ring_buffer drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~hwlat-depend-on-ring_buffer
-+++ a/drivers/misc/Kconfig
-@@ -79,6 +79,7 @@ config IBM_ASM
- config HWLAT_DETECTOR
- 	tristate "Testing module to detect hardware-induced latencies"
- 	depends on DEBUG_FS
-+	depends on RING_BUFFER
- 	default m
- 	---help---
- 	  A simple hardware latency detector. Use this module to detect
+diff -puN drivers/net/wireless/orinoco/hermes.c~wireless-remove-redundant-tests-on-unsigned drivers/net/wireless/orinoco/hermes.c
+--- a/drivers/net/wireless/orinoco/hermes.c~wireless-remove-redundant-tests-on-unsigned
++++ a/drivers/net/wireless/orinoco/hermes.c
+@@ -469,7 +469,7 @@ int hermes_read_ltv(hermes_t *hw, int ba
+ 	u16 rlength, rtype;
+ 	unsigned nwords;
+ 
+-	if ((bufsize < 0) || (bufsize % 2))
++	if (bufsize % 2)
+ 		return -EINVAL;
+ 
+ 	err = hermes_docmd_wait(hw, HERMES_CMD_ACCESS, rid, NULL);
+diff -puN drivers/net/wireless/rtl818x/rtl8180_dev.c~wireless-remove-redundant-tests-on-unsigned drivers/net/wireless/rtl818x/rtl8180_dev.c
+--- a/drivers/net/wireless/rtl818x/rtl8180_dev.c~wireless-remove-redundant-tests-on-unsigned
++++ a/drivers/net/wireless/rtl818x/rtl8180_dev.c
+@@ -280,7 +280,7 @@ static int rtl8180_tx(struct ieee80211_h
+ 				(ieee80211_get_tx_rate(dev, info)->bitrate * 2) / 10);
+ 		remainder = (16 * (skb->len + 4)) %
+ 			    ((ieee80211_get_tx_rate(dev, info)->bitrate * 2) / 10);
+-		if (remainder > 0 && remainder <= 6)
++		if (remainder <= 6)
+ 			plcp_len |= 1 << 15;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-origin.patch
 linux-next.patch
-hwlat-depend-on-ring_buffer.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-reiser4-export-remove_from_page_cache-fix.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ext4-remove-redundant-test-on-unsigned.patch
+wireless-remove-redundant-tests-on-unsigned.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+platinumfb-misplaced-parenthesis.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
