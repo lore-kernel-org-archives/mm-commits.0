@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-pl061-fix-irq-handling-for-gpios-=-pl061_gpio_nr.patch added to -mm tree
-Date: Fri, 26 Jun 2009 14:27:51 -0700
-Message-ID: <200906262127.n5QLRpop018227@imap1.linux-foundation.org>
+Subject: + gpio-pl061-fix-probe-error-handling-code.patch added to -mm tree
+Date: Fri, 26 Jun 2009 14:27:48 -0700
+Message-ID: <200906262127.n5QLRmCL018116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57565 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751219AbZFZV2D (ORCPT
+	by vger.kernel.org with ESMTP id S1750768AbZFZV2C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 17:28:03 -0400
+	Fri, 26 Jun 2009 17:28:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: baruch@tkos.co.il, david-b@pacbell.net
 
 
 The patch titled
-     gpio: pl061: fix IRQ handling for GPIOs >= PL061_GPIO_NR
+     gpio: pl061: fix probe error handling code
 has been added to the -mm tree.  Its filename is
-     gpio-pl061-fix-irq-handling-for-gpios-=-pl061_gpio_nr.patch
+     gpio-pl061-fix-probe-error-handling-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: pl061: fix IRQ handling for GPIOs >= PL061_GPIO_NR
+Subject: gpio: pl061: fix probe error handling code
 From: Baruch Siach <baruch@tkos.co.il>
 
-IRQ handling is wrong for any GPIO >= PL061_GPIO_NR.
+Note that IRQ has not been initialized when kmalloc() fails.
 
-Fix this by implementing and using a proper .to_irq method.
+Also, use DECLARE_BITMAP() to make the code clearer.
 
 Signed-off-by: Baruch Siach <baruch@tkos.co.il>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pl061.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ drivers/gpio/pl061.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpio/pl061.c~gpio-pl061-fix-irq-handling-for-gpios-=-pl061_gpio_nr drivers/gpio/pl061.c
---- a/drivers/gpio/pl061.c~gpio-pl061-fix-irq-handling-for-gpios-=-pl061_gpio_nr
+diff -puN drivers/gpio/pl061.c~gpio-pl061-fix-probe-error-handling-code drivers/gpio/pl061.c
+--- a/drivers/gpio/pl061.c~gpio-pl061-fix-probe-error-handling-code
 +++ a/drivers/gpio/pl061.c
-@@ -109,6 +109,16 @@ static void pl061_set_value(struct gpio_
- 	writeb(!!value << offset, chip->base + (1 << (offset + 2)));
- }
+@@ -221,7 +221,7 @@ static int __init pl061_probe(struct amb
+ 	struct pl061_gpio *chip;
+ 	struct list_head *chip_list;
+ 	int ret, irq, i;
+-	static unsigned long init_irq[BITS_TO_LONGS(NR_IRQS)];
++	static DECLARE_BITMAP(init_irq, NR_IRQS);
  
-+static int pl061_to_irq(struct gpio_chip *gc, unsigned offset)
-+{
-+	struct pl061_gpio *chip = container_of(gc, struct pl061_gpio, gc);
-+
-+	if (chip->irq_base == (unsigned) -1)
-+		return -EINVAL;
-+
-+	return chip->irq_base + offset;
-+}
-+
- /*
-  * PL061 GPIO IRQ
-  */
-@@ -200,7 +210,7 @@ static void pl061_irq_handler(unsigned i
- 	desc->chip->ack(irq);
- 	list_for_each(ptr, chip_list) {
- 		unsigned long pending;
--		int gpio;
-+		int offset;
- 
- 		chip = list_entry(ptr, struct pl061_gpio, list);
- 		pending = readb(chip->base + GPIOMIS);
-@@ -209,8 +219,8 @@ static void pl061_irq_handler(unsigned i
- 		if (pending == 0)
- 			continue;
- 
--		for_each_bit(gpio, &pending, PL061_GPIO_NR)
--			generic_handle_irq(gpio_to_irq(gpio));
-+		for_each_bit(offset, &pending, PL061_GPIO_NR)
-+			generic_handle_irq(pl061_to_irq(&chip->gc, offset));
- 	}
- 	desc->chip->unmask(irq);
- }
-@@ -251,6 +261,7 @@ static int __init pl061_probe(struct amb
- 	chip->gc.direction_output = pl061_direction_output;
- 	chip->gc.get = pl061_get_value;
- 	chip->gc.set = pl061_set_value;
-+	chip->gc.to_irq = pl061_to_irq;
- 	chip->gc.base = pdata->gpio_base;
- 	chip->gc.ngpio = PL061_GPIO_NR;
- 	chip->gc.label = dev_name(&dev->dev);
+ 	pdata = dev->dev.platform_data;
+ 	if (pdata == NULL)
+@@ -280,6 +280,7 @@ static int __init pl061_probe(struct amb
+ 	if (!test_and_set_bit(irq, init_irq)) { /* list initialized? */
+ 		chip_list = kmalloc(sizeof(*chip_list), GFP_KERNEL);
+ 		if (chip_list == NULL) {
++			clear_bit(irq, init_irq);
+ 			ret = -ENOMEM;
+ 			goto iounmap;
+ 		}
 _
 
 Patches currently in -mm which might be from baruch@tkos.co.il are
