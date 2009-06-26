@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-only-clear-node_states-for-64bit.patch added to -mm tree
-Date: Fri, 26 Jun 2009 13:54:32 -0700
-Message-ID: <200906262054.n5QKsWXK014760@imap1.linux-foundation.org>
+Subject: + media-remove-redundant-tests-on-unsigned.patch added to -mm tree
+Date: Fri, 26 Jun 2009 14:01:32 -0700
+Message-ID: <200906262101.n5QL1Wh1022378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753431AbZFZU4W (ORCPT
+	by vger.kernel.org with ESMTP id S1753634AbZFZVCI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 16:56:22 -0400
+	Fri, 26 Jun 2009 17:02:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, cl@linux-foundation.org, mingo@elte.hu, ntl@pobox.com
+Cc: roel.kluin@gmail.com, hverkuil@xs4all.nl, mchehab@infradead.org
 
 
 The patch titled
-     x86: only clear node_states for 64bit
+     media: remove redundant tests on unsigned
 has been added to the -mm tree.  Its filename is
-     x86-only-clear-node_states-for-64bit.patch
+     media-remove-redundant-tests-on-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: only clear node_states for 64bit
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: media: remove redundant tests on unsigned
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Nathan reported that
+input, inp and i are unsigned. When negative they are wrapped and caught by the
+other test.
 
-| commit 73d60b7f747176dbdff826c4127d22e1fd3f9f74
-| Author: Yinghai Lu <yinghai@kernel.org>
-| Date:   Tue Jun 16 15:33:00 2009 -0700
-|
-|    page-allocator: clear N_HIGH_MEMORY map before we set it again
-|
-|    SRAT tables may contains nodes of very small size.  The arch code may
-|    decide to not activate such a node.  However, currently the early boot
-|    code sets N_HIGH_MEMORY for such nodes.  These nodes therefore seem to be
-|    active although these nodes have no present pages.
-|
-|    For 64bit N_HIGH_MEMORY == N_NORMAL_MEMORY, so that works for 64 bit too
-
-unintentionally and incorrectly clears the cpuset.mems cgroup attribute on
-an i386 kvm guest
-
-Fix this by only clearing node_states[N_NORMAL_MEMORY] for 64bit only. 
-and need to do save/restore for that in find_zone_movable_pfn
-
-Reported-by: Nathan Lynch <ntl@pobox.com>
-Tested-by: Nathan Lynch <ntl@pobox.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, 
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    2 ++
- mm/page_alloc.c       |   13 +++++++------
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/media/dvb/ttpci/av7110_v4l.c        |    2 +-
+ drivers/media/video/cx18/cx18-ioctl.c       |    2 +-
+ drivers/media/video/saa7134/saa7134-video.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~x86-only-clear-node_states-for-64bit arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~x86-only-clear-node_states-for-64bit
-+++ a/arch/x86/mm/init_64.c
-@@ -598,6 +598,8 @@ void __init paging_init(void)
+diff -puN drivers/media/dvb/ttpci/av7110_v4l.c~media-remove-redundant-tests-on-unsigned drivers/media/dvb/ttpci/av7110_v4l.c
+--- a/drivers/media/dvb/ttpci/av7110_v4l.c~media-remove-redundant-tests-on-unsigned
++++ a/drivers/media/dvb/ttpci/av7110_v4l.c
+@@ -490,7 +490,7 @@ static int vidioc_s_input(struct file *f
+ 	if (!av7110->analog_tuner_flags)
+ 		return 0;
  
- 	sparse_memory_present_with_active_regions(MAX_NUMNODES);
- 	sparse_init();
-+	/* clear the default setting with node 0 */
-+	nodes_clear(node_states[N_NORMAL_MEMORY]);
- 	free_area_init_nodes(max_zone_pfns);
- }
+-	if (input < 0 || input >= 4)
++	if (input >= 4)
+ 		return -EINVAL;
  
-diff -puN mm/page_alloc.c~x86-only-clear-node_states-for-64bit mm/page_alloc.c
---- a/mm/page_alloc.c~x86-only-clear-node_states-for-64bit
-+++ a/mm/page_alloc.c
-@@ -4032,6 +4032,8 @@ static void __init find_zone_movable_pfn
- 	int i, nid;
- 	unsigned long usable_startpfn;
- 	unsigned long kernelcore_node, kernelcore_remaining;
-+	/* save the state before borrow the nodemask */
-+	nodemask_t saved_node_state = node_states[N_HIGH_MEMORY];
- 	unsigned long totalpages = early_calculate_totalpages();
- 	int usable_nodes = nodes_weight(node_states[N_HIGH_MEMORY]);
+ 	av7110->current_input = input;
+diff -puN drivers/media/video/cx18/cx18-ioctl.c~media-remove-redundant-tests-on-unsigned drivers/media/video/cx18/cx18-ioctl.c
+--- a/drivers/media/video/cx18/cx18-ioctl.c~media-remove-redundant-tests-on-unsigned
++++ a/drivers/media/video/cx18/cx18-ioctl.c
+@@ -605,7 +605,7 @@ int cx18_s_input(struct file *file, void
+ 	if (ret)
+ 		return ret;
  
-@@ -4059,7 +4061,7 @@ static void __init find_zone_movable_pfn
+-	if (inp < 0 || inp >= cx->nof_inputs)
++	if (inp >= cx->nof_inputs)
+ 		return -EINVAL;
  
- 	/* If kernelcore was not specified, there is no ZONE_MOVABLE */
- 	if (!required_kernelcore)
--		return;
-+		goto out;
+ 	if (inp == cx->active_input) {
+diff -puN drivers/media/video/saa7134/saa7134-video.c~media-remove-redundant-tests-on-unsigned drivers/media/video/saa7134/saa7134-video.c
+--- a/drivers/media/video/saa7134/saa7134-video.c~media-remove-redundant-tests-on-unsigned
++++ a/drivers/media/video/saa7134/saa7134-video.c
+@@ -1790,7 +1790,7 @@ static int saa7134_s_input(struct file *
+ 	if (0 != err)
+ 		return err;
  
- 	/* usable_startpfn is the lowest possible pfn ZONE_MOVABLE can be at */
- 	find_usable_zone_for_movable();
-@@ -4158,6 +4160,10 @@ restart:
- 	for (nid = 0; nid < MAX_NUMNODES; nid++)
- 		zone_movable_pfn[nid] =
- 			roundup(zone_movable_pfn[nid], MAX_ORDER_NR_PAGES);
-+
-+out:
-+	/* restore the node_state */
-+	node_states[N_HIGH_MEMORY] = saved_node_state;
- }
- 
- /* Any regular memory on that node ? */
-@@ -4242,11 +4248,6 @@ void __init free_area_init_nodes(unsigne
- 						early_node_map[i].start_pfn,
- 						early_node_map[i].end_pfn);
- 
--	/*
--	 * find_zone_movable_pfns_for_nodes/early_calculate_totalpages init
--	 * that node_mask, clear it at first
--	 */
--	nodes_clear(node_states[N_HIGH_MEMORY]);
- 	/* Initialise every node */
- 	mminit_verify_pageflags_layout();
- 	setup_nr_node_ids();
+-	if (i < 0  ||  i >= SAA7134_INPUT_MAX)
++	if (i >= SAA7134_INPUT_MAX)
+ 		return -EINVAL;
+ 	if (NULL == card_in(dev, i).name)
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-x86-only-clear-node_states-for-64bit.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+media-remove-redundant-tests-on-unsigned.patch
+ext4-remove-redundant-test-on-unsigned.patch
+wireless-remove-redundant-tests-on-unsigned.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+platinumfb-misplaced-parenthesis.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
