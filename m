@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-freescale-stmp37xx-378x-driver.patch added to -mm tree
-Date: Fri, 26 Jun 2009 16:03:09 -0700
-Message-ID: <200906262303.n5QN39il023609@imap1.linux-foundation.org>
+Subject: + rtc-philips-nxp-pcf2123-driver.patch added to -mm tree
+Date: Fri, 26 Jun 2009 16:07:09 -0700
+Message-ID: <200906262307.n5QN79b5027911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52231 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752936AbZFZXDS (ORCPT
+	by vger.kernel.org with ESMTP id S1752641AbZFZXHT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 19:03:18 -0400
+	Fri, 26 Jun 2009 19:07:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dpervushin@embeddedalley.com, a.zummo@towertech.it
+Cc: chrisv@cyberswitching.com, a.zummo@towertech.it
 
 
 The patch titled
-     rtc: add Freescale stmp37xx/378x driver
+     rtc: Philips/NXP PCF2123 driver
 has been added to the -mm tree.  Its filename is
-     rtc-add-freescale-stmp37xx-378x-driver.patch
+     rtc-philips-nxp-pcf2123-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,358 +34,306 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add Freescale stmp37xx/378x driver
-From: dmitry pervushin <dpervushin@embeddedalley.com>
+Subject: rtc: Philips/NXP PCF2123 driver
+From: Chris Verges <chrisv@cyberswitching.com>
 
-Add support for RTC on the Freescale STMP37xx/378x platform.
+Add support for the Philips/NXP PCF2123 RTC.
 
-Signed-off-by: dmitry pervushin <dpervushin@embeddedalley.com>
+Our hardware should arrive in early July, so I'll update (v0.3?) based
+on testing after that.
+
+Signed-off-by: Chris Verges <chrisv@cyberswitching.com>
 Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig        |   10 +
- drivers/rtc/Makefile       |    1 
- drivers/rtc/rtc-stmp3xxx.c |  304 +++++++++++++++++++++++++++++++++++
- 3 files changed, 315 insertions(+)
+ drivers/rtc/Kconfig       |    9 +
+ drivers/rtc/Makefile      |    1 
+ drivers/rtc/rtc-pcf2123.c |  245 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 255 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-freescale-stmp37xx-378x-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-freescale-stmp37xx-378x-driver
+diff -puN drivers/rtc/Kconfig~rtc-philips-nxp-pcf2123-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-philips-nxp-pcf2123-driver
 +++ a/drivers/rtc/Kconfig
-@@ -801,4 +801,14 @@ config RTC_DRV_COH901331
- 	  will be called "rtc-coh901331".
+@@ -224,6 +224,15 @@ config RTC_DRV_PCF8583
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-pcf8583.
  
- 
-+config RTC_DRV_STMP
-+	tristate "Freescale STMP3xxx RTC"
-+	depends on ARCH_STMP3XXX
++config RTC_DRV_PCF2123
++	tristate "NXP PCF2123"
 +	help
-+	  If you say yes here you will get support for the onboard
-+	  STMP3xxx RTC.
++	  If you say yes here you get support for the NXP PCF2123
++	  RTC chip.
 +
 +	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-stmp3xxx.
++	  will be called rtc-pcf2123.
 +
- endif # RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-add-freescale-stmp37xx-378x-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-freescale-stmp37xx-378x-driver
+ config RTC_DRV_M41T80
+ 	tristate "ST M41T62/65/M41T80/81/82/83/84/85/87"
+ 	help
+diff -puN drivers/rtc/Makefile~rtc-philips-nxp-pcf2123-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-philips-nxp-pcf2123-driver
 +++ a/drivers/rtc/Makefile
-@@ -82,3 +82,4 @@ obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205
- obj-$(CONFIG_RTC_DRV_PCF50633)	+= rtc-pcf50633.o
- obj-$(CONFIG_RTC_DRV_PS3)	+= rtc-ps3.o
- obj-$(CONFIG_RTC_DRV_COH901331)	+= rtc-coh901331.o
-+obj-$(CONFIG_RTC_DRV_STMP)	+= rtc-stmp3xxx.o
-diff -puN /dev/null drivers/rtc/rtc-stmp3xxx.c
+@@ -56,6 +56,7 @@ obj-$(CONFIG_RTC_DRV_MV)	+= rtc-mv.o
+ obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
+ obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf8563.o
+ obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
++obj-$(CONFIG_RTC_DRV_PCF2123)	+= rtc-pcf2123.o
+ obj-$(CONFIG_RTC_DRV_PL030)	+= rtc-pl030.o
+ obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
+ obj-$(CONFIG_RTC_DRV_GENERIC)	+= rtc-generic.o
+diff -puN /dev/null drivers/rtc/rtc-pcf2123.c
 --- /dev/null
-+++ a/drivers/rtc/rtc-stmp3xxx.c
-@@ -0,0 +1,304 @@
++++ a/drivers/rtc/rtc-pcf2123.c
+@@ -0,0 +1,245 @@
 +/*
-+ * Freescale STMP37XX/STMP378X Real Time Clock driver
++ * An SPI driver for the Philips PCF2123 RTC
++ * Copyright 2009 Cyber Switching, Inc.
 + *
-+ * Copyright (c) 2007 Sigmatel, Inc.
-+ * Peter Hartley, <peter.hartley@sigmatel.com>
++ * Author: Chris Verges <chrisv@cyberswitching.com>
++ * Maintainers: http://www.cyberswitching.com
 + *
-+ * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
-+ * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
++ * based on the RS5C348 driver in this same directory.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+/*
-+ * The code contained herein is licensed under the GNU General Public
-+ * License. You may obtain a copy of the GNU General Public License
-+ * Version 2 or later at the following locations:
-+ *
-+ * http://www.opensource.org/licenses/gpl-license.html
-+ * http://www.gnu.org/copyleft/gpl.html
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
++#include <linux/bcd.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/errno.h>
 +#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/string.h>
 +#include <linux/rtc.h>
++#include <linux/workqueue.h>
++#include <linux/spi/spi.h>
 +
-+#include <mach/platform.h>
-+#include <mach/stmp3xxx.h>
-+#include <mach/regs-rtc.h>
++#define DRV_VERSION "0.2"
 +
-+struct stmp3xxx_rtc_data {
++#define PCF2123_REG_CTRL1	0x00 /* Control Register 1 */
++#define PCF2123_REG_CTRL2	0x01 /* Control Register 2 */
++
++#define PCF2123_REG_SC		0x02 /* datetime */
++#define PCF2123_REG_MN		0x03
++#define PCF2123_REG_HR		0x04
++#define PCF2123_REG_DM		0x05
++#define PCF2123_REG_DW		0x06
++#define PCF2123_REG_MO		0x07
++#define PCF2123_REG_YR		0x08
++
++#define PCF2123_CMD_W(addr)	(((addr) & 0x0F) | 0x40)  /* single write */
++#define PCF2123_CMD_R(addr)	(((addr) & 0x0F) | 0x90)  /* single read */
++
++static struct spi_driver pcf2123_driver;
++
++struct pcf2123_plat_data {
 +	struct rtc_device *rtc;
-+	unsigned irq_count;
-+	void __iomem *io;
-+	int irq_alarm, irq_1msec;
 +};
 +
-+static void stmp3xxx_wait_time(struct stmp3xxx_rtc_data *rtc_data)
++static int pcf2123_rtc_read_time(struct device *dev, struct rtc_time *tm)
 +{
-+	/*
-+	 * The datasheet doesn't say which way round the
-+	 * NEW_REGS/STALE_REGS bitfields go. In fact it's 0x1=P0,
-+	 * 0x2=P1, .., 0x20=P5, 0x40=ALARM, 0x80=SECONDS
++	struct spi_device *spi = to_spi_device(dev);
++	u8 txbuf[1], rxbuf[7];
++	int ret;
++
++	txbuf[0] = PCF2123_CMD_R(PCF2123_REG_SC);
++	ret = spi_write_then_read(spi, txbuf, sizeof(txbuf),
++			rxbuf, sizeof(rxbuf));
++	udelay(30); /* Trec 30us */
++	if (ret < 0)
++		return ret;
++
++	tm->tm_sec = bcd2bin(rxbuf[0] & 0x7F);
++	tm->tm_min = bcd2bin(rxbuf[1] & 0x7F);
++	tm->tm_hour = bcd2bin(rxbuf[2] & 0x3F); /* rtc hr 0-23 */
++	tm->tm_mday = bcd2bin(rxbuf[3] & 0x3F);
++	tm->tm_wday = rxbuf[4] & 0x07;
++	tm->tm_mon = bcd2bin(rxbuf[5] & 0x1F) - 1; /* rtc mn 1-12 */
++	tm->tm_year = bcd2bin(rxbuf[6]);
++	if (tm->tm_year < 70)
++		tm->tm_year += 100;	/* assume we are in 1970...2069 */
++
++	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
++			"mday=%d, mon=%d, year=%d, wday=%d\n",
++			__func__,
++			tm->tm_sec, tm->tm_min, tm->tm_hour,
++			tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	/* the clock can give out invalid datetime, but we cannot return
++	 * -EINVAL otherwise hwclock will refuse to set the time on bootup.
 +	 */
-+	while (__raw_readl(rtc_data->io + HW_RTC_STAT) &
-+			BF(0x80, RTC_STAT_STALE_REGS))
-+		cpu_relax();
-+}
++	if (rtc_valid_tm(tm) < 0)
++		dev_err(dev, "retrieved date/time is not valid.\n");
 +
-+/* Time read/write */
-+static int stmp3xxx_rtc_gettime(struct device *dev, struct rtc_time *rtc_tm)
-+{
-+	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
-+
-+	stmp3xxx_wait_time(rtc_data);
-+	rtc_time_to_tm(__raw_readl(rtc_data->io + HW_RTC_SECONDS), rtc_tm);
 +	return 0;
 +}
 +
-+static int stmp3xxx_rtc_set_mmss(struct device *dev, unsigned long t)
++static int pcf2123_rtc_set_time(struct device *dev, struct rtc_time *tm)
 +{
-+	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
++	struct spi_device *spi = to_spi_device(dev);
++	u8 txbuf[8];
++	int ret;
 +
-+	__raw_writel(t, rtc_data->io + HW_RTC_SECONDS);
-+	stmp3xxx_wait_time(rtc_data);
++	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
++			"mday=%d, mon=%d, year=%d, wday=%d\n",
++			__func__,
++			tm->tm_sec, tm->tm_min, tm->tm_hour,
++			tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	/* Stop the counter first */
++	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
++	txbuf[1] = 0x20;
++	ret = spi_write(spi, txbuf, 2);
++	udelay(30); /* Trec 30us */
++	if (ret < 0)
++		return ret;
++
++	/* Set the new time */
++	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_SC);
++	txbuf[1] = bin2bcd(tm->tm_sec & 0x7F);
++	txbuf[2] = bin2bcd(tm->tm_min & 0x7F);
++	txbuf[3] = bin2bcd(tm->tm_hour & 0x3F);
++	txbuf[4] = bin2bcd(tm->tm_mday & 0x3F);
++	txbuf[5] = tm->tm_wday & 0x07;
++	txbuf[6] = bin2bcd((tm->tm_mon + 1) & 0x1F); /* rtc mn 1-12 */
++	txbuf[7] = bin2bcd(tm->tm_year < 100 ? tm->tm_year : tm->tm_year - 100);
++
++	ret = spi_write(spi, txbuf, sizeof(txbuf));
++	udelay(30); /* Trec 30us */
++	if (ret < 0)
++		return ret;
++
++	/* Start the counter */
++	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
++	txbuf[1] = 0x00;
++	ret = spi_write(spi, txbuf, 2);
++	udelay(30); /* Trec 30us */
++	if (ret < 0)
++		return ret;
++
 +	return 0;
 +}
 +
-+/* interrupt(s) handler */
-+static irqreturn_t stmp3xxx_rtc_interrupt(int irq, void *dev_id)
-+{
-+	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev_id);
-+	u32 status;
-+	u32 events = 0;
-+
-+	status = __raw_readl(rtc_data->io + HW_RTC_CTRL) &
-+			(BM_RTC_CTRL_ALARM_IRQ | BM_RTC_CTRL_ONEMSEC_IRQ);
-+
-+	if (status & BM_RTC_CTRL_ALARM_IRQ) {
-+		stmp3xxx_clearl(BM_RTC_CTRL_ALARM_IRQ,
-+				rtc_data->io + HW_RTC_CTRL);
-+		events |= RTC_AF | RTC_IRQF;
-+	}
-+
-+	if (status & BM_RTC_CTRL_ONEMSEC_IRQ) {
-+		stmp3xxx_clearl(BM_RTC_CTRL_ONEMSEC_IRQ,
-+				rtc_data->io + HW_RTC_CTRL);
-+		if (++rtc_data->irq_count % 1000 == 0) {
-+			events |= RTC_UF | RTC_IRQF;
-+			rtc_data->irq_count = 0;
-+		}
-+	}
-+
-+	if (events)
-+		rtc_update_irq(rtc_data->rtc, 1, events);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int stmp3xxx_alarm_irq_enable(struct device *dev, unsigned int enabled)
-+{
-+	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
-+	void __iomem *p = rtc_data->io + HW_RTC_PERSISTENT0,
-+		     *ctl = rtc_data->io + HW_RTC_CTRL;
-+
-+	if (enabled) {
-+		stmp3xxx_setl(BM_RTC_PERSISTENT0_ALARM_EN |
-+			      BM_RTC_PERSISTENT0_ALARM_WAKE_EN, p);
-+		stmp3xxx_setl(BM_RTC_CTRL_ALARM_IRQ_EN, ctl);
-+	} else {
-+		stmp3xxx_clearl(BM_RTC_PERSISTENT0_ALARM_EN |
-+			      BM_RTC_PERSISTENT0_ALARM_WAKE_EN, p);
-+		stmp3xxx_clearl(BM_RTC_CTRL_ALARM_IRQ_EN, ctl);
-+	}
-+	return 0;
-+}
-+
-+static int stmp3xxx_update_irq_enable(struct device *dev, unsigned int enabled)
-+{
-+	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
-+
-+	if (enabled)
-+		stmp3xxx_setl(BM_RTC_CTRL_ONEMSEC_IRQ_EN,
-+				rtc_data->io + HW_RTC_CTRL);
-+	else
-+		stmp3xxx_clearl(BM_RTC_CTRL_ONEMSEC_IRQ_EN,
-+				rtc_data->io + HW_RTC_CTRL);
-+	return 0;
-+}
-+
-+static int stmp3xxx_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
-+
-+	rtc_time_to_tm(__raw_readl(rtc_data->io + HW_RTC_ALARM), &alm->time);
-+	return 0;
-+}
-+
-+static int stmp3xxx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	unsigned long t;
-+	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
-+
-+	rtc_tm_to_time(&alm->time, &t);
-+	__raw_writel(t, rtc_data->io + HW_RTC_ALARM);
-+	return 0;
-+}
-+
-+static struct rtc_class_ops stmp3xxx_rtc_ops = {
-+	.alarm_irq_enable =
-+			  stmp3xxx_alarm_irq_enable,
-+	.update_irq_enable =
-+			  stmp3xxx_update_irq_enable,
-+	.read_time	= stmp3xxx_rtc_gettime,
-+	.set_mmss	= stmp3xxx_rtc_set_mmss,
-+	.read_alarm	= stmp3xxx_rtc_read_alarm,
-+	.set_alarm	= stmp3xxx_rtc_set_alarm,
++static const struct rtc_class_ops pcf2123_rtc_ops = {
++	.read_time	= pcf2123_rtc_read_time,
++	.set_time	= pcf2123_rtc_set_time,
 +};
 +
-+static int stmp3xxx_rtc_remove(struct platform_device *pdev)
++static int __devinit pcf2123_probe(struct spi_device *spi)
 +{
-+	struct stmp3xxx_rtc_data *rtc_data = platform_get_drvdata(pdev);
++	struct rtc_device *rtc;
++	struct pcf2123_plat_data *pdata;
++	u8 txbuf[2], rxbuf[1];
++	int ret;
 +
-+	if (!rtc_data)
-+		return 0;
-+
-+	stmp3xxx_clearl(BM_RTC_CTRL_ONEMSEC_IRQ_EN | BM_RTC_CTRL_ALARM_IRQ_EN,
-+			rtc_data->io + HW_RTC_CTRL);
-+	free_irq(rtc_data->irq_alarm, &pdev->dev);
-+	free_irq(rtc_data->irq_1msec, &pdev->dev);
-+	rtc_device_unregister(rtc_data->rtc);
-+	iounmap(rtc_data->io);
-+	kfree(rtc_data);
-+
-+	return 0;
-+}
-+
-+static int stmp3xxx_rtc_probe(struct platform_device *pdev)
-+{
-+	struct stmp3xxx_rtc_data *rtc_data;
-+	struct resource *r;
-+	int err;
-+
-+	rtc_data = kzalloc(sizeof *rtc_data, GFP_KERNEL);
-+	if (!rtc_data)
++	pdata = kzalloc(sizeof(struct pcf2123_plat_data), GFP_KERNEL);
++	if (!pdata)
 +		return -ENOMEM;
++	spi->dev.platform_data = pdata;
 +
-+	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!r) {
-+		dev_err(&pdev->dev, "failed to get resource\n");
-+		err = -ENXIO;
-+		goto out_free;
++	/* Send a software reset command */
++	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
++	txbuf[1] = 0x58;
++	ret = spi_write(spi, txbuf, sizeof(txbuf));
++	udelay(30); /* Trec 30us */
++	if (ret < 0)
++		return ret;
++
++	/* Stop the counter */
++	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
++	txbuf[1] = 0x20;
++	ret = spi_write(spi, txbuf, sizeof(txbuf));
++	udelay(30); /* Trec 30us */
++	if (ret < 0)
++		return ret;
++
++	/* See if the counter was actually stopped */
++	txbuf[0] = PCF2123_CMD_R(PCF2123_REG_CTRL1);
++	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, sizeof(rxbuf));
++	udelay(30); /* Trec 30us */
++	if (ret < 0)
++		goto kfree_exit;
++
++	if (!(rxbuf[0] & 0x20)) {
++		dev_err(&spi->dev, "not found.\n");
++		goto kfree_exit;
 +	}
 +
-+	rtc_data->io = ioremap(r->start, resource_size(r));
-+	if (!rtc_data->io) {
-+		dev_err(&pdev->dev, "ioremap failed\n");
-+		err = -EIO;
-+		goto out_free;
++	dev_info(&spi->dev, "chip found, driver version " DRV_VERSION "\n");
++	dev_info(&spi->dev, "spiclk %u KHz.\n",
++			(spi->max_speed_hz + 500) / 1000);
++
++	/* Start the counter */
++	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
++	txbuf[1] = 0x00;
++	ret = spi_write(spi, txbuf, sizeof(txbuf));
++	udelay(30); /* Trec 30us */
++	if (ret < 0)
++		goto kfree_exit;
++
++	/* Finalize the initialization */
++	rtc = rtc_device_register(pcf2123_driver.driver.name, &spi->dev,
++			&pcf2123_rtc_ops, THIS_MODULE);
++
++	if (IS_ERR(rtc)) {
++		ret = PTR_ERR(rtc);
++		goto kfree_exit;
 +	}
 +
-+	rtc_data->irq_alarm = platform_get_irq(pdev, 0);
-+	rtc_data->irq_1msec = platform_get_irq(pdev, 1);
-+
-+	if (!(__raw_readl(HW_RTC_STAT + rtc_data->io) &
-+			BM_RTC_STAT_RTC_PRESENT)) {
-+		dev_err(&pdev->dev, "no device onboard\n");
-+		err = -ENODEV;
-+		goto out_remap;
-+	}
-+
-+	stmp3xxx_reset_block(rtc_data->io, true);
-+	stmp3xxx_clearl(BM_RTC_PERSISTENT0_ALARM_EN |
-+			BM_RTC_PERSISTENT0_ALARM_WAKE_EN |
-+			BM_RTC_PERSISTENT0_ALARM_WAKE,
-+			rtc_data->io + HW_RTC_PERSISTENT0);
-+	rtc_data->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+				&stmp3xxx_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc_data->rtc)) {
-+		err = PTR_ERR(rtc_data->rtc);
-+		goto out_remap;
-+	}
-+
-+	rtc_data->irq_count = 0;
-+	err = request_irq(rtc_data->irq_alarm, stmp3xxx_rtc_interrupt,
-+			IRQF_DISABLED, "RTC alarm", &pdev->dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "Cannot claim IRQ%d\n",
-+			rtc_data->irq_alarm);
-+		goto out_irq_alarm;
-+	}
-+	err = request_irq(rtc_data->irq_1msec, stmp3xxx_rtc_interrupt,
-+			IRQF_DISABLED, "RTC tick", &pdev->dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "Cannot claim IRQ%d\n",
-+			rtc_data->irq_1msec);
-+		goto out_irq1;
-+	}
-+
-+	platform_set_drvdata(pdev, rtc_data);
++	pdata->rtc = rtc;
 +
 +	return 0;
-+
-+out_irq1:
-+	free_irq(rtc_data->irq_alarm, &pdev->dev);
-+out_irq_alarm:
-+	stmp3xxx_clearl(BM_RTC_CTRL_ONEMSEC_IRQ_EN | BM_RTC_CTRL_ALARM_IRQ_EN,
-+			rtc_data->io + HW_RTC_CTRL);
-+	rtc_device_unregister(rtc_data->rtc);
-+out_remap:
-+	iounmap(rtc_data->io);
-+out_free:
-+	kfree(rtc_data);
-+	return err;
++kfree_exit:
++	kfree(pdata);
++	return ret;
 +}
 +
-+#ifdef CONFIG_PM
-+static int stmp3xxx_rtc_suspend(struct platform_device *dev, pm_message_t state)
++static int pcf2123_remove(struct spi_device *spi)
 +{
++	struct pcf2123_plat_data *pdata = spi->dev.platform_data;
++	struct rtc_device *rtc = pdata->rtc;
++
++	if (rtc)
++		rtc_device_unregister(rtc);
++
++	kfree(pdata);
++
 +	return 0;
 +}
 +
-+static int stmp3xxx_rtc_resume(struct platform_device *dev)
-+{
-+	struct stmp3xxx_rtc_data *rtc_data = platform_get_drvdata(dev);
-+
-+	stmp3xxx_reset_block(rtc_data->io, true);
-+	stmp3xxx_clearl(BM_RTC_PERSISTENT0_ALARM_EN |
-+			BM_RTC_PERSISTENT0_ALARM_WAKE_EN |
-+			BM_RTC_PERSISTENT0_ALARM_WAKE,
-+			rtc_data->io + HW_RTC_PERSISTENT0);
-+	return 0;
-+}
-+#else
-+#define stmp3xxx_rtc_suspend	NULL
-+#define stmp3xxx_rtc_resume	NULL
-+#endif
-+
-+static struct platform_driver stmp3xxx_rtcdrv = {
-+	.probe		= stmp3xxx_rtc_probe,
-+	.remove		= stmp3xxx_rtc_remove,
-+	.suspend	= stmp3xxx_rtc_suspend,
-+	.resume		= stmp3xxx_rtc_resume,
-+	.driver		= {
-+		.name	= "stmp3xxx-rtc",
-+		.owner	= THIS_MODULE,
++static struct spi_driver pcf2123_driver = {
++	.driver	= {
++			.name	= "rtc-pcf2123",
++			.bus	= &spi_bus_type,
++			.owner	= THIS_MODULE,
 +	},
++	.probe	= pcf2123_probe,
++	.remove	= __devexit_p(pcf2123_remove),
 +};
 +
-+static int __init stmp3xxx_rtc_init(void)
++static int __init pcf2123_init(void)
 +{
-+	return platform_driver_register(&stmp3xxx_rtcdrv);
++	return spi_register_driver(&pcf2123_driver);
 +}
 +
-+static void __exit stmp3xxx_rtc_exit(void)
++static void __exit pcf2123_exit(void)
 +{
-+	platform_driver_unregister(&stmp3xxx_rtcdrv);
++	spi_unregister_driver(&pcf2123_driver);
 +}
 +
-+module_init(stmp3xxx_rtc_init);
-+module_exit(stmp3xxx_rtc_exit);
-+
-+MODULE_DESCRIPTION("STMP3xxx RTC Driver");
-+MODULE_AUTHOR("dmitry pervushin <dpervushin@embeddedalley.com>");
++MODULE_AUTHOR("Chris Verges <chrisv@cyberswitching.com>");
++MODULE_DESCRIPTION("NXP PCF2123 RTC driver");
 +MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
++
++module_init(pcf2123_init);
++module_exit(pcf2123_exit);
 _
 
-Patches currently in -mm which might be from dpervushin@embeddedalley.com are
+Patches currently in -mm which might be from chrisv@cyberswitching.com are
 
-rtc-add-freescale-stmp37xx-378x-driver.patch
+rtc-philips-nxp-pcf2123-driver.patch
 
