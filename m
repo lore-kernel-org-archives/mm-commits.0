@@ -1,109 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 26 Jun 2009 11:20:35 -0700
-Message-ID: <200906261820.n5QIKZOh011189@imap1.linux-foundation.org>
+Subject: [merged] scsi-fnic-remove-redundant-bug_ons-and-fix-checks-on-unsigned.patch removed from -mm tree
+Date: Fri, 26 Jun 2009 11:22:01 -0700
+Message-ID: <200906261822.n5QIM1qq012693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751432AbZFZSUe (ORCPT
+	by vger.kernel.org with ESMTP id S1757801AbZFZSWC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 14:20:34 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n5QIKZhh017928
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2009 11:20:36 -0700
+	Fri, 26 Jun 2009 14:22:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, abjoglek@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     scsi: fnic: remove redundant BUG_ONs and fix checks on unsigned
+has been removed from the -mm tree.  Its filename was
+     scsi-fnic-remove-redundant-bug_ons-and-fix-checks-on-unsigned.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi: fnic: remove redundant BUG_ONs and fix checks on unsigned
+From: Roel Kluin <roel.kluin@gmail.com>
 
+The shost sg tablesize is set to FNIC_MAX_SG_DESC_CNT and fnic uses
+scsi_dma_map, so both BUG_ONs can be removed.
+
+scsi_dma_map may return -ENOMEM, sg_count should be int to catch that.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Abhijeet Joglekar <abjoglek@cisco.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/powermac/setup.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/scsi/fnic/fnic_scsi.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/platforms/powermac/setup.c~linux-next-git-rejects arch/powerpc/platforms/powermac/setup.c
---- a/arch/powerpc/platforms/powermac/setup.c~linux-next-git-rejects
-+++ a/arch/powerpc/platforms/powermac/setup.c
-@@ -336,8 +336,6 @@ static void __init pmac_setup_arch(void)
- 		ROOT_DEV = DEFAULT_ROOT_DEVICE;
- #endif
+diff -puN drivers/scsi/fnic/fnic_scsi.c~scsi-fnic-remove-redundant-bug_ons-and-fix-checks-on-unsigned drivers/scsi/fnic/fnic_scsi.c
+--- a/drivers/scsi/fnic/fnic_scsi.c~scsi-fnic-remove-redundant-bug_ons-and-fix-checks-on-unsigned
++++ a/drivers/scsi/fnic/fnic_scsi.c
+@@ -245,7 +245,7 @@ static inline int fnic_queue_wq_copy_des
+ 					  struct vnic_wq_copy *wq,
+ 					  struct fnic_io_req *io_req,
+ 					  struct scsi_cmnd *sc,
+-					  u32 sg_count)
++					  int sg_count)
+ {
+ 	struct scatterlist *sg;
+ 	struct fc_rport *rport = starget_to_rport(scsi_target(sc->device));
+@@ -260,9 +260,6 @@ static inline int fnic_queue_wq_copy_des
+ 	char msg[2];
  
--<<<<<<< HEAD:arch/powerpc/platforms/powermac/setup.c
--=======
- #ifdef CONFIG_SMP
- 	/* Check for Core99 */
- 	ic = of_find_node_by_name(NULL, "uni-n");
-@@ -366,7 +364,6 @@ static void __init pmac_setup_arch(void)
- #endif
- #endif /* CONFIG_SMP */
+ 	if (sg_count) {
+-		BUG_ON(sg_count < 0);
+-		BUG_ON(sg_count > FNIC_MAX_SG_DESC_CNT);
+-
+ 		/* For each SGE, create a device desc entry */
+ 		desc = io_req->sgl_list;
+ 		for_each_sg(scsi_sglist(sc), sg, sg_count, i) {
+@@ -344,7 +341,7 @@ int fnic_queuecommand(struct scsi_cmnd *
+ 	struct fnic *fnic;
+ 	struct vnic_wq_copy *wq;
+ 	int ret;
+-	u32 sg_count;
++	int sg_count;
+ 	unsigned long flags;
+ 	unsigned long ptr;
  
-->>>>>>> FETCH_HEAD:arch/powerpc/platforms/powermac/setup.c
- #ifdef CONFIG_ADB
- 	if (strstr(cmd_line, "adb_sync")) {
- 		extern int __adb_probe_sync;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+ext4-remove-redundant-test-on-unsigned.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+m68k-cnt-reaches-1-not-0.patch
+platinumfb-misplaced-parenthesis.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
