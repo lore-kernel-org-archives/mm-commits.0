@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-comments-explaining-memory-barriers.patch added to -mm tree
-Date: Fri, 26 Jun 2009 13:04:16 -0700
-Message-ID: <200906262004.n5QK4Guk025628@imap1.linux-foundation.org>
+Subject: + mn10300-pci-remove-pci_dac_dma_-apis.patch added to -mm tree
+Date: Fri, 26 Jun 2009 13:02:54 -0700
+Message-ID: <200906262004.n5QK2sSE024115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33708 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875AbZFZUEX (ORCPT
+	by vger.kernel.org with ESMTP id S1750875AbZFZUGg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 16:04:23 -0400
+	Fri, 26 Jun 2009 16:06:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp
+Cc: fernando@oss.ntt.co.jp, dhowells@redhat.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     memcg: add comments explaining memory barriers
+     mn10300: pci: remove pci_dac_dma_... APIs
 has been added to the -mm tree.  Its filename is
-     memcg-add-comments-explaining-memory-barriers.patch
+     mn10300-pci-remove-pci_dac_dma_-apis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add comments explaining memory barriers
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mn10300: pci: remove pci_dac_dma_... APIs
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
-Add comments for the reason of smp_wmb() in mem_cgroup_commit_charge().
+It seems that mn10300 made it upstream after Jan Beulich's pci_dac_dma_*
+cleanup work and still defines pci_dac_dma_supported().  This API is not
+required by the PCI subsystem anymore, so remove it.
 
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/mn10300/include/asm/pci.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers
-+++ a/mm/memcontrol.c
-@@ -1134,6 +1134,13 @@ static void __mem_cgroup_commit_charge(s
- 	}
+diff -puN arch/mn10300/include/asm/pci.h~mn10300-pci-remove-pci_dac_dma_-apis arch/mn10300/include/asm/pci.h
+--- a/arch/mn10300/include/asm/pci.h~mn10300-pci-remove-pci_dac_dma_-apis
++++ a/arch/mn10300/include/asm/pci.h
+@@ -70,10 +70,6 @@ struct pci_dev;
+  */
+ #define PCI_DMA_BUS_IS_PHYS	(1)
  
- 	pc->mem_cgroup = mem;
-+	/*
-+ 	 * We access a page_cgroup asynchronously without lock_page_cgroup().
-+ 	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
-+ 	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
-+ 	 * before USED bit, we need memory barrier here.
-+ 	 * See mem_cgroup_add_lru_list(), etc.
-+ 	 */
- 	smp_wmb();
- 	switch (ctype) {
- 	case MEM_CGROUP_CHARGE_TYPE_CACHE:
-_
-
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
-
-elf-limit-max-map-count-to-safe-value.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers.patch
-
+-
+-/* This is always fine. */
+-#define pci_dac_dma_supported(pci_dev, mask)	(0)
