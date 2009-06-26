@@ -1,141 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + signals-change-__wake_up_parent-to-use-filtered-wakeup.patch added to -mm tree
-Date: Thu, 25 Jun 2009 16:53:42 -0700
-Message-ID: <200906252353.n5PNrh5t020999@imap1.linux-foundation.org>
+Subject: [withdrawn] shrink_slab-handle-bad-shrinkers.patch removed from -mm tree
+Date: Thu, 25 Jun 2009 17:19:48 -0700
+Message-ID: <200906260019.n5Q0Jmgo016542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35879 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751304AbZFYXyL (ORCPT
+	by vger.kernel.org with ESMTP id S1751299AbZFZAUG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jun 2009 19:54:11 -0400
+	Thu, 25 Jun 2009 20:20:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, mingo@elte.hu, rnalumasu@gmail.com, roland@redhat.com, vmayatsk@redhat.com
+To: akpm@linux-foundation.org, jirislaby@gmail.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: change __wake_up_parent() to use filtered wakeup
-has been added to the -mm tree.  Its filename is
-     signals-change-__wake_up_parent-to-use-filtered-wakeup.patch
+     shrink_slab(): handle bad shrinkers
+has been removed from the -mm tree.  Its filename was
+     shrink_slab-handle-bad-shrinkers.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: change __wake_up_parent() to use filtered wakeup
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: shrink_slab(): handle bad shrinkers
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Ratan Nalumasu reported that in a process with many threads doing
-unnecessary wakeups.  Every waiting thread in the process wakes up to loop
-through the children and see that the only ones it cares about are still
-not ready.
-
-Now that we have struct wait_opts we can change do_wait/__wake_up_parent
-to use filtered wakeups.
-
-We can make child_wait_callback() more clever later, right now it only
-checks eligible_child().
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ratan Nalumasu <rnalumasu@gmail.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c   |   22 +++++++++++++++++++---
- kernel/signal.c |    3 ++-
- 2 files changed, 21 insertions(+), 4 deletions(-)
+ mm/vmscan.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~signals-change-__wake_up_parent-to-use-filtered-wakeup kernel/exit.c
---- a/kernel/exit.c~signals-change-__wake_up_parent-to-use-filtered-wakeup
-+++ a/kernel/exit.c
-@@ -1093,6 +1093,7 @@ struct wait_opts {
- 	int __user		*wo_stat;
- 	struct rusage __user	*wo_rusage;
+diff -puN mm/vmscan.c~shrink_slab-handle-bad-shrinkers mm/vmscan.c
+--- a/mm/vmscan.c~shrink_slab-handle-bad-shrinkers
++++ a/mm/vmscan.c
+@@ -19,6 +19,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/init.h>
+ #include <linux/highmem.h>
++#include <linux/kallsyms.h>
+ #include <linux/vmstat.h>
+ #include <linux/file.h>
+ #include <linux/writeback.h>
+@@ -218,7 +219,13 @@ unsigned long shrink_slab(unsigned long 
+ 		unsigned long total_scan;
+ 		unsigned long max_pass = (*shrinker->shrink)(0, gfp_mask);
  
-+	wait_queue_t		child_wait;
- 	int			notask_error;
- };
- 
-@@ -1566,15 +1567,29 @@ static int ptrace_do_wait(struct wait_op
- 	return 0;
- }
- 
-+static int child_wait_callback(wait_queue_t *wait, unsigned mode,
-+				int sync, void *key)
-+{
-+	struct wait_opts *wo = container_of(wait, struct wait_opts,
-+						child_wait);
-+	struct task_struct *p = key;
-+
-+	if (!eligible_child(wo, p))
-+		return 0;
-+
-+	return default_wake_function(wait, mode, sync, key);
-+}
-+
- static long do_wait(struct wait_opts *wo)
- {
--	DECLARE_WAITQUEUE(wait, current);
- 	struct task_struct *tsk;
- 	int retval;
- 
- 	trace_sched_process_wait(wo->wo_pid);
- 
--	add_wait_queue(&current->signal->wait_chldexit,&wait);
-+	init_waitqueue_func_entry(&wo->child_wait, child_wait_callback);
-+	wo->child_wait.private = current;
-+	add_wait_queue(&current->signal->wait_chldexit, &wo->child_wait);
- repeat:
- 	/*
- 	 * If there is nothing that can match our critiera just get out.
-@@ -1615,7 +1630,8 @@ notask:
- 	}
- end:
- 	__set_current_state(TASK_RUNNING);
--	remove_wait_queue(&current->signal->wait_chldexit,&wait);
-+	remove_wait_queue(&current->signal->wait_chldexit, &wo->child_wait);
-+
- 	if (wo->wo_info) {
- 		struct siginfo __user *infop = wo->wo_info;
- 
-diff -puN kernel/signal.c~signals-change-__wake_up_parent-to-use-filtered-wakeup kernel/signal.c
---- a/kernel/signal.c~signals-change-__wake_up_parent-to-use-filtered-wakeup
-+++ a/kernel/signal.c
-@@ -1388,7 +1388,8 @@ ret:
- static inline void __wake_up_parent(struct task_struct *p,
- 				    struct task_struct *parent)
- {
--	wake_up_interruptible_sync(&parent->signal->wait_chldexit);
-+	__wake_up_sync_key(&parent->signal->wait_chldexit,
-+				TASK_INTERRUPTIBLE, 1, p);
- }
- 
- /*
+-		delta = (4 * scanned) / shrinker->seeks;
++		if (!shrinker->seeks) {
++			print_symbol("shrinker %s has zero seeks\n",
++				(unsigned long)shrinker->shrink);
++			delta = (4 * scanned) / DEFAULT_SEEKS;
++		} else {
++			delta = (4 * scanned) / shrinker->seeks;
++		}
+ 		delta *= max_pass;
+ 		do_div(delta, lru_pages + 1);
+ 		shrinker->nr += delta;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-rework-fix-is_single_threaded.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-signals-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
-signals-change-__wake_up_parent-to-use-filtered-wakeup.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
