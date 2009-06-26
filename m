@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + lis3-fix-typo.patch added to -mm tree
-Date: Fri, 26 Jun 2009 14:32:44 -0700
-Message-ID: <200906262132.n5QLWidf023498@imap1.linux-foundation.org>
+Subject: + lis3-add-power-management-functions.patch added to -mm tree
+Date: Fri, 26 Jun 2009 14:32:49 -0700
+Message-ID: <200906262132.n5QLWnv6023526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752116AbZFZVc7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752207AbZFZVc7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 26 Jun 2009 17:32:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@ucw.cz
 
 
 The patch titled
-     lis3: fix typo
+     lis3: add power management functions
 has been added to the -mm tree.  Its filename is
-     lis3-fix-typo.patch
+     lis3-add-power-management-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: fix typo
+Subject: lis3: add power management functions
 From: Daniel Mack <daniel@caiaq.de>
 
-Bit 0x80 in CTRL_REG3 is an ACTIVE_LOW rather than an ACTIVE_HIGH
-function, I got that wrong during my last change.
+This enabled power management functions for the SPI transport layer of the
+lis3 devices.  The device's suspend mode is only entered in case no wakeup
+threshold has been given.  In this case, the device is supposed to wake up
+the system and must thus not be put to deep sleep.
 
 Signed-off-by: Daniel Mack <daniel@caiaq.de>
 Acked-by: Pavel Machek <pavel@ucw.cz>
@@ -46,21 +48,54 @@ Cc: Eric Piel <eric.piel@tremplin-utc.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lis3lv02d.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hwmon/lis3lv02d_spi.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff -puN include/linux/lis3lv02d.h~lis3-fix-typo include/linux/lis3lv02d.h
---- a/include/linux/lis3lv02d.h~lis3-fix-typo
-+++ a/include/linux/lis3lv02d.h
-@@ -32,7 +32,7 @@ struct lis3lv02d_platform_data {
- #define LIS3_IRQ2_DATA_READY	(4 << 3)
- #define LIS3_IRQ2_CLICK		(7 << 3)
- #define LIS3_IRQ_OPEN_DRAIN	(1 << 6)
--#define LIS3_IRQ_ACTIVE_HIGH	(1 << 7)
-+#define LIS3_IRQ_ACTIVE_LOW	(1 << 7)
- 	unsigned char irq_cfg;
+diff -puN drivers/hwmon/lis3lv02d_spi.c~lis3-add-power-management-functions drivers/hwmon/lis3lv02d_spi.c
+--- a/drivers/hwmon/lis3lv02d_spi.c~lis3-add-power-management-functions
++++ a/drivers/hwmon/lis3lv02d_spi.c
+@@ -87,6 +87,32 @@ static int __devexit lis302dl_spi_remove
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM
++static int lis3lv02d_spi_suspend(struct spi_device *spi, pm_message_t mesg)
++{
++	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
++
++	if (!lis3->pdata->wakeup_flags)
++		lis3lv02d_poweroff(&lis3_dev);
++
++	return 0;
++}
++
++static int lis3lv02d_spi_resume(struct spi_device *spi)
++{
++	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
++
++	if (!lis3->pdata->wakeup_flags)
++		lis3lv02d_poweron(lis3);
++
++	return 0;
++}
++
++#else
++#define lis3_spi_suspend	NULL
++#define lis3_spi_resume		NULL
++#endif
++
+ static struct spi_driver lis302dl_spi_driver = {
+ 	.driver	 = {
+ 		.name   = DRV_NAME,
+@@ -94,6 +120,8 @@ static struct spi_driver lis302dl_spi_dr
+ 	},
+ 	.probe	= lis302dl_spi_probe,
+ 	.remove	= __devexit_p(lis302dl_spi_remove),
++	.suspend = lis3lv02d_spi_suspend,
++	.resume  = lis3lv02d_spi_resume,
  };
  
+ static int __init lis302dl_init(void)
 _
 
 Patches currently in -mm which might be from daniel@caiaq.de are
