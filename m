@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-reorder-makefile.patch added to -mm tree
-Date: Fri, 26 Jun 2009 16:07:57 -0700
-Message-ID: <200906262307.n5QN7viQ028719@imap1.linux-foundation.org>
+Subject: + memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 26 Jun 2009 16:10:21 -0700
+Message-ID: <200906262310.n5QNALX5031295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33674 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751964AbZFZXH7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751994AbZFZXKW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 19:07:59 -0400
+	Fri, 26 Jun 2009 19:10:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.zummo@towertech.it
+Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     rtc: reorder Makefile
+     memcg-add-comments-explaining-memory-barriers-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     rtc-reorder-makefile.patch
+     memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: reorder Makefile
-From: Alessandro Zummo <a.zummo@towertech.it>
+Subject: memcg-add-comments-explaining-memory-barriers-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+ERROR: code indent should use tabs where possible
+#22: FILE: mm/memcontrol.c:1138:
++ ^I * We access a page_cgroup asynchronously without lock_page_cgroup().$
+
+ERROR: code indent should use tabs where possible
+#23: FILE: mm/memcontrol.c:1139:
++ ^I * Especially when a page_cgroup is taken from a page, pc->mem_cgroup$
+
+ERROR: code indent should use tabs where possible
+#24: FILE: mm/memcontrol.c:1140:
++ ^I * is accessed after testing USED bit. To make pc->mem_cgroup visible$
+
+ERROR: code indent should use tabs where possible
+#25: FILE: mm/memcontrol.c:1141:
++ ^I * before USED bit, we need memory barrier here.$
+
+ERROR: code indent should use tabs where possible
+#26: FILE: mm/memcontrol.c:1142:
++ ^I * See mem_cgroup_add_lru_list(), etc.$
+
+ERROR: code indent should use tabs where possible
+#27: FILE: mm/memcontrol.c:1143:
++ ^I */$
+
+total: 6 errors, 0 warnings, 13 lines checked
+
+./patches/memcg-add-comments-explaining-memory-barriers.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Makefile |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/Makefile~rtc-reorder-makefile drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-reorder-makefile
-+++ a/drivers/rtc/Makefile
-@@ -22,7 +22,9 @@ obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-a
- obj-$(CONFIG_RTC_DRV_AT91SAM9)	+= rtc-at91sam9.o
- obj-$(CONFIG_RTC_DRV_AU1XXX)	+= rtc-au1xxx.o
- obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
-+obj-$(CONFIG_RTC_DRV_BQ4802)	+= rtc-bq4802.o
- obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
-+obj-$(CONFIG_RTC_DRV_COH901331)	+= rtc-coh901331.o
- obj-$(CONFIG_RTC_DRV_DM355EVM)	+= rtc-dm355evm.o
- obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
- obj-$(CONFIG_RTC_DRV_DS1286)	+= rtc-ds1286.o
-@@ -39,6 +41,7 @@ obj-$(CONFIG_RTC_DRV_DS3234)	+= rtc-ds32
- obj-$(CONFIG_RTC_DRV_EFI)	+= rtc-efi.o
- obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
- obj-$(CONFIG_RTC_DRV_FM3130)	+= rtc-fm3130.o
-+obj-$(CONFIG_RTC_DRV_GENERIC)	+= rtc-generic.o
- obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
- obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
- obj-$(CONFIG_RTC_DRV_M41T94)	+= rtc-m41t94.o
-@@ -46,9 +49,6 @@ obj-$(CONFIG_RTC_DRV_M48T35)	+= rtc-m48t
- obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
- obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
- obj-$(CONFIG_RTC_MXC)		+= rtc-mxc.o
--obj-$(CONFIG_RTC_DRV_BQ4802)	+= rtc-bq4802.o
--obj-$(CONFIG_RTC_DRV_SUN4V)	+= rtc-sun4v.o
--obj-$(CONFIG_RTC_DRV_STARFIRE)	+= rtc-starfire.o
- obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
- obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
- obj-$(CONFIG_RTC_DRV_MSM6242)	+= rtc-msm6242.o
-@@ -57,9 +57,10 @@ obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
- obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf8563.o
- obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
- obj-$(CONFIG_RTC_DRV_PCF2123)	+= rtc-pcf2123.o
-+obj-$(CONFIG_RTC_DRV_PCF50633)	+= rtc-pcf50633.o
- obj-$(CONFIG_RTC_DRV_PL030)	+= rtc-pl030.o
- obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
--obj-$(CONFIG_RTC_DRV_GENERIC)	+= rtc-generic.o
-+obj-$(CONFIG_RTC_DRV_PS3)	+= rtc-ps3.o
- obj-$(CONFIG_RTC_DRV_PXA)	+= rtc-pxa.o
- obj-$(CONFIG_RTC_DRV_R9701)	+= rtc-r9701.o
- obj-$(CONFIG_RTC_DRV_RP5C01)	+= rtc-rp5c01.o
-@@ -72,7 +73,10 @@ obj-$(CONFIG_RTC_DRV_S35390A)	+= rtc-s35
- obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
- obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
- obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
-+obj-$(CONFIG_RTC_DRV_STARFIRE)	+= rtc-starfire.o
- obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
-+obj-$(CONFIG_RTC_DRV_STMP)	+= rtc-stmp3xxx.o
-+obj-$(CONFIG_RTC_DRV_SUN4V)	+= rtc-sun4v.o
- obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
- obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl4030.o
- obj-$(CONFIG_RTC_DRV_TX4939)	+= rtc-tx4939.o
-@@ -80,7 +84,3 @@ obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
- obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
- obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
--obj-$(CONFIG_RTC_DRV_PCF50633)	+= rtc-pcf50633.o
--obj-$(CONFIG_RTC_DRV_PS3)	+= rtc-ps3.o
--obj-$(CONFIG_RTC_DRV_COH901331)	+= rtc-coh901331.o
--obj-$(CONFIG_RTC_DRV_STMP)	+= rtc-stmp3xxx.o
+diff -puN mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers-checkpatch-fixes
++++ a/mm/memcontrol.c
+@@ -1135,11 +1135,11 @@ static void __mem_cgroup_commit_charge(s
+ 
+ 	pc->mem_cgroup = mem;
+ 	/*
+- 	 * We access a page_cgroup asynchronously without lock_page_cgroup().
+- 	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
+- 	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
+- 	 * before USED bit, we need memory barrier here.
+- 	 * See mem_cgroup_add_lru_list(), etc.
++	 * We access a page_cgroup asynchronously without lock_page_cgroup().
++	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
++	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
++	 * before USED bit, we need memory barrier here.
++	 * See mem_cgroup_add_lru_list(), etc.
+  	 */
+ 	smp_wmb();
+ 	switch (ctype) {
 _
 
-Patches currently in -mm which might be from a.zummo@towertech.it are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+alpha-dont-implement-per_cpu_attributes.patch
+drivers-net-usb-usbnetc-fix-proc-net-dev-stats.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
 rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-u300-coh-901-331-rtc-driver-v3.patch
-rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
-rtc-bfin-do-not-share-rtc-irq.patch
-bfin-delay-irq-registration-until-driver-is-ready.patch
-rtc-add-freescale-stmp37xx-378x-driver.patch
-rtc-philips-nxp-pcf2123-driver.patch
-rtc-reorder-makefile.patch
-rtc-driver-for-pcap2-pmic.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
