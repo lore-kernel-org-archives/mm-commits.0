@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch added to -mm tree
-Date: Fri, 26 Jun 2009 16:01:46 -0700
-Message-ID: <200906262301.n5QN1kxE022096@imap1.linux-foundation.org>
+Subject: + rtc-bfin-do-not-share-rtc-irq.patch added to -mm tree
+Date: Fri, 26 Jun 2009 16:01:51 -0700
+Message-ID: <200906262301.n5QN1pru022217@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753113AbZFZXBw (ORCPT
+	by vger.kernel.org with ESMTP id S1754294AbZFZXB4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 19:01:52 -0400
+	Fri, 26 Jun 2009 19:01:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, a.zummo@towertech.it, david-b@pacbell.net
+Cc: michael.hennerich@analog.com, a.zummo@towertech.it, vapier@gentoo.org
 
 
 The patch titled
-     rtc: update documentation wrt RTC_PIE/irq_set_state
+     rtc-bfin: do not share RTC IRQ
 has been added to the -mm tree.  Its filename is
-     rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
+     rtc-bfin-do-not-share-rtc-irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: update documentation wrt RTC_PIE/irq_set_state
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: rtc-bfin: do not share RTC IRQ
+From: Michael Hennerich <michael.hennerich@analog.com>
 
+The Blackfin RTC IRQ is an internal interrupt, so it makes no sense to
+have it be shared.
 
+Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/rtc.txt |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-bfin.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/rtc.txt~rtc-update-documentation-wrt-rtc_pie-irq_set_state Documentation/rtc.txt
---- a/Documentation/rtc.txt~rtc-update-documentation-wrt-rtc_pie-irq_set_state
-+++ a/Documentation/rtc.txt
-@@ -185,6 +185,8 @@ driver returns ENOIOCTLCMD.  Some common
- 	hardware in the irq_set_freq function.  If it isn't, return -EINVAL.  If
- 	you cannot actually change the frequency, do not define irq_set_freq.
+diff -puN drivers/rtc/rtc-bfin.c~rtc-bfin-do-not-share-rtc-irq drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~rtc-bfin-do-not-share-rtc-irq
++++ a/drivers/rtc/rtc-bfin.c
+@@ -375,7 +375,7 @@ static int __devinit bfin_rtc_probe(stru
+ 	device_init_wakeup(dev, 1);
  
-+    *	RTC_PIE_ON, RTC_PIE_OFF: the irq_set_state function will be called.
-+
- If all else fails, check out the rtc-test.c driver!
- 
- 
+ 	/* Grab the IRQ and init the hardware */
+-	ret = request_irq(IRQ_RTC, bfin_rtc_interrupt, IRQF_SHARED, pdev->name, dev);
++	ret = request_irq(IRQ_RTC, bfin_rtc_interrupt, 0, pdev->name, dev);
+ 	if (unlikely(ret))
+ 		goto err;
+ 	/* sometimes the bootloader touched things, but the write complete was not
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from michael.hennerich@analog.com are
 
-linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch
-asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
-kallsyms-use-new-arch_is_kernel_text.patch
-lockdep-use-new-arch_is_kernel_data.patch
-blackfin-override-text-data-checking-functions.patch
-rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
 rtc-bfin-do-not-share-rtc-irq.patch
-bfin-delay-irq-registration-until-driver-is-ready.patch
 
