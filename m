@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 26 Jun 2009 16:10:21 -0700
-Message-ID: <200906262310.n5QNALX5031295@imap1.linux-foundation.org>
+Subject: + alpha-fix-percpu-build-breakage.patch added to -mm tree
+Date: Sat, 27 Jun 2009 18:07:22 -0700
+Message-ID: <200906280107.n5S17MVD011837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33674 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39003 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751994AbZFZXKW (ORCPT
+	by vger.kernel.org with ESMTP id S1751163AbZF1BMD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jun 2009 19:10:22 -0400
+	Sat, 27 Jun 2009 21:12:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: tj@kernel.org, ink@jurassic.park.msu.ru, max@stro.at, rth@twiddle.net
 
 
 The patch titled
-     memcg-add-comments-explaining-memory-barriers-checkpatch-fixes
+     alpha: fix percpu build breakage
 has been added to the -mm tree.  Its filename is
-     memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+     alpha-fix-percpu-build-breakage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-comments-explaining-memory-barriers-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alpha: fix percpu build breakage
+From: Tejun Heo <tj@kernel.org>
 
-ERROR: code indent should use tabs where possible
-#22: FILE: mm/memcontrol.c:1138:
-+ ^I * We access a page_cgroup asynchronously without lock_page_cgroup().$
+alpha percpu access requires custom SHIFT_PERCPU_PTR() definition for
+modules to work around addressing range limitation.  This is done via
+generating inline assembly using C preprocessing which forces the
+assembler to generate external reference.  This happens behind the
+compiler's back and makes the compiler think that static percpu variables
+in modules are unused.
 
-ERROR: code indent should use tabs where possible
-#23: FILE: mm/memcontrol.c:1139:
-+ ^I * Especially when a page_cgroup is taken from a page, pc->mem_cgroup$
+This used to be worked around by using __unused attribute for percpu
+variables which prevent the compiler from omitting the variable; however,
+recent declare/definition attribute unification change broke this as
+__used can't be used for declaration.  Also, in the process,
+PER_CPU_ATTRIBUTES definition in alpha percpu.h got broken.
 
-ERROR: code indent should use tabs where possible
-#24: FILE: mm/memcontrol.c:1140:
-+ ^I * is accessed after testing USED bit. To make pc->mem_cgroup visible$
+This patch adds PER_CPU_DEF_ATTRIBUTES which is only used for definitions
+and make alpha use it to add __used for percpu variables in modules.  This
+also fixes the PER_CPU_ATTRIBUTES double definition bug.
 
-ERROR: code indent should use tabs where possible
-#25: FILE: mm/memcontrol.c:1141:
-+ ^I * before USED bit, we need memory barrier here.$
-
-ERROR: code indent should use tabs where possible
-#26: FILE: mm/memcontrol.c:1142:
-+ ^I * See mem_cgroup_add_lru_list(), etc.$
-
-ERROR: code indent should use tabs where possible
-#27: FILE: mm/memcontrol.c:1143:
-+ ^I */$
-
-total: 6 errors, 0 warnings, 13 lines checked
-
-./patches/memcg-add-comments-explaining-memory-barriers.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: maximilian attems <max@stro.at>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/alpha/include/asm/percpu.h |    6 +++---
+ include/asm-generic/percpu.h    |    4 ++++
+ include/linux/percpu-defs.h     |    3 ++-
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -1135,11 +1135,11 @@ static void __mem_cgroup_commit_charge(s
+diff -puN arch/alpha/include/asm/percpu.h~alpha-fix-percpu-build-breakage arch/alpha/include/asm/percpu.h
+--- a/arch/alpha/include/asm/percpu.h~alpha-fix-percpu-build-breakage
++++ a/arch/alpha/include/asm/percpu.h
+@@ -30,7 +30,7 @@ extern unsigned long __per_cpu_offset[NR
  
- 	pc->mem_cgroup = mem;
- 	/*
-- 	 * We access a page_cgroup asynchronously without lock_page_cgroup().
-- 	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
-- 	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
-- 	 * before USED bit, we need memory barrier here.
-- 	 * See mem_cgroup_add_lru_list(), etc.
-+	 * We access a page_cgroup asynchronously without lock_page_cgroup().
-+	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
-+	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
-+	 * before USED bit, we need memory barrier here.
-+	 * See mem_cgroup_add_lru_list(), etc.
-  	 */
- 	smp_wmb();
- 	switch (ctype) {
+ #ifndef MODULE
+ #define SHIFT_PERCPU_PTR(var, offset) RELOC_HIDE(&per_cpu_var(var), (offset))
+-#define PER_CPU_ATTRIBUTES
++#define PER_CPU_DEF_ATTRIBUTES
+ #else
+ /*
+  * To calculate addresses of locally defined variables, GCC uses 32-bit
+@@ -49,7 +49,7 @@ extern unsigned long __per_cpu_offset[NR
+ 		: "=&r"(__ptr), "=&r"(tmp_gp));		\
+ 	(typeof(&per_cpu_var(var)))(__ptr + (offset)); })
+ 
+-#define PER_CPU_ATTRIBUTES	__used
++#define PER_CPU_DEF_ATTRIBUTES	__used
+ 
+ #endif /* MODULE */
+ 
+@@ -71,7 +71,7 @@ extern unsigned long __per_cpu_offset[NR
+ #define __get_cpu_var(var)		per_cpu_var(var)
+ #define __raw_get_cpu_var(var)		per_cpu_var(var)
+ 
+-#define PER_CPU_ATTRIBUTES
++#define PER_CPU_DEF_ATTRIBUTES
+ 
+ #endif /* SMP */
+ 
+diff -puN include/asm-generic/percpu.h~alpha-fix-percpu-build-breakage include/asm-generic/percpu.h
+--- a/include/asm-generic/percpu.h~alpha-fix-percpu-build-breakage
++++ a/include/asm-generic/percpu.h
+@@ -97,4 +97,8 @@ extern void setup_per_cpu_areas(void);
+ #define PER_CPU_ATTRIBUTES
+ #endif
+ 
++#ifndef PER_CPU_DEF_ATTRIBUTES
++#define PER_CPU_DEF_ATTRIBUTES
++#endif
++
+ #endif /* _ASM_GENERIC_PERCPU_H_ */
+diff -puN include/linux/percpu-defs.h~alpha-fix-percpu-build-breakage include/linux/percpu-defs.h
+--- a/include/linux/percpu-defs.h~alpha-fix-percpu-build-breakage
++++ a/include/linux/percpu-defs.h
+@@ -24,7 +24,8 @@
+ 
+ #define DEFINE_PER_CPU_SECTION(type, name, section)			\
+ 	__attribute__((__section__(PER_CPU_BASE_SECTION section)))	\
+-	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
++	PER_CPU_ATTRIBUTES PER_CPU_DEF_ATTRIBUTES			\
++	__typeof__(type) per_cpu__##name
+ 
+ /*
+  * Variant on the per-CPU variable declaration/definition theme used for
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tj@kernel.org are
 
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
+alpha-fix-percpu-build-breakage.patch
+alpha-fix-2630-smp-build.patch
 alpha-dont-implement-per_cpu_attributes.patch
-drivers-net-usb-usbnetc-fix-proc-net-dev-stats.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+linux-next.patch
 
