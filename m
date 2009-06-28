@@ -1,132 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-fix-percpu-build-breakage.patch added to -mm tree
-Date: Sat, 27 Jun 2009 18:07:22 -0700
-Message-ID: <200906280107.n5S17MVD011837@imap1.linux-foundation.org>
+Subject: [to-be-updated] alpha-fix-2630-smp-build.patch removed from -mm tree
+Date: Sat, 27 Jun 2009 18:07:45 -0700
+Message-ID: <200906280107.n5S17jJN012261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39003 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48508 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751163AbZF1BMD (ORCPT
+	by vger.kernel.org with ESMTP id S1751558AbZF1BMI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jun 2009 21:12:03 -0400
+	Sat, 27 Jun 2009 21:12:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, ink@jurassic.park.msu.ru, max@stro.at, rth@twiddle.net
+To: max@stro.at, ink@jurassic.park.msu.ru, rth@twiddle.net, stable@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix percpu build breakage
-has been added to the -mm tree.  Its filename is
-     alpha-fix-percpu-build-breakage.patch
+     alpha: fix 2.6.30 smp build
+has been removed from the -mm tree.  Its filename was
+     alpha-fix-2630-smp-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: fix percpu build breakage
-From: Tejun Heo <tj@kernel.org>
+Subject: alpha: fix 2.6.30 smp build
+From: maximilian attems <max@stro.at>
 
-alpha percpu access requires custom SHIFT_PERCPU_PTR() definition for
-modules to work around addressing range limitation.  This is done via
-generating inline assembly using C preprocessing which forces the
-assembler to generate external reference.  This happens behind the
-compiler's back and makes the compiler think that static percpu variables
-in modules are unused.
+In file included from include/linux/percpu.h:10,
+                 from /usr/src/devel/arch/alpha/include/asm/local.h:4,
+                 from include/linux/module.h:20,
+                 from arch/alpha/kernel/srm_env.c:33:
+arch/alpha/include/asm/percpu.h:100:1: error: "PER_CPU_ATTRIBUTES" redefined
+arch/alpha/include/asm/percpu.h:52:1: error: this is the location of the previous definition
 
-This used to be worked around by using __unused attribute for percpu
-variables which prevent the compiler from omitting the variable; however,
-recent declare/definition attribute unification change broke this as
-__used can't be used for declaration.  Also, in the process,
-PER_CPU_ATTRIBUTES definition in alpha percpu.h got broken.
-
-This patch adds PER_CPU_DEF_ATTRIBUTES which is only used for definitions
-and make alpha use it to add __used for percpu variables in modules.  This
-also fixes the PER_CPU_ATTRIBUTES double definition bug.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: maximilian attems <max@stro.at>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Richard Henderson <rth@twiddle.net>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/percpu.h |    6 +++---
- include/asm-generic/percpu.h    |    4 ++++
- include/linux/percpu-defs.h     |    3 ++-
- 3 files changed, 9 insertions(+), 4 deletions(-)
+ arch/alpha/include/asm/percpu.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/include/asm/percpu.h~alpha-fix-percpu-build-breakage arch/alpha/include/asm/percpu.h
---- a/arch/alpha/include/asm/percpu.h~alpha-fix-percpu-build-breakage
+diff -puN arch/alpha/include/asm/percpu.h~alpha-fix-2630-smp-build arch/alpha/include/asm/percpu.h
+--- a/arch/alpha/include/asm/percpu.h~alpha-fix-2630-smp-build
 +++ a/arch/alpha/include/asm/percpu.h
-@@ -30,7 +30,7 @@ extern unsigned long __per_cpu_offset[NR
+@@ -95,8 +95,8 @@ extern unsigned long __per_cpu_offset[NR
+ #define PER_CPU_SHARED_ALIGNED_SECTION ""
+ #define PER_CPU_FIRST_SECTION ""
  
- #ifndef MODULE
- #define SHIFT_PERCPU_PTR(var, offset) RELOC_HIDE(&per_cpu_var(var), (offset))
--#define PER_CPU_ATTRIBUTES
-+#define PER_CPU_DEF_ATTRIBUTES
- #else
- /*
-  * To calculate addresses of locally defined variables, GCC uses 32-bit
-@@ -49,7 +49,7 @@ extern unsigned long __per_cpu_offset[NR
- 		: "=&r"(__ptr), "=&r"(tmp_gp));		\
- 	(typeof(&per_cpu_var(var)))(__ptr + (offset)); })
- 
--#define PER_CPU_ATTRIBUTES	__used
-+#define PER_CPU_DEF_ATTRIBUTES	__used
- 
- #endif /* MODULE */
- 
-@@ -71,7 +71,7 @@ extern unsigned long __per_cpu_offset[NR
- #define __get_cpu_var(var)		per_cpu_var(var)
- #define __raw_get_cpu_var(var)		per_cpu_var(var)
- 
--#define PER_CPU_ATTRIBUTES
-+#define PER_CPU_DEF_ATTRIBUTES
- 
- #endif /* SMP */
- 
-diff -puN include/asm-generic/percpu.h~alpha-fix-percpu-build-breakage include/asm-generic/percpu.h
---- a/include/asm-generic/percpu.h~alpha-fix-percpu-build-breakage
-+++ a/include/asm-generic/percpu.h
-@@ -97,4 +97,8 @@ extern void setup_per_cpu_areas(void);
- #define PER_CPU_ATTRIBUTES
- #endif
- 
-+#ifndef PER_CPU_DEF_ATTRIBUTES
-+#define PER_CPU_DEF_ATTRIBUTES
-+#endif
-+
- #endif /* _ASM_GENERIC_PERCPU_H_ */
-diff -puN include/linux/percpu-defs.h~alpha-fix-percpu-build-breakage include/linux/percpu-defs.h
---- a/include/linux/percpu-defs.h~alpha-fix-percpu-build-breakage
-+++ a/include/linux/percpu-defs.h
-@@ -24,7 +24,8 @@
- 
- #define DEFINE_PER_CPU_SECTION(type, name, section)			\
- 	__attribute__((__section__(PER_CPU_BASE_SECTION section)))	\
--	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
-+	PER_CPU_ATTRIBUTES PER_CPU_DEF_ATTRIBUTES			\
-+	__typeof__(type) per_cpu__##name
- 
- /*
-  * Variant on the per-CPU variable declaration/definition theme used for
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-alpha-fix-percpu-build-breakage.patch
-alpha-fix-2630-smp-build.patch
-alpha-dont-implement-per_cpu_attributes.patch
-linux-next.patch
-
+-#endif
