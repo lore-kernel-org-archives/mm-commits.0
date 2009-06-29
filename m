@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-driver-for-pcap2-pmic-update.patch added to -mm tree
-Date: Mon, 29 Jun 2009 13:47:51 -0700
-Message-ID: <200906292047.n5TKlpDT027213@imap1.linux-foundation.org>
+Subject: + get_maintainer-support-directories-as-well-as-regular-files.patch added to -mm tree
+Date: Mon, 29 Jun 2009 13:49:17 -0700
+Message-ID: <200906292049.n5TKnHf1028749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57307 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53715 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752709AbZF2Us2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752210AbZF2UuN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jun 2009 16:48:28 -0400
+	Mon, 29 Jun 2009 16:50:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drwyrm@gmail.com, a.zummo@towertech.it, gmzhuo@gmail.com
+Cc: joe@perches.com
 
 
 The patch titled
-     rtc-driver-for-pcap2-pmic-update
+     get_maintainer: support directories as well as regular files
 has been added to the -mm tree.  Its filename is
-     rtc-driver-for-pcap2-pmic-update.patch
+     get_maintainer-support-directories-as-well-as-regular-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,129 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-driver-for-pcap2-pmic-update
-From: Daniel Ribeiro <drwyrm@gmail.com>
+Subject: get_maintainer: support directories as well as regular files
+From: Joe Perches <joe@perches.com>
 
-Signed-off-by: Daniel Ribeiro <drwyrm@gmail.com>
-Signed-off-by: guiming zhuo <gmzhuo@gmail.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+-enochangelog etc ;)
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcap.c |   52 ++++++++++++++++++++-------------------
- 1 file changed, 27 insertions(+), 25 deletions(-)
+ scripts/get_maintainer.pl |   32 +++++++++++++++++++-------------
+ 1 file changed, 19 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcap.c~rtc-driver-for-pcap2-pmic-update drivers/rtc/rtc-pcap.c
---- a/drivers/rtc/rtc-pcap.c~rtc-driver-for-pcap2-pmic-update
-+++ a/drivers/rtc/rtc-pcap.c
-@@ -27,12 +27,14 @@ struct pcap_rtc {
- static irqreturn_t pcap_rtc_irq(int irq, void *_pcap_rtc)
- {
- 	struct pcap_rtc *pcap_rtc = _pcap_rtc;
--	unsigned long rtc_events = 0;
-+	unsigned long rtc_events;
+diff -puN scripts/get_maintainer.pl~get_maintainer-support-directories-as-well-as-regular-files scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-support-directories-as-well-as-regular-files
++++ a/scripts/get_maintainer.pl
+@@ -13,7 +13,7 @@
+ use strict;
  
- 	if (irq == pcap_to_irq(pcap_rtc->pcap, PCAP_IRQ_1HZ))
--		rtc_events |= RTC_IRQF | RTC_UF;
-+		rtc_events = RTC_IRQF | RTC_UF;
- 	else if (irq == pcap_to_irq(pcap_rtc->pcap, PCAP_IRQ_TODA))
--		rtc_events |= RTC_IRQF | RTC_AF;
-+		rtc_events = RTC_IRQF | RTC_AF;
-+	else
-+		rtc_events = 0;
+ my $P = $0;
+-my $V = '0.16';
++my $V = '0.17';
  
- 	rtc_update_irq(pcap_rtc->rtc, 1, rtc_events);
- 	return IRQ_HANDLED;
-@@ -44,13 +46,14 @@ static int pcap_rtc_read_alarm(struct de
- 	struct pcap_rtc *pcap_rtc = platform_get_drvdata(pdev);
- 	struct rtc_time *tm = &alrm->time;
- 	unsigned long secs;
--	u32 tmp;
-+	u32 tod;	/* time of day, seconds since midnight */
-+	u32 days;	/* days since 1/1/1970 */
+ use Getopt::Long qw(:config no_auto_abbrev);
  
--	ezx_pcap_read(pcap_rtc->pcap, PCAP_REG_RTC_TODA, &tmp);
--	secs = tmp & PCAP_RTC_TOD_MASK;
-+	ezx_pcap_read(pcap_rtc->pcap, PCAP_REG_RTC_TODA, &tod);
-+	secs = tod & PCAP_RTC_TOD_MASK;
+@@ -146,8 +146,9 @@ close(MAINT);
+ my @files = ();
  
--	ezx_pcap_read(pcap_rtc->pcap, PCAP_REG_RTC_DAYA, &tmp);
--	secs += (tmp & PCAP_RTC_DAY_MASK) * SEC_PER_DAY;
-+	ezx_pcap_read(pcap_rtc->pcap, PCAP_REG_RTC_DAYA, &days);
-+	secs += (days & PCAP_RTC_DAY_MASK) * SEC_PER_DAY;
+ foreach my $file (@ARGV) {
+-    next if ((-d $file));
+-    if (!(-f $file)) {
++    if ((-d $file)) {
++	$file =~ s@([^/])$@$1/@;
++    } elsif (!(-f $file)) {
+ 	die "$P: file '${file}' not found\n";
+     }
+     if ($from_filename) {
+@@ -273,17 +274,15 @@ exit($exit);
  
- 	rtc_time_to_tm(secs, tm);
+ sub file_match_pattern {
+     my ($file, $pattern) = @_;
+-    if (substr($pattern, -1) eq "/") {
+-	if ($file =~ m@^$pattern@) {
++    if ($file =~ m@^$pattern@) {
++	if (substr($pattern, -1) eq "/" ||
++	    $file =~ m@^$pattern/@) {
+ 	    return 1;
+ 	}
+-    } else {
+-	if ($file =~ m@^$pattern@) {
+-	    my $s1 = ($file =~ tr@/@@);
+-	    my $s2 = ($pattern =~ tr@/@@);
+-	    if ($s1 == $s2) {
+-		return 1;
+-	    }
++	my $s1 = ($file =~ tr@/@@);
++	my $s2 = ($pattern =~ tr@/@@);
++	if ($s1 == $s2) {
++	    return 1;
+ 	}
+     }
+     return 0;
+@@ -292,7 +291,7 @@ sub file_match_pattern {
+ sub usage {
+     print <<EOT;
+ usage: $P [options] patchfile
+-       $P [options] -f file
++       $P [options] -f file|directory
+ version: $V
  
-@@ -63,15 +66,15 @@ static int pcap_rtc_set_alarm(struct dev
- 	struct pcap_rtc *pcap_rtc = platform_get_drvdata(pdev);
- 	struct rtc_time *tm = &alrm->time;
- 	unsigned long secs;
--	u32 tmp;
-+	u32 tod, days;
+ MAINTAINER field selection options:
+@@ -322,6 +321,13 @@ Other options:
+   --version => show version
+   --help => show this help information
  
- 	rtc_tm_to_time(tm, &secs);
- 
--	tmp = secs % SEC_PER_DAY;
--	ezx_pcap_write(pcap_rtc->pcap, PCAP_REG_RTC_TODA, tmp);
-+	tod = secs % SEC_PER_DAY;
-+	ezx_pcap_write(pcap_rtc->pcap, PCAP_REG_RTC_TODA, tod);
- 
--	tmp = secs / SEC_PER_DAY;
--	ezx_pcap_write(pcap_rtc->pcap, PCAP_REG_RTC_DAYA, tmp);
-+	days = secs / SEC_PER_DAY;
-+	ezx_pcap_write(pcap_rtc->pcap, PCAP_REG_RTC_DAYA, days);
- 
- 	return 0;
- }
-@@ -81,13 +84,13 @@ static int pcap_rtc_read_time(struct dev
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct pcap_rtc *pcap_rtc = platform_get_drvdata(pdev);
- 	unsigned long secs;
--	u32 tmp;
-+	u32 tod, days;
- 
--	ezx_pcap_read(pcap_rtc->pcap, PCAP_REG_RTC_TOD, &tmp);
--	secs = tmp & PCAP_RTC_TOD_MASK;
-+	ezx_pcap_read(pcap_rtc->pcap, PCAP_REG_RTC_TOD, &tod);
-+	secs = tod & PCAP_RTC_TOD_MASK;
- 
--	ezx_pcap_read(pcap_rtc->pcap, PCAP_REG_RTC_DAY, &tmp);
--	secs += (tmp & PCAP_RTC_DAY_MASK) * SEC_PER_DAY;
-+	ezx_pcap_read(pcap_rtc->pcap, PCAP_REG_RTC_DAY, &days);
-+	secs += (days & PCAP_RTC_DAY_MASK) * SEC_PER_DAY;
- 
- 	rtc_time_to_tm(secs, tm);
- 
-@@ -98,19 +101,18 @@ static int pcap_rtc_set_mmss(struct devi
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct pcap_rtc *pcap_rtc = platform_get_drvdata(pdev);
--	u32 tmp;
-+	u32 tod, days;
- 
--	tmp = secs % SEC_PER_DAY;
--	ezx_pcap_write(pcap_rtc->pcap, PCAP_REG_RTC_TOD, tmp);
-+	tod = secs % SEC_PER_DAY;
-+	ezx_pcap_write(pcap_rtc->pcap, PCAP_REG_RTC_TOD, tod);
- 
--	tmp = secs / SEC_PER_DAY;
--	ezx_pcap_write(pcap_rtc->pcap, PCAP_REG_RTC_DAY, tmp);
-+	days = secs / SEC_PER_DAY;
-+	ezx_pcap_write(pcap_rtc->pcap, PCAP_REG_RTC_DAY, days);
- 
- 	return 0;
++Notes:
++  Using "-f directory" may give unexpected results:
++
++  Used with "--git", git signators for all files below are examined.
++  Used with "--nogit", directory is used as a pattern match,
++     no individual file within the directory or subdirectory
++     is matched.
+ EOT
  }
  
--static inline int pcap_rtc_irq_enable(struct device *dev, int pirq,
--							unsigned int en)
-+static int pcap_rtc_irq_enable(struct device *dev, int pirq, unsigned int en)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct pcap_rtc *pcap_rtc = platform_get_drvdata(pdev);
 _
 
-Patches currently in -mm which might be from drwyrm@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-rtc-driver-for-pcap2-pmic.patch
-rtc-driver-for-pcap2-pmic-update.patch
+origin.patch
+maintainers-update-edac-i82975x.patch
+linux-next.patch
+maintainers-starfire-duralan-update.patch
+get_maintainer-support-directories-as-well-as-regular-files.patch
 
