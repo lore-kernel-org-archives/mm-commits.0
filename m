@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch added to -mm tree
-Date: Mon, 29 Jun 2009 16:29:04 -0700
-Message-ID: <200906292329.n5TNT4Zw008372@imap1.linux-foundation.org>
+Subject: + memory-hotplug-update-zone-pcp-at-memory-online-fix.patch added to -mm tree
+Date: Mon, 29 Jun 2009 16:54:00 -0700
+Message-ID: <200906300014.n5U0EQMQ025436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41448 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57684 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752674AbZF2X3o (ORCPT
+	by vger.kernel.org with ESMTP id S1751110AbZF3APi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jun 2009 19:29:44 -0400
+	Mon, 29 Jun 2009 20:15:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, penberg@cs.helsinki.fi, vegard.nossum@gmail.com, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, cl@linux-foundation.org, mel@csn.ul.ie, shaohua.li@intel.com, yakui.zhao@intel.com
 
 
 The patch titled
-     fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix
+     memory-hotplug-update-zone-pcp-at-memory-online-fix
 has been added to the -mm tree.  Its filename is
-     fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+     memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix
+Subject: memory-hotplug-update-zone-pcp-at-memory-online-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-copy_mount_string wants to be static.
+mm/page_alloc.c: In function '__zone_pcp_update':
+mm/page_alloc.c:3165: warning: no return statement in function returning non-void
+mm/page_alloc.c:3165: warning: control reaches end of non-void function
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Yakui Zhao <yakui.zhao@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/namespace.c~fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix fs/namespace.c
---- a/fs/namespace.c~fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix
-+++ a/fs/namespace.c
-@@ -1869,7 +1869,7 @@ int copy_mount_options(const void __user
- 	return 0;
+diff -puN mm/page_alloc.c~memory-hotplug-update-zone-pcp-at-memory-online-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-update-zone-pcp-at-memory-online-fix
++++ a/mm/page_alloc.c
+@@ -3153,6 +3153,7 @@ static int __zone_pcp_update(void *data)
+ 		setup_pageset(pset, batch);
+ 		local_irq_restore(flags);
+ 	}
++	return 0;
  }
  
--int copy_mount_string(const void __user *data, char **where)
-+static int copy_mount_string(const void __user *data, char **where)
- {
- 	char *tmp;
- 
+ void zone_pcp_update(struct zone *zone)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +86,7 @@ drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.pat
 mm-make-swap-token-dummies-static-inlines-fix.patch
 readahead-add-blk_run_backing_dev-fix.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
 arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
