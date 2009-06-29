@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + move-magic-numbers-into-magich-update.patch added to -mm tree
-Date: Mon, 29 Jun 2009 12:29:54 -0700
-Message-ID: <200906291929.n5TJTs1S006812@imap1.linux-foundation.org>
+Subject: + gcov-fix-documentation.patch added to -mm tree
+Date: Mon, 29 Jun 2009 12:42:03 -0700
+Message-ID: <200906291942.n5TJg3CY020237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758766AbZF2Ta0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756672AbZF2TmC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jun 2009 15:30:26 -0400
+	Mon, 29 Jun 2009 15:42:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dank@qemfd.net, penberg@cs.helsinki.fi
+Cc: oberpar@linux.vnet.ibm.com
 
 
 The patch titled
-     move-magic-numbers-into-magich-update
+     gcov: fix documentation
 has been added to the -mm tree.  Its filename is
-     move-magic-numbers-into-magich-update.patch
+     gcov-fix-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: move-magic-numbers-into-magich-update
-From: Nick Black <dank@qemfd.net>
+Subject: gcov: fix documentation
+From: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 
-Signed-off-by: Nick Black <dank@qemfd.net>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Commonly available versions of cp and tar don't work well with special
+files created using seq_file.  Mention this problem in the gcov
+documentation and update the helper script example to work around these
+problems.
+
+Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c  |    4 +---
- include/linux/magic.h |    1 +
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ Documentation/gcov.txt |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~move-magic-numbers-into-magich-update fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~move-magic-numbers-into-magich-update
-+++ a/fs/hugetlbfs/inode.c
-@@ -31,12 +31,10 @@
- #include <linux/statfs.h>
- #include <linux/security.h>
- #include <linux/ima.h>
-+#include <linux/magic.h>
+diff -puN Documentation/gcov.txt~gcov-fix-documentation Documentation/gcov.txt
+--- a/Documentation/gcov.txt~gcov-fix-documentation
++++ a/Documentation/gcov.txt
+@@ -188,13 +188,18 @@ Solution: Exclude affected source files 
+           GCOV_PROFILE := n or GCOV_PROFILE_basename.o := n in the
+           corresponding Makefile.
  
- #include <asm/uaccess.h>
++Problem:  Files copied from sysfs appear empty or incomplete.
++Cause:    Due to the way seq_file works, some tools such as cp or tar
++          may not correctly copy files from sysfs.
++Solution: Use 'cat' to read .gcda files and 'cp -d' to copy links.
++          Alternatively use the mechanism shown in Appendix B.
++
  
--/* some random number */
--#define HUGETLBFS_MAGIC	0x958458f6
+ Appendix A: gather_on_build.sh
+ ==============================
+ 
+ Sample script to gather coverage meta files on the build machine
+ (see 6a):
+-
+ #!/bin/bash
+ 
+ KSRC=$1
+@@ -226,7 +231,7 @@ Appendix B: gather_on_test.sh
+ Sample script to gather coverage data files on the test machine
+ (see 6b):
+ 
+-#!/bin/bash
++#!/bin/bash -e
+ 
+ DEST=$1
+ GCDA=/sys/kernel/debug/gcov
+@@ -236,11 +241,13 @@ if [ -z "$DEST" ] ; then
+   exit 1
+ fi
+ 
+-find $GCDA -name '*.gcno' -o -name '*.gcda' | tar cfz $DEST -T -
++TEMPDIR=$(mktemp -d)
++echo Collecting data..
++find $GCDA -type d -exec mkdir -p $TEMPDIR/\{\} \;
++find $GCDA -name '*.gcda' -exec sh -c 'cat < $0 > '$TEMPDIR'/$0' {} \;
++find $GCDA -name '*.gcno' -exec sh -c 'cp -d $0 '$TEMPDIR'/$0' {} \;
++tar czf $DEST -C $TEMPDIR sys
++rm -rf $TEMPDIR
+ 
+-if [ $? -eq 0 ] ; then
+-  echo "$DEST successfully created, copy to build system and unpack with:"
+-  echo "  tar xfz $DEST"
+-else
+-  echo "Could not create file $DEST"
+-fi
++echo "$DEST successfully created, copy to build system and unpack with:"
++echo "  tar xfz $DEST"
+_
+
+Patches currently in -mm which might be from oberpar@linux.vnet.ibm.com are
+
+gcov-fix-__ctors_start-alignment.patch
+gcov-fix-documentation.patch
+
