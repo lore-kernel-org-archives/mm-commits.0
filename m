@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hostfs-set-maximum-filesize-in-superblock-for-proper-lfs-support.patch added to -mm tree
-Date: Mon, 29 Jun 2009 15:33:16 -0700
-Message-ID: <200906292233.n5TMXGqD012461@imap1.linux-foundation.org>
+Subject: + kernel-doc-move-ignoring-kmemcheck.patch added to -mm tree
+Date: Mon, 29 Jun 2009 15:33:50 -0700
+Message-ID: <200906292233.n5TMXo4r013082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752119AbZF2WdZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752298AbZF2Wd4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jun 2009 18:33:25 -0400
+	Mon, 29 Jun 2009 18:33:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wolfgang@illmeyer.com, jdike@addtoit.com
+Cc: randy.dunlap@oracle.com, sam@ravnborg.org
 
 
 The patch titled
-     hostfs: set maximum filesize in superblock for proper LFS support
+     kernel-doc: move ignoring kmemcheck
 has been added to the -mm tree.  Its filename is
-     hostfs-set-maximum-filesize-in-superblock-for-proper-lfs-support.patch
+     kernel-doc-move-ignoring-kmemcheck.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hostfs: set maximum filesize in superblock for proper LFS support
-From: Wolfgang Illmeyer <wolfgang@illmeyer.com>
+Subject: kernel-doc: move ignoring kmemcheck
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Maximum file size for hostfs mounts defaults to 2GB, so bigger files cannot be
-read/written through hostfs. This patch initializes the maximum file size to
-MAX_LFS_SIZE.
+Somehow I managed to generate a diff that put these 2 lines into the wrong
+function: should have been in dump_struct() instead of in dump_enum().
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13531
-
-Signed-off-by: Wolfgang Illmeyer <wolfgang@illmeyer.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs_kern.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/kernel-doc |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/hostfs/hostfs_kern.c~hostfs-set-maximum-filesize-in-superblock-for-proper-lfs-support fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~hostfs-set-maximum-filesize-in-superblock-for-proper-lfs-support
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -972,6 +972,7 @@ static int hostfs_fill_sb_common(struct 
- 	sb->s_blocksize_bits = 10;
- 	sb->s_magic = HOSTFS_SUPER_MAGIC;
- 	sb->s_op = &hostfs_sbops;
-+	sb->s_maxbytes = MAX_LFS_FILESIZE;
+diff -puN scripts/kernel-doc~kernel-doc-move-ignoring-kmemcheck scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-move-ignoring-kmemcheck
++++ a/scripts/kernel-doc
+@@ -1426,6 +1426,8 @@ sub dump_struct($$) {
+ 	# strip comments:
+ 	$members =~ s/\/\*.*?\*\///gos;
+ 	$nested =~ s/\/\*.*?\*\///gos;
++	# strip kmemcheck_bitfield_{begin,end}.*;
++	$members =~ s/kmemcheck_bitfield_.*?;//gos;
  
- 	/* NULL is printed as <NULL> by sprintf: avoid that. */
- 	if (req_root == NULL)
+ 	create_parameterlist($members, ';', $file);
+ 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
+@@ -1468,8 +1470,6 @@ sub dump_enum($$) {
+ 	    }
+ 
+ 	}
+-	# strip kmemcheck_bitfield_{begin,end}.*;
+-	$members =~ s/kmemcheck_bitfield_.*?;//gos;
+ 
+ 	output_declaration($declaration_name,
+ 			   'enum',
 _
 
-Patches currently in -mm which might be from wolfgang@illmeyer.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-hostfs-set-maximum-filesize-in-superblock-for-proper-lfs-support.patch
+origin.patch
+linux-next.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+kernel-doc-move-ignoring-kmemcheck.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
