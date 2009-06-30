@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + staging-otus-remove-dependency-on-wireless_ext-version.patch added to -mm tree
-Date: Tue, 30 Jun 2009 12:45:50 -0700
-Message-ID: <200906301945.n5UJjohQ007127@imap1.linux-foundation.org>
+Subject: + staging-rtl8187se-remove-dependency-on-wireless_ext-version.patch added to -mm tree
+Date: Tue, 30 Jun 2009 12:45:55 -0700
+Message-ID: <200906301945.n5UJjuCR007217@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755991AbZF3TqJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756183AbZF3TqL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jun 2009 15:46:09 -0400
+	Tue, 30 Jun 2009 15:46:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.beregalov@gmail.com, greg@kroah.com
 
 
 The patch titled
-     otus: remove dependency on WIRELESS_EXT version
+     rtl8187se: remove dependency on WIRELESS_EXT version
 has been added to the -mm tree.  Its filename is
-     staging-otus-remove-dependency-on-wireless_ext-version.patch
+     staging-rtl8187se-remove-dependency-on-wireless_ext-version.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: otus: remove dependency on WIRELESS_EXT version
+Subject: rtl8187se: remove dependency on WIRELESS_EXT version
 From: Alexander Beregalov <a.beregalov@gmail.com>
 
 As the driver is in mainline now we can remove such dependencies. 
@@ -45,360 +45,194 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/otus/ioctl.c    |   20 ++------------------
- drivers/staging/otus/usbdrv.c   |   13 -------------
- drivers/staging/otus/wrap_buf.c |    4 ----
- drivers/staging/otus/wrap_dbg.c |    3 ---
- drivers/staging/otus/wrap_ev.c  |    7 -------
- drivers/staging/otus/wrap_mem.c |    3 ---
- drivers/staging/otus/wrap_mis.c |    3 ---
- drivers/staging/otus/wrap_pkt.c |    4 ----
- drivers/staging/otus/wrap_sec.c |    3 ---
- drivers/staging/otus/wrap_usb.c |    3 ---
- drivers/staging/otus/wwrap.c    |    3 ---
- drivers/staging/otus/zdcompat.h |   10 ----------
- 12 files changed, 2 insertions(+), 74 deletions(-)
+ drivers/staging/rtl8187se/ieee80211.h                      |    9 ---
+ drivers/staging/rtl8187se/ieee80211/ieee80211.h            |    9 ---
+ drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c |   24 ----------
+ drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c         |    4 -
+ drivers/staging/rtl8187se/r8180_core.c                     |   13 -----
+ drivers/staging/rtl8187se/r8180_wx.c                       |    4 -
+ 6 files changed, 63 deletions(-)
 
-diff -puN drivers/staging/otus/ioctl.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/ioctl.c
---- a/drivers/staging/otus/ioctl.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/ioctl.c
-@@ -58,9 +58,7 @@
- #define ZD_MAX_KEY_SIZE			    32
- #define ZD_MAX_GENERIC_SIZE		    64
+diff -puN drivers/staging/rtl8187se/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211.h
+--- a/drivers/staging/rtl8187se/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rtl8187se/ieee80211.h
+@@ -196,15 +196,6 @@ typedef struct ieee_param {
+ }ieee_param;
  
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
+ 
+-#if WIRELESS_EXT < 17
+-#define IW_QUAL_QUAL_INVALID   0x10
+-#define IW_QUAL_LEVEL_INVALID  0x20
+-#define IW_QUAL_NOISE_INVALID  0x40
+-#define IW_QUAL_QUAL_UPDATED   0x1
+-#define IW_QUAL_LEVEL_UPDATED  0x2
+-#define IW_QUAL_NOISE_UPDATED  0x4
 -#endif
+-
+ // linux under 2.6.9 release may not support it, so modify it for common use
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,9))
+ #define MSECS(t)	(1000 * ((t) / HZ) + 1000 * ((t) % HZ) / HZ)
+diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211/ieee80211.h
+--- a/drivers/staging/rtl8187se/ieee80211/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rtl8187se/ieee80211/ieee80211.h
+@@ -196,15 +196,6 @@ typedef struct ieee_param {
+ }ieee_param;
  
- extern u16_t zfLnxGetVapId(zdev_t *dev);
  
-@@ -248,7 +246,6 @@ int usbdrv_ioctl_setrts(struct net_devic
- 	return 0;
+-#if WIRELESS_EXT < 17
+-#define IW_QUAL_QUAL_INVALID   0x10
+-#define IW_QUAL_LEVEL_INVALID  0x20
+-#define IW_QUAL_NOISE_INVALID  0x40
+-#define IW_QUAL_QUAL_UPDATED   0x1
+-#define IW_QUAL_LEVEL_UPDATED  0x2
+-#define IW_QUAL_NOISE_UPDATED  0x4
+-#endif
+-
+ // linux under 2.6.9 release may not support it, so modify it for common use
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,9))
+ #define MSECS(t)	(1000 * ((t) / HZ) + 1000 * ((t) % HZ) / HZ)
+diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c
+--- a/drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c
+@@ -753,7 +753,6 @@ static int ieee80211_michael_mic_add(str
  }
  
--#if WIRELESS_EXT > 14
- /*
-  * Encode a WPA or RSN information element as a custom
-  * element using the hostap format.
-@@ -269,7 +266,6 @@ u32 encode_ie(void *buf, u32 bufsize, co
- 		p += sprintf(p, "%02x", ie[i]);
- 	return (i == ielen ? p - (u8 *)buf:0);
+ 
+-#if WIRELESS_EXT >= 18
+ static void ieee80211_michael_mic_failure(struct net_device *dev,
+ 				       struct ieee80211_hdr *hdr,
+ 				       int keyidx)
+@@ -774,29 +773,6 @@ static void ieee80211_michael_mic_failur
+ 	wrqu.data.length = sizeof(ev);
+ 	wireless_send_event(dev, IWEVMICHAELMICFAILURE, &wrqu, (char *) &ev);
  }
--#endif  /* WIRELESS_EXT > 14 */
- 
- /*
-  * Translate scan data returned from the card to a card independent
-@@ -284,9 +280,7 @@ char *usbdrv_translate_scan(struct net_d
- 	char *current_val;     /* For rates */
- 	char *last_ev;
- 	int i;
--	#if WIRELESS_EXT > 14
--		char    buf[64*2 + 30];
--	#endif
-+	char    buf[64*2 + 30];
- 
- 	last_ev = current_ev;
- 
-@@ -365,10 +359,8 @@ char *usbdrv_translate_scan(struct net_d
- 
- 	/* Add quality statistics */
- 	iwe.cmd = IWEVQUAL;
--	#if WIRELESS_EXT > 18
- 	iwe.u.qual.updated = IW_QUAL_QUAL_UPDATED | IW_QUAL_LEVEL_UPDATED
- 				| IW_QUAL_NOISE_UPDATED;
--	#endif
- 	iwe.u.qual.level = list->signalStrength;
- 	iwe.u.qual.noise = 0;
- 	iwe.u.qual.qual = list->signalQuality;
-@@ -441,8 +433,7 @@ char *usbdrv_translate_scan(struct net_d
- 	/* Check if we added any event */
- 	if ((current_val - current_ev) > IW_EV_LCP_LEN)
- 		current_ev = current_val;
--	#if WIRELESS_EXT > 14
--		#define IEEE80211_ELEMID_RSN 0x30
-+#define IEEE80211_ELEMID_RSN 0x30
- 	memset(&iwe, 0, sizeof(iwe));
- 	iwe.cmd = IWEVCUSTOM;
- 	snprintf(buf, sizeof(buf), "bcn_int=%d", (list->beaconInterval[1] << 8)
-@@ -503,7 +494,6 @@ char *usbdrv_translate_scan(struct net_d
- 			last_ev = current_ev;
- 		}
- 	}
--	#endif
- 	/* The other data in the scan result are not really
- 	* interesting, so for now drop it
- 	*/
-@@ -697,12 +687,9 @@ int usbdrvwext_giwrange(struct net_devic
- 	if (!netif_running(dev))
- 		return -EINVAL;
- 
--	#if WIRELESS_EXT > 9
- 	range->txpower_capa = IW_TXPOW_DBM;
- 	/* XXX what about min/max_pmp, min/max_pmt, etc. */
--	#endif
- 
--	#if WIRELESS_EXT > 10
- 	range->we_version_compiled = WIRELESS_EXT;
- 	range->we_version_source = 13;
- 
-@@ -710,7 +697,6 @@ int usbdrvwext_giwrange(struct net_devic
- 	range->retry_flags = IW_RETRY_LIMIT;
- 	range->min_retry = 0;
- 	range->max_retry = 255;
--	#endif  /* WIRELESS_EXT > 10 */
- 
- 	channel_num = zfiWlanQueryAllowChannels(dev, channels);
- 
-@@ -917,13 +903,11 @@ int usbdrvwext_giwscan(struct net_device
- 		current_ev = usbdrv_translate_scan(dev, info, current_ev,
- 					end_buf, &pBssList->bssInfo[i]);
- 
--		#if WIRELESS_EXT > 16
- 		if (current_ev == end_buf) {
- 			kfree(pBssList);
- 			data->length = current_ev - extra;
- 			return -E2BIG;
- 		}
--		#endif
- 	}
- 
- 	/* Length of data */
-diff -puN drivers/staging/otus/usbdrv.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/usbdrv.c
---- a/drivers/staging/otus/usbdrv.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/usbdrv.c
-@@ -39,9 +39,7 @@
- #include "linux/netlink.h"
- #include "linux/rtnetlink.h"
- 
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
- 
- #ifdef ZM_HOSTAPD_SUPPORT
- #include "athr_common.h"
-@@ -113,9 +111,7 @@ extern u8_t zfLnxCreateThread(zdev_t *de
- 
- /* Definition of Wireless Extension */
- 
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
- //wireless extension helper functions
- extern int usbdrv_ioctl_setessid(struct net_device *dev, struct iw_point *erq);
- extern int usbdrv_ioctl_setrts(struct net_device *dev, struct iw_param *rrq);
-@@ -203,7 +199,6 @@ struct iw_priv_args usbdrv_private_args[
- //    { SIOCIWFIRSTPRIV + 0xC, 0, IW_PRIV_TYPE_CHAR | 12, "get_mac_mode" },
- };
- 
--#if WIRELESS_EXT > 12
- static iw_handler usbdrvwext_handler[] = {
-     (iw_handler) NULL,                              /* SIOCSIWCOMMIT */
-     (iw_handler) usbdrvwext_giwname,                /* SIOCGIWNAME */
-@@ -229,13 +224,8 @@ static iw_handler usbdrvwext_handler[] =
-     (iw_handler) usbdrvwext_giwap,                  /* SIOCGIWAP */
-     (iw_handler) NULL,              /* -- hole -- */
-     (iw_handler) usbdrvwext_iwaplist,               /* SIOCGIWAPLIST */
--#if WIRELESS_EXT > 13
-     (iw_handler) usbdrvwext_siwscan,                /* SIOCSIWSCAN */
-     (iw_handler) usbdrvwext_giwscan,                /* SIOCGIWSCAN */
--#else /* WIRELESS_EXT > 13 */
--    (iw_handler) NULL, /* null */                   /* SIOCSIWSCAN */
--    (iw_handler) NULL, /* null */                   /* SIOCGIWSCAN */
--#endif /* WIRELESS_EXT > 13 */
-     (iw_handler) usbdrvwext_siwessid,               /* SIOCSIWESSID */
-     (iw_handler) usbdrvwext_giwessid,               /* SIOCGIWESSID */
- 
-@@ -291,7 +281,6 @@ static struct iw_handler_def p80211wext_
-     .private = (iw_handler *) usbdrv_private_handler,
-     .private_args = (struct iw_priv_args *) usbdrv_private_args
- };
--#endif
- 
- /* WDS */
- //struct zsWdsStruct wds[ZM_WDS_PORT_NUMBER];
-@@ -1106,9 +1095,7 @@ u8_t zfLnxInitSetup(struct net_device *d
-     dev->dev_addr[4] = addr[4];
-     dev->dev_addr[5] = addr[5];
- #endif
--#if WIRELESS_EXT > 12
-     dev->wireless_handlers = (struct iw_handler_def *)&p80211wext_handler_def;
--#endif
- 
-     dev->netdev_ops = &otus_netdev_ops;
- 
-diff -puN drivers/staging/otus/wrap_buf.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_buf.c
---- a/drivers/staging/otus/wrap_buf.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/wrap_buf.c
-@@ -29,11 +29,7 @@
- 
- 
- #include <linux/netlink.h>
--
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
--
- 
- 
- /* Called to allocate buffer, must return a continue buffer space */
-diff -puN drivers/staging/otus/wrap_dbg.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_dbg.c
---- a/drivers/staging/otus/wrap_dbg.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/wrap_dbg.c
-@@ -27,10 +27,7 @@
- #include "usbdrv.h"
- 
- #include <linux/netlink.h>
--
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
- 
- void zfwDumpBuf(zdev_t* dev, zbuf_t* buf)
- {
-diff -puN drivers/staging/otus/wrap_ev.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_ev.c
---- a/drivers/staging/otus/wrap_ev.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/wrap_ev.c
-@@ -28,10 +28,7 @@
- #include "usbdrv.h"
- 
- #include <linux/netlink.h>
--
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
- 
- 
- /***** Management *****/
-@@ -75,7 +72,6 @@ u16_t zfLnxAsocNotify(zdev_t* dev, u16_t
-     //            //wireless_send_event(macp->device, SIOCGIWSCAN, &wreq, NULL);
-     //    wireless_send_event(macp->device, SIOCGIWAP, &wreq, NULL);
-     //}
--#if WIRELESS_EXT >= 15
-     //else if(macp->cardSetting.BssType == AP_BSS) {
- //        if (port == 0)
- //        {
-@@ -94,7 +90,6 @@ u16_t zfLnxAsocNotify(zdev_t* dev, u16_t
- //            }
- //        }
-     //}
--#endif
- //#endif
- 
-     return 0;
-@@ -185,7 +180,6 @@ void zfLnxConnectNotify(zdev_t* dev, u16
-         //            //wireless_send_event(dev, SIOCGIWSCAN, &wreq, NULL);
-             wireless_send_event(dev, SIOCGIWAP, &wreq, NULL);
-         }
--#if WIRELESS_EXT >= 15
-         else if(zfiWlanQueryWlanMode(dev) == ZM_MODE_AP) {
-             //if (port == 0)
-             //{
-@@ -204,7 +198,6 @@ void zfLnxConnectNotify(zdev_t* dev, u16
-             //    }
-             //}
-         }
--#endif
-     }
-     //return 0;
- }
-diff -puN drivers/staging/otus/wrap_mem.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_mem.c
---- a/drivers/staging/otus/wrap_mem.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/wrap_mem.c
-@@ -27,10 +27,7 @@
- #include "usbdrv.h"
- 
- #include <linux/netlink.h>
--
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
- 
- /* Memory management */
- /* Called to allocate uncached memory, allocated memory must    */
-diff -puN drivers/staging/otus/wrap_mis.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_mis.c
---- a/drivers/staging/otus/wrap_mis.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/wrap_mis.c
-@@ -28,10 +28,7 @@
- #include "usbdrv.h"
- 
- #include <linux/netlink.h>
--
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
- 
- //extern struct zsWdsStruct wds[ZM_WDS_PORT_NUMBER];
- extern struct zsVapStruct vap[ZM_VAP_PORT_NUMBER];
-diff -puN drivers/staging/otus/wrap_pkt.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_pkt.c
---- a/drivers/staging/otus/wrap_pkt.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/wrap_pkt.c
-@@ -28,11 +28,7 @@
- #include "usbdrv.h"
- 
- #include <linux/netlink.h>
--
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
--
- 
- 
- //extern struct zsWdsStruct wds[ZM_WDS_PORT_NUMBER];
-diff -puN drivers/staging/otus/wrap_sec.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_sec.c
---- a/drivers/staging/otus/wrap_sec.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/wrap_sec.c
-@@ -28,10 +28,7 @@
- #include "usbdrv.h"
- 
- #include <linux/netlink.h>
--
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
- 
- #ifdef ZM_ENABLE_CENC
- extern int zfLnxCencSendMsg(struct sock *netlink_sk, u_int8_t *msg, int len);
-diff -puN drivers/staging/otus/wrap_usb.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_usb.c
---- a/drivers/staging/otus/wrap_usb.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/wrap_usb.c
-@@ -28,10 +28,7 @@
- #include "usbdrv.h"
- 
- #include <linux/netlink.h>
--
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
- 
- extern void zfLnxInitUsbTxQ(zdev_t* dev);
- extern void zfLnxInitUsbRxQ(zdev_t* dev);
-diff -puN drivers/staging/otus/wwrap.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wwrap.c
---- a/drivers/staging/otus/wwrap.c~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/wwrap.c
-@@ -26,10 +26,7 @@
- #include "usbdrv.h"
- 
- #include <linux/netlink.h>
--
--#if WIRELESS_EXT > 12
- #include <net/iw_handler.h>
--#endif
- 
- extern void zfiRecv80211(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* addInfo);
- extern void zfCoreRecv(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* addInfo);
-diff -puN drivers/staging/otus/zdcompat.h~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/zdcompat.h
---- a/drivers/staging/otus/zdcompat.h~staging-otus-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/otus/zdcompat.h
-@@ -35,16 +35,6 @@
- #undef netdevice_t
- typedef struct net_device netdevice_t;
- 
--#ifdef WIRELESS_EXT
--#if (WIRELESS_EXT < 13)
--struct iw_request_info
+-#elif WIRELESS_EXT >= 15
+-static void ieee80211_michael_mic_failure(struct net_device *dev,
+-				       struct ieee80211_hdr *hdr,
+-				       int keyidx)
 -{
--        __u16           cmd;            /* Wireless Extension command */
--        __u16           flags;          /* More to come ;-) */
--};
+-	union iwreq_data wrqu;
+-	char buf[128];
+-
+-	/* TODO: needed parameters: count, keyid, key type, TSC */
+-	sprintf(buf, "MLME-MICHAELMICFAILURE.indication(keyid=%d %scast addr="
+-		MAC_FMT ")", keyidx, hdr->addr1[0] & 0x01 ? "broad" : "uni",
+-		MAC_ARG(hdr->addr2));
+-	memset(&wrqu, 0, sizeof(wrqu));
+-	wrqu.data.length = strlen(buf);
+-	wireless_send_event(dev, IWEVCUSTOM, &wrqu, buf);
+-}
+-#else /* WIRELESS_EXT >= 15 */
+-static inline void ieee80211_michael_mic_failure(struct net_device *dev,
+-					      struct ieee80211_hdr *hdr,
+-					      int keyidx)
+-{
+-}
+-#endif /* WIRELESS_EXT >= 15 */
+ 
+ 
+ static int ieee80211_michael_mic_verify(struct sk_buff *skb, int keyidx,
+diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c
+--- a/drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c
+@@ -644,7 +644,6 @@ int ieee80211_rx(struct ieee80211_device
+ 	hdrlen = ieee80211_get_hdrlen(fc);
+ 
+ #ifdef NOT_YET
+-#if WIRELESS_EXT > 15
+ 	/* Put this code here so that we avoid duplicating it in all
+ 	 * Rx paths. - Jean II */
+ #ifdef IW_WIRELESS_SPY		/* defined in iw_handler.h */
+@@ -658,18 +657,15 @@ int ieee80211_rx(struct ieee80211_device
+ 		wireless_spy_update(dev, hdr->addr2, &wstats);
+ 	}
+ #endif /* IW_WIRELESS_SPY */
+-#endif /* WIRELESS_EXT > 15 */
+ 	hostap_update_rx_stats(local->ap, hdr, rx_stats);
+ #endif
+ 
+-#if WIRELESS_EXT > 15
+ 	if (ieee->iw_mode == IW_MODE_MONITOR) {
+ 		ieee80211_monitor_rx(ieee, skb, rx_stats);
+ 		stats->rx_packets++;
+ 		stats->rx_bytes += skb->len;
+ 		return 1;
+ 	}
 -#endif
+ 	if (ieee->host_decrypt) {
+ 		int idx = 0;
+ 		if (skb->len >= hdrlen + 3)
+diff -puN drivers/staging/rtl8187se/r8180_core.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/r8180_core.c
+--- a/drivers/staging/rtl8187se/r8180_core.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rtl8187se/r8180_core.c
+@@ -592,14 +592,6 @@ static int proc_get_stats_tx(char *page,
+ }
+ 
+ 
+-#if WIRELESS_EXT < 17
+-static struct iw_statistics *r8180_get_wireless_stats(struct net_device *dev)
+-{
+-       struct r8180_priv *priv = ieee80211_priv(dev);
+-
+-       return &priv->wstats;
+-}
 -#endif
+ void rtl8180_proc_module_init(void)
+ {
+ 	DMESG("Initializing proc filesystem");
+@@ -5950,12 +5942,7 @@ static int __devinit rtl8180_pci_probe(s
+ 	dev->netdev_ops = &rtl8180_netdev_ops;
+ 	dev->wireless_handlers = &r8180_wx_handlers_def;
+ 
+-#if WIRELESS_EXT >= 12
+-#if WIRELESS_EXT < 17
+-	dev->get_wireless_stats = r8180_get_wireless_stats;
+-#endif
+ 	dev->wireless_handlers = (struct iw_handler_def *) &r8180_wx_handlers_def;
+-#endif
+ 
+ 	dev->type=ARPHRD_ETHER;
+ 	dev->watchdog_timeo = HZ*3; //added by david woo, 2007.12.13
+diff -puN drivers/staging/rtl8187se/r8180_wx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/r8180_wx.c
+--- a/drivers/staging/rtl8187se/r8180_wx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rtl8187se/r8180_wx.c
+@@ -1543,7 +1543,6 @@ static iw_handler r8180_private_handler[
+ 	r8180_wx_set_forcerate,
+ };
+ 
+-#if WIRELESS_EXT >= 17
+ static inline int is_same_network(struct ieee80211_network *src,
+                                   struct ieee80211_network *dst,
+ 				  struct ieee80211_device *ieee)
+@@ -1626,7 +1625,6 @@ static struct iw_statistics *r8180_get_w
+ 	wstats->qual.updated = IW_QUAL_ALL_UPDATED| IW_QUAL_DBM;
+ 	return wstats;
+ }
+-#endif
+ 
+ 
+ struct iw_handler_def  r8180_wx_handlers_def={
+@@ -1635,9 +1633,7 @@ struct iw_handler_def  r8180_wx_handlers
+ 	.private = r8180_private_handler,
+ 	.num_private = sizeof(r8180_private_handler) / sizeof(iw_handler),
+  	.num_private_args = sizeof(r8180_private_args) / sizeof(struct iw_priv_args),
+-#if WIRELESS_EXT >= 17
+ 	.get_wireless_stats = r8180_get_wireless_stats,
+-#endif
+ 	.private_args = (struct iw_priv_args *)r8180_private_args,
+ };
+ 
+_
+
+Patches currently in -mm which might be from a.beregalov@gmail.com are
+
+linux-next.patch
+comedi-jr3_pcic-add-required-includes.patch
+vt6655-fix-build-when-config_wireless_ext.patch
+vt6655-remove-dependency-on-wireless_ext-version.patch
+stlc45xx-convert-config_interface-to-bss_info_changed.patch
+vt6655-s-void-void.patch
+staging-otus-remove-dependency-on-wireless_ext-version.patch
+staging-rt2860-remove-dependency-on-wireless_ext-version.patch
+staging-rtl8187se-remove-dependency-on-wireless_ext-version.patch
+
