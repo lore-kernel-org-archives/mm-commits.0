@@ -1,83 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning.patch added to -mm tree
-Date: Mon, 29 Jun 2009 17:08:16 -0700
-Message-ID: <200906300028.n5U0Sfad008535@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 30 Jun 2009 10:53:18 -0700
+Message-ID: <200906301753.n5UHrIQO013611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49629 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753272AbZF3A2t (ORCPT
+	by vger.kernel.org with ESMTP id S1752687AbZF3Rxo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jun 2009 20:28:49 -0400
+	Tue, 30 Jun 2009 13:53:44 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n5UHrI7N015357
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2009 10:53:19 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, oliver@neukum.org, stern@rowland.harvard.edu
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/serial/ti_usb_3410_5052.c: fix uninitialied var warning
-has been added to the -mm tree.  Its filename is
-     drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial/ti_usb_3410_5052.c: fix uninitialied var warning
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/serial/ti_usb_3410_5052.c: In function 'ti_startup':
-drivers/usb/serial/ti_usb_3410_5052.c:1661: warning: 'status' may be used uninitialized in this function
-
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Oliver Neukum <oliver@neukum.org>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ti_usb_3410_5052.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/char/tty_ldisc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/usb/serial/ti_usb_3410_5052.c~drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning drivers/usb/serial/ti_usb_3410_5052.c
---- a/drivers/usb/serial/ti_usb_3410_5052.c~drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning
-+++ a/drivers/usb/serial/ti_usb_3410_5052.c
-@@ -1658,7 +1658,6 @@ static int ti_do_download(struct usb_dev
- 	u8 cs = 0;
- 	int done;
- 	struct ti_firmware_header *header;
--	int status;
- 	int len;
+diff -puN drivers/char/tty_ldisc.c~linux-next-git-rejects drivers/char/tty_ldisc.c
+--- a/drivers/char/tty_ldisc.c~linux-next-git-rejects
++++ a/drivers/char/tty_ldisc.c
+@@ -873,11 +873,7 @@ void tty_ldisc_release(struct tty_struct
+ 	tty_ldisc_put(tty->ldisc);
+ 	/* Force an oops if we mess this up */
+ 	tty->ldisc = NULL;
+-<<<<<<< HEAD:drivers/char/tty_ldisc.c
  
- 	for (pos = sizeof(struct ti_firmware_header); pos < size; pos++)
-@@ -1671,13 +1670,15 @@ static int ti_do_download(struct usb_dev
+-=======
+-	
+->>>>>>> FETCH_HEAD:drivers/char/tty_ldisc.c
+ 	/* Ensure the next open requests the N_TTY ldisc */
+ 	tty_set_termios_ldisc(tty, N_TTY);
  
- 	dbg("%s - downloading firmware", __func__);
- 	for (pos = 0; pos < size; pos += done) {
-+		int status;
-+
- 		len = min(size - pos, TI_DOWNLOAD_MAX_PACKET_SIZE);
- 		status = usb_bulk_msg(dev, pipe, buffer + pos, len,
- 								&done, 1000);
- 		if (status)
--			break;
-+			return status;
- 	}
--	return status;
-+	return 0;
- }
- 
- static int ti_download_firmware(struct ti_device *tdev)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
