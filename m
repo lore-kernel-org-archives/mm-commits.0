@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + staging-rtl8187se-remove-dependency-on-wireless_ext-version.patch added to -mm tree
-Date: Tue, 30 Jun 2009 12:45:55 -0700
-Message-ID: <200906301945.n5UJjuCR007217@imap1.linux-foundation.org>
+Subject: + staging-rt2860-remove-dependency-on-wireless_ext-version.patch added to -mm tree
+Date: Tue, 30 Jun 2009 12:45:52 -0700
+Message-ID: <200906301945.n5UJjrCj007174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756183AbZF3TqL (ORCPT
+	by vger.kernel.org with ESMTP id S1756024AbZF3TqJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jun 2009 15:46:11 -0400
+	Tue, 30 Jun 2009 15:46:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.beregalov@gmail.com, greg@kroah.com
 
 
 The patch titled
-     rtl8187se: remove dependency on WIRELESS_EXT version
+     rt2860: remove dependency on WIRELESS_EXT version
 has been added to the -mm tree.  Its filename is
-     staging-rtl8187se-remove-dependency-on-wireless_ext-version.patch
+     staging-rt2860-remove-dependency-on-wireless_ext-version.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtl8187se: remove dependency on WIRELESS_EXT version
+Subject: rt2860: remove dependency on WIRELESS_EXT version
 From: Alexander Beregalov <a.beregalov@gmail.com>
 
 As the driver is in mainline now we can remove such dependencies. 
@@ -45,183 +45,436 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8187se/ieee80211.h                      |    9 ---
- drivers/staging/rtl8187se/ieee80211/ieee80211.h            |    9 ---
- drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c |   24 ----------
- drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c         |    4 -
- drivers/staging/rtl8187se/r8180_core.c                     |   13 -----
- drivers/staging/rtl8187se/r8180_wx.c                       |    4 -
- 6 files changed, 63 deletions(-)
+ drivers/staging/rt2860/oid.h         |    7 -
+ drivers/staging/rt2860/rt_linux.c    |    4 
+ drivers/staging/rt2860/rt_main_dev.c |    9 --
+ drivers/staging/rt2860/rt_profile.c  |    4 
+ drivers/staging/rt2860/rtmp.h        |    4 
+ drivers/staging/rt2860/sta/assoc.c   |   14 ---
+ drivers/staging/rt2860/sta_ioctl.c   |  104 +++----------------------
+ 7 files changed, 13 insertions(+), 133 deletions(-)
 
-diff -puN drivers/staging/rtl8187se/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211.h
---- a/drivers/staging/rtl8187se/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/ieee80211.h
-@@ -196,15 +196,6 @@ typedef struct ieee_param {
- }ieee_param;
+diff -puN drivers/staging/rt2860/oid.h~staging-rt2860-remove-dependency-on-wireless_ext-version drivers/staging/rt2860/oid.h
+--- a/drivers/staging/rt2860/oid.h~staging-rt2860-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rt2860/oid.h
+@@ -626,13 +626,6 @@ typedef struct _NDIS_802_11_CAPABILITY
+      NDIS_802_11_AUTHENTICATION_ENCRYPTION AuthenticationEncryptionSupported[1];
+ } NDIS_802_11_CAPABILITY, *PNDIS_802_11_CAPABILITY;
  
- 
--#if WIRELESS_EXT < 17
--#define IW_QUAL_QUAL_INVALID   0x10
--#define IW_QUAL_LEVEL_INVALID  0x20
--#define IW_QUAL_NOISE_INVALID  0x40
--#define IW_QUAL_QUAL_UPDATED   0x1
--#define IW_QUAL_LEVEL_UPDATED  0x2
--#define IW_QUAL_NOISE_UPDATED  0x4
+-#if WIRELESS_EXT <= 11
+-#ifndef SIOCDEVPRIVATE
+-#define SIOCDEVPRIVATE                              0x8BE0
+-#endif
+-#define SIOCIWFIRSTPRIV								SIOCDEVPRIVATE
 -#endif
 -
- // linux under 2.6.9 release may not support it, so modify it for common use
- #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,9))
- #define MSECS(t)	(1000 * ((t) / HZ) + 1000 * ((t) % HZ) / HZ)
-diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211/ieee80211.h
---- a/drivers/staging/rtl8187se/ieee80211/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/ieee80211/ieee80211.h
-@@ -196,15 +196,6 @@ typedef struct ieee_param {
- }ieee_param;
- 
- 
--#if WIRELESS_EXT < 17
--#define IW_QUAL_QUAL_INVALID   0x10
--#define IW_QUAL_LEVEL_INVALID  0x20
--#define IW_QUAL_NOISE_INVALID  0x40
--#define IW_QUAL_QUAL_UPDATED   0x1
--#define IW_QUAL_LEVEL_UPDATED  0x2
--#define IW_QUAL_NOISE_UPDATED  0x4
--#endif
--
- // linux under 2.6.9 release may not support it, so modify it for common use
- #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,9))
- #define MSECS(t)	(1000 * ((t) / HZ) + 1000 * ((t) % HZ) / HZ)
-diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c
---- a/drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c
-@@ -753,7 +753,6 @@ static int ieee80211_michael_mic_add(str
- }
- 
- 
--#if WIRELESS_EXT >= 18
- static void ieee80211_michael_mic_failure(struct net_device *dev,
- 				       struct ieee80211_hdr *hdr,
- 				       int keyidx)
-@@ -774,29 +773,6 @@ static void ieee80211_michael_mic_failur
- 	wrqu.data.length = sizeof(ev);
- 	wireless_send_event(dev, IWEVMICHAELMICFAILURE, &wrqu, (char *) &ev);
- }
--#elif WIRELESS_EXT >= 15
--static void ieee80211_michael_mic_failure(struct net_device *dev,
--				       struct ieee80211_hdr *hdr,
--				       int keyidx)
--{
--	union iwreq_data wrqu;
--	char buf[128];
--
--	/* TODO: needed parameters: count, keyid, key type, TSC */
--	sprintf(buf, "MLME-MICHAELMICFAILURE.indication(keyid=%d %scast addr="
--		MAC_FMT ")", keyidx, hdr->addr1[0] & 0x01 ? "broad" : "uni",
--		MAC_ARG(hdr->addr2));
--	memset(&wrqu, 0, sizeof(wrqu));
--	wrqu.data.length = strlen(buf);
--	wireless_send_event(dev, IWEVCUSTOM, &wrqu, buf);
--}
--#else /* WIRELESS_EXT >= 15 */
--static inline void ieee80211_michael_mic_failure(struct net_device *dev,
--					      struct ieee80211_hdr *hdr,
--					      int keyidx)
--{
--}
--#endif /* WIRELESS_EXT >= 15 */
- 
- 
- static int ieee80211_michael_mic_verify(struct sk_buff *skb, int keyidx,
-diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c
---- a/drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c
-@@ -644,7 +644,6 @@ int ieee80211_rx(struct ieee80211_device
- 	hdrlen = ieee80211_get_hdrlen(fc);
- 
- #ifdef NOT_YET
--#if WIRELESS_EXT > 15
- 	/* Put this code here so that we avoid duplicating it in all
- 	 * Rx paths. - Jean II */
- #ifdef IW_WIRELESS_SPY		/* defined in iw_handler.h */
-@@ -658,18 +657,15 @@ int ieee80211_rx(struct ieee80211_device
- 		wireless_spy_update(dev, hdr->addr2, &wstats);
- 	}
- #endif /* IW_WIRELESS_SPY */
--#endif /* WIRELESS_EXT > 15 */
- 	hostap_update_rx_stats(local->ap, hdr, rx_stats);
+ #ifdef RT30xx
+ #define RT_PRIV_IOCTL_EXT							(SIOCIWFIRSTPRIV + 0x01) // Sync. with AP for wsc upnp daemon
  #endif
+diff -puN drivers/staging/rt2860/rt_linux.c~staging-rt2860-remove-dependency-on-wireless_ext-version drivers/staging/rt2860/rt_linux.c
+--- a/drivers/staging/rt2860/rt_linux.c~staging-rt2860-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rt2860/rt_linux.c
+@@ -728,7 +728,6 @@ VOID RTMPSendWirelessEvent(
+ 	IN	UCHAR			BssIdx,
+ 	IN	CHAR			Rssi)
+ {
+-#if WIRELESS_EXT >= 15
  
--#if WIRELESS_EXT > 15
- 	if (ieee->iw_mode == IW_MODE_MONITOR) {
- 		ieee80211_monitor_rx(ieee, skb, rx_stats);
- 		stats->rx_packets++;
- 		stats->rx_bytes += skb->len;
- 		return 1;
+ 	union 	iwreq_data      wrqu;
+ 	PUCHAR 	pBuf = NULL, pBufPtr = NULL;
+@@ -805,9 +804,6 @@ VOID RTMPSendWirelessEvent(
  	}
--#endif
- 	if (ieee->host_decrypt) {
- 		int idx = 0;
- 		if (skb->len >= hdrlen + 3)
-diff -puN drivers/staging/rtl8187se/r8180_core.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/r8180_core.c
---- a/drivers/staging/rtl8187se/r8180_core.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/r8180_core.c
-@@ -592,14 +592,6 @@ static int proc_get_stats_tx(char *page,
+ 	else
+ 		DBGPRINT(RT_DEBUG_ERROR, ("%s : Can't allocate memory for wireless event.\n", __func__));
+-#else
+-	DBGPRINT(RT_DEBUG_ERROR, ("%s : The Wireless Extension MUST be v15 or newer.\n", __func__));
+-#endif  /* WIRELESS_EXT >= 15 */
  }
  
+ void send_monitor_packets(
+diff -puN drivers/staging/rt2860/rt_main_dev.c~staging-rt2860-remove-dependency-on-wireless_ext-version drivers/staging/rt2860/rt_main_dev.c
+--- a/drivers/staging/rt2860/rt_main_dev.c~staging-rt2860-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rt2860/rt_main_dev.c
+@@ -74,11 +74,9 @@ static void CfgInitHook(PRTMP_ADAPTER pA
  
--#if WIRELESS_EXT < 17
--static struct iw_statistics *r8180_get_wireless_stats(struct net_device *dev)
--{
--       struct r8180_priv *priv = ieee80211_priv(dev);
--
--       return &priv->wstats;
--}
--#endif
- void rtl8180_proc_module_init(void)
- {
- 	DMESG("Initializing proc filesystem");
-@@ -5950,12 +5942,7 @@ static int __devinit rtl8180_pci_probe(s
- 	dev->netdev_ops = &rtl8180_netdev_ops;
- 	dev->wireless_handlers = &r8180_wx_handlers_def;
+ extern	const struct iw_handler_def rt28xx_iw_handler_def;
  
 -#if WIRELESS_EXT >= 12
--#if WIRELESS_EXT < 17
--	dev->get_wireless_stats = r8180_get_wireless_stats;
--#endif
- 	dev->wireless_handlers = (struct iw_handler_def *) &r8180_wx_handlers_def;
+ // This function will be called when query /proc
+ struct iw_statistics *rt28xx_get_wireless_stats(
+     IN struct net_device *net_dev);
 -#endif
  
- 	dev->type=ARPHRD_ETHER;
- 	dev->watchdog_timeo = HZ*3; //added by david woo, 2007.12.13
-diff -puN drivers/staging/rtl8187se/r8180_wx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/r8180_wx.c
---- a/drivers/staging/rtl8187se/r8180_wx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/r8180_wx.c
-@@ -1543,7 +1543,6 @@ static iw_handler r8180_private_handler[
- 	r8180_wx_set_forcerate,
- };
+ struct net_device_stats *RT28xx_get_ether_stats(
+     IN  struct net_device *net_dev);
+@@ -695,16 +693,11 @@ static NDIS_STATUS rt_ieee80211_if_setup
+ 	CHAR    slot_name[IFNAMSIZ];
+ 	struct net_device   *device;
  
--#if WIRELESS_EXT >= 17
- static inline int is_same_network(struct ieee80211_network *src,
-                                   struct ieee80211_network *dst,
- 				  struct ieee80211_device *ieee)
-@@ -1626,7 +1625,6 @@ static struct iw_statistics *r8180_get_w
- 	wstats->qual.updated = IW_QUAL_ALL_UPDATED| IW_QUAL_DBM;
- 	return wstats;
+-#if WIRELESS_EXT >= 12
+ 	if (pAd->OpMode == OPMODE_STA)
+ 	{
+ 		dev->wireless_handlers = &rt28xx_iw_handler_def;
+ 	}
+-#endif //WIRELESS_EXT >= 12
+ 
+-#if WIRELESS_EXT < 21
+-		dev->get_wireless_stats = rt28xx_get_wireless_stats;
+-#endif
+ 	dev->priv_flags = INT_MAIN;
+ 	dev->netdev_ops = &rt2860_netdev_ops;
+ 	// find available device name
+@@ -942,7 +935,6 @@ void CfgInitHook(PRTMP_ADAPTER pAd)
+ } /* End of CfgInitHook */
+ 
+ 
+-#if WIRELESS_EXT >= 12
+ // This function will be called when query /proc
+ struct iw_statistics *rt28xx_get_wireless_stats(
+     IN struct net_device *net_dev)
+@@ -976,7 +968,6 @@ struct iw_statistics *rt28xx_get_wireles
+ 	DBGPRINT(RT_DEBUG_TRACE, ("<--- rt28xx_get_wireless_stats\n"));
+ 	return &pAd->iw_stats;
+ } /* End of rt28xx_get_wireless_stats */
+-#endif // WIRELESS_EXT //
+ 
+ 
+ 
+diff -puN drivers/staging/rt2860/rt_profile.c~staging-rt2860-remove-dependency-on-wireless_ext-version drivers/staging/rt2860/rt_profile.c
+--- a/drivers/staging/rt2860/rt_profile.c~staging-rt2860-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rt2860/rt_profile.c
+@@ -1230,14 +1230,10 @@ NDIS_STATUS	RTMPReadParametersHook(
+ 					//WirelessEvent
+ 					if(RTMPGetKeyParameter("WirelessEvent", tmpbuf, 10, buffer))
+ 					{
+-#if WIRELESS_EXT >= 15
+ 					    if(simple_strtol(tmpbuf, 0, 10) != 0)
+ 							pAd->CommonCfg.bWirelessEvent = simple_strtol(tmpbuf, 0, 10);
+ 						else
+ 							pAd->CommonCfg.bWirelessEvent = 0;	// disable
+-#else
+-						pAd->CommonCfg.bWirelessEvent = 0;	// disable
+-#endif
+    						DBGPRINT(RT_DEBUG_TRACE, ("WirelessEvent=%d\n", pAd->CommonCfg.bWirelessEvent));
+ 					}
+ 					if(RTMPGetKeyParameter("WiFiTest", tmpbuf, 10, buffer))
+diff -puN drivers/staging/rt2860/rtmp.h~staging-rt2860-remove-dependency-on-wireless_ext-version drivers/staging/rt2860/rtmp.h
+--- a/drivers/staging/rt2860/rtmp.h~staging-rt2860-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rt2860/rtmp.h
+@@ -2972,9 +2972,7 @@ typedef struct _RTMP_ADAPTER
+ 
+ 	ULONG					OneSecondnonBEpackets;		// record non BE packets per second
+ 
+-#if WIRELESS_EXT >= 12
+     struct iw_statistics    iw_stats;
+-#endif
+ 
+ 	struct net_device_stats	stats;
+ 
+@@ -6323,11 +6321,9 @@ void send_monitor_packets(
+ 	IN	PRTMP_ADAPTER	pAd,
+ 	IN	RX_BLK			*pRxBlk);
+ 
+-#if WIRELESS_EXT >= 12
+ // This function will be called when query /proc
+ struct iw_statistics *rt28xx_get_wireless_stats(
+     IN struct net_device *net_dev);
+-#endif
+ 
+ VOID    RTMPSetDesiredRates(
+     IN  PRTMP_ADAPTER   pAdapter,
+diff -puN drivers/staging/rt2860/sta/assoc.c~staging-rt2860-remove-dependency-on-wireless_ext-version drivers/staging/rt2860/sta/assoc.c
+--- a/drivers/staging/rt2860/sta/assoc.c~staging-rt2860-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rt2860/sta/assoc.c
+@@ -1503,7 +1503,6 @@ int wext_notify_event_assoc(
+     union iwreq_data    wrqu;
+     char custom[IW_CUSTOM_MAX] = {0};
+ 
+-#if WIRELESS_EXT > 17
+     if (pAd->StaCfg.ReqVarIELen <= IW_CUSTOM_MAX)
+     {
+         wrqu.data.length = pAd->StaCfg.ReqVarIELen;
+@@ -1512,19 +1511,6 @@ int wext_notify_event_assoc(
+     }
+     else
+         DBGPRINT(RT_DEBUG_TRACE, ("pAd->StaCfg.ReqVarIELen > MAX_CUSTOM_LEN\n"));
+-#else
+-    if (((pAd->StaCfg.ReqVarIELen*2) + 17) <= IW_CUSTOM_MAX)
+-    {
+-        UCHAR   idx;
+-        wrqu.data.length = (pAd->StaCfg.ReqVarIELen*2) + 17;
+-        sprintf(custom, "ASSOCINFO(ReqIEs=");
+-        for (idx=0; idx<pAd->StaCfg.ReqVarIELen; idx++)
+-                sprintf(custom + strlen(custom), "%02x", pAd->StaCfg.ReqVarIEs[idx]);
+-        wireless_send_event(pAd->net_dev, IWEVCUSTOM, &wrqu, custom);
+-    }
+-    else
+-        DBGPRINT(RT_DEBUG_TRACE, ("(pAd->StaCfg.ReqVarIELen*2) + 17 > MAX_CUSTOM_LEN\n"));
+-#endif
+ 
+ 	return 0;
+ 
+diff -puN drivers/staging/rt2860/sta_ioctl.c~staging-rt2860-remove-dependency-on-wireless_ext-version drivers/staging/rt2860/sta_ioctl.c
+--- a/drivers/staging/rt2860/sta_ioctl.c~staging-rt2860-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/rt2860/sta_ioctl.c
+@@ -820,11 +820,9 @@ int rt_ioctl_giwrange(struct net_device 
+ 	range->min_frag = 256;
+ 	range->max_frag = 2346;
+ 
+-#if WIRELESS_EXT > 17
+ 	/* IW_ENC_CAPA_* bit field */
+ 	range->enc_capa = IW_ENC_CAPA_WPA | IW_ENC_CAPA_WPA2 |
+ 					IW_ENC_CAPA_CIPHER_TKIP | IW_ENC_CAPA_CIPHER_CCMP;
+-#endif
+ 
+ 	return 0;
  }
--#endif
+@@ -1115,25 +1113,15 @@ int rt_ioctl_giwscan(struct net_device *
+ 		return 0;
+ 	}
  
- 
- struct iw_handler_def  r8180_wx_handlers_def={
-@@ -1635,9 +1633,7 @@ struct iw_handler_def  r8180_wx_handlers
- 	.private = r8180_private_handler,
- 	.num_private = sizeof(r8180_private_handler) / sizeof(iw_handler),
-  	.num_private_args = sizeof(r8180_private_args) / sizeof(struct iw_priv_args),
 -#if WIRELESS_EXT >= 17
- 	.get_wireless_stats = r8180_get_wireless_stats,
+     if (data->length > 0)
+         end_buf = extra + data->length;
+     else
+         end_buf = extra + IW_SCAN_MAX_DATA;
+-#else
+-    end_buf = extra + IW_SCAN_MAX_DATA;
 -#endif
- 	.private_args = (struct iw_priv_args *)r8180_private_args,
+ 
+ 	for (i = 0; i < pAdapter->ScanTab.BssNr; i++)
+ 	{
+ 		if (current_ev >= end_buf)
+-        {
+-#if WIRELESS_EXT >= 17
+-            return -E2BIG;
+-#else
+-			break;
+-#endif
+-        }
++			return -E2BIG;
+ 
+ 		//MAC address
+ 		//================================
+@@ -1146,11 +1134,7 @@ int rt_ioctl_giwscan(struct net_device *
+ 		current_ev = iwe_stream_add_event(info, current_ev,end_buf, &iwe, IW_EV_ADDR_LEN);
+ #ifdef RT30xx
+         if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-            return -E2BIG;
+-#else
+-			break;
+-#endif
++		return -E2BIG;
+ 
+ 		/*
+ 		Protocol:
+@@ -1226,11 +1210,7 @@ int rt_ioctl_giwscan(struct net_device *
+ 		current_ev	 = iwe_stream_add_event(info, current_ev, end_buf, &iwe, IW_EV_ADDR_LEN);
+ #endif /* RT30xx */
+         if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-            return -E2BIG;
+-#else
+-			break;
+-#endif
++		return -E2BIG;
+ 
+ 		//ESSID
+ 		//================================
+@@ -1242,11 +1222,7 @@ int rt_ioctl_giwscan(struct net_device *
+         previous_ev = current_ev;
+ 		current_ev = iwe_stream_add_point(info, current_ev,end_buf, &iwe, pAdapter->ScanTab.BssEntry[i].Ssid);
+         if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-            return -E2BIG;
+-#else
+-			break;
+-#endif
++		return -E2BIG;
+ 
+ 		//Network Type
+ 		//================================
+@@ -1269,11 +1245,7 @@ int rt_ioctl_giwscan(struct net_device *
+         previous_ev = current_ev;
+ 		current_ev = iwe_stream_add_event(info, current_ev, end_buf, &iwe,  IW_EV_UINT_LEN);
+         if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-            return -E2BIG;
+-#else
+-			break;
+-#endif
++		return -E2BIG;
+ 
+ 		//Channel and Frequency
+ 		//================================
+@@ -1289,11 +1261,7 @@ int rt_ioctl_giwscan(struct net_device *
+ 		previous_ev = current_ev;
+ 		current_ev = iwe_stream_add_event(info, current_ev, end_buf, &iwe, IW_EV_FREQ_LEN);
+         if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-            return -E2BIG;
+-#else
+-			break;
+-#endif
++		return -E2BIG;
+ 
+         //Add quality statistics
+         //================================
+@@ -1304,11 +1272,7 @@ int rt_ioctl_giwscan(struct net_device *
+         set_quality(pAdapter, &iwe.u.qual, pAdapter->ScanTab.BssEntry[i].Rssi);
+     	current_ev = iwe_stream_add_event(info, current_ev, end_buf, &iwe, IW_EV_QUAL_LEN);
+         if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-            return -E2BIG;
+-#else
+-			break;
+-#endif
++		return -E2BIG;
+ 
+ 		//Encyption key
+ 		//================================
+@@ -1322,11 +1286,7 @@ int rt_ioctl_giwscan(struct net_device *
+         previous_ev = current_ev;
+         current_ev = iwe_stream_add_point(info, current_ev, end_buf,&iwe, (char *)pAdapter->SharedKey[BSS0][(iwe.u.data.flags & IW_ENCODE_INDEX)-1].Key);
+         if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-            return -E2BIG;
+-#else
+-			break;
+-#endif
++		return -E2BIG;
+ 
+ 		//Bit Rate
+ 		//================================
+@@ -1355,11 +1315,7 @@ int rt_ioctl_giwscan(struct net_device *
+         	if((current_val-current_ev)>IW_EV_LCP_LEN)
+             	current_ev = current_val;
+         	else
+-#if WIRELESS_EXT >= 17
+-                return -E2BIG;
+-#else
+-			    break;
+-#endif
++			return -E2BIG;
+         }
+ 
+ #ifdef IWEVGENIE
+@@ -1374,11 +1330,7 @@ int rt_ioctl_giwscan(struct net_device *
+ 			iwe.u.data.length = pAdapter->ScanTab.BssEntry[i].WpaIE.IELen;
+ 			current_ev = iwe_stream_add_point(info, current_ev, end_buf, &iwe, custom);
+ 			if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-                return -E2BIG;
+-#else
+-			    break;
+-#endif
++				return -E2BIG;
+ 		}
+ 
+ 		//WPA2 IE
+@@ -1392,11 +1344,7 @@ int rt_ioctl_giwscan(struct net_device *
+ 			iwe.u.data.length = pAdapter->ScanTab.BssEntry[i].RsnIE.IELen;
+ 			current_ev = iwe_stream_add_point(info, current_ev, end_buf, &iwe, custom);
+ 			if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-                return -E2BIG;
+-#else
+-			    break;
+-#endif
++				return -E2BIG;
+         }
+ #else
+         //WPA IE
+@@ -1413,11 +1361,7 @@ int rt_ioctl_giwscan(struct net_device *
+             previous_ev = current_ev;
+     		current_ev = iwe_stream_add_point(current_ev, end_buf, &iwe,  custom);
+             if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-                return -E2BIG;
+-#else
+-			    break;
+-#endif
++		return -E2BIG;
+         }
+ 
+         //WPA2 IE
+@@ -1433,11 +1377,7 @@ int rt_ioctl_giwscan(struct net_device *
+             previous_ev = current_ev;
+     		current_ev = iwe_stream_add_point(current_ev, end_buf, &iwe,  custom);
+             if (current_ev == previous_ev)
+-#if WIRELESS_EXT >= 17
+-                return -E2BIG;
+-#else
+-			    break;
+-#endif
++		return -E2BIG;
+         }
+ #endif // IWEVGENIE //
+ 	}
+@@ -2337,7 +2277,6 @@ int rt_ioctl_siwmlme(struct net_device *
+ }
+ #endif // SIOCSIWMLME //
+ 
+-#if WIRELESS_EXT > 17
+ int rt_ioctl_siwauth(struct net_device *dev,
+ 			  struct iw_request_info *info,
+ 			  union iwreq_data *wrqu, char *extra)
+@@ -2916,7 +2855,6 @@ int rt_ioctl_siwpmksa(struct net_device 
+ 
+ 	return 0;
+ }
+-#endif // #if WIRELESS_EXT > 17
+ 
+ #ifdef DBG
+ static int
+@@ -3219,7 +3157,6 @@ static const iw_handler rt_handler[] =
+ 	(iw_handler) NULL,		                /* SIOCGIWPOWER  */
+ 	(iw_handler) NULL,						/* -- hole -- */
+ 	(iw_handler) NULL,						/* -- hole -- */
+-#if WIRELESS_EXT > 17
+     (iw_handler) rt_ioctl_siwgenie,         /* SIOCSIWGENIE  */
+ 	(iw_handler) rt_ioctl_giwgenie,         /* SIOCGIWGENIE  */
+ 	(iw_handler) rt_ioctl_siwauth,		    /* SIOCSIWAUTH   */
+@@ -3227,7 +3164,6 @@ static const iw_handler rt_handler[] =
+ 	(iw_handler) rt_ioctl_siwencodeext,	    /* SIOCSIWENCODEEXT */
+ 	(iw_handler) rt_ioctl_giwencodeext,		/* SIOCGIWENCODEEXT */
+ 	(iw_handler) rt_ioctl_siwpmksa,         /* SIOCSIWPMKSA  */
+-#endif
  };
  
+ static const iw_handler rt_priv_handlers[] = {
+@@ -4589,22 +4525,9 @@ INT RTMPQueryInformation(
+                 }
+                 pBss->Length = (ULONG)(sizeof(NDIS_WLAN_BSSID_EX) - 1 + sizeof(NDIS_802_11_FIXED_IEs) + pAdapter->ScanTab.BssEntry[i].VarIELen + Padding);
+ 
+-#if WIRELESS_EXT < 17
+-                if ((BssLen + pBss->Length) < wrq->u.data.length)
+-                BssLen += pBss->Length;
+-                else
+-                {
+-                    pBssidList->NumberOfItems = i;
+-                    break;
+-                }
+-#else
+                 BssLen += pBss->Length;
+-#endif
+             }
+ 
+-#if WIRELESS_EXT < 17
+-            wrq->u.data.length = BssLen;
+-#else
+             if (BssLen > wrq->u.data.length)
+             {
+                 kfree(pBssidList);
+@@ -4612,7 +4535,6 @@ INT RTMPQueryInformation(
+             }
+             else
+                 wrq->u.data.length = BssLen;
+-#endif
+             Status = copy_to_user(wrq->u.data.pointer, pBssidList, BssLen);
+             kfree(pBssidList);
+             break;
 _
 
 Patches currently in -mm which might be from a.beregalov@gmail.com are
