@@ -1,266 +1,404 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2009-06-30-12-50 uploaded
-Date: Tue, 30 Jun 2009 12:51:30 -0700
-Message-ID: <200906301951.n5UJpUSY013305@imap1.linux-foundation.org>
+Subject: + staging-otus-remove-dependency-on-wireless_ext-version.patch added to -mm tree
+Date: Tue, 30 Jun 2009 12:45:50 -0700
+Message-ID: <200906301945.n5UJjohQ007127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752859AbZF3Tv3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755991AbZF3TqJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jun 2009 15:51:29 -0400
+	Tue, 30 Jun 2009 15:46:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: a.beregalov@gmail.com, greg@kroah.com
 
-The mm-of-the-moment snapshot 2009-06-30-12-50 has been uploaded to
 
-   http://userweb.kernel.org/~akpm/mmotm/
+The patch titled
+     otus: remove dependency on WIRELESS_EXT version
+has been added to the -mm tree.  Its filename is
+     staging-otus-remove-dependency-on-wireless_ext-version.patch
 
-and will soon be available at
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-   git://git.zen-sources.org/zen/mmotm.git
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-It contains the following patches against 2.6.31-rc1:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
-origin.patch
-eventfd-revised-interface-and-cleanups-4th-rev.patch
-gcov-fix-__ctors_start-alignment.patch
-maintainers-update-edac-i82975x.patch
-fbdev-work-around-old-compiler-bug.patch
-alpha-fix-percpu-build-breakage.patch
-gcov-fix-documentation.patch
-parport-serial-add-support-for-netmos-9901-multi-io-card.patch
-edac-add-ddr3-memory-type-for-mpc85xx-edac.patch
-elf-limit-max-map-count-to-safe-value.patch
-ext2-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
-dmapools-protect-page_list-walk-in-show_pools.patch
-spi-new-spi-mode-bits.patch
-spi-add-spi_master-flag-word.patch
-fbdev-add-mutex-for-fb_mmap-locking.patch
-spi-bitbang-bugfix-in-message-setup.patch
-kernel-resourcec-fix-sign-extension-in-reserve_setup.patch
-maintainers-starfire-duralan-update.patch
-bsdacct-fix-access-to-invalid-filp-in-acct_on.patch
-cpusets-document-adding-removing-cpus-to-cpuset-elaborately.patch
-x86-only-clear-node_states-for-64bit.patch
-gpio-pl061-fix-probe-error-handling-code.patch
-gpio-pl061-fix-irq-handling-for-gpios-=-pl061_gpio_nr.patch
-atyfb-fix-hp-omnibook-500-reboot-hang.patch
-atyfb-fix-alignment-for-block-writes.patch
-bfin-delay-irq-registration-until-driver-is-ready.patch
-floppy-fix-lock-imbalance.patch
-hostfs-set-maximum-filesize-in-superblock-for-proper-lfs-support.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-kernel-core-add-smp_call_function_any.patch
-kernel-core-add-smp_call_function_any-update.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-pcmcia-pccard-deadlock-fix.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-video-initial-support-for-adv7180.patch
-media-remove-redundant-tests-on-unsigned.patch
-posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-input-more-i8042-reset-quirks-for-msi-wind-clone-netbooks.patch
-input-tsc2007-remove-hr-timer.patch
-input-tsc2007-make-platform-callbacks-optional.patch
-mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
-omap-hsmmc-do-not-enable-buffer-ready-interrupt-if-using-dma.patch
-jffs2-move-jffs2_gcd_mtd-threads-to-the-new-kthread-api.patch
-mtd-sst25l-non-jedec-spi-flash-driver.patch
-mtd-sst25l-non-jedec-spi-flash-driver-update.patch
-mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
-drivers-mtd-mtdcorec-make-symbols-static.patch
-3x59x-fix-pci-resource-management.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-ext4-remove-redundant-test-on-unsigned.patch
-sunrpc-use-formatting-of-module-name-in-sunrpc.patch
-parisc-remove-obsolete-hw_interrupt_type.patch
-serial_txx9-use-container_of-instead-of-direct-cast.patch
-icom-converting-space-to-tabs.patch
-drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
-serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
-hypfs-remove-useless-variable-qname.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-comedi-jr3_pcic-add-required-includes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-improve-comment-describing-fget_light.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-wireless-remove-redundant-tests-on-unsigned.patch
-xtensa-variant-specific-code.patch
-mm.patch
-genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
-cred_guard_mutex-do-not-return-eintr-to-user-space.patch
-page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator.patch
-cciss-fix-the-termination-of-the-scanning-thread.patch
-dm-fix-exstore-lookup-error.patch
-dm-table-pass-devices-data-start-to-blk_stack_limits-in-bytes.patch
-kernel-doc-move-ignoring-kmemcheck.patch
-maintainers-update-atlx-contact-info.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch
-oom-move-oom_adj-value-from-task_struct-to-mm_struct-fix.patch
-clocksource-save-mult_orig-in-clocksource_disable.patch
-usbconsole-fix-regression-in-usb-console-on-kernel-boot.patch
-usb-serial-regression-fix-to-move-sysrq-from-hot-path.patch
-mm-make-swap-token-dummies-static-inlines.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-mm-remove-obsoleted-alloc_pages-cpuset-comment.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
-memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
-memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
-memory-hotplug-migrate-swap-cache-page.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-available.patch
-page_alloc-fix-kernel-doc-warning.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-rework-fix-is_single_threaded.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-move-magic-numbers-into-magich.patch
-move-magic-numbers-into-magich-update.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
-kallsyms-use-new-arch_is_kernel_text.patch
-lockdep-use-new-arch_is_kernel_data.patch
-blackfin-override-text-data-checking-functions.patch
-drivers-hwmon-coretempc-enable-the-intel-atom.patch
-lis3-fix-typo.patch
-lis3-add-free-fall-wakeup-function-via-platform_data.patch
-lis3-add-power-management-functions.patch
-lis3_spi-code-cleanups.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-procfs-provide-stack-information-for-threads-v08.patch
-spi-remove-imx-spi-driver.patch
-spi-add-spi-driver-for-most-known-imx-socs.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-u300-coh-901-331-rtc-driver-v3.patch
-rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
-rtc-bfin-do-not-share-rtc-irq.patch
-rtc-add-freescale-stmp37xx-378x-driver.patch
-rtc-philips-nxp-pcf2123-driver.patch
-rtc-philips-nxp-pcf2123-driver-v03.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-rtc-reorder-makefile.patch
-rtc-driver-for-pcap2-pmic.patch
-rtc-driver-for-pcap2-pmic-update.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
-gpio-add-mc33880-driver.patch
-gpio-update-vr41xx-gpio-driver-to-use-gpiolib.patch
-omapfb-add-support-for-the-apollon-lcd.patch
-omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
-omapfb-add-support-for-the-amstrad-delta-lcd.patch
-omapfb-add-support-for-the-2430sdp-lcd.patch
-omapfb-add-support-for-the-omap2evm-lcd.patch
-omapfb-add-support-for-the-3430sdp-lcd.patch
-omapfb-add-support-for-the-omap3-evm-lcd.patch
-omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
-omapfb-add-support-for-the-gumstix-overo-lcd.patch
-omapfb-add-support-for-the-zoom-mdk-lcd.patch
-omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
-n770-enable-lcd-mipi-dcs-in-kconfig.patch
-omapfb-dispc-various-typo-fixes.patch
-omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
-omapfb-dispc-enable-wake-up-capability.patch
-omapfb-dispc-allow-multiple-external-irq-handlers.patch
-omapfb-suspend-resume-only-if-fb-device-is-already-initialized.patch
-omapfb-fix-coding-style-remove-dead-line.patch
-omapfb-add-fb-manual-update-option-to-kconfig.patch
-omapfb-hwa742-fix-pointer-to-be-const.patch
-atyfb-coding-style-cleanup.patch
-framebuffer-support-for-htc-dream.patch
-framebuffer-support-for-htc-dream-checkpatch-fixes.patch
-platinumfb-misplaced-parenthesis.patch
-intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
-hfsplus-identify-journal-info-block-in-volume-header.patch
-hfsplus-fix-journal-detection.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-signals-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
-signals-change-__wake_up_parent-to-use-filtered-wakeup.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-asm-generic-remove-calling-flush_write_buffers-in-dma_sync__for_cpu.patch
-adfs-remove-redundant-test-on-unsigned.patch
-aio-ifdef-fields-in-mm_struct.patch
-bzip2-lzma-gzip-fix-comments-describing-decompressor-api.patch
-bzip2-lzma-remove-nasty-uncompressed-size-hack-in-pre-boot-environment.patch
-lzma-gzip-fix-potential-oops-when-input-data-is-truncated.patch
-sound-core-pcm_timerc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4-vfs-add-super_operationssync_inodes-2.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-adjust-to-the-new-aops.patch
-reiser4-adjust-to-the-new-aops-fixup.patch
-reiser4-remove-simple_prepare_write-usage.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
-reiser4-update-names-of-quota-methods.patch
-reiser4-use-set_page_dirty_notag.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-keep-track-of-network-interface-renaming.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: otus: remove dependency on WIRELESS_EXT version
+From: Alexander Beregalov <a.beregalov@gmail.com>
+
+As the driver is in mainline now we can remove such dependencies. 
+WIRELESS_EXT is 22 now.
+
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/staging/otus/ioctl.c    |   20 ++------------------
+ drivers/staging/otus/usbdrv.c   |   13 -------------
+ drivers/staging/otus/wrap_buf.c |    4 ----
+ drivers/staging/otus/wrap_dbg.c |    3 ---
+ drivers/staging/otus/wrap_ev.c  |    7 -------
+ drivers/staging/otus/wrap_mem.c |    3 ---
+ drivers/staging/otus/wrap_mis.c |    3 ---
+ drivers/staging/otus/wrap_pkt.c |    4 ----
+ drivers/staging/otus/wrap_sec.c |    3 ---
+ drivers/staging/otus/wrap_usb.c |    3 ---
+ drivers/staging/otus/wwrap.c    |    3 ---
+ drivers/staging/otus/zdcompat.h |   10 ----------
+ 12 files changed, 2 insertions(+), 74 deletions(-)
+
+diff -puN drivers/staging/otus/ioctl.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/ioctl.c
+--- a/drivers/staging/otus/ioctl.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/ioctl.c
+@@ -58,9 +58,7 @@
+ #define ZD_MAX_KEY_SIZE			    32
+ #define ZD_MAX_GENERIC_SIZE		    64
+ 
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ 
+ extern u16_t zfLnxGetVapId(zdev_t *dev);
+ 
+@@ -248,7 +246,6 @@ int usbdrv_ioctl_setrts(struct net_devic
+ 	return 0;
+ }
+ 
+-#if WIRELESS_EXT > 14
+ /*
+  * Encode a WPA or RSN information element as a custom
+  * element using the hostap format.
+@@ -269,7 +266,6 @@ u32 encode_ie(void *buf, u32 bufsize, co
+ 		p += sprintf(p, "%02x", ie[i]);
+ 	return (i == ielen ? p - (u8 *)buf:0);
+ }
+-#endif  /* WIRELESS_EXT > 14 */
+ 
+ /*
+  * Translate scan data returned from the card to a card independent
+@@ -284,9 +280,7 @@ char *usbdrv_translate_scan(struct net_d
+ 	char *current_val;     /* For rates */
+ 	char *last_ev;
+ 	int i;
+-	#if WIRELESS_EXT > 14
+-		char    buf[64*2 + 30];
+-	#endif
++	char    buf[64*2 + 30];
+ 
+ 	last_ev = current_ev;
+ 
+@@ -365,10 +359,8 @@ char *usbdrv_translate_scan(struct net_d
+ 
+ 	/* Add quality statistics */
+ 	iwe.cmd = IWEVQUAL;
+-	#if WIRELESS_EXT > 18
+ 	iwe.u.qual.updated = IW_QUAL_QUAL_UPDATED | IW_QUAL_LEVEL_UPDATED
+ 				| IW_QUAL_NOISE_UPDATED;
+-	#endif
+ 	iwe.u.qual.level = list->signalStrength;
+ 	iwe.u.qual.noise = 0;
+ 	iwe.u.qual.qual = list->signalQuality;
+@@ -441,8 +433,7 @@ char *usbdrv_translate_scan(struct net_d
+ 	/* Check if we added any event */
+ 	if ((current_val - current_ev) > IW_EV_LCP_LEN)
+ 		current_ev = current_val;
+-	#if WIRELESS_EXT > 14
+-		#define IEEE80211_ELEMID_RSN 0x30
++#define IEEE80211_ELEMID_RSN 0x30
+ 	memset(&iwe, 0, sizeof(iwe));
+ 	iwe.cmd = IWEVCUSTOM;
+ 	snprintf(buf, sizeof(buf), "bcn_int=%d", (list->beaconInterval[1] << 8)
+@@ -503,7 +494,6 @@ char *usbdrv_translate_scan(struct net_d
+ 			last_ev = current_ev;
+ 		}
+ 	}
+-	#endif
+ 	/* The other data in the scan result are not really
+ 	* interesting, so for now drop it
+ 	*/
+@@ -697,12 +687,9 @@ int usbdrvwext_giwrange(struct net_devic
+ 	if (!netif_running(dev))
+ 		return -EINVAL;
+ 
+-	#if WIRELESS_EXT > 9
+ 	range->txpower_capa = IW_TXPOW_DBM;
+ 	/* XXX what about min/max_pmp, min/max_pmt, etc. */
+-	#endif
+ 
+-	#if WIRELESS_EXT > 10
+ 	range->we_version_compiled = WIRELESS_EXT;
+ 	range->we_version_source = 13;
+ 
+@@ -710,7 +697,6 @@ int usbdrvwext_giwrange(struct net_devic
+ 	range->retry_flags = IW_RETRY_LIMIT;
+ 	range->min_retry = 0;
+ 	range->max_retry = 255;
+-	#endif  /* WIRELESS_EXT > 10 */
+ 
+ 	channel_num = zfiWlanQueryAllowChannels(dev, channels);
+ 
+@@ -917,13 +903,11 @@ int usbdrvwext_giwscan(struct net_device
+ 		current_ev = usbdrv_translate_scan(dev, info, current_ev,
+ 					end_buf, &pBssList->bssInfo[i]);
+ 
+-		#if WIRELESS_EXT > 16
+ 		if (current_ev == end_buf) {
+ 			kfree(pBssList);
+ 			data->length = current_ev - extra;
+ 			return -E2BIG;
+ 		}
+-		#endif
+ 	}
+ 
+ 	/* Length of data */
+diff -puN drivers/staging/otus/usbdrv.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/usbdrv.c
+--- a/drivers/staging/otus/usbdrv.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/usbdrv.c
+@@ -39,9 +39,7 @@
+ #include "linux/netlink.h"
+ #include "linux/rtnetlink.h"
+ 
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ 
+ #ifdef ZM_HOSTAPD_SUPPORT
+ #include "athr_common.h"
+@@ -113,9 +111,7 @@ extern u8_t zfLnxCreateThread(zdev_t *de
+ 
+ /* Definition of Wireless Extension */
+ 
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ //wireless extension helper functions
+ extern int usbdrv_ioctl_setessid(struct net_device *dev, struct iw_point *erq);
+ extern int usbdrv_ioctl_setrts(struct net_device *dev, struct iw_param *rrq);
+@@ -203,7 +199,6 @@ struct iw_priv_args usbdrv_private_args[
+ //    { SIOCIWFIRSTPRIV + 0xC, 0, IW_PRIV_TYPE_CHAR | 12, "get_mac_mode" },
+ };
+ 
+-#if WIRELESS_EXT > 12
+ static iw_handler usbdrvwext_handler[] = {
+     (iw_handler) NULL,                              /* SIOCSIWCOMMIT */
+     (iw_handler) usbdrvwext_giwname,                /* SIOCGIWNAME */
+@@ -229,13 +224,8 @@ static iw_handler usbdrvwext_handler[] =
+     (iw_handler) usbdrvwext_giwap,                  /* SIOCGIWAP */
+     (iw_handler) NULL,              /* -- hole -- */
+     (iw_handler) usbdrvwext_iwaplist,               /* SIOCGIWAPLIST */
+-#if WIRELESS_EXT > 13
+     (iw_handler) usbdrvwext_siwscan,                /* SIOCSIWSCAN */
+     (iw_handler) usbdrvwext_giwscan,                /* SIOCGIWSCAN */
+-#else /* WIRELESS_EXT > 13 */
+-    (iw_handler) NULL, /* null */                   /* SIOCSIWSCAN */
+-    (iw_handler) NULL, /* null */                   /* SIOCGIWSCAN */
+-#endif /* WIRELESS_EXT > 13 */
+     (iw_handler) usbdrvwext_siwessid,               /* SIOCSIWESSID */
+     (iw_handler) usbdrvwext_giwessid,               /* SIOCGIWESSID */
+ 
+@@ -291,7 +281,6 @@ static struct iw_handler_def p80211wext_
+     .private = (iw_handler *) usbdrv_private_handler,
+     .private_args = (struct iw_priv_args *) usbdrv_private_args
+ };
+-#endif
+ 
+ /* WDS */
+ //struct zsWdsStruct wds[ZM_WDS_PORT_NUMBER];
+@@ -1106,9 +1095,7 @@ u8_t zfLnxInitSetup(struct net_device *d
+     dev->dev_addr[4] = addr[4];
+     dev->dev_addr[5] = addr[5];
+ #endif
+-#if WIRELESS_EXT > 12
+     dev->wireless_handlers = (struct iw_handler_def *)&p80211wext_handler_def;
+-#endif
+ 
+     dev->netdev_ops = &otus_netdev_ops;
+ 
+diff -puN drivers/staging/otus/wrap_buf.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_buf.c
+--- a/drivers/staging/otus/wrap_buf.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/wrap_buf.c
+@@ -29,11 +29,7 @@
+ 
+ 
+ #include <linux/netlink.h>
+-
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+-
+ 
+ 
+ /* Called to allocate buffer, must return a continue buffer space */
+diff -puN drivers/staging/otus/wrap_dbg.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_dbg.c
+--- a/drivers/staging/otus/wrap_dbg.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/wrap_dbg.c
+@@ -27,10 +27,7 @@
+ #include "usbdrv.h"
+ 
+ #include <linux/netlink.h>
+-
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ 
+ void zfwDumpBuf(zdev_t* dev, zbuf_t* buf)
+ {
+diff -puN drivers/staging/otus/wrap_ev.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_ev.c
+--- a/drivers/staging/otus/wrap_ev.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/wrap_ev.c
+@@ -28,10 +28,7 @@
+ #include "usbdrv.h"
+ 
+ #include <linux/netlink.h>
+-
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ 
+ 
+ /***** Management *****/
+@@ -75,7 +72,6 @@ u16_t zfLnxAsocNotify(zdev_t* dev, u16_t
+     //            //wireless_send_event(macp->device, SIOCGIWSCAN, &wreq, NULL);
+     //    wireless_send_event(macp->device, SIOCGIWAP, &wreq, NULL);
+     //}
+-#if WIRELESS_EXT >= 15
+     //else if(macp->cardSetting.BssType == AP_BSS) {
+ //        if (port == 0)
+ //        {
+@@ -94,7 +90,6 @@ u16_t zfLnxAsocNotify(zdev_t* dev, u16_t
+ //            }
+ //        }
+     //}
+-#endif
+ //#endif
+ 
+     return 0;
+@@ -185,7 +180,6 @@ void zfLnxConnectNotify(zdev_t* dev, u16
+         //            //wireless_send_event(dev, SIOCGIWSCAN, &wreq, NULL);
+             wireless_send_event(dev, SIOCGIWAP, &wreq, NULL);
+         }
+-#if WIRELESS_EXT >= 15
+         else if(zfiWlanQueryWlanMode(dev) == ZM_MODE_AP) {
+             //if (port == 0)
+             //{
+@@ -204,7 +198,6 @@ void zfLnxConnectNotify(zdev_t* dev, u16
+             //    }
+             //}
+         }
+-#endif
+     }
+     //return 0;
+ }
+diff -puN drivers/staging/otus/wrap_mem.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_mem.c
+--- a/drivers/staging/otus/wrap_mem.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/wrap_mem.c
+@@ -27,10 +27,7 @@
+ #include "usbdrv.h"
+ 
+ #include <linux/netlink.h>
+-
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ 
+ /* Memory management */
+ /* Called to allocate uncached memory, allocated memory must    */
+diff -puN drivers/staging/otus/wrap_mis.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_mis.c
+--- a/drivers/staging/otus/wrap_mis.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/wrap_mis.c
+@@ -28,10 +28,7 @@
+ #include "usbdrv.h"
+ 
+ #include <linux/netlink.h>
+-
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ 
+ //extern struct zsWdsStruct wds[ZM_WDS_PORT_NUMBER];
+ extern struct zsVapStruct vap[ZM_VAP_PORT_NUMBER];
+diff -puN drivers/staging/otus/wrap_pkt.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_pkt.c
+--- a/drivers/staging/otus/wrap_pkt.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/wrap_pkt.c
+@@ -28,11 +28,7 @@
+ #include "usbdrv.h"
+ 
+ #include <linux/netlink.h>
+-
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+-
+ 
+ 
+ //extern struct zsWdsStruct wds[ZM_WDS_PORT_NUMBER];
+diff -puN drivers/staging/otus/wrap_sec.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_sec.c
+--- a/drivers/staging/otus/wrap_sec.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/wrap_sec.c
+@@ -28,10 +28,7 @@
+ #include "usbdrv.h"
+ 
+ #include <linux/netlink.h>
+-
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ 
+ #ifdef ZM_ENABLE_CENC
+ extern int zfLnxCencSendMsg(struct sock *netlink_sk, u_int8_t *msg, int len);
+diff -puN drivers/staging/otus/wrap_usb.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wrap_usb.c
+--- a/drivers/staging/otus/wrap_usb.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/wrap_usb.c
+@@ -28,10 +28,7 @@
+ #include "usbdrv.h"
+ 
+ #include <linux/netlink.h>
+-
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ 
+ extern void zfLnxInitUsbTxQ(zdev_t* dev);
+ extern void zfLnxInitUsbRxQ(zdev_t* dev);
+diff -puN drivers/staging/otus/wwrap.c~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/wwrap.c
+--- a/drivers/staging/otus/wwrap.c~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/wwrap.c
+@@ -26,10 +26,7 @@
+ #include "usbdrv.h"
+ 
+ #include <linux/netlink.h>
+-
+-#if WIRELESS_EXT > 12
+ #include <net/iw_handler.h>
+-#endif
+ 
+ extern void zfiRecv80211(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* addInfo);
+ extern void zfCoreRecv(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* addInfo);
+diff -puN drivers/staging/otus/zdcompat.h~staging-otus-remove-dependency-on-wireless_ext-version drivers/staging/otus/zdcompat.h
+--- a/drivers/staging/otus/zdcompat.h~staging-otus-remove-dependency-on-wireless_ext-version
++++ a/drivers/staging/otus/zdcompat.h
+@@ -35,16 +35,6 @@
+ #undef netdevice_t
+ typedef struct net_device netdevice_t;
+ 
+-#ifdef WIRELESS_EXT
+-#if (WIRELESS_EXT < 13)
+-struct iw_request_info
+-{
+-        __u16           cmd;            /* Wireless Extension command */
+-        __u16           flags;          /* More to come ;-) */
+-};
+-#endif
+-#endif
