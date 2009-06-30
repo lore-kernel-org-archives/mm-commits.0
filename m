@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-fix-lock-imbalance.patch added to -mm tree
-Date: Tue, 30 Jun 2009 13:13:05 -0700
-Message-ID: <200906302013.n5UKD5W2004412@imap1.linux-foundation.org>
+Subject: + flat-fix-uninitialized-ptr-with-shared-libs.patch added to -mm tree
+Date: Tue, 30 Jun 2009 13:22:34 -0700
+Message-ID: <200906302022.n5UKMYS6014801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752859AbZF3UOL (ORCPT
+	by vger.kernel.org with ESMTP id S1753187AbZF3UXx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jun 2009 16:14:11 -0400
+	Tue, 30 Jun 2009 16:23:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, maan@systemlinux.org, neilb@suse.de
+Cc: torvalds@linux-foundation.org, bernds_cb1@t-online.de, dhowells@redhat.com, stable@kernel.org, vapier@gentoo.org
 
 
 The patch titled
-     md: fix lock imbalance
+     flat: fix uninitialized ptr with shared libs
 has been added to the -mm tree.  Its filename is
-     md-fix-lock-imbalance.patch
+     flat-fix-uninitialized-ptr-with-shared-libs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: fix lock imbalance
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: flat: fix uninitialized ptr with shared libs
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-Add unlock and put to one of fail paths in md_alloc.
+The new credentials code broke load_flat_shared_library() as it now uses
+an uninitialized cred pointer.
 
-Andre said:
-
-  This patch fixes a leak and a locking bug which hits if a named array
-  is being added and its name duplicates the name of an already existing
-  array.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Andre Noll <maan@systemlinux.org>
-Cc: Neil Brown <neilb@suse.de>
+Reported-by: Bernd Schmidt <bernds_cb1@t-online.de>
+Tested-by: Bernd Schmidt <bernds_cb1@t-online.de>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ fs/binfmt_flat.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN drivers/md/md.c~md-fix-lock-imbalance drivers/md/md.c
---- a/drivers/md/md.c~md-fix-lock-imbalance
-+++ a/drivers/md/md.c
-@@ -3829,7 +3829,7 @@ static int md_alloc(dev_t dev, char *nam
- 	int partitioned;
- 	int shift;
- 	int unit;
--	int error;
-+	int error, ret;
+diff -puN fs/binfmt_flat.c~flat-fix-uninitialized-ptr-with-shared-libs fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~flat-fix-uninitialized-ptr-with-shared-libs
++++ a/fs/binfmt_flat.c
+@@ -828,15 +828,22 @@ static int load_flat_shared_library(int 
+ 	if (IS_ERR(bprm.file))
+ 		return res;
  
- 	if (!mddev)
- 		return -ENODEV;
-@@ -3845,9 +3845,8 @@ static int md_alloc(dev_t dev, char *nam
++	bprm.cred = prepare_exec_creds();
++	res = -ENOMEM;
++	if (!bprm.cred)
++		goto out;
++
+ 	res = prepare_binprm(&bprm);
  
- 	mutex_lock(&disks_mutex);
- 	if (mddev->gendisk) {
--		mutex_unlock(&disks_mutex);
--		mddev_put(mddev);
--		return -EEXIST;
-+		ret = -EEXIST;
-+		goto unlock;
- 	}
- 
- 	if (name) {
-@@ -3860,16 +3859,16 @@ static int md_alloc(dev_t dev, char *nam
- 			if (mddev2->gendisk &&
- 			    strcmp(mddev2->gendisk->disk_name, name) == 0) {
- 				spin_unlock(&all_mddevs_lock);
--				return -EEXIST;
-+				ret = -EEXIST;
-+				goto unlock;
- 			}
- 		spin_unlock(&all_mddevs_lock);
- 	}
- 
- 	mddev->queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!mddev->queue) {
--		mutex_unlock(&disks_mutex);
--		mddev_put(mddev);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto unlock;
- 	}
- 	mddev->queue->queuedata = mddev;
- 
-@@ -3883,8 +3882,8 @@ static int md_alloc(dev_t dev, char *nam
- 		mutex_unlock(&disks_mutex);
- 		blk_cleanup_queue(mddev->queue);
- 		mddev->queue = NULL;
--		mddev_put(mddev);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto put;
- 	}
- 	disk->major = MAJOR(mddev->unit);
- 	disk->first_minor = unit << shift;
-@@ -3914,8 +3913,13 @@ static int md_alloc(dev_t dev, char *nam
- 		kobject_uevent(&mddev->kobj, KOBJ_ADD);
- 		mddev->sysfs_state = sysfs_get_dirent(mddev->kobj.sd, "array_state");
- 	}
-+	ret = 0;
-+put:
- 	mddev_put(mddev);
--	return 0;
-+	return ret;
-+unlock:
-+	mutex_unlock(&disks_mutex);
-+	goto put;
+ 	if (res <= (unsigned long)-4096)
+ 		res = load_flat_file(&bprm, libs, id, NULL);
+-	if (bprm.file) {
+-		allow_write_access(bprm.file);
+-		fput(bprm.file);
+-		bprm.file = NULL;
+-	}
++
++	abort_creds(bprm.cred);
++
++out:
++	allow_write_access(bprm.file);
++	fput(bprm.file);
++
+ 	return(res);
  }
  
- static struct kobject *md_probe(dev_t dev, int *part, void *data)
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
 
 origin.patch
-floppy-fix-lock-imbalance.patch
 linux-next.patch
-isdn-hisax-fix-lock-imbalance.patch
-icom-converting-space-to-tabs.patch
-base-firmware_class-fix-lock-imbalance.patch
-md-fix-lock-imbalance.patch
-wireless-nl80211-fix-lock-imbalance.patch
-reiser4.patch
+flat-fix-uninitialized-ptr-with-shared-libs.patch
+workaround-for-a-pci-restoring-bug.patch
 
