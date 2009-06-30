@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sendfile-several-fixes.patch added to -mm tree
-Date: Tue, 30 Jun 2009 13:55:00 -0700
-Message-ID: <200906302055.n5UKt0uQ017763@imap1.linux-foundation.org>
+Subject: + hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch added to -mm tree
+Date: Tue, 30 Jun 2009 13:56:04 -0700
+Message-ID: <200906302056.n5UKu4QG018960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44564 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752800AbZF3UzC (ORCPT
+	by vger.kernel.org with ESMTP id S1752800AbZF3U4f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jun 2009 16:55:02 -0400
+	Tue, 30 Jun 2009 16:56:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: msb@google.com, rlove@google.com, viro@zeniv.linux.org.uk
+Cc: Lee.Schermerhorn@hp.com, agl@us.ibm.com, apw@canonical.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, rientjes@google.com
 
 
 The patch titled
-     sendfile: several fixes
+     hugetlb: use free_pool_huge_page() to return unused surplus pages fix
 has been added to the -mm tree.  Its filename is
-     sendfile-several-fixes.patch
+     hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sendfile: several fixes
-From: Mandeep Singh Baines <msb@google.com>
+Subject: hugetlb: use free_pool_huge_page() to return unused surplus pages fix
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Three fixes for sendfile, mostly related to sending large files from pseudo
-filesystems:
+Fixes bug detected by libhugetlbfs test suite in:
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
 
-- Fix sendfile for offsets > 300G. This can happen with pseudo filesystems.
-  This happens because the overflow check is using inode->i_sb->s_maxbytes
-  and not the superblock of the backing device's s_maxbytes. For a regular file
-  these are interchangible but for a special file these are different and you
-  want the latter.
+Can't just "continue" for node with no surplus pages when returning
+unused surplus.  We need to advance to 'next node to free'.
 
-- Don't compare against the max of the out_inode's superblock. Doesn't make
-  sense.
+With this fix, the "hugetlb balance free across nodes" series passes
+the test suite.
 
-- For pseudo and other filesystems with s_maxbytes set to ~0ULL, max ends up
-  holding a negative number as it is signed. Check for and correct that.
-
-Signed-off-by: Robert Love <rlove@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Eric Whitney <eric.whitney@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN fs/read_write.c~sendfile-several-fixes fs/read_write.c
---- a/fs/read_write.c~sendfile-several-fixes
-+++ a/fs/read_write.c
-@@ -835,8 +835,15 @@ static ssize_t do_sendfile(int out_fd, i
- 		goto fput_out;
- 	count = retval;
+diff -puN mm/hugetlb.c~hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix
++++ a/mm/hugetlb.c
+@@ -698,13 +698,11 @@ static int free_pool_huge_page(struct hs
  
--	if (!max)
--		max = min(in_inode->i_sb->s_maxbytes, out_inode->i_sb->s_maxbytes);
-+	if (!max) {
-+		max = in_inode->i_mapping->host->i_sb->s_maxbytes;
-+		/*
-+		 * For psuedo filesystems, s_maxbytes is ~0ULL. When converted
-+		 * to loff_t, it can go negative. So we check for and fix that.
-+		 */
-+		if (max < 0)
-+			max = LLONG_MAX;
-+	}
- 
- 	pos = *ppos;
- 	retval = -EINVAL;
-_
-
-Patches currently in -mm which might be from msb@google.com are
-
-sendfile-several-fixes.patch
-
+ 	do {
+ 		/*
+-		 * If we're returning unused surplus pages, skip nodes
+-		 * with no surplus.
++		 * If we're returning unused surplus pages, only examine
++		 * nodes with surplus pages.
+ 		 */
+-		if (acct_surplus && !h->surplus_huge_pages_node[next_nid])
+-			continue;
