@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + comedi-jr3_pcic-add-required-includes.patch added to -mm tree
-Date: Tue, 30 Jun 2009 12:15:56 -0700
-Message-ID: <200906301915.n5UJFuDu006831@imap1.linux-foundation.org>
+Subject: + drivers-mtd-mtdcorec-make-symbols-static.patch added to -mm tree
+Date: Tue, 30 Jun 2009 12:17:14 -0700
+Message-ID: <200906301917.n5UJHECM008232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41760 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756262AbZF3TP4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756021AbZF3TR3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jun 2009 15:15:56 -0400
+	Tue, 30 Jun 2009 15:17:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.beregalov@gmail.com, greg@kroah.com
+Cc: hartleys@visionengravers.com, dwmw2@infradead.org, hsweeten@visionengravers.com
 
 
 The patch titled
-     comedi: jr3_pci.c: add required includes
+     drivers/mtd/mtdcore.c: make symbols static
 has been added to the -mm tree.  Its filename is
-     comedi-jr3_pcic-add-required-includes.patch
+     drivers-mtd-mtdcorec-make-symbols-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: comedi: jr3_pci.c: add required includes
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: drivers/mtd/mtdcore.c: make symbols static
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-jr3_pci.c:739: error: 'jiffies' undeclared
-jr3_pci.c:748: error: implicit declaration of function 'msecs_to_jiffies'
-jr3_pci.c:763: error: implicit declaration of function 'add_timer'
-jr3_pci.c:790: error: implicit declaration of function 'init_timer'
-jr3_pci.c:951: error: implicit declaration of function 'del_timer_sync'
+Make mtd_group and mtd_groups static since they are only used in this
+file.
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/comedi/drivers/jr3_pci.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/mtd/mtdcore.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/staging/comedi/drivers/jr3_pci.c~staging-comedi-jr3_pcic-add-required-includes drivers/staging/comedi/drivers/jr3_pci.c
---- a/drivers/staging/comedi/drivers/jr3_pci.c~staging-comedi-jr3_pcic-add-required-includes
-+++ a/drivers/staging/comedi/drivers/jr3_pci.c
-@@ -45,6 +45,8 @@ Devices: [JR3] PCI force sensor board (j
- #include <linux/delay.h>
- #include <linux/ctype.h>
- #include <linux/firmware.h>
-+#include <linux/jiffies.h>
-+#include <linux/timer.h>
- #include "comedi_pci.h"
- #include "jr3_pci.h"
+diff -puN drivers/mtd/mtdcore.c~drivers-mtd-mtdcorec-make-symbols-static drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~drivers-mtd-mtdcorec-make-symbols-static
++++ a/drivers/mtd/mtdcore.c
+@@ -213,11 +213,11 @@ static struct attribute *mtd_attrs[] = {
+ 	NULL,
+ };
  
+-struct attribute_group mtd_group = {
++static struct attribute_group mtd_group = {
+ 	.attrs		= mtd_attrs,
+ };
+ 
+-struct attribute_group *mtd_groups[] = {
++static struct attribute_group *mtd_groups[] = {
+ 	&mtd_group,
+ 	NULL,
+ };
 _
 
-Patches currently in -mm which might be from a.beregalov@gmail.com are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
 linux-next.patch
-comedi-jr3_pcic-add-required-includes.patch
+mtd-sst25l-non-jedec-spi-flash-driver.patch
+mtd-sst25l-non-jedec-spi-flash-driver-update.patch
+mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
+drivers-mtd-mtdcorec-make-symbols-static.patch
+atyfb-coding-style-cleanup.patch
 
