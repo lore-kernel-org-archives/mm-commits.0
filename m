@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + flat-fix-uninitialized-ptr-with-shared-libs.patch added to -mm tree
-Date: Tue, 30 Jun 2009 13:22:34 -0700
-Message-ID: <200906302022.n5UKMYS6014801@imap1.linux-foundation.org>
+Subject: + sendfile-several-fixes.patch added to -mm tree
+Date: Tue, 30 Jun 2009 13:55:00 -0700
+Message-ID: <200906302055.n5UKt0uQ017763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753187AbZF3UXx (ORCPT
+	by vger.kernel.org with ESMTP id S1752800AbZF3UzC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jun 2009 16:23:53 -0400
+	Tue, 30 Jun 2009 16:55:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: torvalds@linux-foundation.org, bernds_cb1@t-online.de, dhowells@redhat.com, stable@kernel.org, vapier@gentoo.org
+Cc: msb@google.com, rlove@google.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     flat: fix uninitialized ptr with shared libs
+     sendfile: several fixes
 has been added to the -mm tree.  Its filename is
-     flat-fix-uninitialized-ptr-with-shared-libs.patch
+     sendfile-several-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flat: fix uninitialized ptr with shared libs
-From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: sendfile: several fixes
+From: Mandeep Singh Baines <msb@google.com>
 
-The new credentials code broke load_flat_shared_library() as it now uses
-an uninitialized cred pointer.
+Three fixes for sendfile, mostly related to sending large files from pseudo
+filesystems:
 
-Reported-by: Bernd Schmidt <bernds_cb1@t-online.de>
-Tested-by: Bernd Schmidt <bernds_cb1@t-online.de>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <stable@kernel.org>
+- Fix sendfile for offsets > 300G. This can happen with pseudo filesystems.
+  This happens because the overflow check is using inode->i_sb->s_maxbytes
+  and not the superblock of the backing device's s_maxbytes. For a regular file
+  these are interchangible but for a special file these are different and you
+  want the latter.
+
+- Don't compare against the max of the out_inode's superblock. Doesn't make
+  sense.
+
+- For pseudo and other filesystems with s_maxbytes set to ~0ULL, max ends up
+  holding a negative number as it is signed. Check for and correct that.
+
+Signed-off-by: Robert Love <rlove@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_flat.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ fs/read_write.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_flat.c~flat-fix-uninitialized-ptr-with-shared-libs fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~flat-fix-uninitialized-ptr-with-shared-libs
-+++ a/fs/binfmt_flat.c
-@@ -828,15 +828,22 @@ static int load_flat_shared_library(int 
- 	if (IS_ERR(bprm.file))
- 		return res;
+diff -puN fs/read_write.c~sendfile-several-fixes fs/read_write.c
+--- a/fs/read_write.c~sendfile-several-fixes
++++ a/fs/read_write.c
+@@ -835,8 +835,15 @@ static ssize_t do_sendfile(int out_fd, i
+ 		goto fput_out;
+ 	count = retval;
  
-+	bprm.cred = prepare_exec_creds();
-+	res = -ENOMEM;
-+	if (!bprm.cred)
-+		goto out;
-+
- 	res = prepare_binprm(&bprm);
+-	if (!max)
+-		max = min(in_inode->i_sb->s_maxbytes, out_inode->i_sb->s_maxbytes);
++	if (!max) {
++		max = in_inode->i_mapping->host->i_sb->s_maxbytes;
++		/*
++		 * For psuedo filesystems, s_maxbytes is ~0ULL. When converted
++		 * to loff_t, it can go negative. So we check for and fix that.
++		 */
++		if (max < 0)
++			max = LLONG_MAX;
++	}
  
- 	if (res <= (unsigned long)-4096)
- 		res = load_flat_file(&bprm, libs, id, NULL);
--	if (bprm.file) {
--		allow_write_access(bprm.file);
--		fput(bprm.file);
--		bprm.file = NULL;
--	}
-+
-+	abort_creds(bprm.cred);
-+
-+out:
-+	allow_write_access(bprm.file);
-+	fput(bprm.file);
-+
- 	return(res);
- }
- 
+ 	pos = *ppos;
+ 	retval = -EINVAL;
 _
 
-Patches currently in -mm which might be from torvalds@linux-foundation.org are
+Patches currently in -mm which might be from msb@google.com are
 
-origin.patch
-linux-next.patch
-flat-fix-uninitialized-ptr-with-shared-libs.patch
-workaround-for-a-pci-restoring-bug.patch
+sendfile-several-fixes.patch
 
