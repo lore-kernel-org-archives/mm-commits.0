@@ -1,113 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch added to -mm tree
-Date: Tue, 30 Jun 2009 22:53:03 -0700
-Message-ID: <200907010553.n615r3MA022329@imap1.linux-foundation.org>
+Subject: [alternative-merged] dm-fix-exstore-lookup-error.patch removed from -mm tree
+Date: Wed, 01 Jul 2009 10:23:02 -0700
+Message-ID: <200907011723.n61HN2E9029796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48028 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751514AbZGAFxJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 01:53:09 -0400
+	by vger.kernel.org with ESMTP id S1755505AbZGARYS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:24:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz, jens.axboe@oracle.com, viro@zeniv.linux.org.uk, yanmin_zhang@linux.intel.com
+To: yi.y.yang@intel.com, agk@redhat.com, jbrassow@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix
-has been added to the -mm tree.  Its filename is
-     sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
+     dm: fix exstore lookup error
+has been removed from the -mm tree.  Its filename was
+     dm-fix-exstore-lookup-error.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dm: fix exstore lookup error
+From: Yi Yang <yi.y.yang@intel.com>
 
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Zhang Yanmin <yanmin_zhang@linux.intel.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Live image with 2.6.30 kernel created by livecd-tools can't boot because
+of device mapper driver regression, error info is below:
+
+device-mapper: snapshot exception stores: Module for exstore type "p" not found
+
+commit f6bd4eb73cdf2a5bf954e497972842f39cabb7e3 ("dm exception store: fix
+exstore lookup to be case insensitive") claimed it fixed a regression, but
+actually it introduced another error, 'p' in the above error message will
+become 'P' followed by many strange characters.
+
+The root cause is the variable persistent is of type char but it is used
+as char *, so commit f6bd4eb73cdf2a5bf954e497972842f39cabb7e3 didn't fix
+the issue and introduced one more issue.
+
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
+Cc: Jonathan Brassow <jbrassow@redhat.com>
+Cc: <stable@kernel.org>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sync.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/md/dm-exception-store.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/sync.c~sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix fs/sync.c
---- a/fs/sync.c~sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix
-+++ a/fs/sync.c
-@@ -112,6 +112,10 @@ restart:
- 	mutex_unlock(&mutex);
- }
+diff -puN drivers/md/dm-exception-store.c~dm-fix-exstore-lookup-error drivers/md/dm-exception-store.c
+--- a/drivers/md/dm-exception-store.c~dm-fix-exstore-lookup-error
++++ a/drivers/md/dm-exception-store.c
+@@ -197,7 +197,7 @@ int dm_exception_store_create(struct dm_
+ 	int r = 0;
+ 	struct dm_exception_store_type *type;
+ 	struct dm_exception_store *tmp_store;
+-	char persistent;
++	char persistent[2];
  
-+/*
-+ * sync everything.  Start out by waking pdflush, because that writes back
-+ * all queues in parallel.
-+ */
- SYSCALL_DEFINE0(sync)
- {
- 	wakeup_pdflush(0);
+ 	if (argc < 3) {
+ 		ti->error = "Insufficient exception store arguments";
+@@ -210,13 +210,14 @@ int dm_exception_store_create(struct dm_
+ 		return -ENOMEM;
+ 	}
+ 
+-	persistent = toupper(*argv[1]);
+-	if (persistent != 'P' && persistent != 'N') {
++	persistent[0] = toupper(*argv[1]);
++	if (persistent[0] != 'P' && persistent[0] != 'N') {
+ 		ti->error = "Persistent flag is not P or N";
+ 		return -EINVAL;
+ 	}
+ 
+-	type = get_type(&persistent);
++	persistent[1] = '\0';
++	type = get_type(persistent);
+ 	if (!type) {
+ 		ti->error = "Exception store type not recognised";
+ 		r = -EINVAL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yi.y.yang@intel.com are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+dm-fix-exstore-lookup-error.patch
 
