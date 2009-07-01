@@ -1,99 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gcov-fix-documentation.patch removed from -mm tree
-Date: Wed, 01 Jul 2009 10:26:48 -0700
-Message-ID: <200907011726.n61HQmwb001512@imap1.linux-foundation.org>
+Subject: [merged] ext2-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch removed from -mm tree
+Date: Wed, 01 Jul 2009 10:26:58 -0700
+Message-ID: <200907011726.n61HQwLZ001711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753262AbZGAR0s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:26:48 -0400
+	by vger.kernel.org with ESMTP id S1753420AbZGAR05 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:26:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: bdonlan@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gcov: fix documentation
+     ext2: return -EIO not -ESTALE on directory traversal through deleted inode
 has been removed from the -mm tree.  Its filename was
-     gcov-fix-documentation.patch
+     ext2-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcov: fix documentation
-From: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Subject: ext2: return -EIO not -ESTALE on directory traversal through deleted inode
+From: Bryan Donlan <bdonlan@gmail.com>
 
-Commonly available versions of cp and tar don't work well with special
-files created using seq_file.  Mention this problem in the gcov
-documentation and update the helper script example to work around these
-problems.
+ext2_iget() returns -ESTALE if invoked on a deleted inode, in order to
+report errors to NFS properly.  However, in ext[234]_lookup(), this
+-ESTALE can be propagated to userspace if the filesystem is corrupted such
+that a directory entry references a deleted inode.  This leads to a
+misleading error message - "Stale NFS file handle" - and confusion on the
+part of the admin.
 
-Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+The bug can be easily reproduced by creating a new filesystem, making a
+link to an unused inode using debugfs, then mounting and attempting to ls
+-l said link.
+
+This patch thus changes ext2_lookup to return -EIO if it receives -ESTALE
+from ext2_iget(), as ext2 does for other filesystem metadata corruption;
+and also invokes the appropriate ext*_error functions when this case is
+detected.
+
+Signed-off-by: Bryan Donlan <bdonlan@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gcov.txt |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ fs/ext2/namei.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/gcov.txt~gcov-fix-documentation Documentation/gcov.txt
---- a/Documentation/gcov.txt~gcov-fix-documentation
-+++ a/Documentation/gcov.txt
-@@ -188,13 +188,18 @@ Solution: Exclude affected source files 
-           GCOV_PROFILE := n or GCOV_PROFILE_basename.o := n in the
-           corresponding Makefile.
- 
-+Problem:  Files copied from sysfs appear empty or incomplete.
-+Cause:    Due to the way seq_file works, some tools such as cp or tar
-+          may not correctly copy files from sysfs.
-+Solution: Use 'cat' to read .gcda files and 'cp -d' to copy links.
-+          Alternatively use the mechanism shown in Appendix B.
-+
- 
- Appendix A: gather_on_build.sh
- ==============================
- 
- Sample script to gather coverage meta files on the build machine
- (see 6a):
--
- #!/bin/bash
- 
- KSRC=$1
-@@ -226,7 +231,7 @@ Appendix B: gather_on_test.sh
- Sample script to gather coverage data files on the test machine
- (see 6b):
- 
--#!/bin/bash
-+#!/bin/bash -e
- 
- DEST=$1
- GCDA=/sys/kernel/debug/gcov
-@@ -236,11 +241,13 @@ if [ -z "$DEST" ] ; then
-   exit 1
- fi
- 
--find $GCDA -name '*.gcno' -o -name '*.gcda' | tar cfz $DEST -T -
-+TEMPDIR=$(mktemp -d)
-+echo Collecting data..
-+find $GCDA -type d -exec mkdir -p $TEMPDIR/\{\} \;
-+find $GCDA -name '*.gcda' -exec sh -c 'cat < $0 > '$TEMPDIR'/$0' {} \;
-+find $GCDA -name '*.gcno' -exec sh -c 'cp -d $0 '$TEMPDIR'/$0' {} \;
-+tar czf $DEST -C $TEMPDIR sys
-+rm -rf $TEMPDIR
- 
--if [ $? -eq 0 ] ; then
--  echo "$DEST successfully created, copy to build system and unpack with:"
--  echo "  tar xfz $DEST"
--else
--  echo "Could not create file $DEST"
--fi
-+echo "$DEST successfully created, copy to build system and unpack with:"
-+echo "  tar xfz $DEST"
+diff -puN fs/ext2/namei.c~ext2-return-eio-not-estale-on-directory-traversal-through-deleted-inode fs/ext2/namei.c
+--- a/fs/ext2/namei.c~ext2-return-eio-not-estale-on-directory-traversal-through-deleted-inode
++++ a/fs/ext2/namei.c
+@@ -66,8 +66,16 @@ static struct dentry *ext2_lookup(struct
+ 	inode = NULL;
+ 	if (ino) {
+ 		inode = ext2_iget(dir->i_sb, ino);
+-		if (IS_ERR(inode))
+-			return ERR_CAST(inode);
++		if (unlikely(IS_ERR(inode))) {
++			if (PTR_ERR(inode) == -ESTALE) {
++				ext2_error(dir->i_sb, __func__,
++						"deleted inode referenced: %lu",
++						ino);
++				return ERR_PTR(-EIO);
++			} else {
++				return ERR_CAST(inode);
++			}
++		}
+ 	}
+ 	return d_splice_alias(inode, dentry);
+ }
 _
 
-Patches currently in -mm which might be from oberpar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from bdonlan@gmail.com are
 
 origin.patch
 
