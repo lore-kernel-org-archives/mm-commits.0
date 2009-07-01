@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + elf-fix-one-check-after-use.patch added to -mm tree
-Date: Wed, 01 Jul 2009 11:56:34 -0700
-Message-ID: <200907011856.n61IuYIO003719@imap1.linux-foundation.org>
+Subject: + elf-clean-up-fill_note_info-fix.patch added to -mm tree
+Date: Wed, 01 Jul 2009 12:30:14 -0700
+Message-ID: <200907011930.n61JUE7a008505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33827 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753091AbZGAS6Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 14:58:24 -0400
+	by vger.kernel.org with ESMTP id S1755459AbZGATa2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 15:30:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, dhowells@redhat.com, jmorris@namei.org, roland@redhat.com, stable@kernel.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, amwang@redhat.com, dhowells@redhat.com, roland@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     elf: fix one check-after-use
+     elf-clean-up-fill_note_info-fix
 has been added to the -mm tree.  Its filename is
-     elf-fix-one-check-after-use.patch
+     elf-clean-up-fill_note_info-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,28 +33,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: elf: fix one check-after-use
-From: Amerigo Wang <amwang@redhat.com>
+Subject: elf-clean-up-fill_note_info-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Move the check for failed kmalloc() to the correct place.
+Remove NUM_NOTES
 
-Signed-off-by: WANG Cong <amwang@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Amerigo Wang <amwang@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
-Acked-by: James Morris <jmorris@namei.org>
-Cc: <stable@kernel.org>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: WANG Cong <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/binfmt_elf.c~elf-fix-one-check-after-use fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~elf-fix-one-check-after-use
+diff -puN fs/binfmt_elf.c~elf-clean-up-fill_note_info-fix fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~elf-clean-up-fill_note_info-fix
 +++ a/fs/binfmt_elf.c
-@@ -1522,11 +1522,11 @@ static int fill_note_info(struct elfhdr 
- 	info->thread = NULL;
+@@ -1719,10 +1719,8 @@ static int elf_note_info_init(struct elf
+ 	memset(info, 0, sizeof(*info));
+ 	INIT_LIST_HEAD(&info->thread_list);
  
- 	psinfo = kmalloc(sizeof(*psinfo), GFP_KERNEL);
--	fill_note(&info->psinfo, "CORE", NT_PRPSINFO, sizeof(*psinfo), psinfo);
+-#define	NUM_NOTES	6
+-	info->notes = kmalloc(NUM_NOTES * sizeof(struct memelfnote),
+-			      GFP_KERNEL);
+-#undef NUM_NOTES
++	/* Allocate space for six ELF notes */
++	info->notes = kmalloc(6 * sizeof(struct memelfnote), GFP_KERNEL);
+ 	if (!info->notes)
+ 		return 0;
+ 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+
