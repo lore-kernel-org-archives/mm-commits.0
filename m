@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-philips-nxp-pcf2123-driver-v03-update.patch added to -mm tree
-Date: Wed, 01 Jul 2009 14:26:25 -0700
-Message-ID: <200907012126.n61LQPKo007019@imap1.linux-foundation.org>
+Subject: + kcore-fix-proc-kcores-statst_size.patch added to -mm tree
+Date: Wed, 01 Jul 2009 14:48:58 -0700
+Message-ID: <200907012148.n61LmwZw031771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53176 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753116AbZGAV0g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 17:26:36 -0400
+	by vger.kernel.org with ESMTP id S1752816AbZGAVt0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 17:49:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chrisv@cyberswitching.com, a.zummo@towertech.it
+Cc: xiyou.wangcong@gmail.com, amwang@redhat.com, ebiederm@xmission.com, mtk.manpages@gmail.com, tao.ma@oracle.com
 
 
 The patch titled
-     rtc-philips-nxp-pcf2123-driver-v03-update
+     kcore: fix /proc/kcore's stat.st_size
 has been added to the -mm tree.  Its filename is
-     rtc-philips-nxp-pcf2123-driver-v03-update.patch
+     kcore-fix-proc-kcores-statst_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,127 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-philips-nxp-pcf2123-driver-v03-update
-From: "Chris Verges" <chrisv@cyberswitching.com>
+Subject: kcore: fix /proc/kcore's stat.st_size
+From: Amerigo Wang <xiyou.wangcong@gmail.com>
 
-> static inline void pcf2123_delay_trec(void)
+In 9063c61fd5cbd ("x86, 64-bit: Clean up user address masking") Linus
+fixed the wrong size of /proc/kcore problem.
 
-You're right ... much cleaner.  Proof that one should not code over
-vacation.  :-)  Full patch re-created and attached.
+But its size still looks insane, since it never equals the size of
+physical memory.
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Tao Ma <tao.ma@oracle.com>
+Cc: <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2123.c |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ fs/proc/kcore.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf2123.c~rtc-philips-nxp-pcf2123-driver-v03-update drivers/rtc/rtc-pcf2123.c
---- a/drivers/rtc/rtc-pcf2123.c~rtc-philips-nxp-pcf2123-driver-v03-update
-+++ a/drivers/rtc/rtc-pcf2123.c
-@@ -39,15 +39,22 @@
- #define PCF2123_CMD_W(addr)	(((addr) & 0x0F) | 0x40)  /* single write */
- #define PCF2123_CMD_R(addr)	(((addr) & 0x0F) | 0x90)  /* single read */
- 
--/* The Trec (chip enable recovery time) is specified by the PCF2123 */
--#define PCF2123_DELAY_TREC()	do { ndelay(30); } while (0)
--
- static struct spi_driver pcf2123_driver;
- 
- struct pcf2123_plat_data {
- 	struct rtc_device *rtc;
- };
- 
-+/*
-+ * Causes a 30 nanosecond delay to ensure that the PCF2123 chip select
-+ * is released properly after an SPI write.  This function should be
-+ * called after EVERY read/write call over SPI.
-+ */
-+static inline void pcf2123_delay_trec(void)
-+{
-+	ndelay(30);
-+}
-+
- static int pcf2123_rtc_read_time(struct device *dev, struct rtc_time *tm)
+diff -puN fs/proc/kcore.c~kcore-fix-proc-kcores-statst_size fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-fix-proc-kcores-statst_size
++++ a/fs/proc/kcore.c
+@@ -405,9 +405,6 @@ read_kcore(struct file *file, char __use
+ static int __init proc_kcore_init(void)
  {
- 	struct spi_device *spi = to_spi_device(dev);
-@@ -59,7 +66,7 @@ static int pcf2123_rtc_read_time(struct 
- 			rxbuf, sizeof(rxbuf));
- 	if (ret < 0)
- 		return ret;
--	PCF2123_DELAY_TREC();
-+	pcf2123_delay_trec();
- 
- 	tm->tm_sec = bcd2bin(rxbuf[0] & 0x7F);
- 	tm->tm_min = bcd2bin(rxbuf[1] & 0x7F);
-@@ -104,7 +111,7 @@ static int pcf2123_rtc_set_time(struct d
- 	ret = spi_write(spi, txbuf, 2);
- 	if (ret < 0)
- 		return ret;
--	PCF2123_DELAY_TREC();
-+	pcf2123_delay_trec();
- 
- 	/* Set the new time */
- 	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_SC);
-@@ -119,7 +126,7 @@ static int pcf2123_rtc_set_time(struct d
- 	ret = spi_write(spi, txbuf, sizeof(txbuf));
- 	if (ret < 0)
- 		return ret;
--	PCF2123_DELAY_TREC();
-+	pcf2123_delay_trec();
- 
- 	/* Start the counter */
- 	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
-@@ -127,7 +134,7 @@ static int pcf2123_rtc_set_time(struct d
- 	ret = spi_write(spi, txbuf, 2);
- 	if (ret < 0)
- 		return ret;
--	PCF2123_DELAY_TREC();
-+	pcf2123_delay_trec();
- 
+ 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL, &proc_kcore_operations);
+-	if (proc_root_kcore)
+-		proc_root_kcore->size =
+-				(size_t)high_memory - PAGE_OFFSET + PAGE_SIZE;
  	return 0;
  }
-@@ -155,7 +162,7 @@ static int __devinit pcf2123_probe(struc
- 	ret = spi_write(spi, txbuf, sizeof(txbuf));
- 	if (ret < 0)
- 		return ret;
--	PCF2123_DELAY_TREC();
-+	pcf2123_delay_trec();
- 
- 	/* Stop the counter */
- 	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
-@@ -163,14 +170,14 @@ static int __devinit pcf2123_probe(struc
- 	ret = spi_write(spi, txbuf, sizeof(txbuf));
- 	if (ret < 0)
- 		return ret;
--	PCF2123_DELAY_TREC();
-+	pcf2123_delay_trec();
- 
- 	/* See if the counter was actually stopped */
- 	txbuf[0] = PCF2123_CMD_R(PCF2123_REG_CTRL1);
- 	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, sizeof(rxbuf));
- 	if (ret < 0)
- 		goto kfree_exit;
--	PCF2123_DELAY_TREC();
-+	pcf2123_delay_trec();
- 
- 	if (!(rxbuf[0] & 0x20)) {
- 		dev_err(&spi->dev, "not found.\n");
-@@ -187,7 +194,7 @@ static int __devinit pcf2123_probe(struc
- 	ret = spi_write(spi, txbuf, sizeof(txbuf));
- 	if (ret < 0)
- 		goto kfree_exit;
--	PCF2123_DELAY_TREC();
-+	pcf2123_delay_trec();
- 
- 	/* Finalize the initialization */
- 	rtc = rtc_device_register(pcf2123_driver.driver.name, &spi->dev,
+ module_init(proc_kcore_init);
 _
 
-Patches currently in -mm which might be from chrisv@cyberswitching.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-rtc-philips-nxp-pcf2123-driver.patch
-rtc-philips-nxp-pcf2123-driver-v03.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-update.patch
+origin.patch
+linux-next.patch
+elf-fix-multithreaded-program-core-dumping-on-arm.patch
+kcore-fix-proc-kcores-statst_size.patch
 
