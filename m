@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fb-move-mutex_init-to-framebuffer_alloc.patch added to -mm tree
-Date: Wed, 01 Jul 2009 10:54:33 -0700
-Message-ID: <200907011754.n61HsXZv032197@imap1.linux-foundation.org>
+Subject: + vlynq-fix-typo-in-kconfig-to-enable-debugging.patch added to -mm tree
+Date: Wed, 01 Jul 2009 10:56:21 -0700
+Message-ID: <200907011756.n61HuLEP001819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752549AbZGAR4c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:56:32 -0400
+	by vger.kernel.org with ESMTP id S1752549AbZGAR4d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:56:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daniel@caiaq.de, a.p.zijlstra@chello.nl, krzysztof.h1@wp.pl, rjw@sisk.pl, stable@kernel.org
+Cc: florian@openwrt.org
 
 
 The patch titled
-     fb: move mutex_init to framebuffer_alloc()
+     vlynq: fix typo in Kconfig to enable debugging
 has been added to the -mm tree.  Its filename is
-     fb-move-mutex_init-to-framebuffer_alloc.patch
+     vlynq-fix-typo-in-kconfig-to-enable-debugging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb: move mutex_init to framebuffer_alloc()
-From: Daniel Mack <daniel@caiaq.de>
+Subject: vlynq: fix typo in Kconfig to enable debugging
+From: Florian Fainelli <florian@openwrt.org>
 
-In 537a1bf05 ("fbdev: add mutex for fb_mmap locking"), a per-fbinfo mutex
-was added and framebuffer drivers were adopted accordingly.  This new lock
-is currently initialized in register_framebuffer().
+Fix a typo in the VLYNQ bus driver Kconfig which prevented to turn on
+VLYNQ bus debugging.
 
-The mx3fb driver takes this lock in mx3fb_map_video_memory() _before_
-register_framebuffer() is called and hence crashes the system very early.
-
-Moving this mutex_init() to framebuffer_alloc() solves this and also seems
-a lot more straight forward.
-
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: <stable@kernel.org>
+Signed-off-by: Florian Fainelli <florian@openwrt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c   |    3 ---
- drivers/video/fbsysfs.c |    3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/vlynq/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/fbmem.c~fb-move-mutex_init-to-framebuffer_alloc drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-move-mutex_init-to-framebuffer_alloc
-+++ a/drivers/video/fbmem.c
-@@ -1513,9 +1513,6 @@ register_framebuffer(struct fb_info *fb_
- 		if (!registered_fb[i])
- 			break;
- 	fb_info->node = i;
--	mutex_init(&fb_info->lock);
--	mutex_init(&fb_info->mm_lock);
--
- 	fb_info->dev = device_create(fb_class, fb_info->device,
- 				     MKDEV(FB_MAJOR, i), NULL, "fb%d", i);
- 	if (IS_ERR(fb_info->dev)) {
-diff -puN drivers/video/fbsysfs.c~fb-move-mutex_init-to-framebuffer_alloc drivers/video/fbsysfs.c
---- a/drivers/video/fbsysfs.c~fb-move-mutex_init-to-framebuffer_alloc
-+++ a/drivers/video/fbsysfs.c
-@@ -58,6 +58,9 @@ struct fb_info *framebuffer_alloc(size_t
+diff -puN drivers/vlynq/Kconfig~vlynq-fix-typo-in-kconfig-to-enable-debugging drivers/vlynq/Kconfig
+--- a/drivers/vlynq/Kconfig~vlynq-fix-typo-in-kconfig-to-enable-debugging
++++ a/drivers/vlynq/Kconfig
+@@ -13,7 +13,7 @@ config VLYNQ
  
- 	info->device = dev;
+ config VLYNQ_DEBUG
+ 	bool "VLYNQ bus debug"
+-	depends on VLYNQ && KERNEL_DEBUG
++	depends on VLYNQ && DEBUG_KERNEL
+ 	help
+ 	  Turn on VLYNQ bus debugging.
  
-+	mutex_init(&info->lock);
-+	mutex_init(&info->mm_lock);
-+
- #ifdef CONFIG_FB_BACKLIGHT
- 	mutex_init(&info->bl_curve_mutex);
- #endif
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from florian@openwrt.org are
 
-fb-move-mutex_init-to-framebuffer_alloc.patch
-lis3-fix-typo.patch
-lis3-add-free-fall-wakeup-function-via-platform_data.patch
-lis3-add-power-management-functions.patch
-lis3-add-power-management-functions-fix.patch
-lis3_spi-code-cleanups.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+origin.patch
+vlynq-correct-typo-of-missing-config_-prefix-in-ifdef.patch
+vlynq-fix-typo-in-kconfig-to-enable-debugging.patch
+linux-next.patch
+sound-core-pcm_timerc-use-lib-gcdc.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
 
