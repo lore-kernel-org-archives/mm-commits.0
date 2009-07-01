@@ -1,116 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: + revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch added to -mm tree
-Date: Wed, 01 Jul 2009 10:25:29 -0700
-Message-ID: <200907011725.n61HPTx3032503@imap1.linux-foundation.org>
+Subject: [merged] edac-add-ddr3-memory-type-for-mpc85xx-edac.patch removed from -mm tree
+Date: Wed, 01 Jul 2009 10:26:53 -0700
+Message-ID: <200907011726.n61HQrNQ001645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36731 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753434AbZGARZ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:25:58 -0400
+	by vger.kernel.org with ESMTP id S1753813AbZGAR0v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:26:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, jens.axboe@oracle.com, richard@rsk.demon.co.uk
+To: yang.shi@windriver.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert mm-prevent-balance_dirty_pages-from-doing-too-much-work
-has been added to the -mm tree.  Its filename is
-     revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+     edac: add DDR3 memory type for MPC85xx EDAC
+has been removed from the -mm tree.  Its filename was
+     edac-add-ddr3-memory-type-for-mpc85xx-edac.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert mm-prevent-balance_dirty_pages-from-doing-too-much-work
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: edac: add DDR3 memory type for MPC85xx EDAC
+From: Yang Shi <yang.shi@windriver.com>
 
-So I don't forget...
+Since some new MPC85xx SOCs support DDR3 memory now, so add DDR3 memory
+type for MPC85xx EDAC.
 
-Cc: Richard Kennedy <richard@rsk.demon.co.uk>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Yang Shi <yang.shi@windriver.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/edac/edac_core.h     |    4 ++++
+ drivers/edac/edac_mc_sysfs.c |    4 +++-
+ drivers/edac/mpc85xx_edac.c  |    6 ++++++
+ drivers/edac/mpc85xx_edac.h  |    1 +
+ 4 files changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work mm/page-writeback.c
---- a/mm/page-writeback.c~revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work
-+++ a/mm/page-writeback.c
-@@ -527,11 +527,8 @@ static void balance_dirty_pages(struct a
- 		 * filesystems (i.e. NFS) in which data may have been
- 		 * written to the server's write cache, but has not yet
- 		 * been flushed to permanent storage.
--		 * Only move pages to writeback if this bdi is over its
--		 * threshold otherwise wait until the disk writes catch
--		 * up.
- 		 */
--		if (bdi_nr_reclaimable > bdi_thresh) {
-+		if (bdi_nr_reclaimable) {
- 			generic_sync_bdi_inodes(NULL, &wbc);
- 			pages_written += write_chunk - wbc.nr_to_write;
- 			get_dirty_limits(&background_thresh, &dirty_thresh,
+diff -puN drivers/edac/edac_core.h~edac-add-ddr3-memory-type-for-mpc85xx-edac drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~edac-add-ddr3-memory-type-for-mpc85xx-edac
++++ a/drivers/edac/edac_core.h
+@@ -150,6 +150,8 @@ enum mem_type {
+ 	MEM_FB_DDR2,		/* fully buffered DDR2 */
+ 	MEM_RDDR2,		/* Registered DDR2 RAM */
+ 	MEM_XDR,		/* Rambus XDR */
++	MEM_DDR3,		/* DDR3 RAM */
++	MEM_RDDR3,		/* Registered DDR3 RAM */
+ };
+ 
+ #define MEM_FLAG_EMPTY		BIT(MEM_EMPTY)
+@@ -167,6 +169,8 @@ enum mem_type {
+ #define MEM_FLAG_FB_DDR2        BIT(MEM_FB_DDR2)
+ #define MEM_FLAG_RDDR2          BIT(MEM_RDDR2)
+ #define MEM_FLAG_XDR            BIT(MEM_XDR)
++#define MEM_FLAG_DDR3		 BIT(MEM_DDR3)
++#define MEM_FLAG_RDDR3		 BIT(MEM_RDDR3)
+ 
+ /* chipset Error Detection and Correction capabilities and mode */
+ enum edac_type {
+diff -puN drivers/edac/edac_mc_sysfs.c~edac-add-ddr3-memory-type-for-mpc85xx-edac drivers/edac/edac_mc_sysfs.c
+--- a/drivers/edac/edac_mc_sysfs.c~edac-add-ddr3-memory-type-for-mpc85xx-edac
++++ a/drivers/edac/edac_mc_sysfs.c
+@@ -94,7 +94,9 @@ static const char *mem_types[] = {
+ 	[MEM_DDR2] = "Unbuffered-DDR2",
+ 	[MEM_FB_DDR2] = "FullyBuffered-DDR2",
+ 	[MEM_RDDR2] = "Registered-DDR2",
+-	[MEM_XDR] = "XDR"
++	[MEM_XDR] = "XDR",
++	[MEM_DDR3] = "Unbuffered-DDR3",
++	[MEM_RDDR3] = "Registered-DDR3"
+ };
+ 
+ static const char *dev_types[] = {
+diff -puN drivers/edac/mpc85xx_edac.c~edac-add-ddr3-memory-type-for-mpc85xx-edac drivers/edac/mpc85xx_edac.c
+--- a/drivers/edac/mpc85xx_edac.c~edac-add-ddr3-memory-type-for-mpc85xx-edac
++++ a/drivers/edac/mpc85xx_edac.c
+@@ -757,6 +757,9 @@ static void __devinit mpc85xx_init_csrow
+ 		case DSC_SDTYPE_DDR2:
+ 			mtype = MEM_RDDR2;
+ 			break;
++		case DSC_SDTYPE_DDR3:
++			mtype = MEM_RDDR3;
++			break;
+ 		default:
+ 			mtype = MEM_UNKNOWN;
+ 			break;
+@@ -769,6 +772,9 @@ static void __devinit mpc85xx_init_csrow
+ 		case DSC_SDTYPE_DDR2:
+ 			mtype = MEM_DDR2;
+ 			break;
++		case DSC_SDTYPE_DDR3:
++			mtype = MEM_DDR3;
++			break;
+ 		default:
+ 			mtype = MEM_UNKNOWN;
+ 			break;
+diff -puN drivers/edac/mpc85xx_edac.h~edac-add-ddr3-memory-type-for-mpc85xx-edac drivers/edac/mpc85xx_edac.h
+--- a/drivers/edac/mpc85xx_edac.h~edac-add-ddr3-memory-type-for-mpc85xx-edac
++++ a/drivers/edac/mpc85xx_edac.h
+@@ -53,6 +53,7 @@
+ 
+ #define DSC_SDTYPE_DDR		0x02000000
+ #define DSC_SDTYPE_DDR2		0x03000000
++#define DSC_SDTYPE_DDR3		0x07000000
+ #define DSC_X32_EN	0x00000020
+ 
+ /* Err_Int_En */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yang.shi@windriver.com are
 
 origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
