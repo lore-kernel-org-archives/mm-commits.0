@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vlynq-fix-typo-in-kconfig-to-enable-debugging.patch added to -mm tree
-Date: Wed, 01 Jul 2009 10:56:21 -0700
-Message-ID: <200907011756.n61HuLEP001819@imap1.linux-foundation.org>
+Subject: + vlynq-correct-typo-of-missing-config_-prefix-in-ifdef.patch added to -mm tree
+Date: Wed, 01 Jul 2009 10:56:19 -0700
+Message-ID: <200907011756.n61HuJsi001807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55801 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752549AbZGAR4d (ORCPT
+	by vger.kernel.org with ESMTP id S1753859AbZGAR4d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:56:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: florian@openwrt.org
+Cc: rpjday@crashcourse.ca, florian@openwrt.org
 
 
 The patch titled
-     vlynq: fix typo in Kconfig to enable debugging
+     vlynq: correct typo of missing "CONFIG_" prefix in ifdef
 has been added to the -mm tree.  Its filename is
-     vlynq-fix-typo-in-kconfig-to-enable-debugging.patch
+     vlynq-correct-typo-of-missing-config_-prefix-in-ifdef.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vlynq: fix typo in Kconfig to enable debugging
-From: Florian Fainelli <florian@openwrt.org>
+Subject: vlynq: correct typo of missing "CONFIG_" prefix in ifdef
+From: Robert P. J. Day <rpjday@crashcourse.ca>
 
-Fix a typo in the VLYNQ bus driver Kconfig which prevented to turn on
-VLYNQ bus debugging.
+Fix a typo in the vlynq bus driver which was missing the CONFIG_ prefix to
+turn on debugging code.
 
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Florian Fainelli <florian@openwrt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vlynq/Kconfig |    2 +-
+ drivers/vlynq/vlynq.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/vlynq/Kconfig~vlynq-fix-typo-in-kconfig-to-enable-debugging drivers/vlynq/Kconfig
---- a/drivers/vlynq/Kconfig~vlynq-fix-typo-in-kconfig-to-enable-debugging
-+++ a/drivers/vlynq/Kconfig
-@@ -13,7 +13,7 @@ config VLYNQ
+diff -puN drivers/vlynq/vlynq.c~vlynq-correct-typo-of-missing-config_-prefix-in-ifdef drivers/vlynq/vlynq.c
+--- a/drivers/vlynq/vlynq.c~vlynq-correct-typo-of-missing-config_-prefix-in-ifdef
++++ a/drivers/vlynq/vlynq.c
+@@ -76,7 +76,7 @@ struct vlynq_regs {
+ 	u32 int_device[8];
+ };
  
- config VLYNQ_DEBUG
- 	bool "VLYNQ bus debug"
--	depends on VLYNQ && KERNEL_DEBUG
-+	depends on VLYNQ && DEBUG_KERNEL
- 	help
- 	  Turn on VLYNQ bus debugging.
- 
+-#ifdef VLYNQ_DEBUG
++#ifdef CONFIG_VLYNQ_DEBUG
+ static void vlynq_dump_regs(struct vlynq_device *dev)
+ {
+ 	int i;
 _
 
-Patches currently in -mm which might be from florian@openwrt.org are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
 vlynq-correct-typo-of-missing-config_-prefix-in-ifdef.patch
-vlynq-fix-typo-in-kconfig-to-enable-debugging.patch
 linux-next.patch
-sound-core-pcm_timerc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
 
