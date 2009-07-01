@@ -1,121 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning.patch removed from -mm tree
-Date: Wed, 01 Jul 2009 15:23:35 -0700
-Message-ID: <200907012223.n61MNZ4s004950@imap1.linux-foundation.org>
+Subject: + mm-clean-up-page_remove_rmap.patch added to -mm tree
+Date: Wed, 01 Jul 2009 15:25:29 -0700
+Message-ID: <200907012225.n61MPTMd007041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753060AbZGAWYE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 18:24:04 -0400
+	by vger.kernel.org with ESMTP id S1752695AbZGAW0m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 18:26:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, oliver@neukum.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     drivers/usb/serial/ti_usb_3410_5052.c: fix uninitialied var warning
-has been removed from the -mm tree.  Its filename was
-     drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning.patch
+     mm: clean up page_remove_rmap()
+has been added to the -mm tree.  Its filename is
+     mm-clean-up-page_remove_rmap.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial/ti_usb_3410_5052.c: fix uninitialied var warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: clean up page_remove_rmap()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-drivers/usb/serial/ti_usb_3410_5052.c: In function 'ti_startup':
-drivers/usb/serial/ti_usb_3410_5052.c:1661: warning: 'status' may be used uninitialized in this function
+page_remove_rmap() has multiple PageAnon() tests and it has deep nesting.
+Clean this up.
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Oliver Neukum <oliver@neukum.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ti_usb_3410_5052.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/rmap.c |   57 +++++++++++++++++++++++++++-------------------------
+ 1 file changed, 30 insertions(+), 27 deletions(-)
 
-diff -puN drivers/usb/serial/ti_usb_3410_5052.c~drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning drivers/usb/serial/ti_usb_3410_5052.c
---- a/drivers/usb/serial/ti_usb_3410_5052.c~drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning
-+++ a/drivers/usb/serial/ti_usb_3410_5052.c
-@@ -1658,7 +1658,6 @@ static int ti_do_download(struct usb_dev
- 	u8 cs = 0;
- 	int done;
- 	struct ti_firmware_header *header;
--	int status;
- 	int len;
- 
- 	for (pos = sizeof(struct ti_firmware_header); pos < size; pos++)
-@@ -1671,13 +1670,15 @@ static int ti_do_download(struct usb_dev
- 
- 	dbg("%s - downloading firmware", __func__);
- 	for (pos = 0; pos < size; pos += done) {
-+		int status;
+diff -puN mm/rmap.c~mm-clean-up-page_remove_rmap mm/rmap.c
+--- a/mm/rmap.c~mm-clean-up-page_remove_rmap
++++ a/mm/rmap.c
+@@ -738,34 +738,37 @@ void page_dup_rmap(struct page *page, st
+  */
+ void page_remove_rmap(struct page *page)
+ {
+-	if (atomic_add_negative(-1, &page->_mapcount)) {
+-		/*
+-		 * Now that the last pte has gone, s390 must transfer dirty
+-		 * flag from storage key to struct page.  We can usually skip
+-		 * this if the page is anon, so about to be freed; but perhaps
+-		 * not if it's in swapcache - there might be another pte slot
+-		 * containing the swap entry, but page not yet written to swap.
+-		 */
+-		if ((!PageAnon(page) || PageSwapCache(page)) &&
+-		    page_test_dirty(page)) {
+-			page_clear_dirty(page);
+-			set_page_dirty(page);
+-		}
+-		if (PageAnon(page))
+-			mem_cgroup_uncharge_page(page);
+-		__dec_zone_page_state(page,
+-			PageAnon(page) ? NR_ANON_PAGES : NR_FILE_MAPPED);
+-		mem_cgroup_update_mapped_file_stat(page, -1);
+-		/*
+-		 * It would be tidy to reset the PageAnon mapping here,
+-		 * but that might overwrite a racing page_add_anon_rmap
+-		 * which increments mapcount after us but sets mapping
+-		 * before us: so leave the reset to free_hot_cold_page,
+-		 * and remember that it's only reliable while mapped.
+-		 * Leaving it set also helps swapoff to reinstate ptes
+-		 * faster for those pages still in swapcache.
+-		 */
++	/* page still mapped by someone else? */
++	if (!atomic_add_negative(-1, &page->_mapcount))
++		return;
 +
- 		len = min(size - pos, TI_DOWNLOAD_MAX_PACKET_SIZE);
- 		status = usb_bulk_msg(dev, pipe, buffer + pos, len,
- 								&done, 1000);
- 		if (status)
--			break;
-+			return status;
++	/*
++	 * Now that the last pte has gone, s390 must transfer dirty
++	 * flag from storage key to struct page.  We can usually skip
++	 * this if the page is anon, so about to be freed; but perhaps
++	 * not if it's in swapcache - there might be another pte slot
++	 * containing the swap entry, but page not yet written to swap.
++	 */
++	if ((!PageAnon(page) || PageSwapCache(page)) && page_test_dirty(page)) {
++		page_clear_dirty(page);
++		set_page_dirty(page);
++	}
++	if (PageAnon(page)) {
++		mem_cgroup_uncharge_page(page);
++		__dec_zone_page_state(page, NR_ANON_PAGES);
++	} else {
++		__dec_zone_page_state(page, NR_FILE_MAPPED);
  	}
--	return status;
-+	return 0;
++	mem_cgroup_update_mapped_file_stat(page, -1);
++	/*
++	 * It would be tidy to reset the PageAnon mapping here,
++	 * but that might overwrite a racing page_add_anon_rmap
++	 * which increments mapcount after us but sets mapping
++	 * before us: so leave the reset to free_hot_cold_page,
++	 * and remember that it's only reliable while mapped.
++	 * Leaving it set also helps swapoff to reinstate ptes
++	 * faster for those pages still in swapcache.
++	 */
  }
  
- static int ti_download_firmware(struct ti_device *tdev)
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-drivers-usb-serial-ti_usb_3410_5052c-fix-uninitialied-var-warning.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev.patch
 readahead-add-blk_run_backing_dev-fix.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-available.patch
+mm-clean-up-page_remove_rmap.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
