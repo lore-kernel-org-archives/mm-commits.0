@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-hacking-move-strip_asm_syms-from-general.patch added to -mm tree
-Date: Wed, 01 Jul 2009 15:34:34 -0700
-Message-ID: <200907012234.n61MYYee016957@imap1.linux-foundation.org>
+Subject: + msm_sdccc-stylistic-cleaning.patch added to -mm tree
+Date: Wed, 01 Jul 2009 15:41:52 -0700
+Message-ID: <200907012241.n61MfqlZ025053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33457 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750946AbZGAWej (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 18:34:39 -0400
+	by vger.kernel.org with ESMTP id S1751484AbZGAWnC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 18:43:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, sam@ravnborg.org
+Cc: joe@perches.com, drzeus-list@drzeus.cx, pavel@ucw.cz, san@android.com, swetland@google.com
 
 
 The patch titled
-     kernel hacking: move STRIP_ASM_SYMS from General
+     msm_sdcc.c: stylistic cleaning
 has been added to the -mm tree.  Its filename is
-     kernel-hacking-move-strip_asm_syms-from-general.patch
+     msm_sdccc-stylistic-cleaning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel hacking: move STRIP_ASM_SYMS from General
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: msm_sdcc.c: stylistic cleaning
+From: Joe Perches <joe@perches.com>
 
-Sam suggested moving STRIP_ASM_SYMS into the Kernel hacking menu
-from the General Setup menu.  It makes more sense there.
+Make it a bit more like typical kernel style.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Brian Swetland <swetland@google.com>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: San Mehat <san@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig      |    8 --------
- lib/Kconfig.debug |    8 ++++++++
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/mmc/host/msm_sdcc.c |   43 ++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
 
-diff -puN init/Kconfig~kernel-hacking-move-strip_asm_syms-from-general init/Kconfig
---- a/init/Kconfig~kernel-hacking-move-strip_asm_syms-from-general
-+++ a/init/Kconfig
-@@ -991,14 +991,6 @@ config SLUB_DEBUG
- 	  SLUB sysfs support. /sys/slab will not exist and there will be
- 	  no support for cache validation etc.
+diff -puN drivers/mmc/host/msm_sdcc.c~msm_sdccc-stylistic-cleaning drivers/mmc/host/msm_sdcc.c
+--- a/drivers/mmc/host/msm_sdcc.c~msm_sdccc-stylistic-cleaning
++++ a/drivers/mmc/host/msm_sdcc.c
+@@ -43,7 +43,6 @@
+ #include <mach/dma.h>
+ #include <mach/htc_pwrsink.h>
  
--config STRIP_ASM_SYMS
--	bool "Strip assembler-generated symbols during link"
--	default n
--	help
--	  Strip internal assembler-generated symbols during a link (symbols
--	  that look like '.Lxxx') so they don't pollute the output of
--	  get_wchan() and suchlike.
 -
- config COMPAT_BRK
- 	bool "Disable heap randomization"
- 	default y
-diff -puN lib/Kconfig.debug~kernel-hacking-move-strip_asm_syms-from-general lib/Kconfig.debug
---- a/lib/Kconfig.debug~kernel-hacking-move-strip_asm_syms-from-general
-+++ a/lib/Kconfig.debug
-@@ -50,6 +50,14 @@ config MAGIC_SYSRQ
- 	  keys are documented in <file:Documentation/sysrq.txt>. Don't say Y
- 	  unless you really know what this hack does.
+ #include "msm_sdcc.h"
  
-+config STRIP_ASM_SYMS
-+	bool "Strip assembler-generated symbols during link"
-+	default n
-+	help
-+	  Strip internal assembler-generated symbols during a link (symbols
-+	  that look like '.Lxxx') so they don't pollute the output of
-+	  get_wchan() and suchlike.
-+
- config UNUSED_SYMBOLS
- 	bool "Enable unused/obsolete exported symbols"
- 	default y if X86
+ #define DRIVER_NAME "msm-sdcc"
+@@ -96,16 +95,17 @@ msmsdcc_stop_data(struct msmsdcc_host *h
+ 
+ uint32_t msmsdcc_fifo_addr(struct msmsdcc_host *host)
+ {
+-	if (host->pdev_id == 1)
++	switch (host->pdev_id) {
++	case 1:
+ 		return MSM_SDC1_PHYS + MMCIFIFO;
+-	else if (host->pdev_id == 2)
++	case 2:
+ 		return MSM_SDC2_PHYS + MMCIFIFO;
+-	else if (host->pdev_id == 3)
++	case 3:
+ 		return MSM_SDC3_PHYS + MMCIFIFO;
+-	else if (host->pdev_id == 4)
++	case 4:
+ 		return MSM_SDC4_PHYS + MMCIFIFO;
+-	else
+-		BUG();
++	}
++	BUG();
+ 	return 0;
+ }
+ 
+@@ -154,8 +154,8 @@ msmsdcc_dma_complete_func(struct msm_dmo
+ 		struct scatterlist *sg = host->dma.sg;
+ 		int i;
+ 
+-		for (i = 0; i < host->dma.num_ents; i++, sg++)
+-			flush_dcache_page(sg_page(sg));
++		for (i = 0; i < host->dma.num_ents; i++)
++			flush_dcache_page(sg_page(sg++));
+ 	}
+ 
+ 	host->dma.sg = NULL;
+@@ -220,15 +220,20 @@ static int msmsdcc_config_dma(struct msm
+ 
+ 	nc = host->dma.nc;
+ 
+-	if (host->pdev_id == 1)
++	switch (host->pdev_id) {
++	case 1:
+ 		crci = MSMSDCC_CRCI_SDC1;
+-	else if (host->pdev_id == 2)
++		break;
++	case 2:
+ 		crci = MSMSDCC_CRCI_SDC2;
+-	else if (host->pdev_id == 3)
++		break;
++	case 3:
+ 		crci = MSMSDCC_CRCI_SDC3;
+-	else if (host->pdev_id == 4)
++		break;
++	case 4:
+ 		crci = MSMSDCC_CRCI_SDC4;
+-	else {
++		break;
++	default:
+ 		host->dma.sg = NULL;
+ 		host->dma.num_ents = 0;
+ 		return -ENOENT;
+@@ -242,7 +247,7 @@ static int msmsdcc_config_dma(struct msm
+ 	host->curr.user_pages = 0;
+ 
+ 	n = dma_map_sg(mmc_dev(host->mmc), host->dma.sg,
+-			host->dma.num_ents, host->dma.dir);
++		       host->dma.num_ents, host->dma.dir);
+ 
+ 	if (n != host->dma.num_ents) {
+ 		pr_err("%s: Unable to map in all sg elements\n",
+@@ -316,7 +321,7 @@ msmsdcc_start_data(struct msmsdcc_host *
+ 	memset(&host->pio, 0, sizeof(host->pio));
+ 
+ 	clks = (unsigned long long)data->timeout_ns * host->clk_rate;
+-	do_div(clks, 1000000000UL);
++	do_div(clks, NSECS_PER_SEC);
+ 	timeout = data->timeout_clks + (unsigned int)clks;
+ 	writel(timeout, base + MMCIDATATIMER);
+ 
+@@ -369,9 +374,9 @@ msmsdcc_start_command(struct msmsdcc_hos
+ 		c |= MCI_CPSM_RESPONSE;
+ 	}
+ 
+-	if ((((cmd->opcode == 17) || (cmd->opcode == 18))  ||
+-	     ((cmd->opcode == 24) || (cmd->opcode == 25))) ||
+-	      (cmd->opcode == 53))
++	if (cmd->opcode == 17 || cmd->opcode == 18 ||
++	    cmd->opcode == 24 || cmd->opcode == 25 ||
++	    cmd->opcode == 53)
+ 		c |= MCI_CSPM_DATCMD;
+ 
+ 	if (cmd == cmd->mrq->stop)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-kernel-doc-move-ignoring-kmemcheck.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-lis3-add-power-management-functions-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
+mmc-msm_sdccc-driver-for-htc-dream.patch
+msm_sdccc-convert-printkkern_level-to-pr_level.patch
+msm_sdccc-stylistic-cleaning.patch
+msm_sdccc-move-overly-indented-code-to-separate-function.patch
 
