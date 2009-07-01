@@ -1,94 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gpio-pl061-fix-irq-handling-for-gpios-=-pl061_gpio_nr.patch removed from -mm tree
-Date: Wed, 01 Jul 2009 10:27:31 -0700
-Message-ID: <200907011727.n61HRVsj002294@imap1.linux-foundation.org>
+Subject: [merged] spi-new-spi-mode-bits.patch removed from -mm tree
+Date: Wed, 01 Jul 2009 10:27:02 -0700
+Message-ID: <200907011727.n61HR2I5001837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57281 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754010AbZGAR1k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:27:40 -0400
+	by vger.kernel.org with ESMTP id S1753590AbZGAR1o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:27:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: baruch@tkos.co.il, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, s-paulraj@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: pl061: fix IRQ handling for GPIOs >= PL061_GPIO_NR
+     spi: new spi->mode bits
 has been removed from the -mm tree.  Its filename was
-     gpio-pl061-fix-irq-handling-for-gpios-=-pl061_gpio_nr.patch
+     spi-new-spi-mode-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: pl061: fix IRQ handling for GPIOs >= PL061_GPIO_NR
-From: Baruch Siach <baruch@tkos.co.il>
+Subject: spi: new spi->mode bits
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-IRQ handling is wrong for any GPIO >= PL061_GPIO_NR.
+Add two new spi_device.mode bits to accomodate more protocol options, and
+pass them through to usermode drivers:
 
-Fix this by implementing and using a proper .to_irq method.
+ * SPI_NO_CS ... a second 3-wire variant, where the chipselect
+   line is removed instead of a data line; transfers are still
+   full duplex.
 
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-Cc: David Brownell <david-b@pacbell.net>
+   This obviously has STRONG protocol implications since the
+   chipselect transitions can't be used to synchronize state
+   transitions with the SPI master.
+
+ * SPI_READY ... defines open drain signal that's pulled low
+   to pause the clock.  This defines a 5-wire variant (normal
+   4-wire SPI plus READY) and two 4-wire variants (READY plus
+   each of the 3-wire flavors).
+
+   Such hardware flow control can be a big win.  There are ADC
+   converters and flash chips that expose READY signals, but not
+   many host controllers support it today.
+
+The spi_bitbang code should be changed to use SPI_NO_CS instead of its
+current nonportable hack.  That's a mode most hardware can easily support
+(unlike SPI_READY).
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: "Paulraj, Sandeep" <s-paulraj@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pl061.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ Documentation/spi/spidev_test.c |   10 +++++++++-
+ drivers/spi/spidev.c            |   17 +++++++++++------
+ include/linux/spi/spi.h         |    2 ++
+ include/linux/spi/spidev.h      |    2 ++
+ 4 files changed, 24 insertions(+), 7 deletions(-)
 
-diff -puN drivers/gpio/pl061.c~gpio-pl061-fix-irq-handling-for-gpios-=-pl061_gpio_nr drivers/gpio/pl061.c
---- a/drivers/gpio/pl061.c~gpio-pl061-fix-irq-handling-for-gpios-=-pl061_gpio_nr
-+++ a/drivers/gpio/pl061.c
-@@ -109,6 +109,16 @@ static void pl061_set_value(struct gpio_
- 	writeb(!!value << offset, chip->base + (1 << (offset + 2)));
- }
+diff -puN Documentation/spi/spidev_test.c~spi-new-spi-mode-bits Documentation/spi/spidev_test.c
+--- a/Documentation/spi/spidev_test.c~spi-new-spi-mode-bits
++++ a/Documentation/spi/spidev_test.c
+@@ -99,11 +99,13 @@ void parse_opts(int argc, char *argv[])
+ 			{ "lsb",     0, 0, 'L' },
+ 			{ "cs-high", 0, 0, 'C' },
+ 			{ "3wire",   0, 0, '3' },
++			{ "no-cs",   0, 0, 'N' },
++			{ "ready",   0, 0, 'R' },
+ 			{ NULL, 0, 0, 0 },
+ 		};
+ 		int c;
  
-+static int pl061_to_irq(struct gpio_chip *gc, unsigned offset)
-+{
-+	struct pl061_gpio *chip = container_of(gc, struct pl061_gpio, gc);
-+
-+	if (chip->irq_base == (unsigned) -1)
-+		return -EINVAL;
-+
-+	return chip->irq_base + offset;
-+}
-+
- /*
-  * PL061 GPIO IRQ
+-		c = getopt_long(argc, argv, "D:s:d:b:lHOLC3", lopts, NULL);
++		c = getopt_long(argc, argv, "D:s:d:b:lHOLC3NR", lopts, NULL);
+ 
+ 		if (c == -1)
+ 			break;
+@@ -139,6 +141,12 @@ void parse_opts(int argc, char *argv[])
+ 		case '3':
+ 			mode |= SPI_3WIRE;
+ 			break;
++		case 'N':
++			mode |= SPI_NO_CS;
++			break;
++		case 'R':
++			mode |= SPI_READY;
++			break;
+ 		default:
+ 			print_usage(argv[0]);
+ 			break;
+diff -puN drivers/spi/spidev.c~spi-new-spi-mode-bits drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spi-new-spi-mode-bits
++++ a/drivers/spi/spidev.c
+@@ -58,15 +58,20 @@ static unsigned long	minors[N_SPI_MINORS
+ 
+ 
+ /* Bit masks for spi_device.mode management.  Note that incorrect
+- * settings for CS_HIGH and 3WIRE can cause *lots* of trouble for other
+- * devices on a shared bus:  CS_HIGH, because this device will be
+- * active when it shouldn't be;  3WIRE, because when active it won't
+- * behave as it should.
++ * settings for some settings can cause *lots* of trouble for other
++ * devices on a shared bus:
+  *
+- * REVISIT should changing those two modes be privileged?
++ *  - CS_HIGH ... this device will be active when it shouldn't be
++ *  - 3WIRE ... when active, it won't behave as it should
++ *  - NO_CS ... there will be no explicit message boundaries; this
++ *	is completely incompatible with the shared bus model
++ *  - READY ... transfers may proceed when they shouldn't.
++ *
++ * REVISIT should changing those flags be privileged?
   */
-@@ -200,7 +210,7 @@ static void pl061_irq_handler(unsigned i
- 	desc->chip->ack(irq);
- 	list_for_each(ptr, chip_list) {
- 		unsigned long pending;
--		int gpio;
-+		int offset;
+ #define SPI_MODE_MASK		(SPI_CPHA | SPI_CPOL | SPI_CS_HIGH \
+-				| SPI_LSB_FIRST | SPI_3WIRE | SPI_LOOP)
++				| SPI_LSB_FIRST | SPI_3WIRE | SPI_LOOP \
++				| SPI_NO_CS | SPI_READY)
  
- 		chip = list_entry(ptr, struct pl061_gpio, list);
- 		pending = readb(chip->base + GPIOMIS);
-@@ -209,8 +219,8 @@ static void pl061_irq_handler(unsigned i
- 		if (pending == 0)
- 			continue;
+ struct spidev_data {
+ 	dev_t			devt;
+diff -puN include/linux/spi/spi.h~spi-new-spi-mode-bits include/linux/spi/spi.h
+--- a/include/linux/spi/spi.h~spi-new-spi-mode-bits
++++ a/include/linux/spi/spi.h
+@@ -80,6 +80,8 @@ struct spi_device {
+ #define	SPI_LSB_FIRST	0x08			/* per-word bits-on-wire */
+ #define	SPI_3WIRE	0x10			/* SI/SO signals shared */
+ #define	SPI_LOOP	0x20			/* loopback mode */
++#define	SPI_NO_CS	0x40			/* 1 dev/bus, no chipselect */
++#define	SPI_READY	0x80			/* slave pulls low to pause */
+ 	u8			bits_per_word;
+ 	int			irq;
+ 	void			*controller_state;
+diff -puN include/linux/spi/spidev.h~spi-new-spi-mode-bits include/linux/spi/spidev.h
+--- a/include/linux/spi/spidev.h~spi-new-spi-mode-bits
++++ a/include/linux/spi/spidev.h
+@@ -40,6 +40,8 @@
+ #define SPI_LSB_FIRST		0x08
+ #define SPI_3WIRE		0x10
+ #define SPI_LOOP		0x20
++#define SPI_NO_CS		0x40
++#define SPI_READY		0x80
  
--		for_each_bit(gpio, &pending, PL061_GPIO_NR)
--			generic_handle_irq(gpio_to_irq(gpio));
-+		for_each_bit(offset, &pending, PL061_GPIO_NR)
-+			generic_handle_irq(pl061_to_irq(&chip->gc, offset));
- 	}
- 	desc->chip->unmask(irq);
- }
-@@ -251,6 +261,7 @@ static int __init pl061_probe(struct amb
- 	chip->gc.direction_output = pl061_direction_output;
- 	chip->gc.get = pl061_get_value;
- 	chip->gc.set = pl061_set_value;
-+	chip->gc.to_irq = pl061_to_irq;
- 	chip->gc.base = pdata->gpio_base;
- 	chip->gc.ngpio = PL061_GPIO_NR;
- 	chip->gc.label = dev_name(&dev->dev);
+ /*---------------------------------------------------------------------------*/
+ 
 _
 
-Patches currently in -mm which might be from baruch@tkos.co.il are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
+linux-next.patch
+omapfb-add-support-for-the-2430sdp-lcd.patch
+omapfb-add-support-for-the-omap2evm-lcd.patch
+omapfb-add-support-for-the-omap3-evm-lcd.patch
+omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
 
