@@ -1,75 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bsdacct-fix-access-to-invalid-filp-in-acct_on.patch removed from -mm tree
-Date: Wed, 01 Jul 2009 10:27:19 -0700
-Message-ID: <200907011727.n61HRJbf002099@imap1.linux-foundation.org>
+Subject: [merged] fbdev-work-around-old-compiler-bug.patch removed from -mm tree
+Date: Wed, 01 Jul 2009 10:26:40 -0700
+Message-ID: <200907011726.n61HQeRr001330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753415AbZGAR1Z (ORCPT
+	by vger.kernel.org with ESMTP id S1754084AbZGAR1Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:27:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: renaud.lottiaux@kerlabs.com, louis.rilling@kerlabs.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, Geert.Uytterhoeven@sonycom.com, krzysztof.h1@poczta.fm, kyle@mcmartin.ca, sam@ravnborg.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bsdacct: fix access to invalid filp in acct_on()
+     fbdev: work around old compiler bug
 has been removed from the -mm tree.  Its filename was
-     bsdacct-fix-access-to-invalid-filp-in-acct_on.patch
+     fbdev-work-around-old-compiler-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bsdacct: fix access to invalid filp in acct_on()
-From: Renaud Lottiaux <renaud.lottiaux@kerlabs.com>
+Subject: fbdev: work around old compiler bug
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-The file opened in acct_on and freshly stored in the ns->bacct struct can
-be closed in acct_file_reopen by a concurrent call after we release
-acct_lock and before we call mntput(file->f_path.mnt).
+When building with a 4.1.x compiler on powerpc64 (at least) we get this
+error:
 
-Record file->f_path.mnt in a local variable and use this variable only.
+drivers/video/logo/logo_linux_mono.c:81: error: logo_linux_mono causes a section type conflict
 
-Signed-off-by: Renaud Lottiaux <renaud.lottiaux@kerlabs.com>
-Signed-off-by: Louis Rilling <louis.rilling@kerlabs.com>
+This was introduced by commit ae52bb2384f721562f15f719de1acb8e934733cb
+("fbdev: move logo externs to header file").  This is a partial revert of
+that commit sufficient to not hit the compiler bug.
+
+Also convert _clut arrays from __initconst to __initdata.
+
+Sam said:
+
+  Al analysed this some time ago.  When we say something is const then
+  _sometimes_ gcc annotate the section as const(?) - sometimes not.  So if
+  we have two variables/functions annotated __*const and gcc decides to
+  annotate the section const only in one case we get a section type
+  conflict.
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/pnmtologo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/acct.c~bsdacct-fix-access-to-invalid-filp-in-acct_on kernel/acct.c
---- a/kernel/acct.c~bsdacct-fix-access-to-invalid-filp-in-acct_on
-+++ a/kernel/acct.c
-@@ -215,6 +215,7 @@ static void acct_file_reopen(struct bsd_
- static int acct_on(char *name)
- {
- 	struct file *file;
-+	struct vfsmount *mnt;
- 	int error;
- 	struct pid_namespace *ns;
- 	struct bsd_acct_struct *acct = NULL;
-@@ -256,11 +257,12 @@ static int acct_on(char *name)
- 		acct = NULL;
- 	}
+diff -puN scripts/pnmtologo.c~fbdev-work-around-old-compiler-bug scripts/pnmtologo.c
+--- a/scripts/pnmtologo.c~fbdev-work-around-old-compiler-bug
++++ a/scripts/pnmtologo.c
+@@ -237,7 +237,7 @@ static void write_header(void)
+     fprintf(out, " *  Linux logo %s\n", logoname);
+     fputs(" */\n\n", out);
+     fputs("#include <linux/linux_logo.h>\n\n", out);
+-    fprintf(out, "static const unsigned char %s_data[] __initconst = {\n",
++    fprintf(out, "static unsigned char %s_data[] __initdata = {\n",
+ 	    logoname);
+ }
  
--	mnt_pin(file->f_path.mnt);
-+	mnt = file->f_path.mnt;
-+	mnt_pin(mnt);
- 	acct_file_reopen(ns->bacct, file, ns);
- 	spin_unlock(&acct_lock);
+@@ -374,7 +374,7 @@ static void write_logo_clut224(void)
+     fputs("\n};\n\n", out);
  
--	mntput(file->f_path.mnt); /* it's pinned, now give up active reference */
-+	mntput(mnt); /* it's pinned, now give up active reference */
- 	kfree(acct);
- 
- 	return 0;
+     /* write logo clut */
+-    fprintf(out, "static const unsigned char %s_clut[] __initconst = {\n",
++    fprintf(out, "static unsigned char %s_clut[] __initdata = {\n",
+ 	    logoname);
+     write_hex_cnt = 0;
+     for (i = 0; i < logo_clutsize; i++) {
 _
 
-Patches currently in -mm which might be from renaud.lottiaux@kerlabs.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
+linux-next.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
 
