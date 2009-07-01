@@ -1,229 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atyfb-fix-hp-omnibook-500-reboot-hang.patch removed from -mm tree
-Date: Wed, 01 Jul 2009 10:27:33 -0700
-Message-ID: <200907011727.n61HRXTv002424@imap1.linux-foundation.org>
+Subject: [merged] mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch removed from -mm tree
+Date: Wed, 01 Jul 2009 10:28:21 -0700
+Message-ID: <200907011728.n61HSLV4003229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58564 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755690AbZGAR2s (ORCPT
+	by vger.kernel.org with ESMTP id S1755721AbZGAR2s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 13:28:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: syrjala@sci.fi, krzysztof.h1@poczta.fm, mpatocka@redhat.com, mm-commits@vger.kernel.org
+To: richard@rsk.demon.co.uk, a.p.zijlstra@chello.nl, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atyfb: fix HP OmniBook 500 reboot hang
+     mm: prevent balance_dirty_pages() from doing too much work
 has been removed from the -mm tree.  Its filename was
-     atyfb-fix-hp-omnibook-500-reboot-hang.patch
+     mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atyfb: fix HP OmniBook 500 reboot hang
-From: Ville Syrjala <syrjala@sci.fi>
+Subject: mm: prevent balance_dirty_pages() from doing too much work
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-Apparently HP OmniBook 500's BIOS doesn't like the way atyfb reprograms
-the hardware. The BIOS will simply hang after a reboot. Fix the problem
-by restoring the hardware to it's original state on reboot.
+balance_dirty_pages can overreact and move all of the dirty pages to
+writeback unnecessarily.
 
-Signed-off-by: Ville Syrjala <syrjala@sci.fi>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+balance_dirty_pages makes its decision to throttle based on the number of
+dirty plus writeback pages that are over the calculated limit,so it will
+continue to move pages even when there are plenty of pages in writeback
+and less than the threshold still dirty.
+
+This allows it to overshoot its limits and move all the dirty pages to
+writeback while waiting for the drives to catch up and empty the writeback
+list.
+
+A simple fio test easily demonstrates this problem.
+
+fio --name=f1 --directory=/disk1 --size=2G -rw=write --name=f2 --directory=/disk2 --size=1G --rw=write --startdelay=10
+
+This is the simplest fix I could find, but I'm not entirely sure that it
+alone will be enough for all cases.  But it certainly is an improvement on
+my desktop machine writing to 2 disks.
+
+Do we need something more for machines with large arrays where
+bdi_threshold * number_of_drives is greater than the dirty_ratio ?
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb.h      |    2 
- drivers/video/aty/atyfb_base.c |   89 +++++++++++++++++++++++++++----
- 2 files changed, 82 insertions(+), 9 deletions(-)
+ mm/page-writeback.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/aty/atyfb.h~atyfb-fix-hp-omnibook-500-reboot-hang drivers/video/aty/atyfb.h
---- a/drivers/video/aty/atyfb.h~atyfb-fix-hp-omnibook-500-reboot-hang
-+++ a/drivers/video/aty/atyfb.h
-@@ -187,6 +187,8 @@ struct atyfb_par {
- 	int mtrr_reg;
- #endif
- 	u32 mem_cntl;
-+	struct crtc saved_crtc;
-+	union aty_pll saved_pll;
- };
- 
-     /*
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-fix-hp-omnibook-500-reboot-hang drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-fix-hp-omnibook-500-reboot-hang
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -66,6 +66,8 @@
- #include <linux/spinlock.h>
- #include <linux/wait.h>
- #include <linux/backlight.h>
-+#include <linux/reboot.h>
-+#include <linux/dmi.h>
- 
- #include <asm/io.h>
- #include <linux/uaccess.h>
-@@ -249,8 +251,6 @@ static int aty_init(struct fb_info *info
- static int store_video_par(char *videopar, unsigned char m64_num);
- #endif
- 
--static struct crtc saved_crtc;
--static union aty_pll saved_pll;
- static void aty_get_crtc(const struct atyfb_par *par, struct crtc *crtc);
- 
- static void aty_set_crtc(const struct atyfb_par *par, const struct crtc *crtc);
-@@ -261,6 +261,8 @@ static void set_off_pitch(struct atyfb_p
- static int read_aty_sense(const struct atyfb_par *par);
- #endif
- 
-+static DEFINE_MUTEX(reboot_lock);
-+static struct fb_info *reboot_info;
- 
-     /*
-      *  Interface used by the world
-@@ -2390,9 +2392,9 @@ static int __devinit aty_init(struct fb_
- #endif /* CONFIG_FB_ATY_CT */
- 
- 	/* save previous video mode */
--	aty_get_crtc(par, &saved_crtc);
-+	aty_get_crtc(par, &par->saved_crtc);
- 	if(par->pll_ops->get_pll)
--		par->pll_ops->get_pll(info, &saved_pll);
-+		par->pll_ops->get_pll(info, &par->saved_pll);
- 
- 	par->mem_cntl = aty_ld_le32(MEM_CNTL, par);
- 	gtb_memsize = M64_HAS(GTB_DSP);
-@@ -2667,8 +2669,8 @@ static int __devinit aty_init(struct fb_
- 
- aty_init_exit:
- 	/* restore video mode */
--	aty_set_crtc(par, &saved_crtc);
--	par->pll_ops->set_pll(info, &saved_pll);
-+	aty_set_crtc(par, &par->saved_crtc);
-+	par->pll_ops->set_pll(info, &par->saved_pll);
- 
- #ifdef CONFIG_MTRR
- 	if (par->mtrr_reg >= 0) {
-@@ -3502,6 +3504,11 @@ static int __devinit atyfb_pci_probe(str
- 	par->mmap_map[1].prot_flag = _PAGE_E;
- #endif /* __sparc__ */
- 
-+	mutex_lock(&reboot_lock);
-+	if (!reboot_info)
-+		reboot_info = info;
-+	mutex_unlock(&reboot_lock);
-+
- 	return 0;
- 
- err_release_io:
-@@ -3614,8 +3621,8 @@ static void __devexit atyfb_remove(struc
- 	struct atyfb_par *par = (struct atyfb_par *) info->par;
- 
- 	/* restore video mode */
--	aty_set_crtc(par, &saved_crtc);
--	par->pll_ops->set_pll(info, &saved_pll);
-+	aty_set_crtc(par, &par->saved_crtc);
-+	par->pll_ops->set_pll(info, &par->saved_pll);
- 
- 	unregister_framebuffer(info);
- 
-@@ -3661,6 +3668,11 @@ static void __devexit atyfb_pci_remove(s
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 
-+	mutex_lock(&reboot_lock);
-+	if (reboot_info == info)
-+		reboot_info = NULL;
-+	mutex_unlock(&reboot_lock);
-+
- 	atyfb_remove(info);
- }
- 
-@@ -3808,6 +3820,56 @@ static int __init atyfb_setup(char *opti
- }
- #endif  /*  MODULE  */
- 
-+static int atyfb_reboot_notify(struct notifier_block *nb,
-+			       unsigned long code, void *unused)
-+{
-+	struct atyfb_par *par;
-+
-+	if (code != SYS_RESTART)
-+		return NOTIFY_DONE;
-+
-+	mutex_lock(&reboot_lock);
-+
-+	if (!reboot_info)
-+		goto out;
-+
-+	if (!lock_fb_info(reboot_info))
-+		goto out;
-+
-+	par = reboot_info->par;
-+
-+	/*
-+	 * HP OmniBook 500's BIOS doesn't like the state of the
-+	 * hardware after atyfb has been used. Restore the hardware
-+	 * to the original state to allow successful reboots.
-+	 */
-+	aty_set_crtc(par, &par->saved_crtc);
-+	par->pll_ops->set_pll(reboot_info, &par->saved_pll);
-+
-+	unlock_fb_info(reboot_info);
-+ out:
-+	mutex_unlock(&reboot_lock);
-+
-+	return NOTIFY_DONE;
-+}
-+
-+static struct notifier_block atyfb_reboot_notifier = {
-+	.notifier_call = atyfb_reboot_notify,
-+};
-+
-+static const struct dmi_system_id atyfb_reboot_ids[] = {
-+	{
-+		.ident = "HP OmniBook 500",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "HP OmniBook PC"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "HP OmniBook 500 FA"),
-+		},
-+	},
-+
-+	{ }
-+};
-+
- static int __init atyfb_init(void)
- {
-     int err1 = 1, err2 = 1;
-@@ -3826,11 +3888,20 @@ static int __init atyfb_init(void)
-     err2 = atyfb_atari_probe();
- #endif
- 
--    return (err1 && err2) ? -ENODEV : 0;
-+    if (err1 && err2)
-+	return -ENODEV;
-+
-+    if (dmi_check_system(atyfb_reboot_ids))
-+	register_reboot_notifier(&atyfb_reboot_notifier);
-+
-+    return 0;
- }
- 
- static void __exit atyfb_exit(void)
- {
-+	if (dmi_check_system(atyfb_reboot_ids))
-+		unregister_reboot_notifier(&atyfb_reboot_notifier);
-+
- #ifdef CONFIG_PCI
- 	pci_unregister_driver(&atyfb_driver);
- #endif
+diff -puN mm/page-writeback.c~mm-prevent-balance_dirty_pages-from-doing-too-much-work mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-prevent-balance_dirty_pages-from-doing-too-much-work
++++ a/mm/page-writeback.c
+@@ -527,8 +527,11 @@ static void balance_dirty_pages(struct a
+ 		 * filesystems (i.e. NFS) in which data may have been
+ 		 * written to the server's write cache, but has not yet
+ 		 * been flushed to permanent storage.
++		 * Only move pages to writeback if this bdi is over its
++		 * threshold otherwise wait until the disk writes catch
++		 * up.
+ 		 */
+-		if (bdi_nr_reclaimable) {
++		if (bdi_nr_reclaimable > bdi_thresh) {
+ 			generic_sync_bdi_inodes(NULL, &wbc);
+ 			pages_written += write_chunk - wbc.nr_to_write;
+ 			get_dirty_limits(&background_thresh, &dirty_thresh,
 _
 
-Patches currently in -mm which might be from syrjala@sci.fi are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
 origin.patch
-atyfb-coding-style-cleanup.patch
-platinumfb-misplaced-parenthesis.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
 
