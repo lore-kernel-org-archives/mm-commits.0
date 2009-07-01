@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + msm_sdccc-stylistic-cleaning.patch added to -mm tree
-Date: Wed, 01 Jul 2009 15:41:52 -0700
-Message-ID: <200907012241.n61MfqlZ025053@imap1.linux-foundation.org>
+Subject: + mmc-msm_sdccc-driver-for-htc-dream.patch added to -mm tree
+Date: Wed, 01 Jul 2009 15:41:42 -0700
+Message-ID: <200907012241.n61MfhBV024868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37638 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751484AbZGAWnC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 18:43:02 -0400
+	by vger.kernel.org with ESMTP id S1751571AbZGAWnD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jul 2009 18:43:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, drzeus-list@drzeus.cx, pavel@ucw.cz, san@android.com, swetland@google.com
+Cc: san@android.com, drzeus-list@drzeus.cx, joe@perches.com, pavel@ucw.cz, swetland@google.com
 
 
 The patch titled
-     msm_sdcc.c: stylistic cleaning
+     mmc: msm_sdccc: driver for HTC Dream
 has been added to the -mm tree.  Its filename is
-     msm_sdccc-stylistic-cleaning.patch
+     mmc-msm_sdccc-driver-for-htc-dream.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,131 +33,1605 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: msm_sdcc.c: stylistic cleaning
-From: Joe Perches <joe@perches.com>
+Subject: mmc: msm_sdccc: driver for HTC Dream
+From: San Mehat <san@android.com>
 
-Make it a bit more like typical kernel style.
+MMC Driver for HTC Dream.  I picked the code up from Google git trees,
+removed stuff not strictly necessary, and did a few cleanups.  It still
+works :-).
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 Cc: Brian Swetland <swetland@google.com>
 Cc: Pierre Ossman <drzeus-list@drzeus.cx>
-Cc: San Mehat <san@android.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/msm_sdcc.c |   43 ++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 19 deletions(-)
+ drivers/mmc/host/Kconfig    |    7 
+ drivers/mmc/host/Makefile   |    1 
+ drivers/mmc/host/msm_sdcc.c | 1301 ++++++++++++++++++++++++++++++++++
+ drivers/mmc/host/msm_sdcc.h |  238 ++++++
+ 4 files changed, 1547 insertions(+)
 
-diff -puN drivers/mmc/host/msm_sdcc.c~msm_sdccc-stylistic-cleaning drivers/mmc/host/msm_sdcc.c
---- a/drivers/mmc/host/msm_sdcc.c~msm_sdccc-stylistic-cleaning
+diff -puN drivers/mmc/host/Kconfig~mmc-msm_sdccc-driver-for-htc-dream drivers/mmc/host/Kconfig
+--- a/drivers/mmc/host/Kconfig~mmc-msm_sdccc-driver-for-htc-dream
++++ a/drivers/mmc/host/Kconfig
+@@ -199,6 +199,13 @@ config MMC_IMX
+ 
+ 	  If unsure, say N.
+ 
++config MMC_MSM7X00A
++	tristate "Qualcomm MSM 7X00A SDCC Controller Support"
++	depends on MMC && ARCH_MSM
++	help
++	  This provides support for the SD/MMC cell found in the
++          MSM 7X00A controllers from Qualcomm.
++
+ config MMC_MXC
+ 	tristate "Freescale i.MX2/3 Multimedia Card Interface support"
+ 	depends on ARCH_MXC
+diff -puN drivers/mmc/host/Makefile~mmc-msm_sdccc-driver-for-htc-dream drivers/mmc/host/Makefile
+--- a/drivers/mmc/host/Makefile~mmc-msm_sdccc-driver-for-htc-dream
++++ a/drivers/mmc/host/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_MMC_OMAP_HS)	+= omap_hsmmc.
+ obj-$(CONFIG_MMC_AT91)		+= at91_mci.o
+ obj-$(CONFIG_MMC_ATMELMCI)	+= atmel-mci.o
+ obj-$(CONFIG_MMC_TIFM_SD)	+= tifm_sd.o
++obj-$(CONFIG_MMC_MSM7X00A)	+= msm_sdcc.o
+ obj-$(CONFIG_MMC_MVSDIO)	+= mvsdio.o
+ obj-$(CONFIG_MMC_SPI)		+= mmc_spi.o
+ ifeq ($(CONFIG_OF),y)
+diff -puN /dev/null drivers/mmc/host/msm_sdcc.c
+--- /dev/null
 +++ a/drivers/mmc/host/msm_sdcc.c
-@@ -43,7 +43,6 @@
- #include <mach/dma.h>
- #include <mach/htc_pwrsink.h>
- 
--
- #include "msm_sdcc.h"
- 
- #define DRIVER_NAME "msm-sdcc"
-@@ -96,16 +95,17 @@ msmsdcc_stop_data(struct msmsdcc_host *h
- 
- uint32_t msmsdcc_fifo_addr(struct msmsdcc_host *host)
- {
--	if (host->pdev_id == 1)
-+	switch (host->pdev_id) {
-+	case 1:
- 		return MSM_SDC1_PHYS + MMCIFIFO;
--	else if (host->pdev_id == 2)
-+	case 2:
- 		return MSM_SDC2_PHYS + MMCIFIFO;
--	else if (host->pdev_id == 3)
-+	case 3:
- 		return MSM_SDC3_PHYS + MMCIFIFO;
--	else if (host->pdev_id == 4)
-+	case 4:
- 		return MSM_SDC4_PHYS + MMCIFIFO;
--	else
--		BUG();
+@@ -0,0 +1,1301 @@
++/*
++ *  linux/drivers/mmc/host/msm_sdcc.c - Qualcomm MSM 7X00A SDCC Driver
++ *
++ *  Copyright (C) 2007 Google Inc,
++ *  Copyright (C) 2003 Deep Blue Solutions, Ltd, All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Based on mmci.c
++ *
++ * Author: San Mehat (san@android.com)
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/init.h>
++#include <linux/ioport.h>
++#include <linux/device.h>
++#include <linux/interrupt.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/highmem.h>
++#include <linux/log2.h>
++#include <linux/mmc/host.h>
++#include <linux/mmc/card.h>
++#include <linux/clk.h>
++#include <linux/scatterlist.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/debugfs.h>
++#include <linux/io.h>
++#include <linux/memory.h>
++
++#include <asm/cacheflush.h>
++#include <asm/div64.h>
++#include <asm/sizes.h>
++
++#include <asm/mach/mmc.h>
++#include <mach/msm_iomap.h>
++#include <mach/dma.h>
++#include <mach/htc_pwrsink.h>
++
++
++#include "msm_sdcc.h"
++
++#define DRIVER_NAME "msm-sdcc"
++
++static unsigned int msmsdcc_fmin = 144000;
++static unsigned int msmsdcc_fmax = 50000000;
++static unsigned int msmsdcc_4bit = 1;
++static unsigned int msmsdcc_pwrsave = 1;
++static unsigned int msmsdcc_piopoll = 1;
++static unsigned int msmsdcc_sdioirq;
++
++#define PIO_SPINMAX 30
++#define CMD_SPINMAX 20
++
++
++
++static void
++msmsdcc_start_command(struct msmsdcc_host *host, struct mmc_command *cmd,
++		      u32 c);
++
++static void
++msmsdcc_request_end(struct msmsdcc_host *host, struct mmc_request *mrq)
++{
++	writel(0, host->base + MMCICOMMAND);
++
++	BUG_ON(host->curr.data);
++
++	host->curr.mrq = NULL;
++	host->curr.cmd = NULL;
++
++	if (mrq->data)
++		mrq->data->bytes_xfered = host->curr.data_xfered;
++	if (mrq->cmd->error == -ETIMEDOUT)
++		mdelay(5);
++
++	/*
++	 * Need to drop the host lock here; mmc_request_done may call
++	 * back into the driver...
++	 */
++	spin_unlock(&host->lock);
++	mmc_request_done(host->mmc, mrq);
++	spin_lock(&host->lock);
++}
++
++static void
++msmsdcc_stop_data(struct msmsdcc_host *host)
++{
++	writel(0, host->base + MMCIDATACTRL);
++	host->curr.data = NULL;
++	host->curr.got_dataend = host->curr.got_datablkend = 0;
++}
++
++uint32_t msmsdcc_fifo_addr(struct msmsdcc_host *host)
++{
++	if (host->pdev_id == 1)
++		return MSM_SDC1_PHYS + MMCIFIFO;
++	else if (host->pdev_id == 2)
++		return MSM_SDC2_PHYS + MMCIFIFO;
++	else if (host->pdev_id == 3)
++		return MSM_SDC3_PHYS + MMCIFIFO;
++	else if (host->pdev_id == 4)
++		return MSM_SDC4_PHYS + MMCIFIFO;
++	else
++		BUG();
++	return 0;
++}
++
++static void
++msmsdcc_dma_complete_func(struct msm_dmov_cmd *cmd,
++			  unsigned int result,
++			  struct msm_dmov_errdata *err)
++{
++	struct msmsdcc_dma_data	*dma_data =
++		container_of(cmd, struct msmsdcc_dma_data, hdr);
++	struct msmsdcc_host	*host = dma_data->host;
++	unsigned long		flags;
++	struct mmc_request	*mrq;
++
++	spin_lock_irqsave(&host->lock, flags);
++	mrq = host->curr.mrq;
++	BUG_ON(!mrq);
++
++	if (!(result & DMOV_RSLT_VALID)) {
++		printk(KERN_ERR "msmsdcc: Invalid DataMover result\n");
++		goto out;
 +	}
-+	BUG();
- 	return 0;
- }
- 
-@@ -154,8 +154,8 @@ msmsdcc_dma_complete_func(struct msm_dmo
- 		struct scatterlist *sg = host->dma.sg;
- 		int i;
- 
--		for (i = 0; i < host->dma.num_ents; i++, sg++)
--			flush_dcache_page(sg_page(sg));
-+		for (i = 0; i < host->dma.num_ents; i++)
-+			flush_dcache_page(sg_page(sg++));
- 	}
- 
- 	host->dma.sg = NULL;
-@@ -220,15 +220,20 @@ static int msmsdcc_config_dma(struct msm
- 
- 	nc = host->dma.nc;
- 
--	if (host->pdev_id == 1)
-+	switch (host->pdev_id) {
-+	case 1:
- 		crci = MSMSDCC_CRCI_SDC1;
--	else if (host->pdev_id == 2)
++
++	if (result & DMOV_RSLT_DONE) {
++		host->curr.data_xfered = host->curr.xfer_size;
++	} else {
++		/* Error or flush  */
++		if (result & DMOV_RSLT_ERROR)
++			printk(KERN_ERR "%s: DMA error (0x%.8x)\n",
++			       mmc_hostname(host->mmc), result);
++		if (result & DMOV_RSLT_FLUSH)
++			printk(KERN_ERR "%s: DMA channel flushed (0x%.8x)\n",
++			       mmc_hostname(host->mmc), result);
++		if (err)
++			printk(KERN_ERR
++			       "Flush data: %.8x %.8x %.8x %.8x %.8x %.8x\n",
++			       err->flush[0], err->flush[1], err->flush[2],
++			       err->flush[3], err->flush[4], err->flush[5]);
++		if (!mrq->data->error)
++			mrq->data->error = -EIO;
++	}
++	host->dma.busy = 0;
++	dma_unmap_sg(mmc_dev(host->mmc), host->dma.sg, host->dma.num_ents,
++		     host->dma.dir);
++
++	if (host->curr.user_pages) {
++		struct scatterlist *sg = host->dma.sg;
++		int i;
++
++		for (i = 0; i < host->dma.num_ents; i++, sg++)
++			flush_dcache_page(sg_page(sg));
++	}
++
++	host->dma.sg = NULL;
++
++	if ((host->curr.got_dataend && host->curr.got_datablkend)
++	     || mrq->data->error) {
++
++		/*
++		 * If we've already gotten our DATAEND / DATABLKEND
++		 * for this request, then complete it through here.
++		 */
++		msmsdcc_stop_data(host);
++
++		if (!mrq->data->error)
++			host->curr.data_xfered = host->curr.xfer_size;
++		if (!mrq->data->stop || mrq->cmd->error) {
++			writel(0, host->base + MMCICOMMAND);
++			host->curr.mrq = NULL;
++			host->curr.cmd = NULL;
++			mrq->data->bytes_xfered = host->curr.data_xfered;
++
++			spin_unlock_irqrestore(&host->lock, flags);
++			mmc_request_done(host->mmc, mrq);
++			return;
++		} else
++			msmsdcc_start_command(host, mrq->data->stop, 0);
++	}
++
++out:
++	spin_unlock_irqrestore(&host->lock, flags);
++	return;
++}
++
++static int validate_dma(struct msmsdcc_host *host, struct mmc_data *data)
++{
++	if (host->dma.channel == -1)
++		return -ENOENT;
++
++	if ((data->blksz * data->blocks) < MCI_FIFOSIZE)
++		return -EINVAL;
++	if ((data->blksz * data->blocks) % MCI_FIFOSIZE)
++		return -EINVAL;
++	return 0;
++}
++
++static int msmsdcc_config_dma(struct msmsdcc_host *host, struct mmc_data *data)
++{
++	struct msmsdcc_nc_dmadata *nc;
++	dmov_box *box;
++	uint32_t rows;
++	uint32_t crci;
++	unsigned int n;
++	int i, rc;
++	struct scatterlist *sg = data->sg;
++
++	rc = validate_dma(host, data);
++	if (rc)
++		return rc;
++
++	host->dma.sg = data->sg;
++	host->dma.num_ents = data->sg_len;
++
++	nc = host->dma.nc;
++
++	if (host->pdev_id == 1)
++		crci = MSMSDCC_CRCI_SDC1;
++	else if (host->pdev_id == 2)
++		crci = MSMSDCC_CRCI_SDC2;
++	else if (host->pdev_id == 3)
++		crci = MSMSDCC_CRCI_SDC3;
++	else if (host->pdev_id == 4)
++		crci = MSMSDCC_CRCI_SDC4;
++	else {
++		host->dma.sg = NULL;
++		host->dma.num_ents = 0;
++		return -ENOENT;
++	}
++
++	if (data->flags & MMC_DATA_READ)
++		host->dma.dir = DMA_FROM_DEVICE;
++	else
++		host->dma.dir = DMA_TO_DEVICE;
++
++	host->curr.user_pages = 0;
++
++	n = dma_map_sg(mmc_dev(host->mmc), host->dma.sg,
++			host->dma.num_ents, host->dma.dir);
++
++	if (n != host->dma.num_ents) {
++		printk(KERN_ERR "%s: Unable to map in all sg elements\n",
++		       mmc_hostname(host->mmc));
++		host->dma.sg = NULL;
++		host->dma.num_ents = 0;
++		return -ENOMEM;
++	}
++
++	box = &nc->cmd[0];
++	for (i = 0; i < host->dma.num_ents; i++) {
++		box->cmd = CMD_MODE_BOX;
++
++		if (i == (host->dma.num_ents - 1))
++			box->cmd |= CMD_LC;
++		rows = (sg_dma_len(sg) % MCI_FIFOSIZE) ?
++			(sg_dma_len(sg) / MCI_FIFOSIZE) + 1 :
++			(sg_dma_len(sg) / MCI_FIFOSIZE) ;
++
++		if (data->flags & MMC_DATA_READ) {
++			box->src_row_addr = msmsdcc_fifo_addr(host);
++			box->dst_row_addr = sg_dma_address(sg);
++
++			box->src_dst_len = (MCI_FIFOSIZE << 16) |
++					   (MCI_FIFOSIZE);
++			box->row_offset = MCI_FIFOSIZE;
++
++			box->num_rows = rows * ((1 << 16) + 1);
++			box->cmd |= CMD_SRC_CRCI(crci);
++		} else {
++			box->src_row_addr = sg_dma_address(sg);
++			box->dst_row_addr = msmsdcc_fifo_addr(host);
++
++			box->src_dst_len = (MCI_FIFOSIZE << 16) |
++					   (MCI_FIFOSIZE);
++			box->row_offset = (MCI_FIFOSIZE << 16);
++
++			box->num_rows = rows * ((1 << 16) + 1);
++			box->cmd |= CMD_DST_CRCI(crci);
++		}
++		box++;
++		sg++;
++	}
++
++	/* location of command block must be 64 bit aligned */
++	BUG_ON(host->dma.cmd_busaddr & 0x07);
++
++	nc->cmdptr = (host->dma.cmd_busaddr >> 3) | CMD_PTR_LP;
++	host->dma.hdr.cmdptr = DMOV_CMD_PTR_LIST |
++			       DMOV_CMD_ADDR(host->dma.cmdptr_busaddr);
++	host->dma.hdr.complete_func = msmsdcc_dma_complete_func;
++
++	return 0;
++}
++
++static void
++msmsdcc_start_data(struct msmsdcc_host *host, struct mmc_data *data)
++{
++	unsigned int datactrl, timeout;
++	unsigned long long clks;
++	void __iomem *base = host->base;
++	unsigned int pio_irqmask = 0;
++
++	host->curr.data = data;
++	host->curr.xfer_size = data->blksz * data->blocks;
++	host->curr.xfer_remain = host->curr.xfer_size;
++	host->curr.data_xfered = 0;
++	host->curr.got_dataend = 0;
++	host->curr.got_datablkend = 0;
++
++	memset(&host->pio, 0, sizeof(host->pio));
++
++	clks = (unsigned long long)data->timeout_ns * host->clk_rate;
++	do_div(clks, 1000000000UL);
++	timeout = data->timeout_clks + (unsigned int)clks;
++	writel(timeout, base + MMCIDATATIMER);
++
++	writel(host->curr.xfer_size, base + MMCIDATALENGTH);
++
++	datactrl = MCI_DPSM_ENABLE | (data->blksz << 4);
++
++	if (!msmsdcc_config_dma(host, data))
++		datactrl |= MCI_DPSM_DMAENABLE;
++	else {
++		host->pio.sg = data->sg;
++		host->pio.sg_len = data->sg_len;
++		host->pio.sg_off = 0;
++
++		if (data->flags & MMC_DATA_READ) {
++			pio_irqmask = MCI_RXFIFOHALFFULLMASK;
++			if (host->curr.xfer_remain < MCI_FIFOSIZE)
++				pio_irqmask |= MCI_RXDATAAVLBLMASK;
++		} else
++			pio_irqmask = MCI_TXFIFOHALFEMPTYMASK;
++	}
++
++	if (data->flags & MMC_DATA_READ)
++		datactrl |= MCI_DPSM_DIRECTION;
++
++	writel(pio_irqmask, base + MMCIMASK1);
++	writel(datactrl, base + MMCIDATACTRL);
++
++	if (datactrl & MCI_DPSM_DMAENABLE) {
++		host->dma.busy = 1;
++		msm_dmov_enqueue_cmd(host->dma.channel, &host->dma.hdr);
++	}
++}
++
++static void
++msmsdcc_start_command(struct msmsdcc_host *host, struct mmc_command *cmd, u32 c)
++{
++	void __iomem *base = host->base;
++
++	if (readl(base + MMCICOMMAND) & MCI_CPSM_ENABLE) {
++		writel(0, base + MMCICOMMAND);
++		udelay(2 + ((5 * 1000000) / host->clk_rate));
++	}
++
++	c |= cmd->opcode | MCI_CPSM_ENABLE;
++
++	if (cmd->flags & MMC_RSP_PRESENT) {
++		if (cmd->flags & MMC_RSP_136)
++			c |= MCI_CPSM_LONGRSP;
++		c |= MCI_CPSM_RESPONSE;
++	}
++
++	if ((((cmd->opcode == 17) || (cmd->opcode == 18))  ||
++	     ((cmd->opcode == 24) || (cmd->opcode == 25))) ||
++	      (cmd->opcode == 53))
++		c |= MCI_CSPM_DATCMD;
++
++	if (cmd == cmd->mrq->stop)
++		c |= MCI_CSPM_MCIABORT;
++
++	host->curr.cmd = cmd;
++
++	host->stats.cmds++;
++
++	writel(cmd->arg, base + MMCIARGUMENT);
++	writel(c, base + MMCICOMMAND);
++}
++
++static void
++msmsdcc_data_err(struct msmsdcc_host *host, struct mmc_data *data,
++		 unsigned int status)
++{
++	if (status & MCI_DATACRCFAIL) {
++		printk(KERN_ERR "%s: Data CRC error\n",
++		       mmc_hostname(host->mmc));
++		printk(KERN_ERR "%s: opcode 0x%.8x\n", __func__,
++		       data->mrq->cmd->opcode);
++		printk(KERN_ERR "%s: blksz %d, blocks %d\n", __func__,
++		       data->blksz, data->blocks);
++		data->error = -EILSEQ;
++	} else if (status & MCI_DATATIMEOUT) {
++		printk(KERN_ERR "%s: Data timeout\n", mmc_hostname(host->mmc));
++		data->error = -ETIMEDOUT;
++	} else if (status & MCI_RXOVERRUN) {
++		printk(KERN_ERR "%s: RX overrun\n", mmc_hostname(host->mmc));
++		data->error = -EIO;
++	} else if (status & MCI_TXUNDERRUN) {
++		printk(KERN_ERR "%s: TX underrun\n", mmc_hostname(host->mmc));
++		data->error = -EIO;
++	} else {
++		printk(KERN_ERR "%s: Unknown error (0x%.8x)\n",
++		      mmc_hostname(host->mmc), status);
++		data->error = -EIO;
++	}
++}
++
++
++static int
++msmsdcc_pio_read(struct msmsdcc_host *host, char *buffer, unsigned int remain)
++{
++	void __iomem	*base = host->base;
++	uint32_t	*ptr = (uint32_t *) buffer;
++	int		count = 0;
++
++	while (readl(base + MMCISTATUS) & MCI_RXDATAAVLBL) {
++
++		*ptr = readl(base + MMCIFIFO + (count % MCI_FIFOSIZE));
++		ptr++;
++		count += sizeof(uint32_t);
++
++		remain -=  sizeof(uint32_t);
++		if (remain == 0)
++			break;
++	}
++	return count;
++}
++
++static int
++msmsdcc_pio_write(struct msmsdcc_host *host, char *buffer,
++		  unsigned int remain, u32 status)
++{
++	void __iomem *base = host->base;
++	char *ptr = buffer;
++
++	do {
++		unsigned int count, maxcnt;
++
++		maxcnt = status & MCI_TXFIFOEMPTY ? MCI_FIFOSIZE :
++						    MCI_FIFOHALFSIZE;
++		count = min(remain, maxcnt);
++
++		writesl(base + MMCIFIFO, ptr, count >> 2);
++		ptr += count;
++		remain -= count;
++
++		if (remain == 0)
++			break;
++
++		status = readl(base + MMCISTATUS);
++	} while (status & MCI_TXFIFOHALFEMPTY);
++
++	return ptr - buffer;
++}
++
++static int
++msmsdcc_spin_on_status(struct msmsdcc_host *host, uint32_t mask, int maxspin)
++{
++	while (maxspin) {
++		if ((readl(host->base + MMCISTATUS) & mask))
++			return 0;
++		udelay(1);
++		--maxspin;
++	}
++	return -ETIMEDOUT;
++}
++
++static int
++msmsdcc_pio_irq(int irq, void *dev_id)
++{
++	struct msmsdcc_host	*host = dev_id;
++	void __iomem		*base = host->base;
++	uint32_t		status;
++
++	status = readl(base + MMCISTATUS);
++
++	do {
++		unsigned long flags;
++		unsigned int remain, len;
++		char *buffer;
++
++		if (!(status & (MCI_TXFIFOHALFEMPTY | MCI_RXDATAAVLBL))) {
++			if (host->curr.xfer_remain == 0 || !msmsdcc_piopoll)
++				break;
++
++			if (msmsdcc_spin_on_status(host,
++						   (MCI_TXFIFOHALFEMPTY |
++						   MCI_RXDATAAVLBL),
++						   PIO_SPINMAX)) {
++				break;
++			}
++		}
++
++		/* Map the current scatter buffer */
++		local_irq_save(flags);
++		buffer = kmap_atomic(sg_page(host->pio.sg),
++				     KM_BIO_SRC_IRQ) + host->pio.sg->offset;
++		buffer += host->pio.sg_off;
++		remain = host->pio.sg->length - host->pio.sg_off;
++		len = 0;
++		if (status & MCI_RXACTIVE)
++			len = msmsdcc_pio_read(host, buffer, remain);
++		if (status & MCI_TXACTIVE)
++			len = msmsdcc_pio_write(host, buffer, remain, status);
++
++		/* Unmap the buffer */
++		kunmap_atomic(buffer, KM_BIO_SRC_IRQ);
++		local_irq_restore(flags);
++
++		host->pio.sg_off += len;
++		host->curr.xfer_remain -= len;
++		host->curr.data_xfered += len;
++		remain -= len;
++
++		if (remain == 0) {
++			/* This sg page is full - do some housekeeping */
++			if (status & MCI_RXACTIVE && host->curr.user_pages)
++				flush_dcache_page(sg_page(host->pio.sg));
++
++			if (!--host->pio.sg_len) {
++				memset(&host->pio, 0, sizeof(host->pio));
++				break;
++			}
++
++			/* Advance to next sg */
++			host->pio.sg++;
++			host->pio.sg_off = 0;
++		}
++
++		status = readl(base + MMCISTATUS);
++	} while (1);
++
++	if (status & MCI_RXACTIVE && host->curr.xfer_remain < MCI_FIFOSIZE)
++		writel(MCI_RXDATAAVLBLMASK, base + MMCIMASK1);
++
++	if (!host->curr.xfer_remain)
++		writel(0, base + MMCIMASK1);
++
++	return IRQ_HANDLED;
++}
++
++static void msmsdcc_do_cmdirq(struct msmsdcc_host *host, uint32_t status)
++{
++	struct mmc_command *cmd = host->curr.cmd;
++	void __iomem	   *base = host->base;
++
++	host->curr.cmd = NULL;
++	cmd->resp[0] = readl(base + MMCIRESPONSE0);
++	cmd->resp[1] = readl(base + MMCIRESPONSE1);
++	cmd->resp[2] = readl(base + MMCIRESPONSE2);
++	cmd->resp[3] = readl(base + MMCIRESPONSE3);
++
++	del_timer(&host->command_timer);
++	if (status & MCI_CMDTIMEOUT) {
++		cmd->error = -ETIMEDOUT;
++	} else if (status & MCI_CMDCRCFAIL &&
++		   cmd->flags & MMC_RSP_CRC) {
++		printk(KERN_ERR "%s: Command CRC error\n",
++		       mmc_hostname(host->mmc));
++		cmd->error = -EILSEQ;
++	}
++
++	if (!cmd->data || cmd->error) {
++		if (host->curr.data && host->dma.sg)
++			msm_dmov_stop_cmd(host->dma.channel,
++					  &host->dma.hdr, 0);
++		else if (host->curr.data) { /* Non DMA */
++			msmsdcc_stop_data(host);
++			msmsdcc_request_end(host, cmd->mrq);
++		} else /* host->data == NULL */
++			msmsdcc_request_end(host, cmd->mrq);
++	} else if (!(cmd->data->flags & MMC_DATA_READ))
++		msmsdcc_start_data(host, cmd->data);
++}
++
++static irqreturn_t
++msmsdcc_irq(int irq, void *dev_id)
++{
++	struct msmsdcc_host	*host = dev_id;
++	void __iomem		*base = host->base;
++	u32			status;
++	int			ret = 0;
++	int			cardint = 0;
++
++	spin_lock(&host->lock);
++
++	do {
++		struct mmc_data *data;
++		status = readl(base + MMCISTATUS);
++
++		status &= (readl(base + MMCIMASK0) |
++					      MCI_DATABLOCKENDMASK);
++		writel(status, base + MMCICLEAR);
++
++		data = host->curr.data;
++		if (data) {
++			/* Check for data errors */
++			if (status & (MCI_DATACRCFAIL|MCI_DATATIMEOUT|
++				      MCI_TXUNDERRUN|MCI_RXOVERRUN)) {
++				msmsdcc_data_err(host, data, status);
++				host->curr.data_xfered = 0;
++				if (host->dma.sg)
++					msm_dmov_stop_cmd(host->dma.channel,
++							  &host->dma.hdr, 0);
++				else {
++					msmsdcc_stop_data(host);
++					if (!data->stop)
++						msmsdcc_request_end(host,
++								    data->mrq);
++					else
++						msmsdcc_start_command(host,
++								     data->stop,
++								     0);
++				}
++			}
++
++			/* Check for data done */
++			if (!host->curr.got_dataend && (status & MCI_DATAEND))
++				host->curr.got_dataend = 1;
++
++			if (!host->curr.got_datablkend &&
++			    (status & MCI_DATABLOCKEND)) {
++				host->curr.got_datablkend = 1;
++			}
++
++			if (host->curr.got_dataend &&
++			    host->curr.got_datablkend) {
++				/*
++				 * If DMA is still in progress, we complete
++				 * via the completion handler
++				 */
++				if (!host->dma.busy) {
++					/*
++					 * There appears to be an issue in the
++					 * controller where if you request a
++					 * small block transfer (< fifo size),
++					 * you may get your DATAEND/DATABLKEND
++					 * irq without the PIO data irq.
++					 *
++					 * Check to see if theres still data
++					 * to be read, and simulate a PIO irq.
++					 */
++					if (readl(base + MMCISTATUS) &
++							       MCI_RXDATAAVLBL)
++						msmsdcc_pio_irq(1, host);
++
++					msmsdcc_stop_data(host);
++					if (!data->error)
++						host->curr.data_xfered =
++							host->curr.xfer_size;
++
++					if (!data->stop)
++						msmsdcc_request_end(host,
++								    data->mrq);
++					else
++						msmsdcc_start_command(host,
++							      data->stop, 0);
++				}
++			}
++		}
++
++		if (status & (MCI_CMDSENT | MCI_CMDRESPEND | MCI_CMDCRCFAIL |
++			      MCI_CMDTIMEOUT) && host->curr.cmd) {
++			msmsdcc_do_cmdirq(host, status);
++		}
++
++		if (status & MCI_SDIOINTOPER) {
++			cardint = 1;
++			status &= ~MCI_SDIOINTOPER;
++		}
++		ret = 1;
++	} while (status);
++
++	spin_unlock(&host->lock);
++
++	/*
++	 * We have to delay handling the card interrupt as it calls
++	 * back into the driver.
++	 */
++	if (cardint)
++		mmc_signal_sdio_irq(host->mmc);
++
++	return IRQ_RETVAL(ret);
++}
++
++static void
++msmsdcc_request(struct mmc_host *mmc, struct mmc_request *mrq)
++{
++	struct msmsdcc_host *host = mmc_priv(mmc);
++	unsigned long flags;
++
++	WARN_ON(host->curr.mrq != NULL);
++	WARN_ON(host->pwr == 0);
++
++	spin_lock_irqsave(&host->lock, flags);
++
++	host->stats.reqs++;
++
++	if (host->eject) {
++		if (mrq->data && !(mrq->data->flags & MMC_DATA_READ)) {
++			mrq->cmd->error = 0;
++			mrq->data->bytes_xfered = mrq->data->blksz *
++						  mrq->data->blocks;
++		} else
++			mrq->cmd->error = -ENOMEDIUM;
++
++		spin_unlock_irqrestore(&host->lock, flags);
++		mmc_request_done(mmc, mrq);
++		return;
++	}
++
++	host->curr.mrq = mrq;
++
++	if (mrq->data && mrq->data->flags & MMC_DATA_READ)
++		msmsdcc_start_data(host, mrq->data);
++
++	msmsdcc_start_command(host, mrq->cmd, 0);
++
++	if (host->cmdpoll && !msmsdcc_spin_on_status(host,
++				MCI_CMDRESPEND|MCI_CMDCRCFAIL|MCI_CMDTIMEOUT,
++				CMD_SPINMAX)) {
++		uint32_t status = readl(host->base + MMCISTATUS);
++		msmsdcc_do_cmdirq(host, status);
++		writel(MCI_CMDRESPEND | MCI_CMDCRCFAIL | MCI_CMDTIMEOUT,
++		       host->base + MMCICLEAR);
++		host->stats.cmdpoll_hits++;
++	} else {
++		host->stats.cmdpoll_misses++;
++		mod_timer(&host->command_timer, jiffies + HZ);
++	}
++	spin_unlock_irqrestore(&host->lock, flags);
++}
++
++static void
++msmsdcc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
++{
++	struct msmsdcc_host *host = mmc_priv(mmc);
++	u32 clk = 0, pwr = 0;
++	int rc;
++
++	if (ios->clock) {
++
++		if (!host->clks_on) {
++			clk_enable(host->pclk);
++			clk_enable(host->clk);
++			host->clks_on = 1;
++		}
++		if (ios->clock != host->clk_rate) {
++			rc = clk_set_rate(host->clk, ios->clock);
++			if (rc < 0)
++				printk(KERN_ERR
++				       "Error setting clock rate (%d)\n", rc);
++			else
++				host->clk_rate = ios->clock;
++		}
++		clk |= MCI_CLK_ENABLE;
++	}
++
++	if (ios->bus_width == MMC_BUS_WIDTH_4)
++		clk |= (2 << 10); /* Set WIDEBUS */
++
++	if (ios->clock > 400000 && msmsdcc_pwrsave)
++		clk |= (1 << 9); /* PWRSAVE */
++
++	clk |= (1 << 12); /* FLOW_ENA */
++	clk |= (1 << 15); /* feedback clock */
++
++	if (host->plat->translate_vdd)
++		pwr |= host->plat->translate_vdd(mmc_dev(mmc), ios->vdd);
++
++	switch (ios->power_mode) {
++	case MMC_POWER_OFF:
++		htc_pwrsink_set(PWRSINK_SDCARD, 0);
 +		break;
-+	case 2:
- 		crci = MSMSDCC_CRCI_SDC2;
--	else if (host->pdev_id == 3)
++	case MMC_POWER_UP:
++		pwr |= MCI_PWR_UP;
 +		break;
-+	case 3:
- 		crci = MSMSDCC_CRCI_SDC3;
--	else if (host->pdev_id == 4)
++	case MMC_POWER_ON:
++		htc_pwrsink_set(PWRSINK_SDCARD, 100);
++		pwr |= MCI_PWR_ON;
 +		break;
-+	case 4:
- 		crci = MSMSDCC_CRCI_SDC4;
--	else {
-+		break;
-+	default:
- 		host->dma.sg = NULL;
- 		host->dma.num_ents = 0;
- 		return -ENOENT;
-@@ -242,7 +247,7 @@ static int msmsdcc_config_dma(struct msm
- 	host->curr.user_pages = 0;
- 
- 	n = dma_map_sg(mmc_dev(host->mmc), host->dma.sg,
--			host->dma.num_ents, host->dma.dir);
-+		       host->dma.num_ents, host->dma.dir);
- 
- 	if (n != host->dma.num_ents) {
- 		pr_err("%s: Unable to map in all sg elements\n",
-@@ -316,7 +321,7 @@ msmsdcc_start_data(struct msmsdcc_host *
- 	memset(&host->pio, 0, sizeof(host->pio));
- 
- 	clks = (unsigned long long)data->timeout_ns * host->clk_rate;
--	do_div(clks, 1000000000UL);
-+	do_div(clks, NSECS_PER_SEC);
- 	timeout = data->timeout_clks + (unsigned int)clks;
- 	writel(timeout, base + MMCIDATATIMER);
- 
-@@ -369,9 +374,9 @@ msmsdcc_start_command(struct msmsdcc_hos
- 		c |= MCI_CPSM_RESPONSE;
- 	}
- 
--	if ((((cmd->opcode == 17) || (cmd->opcode == 18))  ||
--	     ((cmd->opcode == 24) || (cmd->opcode == 25))) ||
--	      (cmd->opcode == 53))
-+	if (cmd->opcode == 17 || cmd->opcode == 18 ||
-+	    cmd->opcode == 24 || cmd->opcode == 25 ||
-+	    cmd->opcode == 53)
- 		c |= MCI_CSPM_DATCMD;
- 
- 	if (cmd == cmd->mrq->stop)
++	}
++
++	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
++		pwr |= MCI_OD;
++
++	writel(clk, host->base + MMCICLOCK);
++
++	if (host->pwr != pwr) {
++		host->pwr = pwr;
++		writel(pwr, host->base + MMCIPOWER);
++	}
++
++	if (!(clk & MCI_CLK_ENABLE) && host->clks_on) {
++		clk_disable(host->clk);
++		clk_disable(host->pclk);
++		host->clks_on = 0;
++	}
++}
++
++static void msmsdcc_enable_sdio_irq(struct mmc_host *mmc, int enable)
++{
++	struct msmsdcc_host *host = mmc_priv(mmc);
++	unsigned long flags;
++	u32 status;
++
++	spin_lock_irqsave(&host->lock, flags);
++	if (msmsdcc_sdioirq == 1) {
++		status = readl(host->base + MMCIMASK0);
++		if (enable)
++			status |= MCI_SDIOINTOPERMASK;
++		else
++			status &= ~MCI_SDIOINTOPERMASK;
++		host->saved_irq0mask = status;
++		writel(status, host->base + MMCIMASK0);
++	}
++	spin_unlock_irqrestore(&host->lock, flags);
++}
++
++static const struct mmc_host_ops msmsdcc_ops = {
++	.request	= msmsdcc_request,
++	.set_ios	= msmsdcc_set_ios,
++	.enable_sdio_irq = msmsdcc_enable_sdio_irq,
++};
++
++static void
++msmsdcc_check_status(unsigned long data)
++{
++	struct msmsdcc_host *host = (struct msmsdcc_host *)data;
++	unsigned int status;
++
++	if (!host->plat->status) {
++		mmc_detect_change(host->mmc, 0);
++		goto out;
++	}
++
++	status = host->plat->status(mmc_dev(host->mmc));
++	host->eject = !status;
++	if (status ^ host->oldstat) {
++		printk(KERN_INFO
++		       "%s: Slot status change detected (%d -> %d)\n",
++		       mmc_hostname(host->mmc), host->oldstat, status);
++		if (status)
++			mmc_detect_change(host->mmc, (5 * HZ) / 2);
++		else
++			mmc_detect_change(host->mmc, 0);
++	}
++
++	host->oldstat = status;
++
++out:
++	if (host->timer.function)
++		mod_timer(&host->timer, jiffies + HZ);
++}
++
++static irqreturn_t
++msmsdcc_platform_status_irq(int irq, void *dev_id)
++{
++	struct msmsdcc_host *host = dev_id;
++
++	printk(KERN_DEBUG "%s: %d\n", __func__, irq);
++	msmsdcc_check_status((unsigned long) host);
++	return IRQ_HANDLED;
++}
++
++static void
++msmsdcc_status_notify_cb(int card_present, void *dev_id)
++{
++	struct msmsdcc_host *host = dev_id;
++
++	printk(KERN_DEBUG "%s: card_present %d\n", mmc_hostname(host->mmc),
++	       card_present);
++	msmsdcc_check_status((unsigned long) host);
++}
++
++/*
++ * called when a command expires.
++ * Dump some debugging, and then error
++ * out the transaction.
++ */
++static void
++msmsdcc_command_expired(unsigned long _data)
++{
++	struct msmsdcc_host	*host = (struct msmsdcc_host *) _data;
++	struct mmc_request	*mrq;
++	unsigned long		flags;
++
++	spin_lock_irqsave(&host->lock, flags);
++	mrq = host->curr.mrq;
++
++	if (!mrq) {
++		printk(KERN_INFO "%s: Command expiry misfire\n",
++		       mmc_hostname(host->mmc));
++		spin_unlock_irqrestore(&host->lock, flags);
++		return;
++	}
++
++	printk(KERN_ERR "%s: Command timeout (%p %p %p %p)\n",
++	       mmc_hostname(host->mmc), mrq, mrq->cmd,
++	       mrq->data, host->dma.sg);
++
++	mrq->cmd->error = -ETIMEDOUT;
++	msmsdcc_stop_data(host);
++
++	writel(0, host->base + MMCICOMMAND);
++
++	host->curr.mrq = NULL;
++	host->curr.cmd = NULL;
++
++	spin_unlock_irqrestore(&host->lock, flags);
++	mmc_request_done(host->mmc, mrq);
++}
++
++static int
++msmsdcc_init_dma(struct msmsdcc_host *host)
++{
++	memset(&host->dma, 0, sizeof(struct msmsdcc_dma_data));
++	host->dma.host = host;
++	host->dma.channel = -1;
++
++	if (!host->dmares)
++		return -ENODEV;
++
++	host->dma.nc = dma_alloc_coherent(NULL,
++					  sizeof(struct msmsdcc_nc_dmadata),
++					  &host->dma.nc_busaddr,
++					  GFP_KERNEL);
++	if (host->dma.nc == NULL) {
++		printk(KERN_ERR "Unable to allocate DMA buffer\n");
++		return -ENOMEM;
++	}
++	memset(host->dma.nc, 0x00, sizeof(struct msmsdcc_nc_dmadata));
++	host->dma.cmd_busaddr = host->dma.nc_busaddr;
++	host->dma.cmdptr_busaddr = host->dma.nc_busaddr +
++				offsetof(struct msmsdcc_nc_dmadata, cmdptr);
++	host->dma.channel = host->dmares->start;
++
++	return 0;
++}
++
++#ifdef CONFIG_MMC_MSM7X00A_RESUME_IN_WQ
++static void
++do_resume_work(struct work_struct *work)
++{
++	struct msmsdcc_host *host =
++		container_of(work, struct msmsdcc_host, resume_task);
++	struct mmc_host	*mmc = host->mmc;
++
++	if (mmc) {
++		mmc_resume_host(mmc);
++		if (host->stat_irq)
++			enable_irq(host->stat_irq);
++	}
++}
++#endif
++
++static int
++msmsdcc_probe(struct platform_device *pdev)
++{
++	struct mmc_platform_data *plat = pdev->dev.platform_data;
++	struct msmsdcc_host *host;
++	struct mmc_host *mmc;
++	struct resource *cmd_irqres = NULL;
++	struct resource *pio_irqres = NULL;
++	struct resource *stat_irqres = NULL;
++	struct resource *memres = NULL;
++	struct resource *dmares = NULL;
++	int ret;
++
++	/* must have platform data */
++	if (!plat) {
++		printk(KERN_ERR "%s: Platform data not available\n", __func__);
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (pdev->id < 1 || pdev->id > 4)
++		return -EINVAL;
++
++	if (pdev->resource == NULL || pdev->num_resources < 2) {
++		printk(KERN_ERR "%s: Invalid resource\n", __func__);
++		return -ENXIO;
++	}
++
++	memres = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	dmares = platform_get_resource(pdev, IORESOURCE_DMA, 0);
++	cmd_irqres = platform_get_resource_byname(pdev, IORESOURCE_IRQ,
++						  "cmd_irq");
++	pio_irqres = platform_get_resource_byname(pdev, IORESOURCE_IRQ,
++						  "pio_irq");
++	stat_irqres = platform_get_resource_byname(pdev, IORESOURCE_IRQ,
++						   "status_irq");
++
++	if (!cmd_irqres || !pio_irqres || !memres) {
++		printk(KERN_ERR "%s: Invalid resource\n", __func__);
++		return -ENXIO;
++	}
++
++	/*
++	 * Setup our host structure
++	 */
++
++	mmc = mmc_alloc_host(sizeof(struct msmsdcc_host), &pdev->dev);
++	if (!mmc) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	host = mmc_priv(mmc);
++	host->pdev_id = pdev->id;
++	host->plat = plat;
++	host->mmc = mmc;
++
++	host->cmdpoll = 1;
++
++	host->base = ioremap(memres->start, PAGE_SIZE);
++	if (!host->base) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	host->cmd_irqres = cmd_irqres;
++	host->pio_irqres = pio_irqres;
++	host->memres = memres;
++	host->dmares = dmares;
++	spin_lock_init(&host->lock);
++
++	/*
++	 * Setup DMA
++	 */
++	msmsdcc_init_dma(host);
++
++	/*
++	 * Setup main peripheral bus clock
++	 */
++	host->pclk = clk_get(&pdev->dev, "sdc_pclk");
++	if (IS_ERR(host->pclk)) {
++		ret = PTR_ERR(host->pclk);
++		goto host_free;
++	}
++
++	ret = clk_enable(host->pclk);
++	if (ret)
++		goto pclk_put;
++
++	host->pclk_rate = clk_get_rate(host->pclk);
++
++	/*
++	 * Setup SDC MMC clock
++	 */
++	host->clk = clk_get(&pdev->dev, "sdc_clk");
++	if (IS_ERR(host->clk)) {
++		ret = PTR_ERR(host->clk);
++		goto pclk_disable;
++	}
++
++	ret = clk_enable(host->clk);
++	if (ret)
++		goto clk_put;
++
++	ret = clk_set_rate(host->clk, msmsdcc_fmin);
++	if (ret) {
++		printk(KERN_ERR "%s: Clock rate set failed (%d)\n",
++		       __func__, ret);
++		goto clk_disable;
++	}
++
++	host->clk_rate = clk_get_rate(host->clk);
++
++	host->clks_on = 1;
++
++	/*
++	 * Setup MMC host structure
++	 */
++	mmc->ops = &msmsdcc_ops;
++	mmc->f_min = msmsdcc_fmin;
++	mmc->f_max = msmsdcc_fmax;
++	mmc->ocr_avail = plat->ocr_mask;
++
++	if (msmsdcc_4bit)
++		mmc->caps |= MMC_CAP_4_BIT_DATA;
++	if (msmsdcc_sdioirq)
++		mmc->caps |= MMC_CAP_SDIO_IRQ;
++	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED;
++
++	mmc->max_phys_segs = NR_SG;
++	mmc->max_hw_segs = NR_SG;
++	mmc->max_blk_size = 4096;	/* MCI_DATA_CTL BLOCKSIZE up to 4096 */
++	mmc->max_blk_count = 65536;
++
++	mmc->max_req_size = 33554432;	/* MCI_DATA_LENGTH is 25 bits */
++	mmc->max_seg_size = mmc->max_req_size;
++
++	writel(0, host->base + MMCIMASK0);
++	writel(0x5e007ff, host->base + MMCICLEAR); /* Add: 1 << 25 */
++
++	writel(MCI_IRQENABLE, host->base + MMCIMASK0);
++	host->saved_irq0mask = MCI_IRQENABLE;
++
++	/*
++	 * Setup card detect change
++	 */
++
++	memset(&host->timer, 0, sizeof(host->timer));
++
++	if (stat_irqres && !(stat_irqres->flags & IORESOURCE_DISABLED)) {
++		unsigned long irqflags = IRQF_SHARED |
++			(stat_irqres->flags & IRQF_TRIGGER_MASK);
++
++		host->stat_irq = stat_irqres->start;
++		ret = request_irq(host->stat_irq,
++				  msmsdcc_platform_status_irq,
++				  irqflags,
++				  DRIVER_NAME " (slot)",
++				  host);
++		if (ret) {
++			printk(KERN_ERR "Unable to get slot IRQ %d (%d)\n",
++			       host->stat_irq, ret);
++			goto clk_disable;
++		}
++	} else if (plat->register_status_notify) {
++		plat->register_status_notify(msmsdcc_status_notify_cb, host);
++	} else if (!plat->status)
++		printk(KERN_ERR "%s: No card detect facilities available\n",
++		       mmc_hostname(mmc));
++	else {
++		init_timer(&host->timer);
++		host->timer.data = (unsigned long)host;
++		host->timer.function = msmsdcc_check_status;
++		host->timer.expires = jiffies + HZ;
++		add_timer(&host->timer);
++	}
++
++	if (plat->status) {
++		host->oldstat = host->plat->status(mmc_dev(host->mmc));
++		host->eject = !host->oldstat;
++	}
++
++	/*
++	 * Setup a command timer. We currently need this due to
++	 * some 'strange' timeout / error handling situations.
++	 */
++	init_timer(&host->command_timer);
++	host->command_timer.data = (unsigned long) host;
++	host->command_timer.function = msmsdcc_command_expired;
++
++	ret = request_irq(cmd_irqres->start, msmsdcc_irq, IRQF_SHARED,
++			  DRIVER_NAME " (cmd)", host);
++	if (ret)
++		goto stat_irq_free;
++
++	ret = request_irq(pio_irqres->start, msmsdcc_pio_irq, IRQF_SHARED,
++			  DRIVER_NAME " (pio)", host);
++	if (ret)
++		goto cmd_irq_free;
++
++	mmc_set_drvdata(pdev, mmc);
++	mmc_add_host(mmc);
++
++	printk(KERN_INFO
++	       "%s: Qualcomm MSM SDCC at 0x%016llx irq %d,%d dma %d\n",
++	       mmc_hostname(mmc), (unsigned long long)memres->start,
++	       (unsigned int) cmd_irqres->start,
++	       (unsigned int) host->stat_irq, host->dma.channel);
++	printk(KERN_INFO "%s: 4 bit data mode %s\n", mmc_hostname(mmc),
++	       (mmc->caps & MMC_CAP_4_BIT_DATA ? "enabled" : "disabled"));
++	printk(KERN_INFO "%s: MMC clock %u -> %u Hz, PCLK %u Hz\n",
++	       mmc_hostname(mmc), msmsdcc_fmin, msmsdcc_fmax, host->pclk_rate);
++	printk(KERN_INFO "%s: Slot eject status = %d\n", mmc_hostname(mmc),
++	       host->eject);
++	printk(KERN_INFO "%s: Power save feature enable = %d\n",
++	       mmc_hostname(mmc), msmsdcc_pwrsave);
++
++	if (host->dma.channel != -1) {
++		printk(KERN_INFO
++		       "%s: DM non-cached buffer at %p, dma_addr 0x%.8x\n",
++		       mmc_hostname(mmc), host->dma.nc, host->dma.nc_busaddr);
++		printk(KERN_INFO
++		       "%s: DM cmd busaddr 0x%.8x, cmdptr busaddr 0x%.8x\n",
++		       mmc_hostname(mmc), host->dma.cmd_busaddr,
++		       host->dma.cmdptr_busaddr);
++	} else
++		printk(KERN_INFO
++		       "%s: PIO transfer enabled\n", mmc_hostname(mmc));
++	if (host->timer.function)
++		printk(KERN_INFO "%s: Polling status mode enabled\n",
++		       mmc_hostname(mmc));
++
++	return 0;
++ cmd_irq_free:
++	free_irq(cmd_irqres->start, host);
++ stat_irq_free:
++	if (host->stat_irq)
++		free_irq(host->stat_irq, host);
++ clk_disable:
++	clk_disable(host->clk);
++ clk_put:
++	clk_put(host->clk);
++ pclk_disable:
++	clk_disable(host->pclk);
++ pclk_put:
++	clk_put(host->pclk);
++ host_free:
++	mmc_free_host(mmc);
++ out:
++	return ret;
++}
++
++static int
++msmsdcc_suspend(struct platform_device *dev, pm_message_t state)
++{
++	struct mmc_host *mmc = mmc_get_drvdata(dev);
++	int rc = 0;
++
++	if (mmc) {
++		struct msmsdcc_host *host = mmc_priv(mmc);
++
++		if (host->stat_irq)
++			disable_irq(host->stat_irq);
++
++		if (mmc->card && mmc->card->type != MMC_TYPE_SDIO)
++			rc = mmc_suspend_host(mmc, state);
++		if (!rc) {
++			writel(0, host->base + MMCIMASK0);
++
++			if (host->clks_on) {
++				clk_disable(host->clk);
++				clk_disable(host->pclk);
++				host->clks_on = 0;
++			}
++		}
++	}
++	return rc;
++}
++
++static int
++msmsdcc_resume(struct platform_device *dev)
++{
++	struct mmc_host *mmc = mmc_get_drvdata(dev);
++	unsigned long flags;
++
++	if (mmc) {
++		struct msmsdcc_host *host = mmc_priv(mmc);
++
++		spin_lock_irqsave(&host->lock, flags);
++
++		if (!host->clks_on) {
++			clk_enable(host->pclk);
++			clk_enable(host->clk);
++			host->clks_on = 1;
++		}
++
++		writel(host->saved_irq0mask, host->base + MMCIMASK0);
++
++		spin_unlock_irqrestore(&host->lock, flags);
++
++		if (mmc->card && mmc->card->type != MMC_TYPE_SDIO)
++			mmc_resume_host(mmc);
++			if (host->stat_irq)
++				enable_irq(host->stat_irq);
++		else if (host->stat_irq)
++			enable_irq(host->stat_irq);
++	}
++	return 0;
++}
++
++static struct platform_driver msmsdcc_driver = {
++	.probe		= msmsdcc_probe,
++	.suspend	= msmsdcc_suspend,
++	.resume		= msmsdcc_resume,
++	.driver		= {
++		.name	= "msm_sdcc",
++	},
++};
++
++static int __init msmsdcc_init(void)
++{
++	return platform_driver_register(&msmsdcc_driver);
++}
++
++static void __exit msmsdcc_exit(void)
++{
++	platform_driver_unregister(&msmsdcc_driver);
++}
++
++module_init(msmsdcc_init);
++module_exit(msmsdcc_exit);
++
++MODULE_DESCRIPTION("Qualcomm MSM 7X00A Multimedia Card Interface driver");
++MODULE_LICENSE("GPL");
+diff -puN /dev/null drivers/mmc/host/msm_sdcc.h
+--- /dev/null
++++ a/drivers/mmc/host/msm_sdcc.h
+@@ -0,0 +1,238 @@
++/*
++ *  linux/drivers/mmc/host/msmsdcc.h - QCT MSM7K SDC Controller
++ *
++ *  Copyright (C) 2008 Google, All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * - Based on mmci.h
++ */
++
++#ifndef _MSM_SDCC_H
++#define _MSM_SDCC_H
++
++#define MSMSDCC_CRCI_SDC1	6
++#define MSMSDCC_CRCI_SDC2	7
++#define MSMSDCC_CRCI_SDC3	12
++#define MSMSDCC_CRCI_SDC4	13
++
++#define MMCIPOWER		0x000
++#define MCI_PWR_OFF		0x00
++#define MCI_PWR_UP		0x02
++#define MCI_PWR_ON		0x03
++#define MCI_OD			(1 << 6)
++
++#define MMCICLOCK		0x004
++#define MCI_CLK_ENABLE		(1 << 8)
++#define MCI_CLK_PWRSAVE		(1 << 9)
++#define MCI_CLK_WIDEBUS		(1 << 10)
++#define MCI_CLK_FLOWENA		(1 << 12)
++#define MCI_CLK_INVERTOUT	(1 << 13)
++#define MCI_CLK_SELECTIN	(1 << 14)
++
++#define MMCIARGUMENT		0x008
++#define MMCICOMMAND		0x00c
++#define MCI_CPSM_RESPONSE	(1 << 6)
++#define MCI_CPSM_LONGRSP	(1 << 7)
++#define MCI_CPSM_INTERRUPT	(1 << 8)
++#define MCI_CPSM_PENDING	(1 << 9)
++#define MCI_CPSM_ENABLE		(1 << 10)
++#define MCI_CPSM_PROGENA	(1 << 11)
++#define MCI_CSPM_DATCMD		(1 << 12)
++#define MCI_CSPM_MCIABORT	(1 << 13)
++#define MCI_CSPM_CCSENABLE	(1 << 14)
++#define MCI_CSPM_CCSDISABLE	(1 << 15)
++
++
++#define MMCIRESPCMD		0x010
++#define MMCIRESPONSE0		0x014
++#define MMCIRESPONSE1		0x018
++#define MMCIRESPONSE2		0x01c
++#define MMCIRESPONSE3		0x020
++#define MMCIDATATIMER		0x024
++#define MMCIDATALENGTH		0x028
++
++#define MMCIDATACTRL		0x02c
++#define MCI_DPSM_ENABLE		(1 << 0)
++#define MCI_DPSM_DIRECTION	(1 << 1)
++#define MCI_DPSM_MODE		(1 << 2)
++#define MCI_DPSM_DMAENABLE	(1 << 3)
++
++#define MMCIDATACNT		0x030
++#define MMCISTATUS		0x034
++#define MCI_CMDCRCFAIL		(1 << 0)
++#define MCI_DATACRCFAIL		(1 << 1)
++#define MCI_CMDTIMEOUT		(1 << 2)
++#define MCI_DATATIMEOUT		(1 << 3)
++#define MCI_TXUNDERRUN		(1 << 4)
++#define MCI_RXOVERRUN		(1 << 5)
++#define MCI_CMDRESPEND		(1 << 6)
++#define MCI_CMDSENT		(1 << 7)
++#define MCI_DATAEND		(1 << 8)
++#define MCI_DATABLOCKEND	(1 << 10)
++#define MCI_CMDACTIVE		(1 << 11)
++#define MCI_TXACTIVE		(1 << 12)
++#define MCI_RXACTIVE		(1 << 13)
++#define MCI_TXFIFOHALFEMPTY	(1 << 14)
++#define MCI_RXFIFOHALFFULL	(1 << 15)
++#define MCI_TXFIFOFULL		(1 << 16)
++#define MCI_RXFIFOFULL		(1 << 17)
++#define MCI_TXFIFOEMPTY		(1 << 18)
++#define MCI_RXFIFOEMPTY		(1 << 19)
++#define MCI_TXDATAAVLBL		(1 << 20)
++#define MCI_RXDATAAVLBL		(1 << 21)
++#define MCI_SDIOINTR		(1 << 22)
++#define MCI_PROGDONE		(1 << 23)
++#define MCI_ATACMDCOMPL		(1 << 24)
++#define MCI_SDIOINTOPER		(1 << 25)
++#define MCI_CCSTIMEOUT		(1 << 26)
++
++#define MMCICLEAR		0x038
++#define MCI_CMDCRCFAILCLR	(1 << 0)
++#define MCI_DATACRCFAILCLR	(1 << 1)
++#define MCI_CMDTIMEOUTCLR	(1 << 2)
++#define MCI_DATATIMEOUTCLR	(1 << 3)
++#define MCI_TXUNDERRUNCLR	(1 << 4)
++#define MCI_RXOVERRUNCLR	(1 << 5)
++#define MCI_CMDRESPENDCLR	(1 << 6)
++#define MCI_CMDSENTCLR		(1 << 7)
++#define MCI_DATAENDCLR		(1 << 8)
++#define MCI_DATABLOCKENDCLR	(1 << 10)
++
++#define MMCIMASK0		0x03c
++#define MCI_CMDCRCFAILMASK	(1 << 0)
++#define MCI_DATACRCFAILMASK	(1 << 1)
++#define MCI_CMDTIMEOUTMASK	(1 << 2)
++#define MCI_DATATIMEOUTMASK	(1 << 3)
++#define MCI_TXUNDERRUNMASK	(1 << 4)
++#define MCI_RXOVERRUNMASK	(1 << 5)
++#define MCI_CMDRESPENDMASK	(1 << 6)
++#define MCI_CMDSENTMASK		(1 << 7)
++#define MCI_DATAENDMASK		(1 << 8)
++#define MCI_DATABLOCKENDMASK	(1 << 10)
++#define MCI_CMDACTIVEMASK	(1 << 11)
++#define MCI_TXACTIVEMASK	(1 << 12)
++#define MCI_RXACTIVEMASK	(1 << 13)
++#define MCI_TXFIFOHALFEMPTYMASK	(1 << 14)
++#define MCI_RXFIFOHALFFULLMASK	(1 << 15)
++#define MCI_TXFIFOFULLMASK	(1 << 16)
++#define MCI_RXFIFOFULLMASK	(1 << 17)
++#define MCI_TXFIFOEMPTYMASK	(1 << 18)
++#define MCI_RXFIFOEMPTYMASK	(1 << 19)
++#define MCI_TXDATAAVLBLMASK	(1 << 20)
++#define MCI_RXDATAAVLBLMASK	(1 << 21)
++#define MCI_SDIOINTMASK		(1 << 22)
++#define MCI_PROGDONEMASK	(1 << 23)
++#define MCI_ATACMDCOMPLMASK	(1 << 24)
++#define MCI_SDIOINTOPERMASK	(1 << 25)
++#define MCI_CCSTIMEOUTMASK	(1 << 26)
++
++#define MMCIMASK1		0x040
++#define MMCIFIFOCNT		0x044
++#define MCICCSTIMER		0x058
++
++#define MMCIFIFO		0x080 /* to 0x0bc */
++
++#define MCI_IRQENABLE	\
++	(MCI_CMDCRCFAILMASK|MCI_DATACRCFAILMASK|MCI_CMDTIMEOUTMASK|	\
++	MCI_DATATIMEOUTMASK|MCI_TXUNDERRUNMASK|MCI_RXOVERRUNMASK|	\
++	MCI_CMDRESPENDMASK|MCI_CMDSENTMASK|MCI_DATAENDMASK)
++
++/*
++ * The size of the FIFO in bytes.
++ */
++#define MCI_FIFOSIZE	(16*4)
++
++#define MCI_FIFOHALFSIZE (MCI_FIFOSIZE / 2)
++
++#define NR_SG		32
++
++struct clk;
++
++struct msmsdcc_nc_dmadata {
++	dmov_box	cmd[NR_SG];
++	uint32_t	cmdptr;
++};
++
++struct msmsdcc_dma_data {
++	struct msmsdcc_nc_dmadata	*nc;
++	dma_addr_t			nc_busaddr;
++	dma_addr_t			cmd_busaddr;
++	dma_addr_t			cmdptr_busaddr;
++
++	struct msm_dmov_cmd		hdr;
++	enum dma_data_direction		dir;
++
++	struct scatterlist		*sg;
++	int				num_ents;
++
++	int				channel;
++	struct msmsdcc_host		*host;
++	int				busy; /* Set if DM is busy */
++};
++
++struct msmsdcc_pio_data {
++	struct scatterlist	*sg;
++	unsigned int		sg_len;
++	unsigned int		sg_off;
++};
++
++struct msmsdcc_curr_req {
++	struct mmc_request	*mrq;
++	struct mmc_command	*cmd;
++	struct mmc_data		*data;
++	unsigned int		xfer_size;	/* Total data size */
++	unsigned int		xfer_remain;	/* Bytes remaining to send */
++	unsigned int		data_xfered;	/* Bytes acked by BLKEND irq */
++	int			got_dataend;
++	int			got_datablkend;
++	int			user_pages;
++};
++
++struct msmsdcc_stats {
++	unsigned int reqs;
++	unsigned int cmds;
++	unsigned int cmdpoll_hits;
++	unsigned int cmdpoll_misses;
++};
++
++struct msmsdcc_host {
++	struct resource		*cmd_irqres;
++	struct resource		*pio_irqres;
++	struct resource		*memres;
++	struct resource		*dmares;
++	void __iomem		*base;
++	int			pdev_id;
++	unsigned int		stat_irq;
++
++	struct msmsdcc_curr_req	curr;
++
++	struct mmc_host		*mmc;
++	struct clk		*clk;		/* main MMC bus clock */
++	struct clk		*pclk;		/* SDCC peripheral bus clock */
++	unsigned int		clks_on;	/* set if clocks are enabled */
++	struct timer_list	command_timer;
++
++	unsigned int		eject;		/* eject state */
++
++	spinlock_t		lock;
++
++	unsigned int		clk_rate;	/* Current clock rate */
++	unsigned int		pclk_rate;
++
++	u32			pwr;
++	u32			saved_irq0mask;	/* MMCIMASK0 reg value */
++	struct mmc_platform_data *plat;
++
++	struct timer_list	timer;
++	unsigned int		oldstat;
++
++	struct msmsdcc_dma_data	dma;
++	struct msmsdcc_pio_data	pio;
++	int			cmdpoll;
++	struct msmsdcc_stats	stats;
++};
++
++#endif
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from san@android.com are
 
-origin.patch
-linux-next.patch
 mmc-msm_sdccc-driver-for-htc-dream.patch
 msm_sdccc-convert-printkkern_level-to-pr_level.patch
 msm_sdccc-stylistic-cleaning.patch
