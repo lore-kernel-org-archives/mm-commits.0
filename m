@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + stop_machine-stalls-for-a-considerable-period-on-large-cpu-count-machines-fix.patch added to -mm tree
-Date: Wed, 01 Jul 2009 22:53:47 -0700
-Message-ID: <200907020553.n625rlvi013881@imap1.linux-foundation.org>
+Subject: + flat-use-is_err_value-helper-macro.patch added to -mm tree
+Date: Wed, 01 Jul 2009 23:36:23 -0700
+Message-ID: <200907020636.n626aNtL028844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896AbZGBFzD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 01:55:03 -0400
+	by vger.kernel.org with ESMTP id S1753848AbZGBGgw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 02:36:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, holt@sgi.com, rusty@rustcorp.com.au, stable@kernel.org, travis@sgi.com
+Cc: vapier@gentoo.org, david_mccullough@securecomputing.com, dhowells@redhat.com, gerg@uclinux.org, lethal@linux-sh.org
 
 
 The patch titled
-     stop_machine-stalls-for-a-considerable-period-on-large-cpu-count-machines-fix
+     flat: use IS_ERR_VALUE() helper macro
 has been added to the -mm tree.  Its filename is
-     stop_machine-stalls-for-a-considerable-period-on-large-cpu-count-machines-fix.patch
+     flat-use-is_err_value-helper-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stop_machine-stalls-for-a-considerable-period-on-large-cpu-count-machines-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: flat: use IS_ERR_VALUE() helper macro
+From: Mike Frysinger <vapier@gentoo.org>
 
-repair comment spelling and layout.
+There is a common macro now for testing mixed pointer/errno values, so use
+that rather than handling the casts ourself.
 
-Cc: <stable@kernel.org>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: David McCullough <david_mccullough@securecomputing.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/stop_machine.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/binfmt_flat.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN kernel/stop_machine.c~stop_machine-stalls-for-a-considerable-period-on-large-cpu-count-machines-fix kernel/stop_machine.c
---- a/kernel/stop_machine.c~stop_machine-stalls-for-a-considerable-period-on-large-cpu-count-machines-fix
-+++ a/kernel/stop_machine.c
-@@ -14,11 +14,11 @@
- #include <asm/uaccess.h>
+diff -puN fs/binfmt_flat.c~flat-use-is_err_value-helper-macro fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~flat-use-is_err_value-helper-macro
++++ a/fs/binfmt_flat.c
+@@ -278,8 +278,6 @@ static int decompress_exec(
+ 		ret = bprm->file->f_op->read(bprm->file, buf, LBUFSIZE, &fpos);
+ 		if (ret <= 0)
+ 			break;
+-		if (ret >= (unsigned long) -4096)
+-			break;
+ 		len -= ret;
  
- /*
-- * It is important to keep 'thread_ack' and 'state' in a seperate
-- * cachelines to prevent cacheline sharing between threads updating
-- * thread_ack and other threads spinning on state.
-+ * It is important to keep 'thread_ack' and 'state' in separate cachelines to
-+ * prevent cacheline sharing between threads updating thread_ack and other
-+ * threads spinning on state.
-  */
--static atomic_t thread_ack	____cacheline_aligned;
-+static atomic_t thread_ack ____cacheline_aligned;
+ 		strm.next_in = buf;
+@@ -335,7 +333,7 @@ calc_reloc(unsigned long r, struct lib_i
+ 					"(%d != %d)", (unsigned) r, curid, id);
+ 			goto failed;
+ 		} else if ( ! p->lib_list[id].loaded &&
+-				load_flat_shared_library(id, p) > (unsigned long) -4096) {
++				IS_ERR_VALUE(load_flat_shared_library(id, p))) {
+ 			printk("BINFMT_FLAT: failed to load library %d", id);
+ 			goto failed;
+ 		}
+@@ -545,7 +543,7 @@ static int load_flat_file(struct linux_b
+ 		textpos = do_mmap(bprm->file, 0, text_len, PROT_READ|PROT_EXEC,
+ 				  MAP_PRIVATE|MAP_EXECUTABLE, 0);
+ 		up_write(&current->mm->mmap_sem);
+-		if (!textpos  || textpos >= (unsigned long) -4096) {
++		if (!textpos || IS_ERR_VALUE(textpos)) {
+ 			if (!textpos)
+ 				textpos = (unsigned long) -ENOMEM;
+ 			printk("Unable to mmap process text, errno %d\n", (int)-textpos);
+@@ -560,7 +558,7 @@ static int load_flat_file(struct linux_b
+ 			PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE, 0);
+ 		up_write(&current->mm->mmap_sem);
  
- /* This controls the threads on each CPU. */
- enum stopmachine_state {
+-		if (realdatastart == 0 || realdatastart >= (unsigned long)-4096) {
++		if (realdatastart == 0 || IS_ERR_VALUE(realdatastart)) {
+ 			if (!realdatastart)
+ 				realdatastart = (unsigned long) -ENOMEM;
+ 			printk("Unable to allocate RAM for process data, errno %d\n",
+@@ -587,7 +585,7 @@ static int load_flat_file(struct linux_b
+ 			result = bprm->file->f_op->read(bprm->file, (char *) datapos,
+ 					data_len + (relocs * sizeof(unsigned long)), &fpos);
+ 		}
+-		if (result >= (unsigned long)-4096) {
++		if (IS_ERR_VALUE(result)) {
+ 			printk("Unable to read data+bss, errno %d\n", (int)-result);
+ 			do_munmap(current->mm, textpos, text_len);
+ 			do_munmap(current->mm, realdatastart, data_len + extra);
+@@ -607,7 +605,7 @@ static int load_flat_file(struct linux_b
+ 			PROT_READ | PROT_EXEC | PROT_WRITE, MAP_PRIVATE, 0);
+ 		up_write(&current->mm->mmap_sem);
+ 
+-		if (!textpos  || textpos >= (unsigned long) -4096) {
++		if (!textpos || IS_ERR_VALUE(textpos)) {
+ 			if (!textpos)
+ 				textpos = (unsigned long) -ENOMEM;
+ 			printk("Unable to allocate RAM for process text/data, errno %d\n",
+@@ -641,7 +639,7 @@ static int load_flat_file(struct linux_b
+ 			fpos = 0;
+ 			result = bprm->file->f_op->read(bprm->file,
+ 					(char *) textpos, text_len, &fpos);
+-			if (result < (unsigned long) -4096)
++			if (!IS_ERR_VALUE(result))
+ 				result = decompress_exec(bprm, text_len, (char *) datapos,
+ 						 data_len + (relocs * sizeof(unsigned long)), 0);
+ 		}
+@@ -651,13 +649,13 @@ static int load_flat_file(struct linux_b
+ 			fpos = 0;
+ 			result = bprm->file->f_op->read(bprm->file,
+ 					(char *) textpos, text_len, &fpos);
+-			if (result < (unsigned long) -4096) {
++			if (!IS_ERR_VALUE(result)) {
+ 				fpos = ntohl(hdr->data_start);
+ 				result = bprm->file->f_op->read(bprm->file, (char *) datapos,
+ 					data_len + (relocs * sizeof(unsigned long)), &fpos);
+ 			}
+ 		}
+-		if (result >= (unsigned long)-4096) {
++		if (IS_ERR_VALUE(result)) {
+ 			printk("Unable to read code+data+bss, errno %d\n",(int)-result);
+ 			do_munmap(current->mm, textpos, text_len + data_len + extra +
+ 				MAX_SHARED_LIBS * sizeof(unsigned long));
+@@ -835,7 +833,7 @@ static int load_flat_shared_library(int 
+ 
+ 	res = prepare_binprm(&bprm);
+ 
+-	if (res <= (unsigned long)-4096)
++	if (!IS_ERR_VALUE(res))
+ 		res = load_flat_file(&bprm, libs, id, NULL);
+ 
+ 	abort_creds(bprm.cred);
+@@ -880,7 +878,7 @@ static int load_flat_binary(struct linux
+ 	stack_len += FLAT_DATA_ALIGN - 1;  /* reserve for upcoming alignment */
+ 	
+ 	res = load_flat_file(bprm, &libinfo, 0, &stack_len);
+-	if (res > (unsigned long)-4096)
++	if (IS_ERR_VALUE(res))
+ 		return res;
+ 	
+ 	/* Update data segment pointers for all libraries */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+pcmcia-yenta-add-missing-__devexit-marking.patch
 drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-stop_machine-stalls-for-a-considerable-period-on-large-cpu-count-machines-fix.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+flat-fix-uninitialized-ptr-with-shared-libs.patch
+serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch
+kernel-printkc-handle-more-than-one-con_boot.patch
+asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
+kallsyms-use-new-arch_is_kernel_text.patch
+lockdep-use-new-arch_is_kernel_data.patch
+blackfin-override-text-data-checking-functions.patch
+rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
+rtc-bfin-do-not-share-rtc-irq.patch
+flat-use-is_err_value-helper-macro.patch
 
