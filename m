@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-virt_to_phys-warnings-fix.patch added to -mm tree
-Date: Thu, 02 Jul 2009 14:50:18 -0700
-Message-ID: <200907022150.n62LoIER015979@imap1.linux-foundation.org>
+Subject: + drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer.patch added to -mm tree
+Date: Thu, 02 Jul 2009 15:01:09 -0700
+Message-ID: <200907022201.n62M19kx028563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43476 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754328AbZGBVum (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 17:50:42 -0400
+	by vger.kernel.org with ESMTP id S1753120AbZGBWB3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 18:01:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, cernekee@gmail.com, mingo@elte.hu, ralf@linux-mips.org
+Cc: daeinki@gmail.com, inki.dae@samsung.com, kmpark@infradead.org, krzysztof.h1@poczta.fm, m.szyprowski@samsung.com
 
 
 The patch titled
-     fix-virt_to_phys-warnings-fix
+     drivers/video/s3c-fb.c: fix clock setting for Samsung SoC Framebuffer
 has been added to the -mm tree.  Its filename is
-     fix-virt_to_phys-warnings-fix.patch
+     drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-virt_to_phys-warnings-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/video/s3c-fb.c: fix clock setting for Samsung SoC Framebuffer
+From: InKi Dae <daeinki@gmail.com>
 
-fix kernel/perf_counter.c too.
+Correct the CLKVAL_F field value of VIDEO MAIN CONTROLLER 0 REGITSTER.
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Kevin Cernekee <cernekee@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Frame Rate is 1 / [ { (VSPW+1) + (VBPD+1) + (LIINEVAL + 1) + (VFPD+1)
+} x {(HSPW+1) + (HBPD +1)
++ (HFPD+1) + (HOZVAL + 1) } x { ( CLKVAL+1 ) / ( Frequency of Clock
+source ) } ] and VCLK = Video Clock Source / (CLKVAL +1).
+
+therefore CLKVAL_F should be "CLKVAL_F = Frequency of Clock source / pixel
+clock * refresh".
+
+for this, I added refresh value in platform data like below.
+
+static struct s3c_fb_pd_win xxx_fb_win0 = {
+	/* this is to ensure we use win0 */
+	.win_mode = {
+		.refresh	= 60,
+		.pixclock	= (66+4+2+480)*(15+5+3+800),
+		.left_margin	= 66,
+		.right_margin	= 2,
+		.upper_margin	= 15,
+		.lower_margin	= 3,
+		.hsync_len	= 4,
+		.vsync_len	= 5,
+		.xres		= 480,
+		.yres		= 800,
+	},
+	.max_bpp	= 32,
+	.default_bpp	= 24,
+};
+
+static struct s3c_fb_platdata xxx_lcd_pdata __initdata = {
+	.win[0]		= &xxx_fb_win0,
+	.vidcon0	= VIDCON0_VIDOUT_RGB | VIDCON0_PNRMODE_RGB,
+	.vidcon1	= VIDCON1_INV_HSYNC | VIDCON1_INV_VSYNC
+			| VIDCON1_INV_VCLK | VIDCON1_INV_VDEN,
+	.setup_gpio	= s5pc1xx_fb_gpio_setup_24bpp,
+};
+
+xxx_machine_init()
+{
+                   .
+                   .
+                   .
+               s3c_fb_set_platdata(&xxx_lcd_pdata);
+}
+
+platform data defined in machine code should be setting using
+s3c_fb_set_platdata().
+
+Signed-off-by: InKi Dae <inki.dae@samsung.com>
+Cc: Kyungmin Park <kmpark@infradead.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/perf_counter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/s3c-fb.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN kernel/perf_counter.c~fix-virt_to_phys-warnings-fix kernel/perf_counter.c
---- a/kernel/perf_counter.c~fix-virt_to_phys-warnings-fix
-+++ a/kernel/perf_counter.c
-@@ -2020,7 +2020,7 @@ fail:
+diff -puN drivers/video/s3c-fb.c~drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer
++++ a/drivers/video/s3c-fb.c
+@@ -211,23 +211,21 @@ static int s3c_fb_check_var(struct fb_va
  
- static void perf_mmap_free_page(unsigned long addr)
+ /**
+  * s3c_fb_calc_pixclk() - calculate the divider to create the pixel clock.
++ * @id: window id.
+  * @sfb: The hardware state.
+  * @pixclock: The pixel clock wanted, in picoseconds.
+  *
+  * Given the specified pixel clock, work out the necessary divider to get
+  * close to the output frequency.
+  */
+-static int s3c_fb_calc_pixclk(struct s3c_fb *sfb, unsigned int pixclk)
++static int s3c_fb_calc_pixclk(unsigned char id, struct s3c_fb *sfb, unsigned int pixclk)
  {
--	struct page *page = virt_to_page(addr);
-+	struct page *page = virt_to_page((void *)addr);
++	struct s3c_fb_pd_win *win = sfb->pdata->win[id];
+ 	unsigned long clk = clk_get_rate(sfb->bus_clk);
+-	unsigned long long tmp;
+ 	unsigned int result;
  
- 	page->mapping = NULL;
- 	__free_page(page);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-misc-work_on_cpu-acpi-dont-do-local_irq_enable-in-hard-irq.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
-fix-virt_to_phys-warnings-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-
+-	tmp = (unsigned long long)clk;
+-	tmp *= pixclk;
+-
+-	do_div(tmp, 1000000000UL);
+-	result = (unsigned int)tmp / 1000;
++	pixclk *= win->win_mode.refresh;
++	result = clk / pixclk;
+ 
+ 	dev_dbg(sfb->dev, "pixclk=%u, clk=%lu, div=%d (%lu)\n",
+ 		pixclk, clk, result, clk / result);
+@@ -267,6 +265,7 @@ static int s3c_fb_set_par(struct fb_info
+ 	struct s3c_fb *sfb = win->parent;
+ 	void __iomem *regs = sfb->regs;
+ 	int win_no = win->index;
++	u32 osdc_data = 0;
+ 	u32 data;
+ 	u32 pagewidth;
+ 	int clkdiv;
+@@ -302,7 +301,7 @@ static int s3c_fb_set_par(struct fb_info
+ 	/* use window 0 as the basis for the lcd output timings */
+ 
+ 	if (win_no == 0) {
+-		clkdiv = s3c_fb_calc_pixclk(sfb, var->pixclock);
++		clkdiv = s3c_fb_calc_pixclk(win_no, sfb, var->pixclock);
+ 
+ 		data = sfb->pdata->vidcon0;
+ 		data &= ~(VIDCON0_CLKVAL_F_MASK | VIDCON0_CLKDIR);
+@@ -359,8 +358,6 @@ static int s3c_fb_set_par(struct fb_info
+ 
+ 	data = var->xres * var->yres;
+ 
+-	u32 osdc_data = 0;
