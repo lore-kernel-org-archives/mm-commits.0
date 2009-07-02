@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nfsd-dont-hold-unrefcounted-creds-over-call-to-nfsd_setuser.patch added to -mm tree
-Date: Thu, 02 Jul 2009 14:35:51 -0700
-Message-ID: <200907022135.n62LZph5031895@imap1.linux-foundation.org>
+Subject: + mm-mark-page-accessed-before-we-write_end.patch added to -mm tree
+Date: Thu, 02 Jul 2009 14:45:31 -0700
+Message-ID: <200907022145.n62LjV2c010605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753860AbZGBVg7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 17:36:59 -0400
+	by vger.kernel.org with ESMTP id S1754190AbZGBVpu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 17:45:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, bfields@fieldses.org, jmorris@namei.org, neilb@suse.de, rasmus@msconsult.dk, steved@redhat.com
+Cc: josef@redhat.com, jbacik@redhat.com, npiggin@suse.de
 
 
 The patch titled
-     nfsd: don't hold unrefcounted creds over call to nfsd_setuser()
+     mm: mark page accessed before we write_end
 has been added to the -mm tree.  Its filename is
-     nfsd-dont-hold-unrefcounted-creds-over-call-to-nfsd_setuser.patch
+     mm-mark-page-accessed-before-we-write_end.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfsd: don't hold unrefcounted creds over call to nfsd_setuser()
-From: David Howells <dhowells@redhat.com>
+Subject: mm: mark page accessed before we write_end
+From: Josef Bacik <josef@redhat.com>
 
-nfsd_open() gets an unrefcounted pointer to the current process's
-effective credentials at the top of the function, then calls
-nfsd_setuser() via fh_verify() - which may replace and destroy the current
-process's effective credentials - and then passes the unrefcounted pointer
-to dentry_open() - but the credentials may have been destroyed by this
-point.
+In testing a backport of the write_begin/write_end AOPs, a 10% re-read
+regression was noticed when running iozone.  This regression was
+introduced because the old AOPs would always do a mark_page_accessed(page)
+after the commit_write, but when the new AOPs where introduced, the only
+place this was kept was in pagecache_write_end().
 
-Instead, the value from current_cred() should be passed directly to
-dentry_open() as one of its arguments, rather than being cached in a
-variable.
+This patch does the same thing in the generic case as what is done in
+pagecache_write_end(), which is just to mark the page accessed before we
+do write_end().
 
-Possibly fh_verify() should return the creds to use.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Tested-and-Verified-By: Steve Dickson <steved@redhat.com>
-Cc: <rasmus@msconsult.dk>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/filemap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nfsd/vfs.c~nfsd-dont-hold-unrefcounted-creds-over-call-to-nfsd_setuser fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~nfsd-dont-hold-unrefcounted-creds-over-call-to-nfsd_setuser
-+++ a/fs/nfsd/vfs.c
-@@ -678,7 +678,6 @@ __be32
- nfsd_open(struct svc_rqst *rqstp, struct svc_fh *fhp, int type,
- 			int access, struct file **filp)
- {
--	const struct cred *cred = current_cred();
- 	struct dentry	*dentry;
- 	struct inode	*inode;
- 	int		flags = O_RDONLY|O_LARGEFILE;
-@@ -733,7 +732,7 @@ nfsd_open(struct svc_rqst *rqstp, struct
- 		vfs_dq_init(inode);
- 	}
- 	*filp = dentry_open(dget(dentry), mntget(fhp->fh_export->ex_path.mnt),
--			    flags, cred);
-+			    flags, current_cred());
- 	if (IS_ERR(*filp))
- 		host_err = PTR_ERR(*filp);
- 	else
+diff -puN mm/filemap.c~mm-mark-page-accessed-before-we-write_end mm/filemap.c
+--- a/mm/filemap.c~mm-mark-page-accessed-before-we-write_end
++++ a/mm/filemap.c
+@@ -2272,6 +2272,7 @@ again:
+ 		pagefault_enable();
+ 		flush_dcache_page(page);
+ 
++		mark_page_accessed(page);
+ 		status = a_ops->write_end(file, mapping, pos, bytes, copied,
+ 						page, fsdata);
+ 		if (unlikely(status < 0))
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from josef@redhat.com are
 
-origin.patch
-linux-next.patch
-elf-fix-multithreaded-program-core-dumping-on-arm.patch
-flat-fix-uninitialized-ptr-with-shared-libs.patch
-cred_guard_mutex-do-not-return-eintr-to-user-space.patch
-nfsd-dont-hold-unrefcounted-creds-over-call-to-nfsd_setuser.patch
-frv-duplicate-output_buffer-of-e03.patch
-rework-fix-is_single_threaded.patch
-elf-clean-up-fill_note_info.patch
-elf-clean-up-fill_note_info-fix.patch
-flat-use-is_err_value-helper-macro.patch
-mutex-subsystem-synchro-test-module.patch
+mm-mark-page-accessed-before-we-write_end.patch
 
