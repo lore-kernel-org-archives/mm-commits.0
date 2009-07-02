@@ -1,89 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fb-move-mutex_init-to-framebuffer_alloc.patch removed from -mm tree
-Date: Thu, 02 Jul 2009 12:51:27 -0700
-Message-ID: <200907021951.n62JpRcC008328@imap1.linux-foundation.org>
+Subject: + do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch added to -mm tree
+Date: Thu, 02 Jul 2009 14:26:47 -0700
+Message-ID: <200907022126.n62LQlnp021336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752842AbZGBTw7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 15:52:59 -0400
+	by vger.kernel.org with ESMTP id S1754401AbZGBV1I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 17:27:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@caiaq.de, a.p.zijlstra@chello.nl, krzysztof.h1@wp.pl, rjw@sisk.pl, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@redhat.com, mingo@elte.hu, rnalumasu@gmail.com, roland@redhat.com, vmayatsk@redhat.com
 
 
 The patch titled
-     fb: move mutex_init to framebuffer_alloc()
-has been removed from the -mm tree.  Its filename was
-     fb-move-mutex_init-to-framebuffer_alloc.patch
+     do_wait() wakeup optimization: shift security_task_wait() from eligible_child() to wait_consider_task()
+has been added to the -mm tree.  Its filename is
+     do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb: move mutex_init to framebuffer_alloc()
-From: Daniel Mack <daniel@caiaq.de>
+Subject: do_wait() wakeup optimization: shift security_task_wait() from eligible_child() to wait_consider_task()
+From: Oleg Nesterov <oleg@redhat.com>
 
-In 537a1bf05 ("fbdev: add mutex for fb_mmap locking"), a per-fbinfo mutex
-was added and framebuffer drivers were adopted accordingly.  This new lock
-is currently initialized in register_framebuffer().
+Preparation, no functional changes.
 
-The mx3fb driver takes this lock in mx3fb_map_video_memory() _before_
-register_framebuffer() is called and hence crashes the system very early.
+eligible_child() has a single caller, wait_consider_task(). We can move
+security_task_wait() out from eligible_child(), this allows us to use it
+for filtered wake_up().
 
-Moving this mutex_init() to framebuffer_alloc() solves this and also seems
-a lot more straight forward.
-
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: <stable@kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ratan Nalumasu <rnalumasu@gmail.com>
+Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c   |    3 ---
- drivers/video/fbsysfs.c |    3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/exit.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fb-move-mutex_init-to-framebuffer_alloc drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-move-mutex_init-to-framebuffer_alloc
-+++ a/drivers/video/fbmem.c
-@@ -1513,9 +1513,6 @@ register_framebuffer(struct fb_info *fb_
- 		if (!registered_fb[i])
- 			break;
- 	fb_info->node = i;
--	mutex_init(&fb_info->lock);
--	mutex_init(&fb_info->mm_lock);
+diff -puN kernel/exit.c~do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task kernel/exit.c
+--- a/kernel/exit.c~do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task
++++ a/kernel/exit.c
+@@ -1108,8 +1108,6 @@ static struct pid *task_pid_type(struct 
+ 
+ static int eligible_child(struct wait_opts *wo, struct task_struct *p)
+ {
+-	int err;
 -
- 	fb_info->dev = device_create(fb_class, fb_info->device,
- 				     MKDEV(FB_MAJOR, i), NULL, "fb%d", i);
- 	if (IS_ERR(fb_info->dev)) {
-diff -puN drivers/video/fbsysfs.c~fb-move-mutex_init-to-framebuffer_alloc drivers/video/fbsysfs.c
---- a/drivers/video/fbsysfs.c~fb-move-mutex_init-to-framebuffer_alloc
-+++ a/drivers/video/fbsysfs.c
-@@ -58,6 +58,9 @@ struct fb_info *framebuffer_alloc(size_t
+ 	if (wo->wo_type < PIDTYPE_MAX) {
+ 		if (task_pid_type(p, wo->wo_type) != wo->wo_pid)
+ 			return 0;
+@@ -1124,10 +1122,6 @@ static int eligible_child(struct wait_op
+ 	    && !(wo->wo_flags & __WALL))
+ 		return 0;
  
- 	info->device = dev;
+-	err = security_task_wait(p);
+-	if (err)
+-		return err;
+-
+ 	return 1;
+ }
  
-+	mutex_init(&info->lock);
-+	mutex_init(&info->mm_lock);
-+
- #ifdef CONFIG_FB_BACKLIGHT
- 	mutex_init(&info->bl_curve_mutex);
- #endif
+@@ -1488,6 +1482,7 @@ static int wait_consider_task(struct wai
+ 	if (!ret)
+ 		return ret;
+ 
++	ret = security_task_wait(p);
+ 	if (unlikely(ret < 0)) {
+ 		/*
+ 		 * If we have not yet seen any eligible child,
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-fb-move-mutex_init-to-framebuffer_alloc.patch
-lis3-fix-typo.patch
-lis3-add-free-fall-wakeup-function-via-platform_data.patch
-lis3-add-power-management-functions.patch
-lis3-add-power-management-functions-fix.patch
-lis3_spi-code-cleanups.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+linux-next.patch
+cred_guard_mutex-do-not-return-eintr-to-user-space.patch
+rework-fix-is_single_threaded.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
+do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
+do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
 
