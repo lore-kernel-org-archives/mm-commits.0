@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-errnoh-in-linux-sysrqh.patch added to -mm tree
-Date: Wed, 01 Jul 2009 23:39:24 -0700
-Message-ID: <200907020639.n626dOls032150@imap1.linux-foundation.org>
+Subject: + sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch added to -mm tree
+Date: Thu, 02 Jul 2009 00:31:17 -0700
+Message-ID: <200907020731.n627VHUr025144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750849AbZGBGjX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 02:39:23 -0400
+	by vger.kernel.org with ESMTP id S1751897AbZGBHbc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 03:31:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tobias.doerffel@gmail.com
+Cc: xiaosuo@gmail.com, chris@zankel.net, mingo@elte.hu
 
 
 The patch titled
-     linux/sysrq.h needs linux/errno.h
+     sys_pipe(): fix fd leak if pipe() is called with an invalid address
 has been added to the -mm tree.  Its filename is
-     include-linux-errnoh-in-linux-sysrqh.patch
+     sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux/sysrq.h needs linux/errno.h
-From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Subject: sys_pipe(): fix fd leak if pipe() is called with an invalid address
+From: Changli Gao <xiaosuo@gmail.com>
 
-In include/linux/sysrq.h the constant EINVAL is being used but is undefined
-if include/linux/errno.h is not included before.
+fd leak if pipe() is called with an invalid address.
 
-Fix this by adding #include <linux/errno.h> at the beginning.
+Though -EFAULT is returned, the file descriptors opened by pipe() call are
+left open.
 
-Signed-off-by: Tobias Doerffel <tobias.doerffel@gmail.com>
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysrq.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/ia32/sys_ia32.c     |    5 ++++-
+ arch/xtensa/kernel/syscall.c |    5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/sysrq.h~include-linux-errnoh-in-linux-sysrqh include/linux/sysrq.h
---- a/include/linux/sysrq.h~include-linux-errnoh-in-linux-sysrqh
-+++ a/include/linux/sysrq.h
-@@ -14,6 +14,8 @@
- #ifndef _LINUX_SYSRQ_H
- #define _LINUX_SYSRQ_H
+diff -puN arch/x86/ia32/sys_ia32.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address arch/x86/ia32/sys_ia32.c
+--- a/arch/x86/ia32/sys_ia32.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address
++++ a/arch/x86/ia32/sys_ia32.c
+@@ -197,8 +197,11 @@ asmlinkage long sys32_pipe(int __user *f
+ 	retval = do_pipe_flags(fds, 0);
+ 	if (retval)
+ 		goto out;
+-	if (copy_to_user(fd, fds, sizeof(fds)))
++	if (copy_to_user(fd, fds, sizeof(fds))) {
++		sys_close(fd[0]);
++		sys_close(fd[1]);
+ 		retval = -EFAULT;
++	}
+ out:
+ 	return retval;
+ }
+diff -puN arch/xtensa/kernel/syscall.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address arch/xtensa/kernel/syscall.c
+--- a/arch/xtensa/kernel/syscall.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address
++++ a/arch/xtensa/kernel/syscall.c
+@@ -51,8 +51,11 @@ asmlinkage long xtensa_pipe(int __user *
  
-+#include <linux/errno.h>
-+
- struct pt_regs;
- struct tty_struct;
- 
+ 	error = do_pipe_flags(fd, 0);
+ 	if (!error) {
+-		if (copy_to_user(userfds, fd, 2 * sizeof(int)))
++		if (copy_to_user(userfds, fd, 2 * sizeof(int))) {
++			sys_close(fd[0]);
++			sys_close(fd[1]);
+ 			error = -EFAULT;
++		}
+ 	}
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from tobias.doerffel@gmail.com are
+Patches currently in -mm which might be from xiaosuo@gmail.com are
 
-include-linux-errnoh-in-linux-sysrqh.patch
+sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch
 
