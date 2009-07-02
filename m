@@ -1,130 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] md-fix-lock-imbalance.patch removed from -mm tree
-Date: Thu, 02 Jul 2009 11:32:39 -0700
-Message-ID: <200907021832.n62IWdPS017194@imap1.linux-foundation.org>
+Subject: [merged] kernel-doc-move-ignoring-kmemcheck.patch removed from -mm tree
+Date: Thu, 02 Jul 2009 11:33:19 -0700
+Message-ID: <200907021833.n62IXJ0b017935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750938AbZGBSdP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 14:33:15 -0400
+	by vger.kernel.org with ESMTP id S1751707AbZGBSde (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 14:33:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, maan@systemlinux.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: fix lock imbalance
+     kernel-doc: move ignoring kmemcheck
 has been removed from the -mm tree.  Its filename was
-     md-fix-lock-imbalance.patch
+     kernel-doc-move-ignoring-kmemcheck.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: fix lock imbalance
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: kernel-doc: move ignoring kmemcheck
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add unlock and put to one of fail paths in md_alloc.
+Somehow I managed to generate a diff that put these 2 lines into the wrong
+function: should have been in dump_struct() instead of in dump_enum().
 
-Andre said:
-
-  This patch fixes a leak and a locking bug which hits if a named array
-  is being added and its name duplicates the name of an already existing
-  array.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Andre Noll <maan@systemlinux.org>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ scripts/kernel-doc |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/md.c~md-fix-lock-imbalance drivers/md/md.c
---- a/drivers/md/md.c~md-fix-lock-imbalance
-+++ a/drivers/md/md.c
-@@ -3829,7 +3829,7 @@ static int md_alloc(dev_t dev, char *nam
- 	int partitioned;
- 	int shift;
- 	int unit;
--	int error;
-+	int error, ret;
+diff -puN scripts/kernel-doc~kernel-doc-move-ignoring-kmemcheck scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-move-ignoring-kmemcheck
++++ a/scripts/kernel-doc
+@@ -1426,6 +1426,8 @@ sub dump_struct($$) {
+ 	# strip comments:
+ 	$members =~ s/\/\*.*?\*\///gos;
+ 	$nested =~ s/\/\*.*?\*\///gos;
++	# strip kmemcheck_bitfield_{begin,end}.*;
++	$members =~ s/kmemcheck_bitfield_.*?;//gos;
  
- 	if (!mddev)
- 		return -ENODEV;
-@@ -3845,9 +3845,8 @@ static int md_alloc(dev_t dev, char *nam
+ 	create_parameterlist($members, ';', $file);
+ 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
+@@ -1468,8 +1470,6 @@ sub dump_enum($$) {
+ 	    }
  
- 	mutex_lock(&disks_mutex);
- 	if (mddev->gendisk) {
--		mutex_unlock(&disks_mutex);
--		mddev_put(mddev);
--		return -EEXIST;
-+		ret = -EEXIST;
-+		goto unlock;
  	}
+-	# strip kmemcheck_bitfield_{begin,end}.*;
+-	$members =~ s/kmemcheck_bitfield_.*?;//gos;
  
- 	if (name) {
-@@ -3860,16 +3859,16 @@ static int md_alloc(dev_t dev, char *nam
- 			if (mddev2->gendisk &&
- 			    strcmp(mddev2->gendisk->disk_name, name) == 0) {
- 				spin_unlock(&all_mddevs_lock);
--				return -EEXIST;
-+				ret = -EEXIST;
-+				goto unlock;
- 			}
- 		spin_unlock(&all_mddevs_lock);
- 	}
- 
- 	mddev->queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!mddev->queue) {
--		mutex_unlock(&disks_mutex);
--		mddev_put(mddev);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto unlock;
- 	}
- 	mddev->queue->queuedata = mddev;
- 
-@@ -3883,8 +3882,8 @@ static int md_alloc(dev_t dev, char *nam
- 		mutex_unlock(&disks_mutex);
- 		blk_cleanup_queue(mddev->queue);
- 		mddev->queue = NULL;
--		mddev_put(mddev);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto put;
- 	}
- 	disk->major = MAJOR(mddev->unit);
- 	disk->first_minor = unit << shift;
-@@ -3914,8 +3913,13 @@ static int md_alloc(dev_t dev, char *nam
- 		kobject_uevent(&mddev->kobj, KOBJ_ADD);
- 		mddev->sysfs_state = sysfs_get_dirent(mddev->kobj.sd, "array_state");
- 	}
-+	ret = 0;
-+put:
- 	mddev_put(mddev);
--	return 0;
-+	return ret;
-+unlock:
-+	mutex_unlock(&disks_mutex);
-+	goto put;
- }
- 
- static struct kobject *md_probe(dev_t dev, int *part, void *data)
+ 	output_declaration($declaration_name,
+ 			   'enum',
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-rtc-ds1374-fix-lock-imbalance.patch
 linux-next.patch
-isdn-hisax-fix-lock-imbalance.patch
-icom-converting-space-to-tabs.patch
-base-firmware_class-fix-lock-imbalance.patch
-md-fix-lock-imbalance.patch
-wireless-nl80211-fix-lock-imbalance.patch
-reiser4.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+kernel-hacking-move-strip_asm_syms-from-general.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
+lis3-add-power-management-functions-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
