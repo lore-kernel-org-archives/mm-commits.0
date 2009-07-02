@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-driver-for-the-winbond-wpcd376i-ir-functionality-update.patch added to -mm tree
-Date: Thu, 02 Jul 2009 16:09:28 -0700
-Message-ID: <200907022309.n62N9SVZ009606@imap1.linux-foundation.org>
+Subject: + cgroups-fix-pid-namespace-bug.patch added to -mm tree
+Date: Thu, 02 Jul 2009 16:20:51 -0700
+Message-ID: <200907022320.n62NKpKO022860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46162 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753241AbZGBXLH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 19:11:07 -0400
+	by vger.kernel.org with ESMTP id S1751158AbZGBXVP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 19:21:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david@hardeman.nu, bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, lenb@kernel.org
+Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, menage@google.com, serue@us.ibm.com
 
 
 The patch titled
-     add-a-driver-for-the-winbond-wpcd376i-ir-functionality-update
+     cgroups: fix pid namespace bug
 has been added to the -mm tree.  Its filename is
-     add-a-driver-for-the-winbond-wpcd376i-ir-functionality-update.patc=
-h
+     cgroups-fix-pid-namespace-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,376 +25,271 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-a-driver-for-the-winbond-wpcd376i-ir-functionality-update
-=46rom: David H=E4rdeman <david@hardeman.nu>
+Subject: cgroups: fix pid namespace bug
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Changes since the second post to the list (AKPM's remarks):
-o Various comments added
-o Removed some casts
-o use bitrev8
-o convert data->irdata to unsigned longs, use __set_bit and test_bit
+The bug was introduced by commit cc31edceee04a7b87f2be48f9489ebb72d264844
+("cgroups: convert tasks file to use a seq_file with shared pid array").
 
-Signed-off-by: David H=E4rdeman <david@hardeman.nu>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>
+We cache a pid array for all threads that are opening the same "tasks"
+file, but the pids in the array are always from the namespace of the
+last process that opened the file, so all other threads will read pids
+from that namespace instead of their own namespaces.
+
+To fix it, we maintain a list of pid arrays, which is keyed by pid_ns.
+The list will be of length 1 at most time.
+
+Reported-by: Paul Menage <menage@google.com>
+Idea-by: Paul Menage <menage@google.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Reviewed-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                      |    2=20
- drivers/input/misc/Kconfig       |   30 +++++-----
- drivers/input/misc/Makefile      |    2=20
- drivers/input/misc/winbond-cir.c |   81 ++++++++++++++---------------
- 4 files changed, 58 insertions(+), 57 deletions(-)
+ include/linux/cgroup.h |   11 +---
+ kernel/cgroup.c        |   94 +++++++++++++++++++++++++++++----------
+ 2 files changed, 74 insertions(+), 31 deletions(-)
 
-diff -puN MAINTAINERS~add-a-driver-for-the-winbond-wpcd376i-ir-function=
-ality-update MAINTAINERS
---- a/MAINTAINERS~add-a-driver-for-the-winbond-wpcd376i-ir-functionalit=
-y-update
-+++ a/MAINTAINERS
-@@ -6457,7 +6457,7 @@ S:	Maintained
- F:	drivers/scsi/wd7000.c
-=20
- WINBOND CIR DRIVER
--P:	David H=C3=A4rdeman
-+P:	David H=E4rdeman
- M:	david@hardeman.nu
- S:	Maintained
- F:	drivers/input/misc/winbond-cir.c
-diff -puN drivers/input/misc/Kconfig~add-a-driver-for-the-winbond-wpcd3=
-76i-ir-functionality-update drivers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~add-a-driver-for-the-winbond-wpcd376i-=
-ir-functionality-update
-+++ a/drivers/input/misc/Kconfig
-@@ -222,6 +222,21 @@ config INPUT_SGI_BTNS
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called sgi_btns.
-=20
-+config INPUT_WINBOND_CIR
-+	tristate "Winbond IR remote control"
-+	depends on X86 && ACPI
-+	select LEDS_CLASS
-+	help
-+	  Say Y here if you want to use the IR remote functionality found
-+	  in some Winbond SuperI/O chips. Currently only the WPCD376I
-+	  chip is supported (included in some Intel Media series motherboards=
-).
-+
-+	  IR Receive and wake-on-IR from suspend and power-off is currently
-+	  supported.
-+
-+	  To compile this driver as a module, choose M here: the module will =
-be
-+	  called winbond_cir.
-+
- config HP_SDC_RTC
- 	tristate "HP SDC Real Time Clock"
- 	depends on (GSC || HP300) && SERIO
-@@ -269,19 +284,4 @@ config INPUT_DM355EVM
-=20
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called dm355evm_keys.
--
--config INPUT_WINBOND_CIR
--	tristate "Winbond IR remote control"
--	depends on X86 && ACPI
--	select LEDS_CLASS
--	help
--	  Say Y here if you want to use the IR remote functionality found
--	  in some Winbond SuperI/O chips. Currently only the WPCD376I
--	  chip is supported (included in some Intel Media series motherboards=
-).
--
--	  IR Receive and wake-on-IR from suspend and power-off is currently
--	  supported.
--
--	  To compile this driver as a module, choose M here: the module will =
-be
--	  called winbond_cir.
- endif
-diff -puN drivers/input/misc/Makefile~add-a-driver-for-the-winbond-wpcd=
-376i-ir-functionality-update drivers/input/misc/Makefile
---- a/drivers/input/misc/Makefile~add-a-driver-for-the-winbond-wpcd376i=
--ir-functionality-update
-+++ a/drivers/input/misc/Makefile
-@@ -19,6 +19,7 @@ obj-$(CONFIG_INPUT_PCF50633_PMU)	+=3D pcf5
- obj-$(CONFIG_INPUT_PCSPKR)		+=3D pcspkr.o
- obj-$(CONFIG_INPUT_POWERMATE)		+=3D powermate.o
- obj-$(CONFIG_INPUT_RB532_BUTTON)	+=3D rb532_button.o
-+obj-$(CONFIG_INPUT_WINBOND_CIR)		+=3D winbond-cir.o
- obj-$(CONFIG_INPUT_GPIO_ROTARY_ENCODER)	+=3D rotary_encoder.o
- obj-$(CONFIG_INPUT_SGI_BTNS)		+=3D sgi_btns.o
- obj-$(CONFIG_INPUT_SPARCSPKR)		+=3D sparcspkr.o
-@@ -26,4 +27,3 @@ obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+=3D
- obj-$(CONFIG_INPUT_UINPUT)		+=3D uinput.o
- obj-$(CONFIG_INPUT_WISTRON_BTNS)	+=3D wistron_btns.o
- obj-$(CONFIG_INPUT_YEALINK)		+=3D yealink.o
--obj-$(CONFIG_INPUT_WINBOND_CIR)		+=3D winbond-cir.o
-diff -puN drivers/input/misc/winbond-cir.c~add-a-driver-for-the-winbond=
--wpcd376i-ir-functionality-update drivers/input/misc/winbond-cir.c
---- a/drivers/input/misc/winbond-cir.c~add-a-driver-for-the-winbond-wpc=
-d376i-ir-functionality-update
-+++ a/drivers/input/misc/winbond-cir.c
-@@ -6,8 +6,8 @@
-  *  could probably support others (Winbond WEC102X, NatSemi, etc)
-  *  with minor modifications.
-  *
-- *  Original Author: David H=C3=A4rdeman <david@hardeman.nu>
-- *     Copyright (C) 2009 David H=C3=A4rdeman <david@hardeman.nu>
-+ *  Original Author: David H=E4rdeman <david@hardeman.nu>
-+ *     Copyright (C) 2009 David H=E4rdeman <david@hardeman.nu>
-  *
-  *  Dedicated to Matilda, my newborn daughter, without whose loving at=
-tention
-  *  this driver would have been finished in half the time and with a f=
-raction
-@@ -54,6 +54,8 @@
- #include <linux/spinlock.h>
- #include <linux/pci_ids.h>
- #include <linux/io.h>
-+#include <linux/bitrev.h>
-+#include <linux/bitops.h>
-=20
- #define DRVNAME "winbond-cir"
-=20
-@@ -114,7 +116,7 @@
- #define WBCIR_REG_SP3_IRCFG4	0x07 /* Infrared Config 4		*/
-=20
- /*
-- * Magic values follows
-+ * Magic values follow
-  */
-=20
- /* No interrupts for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
-@@ -235,6 +237,7 @@ static struct wbcir_key rc6_def_keymap[]
- 	{ 0x800F0417, KEY_RECORD		},
- };
-=20
-+/* Registers and other state is protected by wbcir_lock */
- struct wbcir_data {
- 	unsigned long wbase;        /* Wake-Up Baseaddr		*/
- 	unsigned long ebase;        /* Enhanced Func. Baseaddr	*/
-@@ -247,7 +250,6 @@ struct wbcir_data {
- 	struct led_trigger *txtrigger;
- 	struct led_classdev led;
-=20
--	/* The rest is protected by wbcir_lock */
- 	u32 last_scancode;
- 	unsigned int last_keycode;
- 	u8 last_toggle;
-@@ -256,7 +258,7 @@ struct wbcir_data {
- 	unsigned int idle_count;
-=20
- 	/* RX irdata and parsing state */
--	u8 irdata[30];
-+	unsigned long irdata[30];
- 	unsigned int irdata_count;
- 	unsigned int irdata_idle;
- 	unsigned int irdata_off;
-@@ -292,6 +294,7 @@ MODULE_PARM_DESC(wake_rc6mode, "RC6 mode
-  *
-  *********************************************************************=
-********/
-=20
-+/* Caller needs to hold wbcir_lock */
- static void
- wbcir_set_bits(unsigned long addr, u8 bits, u8 mask)
- {
-@@ -302,6 +305,7 @@ wbcir_set_bits(unsigned long addr, u8 bi
- 	outb(val, addr);
- }
-=20
-+/* Selects the register bank for the serial port */
- static inline void
- wbcir_select_bank(struct wbcir_data *data, enum wbcir_bank bank)
- {
-@@ -334,14 +338,7 @@ wbcir_led_brightness_set(struct led_clas
- 		       WBCIR_LED_ENABLE);
- }
-=20
--static u8
--wbcir_revbyte(u8 byte)
--{
--	byte =3D ((byte >> 1) & 0x55) | ((byte << 1) & 0xAA);
--	byte =3D ((byte >> 2) & 0x33) | ((byte << 2) & 0xCC);
--	return (byte >> 4) | (byte<<4);
--}
--
-+/* Manchester encodes bits to RC6 message cells (see wbcir_parse_rc6) =
-*/
- static u8
- wbcir_to_rc6cells(u8 val)
- {
-@@ -389,16 +386,11 @@ wbcir_do_getkeycode(struct wbcir_data *d
- }
-=20
- static int
--wbcir_getkeycode(struct input_dev *dev, int sscancode, int *keycode)
-+wbcir_getkeycode(struct input_dev *dev, int scancode, int *keycode)
- {
--	unsigned int scancode =3D (unsigned int)sscancode;
- 	struct wbcir_data *data =3D input_get_drvdata(dev);
-=20
--	if (scancode < 0 || scancode > 0xFFFFFFFF)
--		return -EINVAL;
--
- 	*keycode =3D (int)wbcir_do_getkeycode(data, (u32)scancode);
--
- 	return 0;
- }
-=20
-@@ -410,10 +402,7 @@ wbcir_setkeycode(struct input_dev *dev,=20
- 	struct wbcir_keyentry *new_keyentry;
- 	unsigned long flags;
- 	unsigned int old_keycode =3D KEY_RESERVED;
--	unsigned int scancode =3D (unsigned int)sscancode;
--
--	if (scancode < 0 || scancode > 0xFFFFFFFF)
--		return -EINVAL;
-+	u32 scancode =3D (u32)sscancode;
-=20
- 	if (keycode < 0 || keycode > KEY_MAX)
- 		return -EINVAL;
-@@ -442,8 +431,8 @@ wbcir_setkeycode(struct input_dev *dev,=20
- 	set_bit(keycode, dev->keybit);
-=20
- 	if (old_keycode =3D=3D KEY_RESERVED) {
--		new_keyentry->key.scancode =3D (u32)scancode;
--		new_keyentry->key.keycode =3D (unsigned int)keycode;
-+		new_keyentry->key.scancode =3D scancode;
-+		new_keyentry->key.keycode =3D keycode;
- 		list_add(&new_keyentry->list, &data->keytable);
- 	} else {
- 		kfree(new_keyentry);
-@@ -460,6 +449,10 @@ wbcir_setkeycode(struct input_dev *dev,=20
- 	return 0;
- }
-=20
-+/*
-+ * Timer function to report keyup event some time after keydown is
-+ * reported by the ISR.
-+ */
- static void
- wbcir_keyup(unsigned long cookie)
- {
-@@ -470,6 +463,11 @@ wbcir_keyup(unsigned long cookie)
- 	 * data->keyup_jiffies is used to prevent a race condition if a
- 	 * hardware interrupt occurs at this point and the keyup timer
- 	 * event is moved further into the future as a result.
-+	 *
-+	 * The timer will then be reactivated and this function called
-+	 * again in the future. We need to exit gracefully in that case
-+	 * to allow the input subsystem to do its auto-repeat magic or
-+	 * a keyup event might follow immediately after the keydown.
+diff -puN include/linux/cgroup.h~cgroups-fix-pid-namespace-bug include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-fix-pid-namespace-bug
++++ a/include/linux/cgroup.h
+@@ -179,14 +179,11 @@ struct cgroup {
  	 */
-=20
- 	spin_lock_irqsave(&wbcir_lock, flags);
-@@ -534,7 +532,7 @@ set_timer:
- static void
- wbcir_reset_irdata(struct wbcir_data *data)
+ 	struct list_head release_list;
+ 
+-	/* pids_mutex protects the fields below */
++	/* pids_mutex protects pids_list and cached pid arrays. */
+ 	struct rw_semaphore pids_mutex;
+-	/* Array of process ids in the cgroup */
+-	pid_t *tasks_pids;
+-	/* How many files are using the current tasks_pids array */
+-	int pids_use_count;
+-	/* Length of the current tasks_pids array */
+-	int pids_length;
++
++	/* Linked list of struct cgroup_pids */
++	struct list_head pids_list;
+ 
+ 	/* For RCU-protected deletion */
+ 	struct rcu_head rcu_head;
+diff -puN kernel/cgroup.c~cgroups-fix-pid-namespace-bug kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-pid-namespace-bug
++++ a/kernel/cgroup.c
+@@ -47,6 +47,7 @@
+ #include <linux/hash.h>
+ #include <linux/namei.h>
+ #include <linux/smp_lock.h>
++#include <linux/pid_namespace.h>
+ 
+ #include <asm/atomic.h>
+ 
+@@ -961,6 +962,7 @@ static void init_cgroup_housekeeping(str
+ 	INIT_LIST_HEAD(&cgrp->children);
+ 	INIT_LIST_HEAD(&cgrp->css_sets);
+ 	INIT_LIST_HEAD(&cgrp->release_list);
++	INIT_LIST_HEAD(&cgrp->pids_list);
+ 	init_rwsem(&cgrp->pids_mutex);
+ }
+ static void init_cgroup_root(struct cgroupfs_root *root)
+@@ -2202,12 +2204,30 @@ err:
+ 	return ret;
+ }
+ 
++/*
++ * Cache pids for all threads in the same pid namespace that are
++ * opening the same "tasks" file.
++ */
++struct cgroup_pids {
++	/* The node in cgrp->pids_list */
++	struct list_head list;
++	/* The cgroup those pids belong to */
++	struct cgroup *cgrp;
++	/* The namepsace those pids belong to */
++	struct pid_namespace *pid_ns;
++	/* Array of process ids in the cgroup */
++	pid_t *tasks_pids;
++	/* How many files are using the this tasks_pids array */
++	int pids_use_count;
++	/* Length of the current tasks_pids array */
++	int pids_length;
++};
++
+ static int cmppid(const void *a, const void *b)
  {
--	memset(&data->irdata, 0, sizeof(data->irdata));
-+	memset(data->irdata, 0, sizeof(data->irdata));
- 	data->irdata_count =3D 0;
- 	data->irdata_off =3D 0;
- 	data->irdata_error =3D 0;
-@@ -544,9 +542,13 @@ wbcir_reset_irdata(struct wbcir_data *da
- static void
- add_irdata_bit(struct wbcir_data *data, int set)
+ 	return *(pid_t *)a - *(pid_t *)b;
+ }
+ 
+-
+ /*
+  * seq_file methods for the "tasks" file. The seq_file position is the
+  * next pid to display; the seq_file iterator is a pointer to the pid
+@@ -2222,45 +2242,47 @@ static void *cgroup_tasks_start(struct s
+ 	 * after a seek to the start). Use a binary-search to find the
+ 	 * next pid to display, if any
+ 	 */
+-	struct cgroup *cgrp = s->private;
++	struct cgroup_pids *cp = s->private;
++	struct cgroup *cgrp = cp->cgrp;
+ 	int index = 0, pid = *pos;
+ 	int *iter;
+ 
+ 	down_read(&cgrp->pids_mutex);
+ 	if (pid) {
+-		int end = cgrp->pids_length;
++		int end = cp->pids_length;
+ 
+ 		while (index < end) {
+ 			int mid = (index + end) / 2;
+-			if (cgrp->tasks_pids[mid] == pid) {
++			if (cp->tasks_pids[mid] == pid) {
+ 				index = mid;
+ 				break;
+-			} else if (cgrp->tasks_pids[mid] <= pid)
++			} else if (cp->tasks_pids[mid] <= pid)
+ 				index = mid + 1;
+ 			else
+ 				end = mid;
+ 		}
+ 	}
+ 	/* If we're off the end of the array, we're done */
+-	if (index >= cgrp->pids_length)
++	if (index >= cp->pids_length)
+ 		return NULL;
+ 	/* Update the abstract position to be the actual pid that we found */
+-	iter = cgrp->tasks_pids + index;
++	iter = cp->tasks_pids + index;
+ 	*pos = *iter;
+ 	return iter;
+ }
+ 
+ static void cgroup_tasks_stop(struct seq_file *s, void *v)
  {
-+	if (data->irdata_count >=3D sizeof(data->irdata) * 8) {
-+		data->irdata_error =3D 1;
-+		return;
+-	struct cgroup *cgrp = s->private;
++	struct cgroup_pids *cp = s->private;
++	struct cgroup *cgrp = cp->cgrp;
+ 	up_read(&cgrp->pids_mutex);
+ }
+ 
+ static void *cgroup_tasks_next(struct seq_file *s, void *v, loff_t *pos)
+ {
+-	struct cgroup *cgrp = s->private;
++	struct cgroup_pids *cp = s->private;
+ 	int *p = v;
+-	int *end = cgrp->tasks_pids + cgrp->pids_length;
++	int *end = cp->tasks_pids + cp->pids_length;
+ 
+ 	/*
+ 	 * Advance to the next pid in the array. If this goes off the
+@@ -2287,26 +2309,32 @@ static struct seq_operations cgroup_task
+ 	.show = cgroup_tasks_show,
+ };
+ 
+-static void release_cgroup_pid_array(struct cgroup *cgrp)
++static void release_cgroup_pid_array(struct cgroup_pids *cp)
+ {
++	struct cgroup *cgrp = cp->cgrp;
++
+ 	down_write(&cgrp->pids_mutex);
+-	BUG_ON(!cgrp->pids_use_count);
+-	if (!--cgrp->pids_use_count) {
+-		kfree(cgrp->tasks_pids);
+-		cgrp->tasks_pids = NULL;
+-		cgrp->pids_length = 0;
++	BUG_ON(!cp->pids_use_count);
++	if (!--cp->pids_use_count) {
++		list_del(&cp->list);
++		kfree(cp->tasks_pids);
++		kfree(cp);
+ 	}
+ 	up_write(&cgrp->pids_mutex);
+ }
+ 
+ static int cgroup_tasks_release(struct inode *inode, struct file *file)
+ {
+-	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
++	struct seq_file *seq;
++	struct cgroup_pids *cp;
+ 
+ 	if (!(file->f_mode & FMODE_READ))
+ 		return 0;
+ 
+-	release_cgroup_pid_array(cgrp);
++	seq = file->private_data;
++	cp = seq->private;
++
++	release_cgroup_pid_array(cp);
+ 	return seq_release(inode, file);
+ }
+ 
+@@ -2325,6 +2353,8 @@ static struct file_operations cgroup_tas
+ static int cgroup_tasks_open(struct inode *unused, struct file *file)
+ {
+ 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
++	struct pid_namespace *pid_ns = task_active_pid_ns(current);
++	struct cgroup_pids *cp;
+ 	pid_t *pidarray;
+ 	int npids;
+ 	int retval;
+@@ -2351,20 +2381,36 @@ static int cgroup_tasks_open(struct inod
+ 	 * array if necessary
+ 	 */
+ 	down_write(&cgrp->pids_mutex);
+-	kfree(cgrp->tasks_pids);
+-	cgrp->tasks_pids = pidarray;
+-	cgrp->pids_length = npids;
+-	cgrp->pids_use_count++;
++
++	list_for_each_entry(cp, &cgrp->pids_list, list) {
++		if (pid_ns == cp->pid_ns)
++			goto found;
 +	}
 +
- 	if (set)
--		data->irdata[data->irdata_count / 8] |=3D
--			0x01 << (data->irdata_count % 8);
-+		__set_bit(data->irdata_count, data->irdata);
- 	data->irdata_count++;
- }
-=20
-@@ -563,8 +565,7 @@ get_bits(struct wbcir_data *data, int co
-=20
- 	while (count > 0) {
- 		val <<=3D 1;
--		if (data->irdata[data->irdata_off / 8] &
--		    (0x01 << (data->irdata_off % 8)))
-+		if (test_bit(data->irdata_off, data->irdata))
- 			val |=3D 0x1;
- 		count--;
- 		data->irdata_off++;
-@@ -893,10 +894,10 @@ wbcir_parse_nec(struct device *dev, stru
- 		return;
++	cp = kzalloc(sizeof(*cp), GFP_KERNEL);
++	if (!cp) {
++		up_write(&cgrp->pids_mutex);
++		kfree(pidarray);
++		return -ENOMEM;
++	}
++	cp->cgrp = cgrp;
++	cp->pid_ns = pid_ns;
++	list_add(&cp->list, &cgrp->pids_list);
++found:
++	kfree(cp->tasks_pids);
++	cp->tasks_pids = pidarray;
++	cp->pids_length = npids;
++	cp->pids_use_count++;
+ 	up_write(&cgrp->pids_mutex);
+ 
+ 	file->f_op = &cgroup_tasks_operations;
+ 
+ 	retval = seq_open(file, &cgroup_tasks_seq_operations);
+ 	if (retval) {
+-		release_cgroup_pid_array(cgrp);
++		release_cgroup_pid_array(cp);
+ 		return retval;
  	}
-=20
--	address1  =3D wbcir_revbyte(get_bits(data, 8));
--	address2  =3D wbcir_revbyte(get_bits(data, 8));
--	command1  =3D wbcir_revbyte(get_bits(data, 8));
--	command2  =3D wbcir_revbyte(get_bits(data, 8));
-+	address1  =3D bitrev8(get_bits(data, 8));
-+	address2  =3D bitrev8(get_bits(data, 8));
-+	command1  =3D bitrev8(get_bits(data, 8));
-+	command2  =3D bitrev8(get_bits(data, 8));
-=20
- 	/* Sanity check */
- 	if (data->irdata_error) {
-@@ -988,8 +989,8 @@ wbcir_irq_handler(int irqno, void *cooki
- 		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
-=20
- 		dev_dbg(dev, "IRDATA:\n");
--		for (i =3D 0; i < data->irdata_count; i +=3D 8)
--			dev_dbg(dev, "0x%02X\n", data->irdata[i/8]);
-+		for (i =3D 0; i < data->irdata_count; i +=3D BITS_PER_LONG)
-+			dev_dbg(dev, "0x%08lX\n", data->irdata[i/BITS_PER_LONG]);
-=20
- 		switch (protocol) {
- 		case IR_PROTOCOL_RC5:
-@@ -1068,12 +1069,12 @@ wbcir_shutdown(struct acpi_device *devic
-=20
- 		mask[0] =3D mask[1] =3D mask[2] =3D mask[3] =3D 0xFF;
-=20
--		match[1] =3D wbcir_revbyte((wake_sc & 0xFF));
-+		match[1] =3D bitrev8((wake_sc & 0xFF));
- 		match[0] =3D ~match[1];
-=20
--		match[3] =3D wbcir_revbyte((wake_sc & 0xFF00) >> 8);
-+		match[3] =3D bitrev8((wake_sc & 0xFF00) >> 8);
- 		if (wake_sc > 0xFFFF)
--			match[2] =3D wbcir_revbyte((wake_sc & 0xFF0000) >> 16);
-+			match[2] =3D bitrev8((wake_sc & 0xFF0000) >> 16);
- 		else
- 			match[2] =3D ~match[3];
-=20
-@@ -1683,7 +1684,7 @@ wbcir_exit(void)
- 	acpi_bus_unregister_driver(&wbcir_driver);
+-	((struct seq_file *)file->private_data)->private = cgrp;
++	((struct seq_file *)file->private_data)->private = cp;
+ 	return 0;
  }
-=20
--MODULE_AUTHOR("David H=C3=A4rdeman <david@hardeman.nu>");
-+MODULE_AUTHOR("David H=E4rdeman <david@hardeman.nu>");
- MODULE_DESCRIPTION("Winbond SuperI/O Consumer IR Driver");
- MODULE_LICENSE("GPL");
-=20
+ 
 _
 
-Patches currently in -mm which might be from david@hardeman.nu are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-acpi-reintroduce-acpi_device_ops-shutdown-method.patch
-add-a-driver-for-the-winbond-wpcd376i-ir-functionality.patch
-add-a-driver-for-the-winbond-wpcd376i-ir-functionality-update.patch
+origin.patch
+linux-next.patch
+cgroups-fix-pid-namespace-bug.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
