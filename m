@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-exclude-code-operating-in-userspace-from-profiling.patch added to -mm tree
-Date: Thu, 02 Jul 2009 14:47:02 -0700
-Message-ID: <200907022147.n62Ll27a012325@imap1.linux-foundation.org>
+Subject: + fix-virt_to_phys-warnings.patch added to -mm tree
+Date: Thu, 02 Jul 2009 14:50:15 -0700
+Message-ID: <200907022150.n62LoFAx015944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754729AbZGBVrR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 17:47:17 -0400
+	by vger.kernel.org with ESMTP id S1751994AbZGBVum (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 17:50:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oberpar@linux.vnet.ibm.com, mingo@elte.hu, rostedt@goodmis.org
+Cc: cernekee@gmail.com, andi@firstfloor.org, mingo@elte.hu, ralf@linux-mips.org
 
 
 The patch titled
-     gcov: exclude code operating in userspace from profiling
+     Fix virt_to_phys() warnings
 has been added to the -mm tree.  Its filename is
-     gcov-exclude-code-operating-in-userspace-from-profiling.patch
+     fix-virt_to_phys-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcov: exclude code operating in userspace from profiling
-From: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Subject: Fix virt_to_phys() warnings
+From: Kevin Cernekee <cernekee@gmail.com>
 
-Fix for this issue on x86_64:
+These warnings were observed on MIPS32 using 2.6.31-rc1 and gcc-4.2.0:
 
-rostedt@goodmis.org wrote:
-> On bootup of the latest kernel my init segfaults. Debugging it,
-> I found  that vread_tsc (a vsyscall) increments some strange
-> kernel memory:
->
-> 0000000000000000 <vread_tsc>:
->    0:   55                      push   %rbp
->    1:   48 ff 05 00 00 00 00    incq   0(%rip)
->                         # 8 <vread_tsc+0x8>
->                         4: R_X86_64_PC32        .bss+0x3c
->    8:   48 89 e5                mov    %rsp,%rbp
->    b:   66 66 90                xchg   %ax,%ax
->    e:   48 ff 05 00 00 00 00    incq   0(%rip)
->                         # 15 <vread_tsc+0x15>
->                         11: R_X86_64_PC32       .bss+0x44
->   15:   66 66 90                xchg   %ax,%ax
->   18:   48 ff 05 00 00 00 00    incq   0(%rip)
->                         # 1f <vread_tsc+0x1f>
->                         1b: R_X86_64_PC32       .bss+0x4c
->   1f:   0f 31                   rdtsc
->
->
-> Those "incq" is very bad to happen in vsyscall memory, since
-> userspace can not modify it. You need to make something prevent
-> profiling of vsyscall  memory (like I do with ftrace).
+mm/page_alloc.c: In function 'alloc_pages_exact':
+mm/page_alloc.c:1986: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
 
-Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+drivers/usb/mon/mon_bin.c: In function 'mon_alloc_buff':
+drivers/usb/mon/mon_bin.c:1264: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
+
+Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Reported-by: Steven Rostedt <rostedt@goodmis.org>
-Tested-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/usb/mon/mon_bin.c |    2 +-
+ mm/page_alloc.c           |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/Makefile~gcov-exclude-code-operating-in-userspace-from-profiling arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~gcov-exclude-code-operating-in-userspace-from-profiling
-+++ a/arch/x86/kernel/Makefile
-@@ -26,6 +26,8 @@ CFLAGS_tsc.o		:= $(nostackp)
- CFLAGS_paravirt.o	:= $(nostackp)
- GCOV_PROFILE_vsyscall_64.o	:= n
- GCOV_PROFILE_hpet.o		:= n
-+GCOV_PROFILE_tsc.o		:= n
-+GCOV_PROFILE_paravirt.o		:= n
+diff -puN drivers/usb/mon/mon_bin.c~fix-virt_to_phys-warnings drivers/usb/mon/mon_bin.c
+--- a/drivers/usb/mon/mon_bin.c~fix-virt_to_phys-warnings
++++ a/drivers/usb/mon/mon_bin.c
+@@ -1251,7 +1251,7 @@ static int mon_alloc_buff(struct mon_pgm
+ 			return -ENOMEM;
+ 		}
+ 		map[n].ptr = (unsigned char *) vaddr;
+-		map[n].pg = virt_to_page(vaddr);
++		map[n].pg = virt_to_page((void *) vaddr);
+ 	}
+ 	return 0;
+ }
+diff -puN mm/page_alloc.c~fix-virt_to_phys-warnings mm/page_alloc.c
+--- a/mm/page_alloc.c~fix-virt_to_phys-warnings
++++ a/mm/page_alloc.c
+@@ -1983,7 +1983,7 @@ void *alloc_pages_exact(size_t size, gfp
+ 		unsigned long alloc_end = addr + (PAGE_SIZE << order);
+ 		unsigned long used = addr + PAGE_ALIGN(size);
  
- obj-y			:= process_$(BITS).o signal.o entry_$(BITS).o
- obj-y			+= traps.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
+-		split_page(virt_to_page(addr), order);
++		split_page(virt_to_page((void *)addr), order);
+ 		while (used < alloc_end) {
+ 			free_page(used);
+ 			used += PAGE_SIZE;
 _
 
-Patches currently in -mm which might be from oberpar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from cernekee@gmail.com are
 
-origin.patch
-gcov-exclude-code-operating-in-userspace-from-profiling.patch
+linux-next.patch
+fix-virt_to_phys-warnings.patch
+fix-virt_to_phys-warnings-fix.patch
 
