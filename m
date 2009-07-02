@@ -1,115 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: + timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch added to -mm tree
-Date: Thu, 02 Jul 2009 09:11:27 -0700
-Message-ID: <200907021611.n62GBRet021690@imap1.linux-foundation.org>
+Subject: [alternative-merged] md-fix-lock-imbalance.patch removed from -mm tree
+Date: Thu, 02 Jul 2009 11:32:39 -0700
+Message-ID: <200907021832.n62IWdPS017194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43551 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753302AbZGBQMT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 12:12:19 -0400
+	by vger.kernel.org with ESMTP id S1750938AbZGBSdP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 14:33:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+To: jirislaby@gmail.com, maan@systemlinux.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timer stats: fix del_timer_sync() and try_to_del_timer_sync()
-has been added to the -mm tree.  Its filename is
-     timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+     md: fix lock imbalance
+has been removed from the -mm tree.  Its filename was
+     md-fix-lock-imbalance.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timer stats: fix del_timer_sync() and try_to_del_timer_sync()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: md: fix lock imbalance
+From: Jiri Slaby <jirislaby@gmail.com>
 
-These functions forgot to run timer_stats_timer_clear_start_info().  It's
-unobvious what effect this has and whether it matters much - we won't be
-printing it out anyway if the timer's detached.
+Add unlock and put to one of fail paths in md_alloc.
 
-Untested, just an Ingo trollpatch.
+Andre said:
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+  This patch fixes a leak and a locking bug which hits if a named array
+  is being added and its name duplicates the name of an already existing
+  array.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Acked-by: Andre Noll <maan@systemlinux.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/md/md.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN kernel/timer.c~timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync kernel/timer.c
---- a/kernel/timer.c~timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync
-+++ a/kernel/timer.c
-@@ -847,6 +847,7 @@ int try_to_del_timer_sync(struct timer_l
- 	if (base->running_timer == timer)
- 		goto out;
+diff -puN drivers/md/md.c~md-fix-lock-imbalance drivers/md/md.c
+--- a/drivers/md/md.c~md-fix-lock-imbalance
++++ a/drivers/md/md.c
+@@ -3829,7 +3829,7 @@ static int md_alloc(dev_t dev, char *nam
+ 	int partitioned;
+ 	int shift;
+ 	int unit;
+-	int error;
++	int error, ret;
  
-+	timer_stats_timer_clear_start_info(timer);
- 	ret = 0;
- 	if (timer_pending(timer)) {
- 		detach_timer(timer, 1);
+ 	if (!mddev)
+ 		return -ENODEV;
+@@ -3845,9 +3845,8 @@ static int md_alloc(dev_t dev, char *nam
+ 
+ 	mutex_lock(&disks_mutex);
+ 	if (mddev->gendisk) {
+-		mutex_unlock(&disks_mutex);
+-		mddev_put(mddev);
+-		return -EEXIST;
++		ret = -EEXIST;
++		goto unlock;
+ 	}
+ 
+ 	if (name) {
+@@ -3860,16 +3859,16 @@ static int md_alloc(dev_t dev, char *nam
+ 			if (mddev2->gendisk &&
+ 			    strcmp(mddev2->gendisk->disk_name, name) == 0) {
+ 				spin_unlock(&all_mddevs_lock);
+-				return -EEXIST;
++				ret = -EEXIST;
++				goto unlock;
+ 			}
+ 		spin_unlock(&all_mddevs_lock);
+ 	}
+ 
+ 	mddev->queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (!mddev->queue) {
+-		mutex_unlock(&disks_mutex);
+-		mddev_put(mddev);
+-		return -ENOMEM;
++		ret = -ENOMEM;
++		goto unlock;
+ 	}
+ 	mddev->queue->queuedata = mddev;
+ 
+@@ -3883,8 +3882,8 @@ static int md_alloc(dev_t dev, char *nam
+ 		mutex_unlock(&disks_mutex);
+ 		blk_cleanup_queue(mddev->queue);
+ 		mddev->queue = NULL;
+-		mddev_put(mddev);
+-		return -ENOMEM;
++		ret = -ENOMEM;
++		goto put;
+ 	}
+ 	disk->major = MAJOR(mddev->unit);
+ 	disk->first_minor = unit << shift;
+@@ -3914,8 +3913,13 @@ static int md_alloc(dev_t dev, char *nam
+ 		kobject_uevent(&mddev->kobj, KOBJ_ADD);
+ 		mddev->sysfs_state = sysfs_get_dirent(mddev->kobj.sd, "array_state");
+ 	}
++	ret = 0;
++put:
+ 	mddev_put(mddev);
+-	return 0;
++	return ret;
++unlock:
++	mutex_unlock(&disks_mutex);
++	goto put;
+ }
+ 
+ static struct kobject *md_probe(dev_t dev, int *part, void *data)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+rtc-ds1374-fix-lock-imbalance.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
+isdn-hisax-fix-lock-imbalance.patch
+icom-converting-space-to-tabs.patch
+base-firmware_class-fix-lock-imbalance.patch
+md-fix-lock-imbalance.patch
+wireless-nl80211-fix-lock-imbalance.patch
 reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
