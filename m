@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-virt_to_phys-warnings.patch added to -mm tree
-Date: Thu, 02 Jul 2009 14:50:15 -0700
-Message-ID: <200907022150.n62LoFAx015944@imap1.linux-foundation.org>
+Subject: + fix-virt_to_phys-warnings-fix.patch added to -mm tree
+Date: Thu, 02 Jul 2009 14:50:18 -0700
+Message-ID: <200907022150.n62LoIER015979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53830 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43476 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751994AbZGBVum (ORCPT
+	by vger.kernel.org with ESMTP id S1754328AbZGBVum (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jul 2009 17:50:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cernekee@gmail.com, andi@firstfloor.org, mingo@elte.hu, ralf@linux-mips.org
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, cernekee@gmail.com, mingo@elte.hu, ralf@linux-mips.org
 
 
 The patch titled
-     Fix virt_to_phys() warnings
+     fix-virt_to_phys-warnings-fix
 has been added to the -mm tree.  Its filename is
-     fix-virt_to_phys-warnings.patch
+     fix-virt_to_phys-warnings-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix virt_to_phys() warnings
-From: Kevin Cernekee <cernekee@gmail.com>
+Subject: fix-virt_to_phys-warnings-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-These warnings were observed on MIPS32 using 2.6.31-rc1 and gcc-4.2.0:
+fix kernel/perf_counter.c too.
 
-mm/page_alloc.c: In function 'alloc_pages_exact':
-mm/page_alloc.c:1986: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
-
-drivers/usb/mon/mon_bin.c: In function 'mon_alloc_buff':
-drivers/usb/mon/mon_bin.c:1264: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
-
-Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
 Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kevin Cernekee <cernekee@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/mon/mon_bin.c |    2 +-
- mm/page_alloc.c           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/perf_counter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/mon/mon_bin.c~fix-virt_to_phys-warnings drivers/usb/mon/mon_bin.c
---- a/drivers/usb/mon/mon_bin.c~fix-virt_to_phys-warnings
-+++ a/drivers/usb/mon/mon_bin.c
-@@ -1251,7 +1251,7 @@ static int mon_alloc_buff(struct mon_pgm
- 			return -ENOMEM;
- 		}
- 		map[n].ptr = (unsigned char *) vaddr;
--		map[n].pg = virt_to_page(vaddr);
-+		map[n].pg = virt_to_page((void *) vaddr);
- 	}
- 	return 0;
- }
-diff -puN mm/page_alloc.c~fix-virt_to_phys-warnings mm/page_alloc.c
---- a/mm/page_alloc.c~fix-virt_to_phys-warnings
-+++ a/mm/page_alloc.c
-@@ -1983,7 +1983,7 @@ void *alloc_pages_exact(size_t size, gfp
- 		unsigned long alloc_end = addr + (PAGE_SIZE << order);
- 		unsigned long used = addr + PAGE_ALIGN(size);
+diff -puN kernel/perf_counter.c~fix-virt_to_phys-warnings-fix kernel/perf_counter.c
+--- a/kernel/perf_counter.c~fix-virt_to_phys-warnings-fix
++++ a/kernel/perf_counter.c
+@@ -2020,7 +2020,7 @@ fail:
  
--		split_page(virt_to_page(addr), order);
-+		split_page(virt_to_page((void *)addr), order);
- 		while (used < alloc_end) {
- 			free_page(used);
- 			used += PAGE_SIZE;
+ static void perf_mmap_free_page(unsigned long addr)
+ {
+-	struct page *page = virt_to_page(addr);
++	struct page *page = virt_to_page((void *)addr);
+ 
+ 	page->mapping = NULL;
+ 	__free_page(page);
 _
 
-Patches currently in -mm which might be from cernekee@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-fix-virt_to_phys-warnings.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+misc-work_on_cpu-acpi-dont-do-local_irq_enable-in-hard-irq.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
 fix-virt_to_phys-warnings-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
