@@ -1,57 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] comedi-jr3_pcic-add-required-includes.patch removed from -mm tree
-Date: Sun, 05 Jul 2009 11:35:37 -0700
-Message-ID: <200907051835.n65IZbH2004469@imap1.linux-foundation.org>
+Subject: [merged] vt6655-fix-build-when-config_wireless_ext.patch removed from -mm tree
+Date: Sun, 05 Jul 2009 11:35:41 -0700
+Message-ID: <200907051835.n65IZfOI004482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49629 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752067AbZGESfh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jul 2009 14:35:37 -0400
+	by vger.kernel.org with ESMTP id S1752063AbZGESfq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jul 2009 14:35:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.beregalov@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: a.beregalov@gmail.com, forest@alittletooquiet.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     comedi: jr3_pci.c: add required includes
+     vt6655: fix build when !CONFIG_WIRELESS_EXT
 has been removed from the -mm tree.  Its filename was
-     comedi-jr3_pcic-add-required-includes.patch
+     vt6655-fix-build-when-config_wireless_ext.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: comedi: jr3_pci.c: add required includes
+Subject: vt6655: fix build when !CONFIG_WIRELESS_EXT
 From: Alexander Beregalov <a.beregalov@gmail.com>
 
-jr3_pci.c:739: error: 'jiffies' undeclared
-jr3_pci.c:748: error: implicit declaration of function 'msecs_to_jiffies'
-jr3_pci.c:763: error: implicit declaration of function 'add_timer'
-jr3_pci.c:790: error: implicit declaration of function 'init_timer'
-jr3_pci.c:951: error: implicit declaration of function 'del_timer_sync'
+Fix this build error when CONFIG_WIRELESS_EXT is not set:
+drivers/staging/vt6655/device_main.c:1153: error: 'struct net_device'
+	has no member named 'wireless_handlers'
 
+Cc: Forest Bond <forest@alittletooquiet.net>
 Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/comedi/drivers/jr3_pci.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/staging/vt6655/device_main.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/staging/comedi/drivers/jr3_pci.c~staging-comedi-jr3_pcic-add-required-includes drivers/staging/comedi/drivers/jr3_pci.c
---- a/drivers/staging/comedi/drivers/jr3_pci.c~staging-comedi-jr3_pcic-add-required-includes
-+++ a/drivers/staging/comedi/drivers/jr3_pci.c
-@@ -45,6 +45,8 @@ Devices: [JR3] PCI force sensor board (j
- #include <linux/delay.h>
- #include <linux/ctype.h>
- #include <linux/firmware.h>
-+#include <linux/jiffies.h>
-+#include <linux/timer.h>
- #include "comedi_pci.h"
- #include "jr3_pci.h"
+diff -puN drivers/staging/vt6655/device_main.c~vt6655-fix-build-when-config_wireless_ext drivers/staging/vt6655/device_main.c
+--- a/drivers/staging/vt6655/device_main.c~vt6655-fix-build-when-config_wireless_ext
++++ a/drivers/staging/vt6655/device_main.c
+@@ -1146,14 +1146,9 @@ device_found1(struct pci_dev *pcid, cons
+     dev->irq                = pcid->irq;
+     dev->netdev_ops         = &device_netdev_ops;
  
+-#ifdef WIRELESS_EXT
+-//Einsn Modify for ubuntu-7.04
+-//	dev->wireless_handlers->get_wireless_stats = iwctl_get_wireless_stats;
+-#if WIRELESS_EXT > 12
++#ifdef CONFIG_WIRELESS_EXT
+ 	dev->wireless_handlers = (struct iw_handler_def *)&iwctl_handler_def;
+-//	netdev->wireless_handlers = NULL;
+-#endif /* WIRELESS_EXT > 12 */
+-#endif /* WIRELESS_EXT */
++#endif
+ 
+     rc = register_netdev(dev);
+     if (rc)
 _
 
 Patches currently in -mm which might be from a.beregalov@gmail.com are
