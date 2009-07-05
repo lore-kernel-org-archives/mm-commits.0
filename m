@@ -1,101 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] stlc45xx-convert-config_interface-to-bss_info_changed.patch removed from -mm tree
-Date: Sun, 05 Jul 2009 11:35:48 -0700
-Message-ID: <200907051835.n65IZmqI004677@imap1.linux-foundation.org>
+Subject: [merged] nfsd-dont-hold-unrefcounted-creds-over-call-to-nfsd_setuser.patch removed from -mm tree
+Date: Sun, 05 Jul 2009 11:35:56 -0700
+Message-ID: <200907051835.n65IZupA004846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750754AbZGESgf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jul 2009 14:36:35 -0400
+	by vger.kernel.org with ESMTP id S1753836AbZGESgv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jul 2009 14:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.beregalov@gmail.com, greg@kroah.com, johannes@sipsolutions.net, kalle.valo@nokia.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, bfields@fieldses.org, jmorris@namei.org, neilb@suse.de, rasmus@msconsult.dk, steved@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     stlc45xx: convert config_interface to bss_info_changed
+     nfsd: don't hold unrefcounted creds over call to nfsd_setuser()
 has been removed from the -mm tree.  Its filename was
-     stlc45xx-convert-config_interface-to-bss_info_changed.patch
+     nfsd-dont-hold-unrefcounted-creds-over-call-to-nfsd_setuser.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stlc45xx: convert config_interface to bss_info_changed
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: nfsd: don't hold unrefcounted creds over call to nfsd_setuser()
+From: David Howells <dhowells@redhat.com>
 
-See commit 2d0ddec5b2b (mac80211: unify config_interface and
-bss_info_changed)
+nfsd_open() gets an unrefcounted pointer to the current process's
+effective credentials at the top of the function, then calls
+nfsd_setuser() via fh_verify() - which may replace and destroy the current
+process's effective credentials - and then passes the unrefcounted pointer
+to dentry_open() - but the credentials may have been destroyed by this
+point.
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Kalle Valo <kalle.valo@nokia.com>
+Instead, the value from current_cred() should be passed directly to
+dentry_open() as one of its arguments, rather than being cached in a
+variable.
+
+Possibly fh_verify() should return the creds to use.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Tested-and-Verified-By: Steve Dickson <steved@redhat.com>
+Cc: <rasmus@msconsult.dk>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/stlc45xx/stlc45xx.c |   27 +++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+ fs/nfsd/vfs.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/staging/stlc45xx/stlc45xx.c~stlc45xx-convert-config_interface-to-bss_info_changed drivers/staging/stlc45xx/stlc45xx.c
---- a/drivers/staging/stlc45xx/stlc45xx.c~stlc45xx-convert-config_interface-to-bss_info_changed
-+++ a/drivers/staging/stlc45xx/stlc45xx.c
-@@ -2235,24 +2235,6 @@ static void stlc45xx_op_remove_interface
- 	stlc45xx_debug(DEBUG_FUNC, "%s", __func__);
- }
- 
--static int stlc45xx_op_config_interface(struct ieee80211_hw *hw,
--					struct ieee80211_vif *vif,
--					struct ieee80211_if_conf *conf)
--{
--	struct stlc45xx *stlc = hw->priv;
--
--	stlc45xx_debug(DEBUG_FUNC, "%s", __func__);
--
--	mutex_lock(&stlc->mutex);
--
--	memcpy(stlc->bssid, conf->bssid, ETH_ALEN);
--	stlc45xx_tx_setup(stlc);
--
--	mutex_unlock(&stlc->mutex);
--
--	return 0;
--}
--
- static int stlc45xx_op_config(struct ieee80211_hw *hw, u32 changed)
+diff -puN fs/nfsd/vfs.c~nfsd-dont-hold-unrefcounted-creds-over-call-to-nfsd_setuser fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~nfsd-dont-hold-unrefcounted-creds-over-call-to-nfsd_setuser
++++ a/fs/nfsd/vfs.c
+@@ -678,7 +678,6 @@ __be32
+ nfsd_open(struct svc_rqst *rqstp, struct svc_fh *fhp, int type,
+ 			int access, struct file **filp)
  {
- 	struct stlc45xx *stlc = hw->priv;
-@@ -2295,6 +2277,14 @@ static void stlc45xx_op_bss_info_changed
- {
- 	struct stlc45xx *stlc = hw->priv;
- 
-+	stlc45xx_debug(DEBUG_FUNC, "%s", __func__);
-+	mutex_lock(&stlc->mutex);
-+
-+	memcpy(stlc->bssid, info->bssid, ETH_ALEN);
-+	stlc45xx_tx_setup(stlc);
-+
-+	mutex_unlock(&stlc->mutex);
-+
- 	if (changed & BSS_CHANGED_ASSOC) {
- 		stlc->associated = info->assoc;
- 		if (info->assoc)
-@@ -2357,7 +2347,6 @@ static const struct ieee80211_ops stlc45
- 	.add_interface = stlc45xx_op_add_interface,
- 	.remove_interface = stlc45xx_op_remove_interface,
- 	.config = stlc45xx_op_config,
--	.config_interface = stlc45xx_op_config_interface,
- 	.configure_filter = stlc45xx_op_configure_filter,
- 	.tx = stlc45xx_op_tx,
- 	.bss_info_changed = stlc45xx_op_bss_info_changed,
+-	const struct cred *cred = current_cred();
+ 	struct dentry	*dentry;
+ 	struct inode	*inode;
+ 	int		flags = O_RDONLY|O_LARGEFILE;
+@@ -733,7 +732,7 @@ nfsd_open(struct svc_rqst *rqstp, struct
+ 		vfs_dq_init(inode);
+ 	}
+ 	*filp = dentry_open(dget(dentry), mntget(fhp->fh_export->ex_path.mnt),
+-			    flags, cred);
++			    flags, current_cred());
+ 	if (IS_ERR(*filp))
+ 		host_err = PTR_ERR(*filp);
+ 	else
 _
 
-Patches currently in -mm which might be from a.beregalov@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 linux-next.patch
-vt6655-s-void-void.patch
-staging-otus-remove-dependency-on-wireless_ext-version.patch
-staging-rt2860-remove-dependency-on-wireless_ext-version.patch
+elf-fix-multithreaded-program-core-dumping-on-arm.patch
+flat-fix-uninitialized-ptr-with-shared-libs.patch
+cred_guard_mutex-do-not-return-eintr-to-user-space.patch
+frv-duplicate-output_buffer-of-e03.patch
+rework-fix-is_single_threaded.patch
+elf-clean-up-fill_note_info.patch
+elf-clean-up-fill_note_info-fix.patch
+flat-use-is_err_value-helper-macro.patch
+mutex-subsystem-synchro-test-module.patch
 
