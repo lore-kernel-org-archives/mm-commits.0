@@ -1,222 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] staging-rtl8187se-remove-dependency-on-wireless_ext-version.patch removed from -mm tree
-Date: Sun, 05 Jul 2009 11:35:52 -0700
-Message-ID: <200907051835.n65IZq2p004701@imap1.linux-foundation.org>
+Subject: [merged] parisc-remove-obsolete-hw_interrupt_type.patch removed from -mm tree
+Date: Sun, 05 Jul 2009 11:35:33 -0700
+Message-ID: <200907051835.n65IZXC8004372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50063 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752191AbZGESf4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jul 2009 14:35:56 -0400
+	by vger.kernel.org with ESMTP id S1752495AbZGESf6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jul 2009 14:35:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.beregalov@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, kyle@mcmartin.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtl8187se: remove dependency on WIRELESS_EXT version
+     parisc: remove obsolete hw_interrupt_type
 has been removed from the -mm tree.  Its filename was
-     staging-rtl8187se-remove-dependency-on-wireless_ext-version.patch
+     parisc-remove-obsolete-hw_interrupt_type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtl8187se: remove dependency on WIRELESS_EXT version
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: parisc: remove obsolete hw_interrupt_type
+From: Thomas Gleixner <tglx@linutronix.de>
 
-As the driver is in mainline now we can remove such dependencies. 
-WIRELESS_EXT is 22 now.
+The defines and typedefs (hw_interrupt_type, no_irq_type, irq_desc_t) have
+been kept around for migration reasons.  After more than two years it's
+time to remove them finally.
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+This patch cleans up one of the remaining users.  When all such patches
+hit mainline we can remove the defines and typedefs finally.
+
+Impact: cleanup
+
+Convert the last remaining users to struct irq_chip and remove the
+define.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8187se/ieee80211.h                      |    9 ---
- drivers/staging/rtl8187se/ieee80211/ieee80211.h            |    9 ---
- drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c |   24 ----------
- drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c         |    4 -
- drivers/staging/rtl8187se/r8180_core.c                     |   13 -----
- drivers/staging/rtl8187se/r8180_wx.c                       |    4 -
- 6 files changed, 63 deletions(-)
+ arch/parisc/kernel/irq.c |    2 +-
+ drivers/parisc/dino.c    |    2 +-
+ drivers/parisc/eisa.c    |    2 +-
+ drivers/parisc/gsc.c     |    4 ++--
+ drivers/parisc/gsc.h     |    2 +-
+ drivers/parisc/iosapic.c |    2 +-
+ drivers/parisc/superio.c |    2 +-
+ 7 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/staging/rtl8187se/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211.h
---- a/drivers/staging/rtl8187se/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/ieee80211.h
-@@ -196,15 +196,6 @@ typedef struct ieee_param {
- }ieee_param;
- 
- 
--#if WIRELESS_EXT < 17
--#define IW_QUAL_QUAL_INVALID   0x10
--#define IW_QUAL_LEVEL_INVALID  0x20
--#define IW_QUAL_NOISE_INVALID  0x40
--#define IW_QUAL_QUAL_UPDATED   0x1
--#define IW_QUAL_LEVEL_UPDATED  0x2
--#define IW_QUAL_NOISE_UPDATED  0x4
--#endif
--
- // linux under 2.6.9 release may not support it, so modify it for common use
- #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,9))
- #define MSECS(t)	(1000 * ((t) / HZ) + 1000 * ((t) % HZ) / HZ)
-diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211/ieee80211.h
---- a/drivers/staging/rtl8187se/ieee80211/ieee80211.h~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/ieee80211/ieee80211.h
-@@ -196,15 +196,6 @@ typedef struct ieee_param {
- }ieee_param;
- 
- 
--#if WIRELESS_EXT < 17
--#define IW_QUAL_QUAL_INVALID   0x10
--#define IW_QUAL_LEVEL_INVALID  0x20
--#define IW_QUAL_NOISE_INVALID  0x40
--#define IW_QUAL_QUAL_UPDATED   0x1
--#define IW_QUAL_LEVEL_UPDATED  0x2
--#define IW_QUAL_NOISE_UPDATED  0x4
--#endif
--
- // linux under 2.6.9 release may not support it, so modify it for common use
- #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,9))
- #define MSECS(t)	(1000 * ((t) / HZ) + 1000 * ((t) % HZ) / HZ)
-diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c
---- a/drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/ieee80211/ieee80211_crypt_tkip.c
-@@ -753,7 +753,6 @@ static int ieee80211_michael_mic_add(str
+diff -puN arch/parisc/kernel/irq.c~parisc-remove-obsolete-hw_interrupt_type arch/parisc/kernel/irq.c
+--- a/arch/parisc/kernel/irq.c~parisc-remove-obsolete-hw_interrupt_type
++++ a/arch/parisc/kernel/irq.c
+@@ -144,7 +144,7 @@ static int cpu_set_affinity_irq(unsigned
  }
- 
- 
--#if WIRELESS_EXT >= 18
- static void ieee80211_michael_mic_failure(struct net_device *dev,
- 				       struct ieee80211_hdr *hdr,
- 				       int keyidx)
-@@ -774,29 +773,6 @@ static void ieee80211_michael_mic_failur
- 	wrqu.data.length = sizeof(ev);
- 	wireless_send_event(dev, IWEVMICHAELMICFAILURE, &wrqu, (char *) &ev);
- }
--#elif WIRELESS_EXT >= 15
--static void ieee80211_michael_mic_failure(struct net_device *dev,
--				       struct ieee80211_hdr *hdr,
--				       int keyidx)
--{
--	union iwreq_data wrqu;
--	char buf[128];
--
--	/* TODO: needed parameters: count, keyid, key type, TSC */
--	sprintf(buf, "MLME-MICHAELMICFAILURE.indication(keyid=%d %scast addr="
--		MAC_FMT ")", keyidx, hdr->addr1[0] & 0x01 ? "broad" : "uni",
--		MAC_ARG(hdr->addr2));
--	memset(&wrqu, 0, sizeof(wrqu));
--	wrqu.data.length = strlen(buf);
--	wireless_send_event(dev, IWEVCUSTOM, &wrqu, buf);
--}
--#else /* WIRELESS_EXT >= 15 */
--static inline void ieee80211_michael_mic_failure(struct net_device *dev,
--					      struct ieee80211_hdr *hdr,
--					      int keyidx)
--{
--}
--#endif /* WIRELESS_EXT >= 15 */
- 
- 
- static int ieee80211_michael_mic_verify(struct sk_buff *skb, int keyidx,
-diff -puN drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c
---- a/drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/ieee80211/ieee80211_rx.c
-@@ -644,7 +644,6 @@ int ieee80211_rx(struct ieee80211_device
- 	hdrlen = ieee80211_get_hdrlen(fc);
- 
- #ifdef NOT_YET
--#if WIRELESS_EXT > 15
- 	/* Put this code here so that we avoid duplicating it in all
- 	 * Rx paths. - Jean II */
- #ifdef IW_WIRELESS_SPY		/* defined in iw_handler.h */
-@@ -658,18 +657,15 @@ int ieee80211_rx(struct ieee80211_device
- 		wireless_spy_update(dev, hdr->addr2, &wstats);
- 	}
- #endif /* IW_WIRELESS_SPY */
--#endif /* WIRELESS_EXT > 15 */
- 	hostap_update_rx_stats(local->ap, hdr, rx_stats);
  #endif
  
--#if WIRELESS_EXT > 15
- 	if (ieee->iw_mode == IW_MODE_MONITOR) {
- 		ieee80211_monitor_rx(ieee, skb, rx_stats);
- 		stats->rx_packets++;
- 		stats->rx_bytes += skb->len;
- 		return 1;
- 	}
--#endif
- 	if (ieee->host_decrypt) {
- 		int idx = 0;
- 		if (skb->len >= hdrlen + 3)
-diff -puN drivers/staging/rtl8187se/r8180_core.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/r8180_core.c
---- a/drivers/staging/rtl8187se/r8180_core.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/r8180_core.c
-@@ -592,14 +592,6 @@ static int proc_get_stats_tx(char *page,
+-static struct hw_interrupt_type cpu_interrupt_type = {
++static struct irq_chip cpu_interrupt_type = {
+ 	.typename	= "CPU",
+ 	.startup	= cpu_startup_irq,
+ 	.shutdown	= cpu_disable_irq,
+diff -puN drivers/parisc/dino.c~parisc-remove-obsolete-hw_interrupt_type drivers/parisc/dino.c
+--- a/drivers/parisc/dino.c~parisc-remove-obsolete-hw_interrupt_type
++++ a/drivers/parisc/dino.c
+@@ -353,7 +353,7 @@ static unsigned int dino_startup_irq(uns
+ 	return 0;
  }
  
+-static struct hw_interrupt_type dino_interrupt_type = {
++static struct irq_chip dino_interrupt_type = {
+ 	.typename	= "GSC-PCI",
+ 	.startup	= dino_startup_irq,
+ 	.shutdown	= dino_disable_irq,
+diff -puN drivers/parisc/eisa.c~parisc-remove-obsolete-hw_interrupt_type drivers/parisc/eisa.c
+--- a/drivers/parisc/eisa.c~parisc-remove-obsolete-hw_interrupt_type
++++ a/drivers/parisc/eisa.c
+@@ -188,7 +188,7 @@ static unsigned int eisa_startup_irq(uns
+ 	return 0;
+ }
  
--#if WIRELESS_EXT < 17
--static struct iw_statistics *r8180_get_wireless_stats(struct net_device *dev)
--{
--       struct r8180_priv *priv = ieee80211_priv(dev);
--
--       return &priv->wstats;
--}
--#endif
- void rtl8180_proc_module_init(void)
+-static struct hw_interrupt_type eisa_interrupt_type = {
++static struct irq_chip eisa_interrupt_type = {
+ 	.typename =	"EISA",
+ 	.startup =	eisa_startup_irq,
+ 	.shutdown =	eisa_disable_irq,
+diff -puN drivers/parisc/gsc.c~parisc-remove-obsolete-hw_interrupt_type drivers/parisc/gsc.c
+--- a/drivers/parisc/gsc.c~parisc-remove-obsolete-hw_interrupt_type
++++ a/drivers/parisc/gsc.c
+@@ -148,7 +148,7 @@ static unsigned int gsc_asic_startup_irq
+ 	return 0;
+ }
+ 
+-static struct hw_interrupt_type gsc_asic_interrupt_type = {
++static struct irq_chip gsc_asic_interrupt_type = {
+ 	.typename =	"GSC-ASIC",
+ 	.startup =	gsc_asic_startup_irq,
+ 	.shutdown =	gsc_asic_disable_irq,
+@@ -158,7 +158,7 @@ static struct hw_interrupt_type gsc_asic
+ 	.end =		no_end_irq,
+ };
+ 
+-int gsc_assign_irq(struct hw_interrupt_type *type, void *data)
++int gsc_assign_irq(struct irq_chip *type, void *data)
  {
- 	DMESG("Initializing proc filesystem");
-@@ -5950,12 +5942,7 @@ static int __devinit rtl8180_pci_probe(s
- 	dev->netdev_ops = &rtl8180_netdev_ops;
- 	dev->wireless_handlers = &r8180_wx_handlers_def;
- 
--#if WIRELESS_EXT >= 12
--#if WIRELESS_EXT < 17
--	dev->get_wireless_stats = r8180_get_wireless_stats;
--#endif
- 	dev->wireless_handlers = (struct iw_handler_def *) &r8180_wx_handlers_def;
--#endif
- 
- 	dev->type=ARPHRD_ETHER;
- 	dev->watchdog_timeo = HZ*3; //added by david woo, 2007.12.13
-diff -puN drivers/staging/rtl8187se/r8180_wx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version drivers/staging/rtl8187se/r8180_wx.c
---- a/drivers/staging/rtl8187se/r8180_wx.c~staging-rtl8187se-remove-dependency-on-wireless_ext-version
-+++ a/drivers/staging/rtl8187se/r8180_wx.c
-@@ -1543,7 +1543,6 @@ static iw_handler r8180_private_handler[
- 	r8180_wx_set_forcerate,
- };
- 
--#if WIRELESS_EXT >= 17
- static inline int is_same_network(struct ieee80211_network *src,
-                                   struct ieee80211_network *dst,
- 				  struct ieee80211_device *ieee)
-@@ -1626,7 +1625,6 @@ static struct iw_statistics *r8180_get_w
- 	wstats->qual.updated = IW_QUAL_ALL_UPDATED| IW_QUAL_DBM;
- 	return wstats;
+ 	static int irq = GSC_IRQ_BASE;
+ 	struct irq_desc *desc;
+diff -puN drivers/parisc/gsc.h~parisc-remove-obsolete-hw_interrupt_type drivers/parisc/gsc.h
+--- a/drivers/parisc/gsc.h~parisc-remove-obsolete-hw_interrupt_type
++++ a/drivers/parisc/gsc.h
+@@ -38,7 +38,7 @@ struct gsc_asic {
+ int gsc_common_setup(struct parisc_device *parent, struct gsc_asic *gsc_asic);
+ int gsc_alloc_irq(struct gsc_irq *dev);			/* dev needs an irq */
+ int gsc_claim_irq(struct gsc_irq *dev, int irq);	/* dev needs this irq */
+-int gsc_assign_irq(struct hw_interrupt_type *type, void *data);
++int gsc_assign_irq(struct irq_chip *type, void *data);
+ int gsc_find_local_irq(unsigned int irq, int *global_irq, int limit);
+ void gsc_fixup_irqs(struct parisc_device *parent, void *ctrl,
+ 		void (*choose)(struct parisc_device *child, void *ctrl));
+diff -puN drivers/parisc/iosapic.c~parisc-remove-obsolete-hw_interrupt_type drivers/parisc/iosapic.c
+--- a/drivers/parisc/iosapic.c~parisc-remove-obsolete-hw_interrupt_type
++++ a/drivers/parisc/iosapic.c
+@@ -729,7 +729,7 @@ static int iosapic_set_affinity_irq(unsi
  }
--#endif
+ #endif
  
+-static struct hw_interrupt_type iosapic_interrupt_type = {
++static struct irq_chip iosapic_interrupt_type = {
+ 	.typename =	"IO-SAPIC-level",
+ 	.startup =	iosapic_startup_irq,
+ 	.shutdown =	iosapic_disable_irq,
+diff -puN drivers/parisc/superio.c~parisc-remove-obsolete-hw_interrupt_type drivers/parisc/superio.c
+--- a/drivers/parisc/superio.c~parisc-remove-obsolete-hw_interrupt_type
++++ a/drivers/parisc/superio.c
+@@ -325,7 +325,7 @@ static unsigned int superio_startup_irq(
+ 	return 0;
+ }
  
- struct iw_handler_def  r8180_wx_handlers_def={
-@@ -1635,9 +1633,7 @@ struct iw_handler_def  r8180_wx_handlers
- 	.private = r8180_private_handler,
- 	.num_private = sizeof(r8180_private_handler) / sizeof(iw_handler),
-  	.num_private_args = sizeof(r8180_private_args) / sizeof(struct iw_priv_args),
--#if WIRELESS_EXT >= 17
- 	.get_wireless_stats = r8180_get_wireless_stats,
--#endif
- 	.private_args = (struct iw_priv_args *)r8180_private_args,
- };
- 
+-static struct hw_interrupt_type superio_interrupt_type = {
++static struct irq_chip superio_interrupt_type = {
+ 	.typename =	SUPERIO,
+ 	.startup =	superio_startup_irq,
+ 	.shutdown =	superio_disable_irq,
 _
 
-Patches currently in -mm which might be from a.beregalov@gmail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 linux-next.patch
-vt6655-s-void-void.patch
-staging-otus-remove-dependency-on-wireless_ext-version.patch
-staging-rt2860-remove-dependency-on-wireless_ext-version.patch
+kernel-core-add-smp_call_function_any.patch
+kernel-core-add-smp_call_function_any-update.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
+clocksource-save-mult_orig-in-clocksource_disable.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
 
