@@ -1,64 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch removed from -mm tree
-Date: Sun, 05 Jul 2009 11:42:17 -0700
-Message-ID: <200907051842.n65IgHrV012189@imap1.linux-foundation.org>
+Subject: [folded] fix-virt_to_phys-warnings-fix.patch removed from -mm tree
+Date: Sun, 05 Jul 2009 11:42:45 -0700
+Message-ID: <200907051842.n65IgjaW012679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751687AbZGESm1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jul 2009 14:42:27 -0400
+	by vger.kernel.org with ESMTP id S1750754AbZGESnH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jul 2009 14:43:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, jens.axboe@oracle.com, viro@zeniv.linux.org.uk, yanmin_zhang@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, cernekee@gmail.com, mingo@elte.hu, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix
+     fix-virt_to_phys-warnings-fix
 has been removed from the -mm tree.  Its filename was
-     sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
+     fix-virt_to_phys-warnings-fix.patch
 
-This patch was dropped because it was folded into sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test.patch
+This patch was dropped because it was folded into fix-virt_to_phys-warnings.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix
+Subject: fix-virt_to_phys-warnings-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-restore comment too
+fix kernel/perf_counter.c too.
 
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Zhang Yanmin <yanmin_zhang@linux.intel.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kevin Cernekee <cernekee@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sync.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/perf_counter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/sync.c~sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix fs/sync.c
---- a/fs/sync.c~sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix
-+++ a/fs/sync.c
-@@ -112,6 +112,10 @@ restart:
- 	mutex_unlock(&mutex);
- }
+diff -puN kernel/perf_counter.c~fix-virt_to_phys-warnings-fix kernel/perf_counter.c
+--- a/kernel/perf_counter.c~fix-virt_to_phys-warnings-fix
++++ a/kernel/perf_counter.c
+@@ -2020,7 +2020,7 @@ fail:
  
-+/*
-+ * sync everything.  Start out by waking pdflush, because that writes back
-+ * all queues in parallel.
-+ */
- SYSCALL_DEFINE0(sync)
+ static void perf_mmap_free_page(unsigned long addr)
  {
- 	wakeup_pdflush(0);
+-	struct page *page = virt_to_page(addr);
++	struct page *page = virt_to_page((void *)addr);
+ 
+ 	page->mapping = NULL;
+ 	__free_page(page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test.patch
-sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test-fix.patch
+fix-virt_to_phys-warnings.patch
 fix-virt_to_phys-warnings-fix.patch
 linux-next.patch
 linux-next-git-rejects.patch
