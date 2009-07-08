@@ -1,110 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fix-virt_to_phys-warnings-fix.patch removed from -mm tree
-Date: Sun, 05 Jul 2009 11:42:45 -0700
-Message-ID: <200907051842.n65IgjaW012679@imap1.linux-foundation.org>
+Subject: + page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set.patch added to -mm tree
+Date: Wed, 08 Jul 2009 14:20:14 -0700
+Message-ID: <200907082120.n68LKEKk030084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50618 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750754AbZGESnH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jul 2009 14:43:07 -0400
+	by vger.kernel.org with ESMTP id S1754584AbZGHVWB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2009 17:22:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, cernekee@gmail.com, mingo@elte.hu, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mel@csn.ul.ie, kamezawa.hiroyu@jp.fujitsu.com, narayanan.g@samsung.com, stable@kernel.org
 
 
 The patch titled
-     fix-virt_to_phys-warnings-fix
-has been removed from the -mm tree.  Its filename was
-     fix-virt_to_phys-warnings-fix.patch
+     page-allocator: preserve PFN ordering when __GFP_COLD is set
+has been added to the -mm tree.  Its filename is
+     page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set.patch
 
-This patch was dropped because it was folded into fix-virt_to_phys-warnings.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-virt_to_phys-warnings-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: page-allocator: preserve PFN ordering when __GFP_COLD is set
+From: Mel Gorman <mel@csn.ul.ie>
 
-fix kernel/perf_counter.c too.
+The page allocator tries to preserve contiguous PFN ordering when returning
+pages such that repeated callers to the allocator have a strong chance of
+getting physically contiguous pages, particularly when external fragmentation
+is low.  However, of the bulk of the allocations have __GFP_COLD set as they
+are due to aio_read() for example, then the PFNs are in reverse PFN order. 
+This can cause performance degration when used with IO controllers that could
+have merged the requests.
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Kevin Cernekee <cernekee@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+This patch attempts to preserve the contiguous ordering of PFNs for users of
+__GFP_COLD.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reported-by: NARAYANAN GOPALAKRISHNAN <narayanan.g@samsung.com>
+Tested-by: NARAYANAN GOPALAKRISHNAN <narayanan.g@samsung.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/perf_counter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN kernel/perf_counter.c~fix-virt_to_phys-warnings-fix kernel/perf_counter.c
---- a/kernel/perf_counter.c~fix-virt_to_phys-warnings-fix
-+++ a/kernel/perf_counter.c
-@@ -2020,7 +2020,7 @@ fail:
- 
- static void perf_mmap_free_page(unsigned long addr)
+diff -puN mm/page_alloc.c~page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set
++++ a/mm/page_alloc.c
+@@ -882,7 +882,7 @@ retry_reserve:
+  */
+ static int rmqueue_bulk(struct zone *zone, unsigned int order, 
+ 			unsigned long count, struct list_head *list,
+-			int migratetype)
++			int migratetype, int cold)
  {
--	struct page *page = virt_to_page(addr);
-+	struct page *page = virt_to_page((void *)addr);
+ 	int i;
+ 	
+@@ -901,7 +901,10 @@ static int rmqueue_bulk(struct zone *zon
+ 		 * merge IO requests if the physical pages are ordered
+ 		 * properly.
+ 		 */
+-		list_add(&page->lru, list);
++		if (likely(cold == 0))
++			list_add(&page->lru, list);
++		else
++			list_add_tail(&page->lru, list);
+ 		set_page_private(page, migratetype);
+ 		list = &page->lru;
+ 	}
+@@ -1119,7 +1122,8 @@ again:
+ 		local_irq_save(flags);
+ 		if (!pcp->count) {
+ 			pcp->count = rmqueue_bulk(zone, 0,
+-					pcp->batch, &pcp->list, migratetype);
++					pcp->batch, &pcp->list,
++					migratetype, cold);
+ 			if (unlikely(!pcp->count))
+ 				goto failed;
+ 		}
+@@ -1138,7 +1142,8 @@ again:
+ 		/* Allocate more to the pcp list if necessary */
+ 		if (unlikely(&page->lru == &pcp->list)) {
+ 			pcp->count += rmqueue_bulk(zone, 0,
+-					pcp->batch, &pcp->list, migratetype);
++					pcp->batch, &pcp->list,
++					migratetype, cold);
+ 			page = list_entry(pcp->list.next, struct page, lru);
+ 		}
  
- 	page->mapping = NULL;
- 	__free_page(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test.patch
-fix-virt_to_phys-warnings.patch
-fix-virt_to_phys-warnings-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-misc-work_on_cpu-acpi-dont-do-local_irq_enable-in-hard-irq.patch
-linux-next-temp-hack.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set.patch
+page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator.patch
+memory-hotplug-update-zone-pcp-at-memory-online.patch
 memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
+memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
+memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
+memory-hotplug-migrate-swap-cache-page.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+mm-clean-up-page_remove_rmap.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
