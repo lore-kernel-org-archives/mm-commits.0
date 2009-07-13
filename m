@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel.patch added to -mm tree
-Date: Mon, 13 Jul 2009 14:11:08 -0700
-Message-ID: <200907132111.n6DLB9rN013134@imap1.linux-foundation.org>
+Subject: + jbd-fix-race-bwtween-write_metadata_buffer-and-get_write_access.patch added to -mm tree
+Date: Mon, 13 Jul 2009 14:20:43 -0700
+Message-ID: <200907132120.n6DLKhx9027767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932065AbZGMVLl (ORCPT
+	by vger.kernel.org with ESMTP id S1751932AbZGMVVQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 17:11:41 -0400
+	Mon, 13 Jul 2009 17:21:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthew@wil.cx, arjan@linux.intel.com, willy@linux.intel.com
+Cc: dingdinghua85@gmail.com, tytso@mit.edu
 
 
 The patch titled
-     markup_oops: fix it with 32-bit userspace on a 64-bit kernel
+     jbd: fix race bwtween write_metadata_buffer() and get_write_access()
 has been added to the -mm tree.  Its filename is
-     markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel.patch
+     jbd-fix-race-bwtween-write_metadata_buffer-and-get_write_access.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markup_oops: fix it with 32-bit userspace on a 64-bit kernel
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: jbd: fix race bwtween write_metadata_buffer() and get_write_access()
+From: dingdinghua <dingdinghua85@gmail.com>
 
-A 32-bit perl can't handle 64-bit addresses without using the BigInt
-package.
+The function journal_write_metadata_buffer() calls
+jbd_unlock_bh_state(bh_in) too early; this could potentially allow another
+thread to call get_write_access on the buffer head, modify the data, and
+dirty it, and allowing the wrong data to be written into the journal. 
+Fortunately, if we lose this race, the only time this will actually cause
+filesystem corruption is if there is a system crash or other unclean
+shutdown of the system before the next commit can take place.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: dingdinghua <dingdinghua85@gmail.com>
+Acked-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/markup_oops.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/jbd/journal.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN scripts/markup_oops.pl~markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel scripts/markup_oops.pl
---- a/scripts/markup_oops.pl~markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel
-+++ a/scripts/markup_oops.pl
-@@ -1,6 +1,7 @@
- #!/usr/bin/perl
+diff -puN fs/jbd/journal.c~jbd-fix-race-bwtween-write_metadata_buffer-and-get_write_access fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-fix-race-bwtween-write_metadata_buffer-and-get_write_access
++++ a/fs/jbd/journal.c
+@@ -287,6 +287,7 @@ int journal_write_metadata_buffer(transa
+ 	struct page *new_page;
+ 	unsigned int new_offset;
+ 	struct buffer_head *bh_in = jh2bh(jh_in);
++	journal_t *journal = transaction->t_journal;
  
- use File::Basename;
-+use Math::BigInt;
+ 	/*
+ 	 * The buffer really shouldn't be locked: only the current committing
+@@ -300,6 +301,11 @@ int journal_write_metadata_buffer(transa
+ 	J_ASSERT_BH(bh_in, buffer_jbddirty(bh_in));
  
- # Copyright 2008, Intel Corporation
- #
-@@ -172,8 +173,8 @@ while (<STDIN>) {
- 	parse_x86_regs($line);
- }
+ 	new_bh = alloc_buffer_head(GFP_NOFS|__GFP_NOFAIL);
++	/* keep subsequent assertions sane */
++	new_bh->b_state = 0;
++	init_buffer(new_bh, NULL, NULL);
++	atomic_set(&new_bh->b_count, 1);
++	new_jh = journal_add_journal_head(new_bh);	/* This sleeps */
  
--my $decodestart = hex($target) - hex($func_offset);
--my $decodestop = hex($target) + 8192;
-+my $decodestart = Math::BigInt->from_hex("0x$target") - Math::BigInt->from_hex("0x$func_offset");
-+my $decodestop = Math::BigInt->from_hex("0x$target") + 8192;
- if ($target eq "0") {
- 	print "No oops found!\n";
- 	print "Usage: \n";
-_
-
-Patches currently in -mm which might be from matthew@wil.cx are
-
-origin.patch
-markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel.patch
-linux-next.patch
-make-sure-nobodys-leaking-resources.patch
-
+ 	/*
+ 	 * If a new transaction has already done a buffer copy-out, then
+@@ -361,14 +367,6 @@ repeat:
+ 		kunmap_atomic(mapped_data, KM_USER0);
+ 	}
+ 
+-	/* keep subsequent assertions sane */
+-	new_bh->b_state = 0;
+-	init_buffer(new_bh, NULL, NULL);
+-	atomic_set(&new_bh->b_count, 1);
+-	jbd_unlock_bh_state(bh_in);
+-
+-	new_jh = journal_add_journal_head(new_bh);	/* This sleeps */
