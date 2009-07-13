@@ -1,75 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - mx3fb-initialize-mm_lock-in-init_fb_chan.patch removed from -mm tree
-Date: Mon, 13 Jul 2009 14:05:04 -0700
-Message-ID: <200907132105.n6DL55ns003721@imap1.linux-foundation.org>
+Subject: + markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel.patch added to -mm tree
+Date: Mon, 13 Jul 2009 14:11:08 -0700
+Message-ID: <200907132111.n6DLB9rN013134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756643AbZGMVH3 (ORCPT
+	by vger.kernel.org with ESMTP id S932065AbZGMVLl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 17:07:29 -0400
+	Mon, 13 Jul 2009 17:11:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@caiaq.de, a.p.zijlstra@chello.nl, krzysztof.h1@wp.pl, rjw@sisk.pl, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: matthew@wil.cx, arjan@linux.intel.com, willy@linux.intel.com
 
 
 The patch titled
-     mx3fb: initialize mm_lock in init_fb_chan()
-has been removed from the -mm tree.  Its filename was
-     mx3fb-initialize-mm_lock-in-init_fb_chan.patch
+     markup_oops: fix it with 32-bit userspace on a 64-bit kernel
+has been added to the -mm tree.  Its filename is
+     markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel.patch
 
-This patch was dropped because of confusion
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mx3fb: initialize mm_lock in init_fb_chan()
-From: Daniel Mack <daniel@caiaq.de>
+Subject: markup_oops: fix it with 32-bit userspace on a 64-bit kernel
+From: Matthew Wilcox <matthew@wil.cx>
 
-In 537a1bf05 ("fbdev: add mutex for fb_mmap locking"), a per-fbinfo mutex
-was added and framebuffer drivers were adopted accordingly.  This new lock
-is currently initialized in register_framebuffer().
+A 32-bit perl can't handle 64-bit addresses without using the BigInt
+package.
 
-The mx3fb driver takes this lock in mx3fb_map_video_memory() _before_
-register_framebuffer() is called and hence crashes the system very early.
-
-To fix this, initialize this lock init_fb_chan() in the mx3fb driver.
-
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: <stable@kernel.org>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mx3fb.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/markup_oops.pl |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/mx3fb.c~mx3fb-initialize-mm_lock-in-init_fb_chan drivers/video/mx3fb.c
---- a/drivers/video/mx3fb.c~mx3fb-initialize-mm_lock-in-init_fb_chan
-+++ a/drivers/video/mx3fb.c
-@@ -1362,6 +1362,7 @@ static int init_fb_chan(struct mx3fb_dat
- 	mx3fbi->mx3fb		= mx3fb;
- 	mx3fbi->blank		= FB_BLANK_NORMAL;
+diff -puN scripts/markup_oops.pl~markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel scripts/markup_oops.pl
+--- a/scripts/markup_oops.pl~markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel
++++ a/scripts/markup_oops.pl
+@@ -1,6 +1,7 @@
+ #!/usr/bin/perl
  
-+	mutex_init(&fbi->mm_lock);
- 	init_completion(&mx3fbi->flip_cmpl);
- 	disable_irq(ichan->eof_irq);
- 	dev_dbg(mx3fb->dev, "disabling irq %d\n", ichan->eof_irq);
+ use File::Basename;
++use Math::BigInt;
+ 
+ # Copyright 2008, Intel Corporation
+ #
+@@ -172,8 +173,8 @@ while (<STDIN>) {
+ 	parse_x86_regs($line);
+ }
+ 
+-my $decodestart = hex($target) - hex($func_offset);
+-my $decodestop = hex($target) + 8192;
++my $decodestart = Math::BigInt->from_hex("0x$target") - Math::BigInt->from_hex("0x$func_offset");
++my $decodestop = Math::BigInt->from_hex("0x$target") + 8192;
+ if ($target eq "0") {
+ 	print "No oops found!\n";
+ 	print "Usage: \n";
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from matthew@wil.cx are
 
 origin.patch
-mx3fb-initialize-mm_lock-in-init_fb_chan.patch
+markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel.patch
 linux-next.patch
-lis3-fix-typo.patch
-lis3-add-free-fall-wakeup-function-via-platform_data.patch
-lis3-add-power-management-functions.patch
-lis3-add-power-management-functions-fix.patch
-lis3_spi-code-cleanups.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+make-sure-nobodys-leaking-resources.patch
 
