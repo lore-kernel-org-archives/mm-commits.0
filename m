@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion.patch added to -mm tree
-Date: Mon, 13 Jul 2009 16:02:56 -0700
-Message-ID: <200907132302.n6DN2uDE021814@imap1.linux-foundation.org>
+Subject: + acerhdf-fix-fan-control-for-aoa150-model.patch added to -mm tree
+Date: Mon, 13 Jul 2009 16:06:27 -0700
+Message-ID: <200907132306.n6DN6Rxw027206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47453 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753342AbZGMXDE (ORCPT
+	by vger.kernel.org with ESMTP id S1753808AbZGMXHm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 19:03:04 -0400
+	Mon, 13 Jul 2009 19:07:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, gregkh@suse.de, sarah.a.sharp@linux.intel.com
+Cc: peter@piie.net, andi@lisas.de, lenb@kernel.org, petkovbb@googlemail.com
 
 
 The patch titled
-     drivers/usb/host/xhci-dbg.c: less- and greater than confusion
+     acerhdf: fix fan control for AOA150 model
 has been added to the -mm tree.  Its filename is
-     drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion.patch
+     acerhdf-fix-fan-control-for-aoa150-model.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,241 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/host/xhci-dbg.c: less- and greater than confusion
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: acerhdf: fix fan control for AOA150 model
+From: Peter Feuerer <peter@piie.net>
 
-Without this change the loops won't start
+- Apply Borislav Petkov's patch (convert the fancmd[] array to a real
+  struct thus disambiguating command handling and making code more
+  readable.)
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+- Add BIOS product to BIOS table as AOA110 and AOA150 have different
+  register values
+
+- Add force_product parameter to allow forcing different product
+
+- fix linker warning caused by "acerhdf_drv" not being named
+  "acerhdf_driver"
+
+Signed-off-by: Peter Feuerer <peter@piie.net>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Borislav Petkov <petkovbb@googlemail.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/xhci-dbg.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/platform/x86/acerhdf.c |   97 +++++++++++++++++++++----------
+ 1 file changed, 66 insertions(+), 31 deletions(-)
 
-diff -puN drivers/usb/host/xhci-dbg.c~drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion drivers/usb/host/xhci-dbg.c
---- a/drivers/usb/host/xhci-dbg.c~drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion
-+++ a/drivers/usb/host/xhci-dbg.c
-@@ -419,7 +419,7 @@ void xhci_dbg_ctx(struct xhci_hcd *xhci,
- 			&ctx->add_flags, (unsigned long long)dma,
- 			ctx->add_flags);
- 	dma += field_size;
--	for (i = 0; i > 6; ++i) {
-+	for (i = 0; i < 6; ++i) {
- 		xhci_dbg(xhci, "@%p (virt) @%08llx (dma) %#08x - rsvd[%d]\n",
- 				&ctx->rsvd[i], (unsigned long long)dma,
- 				ctx->rsvd[i], i);
-@@ -443,7 +443,7 @@ void xhci_dbg_ctx(struct xhci_hcd *xhci,
- 			&ctx->slot.dev_state,
- 			(unsigned long long)dma, ctx->slot.dev_state);
- 	dma += field_size;
--	for (i = 0; i > 4; ++i) {
-+	for (i = 0; i < 4; ++i) {
- 		xhci_dbg(xhci, "@%p (virt) @%08llx (dma) %#08x - rsvd[%d]\n",
- 				&ctx->slot.reserved[i], (unsigned long long)dma,
- 				ctx->slot.reserved[i], i);
+diff -puN drivers/platform/x86/acerhdf.c~acerhdf-fix-fan-control-for-aoa150-model drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~acerhdf-fix-fan-control-for-aoa150-model
++++ a/drivers/platform/x86/acerhdf.c
+@@ -52,7 +52,7 @@
+  */
+ #undef START_IN_KERNEL_MODE
+ 
+-#define DRV_VER "0.5.13"
++#define DRV_VER "0.5.16"
+ 
+ /*
+  * According to the Atom N270 datasheet,
+@@ -90,6 +90,7 @@ static unsigned int fanoff = 58;
+ static unsigned int verbose;
+ static unsigned int fanstate = ACERHDF_FAN_AUTO;
+ static char force_bios[16];
++static char force_product[16];
+ static unsigned int prev_interval;
+ struct thermal_zone_device *thz_dev;
+ struct thermal_cooling_device *cl_dev;
+@@ -107,34 +108,58 @@ module_param(verbose, uint, 0600);
+ MODULE_PARM_DESC(verbose, "Enable verbose dmesg output");
+ module_param_string(force_bios, force_bios, 16, 0);
+ MODULE_PARM_DESC(force_bios, "Force BIOS version and omit BIOS check");
++module_param_string(force_product, force_product, 16, 0);
++MODULE_PARM_DESC(force_product, "Force BIOS product and omit BIOS check");
++
++/*
++ * cmd_off: to switch the fan completely off / to check if the fan is off
++ *	cmd_auto: to set the BIOS in control of the fan. The BIOS regulates then
++ *		the fan speed depending on the temperature
++ */
++struct fancmd {
++	u8 cmd_off;
++	u8 cmd_auto;
++};
+ 
+ /* BIOS settings */
+ struct bios_settings_t {
+ 	const char *vendor;
++	const char *product;
+ 	const char *version;
+ 	unsigned char fanreg;
+ 	unsigned char tempreg;
+-	unsigned char fancmd[2]; /* fan off and auto commands */
++	struct fancmd cmd;
+ };
+ 
+ /* Register addresses and values for different BIOS versions */
+ static const struct bios_settings_t bios_tbl[] = {
+-	{"Acer", "v0.3109", 0x55, 0x58, {0x1f, 0x00} },
+-	{"Acer", "v0.3114", 0x55, 0x58, {0x1f, 0x00} },
+-	{"Acer", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
+-	{"Acer", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
+-	{"Acer", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
+-	{"Gateway", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
+-	{"Packard Bell", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
+-	{"", "", 0, 0, {0, 0} }
++	/* AOA110 */
++	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x00} },
++	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x00} },
++	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
++	/* AOA150 */
++	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x00} },
++	/* special BIOS / other */
++	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
++	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x00} },
++	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x00} },
++	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
++	/* pewpew-terminator */
++	{"", "", "", 0, 0, {0, 0} }
+ };
+ 
+ static const struct bios_settings_t *bios_cfg __read_mostly;
+ 
+-
+ static int acerhdf_get_temp(int *temp)
+ {
+ 	u8 read_temp;
+@@ -150,13 +175,14 @@ static int acerhdf_get_temp(int *temp)
+ static int acerhdf_get_fanstate(int *state)
+ {
+ 	u8 fan;
+-	bool tmp;
+ 
+ 	if (ec_read(bios_cfg->fanreg, &fan))
+ 		return -EINVAL;
+ 
+-	tmp = (fan == bios_cfg->fancmd[ACERHDF_FAN_OFF]);
+-	*state = tmp ? ACERHDF_FAN_OFF : ACERHDF_FAN_AUTO;
++	if (fan != bios_cfg->cmd.cmd_off)
++		*state = ACERHDF_FAN_AUTO;
++	else
++		*state = ACERHDF_FAN_OFF;
+ 
+ 	return 0;
+ }
+@@ -175,7 +201,8 @@ static void acerhdf_change_fanstate(int 
+ 		state = ACERHDF_FAN_AUTO;
+ 	}
+ 
+-	cmd = bios_cfg->fancmd[state];
++	cmd = (state == ACERHDF_FAN_OFF) ? bios_cfg->cmd.cmd_off
++					 : bios_cfg->cmd.cmd_auto;
+ 	fanstate = state;
+ 
+ 	ec_write(bios_cfg->fanreg, cmd);
+@@ -437,7 +464,7 @@ static int acerhdf_remove(struct platfor
+ 	return 0;
+ }
+ 
+-struct platform_driver acerhdf_drv = {
++static struct platform_driver acerhdf_driver = {
+ 	.driver = {
+ 		.name = "acerhdf",
+ 		.owner = THIS_MODULE,
+@@ -454,32 +481,40 @@ static int acerhdf_check_hardware(void)
+ {
+ 	char const *vendor, *version, *product;
+ 	int i;
++	unsigned long prod_len = 0;
+ 
+ 	/* get BIOS data */
+ 	vendor  = dmi_get_system_info(DMI_SYS_VENDOR);
+ 	version = dmi_get_system_info(DMI_BIOS_VERSION);
+ 	product = dmi_get_system_info(DMI_PRODUCT_NAME);
+ 
++
+ 	pr_info("Acer Aspire One Fan driver, v.%s\n", DRV_VER);
+ 
+-	if (!force_bios[0]) {
+-		if (strncmp(product, "AO", 2)) {
+-			pr_err("no Aspire One hardware found\n");
+-			return -EINVAL;
+-		}
+-	} else {
+-		pr_info("forcing BIOS version: %s\n", version);
++	if (force_bios[0]) {
+ 		version = force_bios;
++		pr_info("forcing BIOS version: %s\n", version);
+ 		kernelmode = 0;
+ 	}
+ 
++	if (force_product[0]) {
++		product = force_product;
++		pr_info("forcing BIOS product: %s\n", product);
++		kernelmode = 0;
++	}
++
++	prod_len = strlen(product);
++
+ 	if (verbose)
+ 		pr_info("BIOS info: %s %s, product: %s\n",
+ 			vendor, version, product);
+ 
+ 	/* search BIOS version and vendor in BIOS settings table */
+ 	for (i = 0; bios_tbl[i].version[0]; i++) {
+-		if (!strcmp(bios_tbl[i].vendor, vendor) &&
++		if (strlen(bios_tbl[i].product) >= prod_len &&
++		    !strncmp(bios_tbl[i].product, product,
++			   strlen(bios_tbl[i].product)) &&
++		    !strcmp(bios_tbl[i].vendor, vendor) &&
+ 		    !strcmp(bios_tbl[i].version, version)) {
+ 			bios_cfg = &bios_tbl[i];
+ 			break;
+@@ -487,8 +522,8 @@ static int acerhdf_check_hardware(void)
+ 	}
+ 
+ 	if (!bios_cfg) {
+-		pr_err("unknown (unsupported) BIOS version %s/%s, "
+-			"please report, aborting!\n", vendor, version);
++		pr_err("unknown (unsupported) BIOS version %s/%s/%s, "
++			"please report, aborting!\n", vendor, product, version);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -509,7 +544,7 @@ static int acerhdf_register_platform(voi
+ {
+ 	int err = 0;
+ 
+-	err = platform_driver_register(&acerhdf_drv);
++	err = platform_driver_register(&acerhdf_driver);
+ 	if (err)
+ 		return err;
+ 
+@@ -525,7 +560,7 @@ static void acerhdf_unregister_platform(
+ 		return;
+ 
+ 	platform_device_del(acerhdf_dev);
+-	platform_driver_unregister(&acerhdf_drv);
++	platform_driver_unregister(&acerhdf_driver);
+ }
+ 
+ static int acerhdf_register_thermal(void)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from peter@piie.net are
 
-linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-ext4-remove-redundant-test-on-unsigned.patch
-drivers-gpu-drm-ttm-ttm_bo_vmc-fix-misplaced-parentheses.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-platinumfb-misplaced-parenthesis.patch
-adfs-remove-redundant-test-on-unsigned.patch
-drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion.patch
+acerhdf-fix-fan-control-for-aoa150-model.patch
 
