@@ -1,96 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 13 Jul 2009 11:49:08 -0700
-Message-ID: <200907131849.n6DIn873023481@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-temp-hack.patch removed from -mm tree
+Date: Mon, 13 Jul 2009 11:51:12 -0700
+Message-ID: <200907131851.n6DIpCGk026512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751429AbZGMStL (ORCPT
+	by vger.kernel.org with ESMTP id S1751236AbZGMSvU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 14:49:11 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n6DIn9m1004552
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2009 11:49:10 -0700
+	Mon, 13 Jul 2009 14:51:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     linux-next temp hack
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     linux-next-temp-hack.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: linux-next temp hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Jens took this away.
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/smp-cmp.c |   32 --------------------------------
- 1 file changed, 32 deletions(-)
+ fs/sync.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/kernel/smp-cmp.c~linux-next-git-rejects arch/mips/kernel/smp-cmp.c
---- a/arch/mips/kernel/smp-cmp.c~linux-next-git-rejects
-+++ a/arch/mips/kernel/smp-cmp.c
-@@ -37,40 +37,8 @@
- #include <asm/mipsregs.h>
- #include <asm/mipsmtregs.h>
- #include <asm/mips_mt.h>
--<<<<<<< HEAD:arch/mips/kernel/smp-cmp.c
- #include <asm/amon.h>
- #include <asm/gic.h>
--=======
--
--/*
-- * Crude manipulation of the CPU masks to control which
-- * which CPU's are brought online during initialisation
-- *
-- * Beware... this needs to be called after CPU discovery
-- * but before CPU bringup
-- */
--static int __init allowcpus(char *str)
--{
--	cpumask_t cpu_allow_map;
--	char buf[256];
--	int len;
--
--	cpus_clear(cpu_allow_map);
--	if (cpulist_parse(str, &cpu_allow_map) == 0) {
--		cpu_set(0, cpu_allow_map);
--		unsigned int i;
--		for (i = 1; i < nr_cpu_ids; i++)
--			if (!cpumask_test_cpu(i, cpu_allow_map))
--				set_cpu_possible(i, false);
--		len = cpulist_scnprintf(buf, sizeof(buf)-1, &cpu_possible_map);
--		buf[len] = '\0';
--		pr_debug("Allowable CPUs: %s\n", buf);
--		return 1;
--	} else
--		return 0;
--}
--__setup("allowcpus=", allowcpus);
-->>>>>>> FETCH_HEAD:arch/mips/kernel/smp-cmp.c
- 
- static void ipi_call_function(unsigned int cpu)
+diff -puN fs/sync.c~linux-next-temp-hack fs/sync.c
+--- a/fs/sync.c~linux-next-temp-hack
++++ a/fs/sync.c
+@@ -118,7 +118,7 @@ restart:
+  */
+ SYSCALL_DEFINE0(sync)
  {
+-	wakeup_pdflush(0);
++//	wakeup_pdflush(0);
+ 	sync_filesystems(0);
+ 	sync_filesystems(1);
+ 	if (unlikely(laptop_mode))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
-misc-work_on_cpu-acpi-dont-do-local_irq_enable-in-hard-irq.patch
 linux-next-temp-hack.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 platform_device_add_data-use-kmemdup.patch
