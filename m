@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-use-tabs-in-acer-aspire-one.patch added to -mm tree
-Date: Mon, 13 Jul 2009 14:57:07 -0700
-Message-ID: <200907132157.n6DLv7tC018718@imap1.linux-foundation.org>
+Subject: + maintainers-ia64-pair-p-m-entries-properly.patch added to -mm tree
+Date: Mon, 13 Jul 2009 14:57:01 -0700
+Message-ID: <200907132157.n6DLv281018549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52649 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757483AbZGMV5k (ORCPT
+	by vger.kernel.org with ESMTP id S1752293AbZGMV5f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 17:57:40 -0400
+	Mon, 13 Jul 2009 17:57:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: Use tabs in ACER ASPIRE ONE
+     MAINTAINERS: IA64 - pair P:/M: entries properly
 has been added to the -mm tree.  Its filename is
-     maintainers-use-tabs-in-acer-aspire-one.patch
+     maintainers-ia64-pair-p-m-entries-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Use tabs in ACER ASPIRE ONE
+Subject: MAINTAINERS: IA64 - pair P:/M: entries properly
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-use-tabs-in-acer-aspire-one MAINTAINERS
---- a/MAINTAINERS~maintainers-use-tabs-in-acer-aspire-one
+diff -puN MAINTAINERS~maintainers-ia64-pair-p-m-entries-properly MAINTAINERS
+--- a/MAINTAINERS~maintainers-ia64-pair-p-m-entries-properly
 +++ a/MAINTAINERS
-@@ -231,11 +231,11 @@ S:	Maintained
- F:	drivers/net/acenic*
+@@ -2864,8 +2864,8 @@ S:	Maintained
  
- ACER ASPIRE ONE TEMPERATURE AND FAN DRIVER
--P: Peter Feuerer
--M: peter@piie.net
--W: http://piie.net/?section=acerhdf
--S: Maintained
--F: drivers/platform/x86/acerhdf.c
-+P:	Peter Feuerer
-+M:	peter@piie.net
-+W:	http://piie.net/?section=acerhdf
-+S:	Maintained
-+F:	drivers/platform/x86/acerhdf.c
- 
- ACER WMI LAPTOP EXTRAS
- P:	Carlos Corbacho
+ IA64 (Itanium) PLATFORM
+ P:	Tony Luck
+-P:	Fenghua Yu
+ M:	tony.luck@intel.com
++P:	Fenghua Yu
+ M:	fenghua.yu@intel.com
+ L:	linux-ia64@vger.kernel.org
+ W:	http://www.ia64-linux.org/
 _
 
 Patches currently in -mm which might be from joe@perches.com are
