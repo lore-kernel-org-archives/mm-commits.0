@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-kernel-janitors.patch added to -mm tree
-Date: Mon, 13 Jul 2009 14:57:15 -0700
-Message-ID: <200907132157.n6DLvFB9018975@imap1.linux-foundation.org>
+Subject: + maintainers-remove-cs461x-sound-card-section.patch added to -mm tree
+Date: Mon, 13 Jul 2009 14:57:23 -0700
+Message-ID: <200907132157.n6DLvNa5019199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53810 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757539AbZGMV5s (ORCPT
+	by vger.kernel.org with ESMTP id S1757569AbZGMV54 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 17:57:48 -0400
+	Mon, 13 Jul 2009 17:57:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: Update KERNEL JANITORS
+     MAINTAINERS: Remove CS461x sound card section
 has been added to the -mm tree.  Its filename is
-     maintainers-update-kernel-janitors.patch
+     maintainers-remove-cs461x-sound-card-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Update KERNEL JANITORS
+Subject: MAINTAINERS: Remove CS461x sound card section
 From: Joe Perches <joe@perches.com>
+
+Thomas Woller's email address bounces
+Nils Faerber isn't active
+
+Added Thomas Woller to CREDITS, Nils already has an entry
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ CREDITS     |    3 +++
+ MAINTAINERS |    9 ---------
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-kernel-janitors MAINTAINERS
---- a/MAINTAINERS~maintainers-update-kernel-janitors
+diff -puN CREDITS~maintainers-remove-cs461x-sound-card-section CREDITS
+--- a/CREDITS~maintainers-remove-cs461x-sound-card-section
++++ a/CREDITS
+@@ -3805,6 +3805,9 @@ S: van Bronckhorststraat 12
+ S: 2612 XV Delft
+ S: The Netherlands
+ 
++N: Thomas Woller
++D: CS461x Cirrus Logic sound driver
++
+ N: David Woodhouse
+ E: dwmw2@infradead.org
+ D: JFFS2 file system, Memory Technology Device subsystem,
+diff -puN MAINTAINERS~maintainers-remove-cs461x-sound-card-section MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-cs461x-sound-card-section
 +++ a/MAINTAINERS
-@@ -3379,10 +3379,9 @@ F:	Makefile
- F:	scripts/Makefile.*
+@@ -1512,15 +1512,6 @@ L:	alsa-devel@alsa-project.org (moderate
+ S:	Supported
+ F:	sound/soc/codecs/cs4270*
  
- KERNEL JANITORS
--P:	Several
- L:	kernel-janitors@vger.kernel.org
- W:	http://janitor.kernelnewbies.org/
+-CIRRUS LOGIC CS4280/CS461x SOUNDDRIVER
+-P:	Cirrus Logic Corporation (kernel 2.2 driver)
+-M:	Cirrus Logic Corporation, Thomas Woller <twoller@crystal.cirrus.com>
+-P:	Nils Faerber (port to kernel 2.4)
+-M:	Nils Faerber <nils@kernelconcepts.de>
 -S:	Maintained
-+S:	Odd fixes
- 
- KERNEL NFSD, SUNRPC, AND LOCKD SERVERS
- P:	J. Bruce Fields
+-F:	Documentation/input/cs461x.txt
+-F:	sound/pci/cs46xx/
+-
+ CLK API
+ P:	Russell King
+ M:	linux@arm.linux.org.uk
 _
 
 Patches currently in -mm which might be from joe@perches.com are
