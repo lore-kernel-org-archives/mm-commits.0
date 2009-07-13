@@ -1,85 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] usb-serial-regression-fix-to-move-sysrq-from-hot-path.patch removed from -mm tree
-Date: Mon, 13 Jul 2009 11:54:38 -0700
-Message-ID: <200907131854.n6DIscHb031860@imap1.linux-foundation.org>
+Subject: + maintainers-update-jfs-entry.patch added to -mm tree
+Date: Mon, 13 Jul 2009 14:04:51 -0700
+Message-ID: <200907132104.n6DL4ptk003461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39955 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36323 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751732AbZGMSym (ORCPT
+	by vger.kernel.org with ESMTP id S1756931AbZGMVFW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 14:54:42 -0400
+	Mon, 13 Jul 2009 17:05:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jason.wessel@windriver.com, alan@linux.intel.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: shaggy@linux.vnet.ibm.com
 
 
 The patch titled
-     usb-serial: regression fix to move sysrq from hot path
-has been removed from the -mm tree.  Its filename was
-     usb-serial-regression-fix-to-move-sysrq-from-hot-path.patch
+     MAINTAINERS: update JFS entry
+has been added to the -mm tree.  Its filename is
+     maintainers-update-jfs-entry.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-serial: regression fix to move sysrq from hot path
-From: Jason Wessel <jason.wessel@windriver.com>
+Subject: MAINTAINERS: update JFS entry
+From: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 
-A performance regression was introduced by commit
-98fcb5f78165b8a3d93870ad7afd4d9ebbb8b43a ("USB: serial:
-usb_debug,usb_generic_serial: implement sysrq and serial break").
+JFS hasn't really been supported for a while.  It's still maintained, but
+saying it's supported is a stretch.  Updating my preferred email address
+as well.
 
-The sysrq handling should only get executed if the attached usb serial
-device is acting as a serial system console.  A serial system console has
-a very low input throughput vs a 3g usb modem which pushes bytes through
-the same interface at a high rate.
-
-Entire strings of output can be processed via the tty input when the
-device is not a console.
-
-Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
-Acked-by: Alan Cox <alan@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/generic.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/generic.c~usb-serial-regression-fix-to-move-sysrq-from-hot-path drivers/usb/serial/generic.c
---- a/drivers/usb/serial/generic.c~usb-serial-regression-fix-to-move-sysrq-from-hot-path
-+++ a/drivers/usb/serial/generic.c
-@@ -425,11 +425,19 @@ static void flush_and_resubmit_read_urb(
- 		goto done;
+diff -puN MAINTAINERS~maintainers-update-jfs-entry MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-jfs-entry
++++ a/MAINTAINERS
+@@ -3287,11 +3287,11 @@ F:	include/linux/ivtv*
  
- 	/* Push data to tty */
--	for (i = 0; i < urb->actual_length; i++, ch++) {
--		if (!usb_serial_handle_sysrq_char(port, *ch))
--			tty_insert_flip_char(tty, *ch, TTY_NORMAL);
-+	if (port->console) {
-+		for (i = 0; i < urb->actual_length; i++, ch++) {
-+			if (!usb_serial_handle_sysrq_char(port, *ch))
-+				tty_insert_flip_char(tty, *ch, TTY_NORMAL);
-+		}
-+		tty_flip_buffer_push(tty);
-+	} else if (urb->actual_length) {
-+		i = tty_buffer_request_room(tty, urb->actual_length);
-+		if (i) {
-+			tty_insert_flip_string(tty, urb->transfer_buffer, i);
-+			tty_flip_buffer_push(tty);
-+		}
- 	}
--	tty_flip_buffer_push(tty);
- 	tty_kref_put(tty);
- done:
- 	usb_serial_generic_resubmit_read_urb(port, GFP_ATOMIC);
+ JFS FILESYSTEM
+ P:	Dave Kleikamp
+-M:	shaggy@austin.ibm.com
++M:	shaggy@linux.vnet.ibm.com
+ L:	jfs-discussion@lists.sourceforge.net
+ W:	http://jfs.sourceforge.net/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/shaggy/jfs-2.6.git
+-S:	Supported
++S:	Maintained
+ F:	Documentation/filesystems/jfs.txt
+ F:	fs/jfs/
+ 
 _
 
-Patches currently in -mm which might be from jason.wessel@windriver.com are
+Patches currently in -mm which might be from shaggy@linux.vnet.ibm.com are
 
-linux-next.patch
-usb-serial-regression-fix-to-move-sysrq-from-hot-path.patch
-frv-duplicate-output_buffer-of-e03.patch
+maintainers-update-jfs-entry.patch
 
