@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-add-f-directory-use.patch added to -mm tree
-Date: Mon, 13 Jul 2009 14:57:31 -0700
-Message-ID: <200907132157.n6DLvVTB019324@imap1.linux-foundation.org>
+Subject: + get_maintainerpl-add-git-min-percent-option.patch added to -mm tree
+Date: Mon, 13 Jul 2009 14:57:33 -0700
+Message-ID: <200907132157.n6DLvXMj019464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50462 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757571AbZGMV6E (ORCPT
+	by vger.kernel.org with ESMTP id S1757571AbZGMV6G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 17:58:04 -0400
+	Mon, 13 Jul 2009 17:58:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: Add -f directory use
+     get_maintainer.pl: Add git-min-percent option
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-add-f-directory-use.patch
+     get_maintainerpl-add-git-min-percent-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: Add -f directory use
+Subject: get_maintainer.pl: Add git-min-percent option
 From: Joe Perches <joe@perches.com>
 
-Don't require a specific file in a directory to be tested.
+Allow an option to control the minimum percentage of sign-offs required
+before being considered a maintainer.
 
-Also Arnd Bergmann pointed out that the MAINTAINERS pattern requirement
-that directory patterns have a trailing slash was unnecessary and was
-likely to be error prone.  Removed that requirement.
+git-min-percent has a default value of 5
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ scripts/get_maintainer.pl |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-f-directory-use scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-f-directory-use
+diff -puN scripts/get_maintainer.pl~get_maintainerpl-add-git-min-percent-option scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainerpl-add-git-min-percent-option
 +++ a/scripts/get_maintainer.pl
-@@ -13,7 +13,7 @@
- use strict;
+@@ -27,6 +27,7 @@ my $email_git = 1;
+ my $email_git_penguin_chiefs = 0;
+ my $email_git_min_signatures = 1;
+ my $email_git_max_maintainers = 5;
++my $email_git_min_percent = 5;
+ my $email_git_since = "1-year-ago";
+ my $output_multiline = 1;
+ my $output_separator = ", ";
+@@ -65,6 +66,7 @@ if (!GetOptions(
+ 		'git-chief-penguins!' => \$email_git_penguin_chiefs,
+ 		'git-min-signatures=i' => \$email_git_min_signatures,
+ 		'git-max-maintainers=i' => \$email_git_max_maintainers,
++		'git-min-percent=i' => \$email_git_min_percent,
+ 		'git-since=s' => \$email_git_since,
+ 		'm!' => \$email_maintainer,
+ 		'n!' => \$email_usename,
+@@ -307,6 +309,7 @@ MAINTAINER field selection options:
+     --git-chief-penguins => include ${penguin_chiefs}
+     --git-min-signatures => number of signatures required (default: 1)
+     --git-max-maintainers => maximum maintainers to add (default: 5)
++    --git-min-percent => minimum percentage of commits required (default: 0)
+     --git-since => git history to use (default: 1-year-ago)
+     --m => include maintainer(s) if any
+     --n => include name 'Full Name <addr\@domain.tld>'
+@@ -497,6 +500,7 @@ sub recent_git_signoffs {
+     my $output = "";
+     my $count = 0;
+     my @lines = ();
++    my $total_sign_offs;
  
- my $P = $0;
--my $V = '0.16';
-+my $V = '0.17';
+     if (which("git") eq "") {
+ 	warn("$P: git not found.  Add --nogit to options?\n");
+@@ -520,17 +524,26 @@ sub recent_git_signoffs {
+     $output =~ s/^\s*//gm;
  
- use Getopt::Long qw(:config no_auto_abbrev);
- 
-@@ -132,6 +132,10 @@ while (<MAINT>) {
- 	    $value =~ s@\.@\\\.@g;       ##Convert . to \.
- 	    $value =~ s/\*/\.\*/g;       ##Convert * to .*
- 	    $value =~ s/\?/\./g;         ##Convert ? to .
-+	    ##if pattern is a directory and it lacks a trailing slash, add one
-+	    if ((-d $value)) {
-+		$value =~ s@([^/])$@$1/@;
-+	    }
- 	}
- 	push(@typevalue, "$type:$value");
-     } elsif (!/^(\s)*$/) {
-@@ -146,8 +150,10 @@ close(MAINT);
- my @files = ();
- 
- foreach my $file (@ARGV) {
--    next if ((-d $file));
--    if (!(-f $file)) {
-+    ##if $file is a directory and it lacks a trailing slash, add one
-+    if ((-d $file)) {
-+	$file =~ s@([^/])$@$1/@;
-+    } elsif (!(-f $file)) {
- 	die "$P: file '${file}' not found\n";
-     }
-     if ($from_filename) {
-@@ -292,7 +298,7 @@ sub file_match_pattern {
- sub usage {
-     print <<EOT;
- usage: $P [options] patchfile
--       $P [options] -f file
-+       $P [options] -f file|directory
- version: $V
- 
- MAINTAINER field selection options:
-@@ -322,6 +328,15 @@ Other options:
-   --version => show version
-   --help => show this help information
- 
-+Notes:
-+  Using "-f directory" may give unexpected results:
+     @lines = split("\n", $output);
 +
-+  Used with "--git", git signators for _all_ files in and below
-+     directory are examined as git recurses directories.
-+     Any specified X: (exclude) pattern matches are _not_ ignored.
-+  Used with "--nogit", directory is used as a pattern match,
-+     no individual file within the directory or subdirectory
-+     is matched.
- EOT
- }
- 
++    $total_sign_offs = 0;
++    foreach my $line (@lines) {
++	if ($line =~ m/([0-9]+)\s+(.*)/) {
++	    $total_sign_offs += $1;
++	} else {
++	    die("$P: Unexpected git output: ${line}\n");
++	}
++    }
++
+     foreach my $line (@lines) {
+ 	if ($line =~ m/([0-9]+)\s+(.*)/) {
+ 	    my $sign_offs = $1;
+ 	    $line = $2;
+ 	    $count++;
+ 	    if ($sign_offs < $email_git_min_signatures ||
+-	        $count > $email_git_max_maintainers) {
++	        $count > $email_git_max_maintainers ||
++		$sign_offs * 100 / $total_sign_offs < $email_git_min_percent) {
+ 		last;
+ 	    }
+-	} else {
+-	    die("$P: Unexpected git output: ${line}\n");
+ 	}
+ 	if ($line =~ m/(.+)<(.+)>/) {
+ 	    my $git_name = $1;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
