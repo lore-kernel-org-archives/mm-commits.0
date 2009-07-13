@@ -1,104 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-temp-hack.patch removed from -mm tree
-Date: Mon, 13 Jul 2009 11:51:12 -0700
-Message-ID: <200907131851.n6DIpCGk026512@imap1.linux-foundation.org>
+Subject: [alternative-merged] usb-serial-regression-fix-to-move-sysrq-from-hot-path.patch removed from -mm tree
+Date: Mon, 13 Jul 2009 11:54:38 -0700
+Message-ID: <200907131854.n6DIscHb031860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59346 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751236AbZGMSvU (ORCPT
+	by vger.kernel.org with ESMTP id S1751732AbZGMSym (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 14:51:20 -0400
+	Mon, 13 Jul 2009 14:54:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: jason.wessel@windriver.com, alan@linux.intel.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next temp hack
+     usb-serial: regression fix to move sysrq from hot path
 has been removed from the -mm tree.  Its filename was
-     linux-next-temp-hack.patch
+     usb-serial-regression-fix-to-move-sysrq-from-hot-path.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next temp hack
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: usb-serial: regression fix to move sysrq from hot path
+From: Jason Wessel <jason.wessel@windriver.com>
 
-Jens took this away.
+A performance regression was introduced by commit
+98fcb5f78165b8a3d93870ad7afd4d9ebbb8b43a ("USB: serial:
+usb_debug,usb_generic_serial: implement sysrq and serial break").
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+The sysrq handling should only get executed if the attached usb serial
+device is acting as a serial system console.  A serial system console has
+a very low input throughput vs a 3g usb modem which pushes bytes through
+the same interface at a high rate.
+
+Entire strings of output can be processed via the tty input when the
+device is not a console.
+
+Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
+Acked-by: Alan Cox <alan@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sync.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/generic.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN fs/sync.c~linux-next-temp-hack fs/sync.c
---- a/fs/sync.c~linux-next-temp-hack
-+++ a/fs/sync.c
-@@ -118,7 +118,7 @@ restart:
-  */
- SYSCALL_DEFINE0(sync)
- {
--	wakeup_pdflush(0);
-+//	wakeup_pdflush(0);
- 	sync_filesystems(0);
- 	sync_filesystems(1);
- 	if (unlikely(laptop_mode))
+diff -puN drivers/usb/serial/generic.c~usb-serial-regression-fix-to-move-sysrq-from-hot-path drivers/usb/serial/generic.c
+--- a/drivers/usb/serial/generic.c~usb-serial-regression-fix-to-move-sysrq-from-hot-path
++++ a/drivers/usb/serial/generic.c
+@@ -425,11 +425,19 @@ static void flush_and_resubmit_read_urb(
+ 		goto done;
+ 
+ 	/* Push data to tty */
+-	for (i = 0; i < urb->actual_length; i++, ch++) {
+-		if (!usb_serial_handle_sysrq_char(port, *ch))
+-			tty_insert_flip_char(tty, *ch, TTY_NORMAL);
++	if (port->console) {
++		for (i = 0; i < urb->actual_length; i++, ch++) {
++			if (!usb_serial_handle_sysrq_char(port, *ch))
++				tty_insert_flip_char(tty, *ch, TTY_NORMAL);
++		}
++		tty_flip_buffer_push(tty);
++	} else if (urb->actual_length) {
++		i = tty_buffer_request_room(tty, urb->actual_length);
++		if (i) {
++			tty_insert_flip_string(tty, urb->transfer_buffer, i);
++			tty_flip_buffer_push(tty);
++		}
+ 	}
+-	tty_flip_buffer_push(tty);
+ 	tty_kref_put(tty);
+ done:
+ 	usb_serial_generic_resubmit_read_urb(port, GFP_ATOMIC);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jason.wessel@windriver.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-linux-next-temp-hack.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+usb-serial-regression-fix-to-move-sysrq-from-hot-path.patch
+frv-duplicate-output_buffer-of-e03.patch
 
