@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-pps-patterns.patch added to -mm tree
-Date: Mon, 13 Jul 2009 14:57:17 -0700
-Message-ID: <200907132157.n6DLvHiQ018979@imap1.linux-foundation.org>
+Subject: + maintainers-usb-serial-digi-acceleport-use-separate-p-for-al-borchers.patch added to -mm tree
+Date: Mon, 13 Jul 2009 14:57:19 -0700
+Message-ID: <200907132157.n6DLvJ0k018988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757547AbZGMV5u (ORCPT
+	by vger.kernel.org with ESMTP id S1757559AbZGMV5w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 17:57:50 -0400
+	Mon, 13 Jul 2009 17:57:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: Add PPS patterns
+     MAINTAINERS: USB Serial Digi Acceleport: use separate P: for Al Borchers
 has been added to the -mm tree.  Its filename is
-     maintainers-add-pps-patterns.patch
+     maintainers-usb-serial-digi-acceleport-use-separate-p-for-al-borchers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Add PPS patterns
+Subject: MAINTAINERS: USB Serial Digi Acceleport: use separate P: for Al Borchers
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +++
- 1 file changed, 3 insertions(+)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-pps-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-add-pps-patterns
+diff -puN MAINTAINERS~maintainers-usb-serial-digi-acceleport-use-separate-p-for-al-borchers MAINTAINERS
+--- a/MAINTAINERS~maintainers-usb-serial-digi-acceleport-use-separate-p-for-al-borchers
 +++ a/MAINTAINERS
-@@ -4672,6 +4672,9 @@ M:	giometti@enneenne.com
- W:	http://wiki.enneenne.com/index.php/LinuxPPS_support
- L:	linuxpps@ml.enneenne.com (subscribers-only)
- S:	Maintained
-+F:	Documentation/pps/
-+F:	drivers/pps/
-+F:	include/linux/pps*.h
+@@ -6129,8 +6129,9 @@ S:	Maintained
+ F:	drivers/usb/serial/cyberjack.c
  
- PREEMPTIBLE KERNEL
- P:	Robert Love
+ USB SERIAL DIGI ACCELEPORT DRIVER
+-P:	Peter Berger and Al Borchers
++P:	Peter Berger
+ M:	pberger@brimson.com
++P:	Al Borchers
+ M:	alborchers@steinerpoint.com
+ L:	linux-usb@vger.kernel.org
+ S:	Maintained
 _
 
 Patches currently in -mm which might be from joe@perches.com are
