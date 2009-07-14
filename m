@@ -1,76 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-dont-free-non-existent-backlight-in-acpi-video-module.patch added to -mm tree
-Date: Mon, 13 Jul 2009 16:41:53 -0700
-Message-ID: <200907132341.n6DNfrG9016381@imap1.linux-foundation.org>
+Subject: [merged] gcov-exclude-code-operating-in-userspace-from-profiling.patch removed from -mm tree
+Date: Tue, 14 Jul 2009 13:32:39 -0700
+Message-ID: <200907142032.n6EKWdJ1012241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754517AbZGMXm6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756443AbZGNUdA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jul 2009 19:42:58 -0400
+	Tue, 14 Jul 2009 16:33:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: keithp@keithp.com, lenb@kernel.org, rui.zhang@intel.com
+To: oberpar@linux.vnet.ibm.com, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: don't free non-existent backlight in acpi video module
-has been added to the -mm tree.  Its filename is
-     acpi-dont-free-non-existent-backlight-in-acpi-video-module.patch
+     gcov: exclude code operating in userspace from profiling
+has been removed from the -mm tree.  Its filename was
+     gcov-exclude-code-operating-in-userspace-from-profiling.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: don't free non-existent backlight in acpi video module
-From: Keith Packard <keithp@keithp.com>
+Subject: gcov: exclude code operating in userspace from profiling
+From: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 
-acpi_video_put_one_device was attempting to remove sysfs entries and
-unregister a backlight device without first checking that said backlight
-device structure had been created.
+Fix for this issue on x86_64:
 
-Signed-off-by: Keith Packard <keithp@keithp.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+rostedt@goodmis.org wrote:
+> On bootup of the latest kernel my init segfaults. Debugging it,
+> I found  that vread_tsc (a vsyscall) increments some strange
+> kernel memory:
+>
+> 0000000000000000 <vread_tsc>:
+>    0:   55                      push   %rbp
+>    1:   48 ff 05 00 00 00 00    incq   0(%rip)
+>                         # 8 <vread_tsc+0x8>
+>                         4: R_X86_64_PC32        .bss+0x3c
+>    8:   48 89 e5                mov    %rsp,%rbp
+>    b:   66 66 90                xchg   %ax,%ax
+>    e:   48 ff 05 00 00 00 00    incq   0(%rip)
+>                         # 15 <vread_tsc+0x15>
+>                         11: R_X86_64_PC32       .bss+0x44
+>   15:   66 66 90                xchg   %ax,%ax
+>   18:   48 ff 05 00 00 00 00    incq   0(%rip)
+>                         # 1f <vread_tsc+0x1f>
+>                         1b: R_X86_64_PC32       .bss+0x4c
+>   1f:   0f 31                   rdtsc
+>
+>
+> Those "incq" is very bad to happen in vsyscall memory, since
+> userspace can not modify it. You need to make something prevent
+> profiling of vsyscall  memory (like I do with ftrace).
+
+Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
+Tested-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/x86/kernel/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/acpi/video.c~acpi-dont-free-non-existent-backlight-in-acpi-video-module drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-dont-free-non-existent-backlight-in-acpi-video-module
-+++ a/drivers/acpi/video.c
-@@ -2004,8 +2004,11 @@ static int acpi_video_bus_put_one_device
- 	status = acpi_remove_notify_handler(device->dev->handle,
- 					    ACPI_DEVICE_NOTIFY,
- 					    acpi_video_device_notify);
--	sysfs_remove_link(&device->backlight->dev.kobj, "device");
--	backlight_device_unregister(device->backlight);
-+	if (device->backlight) {
-+		sysfs_remove_link(&device->backlight->dev.kobj, "device");
-+		backlight_device_unregister(device->backlight);
-+		device->backlight = NULL;
-+	}
- 	if (device->cdev) {
- 		sysfs_remove_link(&device->dev->dev.kobj,
- 				  "thermal_cooling");
+diff -puN arch/x86/kernel/Makefile~gcov-exclude-code-operating-in-userspace-from-profiling arch/x86/kernel/Makefile
+--- a/arch/x86/kernel/Makefile~gcov-exclude-code-operating-in-userspace-from-profiling
++++ a/arch/x86/kernel/Makefile
+@@ -26,6 +26,8 @@ CFLAGS_tsc.o		:= $(nostackp)
+ CFLAGS_paravirt.o	:= $(nostackp)
+ GCOV_PROFILE_vsyscall_64.o	:= n
+ GCOV_PROFILE_hpet.o		:= n
++GCOV_PROFILE_tsc.o		:= n
++GCOV_PROFILE_paravirt.o		:= n
+ 
+ obj-y			:= process_$(BITS).o signal.o entry_$(BITS).o
+ obj-y			+= traps.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
 _
 
-Patches currently in -mm which might be from keithp@keithp.com are
+Patches currently in -mm which might be from oberpar@linux.vnet.ibm.com are
 
-origin.patch
-acpi-dont-free-non-existent-backlight-in-acpi-video-module.patch
 
