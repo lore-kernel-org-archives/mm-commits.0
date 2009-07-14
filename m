@@ -1,76 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-add-missing-class-descriptions-used-in-usb-devices-file.patch removed from -mm tree
-Date: Tue, 14 Jul 2009 13:33:14 -0700
-Message-ID: <200907142033.n6EKXEGV013182@imap1.linux-foundation.org>
+Subject: [merged] cpufreq-powernow-k8-support-family-0xf-with-2-low-p-states.patch removed from -mm tree
+Date: Tue, 14 Jul 2009 13:33:01 -0700
+Message-ID: <200907142033.n6EKX1kQ012852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756510AbZGNUdS (ORCPT
+	by vger.kernel.org with ESMTP id S1756489AbZGNUdP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jul 2009 16:33:18 -0400
+	Tue, 14 Jul 2009 16:33:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elendil@planet.nl, greg@kroah.com, mm-commits@vger.kernel.org
+To: mark.langsdorf@amd.com, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: add missing class descriptions used in usb/devices file
+     cpufreq: powernow-k8: support family 0xf with 2 low p-states
 has been removed from the -mm tree.  Its filename was
-     usb-add-missing-class-descriptions-used-in-usb-devices-file.patch
+     cpufreq-powernow-k8-support-family-0xf-with-2-low-p-states.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: add missing class descriptions used in usb/devices file
-From: Frans Pop <elendil@planet.nl>
+Subject: cpufreq: powernow-k8: support family 0xf with 2 low p-states
+From: Mark Langsdorf <mark.langsdorf@amd.com>
 
-Added descriptions (for WIRELESS_CONTROLLER and MISC) were taken from
-the usb-devices script now included in usbutils.
+Provide support for family 0xf processors with 2 P-states below the
+elevator voltage.  Remove the checks that prevent this configuration from
+being supported and increase the transition voltage to prevent errors
+during the transition.
 
-Also sort the classes in the same order as in include/linux/usb/ch9.h
-for easier comparison for future updates.
-
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Mark Langsdorf <mark.langsdorf@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/devices.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c |   30 +++++++-------------
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.h |    3 +-
+ 2 files changed, 13 insertions(+), 20 deletions(-)
 
-diff -puN drivers/usb/core/devices.c~usb-add-missing-class-descriptions-used-in-usb-devices-file drivers/usb/core/devices.c
---- a/drivers/usb/core/devices.c~usb-add-missing-class-descriptions-used-in-usb-devices-file
-+++ a/drivers/usb/core/devices.c
-@@ -136,17 +136,19 @@ static const struct class_info clas_info
- 	{USB_CLASS_AUDIO,		"audio"},
- 	{USB_CLASS_COMM,		"comm."},
- 	{USB_CLASS_HID,			"HID"},
--	{USB_CLASS_HUB,			"hub"},
- 	{USB_CLASS_PHYSICAL,		"PID"},
-+	{USB_CLASS_STILL_IMAGE,		"still"},
- 	{USB_CLASS_PRINTER,		"print"},
- 	{USB_CLASS_MASS_STORAGE,	"stor."},
-+	{USB_CLASS_HUB,			"hub"},
- 	{USB_CLASS_CDC_DATA,		"data"},
--	{USB_CLASS_APP_SPEC,		"app."},
--	{USB_CLASS_VENDOR_SPEC,		"vend."},
--	{USB_CLASS_STILL_IMAGE,		"still"},
- 	{USB_CLASS_CSCID,		"scard"},
- 	{USB_CLASS_CONTENT_SEC,		"c-sec"},
- 	{USB_CLASS_VIDEO,		"video"},
-+	{USB_CLASS_WIRELESS_CONTROLLER,	"wlcon"},
-+	{USB_CLASS_MISC,		"misc"},
-+	{USB_CLASS_APP_SPEC,		"app."},
-+	{USB_CLASS_VENDOR_SPEC,		"vend."},
- 	{-1,				"unk."}		/* leave as last */
- };
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-support-family-0xf-with-2-low-p-states arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-support-family-0xf-with-2-low-p-states
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -299,7 +299,7 @@ static int transition_pstate(struct powe
+ static int transition_fid_vid(struct powernow_k8_data *data,
+ 		u32 reqfid, u32 reqvid)
+ {
+-	if (core_voltage_pre_transition(data, reqvid))
++	if (core_voltage_pre_transition(data, reqvid, reqfid))
+ 		return 1;
  
-_
-
-Patches currently in -mm which might be from elendil@planet.nl are
-
-linux-next.patch
-
+ 	if (core_frequency_transition(data, reqfid))
+@@ -327,17 +327,20 @@ static int transition_fid_vid(struct pow
+ 
+ /* Phase 1 - core voltage transition ... setup voltage */
+ static int core_voltage_pre_transition(struct powernow_k8_data *data,
+-		u32 reqvid)
++		u32 reqvid, u32 reqfid)
+ {
+ 	u32 rvosteps = data->rvo;
+ 	u32 savefid = data->currfid;
+-	u32 maxvid, lo;
++	u32 maxvid, lo, rvomult = 1;
+ 
+ 	dprintk("ph1 (cpu%d): start, currfid 0x%x, currvid 0x%x, "
+ 		"reqvid 0x%x, rvo 0x%x\n",
+ 		smp_processor_id(),
+ 		data->currfid, data->currvid, reqvid, data->rvo);
+ 
++	if ((savefid < LO_FID_TABLE_TOP) && (reqfid < LO_FID_TABLE_TOP))
++		rvomult = 2;
++	rvosteps *= rvomult;
+ 	rdmsr(MSR_FIDVID_STATUS, lo, maxvid);
+ 	maxvid = 0x1f & (maxvid >> 16);
+ 	dprintk("ph1 maxvid=0x%x\n", maxvid);
+@@ -351,7 +354,8 @@ static int core_voltage_pre_transition(s
+ 			return 1;
+ 	}
+ 
+-	while ((rvosteps > 0) && ((data->rvo + data->currvid) > reqvid)) {
++	while ((rvosteps > 0) &&
++			((rvomult * data->rvo + data->currvid) > reqvid)) {
+ 		if (data->currvid == maxvid) {
+ 			rvosteps = 0;
+ 		} else {
+@@ -384,13 +388,6 @@ static int core_frequency_transition(str
+ 	u32 vcoreqfid, vcocurrfid, vcofiddiff;
+ 	u32 fid_interval, savevid = data->currvid;
+ 
+-	if ((reqfid < HI_FID_TABLE_BOTTOM) &&
+-	    (data->currfid < HI_FID_TABLE_BOTTOM)) {
+-		printk(KERN_ERR PFX "ph2: illegal lo-lo transition "
+-				"0x%x 0x%x\n", reqfid, data->currfid);
+-		return 1;
+-	}
+-
+ 	if (data->currfid == reqfid) {
+ 		printk(KERN_ERR PFX "ph2 null fid transition 0x%x\n",
+ 				data->currfid);
+@@ -407,6 +404,9 @@ static int core_frequency_transition(str
+ 	vcofiddiff = vcocurrfid > vcoreqfid ? vcocurrfid - vcoreqfid
+ 	    : vcoreqfid - vcocurrfid;
+ 
++	if ((reqfid <= LO_FID_TABLE_TOP) && (data->currfid <= LO_FID_TABLE_TOP))
++		vcofiddiff = 0;
++
+ 	while (vcofiddiff > 2) {
+ 		(data->currfid & 1) ? (fid_interval = 1) : (fid_interval = 2);
+ 
+@@ -1081,14 +1081,6 @@ static int transition_frequency_fidvid(s
+ 		return 0;
+ 	}
+ 
+-	if ((fid < HI_FID_TABLE_BOTTOM) &&
+-	    (data->currfid < HI_FID_TABLE_BOTTOM)) {
+-		printk(KERN_ERR PFX
+-		       "ignoring illegal change in lo freq table-%x to 0x%x\n",
+-		       data->currfid, fid);
+-		return 1;
+-	}
