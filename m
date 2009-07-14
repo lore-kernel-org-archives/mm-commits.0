@@ -1,84 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gcov-exclude-code-operating-in-userspace-from-profiling.patch removed from -mm tree
-Date: Tue, 14 Jul 2009 13:32:39 -0700
-Message-ID: <200907142032.n6EKWdJ1012241@imap1.linux-foundation.org>
+Subject: [merged] sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test.patch removed from -mm tree
+Date: Tue, 14 Jul 2009 13:32:42 -0700
+Message-ID: <200907142032.n6EKWgrX012367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756443AbZGNUdA (ORCPT
+	by vger.kernel.org with ESMTP id S1756411AbZGNUcw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jul 2009 16:33:00 -0400
+	Tue, 14 Jul 2009 16:32:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oberpar@linux.vnet.ibm.com, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: yanmin_zhang@linux.intel.com, jack@suse.cz, jens.axboe@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gcov: exclude code operating in userspace from profiling
+     sys_sync(): fix 16% performance regression in ffsb create_4k test
 has been removed from the -mm tree.  Its filename was
-     gcov-exclude-code-operating-in-userspace-from-profiling.patch
+     sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcov: exclude code operating in userspace from profiling
-From: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Subject: sys_sync(): fix 16% performance regression in ffsb create_4k test
+From: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
 
-Fix for this issue on x86_64:
+I run many ffsb test cases on JBODs (typically 13/12 disks).  Comparing
+with kernel 2.6.30, 2.6.31-rc1 has about 16% regression with
+ffsb_create_4k.  The sub test case creates files continuously for 10
+minitues and every file is 1MB.
 
-rostedt@goodmis.org wrote:
-> On bootup of the latest kernel my init segfaults. Debugging it,
-> I found  that vread_tsc (a vsyscall) increments some strange
-> kernel memory:
->
-> 0000000000000000 <vread_tsc>:
->    0:   55                      push   %rbp
->    1:   48 ff 05 00 00 00 00    incq   0(%rip)
->                         # 8 <vread_tsc+0x8>
->                         4: R_X86_64_PC32        .bss+0x3c
->    8:   48 89 e5                mov    %rsp,%rbp
->    b:   66 66 90                xchg   %ax,%ax
->    e:   48 ff 05 00 00 00 00    incq   0(%rip)
->                         # 15 <vread_tsc+0x15>
->                         11: R_X86_64_PC32       .bss+0x44
->   15:   66 66 90                xchg   %ax,%ax
->   18:   48 ff 05 00 00 00 00    incq   0(%rip)
->                         # 1f <vread_tsc+0x1f>
->                         1b: R_X86_64_PC32       .bss+0x4c
->   1f:   0f 31                   rdtsc
->
->
-> Those "incq" is very bad to happen in vsyscall memory, since
-> userspace can not modify it. You need to make something prevent
-> profiling of vsyscall  memory (like I do with ftrace).
+Bisect located below patch.
 
-Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Reported-by: Steven Rostedt <rostedt@goodmis.org>
-Tested-by: Steven Rostedt <rostedt@goodmis.org>
+5cee5815d1564bbbd505fea86f4550f1efdb5cd0 is first bad commit
+commit 5cee5815d1564bbbd505fea86f4550f1efdb5cd0
+Author: Jan Kara <jack@suse.cz>
+Date:   Mon Apr 27 16:43:51 2009 +0200
+
+    vfs: Make sys_sync() use fsync_super() (version 4)
+
+    It is unnecessarily fragile to have two places (fsync_super() and do_sync())
+    doing data integrity sync of the filesystem. Alter __fsync_super() to
+    accommodate needs of both callers and use it. So after this patch
+    __fsync_super() is the only place where we gather all the calls needed to
+    properly send all data on a filesystem to disk.
+
+As a matter of fact, ffsb calls sys_sync in the end to make sure all data
+is flushed to disks and the flushing is counted into the result.  vmstat
+shows ffsb is blocked when syncing for a long time.  With 2.6.30, ffsb is
+blocked for a short time.
+
+I checked the patch and did experiments to recover the original methods. 
+Eventually, the root cause is the patch deletes the calling to
+wakeup_pdflush when syncing, so only ffsb is blocked on disk I/O. 
+wakeup_pdflush could ask pdflush to write back pages with ffsb at the
+same time.
+
+[akpm@linux-foundation.org: restore comment too]
+Signed-off-by: Zhang Yanmin <yanmin_zhang@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/sync.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN arch/x86/kernel/Makefile~gcov-exclude-code-operating-in-userspace-from-profiling arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~gcov-exclude-code-operating-in-userspace-from-profiling
-+++ a/arch/x86/kernel/Makefile
-@@ -26,6 +26,8 @@ CFLAGS_tsc.o		:= $(nostackp)
- CFLAGS_paravirt.o	:= $(nostackp)
- GCOV_PROFILE_vsyscall_64.o	:= n
- GCOV_PROFILE_hpet.o		:= n
-+GCOV_PROFILE_tsc.o		:= n
-+GCOV_PROFILE_paravirt.o		:= n
+diff -puN fs/sync.c~sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test fs/sync.c
+--- a/fs/sync.c~sys_sync-fix-16%-performance-regression-in-ffsb-create_4k-test
++++ a/fs/sync.c
+@@ -112,8 +112,13 @@ restart:
+ 	mutex_unlock(&mutex);
+ }
  
- obj-y			:= process_$(BITS).o signal.o entry_$(BITS).o
- obj-y			+= traps.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
++/*
++ * sync everything.  Start out by waking pdflush, because that writes back
++ * all queues in parallel.
++ */
+ SYSCALL_DEFINE0(sync)
+ {
++	wakeup_pdflush(0);
+ 	sync_filesystems(0);
+ 	sync_filesystems(1);
+ 	if (unlikely(laptop_mode))
 _
 
-Patches currently in -mm which might be from oberpar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from yanmin_zhang@linux.intel.com are
 
+kernel-core-add-smp_call_function_any.patch
+kernel-core-add-smp_call_function_any-update.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 
