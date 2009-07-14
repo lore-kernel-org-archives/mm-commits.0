@@ -1,92 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fix-virt_to_phys-warnings.patch removed from -mm tree
-Date: Tue, 14 Jul 2009 13:32:47 -0700
-Message-ID: <200907142032.n6EKWlHl012446@imap1.linux-foundation.org>
+Subject: [merged] rtc-ds1374-fix-lock-imbalance.patch removed from -mm tree
+Date: Tue, 14 Jul 2009 13:32:36 -0700
+Message-ID: <200907142032.n6EKWaQH012119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60110 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756442AbZGNUdO (ORCPT
+	by vger.kernel.org with ESMTP id S1756425AbZGNUcy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jul 2009 16:33:14 -0400
+	Tue, 14 Jul 2009 16:32:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cernekee@gmail.com, andi@firstfloor.org, mingo@elte.hu, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, a.zummo@towertech.it, scottwood@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix virt_to_phys() warnings
+     rtc: ds1374, fix lock imbalance
 has been removed from the -mm tree.  Its filename was
-     fix-virt_to_phys-warnings.patch
+     rtc-ds1374-fix-lock-imbalance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix virt_to_phys() warnings
-From: Kevin Cernekee <cernekee@gmail.com>
+Subject: rtc: ds1374, fix lock imbalance
+From: Jiri Slaby <jirislaby@gmail.com>
 
-These warnings were observed on MIPS32 using 2.6.31-rc1 and gcc-4.2.0:
+When i2c_smbus_read_byte_data fails in ds1374_work, we forgot to unlock
+the held lock.  Fix that.
 
-mm/page_alloc.c: In function 'alloc_pages_exact':
-mm/page_alloc.c:1986: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
-
-drivers/usb/mon/mon_bin.c: In function 'mon_alloc_buff':
-drivers/usb/mon/mon_bin.c:1264: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
-
-[akpm@linux-foundation.org: fix kernel/perf_counter.c too]
-Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Scott Wood <scottwood@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/mon/mon_bin.c |    2 +-
- kernel/perf_counter.c     |    2 +-
- mm/page_alloc.c           |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-ds1374.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/mon/mon_bin.c~fix-virt_to_phys-warnings drivers/usb/mon/mon_bin.c
---- a/drivers/usb/mon/mon_bin.c~fix-virt_to_phys-warnings
-+++ a/drivers/usb/mon/mon_bin.c
-@@ -1261,7 +1261,7 @@ static int mon_alloc_buff(struct mon_pgm
- 			return -ENOMEM;
- 		}
- 		map[n].ptr = (unsigned char *) vaddr;
--		map[n].pg = virt_to_page(vaddr);
-+		map[n].pg = virt_to_page((void *) vaddr);
- 	}
- 	return 0;
- }
-diff -puN kernel/perf_counter.c~fix-virt_to_phys-warnings kernel/perf_counter.c
---- a/kernel/perf_counter.c~fix-virt_to_phys-warnings
-+++ a/kernel/perf_counter.c
-@@ -2020,7 +2020,7 @@ fail:
+diff -puN drivers/rtc/rtc-ds1374.c~rtc-ds1374-fix-lock-imbalance drivers/rtc/rtc-ds1374.c
+--- a/drivers/rtc/rtc-ds1374.c~rtc-ds1374-fix-lock-imbalance
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -283,7 +283,7 @@ static void ds1374_work(struct work_stru
  
- static void perf_mmap_free_page(unsigned long addr)
- {
--	struct page *page = virt_to_page(addr);
-+	struct page *page = virt_to_page((void *)addr);
+ 	stat = i2c_smbus_read_byte_data(client, DS1374_REG_SR);
+ 	if (stat < 0)
+-		return;
++		goto unlock;
  
- 	page->mapping = NULL;
- 	__free_page(page);
-diff -puN mm/page_alloc.c~fix-virt_to_phys-warnings mm/page_alloc.c
---- a/mm/page_alloc.c~fix-virt_to_phys-warnings
-+++ a/mm/page_alloc.c
-@@ -1983,7 +1983,7 @@ void *alloc_pages_exact(size_t size, gfp
- 		unsigned long alloc_end = addr + (PAGE_SIZE << order);
- 		unsigned long used = addr + PAGE_ALIGN(size);
- 
--		split_page(virt_to_page(addr), order);
-+		split_page(virt_to_page((void *)addr), order);
- 		while (used < alloc_end) {
- 			free_page(used);
- 			used += PAGE_SIZE;
-_
-
-Patches currently in -mm which might be from cernekee@gmail.com are
-
-linux-next.patch
-
+ 	if (stat & DS1374_REG_SR_AF) {
+ 		stat &= ~DS1374_REG_SR_AF;
+@@ -302,7 +302,7 @@ static void ds1374_work(struct work_stru
+ out:
+ 	if (!ds1374->exiting)
+ 		enable_irq(client->irq);
