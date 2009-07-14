@@ -1,98 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] misc-work_on_cpu-acpi-dont-do-local_irq_enable-in-hard-irq.patch removed from -mm tree
-Date: Tue, 14 Jul 2009 13:32:58 -0700
-Message-ID: <200907142032.n6EKWwhY012721@imap1.linux-foundation.org>
+Subject: [merged] drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch removed from -mm tree
+Date: Tue, 14 Jul 2009 13:33:10 -0700
+Message-ID: <200907142033.n6EKXAjd013080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49542 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756278AbZGNUeI (ORCPT
+	by vger.kernel.org with ESMTP id S1756376AbZGNUeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jul 2009 16:34:08 -0400
+	Tue, 14 Jul 2009 16:34:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, lenb@kernel.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org, dcb314@hotmail.com, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     "misc:work_on_cpu-acpi": don't do local_irq_enable() in hard IRQ
+     drivers/serial/bfin_sport_uart.c: remove wrong and unneeded memset
 has been removed from the -mm tree.  Its filename was
-     misc-work_on_cpu-acpi-dont-do-local_irq_enable-in-hard-irq.patch
+     drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: "misc:work_on_cpu-acpi": don't do local_irq_enable() in hard IRQ
+Subject: drivers/serial/bfin_sport_uart.c: remove wrong and unneeded memset
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Reported-by: <Valdis.Kletnieks@vt.edu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Len Brown <lenb@kernel.org>
+dcb314@hotmail.com notes that this memset has its args reversed.
+
+It's unneeded anyway, so remove it.
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13587
+
+Cc: <dcb314@hotmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Bryan Wu <cooloney@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/serial/bfin_sport_uart.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/acpi/processor_throttling.c~misc-work_on_cpu-acpi-dont-do-local_irq_enable-in-hard-irq drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~misc-work_on_cpu-acpi-dont-do-local_irq_enable-in-hard-irq
-+++ a/drivers/acpi/processor_throttling.c
-@@ -616,6 +616,8 @@ static int acpi_processor_get_throttling
- 	u32 duty_mask = 0;
- 	u32 duty_value = 0;
+diff -puN drivers/serial/bfin_sport_uart.c~drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset drivers/serial/bfin_sport_uart.c
+--- a/drivers/serial/bfin_sport_uart.c~drivers-serial-bfin_sport_uartc-remove-wrong-and-unneeded-memset
++++ a/drivers/serial/bfin_sport_uart.c
+@@ -236,7 +236,6 @@ static int sport_startup(struct uart_por
+ 	int retval;
  
-+	WARN_ON_ONCE(!irqs_disabled());
-+
- 	if (!pr)
- 		return -EINVAL;
- 
-@@ -628,8 +630,6 @@ static int acpi_processor_get_throttling
- 
- 	duty_mask <<= pr->throttling.duty_offset;
- 
--	local_irq_disable();
--
- 	value = inl(pr->throttling.address);
- 
- 	/*
-@@ -646,8 +646,6 @@ static int acpi_processor_get_throttling
- 
- 	pr->throttling.state = state;
- 
--	local_irq_enable();
--
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "Throttling state is T%d (%d%% throttling applied)\n",
- 			  state, pr->throttling.states[state].performance));
-@@ -919,6 +917,8 @@ static int acpi_processor_set_throttling
- 	u32 duty_mask = 0;
- 	u32 duty_value = 0;
- 
-+	WARN_ON_ONCE(!irqs_disabled());
-+
- 	if (!pr)
- 		return -EINVAL;
- 
-@@ -948,8 +948,6 @@ static int acpi_processor_set_throttling
- 		duty_mask = ~duty_mask;
- 	}
- 
--	local_irq_disable();
--
- 	/*
- 	 * Disable throttling by writing a 0 to bit 4.  Note that we must
- 	 * turn it off before you can change the duty_value.
-@@ -975,8 +973,6 @@ static int acpi_processor_set_throttling
- 
- 	pr->throttling.state = state;
- 
--	local_irq_enable();
--
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "Throttling state set to T%d (%d%%)\n", state,
- 			  (pr->throttling.states[state].performance ? pr->
+ 	pr_debug("%s enter\n", __func__);
+-	memset(buffer, 20, '\0');
+ 	snprintf(buffer, 20, "%s rx", up->name);
+ 	retval = request_irq(up->rx_irq, sport_uart_rx_irq, IRQF_SAMPLE_RANDOM, buffer, up);
+ 	if (retval) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
