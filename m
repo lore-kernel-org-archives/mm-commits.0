@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-update-alloc_flags-after-oom-killer-has-been-called.patch added to -mm tree
-Date: Wed, 15 Jul 2009 13:38:43 -0700
-Message-ID: <200907152038.n6FKch8k026306@imap1.linux-foundation.org>
+Subject: + davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch added to -mm tree
+Date: Wed, 15 Jul 2009 14:00:21 -0700
+Message-ID: <200907152100.n6FL0LmM027102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755539AbZGOUiz (ORCPT
+	by vger.kernel.org with ESMTP id S932327AbZGOVAs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Jul 2009 16:38:55 -0400
+	Wed, 15 Jul 2009 17:00:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com, sudhakar.raj@ti.com
 
 
 The patch titled
-     mm: update alloc_flags after oom killer has been called
+     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix
 has been added to the -mm tree.  Its filename is
-     mm-update-alloc_flags-after-oom-killer-has-been-called.patch
+     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: update alloc_flags after oom killer has been called
-From: David Rientjes <rientjes@google.com>
+Subject: davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It is possible for the oom killer to select current as the task to kill. 
-When this happens, alloc_flags needs to be updated accordingly to set
-ALLOC_NO_WATERMARKS so the subsequent allocation attempt may use memory
-reserves as the result of its thread having TIF_MEMDIE set if the
-allocation is not __GFP_NOMEMALLOC.
+fix kconfig indenting
 
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Pavel Kiryukhin <pkiryukhin@ru.mvista.com>
+Cc: Steve Chen <schen@mvista.com>
+Cc: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/Kconfig |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-update-alloc_flags-after-oom-killer-has-been-called mm/page_alloc.c
---- a/mm/page_alloc.c~mm-update-alloc_flags-after-oom-killer-has-been-called
-+++ a/mm/page_alloc.c
-@@ -1781,6 +1781,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+diff -puN drivers/video/Kconfig~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix drivers/video/Kconfig
+--- a/drivers/video/Kconfig~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix
++++ a/drivers/video/Kconfig
+@@ -2039,15 +2039,15 @@ config FB_SH7760
+ 	  panels <= 320 pixel horizontal resolution.
  
- 	wake_all_kswapd(order, zonelist, high_zoneidx);
+ config FB_DA8XX
+-        tristate "DA8xx/OMAP-L1xx Framebuffer support"
+-        depends on FB && ARCH_DAVINCI_DA8XX
++	tristate "DA8xx/OMAP-L1xx Framebuffer support"
++	depends on FB && ARCH_DAVINCI_DA8XX
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	---help---
+-          This is the frame buffer device driver for the TI LCD controller
++	  This is the frame buffer device driver for the TI LCD controller
+ 	  found on DA8xx/OMAP-L1xx SoCs.
+-          If unsure, say N.
++	  If unsure, say N.
  
-+restart:
- 	/*
- 	 * OK, we're below the kswapd watermark and have kicked background
- 	 * reclaim. Now things get more complex, so set up alloc_flags according
-@@ -1788,7 +1789,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	 */
- 	alloc_flags = gfp_to_alloc_flags(gfp_mask);
- 
--restart:
- 	/* This is the last chance, in general, before the goto nopage. */
- 	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
- 			high_zoneidx, alloc_flags & ~ALLOC_NO_WATERMARKS,
+ config FB_VIRTUAL
+ 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator-resend.patch
-page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator.patch
-mm-remove-obsoleted-alloc_pages-cpuset-comment.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-page-allocator-allow-too-high-order-warning-messages-to-be-suppressed-with-__gfp_nowarn.patch
-mm-update-alloc_flags-after-oom-killer-has-been-called.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
