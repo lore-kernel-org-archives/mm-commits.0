@@ -1,66 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] cciss-fix-the-termination-of-the-scanning-thread.patch removed from -mm tree
-Date: Wed, 15 Jul 2009 15:08:26 -0700
-Message-ID: <200907152208.n6FM8QXr001982@imap1.linux-foundation.org>
+Subject: + scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg.patch added to -mm tree
+Date: Wed, 15 Jul 2009 15:22:43 -0700
+Message-ID: <200907152222.n6FMMhZb023988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754793AbZGOWJi (ORCPT
+	by vger.kernel.org with ESMTP id S1753685AbZGOWXR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Jul 2009 18:09:38 -0400
+	Wed, 15 Jul 2009 18:23:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: john@stoffel.org
 
 
 The patch titled
-     cciss: fix the termination of the scanning thread
-has been removed from the -mm tree.  Its filename was
-     cciss-fix-the-termination-of-the-scanning-thread.patch
+     scsi: make SCSI SG v4 driver enabled by default and remove EXPERIMENTAL dependency, since udev depends on BSG
+has been added to the -mm tree.  Its filename is
+     scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix the termination of the scanning thread
-From: Mike Miller <mike.miller@hp.com>
+Subject: scsi: make SCSI SG v4 driver enabled by default and remove EXPERIMENTAL dependency, since udev depends on BSG
+From: John Stoffel <john@stoffel.org>
 
-scan_thread may be block in wait_for_completion(), and kthread_stop() is
-not sufficient to break a wait_for_completion().  Add the needed
-complete().
+Make Block Layer SG support v4 the default, since recent udev versions
+depend on this to access serial numbers and other low level info properly.
 
-This should fix hangs which some testers reported.
+This should be backported to older kernels as well, since most distros have
+enabled this for a long time.
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: John Stoffel <john@stoffel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    1 +
- 1 file changed, 1 insertion(+)
+ block/Kconfig |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-the-termination-of-the-scanning-thread drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-the-termination-of-the-scanning-thread
-+++ a/drivers/block/cciss.c
-@@ -4125,6 +4125,7 @@ static void __devexit cciss_remove_one(s
- 		return;
- 	}
+diff -puN block/Kconfig~scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg block/Kconfig
+--- a/block/Kconfig~scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg
++++ a/block/Kconfig
+@@ -48,9 +48,9 @@ config LBDAF
+ 	  If unsure, say Y.
  
-+	complete(hba[i]->rescan_wait);
- 	kthread_stop(hba[i]->cciss_scan_thread);
+ config BLK_DEV_BSG
+-	bool "Block layer SG support v4 (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL
+-	---help---
++	bool "Block layer SG support v4"
++	default y
++	help
+ 	  Saying Y here will enable generic SG (SCSI generic) v4 support
+ 	  for any block device.
  
- 	remove_proc_entry(hba[i]->devname, proc_cciss);
+@@ -60,7 +60,10 @@ config BLK_DEV_BSG
+ 	  protocols (e.g. Task Management Functions and SMP in Serial
+ 	  Attached SCSI).
+ 
+-	  If unsure, say N.
++	  This option is required by recent UDEV versions to properly 
++	  access device serial numbers, etc.
++
++	  If unsure, say Y.
+ 
+ config BLK_DEV_INTEGRITY
+ 	bool "Block layer data integrity support"
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from john@stoffel.org are
 
-linux-next.patch
-cciss-remove-logical-drive-sysfs-entries-during-driver-cleanup.patch
-cciss-use-only-one-scan-thread.patch
-cciss-kick-off-logical-drive-topology-rescan-through-sysfs.patch
-cciss-fix-the-termination-of-the-scanning-thread.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg.patch
 
