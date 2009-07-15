@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-finish-off-the-email-address-coalescing.patch added to -mm tree
-Date: Tue, 14 Jul 2009 16:20:32 -0700
-Message-ID: <200907142320.n6ENKWQ4010864@imap1.linux-foundation.org>
+Subject: + dynamic-debug-fix-typo.patch added to -mm tree
+Date: Wed, 15 Jul 2009 12:30:39 -0700
+Message-ID: <200907151930.n6FJUdKO019096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60676 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753896AbZGNXVG (ORCPT
+	by vger.kernel.org with ESMTP id S1756132AbZGOTbc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jul 2009 19:21:06 -0400
+	Wed, 15 Jul 2009 15:31:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: roel.kluin@gmail.com, gnb@sgi.com, gregkh@suse.de, jbaron@redhat.com
 
 
 The patch titled
-     MAINTAINERS: finish off the email address coalescing
+     Dynamic debug: fix typo: -/->
 has been added to the -mm tree.  Its filename is
-     maintainers-finish-off-the-email-address-coalescing.patch
+     dynamic-debug-fix-typo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: finish off the email address coalescing
-From: Joe Perches <joe@perches.com>
+Subject: Dynamic debug: fix typo: -/->
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Add some touchups to the sample record.
+The member was intended, not the local variable.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Greg Banks <gnb@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/dynamic_debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-finish-off-the-email-address-coalescing MAINTAINERS
---- a/MAINTAINERS~maintainers-finish-off-the-email-address-coalescing
-+++ a/MAINTAINERS
-@@ -73,8 +73,8 @@ Note: For the hard of thinking, this lis
- order. If you could add yourselves to it in alphabetical order that would be
- so much easier [Ed]
+diff -puN lib/dynamic_debug.c~dynamic-debug-fix-typo lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~dynamic-debug-fix-typo
++++ a/lib/dynamic_debug.c
+@@ -164,7 +164,7 @@ static void ddebug_change(const struct d
  
--P: Person
--M: Mail patches to
-+P: Person (obsolete)
-+M: Mail patches to: FullName <address@domain>
- L: Mailing list that is relevant to this area
- W: Web-page with status/info
- T: SCM tree type and location.  Type is one of: git, hg, quilt, stgit.
+ 			if (!newflags)
+ 				dt->num_enabled--;
+-			else if (!dp-flags)
++			else if (!dp->flags)
+ 				dt->num_enabled++;
+ 			dp->flags = newflags;
+ 			if (newflags) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-mmc-msm_sdccc-driver-for-htc-dream.patch
-msm_sdccc-convert-printkkern_level-to-pr_level.patch
-msm_sdccc-stylistic-cleaning.patch
-msm_sdccc-move-overly-indented-code-to-separate-function.patch
-maintainers-ia64-pair-p-m-entries-properly.patch
-maintainers-remove-ivtv-user-lists-add-cx18-url.patch
-maintainers-qlge-10gb-ethernet-pair-p-m-entries-properly.patch
-maintainers-use-tabs-in-acer-aspire-one.patch
-maintainers-remove-l-linux-kernel-vgerkernelorg.patch
-maintainers-move-arpd-to-credits.patch
-maintainers-update-kernel-janitors.patch
-maintainers-add-pps-patterns.patch
-maintainers-usb-serial-digi-acceleport-use-separate-p-for-al-borchers.patch
-maintainers-input-add-dmitrys-name-to-his-email-address.patch
-maintainers-remove-cs461x-sound-card-section.patch
-maintainers-qlogic-qla2xxx-add-andrew-vasquez-email-address.patch
-maintainers-qlogic-qla3xxx-add-ron-mercer-email-address.patch
-maintainers-scott-murray-is-no-longer-with-somanetworks.patch
-scripts-get_maintainerpl-add-f-directory-use.patch
-get_maintainerpl-add-git-min-percent-option.patch
-get_maintainerpl-add-git-min-percent-option-fix.patch
-maintainers-coalesce-name-and-email-address-lines.patch
-maintainers-finish-off-the-email-address-coalescing.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ext4-remove-redundant-test-on-unsigned.patch
+drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion.patch
+dynamic-debug-fix-typo.patch
+drivers-gpu-drm-ttm-ttm_bo_vmc-fix-misplaced-parentheses.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+platinumfb-misplaced-parenthesis.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
