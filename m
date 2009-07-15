@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 15 Jul 2009 14:18:15 -0700
-Message-ID: <200907152118.n6FLIFt0022034@imap1.linux-foundation.org>
+Subject: + mm-copy-over-oom_adj-value-at-fork-time.patch added to -mm tree
+Date: Wed, 15 Jul 2009 14:29:47 -0700
+Message-ID: <200907152129.n6FLTl4j007465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50879 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55837 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751267AbZGOVSo (ORCPT
+	by vger.kernel.org with ESMTP id S1752187AbZGOVab (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Jul 2009 17:18:44 -0400
+	Wed, 15 Jul 2009 17:30:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@linux.intel.com, johnstul@us.ibm.com, mingo@elte.hu, shaohua.li@intel.com, tglx@linutronix.de, wei.chong.tan@intel.com
+Cc: riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, manage@google.com, rientjes@google.com
 
 
 The patch titled
-     arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes
+     mm: copy over oom_adj value at fork time
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+     mm-copy-over-oom_adj-value-at-fork-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: copy over oom_adj value at fork time
+From: Rik van Riel <riel@redhat.com>
 
-WARNING: line over 80 characters
-#39: FILE: arch/x86/kernel/tsc.c:293:
-+		 * how much inb(0x42) MSB is bigger then val when it return from SMI.
+Fix a post-2.6.31 regression which was introduced by
+2ff05b2b4eac2e63d345fc731ea151a060247f53 ("oom: move oom_adj value from
+task_struct to mm_struct").
 
-WARNING: line over 80 characters
-#44: FILE: arch/x86/kernel/tsc.c:298:
-+		 * this may skew the average delta variable of quick_pit_calibrate().
+After moving the oom_adj value from the task struct to the mm_struct, the
+oom_adj value was no longer properly inherited by child processes.
 
-total: 0 errors, 2 warnings, 29 lines checked
+Copying over the oom_adj value at fork time fixes that bug.
 
-./patches/arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Wei Chong Tan <wei.chong.tan@intel.com>
-Cc: john stultz <johnstul@us.ibm.com>
+[kosaki.motohiro@jp.fujitsu.com: test for current->mm before dereferencing it]
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Paul Menage <manage@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/tsc.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ kernel/fork.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/tsc.c~arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes arch/x86/kernel/tsc.c
---- a/arch/x86/kernel/tsc.c~arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes
-+++ a/arch/x86/kernel/tsc.c
-@@ -285,17 +285,17 @@ static inline int pit_expect_msb(unsigne
- 		inb(0x42);
- 		if (inb(0x42) != val)
- 			break;
--		/* What if an SMI kicks in here when
--		 * count is just slightly over 5 and SMI run long enough
--		 * so that PIT MSB value is way bigger then val?
--		 * Then tscp will have an unreasonably large value,
--		 * since the code has no notion of
--		 * how much inb(0x42) MSB is bigger then val when it return from SMI.
--		 * In addition, since the 2 get_cycles() are near,
--		 * deltap may get a sane value.
--		 * If this happen on the final few readings
--		 * just before (d1+d2 < delta >> 11),
--		 * this may skew the average delta variable of quick_pit_calibrate().
-+		/*
-+		 * What if an SMI kicks in here when count is just slightly over
-+		 * 5 and the SMI run long enough so that PIT MSB value is way
-+		 * bigger then val?
-+		 * Then tscp will have an unreasonably large value, since the
-+		 * code has no notion of how much inb(0x42) MSB is bigger than
-+		 * val when it return from SMI.
-+		 * In addition, since the 2 get_cycles() are near, deltap may
-+		 * get a sane value.  If this happens on the final few readings
-+		 * just before (d1+d2 < delta >> 11), this may skew the average
-+		 * delta variable of quick_pit_calibrate().
- 		 */
- 		tsc = get_cycles();
- 	}
+diff -puN kernel/fork.c~mm-copy-over-oom_adj-value-at-fork-time kernel/fork.c
+--- a/kernel/fork.c~mm-copy-over-oom_adj-value-at-fork-time
++++ a/kernel/fork.c
+@@ -426,6 +426,7 @@ static struct mm_struct * mm_init(struct
+ 	init_rwsem(&mm->mmap_sem);
+ 	INIT_LIST_HEAD(&mm->mmlist);
+ 	mm->flags = (current->mm) ? current->mm->flags : default_dump_filter;
++	mm->oom_adj = (current->mm) ? current->mm->oom_adj : 0;
+ 	mm->core_state = NULL;
+ 	mm->nr_ptes = 0;
+ 	set_mm_counter(mm, file_rss, 0);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
+mm-copy-over-oom_adj-value-at-fork-time.patch
+mm-make-swap-token-dummies-static-inlines.patch
 mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+mm-clean-up-page_remove_rmap.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-oom-analysis-add-shmem-vmstat.patch
 
