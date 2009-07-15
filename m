@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-nozomi-fix-tty-refcounting-bug.patch added to -mm tree
-Date: Wed, 15 Jul 2009 14:30:25 -0700
-Message-ID: <200907152130.n6FLUPJS008412@imap1.linux-foundation.org>
+Subject: + cciss-remove-logical-drive-sysfs-entries-during-driver-cleanup.patch added to -mm tree
+Date: Wed, 15 Jul 2009 15:08:30 -0700
+Message-ID: <200907152208.n6FM8U15002056@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44476 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58398 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752245AbZGOVa4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755014AbZGOWIh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Jul 2009 17:30:56 -0400
+	Wed, 15 Jul 2009 18:08:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: andrew.patterson@hp.com, jens.axboe@oracle.com, mike.miller@hp.com
 
 
 The patch titled
-     Char: nozomi, fix tty refcounting bug
+     cciss: remove logical drive sysfs entries during driver cleanup
 has been added to the -mm tree.  Its filename is
-     char-nozomi-fix-tty-refcounting-bug.patch
+     cciss-remove-logical-drive-sysfs-entries-during-driver-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: nozomi, fix tty refcounting bug
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: cciss: remove logical drive sysfs entries during driver cleanup
+From: Andrew Patterson <andrew.patterson@hp.com>
 
-Don't forget to drop a tty refererence on fail paths in receive_data().
+Sysfs entries for logical drives need to be removed when a drive is
+deleted during driver cleanup.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Acked-by: Mike Miller <mike.miller@hp.com>
+Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/nozomi.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/block/cciss.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/nozomi.c~char-nozomi-fix-tty-refcounting-bug drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~char-nozomi-fix-tty-refcounting-bug
-+++ a/drivers/char/nozomi.c
-@@ -828,7 +828,7 @@ static int receive_data(enum port_type i
- 	struct port *port = &dc->port[index];
- 	void __iomem *addr = port->dl_addr[port->toggle_dl];
- 	struct tty_struct *tty = tty_port_tty_get(&port->port);
--	int i;
-+	int i, ret;
+diff -puN drivers/block/cciss.c~cciss-remove-logical-drive-sysfs-entries-during-driver-cleanup drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-remove-logical-drive-sysfs-entries-during-driver-cleanup
++++ a/drivers/block/cciss.c
+@@ -1977,7 +1977,6 @@ static int rebuild_lun_table(ctlr_info_t
+ 			h->drv[i].busy_configuring = 1;
+ 			spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
+ 			return_code = deregister_disk(h, i, 1);
+-			cciss_destroy_ld_sysfs_entry(&h->drv[i]);
+ 			h->drv[i].busy_configuring = 0;
+ 		}
+ 	}
+@@ -2118,6 +2117,7 @@ static int deregister_disk(ctlr_info_t *
+ 				 * indicate that this element of the drive
+ 				 * array is free.
+ 				 */
++	cciss_destroy_ld_sysfs_entry(drv);
  
- 	if (unlikely(!tty)) {
- 		DBG1("tty not open for port: %d?", index);
-@@ -844,12 +844,14 @@ static int receive_data(enum port_type i
- 
- 		/* disable interrupt in downlink... */
- 		disable_transmit_dl(index, dc);
--		return 0;
-+		ret = 0;
-+		goto put;
+ 	if (clear_all) {
+ 		/* check to see if it was the last disk */
+@@ -4141,6 +4141,9 @@ static void __devexit cciss_remove_one(s
+ 			if (q)
+ 				blk_cleanup_queue(q);
+ 		}
++		if (hba[i]->drv[j].raid_level != -1)
++			cciss_destroy_ld_sysfs_entry(&hba[i]->drv[j]);
++
  	}
  
- 	if (unlikely(size == 0)) {
- 		dev_err(&dc->pdev->dev, "size == 0?\n");
--		return 1;
-+		ret = 1;
-+		goto put;
- 	}
- 
- 	tty_buffer_request_room(tty, size);
-@@ -871,8 +873,10 @@ static int receive_data(enum port_type i
- 	}
- 
- 	set_bit(index, &dc->flip);
-+	ret = 1;
-+put:
- 	tty_kref_put(tty);
--	return 1;
-+	return ret;
- }
- 
- /* Debug for interrupts */
+ #ifdef CONFIG_CISS_SCSI_TAPE
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from andrew.patterson@hp.com are
 
-origin.patch
-linux-next.patch
-toshiba_acpi-return-on-a-fail-path.patch
-isdn-hisax-fix-lock-imbalance.patch
-icom-converting-space-to-tabs.patch
-char-nozomi-fix-tty-refcounting-bug.patch
-reiser4.patch
+cciss-remove-logical-drive-sysfs-entries-during-driver-cleanup.patch
+cciss-use-only-one-scan-thread.patch
+cciss-kick-off-logical-drive-topology-rescan-through-sysfs.patch
 
