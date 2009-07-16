@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-__addsub_zone_page_state.patch added to -mm tree
-Date: Wed, 15 Jul 2009 21:38:46 -0700
-Message-ID: <200907160438.n6G4ckq2016818@imap1.linux-foundation.org>
+Subject: + mm-vmstat-add-isolate-pages-fix.patch added to -mm tree
+Date: Wed, 15 Jul 2009 22:38:13 -0700
+Message-ID: <200907160538.n6G5cD2s010529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35895 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751699AbZGPEjF (ORCPT
+	by vger.kernel.org with ESMTP id S1757488AbZGPFii (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 00:39:05 -0400
+	Thu, 16 Jul 2009 01:38:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     mm: remove __{add,sub}_zone_page_state()
+     mm-vmstat-add-isolate-pages-fix
 has been added to the -mm tree.  Its filename is
-     mm-remove-__addsub_zone_page_state.patch
+     mm-vmstat-add-isolate-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove __{add,sub}_zone_page_state()
+Subject: mm-vmstat-add-isolate-pages-fix
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-__add_zone_page_state() and __sub_zone_page_state() are unused.
-
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmstat.h~mm-remove-__addsub_zone_page_state include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-remove-__addsub_zone_page_state
-+++ a/include/linux/vmstat.h
-@@ -210,11 +210,6 @@ extern void zone_statistics(struct zone 
+diff -puN mm/migrate.c~mm-vmstat-add-isolate-pages-fix mm/migrate.c
+--- a/mm/migrate.c~mm-vmstat-add-isolate-pages-fix
++++ a/mm/migrate.c
+@@ -746,7 +746,7 @@ int migrate_pages(struct list_head *from
+ 	struct page *page2;
+ 	int swapwrite = current->flags & PF_SWAPWRITE;
+ 	int rc;
+-	int flags;
++	unsigned long flags;
  
- #endif /* CONFIG_NUMA */
- 
--#define __add_zone_page_state(__z, __i, __d)	\
--		__mod_zone_page_state(__z, __i, __d)
--#define __sub_zone_page_state(__z, __i, __d)	\
--		__mod_zone_page_state(__z, __i,-(__d))
--
- #define add_zone_page_state(__z, __i, __d) mod_zone_page_state(__z, __i, __d)
- #define sub_zone_page_state(__z, __i, __d) mod_zone_page_state(__z, __i, -(__d))
- 
+ 	local_irq_save(flags);
+ 	list_for_each_entry(page, from, lru)
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -84,6 +77,7 @@ mm-oom-analysis-add-shmem-vmstat.patch
 mm-rename-pgmoved-variable-in-shrink_active_list.patch
 mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
 mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
 vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
 mm-remove-__addsub_zone_page_state.patch
 getrusage-fill-ru_maxrss-value.patch
