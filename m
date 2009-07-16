@@ -1,86 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmstat-add-isolate-pages-fix.patch added to -mm tree
-Date: Wed, 15 Jul 2009 22:38:13 -0700
-Message-ID: <200907160538.n6G5cD2s010529@imap1.linux-foundation.org>
+Subject: [merged] drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion.patch removed from -mm tree
+Date: Thu, 16 Jul 2009 12:25:24 -0700
+Message-ID: <200907161925.n6GJPOXu016561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757488AbZGPFii (ORCPT
+	by vger.kernel.org with ESMTP id S933096AbZGPT0C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 01:38:38 -0400
+	Thu, 16 Jul 2009 15:26:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, minchan.kim@gmail.com, riel@redhat.com
+To: roel.kluin@gmail.com, gregkh@suse.de, sarah.a.sharp@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-vmstat-add-isolate-pages-fix
-has been added to the -mm tree.  Its filename is
-     mm-vmstat-add-isolate-pages-fix.patch
+     drivers/usb/host/xhci-dbg.c: less- and greater than confusion
+has been removed from the -mm tree.  Its filename was
+     drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-vmstat-add-isolate-pages-fix
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: drivers/usb/host/xhci-dbg.c: less- and greater than confusion
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Without this change the loops won't start
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/host/xhci-dbg.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-vmstat-add-isolate-pages-fix mm/migrate.c
---- a/mm/migrate.c~mm-vmstat-add-isolate-pages-fix
-+++ a/mm/migrate.c
-@@ -746,7 +746,7 @@ int migrate_pages(struct list_head *from
- 	struct page *page2;
- 	int swapwrite = current->flags & PF_SWAPWRITE;
- 	int rc;
--	int flags;
-+	unsigned long flags;
- 
- 	local_irq_save(flags);
- 	list_for_each_entry(page, from, lru)
+diff -puN drivers/usb/host/xhci-dbg.c~drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion drivers/usb/host/xhci-dbg.c
+--- a/drivers/usb/host/xhci-dbg.c~drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion
++++ a/drivers/usb/host/xhci-dbg.c
+@@ -419,7 +419,7 @@ void xhci_dbg_ctx(struct xhci_hcd *xhci,
+ 			&ctx->add_flags, (unsigned long long)dma,
+ 			ctx->add_flags);
+ 	dma += field_size;
+-	for (i = 0; i > 6; ++i) {
++	for (i = 0; i < 6; ++i) {
+ 		xhci_dbg(xhci, "@%p (virt) @%08llx (dma) %#08x - rsvd[%d]\n",
+ 				&ctx->rsvd[i], (unsigned long long)dma,
+ 				ctx->rsvd[i], i);
+@@ -443,7 +443,7 @@ void xhci_dbg_ctx(struct xhci_hcd *xhci,
+ 			&ctx->slot.dev_state,
+ 			(unsigned long long)dma, ctx->slot.dev_state);
+ 	dma += field_size;
+-	for (i = 0; i > 4; ++i) {
++	for (i = 0; i < 4; ++i) {
+ 		xhci_dbg(xhci, "@%p (virt) @%08llx (dma) %#08x - rsvd[%d]\n",
+ 				&ctx->slot.reserved[i], (unsigned long long)dma,
+ 				ctx->slot.reserved[i], i);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-mm-copy-over-oom_adj-value-at-fork-time.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-rename-pgmoved-variable-in-shrink_active_list.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ext4-remove-redundant-test-on-unsigned.patch
+drivers-usb-gadget-s3c-hsotgc-missing-parentheses.patch
+dynamic-debug-fix-typo.patch
+drivers-gpu-drm-ttm-ttm_bo_vmc-fix-misplaced-parentheses.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+platinumfb-misplaced-parenthesis.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
