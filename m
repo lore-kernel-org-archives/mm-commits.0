@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-count-only-reclaimable-lru-pages-v2.patch added to -mm tree
-Date: Thu, 16 Jul 2009 15:36:02 -0700
-Message-ID: <200907162236.n6GMa3UZ018022@imap1.linux-foundation.org>
+Subject: + drivers-scsi-fnic-fnic_scsic-clean-up.patch added to -mm tree
+Date: Thu, 16 Jul 2009 15:40:52 -0700
+Message-ID: <200907162240.n6GMeqCK025475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932757AbZGPWgj (ORCPT
+	by vger.kernel.org with ESMTP id S933030AbZGPWlq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 18:36:39 -0400
+	Thu, 16 Jul 2009 18:41:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, cl@linux-foundation.org, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, abjoglek@cisco.com
 
 
 The patch titled
-     mm: count only reclaimable lru pages
+     drivers/scsi/fnic/fnic_scsi.c: clean up
 has been added to the -mm tree.  Its filename is
-     mm-count-only-reclaimable-lru-pages-v2.patch
+     drivers-scsi-fnic-fnic_scsic-clean-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,199 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: count only reclaimable lru pages
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: drivers/scsi/fnic/fnic_scsi.c: clean up
+From: Roel Kluin <roel.kluin@gmail.com>
 
-global_lru_pages() / zone_lru_pages() can be used in two ways:
-- to estimate max reclaimable pages in determine_dirtyable_memory()
-- to calculate the slab scan ratio
+In fnic_abort_cmd() and fnic_device_reset() assign `rport' earlier to make
+FNIC_SCSI_DBG() calls cleaner.
 
-When swap is full or not present, the anon lru lists are not reclaimable
-and also won't be scanned.  So the anon pages shall not be counted in both
-usage scenarios.  Also rename to _reclaimable_pages: now they are counting
-the possibly reclaimable lru pages.
+In fnic_clean_pending_aborts() `rport' is not used.
 
-It can greatly (and correctly) increase the slab scan rate under high
-memory pressure (when most file pages have been reclaimed and swap is
-full/absent), thus reduce false OOM kills.
-
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Abhijeet Joglekar <abjoglek@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |   11 +-------
- mm/page-writeback.c    |    5 ++-
- mm/vmscan.c            |   50 ++++++++++++++++++++++++++++++---------
- 3 files changed, 44 insertions(+), 22 deletions(-)
+ drivers/scsi/fnic/fnic_scsi.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-count-only-reclaimable-lru-pages-v2 include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-count-only-reclaimable-lru-pages-v2
-+++ a/include/linux/vmstat.h
-@@ -166,15 +166,8 @@ static inline unsigned long zone_page_st
- 	return x;
- }
+diff -puN drivers/scsi/fnic/fnic_scsi.c~drivers-scsi-fnic-fnic_scsic-clean-up drivers/scsi/fnic/fnic_scsi.c
+--- a/drivers/scsi/fnic/fnic_scsi.c~drivers-scsi-fnic-fnic_scsic-clean-up
++++ a/drivers/scsi/fnic/fnic_scsi.c
+@@ -1265,11 +1265,10 @@ int fnic_abort_cmd(struct scsi_cmnd *sc)
+ 	lp = shost_priv(sc->device->host);
  
--extern unsigned long global_lru_pages(void);
--
--static inline unsigned long zone_lru_pages(struct zone *zone)
--{
--	return (zone_page_state(zone, NR_ACTIVE_ANON)
--		+ zone_page_state(zone, NR_ACTIVE_FILE)
--		+ zone_page_state(zone, NR_INACTIVE_ANON)
--		+ zone_page_state(zone, NR_INACTIVE_FILE));
--}
-+extern unsigned long global_reclaimable_pages(void);
-+extern unsigned long zone_reclaimable_pages(struct zone *zone);
+ 	fnic = lport_priv(lp);
+-	FNIC_SCSI_DBG(KERN_DEBUG,
+-		      fnic->lport->host,
+-		      "Abort Cmd called FCID 0x%x, LUN 0x%x TAG %d\n",
+-		      (starget_to_rport(scsi_target(sc->device)))->port_id,
+-		      sc->device->lun, sc->request->tag);
++	rport = starget_to_rport(scsi_target(sc->device));
++	FNIC_SCSI_DBG(KERN_DEBUG, fnic->lport->host,
++			"Abort Cmd called FCID 0x%x, LUN 0x%x TAG %d\n",
++			rport->port_id, sc->device->lun, sc->request->tag);
  
- #ifdef CONFIG_NUMA
- /*
-diff -puN mm/page-writeback.c~mm-count-only-reclaimable-lru-pages-v2 mm/page-writeback.c
---- a/mm/page-writeback.c~mm-count-only-reclaimable-lru-pages-v2
-+++ a/mm/page-writeback.c
-@@ -380,7 +380,8 @@ static unsigned long highmem_dirtyable_m
- 		struct zone *z =
- 			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
+ 	if (lp->state != LPORT_ST_READY || !(lp->link_up)) {
+ 		ret = FAILED;
+@@ -1318,7 +1317,6 @@ int fnic_abort_cmd(struct scsi_cmnd *sc)
+ 	 * port is up, then send abts to the remote port to terminate
+ 	 * the IO. Else, just locally terminate the IO in the firmware
+ 	 */
+-	rport = starget_to_rport(scsi_target(sc->device));
+ 	if (fc_remote_port_chkready(rport) == 0)
+ 		task_req = FCPIO_ITMF_ABT_TASK;
+ 	else
+@@ -1437,7 +1435,6 @@ static int fnic_clean_pending_aborts(str
+ 	unsigned long flags;
+ 	int ret = 0;
+ 	struct scsi_cmnd *sc;
+-	struct fc_rport *rport;
+ 	struct scsi_lun fc_lun;
+ 	struct scsi_device *lun_dev = lr_sc->device;
+ 	DECLARE_COMPLETION_ONSTACK(tm_done);
+@@ -1477,7 +1474,6 @@ static int fnic_clean_pending_aborts(str
  
--		x += zone_page_state(z, NR_FREE_PAGES) + zone_lru_pages(z);
-+		x += zone_page_state(z, NR_FREE_PAGES) +
-+		     zone_reclaimable_pages(z);
- 	}
- 	/*
- 	 * Make sure that the number of highmem pages is never larger
-@@ -404,7 +405,7 @@ unsigned long determine_dirtyable_memory
- {
- 	unsigned long x;
+ 		/* Now queue the abort command to firmware */
+ 		int_to_scsilun(sc->device->lun, &fc_lun);
+-		rport = starget_to_rport(scsi_target(sc->device));
  
--	x = global_page_state(NR_FREE_PAGES) + global_lru_pages();
-+	x = global_page_state(NR_FREE_PAGES) + global_reclaimable_pages();
+ 		if (fnic_queue_abort_io_req(fnic, tag,
+ 					    FCPIO_ITMF_ABT_TASK_TERM,
+@@ -1547,18 +1543,16 @@ int fnic_device_reset(struct scsi_cmnd *
+ 	lp = shost_priv(sc->device->host);
  
- 	if (!vm_highmem_is_dirtyable)
- 		x -= highmem_dirtyable_memory(x);
-diff -puN mm/vmscan.c~mm-count-only-reclaimable-lru-pages-v2 mm/vmscan.c
---- a/mm/vmscan.c~mm-count-only-reclaimable-lru-pages-v2
-+++ a/mm/vmscan.c
-@@ -1729,7 +1729,7 @@ static unsigned long do_try_to_free_page
- 			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
- 				continue;
+ 	fnic = lport_priv(lp);
+-	FNIC_SCSI_DBG(KERN_DEBUG,
+-		      fnic->lport->host,
+-		      "Device reset called FCID 0x%x, LUN 0x%x\n",
+-		      (starget_to_rport(scsi_target(sc->device)))->port_id,
+-		      sc->device->lun);
  
--			lru_pages += zone_lru_pages(zone);
-+			lru_pages += zone_reclaimable_pages(zone);
- 		}
- 	}
++	rport = starget_to_rport(scsi_target(sc->device));
++	FNIC_SCSI_DBG(KERN_DEBUG, fnic->lport->host,
++			"Device reset called FCID 0x%x, LUN 0x%x\n",
++			rport->port_id, sc->device->lun);
  
-@@ -1946,7 +1946,7 @@ loop_again:
- 		for (i = 0; i <= end_zone; i++) {
- 			struct zone *zone = pgdat->node_zones + i;
+ 	if (lp->state != LPORT_ST_READY || !(lp->link_up))
+ 		goto fnic_device_reset_end;
  
--			lru_pages += zone_lru_pages(zone);
-+			lru_pages += zone_reclaimable_pages(zone);
- 		}
+ 	/* Check if remote port up */
+-	rport = starget_to_rport(scsi_target(sc->device));
+ 	if (fc_remote_port_chkready(rport))
+ 		goto fnic_device_reset_end;
  
- 		/*
-@@ -1990,7 +1990,7 @@ loop_again:
- 			if (zone_is_all_unreclaimable(zone))
- 				continue;
- 			if (nr_slab == 0 && zone->pages_scanned >=
--						(zone_lru_pages(zone) * 6))
-+					(zone_reclaimable_pages(zone) * 6))
- 					zone_set_flag(zone,
- 						      ZONE_ALL_UNRECLAIMABLE);
- 			/*
-@@ -2157,12 +2157,39 @@ void wakeup_kswapd(struct zone *zone, in
- 	wake_up_interruptible(&pgdat->kswapd_wait);
- }
- 
--unsigned long global_lru_pages(void)
-+/*
-+ * The reclaimable count would be mostly accurate.
-+ * The less reclaimable pages may be
-+ * - mlocked pages, which will be moved to unevictable list when encountered
-+ * - mapped pages, which may require several travels to be reclaimed
-+ * - dirty pages, which is not "instantly" reclaimable
-+ */
-+unsigned long global_reclaimable_pages(void)
- {
--	return global_page_state(NR_ACTIVE_ANON)
--		+ global_page_state(NR_ACTIVE_FILE)
--		+ global_page_state(NR_INACTIVE_ANON)
--		+ global_page_state(NR_INACTIVE_FILE);
-+	int nr;
-+
-+	nr = global_page_state(NR_ACTIVE_FILE) +
-+	     global_page_state(NR_INACTIVE_FILE);
-+
-+	if (nr_swap_pages > 0)
-+		nr += global_page_state(NR_ACTIVE_ANON) +
-+		      global_page_state(NR_INACTIVE_ANON);
-+
-+	return nr;
-+}
-+
-+unsigned long zone_reclaimable_pages(struct zone *zone)
-+{
-+	int nr;
-+
-+	nr = zone_page_state(zone, NR_ACTIVE_FILE) +
-+	     zone_page_state(zone, NR_INACTIVE_FILE);
-+
-+	if (nr_swap_pages > 0)
-+		nr += zone_page_state(zone, NR_ACTIVE_ANON) +
-+		      zone_page_state(zone, NR_INACTIVE_ANON);
-+
-+	return nr;
- }
- 
- #ifdef CONFIG_HIBERNATION
-@@ -2234,7 +2261,7 @@ unsigned long shrink_all_memory(unsigned
- 
- 	current->reclaim_state = &reclaim_state;
- 
--	lru_pages = global_lru_pages();
-+	lru_pages = global_reclaimable_pages();
- 	nr_slab = global_page_state(NR_SLAB_RECLAIMABLE);
- 	/* If slab caches are huge, it's better to hit them first */
- 	while (nr_slab >= lru_pages) {
-@@ -2276,7 +2303,7 @@ unsigned long shrink_all_memory(unsigned
- 
- 			reclaim_state.reclaimed_slab = 0;
- 			shrink_slab(sc.nr_scanned, sc.gfp_mask,
--					global_lru_pages());
-+				    global_reclaimable_pages());
- 			sc.nr_reclaimed += reclaim_state.reclaimed_slab;
- 			if (sc.nr_reclaimed >= nr_pages)
- 				goto out;
-@@ -2293,7 +2320,8 @@ unsigned long shrink_all_memory(unsigned
- 	if (!sc.nr_reclaimed) {
- 		do {
- 			reclaim_state.reclaimed_slab = 0;
--			shrink_slab(nr_pages, sc.gfp_mask, global_lru_pages());
-+			shrink_slab(nr_pages, sc.gfp_mask,
-+				    global_reclaimable_pages());
- 			sc.nr_reclaimed += reclaim_state.reclaimed_slab;
- 		} while (sc.nr_reclaimed < nr_pages &&
- 				reclaim_state.reclaimed_slab > 0);
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ext4-remove-redundant-test-on-unsigned.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-usb-gadget-s3c-hsotgc-missing-parentheses.patch
+dynamic-debug-fix-typo.patch
+drivers-gpu-drm-ttm-ttm_bo_vmc-fix-misplaced-parentheses.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+platinumfb-misplaced-parenthesis.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
