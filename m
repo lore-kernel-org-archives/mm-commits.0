@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + procfs-provide-stack-information-for-threads-v011.patch added to -mm tree
-Date: Thu, 16 Jul 2009 13:42:57 -0700
-Message-ID: <200907162042.n6GKgvr3006206@imap1.linux-foundation.org>
+Date: Thu, 16 Jul 2009 14:11:57 -0700
+Message-ID: <200907162111.n6GLBvU7018360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933322AbZGPUnd (ORCPT
+	by vger.kernel.org with ESMTP id S933315AbZGPVMa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 16:43:33 -0400
+	Thu, 16 Jul 2009 17:12:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -89,8 +89,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  Documentation/filesystems/proc.txt |    4 -
  fs/proc/array.c                    |   74 +++++++++++++++++++--------
  fs/proc/task_mmu.c                 |    2 
- include/linux/sched.h              |    2 
- 4 files changed, 58 insertions(+), 24 deletions(-)
+ linux/sched.h                      |    0 
+ 4 files changed, 57 insertions(+), 23 deletions(-)
 
 diff -puN Documentation/filesystems/proc.txt~procfs-provide-stack-information-for-threads-v011 Documentation/filesystems/proc.txt
 --- a/Documentation/filesystems/proc.txt~procfs-provide-stack-information-for-threads-v011
@@ -225,24 +225,6 @@ diff -puN fs/proc/task_mmu.c~procfs-provide-stack-information-for-threads-v011 f
  						 vma->vm_end - stack_start
  #else
 diff -puN include/linux/sched.h~procfs-provide-stack-information-for-threads-v011 include/linux/sched.h
---- a/include/linux/sched.h~procfs-provide-stack-information-for-threads-v011
-+++ a/include/linux/sched.h
-@@ -1173,6 +1173,7 @@ struct sched_rt_entity {
- 	/* rq "owned" by this entity/group: */
- 	struct rt_rq		*my_q;
- #endif
-+	unsigned long stack_start;
- };
- 
- struct task_struct {
-@@ -1495,7 +1496,6 @@ struct task_struct {
- 	/* bitmask of trace recursion */
- 	unsigned long trace_recursion;
- #endif /* CONFIG_TRACING */
--	unsigned long stack_start;
- };
- 
- /* Future-safe accessor for struct task_struct's cpus_allowed. */
 _
 
 Patches currently in -mm which might be from stefani@seibold.net are
