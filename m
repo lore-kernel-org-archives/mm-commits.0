@@ -1,91 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] char-nozomi-fix-tty-refcounting-bug.patch removed from -mm tree
-Date: Thu, 16 Jul 2009 12:25:33 -0700
-Message-ID: <200907161925.n6GJPXhA016812@imap1.linux-foundation.org>
+Subject: [merged] vt-drop-bootmem-slab-memory-distinction.patch removed from -mm tree
+Date: Thu, 16 Jul 2009 12:25:29 -0700
+Message-ID: <200907161925.n6GJPTCe016612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933097AbZGPT0F (ORCPT
+	by vger.kernel.org with ESMTP id S933096AbZGPT0h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 15:26:05 -0400
+	Thu, 16 Jul 2009 15:26:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, alan@lxorguk.ukuu.org.uk, catalin.marinas@arm.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: nozomi, fix tty refcounting bug
+     vt: drop bootmem/slab memory distinction
 has been removed from the -mm tree.  Its filename was
-     char-nozomi-fix-tty-refcounting-bug.patch
+     vt-drop-bootmem-slab-memory-distinction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: nozomi, fix tty refcounting bug
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: vt: drop bootmem/slab memory distinction
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Don't forget to drop a tty refererence on fail paths in receive_data().
+Bootmem is not used for the vt screen buffer anymore as slab is now
+available at the time the console is initialized.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Get rid of the now superfluous distinction between slab and bootmem,
+it's always slab.
+
+This also fixes a kmalloc leak which Catalin described thusly:
+
+
+Commit a5f4f52e ("vt: use kzalloc() instead of the bootmem allocator")
+replaced the alloc_bootmem() with kzalloc() but didn't set vc_kmalloced to
+1 and the memory block is later leaked.  The corresponding kmemleak trace:
+
+unreferenced object 0xdf828000 (size 8192):
+  comm "swapper", pid 0, jiffies 4294937296
+  backtrace:
+    [<c006d473>] __save_stack_trace+0x17/0x1c
+    [<c000d869>] log_early+0x55/0x84
+    [<c01cfa4b>] kmemleak_alloc+0x33/0x3c
+    [<c006c013>] __kmalloc+0xd7/0xe4
+    [<c00108c7>] con_init+0xbf/0x1b8
+    [<c0010149>] console_init+0x11/0x20
+    [<c0008797>] start_kernel+0x137/0x1e4
+
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Tested-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/nozomi.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/char/vt.c              |   12 +++---------
+ include/linux/console_struct.h |    1 -
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/nozomi.c~char-nozomi-fix-tty-refcounting-bug drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~char-nozomi-fix-tty-refcounting-bug
-+++ a/drivers/char/nozomi.c
-@@ -828,7 +828,7 @@ static int receive_data(enum port_type i
- 	struct port *port = &dc->port[index];
- 	void __iomem *addr = port->dl_addr[port->toggle_dl];
- 	struct tty_struct *tty = tty_port_tty_get(&port->port);
--	int i;
-+	int i, ret;
+diff -puN drivers/char/vt.c~vt-drop-bootmem-slab-memory-distinction drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-drop-bootmem-slab-memory-distinction
++++ a/drivers/char/vt.c
+@@ -769,14 +769,12 @@ int vc_allocate(unsigned int currcons)	/
+ 	    visual_init(vc, currcons, 1);
+ 	    if (!*vc->vc_uni_pagedir_loc)
+ 		con_set_default_unimap(vc);
+-	    if (!vc->vc_kmalloced)
+-		vc->vc_screenbuf = kmalloc(vc->vc_screenbuf_size, GFP_KERNEL);
++	    vc->vc_screenbuf = kmalloc(vc->vc_screenbuf_size, GFP_KERNEL);
+ 	    if (!vc->vc_screenbuf) {
+ 		kfree(vc);
+ 		vc_cons[currcons].d = NULL;
+ 		return -ENOMEM;
+ 	    }
+-	    vc->vc_kmalloced = 1;
+ 	    vc_init(vc, vc->vc_rows, vc->vc_cols, 1);
+ 	    vcs_make_sysfs(currcons);
+ 	    atomic_notifier_call_chain(&vt_notifier_list, VT_ALLOCATE, &param);
+@@ -912,10 +910,8 @@ static int vc_do_resize(struct tty_struc
+ 	if (new_scr_end > new_origin)
+ 		scr_memsetw((void *)new_origin, vc->vc_video_erase_char,
+ 			    new_scr_end - new_origin);
+-	if (vc->vc_kmalloced)
+-		kfree(vc->vc_screenbuf);
++	kfree(vc->vc_screenbuf);
+ 	vc->vc_screenbuf = newscreen;
+-	vc->vc_kmalloced = 1;
+ 	vc->vc_screenbuf_size = new_screen_size;
+ 	set_origin(vc);
  
- 	if (unlikely(!tty)) {
- 		DBG1("tty not open for port: %d?", index);
-@@ -844,12 +844,14 @@ static int receive_data(enum port_type i
- 
- 		/* disable interrupt in downlink... */
- 		disable_transmit_dl(index, dc);
--		return 0;
-+		ret = 0;
-+		goto put;
+@@ -995,8 +991,7 @@ void vc_deallocate(unsigned int currcons
+ 		vc->vc_sw->con_deinit(vc);
+ 		put_pid(vc->vt_pid);
+ 		module_put(vc->vc_sw->owner);
+-		if (vc->vc_kmalloced)
+-			kfree(vc->vc_screenbuf);
++		kfree(vc->vc_screenbuf);
+ 		if (currcons >= MIN_NR_CONSOLES)
+ 			kfree(vc);
+ 		vc_cons[currcons].d = NULL;
+@@ -2881,7 +2876,6 @@ static int __init con_init(void)
+ 		INIT_WORK(&vc_cons[currcons].SAK_work, vc_SAK);
+ 		visual_init(vc, currcons, 1);
+ 		vc->vc_screenbuf = kzalloc(vc->vc_screenbuf_size, GFP_NOWAIT);
+-		vc->vc_kmalloced = 0;
+ 		vc_init(vc, vc->vc_rows, vc->vc_cols,
+ 			currcons || !vc->vc_sw->con_save_screen);
  	}
- 
- 	if (unlikely(size == 0)) {
- 		dev_err(&dc->pdev->dev, "size == 0?\n");
--		return 1;
-+		ret = 1;
-+		goto put;
- 	}
- 
- 	tty_buffer_request_room(tty, size);
-@@ -871,8 +873,10 @@ static int receive_data(enum port_type i
- 	}
- 
- 	set_bit(index, &dc->flip);
-+	ret = 1;
-+put:
- 	tty_kref_put(tty);
--	return 1;
-+	return ret;
- }
- 
- /* Debug for interrupts */
+diff -puN include/linux/console_struct.h~vt-drop-bootmem-slab-memory-distinction include/linux/console_struct.h
+--- a/include/linux/console_struct.h~vt-drop-bootmem-slab-memory-distinction
++++ a/include/linux/console_struct.h
+@@ -89,7 +89,6 @@ struct vc_data {
+ 	unsigned int	vc_need_wrap	: 1;
+ 	unsigned int	vc_can_do_color	: 1;
+ 	unsigned int	vc_report_mouse : 2;
+-	unsigned int	vc_kmalloced	: 1;
+ 	unsigned char	vc_utf		: 1;	/* Unicode UTF-8 encoding */
+ 	unsigned char	vc_utf_count;
+ 		 int	vc_utf_char;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-linux-next.patch
-toshiba_acpi-return-on-a-fail-path.patch
-mtd-sst25l-fix-lock-imbalance.patch
-isdn-hisax-fix-lock-imbalance.patch
-icom-converting-space-to-tabs.patch
-reiser4.patch
+mm-make-swap-token-dummies-static-inlines.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
 
