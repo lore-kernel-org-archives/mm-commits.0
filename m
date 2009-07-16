@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch added to -mm tree
-Date: Wed, 15 Jul 2009 21:04:08 -0700
-Message-ID: <200907160404.n6G448BE028680@imap1.linux-foundation.org>
+Subject: + mm-remove-__addsub_zone_page_state.patch added to -mm tree
+Date: Wed, 15 Jul 2009 21:38:46 -0700
+Message-ID: <200907160438.n6G4ckq2016818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751328AbZGPEEc (ORCPT
+	by vger.kernel.org with ESMTP id S1751699AbZGPEjF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 00:04:32 -0400
+	Thu, 16 Jul 2009 00:39:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     vmscan: throttle direct reclaim when too many pages are isolated already
+     mm: remove __{add,sub}_zone_page_state()
 has been added to the -mm tree.  Its filename is
-     vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+     mm-remove-__addsub_zone_page_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: throttle direct reclaim when too many pages are isolated already
-From: Rik van Riel <riel@redhat.com>
+Subject: mm: remove __{add,sub}_zone_page_state()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-When way too many processes go into direct reclaim, it is possible for all
-of the pages to be taken off the LRU.  One result of this is that the next
-process in the page reclaim code thinks there are no reclaimable pages
-left and triggers an out of memory kill.
+__add_zone_page_state() and __sub_zone_page_state() are unused.
 
-One solution to this problem is to never let so many processes into the
-page reclaim path that the entire LRU is emptied.  Limiting the system to
-only having half of each inactive list isolated for reclaim should be
-safe.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ include/linux/vmstat.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already mm/vmscan.c
---- a/mm/vmscan.c~vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already
-+++ a/mm/vmscan.c
-@@ -1029,6 +1029,31 @@ int isolate_lru_page(struct page *page)
- }
+diff -puN include/linux/vmstat.h~mm-remove-__addsub_zone_page_state include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-remove-__addsub_zone_page_state
++++ a/include/linux/vmstat.h
+@@ -210,11 +210,6 @@ extern void zone_statistics(struct zone 
  
- /*
-+ * Are there way too many processes in the direct reclaim path already?
-+ */
-+static int too_many_isolated(struct zone *zone, int file,
-+		struct scan_control *sc)
-+{
-+	unsigned long inactive, isolated;
-+
-+	if (current_is_kswapd())
-+		return 0;
-+
-+	if (!scanning_global_lru(sc))
-+		return 0;
-+
-+	if (file) {
-+		inactive = zone_page_state(zone, NR_INACTIVE_FILE);
-+		isolated = zone_page_state(zone, NR_ISOLATED_FILE);
-+	} else {
-+		inactive = zone_page_state(zone, NR_INACTIVE_ANON);
-+		isolated = zone_page_state(zone, NR_ISOLATED_ANON);
-+	}
-+
-+	return isolated > inactive;
-+}
-+
-+/*
-  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
-  * of reclaimed pages
-  */
-@@ -1043,6 +1068,14 @@ static unsigned long shrink_inactive_lis
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
- 	int lumpy_reclaim = 0;
+ #endif /* CONFIG_NUMA */
  
-+	while (unlikely(too_many_isolated(zone, file, sc))) {
-+		congestion_wait(WRITE, HZ/10);
-+
-+		/* We are about to die and free our memory. Return now. */
-+		if (fatal_signal_pending(current))
-+			return SWAP_CLUSTER_MAX;
-+	}
-+
- 	/*
- 	 * If we need a large contiguous chunk of memory, or have
- 	 * trouble getting a small set of contiguous pages, we
+-#define __add_zone_page_state(__z, __i, __d)	\
+-		__mod_zone_page_state(__z, __i, __d)
+-#define __sub_zone_page_state(__z, __i, __d)	\
+-		__mod_zone_page_state(__z, __i,-(__d))
+-
+ #define add_zone_page_state(__z, __i, __d) mod_zone_page_state(__z, __i, __d)
+ #define sub_zone_page_state(__z, __i, __d) mod_zone_page_state(__z, __i, -(__d))
+ 
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+linux-next.patch
 mm-copy-over-oom_adj-value-at-fork-time.patch
-mm-make-swap-token-dummies-static-inlines.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
 mm-clean-up-page_remove_rmap.patch
+mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
 mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
 mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
 mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
@@ -124,4 +85,8 @@ mm-rename-pgmoved-variable-in-shrink_active_list.patch
 mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
 mm-vmstat-add-isolate-pages.patch
 vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
