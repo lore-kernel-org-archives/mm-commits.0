@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch added to -mm tree
-Date: Thu, 16 Jul 2009 15:28:34 -0700
-Message-ID: <200907162228.n6GMSYRb006448@imap1.linux-foundation.org>
+Subject: + hugetlb-restore-interleaving-of-bootmem-huge-pages.patch added to -mm tree
+Date: Thu, 16 Jul 2009 15:32:09 -0700
+Message-ID: <200907162232.n6GMWAe9012084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933480AbZGPW3I (ORCPT
+	by vger.kernel.org with ESMTP id S1755052AbZGPWct (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 18:29:08 -0400
+	Thu, 16 Jul 2009 18:32:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nsnehaprabha@ti.com, dbrownell@users.sourceforge.net, dwmw2@infradead.org, s-paulraj@ti.com, tglx@linutronix.de
+Cc: Lee.Schermerhorn@hp.com, andi@firstfloor.org, apw@canonical.com, lee.schermerhorn@hp.com, mel@csn.ul.ie
 
 
 The patch titled
-     mtd-nand: add new ECC mode - ECC_HW_OOB_FIRST
+     hugetlb: restore interleaving of bootmem huge pages
 has been added to the -mm tree.  Its filename is
-     mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch
+     hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd-nand: add new ECC mode - ECC_HW_OOB_FIRST
-From: Sneha Narnakaje <nsnehaprabha@ti.com>
+Subject: hugetlb: restore interleaving of bootmem huge pages
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-This patch adds the new mode NAND_ECC_HW_OOB_FIRST in the nand code to
-support 4-bit ECC on TI DaVinci devices with large page (up to 2K) NAND
-chips.  This ECC mode is similar to NAND_ECC_HW, with the exception of
-read_page API that first reads the OOB area, reads the data in chunks,
-feeds the ECC from OOB area to the ECC hw engine and perform any
-correction on the data as per the ECC status reported by the engine.
+I noticed that alloc_bootmem_huge_page() will only advance to the next
+node on failure to allocate a huge page, potentially filling nodes with
+huge-pages.  I asked about this on linux-mm and linux-numa, cc'ing the
+usual huge page suspects.
 
-"ECC_HW_OOB_FIRST" name suggested by Thomas Gleixner
+Mel Gorman responded:
 
-Reviewed-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Sneha Narnakaje <nsnehaprabha@ti.com>
-Signed-off-by: Sandeep Paulraj <s-paulraj@ti.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+	I strongly suspect that the same node being used until allocation
+	failure instead of round-robin is an oversight and not deliberate
+	at all. It appears to be a side-effect of a fix made way back in
+	commit 63b4613c3f0d4b724ba259dc6c201bb68b884e1a ["hugetlb: fix
+	hugepage allocation with memoryless nodes"]. Prior to that patch
+	it looked like allocations would always round-robin even when
+	allocation was successful.
+
+This patch--factored out of my "hugetlb mempolicy" series--moves the
+advance of the hstate next node from which to allocate up before the test
+for success of the attempted allocation.
+
+Note that alloc_bootmem_huge_page() is only used for order > MAX_ORDER
+huge pages.
+
+I'll post a separate patch for mainline/stable, as the above mentioned
+"balance freeing" series renamed the next node to alloc function.
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Andy Whitcroft <apw@canonical.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/nand_base.c |   59 +++++++++++++++++++++++++++++++++
- include/linux/mtd/nand.h     |    1 
- 2 files changed, 60 insertions(+)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first drivers/mtd/nand/nand_base.c
---- a/drivers/mtd/nand/nand_base.c~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first
-+++ a/drivers/mtd/nand/nand_base.c
-@@ -980,6 +980,54 @@ static int nand_read_page_hwecc(struct m
- }
+diff -puN mm/hugetlb.c~hugetlb-restore-interleaving-of-bootmem-huge-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-restore-interleaving-of-bootmem-huge-pages
++++ a/mm/hugetlb.c
+@@ -1031,6 +1031,7 @@ int __weak alloc_bootmem_huge_page(struc
+ 				NODE_DATA(h->next_nid_to_alloc),
+ 				huge_page_size(h), huge_page_size(h), 0);
  
- /**
-+ * nand_read_page_hwecc_oob_first - [REPLACABLE] hw ecc, read oob first
-+ * @mtd:	mtd info structure
-+ * @chip:	nand chip info structure
-+ * @buf:	buffer to store read data
-+ *
-+ * Hardware ECC for large page chips, require OOB to be read first.
-+ * For this ECC mode, the write_page method is re-used from ECC_HW.
-+ * These methods read/write ECC from the OOB area, unlike the
-+ * ECC_HW_SYNDROME support with multiple ECC steps, follows the
-+ * "infix ECC" scheme and reads/writes ECC from the data area, by
-+ * overwriting the NAND manufacturer bad block markings.
-+ */
-+static int nand_read_page_hwecc_oob_first(struct mtd_info *mtd,
-+	struct nand_chip *chip, uint8_t *buf, int page)
-+{
-+	int i, eccsize = chip->ecc.size;
-+	int eccbytes = chip->ecc.bytes;
-+	int eccsteps = chip->ecc.steps;
-+	uint8_t *p = buf;
-+	uint8_t *ecc_code = chip->buffers->ecccode;
-+	uint32_t *eccpos = chip->ecc.layout->eccpos;
-+	uint8_t *ecc_calc = chip->buffers->ecccalc;
-+
-+	/* Read the OOB area first */
-+	chip->cmdfunc(mtd, NAND_CMD_READOOB, 0, page);
-+	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
-+	chip->cmdfunc(mtd, NAND_CMD_READ0, 0, page);
-+
-+	for (i = 0; i < chip->ecc.total; i++)
-+		ecc_code[i] = chip->oob_poi[eccpos[i]];
-+
-+	for (i = 0; eccsteps; eccsteps--, i += eccbytes, p += eccsize) {
-+		int stat;
-+
-+		chip->ecc.hwctl(mtd, NAND_ECC_READ);
-+		chip->read_buf(mtd, p, eccsize);
-+		chip->ecc.calculate(mtd, p, &ecc_calc[i]);
-+
-+		stat = chip->ecc.correct(mtd, p, &ecc_code[i], NULL);
-+		if (stat < 0)
-+			mtd->ecc_stats.failed++;
-+		else
-+			mtd->ecc_stats.corrected += stat;
-+	}
-+	return 0;
-+}
-+
-+/**
-  * nand_read_page_syndrome - [REPLACABLE] hardware ecc syndrom based page read
-  * @mtd:	mtd info structure
-  * @chip:	nand chip info structure
-@@ -2673,6 +2721,17 @@ int nand_scan_tail(struct mtd_info *mtd)
- 	 */
- 
- 	switch (chip->ecc.mode) {
-+	case NAND_ECC_HW_OOB_FIRST:
-+		/* Similar to NAND_ECC_HW, but a separate read_page handle */
-+		if (!chip->ecc.calculate || !chip->ecc.correct ||
-+		     !chip->ecc.hwctl) {
-+			printk(KERN_WARNING "No ECC functions supplied, "
-+			       "Hardware ECC not possible\n");
-+			BUG();
-+		}
-+		if (!chip->ecc.read_page)
-+			chip->ecc.read_page = nand_read_page_hwecc_oob_first;
-+
- 	case NAND_ECC_HW:
- 		/* Use standard hwecc read page function ? */
- 		if (!chip->ecc.read_page)
-diff -puN include/linux/mtd/nand.h~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first include/linux/mtd/nand.h
---- a/include/linux/mtd/nand.h~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first
-+++ a/include/linux/mtd/nand.h
-@@ -121,6 +121,7 @@ typedef enum {
- 	NAND_ECC_SOFT,
- 	NAND_ECC_HW,
- 	NAND_ECC_HW_SYNDROME,
-+	NAND_ECC_HW_OOB_FIRST,
- } nand_ecc_modes_t;
- 
- /*
++		hstate_next_node_to_alloc(h);
+ 		if (addr) {
+ 			/*
+ 			 * Use the beginning of the huge page to store the
+@@ -1040,7 +1041,6 @@ int __weak alloc_bootmem_huge_page(struc
+ 			m = addr;
+ 			goto found;
+ 		}
+-		hstate_next_node_to_alloc(h);
+ 		nr_nodes--;
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from nsnehaprabha@ti.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-mtd-nand-add-page-parameter-to-all-read_page-read_page_raw-apis.patch
-mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch
-mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
 
