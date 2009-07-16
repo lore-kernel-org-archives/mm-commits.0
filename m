@@ -1,134 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vt-drop-bootmem-slab-memory-distinction.patch removed from -mm tree
-Date: Thu, 16 Jul 2009 12:25:29 -0700
-Message-ID: <200907161925.n6GJPTCe016612@imap1.linux-foundation.org>
+Subject: [to-be-updated] page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator-resend.patch removed from -mm tree
+Date: Thu, 16 Jul 2009 12:49:09 -0700
+Message-ID: <200907161949.n6GJn926020530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933096AbZGPT0h (ORCPT
+	by vger.kernel.org with ESMTP id S933100AbZGPTuR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 15:26:37 -0400
+	Thu, 16 Jul 2009 15:50:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, alan@lxorguk.ukuu.org.uk, catalin.marinas@arm.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, npiggin@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt: drop bootmem/slab memory distinction
+     page-allocator: ensure that processes that have been OOM killed exit the page allocator
 has been removed from the -mm tree.  Its filename was
-     vt-drop-bootmem-slab-memory-distinction.patch
+     page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator-resend.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: drop bootmem/slab memory distinction
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: page-allocator: ensure that processes that have been OOM killed exit the page allocator
+From: Mel Gorman <mel@csn.ul.ie>
 
-Bootmem is not used for the vt screen buffer anymore as slab is now
-available at the time the console is initialized.
+Processes that have been OOM killed set the thread flag TIF_MEMDIE.  A
+process such as this is expected to exit the page allocator but
+potentially, it loops forever.  This patch checks TIF_MEMDIE when deciding
+whether to loop again in the page allocator.  If set, and __GFP_NOFAIL is
+not specified then the loop will exit on the assumption it's no longer
+important for the process to make forward progress.  Note that a process
+that has just been OOM-killed will still loop at least one more time
+retrying the allocation before the thread flag is checked.
 
-Get rid of the now superfluous distinction between slab and bootmem,
-it's always slab.
-
-This also fixes a kmalloc leak which Catalin described thusly:
-
-
-Commit a5f4f52e ("vt: use kzalloc() instead of the bootmem allocator")
-replaced the alloc_bootmem() with kzalloc() but didn't set vc_kmalloced to
-1 and the memory block is later leaked.  The corresponding kmemleak trace:
-
-unreferenced object 0xdf828000 (size 8192):
-  comm "swapper", pid 0, jiffies 4294937296
-  backtrace:
-    [<c006d473>] __save_stack_trace+0x17/0x1c
-    [<c000d869>] log_early+0x55/0x84
-    [<c01cfa4b>] kmemleak_alloc+0x33/0x3c
-    [<c006c013>] __kmalloc+0xd7/0xe4
-    [<c00108c7>] con_init+0xbf/0x1b8
-    [<c0010149>] console_init+0x11/0x20
-    [<c0008797>] start_kernel+0x137/0x1e4
-
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Tested-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c              |   12 +++---------
- include/linux/console_struct.h |    1 -
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/char/vt.c~vt-drop-bootmem-slab-memory-distinction drivers/char/vt.c
---- a/drivers/char/vt.c~vt-drop-bootmem-slab-memory-distinction
-+++ a/drivers/char/vt.c
-@@ -769,14 +769,12 @@ int vc_allocate(unsigned int currcons)	/
- 	    visual_init(vc, currcons, 1);
- 	    if (!*vc->vc_uni_pagedir_loc)
- 		con_set_default_unimap(vc);
--	    if (!vc->vc_kmalloced)
--		vc->vc_screenbuf = kmalloc(vc->vc_screenbuf_size, GFP_KERNEL);
-+	    vc->vc_screenbuf = kmalloc(vc->vc_screenbuf_size, GFP_KERNEL);
- 	    if (!vc->vc_screenbuf) {
- 		kfree(vc);
- 		vc_cons[currcons].d = NULL;
- 		return -ENOMEM;
- 	    }
--	    vc->vc_kmalloced = 1;
- 	    vc_init(vc, vc->vc_rows, vc->vc_cols, 1);
- 	    vcs_make_sysfs(currcons);
- 	    atomic_notifier_call_chain(&vt_notifier_list, VT_ALLOCATE, &param);
-@@ -912,10 +910,8 @@ static int vc_do_resize(struct tty_struc
- 	if (new_scr_end > new_origin)
- 		scr_memsetw((void *)new_origin, vc->vc_video_erase_char,
- 			    new_scr_end - new_origin);
--	if (vc->vc_kmalloced)
--		kfree(vc->vc_screenbuf);
-+	kfree(vc->vc_screenbuf);
- 	vc->vc_screenbuf = newscreen;
--	vc->vc_kmalloced = 1;
- 	vc->vc_screenbuf_size = new_screen_size;
- 	set_origin(vc);
+diff -puN mm/page_alloc.c~page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator-resend mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator-resend
++++ a/mm/page_alloc.c
+@@ -1544,6 +1544,14 @@ should_alloc_retry(gfp_t gfp_mask, unsig
+ 	if (gfp_mask & __GFP_NORETRY)
+ 		return 0;
  
-@@ -995,8 +991,7 @@ void vc_deallocate(unsigned int currcons
- 		vc->vc_sw->con_deinit(vc);
- 		put_pid(vc->vt_pid);
- 		module_put(vc->vc_sw->owner);
--		if (vc->vc_kmalloced)
--			kfree(vc->vc_screenbuf);
-+		kfree(vc->vc_screenbuf);
- 		if (currcons >= MIN_NR_CONSOLES)
- 			kfree(vc);
- 		vc_cons[currcons].d = NULL;
-@@ -2881,7 +2876,6 @@ static int __init con_init(void)
- 		INIT_WORK(&vc_cons[currcons].SAK_work, vc_SAK);
- 		visual_init(vc, currcons, 1);
- 		vc->vc_screenbuf = kzalloc(vc->vc_screenbuf_size, GFP_NOWAIT);
--		vc->vc_kmalloced = 0;
- 		vc_init(vc, vc->vc_rows, vc->vc_cols,
- 			currcons || !vc->vc_sw->con_save_screen);
- 	}
-diff -puN include/linux/console_struct.h~vt-drop-bootmem-slab-memory-distinction include/linux/console_struct.h
---- a/include/linux/console_struct.h~vt-drop-bootmem-slab-memory-distinction
-+++ a/include/linux/console_struct.h
-@@ -89,7 +89,6 @@ struct vc_data {
- 	unsigned int	vc_need_wrap	: 1;
- 	unsigned int	vc_can_do_color	: 1;
- 	unsigned int	vc_report_mouse : 2;
--	unsigned int	vc_kmalloced	: 1;
- 	unsigned char	vc_utf		: 1;	/* Unicode UTF-8 encoding */
- 	unsigned char	vc_utf_count;
- 		 int	vc_utf_char;
++	/* Do not loop if OOM-killed unless __GFP_NOFAIL is specified */
++	if (test_thread_flag(TIF_MEMDIE)) {
++		if (gfp_mask & __GFP_NOFAIL)
++			WARN(1, "Potential infinite loop with __GFP_NOFAIL");
++		else
++			return 0;
++	}
++
+ 	/*
+ 	 * In this implementation, order <= PAGE_ALLOC_COSTLY_ORDER
+ 	 * means __GFP_NOFAIL, but that may not be true in other
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-origin.patch
-mm-make-swap-token-dummies-static-inlines.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
+page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set.patch
+page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator-resend.patch
+page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator.patch
+memory-hotplug-update-zone-pcp-at-memory-online.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
+memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
+memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
+memory-hotplug-migrate-swap-cache-page.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+mm-clean-up-page_remove_rmap.patch
+page-allocator-allow-too-high-order-warning-messages-to-be-suppressed-with-__gfp_nowarn.patch
+profile-suppress-warning-about-large-allocations-when-profile=1-is-specified.patch
+net-dccp-suppress-warning-about-large-allocations-from-dccp.patch
+mm-update-alloc_flags-after-oom-killer-has-been-called.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
