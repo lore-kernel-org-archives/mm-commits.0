@@ -1,333 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2009-07-15-20-57 uploaded
-Date: Wed, 15 Jul 2009 20:59:15 -0700
-Message-ID: <200907160359.n6G3xFQe021078@imap1.linux-foundation.org>
+Subject: + vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch added to -mm tree
+Date: Wed, 15 Jul 2009 21:04:08 -0700
+Message-ID: <200907160404.n6G448BE028680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757394AbZGPD7R (ORCPT
+	by vger.kernel.org with ESMTP id S1751328AbZGPEEc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Jul 2009 23:59:17 -0400
+	Thu, 16 Jul 2009 00:04:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: riel@redhat.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
 
-The mm-of-the-moment snapshot 2009-07-15-20-57 has been uploaded to
 
-   http://userweb.kernel.org/~akpm/mmotm/
+The patch titled
+     vmscan: throttle direct reclaim when too many pages are isolated already
+has been added to the -mm tree.  Its filename is
+     vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
 
-and will soon be available at
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-   git://git.zen-sources.org/zen/mmotm.git
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-It contains the following patches against 2.6.31-rc3:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
-origin.patch
-markup_oops-fix-it-with-32-bit-userspace-on-a-64-bit-kernel.patch
-sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch
-page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-x86-fix-x86-fix-pageattr-handling-for-lpage-percpu-allocator-and-re-enable-it.patch
-acpi-battery-work-around-negative-s16-battery-current-on-acer.patch
-kernel-core-add-smp_call_function_any.patch
-kernel-core-add-smp_call_function_any-update.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-toshiba_acpi-return-on-a-fail-path.patch
-acerhdf-fix-fan-control-for-aoa150-model.patch
-acpi-dont-free-non-existent-backlight-in-acpi-video-module.patch
-drivers-acpi-videoc-remove-unneeded-memsets.patch
-acpi-reintroduce-acpi_device_ops-shutdown-method.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-pcmcia-pccard-deadlock-fix.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-platform_device_add_data-use-kmemdup.patch
-video-initial-support-for-adv7180.patch
-ecryptfs-fix-lockdep-reported-ab-ba-mutex-issue.patch
-ecryptfs-another-lockdep-issue.patch
-ecryptfs-yet-another-lockdep-issue.patch
-posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-input-more-i8042-reset-quirks-for-msi-wind-clone-netbooks.patch
-input-tsc2007-remove-hr-timer.patch
-input-tsc2007-make-platform-callbacks-optional.patch
-gitignore-usr-initramfs_datacpiobz2-and-usr-initramfs_datacpiolzma.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
-omap-hsmmc-do-not-enable-buffer-ready-interrupt-if-using-dma.patch
-mmc-msm_sdccc-driver-for-htc-dream.patch
-msm_sdccc-convert-printkkern_level-to-pr_level.patch
-msm_sdccc-stylistic-cleaning.patch
-msm_sdccc-move-overly-indented-code-to-separate-function.patch
-jffs2-move-jffs2_gcd_mtd-threads-to-the-new-kthread-api.patch
-mtd-sst25l-non-jedec-spi-flash-driver.patch
-mtd-sst25l-non-jedec-spi-flash-driver-update.patch
-mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
-drivers-mtd-mtdcorec-make-symbols-static.patch
-mtd-sst25l-fix-lock-imbalance.patch
-isdn-hisax-fix-lock-imbalance.patch
-3x59x-fix-pci-resource-management.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-ext4-remove-redundant-test-on-unsigned.patch
-sunrpc-use-formatting-of-module-name-in-sunrpc.patch
-serial_txx9-use-container_of-instead-of-direct-cast.patch
-icom-converting-space-to-tabs.patch
-serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
-hypfs-remove-useless-variable-qname.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-vt6655-s-void-void.patch
-staging-rt2860-remove-dependency-on-wireless_ext-version.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-drivers-usb-host-xhci-dbgc-less-and-greater-than-confusion.patch
-drivers-usb-gadget-s3c-hsotgc-missing-parentheses.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-improve-comment-describing-fget_light.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-inodec-add-dev-id-and-inode-number-for-debugging-in-init_special_inode.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-sendfile-several-fixes.patch
-xtensa-variant-specific-code.patch
-mm.patch
-jbd-fix-race-bwtween-write_metadata_buffer-and-get_write_access.patch
-vt-drop-bootmem-slab-memory-distinction.patch
-dynamic-debug-fix-typo.patch
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: vmscan: throttle direct reclaim when too many pages are isolated already
+From: Rik van Riel <riel@redhat.com>
+
+When way too many processes go into direct reclaim, it is possible for all
+of the pages to be taken off the LRU.  One result of this is that the next
+process in the page reclaim code thinks there are no reclaimable pages
+left and triggers an out of memory kill.
+
+One solution to this problem is to never let so many processes into the
+page reclaim path that the entire LRU is emptied.  Limiting the system to
+only having half of each inactive list isolated for reclaim should be
+safe.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/vmscan.c |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff -puN mm/vmscan.c~vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already
++++ a/mm/vmscan.c
+@@ -1029,6 +1029,31 @@ int isolate_lru_page(struct page *page)
+ }
+ 
+ /*
++ * Are there way too many processes in the direct reclaim path already?
++ */
++static int too_many_isolated(struct zone *zone, int file,
++		struct scan_control *sc)
++{
++	unsigned long inactive, isolated;
++
++	if (current_is_kswapd())
++		return 0;
++
++	if (!scanning_global_lru(sc))
++		return 0;
++
++	if (file) {
++		inactive = zone_page_state(zone, NR_INACTIVE_FILE);
++		isolated = zone_page_state(zone, NR_ISOLATED_FILE);
++	} else {
++		inactive = zone_page_state(zone, NR_INACTIVE_ANON);
++		isolated = zone_page_state(zone, NR_ISOLATED_ANON);
++	}
++
++	return isolated > inactive;
++}
++
++/*
+  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
+  * of reclaimed pages
+  */
+@@ -1043,6 +1068,14 @@ static unsigned long shrink_inactive_lis
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+ 	int lumpy_reclaim = 0;
+ 
++	while (unlikely(too_many_isolated(zone, file, sc))) {
++		congestion_wait(WRITE, HZ/10);
++
++		/* We are about to die and free our memory. Return now. */
++		if (fatal_signal_pending(current))
++			return SWAP_CLUSTER_MAX;
++	}
++
+ 	/*
+ 	 * If we need a large contiguous chunk of memory, or have
+ 	 * trouble getting a small set of contiguous pages, we
+_
+
+Patches currently in -mm which might be from riel@redhat.com are
+
 mm-copy-over-oom_adj-value-at-fork-time.patch
-kexec-fix-omitting-offset-in-extended-crashkernel-syntax.patch
-edac-x83-fix-mchbar-high-register-addr.patch
-page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator-resend.patch
-cgroups-fix-pid-namespace-bug.patch
-cgroups-fix-pid-namespace-bug-fix.patch
-flat-fix-uninitialized-ptr-with-shared-libs.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
-page-allocator-ensure-that-processes-that-have-been-oom-killed-exit-the-page-allocator.patch
-cciss-remove-logical-drive-sysfs-entries-during-driver-cleanup.patch
-cciss-use-only-one-scan-thread.patch
-cciss-kick-off-logical-drive-topology-rescan-through-sysfs.patch
-drivers-gpu-drm-ttm-ttm_bo_vmc-fix-misplaced-parentheses.patch
-maintainers-update-atlx-contact-info.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-qla2xxx-fix-__little_endian-definition-warnings.patch
-serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch
-clocksource-save-mult_orig-in-clocksource_disable.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-char-nozomi-fix-tty-refcounting-bug.patch
-9p-fix-incorrect-parameters-to-v9fs_file_readn.patch
 mm-make-swap-token-dummies-static-inlines.patch
 mm-make-swap-token-dummies-static-inlines-fix.patch
 mm-make-swap-token-dummies-static-inlines-fix-2.patch
-mm-remove-obsoleted-alloc_pages-cpuset-comment.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
-memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
-memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
-memory-hotplug-migrate-swap-cache-page.patch
-page_alloc-fix-kernel-doc-warning.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
 mm-clean-up-page_remove_rmap.patch
-mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
-documentation-memorytxt-remove-some-very-outdated-recommendations.patch
 mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
 mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
 mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
 mm-oom-analysis-add-shmem-vmstat.patch
-page-allocator-allow-too-high-order-warning-messages-to-be-suppressed-with-__gfp_nowarn.patch
-profile-suppress-warning-about-large-allocations-when-profile=1-is-specified.patch
-net-dccp-suppress-warning-about-large-allocations-from-dccp.patch
-mm-update-alloc_flags-after-oom-killer-has-been-called.patch
 mm-rename-pgmoved-variable-in-shrink_active_list.patch
 mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
 mm-vmstat-add-isolate-pages.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-rework-fix-is_single_threaded.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-move-magic-numbers-into-magich.patch
-move-magic-numbers-into-magich-update.patch
-kmod-fix-race-in-usermodehelper-code.patch
-add-a-driver-for-the-winbond-wpcd376i-ir-functionality.patch
-add-a-driver-for-the-winbond-wpcd376i-ir-functionality-update.patch
-maintainers-ia64-pair-p-m-entries-properly.patch
-maintainers-remove-ivtv-user-lists-add-cx18-url.patch
-maintainers-qlge-10gb-ethernet-pair-p-m-entries-properly.patch
-maintainers-use-tabs-in-acer-aspire-one.patch
-maintainers-remove-l-linux-kernel-vgerkernelorg.patch
-maintainers-move-arpd-to-credits.patch
-maintainers-update-kernel-janitors.patch
-maintainers-add-pps-patterns.patch
-maintainers-usb-serial-digi-acceleport-use-separate-p-for-al-borchers.patch
-maintainers-input-add-dmitrys-name-to-his-email-address.patch
-maintainers-remove-cs461x-sound-card-section.patch
-maintainers-qlogic-qla2xxx-add-andrew-vasquez-email-address.patch
-maintainers-qlogic-qla3xxx-add-ron-mercer-email-address.patch
-maintainers-scott-murray-is-no-longer-with-somanetworks.patch
-scripts-get_maintainerpl-add-f-directory-use.patch
-get_maintainerpl-add-git-min-percent-option.patch
-get_maintainerpl-add-git-min-percent-option-fix.patch
-maintainers-coalesce-name-and-email-address-lines.patch
-maintainers-finish-off-the-email-address-coalescing.patch
-updated-f-and-t-in-maintainers-kristoffer-ericson.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
-kallsyms-use-new-arch_is_kernel_text.patch
-lockdep-use-new-arch_is_kernel_data.patch
-blackfin-override-text-data-checking-functions.patch
-drivers-hwmon-coretempc-enable-the-intel-atom.patch
-lis3-fix-typo.patch
-lis3-add-free-fall-wakeup-function-via-platform_data.patch
-lis3-add-power-management-functions.patch
-lis3-add-power-management-functions-fix.patch
-lis3_spi-code-cleanups.patch
-kcore-fix-proc-kcores-statst_size.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-procfs-provide-stack-information-for-threads-v08.patch
-spi-remove-imx-spi-driver.patch
-spi-add-spi-driver-for-most-known-imx-socs.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-u300-coh-901-331-rtc-driver-v3.patch
-rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
-rtc-bfin-do-not-share-rtc-irq.patch
-rtc-add-freescale-stmp37xx-378x-driver.patch
-rtc-philips-nxp-pcf2123-driver.patch
-rtc-philips-nxp-pcf2123-driver-v03.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-update.patch
-rtc-reorder-makefile.patch
-rtc-driver-for-pcap2-pmic.patch
-rtc-driver-for-pcap2-pmic-update.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update.patch
-gpio-add-mc33880-driver.patch
-mfd-gpio-add-a-gpio-interface-to-the-ucb1400-mfd-chip-driver-via-gpiolib.patch
-omapfb-add-support-for-the-apollon-lcd.patch
-omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
-omapfb-add-support-for-the-amstrad-delta-lcd.patch
-omapfb-add-support-for-the-2430sdp-lcd.patch
-omapfb-add-support-for-the-omap2evm-lcd.patch
-omapfb-add-support-for-the-3430sdp-lcd.patch
-omapfb-add-support-for-the-omap3-evm-lcd.patch
-omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
-omapfb-add-support-for-the-gumstix-overo-lcd.patch
-omapfb-add-support-for-the-zoom-mdk-lcd.patch
-omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
-n770-enable-lcd-mipi-dcs-in-kconfig.patch
-omapfb-dispc-various-typo-fixes.patch
-omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
-omapfb-dispc-enable-wake-up-capability.patch
-omapfb-dispc-allow-multiple-external-irq-handlers.patch
-omapfb-suspend-resume-only-if-fb-device-is-already-initialized.patch
-omapfb-fix-coding-style-remove-dead-line.patch
-omapfb-add-fb-manual-update-option-to-kconfig.patch
-omapfb-hwa742-fix-pointer-to-be-const.patch
-atyfb-coding-style-cleanup.patch
-framebuffer-support-for-htc-dream.patch
-framebuffer-support-for-htc-dream-checkpatch-fixes.patch
-platinumfb-misplaced-parenthesis.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
-intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
-hfsplus-identify-journal-info-block-in-volume-header.patch
-hfsplus-fix-journal-detection.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
-do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
-do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
-wait_consider_task-kill-parent-argument.patch
-signals-tracehook_notify_jctl-change.patch
-utrace-core.patch
-elf-clean-up-fill_note_info.patch
-elf-clean-up-fill_note_info-fix.patch
-flat-use-is_err_value-helper-macro.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-edac-mpc85xx-add-p2020ds-support.patch
-edac-mpc85xx-add-mpc83xx-support.patch
-edac-fix-resource-size-calculation.patch
-asm-generic-remove-calling-flush_write_buffers-in-dma_sync__for_cpu.patch
-adfs-remove-redundant-test-on-unsigned.patch
-aio-ifdef-fields-in-mm_struct.patch
-bzip2-lzma-gzip-fix-comments-describing-decompressor-api.patch
-bzip2-lzma-remove-nasty-uncompressed-size-hack-in-pre-boot-environment.patch
-lzma-gzip-fix-potential-oops-when-input-data-is-truncated.patch
-kernel-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
-fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat.patch
-sound-core-pcm_timerc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4-vfs-add-super_operationssync_inodes-2.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-adjust-to-the-new-aops.patch
-reiser4-adjust-to-the-new-aops-fixup.patch
-reiser4-remove-simple_prepare_write-usage.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
-reiser4-update-names-of-quota-methods.patch
-reiser4-use-set_page_dirty_notag.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-keep-track-of-network-interface-renaming.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+
