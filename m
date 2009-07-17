@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch added to -mm tree
-Date: Fri, 17 Jul 2009 15:51:54 -0700
-Message-ID: <200907172251.n6HMptuI014253@imap1.linux-foundation.org>
+Subject: + drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j.patch added to -mm tree
+Date: Fri, 17 Jul 2009 15:56:40 -0700
+Message-ID: <200907172256.n6HMueXp021596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753720AbZGQWwH (ORCPT
+	by vger.kernel.org with ESMTP id S1757963AbZGQW5C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jul 2009 18:52:07 -0400
+	Fri, 17 Jul 2009 18:57:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kilroyd@googlemail.com, mingo@elte.hu
+Cc: vlasta.labsky@gmail.com, kraxel@bytesex.org, mchehab@infradead.org
 
 
 The patch titled
-     spinlocks: check spinlock_t/rwlock_t argument type on non-SMP builds
+     drivers/media/video/cx88/cx88: add support for WinFast DTV2000H rev. J
 has been added to the -mm tree.  Its filename is
-     spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch
+     drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,163 +34,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spinlocks: check spinlock_t/rwlock_t argument type on non-SMP builds
-From: David Kilroy <kilroyd@googlemail.com>
+Subject: drivers/media/video/cx88/cx88: add support for WinFast DTV2000H rev. J
+From: Vlastimil Labsky <vlasta.labsky@gmail.com>
 
-When writing code for UP without CONFIG_DEBUG_SPINLOCK it's easy to get
-the first argument to the spinlock/rwlock functions wrong.  This is
-because the parameter is not actually used in this configuration.
+I updated and simplyfied patch from Zbynek Hrabovsky for recent kernel. 
+It enables autodetection of card, sound in analog TV , sound in FM radio
+and switching between antenna and cable RF input.  Radio tuner still
+doesn't work, I don't even know how it works.  Some guys wrote me that FM
+radio works with TV tuner used instead of radio part (symlink video0 ->
+radio0).
 
-Typically you will only find out it's wrong
- * by rebuilding with CONFIG_SMP or CONFIG_DEBUG_SPINLOCK
- * after you've submitted your beautiful patch series.
-
-The first means a long wait, and the latter is a bit late.
-
-Add typechecking on the first argument of these macro functions. Note
-that since the typecheck now references the variable, the explicit read
-is redundant and can be removed.
-
-This change causes compiler warnings in net/ipv4/route.c, as this passes
-NULL as the first argument in the UP configuration. Simply cast this.
-
-Signed-off-by: David Kilroy <kilroyd@googlemail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Vlastimil Labsky <vlasta.labsky@gmail.com>
+Cc: Gerd Knorr <kraxel@bytesex.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spinlock_api_up.h |  100 +++++++++++++++---------------
- net/ipv4/route.c                |    2 
- 2 files changed, 51 insertions(+), 51 deletions(-)
+ drivers/media/video/cx88/cx88-cards.c |   49 ++++++++++++++++++++++++
+ drivers/media/video/cx88/cx88-dvb.c   |    1 
+ drivers/media/video/cx88/cx88-input.c |    1 
+ drivers/media/video/cx88/cx88.h       |    1 
+ 4 files changed, 52 insertions(+)
 
-diff -puN include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds include/linux/spinlock_api_up.h
---- a/include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds
-+++ a/include/linux/spinlock_api_up.h
-@@ -24,58 +24,58 @@
-  * flags straight, to suppress compiler warnings of unused lock
-  * variables, and to add the proper checker annotations:
-  */
--#define __LOCK(lock) \
--  do { preempt_disable(); __acquire(lock); (void)(lock); } while (0)
-+#define __LOCK(type, lock) \
-+  do { typecheck(type*, lock); preempt_disable(); __acquire(lock); } while (0)
+diff -puN drivers/media/video/cx88/cx88-cards.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-cards.c
+--- a/drivers/media/video/cx88/cx88-cards.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88-cards.c
+@@ -1283,6 +1283,51 @@ static const struct cx88_board cx88_boar
+ 		},
+ 		.mpeg           = CX88_MPEG_DVB,
+ 	},
++	[CX88_BOARD_WINFAST_DTV2000H_J] = {
++		.name           = "WinFast DTV2000 H rev. J",
++		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.input          = {{
++			.type   = CX88_VMUX_TELEVISION,
++			.vmux   = 0,
++			.gpio0  = 0x00017300,
++			.gpio1  = 0x00008207,
++			.gpio2	= 0x00000000,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_TELEVISION,
++			.vmux   = 0,
++			.gpio0  = 0x00018300,
++			.gpio1  = 0x0000f207,
++			.gpio2	= 0x00017304,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_COMPOSITE1,
++			.vmux   = 1,
++			.gpio0  = 0x00018301,
++			.gpio1  = 0x0000f207,
++			.gpio2	= 0x00017304,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_SVIDEO,
++			.vmux   = 2,
++			.gpio0  = 0x00018301,
++			.gpio1  = 0x0000f207,
++			.gpio2	= 0x00017304,
++			.gpio3  = 0x02000000,
++		}},
++		.radio = {
++			 .type  = CX88_RADIO,
++			 .gpio0 = 0x00015702,
++			 .gpio1 = 0x0000f207,
++			 .gpio2 = 0x00015702,
++			 .gpio3 = 0x02000000,
++		},
++		.mpeg           = CX88_MPEG_DVB,
++	},
+ 	[CX88_BOARD_GENIATECH_DVBS] = {
+ 		.name          = "Geniatech DVB-S",
+ 		.tuner_type    = TUNER_ABSENT,
+@@ -2282,6 +2327,10 @@ static const struct cx88_subid cx88_subi
+ 		.subdevice = 0x665e,
+ 		.card      = CX88_BOARD_WINFAST_DTV2000H,
+ 	},{
++		.subvendor = 0x107d,
++		.subdevice = 0x6f2b,
++		.card      = CX88_BOARD_WINFAST_DTV2000H_J,
++	},{
+ 		.subvendor = 0x18ac,
+ 		.subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
+ 		.card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
+diff -puN drivers/media/video/cx88/cx88-dvb.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-dvb.c
+--- a/drivers/media/video/cx88/cx88-dvb.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88-dvb.c
+@@ -695,6 +695,7 @@ static int dvb_register(struct cx8802_de
+ 		}
+ 		break;
+ 	case CX88_BOARD_WINFAST_DTV2000H:
++	case CX88_BOARD_WINFAST_DTV2000H_J:
+ 	case CX88_BOARD_HAUPPAUGE_HVR1100:
+ 	case CX88_BOARD_HAUPPAUGE_HVR1100LP:
+ 	case CX88_BOARD_HAUPPAUGE_HVR1300:
+diff -puN drivers/media/video/cx88/cx88-input.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-input.c
+--- a/drivers/media/video/cx88/cx88-input.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88-input.c
+@@ -225,6 +225,7 @@ int cx88_ir_init(struct cx88_core *core,
+ 		ir->sampling = 1;
+ 		break;
+ 	case CX88_BOARD_WINFAST_DTV2000H:
++	case CX88_BOARD_WINFAST_DTV2000H_J:
+ 	case CX88_BOARD_WINFAST_DTV1800H:
+ 		ir_codes = ir_codes_winfast;
+ 		ir->gpio_addr = MO_GP0_IO;
+diff -puN drivers/media/video/cx88/cx88.h~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88.h
+--- a/drivers/media/video/cx88/cx88.h~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88.h
+@@ -237,6 +237,7 @@ extern struct sram_channel cx88_sram_cha
+ #define CX88_BOARD_TERRATEC_CINERGY_HT_PCI_MKII 79
+ #define CX88_BOARD_HAUPPAUGE_IRONLY        80
+ #define CX88_BOARD_WINFAST_DTV1800H        81
++#define CX88_BOARD_WINFAST_DTV2000H_J      82
  
--#define __LOCK_BH(lock) \
--  do { local_bh_disable(); __LOCK(lock); } while (0)
-+#define __LOCK_BH(type, lock) \
-+  do { local_bh_disable(); __LOCK(type, lock); } while (0)
- 
--#define __LOCK_IRQ(lock) \
--  do { local_irq_disable(); __LOCK(lock); } while (0)
-+#define __LOCK_IRQ(type, lock) \
-+  do { local_irq_disable(); __LOCK(type, lock); } while (0)
- 
--#define __LOCK_IRQSAVE(lock, flags) \
--  do { local_irq_save(flags); __LOCK(lock); } while (0)
--
--#define __UNLOCK(lock) \
--  do { preempt_enable(); __release(lock); (void)(lock); } while (0)
--
--#define __UNLOCK_BH(lock) \
--  do { preempt_enable_no_resched(); local_bh_enable(); __release(lock); (void)(lock); } while (0)
--
--#define __UNLOCK_IRQ(lock) \
--  do { local_irq_enable(); __UNLOCK(lock); } while (0)
--
--#define __UNLOCK_IRQRESTORE(lock, flags) \
--  do { local_irq_restore(flags); __UNLOCK(lock); } while (0)
--
--#define _spin_lock(lock)			__LOCK(lock)
--#define _spin_lock_nested(lock, subclass)	__LOCK(lock)
--#define _read_lock(lock)			__LOCK(lock)
--#define _write_lock(lock)			__LOCK(lock)
--#define _spin_lock_bh(lock)			__LOCK_BH(lock)
--#define _read_lock_bh(lock)			__LOCK_BH(lock)
--#define _write_lock_bh(lock)			__LOCK_BH(lock)
--#define _spin_lock_irq(lock)			__LOCK_IRQ(lock)
--#define _read_lock_irq(lock)			__LOCK_IRQ(lock)
--#define _write_lock_irq(lock)			__LOCK_IRQ(lock)
--#define _spin_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(lock, flags)
--#define _read_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(lock, flags)
--#define _write_lock_irqsave(lock, flags)	__LOCK_IRQSAVE(lock, flags)
--#define _spin_trylock(lock)			({ __LOCK(lock); 1; })
--#define _read_trylock(lock)			({ __LOCK(lock); 1; })
--#define _write_trylock(lock)			({ __LOCK(lock); 1; })
--#define _spin_trylock_bh(lock)			({ __LOCK_BH(lock); 1; })
--#define _spin_unlock(lock)			__UNLOCK(lock)
--#define _read_unlock(lock)			__UNLOCK(lock)
--#define _write_unlock(lock)			__UNLOCK(lock)
--#define _spin_unlock_bh(lock)			__UNLOCK_BH(lock)
--#define _write_unlock_bh(lock)			__UNLOCK_BH(lock)
--#define _read_unlock_bh(lock)			__UNLOCK_BH(lock)
--#define _spin_unlock_irq(lock)			__UNLOCK_IRQ(lock)
--#define _read_unlock_irq(lock)			__UNLOCK_IRQ(lock)
--#define _write_unlock_irq(lock)			__UNLOCK_IRQ(lock)
--#define _spin_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(lock, flags)
--#define _read_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(lock, flags)
--#define _write_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(lock, flags)
-+#define __LOCK_IRQSAVE(type, lock, flags) \
-+  do { local_irq_save(flags); __LOCK(type, lock); } while (0)
-+
-+#define __UNLOCK(type, lock) \
-+  do { typecheck(type*, lock); preempt_enable(); __release(lock); } while (0)
-+
-+#define __UNLOCK_BH(type, lock) \
-+  do { typecheck(type*, lock); preempt_enable_no_resched(); local_bh_enable(); __release(lock); } while (0)
-+
-+#define __UNLOCK_IRQ(type, lock) \
-+  do { local_irq_enable(); __UNLOCK(type, lock); } while (0)
-+
-+#define __UNLOCK_IRQRESTORE(type, lock, flags) \
-+  do { local_irq_restore(flags); __UNLOCK(type, lock); } while (0)
-+
-+#define _spin_lock(lock)			__LOCK(spinlock_t, lock)
-+#define _spin_lock_nested(lock, subclass)	__LOCK(spinlock_t, lock)
-+#define _read_lock(lock)			__LOCK(rwlock_t, lock)
-+#define _write_lock(lock)			__LOCK(rwlock_t, lock)
-+#define _spin_lock_bh(lock)			__LOCK_BH(spinlock_t, lock)
-+#define _read_lock_bh(lock)			__LOCK_BH(rwlock_t, lock)
-+#define _write_lock_bh(lock)			__LOCK_BH(rwlock_t, lock)
-+#define _spin_lock_irq(lock)			__LOCK_IRQ(spinlock_t, lock)
-+#define _read_lock_irq(lock)			__LOCK_IRQ(rwlock_t, lock)
-+#define _write_lock_irq(lock)			__LOCK_IRQ(rwlock_t, lock)
-+#define _spin_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(spinlock_t, lock, flags)
-+#define _read_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(rwlock_t, lock, flags)
-+#define _write_lock_irqsave(lock, flags)	__LOCK_IRQSAVE(rwlock_t, lock, flags)
-+#define _spin_trylock(lock)			({ __LOCK(spinlock_t, lock); 1; })
-+#define _read_trylock(lock)			({ __LOCK(rwlock_t, lock); 1; })
-+#define _write_trylock(lock)			({ __LOCK(rwlock_t, lock); 1; })
-+#define _spin_trylock_bh(lock)			({ __LOCK_BH(spinlock_t, lock); 1; })
-+#define _spin_unlock(lock)			__UNLOCK(spinlock_t, lock)
-+#define _read_unlock(lock)			__UNLOCK(rwlock_t, lock)
-+#define _write_unlock(lock)			__UNLOCK(rwlock_t, lock)
-+#define _spin_unlock_bh(lock)			__UNLOCK_BH(spinlock_t, lock)
-+#define _write_unlock_bh(lock)			__UNLOCK_BH(rwlock_t, lock)
-+#define _read_unlock_bh(lock)			__UNLOCK_BH(rwlock_t, lock)
-+#define _spin_unlock_irq(lock)			__UNLOCK_IRQ(spinlock_t, lock)
-+#define _read_unlock_irq(lock)			__UNLOCK_IRQ(rwlock_t, lock)
-+#define _write_unlock_irq(lock)			__UNLOCK_IRQ(rwlock_t, lock)
-+#define _spin_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(spinlock_t, lock, flags)
-+#define _read_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(rwlock_t, lock, flags)
-+#define _write_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(rwlock_t, lock, flags)
- 
- #endif /* __LINUX_SPINLOCK_API_UP_H */
-diff -puN net/ipv4/route.c~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds net/ipv4/route.c
---- a/net/ipv4/route.c~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds
-+++ a/net/ipv4/route.c
-@@ -242,7 +242,7 @@ static __init void rt_hash_lock_init(voi
- 		spin_lock_init(&rt_hash_locks[i]);
- }
- #else
--# define rt_hash_lock_addr(slot) NULL
-+# define rt_hash_lock_addr(slot) ((spinlock_t *) NULL)
- 
- static inline void rt_hash_lock_init(void)
- {
+ enum cx88_itype {
+ 	CX88_VMUX_COMPOSITE1 = 1,
 _
 
-Patches currently in -mm which might be from kilroyd@googlemail.com are
+Patches currently in -mm which might be from vlasta.labsky@gmail.com are
 
-linux-next.patch
-spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch
+drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j.patch
 
