@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-use-add_page_to_lru_list-helper-function.patch added to -mm tree
-Date: Thu, 16 Jul 2009 17:15:01 -0700
-Message-ID: <200907170015.n6H0F1Eq008088@imap1.linux-foundation.org>
+Subject: + vmscan-kill-unnecessary-page-flag-test.patch added to -mm tree
+Date: Thu, 16 Jul 2009 17:14:56 -0700
+Message-ID: <200907170014.n6H0Evb5007890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53684 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933681AbZGQAQQ (ORCPT
+	by vger.kernel.org with ESMTP id S933715AbZGQAQR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 20:16:16 -0400
+	Thu, 16 Jul 2009 20:16:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, 
 
 
 The patch titled
-     vmscan: Use add_page_to_lru_list() helper function
+     vmscan: Kill unnecessary page flag test
 has been added to the -mm tree.  Its filename is
-     vmscan-use-add_page_to_lru_list-helper-function.patch
+     vmscan-kill-unnecessary-page-flag-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: Use add_page_to_lru_list() helper function
+Subject: vmscan: Kill unnecessary page flag test
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-add_page_to_lru_list() is equivalent to
-  - add lru list (global)
-  - add lru list (mem-cgroup)
-  - modify zone stat
-
-We can use it.
+The page_lru() already evaluate PageActive() and PageSwapBacked().  We
+don't need to re-evaluate it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -53,35 +49,23 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-use-add_page_to_lru_list-helper-function mm/vmscan.c
---- a/mm/vmscan.c~vmscan-use-add_page_to_lru_list-helper-function
+diff -puN mm/vmscan.c~vmscan-kill-unnecessary-page-flag-test mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-kill-unnecessary-page-flag-test
 +++ a/mm/vmscan.c
-@@ -1268,12 +1268,12 @@ static void move_active_pages_to_lru(str
- 
- 	while (!list_empty(list)) {
- 		page = lru_to_page(list);
-+		list_del(&page->lru);
- 
- 		VM_BUG_ON(PageLRU(page));
- 		SetPageLRU(page);
- 
--		list_move(&page->lru, &zone->lru[lru].list);
--		mem_cgroup_add_lru_list(page, lru);
-+		add_page_to_lru_list(zone, page, lru);
- 		pgmoved++;
- 
- 		if (!pagevec_add(&pvec, page) || list_empty(list)) {
-@@ -1284,7 +1284,6 @@ static void move_active_pages_to_lru(str
- 			spin_lock_irq(&zone->lru_lock);
- 		}
- 	}
--	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
- 	if (!is_active_lru(lru))
- 		__count_vm_events(PGDEACTIVATE, pgmoved);
- }
+@@ -1203,8 +1203,8 @@ static unsigned long shrink_inactive_lis
+ 			SetPageLRU(page);
+ 			lru = page_lru(page);
+ 			add_page_to_lru_list(zone, page, lru);
+-			if (PageActive(page)) {
+-				int file = !!page_is_file_cache(page);
++			if (is_active_lru(lru)) {
++				int file = !!is_file_lru(lru);
+ 				reclaim_stat->recent_rotated[file]++;
+ 			}
+ 			if (!pagevec_add(&pvec, page)) {
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
