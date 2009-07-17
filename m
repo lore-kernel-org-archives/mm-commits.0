@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s3c-fb-fix-off-by-one-bug-in-loop-indexes.patch added to -mm tree
-Date: Fri, 17 Jul 2009 16:28:38 -0700
-Message-ID: <200907172328.n6HNScZj005688@imap1.linux-foundation.org>
+Subject: + do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch added to -mm tree
+Date: Fri, 17 Jul 2009 16:31:30 -0700
+Message-ID: <200907172331.n6HNVULG010229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751801AbZGQX3i (ORCPT
+	by vger.kernel.org with ESMTP id S1754836AbZGQXcX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jul 2009 19:29:38 -0400
+	Fri, 17 Jul 2009 19:32:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: p.osciak@samsung.com, ben-linux@fluff.org, krzysztof.h1@poczta.fm, kyungmin.park@samsung.com, m.szyprowski@samsung.com, rmk@arm.linux.org.uk
+Cc: oleg@redhat.com, dhowells@redhat.com, jmorris@namei.org, mingo@elte.hu, rnalumasu@gmail.com, roland@redhat.com, valdis.kletnieks@vt.edu, vmayatsk@redhat.com
 
 
 The patch titled
-     s3c-fb: fix off-by-one bug in loop indexes
+     selinux_bprm_committed_creds: use __wake_up_parent()
 has been added to the -mm tree.  Its filename is
-     s3c-fb-fix-off-by-one-bug-in-loop-indexes.patch
+     do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c-fb: fix off-by-one bug in loop indexes
-From: Pawel Osciak <p.osciak@samsung.com>
+Subject: selinux_bprm_committed_creds: use __wake_up_parent()
+From: Oleg Nesterov <oleg@redhat.com>
 
-Fixed off-by-one bug in loop indexes - some elements beyond windows' array
-were accessed, which might result in memory access violations when
-removing/suspending the device.
+(depends on ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
+ which exports __wake_up_parent)
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Spotted by Valdis.Kletnieks@vt.edu.
+
+selinux_bprm_committed_creds() should not play with ->wait_chldexit, now
+that __wake_up_parent() is exported change the code to use this helper.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ratan Nalumasu <rnalumasu@gmail.com>
+Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
+Acked-by: James Morris <jmorris@namei.org>
+Tested-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Reported-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c-fb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ security/selinux/hooks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/s3c-fb.c~s3c-fb-fix-off-by-one-bug-in-loop-indexes drivers/video/s3c-fb.c
---- a/drivers/video/s3c-fb.c~s3c-fb-fix-off-by-one-bug-in-loop-indexes
-+++ a/drivers/video/s3c-fb.c
-@@ -964,7 +964,7 @@ static int __devexit s3c_fb_remove(struc
- 	struct s3c_fb *sfb = platform_get_drvdata(pdev);
- 	int win;
+diff -puN security/selinux/hooks.c~do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent security/selinux/hooks.c
+--- a/security/selinux/hooks.c~do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent
++++ a/security/selinux/hooks.c
+@@ -2404,7 +2404,7 @@ static void selinux_bprm_committed_creds
+ 	/* Wake up the parent if it is waiting so that it can recheck
+ 	 * wait permission to the new task SID. */
+ 	read_lock(&tasklist_lock);
+-	wake_up_interruptible(&current->real_parent->signal->wait_chldexit);
++	__wake_up_parent(current, current->real_parent);
+ 	read_unlock(&tasklist_lock);
+ }
  
--	for (win = 0; win <= S3C_FB_MAX_WIN; win++)
-+	for (win = 0; win < S3C_FB_MAX_WIN; win++)
- 		if (sfb->windows[win])
- 			s3c_fb_release_win(sfb, sfb->windows[win]);
- 
-@@ -988,7 +988,7 @@ static int s3c_fb_suspend(struct platfor
- 	struct s3c_fb_win *win;
- 	int win_no;
- 
--	for (win_no = S3C_FB_MAX_WIN; win_no >= 0; win_no--) {
-+	for (win_no = S3C_FB_MAX_WIN - 1; win_no >= 0; win_no--) {
- 		win = sfb->windows[win_no];
- 		if (!win)
- 			continue;
 _
 
-Patches currently in -mm which might be from p.osciak@samsung.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-s3c-fb-fix-off-by-one-bug-in-loop-indexes.patch
+linux-next.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
+do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
+do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+wait_consider_task-kill-parent-argument.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
 
