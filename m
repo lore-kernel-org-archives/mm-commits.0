@@ -1,141 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch added to -mm tree
-Date: Thu, 16 Jul 2009 17:15:03 -0700
-Message-ID: <200907170015.n6H0F3OZ008133@imap1.linux-foundation.org>
+Subject: [merged] rework-fix-is_single_threaded.patch removed from -mm tree
+Date: Fri, 17 Jul 2009 14:24:00 -0700
+Message-ID: <200907172124.n6HLO0rf009006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933682AbZGQAQS (ORCPT
+	by vger.kernel.org with ESMTP id S1757877AbZGQVYx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jul 2009 20:16:18 -0400
+	Fri, 17 Jul 2009 17:24:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
+To: oleg@redhat.com, dhowells@redhat.com, jmorris@namei.org, roland@redhat.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: move PGDEACTIVATE modification to shrink_active_list()
-has been added to the -mm tree.  Its filename is
-     vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
+     rework/fix is_single_threaded()
+has been removed from the -mm tree.  Its filename was
+     rework-fix-is_single_threaded.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: move PGDEACTIVATE modification to shrink_active_list()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: rework/fix is_single_threaded()
+From: Oleg Nesterov <oleg@redhat.com>
 
-Pgmoved accounting in move_active_pages_to_lru() doesn't make any sense. 
-it can be calculated in irq enabled area.
+- Fix the comment, is_single_threaded(p) actually means that nobody shares
+  ->mm with p.
 
-This patch move #-of-deactivating-pages calcution to shrink_active_list().
+  I think this helper should be renamed, and it should not have arguments.
+  With or without this patch it must not be used unless p == current,
+  otherwise we can't safely use p->signal or p->mm.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+- "if (atomic_read(&p->signal->count) != 1)" is not right when we have a
+  zombie group leader, use signal->live instead.
+
+- Add PF_KTHREAD check to skip kernel threads which may borrow p->mm,
+  otherwise we can return the wrong "false".
+
+- Use for_each_process() instead of do_each_thread(), all threads must use
+  the same ->mm.
+
+- Use down_write(mm->mmap_sem) + rcu_read_lock() instead of tasklist_lock
+  to iterate over the process list. If there is another CLONE_VM process
+  it can't pass exit_mm() which takes the same mm->mmap_sem. We can miss
+  a freshly forked CLONE_VM task, but this doesn't matter because we must
+  see its parent and return false.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ lib/is_single_threaded.c |   62 +++++++++++++++++++++----------------
+ 1 file changed, 36 insertions(+), 26 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list mm/vmscan.c
---- a/mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list
-+++ a/mm/vmscan.c
-@@ -1260,7 +1260,6 @@ static void move_active_pages_to_lru(str
- 				     struct list_head *list,
- 				     enum lru_list lru)
+diff -puN lib/is_single_threaded.c~rework-fix-is_single_threaded lib/is_single_threaded.c
+--- a/lib/is_single_threaded.c~rework-fix-is_single_threaded
++++ a/lib/is_single_threaded.c
+@@ -12,34 +12,44 @@
+ 
+ #include <linux/sched.h>
+ 
+-/**
+- * is_single_threaded - Determine if a thread group is single-threaded or not
+- * @p: A task in the thread group in question
+- *
+- * This returns true if the thread group to which a task belongs is single
+- * threaded, false if it is not.
++/*
++ * Returns true if the task does not share ->mm with another thread/process.
+  */
+-bool is_single_threaded(struct task_struct *p)
++bool is_single_threaded(struct task_struct *task)
  {
--	unsigned long pgmoved = 0;
- 	struct pagevec pvec;
- 	struct page *page;
- 
-@@ -1274,7 +1273,6 @@ static void move_active_pages_to_lru(str
- 		SetPageLRU(page);
- 
- 		add_page_to_lru_list(zone, page, lru);
--		pgmoved++;
- 
- 		if (!pagevec_add(&pvec, page) || list_empty(list)) {
- 			spin_unlock_irq(&zone->lru_lock);
-@@ -1284,8 +1282,6 @@ static void move_active_pages_to_lru(str
- 			spin_lock_irq(&zone->lru_lock);
- 		}
+-	struct task_struct *g, *t;
+-	struct mm_struct *mm = p->mm;
+-
+-	if (atomic_read(&p->signal->count) != 1)
+-		goto no;
+-
+-	if (atomic_read(&p->mm->mm_users) != 1) {
+-		read_lock(&tasklist_lock);
+-		do_each_thread(g, t) {
+-			if (t->mm == mm && t != p)
+-				goto no_unlock;
+-		} while_each_thread(g, t);
+-		read_unlock(&tasklist_lock);
++	struct mm_struct *mm = task->mm;
++	struct task_struct *p, *t;
++	bool ret;
++
++	might_sleep();
++
++	if (atomic_read(&task->signal->live) != 1)
++		return false;
++
++	if (atomic_read(&mm->mm_users) == 1)
++		return true;
++
++	ret = false;
++	down_write(&mm->mmap_sem);
++	rcu_read_lock();
++	for_each_process(p) {
++		if (unlikely(p->flags & PF_KTHREAD))
++			continue;
++		if (unlikely(p == task->group_leader))
++			continue;
++
++		t = p;
++		do {
++			if (unlikely(t->mm == mm))
++				goto found;
++			if (likely(t->mm))
++				break;
++		} while_each_thread(p, t);
  	}
--	if (!is_active_lru(lru))
--		__count_vm_events(PGDEACTIVATE, pgmoved);
- }
++	ret = true;
++found:
++	rcu_read_unlock();
++	up_write(&mm->mmap_sem);
  
- static void shrink_active_list(unsigned long nr_pages, struct zone *zone,
-@@ -1300,6 +1296,7 @@ static void shrink_active_list(unsigned 
- 	struct page *page;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
- 	unsigned long nr_rotated = 0;
-+	unsigned long nr_deactivate = 0;
- 
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
-@@ -1354,6 +1351,7 @@ static void shrink_active_list(unsigned 
- 
- 		ClearPageActive(page);	/* we are de-activating */
- 		list_add(&page->lru, &l_inactive);
-+		nr_deactivate++;
- 	}
- 
- 	/*
-@@ -1367,6 +1365,7 @@ static void shrink_active_list(unsigned 
- 	 * get_scan_ratio.
- 	 */
- 	reclaim_stat->recent_rotated[!!file] += nr_rotated;
-+	__count_vm_events(PGDEACTIVATE, nr_deactivate);
- 
- 	move_active_pages_to_lru(zone, &l_active,
- 						LRU_ACTIVE + file * LRU_FILE);
-_
-
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
-
-linux-next.patch
-mm-copy-over-oom_adj-value-at-fork-time.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-rename-pgmoved-variable-in-shrink_active_list.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable-cleanup.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-vmscan-use-add_page_to_lru_list-helper-function.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-
+-	return true;
