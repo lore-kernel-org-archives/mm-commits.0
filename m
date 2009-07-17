@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-omap2_mcspi-use-bitn.patch added to -mm tree
-Date: Fri, 17 Jul 2009 16:07:40 -0700
-Message-ID: <200907172307.n6HN7eDu006046@imap1.linux-foundation.org>
+Subject: + spi-omap2_mcspi-rxdma-bugfix.patch added to -mm tree
+Date: Fri, 17 Jul 2009 16:07:42 -0700
+Message-ID: <200907172307.n6HN7g8a006068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43789 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757991AbZGQXI2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757998AbZGQXIa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jul 2009 19:08:28 -0400
+	Fri, 17 Jul 2009 19:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jouni.hogander@nokia.com, dbrownell@users.sourceforge.net, tony@atomide.com
+Cc: ext-eero.nurkkala@nokia.com, aaro.koskinen@nokia.com, dbrownell@users.sourceforge.net, juuso.oikarinen@nokia.com
 
 
 The patch titled
-     spi: omap2_mcspi use BIT(n)
+     spi: omap2_mcspi rxdma bugfix
 has been added to the -mm tree.  Its filename is
-     spi-omap2_mcspi-use-bitn.patch
+     spi-omap2_mcspi-rxdma-bugfix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,99 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: omap2_mcspi use BIT(n)
-From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: spi: omap2_mcspi rxdma bugfix
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-Convert bit shifted values into BIT format
+When data is read through DMA, the last element must be read separately
+through the RX register.  It cannot be transferred by the DMA.  For
+further details see e.g.  OMAP35x TRM (table 19-16).
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Without the fix the driver causes extra clocks to be clocked to the bus
+after DMA RX operations.  This can cause interesting behaviour with some
+devices.
+
+Signed-off-by: Juuso Oikarinen <juuso.oikarinen@nokia.com>
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+[aaro.koskinen@nokia.com: Simplified the patch while keeping the idea.]
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap2_mcspi.c |   56 ++++++++++++++++++------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
+ drivers/spi/omap2_mcspi.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-use-bitn drivers/spi/omap2_mcspi.c
---- a/drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-use-bitn
+diff -puN drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-rxdma-bugfix drivers/spi/omap2_mcspi.c
+--- a/drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-rxdma-bugfix
 +++ a/drivers/spi/omap2_mcspi.c
-@@ -59,40 +59,40 @@
+@@ -272,7 +272,7 @@ omap2_mcspi_txrx_dma(struct spi_device *
  
- /* per-register bitmasks: */
+ 	if (rx != NULL) {
+ 		omap_set_dma_transfer_params(mcspi_dma->dma_rx_channel,
+-				data_type, element_count, 1,
++				data_type, element_count - 1, 1,
+ 				OMAP_DMA_SYNC_ELEMENT,
+ 				mcspi_dma->dma_rx_sync_dev, 1);
  
--#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	(2 << 3)
--#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	(1 << 2)
--#define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	(1 << 0)
--#define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	(1 << 1)
--
--#define OMAP2_MCSPI_SYSSTATUS_RESETDONE	(1 << 0)
--
--#define OMAP2_MCSPI_MODULCTRL_SINGLE	(1 << 0)
--#define OMAP2_MCSPI_MODULCTRL_MS	(1 << 2)
--#define OMAP2_MCSPI_MODULCTRL_STEST	(1 << 3)
-+#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	BIT(4)
-+#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	BIT(2)
-+#define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	BIT(0)
-+#define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	BIT(1)
+@@ -303,6 +303,25 @@ omap2_mcspi_txrx_dma(struct spi_device *
+ 	if (rx != NULL) {
+ 		wait_for_completion(&mcspi_dma->dma_rx_completion);
+ 		dma_unmap_single(NULL, xfer->rx_dma, count, DMA_FROM_DEVICE);
++		omap2_mcspi_set_enable(spi, 0);
++		if (likely(mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHSTAT0)
++				& OMAP2_MCSPI_CHSTAT_RXS)) {
++			u32 w;
 +
-+#define OMAP2_MCSPI_SYSSTATUS_RESETDONE	BIT(0)
-+
-+#define OMAP2_MCSPI_MODULCTRL_SINGLE	BIT(0)
-+#define OMAP2_MCSPI_MODULCTRL_MS	BIT(2)
-+#define OMAP2_MCSPI_MODULCTRL_STEST	BIT(3)
- 
--#define OMAP2_MCSPI_CHCONF_PHA		(1 << 0)
--#define OMAP2_MCSPI_CHCONF_POL		(1 << 1)
-+#define OMAP2_MCSPI_CHCONF_PHA		BIT(0)
-+#define OMAP2_MCSPI_CHCONF_POL		BIT(1)
- #define OMAP2_MCSPI_CHCONF_CLKD_MASK	(0x0f << 2)
--#define OMAP2_MCSPI_CHCONF_EPOL		(1 << 6)
-+#define OMAP2_MCSPI_CHCONF_EPOL		BIT(6)
- #define OMAP2_MCSPI_CHCONF_WL_MASK	(0x1f << 7)
--#define OMAP2_MCSPI_CHCONF_TRM_RX_ONLY	(0x01 << 12)
--#define OMAP2_MCSPI_CHCONF_TRM_TX_ONLY	(0x02 << 12)
-+#define OMAP2_MCSPI_CHCONF_TRM_RX_ONLY	BIT(12)
-+#define OMAP2_MCSPI_CHCONF_TRM_TX_ONLY	BIT(13)
- #define OMAP2_MCSPI_CHCONF_TRM_MASK	(0x03 << 12)
--#define OMAP2_MCSPI_CHCONF_DMAW		(1 << 14)
--#define OMAP2_MCSPI_CHCONF_DMAR		(1 << 15)
--#define OMAP2_MCSPI_CHCONF_DPE0		(1 << 16)
--#define OMAP2_MCSPI_CHCONF_DPE1		(1 << 17)
--#define OMAP2_MCSPI_CHCONF_IS		(1 << 18)
--#define OMAP2_MCSPI_CHCONF_TURBO	(1 << 19)
--#define OMAP2_MCSPI_CHCONF_FORCE	(1 << 20)
--
--#define OMAP2_MCSPI_CHSTAT_RXS		(1 << 0)
--#define OMAP2_MCSPI_CHSTAT_TXS		(1 << 1)
--#define OMAP2_MCSPI_CHSTAT_EOT		(1 << 2)
-+#define OMAP2_MCSPI_CHCONF_DMAW		BIT(14)
-+#define OMAP2_MCSPI_CHCONF_DMAR		BIT(15)
-+#define OMAP2_MCSPI_CHCONF_DPE0		BIT(16)
-+#define OMAP2_MCSPI_CHCONF_DPE1		BIT(17)
-+#define OMAP2_MCSPI_CHCONF_IS		BIT(18)
-+#define OMAP2_MCSPI_CHCONF_TURBO	BIT(19)
-+#define OMAP2_MCSPI_CHCONF_FORCE	BIT(20)
-+
-+#define OMAP2_MCSPI_CHSTAT_RXS		BIT(0)
-+#define OMAP2_MCSPI_CHSTAT_TXS		BIT(1)
-+#define OMAP2_MCSPI_CHSTAT_EOT		BIT(2)
- 
--#define OMAP2_MCSPI_CHCTRL_EN		(1 << 0)
-+#define OMAP2_MCSPI_CHCTRL_EN		BIT(0)
- 
--#define OMAP2_MCSPI_WAKEUPENABLE_WKEN	(1 << 0)
-+#define OMAP2_MCSPI_WAKEUPENABLE_WKEN	BIT(0)
- 
- /* We have 2 DMA channels per CS, one for RX and one for TX */
- struct omap2_mcspi_dma {
++			w = mcspi_read_cs_reg(spi, OMAP2_MCSPI_RX0);
++			if (word_len <= 8)
++				((u8 *)xfer->rx_buf)[element_count - 1] = w;
++			else if (word_len <= 16)
++				((u16 *)xfer->rx_buf)[element_count - 1] = w;
++			else /* word_len <= 32 */
++				((u32 *)xfer->rx_buf)[element_count - 1] = w;
++		} else {
++			dev_err(&spi->dev, "DMA RX last word empty");
++			count -= (word_len <= 8)  ? 1 :
++				 (word_len <= 16) ? 2 :
++			       /* word_len <= 32 */ 4;
++		}
++		omap2_mcspi_set_enable(spi, 1);
+ 	}
+ 	return count;
+ }
 _
 
-Patches currently in -mm which might be from jouni.hogander@nokia.com are
+Patches currently in -mm which might be from ext-eero.nurkkala@nokia.com are
 
-spi-omap2_mcspi-supports-wake-events.patch
-spi-omap2_mcspi-use-bitn.patch
-omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
-omapfb-dispc-enable-wake-up-capability.patch
-omapfb-suspend-resume-only-if-fb-device-is-already-initialized.patch
+spi-omap2_mcspi-rxdma-bugfix.patch
 
