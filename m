@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-kill-unnecessary-prefetch.patch added to -mm tree
-Date: Thu, 16 Jul 2009 17:14:59 -0700
-Message-ID: <200907170014.n6H0Ex63008075@imap1.linux-foundation.org>
+Subject: + vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch added to -mm tree
+Date: Thu, 16 Jul 2009 17:14:51 -0700
+Message-ID: <200907170014.n6H0ErUu007870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51057 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933681AbZGQAQO (ORCPT
+	by vger.kernel.org with ESMTP id S933687AbZGQAQO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 16 Jul 2009 20:16:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, 
 
 
 The patch titled
-     vmscan: Kill unnecessary prefetch
+     vmscan: move ClearPageActive from move_active_pages() to shrink_active_list()
 has been added to the -mm tree.  Its filename is
-     vmscan-kill-unnecessary-prefetch.patch
+     vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: Kill unnecessary prefetch
+Subject: vmscan: move ClearPageActive from move_active_pages() to shrink_active_list()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-The pages in the list passed move_active_pages_to_lru() are already
-touched by shrink_active_list().  IOW the prefetch in
-move_active_pages_to_lru() don't populate any cache.  it's pointless.
+The mvoe_active_pages_to_lru() function is called under irq disabled and
+ClearPageActive() doesn't need irq disabling.
 
-This patch remove it.
+Then, this patch move it into shrink_active_list().
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -52,20 +51,31 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmscan.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-kill-unnecessary-prefetch mm/vmscan.c
---- a/mm/vmscan.c~vmscan-kill-unnecessary-prefetch
+diff -puN mm/vmscan.c~vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list
 +++ a/mm/vmscan.c
-@@ -1268,7 +1268,6 @@ static void move_active_pages_to_lru(str
- 
- 	while (!list_empty(list)) {
- 		page = lru_to_page(list);
--		prefetchw_prev_lru_page(page, list, flags);
- 
+@@ -1273,10 +1273,6 @@ static void move_active_pages_to_lru(str
  		VM_BUG_ON(PageLRU(page));
  		SetPageLRU(page);
+ 
+-		VM_BUG_ON(!PageActive(page));
+-		if (!is_active_lru(lru))
+-			ClearPageActive(page);	/* we are de-activating */
+-
+ 		list_move(&page->lru, &zone->lru[lru].list);
+ 		mem_cgroup_add_lru_list(page, lru);
+ 		pgmoved++;
+@@ -1358,6 +1354,7 @@ static void shrink_active_list(unsigned 
+ 			}
+ 		}
+ 
++		ClearPageActive(page);	/* we are de-activating */
+ 		list_add(&page->lru, &l_inactive);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
