@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spih-add-missing-kernel-doc-for-struct-spi_master.patch added to -mm tree
-Date: Fri, 17 Jul 2009 17:15:43 -0700
-Message-ID: <200907180015.n6I0FhnM012977@imap1.linux-foundation.org>
+Subject: + eeprom-at25-bugfix-not-ready-timeout-after-write.patch added to -mm tree
+Date: Fri, 17 Jul 2009 17:35:51 -0700
+Message-ID: <200907180035.n6I0Zp5Y011338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50147 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758082AbZGRAQ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751397AbZGRAgF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jul 2009 20:16:28 -0400
+	Fri, 17 Jul 2009 20:36:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dbrownell@users.sourceforge.net
+Cc: heutling@who-ing.de, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     spi.h: add missing kernel-doc for struct spi_master
+     eeprom/at25:  bugfix "not ready" timeout after write
 has been added to the -mm tree.  Its filename is
-     spih-add-missing-kernel-doc-for-struct-spi_master.patch
+     eeprom-at25-bugfix-not-ready-timeout-after-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi.h: add missing kernel-doc for struct spi_master
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: eeprom/at25:  bugfix "not ready" timeout after write
+From: Sebastian Heutling <heutling@who-ing.de>
 
-Add missing kernel-doc notation in spi.h for struct spi_master:
+Under certain circumstances msleep(1) within the loop, which waits for the
+EEPROM to be finished, might take longer than the timeout.  On the next
+loop the status register might now return to be ready and therefore the
+loop finishes.  The following check now tests if a timeout occurred and if
+so returns an error although the device reported it was ready.
 
-Warning(include/linux/spi/spi.h:289): No description found for parameter 'mode_bits'
-Warning(include/linux/spi/spi.h:289): No description found for parameter 'flags'
+This fix replaces testing the occurrence of the timeout by testing the
+"not ready" bit in the status register.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Sebastian Heutling <heutling@who-ing.de>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spi/spi.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/misc/eeprom/at25.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/spi/spi.h~spih-add-missing-kernel-doc-for-struct-spi_master include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spih-add-missing-kernel-doc-for-struct-spi_master
-+++ a/include/linux/spi/spi.h
-@@ -207,6 +207,8 @@ static inline void spi_unregister_driver
-  *	each slave has a chipselect signal, but it's common that not
-  *	every chipselect is connected to a slave.
-  * @dma_alignment: SPI controller constraint on DMA buffers alignment.
-+ * @mode_bits: flags understood by this controller driver
-+ * @flags: other constraints relevant to this driver
-  * @setup: updates the device mode and clocking records used by a
-  *	device's SPI controller; protocol code may call this.  This
-  *	must fail if an unrecognized or unsupported mode is requested.
+diff -puN drivers/misc/eeprom/at25.c~eeprom-at25-bugfix-not-ready-timeout-after-write drivers/misc/eeprom/at25.c
+--- a/drivers/misc/eeprom/at25.c~eeprom-at25-bugfix-not-ready-timeout-after-write
++++ a/drivers/misc/eeprom/at25.c
+@@ -173,6 +173,7 @@ at25_ee_write(struct at25_data *at25, co
+ 		unsigned	segment;
+ 		unsigned	offset = (unsigned) off;
+ 		u8		*cp = bounce + 1;
++		int		sr;
+ 
+ 		*cp = AT25_WREN;
+ 		status = spi_write(at25->spi, cp, 1);
+@@ -214,7 +215,6 @@ at25_ee_write(struct at25_data *at25, co
+ 		timeout = jiffies + msecs_to_jiffies(EE_TIMEOUT);
+ 		retries = 0;
+ 		do {
+-			int	sr;
+ 
+ 			sr = spi_w8r8(at25->spi, AT25_RDSR);
+ 			if (sr < 0 || (sr & AT25_SR_nRDY)) {
+@@ -228,7 +228,7 @@ at25_ee_write(struct at25_data *at25, co
+ 				break;
+ 		} while (retries++ < 3 || time_before_eq(jiffies, timeout));
+ 
+-		if (time_after(jiffies, timeout)) {
++		if ((sr < 0) || (sr & AT25_SR_nRDY)) {
+ 			dev_err(&at25->spi->dev,
+ 				"write %d bytes offset %d, "
+ 				"timeout after %u msecs\n",
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from heutling@who-ing.de are
 
-linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-maintainers-coalesce-name-and-email-address-lines.patch
-lis3-add-power-management-functions-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
+eeprom-at25-bugfix-not-ready-timeout-after-write.patch
 
