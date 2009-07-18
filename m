@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fb-intelfb-conflict-with-drm_i915-and-hide-by-default.patch added to -mm tree
-Date: Fri, 17 Jul 2009 17:14:15 -0700
-Message-ID: <200907180014.n6I0EFpK010722@imap1.linux-foundation.org>
+Subject: + spih-add-missing-kernel-doc-for-struct-spi_master.patch added to -mm tree
+Date: Fri, 17 Jul 2009 17:15:43 -0700
+Message-ID: <200907180015.n6I0FhnM012977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758098AbZGRAOx (ORCPT
+	by vger.kernel.org with ESMTP id S1758082AbZGRAQ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jul 2009 20:14:53 -0400
+	Fri, 17 Jul 2009 20:16:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbarnes@virtuousgeek.org, airlied@linux.ie, krzysztof.h1@poczta.fm
+Cc: randy.dunlap@oracle.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     fb/intelfb: conflict with DRM_I915 and hide by default
+     spi.h: add missing kernel-doc for struct spi_master
 has been added to the -mm tree.  Its filename is
-     fb-intelfb-conflict-with-drm_i915-and-hide-by-default.patch
+     spih-add-missing-kernel-doc-for-struct-spi_master.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb/intelfb: conflict with DRM_I915 and hide by default
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: spi.h: add missing kernel-doc for struct spi_master
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Users get confused by this driver.  It's really a special purpose embedded
-driver, and causes a lot of problems if enabled.  So hide it under
-EMBEDDED by default, and make sure it doesn't get enabled with the i915
-DRM driver.
+Add missing kernel-doc notation in spi.h for struct spi_master:
 
-Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Warning(include/linux/spi/spi.h:289): No description found for parameter 'mode_bits'
+Warning(include/linux/spi/spi.h:289): No description found for parameter 'flags'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/spi/spi.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/Kconfig~fb-intelfb-conflict-with-drm_i915-and-hide-by-default drivers/video/Kconfig
---- a/drivers/video/Kconfig~fb-intelfb-conflict-with-drm_i915-and-hide-by-default
-+++ a/drivers/video/Kconfig
-@@ -1119,12 +1119,13 @@ config FB_CARILLO_RANCH
- 
- config FB_INTEL
- 	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G/945GM/965G/965GM support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && FB && PCI && X86 && AGP_INTEL
-+	depends on EXPERIMENTAL && FB && PCI && X86 && AGP_INTEL && EMBEDDED
- 	select FB_MODE_HELPERS
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
- 	select FB_BOOT_VESA_SUPPORT if FB_INTEL = y
-+	depends on !DRM_I915
- 	help
- 	  This driver supports the on-board graphics built in to the Intel
-           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
+diff -puN include/linux/spi/spi.h~spih-add-missing-kernel-doc-for-struct-spi_master include/linux/spi/spi.h
+--- a/include/linux/spi/spi.h~spih-add-missing-kernel-doc-for-struct-spi_master
++++ a/include/linux/spi/spi.h
+@@ -207,6 +207,8 @@ static inline void spi_unregister_driver
+  *	each slave has a chipselect signal, but it's common that not
+  *	every chipselect is connected to a slave.
+  * @dma_alignment: SPI controller constraint on DMA buffers alignment.
++ * @mode_bits: flags understood by this controller driver
++ * @flags: other constraints relevant to this driver
+  * @setup: updates the device mode and clocking records used by a
+  *	device's SPI controller; protocol code may call this.  This
+  *	must fail if an unrecognized or unsupported mode is requested.
 _
 
-Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-acpi-reintroduce-acpi_device_ops-shutdown-method.patch
-fb-intelfb-conflict-with-drm_i915-and-hide-by-default.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-add-a-driver-for-the-winbond-wpcd376i-ir-functionality.patch
-add-a-driver-for-the-winbond-wpcd376i-ir-functionality-update.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+kernel-hacking-move-strip_asm_syms-from-general.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
+maintainers-coalesce-name-and-email-address-lines.patch
+lis3-add-power-management-functions-fix.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
