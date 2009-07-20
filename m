@@ -1,83 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch removed from -mm tree
-Date: Mon, 20 Jul 2009 14:06:34 -0700
-Message-ID: <200907202106.n6KL6ZK2014660@imap1.linux-foundation.org>
+Subject: [alternative-merged] drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch removed from -mm tree
+Date: Mon, 20 Jul 2009 14:06:18 -0700
+Message-ID: <200907202106.n6KL6Ip0014235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45535 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751693AbZGTVGt (ORCPT
+	by vger.kernel.org with ESMTP id S1752648AbZGTVGv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jul 2009 17:06:49 -0400
+	Mon, 20 Jul 2009 17:06:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaosuo@gmail.com, chris@zankel.net, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alessandro.zummo@towertech.it, david-b@pacbell.net, greg@kroah.com, kay.sievers@vrfy.org, mingo@elte.hu, ozan@pardus.org.tr, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_pipe(): fix fd leak if pipe() is called with an invalid address
+     drivers/rtc/rtc-cmos.c: cmos_init(): don't ignore pnp_register_driver() return value
 has been removed from the -mm tree.  Its filename was
-     sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch
+     drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_pipe(): fix fd leak if pipe() is called with an invalid address
-From: Changli Gao <xiaosuo@gmail.com>
+Subject: drivers/rtc/rtc-cmos.c: cmos_init(): don't ignore pnp_register_driver() return value
+From: Andrew Morton <akpm@linux-foundation.org>
 
-fd leak if pipe() is called with an invalid address.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13326
 
-Though -EFAULT is returned, the file descriptors opened by pipe() call are
-left open.
+Prevents a null-pointer deref under the above-described circumstances.
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+pnp_unregister_driver() shouldn't oops the kernel either - that's a
+different bug.
+
+Reported-by: Ozan Caglayan <ozan@pardus.org.tr>
+Tested-by: Tested-by: Ozan Caglayan <ozan@pardus.org.tr>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Christian Zankel <chris@zankel.net>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/sys_ia32.c     |    5 ++++-
- arch/xtensa/kernel/syscall.c |    5 ++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-cmos.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/ia32/sys_ia32.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address arch/x86/ia32/sys_ia32.c
---- a/arch/x86/ia32/sys_ia32.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address
-+++ a/arch/x86/ia32/sys_ia32.c
-@@ -197,8 +197,11 @@ asmlinkage long sys32_pipe(int __user *f
- 	retval = do_pipe_flags(fds, 0);
- 	if (retval)
- 		goto out;
--	if (copy_to_user(fd, fds, sizeof(fds)))
-+	if (copy_to_user(fd, fds, sizeof(fds))) {
-+		sys_close(fd[0]);
-+		sys_close(fd[1]);
- 		retval = -EFAULT;
-+	}
- out:
- 	return retval;
- }
-diff -puN arch/xtensa/kernel/syscall.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address arch/xtensa/kernel/syscall.c
---- a/arch/xtensa/kernel/syscall.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address
-+++ a/arch/xtensa/kernel/syscall.c
-@@ -51,8 +51,11 @@ asmlinkage long xtensa_pipe(int __user *
+diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value
++++ a/drivers/rtc/rtc-cmos.c
+@@ -1179,7 +1179,9 @@ static int __init cmos_init(void)
+ 	int retval = 0;
  
- 	error = do_pipe_flags(fd, 0);
- 	if (!error) {
--		if (copy_to_user(userfds, fd, 2 * sizeof(int)))
-+		if (copy_to_user(userfds, fd, 2 * sizeof(int))) {
-+			sys_close(fd[0]);
-+			sys_close(fd[1]);
- 			error = -EFAULT;
-+		}
- 	}
- 	return error;
- }
+ #ifdef	CONFIG_PNP
+-	pnp_register_driver(&cmos_pnp_driver);
++	retval = pnp_register_driver(&cmos_pnp_driver);
++	if (retval < 0)
++		return retval;
+ #endif
+ 
+ 	if (!cmos_rtc.dev)
 _
 
-Patches currently in -mm which might be from xiaosuo@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch
+origin.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+x86-fix-x86-fix-pageattr-handling-for-lpage-percpu-allocator-and-re-enable-it.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
