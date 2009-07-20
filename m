@@ -1,72 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fb-intelfb-conflict-with-drm_i915-and-hide-by-default.patch removed from -mm tree
-Date: Mon, 20 Jul 2009 12:00:27 -0700
-Message-ID: <200907201900.n6KJ0R4N013751@imap1.linux-foundation.org>
+Subject: [merged] dynamic-debug-fix-typo.patch removed from -mm tree
+Date: Mon, 20 Jul 2009 12:00:25 -0700
+Message-ID: <200907201900.n6KJ0PoV013692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45017 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148AbZGTTBY (ORCPT
+	by vger.kernel.org with ESMTP id S1752746AbZGTTB2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jul 2009 15:01:24 -0400
+	Mon, 20 Jul 2009 15:01:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbarnes@virtuousgeek.org, airlied@linux.ie, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, gnb@sgi.com, gregkh@suse.de, jbaron@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fb/intelfb: conflict with DRM_I915 and hide by default
+     Dynamic debug: fix typo: -/->
 has been removed from the -mm tree.  Its filename was
-     fb-intelfb-conflict-with-drm_i915-and-hide-by-default.patch
+     dynamic-debug-fix-typo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb/intelfb: conflict with DRM_I915 and hide by default
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Dynamic debug: fix typo: -/->
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Users get confused by this driver.  It's really a special purpose embedded
-driver, and causes a lot of problems if enabled.  So hide it under
-EMBEDDED by default, and make sure it doesn't get enabled with the i915
-DRM driver.
+The member was intended, not the local variable.
 
-Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Greg Banks <gnb@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/dynamic_debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/Kconfig~fb-intelfb-conflict-with-drm_i915-and-hide-by-default drivers/video/Kconfig
---- a/drivers/video/Kconfig~fb-intelfb-conflict-with-drm_i915-and-hide-by-default
-+++ a/drivers/video/Kconfig
-@@ -1119,12 +1119,13 @@ config FB_CARILLO_RANCH
+diff -puN lib/dynamic_debug.c~dynamic-debug-fix-typo lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~dynamic-debug-fix-typo
++++ a/lib/dynamic_debug.c
+@@ -164,7 +164,7 @@ static void ddebug_change(const struct d
  
- config FB_INTEL
- 	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G/945GM/965G/965GM support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && FB && PCI && X86 && AGP_INTEL
-+	depends on EXPERIMENTAL && FB && PCI && X86 && AGP_INTEL && EMBEDDED
- 	select FB_MODE_HELPERS
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
- 	select FB_BOOT_VESA_SUPPORT if FB_INTEL = y
-+	depends on !DRM_I915
- 	help
- 	  This driver supports the on-board graphics built in to the Intel
-           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
+ 			if (!newflags)
+ 				dt->num_enabled--;
+-			else if (!dp-flags)
++			else if (!dp->flags)
+ 				dt->num_enabled++;
+ 			dp->flags = newflags;
+ 			if (newflags) {
 _
 
-Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-acpi-reintroduce-acpi_device_ops-shutdown-method.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-add-a-driver-for-the-winbond-wpcd376i-ir-functionality.patch
-add-a-driver-for-the-winbond-wpcd376i-ir-functionality-update.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ext4-remove-redundant-test-on-unsigned.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+platinumfb-misplaced-parenthesis.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
