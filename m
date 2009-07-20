@@ -1,134 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-use-resource_size.patch added to -mm tree
-Date: Mon, 20 Jul 2009 13:42:25 -0700
-Message-ID: <200907202042.n6KKgPwN009681@imap1.linux-foundation.org>
+Subject: [nacked] sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch removed from -mm tree
+Date: Mon, 20 Jul 2009 14:06:34 -0700
+Message-ID: <200907202106.n6KL6ZK2014660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60631 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751926AbZGTUn3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751693AbZGTVGt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jul 2009 16:43:29 -0400
+	Mon, 20 Jul 2009 17:06:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, jeff@garzik.org
+To: xiaosuo@gmail.com, chris@zankel.net, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ata: use resource_size
-has been added to the -mm tree.  Its filename is
-     drivers-ata-use-resource_size.patch
+     sys_pipe(): fix fd leak if pipe() is called with an invalid address
+has been removed from the -mm tree.  Its filename was
+     sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ata: use resource_size
-From: Julia Lawall <julia@diku.dk>
+Subject: sys_pipe(): fix fd leak if pipe() is called with an invalid address
+From: Changli Gao <xiaosuo@gmail.com>
 
-Use the function resource_size, which reduces the chance of introducing
-off-by-one errors in calculating the resource size.
+fd leak if pipe() is called with an invalid address.
 
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+Though -EFAULT is returned, the file descriptors opened by pipe() call are
+left open.
 
-// <smpl>
-@@
-struct resource *res;
-@@
-
-- (res->end - res->start) + 1
-+ resource_size(res)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_octeon_cf.c |    2 +-
- drivers/ata/pata_platform.c  |    8 ++++----
- drivers/ata/pata_rb532_cf.c  |    2 +-
- drivers/ata/sata_mv.c        |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ arch/x86/ia32/sys_ia32.c     |    5 ++++-
+ arch/xtensa/kernel/syscall.c |    5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_octeon_cf.c~drivers-ata-use-resource_size drivers/ata/pata_octeon_cf.c
---- a/drivers/ata/pata_octeon_cf.c~drivers-ata-use-resource_size
-+++ a/drivers/ata/pata_octeon_cf.c
-@@ -840,7 +840,7 @@ static int __devinit octeon_cf_probe(str
- 	ocd = pdev->dev.platform_data;
+diff -puN arch/x86/ia32/sys_ia32.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address arch/x86/ia32/sys_ia32.c
+--- a/arch/x86/ia32/sys_ia32.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address
++++ a/arch/x86/ia32/sys_ia32.c
+@@ -197,8 +197,11 @@ asmlinkage long sys32_pipe(int __user *f
+ 	retval = do_pipe_flags(fds, 0);
+ 	if (retval)
+ 		goto out;
+-	if (copy_to_user(fd, fds, sizeof(fds)))
++	if (copy_to_user(fd, fds, sizeof(fds))) {
++		sys_close(fd[0]);
++		sys_close(fd[1]);
+ 		retval = -EFAULT;
++	}
+ out:
+ 	return retval;
+ }
+diff -puN arch/xtensa/kernel/syscall.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address arch/xtensa/kernel/syscall.c
+--- a/arch/xtensa/kernel/syscall.c~sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address
++++ a/arch/xtensa/kernel/syscall.c
+@@ -51,8 +51,11 @@ asmlinkage long xtensa_pipe(int __user *
  
- 	cs0 = devm_ioremap_nocache(&pdev->dev, res_cs0->start,
--				   res_cs0->end - res_cs0->start + 1);
-+				   resource_size(res_cs0));
- 
- 	if (!cs0)
- 		return -ENOMEM;
-diff -puN drivers/ata/pata_platform.c~drivers-ata-use-resource_size drivers/ata/pata_platform.c
---- a/drivers/ata/pata_platform.c~drivers-ata-use-resource_size
-+++ a/drivers/ata/pata_platform.c
-@@ -151,14 +151,14 @@ int __devinit __pata_platform_probe(stru
- 	 */
- 	if (mmio) {
- 		ap->ioaddr.cmd_addr = devm_ioremap(dev, io_res->start,
--				io_res->end - io_res->start + 1);
-+				resource_size(io_res));
- 		ap->ioaddr.ctl_addr = devm_ioremap(dev, ctl_res->start,
--				ctl_res->end - ctl_res->start + 1);
-+				resource_size(ctl_res));
- 	} else {
- 		ap->ioaddr.cmd_addr = devm_ioport_map(dev, io_res->start,
--				io_res->end - io_res->start + 1);
-+				resource_size(io_res));
- 		ap->ioaddr.ctl_addr = devm_ioport_map(dev, ctl_res->start,
--				ctl_res->end - ctl_res->start + 1);
-+				resource_size(ctl_res));
+ 	error = do_pipe_flags(fd, 0);
+ 	if (!error) {
+-		if (copy_to_user(userfds, fd, 2 * sizeof(int)))
++		if (copy_to_user(userfds, fd, 2 * sizeof(int))) {
++			sys_close(fd[0]);
++			sys_close(fd[1]);
+ 			error = -EFAULT;
++		}
  	}
- 	if (!ap->ioaddr.cmd_addr || !ap->ioaddr.ctl_addr) {
- 		dev_err(dev, "failed to map IO/CTL base\n");
-diff -puN drivers/ata/pata_rb532_cf.c~drivers-ata-use-resource_size drivers/ata/pata_rb532_cf.c
---- a/drivers/ata/pata_rb532_cf.c~drivers-ata-use-resource_size
-+++ a/drivers/ata/pata_rb532_cf.c
-@@ -151,7 +151,7 @@ static __devinit int rb532_pata_driver_p
- 	info->irq = irq;
- 
- 	info->iobase = devm_ioremap_nocache(&pdev->dev, res->start,
--				res->end - res->start + 1);
-+				resource_size(res));
- 	if (!info->iobase)
- 		return -ENOMEM;
- 
-diff -puN drivers/ata/sata_mv.c~drivers-ata-use-resource_size drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~drivers-ata-use-resource_size
-+++ a/drivers/ata/sata_mv.c
-@@ -4013,7 +4013,7 @@ static int mv_platform_probe(struct plat
- 
- 	host->iomap = NULL;
- 	hpriv->base = devm_ioremap(&pdev->dev, res->start,
--				   res->end - res->start + 1);
-+				   resource_size(res));
- 	hpriv->base -= SATAHC0_REG_BASE;
- 
- 	/*
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from xiaosuo@gmail.com are
 
-origin.patch
+sys_pipe-fix-fd-leak-if-pipe-is-called-with-an-invalid-address.patch
 linux-next.patch
-drivers-ata-use-resource_size.patch
-drivers-video-imxfbc-fix-resource-size-off-by-1-error.patch
-edac-fix-resource-size-calculation.patch
-drivers-vlynq-vlynqc-fix-resource-size-off-by-1-error.patch
 
