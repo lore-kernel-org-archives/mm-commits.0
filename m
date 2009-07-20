@@ -1,123 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch removed from -mm tree
-Date: Mon, 20 Jul 2009 14:06:18 -0700
-Message-ID: <200907202106.n6KL6Ip0014235@imap1.linux-foundation.org>
+Subject: + fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch added to -mm tree
+Date: Mon, 20 Jul 2009 15:46:14 -0700
+Message-ID: <200907202246.n6KMkE8D006964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36904 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752648AbZGTVGv (ORCPT
+	by vger.kernel.org with ESMTP id S1754062AbZGTWqg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jul 2009 17:06:51 -0400
+	Mon, 20 Jul 2009 18:46:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alessandro.zummo@towertech.it, david-b@pacbell.net, greg@kroah.com, kay.sievers@vrfy.org, mingo@elte.hu, ozan@pardus.org.tr, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com, lethal@linux-sh.org, pavel@ucw.cz, vapier@gentoo.org
 
 
 The patch titled
-     drivers/rtc/rtc-cmos.c: cmos_init(): don't ignore pnp_register_driver() return value
-has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+     fdpic: ignore the loader's PT_GNU_STACK when calculating the stack size
+has been added to the -mm tree.  Its filename is
+     fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-cmos.c: cmos_init(): don't ignore pnp_register_driver() return value
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fdpic: ignore the loader's PT_GNU_STACK when calculating the stack size
+From: David Howells <dhowells@redhat.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13326
+Ignore the loader's PT_GNU_STACK when calculating the stack size, and only
+consider the executable's PT_GNU_STACK, assuming the executable has one.
 
-Prevents a null-pointer deref under the above-described circumstances.
+Currently the behaviour is to take the largest stack size and use that,
+but that means you can't reduce the stack size in the executable.  The
+loader's stack size should probably only be used when executing the loader
+directly.
 
-pnp_unregister_driver() shouldn't oops the kernel either - that's a
-different bug.
+WARNING: This patch is slightly dangerous - it may render a system
+inoperable if the loader's stack size is larger than that of important
+executables, and the system relies unknowingly on this increasing the size
+of the stack.
 
-Reported-by: Ozan Caglayan <ozan@pardus.org.tr>
-Tested-by: Tested-by: Ozan Caglayan <ozan@pardus.org.tr>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/binfmt_elf_fdpic.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -1179,7 +1179,9 @@ static int __init cmos_init(void)
- 	int retval = 0;
+diff -puN fs/binfmt_elf_fdpic.c~fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size
++++ a/fs/binfmt_elf_fdpic.c
+@@ -283,20 +283,23 @@ static int load_elf_fdpic_binary(struct 
+ 	}
  
- #ifdef	CONFIG_PNP
--	pnp_register_driver(&cmos_pnp_driver);
-+	retval = pnp_register_driver(&cmos_pnp_driver);
-+	if (retval < 0)
-+		return retval;
- #endif
+ 	stack_size = exec_params.stack_size;
+-	if (stack_size < interp_params.stack_size)
+-		stack_size = interp_params.stack_size;
+-
+ 	if (exec_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
+ 		executable_stack = EXSTACK_ENABLE_X;
+ 	else if (exec_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
+ 		executable_stack = EXSTACK_DISABLE_X;
+-	else if (interp_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
+-		executable_stack = EXSTACK_ENABLE_X;
+-	else if (interp_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
+-		executable_stack = EXSTACK_DISABLE_X;
+ 	else
+ 		executable_stack = EXSTACK_DEFAULT;
  
- 	if (!cmos_rtc.dev)
++	if (stack_size == 0) {
++		stack_size = interp_params.stack_size;
++		if (interp_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
++			executable_stack = EXSTACK_ENABLE_X;
++		else if (interp_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
++			executable_stack = EXSTACK_DISABLE_X;
++		else
++			executable_stack = EXSTACK_DEFAULT;
++	}
++
+ 	retval = -ENOEXEC;
+ 	if (stack_size == 0)
+ 		goto error;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-x86-fix-x86-fix-pageattr-handling-for-lpage-percpu-allocator-and-re-enable-it.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+flat-fix-uninitialized-ptr-with-shared-libs.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+include-linux-credh-work-around-gcc-424-warning-in-get_cred.patch
+frv-duplicate-output_buffer-of-e03.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
+elf-clean-up-fill_note_info.patch
 elf-clean-up-fill_note_info-fix.patch
-n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
+flat-use-is_err_value-helper-macro.patch
+mutex-subsystem-synchro-test-module.patch
 
