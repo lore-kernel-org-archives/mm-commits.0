@@ -1,90 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-gfp-mask-checking-for-__get_free_pages.patch added to -mm tree
-Date: Fri, 17 Jul 2009 17:41:34 -0700
-Message-ID: <200907180041.n6I0fY11020004@imap1.linux-foundation.org>
+Subject: [merged] fb-intelfb-conflict-with-drm_i915-and-hide-by-default.patch removed from -mm tree
+Date: Mon, 20 Jul 2009 12:00:27 -0700
+Message-ID: <200907201900.n6KJ0R4N013751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751385AbZGRAlh (ORCPT
+	by vger.kernel.org with ESMTP id S1752148AbZGTTBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jul 2009 20:41:37 -0400
+	Mon, 20 Jul 2009 15:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+To: jbarnes@virtuousgeek.org, airlied@linux.ie, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add gfp mask checking for __get_free_pages()
-has been added to the -mm tree.  Its filename is
-     mm-add-gfp-mask-checking-for-__get_free_pages.patch
+     fb/intelfb: conflict with DRM_I915 and hide by default
+has been removed from the -mm tree.  Its filename was
+     fb-intelfb-conflict-with-drm_i915-and-hide-by-default.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add gfp mask checking for __get_free_pages()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fb/intelfb: conflict with DRM_I915 and hide by default
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
 
-__get_free_pages() with __GFP_HIGHMEM is not safe because the return
-address cannot represent a highmem page.  get_zeroed_page() already has
-such a debug checking.
+Users get confused by this driver.  It's really a special purpose embedded
+driver, and causes a lot of problems if enabled.  So hide it under
+EMBEDDED by default, and make sure it doesn't get enabled with the i915
+DRM driver.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ drivers/video/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-add-gfp-mask-checking-for-__get_free_pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-gfp-mask-checking-for-__get_free_pages
-+++ a/mm/page_alloc.c
-@@ -1916,31 +1916,25 @@ EXPORT_SYMBOL(__alloc_pages_nodemask);
-  */
- unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
- {
--	struct page * page;
-+	struct page *page;
-+
-+	/*
-+	 * __get_free_pages() returns a 32-bit address, which cannot represent
-+	 * a highmem page
-+	 */
-+	VM_BUG_ON((gfp_mask & __GFP_HIGHMEM) != 0);
-+
- 	page = alloc_pages(gfp_mask, order);
- 	if (!page)
- 		return 0;
- 	return (unsigned long) page_address(page);
- }
--
- EXPORT_SYMBOL(__get_free_pages);
+diff -puN drivers/video/Kconfig~fb-intelfb-conflict-with-drm_i915-and-hide-by-default drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fb-intelfb-conflict-with-drm_i915-and-hide-by-default
++++ a/drivers/video/Kconfig
+@@ -1119,12 +1119,13 @@ config FB_CARILLO_RANCH
  
- unsigned long get_zeroed_page(gfp_t gfp_mask)
- {
--	struct page * page;
--
--	/*
--	 * get_zeroed_page() returns a 32-bit address, which cannot represent
--	 * a highmem page
--	 */
--	VM_BUG_ON((gfp_mask & __GFP_HIGHMEM) != 0);
--
--	page = alloc_pages(gfp_mask | __GFP_ZERO, 0);
--	if (page)
--		return (unsigned long) page_address(page);
--	return 0;
-+	return __get_free_pages(gfp_mask | __GFP_ZERO, 0);
- }
+ config FB_INTEL
+ 	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G/945GM/965G/965GM support (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && FB && PCI && X86 && AGP_INTEL
++	depends on EXPERIMENTAL && FB && PCI && X86 && AGP_INTEL && EMBEDDED
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	select FB_BOOT_VESA_SUPPORT if FB_INTEL = y
++	depends on !DRM_I915
+ 	help
+ 	  This driver supports the on-board graphics built in to the Intel
+           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
+_
+
+Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
+
+origin.patch
+linux-next.patch
+acpi-reintroduce-acpi_device_ops-shutdown-method.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+add-a-driver-for-the-winbond-wpcd376i-ir-functionality.patch
+add-a-driver-for-the-winbond-wpcd376i-ir-functionality-update.patch
+
