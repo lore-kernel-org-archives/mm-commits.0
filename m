@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-irq-fix-comment-describing-suspend_device_irqs.patch added to -mm tree
-Date: Mon, 20 Jul 2009 12:58:55 -0700
-Message-ID: <200907201958.n6KJwt6u006976@imap1.linux-foundation.org>
+Subject: + rtc-mark-if-rtc-cmos-drivers-were-successfully-registered.patch added to -mm tree
+Date: Mon, 20 Jul 2009 13:20:27 -0700
+Message-ID: <200907202020.n6KKKRHa007996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46589 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751020AbZGTT67 (ORCPT
+	by vger.kernel.org with ESMTP id S1752995AbZGTUVm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jul 2009 15:58:59 -0400
+	Mon, 20 Jul 2009 16:21:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl
+Cc: cascardo@holoscopio.com, alessandro.zummo@towertech.it, bjorn.helgaas@hp.com, david-b@pacbell.net, greg@kroah.com, kay.sievers@vrfy.org, mingo@elte.hu, ozan@pardus.org.tr, torvalds@linux-foundation.org
 
 
 The patch titled
-     PM/irq: fix comment describing suspend_device_irqs()
+     rtc: mark if rtc-cmos drivers were successfully registered
 has been added to the -mm tree.  Its filename is
-     pm-irq-fix-comment-describing-suspend_device_irqs.patch
+     rtc-mark-if-rtc-cmos-drivers-were-successfully-registered.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PM/irq: fix comment describing suspend_device_irqs()
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: rtc: mark if rtc-cmos drivers were successfully registered
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-The kerneldoc comment describing suspend_device_irqs() is currently
-misleading, because generally the function doesn't really disable
-interrupt lines at the chip level.  Replace it with a more accurate one.
+rtc-cmos has two drivers, one PNP and one platform.  When PNP has not
+succeeded probing, platform is registered.  However, it tries to
+unregister both drivers unconditionally, instead of only unregistering
+those that were successfully registered.  Fix that with a boolean variable
+for each driver indicating whether registering was successful.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ozan Caglayan <ozan@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/pm.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-cmos.c |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-diff -puN kernel/irq/pm.c~pm-irq-fix-comment-describing-suspend_device_irqs kernel/irq/pm.c
---- a/kernel/irq/pm.c~pm-irq-fix-comment-describing-suspend_device_irqs
-+++ a/kernel/irq/pm.c
-@@ -15,10 +15,10 @@
- /**
-  * suspend_device_irqs - disable all currently enabled interrupt lines
-  *
-- * During system-wide suspend or hibernation device interrupts need to be
-- * disabled at the chip level and this function is provided for this purpose.
-- * It disables all interrupt lines that are enabled at the moment and sets the
-- * IRQ_SUSPENDED flag for them.
-+ * During system-wide suspend or hibernation device drivers need to be prevented
-+ * from receiving interrupts and this function is provided for this purpose.
-+ * It marks all interrupt lines in use, except for the timer ones, as disabled
-+ * and sets the IRQ_SUSPENDED flag for each of them.
-  */
- void suspend_device_irqs(void)
+diff -puN drivers/rtc/rtc-cmos.c~rtc-mark-if-rtc-cmos-drivers-were-successfully-registered drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-mark-if-rtc-cmos-drivers-were-successfully-registered
++++ a/drivers/rtc/rtc-cmos.c
+@@ -1174,23 +1174,34 @@ static struct platform_driver cmos_platf
+ 	}
+ };
+ 
++#ifdef CONFIG_PNP
++static bool pnp_driver_registered;
++#endif
++static bool platform_driver_registered;
++
+ static int __init cmos_init(void)
  {
+ 	int retval = 0;
+ 
+ #ifdef	CONFIG_PNP
+-	pnp_register_driver(&cmos_pnp_driver);
++	retval = pnp_register_driver(&cmos_pnp_driver);
++	if (retval == 0)
++		pnp_driver_registered = true;
+ #endif
+ 
+-	if (!cmos_rtc.dev)
++	if (!cmos_rtc.dev) {
+ 		retval = platform_driver_probe(&cmos_platform_driver,
+ 					       cmos_platform_probe);
++		if (retval == 0)
++			platform_driver_registered = true;
++	}
+ 
+ 	if (retval == 0)
+ 		return 0;
+ 
+ #ifdef	CONFIG_PNP
+-	pnp_unregister_driver(&cmos_pnp_driver);
++	if (pnp_driver_registered)
++		pnp_unregister_driver(&cmos_pnp_driver);
+ #endif
+ 	return retval;
+ }
+@@ -1199,9 +1210,11 @@ module_init(cmos_init);
+ static void __exit cmos_exit(void)
+ {
+ #ifdef	CONFIG_PNP
+-	pnp_unregister_driver(&cmos_pnp_driver);
++	if (pnp_driver_registered)
++		pnp_unregister_driver(&cmos_pnp_driver);
+ #endif
+-	platform_driver_unregister(&cmos_platform_driver);
++	if (platform_driver_registered)
++		platform_driver_unregister(&cmos_platform_driver);
+ }
+ module_exit(cmos_exit);
+ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from cascardo@holoscopio.com are
 
 linux-next.patch
-pm-irq-fix-comment-describing-suspend_device_irqs.patch
-genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
-drivers-rtc-rtc-cmosc-cmos_init-dont-ignore-pnp_register_driver-return-value.patch
+rtc-mark-if-rtc-cmos-drivers-were-successfully-registered.patch
 
