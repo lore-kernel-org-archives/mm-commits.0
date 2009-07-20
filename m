@@ -1,61 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpu-drm-ttm-ttm_bo_vmc-fix-misplaced-parentheses.patch removed from -mm tree
-Date: Mon, 20 Jul 2009 12:00:30 -0700
-Message-ID: <200907201900.n6KJ0UI3013813@imap1.linux-foundation.org>
+Subject: [merged] drivers-usb-gadget-s3c-hsotgc-missing-parentheses.patch removed from -mm tree
+Date: Mon, 20 Jul 2009 12:00:22 -0700
+Message-ID: <200907201900.n6KJ0MPN013610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33212 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148AbZGTTBW (ORCPT
+	by vger.kernel.org with ESMTP id S1752232AbZGTTBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jul 2009 15:01:22 -0400
+	Mon, 20 Jul 2009 15:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, ben@simtec.co.uk, david-b@pacbell.net, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/ttm/ttm_bo_vm.c: fix misplaced parentheses
+     drivers/usb/gadget/s3c-hsotg.c: missing parentheses
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-ttm-ttm_bo_vmc-fix-misplaced-parentheses.patch
+     drivers-usb-gadget-s3c-hsotgc-missing-parentheses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/ttm/ttm_bo_vm.c: fix misplaced parentheses
+Subject: drivers/usb/gadget/s3c-hsotg.c: missing parentheses
 From: Roel Kluin <roel.kluin@gmail.com>
 
+Add missing parentheses
+
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Ben Dooks <ben@simtec.co.uk>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/ttm/ttm_bo_vm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/gadget/s3c-hsotg.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpu/drm/ttm/ttm_bo_vm.c~drivers-gpu-drm-ttm-ttm_bo_vmc-fix-misplaced-parentheses drivers/gpu/drm/ttm/ttm_bo_vm.c
---- a/drivers/gpu/drm/ttm/ttm_bo_vm.c~drivers-gpu-drm-ttm-ttm_bo_vmc-fix-misplaced-parentheses
-+++ a/drivers/gpu/drm/ttm/ttm_bo_vm.c
-@@ -327,7 +327,7 @@ ssize_t ttm_bo_io(struct ttm_bo_device *
- 		goto out_unref;
+diff -puN drivers/usb/gadget/s3c-hsotg.c~drivers-usb-gadget-s3c-hsotgc-missing-parentheses drivers/usb/gadget/s3c-hsotg.c
+--- a/drivers/usb/gadget/s3c-hsotg.c~drivers-usb-gadget-s3c-hsotgc-missing-parentheses
++++ a/drivers/usb/gadget/s3c-hsotg.c
+@@ -2392,7 +2392,7 @@ static int s3c_hsotg_corereset(struct s3
+ 		grstctl = readl(hsotg->regs + S3C_GRSTCTL);
+ 	} while (!(grstctl & S3C_GRSTCTL_CSftRst) && timeout-- > 0);
  
- 	kmap_offset = dev_offset - bo->vm_node->start;
--	if (unlikely(kmap_offset) >= bo->num_pages) {
-+	if (unlikely(kmap_offset >= bo->num_pages)) {
- 		ret = -EFBIG;
- 		goto out_unref;
+-	if (!grstctl & S3C_GRSTCTL_CSftRst) {
++	if (!(grstctl & S3C_GRSTCTL_CSftRst)) {
+ 		dev_err(hsotg->dev, "Failed to get CSftRst asserted\n");
+ 		return -EINVAL;
  	}
-@@ -401,7 +401,7 @@ ssize_t ttm_bo_fbdev_io(struct ttm_buffe
- 	bool dummy;
+@@ -2514,8 +2514,8 @@ int usb_gadget_register_driver(struct us
+ 	 * DMA mode we may need this. */
+ 	writel(S3C_DOEPMSK_SetupMsk | S3C_DOEPMSK_AHBErrMsk |
+ 	       S3C_DOEPMSK_EPDisbldMsk |
+-	       using_dma(hsotg) ? (S3C_DIEPMSK_XferComplMsk |
+-				   S3C_DIEPMSK_TimeOUTMsk) : 0,
++	       (using_dma(hsotg) ? (S3C_DIEPMSK_XferComplMsk |
++				   S3C_DIEPMSK_TimeOUTMsk) : 0),
+ 	       hsotg->regs + S3C_DOEPMSK);
  
- 	kmap_offset = (*f_pos >> PAGE_SHIFT);
--	if (unlikely(kmap_offset) >= bo->num_pages)
-+	if (unlikely(kmap_offset >= bo->num_pages))
- 		return -EFBIG;
- 
- 	page_offset = *f_pos & ~PAGE_MASK;
+ 	writel(0, hsotg->regs + S3C_DAINTMSK);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
