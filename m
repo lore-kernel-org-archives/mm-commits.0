@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 21 Jul 2009 16:57:52 -0700
-Message-ID: <200907212357.n6LNvqS2021862@imap1.linux-foundation.org>
+Subject: + exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch added to -mm tree
+Date: Tue, 21 Jul 2009 16:57:42 -0700
+Message-ID: <200907212357.n6LNvgg3021606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53495 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750738AbZGUX6T (ORCPT
+	by vger.kernel.org with ESMTP id S1750937AbZGUX6W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 19:58:19 -0400
+	Tue, 21 Jul 2009 19:58:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nhorman@tuxdriver.com
+Cc: nhorman@tuxdriver.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, earl_chew@agilent.com, oleg@tv-sign.ru
 
 
 The patch titled
-     exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes
+     exec: allow do_coredump() to wait for user space pipe readers to complete
 has been added to the -mm tree.  Its filename is
-     exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+     exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: exec: allow do_coredump() to wait for user space pipe readers to complete
+From: Neil Horman <nhorman@tuxdriver.com>
 
-WARNING: suspect code indent for conditional statements (16, 25)
-#48: FILE: fs/exec.c:1796:
-+		if (core_limit == 0) {
-+			 /*
+Allow core_pattern pipes to wait for user space to complete
 
-WARNING: line over 80 characters
-#57: FILE: fs/exec.c:1805:
-+			  * but it runs as root, and can do lots of stupid things
+One of the things that user space processes like to do is look at metadata
+for a crashing process in their /proc/<pid> directory.  this is racy
+however, since do_coredump in the kernel doesn't wait for the user space
+process to complete before it reaps the crashing process.  This patch
+corrects that.  Allowing the kernel to wait for the user space process to
+complete before cleaning up the crashing process.  This is a bit tricky to
+do for a few reasons:
 
-WARNING: line over 80 characters
-#58: FILE: fs/exec.c:1806:
-+			  * Note that we use task_tgid_vnr here to grab the pid of the
+1) The user space process isn't our child, so we can't sys_wait4 on it
+2) We need to close the pipe before waiting for the user process to complete,
+since the user process may rely on an EOF condition
 
-WARNING: line over 80 characters
-#59: FILE: fs/exec.c:1807:
-+			  * process group leader.  That way we get the right pid if a thread
+I've discussed several solutions with Oleg Nesterov off-list about this,
+and this is the one we've come up with.  We add ourselves as a pipe reader
+(to prevent premature cleanup of the pipe_inode_info), and remove
+ourselves as a writer (to provide an EOF condition to the writer in user
+space), then we iterate until the user space process exits (which we
+detect by pipe->readers == 1, hence the > 1 check in the loop).  When we
+exit the loop, we restore the proper reader/writer values, then we return
+and let filp_close in do_coredump clean up the pipe data properly.
 
-total: 0 errors, 4 warnings, 59 lines checked
-
-./patches/exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Reported-by: Earl Chew <earl_chew@agilent.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ fs/exec.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff -puN fs/exec.c~exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes fs/exec.c
---- a/fs/exec.c~exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes
+diff -puN fs/exec.c~exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9 fs/exec.c
+--- a/fs/exec.c~exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9
 +++ a/fs/exec.c
-@@ -1794,21 +1794,23 @@ void do_coredump(long signr, int exit_co
+@@ -55,6 +55,7 @@
+ #include <linux/kmod.h>
+ #include <linux/fsnotify.h>
+ #include <linux/fs_struct.h>
++#include <linux/pipe_fs_i.h>
  
-  	if (ispipe) {
- 		if (core_limit == 0) {
--			 /*
--			  * Normally core limits are irrelevant to pipes, since
--			  * we're not writing to the file system, but we use
--			  * core_limit of 0 here as a speacial value. Any
--			  * non-zero limit gets set to RLIM_INFINITY below, but
--			  * a limit of 0 skips the dump.  This is a consistent
--			  * way to catch recursive crashes.  We can still crash
--			  * if the core_pattern binary sets RLIM_CORE =  !0
--			  * but it runs as root, and can do lots of stupid things
--			  * Note that we use task_tgid_vnr here to grab the pid of the
--			  * process group leader.  That way we get the right pid if a thread
--			  * in a multi-threaded core_pattern process dies.
--			  */
--			printk(KERN_WARNING "Process %d(%s) has RLIMIT_CORE set to 0\n",
--			       task_tgid_vnr(current), current->comm);
-+			/*
-+			 * Normally core limits are irrelevant to pipes, since
-+			 * we're not writing to the file system, but we use
-+			 * core_limit of 0 here as a speacial value. Any
-+			 * non-zero limit gets set to RLIM_INFINITY below, but
-+			 * a limit of 0 skips the dump.  This is a consistent
-+			 * way to catch recursive crashes.  We can still crash
-+			 * if the core_pattern binary sets RLIM_CORE =  !0
-+			 * but it runs as root, and can do lots of stupid things
-+			 * Note that we use task_tgid_vnr here to grab the pid
-+			 * of the process group leader.  That way we get the
-+			 * right pid if a thread in a multi-threaded
-+			 * core_pattern process dies.
-+			 */
-+			printk(KERN_WARNING
-+				"Process %d(%s) has RLIMIT_CORE set to 0\n",
-+				task_tgid_vnr(current), current->comm);
- 			printk(KERN_WARNING "Aborting core\n");
- 			goto fail_unlock;
- 		}
+ #include <asm/uaccess.h>
+ #include <asm/mmu_context.h>
+@@ -1718,6 +1719,29 @@ int get_dumpable(struct mm_struct *mm)
+ 	return (ret >= 2) ? 2 : ret;
+ }
+ 
++static void wait_for_dump_helpers(struct file *file)
++{
++	struct pipe_inode_info *pipe;
++
++	pipe = file->f_path.dentry->d_inode->i_pipe;
++
++	pipe_lock(pipe);
++	pipe->readers++;
++	pipe->writers--;
++
++	while ((pipe->readers > 1) && (!signal_pending(current))) {
++		wake_up_interruptible_sync(&pipe->wait);
++		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
++		pipe_wait(pipe);
++	}
++
++	pipe->readers--;
++	pipe->writers++;
++	pipe_unlock(pipe);
++
++}
++
++
+ void do_coredump(long signr, int exit_code, struct pt_regs *regs)
+ {
+ 	struct core_state core_state;
+@@ -1875,6 +1899,8 @@ void do_coredump(long signr, int exit_co
+ 	if (retval)
+ 		current->signal->group_exit_code |= 0x80;
+ close_fail:
++	if (ispipe && core_pipe_limit)
++		wait_for_dump_helpers(file);
+ 	filp_close(file, NULL);
+ fail_dropcount:
+ 	if (dump_count)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-vfs-optimize-touch_time-too-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+kmod-fix-race-in-usermodehelper-code.patch
+proc-fix-reported-unit-for-rlimit_cpu.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
 exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
 exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch
 
