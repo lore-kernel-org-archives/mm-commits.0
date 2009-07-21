@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-fix-reported-unit-for-rlimit_cpu.patch added to -mm tree
-Date: Tue, 21 Jul 2009 16:06:14 -0700
-Message-ID: <200907212306.n6LN6EjU005882@imap1.linux-foundation.org>
+Subject: + pci-apply-nv_msi_ht_cap_quirk-on-resume-too.patch added to -mm tree
+Date: Tue, 21 Jul 2009 16:08:43 -0700
+Message-ID: <200907212308.n6LN8hSf009829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49819 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52394 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756167AbZGUXGp (ORCPT
+	by vger.kernel.org with ESMTP id S1756359AbZGUXKL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 19:06:45 -0400
+	Tue, 21 Jul 2009 19:10:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kees.cook@canonical.com, nhorman@tuxdriver.com, xiyou.wangcong@gmail.com
+Cc: tj@kernel.org, greg@kroah.com, jbarnes@virtuousgeek.org, kalon33@ubuntu.com, linux@tjworld.net, pchen@nvidia.com, stable@kernel.org
 
 
 The patch titled
-     proc: fix reported unit for RLIMIT_CPU
+     pci: apply nv_msi_ht_cap_quirk on resume too
 has been added to the -mm tree.  Its filename is
-     proc-fix-reported-unit-for-rlimit_cpu.patch
+     pci-apply-nv_msi_ht_cap_quirk-on-resume-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: fix reported unit for RLIMIT_CPU
-From: Kees Cook <kees.cook@canonical.com>
+Subject: pci: apply nv_msi_ht_cap_quirk on resume too
+From: Tejun Heo <tj@kernel.org>
 
-/proc/$pid/limits should show RLIMIT_CPU as seconds, which is the unit
-used in kernel/posix-cpu-timers.c:
+http://bugzilla.kernel.org/show_bug.cgi?id=12542 reports that with the
+quirk not applied on resume, msi stops working after resuming and mcp78s
+ahci fails due to IRQ mis-delivery.  Apply it on resume too.
 
-        unsigned long psecs = cputime_to_secs(ptime);
-        ...
-        if (psecs >= sig->rlim[RLIMIT_CPU].rlim_max) {
-                ...
-                __group_send_sig_info(SIGKILL, SEND_SIG_PRIV, tsk);
-
-Signed-off-by: Kees Cook <kees.cook@canonical.com>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Peer Chen <pchen@nvidia.com>
+Cc: Tj <linux@tjworld.net>
+Reported-by: Nicolas Derive <kalon33@ubuntu.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
+Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/quirks.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/proc/base.c~proc-fix-reported-unit-for-rlimit_cpu fs/proc/base.c
---- a/fs/proc/base.c~proc-fix-reported-unit-for-rlimit_cpu
-+++ a/fs/proc/base.c
-@@ -460,7 +460,7 @@ struct limit_names {
- };
+diff -puN drivers/pci/quirks.c~pci-apply-nv_msi_ht_cap_quirk-on-resume-too drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-apply-nv_msi_ht_cap_quirk-on-resume-too
++++ a/drivers/pci/quirks.c
+@@ -2382,8 +2382,10 @@ static void __devinit nv_msi_ht_cap_quir
+ }
  
- static const struct limit_names lnames[RLIM_NLIMITS] = {
--	[RLIMIT_CPU] = {"Max cpu time", "ms"},
-+	[RLIMIT_CPU] = {"Max cpu time", "seconds"},
- 	[RLIMIT_FSIZE] = {"Max file size", "bytes"},
- 	[RLIMIT_DATA] = {"Max data size", "bytes"},
- 	[RLIMIT_STACK] = {"Max stack size", "bytes"},
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, nv_msi_ht_cap_quirk_leaf);
++DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, nv_msi_ht_cap_quirk_leaf);
+ 
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AL, PCI_ANY_ID, nv_msi_ht_cap_quirk_all);
++DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_AL, PCI_ANY_ID, nv_msi_ht_cap_quirk_all);
+ 
+ static void __devinit quirk_msi_intx_disable_bug(struct pci_dev *dev)
+ {
 _
 
-Patches currently in -mm which might be from kees.cook@canonical.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
+origin.patch
 linux-next.patch
-proc-fix-reported-unit-for-rlimit_cpu.patch
+pci-apply-nv_msi_ht_cap_quirk-on-resume-too.patch
+vmallocc-fix-double-error-checking.patch
 
