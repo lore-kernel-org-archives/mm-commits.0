@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-apply-nv_msi_ht_cap_quirk-on-resume-too.patch added to -mm tree
-Date: Tue, 21 Jul 2009 16:08:43 -0700
-Message-ID: <200907212308.n6LN8hSf009829@imap1.linux-foundation.org>
+Subject: + genhd-send-uevents-for-disk-write_protect-changes.patch added to -mm tree
+Date: Tue, 21 Jul 2009 16:12:51 -0700
+Message-ID: <200907212312.n6LNCprq016392@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756359AbZGUXKL (ORCPT
+	by vger.kernel.org with ESMTP id S1755049AbZGUXOS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 19:10:11 -0400
+	Tue, 21 Jul 2009 19:14:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, greg@kroah.com, jbarnes@virtuousgeek.org, kalon33@ubuntu.com, linux@tjworld.net, pchen@nvidia.com, stable@kernel.org
+Cc: hare@suse.de, agk@redhat.com, jens.axboe@oracle.com, knikanth@suse.de, tj@kernel.org
 
 
 The patch titled
-     pci: apply nv_msi_ht_cap_quirk on resume too
+     genhd: send uevents for disk write_protect changes
 has been added to the -mm tree.  Its filename is
-     pci-apply-nv_msi_ht_cap_quirk-on-resume-too.patch
+     genhd-send-uevents-for-disk-write_protect-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: apply nv_msi_ht_cap_quirk on resume too
-From: Tejun Heo <tj@kernel.org>
+Subject: genhd: send uevents for disk write_protect changes
+From: Hannes Reinecke <hare@suse.de>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=12542 reports that with the
-quirk not applied on resume, msi stops working after resuming and mcp78s
-ahci fails due to IRQ mis-delivery.  Apply it on resume too.
+Whenever a block device changes it's read-only attribute notify the
+userspace about it.
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Tj <linux@tjworld.net>
-Reported-by: Nicolas Derive <kalon33@ubuntu.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
-Jesse Barnes <jbarnes@virtuousgeek.org>
+This patch is needed for the dm-multipath, so that the daemon can capture
+the event and reload the dm table when the read-only setting of the disk
+changes.
+
+Signed-off-by: Hannes Reinecke <hare@suse.de>
+Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |    2 ++
- 1 file changed, 2 insertions(+)
+ block/genhd.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/quirks.c~pci-apply-nv_msi_ht_cap_quirk-on-resume-too drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-apply-nv_msi_ht_cap_quirk-on-resume-too
-+++ a/drivers/pci/quirks.c
-@@ -2382,8 +2382,10 @@ static void __devinit nv_msi_ht_cap_quir
- }
+diff -puN block/genhd.c~genhd-send-uevents-for-disk-write_protect-changes block/genhd.c
+--- a/block/genhd.c~genhd-send-uevents-for-disk-write_protect-changes
++++ a/block/genhd.c
+@@ -1215,6 +1215,16 @@ void put_disk(struct gendisk *disk)
  
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, nv_msi_ht_cap_quirk_leaf);
-+DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, nv_msi_ht_cap_quirk_leaf);
+ EXPORT_SYMBOL(put_disk);
  
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AL, PCI_ANY_ID, nv_msi_ht_cap_quirk_all);
-+DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_AL, PCI_ANY_ID, nv_msi_ht_cap_quirk_all);
- 
- static void __devinit quirk_msi_intx_disable_bug(struct pci_dev *dev)
++static void set_disk_ro_uevent(struct gendisk *gd, int ro)
++{
++	char event[] = "DISK_RO=1";
++	char *envp[] = { event, NULL };
++
++	if (!ro)
++		event[8] = '0';
++	kobject_uevent_env(&disk_to_dev(gd)->kobj, KOBJ_CHANGE, envp);
++}
++
+ void set_device_ro(struct block_device *bdev, int flag)
  {
+ 	bdev->bd_part->policy = flag;
+@@ -1227,8 +1237,12 @@ void set_disk_ro(struct gendisk *disk, i
+ 	struct disk_part_iter piter;
+ 	struct hd_struct *part;
+ 
+-	disk_part_iter_init(&piter, disk,
+-			    DISK_PITER_INCL_EMPTY | DISK_PITER_INCL_PART0);
++	if (disk->part0.policy != flag) {
++		set_disk_ro_uevent(disk, flag);
++		disk->part0.policy = flag;
++	}
++
++	disk_part_iter_init(&piter, disk, DISK_PITER_INCL_EMPTY);
+ 	while ((part = disk_part_iter_next(&piter)))
+ 		part->policy = flag;
+ 	disk_part_iter_exit(&piter);
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from hare@suse.de are
 
-origin.patch
 linux-next.patch
-pci-apply-nv_msi_ht_cap_quirk-on-resume-too.patch
-vmallocc-fix-double-error-checking.patch
+genhd-send-uevents-for-disk-write_protect-changes.patch
 
