@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch added to -mm tree
-Date: Mon, 20 Jul 2009 15:46:14 -0700
-Message-ID: <200907202246.n6KMkE8D006964@imap1.linux-foundation.org>
+Subject: + dmaengine-dmatest-add-a-maximum-number-of-test-iterations.patch added to -mm tree
+Date: Mon, 20 Jul 2009 22:59:43 -0700
+Message-ID: <200907210559.n6L5xh3i027554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754062AbZGTWqg (ORCPT
+	by vger.kernel.org with ESMTP id S1752261AbZGUF7u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jul 2009 18:46:36 -0400
+	Tue, 21 Jul 2009 01:59:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, lethal@linux-sh.org, pavel@ucw.cz, vapier@gentoo.org
+Cc: nicolas.ferre@atmel.com, dan.j.williams@intel.com, haavard.skinnemoen@atmel.com, maciej.sosnowski@intel.com
 
 
 The patch titled
-     fdpic: ignore the loader's PT_GNU_STACK when calculating the stack size
+     dmaengine: dmatest: add a maximum number of test iterations
 has been added to the -mm tree.  Its filename is
-     fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
+     dmaengine-dmatest-add-a-maximum-number-of-test-iterations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fdpic: ignore the loader's PT_GNU_STACK when calculating the stack size
-From: David Howells <dhowells@redhat.com>
+Subject: dmaengine: dmatest: add a maximum number of test iterations
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-Ignore the loader's PT_GNU_STACK when calculating the stack size, and only
-consider the executable's PT_GNU_STACK, assuming the executable has one.
+The dmatest usually waits for the killing of its kthreads to stop running
+tests.  This patch adds a parameter that sets a maximum number of test
+iterations.
 
-Currently the behaviour is to take the largest stack size and use that,
-but that means you can't reduce the stack size in the executable.  The
-loader's stack size should probably only be used when executing the loader
-directly.
+This feature is quite interesting for debugging when you set a lot of
+traces in your dmaengine controller driver.
 
-WARNING: This patch is slightly dangerous - it may render a system
-inoperable if the loader's stack size is larger than that of important
-executables, and the system relies unknowingly on this increasing the size
-of the stack.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Acked-by: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/dma/dmatest.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -283,20 +283,23 @@ static int load_elf_fdpic_binary(struct 
- 	}
+diff -puN drivers/dma/dmatest.c~dmaengine-dmatest-add-a-maximum-number-of-test-iterations drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmaengine-dmatest-add-a-maximum-number-of-test-iterations
++++ a/drivers/dma/dmatest.c
+@@ -38,6 +38,11 @@ module_param(max_channels, uint, S_IRUGO
+ MODULE_PARM_DESC(max_channels,
+ 		"Maximum number of channels to use (default: all)");
  
- 	stack_size = exec_params.stack_size;
--	if (stack_size < interp_params.stack_size)
--		stack_size = interp_params.stack_size;
--
- 	if (exec_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
- 		executable_stack = EXSTACK_ENABLE_X;
- 	else if (exec_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
- 		executable_stack = EXSTACK_DISABLE_X;
--	else if (interp_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
--		executable_stack = EXSTACK_ENABLE_X;
--	else if (interp_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
--		executable_stack = EXSTACK_DISABLE_X;
- 	else
- 		executable_stack = EXSTACK_DEFAULT;
- 
-+	if (stack_size == 0) {
-+		stack_size = interp_params.stack_size;
-+		if (interp_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
-+			executable_stack = EXSTACK_ENABLE_X;
-+		else if (interp_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
-+			executable_stack = EXSTACK_DISABLE_X;
-+		else
-+			executable_stack = EXSTACK_DEFAULT;
-+	}
++static unsigned int iteration_nbr = 0;
++module_param(iteration_nbr, uint, S_IRUGO);
++MODULE_PARM_DESC(iteration_nbr,
++		"Iteration number before stopping test (default: infinite)");
 +
- 	retval = -ENOEXEC;
- 	if (stack_size == 0)
- 		goto error;
+ static unsigned int xor_sources = 3;
+ module_param(xor_sources, uint, S_IRUGO);
+ MODULE_PARM_DESC(xor_sources,
+@@ -270,7 +275,8 @@ static int dmatest_func(void *data)
+ 
+ 	flags = DMA_CTRL_ACK | DMA_COMPL_SKIP_DEST_UNMAP | DMA_PREP_INTERRUPT;
+ 
+-	while (!kthread_should_stop()) {
++	while (!kthread_should_stop()
++	       && !(iteration_nbr && total_tests >= iteration_nbr)) {
+ 		struct dma_device *dev = chan->device;
+ 		struct dma_async_tx_descriptor *tx = NULL;
+ 		dma_addr_t dma_srcs[src_cnt];
+@@ -416,6 +422,13 @@ err_srcbuf:
+ err_srcs:
+ 	pr_notice("%s: terminating after %u tests, %u failures (status %d)\n",
+ 			thread_name, total_tests, failed_tests, ret);
++
++	if (iteration_nbr > 0)
++		while (!kthread_should_stop()) {
++			DECLARE_WAIT_QUEUE_HEAD(wait_dmatest_exit);
++			interruptible_sleep_on(&wait_dmatest_exit);
++		}
++
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from nicolas.ferre@atmel.com are
 
 linux-next.patch
-flat-fix-uninitialized-ptr-with-shared-libs.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-include-linux-credh-work-around-gcc-424-warning-in-get_cred.patch
-frv-duplicate-output_buffer-of-e03.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
-elf-clean-up-fill_note_info.patch
-elf-clean-up-fill_note_info-fix.patch
-fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
-flat-use-is_err_value-helper-macro.patch
-mutex-subsystem-synchro-test-module.patch
+dmaengine-dmatest-add-a-maximum-number-of-test-iterations.patch
+dmaengine-dmatest-correct-thread_count-while-using-multiple-thread-per-channel.patch
 
