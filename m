@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch added to -mm tree
-Date: Tue, 21 Jul 2009 16:56:44 -0700
-Message-ID: <200907212356.n6LNujpI020060@imap1.linux-foundation.org>
+Subject: + exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 21 Jul 2009 16:57:54 -0700
+Message-ID: <200907212357.n6LNvsLZ021947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49774 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750738AbZGUX50 (ORCPT
+	by vger.kernel.org with ESMTP id S1750804AbZGUX6U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 19:57:26 -0400
+	Tue, 21 Jul 2009 19:58:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nhorman@tuxdriver.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, earl_chew@agilent.com, oleg@tv-sign.ru
+Cc: akpm@linux-foundation.org, nhorman@tuxdriver.com
 
 
 The patch titled
-     exec: let do_coredump() limit the number of concurrent dumps to pipes
+     exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
+     exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,183 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: let do_coredump() limit the number of concurrent dumps to pipes
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Introduce core pipe limiting sysctl.
+ERROR: code indent should use tabs where possible
+#115: FILE: fs/exec.c:1838:
++ ^I^Iif (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,$
 
-Since we can dump cores to pipe, rather than directly to the filesystem,
-we create a condition in which a user can create a very high load on the
-system simply by running bad applications.
+ERROR: code indent should use tabs where possible
+#120: FILE: fs/exec.c:1842:
++ ^I^I^Igoto fail_dropcount;$
 
-If the pipe reader specified in core_pattern is poorly written, we can
-have lots of ourstandig resources and processes in the system.
+WARNING: externs should be avoided in .c files
+#149: FILE: kernel/sysctl.c:80:
++extern unsigned int core_pipe_limit;
 
-This sysctl introduces an ability to limit that resource consumption. 
-core_pipe_limit defines how many in-flight dumps may be run in parallel,
-dumps beyond this value are skipped and a note is made in the kernel log. 
-A special value of 0 in core_pipe_limit denotes unlimited core dumps may
-be handled (this is the default value).
+total: 2 errors, 1 warnings, 120 lines checked
 
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Reported-by: Earl Chew <earl_chew@agilent.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+./patches/exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   22 ++++++++++++++++++++++
- fs/exec.c                       |   23 ++++++++++++++++++-----
- kernel/sysctl.c                 |    9 +++++++++
- 3 files changed, 49 insertions(+), 5 deletions(-)
+ fs/exec.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9 Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9
-+++ a/Documentation/sysctl/kernel.txt
-@@ -21,6 +21,7 @@ show up in /proc/sys/kernel:
- - acct
- - auto_msgmni
- - core_pattern
-+- core_pipe_limit
- - core_uses_pid
- - ctrl-alt-del
- - dentry-state
-@@ -119,6 +120,27 @@ core_pattern is used to specify a core d
- 
- ==============================================================
- 
-+core_pipe_limit:
-+
-+This sysctl is only applicable when core_pattern is configured to pipe core
-+files to user space helper a (when the first character of core_pattern is a '|',
-+see above).  When collecting cores via a pipe to an application, it is
-+occasionally usefull for the collecting application to gather data about the
-+crashing process from its /proc/pid directory.  In order to do this safely, the
-+kernel must wait for the collecting process to exit, so as not to remove the
-+crashing processes proc files prematurely.  This in turn creates the possibility
-+that a misbehaving userspace collecting process can block the reaping of a
-+crashed process simply by never exiting.  This sysctl defends against that.  It
-+defines how many concurrent crashing processes may be piped to user space
-+applications in parallel.  If this value is exceeded, then those crashing
-+processes above that value are noted via the kernel log and their cores are
-+skipped.  0 is a special value, indicating that unlimited processes may be
-+captured in parallel, but that no waiting will take place (i.e. the collecting
-+process is not guaranteed access to /proc/<crahing pid>/).  This value defaults
-+to 0.
-+
-+==============================================================
-+
- core_uses_pid:
- 
- The default coredump filename is "core".  By setting
-diff -puN fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9 fs/exec.c
---- a/fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9
+diff -puN fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes fs/exec.c
+--- a/fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes
 +++ a/fs/exec.c
-@@ -63,6 +63,7 @@
- 
- int core_uses_pid;
- char core_pattern[CORENAME_MAX_SIZE] = "core";
-+unsigned int core_pipe_limit;
- int suid_dumpable = 0;
- 
- /* The maximal length of core_pattern is also specified in sysctl.c */
-@@ -1733,7 +1734,8 @@ void do_coredump(long signr, int exit_co
- 	unsigned long core_limit = current->signal->rlim[RLIMIT_CORE].rlim_cur;
- 	char **helper_argv = NULL;
- 	int helper_argc = 0;
--	char *delimit;
-+	int dump_count = 0;
-+	static atomic_t core_dump_count = ATOMIC_INIT(0);
- 
- 	audit_core_dumps(signr);
- 
-@@ -1815,28 +1817,36 @@ void do_coredump(long signr, int exit_co
- 			goto fail_unlock;
- 		}
- 
-+		dump_count = atomic_inc_return(&core_dump_count);
-+		if (core_pipe_limit && (core_pipe_limit < dump_count)) {
-+			printk(KERN_WARNING "Pid %d(%s) over core_pipe_limit\n",
-+			       task_tgid_vnr(current), current->comm);
-+			printk(KERN_WARNING "Skipping core dump\n");
-+			goto fail_dropcount;
-+		}
-+
- 		helper_argv = argv_split(GFP_KERNEL, corename+1, &helper_argc);
- 		if (!helper_argv) {
- 			printk(KERN_WARNING "%s failed to allocate memory\n",
- 			       __func__);
--			goto fail_unlock;
-+			goto fail_dropcount;
- 		}
- 
+@@ -1835,11 +1835,11 @@ void do_coredump(long signr, int exit_co
  		core_limit = RLIM_INFINITY;
  
  		/* SIGPIPE can happen, but it's just never processed */
-- 		if (call_usermodehelper_pipe(corename+1, helper_argv, NULL,
-+ 		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
+- 		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
++		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
  				&file)) {
   			printk(KERN_INFO "Core dump to %s pipe failed\n",
  			       corename);
-- 			goto fail_unlock;
-+ 			goto fail_dropcount;
+- 			goto fail_dropcount;
++			goto fail_dropcount;
   		}
   	} else
   		file = filp_open(corename,
- 				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
- 				 0600);
- 	if (IS_ERR(file))
--		goto fail_unlock;
-+		goto fail_dropcount;
- 	inode = file->f_path.dentry->d_inode;
- 	if (inode->i_nlink > 1)
- 		goto close_fail;	/* multiple links - don't dump */
-@@ -1866,6 +1876,9 @@ void do_coredump(long signr, int exit_co
- 		current->signal->group_exit_code |= 0x80;
- close_fail:
- 	filp_close(file, NULL);
-+fail_dropcount:
-+	if (dump_count)
-+		atomic_dec(&core_dump_count);
- fail_unlock:
- 	if (helper_argv)
- 		argv_free(helper_argv);
-diff -puN kernel/sysctl.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9 kernel/sysctl.c
---- a/kernel/sysctl.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9
-+++ a/kernel/sysctl.c
-@@ -77,6 +77,7 @@ extern int max_threads;
- extern int core_uses_pid;
- extern int suid_dumpable;
- extern char core_pattern[];
-+extern unsigned int core_pipe_limit;
- extern int pid_max;
- extern int min_free_kbytes;
- extern int pid_max_min, pid_max_max;
-@@ -413,6 +414,14 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dostring,
- 		.strategy	= &sysctl_string,
- 	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "core_pipe_limit",
-+		.data		= &core_pipe_limit,
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
- #ifdef CONFIG_PROC_SYSCTL
- 	{
- 		.procname	= "tainted",
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-kmod-fix-race-in-usermodehelper-code.patch
-proc-fix-reported-unit-for-rlimit_cpu.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
 exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
-exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
