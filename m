@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + genhd-send-uevents-for-disk-write_protect-changes.patch added to -mm tree
-Date: Tue, 21 Jul 2009 16:12:51 -0700
-Message-ID: <200907212312.n6LNCprq016392@imap1.linux-foundation.org>
+Subject: + input-tsc2007-remove-hr-timer-fix.patch added to -mm tree
+Date: Tue, 21 Jul 2009 16:24:34 -0700
+Message-ID: <200907212324.n6LNOYsY002253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755049AbZGUXOS (ORCPT
+	by vger.kernel.org with ESMTP id S1755502AbZGUXYv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 19:14:18 -0400
+	Tue, 21 Jul 2009 19:24:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hare@suse.de, agk@redhat.com, jens.axboe@oracle.com, knikanth@suse.de, tj@kernel.org
+Cc: richard.rojfors.ext@mocean-labs.com, dtor@mail.ru, kwangwoo.lee@gmail.com, soni.trilok@gmail.com, thierry.reding@avionic-design.de
 
 
 The patch titled
-     genhd: send uevents for disk write_protect changes
+     tsc2007: Cancel work sync, increase polling frequency, make exit p=
+latform hw callback optional
 has been added to the -mm tree.  Its filename is
-     genhd-send-uevents-for-disk-write_protect-changes.patch
+     input-tsc2007-remove-hr-timer-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,74 +30,83 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: genhd: send uevents for disk write_protect changes
-From: Hannes Reinecke <hare@suse.de>
+Subject: tsc2007: Cancel work sync, increase polling frequency, make ex=
+it platform hw callback optional
 
-Whenever a block device changes it's read-only attribute notify the
-userspace about it.
 
-This patch is needed for the dm-multipath, so that the daemon can capture
-the event and reload the dm table when the read-only setting of the disk
-changes.
+In the remove function, ancel the work using the _sync version,
+to make sure any running "work" is finished. Make the
+exit_platform_hw callback optional since it's not needed on all
+platforms.
 
-Signed-off-by: Hannes Reinecke <hare@suse.de>
-Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Alasdair G Kergon <agk@redhat.com>
+When the screen is touched, the polling frequency is increased
+to reduce the risk of missing taps.
+
+Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Trilok Soni <soni.trilok@gmail.com>
+Cc: <kwangwoo.lee@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ drivers/input/touchscreen/tsc2007.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN block/genhd.c~genhd-send-uevents-for-disk-write_protect-changes block/genhd.c
---- a/block/genhd.c~genhd-send-uevents-for-disk-write_protect-changes
-+++ a/block/genhd.c
-@@ -1215,6 +1215,16 @@ void put_disk(struct gendisk *disk)
- 
- EXPORT_SYMBOL(put_disk);
- 
-+static void set_disk_ro_uevent(struct gendisk *gd, int ro)
-+{
-+	char event[] = "DISK_RO=1";
-+	char *envp[] = { event, NULL };
-+
-+	if (!ro)
-+		event[8] = '0';
-+	kobject_uevent_env(&disk_to_dev(gd)->kobj, KOBJ_CHANGE, envp);
-+}
-+
- void set_device_ro(struct block_device *bdev, int flag)
- {
- 	bdev->bd_part->policy = flag;
-@@ -1227,8 +1237,12 @@ void set_disk_ro(struct gendisk *disk, i
- 	struct disk_part_iter piter;
- 	struct hd_struct *part;
- 
--	disk_part_iter_init(&piter, disk,
--			    DISK_PITER_INCL_EMPTY | DISK_PITER_INCL_PART0);
-+	if (disk->part0.policy != flag) {
-+		set_disk_ro_uevent(disk, flag);
-+		disk->part0.policy = flag;
-+	}
-+
-+	disk_part_iter_init(&piter, disk, DISK_PITER_INCL_EMPTY);
- 	while ((part = disk_part_iter_next(&piter)))
- 		part->policy = flag;
- 	disk_part_iter_exit(&piter);
+diff -puN drivers/input/touchscreen/tsc2007.c~input-tsc2007-remove-hr-t=
+imer-fix drivers/input/touchscreen/tsc2007.c
+--- a/drivers/input/touchscreen/tsc2007.c~input-tsc2007-remove-hr-timer=
+-fix
++++ a/drivers/input/touchscreen/tsc2007.c
+@@ -27,7 +27,7 @@
+ #include <linux/i2c.h>
+ #include <linux/i2c/tsc2007.h>
+=20
+-#define TS_POLL_PERIOD	msecs_to_jiffies(5) /* ms delay between samples=
+ */
++#define TS_POLL_PERIOD	msecs_to_jiffies(1) /* ms delay between samples=
+ */
+=20
+ #define TSC2007_MEASURE_TEMP0		(0x0 << 4)
+ #define TSC2007_MEASURE_AUX		(0x2 << 4)
+@@ -314,11 +314,11 @@ static int tsc2007_remove(struct i2c_cli
+ 	struct tsc2007	*ts =3D i2c_get_clientdata(client);
+ 	struct tsc2007_platform_data *pdata;
+=20
+-	/* cancel any work */
+-	cancel_delayed_work(&ts->work);
++	cancel_delayed_work_sync(&ts->work);
+=20
+ 	pdata =3D client->dev.platform_data;
+-	pdata->exit_platform_hw();
++	if (pdata->exit_platform_hw)
++		pdata->exit_platform_hw();
+=20
+ 	free_irq(ts->irq, ts);
+ 	input_unregister_device(ts->input);
 _
 
-Patches currently in -mm which might be from hare@suse.de are
+Patches currently in -mm which might be from richard.rojfors.ext@mocean=
+-labs.com are
 
-linux-next.patch
-genhd-send-uevents-for-disk-write_protect-changes.patch
+video-initial-support-for-adv7180.patch
+input-tsc2007-remove-hr-timer.patch
+input-tsc2007-remove-hr-timer-fix.patch
+input-tsc2007-make-platform-callbacks-optional.patch
+gpio-add-mc33880-driver.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
