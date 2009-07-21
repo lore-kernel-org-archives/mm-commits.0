@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dmaengine-dmatest-add-a-maximum-number-of-test-iterations.patch added to -mm tree
-Date: Mon, 20 Jul 2009 22:59:43 -0700
-Message-ID: <200907210559.n6L5xh3i027554@imap1.linux-foundation.org>
+Subject: + dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 20 Jul 2009 23:00:16 -0700
+Message-ID: <200907210600.n6L60Gkd028426@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752261AbZGUF7u (ORCPT
+	by vger.kernel.org with ESMTP id S1754455AbZGUGAV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 01:59:50 -0400
+	Tue, 21 Jul 2009 02:00:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas.ferre@atmel.com, dan.j.williams@intel.com, haavard.skinnemoen@atmel.com, maciej.sosnowski@intel.com
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, haavard.skinnemoen@atmel.com, maciej.sosnowski@intel.com, nicolas.ferre@atmel.com
 
 
 The patch titled
-     dmaengine: dmatest: add a maximum number of test iterations
+     dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     dmaengine-dmatest-add-a-maximum-number-of-test-iterations.patch
+     dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmaengine: dmatest: add a maximum number of test iterations
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The dmatest usually waits for the killing of its kthreads to stop running
-tests.  This patch adds a parameter that sets a maximum number of test
-iterations.
+ERROR: do not initialise statics to 0 or NULL
+#27: FILE: drivers/dma/dmatest.c:41:
++static unsigned int iteration_nbr = 0;
 
-This feature is quite interesting for debugging when you set a lot of
-traces in your dmaengine controller driver.
+total: 1 errors, 0 warnings, 33 lines checked
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Acked-by: Maciej Sosnowski <maciej.sosnowski@intel.com>
+./patches/dmaengine-dmatest-add-a-maximum-number-of-test-iterations.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Cc: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmatest.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/dma/dmatest.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/dma/dmatest.c~dmaengine-dmatest-add-a-maximum-number-of-test-iterations drivers/dma/dmatest.c
---- a/drivers/dma/dmatest.c~dmaengine-dmatest-add-a-maximum-number-of-test-iterations
+diff -puN drivers/dma/dmatest.c~dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes
 +++ a/drivers/dma/dmatest.c
-@@ -38,6 +38,11 @@ module_param(max_channels, uint, S_IRUGO
+@@ -38,7 +38,7 @@ module_param(max_channels, uint, S_IRUGO
  MODULE_PARM_DESC(max_channels,
  		"Maximum number of channels to use (default: all)");
  
-+static unsigned int iteration_nbr = 0;
-+module_param(iteration_nbr, uint, S_IRUGO);
-+MODULE_PARM_DESC(iteration_nbr,
-+		"Iteration number before stopping test (default: infinite)");
-+
- static unsigned int xor_sources = 3;
- module_param(xor_sources, uint, S_IRUGO);
- MODULE_PARM_DESC(xor_sources,
-@@ -270,7 +275,8 @@ static int dmatest_func(void *data)
- 
- 	flags = DMA_CTRL_ACK | DMA_COMPL_SKIP_DEST_UNMAP | DMA_PREP_INTERRUPT;
- 
--	while (!kthread_should_stop()) {
-+	while (!kthread_should_stop()
-+	       && !(iteration_nbr && total_tests >= iteration_nbr)) {
- 		struct dma_device *dev = chan->device;
- 		struct dma_async_tx_descriptor *tx = NULL;
- 		dma_addr_t dma_srcs[src_cnt];
-@@ -416,6 +422,13 @@ err_srcbuf:
- err_srcs:
- 	pr_notice("%s: terminating after %u tests, %u failures (status %d)\n",
- 			thread_name, total_tests, failed_tests, ret);
-+
-+	if (iteration_nbr > 0)
-+		while (!kthread_should_stop()) {
-+			DECLARE_WAIT_QUEUE_HEAD(wait_dmatest_exit);
-+			interruptible_sleep_on(&wait_dmatest_exit);
-+		}
-+
- 	return ret;
- }
- 
+-static unsigned int iteration_nbr = 0;
++static unsigned int iteration_nbr;
+ module_param(iteration_nbr, uint, S_IRUGO);
+ MODULE_PARM_DESC(iteration_nbr,
+ 		"Iteration number before stopping test (default: infinite)");
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-dmaengine-dmatest-add-a-maximum-number-of-test-iterations.patch
-dmaengine-dmatest-correct-thread_count-while-using-multiple-thread-per-channel.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+x86-fix-x86-fix-pageattr-handling-for-lpage-percpu-allocator-and-re-enable-it.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
