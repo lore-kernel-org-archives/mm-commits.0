@@ -1,70 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 21 Jul 2009 15:20:29 -0700
-Message-ID: <200907212220.n6LMKTax031436@imap1.linux-foundation.org>
+Subject: [withdrawn] n_hdlc-add-buffer-flushing-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 21 Jul 2009 15:20:11 -0700
+Message-ID: <200907212220.n6LMKBYT030961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52064 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756016AbZGUWVC (ORCPT
+	by vger.kernel.org with ESMTP id S1756408AbZGUWVG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 18:21:02 -0400
+	Tue, 21 Jul 2009 18:21:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, matthltc@us.ibm.com, scott@ubuntu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes
+     n_hdlc-add-buffer-flushing-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
+     n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into proc-connector-add-event-for-process-becoming-session-leader.patch
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes
+Subject: n_hdlc-add-buffer-flushing-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "(foo*)" should be "(foo *)"
-#47: FILE: drivers/connector/cn_proc.c:152:
-+	msg = (struct cn_msg*)buffer;
+ERROR: code indent should use tabs where possible
+#67: FILE: drivers/char/n_hdlc.c:217:
++ ^Ispin_lock_irqsave(&n_hdlc->tx_buf_list.spinlock, flags);$
 
-ERROR: "(foo*)" should be "(foo *)"
-#48: FILE: drivers/connector/cn_proc.c:153:
-+	ev = (struct proc_event*)msg->data;
+total: 1 errors, 0 warnings, 94 lines checked
 
-total: 2 errors, 0 warnings, 76 lines checked
-
-./patches/proc-connector-add-event-for-process-becoming-session-leader.patch has style problems, please review.  If any of these errors
+./patches/n_hdlc-add-buffer-flushing.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: Scott James Remnant <scott@ubuntu.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/connector/cn_proc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/n_hdlc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/connector/cn_proc.c~proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes drivers/connector/cn_proc.c
---- a/drivers/connector/cn_proc.c~proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes
-+++ a/drivers/connector/cn_proc.c
-@@ -149,8 +149,8 @@ void proc_sid_connector(struct task_stru
- 	if (atomic_read(&proc_event_num_listeners) < 1)
- 		return;
+diff -puN drivers/char/n_hdlc.c~n_hdlc-add-buffer-flushing-checkpatch-fixes drivers/char/n_hdlc.c
+--- a/drivers/char/n_hdlc.c~n_hdlc-add-buffer-flushing-checkpatch-fixes
++++ a/drivers/char/n_hdlc.c
+@@ -215,7 +215,7 @@ static void flush_tx_queue(struct tty_st
  
--	msg = (struct cn_msg*)buffer;
--	ev = (struct proc_event*)msg->data;
-+	msg = (struct cn_msg *)buffer;
-+	ev = (struct proc_event *)msg->data;
- 	get_seq(&msg->seq, &ev->cpu);
- 	ktime_get_ts(&ts); /* get high res monotonic timestamp */
- 	put_unaligned(timespec_to_ns(&ts), (__u64 *)&ev->timestamp_ns);
+ 	while ((buf = n_hdlc_buf_get(&n_hdlc->tx_buf_list)))
+ 		n_hdlc_buf_put(&n_hdlc->tx_free_buf_list, buf);
+- 	spin_lock_irqsave(&n_hdlc->tx_buf_list.spinlock, flags);
++	spin_lock_irqsave(&n_hdlc->tx_buf_list.spinlock, flags);
+ 	if (n_hdlc->tbuf) {
+ 		n_hdlc_buf_put(&n_hdlc->tx_free_buf_list, n_hdlc->tbuf);
+ 		n_hdlc->tbuf = NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,7 +97,6 @@ arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
 printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
 proc-connector-add-event-for-process-becoming-session-leader-checkpatch-fixes.patch
 rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
 rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
@@ -112,6 +106,7 @@ v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
 memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
 elf-clean-up-fill_note_info-fix.patch
+n_hdlc-add-buffer-flushing-checkpatch-fixes.patch
 net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
