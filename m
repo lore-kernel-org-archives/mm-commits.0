@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-tsc2007-remove-hr-timer-fix.patch added to -mm tree
-Date: Tue, 21 Jul 2009 16:24:34 -0700
-Message-ID: <200907212324.n6LNOYsY002253@imap1.linux-foundation.org>
+Subject: + floppy-switch-driver-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 21 Jul 2009 16:30:09 -0700
+Message-ID: <200907212330.n6LNU9JE010948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755502AbZGUXYv (ORCPT
+	by vger.kernel.org with ESMTP id S1755502AbZGUXa6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 19:24:51 -0400
+	Tue, 21 Jul 2009 19:30:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard.rojfors.ext@mocean-labs.com, dtor@mail.ru, kwangwoo.lee@gmail.com, soni.trilok@gmail.com, thierry.reding@avionic-design.de
+Cc: elendil@planet.nl, jens.axboe@oracle.com, rjw@sisk.pl
 
 
 The patch titled
-     tsc2007: Cancel work sync, increase polling frequency, make exit p=
-latform hw callback optional
+     floppy: switch driver to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     input-tsc2007-remove-hr-timer-fix.patch
+     floppy-switch-driver-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,83 +26,63 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tsc2007: Cancel work sync, increase polling frequency, make ex=
-it platform hw callback optional
+Subject: floppy: switch driver to dev_pm_ops
+From: Frans Pop <elendil@planet.nl>
 
+Gets rid of the following warning:
+Platform driver 'floppy' needs updating - please use dev_pm_ops
 
-In the remove function, ancel the work using the _sync version,
-to make sure any running "work" is finished. Make the
-exit_platform_hw callback optional since it's not needed on all
-platforms.
-
-When the screen is touched, the polling frequency is increased
-to reduce the risk of missing taps.
-
-Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Trilok Soni <soni.trilok@gmail.com>
-Cc: <kwangwoo.lee@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/tsc2007.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/block/floppy.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/touchscreen/tsc2007.c~input-tsc2007-remove-hr-t=
-imer-fix drivers/input/touchscreen/tsc2007.c
---- a/drivers/input/touchscreen/tsc2007.c~input-tsc2007-remove-hr-timer=
--fix
-+++ a/drivers/input/touchscreen/tsc2007.c
-@@ -27,7 +27,7 @@
- #include <linux/i2c.h>
- #include <linux/i2c/tsc2007.h>
-=20
--#define TS_POLL_PERIOD	msecs_to_jiffies(5) /* ms delay between samples=
- */
-+#define TS_POLL_PERIOD	msecs_to_jiffies(1) /* ms delay between samples=
- */
-=20
- #define TSC2007_MEASURE_TEMP0		(0x0 << 4)
- #define TSC2007_MEASURE_AUX		(0x2 << 4)
-@@ -314,11 +314,11 @@ static int tsc2007_remove(struct i2c_cli
- 	struct tsc2007	*ts =3D i2c_get_clientdata(client);
- 	struct tsc2007_platform_data *pdata;
-=20
--	/* cancel any work */
--	cancel_delayed_work(&ts->work);
-+	cancel_delayed_work_sync(&ts->work);
-=20
- 	pdata =3D client->dev.platform_data;
--	pdata->exit_platform_hw();
-+	if (pdata->exit_platform_hw)
-+		pdata->exit_platform_hw();
-=20
- 	free_irq(ts->irq, ts);
- 	input_unregister_device(ts->input);
+diff -puN drivers/block/floppy.c~floppy-switch-driver-to-dev_pm_ops drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-switch-driver-to-dev_pm_ops
++++ a/drivers/block/floppy.c
+@@ -4151,7 +4151,7 @@ static void floppy_device_release(struct
+ {
+ }
+ 
+-static int floppy_resume(struct platform_device *dev)
++static int floppy_resume(struct device *dev)
+ {
+ 	int fdc;
+ 
+@@ -4162,10 +4162,14 @@ static int floppy_resume(struct platform
+ 	return 0;
+ }
+ 
+-static struct platform_driver floppy_driver = {
++static struct dev_pm_ops floppy_pm_ops = {
+ 	.resume = floppy_resume,
++};
++
++static struct platform_driver floppy_driver = {
+ 	.driver = {
+ 		.name = "floppy",
++		.pm = &floppy_pm_ops,
+ 	},
+ };
+ 
 _
 
-Patches currently in -mm which might be from richard.rojfors.ext@mocean=
--labs.com are
+Patches currently in -mm which might be from elendil@planet.nl are
 
-video-initial-support-for-adv7180.patch
-input-tsc2007-remove-hr-timer.patch
-input-tsc2007-remove-hr-timer-fix.patch
-input-tsc2007-make-platform-callbacks-optional.patch
-gpio-add-mc33880-driver.patch
+origin.patch
+linux-next.patch
+hp-wmi-switch-driver-to-dev_pm_ops.patch
+floppy-switch-driver-to-dev_pm_ops.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
