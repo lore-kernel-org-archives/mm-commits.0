@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + floppy-switch-driver-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 21 Jul 2009 16:30:09 -0700
-Message-ID: <200907212330.n6LNU9JE010948@imap1.linux-foundation.org>
+Subject: + hp-wmi-switch-driver-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 21 Jul 2009 16:29:30 -0700
+Message-ID: <200907212329.n6LNTUYX009944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55821 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755502AbZGUXa6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756509AbZGUXbT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 19:30:58 -0400
+	Tue, 21 Jul 2009 19:31:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: elendil@planet.nl, jens.axboe@oracle.com, rjw@sisk.pl
+Cc: elendil@planet.nl, johannes@sipsolutions.net, len.brown@intel.com, linville@tuxdriver.com, mjg@redhat.com, rjw@sisk.pl
 
 
 The patch titled
-     floppy: switch driver to dev_pm_ops
+     hp-wmi: switch driver to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     floppy-switch-driver-to-dev_pm_ops.patch
+     hp-wmi-switch-driver-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: floppy: switch driver to dev_pm_ops
+Subject: hp-wmi: switch driver to dev_pm_ops
 From: Frans Pop <elendil@planet.nl>
 
-Gets rid of the following warning:
-Platform driver 'floppy' needs updating - please use dev_pm_ops
+Gets rid of the following warning: Platform driver 'hp-wmi' needs updating
+- please use dev_pm_ops
+
+I tested that the resume handler still works on my HP 2510p notebook.
 
 Signed-off-by: Frans Pop <elendil@planet.nl>
 Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/platform/x86/hp-wmi.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN drivers/block/floppy.c~floppy-switch-driver-to-dev_pm_ops drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-switch-driver-to-dev_pm_ops
-+++ a/drivers/block/floppy.c
-@@ -4151,7 +4151,7 @@ static void floppy_device_release(struct
- {
- }
+diff -puN drivers/platform/x86/hp-wmi.c~hp-wmi-switch-driver-to-dev_pm_ops drivers/platform/x86/hp-wmi.c
+--- a/drivers/platform/x86/hp-wmi.c~hp-wmi-switch-driver-to-dev_pm_ops
++++ a/drivers/platform/x86/hp-wmi.c
+@@ -53,7 +53,7 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE9
  
--static int floppy_resume(struct platform_device *dev)
-+static int floppy_resume(struct device *dev)
- {
- 	int fdc;
+ static int __init hp_wmi_bios_setup(struct platform_device *device);
+ static int __exit hp_wmi_bios_remove(struct platform_device *device);
+-static int hp_wmi_resume_handler(struct platform_device *device);
++static int hp_wmi_resume_handler(struct device *device);
  
-@@ -4162,10 +4162,14 @@ static int floppy_resume(struct platform
+ struct bios_args {
+ 	u32 signature;
+@@ -94,14 +94,18 @@ static struct rfkill *wifi_rfkill;
+ static struct rfkill *bluetooth_rfkill;
+ static struct rfkill *wwan_rfkill;
+ 
++static struct dev_pm_ops hp_wmi_pm_ops = {
++	.resume  = hp_wmi_resume_handler,
++};
++
+ static struct platform_driver hp_wmi_driver = {
+ 	.driver = {
+-		   .name = "hp-wmi",
+-		   .owner = THIS_MODULE,
++		.name = "hp-wmi",
++		.owner = THIS_MODULE,
++		.pm = &hp_wmi_pm_ops,
+ 	},
+ 	.probe = hp_wmi_bios_setup,
+ 	.remove = hp_wmi_bios_remove,
+-	.resume = hp_wmi_resume_handler,
+ };
+ 
+ static int hp_wmi_perform_query(int query, int write, int value)
+@@ -512,7 +516,7 @@ static int __exit hp_wmi_bios_remove(str
  	return 0;
  }
  
--static struct platform_driver floppy_driver = {
-+static struct dev_pm_ops floppy_pm_ops = {
- 	.resume = floppy_resume,
-+};
-+
-+static struct platform_driver floppy_driver = {
- 	.driver = {
- 		.name = "floppy",
-+		.pm = &floppy_pm_ops,
- 	},
- };
- 
+-static int hp_wmi_resume_handler(struct platform_device *device)
++static int hp_wmi_resume_handler(struct device *device)
+ {
+ 	/*
+ 	 * Hardware state may have changed while suspended, so trigger
 _
 
 Patches currently in -mm which might be from elendil@planet.nl are
@@ -84,5 +104,4 @@ Patches currently in -mm which might be from elendil@planet.nl are
 origin.patch
 linux-next.patch
 hp-wmi-switch-driver-to-dev_pm_ops.patch
-floppy-switch-driver-to-dev_pm_ops.patch
 
