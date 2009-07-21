@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmallocc-fix-double-error-checking.patch added to -mm tree
-Date: Tue, 21 Jul 2009 16:04:18 -0700
-Message-ID: <200907212304.n6LN4Iim002843@imap1.linux-foundation.org>
+Subject: + proc-fix-reported-unit-for-rlimit_cpu.patch added to -mm tree
+Date: Tue, 21 Jul 2009 16:06:14 -0700
+Message-ID: <200907212306.n6LN6EjU005882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55585 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756422AbZGUXFk (ORCPT
+	by vger.kernel.org with ESMTP id S1756167AbZGUXGp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 19:05:40 -0400
+	Tue, 21 Jul 2009 19:06:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: figo1802@gmail.com, tj@kernel.org
+Cc: kees.cook@canonical.com, nhorman@tuxdriver.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     vmalloc.c: fix double error checking
+     proc: fix reported unit for RLIMIT_CPU
 has been added to the -mm tree.  Its filename is
-     vmallocc-fix-double-error-checking.patch
+     proc-fix-reported-unit-for-rlimit_cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc.c: fix double error checking
-From: "Figo.zhang" <figo1802@gmail.com>
+Subject: proc: fix reported unit for RLIMIT_CPU
+From: Kees Cook <kees.cook@canonical.com>
 
-There is no need for double error checking.
+/proc/$pid/limits should show RLIMIT_CPU as seconds, which is the unit
+used in kernel/posix-cpu-timers.c:
 
-Signed-off-by: Figo.zhang <figo1802@gmail.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+        unsigned long psecs = cputime_to_secs(ptime);
+        ...
+        if (psecs >= sig->rlim[RLIMIT_CPU].rlim_max) {
+                ...
+                __group_send_sig_info(SIGKILL, SEND_SIG_PRIV, tsk);
+
+Signed-off-by: Kees Cook <kees.cook@canonical.com>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/proc/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~vmallocc-fix-double-error-checking mm/vmalloc.c
---- a/mm/vmalloc.c~vmallocc-fix-double-error-checking
-+++ a/mm/vmalloc.c
-@@ -168,11 +168,9 @@ static int vmap_page_range_noflush(unsig
- 		next = pgd_addr_end(addr, end);
- 		err = vmap_pud_range(pgd, addr, next, prot, pages, &nr);
- 		if (err)
--			break;
-+			return err;
- 	} while (pgd++, addr = next, addr != end);
+diff -puN fs/proc/base.c~proc-fix-reported-unit-for-rlimit_cpu fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-reported-unit-for-rlimit_cpu
++++ a/fs/proc/base.c
+@@ -460,7 +460,7 @@ struct limit_names {
+ };
  
--	if (unlikely(err))
--		return err;
- 	return nr;
- }
- 
+ static const struct limit_names lnames[RLIM_NLIMITS] = {
+-	[RLIMIT_CPU] = {"Max cpu time", "ms"},
++	[RLIMIT_CPU] = {"Max cpu time", "seconds"},
+ 	[RLIMIT_FSIZE] = {"Max file size", "bytes"},
+ 	[RLIMIT_DATA] = {"Max data size", "bytes"},
+ 	[RLIMIT_STACK] = {"Max stack size", "bytes"},
 _
 
-Patches currently in -mm which might be from figo1802@gmail.com are
+Patches currently in -mm which might be from kees.cook@canonical.com are
 
 linux-next.patch
-vmallocc-fix-double-error-checking.patch
+proc-fix-reported-unit-for-rlimit_cpu.patch
 
