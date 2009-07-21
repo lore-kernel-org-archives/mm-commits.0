@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-soft-limit-interface-v9.patch added to -mm tree
-Date: Tue, 21 Jul 2009 14:14:24 -0700
-Message-ID: <200907212114.n6LLEPoD024968@imap1.linux-foundation.org>
+Subject: + memory-controller-soft-limit-refactor-reclaim-flags-v9.patch added to -mm tree
+Date: Tue, 21 Jul 2009 14:14:29 -0700
+Message-ID: <200907212114.n6LLETZ3025136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755810AbZGUVOh (ORCPT
+	by vger.kernel.org with ESMTP id S1755100AbZGUVOh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 21 Jul 2009 17:14:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@j
 
 
 The patch titled
-     memory controller: soft limit interface
+     memory controller: soft limit refactor reclaim flags
 has been added to the -mm tree.  Its filename is
-     memory-controller-soft-limit-interface-v9.patch
+     memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,21 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory controller: soft limit interface
+Subject: memory controller: soft limit refactor reclaim flags
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Add an interface to allow get/set of soft limits.  Soft limits for memory
-plus swap controller (memsw) is currently not supported.  Resource
-counters have been enhanced to support soft limits and new type
-RES_SOFT_LIMIT has been added.  Unlike hard limits, soft limits can be
-directly set and do not need any reclaim or checks before setting them to
-a newer value.
+Refactor mem_cgroup_hierarchical_reclaim()
 
-Kamezawa-San raised a question as to whether soft limit should belong to
-res_counter.  Since all resources understand the basic concepts of hard
-and soft limits, it is justified to add soft limits here.  Soft limits are
-a generic resource usage feature, even file system quotas support soft
-limits.
+Refactor the arguments passed to mem_cgroup_hierarchical_reclaim() into
+flags, so that new parameters don't have to be passed as we make the
+reclaim routine more flexible
 
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -57,162 +50,90 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |   58 ++++++++++++++++++++++++++++++++++
- kernel/res_counter.c        |    3 +
- mm/memcontrol.c             |   20 +++++++++++
- 3 files changed, 81 insertions(+)
+ mm/memcontrol.c |   25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/res_counter.h~memory-controller-soft-limit-interface-v9 include/linux/res_counter.h
---- a/include/linux/res_counter.h~memory-controller-soft-limit-interface-v9
-+++ a/include/linux/res_counter.h
-@@ -35,6 +35,10 @@ struct res_counter {
- 	 */
- 	unsigned long long limit;
- 	/*
-+	 * the limit that usage can be exceed
-+	 */
-+	unsigned long long soft_limit;
-+	/*
- 	 * the number of unsuccessful attempts to consume the resource
- 	 */
- 	unsigned long long failcnt;
-@@ -87,6 +91,7 @@ enum {
- 	RES_MAX_USAGE,
- 	RES_LIMIT,
- 	RES_FAILCNT,
-+	RES_SOFT_LIMIT,
- };
- 
- /*
-@@ -132,6 +137,36 @@ static inline bool res_counter_limit_che
- 	return false;
- }
- 
-+static inline bool res_counter_soft_limit_check_locked(struct res_counter *cnt)
-+{
-+	if (cnt->usage < cnt->soft_limit)
-+		return true;
-+
-+	return false;
-+}
-+
-+/**
-+ * Get the difference between the usage and the soft limit
-+ * @cnt: The counter
-+ *
-+ * Returns 0 if usage is less than or equal to soft limit
-+ * The difference between usage and soft limit, otherwise.
-+ */
-+static inline unsigned long long
-+res_counter_soft_limit_excess(struct res_counter *cnt)
-+{
-+	unsigned long long excess;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	if (cnt->usage <= cnt->soft_limit)
-+		excess = 0;
-+	else
-+		excess = cnt->usage - cnt->soft_limit;
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return excess;
-+}
-+
- /*
-  * Helper function to detect if the cgroup is within it's limit or
-  * not. It's currently called from cgroup_rss_prepare()
-@@ -147,6 +182,17 @@ static inline bool res_counter_check_und
- 	return ret;
- }
- 
-+static inline bool res_counter_check_under_soft_limit(struct res_counter *cnt)
-+{
-+	bool ret;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	ret = res_counter_soft_limit_check_locked(cnt);
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return ret;
-+}
-+
- static inline void res_counter_reset_max(struct res_counter *cnt)
- {
- 	unsigned long flags;
-@@ -180,4 +226,16 @@ static inline int res_counter_set_limit(
- 	return ret;
- }
- 
-+static inline int
-+res_counter_set_soft_limit(struct res_counter *cnt,
-+				unsigned long long soft_limit)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	cnt->soft_limit = soft_limit;
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return 0;
-+}
-+
- #endif
-diff -puN kernel/res_counter.c~memory-controller-soft-limit-interface-v9 kernel/res_counter.c
---- a/kernel/res_counter.c~memory-controller-soft-limit-interface-v9
-+++ a/kernel/res_counter.c
-@@ -19,6 +19,7 @@ void res_counter_init(struct res_counter
- {
- 	spin_lock_init(&counter->lock);
- 	counter->limit = RESOURCE_MAX;
-+	counter->soft_limit = RESOURCE_MAX;
- 	counter->parent = parent;
- }
- 
-@@ -101,6 +102,8 @@ res_counter_member(struct res_counter *c
- 		return &counter->limit;
- 	case RES_FAILCNT:
- 		return &counter->failcnt;
-+	case RES_SOFT_LIMIT:
-+		return &counter->soft_limit;
- 	};
- 
- 	BUG();
-diff -puN mm/memcontrol.c~memory-controller-soft-limit-interface-v9 mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-soft-limit-interface-v9
+diff -puN mm/memcontrol.c~memory-controller-soft-limit-refactor-reclaim-flags-v9 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-soft-limit-refactor-reclaim-flags-v9
 +++ a/mm/memcontrol.c
-@@ -2123,6 +2123,20 @@ static int mem_cgroup_write(struct cgrou
- 		else
- 			ret = mem_cgroup_resize_memsw_limit(memcg, val);
- 		break;
-+	case RES_SOFT_LIMIT:
-+		ret = res_counter_memparse_write_strategy(buffer, &val);
-+		if (ret)
-+			break;
-+		/*
-+		 * For memsw, soft limits are hard to implement in terms
-+		 * of semantics, for now, we support soft limits for
-+		 * control without swap
-+		 */
-+		if (type == _MEM)
-+			ret = res_counter_set_soft_limit(&memcg->res, val);
-+		else
-+			ret = -EINVAL;
-+		break;
- 	default:
- 		ret = -EINVAL; /* should be BUG() ? */
- 		break;
-@@ -2376,6 +2390,12 @@ static struct cftype mem_cgroup_files[] 
- 		.read_u64 = mem_cgroup_read,
- 	},
- 	{
-+		.name = "soft_limit_in_bytes",
-+		.private = MEMFILE_PRIVATE(_MEM, RES_SOFT_LIMIT),
-+		.write_string = mem_cgroup_write,
-+		.read_u64 = mem_cgroup_read,
-+	},
-+	{
- 		.name = "failcnt",
- 		.private = MEMFILE_PRIVATE(_MEM, RES_FAILCNT),
- 		.trigger = mem_cgroup_reset,
+@@ -252,6 +252,14 @@ enum charge_type {
+ #define MEMFILE_TYPE(val)	(((val) >> 16) & 0xffff)
+ #define MEMFILE_ATTR(val)	((val) & 0xffff)
+ 
++/*
++ * Reclaim flags for mem_cgroup_hierarchical_reclaim
++ */
++#define MEM_CGROUP_RECLAIM_NOSWAP_BIT	0x0
++#define MEM_CGROUP_RECLAIM_NOSWAP	(1 << MEM_CGROUP_RECLAIM_NOSWAP_BIT)
++#define MEM_CGROUP_RECLAIM_SHRINK_BIT	0x1
++#define MEM_CGROUP_RECLAIM_SHRINK	(1 << MEM_CGROUP_RECLAIM_SHRINK_BIT)
++
+ static void mem_cgroup_get(struct mem_cgroup *mem);
+ static void mem_cgroup_put(struct mem_cgroup *mem);
+ static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem);
+@@ -1031,11 +1039,14 @@ mem_cgroup_select_victim(struct mem_cgro
+  * If shrink==true, for avoiding to free too much, this returns immedieately.
+  */
+ static int mem_cgroup_hierarchical_reclaim(struct mem_cgroup *root_mem,
+-				   gfp_t gfp_mask, bool noswap, bool shrink)
++						gfp_t gfp_mask,
++						unsigned long reclaim_options)
+ {
+ 	struct mem_cgroup *victim;
+ 	int ret, total = 0;
+ 	int loop = 0;
++	bool noswap = reclaim_options & MEM_CGROUP_RECLAIM_NOSWAP;
++	bool shrink = reclaim_options & MEM_CGROUP_RECLAIM_SHRINK;
+ 
+ 	/* If memsw_is_minimum==1, swap-out is of-no-use. */
+ 	if (root_mem->memsw_is_minimum)
+@@ -1173,7 +1184,7 @@ static int __mem_cgroup_try_charge(struc
+ 
+ 	while (1) {
+ 		int ret;
+-		bool noswap = false;
++		unsigned long flags = 0;
+ 
+ 		ret = res_counter_charge(&mem->res, PAGE_SIZE, &fail_res,
+ 						&soft_fail_res);
+@@ -1186,7 +1197,7 @@ static int __mem_cgroup_try_charge(struc
+ 				break;
+ 			/* mem+swap counter fails */
+ 			res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
+-			noswap = true;
++			flags |= MEM_CGROUP_RECLAIM_NOSWAP;
+ 			mem_over_limit = mem_cgroup_from_res_counter(fail_res,
+ 									memsw);
+ 		} else
+@@ -1198,7 +1209,7 @@ static int __mem_cgroup_try_charge(struc
+ 			goto nomem;
+ 
+ 		ret = mem_cgroup_hierarchical_reclaim(mem_over_limit, gfp_mask,
+-							noswap, false);
++							flags);
+ 		if (ret)
+ 			continue;
+ 
+@@ -2010,7 +2021,7 @@ static int mem_cgroup_resize_limit(struc
+ 			break;
+ 
+ 		progress = mem_cgroup_hierarchical_reclaim(memcg, GFP_KERNEL,
+-						   false, true);
++						   MEM_CGROUP_RECLAIM_SHRINK);
+ 		curusage = res_counter_read_u64(&memcg->res, RES_USAGE);
+ 		/* Usage is reduced ? */
+   		if (curusage >= oldusage)
+@@ -2062,7 +2073,9 @@ static int mem_cgroup_resize_memsw_limit
+ 		if (!ret)
+ 			break;
+ 
+-		mem_cgroup_hierarchical_reclaim(memcg, GFP_KERNEL, true, true);
++		mem_cgroup_hierarchical_reclaim(memcg, GFP_KERNEL,
++						MEM_CGROUP_RECLAIM_NOSWAP |
++						MEM_CGROUP_RECLAIM_SHRINK);
+ 		curusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+ 		/* Usage is reduced ? */
+ 		if (curusage >= oldusage)
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
