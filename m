@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-spi-driver-for-lms283gf05-lcd.patch added to -mm tree
-Date: Wed, 22 Jul 2009 14:27:14 -0700
-Message-ID: <200907222127.n6MLREVw029753@imap1.linux-foundation.org>
+Subject: + cpu_hotplug-dont-affect-current-tasks-affinity.patch added to -mm tree
+Date: Wed, 22 Jul 2009 15:03:00 -0700
+Message-ID: <200907222203.n6MM30Tq021288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39534 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753042AbZGVV17 (ORCPT
+	by vger.kernel.org with ESMTP id S1754654AbZGVWDo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Jul 2009 17:27:59 -0400
+	Wed, 22 Jul 2009 18:03:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marek.vasut@gmail.com, david-b@pacbell.net, rpurdie@rpsys.net
+Cc: laijs@cn.fujitsu.com, mingo@elte.hu, rusty@rustcorp.com.au
 
 
 The patch titled
-     backlight: spi driver for LMS283GF05 LCD
+     cpu_hotplug: don't affect current task's affinity
 has been added to the -mm tree.  Its filename is
-     backlight-spi-driver-for-lms283gf05-lcd.patch
+     cpu_hotplug-dont-affect-current-tasks-affinity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,338 +34,191 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: spi driver for LMS283GF05 LCD
-From: Marek Vasut <marek.vasut@gmail.com>
+Subject: cpu_hotplug: don't affect current task's affinity
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-ADd support for the SPI part of LMS283GF05 LCD.  The LCD uses SPI for
-initialization and powerdown sequences.  No further defails are specified
-in the datasheet about the initialization/powerdown sequence, just the
-magic numbers that have to be sent over SPI bus.  This LCD can be found in
-the Aeronix Zipit Z2 handheld.
+_cpu_down() changes the current task's affinity and then recovers it at
+the end.
 
-Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: David Brownell <david-b@pacbell.net>
+It has two problems:
+
+1) The recovery of the current tasks's cpus_allowed will fail under
+   some conditions.
+
+   # grep Cpus_allowed_list /proc/$$/status
+   Cpus_allowed_list:      0-3
+
+   # taskset -pc 2 $$
+   pid 29075's current affinity list: 0-3
+   pid 29075's new affinity list: 2
+
+   # grep Cpus_allowed_list /proc/$$/status
+   Cpus_allowed_list:      2
+
+   # echo 0 > /sys/devices/system/cpu/cpu2/online
+
+   # grep Cpus_allowed_list /proc/$$/status
+   Cpus_allowed_list:      0
+
+   Here, the Cpus_allowed_list was originally "2" and has become
+   "0-1,3" after cpu #2 is offlined.
+
+   This "Cpus_allowed_list:      0" is incorrect.
+
+2) If the current task is a userspace task, the user may change its
+   cpu-affinity during the CPU hot-unplugging.  This change can be
+   overwritten when _cpu_down() changes the current task's affinity.
+
+
+Fix all this by not changing the current tasks's affinity.  Instead we
+create a kernel thread to do the work.
+
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig      |    7 
- drivers/video/backlight/Makefile     |    1 
- drivers/video/backlight/lms283gf05.c |  242 +++++++++++++++++++++++++
- include/linux/spi/lms283gf05.h       |   28 ++
- 4 files changed, 278 insertions(+)
+ kernel/cpu.c |   72 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 42 insertions(+), 30 deletions(-)
 
-diff -puN drivers/video/backlight/Kconfig~backlight-spi-driver-for-lms283gf05-lcd drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~backlight-spi-driver-for-lms283gf05-lcd
-+++ a/drivers/video/backlight/Kconfig
-@@ -31,6 +31,13 @@ config LCD_CORGI
- 	  Say y here to support the LCD panels usually found on SHARP
- 	  corgi (C7x0) and spitz (Cxx00) models.
+diff -puN kernel/cpu.c~cpu_hotplug-dont-affect-current-tasks-affinity kernel/cpu.c
+--- a/kernel/cpu.c~cpu_hotplug-dont-affect-current-tasks-affinity
++++ a/kernel/cpu.c
+@@ -162,15 +162,17 @@ static inline void check_for_tasks(int c
+ 	write_unlock_irq(&tasklist_lock);
+ }
  
-+config LCD_LMS283GF05
-+	tristate "Samsung LMS283GF05 LCD"
-+	depends on LCD_CLASS_DEVICE && SPI_MASTER && GENERIC_GPIO
-+	help
-+	  SPI driver for Samsung LMS283GF05. This provides basic support
-+	  for powering the LCD up/down through a sysfs interface.
-+
- config LCD_LTV350QV
- 	tristate "Samsung LTV350QV LCD Panel"
- 	depends on LCD_CLASS_DEVICE && SPI_MASTER
-diff -puN drivers/video/backlight/Makefile~backlight-spi-driver-for-lms283gf05-lcd drivers/video/backlight/Makefile
---- a/drivers/video/backlight/Makefile~backlight-spi-driver-for-lms283gf05-lcd
-+++ a/drivers/video/backlight/Makefile
-@@ -3,6 +3,7 @@
- obj-$(CONFIG_LCD_CLASS_DEVICE)     += lcd.o
- obj-$(CONFIG_LCD_CORGI)		   += corgi_lcd.o
- obj-$(CONFIG_LCD_HP700)		   += jornada720_lcd.o
-+obj-$(CONFIG_LCD_LMS283GF05)	   += lms283gf05.o
- obj-$(CONFIG_LCD_LTV350QV)	   += ltv350qv.o
- obj-$(CONFIG_LCD_ILI9320)	   += ili9320.o
- obj-$(CONFIG_LCD_PLATFORM)	   += platform_lcd.o
-diff -puN /dev/null drivers/video/backlight/lms283gf05.c
---- /dev/null
-+++ a/drivers/video/backlight/lms283gf05.c
-@@ -0,0 +1,242 @@
-+/*
-+ * lms283gf05.c -- support for Samsung LMS283GF05 LCD
-+ *
-+ * Copyright (c) 2009 Marek Vasut <marek.vasut@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/gpio.h>
-+#include <linux/lcd.h>
-+
-+#include <linux/spi/spi.h>
-+#include <linux/spi/lms283gf05.h>
-+
-+struct lms283gf05_state {
-+	struct spi_device	*spi;
-+	struct lcd_device	*ld;
-+};
-+
-+struct lms283gf05_seq {
-+	unsigned char		reg;
-+	unsigned short		value;
-+	unsigned char		delay;
-+};
-+
-+/* Magic sequences supplied by manufacturer, for details refer to datasheet */
-+static struct lms283gf05_seq disp_initseq[] = {
-+	/* REG, VALUE, DELAY */
-+	{ 0x07, 0x0000, 0 },
-+	{ 0x13, 0x0000, 10 },
-+
-+	{ 0x11, 0x3004, 0 },
-+	{ 0x14, 0x200F, 0 },
-+	{ 0x10, 0x1a20, 0 },
-+	{ 0x13, 0x0040, 50 },
-+
-+	{ 0x13, 0x0060, 0 },
-+	{ 0x13, 0x0070, 200 },
-+
-+	{ 0x01, 0x0127, 0 },
-+	{ 0x02,	0x0700, 0 },
-+	{ 0x03, 0x1030, 0 },
-+	{ 0x08, 0x0208, 0 },
-+	{ 0x0B, 0x0620, 0 },
-+	{ 0x0C, 0x0110, 0 },
-+	{ 0x30, 0x0120, 0 },
-+	{ 0x31, 0x0127, 0 },
-+	{ 0x32, 0x0000, 0 },
-+	{ 0x33, 0x0503, 0 },
-+	{ 0x34, 0x0727, 0 },
-+	{ 0x35, 0x0124, 0 },
-+	{ 0x36, 0x0706, 0 },
-+	{ 0x37, 0x0701, 0 },
-+	{ 0x38, 0x0F00, 0 },
-+	{ 0x39, 0x0F00, 0 },
-+	{ 0x40, 0x0000, 0 },
-+	{ 0x41, 0x0000, 0 },
-+	{ 0x42, 0x013f, 0 },
-+	{ 0x43, 0x0000, 0 },
-+	{ 0x44, 0x013f, 0 },
-+	{ 0x45, 0x0000, 0 },
-+	{ 0x46, 0xef00, 0 },
-+	{ 0x47, 0x013f, 0 },
-+	{ 0x48, 0x0000, 0 },
-+	{ 0x07, 0x0015, 30 },
-+
-+	{ 0x07, 0x0017, 0 },
-+
-+	{ 0x20, 0x0000, 0 },
-+	{ 0x21, 0x0000, 0 },
-+	{ 0x22, 0x0000, 0 }
-+};
-+
-+static struct lms283gf05_seq disp_pdwnseq[] = {
-+	{ 0x07, 0x0016, 30 },
-+
-+	{ 0x07, 0x0004, 0 },
-+	{ 0x10, 0x0220, 20 },
-+
-+	{ 0x13, 0x0060, 50 },
-+
-+	{ 0x13, 0x0040, 50 },
-+
-+	{ 0x13, 0x0000, 0 },
-+	{ 0x10, 0x0000, 0 }
-+};
-+
-+
-+static void lms283gf05_reset(unsigned long gpio, bool inverted)
-+{
-+	gpio_set_value(gpio, !inverted);
-+	mdelay(100);
-+	gpio_set_value(gpio, inverted);
-+	mdelay(20);
-+	gpio_set_value(gpio, !inverted);
-+	mdelay(20);
-+}
-+
-+static void lms283gf05_toggle(struct spi_device *spi,
-+			struct lms283gf05_seq *seq, int sz)
-+{
-+	char buf[3];
-+	int i;
-+
-+	for (i = 0; i < sz; i++) {
-+		buf[0] = 0x74;
-+		buf[1] = 0x00;
-+		buf[2] = seq[i].reg;
-+		spi_write(spi, buf, 3);
-+
-+		buf[0] = 0x76;
-+		buf[1] = seq[i].value >> 8;
-+		buf[2] = seq[i].value & 0xff;
-+		spi_write(spi, buf, 3);
-+
-+		mdelay(seq[i].delay);
-+	}
-+}
-+
-+static int lms283gf05_power_set(struct lcd_device *ld, int power)
-+{
-+	struct lms283gf05_state *st = lcd_get_data(ld);
-+	struct spi_device *spi = st->spi;
-+	struct lms283gf05_pdata *pdata = spi->dev.platform_data;
-+
-+	if (power) {
-+		if (pdata)
-+			lms283gf05_reset(pdata->reset_gpio,
-+					pdata->reset_inverted);
-+		lms283gf05_toggle(spi, disp_initseq, ARRAY_SIZE(disp_initseq));
-+	} else {
-+		lms283gf05_toggle(spi, disp_pdwnseq, ARRAY_SIZE(disp_pdwnseq));
-+		if (pdata)
-+			gpio_set_value(pdata->reset_gpio,
-+					pdata->reset_inverted);
-+	}
+-struct take_cpu_down_param {
++struct cpu_down_param {
+ 	unsigned long mod;
+-	void *hcpu;
++	unsigned int cpu;
++	int ret;
++	struct completion done;
+ };
+ 
+ /* Take this CPU down. */
+ static int __ref take_cpu_down(void *_param)
+ {
+-	struct take_cpu_down_param *param = _param;
++	struct cpu_down_param *param = _param;
+ 	int err;
+ 
+ 	/* Ensure this CPU doesn't handle any more interrupts. */
+@@ -179,7 +181,7 @@ static int __ref take_cpu_down(void *_pa
+ 		return err;
+ 
+ 	raw_notifier_call_chain(&cpu_chain, CPU_DYING | param->mod,
+-				param->hcpu);
++				(void *)(long)param->cpu);
+ 
+ 	/* Force idle task to run as soon as we yield: it should
+ 	   immediately notice cpu is offline and die quickly. */
+@@ -187,26 +189,13 @@ static int __ref take_cpu_down(void *_pa
+ 	return 0;
+ }
+ 
+-/* Requires cpu_add_remove_lock to be held */
+-static int __ref _cpu_down(unsigned int cpu, int tasks_frozen)
++static int __ref _cpu_down_thread(void *_param)
+ {
++	struct cpu_down_param *param = _param;
+ 	int err, nr_calls = 0;
+-	cpumask_var_t old_allowed;
++	unsigned long mod = param->mod;
++	unsigned int cpu = param->cpu;
+ 	void *hcpu = (void *)(long)cpu;
+-	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
+-	struct take_cpu_down_param tcd_param = {
+-		.mod = mod,
+-		.hcpu = hcpu,
+-	};
+-
+-	if (num_online_cpus() == 1)
+-		return -EBUSY;
+-
+-	if (!cpu_online(cpu))
+-		return -EINVAL;
+-
+-	if (!alloc_cpumask_var(&old_allowed, GFP_KERNEL))
+-		return -ENOMEM;
+ 
+ 	cpu_hotplug_begin();
+ 	err = __raw_notifier_call_chain(&cpu_chain, CPU_DOWN_PREPARE | mod,
+@@ -222,18 +211,16 @@ static int __ref _cpu_down(unsigned int 
+ 	}
+ 
+ 	/* Ensure that we are not runnable on dying cpu */
+-	cpumask_copy(old_allowed, &current->cpus_allowed);
+-	set_cpus_allowed_ptr(current,
+-			     cpumask_of(cpumask_any_but(cpu_online_mask, cpu)));
++	set_cpus_allowed_ptr(current, cpu_active_mask);
+ 
+-	err = __stop_machine(take_cpu_down, &tcd_param, cpumask_of(cpu));
++	err = __stop_machine(take_cpu_down, param, cpumask_of(cpu));
+ 	if (err) {
+ 		/* CPU didn't die: tell everyone.  Can't complain. */
+ 		if (raw_notifier_call_chain(&cpu_chain, CPU_DOWN_FAILED | mod,
+ 					    hcpu) == NOTIFY_BAD)
+ 			BUG();
+ 
+-		goto out_allowed;
++		goto out_release;
+ 	}
+ 	BUG_ON(cpu_online(cpu));
+ 
+@@ -251,8 +238,6 @@ static int __ref _cpu_down(unsigned int 
+ 
+ 	check_for_tasks(cpu);
+ 
+-out_allowed:
+-	set_cpus_allowed_ptr(current, old_allowed);
+ out_release:
+ 	cpu_hotplug_done();
+ 	if (!err) {
+@@ -260,8 +245,35 @@ out_release:
+ 					    hcpu) == NOTIFY_BAD)
+ 			BUG();
+ 	}
+-	free_cpumask_var(old_allowed);
+-	return err;
++	param->ret = err;
++	complete(&param->done);
 +
 +	return 0;
 +}
 +
-+static struct lcd_ops lms_ops = {
-+	.set_power	= lms283gf05_power_set,
-+	.get_power	= NULL,
-+};
-+
-+static int __devinit lms283gf05_probe(struct spi_device *spi)
++/* Requires cpu_add_remove_lock to be held */
++static int __ref _cpu_down(unsigned int cpu, int tasks_frozen)
 +{
-+	struct lms283gf05_state *st;
-+	struct lms283gf05_pdata *pdata = spi->dev.platform_data;
-+	struct lcd_device *ld;
-+	int ret = 0;
++	struct task_struct *k;
++	struct cpu_down_param param = {
++		.mod = tasks_frozen ? CPU_TASKS_FROZEN : 0,
++		.cpu = cpu,
++		.ret = 0,
++	};
 +
-+	if (pdata != NULL) {
-+		ret = gpio_request(pdata->reset_gpio, "LMS285GF05 RESET");
-+		if (ret)
-+			return ret;
++	if (num_online_cpus() == 1)
++		return -EBUSY;
 +
-+		ret = gpio_direction_output(pdata->reset_gpio,
-+						!pdata->reset_inverted);
-+		if (ret)
-+			goto err;
-+	}
++	if (!cpu_online(cpu))
++		return -EINVAL;
 +
-+	st = kzalloc(sizeof(struct lms283gf05_state), GFP_KERNEL);
-+	if (st == NULL) {
-+		dev_err(&spi->dev, "No memory for device state\n");
-+		ret = -ENOMEM;
-+		goto err;
-+	}
++	init_completion(&param.done);
++	k = kthread_run(_cpu_down_thread, &param, "kcpu_down");
++	if (IS_ERR(k))
++		return PTR_ERR(k);
++	wait_for_completion(&param.done);
 +
-+	ld = lcd_device_register("lms283gf05", &spi->dev, st, &lms_ops);
-+	if (IS_ERR(ld)) {
-+		ret = PTR_ERR(ld);
-+		goto err2;
-+	}
-+
-+	st->spi = spi;
-+	st->ld = ld;
-+
-+	dev_set_drvdata(&spi->dev, st);
-+
-+	/* kick in the LCD */
-+	if (pdata)
-+		lms283gf05_reset(pdata->reset_gpio, pdata->reset_inverted);
-+	lms283gf05_toggle(spi, disp_initseq, ARRAY_SIZE(disp_initseq));
-+
-+	return 0;
-+
-+err2:
-+	kfree(st);
-+err:
-+	if (pdata != NULL)
-+		gpio_free(pdata->reset_gpio);
-+
-+	return ret;
-+}
-+
-+static int __devexit lms283gf05_remove(struct spi_device *spi)
-+{
-+	struct lms283gf05_state *st = dev_get_drvdata(&spi->dev);
-+	struct lms283gf05_pdata *pdata = st->spi->dev.platform_data;
-+
-+	lcd_device_unregister(st->ld);
-+
-+	if (pdata != NULL)
-+		gpio_free(pdata->reset_gpio);
-+
-+	kfree(st);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver lms283gf05_driver = {
-+	.driver = {
-+		.name	= "lms283gf05",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= lms283gf05_probe,
-+	.remove		= __devexit_p(lms283gf05_remove),
-+};
-+
-+static __init int lms283gf05_init(void)
-+{
-+	return spi_register_driver(&lms283gf05_driver);
-+}
-+
-+static __exit void lms283gf05_exit(void)
-+{
-+	spi_unregister_driver(&lms283gf05_driver);
-+}
-+
-+module_init(lms283gf05_init);
-+module_exit(lms283gf05_exit);
-+
-+MODULE_AUTHOR("Marek Vasut <marek.vasut@gmail.com>");
-+MODULE_DESCRIPTION("LCD283GF05 LCD");
-+MODULE_LICENSE("GPL v2");
-diff -puN /dev/null include/linux/spi/lms283gf05.h
---- /dev/null
-+++ a/include/linux/spi/lms283gf05.h
-@@ -0,0 +1,28 @@
-+/*
-+ * lms283gf05.h - Platform glue for Samsung LMS283GF05 LCD
-+ *
-+ * Copyright (C) 2009 Marek Vasut <marek.vasut@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+*/
-+
-+#ifndef _INCLUDE_LINUX_SPI_LMS283GF05_H_
-+#define _INCLUDE_LINUX_SPI_LMS283GF05_H_
-+
-+struct lms283gf05_pdata {
-+	unsigned long	reset_gpio;
-+	bool		reset_inverted;
-+};
-+
-+#endif /* _INCLUDE_LINUX_SPI_LMS283GF05_H_ */
++	return param.ret;
+ }
+ 
+ int __ref cpu_down(unsigned int cpu)
 _
 
-Patches currently in -mm which might be from marek.vasut@gmail.com are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
 linux-next.patch
-backlight-spi-driver-for-lms283gf05-lcd.patch
-mfd-gpio-add-a-gpio-interface-to-the-ucb1400-mfd-chip-driver-via-gpiolib.patch
+cpu_hotplug-dont-affect-current-tasks-affinity.patch
 
