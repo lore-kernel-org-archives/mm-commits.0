@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-add-default-selection-of-pl022-for-arm-reference-platforms.patch added to -mm tree
-Date: Wed, 22 Jul 2009 13:48:12 -0700
-Message-ID: <200907222048.n6MKmCJ3000566@imap1.linux-foundation.org>
+Subject: + backlight-spi-driver-for-lms283gf05-lcd.patch added to -mm tree
+Date: Wed, 22 Jul 2009 14:27:14 -0700
+Message-ID: <200907222127.n6MLREVw029753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39402 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39534 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753060AbZGVUsa (ORCPT
+	by vger.kernel.org with ESMTP id S1753042AbZGVV17 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Jul 2009 16:48:30 -0400
+	Wed, 22 Jul 2009 17:27:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linus.walleij@stericsson.com, dbrownell@users.sourceforge.net
+Cc: marek.vasut@gmail.com, david-b@pacbell.net, rpurdie@rpsys.net
 
 
 The patch titled
-     spi: add default selection of PL022 for ARM reference platforms
+     backlight: spi driver for LMS283GF05 LCD
 has been added to the -mm tree.  Its filename is
-     spi-add-default-selection-of-pl022-for-arm-reference-platforms.patch
+     backlight-spi-driver-for-lms283gf05-lcd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,338 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: add default selection of PL022 for ARM reference platforms
-From: Linus Walleij <Linus Walleij linus.walleij@stericsson.com>
+Subject: backlight: spi driver for LMS283GF05 LCD
+From: Marek Vasut <marek.vasut@gmail.com>
 
-This makes the PL022 driver a default choice for any RealView and
-Versatile boards plus the integrator IMPD1 which all contain the PL022
-PrimeCell.  This will make it a default choice if and only if a user
-selects SPI support for their board.
+ADd support for the SPI part of LMS283GF05 LCD.  The LCD uses SPI for
+initialization and powerdown sequences.  No further defails are specified
+in the datasheet about the initialization/powerdown sequence, just the
+magic numbers that have to be sent over SPI bus.  This LCD can be found in
+the Aeronix Zipit Z2 handheld.
 
-Signed-off-by: Linus Walleij <linus.walleij@stericsson.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/video/backlight/Kconfig      |    7 
+ drivers/video/backlight/Makefile     |    1 
+ drivers/video/backlight/lms283gf05.c |  242 +++++++++++++++++++++++++
+ include/linux/spi/lms283gf05.h       |   28 ++
+ 4 files changed, 278 insertions(+)
 
-diff -puN drivers/spi/Kconfig~spi-add-default-selection-of-pl022-for-arm-reference-platforms drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-add-default-selection-of-pl022-for-arm-reference-platforms
-+++ a/drivers/spi/Kconfig
-@@ -166,6 +166,9 @@ config SPI_PL022
- 	tristate "ARM AMBA PL022 SSP controller (EXPERIMENTAL)"
- 	depends on ARM_AMBA && EXPERIMENTAL
- 	default y if MACH_U300
-+	default y if ARCH_REALVIEW
-+	default y if INTEGRATOR_IMPD1
-+	default y if ARCH_VERSATILE
- 	help
- 	  This selects the ARM(R) AMBA(R) PrimeCell PL022 SSP
- 	  controller. If you have an embedded system with an AMBA(R)
+diff -puN drivers/video/backlight/Kconfig~backlight-spi-driver-for-lms283gf05-lcd drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-spi-driver-for-lms283gf05-lcd
++++ a/drivers/video/backlight/Kconfig
+@@ -31,6 +31,13 @@ config LCD_CORGI
+ 	  Say y here to support the LCD panels usually found on SHARP
+ 	  corgi (C7x0) and spitz (Cxx00) models.
+ 
++config LCD_LMS283GF05
++	tristate "Samsung LMS283GF05 LCD"
++	depends on LCD_CLASS_DEVICE && SPI_MASTER && GENERIC_GPIO
++	help
++	  SPI driver for Samsung LMS283GF05. This provides basic support
++	  for powering the LCD up/down through a sysfs interface.
++
+ config LCD_LTV350QV
+ 	tristate "Samsung LTV350QV LCD Panel"
+ 	depends on LCD_CLASS_DEVICE && SPI_MASTER
+diff -puN drivers/video/backlight/Makefile~backlight-spi-driver-for-lms283gf05-lcd drivers/video/backlight/Makefile
+--- a/drivers/video/backlight/Makefile~backlight-spi-driver-for-lms283gf05-lcd
++++ a/drivers/video/backlight/Makefile
+@@ -3,6 +3,7 @@
+ obj-$(CONFIG_LCD_CLASS_DEVICE)     += lcd.o
+ obj-$(CONFIG_LCD_CORGI)		   += corgi_lcd.o
+ obj-$(CONFIG_LCD_HP700)		   += jornada720_lcd.o
++obj-$(CONFIG_LCD_LMS283GF05)	   += lms283gf05.o
+ obj-$(CONFIG_LCD_LTV350QV)	   += ltv350qv.o
+ obj-$(CONFIG_LCD_ILI9320)	   += ili9320.o
+ obj-$(CONFIG_LCD_PLATFORM)	   += platform_lcd.o
+diff -puN /dev/null drivers/video/backlight/lms283gf05.c
+--- /dev/null
++++ a/drivers/video/backlight/lms283gf05.c
+@@ -0,0 +1,242 @@
++/*
++ * lms283gf05.c -- support for Samsung LMS283GF05 LCD
++ *
++ * Copyright (c) 2009 Marek Vasut <marek.vasut@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/device.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/lcd.h>
++
++#include <linux/spi/spi.h>
++#include <linux/spi/lms283gf05.h>
++
++struct lms283gf05_state {
++	struct spi_device	*spi;
++	struct lcd_device	*ld;
++};
++
++struct lms283gf05_seq {
++	unsigned char		reg;
++	unsigned short		value;
++	unsigned char		delay;
++};
++
++/* Magic sequences supplied by manufacturer, for details refer to datasheet */
++static struct lms283gf05_seq disp_initseq[] = {
++	/* REG, VALUE, DELAY */
++	{ 0x07, 0x0000, 0 },
++	{ 0x13, 0x0000, 10 },
++
++	{ 0x11, 0x3004, 0 },
++	{ 0x14, 0x200F, 0 },
++	{ 0x10, 0x1a20, 0 },
++	{ 0x13, 0x0040, 50 },
++
++	{ 0x13, 0x0060, 0 },
++	{ 0x13, 0x0070, 200 },
++
++	{ 0x01, 0x0127, 0 },
++	{ 0x02,	0x0700, 0 },
++	{ 0x03, 0x1030, 0 },
++	{ 0x08, 0x0208, 0 },
++	{ 0x0B, 0x0620, 0 },
++	{ 0x0C, 0x0110, 0 },
++	{ 0x30, 0x0120, 0 },
++	{ 0x31, 0x0127, 0 },
++	{ 0x32, 0x0000, 0 },
++	{ 0x33, 0x0503, 0 },
++	{ 0x34, 0x0727, 0 },
++	{ 0x35, 0x0124, 0 },
++	{ 0x36, 0x0706, 0 },
++	{ 0x37, 0x0701, 0 },
++	{ 0x38, 0x0F00, 0 },
++	{ 0x39, 0x0F00, 0 },
++	{ 0x40, 0x0000, 0 },
++	{ 0x41, 0x0000, 0 },
++	{ 0x42, 0x013f, 0 },
++	{ 0x43, 0x0000, 0 },
++	{ 0x44, 0x013f, 0 },
++	{ 0x45, 0x0000, 0 },
++	{ 0x46, 0xef00, 0 },
++	{ 0x47, 0x013f, 0 },
++	{ 0x48, 0x0000, 0 },
++	{ 0x07, 0x0015, 30 },
++
++	{ 0x07, 0x0017, 0 },
++
++	{ 0x20, 0x0000, 0 },
++	{ 0x21, 0x0000, 0 },
++	{ 0x22, 0x0000, 0 }
++};
++
++static struct lms283gf05_seq disp_pdwnseq[] = {
++	{ 0x07, 0x0016, 30 },
++
++	{ 0x07, 0x0004, 0 },
++	{ 0x10, 0x0220, 20 },
++
++	{ 0x13, 0x0060, 50 },
++
++	{ 0x13, 0x0040, 50 },
++
++	{ 0x13, 0x0000, 0 },
++	{ 0x10, 0x0000, 0 }
++};
++
++
++static void lms283gf05_reset(unsigned long gpio, bool inverted)
++{
++	gpio_set_value(gpio, !inverted);
++	mdelay(100);
++	gpio_set_value(gpio, inverted);
++	mdelay(20);
++	gpio_set_value(gpio, !inverted);
++	mdelay(20);
++}
++
++static void lms283gf05_toggle(struct spi_device *spi,
++			struct lms283gf05_seq *seq, int sz)
++{
++	char buf[3];
++	int i;
++
++	for (i = 0; i < sz; i++) {
++		buf[0] = 0x74;
++		buf[1] = 0x00;
++		buf[2] = seq[i].reg;
++		spi_write(spi, buf, 3);
++
++		buf[0] = 0x76;
++		buf[1] = seq[i].value >> 8;
++		buf[2] = seq[i].value & 0xff;
++		spi_write(spi, buf, 3);
++
++		mdelay(seq[i].delay);
++	}
++}
++
++static int lms283gf05_power_set(struct lcd_device *ld, int power)
++{
++	struct lms283gf05_state *st = lcd_get_data(ld);
++	struct spi_device *spi = st->spi;
++	struct lms283gf05_pdata *pdata = spi->dev.platform_data;
++
++	if (power) {
++		if (pdata)
++			lms283gf05_reset(pdata->reset_gpio,
++					pdata->reset_inverted);
++		lms283gf05_toggle(spi, disp_initseq, ARRAY_SIZE(disp_initseq));
++	} else {
++		lms283gf05_toggle(spi, disp_pdwnseq, ARRAY_SIZE(disp_pdwnseq));
++		if (pdata)
++			gpio_set_value(pdata->reset_gpio,
++					pdata->reset_inverted);
++	}
++
++	return 0;
++}
++
++static struct lcd_ops lms_ops = {
++	.set_power	= lms283gf05_power_set,
++	.get_power	= NULL,
++};
++
++static int __devinit lms283gf05_probe(struct spi_device *spi)
++{
++	struct lms283gf05_state *st;
++	struct lms283gf05_pdata *pdata = spi->dev.platform_data;
++	struct lcd_device *ld;
++	int ret = 0;
++
++	if (pdata != NULL) {
++		ret = gpio_request(pdata->reset_gpio, "LMS285GF05 RESET");
++		if (ret)
++			return ret;
++
++		ret = gpio_direction_output(pdata->reset_gpio,
++						!pdata->reset_inverted);
++		if (ret)
++			goto err;
++	}
++
++	st = kzalloc(sizeof(struct lms283gf05_state), GFP_KERNEL);
++	if (st == NULL) {
++		dev_err(&spi->dev, "No memory for device state\n");
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	ld = lcd_device_register("lms283gf05", &spi->dev, st, &lms_ops);
++	if (IS_ERR(ld)) {
++		ret = PTR_ERR(ld);
++		goto err2;
++	}
++
++	st->spi = spi;
++	st->ld = ld;
++
++	dev_set_drvdata(&spi->dev, st);
++
++	/* kick in the LCD */
++	if (pdata)
++		lms283gf05_reset(pdata->reset_gpio, pdata->reset_inverted);
++	lms283gf05_toggle(spi, disp_initseq, ARRAY_SIZE(disp_initseq));
++
++	return 0;
++
++err2:
++	kfree(st);
++err:
++	if (pdata != NULL)
++		gpio_free(pdata->reset_gpio);
++
++	return ret;
++}
++
++static int __devexit lms283gf05_remove(struct spi_device *spi)
++{
++	struct lms283gf05_state *st = dev_get_drvdata(&spi->dev);
++	struct lms283gf05_pdata *pdata = st->spi->dev.platform_data;
++
++	lcd_device_unregister(st->ld);
++
++	if (pdata != NULL)
++		gpio_free(pdata->reset_gpio);
++
++	kfree(st);
++
++	return 0;
++}
++
++static struct spi_driver lms283gf05_driver = {
++	.driver = {
++		.name	= "lms283gf05",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= lms283gf05_probe,
++	.remove		= __devexit_p(lms283gf05_remove),
++};
++
++static __init int lms283gf05_init(void)
++{
++	return spi_register_driver(&lms283gf05_driver);
++}
++
++static __exit void lms283gf05_exit(void)
++{
++	spi_unregister_driver(&lms283gf05_driver);
++}
++
++module_init(lms283gf05_init);
++module_exit(lms283gf05_exit);
++
++MODULE_AUTHOR("Marek Vasut <marek.vasut@gmail.com>");
++MODULE_DESCRIPTION("LCD283GF05 LCD");
++MODULE_LICENSE("GPL v2");
+diff -puN /dev/null include/linux/spi/lms283gf05.h
+--- /dev/null
++++ a/include/linux/spi/lms283gf05.h
+@@ -0,0 +1,28 @@
++/*
++ * lms283gf05.h - Platform glue for Samsung LMS283GF05 LCD
++ *
++ * Copyright (C) 2009 Marek Vasut <marek.vasut@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*/
++
++#ifndef _INCLUDE_LINUX_SPI_LMS283GF05_H_
++#define _INCLUDE_LINUX_SPI_LMS283GF05_H_
++
++struct lms283gf05_pdata {
++	unsigned long	reset_gpio;
++	bool		reset_inverted;
++};
++
++#endif /* _INCLUDE_LINUX_SPI_LMS283GF05_H_ */
 _
 
-Patches currently in -mm which might be from linus.walleij@stericsson.com are
+Patches currently in -mm which might be from marek.vasut@gmail.com are
 
-origin.patch
 linux-next.patch
-mtd-sst25l-non-jedec-spi-flash-driver.patch
-mtd-sst25l-non-jedec-spi-flash-driver-update.patch
-mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
-spi-add-default-selection-of-pl022-for-arm-reference-platforms.patch
-rtc-u300-coh-901-331-rtc-driver-v3.patch
+backlight-spi-driver-for-lms283gf05-lcd.patch
+mfd-gpio-add-a-gpio-interface-to-the-ucb1400-mfd-chip-driver-via-gpiolib.patch
 
