@@ -1,136 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: + exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch added to -mm tree
-Date: Tue, 21 Jul 2009 16:57:42 -0700
-Message-ID: <200907212357.n6LNvgg3021606@imap1.linux-foundation.org>
+Subject: [merged] jbd-fix-race-bwtween-write_metadata_buffer-and-get_write_access.patch removed from -mm tree
+Date: Wed, 22 Jul 2009 11:57:07 -0700
+Message-ID: <200907221857.n6MIv7Nr020001@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750937AbZGUX6W (ORCPT
+	by vger.kernel.org with ESMTP id S1750957AbZGVS5l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jul 2009 19:58:22 -0400
+	Wed, 22 Jul 2009 14:57:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: nhorman@tuxdriver.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, earl_chew@agilent.com, oleg@tv-sign.ru
+To: dingdinghua85@gmail.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: allow do_coredump() to wait for user space pipe readers to complete
-has been added to the -mm tree.  Its filename is
-     exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch
+     jbd: fix race bwtween write_metadata_buffer() and get_write_access()
+has been removed from the -mm tree.  Its filename was
+     jbd-fix-race-bwtween-write_metadata_buffer-and-get_write_access.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: allow do_coredump() to wait for user space pipe readers to complete
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: jbd: fix race bwtween write_metadata_buffer() and get_write_access()
+From: dingdinghua <dingdinghua85@gmail.com>
 
-Allow core_pattern pipes to wait for user space to complete
+The function journal_write_metadata_buffer() calls
+jbd_unlock_bh_state(bh_in) too early; this could potentially allow another
+thread to call get_write_access on the buffer head, modify the data, and
+dirty it, and allowing the wrong data to be written into the journal. 
+Fortunately, if we lose this race, the only time this will actually cause
+filesystem corruption is if there is a system crash or other unclean
+shutdown of the system before the next commit can take place.
 
-One of the things that user space processes like to do is look at metadata
-for a crashing process in their /proc/<pid> directory.  this is racy
-however, since do_coredump in the kernel doesn't wait for the user space
-process to complete before it reaps the crashing process.  This patch
-corrects that.  Allowing the kernel to wait for the user space process to
-complete before cleaning up the crashing process.  This is a bit tricky to
-do for a few reasons:
-
-1) The user space process isn't our child, so we can't sys_wait4 on it
-2) We need to close the pipe before waiting for the user process to complete,
-since the user process may rely on an EOF condition
-
-I've discussed several solutions with Oleg Nesterov off-list about this,
-and this is the one we've come up with.  We add ourselves as a pipe reader
-(to prevent premature cleanup of the pipe_inode_info), and remove
-ourselves as a writer (to provide an EOF condition to the writer in user
-space), then we iterate until the user space process exits (which we
-detect by pipe->readers == 1, hence the > 1 check in the loop).  When we
-exit the loop, we restore the proper reader/writer values, then we return
-and let filp_close in do_coredump clean up the pipe data properly.
-
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Reported-by: Earl Chew <earl_chew@agilent.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: dingdinghua <dingdinghua85@gmail.com>
+Acked-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ fs/jbd/journal.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN fs/exec.c~exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9 fs/exec.c
---- a/fs/exec.c~exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9
-+++ a/fs/exec.c
-@@ -55,6 +55,7 @@
- #include <linux/kmod.h>
- #include <linux/fsnotify.h>
- #include <linux/fs_struct.h>
-+#include <linux/pipe_fs_i.h>
+diff -puN fs/jbd/journal.c~jbd-fix-race-bwtween-write_metadata_buffer-and-get_write_access fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-fix-race-bwtween-write_metadata_buffer-and-get_write_access
++++ a/fs/jbd/journal.c
+@@ -287,6 +287,7 @@ int journal_write_metadata_buffer(transa
+ 	struct page *new_page;
+ 	unsigned int new_offset;
+ 	struct buffer_head *bh_in = jh2bh(jh_in);
++	journal_t *journal = transaction->t_journal;
  
- #include <asm/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -1718,6 +1719,29 @@ int get_dumpable(struct mm_struct *mm)
- 	return (ret >= 2) ? 2 : ret;
- }
+ 	/*
+ 	 * The buffer really shouldn't be locked: only the current committing
+@@ -300,6 +301,11 @@ int journal_write_metadata_buffer(transa
+ 	J_ASSERT_BH(bh_in, buffer_jbddirty(bh_in));
  
-+static void wait_for_dump_helpers(struct file *file)
-+{
-+	struct pipe_inode_info *pipe;
-+
-+	pipe = file->f_path.dentry->d_inode->i_pipe;
-+
-+	pipe_lock(pipe);
-+	pipe->readers++;
-+	pipe->writers--;
-+
-+	while ((pipe->readers > 1) && (!signal_pending(current))) {
-+		wake_up_interruptible_sync(&pipe->wait);
-+		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
-+		pipe_wait(pipe);
-+	}
-+
-+	pipe->readers--;
-+	pipe->writers++;
-+	pipe_unlock(pipe);
-+
-+}
-+
-+
- void do_coredump(long signr, int exit_code, struct pt_regs *regs)
- {
- 	struct core_state core_state;
-@@ -1875,6 +1899,8 @@ void do_coredump(long signr, int exit_co
- 	if (retval)
- 		current->signal->group_exit_code |= 0x80;
- close_fail:
-+	if (ispipe && core_pipe_limit)
-+		wait_for_dump_helpers(file);
- 	filp_close(file, NULL);
- fail_dropcount:
- 	if (dump_count)
-_
-
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
-
-linux-next.patch
-kmod-fix-race-in-usermodehelper-code.patch
-proc-fix-reported-unit-for-rlimit_cpu.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch
-
+ 	new_bh = alloc_buffer_head(GFP_NOFS|__GFP_NOFAIL);
++	/* keep subsequent assertions sane */
++	new_bh->b_state = 0;
++	init_buffer(new_bh, NULL, NULL);
++	atomic_set(&new_bh->b_count, 1);
++	new_jh = journal_add_journal_head(new_bh);	/* This sleeps */
+ 
+ 	/*
+ 	 * If a new transaction has already done a buffer copy-out, then
+@@ -361,14 +367,6 @@ repeat:
+ 		kunmap_atomic(mapped_data, KM_USER0);
+ 	}
+ 
+-	/* keep subsequent assertions sane */
+-	new_bh->b_state = 0;
+-	init_buffer(new_bh, NULL, NULL);
+-	atomic_set(&new_bh->b_count, 1);
+-	jbd_unlock_bh_state(bh_in);
+-
+-	new_jh = journal_add_journal_head(new_bh);	/* This sleeps */
