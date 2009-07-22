@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch added to -mm tree
-Date: Wed, 22 Jul 2009 16:06:54 -0700
-Message-ID: <200907222306.n6MN6smd024708@imap1.linux-foundation.org>
+Subject: + mm-avoid-endless-looping-for-oom-killed-tasks.patch added to -mm tree
+Date: Wed, 22 Jul 2009 16:37:11 -0700
+Message-ID: <200907222337.n6MNbBUM007485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55304 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754530AbZGVXIA (ORCPT
+	by vger.kernel.org with ESMTP id S1754680AbZGVXh7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Jul 2009 19:08:00 -0400
+	Wed, 22 Jul 2009 19:37:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au
+Cc: rientjes@google.com, hugh.dickins@tiscali.co.uk, mel@csn.ul.ie
 
 
 The patch titled
-     mm: perform non-atomic test-clear of PG_mlocked on free
+     mm: avoid endless looping for oom killed tasks
 has been added to the -mm tree.  Its filename is
-     mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+     mm-avoid-endless-looping-for-oom-killed-tasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: perform non-atomic test-clear of PG_mlocked on free
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: avoid endless looping for oom killed tasks
+From: David Rientjes <rientjes@google.com>
 
-By the time PG_mlocked is cleared in the page freeing path, nobody else is
-looking at our page->flags anymore.
+If a task is oom killed and still cannot find memory when trying with
+no watermarks, it's better to fail the allocation attempt than to loop
+endlessly.  Direct reclaim has already failed and the oom killer will
+be a no-op since current has yet to die, so there is no other
+alternative for allocations that are not __GFP_NOFAIL.
 
-It is thus safe to make the test-and-clear non-atomic and thereby removing
-an unnecessary and expensive operation from a hotpath.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   12 +++++++++---
- mm/page_alloc.c            |    4 ++--
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/page-flags.h~mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free
-+++ a/include/linux/page-flags.h
-@@ -158,6 +158,9 @@ static inline int TestSetPage##uname(str
- static inline int TestClearPage##uname(struct page *page)		\
- 		{ return test_and_clear_bit(PG_##lname, &page->flags); }
- 
-+#define __TESTCLEARFLAG(uname, lname)					\
-+static inline int __TestClearPage##uname(struct page *page)		\
-+		{ return __test_and_clear_bit(PG_##lname, &page->flags); }
- 
- #define PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
- 	SETPAGEFLAG(uname, lname) CLEARPAGEFLAG(uname, lname)
-@@ -184,6 +187,9 @@ static inline void __ClearPage##uname(st
- #define TESTCLEARFLAG_FALSE(uname)					\
- static inline int TestClearPage##uname(struct page *page) { return 0; }
- 
-+#define __TESTCLEARFLAG_FALSE(uname)					\
-+static inline int __TestClearPage##uname(struct page *page) { return 0; }
-+
- struct page;	/* forward declaration */
- 
- TESTPAGEFLAG(Locked, locked) TESTSETFLAG(Locked, locked)
-@@ -250,11 +256,11 @@ PAGEFLAG(Unevictable, unevictable) __CLE
- #ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
- #define MLOCK_PAGES 1
- PAGEFLAG(Mlocked, mlocked) __CLEARPAGEFLAG(Mlocked, mlocked)
--	TESTSCFLAG(Mlocked, mlocked)
-+	TESTSCFLAG(Mlocked, mlocked) __TESTCLEARFLAG(Mlocked, mlocked)
- #else
- #define MLOCK_PAGES 0
--PAGEFLAG_FALSE(Mlocked)
--	SETPAGEFLAG_NOOP(Mlocked) TESTCLEARFLAG_FALSE(Mlocked)
-+PAGEFLAG_FALSE(Mlocked) SETPAGEFLAG_NOOP(Mlocked)
-+	TESTCLEARFLAG_FALSE(Mlocked) __TESTCLEARFLAG_FALSE(Mlocked)
- #endif
- 
- #ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
-diff -puN mm/page_alloc.c~mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free mm/page_alloc.c
---- a/mm/page_alloc.c~mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free
+diff -puN mm/page_alloc.c~mm-avoid-endless-looping-for-oom-killed-tasks mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-avoid-endless-looping-for-oom-killed-tasks
 +++ a/mm/page_alloc.c
-@@ -557,7 +557,7 @@ static void __free_pages_ok(struct page 
- 	unsigned long flags;
- 	int i;
- 	int bad = 0;
--	int wasMlocked = TestClearPageMlocked(page);
-+	int wasMlocked = __TestClearPageMlocked(page);
+@@ -1794,6 +1794,10 @@ rebalance:
+ 	if (p->flags & PF_MEMALLOC)
+ 		goto nopage;
  
- 	kmemcheck_free_shadow(page, order);
- 
-@@ -1024,7 +1024,7 @@ static void free_hot_cold_page(struct pa
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
- 	unsigned long flags;
--	int wasMlocked = TestClearPageMlocked(page);
-+	int wasMlocked = __TestClearPageMlocked(page);
- 
- 	kmemcheck_free_shadow(page, 0);
- 
++	/* Avoid allocations with no watermarks from looping endlessly */
++	if (test_thread_flag(TIF_MEMDIE) && !(gfp_mask & __GFP_NOFAIL))
++		goto nopage;
++
+ 	/* Try direct reclaim and then allocating */
+ 	page = __alloc_pages_direct_reclaim(gfp_mask, order,
+ 					zonelist, high_zoneidx,
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-origin.patch
-mm-make-swap-token-dummies-static-inlines.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-vmscan-use-add_page_to_lru_list-helper-function.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+mm-avoid-endless-looping-for-oom-killed-tasks.patch
+linux-next.patch
+mm-copy-over-oom_adj-value-at-fork-time.patch
+mm-remove-obsoleted-alloc_pages-cpuset-comment.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+page-allocator-allow-too-high-order-warning-messages-to-be-suppressed-with-__gfp_nowarn.patch
+mm-update-alloc_flags-after-oom-killer-has-been-called.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
