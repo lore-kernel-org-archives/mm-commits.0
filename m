@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ivtv-read-buffer-overflow.patch added to -mm tree
-Date: Thu, 23 Jul 2009 14:44:50 -0700
-Message-ID: <200907232144.n6NLiov9021200@imap1.linux-foundation.org>
+Subject: + cpuidle-menu-governor-reduce-latency-on-exit.patch added to -mm tree
+Date: Thu, 23 Jul 2009 15:05:22 -0700
+Message-ID: <200907232205.n6NM5Mn7021128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754116AbZGWVpA (ORCPT
+	by vger.kernel.org with ESMTP id S1754577AbZGWWFz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 17:45:00 -0400
+	Thu, 23 Jul 2009 18:05:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, hverkuil@xs4all.nl, mchehab@infradead.org
+Cc: czoccolo@gmail.com, abelay@novell.com, len.brown@intel.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     ivtv: read buffer overflow
+     cpuidle: menu governor: reduce latency on exit
 has been added to the -mm tree.  Its filename is
-     ivtv-read-buffer-overflow.patch
+     cpuidle-menu-governor-reduce-latency-on-exit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ivtv: read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cpuidle: menu governor: reduce latency on exit
+From: Corrado Zoccolo <czoccolo@gmail.com>
 
-This mistakenly tests against sizeof(freqs) instead of the array size. 
-Due to the mask the only illegal value possible was 3.
+Move the state residency accounting and statistics computation off the hot
+exit path.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+On exit, the need to recompute statistics is recorded, and new statistics
+will be computed when menu_select is called again.
+
+Signed-off-by: Corrado Zoccolo <czoccolo@gmail.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Adam Belay <abelay@novell.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/ivtv/ivtv-controls.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/cpuidle/governors/menu.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/ivtv/ivtv-controls.c~ivtv-read-buffer-overflow drivers/media/video/ivtv/ivtv-controls.c
---- a/drivers/media/video/ivtv/ivtv-controls.c~ivtv-read-buffer-overflow
-+++ a/drivers/media/video/ivtv/ivtv-controls.c
-@@ -17,6 +17,7 @@
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
-+#include <linux/kernel.h>
+diff -puN drivers/cpuidle/governors/menu.c~cpuidle-menu-governor-reduce-latency-on-exit drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~cpuidle-menu-governor-reduce-latency-on-exit
++++ a/drivers/cpuidle/governors/menu.c
+@@ -19,6 +19,7 @@
  
- #include "ivtv-driver.h"
- #include "ivtv-cards.h"
-@@ -281,7 +282,7 @@ int ivtv_s_ext_ctrls(struct file *file, 
- 		idx = p.audio_properties & 0x03;
- 		/* The audio clock of the digitizer must match the codec sample
- 		   rate otherwise you get some very strange effects. */
--		if (idx < sizeof(freqs))
-+		if (idx < ARRAY_SIZE(freqs))
- 			ivtv_call_all(itv, audio, s_clock_freq, freqs[idx]);
- 		return err;
- 	}
+ struct menu_device {
+ 	int		last_state_idx;
++	int             needs_update;
+ 
+ 	unsigned int	expected_us;
+ 	unsigned int	predicted_us;
+@@ -29,6 +30,8 @@ struct menu_device {
+ 
+ static DEFINE_PER_CPU(struct menu_device, menu_devices);
+ 
++static void menu_update(struct cpuidle_device *dev);
++
+ /**
+  * menu_select - selects the next idle state to enter
+  * @dev: the CPU
+@@ -39,6 +42,11 @@ static int menu_select(struct cpuidle_de
+ 	int latency_req = pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY);
+ 	int i;
+ 
++	if (data->needs_update) {
++		menu_update(dev);
++		data->needs_update = 0;
++	}
++
+ 	/* Special case when user has set very strict latency requirement */
+ 	if (unlikely(latency_req == 0)) {
+ 		data->last_state_idx = 0;
+@@ -72,7 +80,7 @@ static int menu_select(struct cpuidle_de
+ }
+ 
+ /**
+- * menu_reflect - attempts to guess what happened after entry
++ * menu_reflect - records that data structures need update
+  * @dev: the CPU
+  *
+  * NOTE: it's important to be fast here because this operation will add to
+@@ -81,6 +89,16 @@ static int menu_select(struct cpuidle_de
+ static void menu_reflect(struct cpuidle_device *dev)
+ {
+ 	struct menu_device *data = &__get_cpu_var(menu_devices);
++	data->needs_update = 1;
++}
++
++/**
++ * menu_update - attempts to guess what happened after entry
++ * @dev: the CPU
++ */
++static void menu_update(struct cpuidle_device *dev)
++{
++	struct menu_device *data = &__get_cpu_var(menu_devices);
+ 	int last_idx = data->last_state_idx;
+ 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
+ 	struct cpuidle_state *target = &dev->states[last_idx];
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from czoccolo@gmail.com are
 
-linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-media-strncpy-does-not-null-terminate-string.patch
-ivtv-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-platinumfb-misplaced-parenthesis.patch
-documentation-strncpy-does-not-null-terminate-string.patch
-adfs-remove-redundant-test-on-unsigned.patch
+cpuidle-menu-governor-reduce-latency-on-exit.patch
 
