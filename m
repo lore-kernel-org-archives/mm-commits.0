@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + media-strncpy-does-not-null-terminate-string.patch added to -mm tree
-Date: Thu, 23 Jul 2009 13:51:46 -0700
-Message-ID: <200907232051.n6NKpkdi002369@imap1.linux-foundation.org>
+Subject: + atlx-strncpy-does-not-null-terminate-string.patch added to -mm tree
+Date: Thu, 23 Jul 2009 13:53:13 -0700
+Message-ID: <200907232053.n6NKrDgo004759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41616 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38672 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754168AbZGWUv4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752276AbZGWUxR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 16:51:56 -0400
+	Thu, 23 Jul 2009 16:53:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, mchehab@infradead.org
+Cc: roel.kluin@gmail.com, csnook@redhat.com, jcliburn@gmail.com, jie.yang@atheros.com
 
 
 The patch titled
-     media: strncpy does not null terminate string
+     atlx: strncpy does not null terminate string
 has been added to the -mm tree.  Its filename is
-     media-strncpy-does-not-null-terminate-string.patch
+     atlx-strncpy-does-not-null-terminate-string.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: media: strncpy does not null terminate string
+Subject: atlx: strncpy does not null terminate string
 From: Roel Kluin <roel.kluin@gmail.com>
 
 strlcpy() will always null terminate the string.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jay Cliburn <jcliburn@gmail.com>
+Cc: Chris Snook <csnook@redhat.com>
+Cc: Jie Yang <jie.yang@atheros.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/dvb-usb-i2c.c |    2 +-
- drivers/media/video/pwc/pwc-v4l.c       |    2 +-
- drivers/media/video/zoran/zoran_card.c  |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/atl1c/atl1c_ethtool.c |    8 ++++----
+ drivers/net/atlx/atl1.c           |    8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-usb/dvb-usb-i2c.c~media-strncpy-does-not-null-terminate-string drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
---- a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c~media-strncpy-does-not-null-terminate-string
-+++ a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
-@@ -19,7 +19,7 @@ int dvb_usb_i2c_init(struct dvb_usb_devi
- 		return -EINVAL;
- 	}
+diff -puN drivers/net/atl1c/atl1c_ethtool.c~atlx-strncpy-does-not-null-terminate-string drivers/net/atl1c/atl1c_ethtool.c
+--- a/drivers/net/atl1c/atl1c_ethtool.c~atlx-strncpy-does-not-null-terminate-string
++++ a/drivers/net/atl1c/atl1c_ethtool.c
+@@ -232,11 +232,11 @@ static void atl1c_get_drvinfo(struct net
+ {
+ 	struct atl1c_adapter *adapter = netdev_priv(netdev);
  
--	strncpy(d->i2c_adap.name, d->desc->name, sizeof(d->i2c_adap.name));
-+	strlcpy(d->i2c_adap.name, d->desc->name, sizeof(d->i2c_adap.name));
- 	d->i2c_adap.class = I2C_CLASS_TV_DIGITAL,
- 	d->i2c_adap.algo      = d->props.i2c_algo;
- 	d->i2c_adap.algo_data = NULL;
-diff -puN drivers/media/video/pwc/pwc-v4l.c~media-strncpy-does-not-null-terminate-string drivers/media/video/pwc/pwc-v4l.c
---- a/drivers/media/video/pwc/pwc-v4l.c~media-strncpy-does-not-null-terminate-string
-+++ a/drivers/media/video/pwc/pwc-v4l.c
-@@ -1033,7 +1033,7 @@ long pwc_video_do_ioctl(struct file *fil
- 			if (std->index != 0)
- 				return -EINVAL;
- 			std->id = V4L2_STD_UNKNOWN;
--			strncpy(std->name, "webcam", sizeof(std->name));
-+			strlcpy(std->name, "webcam", sizeof(std->name));
- 			return 0;
- 		}
+-	strncpy(drvinfo->driver,  atl1c_driver_name, sizeof(drvinfo->driver));
+-	strncpy(drvinfo->version, atl1c_driver_version,
++	strlcpy(drvinfo->driver,  atl1c_driver_name, sizeof(drvinfo->driver));
++	strlcpy(drvinfo->version, atl1c_driver_version,
+ 		sizeof(drvinfo->version));
+-	strncpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
+-	strncpy(drvinfo->bus_info, pci_name(adapter->pdev),
++	strlcpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
++	strlcpy(drvinfo->bus_info, pci_name(adapter->pdev),
+ 		sizeof(drvinfo->bus_info));
+ 	drvinfo->n_stats = 0;
+ 	drvinfo->testinfo_len = 0;
+diff -puN drivers/net/atlx/atl1.c~atlx-strncpy-does-not-null-terminate-string drivers/net/atlx/atl1.c
+--- a/drivers/net/atlx/atl1.c~atlx-strncpy-does-not-null-terminate-string
++++ a/drivers/net/atlx/atl1.c
+@@ -3378,11 +3378,11 @@ static void atl1_get_drvinfo(struct net_
+ {
+ 	struct atl1_adapter *adapter = netdev_priv(netdev);
  
-diff -puN drivers/media/video/zoran/zoran_card.c~media-strncpy-does-not-null-terminate-string drivers/media/video/zoran/zoran_card.c
---- a/drivers/media/video/zoran/zoran_card.c~media-strncpy-does-not-null-terminate-string
-+++ a/drivers/media/video/zoran/zoran_card.c
-@@ -1169,7 +1169,7 @@ zoran_setup_videocodec (struct zoran *zr
- 	m->type = 0;
- 
- 	m->flags = CODEC_FLAG_ENCODER | CODEC_FLAG_DECODER;
--	strncpy(m->name, ZR_DEVNAME(zr), sizeof(m->name));
-+	strlcpy(m->name, ZR_DEVNAME(zr), sizeof(m->name));
- 	m->data = zr;
- 
- 	switch (type)
+-	strncpy(drvinfo->driver, ATLX_DRIVER_NAME, sizeof(drvinfo->driver));
+-	strncpy(drvinfo->version, ATLX_DRIVER_VERSION,
++	strlcpy(drvinfo->driver, ATLX_DRIVER_NAME, sizeof(drvinfo->driver));
++	strlcpy(drvinfo->version, ATLX_DRIVER_VERSION,
+ 		sizeof(drvinfo->version));
+-	strncpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
+-	strncpy(drvinfo->bus_info, pci_name(adapter->pdev),
++	strlcpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
++	strlcpy(drvinfo->bus_info, pci_name(adapter->pdev),
+ 		sizeof(drvinfo->bus_info));
+ 	drvinfo->eedump_len = ATL1_EEDUMP_LEN;
+ }
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -96,6 +99,7 @@ dm-strncpy-does-not-null-terminate-string.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 media-strncpy-does-not-null-terminate-string.patch
 ipath-strncpy-does-not-null-terminate-string.patch
+atlx-strncpy-does-not-null-terminate-string.patch
 ext4-remove-redundant-test-on-unsigned.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 frv-duplicate-output_buffer-of-e03.patch
