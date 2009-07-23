@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-strncpy-does-not-null-terminate-string.patch added to -mm tree
-Date: Thu, 23 Jul 2009 13:44:23 -0700
-Message-ID: <200907232044.n6NKiN2V023321@imap1.linux-foundation.org>
+Subject: + ipath-strncpy-does-not-null-terminate-string.patch added to -mm tree
+Date: Thu, 23 Jul 2009 13:46:26 -0700
+Message-ID: <200907232046.n6NKkQGm026494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57986 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751782AbZGWUo1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751782AbZGWUqb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 16:44:27 -0400
+	Thu, 23 Jul 2009 16:46:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, randy.dunlap@oracle.com
+Cc: roel.kluin@gmail.com, ralph.campbell@qlogic.com, rolandd@cisco.com
 
 
 The patch titled
-     Documentation/: strncpy does not null terminate string
+     ipath: strncpy does not null terminate string
 has been added to the -mm tree.  Its filename is
-     documentation-strncpy-does-not-null-terminate-string.patch
+     ipath-strncpy-does-not-null-terminate-string.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/: strncpy does not null terminate string
+Subject: ipath: strncpy does not null terminate string
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With `sizeof(string) - 1` strncpy() will null terminate the string.
+strlcpy() will always null terminate the string.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Ralph Campbell <ralph.campbell@qlogic.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c                 |    2 +-
- Documentation/input/joystick-api.txt                 |    2 +-
- Documentation/networking/packet_mmap.txt             |    2 +-
- Documentation/networking/timestamping/timestamping.c |    4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_file_ops.c |    2 +-
+ drivers/infiniband/hw/ipath/ipath_mad.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/accounting/getdelays.c~documentation-strncpy-does-not-null-terminate-string Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~documentation-strncpy-does-not-null-terminate-string
-+++ a/Documentation/accounting/getdelays.c
-@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
- 				err(1, "Invalid rcv buf size\n");
- 			break;
- 		case 'm':
--			strncpy(cpumask, optarg, sizeof(cpumask));
-+			strlcpy(cpumask, optarg, sizeof(cpumask));
- 			maskset = 1;
- 			printf("cpumask %s maskset %d\n", cpumask, maskset);
- 			break;
-diff -puN Documentation/input/joystick-api.txt~documentation-strncpy-does-not-null-terminate-string Documentation/input/joystick-api.txt
---- a/Documentation/input/joystick-api.txt~documentation-strncpy-does-not-null-terminate-string
-+++ a/Documentation/input/joystick-api.txt
-@@ -230,7 +230,7 @@ possible overrun should the name be too 
+diff -puN drivers/infiniband/hw/ipath/ipath_file_ops.c~ipath-strncpy-does-not-null-terminate-string drivers/infiniband/hw/ipath/ipath_file_ops.c
+--- a/drivers/infiniband/hw/ipath/ipath_file_ops.c~ipath-strncpy-does-not-null-terminate-string
++++ a/drivers/infiniband/hw/ipath/ipath_file_ops.c
+@@ -1616,7 +1616,7 @@ static int try_alloc_port(struct ipath_d
+ 		pd->port_cnt = 1;
+ 		port_fp(fp) = pd;
+ 		pd->port_pid = get_pid(task_pid(current));
+-		strncpy(pd->port_comm, current->comm, sizeof(pd->port_comm));
++		strlcpy(pd->port_comm, current->comm, sizeof(pd->port_comm));
+ 		ipath_stats.sps_ports++;
+ 		ret = 0;
+ 	} else
+diff -puN drivers/infiniband/hw/ipath/ipath_mad.c~ipath-strncpy-does-not-null-terminate-string drivers/infiniband/hw/ipath/ipath_mad.c
+--- a/drivers/infiniband/hw/ipath/ipath_mad.c~ipath-strncpy-does-not-null-terminate-string
++++ a/drivers/infiniband/hw/ipath/ipath_mad.c
+@@ -60,7 +60,7 @@ static int recv_subn_get_nodedescription
+ 	if (smp->attr_mod)
+ 		smp->status |= IB_SMP_INVALID_FIELD;
  
- 	char name[128];
- 	if (ioctl(fd, JSIOCGNAME(sizeof(name)), name) < 0)
--		strncpy(name, "Unknown", sizeof(name));
-+		strlcpy(name, "Unknown", sizeof(name));
- 	printf("Name: %s\n", name);
+-	strncpy(smp->data, ibdev->node_desc, sizeof(smp->data));
++	strlcpy(smp->data, ibdev->node_desc, sizeof(smp->data));
  
- 
-diff -puN Documentation/networking/packet_mmap.txt~documentation-strncpy-does-not-null-terminate-string Documentation/networking/packet_mmap.txt
---- a/Documentation/networking/packet_mmap.txt~documentation-strncpy-does-not-null-terminate-string
-+++ a/Documentation/networking/packet_mmap.txt
-@@ -148,7 +148,7 @@ As capture, each frame contains two part
-  struct ifreq s_ifr;
-  ...
- 
-- strncpy (s_ifr.ifr_name, "eth0", sizeof(s_ifr.ifr_name));
-+ strlcpy (s_ifr.ifr_name, "eth0", sizeof(s_ifr.ifr_name));
- 
-  /* get interface index of eth0 */
-  ioctl(this->socket, SIOCGIFINDEX, &s_ifr);
-diff -puN Documentation/networking/timestamping/timestamping.c~documentation-strncpy-does-not-null-terminate-string Documentation/networking/timestamping/timestamping.c
---- a/Documentation/networking/timestamping/timestamping.c~documentation-strncpy-does-not-null-terminate-string
-+++ a/Documentation/networking/timestamping/timestamping.c
-@@ -374,12 +374,12 @@ int main(int argc, char **argv)
- 		bail("socket");
- 
- 	memset(&device, 0, sizeof(device));
--	strncpy(device.ifr_name, interface, sizeof(device.ifr_name));
-+	strlcpy(device.ifr_name, interface, sizeof(device.ifr_name));
- 	if (ioctl(sock, SIOCGIFADDR, &device) < 0)
- 		bail("getting interface IP address");
- 
- 	memset(&hwtstamp, 0, sizeof(hwtstamp));
--	strncpy(hwtstamp.ifr_name, interface, sizeof(hwtstamp.ifr_name));
-+	strlcpy(hwtstamp.ifr_name, interface, sizeof(hwtstamp.ifr_name));
- 	hwtstamp.ifr_data = (void *)&hwconfig;
- 	memset(&hwconfig, 0, sizeof(&hwconfig));
- 	hwconfig.tx_type =
+ 	return reply(smp);
+ }
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -112,6 +81,7 @@ linux-next.patch
 s3c-fix-check-of-index-into-s3c_gpios.patch
 stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ipath-strncpy-does-not-null-terminate-string.patch
 ext4-remove-redundant-test-on-unsigned.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 frv-duplicate-output_buffer-of-e03.patch
