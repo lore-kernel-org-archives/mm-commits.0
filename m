@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 23 Jul 2009 15:32:33 -0700
-Message-ID: <200907232232.n6NMWYbG031783@imap1.linux-foundation.org>
+Subject: + fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 23 Jul 2009 15:32:37 -0700
+Message-ID: <200907232232.n6NMWcFc031905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38551 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753950AbZGWWdd (ORCPT
+	by vger.kernel.org with ESMTP id S1754129AbZGWWdf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 18:33:33 -0400
+	Thu, 23 Jul 2009 18:33:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, mingo@elte.hu, pavel
 
 
 The patch titled
-     time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes
+     fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes.patch
+     fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes
+Subject: fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#214: FILE: kernel/time/timeconv.c:81:
-+ */ $
+WARNING: braces {} are not necessary for any arm of this statement
+#86: FILE: fs/fat/misc.c:212:
++	if (sbi->options.tz_utc) {
+[...]
++	} else {
+[...]
 
-total: 1 errors, 0 warnings, 215 lines checked
+total: 0 errors, 1 warnings, 95 lines checked
 
-./patches/time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch has style problems, please review.  If any of these errors
+./patches/fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -58,19 +61,26 @@ Cc: Zhaolei <zhaolei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/fat/misc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/time/Makefile~time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes kernel/time/Makefile
---- a/kernel/time/Makefile~time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes
-+++ a/kernel/time/Makefile
-@@ -1,4 +1,5 @@
--obj-y += timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timecompare.o timeconv.o
-+obj-y +=	timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o \
-+		timecompare.o timeconv.o
+diff -puN fs/fat/misc.c~fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes fs/fat/misc.c
+--- a/fs/fat/misc.c~fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes
++++ a/fs/fat/misc.c
+@@ -209,11 +209,10 @@ void fat_time_unix2fat(struct msdos_sb_i
+ 		       __le16 *time, __le16 *date, u8 *time_cs)
+ {
+ 	struct tm tm;
+-	if (sbi->options.tz_utc) {
++	if (sbi->options.tz_utc)
+ 		gmtime_r(ts->tv_sec, &tm);
+-	} else {
++	else
+ 		localtime_r(ts->tv_sec, &tm);
+-	}
  
- obj-$(CONFIG_GENERIC_CLOCKEVENTS_BUILD)		+= clockevents.o
- obj-$(CONFIG_GENERIC_CLOCKEVENTS)		+= tick-common.o
+ 	/*  FAT can only support year between 1980 to 2107 */
+ 	if (tm.tm_year < 1980 - 1900) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
