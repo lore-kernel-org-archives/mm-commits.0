@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + documentation-strncpy-does-not-null-terminate-string.patch added to -mm tree
-Date: Thu, 23 Jul 2009 13:43:45 -0700
-Message-ID: <200907232043.n6NKhjTV022280@imap1.linux-foundation.org>
+Date: Thu, 23 Jul 2009 13:44:23 -0700
+Message-ID: <200907232044.n6NKiN2V023321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33652 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752276AbZGWUnv (ORCPT
+	by vger.kernel.org with ESMTP id S1751782AbZGWUo1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 16:43:51 -0400
+	Thu, 23 Jul 2009 16:44:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -58,7 +58,7 @@ diff -puN Documentation/accounting/getdelays.c~documentation-strncpy-does-not-nu
  			break;
  		case 'm':
 -			strncpy(cpumask, optarg, sizeof(cpumask));
-+			strncpy(cpumask, optarg, sizeof(cpumask) - 1);
++			strlcpy(cpumask, optarg, sizeof(cpumask));
  			maskset = 1;
  			printf("cpumask %s maskset %d\n", cpumask, maskset);
  			break;
@@ -70,7 +70,7 @@ diff -puN Documentation/input/joystick-api.txt~documentation-strncpy-does-not-nu
  	char name[128];
  	if (ioctl(fd, JSIOCGNAME(sizeof(name)), name) < 0)
 -		strncpy(name, "Unknown", sizeof(name));
-+		strncpy(name, "Unknown", sizeof(name) - 1);
++		strlcpy(name, "Unknown", sizeof(name));
  	printf("Name: %s\n", name);
  
  
@@ -82,7 +82,7 @@ diff -puN Documentation/networking/packet_mmap.txt~documentation-strncpy-does-no
   ...
  
 - strncpy (s_ifr.ifr_name, "eth0", sizeof(s_ifr.ifr_name));
-+ strncpy (s_ifr.ifr_name, "eth0", sizeof(s_ifr.ifr_name) - 1);
++ strlcpy (s_ifr.ifr_name, "eth0", sizeof(s_ifr.ifr_name));
  
   /* get interface index of eth0 */
   ioctl(this->socket, SIOCGIFINDEX, &s_ifr);
@@ -94,13 +94,13 @@ diff -puN Documentation/networking/timestamping/timestamping.c~documentation-str
  
  	memset(&device, 0, sizeof(device));
 -	strncpy(device.ifr_name, interface, sizeof(device.ifr_name));
-+	strncpy(device.ifr_name, interface, sizeof(device.ifr_name) - 1);
++	strlcpy(device.ifr_name, interface, sizeof(device.ifr_name));
  	if (ioctl(sock, SIOCGIFADDR, &device) < 0)
  		bail("getting interface IP address");
  
  	memset(&hwtstamp, 0, sizeof(hwtstamp));
 -	strncpy(hwtstamp.ifr_name, interface, sizeof(hwtstamp.ifr_name));
-+	strncpy(hwtstamp.ifr_name, interface, sizeof(hwtstamp.ifr_name) - 1);
++	strlcpy(hwtstamp.ifr_name, interface, sizeof(hwtstamp.ifr_name));
  	hwtstamp.ifr_data = (void *)&hwconfig;
  	memset(&hwconfig, 0, sizeof(&hwconfig));
  	hwconfig.tx_type =
