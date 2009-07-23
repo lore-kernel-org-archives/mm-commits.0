@@ -1,82 +1,315 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-add-support-for-new-amd-smbus-devices.patch added to -mm tree
-Date: Thu, 23 Jul 2009 15:22:16 -0700
-Message-ID: <200907232222.n6NMMGvl015458@imap1.linux-foundation.org>
+Subject: [to-be-updated] kernel-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch removed from -mm tree
+Date: Thu, 23 Jul 2009 15:24:03 -0700
+Message-ID: <200907232224.n6NMO3LT018244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754709AbZGWWWT (ORCPT
+	by vger.kernel.org with ESMTP id S1753895AbZGWWYZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 18:22:19 -0400
+	Thu, 23 Jul 2009 18:24:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: crane.cai@amd.com
+To: zhaolei@cn.fujitsu.com, hirofumi@mail.parknet.co.jp, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c: add support for new AMD SMBus devices
-has been added to the -mm tree.  Its filename is
-     i2c-add-support-for-new-amd-smbus-devices.patch
+     kernel/time/: add function to convert between calendar time and broken-down time for universal use
+has been removed from the -mm tree.  Its filename was
+     kernel-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: add support for new AMD SMBus devices
-From: Crane Cai <crane.cai@amd.com>
+Subject: kernel/time/: add function to convert between calendar time and broken-down time for universal use
+From: Zhaolei <zhaolei@cn.fujitsu.com>
 
-Use driver to detect SMBus devices with Vendor ID AMD and class code is
-SMBus.
+There are many similar code in kernel for one object: convert time between
+calendar time and broken-down time.
 
-Signed-off-by: Crane Cai <crane.cai@amd.com>
+Here is some source I found:
+fs/ncpfs/dir.c
+fs/smbfs/proc.c
+fs/fat/misc.c
+fs/udf/udftime.c
+fs/cifs/netmisc.c
+net/netfilter/xt_time.c
+drivers/scsi/ips.c
+drivers/input/misc/hp_sdc_rtc.c
+drivers/rtc/rtc-lib.c
+arch/ia64/hp/sim/boot/fw-emu.c
+arch/m68k/mac/misc.c
+arch/powerpc/kernel/time.c
+arch/parisc/include/asm/rtc.h
+...
+
+We can make a common function for this type of convert,
+At least we can get following benefit:
+1: Make kernel simple and unify
+2: Easy to fix bug in converting code
+3: Reduce clone of code in future
+   For example, I'm trying to make ftrace display walltime,
+   this patch will make me easy.
+
+This code is based on code from glibc-2.6
+
+Signed-off-by: Zhao Lei <zhaolei@cn.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-piix4.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ include/linux/time.h   |   62 +++++++++++++++
+ kernel/time/Makefile   |    2 
+ kernel/time/timeconv.c |  153 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 216 insertions(+), 1 deletion(-)
 
-diff -puN drivers/i2c/busses/i2c-piix4.c~i2c-add-support-for-new-amd-smbus-devices drivers/i2c/busses/i2c-piix4.c
---- a/drivers/i2c/busses/i2c-piix4.c~i2c-add-support-for-new-amd-smbus-devices
-+++ a/drivers/i2c/busses/i2c-piix4.c
-@@ -479,6 +479,10 @@ static struct pci_device_id piix4_ids[] 
- 	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP300_SMBUS) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP400_SMBUS) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_SBX00_SMBUS) },
-+	/* AMD Generic, PCI class code and Vendor ID for SMBus */
-+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_ANY_ID),
-+	  .class = PCI_CLASS_SERIAL_SMBUS << 8,
-+	  .class_mask = 0xffffff },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_SERVERWORKS,
- 		     PCI_DEVICE_ID_SERVERWORKS_OSB4) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_SERVERWORKS,
-@@ -499,9 +503,10 @@ static int __devinit piix4_probe(struct 
- {
- 	int retval;
+diff -puN include/linux/time.h~kernel-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use include/linux/time.h
+--- a/include/linux/time.h~kernel-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use
++++ a/include/linux/time.h
+@@ -151,6 +151,68 @@ extern void update_xtime_cache(u64 nsec)
+ struct tms;
+ extern void do_sys_times(struct tms *);
  
--	if ((dev->vendor == PCI_VENDOR_ID_ATI) &&
-+	if (((dev->vendor == PCI_VENDOR_ID_ATI) &&
- 	    (dev->device == PCI_DEVICE_ID_ATI_SBX00_SMBUS) &&
--	    (dev->revision >= 0x40))
-+	    (dev->revision >= 0x40)) ||
-+	    dev->vendor == PCI_VENDOR_ID_AMD)
- 		/* base address location etc changed in SB800 */
- 		retval = piix4_setup_sb800(dev, id);
- 	else
++extern void __offtime(__kernel_time_t totalsecs, int offset,
++		      unsigned int *year, unsigned int *mon, unsigned int *mday,
++		      unsigned int *hour, unsigned int *min, unsigned int *sec,
++		      unsigned int *wday, unsigned int *yday);
++
++/**
++ * gmtime - converts the calendar time to UTC broken-down time
++ *
++ * @totalsecs	The number of seconds elapsed since 00:00:00 on January 1, 1970,
++ *		Coordinated Universal Time (UTC).
++ * @year	Store the number of years since 1900.
++ * @mon		Store the number of months since January, in the range 0 to 11.
++ * @mday	Store the day of the month, in the range 1 to 31.
++ * @hour	Store the number of hours past midnight, in the range 0 to 23.
++ * @min		Store the number of minutes after the hour,
++ *		in the range 0 to 59.
++ * @sec		Store the number of seconds after the minute, normally in the
++ *		range 0 to 59, but can be up to 60 to allow for leap seconds.
++ * @wday	Store the number of days since Sunday, in the range 0 to 6.
++ * @yday	Store the number of days since January 1, in the range 0 to 365.
++ *
++ * Similar to the gmtime() in glibc, broken-down time is expressed in
++ * Coordinated Universal Time (UTC).
++ */
++static inline void gmtime(__kernel_time_t totalsecs,
++			  unsigned int *year, unsigned int *mon,
++			  unsigned int *mday, unsigned int *hour,
++			  unsigned int *min,  unsigned int *sec,
++			  unsigned int *wday, unsigned int *yday)
++{
++	__offtime(totalsecs, 0, year, mon, mday, hour, min, sec, wday, yday);
++}
++
++/**
++ * localtime - converts the calendar time to local broken-down time
++ *
++ * @totalsecs	The number of seconds elapsed since 00:00:00 on January 1, 1970,
++ *		Coordinated Universal Time (UTC).
++ * @year	Store the number of years since 1900.
++ * @mon		Store the number of months since January, in the range 0 to 11.
++ * @mday	Store the day of the month, in the range 1 to 31.
++ * @hour	Store the number of hours past midnight, in the range 0 to 23.
++ * @min		Store the number of minutes after the hour,
++ *		in the range 0 to 59.
++ * @sec		Store the number of seconds after the minute, normally in the
++ *		range 0 to 59, but can be up to 60 to allow for leap seconds.
++ * @wday	Store the number of days since Sunday, in the range 0 to 6.
++ * @yday	Store the number of days since January 1, in the range 0 to 365.
++ *
++ * Similar to the localtime() in glibc, broken-down time is expressed
++ * relative to sys_tz.
++ */
++static inline void localtime(__kernel_time_t totalsecs,
++			     unsigned int *year, unsigned int *mon,
++			     unsigned int *mday, unsigned int *hour,
++			     unsigned int *min,  unsigned int *sec,
++			     unsigned int *wday, unsigned int *yday)
++{
++	__offtime(totalsecs, -sys_tz.tz_minuteswest * 60, year, mon, mday, hour,
++		  min, sec, wday, yday);
++}
++
+ /**
+  * timespec_to_ns - Convert timespec to nanoseconds
+  * @ts:		pointer to the timespec variable to be converted
+diff -puN kernel/time/Makefile~kernel-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use kernel/time/Makefile
+--- a/kernel/time/Makefile~kernel-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use
++++ a/kernel/time/Makefile
+@@ -1,4 +1,4 @@
+-obj-y += timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timecompare.o
++obj-y += timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timecompare.o timeconv.o
+ 
+ obj-$(CONFIG_GENERIC_CLOCKEVENTS_BUILD)		+= clockevents.o
+ obj-$(CONFIG_GENERIC_CLOCKEVENTS)		+= tick-common.o
+diff -puN /dev/null kernel/time/timeconv.c
+--- /dev/null
++++ a/kernel/time/timeconv.c
+@@ -0,0 +1,153 @@
++/*
++ * Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
++ * This file is part of the GNU C Library.
++ * Contributed by Paul Eggert (eggert@twinsun.com).
++ *
++ * The GNU C Library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version.
++ *
++ * The GNU C Library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with the GNU C Library; see the file COPYING.LIB.  If not,
++ * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++ * Boston, MA 02111-1307, USA.
++ */
++
++/*
++ * Converts the calendar time to broken-down time representation
++ * Based on code from glibc-2.6
++ *
++ * 2009-7-14:
++ *   Moved from glibc-2.6 to kernel by Zhaolei<zhaolei@cn.fujitsu.com>
++ */
++
++#include <linux/time.h>
++#include <linux/module.h>
++
++/*
++ * Nonzero if YEAR is a leap year (every 4 years,
++ * except every 100th isn't, and every 400th is).
++ */
++static int __isleap(unsigned int year)
++{
++	return (year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0);
++}
++
++/* do a mathdiv for long type */
++static long math_div(long a, long b)
++{
++	return a / b - (a % b < 0);
++}
++
++/* How many leap years between y1 and y2, y1 must less or equal to y2 */
++static long leaps_between(long y1, long y2)
++{
++	long leaps1 = math_div(y1 - 1, 4) - math_div(y1 - 1, 100)
++		+ math_div(y1 - 1, 400);
++	long leaps2 = math_div(y2 - 1, 4) - math_div(y2 - 1, 100)
++		+ math_div(y2 - 1, 400);
++	return leaps2 - leaps1;
++}
++
++/* How many days come before each month (0-12). */
++static const unsigned short __mon_yday[2][13] = {
++	/* Normal years. */
++	{0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
++	/* Leap years. */
++	{0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
++};
++
++#define SECS_PER_HOUR	(60 * 60)
++#define SECS_PER_DAY	(SECS_PER_HOUR * 24)
++
++/**
++ * __offtime - converts the calendar time to local broken-down time
++ *
++ * @totalsecs	The number of seconds elapsed since 00:00:00 on January 1, 1970,
++ *		Coordinated Universal Time (UTC).
++ * @offset	Offset seconds adding to totalsecs.
++ * @year	Store the number of years since 1900.
++ * @mon		Store the number of months since January, in the range 0 to 11.
++ * @mday	Store the day of the month, in the range 1 to 31.
++ * @hour	Store the number of hours past midnight, in the range 0 to 23.
++ * @min		Store the number of minutes after the hour,
++ *		in the range 0 to 59.
++ * @sec		Store the number of seconds after the minute, normally in the
++ *		range 0 to 59, but can be up to 60 to allow for leap seconds.
++ * @wday	Store the number of days since Sunday, in the range 0 to 6.
++ * @yday	Store the number of days since January 1, in the range 0 to 365.
++ *
++ * This function is for internal use, call gmtime() and localtime() instead.
++ */
++void __offtime(__kernel_time_t totalsecs, int offset,
++	       unsigned int *year, unsigned int *mon, unsigned int *mday,
++	       unsigned int *hour, unsigned int *min, unsigned int *sec,
++	       unsigned int *wday, unsigned int *yday)
++{
++	long days, rem, y;
++	const unsigned short *ip;
++
++	days = totalsecs / SECS_PER_DAY;
++	rem = totalsecs % SECS_PER_DAY;
++	rem += offset;
++	while (rem < 0) {
++		rem += SECS_PER_DAY;
++		--days;
++	}
++	while (rem >= SECS_PER_DAY) {
++		rem -= SECS_PER_DAY;
++		++days;
++	}
++
++	if (hour)
++		*hour = rem / SECS_PER_HOUR;
++	rem %= SECS_PER_HOUR;
++	if (min)
++		*min = rem / 60;
++	if (sec)
++		*sec = rem % 60;
++
++	if (wday) {
++		/* January 1, 1970 was a Thursday. */
++		*wday = (4 + days) % 7;
++		if (*wday < 0)
++			*wday += 7;
++	}
++
++	y = 1970;
++
++	while (days < 0 || days >= (__isleap(y) ? 366 : 365)) {
++		/* Guess a corrected year, assuming 365 days per year. */
++		long yg = y + math_div(days, 365);
++
++		/* Adjust DAYS and Y to match the guessed year. */
++		days -= (yg - y) * 365 + leaps_between(y, yg);
++		y = yg;
++	}
++	if (year) {
++		*year = y - 1900;
++		if (*year != y - 1900) {
++			/* The year cannot be represented due to overflow. */
++			*year = -1;
++		}
++	}
++
++	if (yday)
++		*yday = days;
++
++	ip = __mon_yday[__isleap(y)];
++	for (y = 11; days < ip[y]; y--)
++		continue;
++	days -= ip[y];
++	if (mon)
++		*mon = y;
++	if (mday)
++		*mday = days + 1;
++}
++EXPORT_SYMBOL(__offtime);
 _
 
-Patches currently in -mm which might be from crane.cai@amd.com are
+Patches currently in -mm which might be from zhaolei@cn.fujitsu.com are
 
-i2c-add-support-for-new-amd-smbus-devices.patch
+kernel-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
+fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat.patch
 
