@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-prevent-mremap-move-poisoning.patch added to -mm tree
-Date: Thu, 23 Jul 2009 14:07:49 -0700
-Message-ID: <200907232107.n6NL7n7o027844@imap1.linux-foundation.org>
+Subject: + ksm-identify-pageksm-pages.patch added to -mm tree
+Date: Thu, 23 Jul 2009 14:07:38 -0700
+Message-ID: <200907232107.n6NL7dnV027567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33412 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51403 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753862AbZGWVIQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754320AbZGWVI1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 17:08:16 -0400
+	Thu, 23 Jul 2009 17:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, avi@redhat.com, balbir@in.i
 
 
 The patch titled
-     ksm: prevent mremap move poisoning
+     ksm: identify PageKsm pages
 has been added to the -mm tree.  Its filename is
-     ksm-prevent-mremap-move-poisoning.patch
+     ksm-identify-pageksm-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: prevent mremap move poisoning
+Subject: ksm: identify PageKsm pages
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-KSM's scan allows for user pages to be COWed or unmapped at any time,
-without requiring any notification.  But its stable tree does assume that
-when it finds a KSM page where it placed a KSM page, then it is the same
-KSM page that it placed there.
+KSM will need to identify its kernel merged pages unambiguously, and
+/proc/kpageflags will probably like to do so too.
 
-mremap move could break that assumption: if an area containing a KSM page
-was unmapped, then an area containing a different KSM page was moved with
-mremap into the place of the original, before KSM's scan came around to
-notice.  That could then poison a node of the stable tree, so that memcmps
-would "lie" and upset the ordering of the tree.
+Since KSM will only be substituting anonymous pages, statistics are best
+preserved by making a PageKsm page a special PageAnon page: one with no
+anon_vma.
 
-Probably noone will ever need mremap move on a VM_MERGEABLE area; except
-that prohibiting it would make trouble for schemes in which we try making
-everything VM_MERGEABLE e.g.  for testing: an mremap which normally works
-would then fail mysteriously.
-
-There's no need to go to any trouble, such as re-sorting KSM's list of
-rmap_items to match the new layout: simply unmerge the area to COW all its
-KSM pages before moving, but leave VM_MERGEABLE on so that they're
-remerged later.
+But KSM then needs its own page_add_ksm_rmap() - keep it in ksm.h near
+PageKsm; and do_wp_page() must COW them, unlike singly mapped PageAnons.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Chris Wright <chrisw@redhat.com>
 Signed-off-by: Izik Eidus <ieidus@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
@@ -73,38 +63,113 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/proc/page.c      |    5 +++++
+ include/linux/ksm.h |   29 +++++++++++++++++++++++++++++
+ mm/memory.c         |    3 ++-
+ 3 files changed, 36 insertions(+), 1 deletion(-)
 
-diff -puN mm/mremap.c~ksm-prevent-mremap-move-poisoning mm/mremap.c
---- a/mm/mremap.c~ksm-prevent-mremap-move-poisoning
-+++ a/mm/mremap.c
-@@ -11,6 +11,7 @@
- #include <linux/hugetlb.h>
- #include <linux/slab.h>
- #include <linux/shm.h>
+diff -puN fs/proc/page.c~ksm-identify-pageksm-pages fs/proc/page.c
+--- a/fs/proc/page.c~ksm-identify-pageksm-pages
++++ a/fs/proc/page.c
+@@ -2,6 +2,7 @@
+ #include <linux/compiler.h>
+ #include <linux/fs.h>
+ #include <linux/init.h>
 +#include <linux/ksm.h>
- #include <linux/mman.h>
- #include <linux/swap.h>
- #include <linux/capability.h>
-@@ -182,6 +183,17 @@ static unsigned long move_vma(struct vm_
- 	if (mm->map_count >= sysctl_max_map_count - 3)
- 		return -ENOMEM;
+ #include <linux/mm.h>
+ #include <linux/mmzone.h>
+ #include <linux/proc_fs.h>
+@@ -95,6 +96,8 @@ static const struct file_operations proc
+ #define KPF_UNEVICTABLE		18
+ #define KPF_NOPAGE		20
  
-+	/*
-+	 * Advise KSM to break any KSM pages in the area to be moved:
-+	 * it would be confusing if they were to turn up at the new
-+	 * location, where they happen to coincide with different KSM
-+	 * pages recently unmapped.  But leave vma->vm_flags as it was,
-+	 * so KSM can come around to merge on vma and new_vma afterwards.
-+	 */
-+	if (ksm_madvise(vma, old_addr, old_addr + old_len,
-+						MADV_UNMERGEABLE, &vm_flags))
-+		return -ENOMEM;
++#define KPF_KSM			21
 +
- 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
- 	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff);
- 	if (!new_vma)
+ /* kernel hacking assistances
+  * WARNING: subject to change, never rely on them!
+  */
+@@ -137,6 +140,8 @@ static u64 get_uflags(struct page *page)
+ 		u |= 1 << KPF_MMAP;
+ 	if (PageAnon(page))
+ 		u |= 1 << KPF_ANON;
++	if (PageKsm(page))
++		u |= 1 << KPF_KSM;
+ 
+ 	/*
+ 	 * compound pages: export both head/tail info
+diff -puN include/linux/ksm.h~ksm-identify-pageksm-pages include/linux/ksm.h
+--- a/include/linux/ksm.h~ksm-identify-pageksm-pages
++++ a/include/linux/ksm.h
+@@ -10,6 +10,7 @@
+ #include <linux/bitops.h>
+ #include <linux/mm.h>
+ #include <linux/sched.h>
++#include <linux/vmstat.h>
+ 
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+@@ -29,6 +30,27 @@ static inline void ksm_exit(struct mm_st
+ 	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
+ 		__ksm_exit(mm);
+ }
++
++/*
++ * A KSM page is one of those write-protected "shared pages" or "merged pages"
++ * which KSM maps into multiple mms, wherever identical anonymous page content
++ * is found in VM_MERGEABLE vmas.  It's a PageAnon page, with NULL anon_vma.
++ */
++static inline int PageKsm(struct page *page)
++{
++	return ((unsigned long)page->mapping == PAGE_MAPPING_ANON);
++}
++
++/*
++ * But we have to avoid the checking which page_add_anon_rmap() performs.
++ */
++static inline void page_add_ksm_rmap(struct page *page)
++{
++	if (atomic_inc_and_test(&page->_mapcount)) {
++		page->mapping = (void *) PAGE_MAPPING_ANON;
++		__inc_zone_page_state(page, NR_ANON_PAGES);
++	}
++}
+ #else  /* !CONFIG_KSM */
+ 
+ static inline int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+@@ -45,6 +67,13 @@ static inline int ksm_fork(struct mm_str
+ static inline void ksm_exit(struct mm_struct *mm)
+ {
+ }
++
++static inline int PageKsm(struct page *page)
++{
++	return 0;
++}
++
++/* No stub required for page_add_ksm_rmap(page) */
+ #endif /* !CONFIG_KSM */
+ 
+ #endif
+diff -puN mm/memory.c~ksm-identify-pageksm-pages mm/memory.c
+--- a/mm/memory.c~ksm-identify-pageksm-pages
++++ a/mm/memory.c
+@@ -45,6 +45,7 @@
+ #include <linux/swap.h>
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
++#include <linux/ksm.h>
+ #include <linux/rmap.h>
+ #include <linux/module.h>
+ #include <linux/delayacct.h>
+@@ -1972,7 +1973,7 @@ static int do_wp_page(struct mm_struct *
+ 	 * Take out anonymous pages first, anonymous shared vmas are
+ 	 * not dirty accountable.
+ 	 */
+-	if (PageAnon(old_page)) {
++	if (PageAnon(old_page) && !PageKsm(old_page)) {
+ 		if (!trylock_page(old_page)) {
+ 			page_cache_get(old_page);
+ 			pte_unmap_unlock(page_table, ptl);
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
