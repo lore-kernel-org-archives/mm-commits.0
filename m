@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch added to -mm tree
-Date: Thu, 23 Jul 2009 13:28:20 -0700
-Message-ID: <200907232028.n6NKSKsX030442@imap1.linux-foundation.org>
+Subject: + bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch added to -mm tree
+Date: Thu, 23 Jul 2009 13:28:17 -0700
+Message-ID: <200907232028.n6NKSHeO030385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754544AbZGWU23 (ORCPT
+	by vger.kernel.org with ESMTP id S1754557AbZGWU2c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 16:28:29 -0400
+	Thu, 23 Jul 2009 16:28:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hidave.darkstar@gmail.com, jkosina@suse.cz, lamarque@gmail.com, marcel@holtmann.org
+Cc: lamarque@gmail.com, hidave.darkstar@gmail.com, jkosina@suse.cz, marcel@holtmann.org
 
 
 The patch titled
-     bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix
+     bluetooth: fix for Acer Bluetooth Optical Rechargeable Mouse
 has been added to the -mm tree.  Its filename is
-     bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+     bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bluetooth: fix for Acer Bluetooth Optical Rechargeable Mouse
+From: Lamarque Vieira Souza <lamarque@gmail.com>
 
-Use ARRAY_SIZE()-based search.
+Work around one problem with my Acer Bluetooth Optical Rechargeable Mouse
+where the cursor gets stuck at screen's upper-left corner.
 
+Even my notebook's touchpad is not able to move cursor when the bluetooth
+mouse is connected to my Acer Ferrari 4005 notebook.
+
+Using input session instead of hid session solves this problem although
+the cursor still moves a little sluggishly with the bluetooth mouse,
+cursor moves correctly using the touchpad.
+
+My bluetooth mouse used to work well (no sluggish) until kernel 2.6.21,
+since then the problems are getting worse with each kernel release (it got
+sluggish in 2.6.22 and this this upper-left corner problem appeared in
+2.6.28 or 2.6.27).
+
+The patch adds a general quirk handling framework to the HIDP core and
+then uses this framework to implement a quirk for this device.
+
+Signed-off-by: Lamarque V. Souza <lamarque@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Cc: Dave Young <hidave.darkstar@gmail.com>
 Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Lamarque V. Souza <lamarque@gmail.com>
-Cc: Lamarque Vieira Souza <lamarque@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hidp/core.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ net/bluetooth/hidp/core.c |   41 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 40 insertions(+), 1 deletion(-)
 
-diff -puN net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix net/bluetooth/hidp/core.c
---- a/net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix
+diff -puN net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse
 +++ a/net/bluetooth/hidp/core.c
-@@ -92,20 +92,18 @@ static const struct quirk_id hidp_quirks
- 		.product = 0x0058,
- 		.quirks = 1 << HIDP_QUIRK_USE_INPUT_SESSION
- 	},
--
--	{ /* end: all zeroes */ }
- };
+@@ -73,6 +73,43 @@ static unsigned char hidp_keycode[256] =
  
- static int quirk_test_bit(__u16 vendor, __u16 product, int quirk)
+ static unsigned char hidp_mkeyspat[] = { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01 };
+ 
++/* HIDP device quirks */
++enum {
++	HIDP_QUIRK_USE_INPUT_SESSION
++};
++
++struct quirk_id {
++	__u16 vendor;
++	__u16 product;
++	unsigned long quirks;
++};
++
++static const struct quirk_id hidp_quirks[] = {
++	{
++		/* Lamarque: Acer Bluetooth Optical Rechargeable Mouse
++		 * does not work properly with hid session since 2.6.27. */
++		.vendor = 0x0458,
++		.product = 0x0058,
++		.quirks = 1 << HIDP_QUIRK_USE_INPUT_SESSION
++	},
++
++	{ /* end: all zeroes */ }
++};
++
++static int quirk_test_bit(__u16 vendor, __u16 product, int quirk)
++{
++	const struct quirk_id *q = &hidp_quirks[0];
++
++	while (q->vendor != vendor && q->product != product &&
++	       q->vendor && q->product)
++		q++;
++
++	if (q->vendor == vendor && q->product == product)
++		return test_bit(quirk, &q->quirks);
++
++	return 0;
++}
++
+ static struct hidp_session *__hidp_get_session(bdaddr_t *bdaddr)
  {
--	const struct quirk_id *q = &hidp_quirks[0];
-+	int i;
+ 	struct hidp_session *session;
+@@ -833,7 +870,9 @@ int hidp_add_connection(struct hidp_conn
+ 	session->flags   = req->flags & (1 << HIDP_BLUETOOTH_VENDOR_ID);
+ 	session->idle_to = req->idle_to;
  
--	while (q->vendor != vendor && q->product != product &&
--	       q->vendor && q->product)
--		q++;
-+	for (i = 0; i < ARRAY_SIZE(hidp_quirks); i++) {
-+		const struct quirk_id *q = hidp_quirks + i;
- 
--	if (q->vendor == vendor && q->product == product)
--		return test_bit(quirk, &q->quirks);
-+		if (q->vendor == vendor && q->product == product)
-+			return test_bit(quirk, &q->quirks);
-+	}
- 
- 	return 0;
- }
+-	if (req->rd_size > 0) {
++	if (req->rd_size > 0 &&
++	    !quirk_test_bit(req->vendor, req->product,
++			   HIDP_QUIRK_USE_INPUT_SESSION)) {
+ 		err = hidp_setup_hid(session, req);
+ 		if (err && err != -ENODEV)
+ 			goto err_skb;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lamarque@gmail.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-serial-add-irqflags-support.patch
-revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
-dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-vfs-optimize-touch_time-too-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
