@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-menu-governor-reduce-latency-on-exit.patch added to -mm tree
-Date: Thu, 23 Jul 2009 15:05:22 -0700
-Message-ID: <200907232205.n6NM5Mn7021128@imap1.linux-foundation.org>
+Subject: + preempt_active-add-default-defines.patch added to -mm tree
+Date: Thu, 23 Jul 2009 15:18:38 -0700
+Message-ID: <200907232218.n6NMIcIU009642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57433 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754577AbZGWWFz (ORCPT
+	by vger.kernel.org with ESMTP id S1753900AbZGWWTC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 18:05:55 -0400
+	Thu, 23 Jul 2009 18:19:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: czoccolo@gmail.com, abelay@novell.com, len.brown@intel.com, venkatesh.pallipadi@intel.com
+Cc: arnd@arndb.de, mingo@elte.hu, tglx@linutronix.de, vapier@gentoo.org
 
 
 The patch titled
-     cpuidle: menu governor: reduce latency on exit
+     PREEMPT_ACTIVE: add default defines
 has been added to the -mm tree.  Its filename is
-     cpuidle-menu-governor-reduce-latency-on-exit.patch
+     preempt_active-add-default-defines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuidle: menu governor: reduce latency on exit
-From: Corrado Zoccolo <czoccolo@gmail.com>
+Subject: PREEMPT_ACTIVE: add default defines
+From: Arnd Bergmann <arnd@arndb.de>
 
-Move the state residency accounting and statistics computation off the hot
-exit path.
+The PREEMPT_ACTIVE setting doesn't actually need to be arch-specific, so
+set up a sane default for all arches to (hopefully) migrate to.
 
-On exit, the need to recompute statistics is recorded, and new statistics
-will be computed when menu_select is called again.
+> if we look at linux/hardirq.h, it makes this claim:
+>  * - bit 28 is the PREEMPT_ACTIVE flag
+> if that's true, then why are we letting any arch set this define ?  a
+> quick survey shows that half the arches (11) are using 0x10000000 (bit
+> 28) while the other half (10) are using 0x4000000 (bit 26).  and then
+> there is the ia64 oddity which uses bit 30.  the exact value here
+> shouldnt really matter across arches though should it ?
 
-Signed-off-by: Corrado Zoccolo <czoccolo@gmail.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Adam Belay <abelay@novell.com
+actually alpha, arm and avr32 also use bit 30 (0x40000000), there are only
+five (or eight, depending on how you count) architectures (blackfin,
+h8300, m68k, s390 and sparc) using bit 26.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/menu.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ include/linux/hardirq.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/cpuidle/governors/menu.c~cpuidle-menu-governor-reduce-latency-on-exit drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~cpuidle-menu-governor-reduce-latency-on-exit
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -19,6 +19,7 @@
+diff -puN include/linux/hardirq.h~preempt_active-add-default-defines include/linux/hardirq.h
+--- a/include/linux/hardirq.h~preempt_active-add-default-defines
++++ a/include/linux/hardirq.h
+@@ -64,6 +64,12 @@
+ #define HARDIRQ_OFFSET	(1UL << HARDIRQ_SHIFT)
+ #define NMI_OFFSET	(1UL << NMI_SHIFT)
  
- struct menu_device {
- 	int		last_state_idx;
-+	int             needs_update;
- 
- 	unsigned int	expected_us;
- 	unsigned int	predicted_us;
-@@ -29,6 +30,8 @@ struct menu_device {
- 
- static DEFINE_PER_CPU(struct menu_device, menu_devices);
- 
-+static void menu_update(struct cpuidle_device *dev);
++#ifndef PREEMPT_ACTIVE
++#define PREEMPT_ACTIVE_BITS	1
++#define PREEMPT_ACTIVE_SHIFT	(NMI_SHIFT + NMI_BITS)
++#define PREEMPT_ACTIVE	(__IRQ_MASK(PREEMPT_ACTIVE_BITS) << PREEMPT_ACTIVE_SHIFT)
++#endif
 +
- /**
-  * menu_select - selects the next idle state to enter
-  * @dev: the CPU
-@@ -39,6 +42,11 @@ static int menu_select(struct cpuidle_de
- 	int latency_req = pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY);
- 	int i;
- 
-+	if (data->needs_update) {
-+		menu_update(dev);
-+		data->needs_update = 0;
-+	}
-+
- 	/* Special case when user has set very strict latency requirement */
- 	if (unlikely(latency_req == 0)) {
- 		data->last_state_idx = 0;
-@@ -72,7 +80,7 @@ static int menu_select(struct cpuidle_de
- }
- 
- /**
-- * menu_reflect - attempts to guess what happened after entry
-+ * menu_reflect - records that data structures need update
-  * @dev: the CPU
-  *
-  * NOTE: it's important to be fast here because this operation will add to
-@@ -81,6 +89,16 @@ static int menu_select(struct cpuidle_de
- static void menu_reflect(struct cpuidle_device *dev)
- {
- 	struct menu_device *data = &__get_cpu_var(menu_devices);
-+	data->needs_update = 1;
-+}
-+
-+/**
-+ * menu_update - attempts to guess what happened after entry
-+ * @dev: the CPU
-+ */
-+static void menu_update(struct cpuidle_device *dev)
-+{
-+	struct menu_device *data = &__get_cpu_var(menu_devices);
- 	int last_idx = data->last_state_idx;
- 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
- 	struct cpuidle_state *target = &dev->states[last_idx];
+ #if PREEMPT_ACTIVE < (1 << (NMI_SHIFT + NMI_BITS))
+ #error PREEMPT_ACTIVE is too low!
+ #endif
 _
 
-Patches currently in -mm which might be from czoccolo@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-cpuidle-menu-governor-reduce-latency-on-exit.patch
+linux-next.patch
+preempt_active-add-default-defines.patch
+asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
+kallsyms-use-new-arch_is_kernel_text.patch
+lockdep-use-new-arch_is_kernel_data.patch
+blackfin-override-text-data-checking-functions.patch
+asm-generic-remove-calling-flush_write_buffers-in-dma_sync__for_cpu.patch
 
