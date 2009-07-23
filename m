@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-convert-to-use-arch_gettimeoffset.patch added to -mm tree
-Date: Thu, 23 Jul 2009 13:16:48 -0700
-Message-ID: <200907232016.n6NKGmxZ012175@imap1.linux-foundation.org>
+Subject: + bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch added to -mm tree
+Date: Thu, 23 Jul 2009 13:28:20 -0700
+Message-ID: <200907232028.n6NKSKsX030442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43630 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751756AbZGWUQw (ORCPT
+	by vger.kernel.org with ESMTP id S1754544AbZGWU23 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 16:16:52 -0400
+	Thu, 23 Jul 2009 16:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, vapier.adi@gmail.com
+Cc: akpm@linux-foundation.org, hidave.darkstar@gmail.com, jkosina@suse.cz, lamarque@gmail.com, marcel@holtmann.org
 
 
 The patch titled
-     blackfin: convert to use arch_gettimeoffset()
+     bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix
 has been added to the -mm tree.  Its filename is
-     blackfin-convert-to-use-arch_gettimeoffset.patch
+     bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin: convert to use arch_gettimeoffset()
-From: john stultz <johnstul@us.ibm.com>
+Subject: bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Convert blackfin to use GENERIC_TIME via the arch_getoffset()
-infrastructure, reducing the amount of arch specific code we need to
-maintain.
+Use ARRAY_SIZE()-based search.
 
-I've taken my best swing at converting this, but I'm not 100% confident
-I got it right. My cross-compiler is now out of date (gcc4.2) so I
-wasn't able to  check if it compiled. Any assistance from arch
-maintainers or testers to get this merged would be great.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Lamarque V. Souza <lamarque@gmail.com>
+Cc: Lamarque Vieira Souza <lamarque@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/Kconfig       |   10 +++--
- arch/blackfin/kernel/time.c |   63 +---------------------------------
- 2 files changed, 8 insertions(+), 65 deletions(-)
+ net/bluetooth/hidp/core.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN arch/blackfin/Kconfig~blackfin-convert-to-use-arch_gettimeoffset arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~blackfin-convert-to-use-arch_gettimeoffset
-+++ a/arch/blackfin/Kconfig
-@@ -229,7 +229,7 @@ endchoice
+diff -puN net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix
++++ a/net/bluetooth/hidp/core.c
+@@ -92,20 +92,18 @@ static const struct quirk_id hidp_quirks
+ 		.product = 0x0058,
+ 		.quirks = 1 << HIDP_QUIRK_USE_INPUT_SESSION
+ 	},
+-
+-	{ /* end: all zeroes */ }
+ };
  
- config SMP
- 	depends on BF561
--	select GENERIC_TIME
-+	select GENERIC_CLOCKEVENTS
- 	bool "Symmetric multi-processing support"
- 	---help---
- 	  This enables support for systems with more than one CPU,
-@@ -612,12 +612,10 @@ comment "Kernel Timer/Scheduler"
- source kernel/Kconfig.hz
- 
- config GENERIC_TIME
--	bool "Generic time"
--	default y
-+	def_bool y
- 
- config GENERIC_CLOCKEVENTS
- 	bool "Generic clock events"
--	depends on GENERIC_TIME
- 	default y
- 
- choice
-@@ -652,6 +650,10 @@ config GPTMR0_CLOCKSOURCE
- 	depends on GENERIC_CLOCKEVENTS
- 	depends on !TICKSOURCE_GPTMR0
- 
-+config ARCH_USES_GETTIMEOFFSET
-+	depends on !GENERIC_CLOCKEVENTS
-+	def_bool y
-+
- source kernel/time/Kconfig
- 
- comment "Misc"
-diff -puN arch/blackfin/kernel/time.c~blackfin-convert-to-use-arch_gettimeoffset arch/blackfin/kernel/time.c
---- a/arch/blackfin/kernel/time.c~blackfin-convert-to-use-arch_gettimeoffset
-+++ a/arch/blackfin/kernel/time.c
-@@ -81,11 +81,11 @@ time_sched_init(irqreturn_t(*timer_routi
- #endif
- }
- 
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
- /*
-  * Should return useconds since last timer tick
-  */
--#ifndef CONFIG_GENERIC_TIME
--static unsigned long gettimeoffset(void)
-+u32 arch_gettimeoffset(void)
+ static int quirk_test_bit(__u16 vendor, __u16 product, int quirk)
  {
- 	unsigned long offset;
- 	unsigned long clocks_per_jiffy;
-@@ -184,65 +184,6 @@ void __init time_init(void)
- 	time_sched_init(timer_interrupt);
- }
+-	const struct quirk_id *q = &hidp_quirks[0];
++	int i;
  
--#ifndef CONFIG_GENERIC_TIME
--void do_gettimeofday(struct timeval *tv)
--{
--	unsigned long flags;
--	unsigned long seq;
--	unsigned long usec, sec;
--
--	do {
--		seq = read_seqbegin_irqsave(&xtime_lock, flags);
--		usec = gettimeoffset();
--		sec = xtime.tv_sec;
--		usec += (xtime.tv_nsec / NSEC_PER_USEC);
--	}
--	while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
--
--	while (usec >= USEC_PER_SEC) {
--		usec -= USEC_PER_SEC;
--		sec++;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
--}
--EXPORT_SYMBOL(do_gettimeofday);
--
--int do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--	/*
--	 * This is revolting. We need to set the xtime.tv_usec
--	 * correctly. However, the value in this location is
--	 * is value at the last tick.
--	 * Discover what correction gettimeofday
--	 * would have done, and then undo it!
--	 */
--	nsec -= (gettimeoffset() * NSEC_PER_USEC);
--
--	wtm_sec = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--
--	return 0;
--}
--EXPORT_SYMBOL(do_settimeofday);
--#endif /* !CONFIG_GENERIC_TIME */
+-	while (q->vendor != vendor && q->product != product &&
+-	       q->vendor && q->product)
+-		q++;
++	for (i = 0; i < ARRAY_SIZE(hidp_quirks); i++) {
++		const struct quirk_id *q = hidp_quirks + i;
+ 
+-	if (q->vendor == vendor && q->product == product)
+-		return test_bit(quirk, &q->quirks);
++		if (q->vendor == vendor && q->product == product)
++			return test_bit(quirk, &q->quirks);
++	}
+ 
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-serial-add-irqflags-support.patch
+revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+
