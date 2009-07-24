@@ -1,137 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: + fix-all-wmissing-prototypes-warnings-in-x86-defconfig.patch added to -mm tree
-Date: Fri, 24 Jul 2009 14:49:20 -0700
-Message-ID: <200907242149.n6OLnKxb023771@imap1.linux-foundation.org>
+Subject: [to-be-updated] spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch removed from -mm tree
+Date: Fri, 24 Jul 2009 14:57:15 -0700
+Message-ID: <200907242157.n6OLvFKr004018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751666AbZGXVt0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754568AbZGXV57 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 17:49:26 -0400
+	Fri, 24 Jul 2009 17:57:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tsrk@tsrk.net, sam@ravnborg.org
+To: kilroyd@googlemail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix all -Wmissing-prototypes warnings in x86 defconfig
-has been added to the -mm tree.  Its filename is
-     fix-all-wmissing-prototypes-warnings-in-x86-defconfig.patch
+     spinlocks: check spinlock_t/rwlock_t argument type on non-SMP builds
+has been removed from the -mm tree.  Its filename was
+     spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix all -Wmissing-prototypes warnings in x86 defconfig
-From: Trevor Keith <tsrk@tsrk.net>
+Subject: spinlocks: check spinlock_t/rwlock_t argument type on non-SMP builds
+From: David Kilroy <kilroyd@googlemail.com>
 
-Signed-off-by: Trevor Keith <tsrk@tsrk.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+When writing code for UP without CONFIG_DEBUG_SPINLOCK it's easy to get
+the first argument to the spinlock/rwlock functions wrong.  This is
+because the parameter is not actually used in this configuration.
+
+Typically you will only find out it's wrong
+ * by rebuilding with CONFIG_SMP or CONFIG_DEBUG_SPINLOCK
+ * after you've submitted your beautiful patch series.
+
+The first means a long wait, and the latter is a bit late.
+
+Add typechecking on the first argument of these macro functions. Note
+that since the typecheck now references the variable, the explicit read
+is redundant and can be removed.
+
+This change causes compiler warnings in net/ipv4/route.c, as this passes
+NULL as the first argument in the UP configuration. Simply cast this.
+
+Signed-off-by: David Kilroy <kilroyd@googlemail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/conmakehash.c     |    6 +++---
- scripts/mod/modpost.c     |    4 ++--
- scripts/selinux/mdp/mdp.c |    4 ++--
- usr/gen_init_cpio.c       |    2 +-
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/spinlock_api_up.h |  100 +++++++++++++++---------------
+ net/ipv4/route.c                |    2 
+ 2 files changed, 51 insertions(+), 51 deletions(-)
 
-diff -puN scripts/conmakehash.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig scripts/conmakehash.c
---- a/scripts/conmakehash.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig
-+++ a/scripts/conmakehash.c
-@@ -24,14 +24,14 @@
- 
- typedef unsigned short unicode;
- 
--void usage(char *argv0)
-+static void usage(char *argv0)
- {
-   fprintf(stderr, "Usage: \n"
-          "        %s chartable [hashsize] [hashstep] [maxhashlevel]\n", argv0);
-   exit(EX_USAGE);
- }
- 
--int getunicode(char **p0)
-+static int getunicode(char **p0)
- {
-   char *p = *p0;
- 
-@@ -49,7 +49,7 @@ unicode unitable[MAX_FONTLEN][255];
- 				/* Massive overkill, but who cares? */
- int unicount[MAX_FONTLEN];
- 
--void addpair(int fp, int un)
-+static void addpair(int fp, int un)
- {
-   int i;
- 
-diff -puN scripts/mod/modpost.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig
-+++ a/scripts/mod/modpost.c
-@@ -691,7 +691,7 @@ static int number_prefix(const char *sym
-  *   The $ syntax is for sections where ld append a dot number
-  *   to make section name unique.
+diff -puN include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds include/linux/spinlock_api_up.h
+--- a/include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds
++++ a/include/linux/spinlock_api_up.h
+@@ -24,58 +24,58 @@
+  * flags straight, to suppress compiler warnings of unused lock
+  * variables, and to add the proper checker annotations:
   */
--int match(const char *sym, const char * const pat[])
-+static int match(const char *sym, const char * const pat[])
- {
- 	const char *p;
- 	while (*pat) {
-@@ -1746,7 +1746,7 @@ static void add_header(struct buffer *b,
- 	buf_printf(b, "};\n");
+-#define __LOCK(lock) \
+-  do { preempt_disable(); __acquire(lock); (void)(lock); } while (0)
++#define __LOCK(type, lock) \
++  do { typecheck(type*, lock); preempt_disable(); __acquire(lock); } while (0)
+ 
+-#define __LOCK_BH(lock) \
+-  do { local_bh_disable(); __LOCK(lock); } while (0)
++#define __LOCK_BH(type, lock) \
++  do { local_bh_disable(); __LOCK(type, lock); } while (0)
+ 
+-#define __LOCK_IRQ(lock) \
+-  do { local_irq_disable(); __LOCK(lock); } while (0)
++#define __LOCK_IRQ(type, lock) \
++  do { local_irq_disable(); __LOCK(type, lock); } while (0)
+ 
+-#define __LOCK_IRQSAVE(lock, flags) \
+-  do { local_irq_save(flags); __LOCK(lock); } while (0)
+-
+-#define __UNLOCK(lock) \
+-  do { preempt_enable(); __release(lock); (void)(lock); } while (0)
+-
+-#define __UNLOCK_BH(lock) \
+-  do { preempt_enable_no_resched(); local_bh_enable(); __release(lock); (void)(lock); } while (0)
+-
+-#define __UNLOCK_IRQ(lock) \
+-  do { local_irq_enable(); __UNLOCK(lock); } while (0)
+-
+-#define __UNLOCK_IRQRESTORE(lock, flags) \
+-  do { local_irq_restore(flags); __UNLOCK(lock); } while (0)
+-
+-#define _spin_lock(lock)			__LOCK(lock)
+-#define _spin_lock_nested(lock, subclass)	__LOCK(lock)
+-#define _read_lock(lock)			__LOCK(lock)
+-#define _write_lock(lock)			__LOCK(lock)
+-#define _spin_lock_bh(lock)			__LOCK_BH(lock)
+-#define _read_lock_bh(lock)			__LOCK_BH(lock)
+-#define _write_lock_bh(lock)			__LOCK_BH(lock)
+-#define _spin_lock_irq(lock)			__LOCK_IRQ(lock)
+-#define _read_lock_irq(lock)			__LOCK_IRQ(lock)
+-#define _write_lock_irq(lock)			__LOCK_IRQ(lock)
+-#define _spin_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(lock, flags)
+-#define _read_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(lock, flags)
+-#define _write_lock_irqsave(lock, flags)	__LOCK_IRQSAVE(lock, flags)
+-#define _spin_trylock(lock)			({ __LOCK(lock); 1; })
+-#define _read_trylock(lock)			({ __LOCK(lock); 1; })
+-#define _write_trylock(lock)			({ __LOCK(lock); 1; })
+-#define _spin_trylock_bh(lock)			({ __LOCK_BH(lock); 1; })
+-#define _spin_unlock(lock)			__UNLOCK(lock)
+-#define _read_unlock(lock)			__UNLOCK(lock)
+-#define _write_unlock(lock)			__UNLOCK(lock)
+-#define _spin_unlock_bh(lock)			__UNLOCK_BH(lock)
+-#define _write_unlock_bh(lock)			__UNLOCK_BH(lock)
+-#define _read_unlock_bh(lock)			__UNLOCK_BH(lock)
+-#define _spin_unlock_irq(lock)			__UNLOCK_IRQ(lock)
+-#define _read_unlock_irq(lock)			__UNLOCK_IRQ(lock)
+-#define _write_unlock_irq(lock)			__UNLOCK_IRQ(lock)
+-#define _spin_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(lock, flags)
+-#define _read_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(lock, flags)
+-#define _write_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(lock, flags)
++#define __LOCK_IRQSAVE(type, lock, flags) \
++  do { local_irq_save(flags); __LOCK(type, lock); } while (0)
++
++#define __UNLOCK(type, lock) \
++  do { typecheck(type*, lock); preempt_enable(); __release(lock); } while (0)
++
++#define __UNLOCK_BH(type, lock) \
++  do { typecheck(type*, lock); preempt_enable_no_resched(); local_bh_enable(); __release(lock); } while (0)
++
++#define __UNLOCK_IRQ(type, lock) \
++  do { local_irq_enable(); __UNLOCK(type, lock); } while (0)
++
++#define __UNLOCK_IRQRESTORE(type, lock, flags) \
++  do { local_irq_restore(flags); __UNLOCK(type, lock); } while (0)
++
++#define _spin_lock(lock)			__LOCK(spinlock_t, lock)
++#define _spin_lock_nested(lock, subclass)	__LOCK(spinlock_t, lock)
++#define _read_lock(lock)			__LOCK(rwlock_t, lock)
++#define _write_lock(lock)			__LOCK(rwlock_t, lock)
++#define _spin_lock_bh(lock)			__LOCK_BH(spinlock_t, lock)
++#define _read_lock_bh(lock)			__LOCK_BH(rwlock_t, lock)
++#define _write_lock_bh(lock)			__LOCK_BH(rwlock_t, lock)
++#define _spin_lock_irq(lock)			__LOCK_IRQ(spinlock_t, lock)
++#define _read_lock_irq(lock)			__LOCK_IRQ(rwlock_t, lock)
++#define _write_lock_irq(lock)			__LOCK_IRQ(rwlock_t, lock)
++#define _spin_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(spinlock_t, lock, flags)
++#define _read_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(rwlock_t, lock, flags)
++#define _write_lock_irqsave(lock, flags)	__LOCK_IRQSAVE(rwlock_t, lock, flags)
++#define _spin_trylock(lock)			({ __LOCK(spinlock_t, lock); 1; })
++#define _read_trylock(lock)			({ __LOCK(rwlock_t, lock); 1; })
++#define _write_trylock(lock)			({ __LOCK(rwlock_t, lock); 1; })
++#define _spin_trylock_bh(lock)			({ __LOCK_BH(spinlock_t, lock); 1; })
++#define _spin_unlock(lock)			__UNLOCK(spinlock_t, lock)
++#define _read_unlock(lock)			__UNLOCK(rwlock_t, lock)
++#define _write_unlock(lock)			__UNLOCK(rwlock_t, lock)
++#define _spin_unlock_bh(lock)			__UNLOCK_BH(spinlock_t, lock)
++#define _write_unlock_bh(lock)			__UNLOCK_BH(rwlock_t, lock)
++#define _read_unlock_bh(lock)			__UNLOCK_BH(rwlock_t, lock)
++#define _spin_unlock_irq(lock)			__UNLOCK_IRQ(spinlock_t, lock)
++#define _read_unlock_irq(lock)			__UNLOCK_IRQ(rwlock_t, lock)
++#define _write_unlock_irq(lock)			__UNLOCK_IRQ(rwlock_t, lock)
++#define _spin_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(spinlock_t, lock, flags)
++#define _read_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(rwlock_t, lock, flags)
++#define _write_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(rwlock_t, lock, flags)
+ 
+ #endif /* __LINUX_SPINLOCK_API_UP_H */
+diff -puN net/ipv4/route.c~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds net/ipv4/route.c
+--- a/net/ipv4/route.c~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds
++++ a/net/ipv4/route.c
+@@ -242,7 +242,7 @@ static __init void rt_hash_lock_init(voi
+ 		spin_lock_init(&rt_hash_locks[i]);
  }
+ #else
+-# define rt_hash_lock_addr(slot) NULL
++# define rt_hash_lock_addr(slot) ((spinlock_t *) NULL)
  
--void add_staging_flag(struct buffer *b, const char *name)
-+static void add_staging_flag(struct buffer *b, const char *name)
+ static inline void rt_hash_lock_init(void)
  {
- 	static const char *staging_dir = "drivers/staging";
- 
-diff -puN scripts/selinux/mdp/mdp.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig scripts/selinux/mdp/mdp.c
---- a/scripts/selinux/mdp/mdp.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig
-+++ a/scripts/selinux/mdp/mdp.c
-@@ -31,13 +31,13 @@
- 
- #include "flask.h"
- 
--void usage(char *name)
-+static void usage(char *name)
- {
- 	printf("usage: %s [-m] policy_file context_file\n", name);
- 	exit(1);
- }
- 
--void find_common_name(char *cname, char *dest, int len)
-+static void find_common_name(char *cname, char *dest, int len)
- {
- 	char *start, *end;
- 
-diff -puN usr/gen_init_cpio.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig usr/gen_init_cpio.c
---- a/usr/gen_init_cpio.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig
-+++ a/usr/gen_init_cpio.c
-@@ -446,7 +446,7 @@ static int cpio_mkfile_line(const char *
- 	return rc;
- }
- 
--void usage(const char *prog)
-+static void usage(const char *prog)
- {
- 	fprintf(stderr, "Usage:\n"
- 		"\t%s <cpio_list>\n"
 _
 
-Patches currently in -mm which might be from tsrk@tsrk.net are
+Patches currently in -mm which might be from kilroyd@googlemail.com are
 
-fix-all-wmissing-prototypes-warnings-in-x86-defconfig.patch
+linux-next.patch
+spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch
 
