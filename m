@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-flexible-array-implementation.patch added to -mm tree
-Date: Fri, 24 Jul 2009 16:38:20 -0700
-Message-ID: <200907242338.n6ONcLUx003635@imap1.linux-foundation.org>
+Subject: + lib-flexible-array-implementation-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 24 Jul 2009 16:40:16 -0700
+Message-ID: <200907242340.n6ONeGHt006739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755212AbZGXXic (ORCPT
+	by vger.kernel.org with ESMTP id S1755222AbZGXXkW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 19:38:32 -0400
+	Fri, 24 Jul 2009 19:40:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     lib: flexible array implementation
+     lib-flexible-array-implementation-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     lib-flexible-array-implementation.patch
+     lib-flexible-array-implementation-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,400 +34,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: flexible array implementation
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: lib-flexible-array-implementation-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Once a structure goes over PAGE_SIZE*2, we see occasional allocation
-failures.  Some people have chosen to switch over to things like vmalloc()
-that will let them keep array-like access to such a large structures. 
-But, vmalloc() has plenty of downsides.
+WARNING: line over 80 characters
+#101: FILE: include/linux/flex_array.h:43:
++int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags);
 
-Here's an alternative.  I think it's what Andrew was suggesting here:
+ERROR: return is not a function, parentheses are not required
+#271: FILE: lib/flex_array.c:151:
++	return (element_nr % __elements_per_part(fa->element_size));
 
-	http://lkml.org/lkml/2009/7/2/518
+WARNING: line over 80 characters
+#311: FILE: lib/flex_array.c:191:
++int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags)
 
-I call it a flexible array.  It does all of its work in PAGE_SIZE bits, so
-never does an order>0 allocation.  The base level has
-PAGE_SIZE-2*sizeof(int) bytes of storage for pointers to the second level.
- So, with a 32-bit arch, you get about 4MB (4183112 bytes) of total
-storage when the objects pack nicely into a page.  It is half that on
-64-bit because the pointers are twice the size.  There's a table detailing
-this in the code.
+ERROR: code indent should use tabs where possible
+#354: FILE: lib/flex_array.c:234:
++      ^Iend_part = fa_element_to_part_nr(fa, end);$
 
-There are kerneldocs for the functions, but here's an
-overview:
+total: 2 errors, 2 warnings, 323 lines checked
 
-flex_array_alloc() - dynamically allocate a base structure
-flex_array_free() - free the array and all of the
-		    second-level pages
-flex_array_free_parts() - free the second-level pages, but
-			  not the base (for static bases)
-flex_array_put() - copy into the array at the given index
-flex_array_get() - copy out of the array at the given index
-flex_array_prealloc() - preallocate the second-level pages
-			between the given indexes to
-			guarantee no allocs will occur at
-			put() time.
+./patches/lib-flexible-array-implementation.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-We could also potentially just pass the "element_size" into each of the
-API functions instead of storing it internally.  That would get us one
-more base pointer on 32-bit.
+Please run checkpatch prior to sending patches
 
-I've been testing this by running it in userspace.  The header and patch
-that I've been using are here, as well as the little script I'm using to
-generate the size table which goes in the kerneldocs.
-
-	http://sr71.net/~dave/linux/flexarray/
-
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/flex_array.h |   46 +++++
- lib/Makefile               |    2 
- lib/flex_array.c           |  269 +++++++++++++++++++++++++++++++++++
- 3 files changed, 316 insertions(+), 1 deletion(-)
+ include/linux/flex_array.h |    3 ++-
+ lib/flex_array.c           |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN /dev/null include/linux/flex_array.h
---- /dev/null
+diff -puN include/linux/flex_array.h~lib-flexible-array-implementation-checkpatch-fixes include/linux/flex_array.h
+--- a/include/linux/flex_array.h~lib-flexible-array-implementation-checkpatch-fixes
 +++ a/include/linux/flex_array.h
-@@ -0,0 +1,46 @@
-+#ifndef _FLEX_ARRAY_H
-+#define _FLEX_ARRAY_H
-+
-+#include <linux/types.h>
-+#include <asm/page.h>
-+
-+#define FLEX_ARRAY_PART_SIZE PAGE_SIZE
-+#define FLEX_ARRAY_BASE_SIZE PAGE_SIZE
-+
-+struct flex_array_part;
-+
-+/*
-+ * This is meant to replace cases where an array-like
-+ * structure has gotten too big to fit into kmalloc()
-+ * and the developer is getting tempted to use
-+ * vmalloc().
-+ */
-+
-+struct flex_array {
-+	union {
-+		struct {
-+			int element_size;
-+			int total_nr_elements;
-+			struct flex_array_part *parts[0];
-+		};
-+		/*
-+		 * This little trick makes sure that
-+		 * sizeof(flex_array) == PAGE_SIZE
-+		 */
-+		char padding[FLEX_ARRAY_BASE_SIZE];
-+	};
-+};
-+
-+#define FLEX_ARRAY_INIT(size, total) { { {\
-+	.element_size = (size),		\
-+	.total_nr_elements = (total),	\
-+} } }
-+
-+struct flex_array *flex_array_alloc(int element_size, int total, gfp_t flags);
-+int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags);
-+void flex_array_free(struct flex_array *fa);
-+void flex_array_free_parts(struct flex_array *fa);
-+int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags);
-+void *flex_array_get(struct flex_array *fa, int element_nr);
-+
-+#endif /* _FLEX_ARRAY_H */
-diff -puN lib/Makefile~lib-flexible-array-implementation lib/Makefile
---- a/lib/Makefile~lib-flexible-array-implementation
-+++ a/lib/Makefile
-@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 idr.o int_sqrt.o extable.o prio_tree.o \
- 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
- 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
--	 is_single_threaded.o plist.o decompress.o
-+	 is_single_threaded.o plist.o decompress.o flex_array.o
+@@ -40,7 +40,8 @@ struct flex_array *flex_array_alloc(int 
+ int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags);
+ void flex_array_free(struct flex_array *fa);
+ void flex_array_free_parts(struct flex_array *fa);
+-int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags);
++int flex_array_put(struct flex_array *fa, int element_nr, void *src,
++		gfp_t flags);
+ void *flex_array_get(struct flex_array *fa, int element_nr);
  
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-diff -puN /dev/null lib/flex_array.c
---- /dev/null
+ #endif /* _FLEX_ARRAY_H */
+diff -puN lib/flex_array.c~lib-flexible-array-implementation-checkpatch-fixes lib/flex_array.c
+--- a/lib/flex_array.c~lib-flexible-array-implementation-checkpatch-fixes
 +++ a/lib/flex_array.c
-@@ -0,0 +1,269 @@
-+/*
-+ * Flexible array managed in PAGE_SIZE parts
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+ *
-+ * Copyright IBM Corporation, 2009
-+ *
-+ * Author: Dave Hansen <dave@linux.vnet.ibm.com>
-+ */
-+
-+#include <linux/flex_array.h>
-+#include <linux/slab.h>
-+#include <linux/stddef.h>
-+
-+struct flex_array_part {
-+	char elements[FLEX_ARRAY_PART_SIZE];
-+};
-+
-+static inline int __elements_per_part(int element_size)
-+{
-+	return FLEX_ARRAY_PART_SIZE / element_size;
-+}
-+
-+static inline int bytes_left_in_base(void)
-+{
-+	int element_offset = offsetof(struct flex_array, parts);
-+	int bytes_left = FLEX_ARRAY_BASE_SIZE - element_offset;
-+	return bytes_left;
-+}
-+
-+static inline int nr_base_part_ptrs(void)
-+{
-+	return bytes_left_in_base() / sizeof(struct flex_array_part *);
-+}
-+
-+/*
-+ * If a user requests an allocation which is small
-+ * enough, we may simply use the space in the
-+ * flex_array->parts[] array to store the user
-+ * data.
-+ */
-+static inline int elements_fit_in_base(struct flex_array *fa)
-+{
-+	int data_size = fa->element_size * fa->total_nr_elements;
-+	if (data_size <= bytes_left_in_base())
-+		return 1;
-+	return 0;
-+}
-+
-+/**
-+ * flex_array_alloc - allocate a new flexible array
-+ * @element_size:	the size of individual elements in the array
-+ * @total:		total number of elements that this should hold
-+ *
-+ * Note: all locking must be provided by the caller.
-+ *
-+ * @total is used to size internal structures.  If the user ever
-+ * accesses any array indexes >=@total, it will produce errors.
-+ *
-+ * The maximum number of elements is defined as: the number of
-+ * elements that can be stored in a page times the number of
-+ * page pointers that we can fit in the base structure or (using
-+ * integer math):
-+ *
-+ * 	(PAGE_SIZE/element_size) * (PAGE_SIZE-8)/sizeof(void *)
-+ *
-+ * Here's a table showing example capacities.  Note that the maximum
-+ * index that the get/put() functions is just nr_objects-1.   This
-+ * basically means that you get 4MB of storage on 32-bit and 2MB on
-+ * 64-bit.
-+ *
-+ *
-+ * Element size | Objects | Objects |
-+ * PAGE_SIZE=4k |  32-bit |  64-bit |
-+ * ---------------------------------|
-+ *      1 bytes | 4186112 | 2093056 |
-+ *      2 bytes | 2093056 | 1046528 |
-+ *      3 bytes | 1395030 |  697515 |
-+ *      4 bytes | 1046528 |  523264 |
-+ *     32 bytes |  130816 |   65408 |
-+ *     33 bytes |  126728 |   63364 |
-+ *   2048 bytes |    2044 |    1022 |
-+ *   2049 bytes |    1022 |     511 |
-+ *       void * | 1046528 |  261632 |
-+ *
-+ * Since 64-bit pointers are twice the size, we lose half the
-+ * capacity in the base structure.  Also note that no effort is made
-+ * to efficiently pack objects across page boundaries.
-+ */
-+struct flex_array *flex_array_alloc(int element_size, int total, gfp_t flags)
-+{
-+	struct flex_array *ret;
-+	int max_size = nr_base_part_ptrs() * __elements_per_part(element_size);
-+
-+	/* max_size will end up 0 if element_size > PAGE_SIZE */
-+	if (total > max_size)
-+		return NULL;
-+	ret = kzalloc(sizeof(struct flex_array), flags);
-+	if (!ret)
-+		return NULL;
-+	ret->element_size = element_size;
-+	ret->total_nr_elements = total;
-+	return ret;
-+}
-+
-+static int fa_element_to_part_nr(struct flex_array *fa, int element_nr)
-+{
-+	return element_nr / __elements_per_part(fa->element_size);
-+}
-+
-+/**
-+ * flex_array_free_parts - just free the second-level pages
-+ * @src:	address of data to copy into the array
-+ * @element_nr:	index of the position in which to insert
-+ * 		the new element.
-+ *
-+ * This is to be used in cases where the base 'struct flex_array'
-+ * has been statically allocated and should not be free.
-+ */
-+void flex_array_free_parts(struct flex_array *fa)
-+{
-+	int part_nr;
-+	int max_part = nr_base_part_ptrs();
-+
-+	if (elements_fit_in_base(fa))
-+		return;
-+	for (part_nr = 0; part_nr < max_part; part_nr++)
-+		kfree(fa->parts[part_nr]);
-+}
-+
-+void flex_array_free(struct flex_array *fa)
-+{
-+	flex_array_free_parts(fa);
-+	kfree(fa);
-+}
-+
-+static int fa_index_inside_part(struct flex_array *fa, int element_nr)
-+{
-+	return (element_nr % __elements_per_part(fa->element_size));
-+}
-+
-+static int index_inside_part(struct flex_array *fa, int element_nr)
-+{
-+	int part_offset = fa_index_inside_part(fa, element_nr);
-+	return part_offset * fa->element_size;
-+}
-+
-+static struct flex_array_part *
-+__fa_get_part(struct flex_array *fa, int part_nr, gfp_t flags)
-+{
-+	struct flex_array_part *part = fa->parts[part_nr];
-+	if (!part) {
-+		/*
-+		 * This leaves the part pages uninitialized
-+		 * and with potentially random data, just
-+		 * as if the user had kmalloc()'d the whole.
-+		 * __GFP_ZERO can be used to zero it.
-+		 */
-+		part = kmalloc(FLEX_ARRAY_PART_SIZE, flags);
-+		if (!part)
-+			return NULL;
-+		fa->parts[part_nr] = part;
-+	}
-+	return part;
-+}
-+
-+/**
-+ * flex_array_put - copy data into the array at @element_nr
-+ * @src:	address of data to copy into the array
-+ * @element_nr:	index of the position in which to insert
-+ * 		the new element.
-+ *
-+ * Note that this *copies* the contents of @src into
-+ * the array.  If you are trying to store an array of
-+ * pointers, make sure to pass in &ptr instead of ptr.
-+ *
-+ * Locking must be provided by the caller.
-+ */
-+int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags)
-+{
-+	int part_nr = fa_element_to_part_nr(fa, element_nr);
-+	struct flex_array_part *part;
-+	void *dst;
-+
-+	if (element_nr >= fa->total_nr_elements)
-+		return -ENOSPC;
-+	if (elements_fit_in_base(fa))
-+		part = (struct flex_array_part *)&fa->parts[0];
-+	else
-+		part = __fa_get_part(fa, part_nr, flags);
-+	if (!part)
-+		return -ENOMEM;
-+	dst = &part->elements[index_inside_part(fa, element_nr)];
-+	memcpy(dst, src, fa->element_size);
-+	return 0;
-+}
-+
-+/**
-+ * flex_array_prealloc - guarantee that array space exists
-+ * @start:	index of first array element for which space is allocated
-+ * @end:	index of last (inclusive) element for which space is allocated
-+ *
-+ * This will guarantee that no future calls to flex_array_put()
-+ * will allocate memory.  It can be used if you are expecting to
-+ * be holding a lock or in some atomic context while writing
-+ * data into the array.
-+ *
-+ * Locking must be provided by the caller.
-+ */
-+int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags)
-+{
-+	int start_part;
-+	int end_part;
-+	int part_nr;
-+	struct flex_array_part *part;
-+
-+	if (start >= fa->total_nr_elements || end >= fa->total_nr_elements)
-+		return -ENOSPC;
-+	if (elements_fit_in_base(fa))
-+		return 0;
-+	start_part = fa_element_to_part_nr(fa, start);
-+      	end_part = fa_element_to_part_nr(fa, end);
-+	for (part_nr = start_part; part_nr <= end_part; part_nr++) {
-+		part = __fa_get_part(fa, part_nr, flags);
-+		if (!part)
-+			return -ENOMEM;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * flex_array_get - pull data back out of the array
-+ * @element_nr:	index of the element to fetch from the array
-+ *
-+ * Returns a pointer to the data at index @element_nr.  Note
-+ * that this is a copy of the data that was passed in.  If you
-+ * are using this to store pointers, you'll get back &ptr.
-+ *
-+ * Locking must be provided by the caller.
-+ */
-+void *flex_array_get(struct flex_array *fa, int element_nr)
-+{
-+	int part_nr = fa_element_to_part_nr(fa, element_nr);
-+	struct flex_array_part *part;
-+	int index;
-+
-+	if (element_nr >= fa->total_nr_elements)
-+		return NULL;
-+	if (!fa->parts[part_nr])
-+		return NULL;
-+	if (elements_fit_in_base(fa))
-+		part = (struct flex_array_part *)&fa->parts[0];
-+	else
-+		part = fa->parts[part_nr];
-+	index = index_inside_part(fa, element_nr);
-+	return &part->elements[index_inside_part(fa, element_nr)];
-+}
+@@ -148,7 +148,7 @@ void flex_array_free(struct flex_array *
+ 
+ static int fa_index_inside_part(struct flex_array *fa, int element_nr)
+ {
+-	return (element_nr % __elements_per_part(fa->element_size));
++	return element_nr % __elements_per_part(fa->element_size);
+ }
+ 
+ static int index_inside_part(struct flex_array *fa, int element_nr)
+@@ -231,7 +231,7 @@ int flex_array_prealloc(struct flex_arra
+ 	if (elements_fit_in_base(fa))
+ 		return 0;
+ 	start_part = fa_element_to_part_nr(fa, start);
+-      	end_part = fa_element_to_part_nr(fa, end);
++	end_part = fa_element_to_part_nr(fa, end);
+ 	for (part_nr = start_part; part_nr <= end_part; part_nr++) {
+ 		part = __fa_get_part(fa, part_nr, flags);
+ 		if (!part)
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-lib-flexible-array-implementation.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+lib-flexible-array-implementation-checkpatch-fixes.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes.patch
+fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
