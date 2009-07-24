@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-generic-sys_pipe.patch added to -mm tree
-Date: Fri, 24 Jul 2009 14:29:13 -0700
-Message-ID: <200907242129.n6OLTDGb024010@imap1.linux-foundation.org>
+Subject: + vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch added to -mm tree
+Date: Fri, 24 Jul 2009 14:31:01 -0700
+Message-ID: <200907242131.n6OLV15P026837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38912 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41110 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753694AbZGXV36 (ORCPT
+	by vger.kernel.org with ESMTP id S1754181AbZGXVbS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 17:29:58 -0400
+	Fri, 24 Jul 2009 17:31:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, amwang@redhat.com, chris@zankel.net, jw@emlix.com, viro@zeniv.linux.org.uk
+Cc: amwang@redhat.com, eparis@redhat.com, esandeen@redhat.com, eteo@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     xtensa: use generic sys_pipe()
+     vfs: allow file truncations when both suid and write permissions set
 has been added to the -mm tree.  Its filename is
-     xtensa-use-generic-sys_pipe.patch
+     vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: use generic sys_pipe()
-From: Amerigo Wang <xiyou.wangcong@gmail.com>
+Subject: vfs: allow file truncations when both suid and write permissions set
+From: Amerigo Wang <amwang@redhat.com>
 
-As suggested by Al, we can use the generic sys_pipe() instead of
-xtensa_pipe() for xtensa.
+When suid is set and the non-owner user has write permission, any writing
+into this file should be allowed and suid should be removed after that.
+
+However, the current kernel only allows writing without truncations, when
+we do truncations on that file, we get EPERM.  This is a bug.
+
+Steps to reproduce this bug:
+
+% ls -l rootdir/file1
+-rwsrwsrwx 1 root root 3 Jun 25 15:42 rootdir/file1
+% echo h > rootdir/file1
+zsh: operation not permitted: rootdir/file1
+% ls -l rootdir/file1
+-rwsrwsrwx 1 root root 3 Jun 25 15:42 rootdir/file1
+% echo h >> rootdir/file1
+% ls -l rootdir/file1
+-rwxrwxrwx 1 root root 5 Jun 25 16:34 rootdir/file1
+
+This patch fixes it.
 
 Signed-off-by: WANG Cong <amwang@redhat.com>
-Reviewed-by: Johannes Weiner <jw@emlix.com>
+Cc: Eric Sandeen <esandeen@redhat.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Eugene Teo <eteo@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/syscall.h |    1 -
- arch/xtensa/include/asm/unistd.h  |    2 +-
- arch/xtensa/kernel/syscall.c      |   18 ------------------
- 3 files changed, 1 insertion(+), 20 deletions(-)
+ fs/open.c          |    8 ++++++--
+ include/linux/fs.h |    1 +
+ mm/filemap.c       |   12 ++++++++++--
+ 3 files changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN arch/xtensa/include/asm/syscall.h~xtensa-use-generic-sys_pipe arch/xtensa/include/asm/syscall.h
---- a/arch/xtensa/include/asm/syscall.h~xtensa-use-generic-sys_pipe
-+++ a/arch/xtensa/include/asm/syscall.h
-@@ -12,7 +12,6 @@ struct pt_regs;
- struct sigaction;
- asmlinkage long xtensa_execve(char*, char**, char**, struct pt_regs*);
- asmlinkage long xtensa_clone(unsigned long, unsigned long, struct pt_regs*);
--asmlinkage long xtensa_pipe(int __user *);
- asmlinkage long xtensa_mmap2(unsigned long, unsigned long, unsigned long,
-     			     unsigned long, unsigned long, unsigned long);
- asmlinkage long xtensa_ptrace(long, long, long, long);
-diff -puN arch/xtensa/include/asm/unistd.h~xtensa-use-generic-sys_pipe arch/xtensa/include/asm/unistd.h
---- a/arch/xtensa/include/asm/unistd.h~xtensa-use-generic-sys_pipe
-+++ a/arch/xtensa/include/asm/unistd.h
-@@ -94,7 +94,7 @@ __SYSCALL( 35, sys_readlink, 3)
- #define __NR_mknod 				 36
- __SYSCALL( 36, sys_mknod, 3)
- #define __NR_pipe 				 37
--__SYSCALL( 37, xtensa_pipe, 1)
-+__SYSCALL( 37, sys_pipe, 1)
- #define __NR_unlink 				 38
- __SYSCALL( 38, sys_unlink, 1)
- #define __NR_rmdir 				 39
-diff -puN arch/xtensa/kernel/syscall.c~xtensa-use-generic-sys_pipe arch/xtensa/kernel/syscall.c
---- a/arch/xtensa/kernel/syscall.c~xtensa-use-generic-sys_pipe
-+++ a/arch/xtensa/kernel/syscall.c
-@@ -39,24 +39,6 @@ syscall_t sys_call_table[__NR_syscall_co
- #include <asm/unistd.h>
- };
+diff -puN fs/open.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set fs/open.c
+--- a/fs/open.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set
++++ a/fs/open.c
+@@ -213,11 +213,15 @@ int do_truncate(struct dentry *dentry, l
+ 		newattrs.ia_valid |= ATTR_FILE;
+ 	}
  
--/*
-- * xtensa_pipe() is the normal C calling standard for creating a pipe. It's not
-- * the way unix traditional does this, though.
-- */
--
--asmlinkage long xtensa_pipe(int __user *userfds)
--{
--	int fd[2];
--	int error;
--
--	error = do_pipe_flags(fd, 0);
--	if (!error) {
--		if (copy_to_user(userfds, fd, 2 * sizeof(int)))
--			error = -EFAULT;
--	}
--	return error;
--}
++	mutex_lock(&dentry->d_inode->i_mutex);
+ 	/* Remove suid/sgid on truncate too */
+-	newattrs.ia_valid |= should_remove_suid(dentry);
++	err = dentry_remove_suid(dentry);
++	if (err)
++		goto unlock;
+ 
+-	mutex_lock(&dentry->d_inode->i_mutex);
+ 	err = notify_change(dentry, &newattrs);
++
++ unlock:
+ 	mutex_unlock(&dentry->d_inode->i_mutex);
+ 	return err;
+ }
+diff -puN include/linux/fs.h~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set include/linux/fs.h
+--- a/include/linux/fs.h~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set
++++ a/include/linux/fs.h
+@@ -2170,6 +2170,7 @@ extern void destroy_inode(struct inode *
+ extern struct inode *new_inode(struct super_block *);
+ extern int should_remove_suid(struct dentry *);
+ extern int file_remove_suid(struct file *);
++extern int dentry_remove_suid(struct dentry *);
+ 
+ extern void __insert_inode_hash(struct inode *, unsigned long hashval);
+ extern void remove_inode_hash(struct inode *);
+diff -puN mm/filemap.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set mm/filemap.c
+--- a/mm/filemap.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set
++++ a/mm/filemap.c
+@@ -1839,9 +1839,11 @@ static int __remove_suid(struct dentry *
+ 	return notify_change(dentry, &newattrs);
+ }
+ 
+-int file_remove_suid(struct file *file)
++/*
++ * Note: you need to hold i_mutex before call this.
++ */
++int dentry_remove_suid(struct dentry *dentry)
+ {
+-	struct dentry *dentry = file->f_path.dentry;
+ 	int killsuid = should_remove_suid(dentry);
+ 	int killpriv = security_inode_need_killpriv(dentry);
+ 	int error = 0;
+@@ -1855,6 +1857,12 @@ int file_remove_suid(struct file *file)
+ 
+ 	return error;
+ }
++
++int file_remove_suid(struct file *file)
++{
++	struct dentry *dentry = file->f_path.dentry;
++	return dentry_remove_suid(dentry);
++}
+ EXPORT_SYMBOL(file_remove_suid);
+ 
+ static size_t __iovec_copy_from_user_inatomic(char *vaddr,
+_
+
+Patches currently in -mm which might be from amwang@redhat.com are
+
+ia32-use-generic-sys_pipe.patch
+vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch
+xtensa-use-generic-sys_pipe.patch
+kcore-fix-proc-kcores-statst_size.patch
+elf-clean-up-fill_note_info.patch
+elf-clean-up-fill_note_info-fix.patch
+
