@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omap_hsmmc-fix-null-pointer-dereference.patch added to -mm tree
-Date: Fri, 24 Jul 2009 15:55:10 -0700
-Message-ID: <200907242255.n6OMtA65031893@imap1.linux-foundation.org>
+Subject: + omap_hsmmc-cater-for-weird-cmd6-behaviour.patch added to -mm tree
+Date: Fri, 24 Jul 2009 15:55:16 -0700
+Message-ID: <200907242255.n6OMtGqW032088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755095AbZGXWzT (ORCPT
+	by vger.kernel.org with ESMTP id S1755117AbZGXWz0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 18:55:19 -0400
+	Fri, 24 Jul 2009 18:55:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jarkko.lavinen@nokia.com, adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, matt@console-pimps.org, pierre@ossman.eu, roberto.foglietta@gmail.com
+Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, pierre@ossman.eu, roberto.foglietta@gmail.com
 
 
 The patch titled
-     omap_hsmmc: fix NULL pointer dereference
+     omap_hsmmc: cater for weird CMD6 behaviour
 has been added to the -mm tree.  Its filename is
-     omap_hsmmc-fix-null-pointer-dereference.patch
+     omap_hsmmc-cater-for-weird-cmd6-behaviour.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: fix NULL pointer dereference
-From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Subject: omap_hsmmc: cater for weird CMD6 behaviour
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-Do not call 'mmc_omap_xfer_done()' if the request is already done.
+Sometimes the controller unexpectedly produces a TC (transfer complete)
+interrupt before the CC (command complete) interrupt for command 6
+(SWITCH).  This is a problem because the CC interrupt can get mixed up
+with the next request.  Add a hack for CMD6.
 
-Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -50,25 +52,31 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/omap_hsmmc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-fix-null-pointer-dereference drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-fix-null-pointer-dereference
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-cater-for-weird-cmd6-behaviour drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-cater-for-weird-cmd6-behaviour
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -677,7 +677,7 @@ static irqreturn_t mmc_omap_irq(int irq,
+@@ -481,6 +481,13 @@ mmc_omap_xfer_done(struct mmc_omap_host 
+ 	if (!data) {
+ 		struct mmc_request *mrq = host->mrq;
  
- 	if (end_cmd || ((status & CC) && host->cmd))
- 		mmc_omap_cmd_done(host, host->cmd);
--	if (end_trans || (status & TC))
-+	if ((end_trans || (status & TC)) && host->mrq)
- 		mmc_omap_xfer_done(host, data);
- 
- 	return IRQ_HANDLED;
++		/* TC before CC from CMD6 - don't know why, but it happens */
++		if (host->cmd && host->cmd->opcode == 6 &&
++		    host->response_busy) {
++			host->response_busy = 0;
++			return;
++		}
++
+ 		host->mrq = NULL;
+ 		mmc_request_done(host->mmc, mrq);
+ 		return;
 _
 
-Patches currently in -mm which might be from jarkko.lavinen@nokia.com are
+Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 mmc-add-enable-and-disable-methods-to-mmc-host.patch
 mmc-allow-host-claim-release-nesting.patch
 mmc-add-mmc_cap_nonremovable-host-capability.patch
