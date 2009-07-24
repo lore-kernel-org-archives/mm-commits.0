@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-check-status-after-mmc-switch-command.patch added to -mm tree
-Date: Fri, 24 Jul 2009 15:54:42 -0700
-Message-ID: <200907242254.n6OMsgVW031162@imap1.linux-foundation.org>
+Subject: + omap_hsmmc-set-open-drain-bit-correctly.patch added to -mm tree
+Date: Fri, 24 Jul 2009 15:54:54 -0700
+Message-ID: <200907242254.n6OMssa5031495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755049AbZGXWyy (ORCPT
+	by vger.kernel.org with ESMTP id S1755062AbZGXWzC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 18:54:54 -0400
+	Fri, 24 Jul 2009 18:55:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, pierre@ossman.eu, roberto.foglietta@gmail.com
+Cc: ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, pierre@ossman.eu, roberto.foglietta@gmail.com
 
 
 The patch titled
-     mmc: check status after MMC SWITCH command
+     omap_hsmmc: set open drain bit correctly
 has been added to the -mm tree.  Its filename is
-     mmc-check-status-after-mmc-switch-command.patch
+     omap_hsmmc-set-open-drain-bit-correctly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: check status after MMC SWITCH command
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: omap_hsmmc: set open drain bit correctly
+From: Denis Karpov <ext-denis.2.karpov@nokia.com>
 
-According to the standard, the SWITCH command should be followed by a
-SEND_STATUS command to check for errors.
+The code could set the bit to 1 but not reset it to 0.
 
+Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -50,112 +50,30 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc.c     |   24 ++++++++++++++++++------
- drivers/mmc/core/mmc_ops.c |   23 +++++++++++++++++++++++
- include/linux/mmc/mmc.h    |    1 +
- 3 files changed, 42 insertions(+), 6 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/core/mmc.c~mmc-check-status-after-mmc-switch-command drivers/mmc/core/mmc.c
---- a/drivers/mmc/core/mmc.c~mmc-check-status-after-mmc-switch-command
-+++ a/drivers/mmc/core/mmc.c
-@@ -416,12 +416,17 @@ static int mmc_init_card(struct mmc_host
- 		(host->caps & MMC_CAP_MMC_HIGHSPEED)) {
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 			EXT_CSD_HS_TIMING, 1);
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-set-open-drain-bit-correctly drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-set-open-drain-bit-correctly
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -1118,9 +1118,11 @@ static void omap_mmc_set_ios(struct mmc_
+ 	if (do_send_init_stream)
+ 		send_init_stream(host);
  
--		mmc_card_set_highspeed(card);
--
--		mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to highspeed failed\n",
-+			       mmc_hostname(card->host));
-+			err = 0;
-+		} else {
-+			mmc_card_set_highspeed(card);
-+			mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		}
- 	}
++	con = OMAP_HSMMC_READ(host->base, CON);
+ 	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
+-		OMAP_HSMMC_WRITE(host->base, CON,
+-				OMAP_HSMMC_READ(host->base, CON) | OD);
++		OMAP_HSMMC_WRITE(host->base, CON, con | OD);
++	else
++		OMAP_HSMMC_WRITE(host->base, CON, con & ~OD);
  
- 	/*
-@@ -456,10 +461,17 @@ static int mmc_init_card(struct mmc_host
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 				 EXT_CSD_BUS_WIDTH, ext_csd_bit);
- 
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
- 
--		mmc_set_bus_width(card->host, bus_width);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to bus width %d "
-+			       "failed\n", mmc_hostname(card->host),
-+			       1 << bus_width);
-+			err = 0;
-+		} else {
-+			mmc_set_bus_width(card->host, bus_width);
-+		}
- 	}
- 
- 	if (!oldcard)
-diff -puN drivers/mmc/core/mmc_ops.c~mmc-check-status-after-mmc-switch-command drivers/mmc/core/mmc_ops.c
---- a/drivers/mmc/core/mmc_ops.c~mmc-check-status-after-mmc-switch-command
-+++ a/drivers/mmc/core/mmc_ops.c
-@@ -390,6 +390,7 @@ int mmc_switch(struct mmc_card *card, u8
- {
- 	int err;
- 	struct mmc_command cmd;
-+	u32 status;
- 
- 	BUG_ON(!card);
- 	BUG_ON(!card->host);
-@@ -407,6 +408,28 @@ int mmc_switch(struct mmc_card *card, u8
- 	if (err)
- 		return err;
- 
-+	/* Must check status to be sure of no errors */
-+	do {
-+		err = mmc_send_status(card, &status);
-+		if (err)
-+			return err;
-+		if (card->host->caps & MMC_CAP_WAIT_WHILE_BUSY)
-+			break;
-+		if (mmc_host_is_spi(card->host))
-+			break;
-+	} while (R1_CURRENT_STATE(status) == 7);
-+
-+	if (mmc_host_is_spi(card->host)) {
-+		if (status & R1_SPI_ILLEGAL_COMMAND)
-+			return -EBADMSG;
-+	} else {
-+		if (status & 0xFDFFA000)
-+			printk(KERN_WARNING "%s: unexpected status %#x after "
-+			       "switch", mmc_hostname(card->host), status);
-+		if (status & R1_SWITCH_ERROR)
-+			return -EBADMSG;
-+	}
-+
- 	return 0;
+ 	mmc_host_lazy_disable(host->mmc);
  }
- 
-diff -puN include/linux/mmc/mmc.h~mmc-check-status-after-mmc-switch-command include/linux/mmc/mmc.h
---- a/include/linux/mmc/mmc.h~mmc-check-status-after-mmc-switch-command
-+++ a/include/linux/mmc/mmc.h
-@@ -128,6 +128,7 @@
- #define R1_STATUS(x)            (x & 0xFFFFE000)
- #define R1_CURRENT_STATE(x)	((x & 0x00001E00) >> 9)	/* sx, b (4 bits) */
- #define R1_READY_FOR_DATA	(1 << 8)	/* sx, a */
-+#define R1_SWITCH_ERROR		(1 << 7)	/* sx, c */
- #define R1_APP_CMD		(1 << 5)	/* sr, c */
- 
- /*
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from ext-denis.2.karpov@nokia.com are
 
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 mmc-add-enable-and-disable-methods-to-mmc-host.patch
 mmc-allow-host-claim-release-nesting.patch
 mmc-add-mmc_cap_nonremovable-host-capability.patch
