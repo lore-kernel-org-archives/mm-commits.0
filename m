@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag.patch added to -mm tree
-Date: Fri, 24 Jul 2009 15:55:31 -0700
-Message-ID: <200907242255.n6OMtVlf032480@imap1.linux-foundation.org>
+Subject: + sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc.patch added to -mm tree
+Date: Fri, 24 Jul 2009 15:58:01 -0700
+Message-ID: <200907242258.n6OMw1C6004064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54797 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57904 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755136AbZGXWzm (ORCPT
+	by vger.kernel.org with ESMTP id S1754995AbZGXW6Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 18:55:42 -0400
+	Fri, 24 Jul 2009 18:58:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, pierre@ossman.eu, roberto.foglietta@gmail.com
+Cc: avorontsov@ru.mvista.com, drzeus@drzeus.cx, ian@mnementh.co.uk, matt@console-pimps.org, roberto.foglietta@gmail.com
 
 
 The patch titled
-     ARM: OMAP: RX51: set MMC capabilities and power-saving flag
+     sdhci: get rid of "frequency too high" flood when using eSDHC
 has been added to the -mm tree.  Its filename is
-     arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag.patch
+     sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ARM: OMAP: RX51: set MMC capabilities and power-saving flag
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: sdhci: get rid of "frequency too high" flood when using eSDHC
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Specify MMC capabilities and set the power-saving flag for RX51.
+Since commit 8dfd0374be84793360db7fff2e635d2cd3bbcb21 ("MMC core: limit
+minimum initialization frequency to 400kHz") MMC core checks for minimum
+frequency, and that causes following messages flood when using eSDHC
+controllers:
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+  ...
+  mmc0: Minimum clock frequency too high for identification mode
+  mmc0: Minimum clock frequency too high for identification mode
+  ...
+
+The warnings are legitimate, since if we'd use 133 MHz clocks for standard
+SDHCI controllers, we'd not able to scale frequency down to 400 kHz.
+
+But eSDHC controllers have a non-standard SD clock management, so we can
+divide clock by 256 * 16, not just 256.
+
+This patch introduces get_min_clock() callback for sdhci core and
+implements it for sdhci-of driver, and thus fixes the issue.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
 Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
-Cc: Pierre Ossman <pierre@ossman.eu>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/mmc/host/sdhci-of.c |    8 ++++++++
+ drivers/mmc/host/sdhci.c    |    5 ++++-
+ drivers/mmc/host/sdhci.h    |    1 +
+ 3 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-omap2/board-rx51-peripherals.c~arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag arch/arm/mach-omap2/board-rx51-peripherals.c
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c~arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag
-+++ a/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -19,6 +19,7 @@
- #include <linux/delay.h>
- #include <linux/regulator/machine.h>
- #include <linux/gpio.h>
-+#include <linux/mmc/host.h>
+diff -puN drivers/mmc/host/sdhci-of.c~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc drivers/mmc/host/sdhci-of.c
+--- a/drivers/mmc/host/sdhci-of.c~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc
++++ a/drivers/mmc/host/sdhci-of.c
+@@ -158,6 +158,13 @@ static unsigned int esdhc_get_max_clock(
+ 	return of_host->clock;
+ }
  
- #include <mach/mcspi.h>
- #include <mach/mux.h>
-@@ -102,6 +103,8 @@ static struct twl4030_hsmmc_info mmc[] =
- 		.cover_only	= true,
- 		.gpio_cd	= 160,
- 		.gpio_wp	= -EINVAL,
-+		.power_saving	= true,
-+		.caps		= MMC_CAP_SD_ONLY,
++static unsigned int esdhc_get_min_clock(struct sdhci_host *host)
++{
++	struct sdhci_of_host *of_host = sdhci_priv(host);
++
++	return of_host->clock / 256 / 16;
++}
++
+ static unsigned int esdhc_get_timeout_clock(struct sdhci_host *host)
+ {
+ 	struct sdhci_of_host *of_host = sdhci_priv(host);
+@@ -184,6 +191,7 @@ static struct sdhci_of_data sdhci_esdhc 
+ 		.set_clock = esdhc_set_clock,
+ 		.enable_dma = esdhc_enable_dma,
+ 		.get_max_clock = esdhc_get_max_clock,
++		.get_min_clock = esdhc_get_min_clock,
+ 		.get_timeout_clock = esdhc_get_timeout_clock,
  	},
- 	{
- 		.name		= "internal",
-@@ -109,6 +112,8 @@ static struct twl4030_hsmmc_info mmc[] =
- 		.wires		= 8,
- 		.gpio_cd	= -EINVAL,
- 		.gpio_wp	= -EINVAL,
-+		.power_saving	= true,
-+		.caps		= MMC_CAP_MMC_ONLY | MMC_CAP_NONREMOVABLE,
- 	},
- 	{}	/* Terminator */
  };
+diff -puN drivers/mmc/host/sdhci.c~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc
++++ a/drivers/mmc/host/sdhci.c
+@@ -1766,7 +1766,10 @@ int sdhci_add_host(struct sdhci_host *ho
+ 	 * Set host parameters.
+ 	 */
+ 	mmc->ops = &sdhci_ops;
+-	mmc->f_min = host->max_clk / 256;
++	if (host->ops->get_min_clock)
++		mmc->f_min = host->ops->get_min_clock(host);
++	else
++		mmc->f_min = host->max_clk / 256;
+ 	mmc->f_max = host->max_clk;
+ 	mmc->caps = MMC_CAP_SDIO_IRQ;
+ 
+diff -puN drivers/mmc/host/sdhci.h~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc
++++ a/drivers/mmc/host/sdhci.h
+@@ -302,6 +302,7 @@ struct sdhci_ops {
+ 
+ 	int		(*enable_dma)(struct sdhci_host *host);
+ 	unsigned int	(*get_max_clock)(struct sdhci_host *host);
++	unsigned int	(*get_min_clock)(struct sdhci_host *host);
+ 	unsigned int	(*get_timeout_clock)(struct sdhci_host *host);
+ };
+ 
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-mmc-add-enable-and-disable-methods-to-mmc-host.patch
-mmc-allow-host-claim-release-nesting.patch
-mmc-add-mmc_cap_nonremovable-host-capability.patch
-mmc-add-ability-to-save-power-by-powering-off-cards.patch
-mmc-add-mmc-card-sleep-and-awake-support.patch
-mmc-power-off-once-at-removal.patch
-mmc-add-host-capabilities-for-sd-only-and-mmc-only.patch
-mmc-check-status-after-mmc-switch-command.patch
-omap_hsmmc-add-debugfs-entry-host-registers.patch
-omap_hsmmc-make-use-of-new-enable-disable-interface.patch
-arm-omap-mmc-twl4030-add-context-loss-counter-support.patch
-omap_hsmmc-keep-track-of-power-mode.patch
-omap_hsmmc-context-save-restore-support.patch
-omap_hsmmc-set-open-drain-bit-correctly.patch
-omap_hsmmc-ensure-workqueues-are-empty-before-suspend.patch
-omap_hsmmc-fix-scatter-gather-list-sanity-checking.patch
-omap_hsmmc-make-use-of-new-mmc_cap_nonremovable-host-capability.patch
-omap_hsmmc-support-for-deeper-power-saving-states.patch
-arm-omap-mmc-twl4030-add-regulator-sleep-wake-function.patch
-omap_hsmmc-put-mmc-regulator-to-sleep.patch
-omap_hsmmc-add-mmc-card-sleep-and-awake-support.patch
-omap_hsmmc-fix-null-pointer-dereference.patch
-omap_hsmmc-cleanup-macro-usage.patch
-omap_hsmmc-clear-interrupt-status-after-init-sequence.patch
-omap_hsmmc-cater-for-weird-cmd6-behaviour.patch
-omap_hsmmc-prevent-races-with-irq-handler.patch
-omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch
-omap_hsmmc-code-refactoring.patch
-omap_hsmmc-protect-the-card-when-the-cover-is-open.patch
-omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch
-omap_hsmmc-set-a-large-data-timeout-for-commands-with-busy-signal.patch
-arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag.patch
+linux-next.patch
+mtd-sst25l-non-jedec-spi-flash-driver.patch
+mtd-sst25l-non-jedec-spi-flash-driver-update.patch
+mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
+sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc.patch
 
