@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-flexible-array-implementation-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 24 Jul 2009 16:40:16 -0700
-Message-ID: <200907242340.n6ONeGHt006739@imap1.linux-foundation.org>
+Subject: + ncpfs-read-buffer-overflow.patch added to -mm tree
+Date: Fri, 24 Jul 2009 16:48:18 -0700
+Message-ID: <200907242348.n6ONmI7h019576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755222AbZGXXkW (ORCPT
+	by vger.kernel.org with ESMTP id S1755267AbZGXXsZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 19:40:22 -0400
+	Fri, 24 Jul 2009 19:48:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: roel.kluin@gmail.com, VANDROVE@vc.cvut.cz
 
 
 The patch titled
-     lib-flexible-array-implementation-checkpatch-fixes
+     ncpfs: read buffer overflow
 has been added to the -mm tree.  Its filename is
-     lib-flexible-array-implementation-checkpatch-fixes.patch
+     ncpfs-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,139 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-flexible-array-implementation-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ncpfs: read buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-WARNING: line over 80 characters
-#101: FILE: include/linux/flex_array.h:43:
-+int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags);
+This function uses signed integers for the unix_date and local variables -
+if a negative number is supplied and the leap-year condition is not met,
+month will be 0, leading to a later read of day_n[-1]
 
-ERROR: return is not a function, parentheses are not required
-#271: FILE: lib/flex_array.c:151:
-+	return (element_nr % __elements_per_part(fa->element_size));
-
-WARNING: line over 80 characters
-#311: FILE: lib/flex_array.c:191:
-+int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags)
-
-ERROR: code indent should use tabs where possible
-#354: FILE: lib/flex_array.c:234:
-+      ^Iend_part = fa_element_to_part_nr(fa, end);$
-
-total: 2 errors, 2 warnings, 323 lines checked
-
-./patches/lib-flexible-array-implementation.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/flex_array.h |    3 ++-
- lib/flex_array.c           |    4 ++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ fs/ncpfs/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/flex_array.h~lib-flexible-array-implementation-checkpatch-fixes include/linux/flex_array.h
---- a/include/linux/flex_array.h~lib-flexible-array-implementation-checkpatch-fixes
-+++ a/include/linux/flex_array.h
-@@ -40,7 +40,8 @@ struct flex_array *flex_array_alloc(int 
- int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags);
- void flex_array_free(struct flex_array *fa);
- void flex_array_free_parts(struct flex_array *fa);
--int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags);
-+int flex_array_put(struct flex_array *fa, int element_nr, void *src,
-+		gfp_t flags);
- void *flex_array_get(struct flex_array *fa, int element_nr);
- 
- #endif /* _FLEX_ARRAY_H */
-diff -puN lib/flex_array.c~lib-flexible-array-implementation-checkpatch-fixes lib/flex_array.c
---- a/lib/flex_array.c~lib-flexible-array-implementation-checkpatch-fixes
-+++ a/lib/flex_array.c
-@@ -148,7 +148,7 @@ void flex_array_free(struct flex_array *
- 
- static int fa_index_inside_part(struct flex_array *fa, int element_nr)
- {
--	return (element_nr % __elements_per_part(fa->element_size));
-+	return element_nr % __elements_per_part(fa->element_size);
- }
- 
- static int index_inside_part(struct flex_array *fa, int element_nr)
-@@ -231,7 +231,7 @@ int flex_array_prealloc(struct flex_arra
- 	if (elements_fit_in_base(fa))
- 		return 0;
- 	start_part = fa_element_to_part_nr(fa, start);
--      	end_part = fa_element_to_part_nr(fa, end);
-+	end_part = fa_element_to_part_nr(fa, end);
- 	for (part_nr = start_part; part_nr <= end_part; part_nr++) {
- 		part = __fa_get_part(fa, part_nr, flags);
- 		if (!part)
+diff -puN fs/ncpfs/dir.c~ncpfs-read-buffer-overflow fs/ncpfs/dir.c
+--- a/fs/ncpfs/dir.c~ncpfs-read-buffer-overflow
++++ a/fs/ncpfs/dir.c
+@@ -1241,7 +1241,7 @@ ncp_date_unix2dos(int unix_date, __le16 
+ 		month = 2;
+ 	} else {
+ 		nl_day = (year & 3) || day <= 59 ? day : day - 1;
+-		for (month = 0; month < 12; month++)
++		for (month = 1; month < 12; month++)
+ 			if (day_n[month] > nl_day)
+ 				break;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-vfs-optimize-touch_time-too-fix.patch
-lib-flexible-array-implementation-checkpatch-fixes.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-cell-replace-strncpy-by-strlcpy.patch
+media-strncpy-does-not-null-terminate-string.patch
+ivtv-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
 m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes.patch
-fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+m68k-cnt-reaches-1-not-0.patch
+ncpfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+documentation-strncpy-does-not-null-terminate-string.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
