@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omap_hsmmc-add-debugfs-entry-host-registers.patch added to -mm tree
-Date: Fri, 24 Jul 2009 15:54:44 -0700
-Message-ID: <200907242254.n6OMsiPh031225@imap1.linux-foundation.org>
+Subject: + omap_hsmmc-make-use-of-new-enable-disable-interface.patch added to -mm tree
+Date: Fri, 24 Jul 2009 15:54:46 -0700
+Message-ID: <200907242254.n6OMskwR031260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755052AbZGXWyz (ORCPT
+	by vger.kernel.org with ESMTP id S1755059AbZGXWy5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 18:54:55 -0400
+	Fri, 24 Jul 2009 18:54:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, pierre@ossman.eu, roberto.foglietta@gmail.com
+Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, pierre@ossman.eu, roberto.foglietta@gmail.com
 
 
 The patch titled
-     omap_hsmmc: add debugfs entry (host registers)
+     omap_hsmmc: make use of new enable/disable interface
 has been added to the -mm tree.  Its filename is
-     omap_hsmmc-add-debugfs-entry-host-registers.patch
+     omap_hsmmc-make-use-of-new-enable-disable-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: add debugfs entry (host registers)
-From: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Subject: omap_hsmmc: make use of new enable/disable interface
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-Adds <debugfs_root>/kernel/debug/mmc<N>/regs entry, contents show
-registers' state and some driver internal state variables.
+For the moment enable / disable just turns the fclk on and off.
 
-Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -51,94 +49,210 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   57 ++++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+ drivers/mmc/host/omap_hsmmc.c |   68 +++++++++++++++++++++++++++-----
+ 1 file changed, 58 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-debugfs-entry-host-registers drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-debugfs-entry-host-registers
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-make-use-of-new-enable-disable-interface drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-make-use-of-new-enable-disable-interface
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -17,6 +17,8 @@
+@@ -605,7 +605,9 @@ static void mmc_omap_detect(struct work_
+ 	if (host->carddetect) {
+ 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
+ 	} else {
++		mmc_host_enable(host->mmc);
+ 		mmc_omap_reset_controller_fsm(host, SRD);
++		mmc_host_lazy_disable(host->mmc);
+ 		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
+ 	}
+ }
+@@ -818,6 +820,27 @@ mmc_omap_prepare_data(struct mmc_omap_ho
+ 	return 0;
+ }
  
- #include <linux/module.h>
- #include <linux/init.h>
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/dma-mapping.h>
-@@ -974,6 +976,59 @@ static struct mmc_host_ops mmc_omap_ops 
- 	/* NYET -- enable_sdio_irq */
- };
- 
-+#ifdef CONFIG_DEBUG_FS
-+
-+static int mmc_regs_show(struct seq_file *s, void *data)
++static int omap_mmc_enable(struct mmc_host *mmc)
 +{
-+	struct mmc_host *mmc = s->private;
 +	struct mmc_omap_host *host = mmc_priv(mmc);
++	int err;
 +
-+	seq_printf(s, "mmc%d regs:\n", mmc->index);
-+
-+	seq_printf(s, "SYSCONFIG:\t0x%08x\n",
-+			OMAP_HSMMC_READ(host->base, SYSCONFIG));
-+	seq_printf(s, "CON:\t\t0x%08x\n",
-+			OMAP_HSMMC_READ(host->base, CON));
-+	seq_printf(s, "HCTL:\t\t0x%08x\n",
-+			OMAP_HSMMC_READ(host->base, HCTL));
-+	seq_printf(s, "SYSCTL:\t\t0x%08x\n",
-+			OMAP_HSMMC_READ(host->base, SYSCTL));
-+	seq_printf(s, "IE:\t\t0x%08x\n",
-+			OMAP_HSMMC_READ(host->base, IE));
-+	seq_printf(s, "ISE:\t\t0x%08x\n",
-+			OMAP_HSMMC_READ(host->base, ISE));
-+	seq_printf(s, "CAPA:\t\t0x%08x\n",
-+			OMAP_HSMMC_READ(host->base, CAPA));
++	err = clk_enable(host->fclk);
++	if (err)
++		return err;
++	dev_dbg(mmc_dev(host->mmc), "mmc_fclk: enabled\n");
 +	return 0;
 +}
 +
-+static int mmc_regs_open(struct inode *inode, struct file *file)
++static int omap_mmc_disable(struct mmc_host *mmc, int lazy)
 +{
-+	return single_open(file, mmc_regs_show, inode->i_private);
++	struct mmc_omap_host *host = mmc_priv(mmc);
++
++	clk_disable(host->fclk);
++	dev_dbg(mmc_dev(host->mmc), "mmc_fclk: disabled\n");
++	return 0;
 +}
 +
-+static const struct file_operations mmc_regs_fops = {
-+	.open           = mmc_regs_open,
-+	.read           = seq_read,
-+	.llseek         = seq_lseek,
-+	.release        = single_release,
-+};
+ /*
+  * Request function. for read/write operation
+  */
+@@ -841,6 +864,8 @@ static void omap_mmc_set_ios(struct mmc_
+ 	unsigned long timeout;
+ 	u32 con;
+ 
++	mmc_host_enable(host->mmc);
 +
-+static void omap_mmc_debugfs(struct mmc_host *mmc)
-+{
-+	if (mmc->debugfs_root)
-+		debugfs_create_file("regs", S_IRUSR, mmc->debugfs_root,
-+			mmc, &mmc_regs_fops);
-+}
+ 	switch (ios->power_mode) {
+ 	case MMC_POWER_OFF:
+ 		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+@@ -919,6 +944,8 @@ static void omap_mmc_set_ios(struct mmc_
+ 	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
+ 		OMAP_HSMMC_WRITE(host->base, CON,
+ 				OMAP_HSMMC_READ(host->base, CON) | OD);
 +
-+#else
++	mmc_host_lazy_disable(host->mmc);
+ }
+ 
+ static int omap_hsmmc_get_cd(struct mmc_host *mmc)
+@@ -969,6 +996,8 @@ static void omap_hsmmc_init(struct mmc_o
+ }
+ 
+ static struct mmc_host_ops mmc_omap_ops = {
++	.enable = omap_mmc_enable,
++	.disable = omap_mmc_disable,
+ 	.request = omap_mmc_request,
+ 	.set_ios = omap_mmc_set_ios,
+ 	.get_cd = omap_hsmmc_get_cd,
+@@ -983,7 +1012,16 @@ static int mmc_regs_show(struct seq_file
+ 	struct mmc_host *mmc = s->private;
+ 	struct mmc_omap_host *host = mmc_priv(mmc);
+ 
+-	seq_printf(s, "mmc%d regs:\n", mmc->index);
++	seq_printf(s, "mmc%d:\n"
++			" enabled:\t%d\n"
++			" nesting_cnt:\t%d\n"
++			"\nregs:\n",
++			mmc->index, mmc->enabled ? 1 : 0, mmc->nesting_cnt);
 +
-+static void omap_mmc_debugfs(struct mmc_host *mmc)
-+{
-+}
++	if (clk_enable(host->fclk) != 0) {
++		seq_printf(s, "can't read the regs\n");
++		goto err;
++	}
+ 
+ 	seq_printf(s, "SYSCONFIG:\t0x%08x\n",
+ 			OMAP_HSMMC_READ(host->base, SYSCONFIG));
+@@ -999,6 +1037,9 @@ static int mmc_regs_show(struct seq_file
+ 			OMAP_HSMMC_READ(host->base, ISE));
+ 	seq_printf(s, "CAPA:\t\t0x%08x\n",
+ 			OMAP_HSMMC_READ(host->base, CAPA));
 +
-+#endif
-+
- static int __init omap_mmc_probe(struct platform_device *pdev)
- {
- 	struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
-@@ -1157,6 +1212,8 @@ static int __init omap_mmc_probe(struct 
- 			goto err_cover_switch;
++	clk_disable(host->fclk);
++err:
+ 	return 0;
+ }
+ 
+@@ -1099,14 +1140,16 @@ static int __init omap_mmc_probe(struct 
+ 		goto err1;
  	}
  
-+	omap_mmc_debugfs(mmc);
-+
- 	return 0;
+-	if (clk_enable(host->fclk) != 0) {
++	mmc->caps |= MMC_CAP_DISABLE;
++	mmc_set_disable_delay(mmc, msecs_to_jiffies(100));
++	if (mmc_host_enable(host->mmc) != 0) {
+ 		clk_put(host->iclk);
+ 		clk_put(host->fclk);
+ 		goto err1;
+ 	}
  
- err_cover_switch:
+ 	if (clk_enable(host->iclk) != 0) {
+-		clk_disable(host->fclk);
++		mmc_host_disable(host->mmc);
+ 		clk_put(host->iclk);
+ 		clk_put(host->fclk);
+ 		goto err1;
+@@ -1197,6 +1240,8 @@ static int __init omap_mmc_probe(struct 
+ 	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
+ 	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
+ 
++	mmc_host_lazy_disable(host->mmc);
++
+ 	mmc_add_host(mmc);
+ 
+ 	if (host->pdata->slots[host->slot_id].name != NULL) {
+@@ -1225,7 +1270,7 @@ err_irq_cd:
+ err_irq_cd_init:
+ 	free_irq(host->irq, host);
+ err_irq:
+-	clk_disable(host->fclk);
++	mmc_host_disable(host->mmc);
+ 	clk_disable(host->iclk);
+ 	clk_put(host->fclk);
+ 	clk_put(host->iclk);
+@@ -1250,6 +1295,7 @@ static int omap_mmc_remove(struct platfo
+ 	struct resource *res;
+ 
+ 	if (host) {
++		mmc_host_enable(host->mmc);
+ 		mmc_remove_host(host->mmc);
+ 		if (host->pdata->cleanup)
+ 			host->pdata->cleanup(&pdev->dev);
+@@ -1258,7 +1304,7 @@ static int omap_mmc_remove(struct platfo
+ 			free_irq(mmc_slot(host).card_detect_irq, host);
+ 		flush_scheduled_work();
+ 
+-		clk_disable(host->fclk);
++		mmc_host_disable(host->mmc);
+ 		clk_disable(host->iclk);
+ 		clk_put(host->fclk);
+ 		clk_put(host->iclk);
+@@ -1289,6 +1335,7 @@ static int omap_mmc_suspend(struct platf
+ 		return 0;
+ 
+ 	if (host) {
++		mmc_host_enable(host->mmc);
+ 		ret = mmc_suspend_host(host->mmc, state);
+ 		if (ret == 0) {
+ 			host->suspended = 1;
+@@ -1307,10 +1354,11 @@ static int omap_mmc_suspend(struct platf
+ 
+ 			OMAP_HSMMC_WRITE(host->base, HCTL,
+ 					 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+-			clk_disable(host->fclk);
++			mmc_host_disable(host->mmc);
+ 			clk_disable(host->iclk);
+ 			clk_disable(host->dbclk);
+-		}
++		} else
++			mmc_host_disable(host->mmc);
+ 
+ 	}
+ 	return ret;
+@@ -1327,13 +1375,12 @@ static int omap_mmc_resume(struct platfo
+ 
+ 	if (host) {
+ 
+-		ret = clk_enable(host->fclk);
+-		if (ret)
++		if (mmc_host_enable(host->mmc) != 0)
+ 			goto clk_en_err;
+ 
+ 		ret = clk_enable(host->iclk);
+ 		if (ret) {
+-			clk_disable(host->fclk);
++			mmc_host_disable(host->mmc);
+ 			clk_put(host->fclk);
+ 			goto clk_en_err;
+ 		}
+@@ -1355,6 +1402,7 @@ static int omap_mmc_resume(struct platfo
+ 		ret = mmc_resume_host(host->mmc);
+ 		if (ret == 0)
+ 			host->suspended = 0;
++		mmc_host_lazy_disable(host->mmc);
+ 	}
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from ext-denis.2.karpov@nokia.com are
+Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 mmc-add-enable-and-disable-methods-to-mmc-host.patch
 mmc-allow-host-claim-release-nesting.patch
 mmc-add-mmc_cap_nonremovable-host-capability.patch
