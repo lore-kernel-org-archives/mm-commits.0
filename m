@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-add-host-capabilities-for-sd-only-and-mmc-only.patch added to -mm tree
-Date: Fri, 24 Jul 2009 15:54:40 -0700
-Message-ID: <200907242254.n6OMsfYm031077@imap1.linux-foundation.org>
+Subject: + mmc-power-off-once-at-removal.patch added to -mm tree
+Date: Fri, 24 Jul 2009 15:54:38 -0700
+Message-ID: <200907242254.n6OMscJC030990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43543 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755050AbZGXWyu (ORCPT
+	by vger.kernel.org with ESMTP id S1755036AbZGXWyt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 18:54:50 -0400
+	Fri, 24 Jul 2009 18:54:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, pierre@ossman.eu, roberto.foglietta@gmail.com
+Cc: ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, pierre@ossman.eu, roberto.foglietta@gmail.com
 
 
 The patch titled
-     mmc: add host capabilities for SD only and MMC only
+     mmc: power off once at removal
 has been added to the -mm tree.  Its filename is
-     mmc-add-host-capabilities-for-sd-only-and-mmc-only.patch
+     mmc-power-off-once-at-removal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: add host capabilities for SD only and MMC only
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: mmc: power off once at removal
+From: Denis Karpov <ext-denis.2.karpov@nokia.com>
 
-Some hosts can accept only certain types of cards.  For example, an eMMC
-is MMC only and a uSD slot may be SD only.  However the MMC card scanning
-logic checks for all card types one by one.
+Fix MMC host stop sequence: power off once.
 
-Add host capabilities to specify which card types cannot be used, and
-amend the card scanning logic to skip scanning for those types.
-
+Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -54,79 +50,25 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c  |   16 +++++++++++++++-
- include/linux/mmc/host.h |    7 +++++++
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ drivers/mmc/core/core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/mmc/core/core.c~mmc-add-host-capabilities-for-sd-only-and-mmc-only drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-add-host-capabilities-for-sd-only-and-mmc-only
+diff -puN drivers/mmc/core/core.c~mmc-power-off-once-at-removal drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-power-off-once-at-removal
 +++ a/drivers/mmc/core/core.c
-@@ -1072,7 +1072,11 @@ void mmc_rescan(struct work_struct *work
- 	mmc_power_up(host);
- 	mmc_go_idle(host);
- 
--	mmc_send_if_cond(host, host->ocr_avail);
-+	if (!(host->caps & MMC_CAP_NOT_SDIO) || !(host->caps & MMC_CAP_NOT_SD))
-+		mmc_send_if_cond(host, host->ocr_avail);
-+
-+	if (host->caps & MMC_CAP_NOT_SDIO)
-+		goto not_sdio;
- 
- 	/*
- 	 * First we search for SDIO...
-@@ -1084,6 +1088,10 @@ void mmc_rescan(struct work_struct *work
- 		goto out;
+@@ -1140,6 +1140,8 @@ void mmc_stop_host(struct mmc_host *host
+ 		mmc_claim_host(host);
+ 		mmc_detach_bus(host);
+ 		mmc_release_host(host);
++		mmc_bus_put(host);
++		return;
  	}
+ 	mmc_bus_put(host);
  
-+not_sdio:
-+	if (host->caps & MMC_CAP_NOT_SD)
-+		goto not_sd;
-+
- 	/*
- 	 * ...then normal SD...
- 	 */
-@@ -1094,6 +1102,10 @@ void mmc_rescan(struct work_struct *work
- 		goto out;
- 	}
- 
-+not_sd:
-+	if (host->caps & MMC_CAP_NOT_MMC)
-+		goto not_mmc;
-+
- 	/*
- 	 * ...and finally MMC.
- 	 */
-@@ -1104,6 +1116,8 @@ void mmc_rescan(struct work_struct *work
- 		goto out;
- 	}
- 
-+not_mmc:
-+
- 	mmc_release_host(host);
- 	mmc_power_off(host);
- 
-diff -puN include/linux/mmc/host.h~mmc-add-host-capabilities-for-sd-only-and-mmc-only include/linux/mmc/host.h
---- a/include/linux/mmc/host.h~mmc-add-host-capabilities-for-sd-only-and-mmc-only
-+++ a/include/linux/mmc/host.h
-@@ -150,6 +150,13 @@ struct mmc_host {
- #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
- #define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
- #define MMC_CAP_WAIT_WHILE_BUSY	(1 << 9)	/* Waits while card is busy */
-+#define MMC_CAP_NOT_SDIO	(1 << 10)	/* Card cannot be SDIO */
-+#define MMC_CAP_NOT_SD		(1 << 11)	/* Card cannot be SD */
-+#define MMC_CAP_NOT_MMC		(1 << 12)	/* Card cannot be MMC */
-+
-+#define MMC_CAP_SDIO_ONLY	(MMC_CAP_NOT_SD | MMC_CAP_NOT_MMC)
-+#define MMC_CAP_SD_ONLY		(MMC_CAP_NOT_SDIO | MMC_CAP_NOT_MMC)
-+#define MMC_CAP_MMC_ONLY	(MMC_CAP_NOT_SDIO | MMC_CAP_NOT_SD)
- 
- 	/* host specific block data */
- 	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from ext-denis.2.karpov@nokia.com are
 
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 mmc-add-enable-and-disable-methods-to-mmc-host.patch
 mmc-allow-host-claim-release-nesting.patch
 mmc-add-mmc_cap_nonremovable-host-capability.patch
