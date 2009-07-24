@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia32-use-generic-sys_pipe.patch added to -mm tree
-Date: Fri, 24 Jul 2009 14:28:30 -0700
-Message-ID: <200907242128.n6OLSUIf022861@imap1.linux-foundation.org>
+Subject: + xtensa-use-generic-sys_pipe.patch added to -mm tree
+Date: Fri, 24 Jul 2009 14:29:13 -0700
+Message-ID: <200907242129.n6OLTDGb024010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37893 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754557AbZGXV3I (ORCPT
+	by vger.kernel.org with ESMTP id S1753694AbZGXV36 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 17:29:08 -0400
+	Fri, 24 Jul 2009 17:29:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, viro@zeniv.linux.org.uk
+Cc: xiyou.wangcong@gmail.com, amwang@redhat.com, chris@zankel.net, jw@emlix.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ia32: use generic sys_pipe()
+     xtensa: use generic sys_pipe()
 has been added to the -mm tree.  Its filename is
-     ia32-use-generic-sys_pipe.patch
+     xtensa-use-generic-sys_pipe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia32: use generic sys_pipe()
-From: Amerigo Wang <amwang@redhat.com>
+Subject: xtensa: use generic sys_pipe()
+From: Amerigo Wang <xiyou.wangcong@gmail.com>
 
-As suggested by Al, it's better to use the generic sys_pipe() for ia32.
+As suggested by Al, we can use the generic sys_pipe() instead of
+xtensa_pipe() for xtensa.
 
 Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Reviewed-by: Johannes Weiner <jw@emlix.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S |    2 +-
- arch/x86/ia32/sys_ia32.c  |   14 --------------
- 2 files changed, 1 insertion(+), 15 deletions(-)
+ arch/xtensa/include/asm/syscall.h |    1 -
+ arch/xtensa/include/asm/unistd.h  |    2 +-
+ arch/xtensa/kernel/syscall.c      |   18 ------------------
+ 3 files changed, 1 insertion(+), 20 deletions(-)
 
-diff -puN arch/x86/ia32/ia32entry.S~ia32-use-generic-sys_pipe arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~ia32-use-generic-sys_pipe
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -537,7 +537,7 @@ ia32_sys_call_table:
- 	.quad sys_mkdir
- 	.quad sys_rmdir		/* 40 */
- 	.quad sys_dup
--	.quad sys32_pipe
-+	.quad sys_pipe
- 	.quad compat_sys_times
- 	.quad quiet_ni_syscall			/* old prof syscall holder */
- 	.quad sys_brk		/* 45 */
-diff -puN arch/x86/ia32/sys_ia32.c~ia32-use-generic-sys_pipe arch/x86/ia32/sys_ia32.c
---- a/arch/x86/ia32/sys_ia32.c~ia32-use-generic-sys_pipe
-+++ a/arch/x86/ia32/sys_ia32.c
-@@ -189,20 +189,6 @@ asmlinkage long sys32_mprotect(unsigned 
- 	return sys_mprotect(start, len, prot);
- }
+diff -puN arch/xtensa/include/asm/syscall.h~xtensa-use-generic-sys_pipe arch/xtensa/include/asm/syscall.h
+--- a/arch/xtensa/include/asm/syscall.h~xtensa-use-generic-sys_pipe
++++ a/arch/xtensa/include/asm/syscall.h
+@@ -12,7 +12,6 @@ struct pt_regs;
+ struct sigaction;
+ asmlinkage long xtensa_execve(char*, char**, char**, struct pt_regs*);
+ asmlinkage long xtensa_clone(unsigned long, unsigned long, struct pt_regs*);
+-asmlinkage long xtensa_pipe(int __user *);
+ asmlinkage long xtensa_mmap2(unsigned long, unsigned long, unsigned long,
+     			     unsigned long, unsigned long, unsigned long);
+ asmlinkage long xtensa_ptrace(long, long, long, long);
+diff -puN arch/xtensa/include/asm/unistd.h~xtensa-use-generic-sys_pipe arch/xtensa/include/asm/unistd.h
+--- a/arch/xtensa/include/asm/unistd.h~xtensa-use-generic-sys_pipe
++++ a/arch/xtensa/include/asm/unistd.h
+@@ -94,7 +94,7 @@ __SYSCALL( 35, sys_readlink, 3)
+ #define __NR_mknod 				 36
+ __SYSCALL( 36, sys_mknod, 3)
+ #define __NR_pipe 				 37
+-__SYSCALL( 37, xtensa_pipe, 1)
++__SYSCALL( 37, sys_pipe, 1)
+ #define __NR_unlink 				 38
+ __SYSCALL( 38, sys_unlink, 1)
+ #define __NR_rmdir 				 39
+diff -puN arch/xtensa/kernel/syscall.c~xtensa-use-generic-sys_pipe arch/xtensa/kernel/syscall.c
+--- a/arch/xtensa/kernel/syscall.c~xtensa-use-generic-sys_pipe
++++ a/arch/xtensa/kernel/syscall.c
+@@ -39,24 +39,6 @@ syscall_t sys_call_table[__NR_syscall_co
+ #include <asm/unistd.h>
+ };
  
--asmlinkage long sys32_pipe(int __user *fd)
--{
--	int retval;
--	int fds[2];
+-/*
+- * xtensa_pipe() is the normal C calling standard for creating a pipe. It's not
+- * the way unix traditional does this, though.
+- */
 -
--	retval = do_pipe_flags(fds, 0);
--	if (retval)
--		goto out;
--	if (copy_to_user(fd, fds, sizeof(fds)))
--		retval = -EFAULT;
--out:
--	return retval;
+-asmlinkage long xtensa_pipe(int __user *userfds)
+-{
+-	int fd[2];
+-	int error;
+-
+-	error = do_pipe_flags(fd, 0);
+-	if (!error) {
+-		if (copy_to_user(userfds, fd, 2 * sizeof(int)))
+-			error = -EFAULT;
+-	}
+-	return error;
 -}
