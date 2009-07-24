@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + omap_hsmmc-protect-the-card-when-the-cover-is-open.patch added to -mm tree
-Date: Fri, 24 Jul 2009 15:55:25 -0700
-Message-ID: <200907242255.n6OMtP64032332@imap1.linux-foundation.org>
+Subject: + omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch added to -mm tree
+Date: Fri, 24 Jul 2009 15:55:27 -0700
+Message-ID: <200907242255.n6OMtRej032362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33951 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755136AbZGXWzg (ORCPT
+	by vger.kernel.org with ESMTP id S1755141AbZGXWzi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 18:55:36 -0400
+	Fri, 24 Jul 2009 18:55:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, j
 
 
 The patch titled
-     omap_hsmmc: protect the card when the cover is open
+     omap_hsmmc: ensure all clock enables and disables are paired
 has been added to the -mm tree.  Its filename is
-     omap_hsmmc-protect-the-card-when-the-cover-is-open.patch
+     omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: protect the card when the cover is open
+Subject: omap_hsmmc: ensure all clock enables and disables are paired
 From: Adrian Hunter <adrian.hunter@nokia.com>
-
-Depending on the manufacturer, there is a small possibility that removing
-a card while it is being written to, can render the card permanently
-unusable.  To prevent that, the card is made inaccessible when the cover
-is open.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
@@ -52,126 +47,67 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   63 ++++++++++++++++++++++++++++++--
- 1 file changed, 61 insertions(+), 2 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-protect-the-card-when-the-cover-is-open drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-protect-the-card-when-the-cover-is-open
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -165,6 +165,8 @@ struct omap_hsmmc_host {
- 	int			context_loss;
- 	int			dpm_state;
- 	int			vdd;
-+	int			protect_card;
-+	int			reqs_blocked;
+@@ -734,22 +734,24 @@ static int omap_hsmmc_switch_opcond(stru
+ 	/* Disable the clocks */
+ 	clk_disable(host->fclk);
+ 	clk_disable(host->iclk);
+-	clk_disable(host->dbclk);
++	if (host->dbclk_enabled)
++		clk_disable(host->dbclk);
  
- 	struct	omap_mmc_platform_data	*pdata;
- };
-@@ -349,6 +351,9 @@ static void send_init_stream(struct omap
- 	int reg = 0;
- 	unsigned long timeout;
+ 	/* Turn the power off */
+ 	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+-	if (ret != 0)
+-		goto err;
  
-+	if (host->protect_card)
-+		return;
+ 	/* Turn the power ON with given VDD 1.8 or 3.0v */
+-	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1, vdd);
++	if (!ret)
++		ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1,
++					       vdd);
++	clk_enable(host->iclk);
++	if (host->dbclk_enabled)
++		clk_enable(host->dbclk);
++	clk_enable(host->fclk);
 +
- 	disable_irq(host->irq);
- 	OMAP_HSMMC_WRITE(host->base, CON,
- 		OMAP_HSMMC_READ(host->base, CON) | INIT_STREAM);
-@@ -778,6 +783,30 @@ err:
- 	return ret;
- }
+ 	if (ret != 0)
+ 		goto err;
  
-+/* Protect the card while the cover is open */
-+static void omap_hsmmc_protect_card(struct omap_hsmmc_host *host)
-+{
-+	if (!mmc_slot(host).get_cover_state)
-+		return;
-+
-+	host->reqs_blocked = 0;
-+	if (mmc_slot(host).get_cover_state(host->dev, host->slot_id)) {
-+		if (host->protect_card) {
-+			printk(KERN_INFO "%s: cover is closed, "
-+					 "card is now accessible\n",
-+					 mmc_hostname(host->mmc));
-+			host->protect_card = 0;
-+		}
-+	} else {
-+		if (!host->protect_card) {
-+			printk(KERN_INFO "%s: cover is open, "
-+					 "card is now inaccessible\n",
-+					 mmc_hostname(host->mmc));
-+			host->protect_card = 1;
-+		}
-+	}
-+}
-+
- /*
-  * Work Item to notify the core about card insertion/removal
-  */
-@@ -795,8 +824,10 @@ static void omap_hsmmc_detect(struct wor
+-	clk_enable(host->fclk);
+-	clk_enable(host->iclk);
+-	clk_enable(host->dbclk);
+-
+ 	OMAP_HSMMC_WRITE(host->base, HCTL,
+ 		OMAP_HSMMC_READ(host->base, HCTL) & SDVSCLR);
+ 	reg_val = OMAP_HSMMC_READ(host->base, HCTL);
+@@ -1895,7 +1897,8 @@ static int omap_hsmmc_suspend(struct pla
+ 				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+ 			mmc_host_disable(host->mmc);
+ 			clk_disable(host->iclk);
+-			clk_disable(host->dbclk);
++			if (host->dbclk_enabled)
++				clk_disable(host->dbclk);
+ 		} else {
+ 			host->suspended = 0;
+ 			if (host->pdata->resume) {
+@@ -1926,9 +1929,8 @@ static int omap_hsmmc_resume(struct plat
+ 		if (ret)
+ 			goto clk_en_err;
  
- 	if (slot->card_detect)
- 		carddetect = slot->card_detect(slot->card_detect_irq);
--	else
-+	else {
-+		omap_hsmmc_protect_card(host);
- 		carddetect = -ENOSYS;
-+	}
+-		if (clk_enable(host->dbclk) != 0)
+-			dev_dbg(mmc_dev(host->mmc),
+-					"Enabling debounce clk failed\n");
++		if (host->dbclk_enabled)
++			clk_enable(host->dbclk);
  
- 	if (carddetect) {
- 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
-@@ -1032,8 +1063,32 @@ static void omap_hsmmc_request(struct mm
- 	 * interrupts, but not if we are already in interrupt context i.e.
- 	 * retries.
- 	 */
--	if (!in_interrupt())
-+	if (!in_interrupt()) {
- 		disable_irq(host->irq);
-+		/*
-+		 * Protect the card from I/O if there is a possibility
-+		 * it can be removed.
-+		 */
-+		if (host->protect_card) {
-+			if (host->reqs_blocked < 3) {
-+				/*
-+				 * Ensure the controller is left in a consistent
-+				 * state by resetting the command and data state
-+				 * machines.
-+				 */
-+				omap_hsmmc_reset_controller_fsm(host, SRD);
-+				omap_hsmmc_reset_controller_fsm(host, SRC);
-+				host->reqs_blocked += 1;
-+			}
-+			req->cmd->error = -EBADF;
-+			if (req->data)
-+				req->data->error = -EBADF;
-+			enable_irq(host->irq);
-+			mmc_request_done(mmc, req);
-+			return;
-+		} else if (host->reqs_blocked)
-+			host->reqs_blocked = 0;
-+	}
- 	WARN_ON(host->mrq != NULL);
- 	host->mrq = req;
- 	err = omap_hsmmc_prepare_data(host, req);
-@@ -1722,6 +1777,8 @@ static int __init omap_hsmmc_probe(struc
- 
- 	mmc_host_lazy_disable(host->mmc);
- 
-+	omap_hsmmc_protect_card(host);
-+
- 	mmc_add_host(mmc);
- 
- 	if (mmc_slot(host).name != NULL) {
-@@ -1887,6 +1944,8 @@ static int omap_hsmmc_resume(struct plat
- 					"Unmask interrupt failed\n");
- 		}
- 
-+		omap_hsmmc_protect_card(host);
-+
- 		/* Notify the core to resume the host */
- 		ret = mmc_resume_host(host->mmc);
- 		if (ret == 0)
+ 		if (mmc_host_enable(host->mmc) != 0) {
+ 			clk_disable(host->iclk);
 _
 
 Patches currently in -mm which might be from adrian.hunter@nokia.com are
