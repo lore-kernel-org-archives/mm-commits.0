@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-keep-index-within-status_map.patch added to -mm tree
-Date: Fri, 24 Jul 2009 16:50:26 -0700
-Message-ID: <200907242350.n6ONoQkG022952@imap1.linux-foundation.org>
+Subject: + sisfb-read-buffer-overflow.patch added to -mm tree
+Date: Fri, 24 Jul 2009 16:56:06 -0700
+Message-ID: <200907242356.n6ONu6je031955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40081 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751522AbZGXXue (ORCPT
+	by vger.kernel.org with ESMTP id S1751663AbZGXX4O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 19:50:34 -0400
+	Fri, 24 Jul 2009 19:56:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, Joel.Becker@oracle.com, mfasheh@suse.com
+Cc: roel.kluin@gmail.com, krzysztof.h1@poczta.fm, thomas@winischhofer.net
 
 
 The patch titled
-     ocfs2: keep index within status_map[]
+     sisfb: read buffer overflow
 has been added to the -mm tree.  Its filename is
-     ocfs2-keep-index-within-status_map.patch
+     sisfb-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ocfs2: keep index within status_map[]
+Subject: sisfb: read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Do not exceed array status_map[]
+If called with mode_idx = 1, rate = 68, a read occurs from
+sisfb_vrate[-1].refresh.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Joel Becker <Joel.Becker@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_o2cb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/video/sis/sis_main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/stack_o2cb.c~ocfs2-keep-index-within-status_map fs/ocfs2/stack_o2cb.c
---- a/fs/ocfs2/stack_o2cb.c~ocfs2-keep-index-within-status_map
-+++ a/fs/ocfs2/stack_o2cb.c
-@@ -17,6 +17,7 @@
-  * General Public License for more details.
-  */
- 
-+#include <linux/kernel.h>
- #include <linux/crc32.h>
- #include <linux/module.h>
- 
-@@ -153,7 +154,7 @@ static int status_map[] = {
- 
- static int dlm_status_to_errno(enum dlm_status status)
- {
--	BUG_ON(status > (sizeof(status_map) / sizeof(status_map[0])));
-+	BUG_ON(status < 0 || status >= ARRAY_SIZE(status_map));
- 
- 	return status_map[status];
- }
+diff -puN drivers/video/sis/sis_main.c~sisfb-read-buffer-overflow drivers/video/sis/sis_main.c
+--- a/drivers/video/sis/sis_main.c~sisfb-read-buffer-overflow
++++ a/drivers/video/sis/sis_main.c
+@@ -698,8 +698,8 @@ sisfb_search_refresh_rate(struct sis_vid
+ 						rate, sisfb_vrate[i].refresh);
+ 					ivideo->rate_idx = sisfb_vrate[i].idx;
+ 					ivideo->refresh_rate = sisfb_vrate[i].refresh;
+-				} else if(((rate - sisfb_vrate[i-1].refresh) <= 2)
+-						&& (sisfb_vrate[i].idx != 1)) {
++				} else if((sisfb_vrate[i].idx != 1) &&
++						((rate - sisfb_vrate[i-1].refresh) <= 2)) {
+ 					DPRINTK("sisfb: Adjusting rate from %d down to %d\n",
+ 						rate, sisfb_vrate[i-1].refresh);
+ 					ivideo->rate_idx = sisfb_vrate[i-1].idx;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -94,6 +89,7 @@ m68k-cnt-reaches-1-not-0.patch
 ncpfs-read-buffer-overflow.patch
 smbfs-read-buffer-overflow.patch
 platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
 documentation-strncpy-does-not-null-terminate-string.patch
 adfs-remove-redundant-test-on-unsigned.patch
 
