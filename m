@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysrq-kdump-make-sysrq-c-consistent.patch added to -mm tree
-Date: Fri, 24 Jul 2009 15:15:06 -0700
-Message-ID: <200907242215.n6OMF6nS032542@imap1.linux-foundation.org>
+Subject: + mmc-make-the-configuration-memory-resource-optional.patch added to -mm tree
+Date: Fri, 24 Jul 2009 15:19:32 -0700
+Message-ID: <200907242219.n6OMJWYr007241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751419AbZGXWQR (ORCPT
+	by vger.kernel.org with ESMTP id S1751793AbZGXWU2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 18:16:17 -0400
+	Fri, 24 Jul 2009 18:20:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: seto.hidetoshi@jp.fujitsu.com, brayan@yack.com.br, ebiederm@xmission.com, laijs@cn.fujitsu.com, nhorman@tuxdriver.com, oomichi@mxs.nes.nec.co.jp, vgoyal@redhat.com
+Cc: g.liakhovetski@gmx.de, damm@opensource.se, drzeus@drzeus.cx, ian@mnementh.co.uk, lethal@linux-sh.org, matt@console-pimps.org, roberto.foglietta@gmail.com
 
 
 The patch titled
-     sysrq, kdump: make sysrq-c consistent
+     mmc: make the configuration memory resource optional
 has been added to the -mm tree.  Its filename is
-     sysrq-kdump-make-sysrq-c-consistent.patch
+     mmc-make-the-configuration-memory-resource-optional.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq, kdump: make sysrq-c consistent
-From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Subject: mmc: make the configuration memory resource optional
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-commit d6580a9f15238b87e618310c862231ae3f352d2d ("kexec: sysrq: simplify
-sysrq-c handler") changed the behavior of sysrq-c to unconditional
-dereference of NULL pointer.  So in cases with CONFIG_KEXEC, where
-crash_kexec() was directly called from sysrq-c before, now it can be said
-that a step of "real oops" was inserted before starting kdump.
+Add support for tmio_mmc hardware configurations, that lack the cnf io
+area, like SuperH SoCs.  With this patch such hardware can pass a single
+ctl io area with the platform data.
 
-However, in contrast to oops via SysRq-c from keyboard which results in
-panic due to in_interrupt(), oops via "echo c > /proc/sysrq-trigger" will
-not become panic unless panic_on_oops=1.  It means that even if dump is
-properly configured to be taken on panic, the sysrq-c from proc interface
-might not start crashdump while the sysrq-c from keyboard can start
-crashdump.  This confuses traditional users of kdump, i.e.  people who
-expect sysrq-c to do common behavior in both of the keyboard and proc
-interface.
-
-This patch brings the keyboard and proc interface behavior of sysrq-c in
-line, by forcing panic_on_oops=1 before oops in sysrq-c handler.
-
-And some updates in documentation are included, to clarify that there is
-no longer dependency with CONFIG_KEXEC, and that now the system can just
-crash by sysrq-c if no dump mechanism is configured.
-
-Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Brayan Arraes <brayan@yack.com.br>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Magnus Damm <damm@opensource.se>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Ian Molton <ian@mnementh.co.uk>
+Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysrq.txt |    7 ++++---
- drivers/char/sysrq.c    |    8 +++++---
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/mmc/host/tmio_mmc.c |   18 +++++++++++-------
+ drivers/mmc/host/tmio_mmc.h |    6 ++++++
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/sysrq.txt~sysrq-kdump-make-sysrq-c-consistent Documentation/sysrq.txt
---- a/Documentation/sysrq.txt~sysrq-kdump-make-sysrq-c-consistent
-+++ a/Documentation/sysrq.txt
-@@ -66,7 +66,8 @@ On all -  write a character to /proc/sys
- 'b'     - Will immediately reboot the system without syncing or unmounting
-           your disks.
+diff -puN drivers/mmc/host/tmio_mmc.c~mmc-make-the-configuration-memory-resource-optional drivers/mmc/host/tmio_mmc.c
+--- a/drivers/mmc/host/tmio_mmc.c~mmc-make-the-configuration-memory-resource-optional
++++ a/drivers/mmc/host/tmio_mmc.c
+@@ -519,12 +519,12 @@ static int __devinit tmio_mmc_probe(stru
+ 	struct mmc_host *mmc;
+ 	int ret = -EINVAL;
  
--'c'	- Will perform a kexec reboot in order to take a crashdump.
-+'c'	- Will perform a system crash by a NULL pointer dereference.
-+          A crashdump will be taken if configured.
+-	if (dev->num_resources != 3)
++	if (dev->num_resources < 2 || dev->num_resources > 3)
+ 		goto out;
  
- 'd'	- Shows all locks that are held.
+ 	res_ctl = platform_get_resource(dev, IORESOURCE_MEM, 0);
+ 	res_cnf = platform_get_resource(dev, IORESOURCE_MEM, 1);
+-	if (!res_ctl || !res_cnf)
++	if (!res_ctl)
+ 		goto out;
  
-@@ -141,8 +142,8 @@ useful when you want to exit a program t
- re'B'oot is good when you're unable to shut down. But you should also 'S'ync
- and 'U'mount first.
+ 	pdata = cell->driver_data;
+@@ -548,9 +548,11 @@ static int __devinit tmio_mmc_probe(stru
+ 	if (!host->ctl)
+ 		goto host_free;
  
--'C'rashdump can be used to manually trigger a crashdump when the system is hung.
--The kernel needs to have been built with CONFIG_KEXEC enabled.
-+'C'rash can be used to manually trigger a crashdump when the system is hung.
-+Note that this just triggers a crash if there is no dump mechanism available.
+-	host->cnf = ioremap(res_cnf->start, resource_size(res_cnf));
+-	if (!host->cnf)
+-		goto unmap_ctl;
++	if (res_cnf) {
++		host->cnf = ioremap(res_cnf->start, resource_size(res_cnf));
++		if (!host->cnf)
++			goto unmap_ctl;
++	}
  
- 'S'ync is great when your system is locked up, it allows you to sync your
- disks and will certainly lessen the chance of data loss and fscking. Note
-diff -puN drivers/char/sysrq.c~sysrq-kdump-make-sysrq-c-consistent drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~sysrq-kdump-make-sysrq-c-consistent
-+++ a/drivers/char/sysrq.c
-@@ -35,7 +35,6 @@
- #include <linux/spinlock.h>
- #include <linux/vt_kern.h>
- #include <linux/workqueue.h>
--#include <linux/kexec.h>
- #include <linux/hrtimer.h>
- #include <linux/oom.h>
+ 	mmc->ops = &tmio_mmc_ops;
+ 	mmc->caps = MMC_CAP_4_BIT_DATA;
+@@ -606,7 +608,8 @@ static int __devinit tmio_mmc_probe(stru
+ 	return 0;
  
-@@ -124,9 +123,12 @@ static struct sysrq_key_op sysrq_unraw_o
- static void sysrq_handle_crash(int key, struct tty_struct *tty)
+ unmap_cnf:
+-	iounmap(host->cnf);
++	if (host->cnf)
++		iounmap(host->cnf);
+ unmap_ctl:
+ 	iounmap(host->ctl);
+ host_free:
+@@ -626,7 +629,8 @@ static int __devexit tmio_mmc_remove(str
+ 		mmc_remove_host(mmc);
+ 		free_irq(host->irq, host);
+ 		iounmap(host->ctl);
+-		iounmap(host->cnf);
++		if (host->cnf)
++			iounmap(host->cnf);
+ 		mmc_free_host(mmc);
+ 	}
+ 
+diff -puN drivers/mmc/host/tmio_mmc.h~mmc-make-the-configuration-memory-resource-optional drivers/mmc/host/tmio_mmc.h
+--- a/drivers/mmc/host/tmio_mmc.h~mmc-make-the-configuration-memory-resource-optional
++++ a/drivers/mmc/host/tmio_mmc.h
+@@ -166,18 +166,24 @@ static inline void sd_ctrl_write32(struc
+ static inline void sd_config_write8(struct tmio_mmc_host *host, int addr,
+ 		u8 val)
  {
- 	char *killer = NULL;
-+
-+	panic_on_oops = 1;	/* force panic */
-+	wmb();
- 	*killer = 1;
++	if (!host->cnf)
++		return;
+ 	writeb(val, host->cnf + (addr << host->bus_shift));
  }
--static struct sysrq_key_op sysrq_crashdump_op = {
-+static struct sysrq_key_op sysrq_crash_op = {
- 	.handler	= sysrq_handle_crash,
- 	.help_msg	= "Crash",
- 	.action_msg	= "Trigger a crash",
-@@ -401,7 +403,7 @@ static struct sysrq_key_op *sysrq_key_ta
- 	 */
- 	NULL,				/* a */
- 	&sysrq_reboot_op,		/* b */
--	&sysrq_crashdump_op,		/* c & ibm_emac driver debug */
-+	&sysrq_crash_op,		/* c & ibm_emac driver debug */
- 	&sysrq_showlocks_op,		/* d */
- 	&sysrq_term_op,			/* e */
- 	&sysrq_moom_op,			/* f */
+ 
+ static inline void sd_config_write16(struct tmio_mmc_host *host, int addr,
+ 		u16 val)
+ {
++	if (!host->cnf)
++		return;
+ 	writew(val, host->cnf + (addr << host->bus_shift));
+ }
+ 
+ static inline void sd_config_write32(struct tmio_mmc_host *host, int addr,
+ 		u32 val)
+ {
++	if (!host->cnf)
++		return;
+ 	writew(val, host->cnf + (addr << host->bus_shift));
+ 	writew(val >> 16, host->cnf + ((addr + 2) << host->bus_shift));
+ }
 _
 
-Patches currently in -mm which might be from seto.hidetoshi@jp.fujitsu.com are
+Patches currently in -mm which might be from g.liakhovetski@gmx.de are
 
-kexec-fix-omitting-offset-in-extended-crashkernel-syntax.patch
-sysrq-kdump-make-sysrq-c-consistent.patch
+linux-next.patch
+mmc-make-the-configuration-memory-resource-optional.patch
+spi-remove-imx-spi-driver.patch
+spi-add-spi-driver-for-most-known-imx-socs.patch
 
