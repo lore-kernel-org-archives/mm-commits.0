@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch added to -mm tree
-Date: Fri, 24 Jul 2009 14:31:01 -0700
-Message-ID: <200907242131.n6OLV15P026837@imap1.linux-foundation.org>
+Subject: + fix-all-wmissing-prototypes-warnings-in-x86-defconfig.patch added to -mm tree
+Date: Fri, 24 Jul 2009 14:49:20 -0700
+Message-ID: <200907242149.n6OLnKxb023771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41110 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40704 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754181AbZGXVbS (ORCPT
+	by vger.kernel.org with ESMTP id S1751666AbZGXVt0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 17:31:18 -0400
+	Fri, 24 Jul 2009 17:49:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, eparis@redhat.com, esandeen@redhat.com, eteo@redhat.com, viro@zeniv.linux.org.uk
+Cc: tsrk@tsrk.net, sam@ravnborg.org
 
 
 The patch titled
-     vfs: allow file truncations when both suid and write permissions set
+     Fix all -Wmissing-prototypes warnings in x86 defconfig
 has been added to the -mm tree.  Its filename is
-     vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch
+     fix-all-wmissing-prototypes-warnings-in-x86-defconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: allow file truncations when both suid and write permissions set
-From: Amerigo Wang <amwang@redhat.com>
+Subject: Fix all -Wmissing-prototypes warnings in x86 defconfig
+From: Trevor Keith <tsrk@tsrk.net>
 
-When suid is set and the non-owner user has write permission, any writing
-into this file should be allowed and suid should be removed after that.
-
-However, the current kernel only allows writing without truncations, when
-we do truncations on that file, we get EPERM.  This is a bug.
-
-Steps to reproduce this bug:
-
-% ls -l rootdir/file1
--rwsrwsrwx 1 root root 3 Jun 25 15:42 rootdir/file1
-% echo h > rootdir/file1
-zsh: operation not permitted: rootdir/file1
-% ls -l rootdir/file1
--rwsrwsrwx 1 root root 3 Jun 25 15:42 rootdir/file1
-% echo h >> rootdir/file1
-% ls -l rootdir/file1
--rwxrwxrwx 1 root root 5 Jun 25 16:34 rootdir/file1
-
-This patch fixes it.
-
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Eric Sandeen <esandeen@redhat.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Eugene Teo <eteo@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Trevor Keith <tsrk@tsrk.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c          |    8 ++++++--
- include/linux/fs.h |    1 +
- mm/filemap.c       |   12 ++++++++++--
- 3 files changed, 17 insertions(+), 4 deletions(-)
+ scripts/conmakehash.c     |    6 +++---
+ scripts/mod/modpost.c     |    4 ++--
+ scripts/selinux/mdp/mdp.c |    4 ++--
+ usr/gen_init_cpio.c       |    2 +-
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/open.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set fs/open.c
---- a/fs/open.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set
-+++ a/fs/open.c
-@@ -213,11 +213,15 @@ int do_truncate(struct dentry *dentry, l
- 		newattrs.ia_valid |= ATTR_FILE;
- 	}
+diff -puN scripts/conmakehash.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig scripts/conmakehash.c
+--- a/scripts/conmakehash.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig
++++ a/scripts/conmakehash.c
+@@ -24,14 +24,14 @@
  
-+	mutex_lock(&dentry->d_inode->i_mutex);
- 	/* Remove suid/sgid on truncate too */
--	newattrs.ia_valid |= should_remove_suid(dentry);
-+	err = dentry_remove_suid(dentry);
-+	if (err)
-+		goto unlock;
+ typedef unsigned short unicode;
  
--	mutex_lock(&dentry->d_inode->i_mutex);
- 	err = notify_change(dentry, &newattrs);
-+
-+ unlock:
- 	mutex_unlock(&dentry->d_inode->i_mutex);
- 	return err;
- }
-diff -puN include/linux/fs.h~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set include/linux/fs.h
---- a/include/linux/fs.h~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set
-+++ a/include/linux/fs.h
-@@ -2170,6 +2170,7 @@ extern void destroy_inode(struct inode *
- extern struct inode *new_inode(struct super_block *);
- extern int should_remove_suid(struct dentry *);
- extern int file_remove_suid(struct file *);
-+extern int dentry_remove_suid(struct dentry *);
- 
- extern void __insert_inode_hash(struct inode *, unsigned long hashval);
- extern void remove_inode_hash(struct inode *);
-diff -puN mm/filemap.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set mm/filemap.c
---- a/mm/filemap.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set
-+++ a/mm/filemap.c
-@@ -1839,9 +1839,11 @@ static int __remove_suid(struct dentry *
- 	return notify_change(dentry, &newattrs);
- }
- 
--int file_remove_suid(struct file *file)
-+/*
-+ * Note: you need to hold i_mutex before call this.
-+ */
-+int dentry_remove_suid(struct dentry *dentry)
+-void usage(char *argv0)
++static void usage(char *argv0)
  {
--	struct dentry *dentry = file->f_path.dentry;
- 	int killsuid = should_remove_suid(dentry);
- 	int killpriv = security_inode_need_killpriv(dentry);
- 	int error = 0;
-@@ -1855,6 +1857,12 @@ int file_remove_suid(struct file *file)
- 
- 	return error;
+   fprintf(stderr, "Usage: \n"
+          "        %s chartable [hashsize] [hashstep] [maxhashlevel]\n", argv0);
+   exit(EX_USAGE);
  }
-+
-+int file_remove_suid(struct file *file)
-+{
-+	struct dentry *dentry = file->f_path.dentry;
-+	return dentry_remove_suid(dentry);
-+}
- EXPORT_SYMBOL(file_remove_suid);
  
- static size_t __iovec_copy_from_user_inatomic(char *vaddr,
+-int getunicode(char **p0)
++static int getunicode(char **p0)
+ {
+   char *p = *p0;
+ 
+@@ -49,7 +49,7 @@ unicode unitable[MAX_FONTLEN][255];
+ 				/* Massive overkill, but who cares? */
+ int unicount[MAX_FONTLEN];
+ 
+-void addpair(int fp, int un)
++static void addpair(int fp, int un)
+ {
+   int i;
+ 
+diff -puN scripts/mod/modpost.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig
++++ a/scripts/mod/modpost.c
+@@ -691,7 +691,7 @@ static int number_prefix(const char *sym
+  *   The $ syntax is for sections where ld append a dot number
+  *   to make section name unique.
+  */
+-int match(const char *sym, const char * const pat[])
++static int match(const char *sym, const char * const pat[])
+ {
+ 	const char *p;
+ 	while (*pat) {
+@@ -1746,7 +1746,7 @@ static void add_header(struct buffer *b,
+ 	buf_printf(b, "};\n");
+ }
+ 
+-void add_staging_flag(struct buffer *b, const char *name)
++static void add_staging_flag(struct buffer *b, const char *name)
+ {
+ 	static const char *staging_dir = "drivers/staging";
+ 
+diff -puN scripts/selinux/mdp/mdp.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig scripts/selinux/mdp/mdp.c
+--- a/scripts/selinux/mdp/mdp.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig
++++ a/scripts/selinux/mdp/mdp.c
+@@ -31,13 +31,13 @@
+ 
+ #include "flask.h"
+ 
+-void usage(char *name)
++static void usage(char *name)
+ {
+ 	printf("usage: %s [-m] policy_file context_file\n", name);
+ 	exit(1);
+ }
+ 
+-void find_common_name(char *cname, char *dest, int len)
++static void find_common_name(char *cname, char *dest, int len)
+ {
+ 	char *start, *end;
+ 
+diff -puN usr/gen_init_cpio.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig usr/gen_init_cpio.c
+--- a/usr/gen_init_cpio.c~fix-all-wmissing-prototypes-warnings-in-x86-defconfig
++++ a/usr/gen_init_cpio.c
+@@ -446,7 +446,7 @@ static int cpio_mkfile_line(const char *
+ 	return rc;
+ }
+ 
+-void usage(const char *prog)
++static void usage(const char *prog)
+ {
+ 	fprintf(stderr, "Usage:\n"
+ 		"\t%s <cpio_list>\n"
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from tsrk@tsrk.net are
 
-ia32-use-generic-sys_pipe.patch
-vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch
-xtensa-use-generic-sys_pipe.patch
-kcore-fix-proc-kcores-statst_size.patch
-elf-clean-up-fill_note_info.patch
-elf-clean-up-fill_note_info-fix.patch
+fix-all-wmissing-prototypes-warnings-in-x86-defconfig.patch
 
