@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 23 Jul 2009 15:32:37 -0700
-Message-ID: <200907232232.n6NMWcFc031905@imap1.linux-foundation.org>
+Subject: + acpi-some-random-patch-whcih-apparently-fixes-something.patch added to -mm tree
+Date: Thu, 23 Jul 2009 17:02:35 -0700
+Message-ID: <200907240002.n6O02Zlr012105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53261 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754129AbZGWWdf (ORCPT
+	by vger.kernel.org with ESMTP id S1753990AbZGXADm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Jul 2009 18:33:35 -0400
+	Thu, 23 Jul 2009 20:03:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, mingo@elte.hu, pavel@ucw.cz, tglx@linutronix.de, zhaolei@cn.fujitsu.com
+Cc: ming.m.lin@intel.com, Valdis.Kletnieks@vt.edu, hugh.dickins@tiscali.co.uk, lenb@kernel.org
 
 
 The patch titled
-     fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes
+     acpi: some random patch whcih apparently fixes something
 has been added to the -mm tree.  Its filename is
-     fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch
+     acpi-some-random-patch-whcih-apparently-fixes-something.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,115 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi: some random patch whcih apparently fixes something
+From: Lin Ming <ming.m.lin@intel.com>
 
-WARNING: braces {} are not necessary for any arm of this statement
-#86: FILE: fs/fat/misc.c:212:
-+	if (sbi->options.tz_utc) {
-[...]
-+	} else {
-[...]
+Sigh.
 
-total: 0 errors, 1 warnings, 95 lines checked
-
-./patches/fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zhao Lei <zhaolei@cn.fujitsu.com>
-Cc: Zhaolei <zhaolei@cn.fujitsu.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/misc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/acpi/acpi_bus.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/fat/misc.c~fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes fs/fat/misc.c
---- a/fs/fat/misc.c~fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes
-+++ a/fs/fat/misc.c
-@@ -209,11 +209,10 @@ void fat_time_unix2fat(struct msdos_sb_i
- 		       __le16 *time, __le16 *date, u8 *time_cs)
- {
- 	struct tm tm;
--	if (sbi->options.tz_utc) {
-+	if (sbi->options.tz_utc)
- 		gmtime_r(ts->tv_sec, &tm);
--	} else {
-+	else
- 		localtime_r(ts->tv_sec, &tm);
--	}
+diff -puN include/acpi/acpi_bus.h~acpi-some-random-patch-whcih-apparently-fixes-something include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi-some-random-patch-whcih-apparently-fixes-something
++++ a/include/acpi/acpi_bus.h
+@@ -186,8 +186,8 @@ struct acpi_device_pnp {
  
- 	/*  FAT can only support year between 1980 to 2107 */
- 	if (tm.tm_year < 1980 - 1900) {
+ #define acpi_device_bid(d)	((d)->pnp.bus_id)
+ #define acpi_device_adr(d)	((d)->pnp.bus_address)
+-#define acpi_device_hid(d)	((d)->pnp.hardware_id)
+-#define acpi_device_uid(d)	((d)->pnp.unique_id)
++#define acpi_device_hid(d)	((d)->pnp.hardware_id ? (d)->pnp.hardware_id : "\0")
++#define acpi_device_uid(d)	((d)->pnp.unique_id ? (d)->pnp.unique_id : "\0")
+ #define acpi_device_name(d)	((d)->pnp.device_name)
+ #define acpi_device_class(d)	((d)->pnp.device_class)
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ming.m.lin@intel.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-serial-add-irqflags-support.patch
-revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
-dmaengine-dmatest-add-a-maximum-number-of-test-iterations-checkpatch-fixes.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-vfs-optimize-touch_time-too-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes.patch
-fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+acpi-some-random-patch-whcih-apparently-fixes-something.patch
 
