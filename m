@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-register-orion_nand-using-platform_driver_probe.patch added to -mm tree
-Date: Fri, 24 Jul 2009 14:16:11 -0700
-Message-ID: <200907242116.n6OLGB3Z003130@imap1.linux-foundation.org>
+Subject: + cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent.patch added to -mm tree
+Date: Fri, 24 Jul 2009 14:18:27 -0700
+Message-ID: <200907242118.n6OLIR0u006806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54088 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754281AbZGXVRP (ORCPT
+	by vger.kernel.org with ESMTP id S1751201AbZGXVTT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 17:17:15 -0400
+	Fri, 24 Jul 2009 17:19:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, buytenh@marvell.com, dwmw2@infradead.org, gregkh@suse.de, joern@logfs.org, nico@marvell.com, saeed@marvell.com
+Cc: dfeng@redhat.com, balbir@linux.vnet.ibm.com, menage@google.com
 
 
 The patch titled
-     mtd: register orion_nand using platform_driver_probe()
+     cgroups: make unlock sequence in cgroup_get_sb consistent
 has been added to the -mm tree.  Its filename is
-     mtd-register-orion_nand-using-platform_driver_probe.patch
+     cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,77 +26,45 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: register orion_nand using platform_driver_probe()
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: cgroups: make unlock sequence in cgroup_get_sb consistent
+From: Xiaotian Feng <dfeng@redhat.com>
 
-orion_nand_probe lives in .init.text, so using platform_driver_register=
- to
-register it is wrong because binding a device after the init memory is
-discarded (e.g.  via sysfs) results in an oops.
+Make the last unlock sequence consistent with previous unlock sequeue.
 
-As requested by Nicolas Pitre platform_driver_probe is used instead of
-moving the probe function to .devinit.text as proposed initially.  This
-saves some memory, but devices registered after the driver is probed ar=
-e
-not bound (probably there are none) and binding via sysfs isn't possibl=
-e.
-
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Lennert Buytenhek <buytenh@marvell.com>
-Cc: Saeed Bishara <saeed@marvell.com>
-Cc: Joern Engel <joern@logfs.org>
-Acked-by: Nicolas Pitre <nico@marvell.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Paul Menage <menage@google.com>
+Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/orion_nand.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/orion_nand.c~mtd-register-orion_nand-using-p=
-latform_driver_probe drivers/mtd/nand/orion_nand.c
---- a/drivers/mtd/nand/orion_nand.c~mtd-register-orion_nand-using-platf=
-orm_driver_probe
-+++ a/drivers/mtd/nand/orion_nand.c
-@@ -171,7 +171,6 @@ static int __devexit orion_nand_remove(s
- }
-=20
- static struct platform_driver orion_nand_driver =3D {
--	.probe		=3D orion_nand_probe,
- 	.remove		=3D __devexit_p(orion_nand_remove),
- 	.driver		=3D {
- 		.name	=3D "orion_nand",
-@@ -181,7 +180,7 @@ static struct platform_driver orion_nand
-=20
- static int __init orion_nand_init(void)
- {
--	return platform_driver_register(&orion_nand_driver);
-+	return platform_driver_probe(&orion_nand_driver, orion_nand_probe);
- }
-=20
- static void __exit orion_nand_exit(void)
+diff -puN kernel/cgroup.c~cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent
++++ a/kernel/cgroup.c
+@@ -1155,8 +1155,8 @@ static int cgroup_get_sb(struct file_sys
+ 		BUG_ON(root->number_of_cgroups != 1);
+ 
+ 		cgroup_populate_dir(root_cgrp);
+-		mutex_unlock(&inode->i_mutex);
+ 		mutex_unlock(&cgroup_mutex);
++		mutex_unlock(&inode->i_mutex);
+ 	}
+ 
+ 	simple_set_mnt(mnt, sb);
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from dfeng@redhat.com are
 
 linux-next.patch
-mtd-register-orion_nand-using-platform_driver_probe.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
