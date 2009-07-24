@@ -1,33 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [folded] davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch removed from -mm tree
-Date: Fri, 24 Jul 2009 14:19:06 -0700
-Message-ID: <200907242119.n6OLJ71m007839@imap1.linux-foundation.org>
+Subject: + davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch added to -mm tree
+Date: Fri, 24 Jul 2009 14:23:54 -0700
+Message-ID: <200907242123.n6OLNsEh015525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753702AbZGXVUL (ORCPT
+	by vger.kernel.org with ESMTP id S1751568AbZGXVY0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Jul 2009 17:20:11 -0400
+	Fri, 24 Jul 2009 17:24:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com, sudhakar.raj@ti.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com, sudhakar.raj@ti.com
 
 
 The patch titled
-     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix
-has been removed from the -mm tree.  Its filename was
-     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
+     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup
+has been added to the -mm tree.  Its filename is
+     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
 
-This patch was dropped because it was folded into davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix
+Subject: davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix kconfig indenting
+simplify lcd_disable_raster()
 
 Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Cc: Pavel Kiryukhin <pkiryukhin@ru.mvista.com>
@@ -36,32 +46,21 @@ Cc: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/da8xx-fb.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/video/Kconfig~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix drivers/video/Kconfig
---- a/drivers/video/Kconfig~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix
-+++ a/drivers/video/Kconfig
-@@ -2039,15 +2039,15 @@ config FB_SH7760
- 	  panels <= 320 pixel horizontal resolution.
- 
- config FB_DA8XX
--        tristate "DA8xx/OMAP-L1xx Framebuffer support"
--        depends on FB && ARCH_DAVINCI_DA8XX
-+	tristate "DA8xx/OMAP-L1xx Framebuffer support"
-+	depends on FB && ARCH_DAVINCI_DA8XX
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
- 	---help---
--          This is the frame buffer device driver for the TI LCD controller
-+	  This is the frame buffer device driver for the TI LCD controller
- 	  found on DA8xx/OMAP-L1xx SoCs.
--          If unsure, say N.
-+	  If unsure, say N.
- 
- config FB_VIRTUAL
- 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
+diff -puN drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup
++++ a/drivers/video/da8xx-fb.c
+@@ -201,8 +201,6 @@ static int lcd_disable_raster(struct da8
+ 		ret = wait_event_interruptible_timeout(par->da8xx_wq,
+ 						!lcdc_read(LCD_STAT_REG) &
+ 						LCD_END_OF_FRAME0, WSI_TIMEOUT);
+-		if (ret < 0)
+-			return ret;
+ 		if (ret == 0)
+ 			ret = -ETIMEDOUT;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +105,7 @@ rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
 rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
 rtc-philips-nxp-pcf2123-driver-v03-fix.patch
 davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
 v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
 memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
