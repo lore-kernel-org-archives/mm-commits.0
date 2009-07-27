@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-do-not-send-kobj_add-uevent-if-kobject_init_and_add-fails.patch added to -mm tree
-Date: Mon, 27 Jul 2009 14:51:45 -0700
-Message-ID: <200907272151.n6RLpjmP010049@imap1.linux-foundation.org>
+Subject: + pci-shut-off-pci_find_device-warnings-when-the-deprecated-pci-functions-are-enabled.patch added to -mm tree
+Date: Mon, 27 Jul 2009 14:52:34 -0700
+Message-ID: <200907272152.n6RLqYoa011447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59235 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754661AbZG0VwC (ORCPT
+	by vger.kernel.org with ESMTP id S1753000AbZG0Vwl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jul 2009 17:52:02 -0400
+	Mon, 27 Jul 2009 17:52:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dfeng@redhat.com, greg@kroah.com, kay.sievers@vrfy.org
+Cc: andi@firstfloor.org, ak@linux.intel.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     drivers/base: do not send KOBJ_ADD uevent if kobject_init_and_add fails
+     pci: shut off pci_find_device warnings when the deprecated pci functions are enabled.
 has been added to the -mm tree.  Its filename is
-     drivers-base-do-not-send-kobj_add-uevent-if-kobject_init_and_add-fails.patch
+     pci-shut-off-pci_find_device-warnings-when-the-deprecated-pci-functions-are-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/base: do not send KOBJ_ADD uevent if kobject_init_and_add fails
-From: Xiaotian Feng <dfeng@redhat.com>
+Subject: pci: shut off pci_find_device warnings when the deprecated pci functions are enabled.
+From: Andi Kleen <andi@firstfloor.org>
 
-If kobject_init_and_add fails, sysdev_register should not send KOBJ_ADD
-uevent to userspace.
+Shut off the long standing
 
-Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+linux/drivers/pci/search.c:144: warning: 'pci_find_device' is deprecated (declared at linux/drivers/pci/search.c:136)
+linux/drivers/pci/search.c:144: warning: 'pci_find_device' is deprecated (declared at linux/drivers/pci/search.c:136)
+
+warnings that appear on every build when CONFIG_PCI_LEGACY is enabled.
+
+gcc warns for the use in EXPORT_SYMBOL
+
+I moved these to a separate file and disabled the warning in the Makefile
+for that file.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/Makefile |    3 +++
+ drivers/pci/legacy.c |   34 ++++++++++++++++++++++++++++++++++
+ drivers/pci/search.c |   31 -------------------------------
+ 3 files changed, 37 insertions(+), 31 deletions(-)
 
-diff -puN drivers/base/sys.c~drivers-base-do-not-send-kobj_add-uevent-if-kobject_init_and_add-fails drivers/base/sys.c
---- a/drivers/base/sys.c~drivers-base-do-not-send-kobj_add-uevent-if-kobject_init_and_add-fails
-+++ a/drivers/base/sys.c
-@@ -275,9 +275,9 @@ int sysdev_register(struct sys_device *s
- 				drv->add(sysdev);
- 		}
- 		mutex_unlock(&sysdev_drivers_lock);
-+		kobject_uevent(&sysdev->kobj, KOBJ_ADD);
- 	}
+diff -puN drivers/pci/Makefile~pci-shut-off-pci_find_device-warnings-when-the-deprecated-pci-functions-are-enabled drivers/pci/Makefile
+--- a/drivers/pci/Makefile~pci-shut-off-pci_find_device-warnings-when-the-deprecated-pci-functions-are-enabled
++++ a/drivers/pci/Makefile
+@@ -8,6 +8,9 @@ obj-y		+= access.o bus.o probe.o remove.
+ obj-$(CONFIG_PROC_FS) += proc.o
+ obj-$(CONFIG_SYSFS) += slot.o
  
--	kobject_uevent(&sysdev->kobj, KOBJ_ADD);
- 	return error;
++obj-$(CONFIG_PCI_LEGACY) += legacy.o
++CFLAGS_legacy.o += -Wno-deprecated-declarations
++
+ # Build PCI Express stuff if needed
+ obj-$(CONFIG_PCIEPORTBUS) += pcie/
+ 
+diff -puN /dev/null drivers/pci/legacy.c
+--- /dev/null
++++ a/drivers/pci/legacy.c
+@@ -0,0 +1,34 @@
++#include <linux/init.h>
++#include <linux/pci.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include "pci.h"
++
++/**
++ * pci_find_device - begin or continue searching for a PCI device by vendor/device id
++ * @vendor: PCI vendor id to match, or %PCI_ANY_ID to match all vendor ids
++ * @device: PCI device id to match, or %PCI_ANY_ID to match all device ids
++ * @from: Previous PCI device found in search, or %NULL for new search.
++ *
++ * Iterates through the list of known PCI devices.  If a PCI device is found
++ * with a matching @vendor and @device, a pointer to its device structure is
++ * returned.  Otherwise, %NULL is returned.
++ * A new search is initiated by passing %NULL as the @from argument.
++ * Otherwise if @from is not %NULL, searches continue from next device
++ * on the global list.
++ *
++ * NOTE: Do not use this function any more; use pci_get_device() instead, as
++ * the PCI device returned by this function can disappear at any moment in
++ * time.
++ */
++struct pci_dev *pci_find_device(unsigned int vendor, unsigned int device,
++				struct pci_dev *from)
++{
++	struct pci_dev *pdev;
++
++	pci_dev_get(from);
++	pdev = pci_get_subsys(vendor, device, PCI_ANY_ID, PCI_ANY_ID, from);
++	pci_dev_put(pdev);
++	return pdev;
++}
++EXPORT_SYMBOL(pci_find_device);
+diff -puN drivers/pci/search.c~pci-shut-off-pci_find_device-warnings-when-the-deprecated-pci-functions-are-enabled drivers/pci/search.c
+--- a/drivers/pci/search.c~pci-shut-off-pci_find_device-warnings-when-the-deprecated-pci-functions-are-enabled
++++ a/drivers/pci/search.c
+@@ -113,37 +113,6 @@ pci_find_next_bus(const struct pci_bus *
+ 	return b;
  }
  
-_
-
-Patches currently in -mm which might be from dfeng@redhat.com are
-
-linux-next.patch
-block-fix-improper-kobject-release-in-blk_integrity_unregister.patch
-drivers-base-do-not-send-kobj_add-uevent-if-kobject_init_and_add-fails.patch
-cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent.patch
-
+-#ifdef CONFIG_PCI_LEGACY
+-/**
+- * pci_find_device - begin or continue searching for a PCI device by vendor/device id
+- * @vendor: PCI vendor id to match, or %PCI_ANY_ID to match all vendor ids
+- * @device: PCI device id to match, or %PCI_ANY_ID to match all device ids
+- * @from: Previous PCI device found in search, or %NULL for new search.
+- *
+- * Iterates through the list of known PCI devices.  If a PCI device is found
+- * with a matching @vendor and @device, a pointer to its device structure is
+- * returned.  Otherwise, %NULL is returned.
+- * A new search is initiated by passing %NULL as the @from argument.
+- * Otherwise if @from is not %NULL, searches continue from next device
+- * on the global list.
+- *
+- * NOTE: Do not use this function any more; use pci_get_device() instead, as
+- * the PCI device returned by this function can disappear at any moment in
+- * time.
+- */
+-struct pci_dev *pci_find_device(unsigned int vendor, unsigned int device,
+-				struct pci_dev *from)
+-{
+-	struct pci_dev *pdev;
+-
+-	pci_dev_get(from);
+-	pdev = pci_get_subsys(vendor, device, PCI_ANY_ID, PCI_ANY_ID, from);
+-	pci_dev_put(pdev);
+-	return pdev;
+-}
+-EXPORT_SYMBOL(pci_find_device);
+-#endif /* CONFIG_PCI_LEGACY */
