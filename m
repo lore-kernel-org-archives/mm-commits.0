@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + exec-fix-set_binfmt-vs-sys_delete_module-race.patch added to -mm tree
-Date: Mon, 27 Jul 2009 16:21:49 -0700
-Message-ID: <200907272321.n6RNLoHe024891@imap1.linux-foundation.org>
+Date: Mon, 27 Jul 2009 16:21:16 -0700
+Message-ID: <200907272321.n6RNLGUw023895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755600AbZG0XWl (ORCPT
+	by vger.kernel.org with ESMTP id S1751848AbZG0XW6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jul 2009 19:22:41 -0400
+	Mon, 27 Jul 2009 19:22:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -54,18 +54,21 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |   14 +++++---------
+ fs/exec.c               |   17 ++++++++---------
  include/linux/binfmts.h |    2 +-
- 2 files changed, 6 insertions(+), 10 deletions(-)
+ 2 files changed, 9 insertions(+), 10 deletions(-)
 
 diff -puN fs/exec.c~exec-fix-set_binfmt-vs-sys_delete_module-race fs/exec.c
 --- a/fs/exec.c~exec-fix-set_binfmt-vs-sys_delete_module-race
 +++ a/fs/exec.c
-@@ -1384,18 +1384,14 @@ out_ret:
+@@ -1384,18 +1384,17 @@ out_ret:
  	return retval;
  }
  
 -int set_binfmt(struct linux_binfmt *new)
++/*
++ * The caller, ->load_binary(), must hold a reference to ->module.
++ */
 +void set_binfmt(struct linux_binfmt *new)
  {
 -	struct linux_binfmt *old = current->binfmt;
