@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + generic-ipi-make-struct-call_function_data-lockless.patch added to -mm tree
-Date: Mon, 27 Jul 2009 15:00:41 -0700
-Message-ID: <200907272200.n6RM0fLf024415@imap1.linux-foundation.org>
+Subject: + generic-ipi-make-struct-call_function_data-lockless-cleanup.patch added to -mm tree
+Date: Mon, 27 Jul 2009 15:00:43 -0700
+Message-ID: <200907272200.n6RM0hoG024529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55534 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755280AbZG0WBn (ORCPT
+	by vger.kernel.org with ESMTP id S1753910AbZG0WBo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jul 2009 18:01:43 -0400
+	Mon, 27 Jul 2009 18:01:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiaoguangrong@cn.fujitsu.com, jens.axboe@oracle.com, mingo@elte.hu, nickpiggin@yahoo.com.au, peterz@infradead.org, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, mingo@elte.hu, nickpiggin@yahoo.com.au, peterz@infradead.org, rusty@rustcorp.com.au, xiaoguangrong@cn.fujitsu.com
 
 
 The patch titled
-     generic-ipi: make struct call_function_data lockless
+     generic-ipi-make-struct-call_function_data-lockless-cleanup
 has been added to the -mm tree.  Its filename is
-     generic-ipi-make-struct-call_function_data-lockless.patch
+     generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,135 +34,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic-ipi: make struct call_function_data lockless
-From: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
+Subject: generic-ipi-make-struct-call_function_data-lockless-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch can remove spinlock from struct call_function_data, the
-reasons are below:
+Use atomic_dec_return().
 
-1: add a new interface for cpumask named cpumask_test_and_clear_cpu(),
-   it can atomically test and clear specific cpu, we can use it instead
-   of cpumask_test_cpu() and cpumask_clear_cpu() and no need data->lock
-   to protect those in generic_smp_call_function_interrupt().
-
-2: in smp_call_function_many(), after csd_lock() return, the current's
-   cfd_data is deleted from call_function list, so it not have race
-   between other cpus, then cfs_data is only used in
-   smp_call_function_many() that must disable preemption and not from
-   a hardware interrupthandler or from a bottom half handler to call,
-   only the correspond cpu can use it, so it not have race in current
-   cpu, no need cfs_data->lock to protect it.
-
-3: after 1 and 2, cfs_data->lock is only use to protect cfs_data->refs in
-   generic_smp_call_function_interrupt(), so we can define cfs_data->refs
-   to atomic_t, and no need cfs_data->lock any more.
-
-Signed-off-by: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |   12 ++++++++++++
- kernel/smp.c            |   29 ++++++++---------------------
- 2 files changed, 20 insertions(+), 21 deletions(-)
+ kernel/smp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cpumask.h~generic-ipi-make-struct-call_function_data-lockless include/linux/cpumask.h
---- a/include/linux/cpumask.h~generic-ipi-make-struct-call_function_data-lockless
-+++ a/include/linux/cpumask.h
-@@ -273,6 +273,18 @@ static inline int cpumask_test_and_set_c
- }
- 
- /**
-+ * cpumask_test_and_clear_cpu - atomically test and clear a cpu in a cpumask
-+ * @cpu: cpu number (< nr_cpu_ids)
-+ * @cpumask: the cpumask pointer
-+ *
-+ * test_and_clear_bit wrapper for cpumasks.
-+ */
-+static inline int cpumask_test_and_clear_cpu(int cpu, struct cpumask *cpumask)
-+{
-+	return test_and_clear_bit(cpumask_check(cpu), cpumask_bits(cpumask));
-+}
-+
-+/**
-  * cpumask_setall - set all cpus (< nr_cpu_ids) in a cpumask
-  * @dstp: the cpumask pointer
-  */
-diff -puN kernel/smp.c~generic-ipi-make-struct-call_function_data-lockless kernel/smp.c
---- a/kernel/smp.c~generic-ipi-make-struct-call_function_data-lockless
+diff -puN kernel/smp.c~generic-ipi-make-struct-call_function_data-lockless-cleanup kernel/smp.c
+--- a/kernel/smp.c~generic-ipi-make-struct-call_function_data-lockless-cleanup
 +++ a/kernel/smp.c
-@@ -29,8 +29,7 @@ enum {
- 
- struct call_function_data {
- 	struct call_single_data	csd;
--	spinlock_t		lock;
--	unsigned int		refs;
-+	atomic_t		refs;
- 	cpumask_var_t		cpumask;
- };
- 
-@@ -39,9 +38,7 @@ struct call_single_queue {
- 	spinlock_t		lock;
- };
- 
--static DEFINE_PER_CPU(struct call_function_data, cfd_data) = {
--	.lock			= __SPIN_LOCK_UNLOCKED(cfd_data.lock),
--};
-+static DEFINE_PER_CPU(struct call_function_data, cfd_data);
- 
- static int
- hotplug_cfd(struct notifier_block *nfb, unsigned long action, void *hcpu)
-@@ -191,25 +188,18 @@ void generic_smp_call_function_interrupt
- 	list_for_each_entry_rcu(data, &call_function.queue, csd.list) {
- 		int refs;
- 
--		spin_lock(&data->lock);
--		if (!cpumask_test_cpu(cpu, data->cpumask)) {
--			spin_unlock(&data->lock);
-+		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask))
- 			continue;
--		}
--		cpumask_clear_cpu(cpu, data->cpumask);
--		spin_unlock(&data->lock);
+@@ -193,7 +193,7 @@ void generic_smp_call_function_interrupt
  
  		data->csd.func(data->csd.info);
  
--		spin_lock(&data->lock);
--		WARN_ON(data->refs == 0);
--		refs = --data->refs;
-+		refs = atomic_sub_return(1, &data->refs);
-+		WARN_ON(refs < 0);
+-		refs = atomic_sub_return(1, &data->refs);
++		refs = atomic_dec_return(&data->refs);
+ 		WARN_ON(refs < 0);
  		if (!refs) {
  			spin_lock(&call_function.lock);
- 			list_del_rcu(&data->csd.list);
- 			spin_unlock(&call_function.lock);
- 		}
--		spin_unlock(&data->lock);
- 
- 		if (refs)
- 			continue;
-@@ -424,23 +414,20 @@ void smp_call_function_many(const struct
- 	data = &__get_cpu_var(cfd_data);
- 	csd_lock(&data->csd);
- 
--	spin_lock_irqsave(&data->lock, flags);
- 	data->csd.func = func;
- 	data->csd.info = info;
- 	cpumask_and(data->cpumask, mask, cpu_online_mask);
- 	cpumask_clear_cpu(this_cpu, data->cpumask);
--	data->refs = cpumask_weight(data->cpumask);
-+	atomic_set(&data->refs, cpumask_weight(data->cpumask));
- 
--	spin_lock(&call_function.lock);
-+	spin_lock_irqsave(&call_function.lock, flags);
- 	/*
- 	 * Place entry at the _HEAD_ of the list, so that any cpu still
- 	 * observing the entry in generic_smp_call_function_interrupt()
- 	 * will not miss any other list entries:
- 	 */
- 	list_add_rcu(&data->csd.list, &call_function.queue);
--	spin_unlock(&call_function.lock);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
+lib-flexible-array-implementation-checkpatch-fixes.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix.patch
+hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes.patch
+fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+
