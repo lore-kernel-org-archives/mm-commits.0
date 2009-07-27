@@ -1,26 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: [merged] input-tsc2007-make-platform-callbacks-optional.patch removed from -mm tree
-Date: Mon, 27 Jul 2009 13:36:07 -0700
-Message-ID: <200907272036.n6RKa7pe018528@imap1.linux-foundation.org>
+Subject: [merged] input-tsc2007-remove-hr-timer-fix.patch removed from -mm tree
+Date: Mon, 27 Jul 2009 13:36:04 -0700
+Message-ID: <200907272036.n6RKa4RR018423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45052 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41186 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754638AbZG0UgP (ORCPT
+	by vger.kernel.org with ESMTP id S1754676AbZG0UgU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jul 2009 16:36:15 -0400
+	Mon, 27 Jul 2009 16:36:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: richard.rojfors.ext@mocean-labs.com, dtor@mail.ru, kwangwoo.lee@gmail.com, soni.trilok@gmail.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: tsc2007: make platform callbacks optional
+     tsc2007: Cancel work sync, increase polling frequency, make exit p=
+latform hw callback optional
 has been removed from the -mm tree.  Its filename was
-     input-tsc2007-make-platform-callbacks-optional.patch
+     input-tsc2007-remove-hr-timer-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsyst=
 em tree
@@ -29,12 +30,17 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: input: tsc2007: make platform callbacks optional
-=46rom: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
+Subject: tsc2007: Cancel work sync, increase polling frequency, make ex=
+it platform hw callback optional
 
-The platform callbacks are only called if supplied.  Makes the driver t=
-o
-fallback on only pressure calculation to decide when the pen is up.
+
+In the remove function, ancel the work using the _sync version,
+to make sure any running "work" is finished. Make the
+exit_platform_hw callback optional since it's not needed on all
+platforms.
+
+When the screen is touched, the polling frequency is increased
+to reduce the risk of missing taps.
 
 Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
 Cc: Thierry Reding <thierry.reding@avionic-design.de>
@@ -44,114 +50,40 @@ Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/tsc2007.c |   34 +++++++++++++++++++-------
- 1 file changed, 26 insertions(+), 8 deletions(-)
+ drivers/input/touchscreen/tsc2007.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/input/touchscreen/tsc2007.c~input-tsc2007-make-platfo=
-rm-callbacks-optional drivers/input/touchscreen/tsc2007.c
---- a/drivers/input/touchscreen/tsc2007.c~input-tsc2007-make-platform-c=
-allbacks-optional
+diff -puN drivers/input/touchscreen/tsc2007.c~input-tsc2007-remove-hr-t=
+imer-fix drivers/input/touchscreen/tsc2007.c
+--- a/drivers/input/touchscreen/tsc2007.c~input-tsc2007-remove-hr-timer=
+-fix
 +++ a/drivers/input/touchscreen/tsc2007.c
-@@ -59,6 +59,10 @@
- #define READ_X		(ADC_ON_12BIT | TSC2007_MEASURE_X)
- #define PWRDOWN		(TSC2007_12BIT | TSC2007_POWER_OFF_IRQ_EN)
+@@ -27,7 +27,7 @@
+ #include <linux/i2c.h>
+ #include <linux/i2c/tsc2007.h>
 =20
-+#define PEN_STATE_UP	0x00
-+#define PEN_STATE_DOWN	0x01
-+#define PEN_STATE_IRQ	0x01
-+
- struct ts_event {
- 	u16	x;
- 	u16	y;
-@@ -76,7 +80,7 @@ struct tsc2007 {
- 	u16			model;
- 	u16			x_plate_ohms;
+-#define TS_POLL_PERIOD	msecs_to_jiffies(5) /* ms delay between samples=
+ */
++#define TS_POLL_PERIOD	msecs_to_jiffies(1) /* ms delay between samples=
+ */
 =20
--	unsigned		pendown;
-+	unsigned		penstate;
- 	int			irq;
+ #define TSC2007_MEASURE_TEMP0		(0x0 << 4)
+ #define TSC2007_MEASURE_AUX		(0x2 << 4)
+@@ -314,11 +314,11 @@ static int tsc2007_remove(struct i2c_cli
+ 	struct tsc2007	*ts =3D i2c_get_clientdata(client);
+ 	struct tsc2007_platform_data *pdata;
 =20
- 	int			(*get_pendown_state)(void);
-@@ -149,15 +153,18 @@ static void tsc2007_send_event(void *tsc
- 	 *
- 	 * The only safe way to check for the pen up condition is in the
- 	 * work function by reading the pen signal state (it's a GPIO and IRQ=
-).
-+	 *
-+	 * But sadly we don't always have the possibility to use such callbac=
-k
-+	 * in that case rely on the pressure anyway
- 	 */
- 	if (rt) {
- 		struct input_dev *input =3D ts->input;
+-	/* cancel any work */
+-	cancel_delayed_work(&ts->work);
++	cancel_delayed_work_sync(&ts->work);
 =20
--		if (!ts->pendown) {
-+		if (ts->penstate !=3D PEN_STATE_DOWN) {
- 			dev_dbg(&ts->client->dev, "DOWN\n");
+ 	pdata =3D client->dev.platform_data;
+-	pdata->exit_platform_hw();
++	if (pdata->exit_platform_hw)
++		pdata->exit_platform_hw();
 =20
- 			input_report_key(input, BTN_TOUCH, 1);
--			ts->pendown =3D 1;
-+			ts->penstate =3D PEN_STATE_DOWN;
- 		}
-=20
- 		input_report_abs(input, ABS_X, x);
-@@ -168,7 +175,9 @@ static void tsc2007_send_event(void *tsc
-=20
- 		dev_dbg(&ts->client->dev, "point(%4d,%4d), pressure (%4u)\n",
- 			x, y, rt);
--	}
-+	} else if (!ts->get_pendown_state)
-+		/* no callback to check pendown state, use pressure */
-+		ts->penstate =3D PEN_STATE_UP;
-=20
- 	schedule_delayed_work(&ts->work, TS_POLL_PERIOD);
- }
-@@ -195,7 +204,14 @@ static void tsc2007_work(struct work_str
- {
- 	struct tsc2007 *ts =3D
- 		container_of(to_delayed_work(work), struct tsc2007, work);
--	if (unlikely(!ts->get_pendown_state() && ts->pendown)) {
-+
-+	/* either we have the pendown callback, and use it, otherwise
-+	 * we look at the pendown variable
-+	 */
-+	if ((ts->get_pendown_state && unlikely(!ts->get_pendown_state()) &&
-+		ts->penstate !=3D PEN_STATE_UP) ||
-+		(!ts->get_pendown_state &&
-+		unlikely(ts->penstate =3D=3D PEN_STATE_UP))) {
- 		struct input_dev *input =3D ts->input;
-=20
- 		dev_dbg(&ts->client->dev, "UP\n");
-@@ -204,7 +220,7 @@ static void tsc2007_work(struct work_str
- 		input_report_abs(input, ABS_PRESSURE, 0);
- 		input_sync(input);
-=20
--		ts->pendown =3D 0;
-+		ts->penstate =3D PEN_STATE_UP;
- 		enable_irq(ts->irq);
- 	} else {
- 		/* pen is still down, continue with the measurement */
-@@ -219,8 +235,9 @@ static irqreturn_t tsc2007_irq(int irq,=20
- {
- 	struct tsc2007 *ts =3D handle;
-=20
--	if (likely(ts->get_pendown_state())) {
-+	if (!ts->get_pendown_state || likely(ts->get_pendown_state())) {
- 		disable_irq_nosync(ts->irq);
-+		ts->penstate =3D PEN_STATE_IRQ;
- 		schedule_delayed_work(&ts->work, 0);
- 	}
-=20
-@@ -264,7 +281,8 @@ static int tsc2007_probe(struct i2c_clie
- 	ts->get_pendown_state =3D pdata->get_pendown_state;
- 	ts->clear_penirq      =3D pdata->clear_penirq;
-=20
--	pdata->init_platform_hw();
-+	if (pdata->init_platform_hw)
-+		pdata->init_platform_hw();
-=20
- 	snprintf(ts->phys, sizeof(ts->phys),
- 		 "%s/input0", dev_name(&client->dev));
+ 	free_irq(ts->irq, ts);
+ 	input_unregister_device(ts->input);
 _
 
 Patches currently in -mm which might be from richard.rojfors.ext@mocean=
