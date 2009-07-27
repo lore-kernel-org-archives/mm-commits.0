@@ -1,143 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] task_struct-cleanup-move-binfmt-field-to-signal_struct.patch removed from -mm tree
-Date: Mon, 27 Jul 2009 16:20:34 -0700
-Message-ID: <200907272320.n6RNKYqj022778@imap1.linux-foundation.org>
+Subject: + exec-fix-set_binfmt-vs-sys_delete_module-race.patch added to -mm tree
+Date: Mon, 27 Jul 2009 16:21:49 -0700
+Message-ID: <200907272321.n6RNLoHe024891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57039 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58943 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751848AbZG0XWZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755600AbZG0XWl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jul 2009 19:22:25 -0400
+	Mon, 27 Jul 2009 19:22:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: h-shimamoto@ct.jp.nec.com, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@redhat.com, h-shimamoto@ct.jp.nec.com, roland@redhat.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     task_struct cleanup: move binfmt field to signal_struct
-has been removed from the -mm tree.  Its filename was
-     task_struct-cleanup-move-binfmt-field-to-signal_struct.patch
+     exec: fix set_binfmt() vs sys_delete_module() race
+has been added to the -mm tree.  Its filename is
+     exec-fix-set_binfmt-vs-sys_delete_module-race.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: task_struct cleanup: move binfmt field to signal_struct
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Subject: exec: fix set_binfmt() vs sys_delete_module() race
+From: Oleg Nesterov <oleg@redhat.com>
 
-Because the binfmt is not different between threads in the same process,
-it can be moved from task_struct to signal_struct.
+sys_delete_module() can set MODULE_STATE_GOING after
+search_binary_handler() does try_module_get().  In this case
+set_binfmt()->try_module_get() fails but since none of the callers
+check the returned error, the task will run with the wrong old
+->binfmt.
 
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+The proper fix should change all ->load_binary() methods, but we can
+rely on fact that the caller must hold a reference to binfmt->module
+and use __module_get() which never fails.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |    6 +++---
- include/linux/sched.h |    2 +-
- kernel/exit.c         |    4 ++--
- kernel/fork.c         |    7 ++++---
- 4 files changed, 10 insertions(+), 9 deletions(-)
+ fs/exec.c               |   14 +++++---------
+ include/linux/binfmts.h |    2 +-
+ 2 files changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN fs/exec.c~task_struct-cleanup-move-binfmt-field-to-signal_struct fs/exec.c
---- a/fs/exec.c~task_struct-cleanup-move-binfmt-field-to-signal_struct
+diff -puN fs/exec.c~exec-fix-set_binfmt-vs-sys_delete_module-race fs/exec.c
+--- a/fs/exec.c~exec-fix-set_binfmt-vs-sys_delete_module-race
 +++ a/fs/exec.c
-@@ -1384,13 +1384,13 @@ out_ret:
+@@ -1384,18 +1384,14 @@ out_ret:
+ 	return retval;
+ }
  
- int set_binfmt(struct linux_binfmt *new)
+-int set_binfmt(struct linux_binfmt *new)
++void set_binfmt(struct linux_binfmt *new)
  {
 -	struct linux_binfmt *old = current->binfmt;
-+	struct linux_binfmt *old = current->signal->binfmt;
++	if (current->binfmt)
++		module_put(current->binfmt->module);
  
- 	if (new) {
- 		if (!try_module_get(new->module))
- 			return -1;
- 	}
--	current->binfmt = new;
-+	current->signal->binfmt = new;
- 	if (old)
- 		module_put(old->module);
- 	return 0;
-@@ -1737,7 +1737,7 @@ void do_coredump(long signr, int exit_co
+-	if (new) {
+-		if (!try_module_get(new->module))
+-			return -1;
+-	}
+ 	current->binfmt = new;
+-	if (old)
+-		module_put(old->module);
+-	return 0;
++	if (new)
++		__module_get(new->module);
+ }
  
- 	audit_core_dumps(signr);
+ EXPORT_SYMBOL(set_binfmt);
+diff -puN include/linux/binfmts.h~exec-fix-set_binfmt-vs-sys_delete_module-race include/linux/binfmts.h
+--- a/include/linux/binfmts.h~exec-fix-set_binfmt-vs-sys_delete_module-race
++++ a/include/linux/binfmts.h
+@@ -119,7 +119,7 @@ extern int bprm_mm_init(struct linux_bin
+ extern int copy_strings_kernel(int argc,char ** argv,struct linux_binprm *bprm);
+ extern void install_exec_creds(struct linux_binprm *bprm);
+ extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
+-extern int set_binfmt(struct linux_binfmt *new);
++extern void set_binfmt(struct linux_binfmt *new);
+ extern void free_bprm(struct linux_binprm *);
  
--	binfmt = current->binfmt;
-+	binfmt = current->signal->binfmt;
- 	if (!binfmt || !binfmt->core_dump)
- 		goto fail;
- 
-diff -puN include/linux/sched.h~task_struct-cleanup-move-binfmt-field-to-signal_struct include/linux/sched.h
---- a/include/linux/sched.h~task_struct-cleanup-move-binfmt-field-to-signal_struct
-+++ a/include/linux/sched.h
-@@ -596,6 +596,7 @@ struct signal_struct {
- 	int leader;
- 
- 	struct tty_struct *tty; /* NULL if no tty */
-+	struct linux_binfmt *binfmt;
- 
- 	/*
- 	 * Cumulative resource counters for dead threads in the group,
-@@ -1232,7 +1233,6 @@ struct task_struct {
- 	struct mm_struct *mm, *active_mm;
- 
- /* task state */
--	struct linux_binfmt *binfmt;
- 	int exit_state;
- 	int exit_code, exit_signal;
- 	int pdeath_signal;  /*  The signal sent when the parent dies  */
-diff -puN kernel/exit.c~task_struct-cleanup-move-binfmt-field-to-signal_struct kernel/exit.c
---- a/kernel/exit.c~task_struct-cleanup-move-binfmt-field-to-signal_struct
-+++ a/kernel/exit.c
-@@ -977,8 +977,8 @@ NORET_TYPE void do_exit(long code)
- 		disassociate_ctty(1);
- 
- 	module_put(task_thread_info(tsk)->exec_domain->module);
--	if (tsk->binfmt)
--		module_put(tsk->binfmt->module);
-+	if (tsk->signal->binfmt)
-+		module_put(tsk->signal->binfmt->module);
- 
- 	proc_exit_connector(tsk);
- 
-diff -puN kernel/fork.c~task_struct-cleanup-move-binfmt-field-to-signal_struct kernel/fork.c
---- a/kernel/fork.c~task_struct-cleanup-move-binfmt-field-to-signal_struct
-+++ a/kernel/fork.c
-@@ -858,6 +858,7 @@ static int copy_signal(unsigned long clo
- 	sig->leader = 0;	/* session leadership doesn't inherit */
- 	sig->tty_old_pgrp = NULL;
- 	sig->tty = NULL;
-+	sig->binfmt = current->signal->binfmt;
- 
- 	sig->utime = sig->stime = sig->cutime = sig->cstime = cputime_zero;
- 	sig->gtime = cputime_zero;
-@@ -1026,7 +1027,7 @@ static struct task_struct *copy_process(
- 	if (!try_module_get(task_thread_info(p)->exec_domain->module))
- 		goto bad_fork_cleanup_count;
- 
--	if (p->binfmt && !try_module_get(p->binfmt->module))
-+	if (p->signal->binfmt && !try_module_get(p->signal->binfmt->module))
- 		goto bad_fork_cleanup_put_domain;
- 
- 	p->did_exec = 0;
-@@ -1315,8 +1316,8 @@ bad_fork_cleanup_cgroup:
- #endif
- 	cgroup_exit(p, cgroup_callbacks_done);
- 	delayacct_tsk_free(p);
--	if (p->binfmt)
--		module_put(p->binfmt->module);
-+	if (p->signal->binfmt)
-+		module_put(p->signal->binfmt->module);
- bad_fork_cleanup_put_domain:
- 	module_put(task_thread_info(p)->exec_domain->module);
- bad_fork_cleanup_count:
+ #endif /* __KERNEL__ */
 _
 
-Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-task_struct-cleanup-move-binfmt-field-to-signal_struct.patch
-task_struct-cleanup-make-binfmt-module-get-and-put-per-signal_struct.patch
+origin.patch
+linux-next.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
+ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
+do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
+do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+wait_consider_task-kill-parent-argument.patch
+do_wait-fix-sys_waitid-specific-behaviour.patch
+wait_noreap_copyout-check-for-wo_info-=-null.patch
+signals-tracehook_notify_jctl-change.patch
+utrace-core.patch
+exec-fix-set_binfmt-vs-sys_delete_module-race.patch
 
