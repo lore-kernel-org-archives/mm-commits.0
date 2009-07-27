@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + stk-webcam-read-buffer-overflow.patch added to -mm tree
-Date: Mon, 27 Jul 2009 15:37:51 -0700
-Message-ID: <200907272237.n6RMbpkU019176@imap1.linux-foundation.org>
+Subject: + fs-ramfs-file-nommuc-needs-include-linux-schedh.patch added to -mm tree
+Date: Mon, 27 Jul 2009 16:09:32 -0700
+Message-ID: <200907272309.n6RN9WKb005059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59146 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755037AbZG0WiV (ORCPT
+	by vger.kernel.org with ESMTP id S1754832AbZG0XKk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jul 2009 18:38:21 -0400
+	Mon, 27 Jul 2009 19:10:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, hverkuil@xs4all.nl, mchehab@infradead.org, xyzzy@speakeasy.org
+Cc: catalin.marinas@arm.com, dhowells@redhat.com
 
 
 The patch titled
-     stk-webcam: read buffer overflow
+     fs/ramfs/file-nommu.c needs include/linux/sched.h
 has been added to the -mm tree.  Its filename is
-     stk-webcam-read-buffer-overflow.patch
+     fs-ramfs-file-nommuc-needs-include-linux-schedh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stk-webcam: read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: fs/ramfs/file-nommu.c needs include/linux/sched.h
+From: Catalin Marinas <catalin.marinas@arm.com>
 
-It tested the value of stk_sizes[i].m before checking whether i was in range.
+This file makes use of various macros defined in files like asm/current.h
+or asm-generic/resource.h.  All these files can be included via sched.h. 
+The building of the !MMU ARM kernel (with additional patches) fails
+without this change.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Trent Piepho <xyzzy@speakeasy.org>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/stk-webcam.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ramfs/file-nommu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow drivers/media/video/stk-webcam.c
---- a/drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow
-+++ a/drivers/media/video/stk-webcam.c
-@@ -1050,8 +1050,8 @@ static int stk_setup_format(struct stk_c
- 		depth = 1;
- 	else
- 		depth = 2;
--	while (stk_sizes[i].m != dev->vsettings.mode
--			&& i < ARRAY_SIZE(stk_sizes))
-+	while (i < ARRAY_SIZE(stk_sizes) &&
-+			stk_sizes[i].m != dev->vsettings.mode)
- 		i++;
- 	if (i == ARRAY_SIZE(stk_sizes)) {
- 		STK_ERROR("Something is broken in %s\n", __func__);
+diff -puN fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-needs-include-linux-schedh fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-needs-include-linux-schedh
++++ a/fs/ramfs/file-nommu.c
+@@ -20,6 +20,7 @@
+ #include <linux/ramfs.h>
+ #include <linux/pagevec.h>
+ #include <linux/mman.h>
++#include <linux/sched.h>
+ 
+ #include <asm/uaccess.h>
+ #include "internal.h"
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
+origin.patch
+fs-ramfs-file-nommuc-needs-include-linux-schedh.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-cell-replace-strncpy-by-strlcpy.patch
-media-strncpy-does-not-null-terminate-string.patch
-ivtv-read-buffer-overflow.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-documentation-strncpy-does-not-null-terminate-string.patch
-adfs-remove-redundant-test-on-unsigned.patch
 
