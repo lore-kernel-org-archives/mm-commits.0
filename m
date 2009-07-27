@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-remove-extraneous-blank-line-after-declaration-of-usage.patch added to -mm tree
-Date: Mon, 27 Jul 2009 16:23:01 -0700
-Message-ID: <200907272323.n6RNN15g026826@imap1.linux-foundation.org>
+Subject: + ummunotify-userspace-support-for-mmu-notifications-cleanup.patch added to -mm tree
+Date: Mon, 27 Jul 2009 16:53:43 -0700
+Message-ID: <200907272353.n6RNrh4O011329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750737AbZG0XXg (ORCPT
+	by vger.kernel.org with ESMTP id S1752607AbZG0Xxp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jul 2009 19:23:36 -0400
+	Mon, 27 Jul 2009 19:53:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tsrk@tsrk.net, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, rolandd@cisco.com
 
 
 The patch titled
-     kbuild: remove extraneous blank line after declaration of usage()
+     ummunotify-userspace-support-for-mmu-notifications-cleanup
 has been added to the -mm tree.  Its filename is
-     kbuild-remove-extraneous-blank-line-after-declaration-of-usage.patch
+     ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,21 +34,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: remove extraneous blank line after declaration of usage()
-From: Trevor Keith <tsrk@tsrk.net>
+Subject: ummunotify-userspace-support-for-mmu-notifications-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Trevor Keith <tsrk@tsrk.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+A few easily-fixed 80-col thingies.
+
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/basic/fixdep.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/char/ummunotify.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN scripts/basic/fixdep.c~kbuild-remove-extraneous-blank-line-after-declaration-of-usage scripts/basic/fixdep.c
---- a/scripts/basic/fixdep.c~kbuild-remove-extraneous-blank-line-after-declaration-of-usage
-+++ a/scripts/basic/fixdep.c
-@@ -125,7 +125,6 @@ char *depfile;
- char *cmdline;
+diff -puN drivers/char/ummunotify.c~ummunotify-userspace-support-for-mmu-notifications-cleanup drivers/char/ummunotify.c
+--- a/drivers/char/ummunotify.c~ummunotify-userspace-support-for-mmu-notifications-cleanup
++++ a/drivers/char/ummunotify.c
+@@ -308,7 +308,7 @@ static ssize_t ummunotify_read(struct fi
  
- static void usage(void)
+ 	for (n = 0; n < max; ++n) {
+ 		if (list_empty(&priv->invalid_list)) {
+-			events[n].type		      = UMMUNOTIFY_EVENT_TYPE_LAST;
++			events[n].type = UMMUNOTIFY_EVENT_TYPE_LAST;
+ 			events[n].user_cookie_counter = *priv->counter;
+ 			++n;
+ 			priv->need_empty = 0;
+@@ -320,12 +320,12 @@ static ssize_t ummunotify_read(struct fi
+ 
+ 		events[n].type = UMMUNOTIFY_EVENT_TYPE_INVAL;
+ 		if (test_bit(UMMUNOTIFY_FLAG_HINT, &reg->flags)) {
+-			events[n].flags		= UMMUNOTIFY_EVENT_FLAG_HINT;
+-			events[n].hint_start	= max(reg->start, reg->hint_start);
+-			events[n].hint_end	= min(reg->end, reg->hint_end);
++			events[n].flags	= UMMUNOTIFY_EVENT_FLAG_HINT;
++			events[n].hint_start = max(reg->start, reg->hint_start);
++			events[n].hint_end = min(reg->end, reg->hint_end);
+ 		} else {
+-			events[n].hint_start	= reg->start;
+-			events[n].hint_end	= reg->end;
++			events[n].hint_start = reg->start;
++			events[n].hint_end = reg->end;
+ 		}
+ 		events[n].user_cookie_counter = reg->user_cookie;
+ 
+@@ -346,7 +346,8 @@ out:
+ 	return ret;
+ }
+ 
+-static unsigned int ummunotify_poll(struct file *filp, struct poll_table_struct *wait)
++static unsigned int ummunotify_poll(struct file *filp,
++					struct poll_table_struct *wait)
+ {
+ 	struct ummunotify_file *priv = filp->private_data;
+ 
+@@ -378,7 +379,7 @@ static long ummunotify_exchange_features
+ }
+ 
+ static long ummunotify_register_region(struct ummunotify_file *priv,
+-				       struct ummunotify_register_ioctl __user *arg)
++				   struct ummunotify_register_ioctl __user *arg)
+ {
+ 	struct ummunotify_register_ioctl parm;
+ 	struct ummunotify_reg *reg, *treg;
+@@ -503,8 +504,7 @@ static int ummunotify_mmap(struct file *
+ {
+ 	struct ummunotify_file *priv = filp->private_data;
+ 
+-	if (vma->vm_end - vma->vm_start != PAGE_SIZE ||
+-	    vma->vm_pgoff != 0)
++	if (vma->vm_end - vma->vm_start != PAGE_SIZE || vma->vm_pgoff != 0)
+ 		return -EINVAL;
+ 
+ 	vma->vm_ops		= &ummunotify_vm_ops;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
+lib-flexible-array-implementation-checkpatch-fixes.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix.patch
+hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes.patch
+fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+
