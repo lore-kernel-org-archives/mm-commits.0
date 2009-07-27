@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch added to -mm tree
-Date: Mon, 27 Jul 2009 15:35:50 -0700
-Message-ID: <200907272235.n6RMZoQT015893@imap1.linux-foundation.org>
+Subject: + stk-webcam-read-buffer-overflow.patch added to -mm tree
+Date: Mon, 27 Jul 2009 15:37:51 -0700
+Message-ID: <200907272237.n6RMbpkU019176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43835 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59146 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753957AbZG0Wgo (ORCPT
+	by vger.kernel.org with ESMTP id S1755037AbZG0WiV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jul 2009 18:36:44 -0400
+	Mon, 27 Jul 2009 18:38:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, cl@linux-foundation.org, hannes@cmpxchg.org
+Cc: roel.kluin@gmail.com, hverkuil@xs4all.nl, mchehab@infradead.org, xyzzy@speakeasy.org
 
 
 The patch titled
-     mm: warn once when a page is freed with PG_mlocked set
+     stk-webcam: read buffer overflow
 has been added to the -mm tree.  Its filename is
-     mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+     stk-webcam-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: warn once when a page is freed with PG_mlocked set
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: stk-webcam: read buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-When a page is freed with the PG_mlocked set, it is considered an
-unexpected but recoverable situation.  A counter records how often this
-event happens but it is easy to miss that this event has occured at
-all.  This patch warns once when PG_mlocked is set to prompt debuggers
-to check the counter to see how often it is happening.
+It tested the value of stk_sizes[i].m before checking whether i was in range.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Trent Piepho <xyzzy@speakeasy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/video/stk-webcam.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set mm/page_alloc.c
---- a/mm/page_alloc.c~mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set
-+++ a/mm/page_alloc.c
-@@ -488,6 +488,11 @@ static inline void __free_one_page(struc
-  */
- static inline void free_page_mlock(struct page *page)
- {
-+	WARN_ONCE(1, KERN_WARNING
-+		"Page flag mlocked set for process %s at pfn:%05lx\n"
-+		"page:%p flags:%#lx\n",
-+		current->comm, page_to_pfn(page),
-+		page, page->flags|__PG_MLOCKED);
- 	__dec_zone_page_state(page, NR_MLOCK);
- 	__count_vm_event(UNEVICTABLE_MLOCKFREED);
- }
+diff -puN drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow drivers/media/video/stk-webcam.c
+--- a/drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow
++++ a/drivers/media/video/stk-webcam.c
+@@ -1050,8 +1050,8 @@ static int stk_setup_format(struct stk_c
+ 		depth = 1;
+ 	else
+ 		depth = 2;
+-	while (stk_sizes[i].m != dev->vsettings.mode
+-			&& i < ARRAY_SIZE(stk_sizes))
++	while (i < ARRAY_SIZE(stk_sizes) &&
++			stk_sizes[i].m != dev->vsettings.mode)
+ 		i++;
+ 	if (i == ARRAY_SIZE(stk_sizes)) {
+ 		STK_ERROR("Something is broken in %s\n", __func__);
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set.patch
-mm-avoid-endless-looping-for-oom-killed-tasks.patch
-page-allocator-allow-too-high-order-warning-messages-to-be-suppressed-with-__gfp_nowarn.patch
-profile-suppress-warning-about-large-allocations-when-profile=1-is-specified.patch
-net-dccp-suppress-warning-about-large-allocations-from-dccp.patch
-memory-hotplug-update-zone-pcp-at-memory-online.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
-memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
-memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
-memory-hotplug-migrate-swap-cache-page.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-mm-clean-up-page_remove_rmap.patch
-mm-update-alloc_flags-after-oom-killer-has-been-called.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-vmscan-use-add_page_to_lru_list-helper-function.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+linux-next.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-cell-replace-strncpy-by-strlcpy.patch
+media-strncpy-does-not-null-terminate-string.patch
+ivtv-read-buffer-overflow.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+documentation-strncpy-does-not-null-terminate-string.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
