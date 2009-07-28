@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-eata-fix-buffer-overflow.patch added to -mm tree
-Date: Tue, 28 Jul 2009 14:56:04 -0700
-Message-ID: <200907282156.n6SLu4hM001660@imap1.linux-foundation.org>
+Subject: + agp-correct-missing-cleanup-on-error-in-agp_add_bridge.patch added to -mm tree
+Date: Tue, 28 Jul 2009 15:19:23 -0700
+Message-ID: <200907282219.n6SMJNWc006969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44084 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752726AbZG1V4n (ORCPT
+	by vger.kernel.org with ESMTP id S1755530AbZG1WT0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jul 2009 17:56:43 -0400
+	Tue, 28 Jul 2009 18:19:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, ballabio_dario@emc.com, mike@i-Connect.Net
+Cc: kjwinchester@gmail.com, airlied@linux.ie
 
 
 The patch titled
-     scsi/eata: fix buffer overflow
+     agp: correct missing cleanup on error in agp_add_bridge
 has been added to the -mm tree.  Its filename is
-     scsi-eata-fix-buffer-overflow.patch
+     agp-correct-missing-cleanup-on-error-in-agp_add_bridge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi/eata: fix buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: agp: correct missing cleanup on error in agp_add_bridge
+From: Kevin Winchester <kjwinchester@gmail.com>
 
-Allows i == MAX_INT_PARAM, which is out of range.
+While investigating a kmemleak detected leak, I encountered the
+agp_add_bridge function.  It appears to be responsible for freeing
+the agp_bridge_data in the case of a failure, but it is only doing
+so for some errors.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Michael Neuffer <mike@i-Connect.Net>
-Cc: Dario Ballabio <ballabio_dario@emc.com>
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
+Fix it to always free the bridge data if a failure condition is
+encountered.
+
+Signed-off-by: Kevin Winchester <kjwinchester@gmail.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/eata.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/agp/backend.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/eata.c~scsi-eata-fix-buffer-overflow drivers/scsi/eata.c
---- a/drivers/scsi/eata.c~scsi-eata-fix-buffer-overflow
-+++ a/drivers/scsi/eata.c
-@@ -1509,7 +1509,7 @@ static int option_setup(char *str)
- 	char *cur = str;
- 	int i = 1;
+diff -puN drivers/char/agp/backend.c~agp-correct-missing-cleanup-on-error-in-agp_add_bridge drivers/char/agp/backend.c
+--- a/drivers/char/agp/backend.c~agp-correct-missing-cleanup-on-error-in-agp_add_bridge
++++ a/drivers/char/agp/backend.c
+@@ -263,18 +263,22 @@ int agp_add_bridge(struct agp_bridge_dat
+ {
+ 	int error;
  
--	while (cur && isdigit(*cur) && i <= MAX_INT_PARAM) {
-+	while (cur && isdigit(*cur) && i < MAX_INT_PARAM) {
- 		ints[i++] = simple_strtoul(cur, NULL, 0);
+-	if (agp_off)
+-		return -ENODEV;
++	if (agp_off) {
++		error = -ENODEV;
++		goto err_put_bridge;
++	}
  
- 		if ((cur = strchr(cur, ',')) != NULL)
+ 	if (!bridge->dev) {
+ 		printk (KERN_DEBUG PFX "Erk, registering with no pci_dev!\n");
+-		return -EINVAL;
++		error = -EINVAL;
++		goto err_put_bridge;
+ 	}
+ 
+ 	/* Grab reference on the chipset driver. */
+ 	if (!try_module_get(bridge->driver->owner)) {
+ 		dev_info(&bridge->dev->dev, "can't lock chipset driver\n");
+-		return -EINVAL;
++		error = -EINVAL;
++		goto err_put_bridge;
+ 	}
+ 
+ 	error = agp_backend_initialize(bridge);
+@@ -304,6 +308,7 @@ frontend_err:
+ 	agp_backend_cleanup(bridge);
+ err_out:
+ 	module_put(bridge->driver->owner);
++err_put_bridge:
+ 	agp_put_bridge(bridge);
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from kjwinchester@gmail.com are
 
-origin.patch
-linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-cell-replace-strncpy-by-strlcpy.patch
-i915-fix-read-outside-array-bounds.patch
-media-strncpy-does-not-null-terminate-string.patch
-ivtv-read-buffer-overflow.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-irda-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-cyclades-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-libertas-fix-read-outside-array-bounds.patch
-libertas-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-documentation-strncpy-does-not-null-terminate-string.patch
-adfs-remove-redundant-test-on-unsigned.patch
+agp-correct-missing-cleanup-on-error-in-agp_add_bridge.patch
 
