@@ -1,51 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix-fix.patch removed from -mm tree
-Date: Tue, 28 Jul 2009 11:16:49 -0700
-Message-ID: <200907281816.n6SIGn9r004301@imap1.linux-foundation.org>
+Subject: [withdrawn] hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix.patch removed from -mm tree
+Date: Tue, 28 Jul 2009 11:16:52 -0700
+Message-ID: <200907281816.n6SIGqgg004309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755333AbZG1SRA (ORCPT
+	by vger.kernel.org with ESMTP id S1755360AbZG1SRD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jul 2009 14:17:00 -0400
+	Tue, 28 Jul 2009 14:17:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix-fix
+     hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix
 has been removed from the -mm tree.  Its filename was
-     hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix-fix.patch
+     hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix.patch
 
 This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix-fix
+Subject: hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+strcpy is faster ;)
 
 Cc: Jean Delvare <khali@linux-fr.org>
 Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/wm8350-hwmon.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/hwmon/wm8350-hwmon.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/wm8350-hwmon.c~hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix-fix drivers/hwmon/wm8350-hwmon.c
---- a/drivers/hwmon/wm8350-hwmon.c~hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix-fix
+diff -puN drivers/hwmon/wm8350-hwmon.c~hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix drivers/hwmon/wm8350-hwmon.c
+--- a/drivers/hwmon/wm8350-hwmon.c~hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix
 +++ a/drivers/hwmon/wm8350-hwmon.c
-@@ -20,6 +20,7 @@
+@@ -31,7 +31,7 @@
+ static ssize_t show_name(struct device *dev,
+ 			 struct device_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "wm8350\n");
++	return strcpy(buf, "wm8350\n");
+ }
  
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/string.h>
- #include <linux/err.h>
- #include <linux/platform_device.h>
- #include <linux/hwmon.h>
+ static const char *input_names[] = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,7 +95,6 @@ printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.pat
 generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
 mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix.patch
-hwmon-add-wm835x-pmic-hardware-monitoring-driver-fix-fix.patch
 rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
 rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
 rtc-philips-nxp-pcf2123-driver-v03-fix.patch
