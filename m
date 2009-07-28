@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cyclades-read-buffer-overflow.patch added to -mm tree
-Date: Tue, 28 Jul 2009 14:52:54 -0700
-Message-ID: <200907282152.n6SLqsfG029093@imap1.linux-foundation.org>
+Subject: + ibmmca-buffer-overflow.patch added to -mm tree
+Date: Tue, 28 Jul 2009 14:55:00 -0700
+Message-ID: <200907282155.n6SLt0v5032436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754534AbZG1VxZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755611AbZG1Vz4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jul 2009 17:53:25 -0400
+	Tue, 28 Jul 2009 17:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, jirislaby@gmail.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, langa2@kph.uni-mainz.de
 
 
 The patch titled
-     cyclades: fix read buffer overflow
+     ibmmca: fix buffer overflow
 has been added to the -mm tree.  Its filename is
-     cyclades-read-buffer-overflow.patch
+     ibmmca-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cyclades: fix read buffer overflow
+Subject: ibmmca: fix buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-irq is declared with size NR_CARDS (4), but the loop containing this
-segment runs up until NR_ISA_ADDRS (16), possibly reading from irq[i] (and
-trying to use the result)
-
-Identified by the Parfait static scanner.
+Allows i == IM_MAX_HOSTS, which is out of range.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Michael Lang <langa2@kph.uni-mainz.de>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    2 +-
+ drivers/scsi/ibmmca.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/cyclades.c~cyclades-read-buffer-overflow drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~cyclades-read-buffer-overflow
-+++ a/drivers/char/cyclades.c
-@@ -3357,7 +3357,7 @@ static int __init cy_detect_isa(void)
- 			continue;
- 		}
- #ifdef MODULE
--		if (isparam && irq[i])
-+		if (isparam && i < NR_CARDS && irq[i])
- 			cy_isa_irq = irq[i];
- 		else
- #endif
+diff -puN drivers/scsi/ibmmca.c~ibmmca-buffer-overflow drivers/scsi/ibmmca.c
+--- a/drivers/scsi/ibmmca.c~ibmmca-buffer-overflow
++++ a/drivers/scsi/ibmmca.c
+@@ -2335,7 +2335,7 @@ static int option_setup(char *str)
+ 	char *cur = str;
+ 	int i = 1;
+ 
+-	while (cur && isdigit(*cur) && i <= IM_MAX_HOSTS) {
++	while (cur && isdigit(*cur) && i < IM_MAX_HOSTS) {
+ 		ints[i++] = simple_strtoul(cur, NULL, 0);
+ 		if ((cur = strchr(cur, ',')) != NULL)
+ 			cur++;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -88,6 +85,7 @@ ext4-remove-redundant-test-on-unsigned.patch
 ocfs2-keep-index-within-status_map.patch
 cyclades-read-buffer-overflow.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
 libertas-fix-read-outside-array-bounds.patch
 libertas-read-buffer-overflow.patch
 frv-duplicate-output_buffer-of-e03.patch
