@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i915-fix-read-outside-array-bounds.patch added to -mm tree
-Date: Tue, 28 Jul 2009 15:34:22 -0700
-Message-ID: <200907282234.n6SMYMtS031205@imap1.linux-foundation.org>
+Subject: + leds-fix-multiple-requests-and-releases-of-irq-for-gpio-led-trigger.patch added to -mm tree
+Date: Tue, 28 Jul 2009 15:35:22 -0700
+Message-ID: <200907282235.n6SMZMo5000338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753474AbZG1Wep (ORCPT
+	by vger.kernel.org with ESMTP id S1753306AbZG1Wfy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jul 2009 18:34:45 -0400
+	Tue, 28 Jul 2009 18:35:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, airlied@linux.ie, jbarnes@virtuousgeek.org, pavel@ucw.cz
+Cc: cascardo@holoscopio.com, rpurdie@rpsys.net, srcvale@holoscopio.com
 
 
 The patch titled
-     i915: fix read outside array bounds
+     leds: fix multiple requests and releases of IRQ for GPIO LED Trigger
 has been added to the -mm tree.  Its filename is
-     i915-fix-read-outside-array-bounds.patch
+     leds-fix-multiple-requests-and-releases-of-irq-for-gpio-led-trigger.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i915: fix read outside array bounds
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: leds: fix multiple requests and releases of IRQ for GPIO LED Trigger
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-dev_priv->saveSWF1 is a 16 element array, but this reads up to index 22
+When setting the same GPIO number, multiple IRQ shared requests will be
+done without freing the previous request.  It will also try to free a
+failed request or an already freed IRQ if 0 was written to the gpio file.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+All these oops and leaks were fixed with the following solution: keep the
+previous allocated GPIO (if any) still allocated in case the new request
+fails.  The alternative solution would desallocate the previous allocated
+GPIO and set gpio as 0.
+
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Signed-off-by: Samuel R. C. Vale <srcvale@holoscopio.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_suspend.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/leds/ledtrig-gpio.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_suspend.c~i915-fix-read-outside-array-bounds drivers/gpu/drm/i915/i915_suspend.c
---- a/drivers/gpu/drm/i915/i915_suspend.c~i915-fix-read-outside-array-bounds
-+++ a/drivers/gpu/drm/i915/i915_suspend.c
-@@ -598,7 +598,7 @@ int i915_restore_state(struct drm_device
- 
- 	for (i = 0; i < 16; i++) {
- 		I915_WRITE(SWF00 + (i << 2), dev_priv->saveSWF0[i]);
--		I915_WRITE(SWF10 + (i << 2), dev_priv->saveSWF1[i+7]);
-+		I915_WRITE(SWF10 + (i << 2), dev_priv->saveSWF1[i]);
+diff -puN drivers/leds/ledtrig-gpio.c~leds-fix-multiple-requests-and-releases-of-irq-for-gpio-led-trigger drivers/leds/ledtrig-gpio.c
+--- a/drivers/leds/ledtrig-gpio.c~leds-fix-multiple-requests-and-releases-of-irq-for-gpio-led-trigger
++++ a/drivers/leds/ledtrig-gpio.c
+@@ -146,20 +146,26 @@ static ssize_t gpio_trig_gpio_store(stru
+ 		return -EINVAL;
  	}
- 	for (i = 0; i < 3; i++)
- 		I915_WRITE(SWF30 + (i << 2), dev_priv->saveSWF2[i]);
+ 
++	if (gpio_data->gpio == gpio)
++		return n;
++
+ 	if (!gpio) {
+-		free_irq(gpio_to_irq(gpio_data->gpio), led);
++		if (gpio_data->gpio != 0)
++			free_irq(gpio_to_irq(gpio_data->gpio), led);
++		gpio_data->gpio = 0;
+ 		return n;
+ 	}
+ 
+-	if (gpio_data->gpio > 0 && gpio_data->gpio != gpio)
+-		free_irq(gpio_to_irq(gpio_data->gpio), led);
+-
+-	gpio_data->gpio = gpio;
+ 	ret = request_irq(gpio_to_irq(gpio), gpio_trig_irq,
+ 			IRQF_SHARED | IRQF_TRIGGER_RISING
+ 			| IRQF_TRIGGER_FALLING, "ledtrig-gpio", led);
+-	if (ret)
++	if (ret) {
+ 		dev_err(dev, "request_irq failed with error %d\n", ret);
++	} else {
++		if (gpio_data->gpio != 0)
++			free_irq(gpio_to_irq(gpio_data->gpio), led);
++		gpio_data->gpio = gpio;
++	}
+ 
+ 	return ret ? ret : n;
+ }
+@@ -211,7 +217,8 @@ static void gpio_trig_deactivate(struct 
+ 		device_remove_file(led->dev, &dev_attr_inverted);
+ 		device_remove_file(led->dev, &dev_attr_desired_brightness);
+ 		flush_work(&gpio_data->work);
+-		free_irq(gpio_to_irq(gpio_data->gpio),led);
++		if (gpio_data->gpio != 0)
++			free_irq(gpio_to_irq(gpio_data->gpio), led);
+ 		kfree(gpio_data);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from cascardo@holoscopio.com are
 
-origin.patch
+rtc-mark-if-rtc-cmos-drivers-were-successfully-registered.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-cell-replace-strncpy-by-strlcpy.patch
-i915-fix-read-outside-array-bounds.patch
-media-strncpy-does-not-null-terminate-string.patch
-ivtv-read-buffer-overflow.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-irda-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-cyclades-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-libertas-fix-read-outside-array-bounds.patch
-libertas-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-documentation-strncpy-does-not-null-terminate-string.patch
-adfs-remove-redundant-test-on-unsigned.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
+leds-fix-multiple-requests-and-releases-of-irq-for-gpio-led-trigger.patch
+leds-after-setting-inverted-attribute-we-must-update-the-led.patch
 
