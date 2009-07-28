@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ibmmca-buffer-overflow.patch added to -mm tree
-Date: Tue, 28 Jul 2009 14:55:00 -0700
-Message-ID: <200907282155.n6SLt0v5032436@imap1.linux-foundation.org>
+Subject: + scsi-eata-fix-buffer-overflow.patch added to -mm tree
+Date: Tue, 28 Jul 2009 14:56:04 -0700
+Message-ID: <200907282156.n6SLu4hM001660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46217 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755611AbZG1Vz4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752726AbZG1V4n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jul 2009 17:55:56 -0400
+	Tue, 28 Jul 2009 17:56:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, langa2@kph.uni-mainz.de
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, ballabio_dario@emc.com, mike@i-Connect.Net
 
 
 The patch titled
-     ibmmca: fix buffer overflow
+     scsi/eata: fix buffer overflow
 has been added to the -mm tree.  Its filename is
-     ibmmca-buffer-overflow.patch
+     scsi-eata-fix-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ibmmca: fix buffer overflow
+Subject: scsi/eata: fix buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Allows i == IM_MAX_HOSTS, which is out of range.
+Allows i == MAX_INT_PARAM, which is out of range.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Michael Lang <langa2@kph.uni-mainz.de>
+Cc: Michael Neuffer <mike@i-Connect.Net>
+Cc: Dario Ballabio <ballabio_dario@emc.com>
 Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ibmmca.c |    2 +-
+ drivers/scsi/eata.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ibmmca.c~ibmmca-buffer-overflow drivers/scsi/ibmmca.c
---- a/drivers/scsi/ibmmca.c~ibmmca-buffer-overflow
-+++ a/drivers/scsi/ibmmca.c
-@@ -2335,7 +2335,7 @@ static int option_setup(char *str)
+diff -puN drivers/scsi/eata.c~scsi-eata-fix-buffer-overflow drivers/scsi/eata.c
+--- a/drivers/scsi/eata.c~scsi-eata-fix-buffer-overflow
++++ a/drivers/scsi/eata.c
+@@ -1509,7 +1509,7 @@ static int option_setup(char *str)
  	char *cur = str;
  	int i = 1;
  
--	while (cur && isdigit(*cur) && i <= IM_MAX_HOSTS) {
-+	while (cur && isdigit(*cur) && i < IM_MAX_HOSTS) {
+-	while (cur && isdigit(*cur) && i <= MAX_INT_PARAM) {
++	while (cur && isdigit(*cur) && i < MAX_INT_PARAM) {
  		ints[i++] = simple_strtoul(cur, NULL, 0);
+ 
  		if ((cur = strchr(cur, ',')) != NULL)
- 			cur++;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -86,6 +87,7 @@ ocfs2-keep-index-within-status_map.patch
 cyclades-read-buffer-overflow.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
 libertas-fix-read-outside-array-bounds.patch
 libertas-read-buffer-overflow.patch
 frv-duplicate-output_buffer-of-e03.patch
