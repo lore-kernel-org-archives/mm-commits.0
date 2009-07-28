@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 28 Jul 2009 15:34:04 -0700
-Message-ID: <200907282234.n6SMY4fR030684@imap1.linux-foundation.org>
+Subject: + i915-fix-read-outside-array-bounds.patch added to -mm tree
+Date: Tue, 28 Jul 2009 15:34:22 -0700
+Message-ID: <200907282234.n6SMYMtS031205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753306AbZG1Wed (ORCPT
+	by vger.kernel.org with ESMTP id S1753474AbZG1Wep (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jul 2009 18:34:33 -0400
+	Tue, 28 Jul 2009 18:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cascardo@holoscopio.com, rpurdie@rpsys.net, srcvale@holoscopio.com
+Cc: roel.kluin@gmail.com, airlied@linux.ie, jbarnes@virtuousgeek.org, pavel@ucw.cz
 
 
 The patch titled
-     leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes
+     i915: fix read outside array bounds
 has been added to the -mm tree.  Its filename is
-     leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
+     i915-fix-read-outside-array-bounds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i915: fix read outside array bounds
+From: Roel Kluin <roel.kluin@gmail.com>
 
-WARNING: suspect code indent for conditional statements (8, 15)
-#20: FILE: drivers/leds/ledtrig-gpio.c:47:
-+	if (!gpio_data->gpio)
- 	       return;
+dev_priv->saveSWF1 is a 16 element array, but this reads up to index 22
 
-total: 0 errors, 1 warnings, 36 lines checked
-
-./patches/leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Samuel R. C. Vale <srcvale@holoscopio.com>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/ledtrig-gpio.c |    2 +-
+ drivers/gpu/drm/i915/i915_suspend.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/ledtrig-gpio.c~leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes drivers/leds/ledtrig-gpio.c
---- a/drivers/leds/ledtrig-gpio.c~leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes
-+++ a/drivers/leds/ledtrig-gpio.c
-@@ -45,7 +45,7 @@ static void gpio_trig_work(struct work_s
- 	int tmp;
+diff -puN drivers/gpu/drm/i915/i915_suspend.c~i915-fix-read-outside-array-bounds drivers/gpu/drm/i915/i915_suspend.c
+--- a/drivers/gpu/drm/i915/i915_suspend.c~i915-fix-read-outside-array-bounds
++++ a/drivers/gpu/drm/i915/i915_suspend.c
+@@ -598,7 +598,7 @@ int i915_restore_state(struct drm_device
  
- 	if (!gpio_data->gpio)
--	       return;
-+		return;
- 
- 	tmp = gpio_get_value(gpio_data->gpio);
- 	if (gpio_data->inverted)
+ 	for (i = 0; i < 16; i++) {
+ 		I915_WRITE(SWF00 + (i << 2), dev_priv->saveSWF0[i]);
+-		I915_WRITE(SWF10 + (i << 2), dev_priv->saveSWF1[i+7]);
++		I915_WRITE(SWF10 + (i << 2), dev_priv->saveSWF1[i]);
+ 	}
+ 	for (i = 0; i < 3; i++)
+ 		I915_WRITE(SWF30 + (i << 2), dev_priv->saveSWF2[i]);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-vfs-optimize-touch_time-too-fix.patch
-watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
-lib-flexible-array-implementation-checkpatch-fixes.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-cell-replace-strncpy-by-strlcpy.patch
+i915-fix-read-outside-array-bounds.patch
+media-strncpy-does-not-null-terminate-string.patch
+ivtv-read-buffer-overflow.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+irda-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+cyclades-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+libertas-fix-read-outside-array-bounds.patch
+libertas-read-buffer-overflow.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
 m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use-checkpatch-fixes.patch
-fatfs-use-common-localtime-gmtime-in-fat_time_unix2fat-checkpatch-fixes.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+documentation-strncpy-does-not-null-terminate-string.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
