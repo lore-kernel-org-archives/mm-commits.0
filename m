@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpfall-reduce-risk-that-hpfall-can-do-harm.patch added to -mm tree
-Date: Tue, 28 Jul 2009 14:36:48 -0700
-Message-ID: <200907282136.n6SLamDj002942@imap1.linux-foundation.org>
+Subject: + libertas-fix-read-outside-array-bounds.patch added to -mm tree
+Date: Tue, 28 Jul 2009 14:38:16 -0700
+Message-ID: <200907282138.n6SLcGOO005382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60407 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753453AbZG1VhD (ORCPT
+	by vger.kernel.org with ESMTP id S1754521AbZG1Vim (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jul 2009 17:37:03 -0400
+	Tue, 28 Jul 2009 17:38:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ct@pipapo.org, elendil@planet.nl, pavel@ucw.cz
+Cc: roel.kluin@gmail.com, dcbw@redhat.com, linville@tuxdriver.com
 
 
 The patch titled
-     hpfall: reduce risk that hpfall can do harm
+     libertas: fix read outside array bounds
 has been added to the -mm tree.  Its filename is
-     hpfall-reduce-risk-that-hpfall-can-do-harm.patch
+     libertas-fix-read-outside-array-bounds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpfall: reduce risk that hpfall can do harm
-From: Christian Thaeter <ct@pipapo.org>
+Subject: libertas: fix read outside array bounds
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Improve the example code to be at least useable, as in not causing harm
-(as shown below).  Code can still be improved further, but this adds some
-basic safeguards.
+Reads bss->rates[j] before checking bounds of index, and should use
+ARRAY_SIZE to determine the size of the array.
 
-1. hpfall *MUST* mlockall(MCL_CURRENT|MCL_FUTURE); itself!  Since the
-   Program sits and waits most of the time it becomes very likely swapped
-   out.  If it gets woken up when the laptop drops from the table while it
-   is swapped out it actually triggers harddrive activity!
-
-2. Daemonize hpfall using 'daemon(0,0)' (quick and dirty).
-
-3. Give hpfall realtime priority.  Should give a chance that it has
-   less latency when woken up.
-
-Signed-off-by: Christian Thaeter <ct@pipapo.org>
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Dan Williams <dcbw@redhat.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/hpfall.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/net/wireless/libertas/scan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/hwmon/hpfall.c~hpfall-reduce-risk-that-hpfall-can-do-harm Documentation/hwmon/hpfall.c
---- a/Documentation/hwmon/hpfall.c~hpfall-reduce-risk-that-hpfall-can-do-harm
-+++ a/Documentation/hwmon/hpfall.c
-@@ -16,6 +16,8 @@
- #include <stdint.h>
- #include <errno.h>
- #include <signal.h>
-+#include <sys/mman.h>
-+#include <sched.h>
+diff -puN drivers/net/wireless/libertas/scan.c~libertas-fix-read-outside-array-bounds drivers/net/wireless/libertas/scan.c
+--- a/drivers/net/wireless/libertas/scan.c~libertas-fix-read-outside-array-bounds
++++ a/drivers/net/wireless/libertas/scan.c
+@@ -5,6 +5,7 @@
+   *  for sending scan commands to the firmware.
+   */
+ #include <linux/types.h>
++#include <linux/kernel.h>
+ #include <linux/etherdevice.h>
+ #include <linux/if_arp.h>
+ #include <asm/unaligned.h>
+@@ -876,7 +877,7 @@ static inline char *lbs_translate_scan(s
+ 	iwe.u.bitrate.disabled = 0;
+ 	iwe.u.bitrate.value = 0;
  
- void write_int(char *path, int i)
- {
-@@ -62,6 +64,7 @@ void ignore_me(void)
- int main(int argc, char *argv[])
- {
- 	int fd, ret;
-+	struct sched_param param;
- 
- 	fd = open("/dev/freefall", O_RDONLY);
- 	if (fd < 0) {
-@@ -69,6 +72,11 @@ int main(int argc, char *argv[])
- 		return EXIT_FAILURE;
- 	}
- 
-+	daemon(0, 0);
-+	param.sched_priority = sched_get_priority_max(SCHED_FIFO);
-+	sched_setscheduler(0, SCHED_FIFO, &param);
-+	mlockall(MCL_CURRENT|MCL_FUTURE);
-+
- 	signal(SIGALRM, ignore_me);
- 
- 	for (;;) {
+-	for (j = 0; bss->rates[j] && (j < sizeof(bss->rates)); j++) {
++	for (j = 0; j < ARRAY_SIZE(bss->rates) && bss->rates[j]; j++) {
+ 		/* Bit rate given in 500 kb/s units */
+ 		iwe.u.bitrate.value = bss->rates[j] * 500000;
+ 		current_val = iwe_stream_add_value(info, start, current_val,
 _
 
-Patches currently in -mm which might be from ct@pipapo.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-vm-document-that-setting-vfs_cache_pressure-to-0-isnt-a-good-idea.patch
-hpfall-reduce-risk-that-hpfall-can-do-harm.patch
-hpfall-accept-disk-device-to-unload-as-argument.patch
+origin.patch
+linux-next.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-cell-replace-strncpy-by-strlcpy.patch
+media-strncpy-does-not-null-terminate-string.patch
+ivtv-read-buffer-overflow.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+libertas-fix-read-outside-array-bounds.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+documentation-strncpy-does-not-null-terminate-string.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
