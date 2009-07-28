@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libertas-read-buffer-overflow.patch added to -mm tree
-Date: Tue, 28 Jul 2009 14:39:54 -0700
-Message-ID: <200907282139.n6SLdsKg008057@imap1.linux-foundation.org>
+Subject: + irda-fix-read-buffer-overflow.patch added to -mm tree
+Date: Tue, 28 Jul 2009 14:42:12 -0700
+Message-ID: <200907282142.n6SLgC23011733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36916 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54133 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753344AbZG1VkT (ORCPT
+	by vger.kernel.org with ESMTP id S1753474AbZG1Vm4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jul 2009 17:40:19 -0400
+	Tue, 28 Jul 2009 17:42:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, dcbw@redhat.com, linville@tuxdriver.com
+Cc: roel.kluin@gmail.com, samuel@sortiz.org
 
 
 The patch titled
-     libertas: fix read buffer overflow
+     irda: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     libertas-read-buffer-overflow.patch
+     irda-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libertas: fix read buffer overflow
+Subject: irda: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Several arrays were read before checking whether the index was within
-bounds.  ARRAY_SIZE() should be used to determine the size of arrays.
-
-rates->rates has an arraysize of 1, so calling get_common_rates() with a
-rates_size of MAX_RATES (14) was causing reads out of bounds.
-
-Since ratesize is at most MAX_RATES, tmp_size can increment at most to
-MAX_RATES * ARRAY_SIZE(lbs_bg_rates), so that should be the number of
-elements of tmp[].
+io[i] is read before the bounds check on i, order should be reversed.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Dan Williams <dcbw@redhat.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas/assoc.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/net/irda/w83977af_ir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/libertas/assoc.c~libertas-read-buffer-overflow drivers/net/wireless/libertas/assoc.c
---- a/drivers/net/wireless/libertas/assoc.c~libertas-read-buffer-overflow
-+++ a/drivers/net/wireless/libertas/assoc.c
-@@ -1,6 +1,7 @@
- /* Copyright (C) 2006, Red Hat, Inc. */
+diff -puN drivers/net/irda/w83977af_ir.c~irda-fix-read-buffer-overflow drivers/net/irda/w83977af_ir.c
+--- a/drivers/net/irda/w83977af_ir.c~irda-fix-read-buffer-overflow
++++ a/drivers/net/irda/w83977af_ir.c
+@@ -115,7 +115,7 @@ static int __init w83977af_init(void)
  
- #include <linux/types.h>
-+#include <linux/kernel.h>
- #include <linux/etherdevice.h>
- #include <linux/ieee80211.h>
- #include <linux/if_arp.h>
-@@ -43,14 +44,14 @@ static int get_common_rates(struct lbs_p
- 	u16 *rates_size)
- {
- 	u8 *card_rates = lbs_bg_rates;
--	size_t num_card_rates = sizeof(lbs_bg_rates);
-+	size_t num_card_rates = ARRAY_SIZE(lbs_bg_rates);
- 	int ret = 0, i, j;
--	u8 tmp[30];
-+	u8 tmp[MAX_RATES * ARRAY_SIZE(lbs_bg_rates)];
- 	size_t tmp_size = 0;
+ 	IRDA_DEBUG(0, "%s()\n", __func__ );
  
- 	/* For each rate in card_rates that exists in rate1, copy to tmp */
--	for (i = 0; card_rates[i] && (i < num_card_rates); i++) {
--		for (j = 0; rates[j] && (j < *rates_size); j++) {
-+	for (i = 0; i < num_card_rates && card_rates[i]; i++) {
-+		for (j = 0; j < *rates_size && rates[j]; j++) {
- 			if (rates[j] == card_rates[i])
- 				tmp[tmp_size++] = card_rates[i];
- 		}
-@@ -320,7 +321,7 @@ static int lbs_associate(struct lbs_priv
- 	rates = (struct mrvl_ie_rates_param_set *) pos;
- 	rates->header.type = cpu_to_le16(TLV_TYPE_RATES);
- 	memcpy(&rates->rates, &bss->rates, MAX_RATES);
--	tmplen = MAX_RATES;
-+	tmplen = min_t(u16, ARRAY_SIZE(rates->rates), MAX_RATES);
- 	if (get_common_rates(priv, rates->rates, &tmplen)) {
- 		ret = -1;
- 		goto done;
-@@ -594,7 +595,7 @@ static int lbs_adhoc_join(struct lbs_pri
- 
- 	/* Copy Data rates from the rates recorded in scan response */
- 	memset(cmd.bss.rates, 0, sizeof(cmd.bss.rates));
--	ratesize = min_t(u16, sizeof(cmd.bss.rates), MAX_RATES);
-+	ratesize = min_t(u16, ARRAY_SIZE(cmd.bss.rates), MAX_RATES);
- 	memcpy(cmd.bss.rates, bss->rates, ratesize);
- 	if (get_common_rates(priv, cmd.bss.rates, &ratesize)) {
- 		lbs_deb_join("ADHOC_JOIN: get_common_rates returned error.\n");
+-	for (i=0; (io[i] < 2000) && (i < ARRAY_SIZE(dev_self)); i++) {
++	for (i=0; i < ARRAY_SIZE(dev_self) && io[i] < 2000; i++) {
+ 		if (w83977af_open(i, io[i], irq[i], dma[i]) == 0)
+ 			return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -122,6 +77,7 @@ drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
 stk-webcam-read-buffer-overflow.patch
 ipath-strncpy-does-not-null-terminate-string.patch
 mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+irda-fix-read-buffer-overflow.patch
 atlx-strncpy-does-not-null-terminate-string.patch
 ext4-remove-redundant-test-on-unsigned.patch
 ocfs2-keep-index-within-status_map.patch
