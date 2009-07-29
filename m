@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-deny-clone_parentclone_newpid-combination.patch added to -mm tree
-Date: Wed, 29 Jul 2009 15:15:04 -0700
-Message-ID: <200907292215.n6TMF41w004399@imap1.linux-foundation.org>
+Subject: + x86-fix-buffer-overflow-in-efi_init.patch added to -mm tree
+Date: Wed, 29 Jul 2009 15:18:57 -0700
+Message-ID: <200907292218.n6TMIv6s010687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752555AbZG2WQA (ORCPT
+	by vger.kernel.org with ESMTP id S1754546AbZG2WTD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 18:16:00 -0400
+	Wed, 29 Jul 2009 18:19:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@linux.vnet.ibm.com, oleg@redhat.com, orenl@cs.columbia.edu, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
+Cc: roel.kluin@gmail.com, mingo@elte.hu
 
 
 The patch titled
-     pidns: deny CLONE_PARENT|CLONE_NEWPID combination
+     x86: fix buffer overflow in efi_init()
 has been added to the -mm tree.  Its filename is
-     pidns-deny-clone_parentclone_newpid-combination.patch
+     x86-fix-buffer-overflow-in-efi_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pidns: deny CLONE_PARENT|CLONE_NEWPID combination
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Subject: x86: fix buffer overflow in efi_init()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-CLONE_PARENT was used to implement an older threading model.  For
-consistency with the CLONE_THREAD check in copy_pid_ns(), disable
-CLONE_PARENT with CLONE_NEWPID, at least until the required semantics of
-pid namespaces are clear.
+If the vendor name (from c16) can be longer than 100 bytes (or missing a
+terminating null), then the null is written past the end of vendor[].
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Acked-by: Roland McGrath <roland@redhat.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Oren Laadan <orenl@cs.columbia.edu>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Found with Parfait, http://research.sun.com/projects/parfait/
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    2 +-
+ arch/x86/kernel/efi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/pid_namespace.c~pidns-deny-clone_parentclone_newpid-combination kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-deny-clone_parentclone_newpid-combination
-+++ a/kernel/pid_namespace.c
-@@ -118,7 +118,7 @@ struct pid_namespace *copy_pid_ns(unsign
- {
- 	if (!(flags & CLONE_NEWPID))
- 		return get_pid_ns(old_ns);
--	if (flags & CLONE_THREAD)
-+	if (flags & (CLONE_THREAD|CLONE_PARENT))
- 		return ERR_PTR(-EINVAL);
- 	return create_pid_namespace(old_ns);
- }
+diff -puN arch/x86/kernel/efi.c~x86-fix-buffer-overflow-in-efi_init arch/x86/kernel/efi.c
+--- a/arch/x86/kernel/efi.c~x86-fix-buffer-overflow-in-efi_init
++++ a/arch/x86/kernel/efi.c
+@@ -354,7 +354,7 @@ void __init efi_init(void)
+ 	 */
+ 	c16 = tmp = early_ioremap(efi.systab->fw_vendor, 2);
+ 	if (c16) {
+-		for (i = 0; i < sizeof(vendor) && *c16; ++i)
++		for (i = 0; i < sizeof(vendor) - 1 && *c16; ++i)
+ 			vendor[i] = *c16++;
+ 		vendor[i] = '\0';
+ 	} else
 _
 
-Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-fork-disable-clone_parent-for-init.patch
-pidns-deny-clone_parentclone_newpid-combination.patch
+origin.patch
+linux-next.patch
+x86-fix-buffer-overflow-in-efi_init.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+media-strncpy-does-not-null-terminate-string.patch
+ivtv-read-buffer-overflow.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+irda-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+cyclades-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-iprh-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+libertas-fix-read-outside-array-bounds.patch
+libertas-read-buffer-overflow.patch
+i915-fix-read-outside-array-bounds.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+documentation-strncpy-does-not-null-terminate-string.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
