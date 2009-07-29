@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-buffer-overflow-in-efi_init.patch added to -mm tree
-Date: Wed, 29 Jul 2009 15:18:57 -0700
-Message-ID: <200907292218.n6TMIv6s010687@imap1.linux-foundation.org>
+Subject: + cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch added to -mm tree
+Date: Wed, 29 Jul 2009 15:42:46 -0700
+Message-ID: <200907292242.n6TMgloI017009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754546AbZG2WTD (ORCPT
+	by vger.kernel.org with ESMTP id S1754157AbZG2Wn3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 18:19:03 -0400
+	Wed, 29 Jul 2009 18:43:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, mingo@elte.hu
+Cc: menage@google.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com
 
 
 The patch titled
-     x86: fix buffer overflow in efi_init()
+     cgroups: move the cgroup debug subsys into cgroup.c to access internal state
 has been added to the -mm tree.  Its filename is
-     x86-fix-buffer-overflow-in-efi_init.patch
+     cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,260 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix buffer overflow in efi_init()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cgroups: move the cgroup debug subsys into cgroup.c to access internal state
+From: Paul Menage <menage@google.com>
 
-If the vendor name (from c16) can be longer than 100 bytes (or missing a
-terminating null), then the null is written past the end of vendor[].
+While it's architecturally clean to have the cgroup debug subsystem be
+completely independent of the cgroups framework, it limits its usefulness
+for debugging the contents of internal data structures.  Move the debug
+subsystem code into the scope of all the cgroups data structures to make
+more detailed debugging possible.
 
-Found with Parfait, http://research.sun.com/projects/parfait/
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Paul Menage <menage@google.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/efi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/Makefile       |    1 
+ kernel/cgroup.c       |   88 +++++++++++++++++++++++++++++++++
+ kernel/cgroup_debug.c |  105 ----------------------------------------
+ 3 files changed, 88 insertions(+), 106 deletions(-)
 
-diff -puN arch/x86/kernel/efi.c~x86-fix-buffer-overflow-in-efi_init arch/x86/kernel/efi.c
---- a/arch/x86/kernel/efi.c~x86-fix-buffer-overflow-in-efi_init
-+++ a/arch/x86/kernel/efi.c
-@@ -354,7 +354,7 @@ void __init efi_init(void)
- 	 */
- 	c16 = tmp = early_ioremap(efi.systab->fw_vendor, 2);
- 	if (c16) {
--		for (i = 0; i < sizeof(vendor) && *c16; ++i)
-+		for (i = 0; i < sizeof(vendor) - 1 && *c16; ++i)
- 			vendor[i] = *c16++;
- 		vendor[i] = '\0';
- 	} else
+diff -puN kernel/Makefile~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state kernel/Makefile
+--- a/kernel/Makefile~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state
++++ a/kernel/Makefile
+@@ -58,7 +58,6 @@ obj-$(CONFIG_KEXEC) += kexec.o
+ obj-$(CONFIG_BACKTRACE_SELF_TEST) += backtracetest.o
+ obj-$(CONFIG_COMPAT) += compat.o
+ obj-$(CONFIG_CGROUPS) += cgroup.o
+-obj-$(CONFIG_CGROUP_DEBUG) += cgroup_debug.o
+ obj-$(CONFIG_CGROUP_FREEZER) += cgroup_freezer.o
+ obj-$(CONFIG_CPUSETS) += cpuset.o
+ obj-$(CONFIG_CGROUP_NS) += ns_cgroup.o
+diff -puN kernel/cgroup.c~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state
++++ a/kernel/cgroup.c
+@@ -3781,3 +3781,91 @@ css_get_next(struct cgroup_subsys *ss, i
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_CGROUP_DEBUG
++static struct cgroup_subsys_state *debug_create(struct cgroup_subsys *ss,
++						   struct cgroup *cont)
++{
++	struct cgroup_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
++
++	if (!css)
++		return ERR_PTR(-ENOMEM);
++
++	return css;
++}
++
++static void debug_destroy(struct cgroup_subsys *ss, struct cgroup *cont)
++{
++	kfree(cont->subsys[debug_subsys_id]);
++}
++
++static u64 cgroup_refcount_read(struct cgroup *cont, struct cftype *cft)
++{
++	return atomic_read(&cont->count);
++}
++
++static u64 debug_taskcount_read(struct cgroup *cont, struct cftype *cft)
++{
++	return cgroup_task_count(cont);
++}
++
++static u64 current_css_set_read(struct cgroup *cont, struct cftype *cft)
++{
++	return (u64)(unsigned long)current->cgroups;
++}
++
++static u64 current_css_set_refcount_read(struct cgroup *cont,
++					   struct cftype *cft)
++{
++	u64 count;
++
++	rcu_read_lock();
++	count = atomic_read(&current->cgroups->refcount);
++	rcu_read_unlock();
++	return count;
++}
++
++static u64 releasable_read(struct cgroup *cgrp, struct cftype *cft)
++{
++	return test_bit(CGRP_RELEASABLE, &cgrp->flags);
++}
++
++static struct cftype debug_files[] =  {
++	{
++		.name = "cgroup_refcount",
++		.read_u64 = cgroup_refcount_read,
++	},
++	{
++		.name = "taskcount",
++		.read_u64 = debug_taskcount_read,
++	},
++
++	{
++		.name = "current_css_set",
++		.read_u64 = current_css_set_read,
++	},
++
++	{
++		.name = "current_css_set_refcount",
++		.read_u64 = current_css_set_refcount_read,
++	},
++
++	{
++		.name = "releasable",
++		.read_u64 = releasable_read,
++	},
++};
++
++static int debug_populate(struct cgroup_subsys *ss, struct cgroup *cont)
++{
++	return cgroup_add_files(cont, ss, debug_files,
++				ARRAY_SIZE(debug_files));
++}
++
++struct cgroup_subsys debug_subsys = {
++	.name = "debug",
++	.create = debug_create,
++	.destroy = debug_destroy,
++	.populate = debug_populate,
++	.subsys_id = debug_subsys_id,
++};
++#endif /* CONFIG_CGROUP_DEBUG */
+diff -puN kernel/cgroup_debug.c~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state /dev/null
+--- a/kernel/cgroup_debug.c
++++ /dev/null
+@@ -1,105 +0,0 @@
+-/*
+- * kernel/cgroup_debug.c - Example cgroup subsystem that
+- * exposes debug info
+- *
+- * Copyright (C) Google Inc, 2007
+- *
+- * Developed by Paul Menage (menage@google.com)
+- *
+- */
+-
+-#include <linux/cgroup.h>
+-#include <linux/fs.h>
+-#include <linux/slab.h>
+-#include <linux/rcupdate.h>
+-
+-#include <asm/atomic.h>
+-
+-static struct cgroup_subsys_state *debug_create(struct cgroup_subsys *ss,
+-						   struct cgroup *cont)
+-{
+-	struct cgroup_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
+-
+-	if (!css)
+-		return ERR_PTR(-ENOMEM);
+-
+-	return css;
+-}
+-
+-static void debug_destroy(struct cgroup_subsys *ss, struct cgroup *cont)
+-{
+-	kfree(cont->subsys[debug_subsys_id]);
+-}
+-
+-static u64 cgroup_refcount_read(struct cgroup *cont, struct cftype *cft)
+-{
+-	return atomic_read(&cont->count);
+-}
+-
+-static u64 taskcount_read(struct cgroup *cont, struct cftype *cft)
+-{
+-	u64 count;
+-
+-	count = cgroup_task_count(cont);
+-	return count;
+-}
+-
+-static u64 current_css_set_read(struct cgroup *cont, struct cftype *cft)
+-{
+-	return (u64)(long)current->cgroups;
+-}
+-
+-static u64 current_css_set_refcount_read(struct cgroup *cont,
+-					   struct cftype *cft)
+-{
+-	u64 count;
+-
+-	rcu_read_lock();
+-	count = atomic_read(&current->cgroups->refcount);
+-	rcu_read_unlock();
+-	return count;
+-}
+-
+-static u64 releasable_read(struct cgroup *cgrp, struct cftype *cft)
+-{
+-	return test_bit(CGRP_RELEASABLE, &cgrp->flags);
+-}
+-
+-static struct cftype files[] =  {
+-	{
+-		.name = "cgroup_refcount",
+-		.read_u64 = cgroup_refcount_read,
+-	},
+-	{
+-		.name = "taskcount",
+-		.read_u64 = taskcount_read,
+-	},
+-
+-	{
+-		.name = "current_css_set",
+-		.read_u64 = current_css_set_read,
+-	},
+-
+-	{
+-		.name = "current_css_set_refcount",
+-		.read_u64 = current_css_set_refcount_read,
+-	},
+-
+-	{
+-		.name = "releasable",
+-		.read_u64 = releasable_read,
+-	},
+-};
+-
+-static int debug_populate(struct cgroup_subsys *ss, struct cgroup *cont)
+-{
+-	return cgroup_add_files(cont, ss, files, ARRAY_SIZE(files));
+-}
+-
+-struct cgroup_subsys debug_subsys = {
+-	.name = "debug",
+-	.create = debug_create,
+-	.destroy = debug_destroy,
+-	.populate = debug_populate,
+-	.subsys_id = debug_subsys_id,
+-};
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from menage@google.com are
 
-origin.patch
-linux-next.patch
-x86-fix-buffer-overflow-in-efi_init.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-media-strncpy-does-not-null-terminate-string.patch
-ivtv-read-buffer-overflow.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-irda-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-cyclades-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-iprh-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-libertas-fix-read-outside-array-bounds.patch
-libertas-read-buffer-overflow.patch
-i915-fix-read-outside-array-bounds.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-documentation-strncpy-does-not-null-terminate-string.patch
-adfs-remove-redundant-test-on-unsigned.patch
+cgroups-fix-pid-namespace-bug.patch
+cgroup-avoid-permanent-sleep-at-rmdir-v7.patch
+mm-remove-obsoleted-alloc_pages-cpuset-comment.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
+include-linux-credh-work-around-gcc-424-warning-in-get_cred.patch
+cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent.patch
+cgroups-support-named-cgroups-hierarchies.patch
+cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
+cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
+cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
+add-a-refcount-check-in-dput.patch
 
