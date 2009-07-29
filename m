@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tmio_mmc-optionally-support-using-platform-clock.patch added to -mm tree
-Date: Wed, 29 Jul 2009 13:41:11 -0700
-Message-ID: <200907292041.n6TKfC1p013343@imap1.linux-foundation.org>
+Subject: + drivers-scsi-gdthc-fix-buffer-overflow.patch added to -mm tree
+Date: Wed, 29 Jul 2009 13:47:36 -0700
+Message-ID: <200907292047.n6TKlaHg023929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41585 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754190AbZG2Ulf (ORCPT
+	by vger.kernel.org with ESMTP id S1756097AbZG2Urj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 16:41:35 -0400
+	Wed, 29 Jul 2009 16:47:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, damm@opensource.se, ian@mnementh.co.uk, lethal@linux-sh.org, matt@console-pimps.org, philipl@overt.org, philipp.zabel@gmail.com, pierre@ossman.eu, roberto.foglietta@gmail.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     tmio_mmc: optionally support using platform clock
+     drivers/scsi/gdth.c: fix buffer overflow
 has been added to the -mm tree.  Its filename is
-     tmio_mmc-optionally-support-using-platform-clock.patch
+     drivers-scsi-gdthc-fix-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,132 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmio_mmc: optionally support using platform clock
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: drivers/scsi/gdth.c: fix buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-If the platform device has a clock associated with the tmio-mmc device,
-use it.
+This allows i == MAXHA, which is out of range
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Magnus Damm <damm@opensource.se>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: Ian Molton <ian@mnementh.co.uk>
-Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
-Cc: Philip Langdale <philipl@overt.org>
-Cc: Pierre Ossman <pierre@ossman.eu>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: pHilipp Zabel <philipp.zabel@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/tmio_mmc.c |   21 +++++++++++++++++++++
- drivers/mmc/host/tmio_mmc.h |    3 +++
- include/linux/mfd/tmio.h    |    1 +
- 3 files changed, 25 insertions(+)
+ drivers/scsi/gdth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/tmio_mmc.c~tmio_mmc-optionally-support-using-platform-clock drivers/mmc/host/tmio_mmc.c
---- a/drivers/mmc/host/tmio_mmc.c~tmio_mmc-optionally-support-using-platform-clock
-+++ a/drivers/mmc/host/tmio_mmc.c
-@@ -32,6 +32,7 @@
- #include <linux/mmc/host.h>
- #include <linux/mfd/core.h>
- #include <linux/mfd/tmio.h>
-+#include <linux/clk.h>
+diff -puN drivers/scsi/gdth.c~drivers-scsi-gdthc-fix-buffer-overflow drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~drivers-scsi-gdthc-fix-buffer-overflow
++++ a/drivers/scsi/gdth.c
+@@ -3838,7 +3838,7 @@ int __init option_setup(char *str)
  
- #include "tmio_mmc.h"
+     TRACE2(("option_setup() str %s\n", str ? str:"NULL")); 
  
-@@ -57,10 +58,18 @@ static void tmio_mmc_clk_stop(struct tmi
- 	sd_ctrl_write16(host, CTL_SD_CARD_CLK_CTL, ~0x0100 &
- 		sd_ctrl_read16(host, CTL_SD_CARD_CLK_CTL));
- 	msleep(10);
-+	if (!IS_ERR(host->clk) && host->clk_is_running) {
-+		clk_disable(host->clk);
-+		host->clk_is_running = false;
-+	}
- }
- 
- static void tmio_mmc_clk_start(struct tmio_mmc_host *host)
- {
-+	if (!IS_ERR(host->clk) && !host->clk_is_running &&
-+	    !clk_enable(host->clk))
-+		host->clk_is_running = true;
-+
- 	sd_ctrl_write16(host, CTL_SD_CARD_CLK_CTL, 0x0100 |
- 		sd_ctrl_read16(host, CTL_SD_CARD_CLK_CTL));
- 	msleep(10);
-@@ -567,6 +576,11 @@ static int __devinit tmio_mmc_probe(stru
- 			goto unmap_cnf;
- 	}
- 
-+	host->clk = clk_get(&dev->dev, pdata->clk_name);
-+
-+	if (!IS_ERR(host->clk) && !clk_enable(host->clk))
-+		host->clk_is_running = true;
-+
- 	/* Enable the MMC/SD Control registers */
- 	sd_config_write16(host, CNF_CMD, SDCREN);
- 	sd_config_write32(host, CNF_CTL_BASE,
-@@ -608,6 +622,11 @@ static int __devinit tmio_mmc_probe(stru
- 	return 0;
- 
- unmap_cnf:
-+	if (!IS_ERR(host->clk)) {
-+		clk_disable(host->clk);
-+		host->clk_is_running = false;
-+		clk_put(host->clk);
-+	}
- 	if (host->cnf)
- 		iounmap(host->cnf);
- unmap_ctl:
-@@ -632,6 +651,8 @@ static int __devexit tmio_mmc_remove(str
- 		if (host->cnf)
- 			iounmap(host->cnf);
- 		mmc_free_host(mmc);
-+		if (!IS_ERR(host->clk))
-+			clk_put(host->clk);
- 	}
- 
- 	return 0;
-diff -puN drivers/mmc/host/tmio_mmc.h~tmio_mmc-optionally-support-using-platform-clock drivers/mmc/host/tmio_mmc.h
---- a/drivers/mmc/host/tmio_mmc.h~tmio_mmc-optionally-support-using-platform-clock
-+++ a/drivers/mmc/host/tmio_mmc.h
-@@ -108,6 +108,7 @@
- 		sd_ctrl_write32((host), CTL_STATUS, mask); \
- 	} while (0)
- 
-+struct clk;
- 
- struct tmio_mmc_host {
- 	void __iomem *cnf;
-@@ -117,6 +118,8 @@ struct tmio_mmc_host {
- 	struct mmc_request      *mrq;
- 	struct mmc_data         *data;
- 	struct mmc_host         *mmc;
-+	struct clk		*clk;
-+	bool			clk_is_running;
- 	int                     irq;
- 
- 	/* pio related stuff */
-diff -puN include/linux/mfd/tmio.h~tmio_mmc-optionally-support-using-platform-clock include/linux/mfd/tmio.h
---- a/include/linux/mfd/tmio.h~tmio_mmc-optionally-support-using-platform-clock
-+++ a/include/linux/mfd/tmio.h
-@@ -23,6 +23,7 @@
-  */
- struct tmio_mmc_data {
- 	const unsigned int		hclk;
-+	const char			*clk_name;
- };
- 
- /*
+-    while (cur && isdigit(*cur) && i <= MAXHA) {
++    while (cur && isdigit(*cur) && i < MAXHA) {
+         ints[i++] = simple_strtoul(cur, NULL, 0);
+         if ((cur = strchr(cur, ',')) != NULL) cur++;
+     }
 _
 
-Patches currently in -mm which might be from g.liakhovetski@gmx.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-imx31-fix-framebuffer-locking-regressions.patch
-mmc-make-the-configuration-memory-resource-optional.patch
-tmio_mmc-optionally-support-using-platform-clock.patch
-sh-switch-migo-r-to-use-the-tmio-mmc-driver-instead-of-spi.patch
-spi-remove-imx-spi-driver.patch
-spi-add-spi-driver-for-most-known-imx-socs.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+i915-fix-read-outside-array-bounds.patch
+media-strncpy-does-not-null-terminate-string.patch
+ivtv-read-buffer-overflow.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+irda-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+cyclades-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+libertas-fix-read-outside-array-bounds.patch
+libertas-read-buffer-overflow.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+documentation-strncpy-does-not-null-terminate-string.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
