@@ -1,38 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mmc-add-host-capabilities-for-sd-only-and-mmc-only.patch removed from -mm tree
-Date: Wed, 29 Jul 2009 13:48:53 -0700
-Message-ID: <200907292048.n6TKmr9d026033@imap1.linux-foundation.org>
+Subject: [to-be-updated] mmc-check-status-after-mmc-switch-command.patch removed from -mm tree
+Date: Wed, 29 Jul 2009 13:48:56 -0700
+Message-ID: <200907292048.n6TKmu61026089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751449AbZG2Uxb (ORCPT
+	by vger.kernel.org with ESMTP id S1751484AbZG2UyG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 16:53:31 -0400
+	Wed, 29 Jul 2009 16:54:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gma
 
 
 The patch titled
-     mmc: add host capabilities for SD only and MMC only
+     mmc: check status after MMC SWITCH command
 has been removed from the -mm tree.  Its filename was
-     mmc-add-host-capabilities-for-sd-only-and-mmc-only.patch
+     mmc-check-status-after-mmc-switch-command.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: add host capabilities for SD only and MMC only
+Subject: mmc: check status after MMC SWITCH command
 From: Adrian Hunter <adrian.hunter@nokia.com>
 
-Some hosts can accept only certain types of cards.  For example, an eMMC
-is MMC only and a uSD slot may be SD only.  However the MMC card scanning
-logic checks for all card types one by one.
-
-Add host capabilities to specify which card types cannot be used, and
-amend the card scanning logic to skip scanning for those types.
+According to the standard, the SWITCH command should be followed by a
+SEND_STATUS command to check for errors.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
@@ -44,81 +40,113 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c  |   16 +++++++++++++++-
- include/linux/mmc/host.h |    7 +++++++
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ drivers/mmc/core/mmc.c     |   24 ++++++++++++++++++------
+ drivers/mmc/core/mmc_ops.c |   23 +++++++++++++++++++++++
+ include/linux/mmc/mmc.h    |    1 +
+ 3 files changed, 42 insertions(+), 6 deletions(-)
 
-diff -puN drivers/mmc/core/core.c~mmc-add-host-capabilities-for-sd-only-and-mmc-only drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-add-host-capabilities-for-sd-only-and-mmc-only
-+++ a/drivers/mmc/core/core.c
-@@ -1072,7 +1072,11 @@ void mmc_rescan(struct work_struct *work
- 	mmc_power_up(host);
- 	mmc_go_idle(host);
+diff -puN drivers/mmc/core/mmc.c~mmc-check-status-after-mmc-switch-command drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-check-status-after-mmc-switch-command
++++ a/drivers/mmc/core/mmc.c
+@@ -416,12 +416,17 @@ static int mmc_init_card(struct mmc_host
+ 		(host->caps & MMC_CAP_MMC_HIGHSPEED)) {
+ 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
+ 			EXT_CSD_HS_TIMING, 1);
+-		if (err)
++		if (err && err != -EBADMSG)
+ 			goto free_card;
  
--	mmc_send_if_cond(host, host->ocr_avail);
-+	if (!(host->caps & MMC_CAP_NOT_SDIO) || !(host->caps & MMC_CAP_NOT_SD))
-+		mmc_send_if_cond(host, host->ocr_avail);
-+
-+	if (host->caps & MMC_CAP_NOT_SDIO)
-+		goto not_sdio;
- 
- 	/*
- 	 * First we search for SDIO...
-@@ -1084,6 +1088,10 @@ void mmc_rescan(struct work_struct *work
- 		goto out;
+-		mmc_card_set_highspeed(card);
+-
+-		mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
++		if (err) {
++			printk(KERN_WARNING "%s: switch to highspeed failed\n",
++			       mmc_hostname(card->host));
++			err = 0;
++		} else {
++			mmc_card_set_highspeed(card);
++			mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
++		}
  	}
  
-+not_sdio:
-+	if (host->caps & MMC_CAP_NOT_SD)
-+		goto not_sd;
-+
  	/*
- 	 * ...then normal SD...
- 	 */
-@@ -1094,6 +1102,10 @@ void mmc_rescan(struct work_struct *work
- 		goto out;
+@@ -456,10 +461,17 @@ static int mmc_init_card(struct mmc_host
+ 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
+ 				 EXT_CSD_BUS_WIDTH, ext_csd_bit);
+ 
+-		if (err)
++		if (err && err != -EBADMSG)
+ 			goto free_card;
+ 
+-		mmc_set_bus_width(card->host, bus_width);
++		if (err) {
++			printk(KERN_WARNING "%s: switch to bus width %d "
++			       "failed\n", mmc_hostname(card->host),
++			       1 << bus_width);
++			err = 0;
++		} else {
++			mmc_set_bus_width(card->host, bus_width);
++		}
  	}
  
-+not_sd:
-+	if (host->caps & MMC_CAP_NOT_MMC)
-+		goto not_mmc;
-+
- 	/*
- 	 * ...and finally MMC.
- 	 */
-@@ -1104,6 +1116,8 @@ void mmc_rescan(struct work_struct *work
- 		goto out;
- 	}
+ 	if (!oldcard)
+diff -puN drivers/mmc/core/mmc_ops.c~mmc-check-status-after-mmc-switch-command drivers/mmc/core/mmc_ops.c
+--- a/drivers/mmc/core/mmc_ops.c~mmc-check-status-after-mmc-switch-command
++++ a/drivers/mmc/core/mmc_ops.c
+@@ -390,6 +390,7 @@ int mmc_switch(struct mmc_card *card, u8
+ {
+ 	int err;
+ 	struct mmc_command cmd;
++	u32 status;
  
-+not_mmc:
-+
- 	mmc_release_host(host);
- 	mmc_power_off(host);
+ 	BUG_ON(!card);
+ 	BUG_ON(!card->host);
+@@ -407,6 +408,28 @@ int mmc_switch(struct mmc_card *card, u8
+ 	if (err)
+ 		return err;
  
-diff -puN include/linux/mmc/host.h~mmc-add-host-capabilities-for-sd-only-and-mmc-only include/linux/mmc/host.h
---- a/include/linux/mmc/host.h~mmc-add-host-capabilities-for-sd-only-and-mmc-only
-+++ a/include/linux/mmc/host.h
-@@ -150,6 +150,13 @@ struct mmc_host {
- #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
- #define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
- #define MMC_CAP_WAIT_WHILE_BUSY	(1 << 9)	/* Waits while card is busy */
-+#define MMC_CAP_NOT_SDIO	(1 << 10)	/* Card cannot be SDIO */
-+#define MMC_CAP_NOT_SD		(1 << 11)	/* Card cannot be SD */
-+#define MMC_CAP_NOT_MMC		(1 << 12)	/* Card cannot be MMC */
++	/* Must check status to be sure of no errors */
++	do {
++		err = mmc_send_status(card, &status);
++		if (err)
++			return err;
++		if (card->host->caps & MMC_CAP_WAIT_WHILE_BUSY)
++			break;
++		if (mmc_host_is_spi(card->host))
++			break;
++	} while (R1_CURRENT_STATE(status) == 7);
 +
-+#define MMC_CAP_SDIO_ONLY	(MMC_CAP_NOT_SD | MMC_CAP_NOT_MMC)
-+#define MMC_CAP_SD_ONLY		(MMC_CAP_NOT_SDIO | MMC_CAP_NOT_MMC)
-+#define MMC_CAP_MMC_ONLY	(MMC_CAP_NOT_SDIO | MMC_CAP_NOT_SD)
++	if (mmc_host_is_spi(card->host)) {
++		if (status & R1_SPI_ILLEGAL_COMMAND)
++			return -EBADMSG;
++	} else {
++		if (status & 0xFDFFA000)
++			printk(KERN_WARNING "%s: unexpected status %#x after "
++			       "switch", mmc_hostname(card->host), status);
++		if (status & R1_SWITCH_ERROR)
++			return -EBADMSG;
++	}
++
+ 	return 0;
+ }
  
- 	/* host specific block data */
- 	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
+diff -puN include/linux/mmc/mmc.h~mmc-check-status-after-mmc-switch-command include/linux/mmc/mmc.h
+--- a/include/linux/mmc/mmc.h~mmc-check-status-after-mmc-switch-command
++++ a/include/linux/mmc/mmc.h
+@@ -128,6 +128,7 @@
+ #define R1_STATUS(x)            (x & 0xFFFFE000)
+ #define R1_CURRENT_STATE(x)	((x & 0x00001E00) >> 9)	/* sx, b (4 bits) */
+ #define R1_READY_FOR_DATA	(1 << 8)	/* sx, a */
++#define R1_SWITCH_ERROR		(1 << 7)	/* sx, c */
+ #define R1_APP_CMD		(1 << 5)	/* sr, c */
+ 
+ /*
 _
 
 Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
 linux-next.patch
 mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-mmc-add-host-capabilities-for-sd-only-and-mmc-only.patch
 mmc-check-status-after-mmc-switch-command.patch
 omap_hsmmc-add-debugfs-entry-host-registers.patch
 omap_hsmmc-make-use-of-new-enable-disable-interface.patch
