@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + omap_hsmmc-ensure-workqueues-are-empty-before-suspend.patch added to -mm tree
-Date: Wed, 29 Jul 2009 13:58:20 -0700
-Message-ID: <200907292058.n6TKwKU7009046@imap1.linux-foundation.org>
+Subject: + omap_hsmmc-make-use-of-new-enable-disable-interface.patch added to -mm tree
+Date: Wed, 29 Jul 2009 13:58:10 -0700
+Message-ID: <200907292058.n6TKwAKe008769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751387AbZG2VEc (ORCPT
+	by vger.kernel.org with ESMTP id S1750903AbZG2VFE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 17:04:32 -0400
+	Wed, 29 Jul 2009 17:05:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, j
 
 
 The patch titled
-     omap_hsmmc: ensure workqueues are empty before suspend
+     omap_hsmmc: make use of new enable/disable interface
 has been added to the -mm tree.  Its filename is
-     omap_hsmmc-ensure-workqueues-are-empty-before-suspend.patch
+     omap_hsmmc-make-use-of-new-enable-disable-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: ensure workqueues are empty before suspend
+Subject: omap_hsmmc: make use of new enable/disable interface
 From: Adrian Hunter <adrian.hunter@nokia.com>
+
+For the moment enable / disable just turns the fclk on and off.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Acked-by: Matt Fleming <matt@console-pimps.org>
@@ -48,106 +50,204 @@ Cc: Philip Langdale <philipl@overt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   50 +++++++++++++++++++++-----------
- 1 file changed, 34 insertions(+), 16 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   68 +++++++++++++++++++++++++++-----
+ 1 file changed, 58 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-workqueues-are-empty-before-suspend drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-workqueues-are-empty-before-suspend
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-make-use-of-new-enable-disable-interface drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-make-use-of-new-enable-disable-interface
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -151,7 +151,6 @@ struct mmc_omap_host {
- 	u32			bytesleft;
- 	int			suspended;
- 	int			irq;
--	int			carddetect;
- 	int			use_dma, dma_ch;
- 	int			dma_line_tx, dma_line_rx;
- 	int			slot_id;
-@@ -761,14 +760,19 @@ static void mmc_omap_detect(struct work_
- 	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
- 						mmc_carddetect_work);
- 	struct omap_mmc_slot_data *slot = &mmc_slot(host);
-+	int carddetect;
-+
-+	if (host->suspended)
-+		return;
-+
-+	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
- 
- 	if (mmc_slot(host).card_detect)
--		host->carddetect = slot->card_detect(slot->card_detect_irq);
-+		carddetect = slot->card_detect(slot->card_detect_irq);
- 	else
--		host->carddetect = -ENOSYS;
-+		carddetect = -ENOSYS;
- 
--	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
--	if (host->carddetect) {
-+	if (carddetect) {
+@@ -605,7 +605,9 @@ static void mmc_omap_detect(struct work_
+ 	if (host->carddetect) {
  		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
  	} else {
- 		mmc_host_enable(host->mmc);
-@@ -785,6 +789,8 @@ static irqreturn_t omap_mmc_cd_handler(i
- {
- 	struct mmc_omap_host *host = (struct mmc_omap_host *)dev_id;
++		mmc_host_enable(host->mmc);
+ 		mmc_omap_reset_controller_fsm(host, SRD);
++		mmc_host_lazy_disable(host->mmc);
+ 		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
+ 	}
+ }
+@@ -818,6 +820,27 @@ mmc_omap_prepare_data(struct mmc_omap_ho
+ 	return 0;
+ }
  
-+	if (host->suspended)
-+		return IRQ_HANDLED;
- 	schedule_work(&host->mmc_carddetect_work);
++static int omap_mmc_enable(struct mmc_host *mmc)
++{
++	struct mmc_omap_host *host = mmc_priv(mmc);
++	int err;
++
++	err = clk_enable(host->fclk);
++	if (err)
++		return err;
++	dev_dbg(mmc_dev(host->mmc), "mmc_fclk: enabled\n");
++	return 0;
++}
++
++static int omap_mmc_disable(struct mmc_host *mmc, int lazy)
++{
++	struct mmc_omap_host *host = mmc_priv(mmc);
++
++	clk_disable(host->fclk);
++	dev_dbg(mmc_dev(host->mmc), "mmc_fclk: disabled\n");
++	return 0;
++}
++
+ /*
+  * Request function. for read/write operation
+  */
+@@ -841,6 +864,8 @@ static void omap_mmc_set_ios(struct mmc_
+ 	unsigned long timeout;
+ 	u32 con;
  
- 	return IRQ_HANDLED;
-@@ -1526,30 +1532,42 @@ static int omap_mmc_suspend(struct platf
++	mmc_host_enable(host->mmc);
++
+ 	switch (ios->power_mode) {
+ 	case MMC_POWER_OFF:
+ 		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+@@ -919,6 +944,8 @@ static void omap_mmc_set_ios(struct mmc_
+ 	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
+ 		OMAP_HSMMC_WRITE(host->base, CON,
+ 				OMAP_HSMMC_READ(host->base, CON) | OD);
++
++	mmc_host_lazy_disable(host->mmc);
+ }
+ 
+ static int omap_hsmmc_get_cd(struct mmc_host *mmc)
+@@ -969,6 +996,8 @@ static void omap_hsmmc_init(struct mmc_o
+ }
+ 
+ static struct mmc_host_ops mmc_omap_ops = {
++	.enable = omap_mmc_enable,
++	.disable = omap_mmc_disable,
+ 	.request = omap_mmc_request,
+ 	.set_ios = omap_mmc_set_ios,
+ 	.get_cd = omap_hsmmc_get_cd,
+@@ -983,7 +1012,16 @@ static int mmc_regs_show(struct seq_file
+ 	struct mmc_host *mmc = s->private;
+ 	struct mmc_omap_host *host = mmc_priv(mmc);
+ 
+-	seq_printf(s, "mmc%d regs:\n", mmc->index);
++	seq_printf(s, "mmc%d:\n"
++			" enabled:\t%d\n"
++			" nesting_cnt:\t%d\n"
++			"\nregs:\n",
++			mmc->index, mmc->enabled ? 1 : 0, mmc->nesting_cnt);
++
++	if (clk_enable(host->fclk) != 0) {
++		seq_printf(s, "can't read the regs\n");
++		goto err;
++	}
+ 
+ 	seq_printf(s, "SYSCONFIG:\t0x%08x\n",
+ 			OMAP_HSMMC_READ(host->base, SYSCONFIG));
+@@ -999,6 +1037,9 @@ static int mmc_regs_show(struct seq_file
+ 			OMAP_HSMMC_READ(host->base, ISE));
+ 	seq_printf(s, "CAPA:\t\t0x%08x\n",
+ 			OMAP_HSMMC_READ(host->base, CAPA));
++
++	clk_disable(host->fclk);
++err:
+ 	return 0;
+ }
+ 
+@@ -1099,14 +1140,16 @@ static int __init omap_mmc_probe(struct 
+ 		goto err1;
+ 	}
+ 
+-	if (clk_enable(host->fclk) != 0) {
++	mmc->caps |= MMC_CAP_DISABLE;
++	mmc_set_disable_delay(mmc, 100);
++	if (mmc_host_enable(host->mmc) != 0) {
+ 		clk_put(host->iclk);
+ 		clk_put(host->fclk);
+ 		goto err1;
+ 	}
+ 
+ 	if (clk_enable(host->iclk) != 0) {
+-		clk_disable(host->fclk);
++		mmc_host_disable(host->mmc);
+ 		clk_put(host->iclk);
+ 		clk_put(host->fclk);
+ 		goto err1;
+@@ -1199,6 +1242,8 @@ static int __init omap_mmc_probe(struct 
+ 	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
+ 	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
+ 
++	mmc_host_lazy_disable(host->mmc);
++
+ 	mmc_add_host(mmc);
+ 
+ 	if (host->pdata->slots[host->slot_id].name != NULL) {
+@@ -1227,7 +1272,7 @@ err_irq_cd:
+ err_irq_cd_init:
+ 	free_irq(host->irq, host);
+ err_irq:
+-	clk_disable(host->fclk);
++	mmc_host_disable(host->mmc);
+ 	clk_disable(host->iclk);
+ 	clk_put(host->fclk);
+ 	clk_put(host->iclk);
+@@ -1252,6 +1297,7 @@ static int omap_mmc_remove(struct platfo
+ 	struct resource *res;
+ 
+ 	if (host) {
++		mmc_host_enable(host->mmc);
+ 		mmc_remove_host(host->mmc);
+ 		if (host->pdata->cleanup)
+ 			host->pdata->cleanup(&pdev->dev);
+@@ -1260,7 +1306,7 @@ static int omap_mmc_remove(struct platfo
+ 			free_irq(mmc_slot(host).card_detect_irq, host);
+ 		flush_scheduled_work();
+ 
+-		clk_disable(host->fclk);
++		mmc_host_disable(host->mmc);
+ 		clk_disable(host->iclk);
+ 		clk_put(host->fclk);
+ 		clk_put(host->iclk);
+@@ -1291,6 +1337,7 @@ static int omap_mmc_suspend(struct platf
  		return 0;
  
  	if (host) {
-+		host->suspended = 1;
-+		if (host->pdata->suspend) {
-+			ret = host->pdata->suspend(&pdev->dev,
-+							host->slot_id);
-+			if (ret) {
-+				dev_dbg(mmc_dev(host->mmc),
-+					"Unable to handle MMC board"
-+					" level suspend\n");
-+				host->suspended = 0;
-+				return ret;
-+			}
-+		}
-+		cancel_work_sync(&host->mmc_carddetect_work);
- 		mmc_host_enable(host->mmc);
++		mmc_host_enable(host->mmc);
  		ret = mmc_suspend_host(host->mmc, state);
  		if (ret == 0) {
--			host->suspended = 1;
--
- 			OMAP_HSMMC_WRITE(host->base, ISE, 0);
- 			OMAP_HSMMC_WRITE(host->base, IE, 0);
- 
--			if (host->pdata->suspend) {
--				ret = host->pdata->suspend(&pdev->dev,
--								host->slot_id);
--				if (ret)
--					dev_dbg(mmc_dev(host->mmc),
--						"Unable to handle MMC board"
--						" level suspend\n");
--			}
+ 			host->suspended = 1;
+@@ -1309,10 +1356,11 @@ static int omap_mmc_suspend(struct platf
  
  			OMAP_HSMMC_WRITE(host->base, HCTL,
  					 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
- 			mmc_host_disable(host->mmc);
+-			clk_disable(host->fclk);
++			mmc_host_disable(host->mmc);
  			clk_disable(host->iclk);
  			clk_disable(host->dbclk);
--		} else
-+		} else {
-+			host->suspended = 0;
-+			if (host->pdata->resume) {
-+				ret = host->pdata->resume(&pdev->dev,
-+							  host->slot_id);
-+				if (ret)
-+					dev_dbg(mmc_dev(host->mmc),
-+						"Unmask interrupt failed\n");
-+			}
- 			mmc_host_disable(host->mmc);
-+		}
+-		}
++		} else
++			mmc_host_disable(host->mmc);
  
  	}
+ 	return ret;
+@@ -1329,13 +1377,12 @@ static int omap_mmc_resume(struct platfo
+ 
+ 	if (host) {
+ 
+-		ret = clk_enable(host->fclk);
+-		if (ret)
++		if (mmc_host_enable(host->mmc) != 0)
+ 			goto clk_en_err;
+ 
+ 		ret = clk_enable(host->iclk);
+ 		if (ret) {
+-			clk_disable(host->fclk);
++			mmc_host_disable(host->mmc);
+ 			clk_put(host->fclk);
+ 			goto clk_en_err;
+ 		}
+@@ -1357,6 +1404,7 @@ static int omap_mmc_resume(struct platfo
+ 		ret = mmc_resume_host(host->mmc);
+ 		if (ret == 0)
+ 			host->suspended = 0;
++		mmc_host_lazy_disable(host->mmc);
+ 	}
+ 
  	return ret;
 _
 
