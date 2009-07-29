@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch added to -mm tree
-Date: Wed, 29 Jul 2009 16:47:45 -0700
-Message-ID: <200907292347.n6TNljjR025233@imap1.linux-foundation.org>
+Subject: + cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch added to -mm tree
+Date: Wed, 29 Jul 2009 16:52:36 -0700
+Message-ID: <200907292352.n6TNqatW000596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755192AbZG2XsQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755238AbZG2Xwi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 19:48:16 -0400
+	Wed, 29 Jul 2009 19:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, apw@shadowen.org
+Cc: bzolnier@gmail.com, jirislaby@gmail.com
 
 
 The patch titled
-     page-allocator: change migratetype for all pageblocks within a high-order page during __rmqueue_fallback
+     cyclades: allow overriding ISA defaults also when the driver is built-in
 has been added to the -mm tree.  Its filename is
-     page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
+     cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator: change migratetype for all pageblocks within a high-order page during __rmqueue_fallback
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: cyclades: allow overriding ISA defaults also when the driver is built-in
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-When there are no pages of a target migratetype free, the page allocator
-selects a high-order block of another migratetype to allocate from.  When
-the order of the page taken is greater than pageblock_order, all
-pageblocks within that high-order page should change migratetype so that
-pages are later freed to the correct free-lists.
-
-The current behaviour is that pageblocks change migratetype if the order
-being split matches the pageblock_order.  When pageblock_order <
-MAX_ORDER-1, ownership is not changing correct and pages are being later
-freed to the incorrect list and this impacts fragmentation avoidance.
-
-This patch changes all pageblocks within the high-order page being split
-to the correct migratetype.  Without the patch, allocation success rates
-for hugepages under stress were about 59% of physical memory on x86-64. 
-With the patch applied, this goes up to 65%.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/char/cyclades.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback
-+++ a/mm/page_alloc.c
-@@ -788,6 +788,17 @@ static int move_freepages_block(struct z
- 	return move_freepages(zone, start_page, end_page, migratetype);
- }
+diff -puN drivers/char/cyclades.c~cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in
++++ a/drivers/char/cyclades.c
+@@ -730,13 +730,11 @@ static unsigned int cy_isa_addresses[] =
  
-+static void change_pageblock_range(struct page *pageblock_page,
-+					int start_order, int migratetype)
-+{
-+	int nr_pageblocks = 1 << (MAX_ORDER - 1 - start_order);
+ #define NR_ISA_ADDRS ARRAY_SIZE(cy_isa_addresses)
+ 
+-#ifdef MODULE
+ static long maddr[NR_CARDS];
+ static int irq[NR_CARDS];
+ 
+ module_param_array(maddr, long, NULL, 0);
+ module_param_array(irq, int, NULL, 0);
+-#endif
+ 
+ #endif				/* CONFIG_ISA */
+ 
+@@ -4497,13 +4495,10 @@ static int __init cy_detect_isa(void)
+ 	unsigned short cy_isa_irq, nboard;
+ 	void __iomem *cy_isa_address;
+ 	unsigned short i, j, cy_isa_nchan;
+-#ifdef MODULE
+ 	int isparam = 0;
+-#endif
+ 
+ 	nboard = 0;
+ 
+-#ifdef MODULE
+ 	/* Check for module parameters */
+ 	for (i = 0; i < NR_CARDS; i++) {
+ 		if (maddr[i] || i) {
+@@ -4513,7 +4508,6 @@ static int __init cy_detect_isa(void)
+ 		if (!maddr[i])
+ 			break;
+ 	}
+-#endif
+ 
+ 	/* scan the address table probing for Cyclom-Y/ISA boards */
+ 	for (i = 0; i < NR_ISA_ADDRS; i++) {
+@@ -4534,11 +4528,10 @@ static int __init cy_detect_isa(void)
+ 			iounmap(cy_isa_address);
+ 			continue;
+ 		}
+-#ifdef MODULE
 +
-+	while (nr_pageblocks--) {
-+		set_pageblock_migratetype(pageblock_page, migratetype);
-+		pageblock_page += pageblock_nr_pages;
-+	}
-+}
-+
- /* Remove an element from the buddy allocator from the fallback list */
- static inline struct page *
- __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
-@@ -839,8 +850,9 @@ __rmqueue_fallback(struct zone *zone, in
- 			list_del(&page->lru);
- 			rmv_page_order(page);
- 
--			if (current_order == pageblock_order)
--				set_pageblock_migratetype(page,
-+			/* Take ownership for orders >= pageblock_order */
-+			if (current_order >= pageblock_order)
-+				change_pageblock_range(page, current_order,
- 							start_migratetype);
- 
- 			expand(zone, page, order, current_order, area, migratetype);
+ 		if (isparam && i < NR_CARDS && irq[i])
+ 			cy_isa_irq = irq[i];
+ 		else
+-#endif
+ 			/* find out the board's irq by probing */
+ 			cy_isa_irq = detect_isa_irq(cy_isa_address);
+ 		if (cy_isa_irq == 0) {
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from bzolnier@gmail.com are
 
-page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set.patch
-mm-avoid-endless-looping-for-oom-killed-tasks.patch
-page-allocator-allow-too-high-order-warning-messages-to-be-suppressed-with-__gfp_nowarn.patch
-profile-suppress-warning-about-large-allocations-when-profile=1-is-specified.patch
-net-dccp-suppress-warning-about-large-allocations-from-dccp.patch
-memory-hotplug-update-zone-pcp-at-memory-online.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
-memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
-memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
-memory-hotplug-migrate-swap-cache-page.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-mm-clean-up-page_remove_rmap.patch
-mm-update-alloc_flags-after-oom-killer-has-been-called.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-vmscan-use-add_page_to_lru_list-helper-function.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+linux-next.patch
+cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
 
