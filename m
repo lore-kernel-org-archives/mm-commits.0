@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-check-status-after-mmc-switch-command.patch added to -mm tree
-Date: Wed, 29 Jul 2009 13:58:06 -0700
-Message-ID: <200907292058.n6TKw66f008717@imap1.linux-foundation.org>
+Subject: + mmc-add-mmc-card-sleep-and-awake-support.patch added to -mm tree
+Date: Wed, 29 Jul 2009 13:57:58 -0700
+Message-ID: <200907292057.n6TKvxq3008475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40266 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752084AbZG2U6t (ORCPT
+	by vger.kernel.org with ESMTP id S1752084AbZG2U6n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 16:58:49 -0400
+	Wed, 29 Jul 2009 16:58:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gmail.com
+Cc: jarkko.lavinen@nokia.com, adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gmail.com
 
 
 The patch titled
-     mmc: check status after MMC SWITCH command
+     mmc: add mmc card sleep and awake support
 has been added to the -mm tree.  Its filename is
-     mmc-check-status-after-mmc-switch-command.patch
+     mmc-add-mmc-card-sleep-and-awake-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: check status after MMC SWITCH command
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: mmc: add mmc card sleep and awake support
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
-According to the standard, the SWITCH command should be followed by a
-SEND_STATUS command to check for errors.
+Add support for the new MMC command SLEEP_AWAKE.
 
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Acked-by: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -51,119 +51,307 @@ Cc: Philip Langdale <philipl@overt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc.c     |   24 ++++++++++++++++++------
- drivers/mmc/core/mmc_ops.c |   23 +++++++++++++++++++++++
- include/linux/mmc/mmc.h    |    1 +
- 3 files changed, 42 insertions(+), 6 deletions(-)
+ drivers/mmc/core/core.c    |   40 +++++++++++++++++++++++++
+ drivers/mmc/core/core.h    |    2 +
+ drivers/mmc/core/mmc.c     |   54 +++++++++++++++++++++++++++++++----
+ drivers/mmc/core/mmc_ops.c |   36 +++++++++++++++++++++++
+ drivers/mmc/core/mmc_ops.h |    1 
+ include/linux/mmc/card.h   |    2 +
+ include/linux/mmc/host.h   |    5 +++
+ include/linux/mmc/mmc.h    |    2 +
+ 8 files changed, 137 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mmc/core/mmc.c~mmc-check-status-after-mmc-switch-command drivers/mmc/core/mmc.c
---- a/drivers/mmc/core/mmc.c~mmc-check-status-after-mmc-switch-command
+diff -puN drivers/mmc/core/core.c~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-add-mmc-card-sleep-and-awake-support
++++ a/drivers/mmc/core/core.c
+@@ -1185,6 +1185,46 @@ void mmc_power_restore_host(struct mmc_h
+ }
+ EXPORT_SYMBOL(mmc_power_restore_host);
+ 
++int mmc_card_awake(struct mmc_host *host)
++{
++	int err = -ENOSYS;
++
++	mmc_bus_get(host);
++
++	if (host->bus_ops && !host->bus_dead && host->bus_ops->awake)
++		err = host->bus_ops->awake(host);
++
++	mmc_bus_put(host);
++
++	return err;
++}
++EXPORT_SYMBOL(mmc_card_awake);
++
++int mmc_card_sleep(struct mmc_host *host)
++{
++	int err = -ENOSYS;
++
++	mmc_bus_get(host);
++
++	if (host->bus_ops && !host->bus_dead && host->bus_ops->awake)
++		err = host->bus_ops->sleep(host);
++
++	mmc_bus_put(host);
++
++	return err;
++}
++EXPORT_SYMBOL(mmc_card_sleep);
++
++int mmc_card_can_sleep(struct mmc_host *host)
++{
++	struct mmc_card *card = host->card;
++
++	if (card && mmc_card_mmc(card) && card->ext_csd.rev >= 3)
++		return 1;
++	return 0;
++}
++EXPORT_SYMBOL(mmc_card_can_sleep);
++
+ #ifdef CONFIG_PM
+ 
+ /**
+diff -puN drivers/mmc/core/core.h~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/core.h
+--- a/drivers/mmc/core/core.h~mmc-add-mmc-card-sleep-and-awake-support
++++ a/drivers/mmc/core/core.h
+@@ -16,6 +16,8 @@
+ #define MMC_CMD_RETRIES        3
+ 
+ struct mmc_bus_ops {
++	int (*awake)(struct mmc_host *);
++	int (*sleep)(struct mmc_host *);
+ 	void (*remove)(struct mmc_host *);
+ 	void (*detect)(struct mmc_host *);
+ 	void (*suspend)(struct mmc_host *);
+diff -puN drivers/mmc/core/mmc.c~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-add-mmc-card-sleep-and-awake-support
 +++ a/drivers/mmc/core/mmc.c
-@@ -416,12 +416,17 @@ static int mmc_init_card(struct mmc_host
- 		(host->caps & MMC_CAP_MMC_HIGHSPEED)) {
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 			EXT_CSD_HS_TIMING, 1);
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
- 
--		mmc_card_set_highspeed(card);
--
--		mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to highspeed failed\n",
-+			       mmc_hostname(card->host));
-+			err = 0;
-+		} else {
-+			mmc_card_set_highspeed(card);
-+			mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		}
- 	}
- 
- 	/*
-@@ -456,10 +461,17 @@ static int mmc_init_card(struct mmc_host
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 				 EXT_CSD_BUS_WIDTH, ext_csd_bit);
- 
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
- 
--		mmc_set_bus_width(card->host, bus_width);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to bus width %d "
-+			       "failed\n", mmc_hostname(card->host),
-+			       1 << bus_width);
-+			err = 0;
-+		} else {
-+			mmc_set_bus_width(card->host, bus_width);
-+		}
- 	}
- 
- 	if (!oldcard)
-diff -puN drivers/mmc/core/mmc_ops.c~mmc-check-status-after-mmc-switch-command drivers/mmc/core/mmc_ops.c
---- a/drivers/mmc/core/mmc_ops.c~mmc-check-status-after-mmc-switch-command
-+++ a/drivers/mmc/core/mmc_ops.c
-@@ -390,6 +390,7 @@ int mmc_switch(struct mmc_card *card, u8
+@@ -160,7 +160,6 @@ static int mmc_read_ext_csd(struct mmc_c
  {
  	int err;
- 	struct mmc_command cmd;
-+	u32 status;
+ 	u8 *ext_csd;
+-	unsigned int ext_csd_struct;
  
  	BUG_ON(!card);
- 	BUG_ON(!card->host);
-@@ -407,6 +408,28 @@ int mmc_switch(struct mmc_card *card, u8
- 	if (err)
- 		return err;
  
-+	/* Must check status to be sure of no errors */
-+	do {
-+		err = mmc_send_status(card, &status);
-+		if (err)
-+			return err;
-+		if (card->host->caps & MMC_CAP_WAIT_WHILE_BUSY)
-+			break;
-+		if (mmc_host_is_spi(card->host))
-+			break;
-+	} while (R1_CURRENT_STATE(status) == 7);
+@@ -207,16 +206,16 @@ static int mmc_read_ext_csd(struct mmc_c
+ 		goto out;
+ 	}
+ 
+-	ext_csd_struct = ext_csd[EXT_CSD_REV];
+-	if (ext_csd_struct > 3) {
++	card->ext_csd.rev = ext_csd[EXT_CSD_REV];
++	if (card->ext_csd.rev > 3) {
+ 		printk(KERN_ERR "%s: unrecognised EXT_CSD structure "
+ 			"version %d\n", mmc_hostname(card->host),
+-			ext_csd_struct);
++			card->ext_csd.rev);
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+ 
+-	if (ext_csd_struct >= 2) {
++	if (card->ext_csd.rev >= 2) {
+ 		card->ext_csd.sectors =
+ 			ext_csd[EXT_CSD_SEC_CNT + 0] << 0 |
+ 			ext_csd[EXT_CSD_SEC_CNT + 1] << 8 |
+@@ -241,6 +240,15 @@ static int mmc_read_ext_csd(struct mmc_c
+ 		goto out;
+ 	}
+ 
++	if (card->ext_csd.rev >= 3) {
++		u8 sa_shift = ext_csd[EXT_CSD_S_A_TIMEOUT];
 +
-+	if (mmc_host_is_spi(card->host)) {
-+		if (status & R1_SPI_ILLEGAL_COMMAND)
-+			return -EBADMSG;
-+	} else {
-+		if (status & 0xFDFFA000)
-+			printk(KERN_WARNING "%s: unexpected status %#x after "
-+			       "switch", mmc_hostname(card->host), status);
-+		if (status & R1_SWITCH_ERROR)
-+			return -EBADMSG;
++		/* Sleep / awake timeout in 100ns units */
++		if (sa_shift > 0 && sa_shift <= 0x17)
++			card->ext_csd.sa_timeout =
++					1 << ext_csd[EXT_CSD_S_A_TIMEOUT];
 +	}
 +
- 	return 0;
+ out:
+ 	kfree(ext_csd);
+ 
+@@ -557,9 +565,41 @@ static void mmc_power_restore(struct mmc
+ 	mmc_release_host(host);
  }
  
-diff -puN include/linux/mmc/mmc.h~mmc-check-status-after-mmc-switch-command include/linux/mmc/mmc.h
---- a/include/linux/mmc/mmc.h~mmc-check-status-after-mmc-switch-command
++static int mmc_sleep(struct mmc_host *host)
++{
++	struct mmc_card *card = host->card;
++	int err = -ENOSYS;
++
++	if (card && card->ext_csd.rev >= 3) {
++		err = mmc_card_sleepawake(host, 1);
++		if (err < 0)
++			pr_debug("%s: Error %d while putting card into sleep",
++				 mmc_hostname(host), err);
++	}
++
++	return err;
++}
++
++static int mmc_awake(struct mmc_host *host)
++{
++	struct mmc_card *card = host->card;
++	int err = -ENOSYS;
++
++	if (card && card->ext_csd.rev >= 3) {
++		err = mmc_card_sleepawake(host, 0);
++		if (err < 0)
++			pr_debug("%s: Error %d while awaking sleeping card",
++				 mmc_hostname(host), err);
++	}
++
++	return err;
++}
++
+ #ifdef CONFIG_MMC_UNSAFE_RESUME
+ 
+ static const struct mmc_bus_ops mmc_ops = {
++	.awake = mmc_awake,
++	.sleep = mmc_sleep,
+ 	.remove = mmc_remove,
+ 	.detect = mmc_detect,
+ 	.suspend = mmc_suspend,
+@@ -575,6 +615,8 @@ static void mmc_attach_bus_ops(struct mm
+ #else
+ 
+ static const struct mmc_bus_ops mmc_ops = {
++	.awake = mmc_awake,
++	.sleep = mmc_sleep,
+ 	.remove = mmc_remove,
+ 	.detect = mmc_detect,
+ 	.suspend = NULL,
+@@ -583,6 +625,8 @@ static const struct mmc_bus_ops mmc_ops 
+ };
+ 
+ static const struct mmc_bus_ops mmc_ops_unsafe = {
++	.awake = mmc_awake,
++	.sleep = mmc_sleep,
+ 	.remove = mmc_remove,
+ 	.detect = mmc_detect,
+ 	.suspend = mmc_suspend,
+diff -puN drivers/mmc/core/mmc_ops.c~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/mmc_ops.c
+--- a/drivers/mmc/core/mmc_ops.c~mmc-add-mmc-card-sleep-and-awake-support
++++ a/drivers/mmc/core/mmc_ops.c
+@@ -57,6 +57,42 @@ int mmc_deselect_cards(struct mmc_host *
+ 	return _mmc_select_card(host, NULL);
+ }
+ 
++int mmc_card_sleepawake(struct mmc_host *host, int sleep)
++{
++	struct mmc_command cmd;
++	struct mmc_card *card = host->card;
++	int err;
++
++	if (sleep)
++		mmc_deselect_cards(host);
++
++	memset(&cmd, 0, sizeof(struct mmc_command));
++
++	cmd.opcode = MMC_SLEEP_AWAKE;
++	cmd.arg = card->rca << 16;
++	if (sleep)
++		cmd.arg |= 1 << 15;
++
++	cmd.flags = MMC_RSP_R1B | MMC_CMD_AC;
++	err = mmc_wait_for_cmd(host, &cmd, 0);
++	if (err)
++		return err;
++
++	/*
++	 * If the host does not wait while the card signals busy, then we will
++	 * will have to wait the sleep/awake timeout.  Note, we cannot use the
++	 * SEND_STATUS command to poll the status because that command (and most
++	 * others) is invalid while the card sleeps.
++	 */
++	if (!(host->caps & MMC_CAP_WAIT_WHILE_BUSY))
++		mmc_delay(DIV_ROUND_UP(card->ext_csd.sa_timeout, 10000));
++
++	if (!sleep)
++		err = mmc_select_card(card);
++
++	return err;
++}
++
+ int mmc_go_idle(struct mmc_host *host)
+ {
+ 	int err;
+diff -puN drivers/mmc/core/mmc_ops.h~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/mmc_ops.h
+--- a/drivers/mmc/core/mmc_ops.h~mmc-add-mmc-card-sleep-and-awake-support
++++ a/drivers/mmc/core/mmc_ops.h
+@@ -25,6 +25,7 @@ int mmc_send_status(struct mmc_card *car
+ int mmc_send_cid(struct mmc_host *host, u32 *cid);
+ int mmc_spi_read_ocr(struct mmc_host *host, int highcap, u32 *ocrp);
+ int mmc_spi_set_crc(struct mmc_host *host, int use_crc);
++int mmc_card_sleepawake(struct mmc_host *host, int sleep);
+ 
+ #endif
+ 
+diff -puN include/linux/mmc/card.h~mmc-add-mmc-card-sleep-and-awake-support include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~mmc-add-mmc-card-sleep-and-awake-support
++++ a/include/linux/mmc/card.h
+@@ -40,6 +40,8 @@ struct mmc_csd {
+ };
+ 
+ struct mmc_ext_csd {
++	u8			rev;
++	unsigned int		sa_timeout;		/* Units: 100ns */
+ 	unsigned int		hs_max_dtr;
+ 	unsigned int		sectors;
+ };
+diff -puN include/linux/mmc/host.h~mmc-add-mmc-card-sleep-and-awake-support include/linux/mmc/host.h
+--- a/include/linux/mmc/host.h~mmc-add-mmc-card-sleep-and-awake-support
++++ a/include/linux/mmc/host.h
+@@ -149,6 +149,7 @@ struct mmc_host {
+ #define MMC_CAP_8_BIT_DATA	(1 << 6)	/* Can the host do 8 bit transfers */
+ #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
+ #define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
++#define MMC_CAP_WAIT_WHILE_BUSY	(1 << 9)	/* Waits while card is busy */
+ 
+ 	/* host specific block data */
+ 	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
+@@ -240,6 +241,10 @@ struct regulator;
+ int mmc_regulator_get_ocrmask(struct regulator *supply);
+ int mmc_regulator_set_ocr(struct regulator *supply, unsigned short vdd_bit);
+ 
++int mmc_card_awake(struct mmc_host *host);
++int mmc_card_sleep(struct mmc_host *host);
++int mmc_card_can_sleep(struct mmc_host *host);
++
+ int mmc_host_enable(struct mmc_host *host);
+ int mmc_host_disable(struct mmc_host *host);
+ int mmc_host_lazy_disable(struct mmc_host *host);
+diff -puN include/linux/mmc/mmc.h~mmc-add-mmc-card-sleep-and-awake-support include/linux/mmc/mmc.h
+--- a/include/linux/mmc/mmc.h~mmc-add-mmc-card-sleep-and-awake-support
 +++ a/include/linux/mmc/mmc.h
-@@ -128,6 +128,7 @@
- #define R1_STATUS(x)            (x & 0xFFFFE000)
- #define R1_CURRENT_STATE(x)	((x & 0x00001E00) >> 9)	/* sx, b (4 bits) */
- #define R1_READY_FOR_DATA	(1 << 8)	/* sx, a */
-+#define R1_SWITCH_ERROR		(1 << 7)	/* sx, c */
- #define R1_APP_CMD		(1 << 5)	/* sr, c */
+@@ -31,6 +31,7 @@
+ #define MMC_ALL_SEND_CID          2   /* bcr                     R2  */
+ #define MMC_SET_RELATIVE_ADDR     3   /* ac   [31:16] RCA        R1  */
+ #define MMC_SET_DSR               4   /* bc   [31:16] RCA            */
++#define MMC_SLEEP_AWAKE		  5   /* ac   [31:16] RCA 15:flg R1b */
+ #define MMC_SWITCH                6   /* ac   [31:0] See below   R1b */
+ #define MMC_SELECT_CARD           7   /* ac   [31:16] RCA        R1  */
+ #define MMC_SEND_EXT_CSD          8   /* adtc                    R1  */
+@@ -254,6 +255,7 @@ struct _mmc_csd {
+ #define EXT_CSD_CARD_TYPE	196	/* RO */
+ #define EXT_CSD_REV		192	/* RO */
+ #define EXT_CSD_SEC_CNT		212	/* RO, 4 bytes */
++#define EXT_CSD_S_A_TIMEOUT	217
  
  /*
+  * EXT_CSD field definitions
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from jarkko.lavinen@nokia.com are
 
-linux-next.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 mmc-add-enable-and-disable-methods-to-mmc-host.patch
 mmc-allow-host-claim-release-nesting.patch
 mmc-add-mmc_cap_nonremovable-host-capability.patch
 mmc-add-ability-to-save-power-by-powering-off-cards.patch
 mmc-add-mmc-card-sleep-and-awake-support.patch
 mmc-power-off-once-at-removal.patch
+mmc-add-host-capabilities-for-sd-only-and-mmc-only.patch
 mmc-check-status-after-mmc-switch-command.patch
 omap_hsmmc-add-debugfs-entry-host-registers.patch
 omap_hsmmc-make-use-of-new-enable-disable-interface.patch
