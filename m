@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omap_hsmmc-make-use-of-new-enable-disable-interface.patch added to -mm tree
-Date: Wed, 29 Jul 2009 13:58:10 -0700
-Message-ID: <200907292058.n6TKwAKe008769@imap1.linux-foundation.org>
+Subject: + uio-mark-uioh-functions-__kernel__-only.patch added to -mm tree
+Date: Wed, 29 Jul 2009 14:04:49 -0700
+Message-ID: <200907292104.n6TL4nRm019691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44030 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750903AbZG2VFE (ORCPT
+	by vger.kernel.org with ESMTP id S1751123AbZG2VFq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 17:05:04 -0400
+	Wed, 29 Jul 2009 17:05:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gmail.com
+Cc: jirislaby@gmail.com, hch@infradead.org, sam@ravnborg.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     omap_hsmmc: make use of new enable/disable interface
+     uio: mark uio.h functions __KERNEL__ only
 has been added to the -mm tree.  Its filename is
-     omap_hsmmc-make-use-of-new-enable-disable-interface.patch
+     uio-mark-uioh-functions-__kernel__-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,256 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: make use of new enable/disable interface
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: uio: mark uio.h functions __KERNEL__ only
+From: Jiri Slaby <jirislaby@gmail.com>
 
-For the moment enable / disable just turns the fclk on and off.
+To avoid userspace build failures such as:
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-Acked-by: Matt Fleming <matt@console-pimps.org>
-Cc: Ian Molton <ian@mnementh.co.uk>
-Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
-Cc: Pierre Ossman <pierre@ossman.eu>
-Cc: Philip Langdale <philipl@overt.org>
+.../linux/uio.h:37: error: expected `=', `,', `;', `asm' or `__attribute__' before `iov_length'
+.../linux/uio.h:47: error: expected declaration specifiers or `...' before `size_t'
+
+move uio functions inside a __KERNEL__ block.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   68 +++++++++++++++++++++++++++-----
- 1 file changed, 58 insertions(+), 10 deletions(-)
+ include/linux/uio.h |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-make-use-of-new-enable-disable-interface drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-make-use-of-new-enable-disable-interface
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -605,7 +605,9 @@ static void mmc_omap_detect(struct work_
- 	if (host->carddetect) {
- 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
- 	} else {
-+		mmc_host_enable(host->mmc);
- 		mmc_omap_reset_controller_fsm(host, SRD);
-+		mmc_host_lazy_disable(host->mmc);
- 		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
- 	}
- }
-@@ -818,6 +820,27 @@ mmc_omap_prepare_data(struct mmc_omap_ho
- 	return 0;
- }
+diff -puN include/linux/uio.h~uio-mark-uioh-functions-__kernel__-only include/linux/uio.h
+--- a/include/linux/uio.h~uio-mark-uioh-functions-__kernel__-only
++++ a/include/linux/uio.h
+@@ -19,15 +19,6 @@ struct iovec
+ 	__kernel_size_t iov_len; /* Must be size_t (1003.1g) */
+ };
  
-+static int omap_mmc_enable(struct mmc_host *mmc)
-+{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+	int err;
+-#ifdef __KERNEL__
+-
+-struct kvec {
+-	void *iov_base; /* and that should *never* hold a userland pointer */
+-	size_t iov_len;
+-};
+-
+-#endif
+-
+ /*
+  *	UIO_MAXIOV shall be at least 16 1003.1g (5.4.1.1)
+  */
+@@ -35,6 +26,13 @@ struct kvec {
+ #define UIO_FASTIOV	8
+ #define UIO_MAXIOV	1024
+ 
++#ifdef __KERNEL__
 +
-+	err = clk_enable(host->fclk);
-+	if (err)
-+		return err;
-+	dev_dbg(mmc_dev(host->mmc), "mmc_fclk: enabled\n");
-+	return 0;
-+}
-+
-+static int omap_mmc_disable(struct mmc_host *mmc, int lazy)
-+{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+
-+	clk_disable(host->fclk);
-+	dev_dbg(mmc_dev(host->mmc), "mmc_fclk: disabled\n");
-+	return 0;
-+}
++struct kvec {
++	void *iov_base; /* and that should *never* hold a userland pointer */
++	size_t iov_len;
++};
 +
  /*
-  * Request function. for read/write operation
-  */
-@@ -841,6 +864,8 @@ static void omap_mmc_set_ios(struct mmc_
- 	unsigned long timeout;
- 	u32 con;
- 
-+	mmc_host_enable(host->mmc);
-+
- 	switch (ios->power_mode) {
- 	case MMC_POWER_OFF:
- 		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
-@@ -919,6 +944,8 @@ static void omap_mmc_set_ios(struct mmc_
- 	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
- 		OMAP_HSMMC_WRITE(host->base, CON,
- 				OMAP_HSMMC_READ(host->base, CON) | OD);
-+
-+	mmc_host_lazy_disable(host->mmc);
+  * Total number of bytes covered by an iovec.
+  *
+@@ -53,5 +51,6 @@ static inline size_t iov_length(const st
  }
  
- static int omap_hsmmc_get_cd(struct mmc_host *mmc)
-@@ -969,6 +996,8 @@ static void omap_hsmmc_init(struct mmc_o
- }
+ unsigned long iov_shorten(struct iovec *iov, unsigned long nr_segs, size_t to);
++#endif
  
- static struct mmc_host_ops mmc_omap_ops = {
-+	.enable = omap_mmc_enable,
-+	.disable = omap_mmc_disable,
- 	.request = omap_mmc_request,
- 	.set_ios = omap_mmc_set_ios,
- 	.get_cd = omap_hsmmc_get_cd,
-@@ -983,7 +1012,16 @@ static int mmc_regs_show(struct seq_file
- 	struct mmc_host *mmc = s->private;
- 	struct mmc_omap_host *host = mmc_priv(mmc);
- 
--	seq_printf(s, "mmc%d regs:\n", mmc->index);
-+	seq_printf(s, "mmc%d:\n"
-+			" enabled:\t%d\n"
-+			" nesting_cnt:\t%d\n"
-+			"\nregs:\n",
-+			mmc->index, mmc->enabled ? 1 : 0, mmc->nesting_cnt);
-+
-+	if (clk_enable(host->fclk) != 0) {
-+		seq_printf(s, "can't read the regs\n");
-+		goto err;
-+	}
- 
- 	seq_printf(s, "SYSCONFIG:\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, SYSCONFIG));
-@@ -999,6 +1037,9 @@ static int mmc_regs_show(struct seq_file
- 			OMAP_HSMMC_READ(host->base, ISE));
- 	seq_printf(s, "CAPA:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, CAPA));
-+
-+	clk_disable(host->fclk);
-+err:
- 	return 0;
- }
- 
-@@ -1099,14 +1140,16 @@ static int __init omap_mmc_probe(struct 
- 		goto err1;
- 	}
- 
--	if (clk_enable(host->fclk) != 0) {
-+	mmc->caps |= MMC_CAP_DISABLE;
-+	mmc_set_disable_delay(mmc, 100);
-+	if (mmc_host_enable(host->mmc) != 0) {
- 		clk_put(host->iclk);
- 		clk_put(host->fclk);
- 		goto err1;
- 	}
- 
- 	if (clk_enable(host->iclk) != 0) {
--		clk_disable(host->fclk);
-+		mmc_host_disable(host->mmc);
- 		clk_put(host->iclk);
- 		clk_put(host->fclk);
- 		goto err1;
-@@ -1199,6 +1242,8 @@ static int __init omap_mmc_probe(struct 
- 	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
- 	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
- 
-+	mmc_host_lazy_disable(host->mmc);
-+
- 	mmc_add_host(mmc);
- 
- 	if (host->pdata->slots[host->slot_id].name != NULL) {
-@@ -1227,7 +1272,7 @@ err_irq_cd:
- err_irq_cd_init:
- 	free_irq(host->irq, host);
- err_irq:
--	clk_disable(host->fclk);
-+	mmc_host_disable(host->mmc);
- 	clk_disable(host->iclk);
- 	clk_put(host->fclk);
- 	clk_put(host->iclk);
-@@ -1252,6 +1297,7 @@ static int omap_mmc_remove(struct platfo
- 	struct resource *res;
- 
- 	if (host) {
-+		mmc_host_enable(host->mmc);
- 		mmc_remove_host(host->mmc);
- 		if (host->pdata->cleanup)
- 			host->pdata->cleanup(&pdev->dev);
-@@ -1260,7 +1306,7 @@ static int omap_mmc_remove(struct platfo
- 			free_irq(mmc_slot(host).card_detect_irq, host);
- 		flush_scheduled_work();
- 
--		clk_disable(host->fclk);
-+		mmc_host_disable(host->mmc);
- 		clk_disable(host->iclk);
- 		clk_put(host->fclk);
- 		clk_put(host->iclk);
-@@ -1291,6 +1337,7 @@ static int omap_mmc_suspend(struct platf
- 		return 0;
- 
- 	if (host) {
-+		mmc_host_enable(host->mmc);
- 		ret = mmc_suspend_host(host->mmc, state);
- 		if (ret == 0) {
- 			host->suspended = 1;
-@@ -1309,10 +1356,11 @@ static int omap_mmc_suspend(struct platf
- 
- 			OMAP_HSMMC_WRITE(host->base, HCTL,
- 					 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
--			clk_disable(host->fclk);
-+			mmc_host_disable(host->mmc);
- 			clk_disable(host->iclk);
- 			clk_disable(host->dbclk);
--		}
-+		} else
-+			mmc_host_disable(host->mmc);
- 
- 	}
- 	return ret;
-@@ -1329,13 +1377,12 @@ static int omap_mmc_resume(struct platfo
- 
- 	if (host) {
- 
--		ret = clk_enable(host->fclk);
--		if (ret)
-+		if (mmc_host_enable(host->mmc) != 0)
- 			goto clk_en_err;
- 
- 		ret = clk_enable(host->iclk);
- 		if (ret) {
--			clk_disable(host->fclk);
-+			mmc_host_disable(host->mmc);
- 			clk_put(host->fclk);
- 			goto clk_en_err;
- 		}
-@@ -1357,6 +1404,7 @@ static int omap_mmc_resume(struct platfo
- 		ret = mmc_resume_host(host->mmc);
- 		if (ret == 0)
- 			host->suspended = 0;
-+		mmc_host_lazy_disable(host->mmc);
- 	}
- 
- 	return ret;
+ #endif
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 linux-next.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-mmc-add-enable-and-disable-methods-to-mmc-host.patch
-mmc-allow-host-claim-release-nesting.patch
-mmc-add-mmc_cap_nonremovable-host-capability.patch
-mmc-add-ability-to-save-power-by-powering-off-cards.patch
-mmc-add-mmc-card-sleep-and-awake-support.patch
-mmc-power-off-once-at-removal.patch
-mmc-check-status-after-mmc-switch-command.patch
-omap_hsmmc-add-debugfs-entry-host-registers.patch
-omap_hsmmc-make-use-of-new-enable-disable-interface.patch
-arm-omap-mmc-twl4030-add-context-loss-counter-support.patch
-omap_hsmmc-keep-track-of-power-mode.patch
-omap_hsmmc-context-save-restore-support.patch
-omap_hsmmc-set-open-drain-bit-correctly.patch
-omap_hsmmc-ensure-workqueues-are-empty-before-suspend.patch
-omap_hsmmc-fix-scatter-gather-list-sanity-checking.patch
-omap_hsmmc-make-use-of-new-mmc_cap_nonremovable-host-capability.patch
-omap_hsmmc-support-for-deeper-power-saving-states.patch
-arm-omap-mmc-twl4030-add-regulator-sleep-wake-function.patch
-omap_hsmmc-put-mmc-regulator-to-sleep.patch
-omap_hsmmc-add-mmc-card-sleep-and-awake-support.patch
-omap_hsmmc-fix-null-pointer-dereference.patch
-omap_hsmmc-cleanup-macro-usage.patch
-omap_hsmmc-clear-interrupt-status-after-init-sequence.patch
-omap_hsmmc-cater-for-weird-cmd6-behaviour.patch
-omap_hsmmc-prevent-races-with-irq-handler.patch
-omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch
-omap_hsmmc-code-refactoring.patch
-omap_hsmmc-protect-the-card-when-the-cover-is-open.patch
-omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch
-omap_hsmmc-set-a-large-data-timeout-for-commands-with-busy-signal.patch
-arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag.patch
+toshiba_acpi-return-on-a-fail-path.patch
+mtd-sst25l-fix-lock-imbalance.patch
+isdn-hisax-fix-lock-imbalance.patch
+icom-converting-space-to-tabs.patch
+cyclades-read-buffer-overflow.patch
+uio-mark-uioh-functions-__kernel__-only.patch
+reiser4.patch
 
