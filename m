@@ -1,39 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] omap_hsmmc-keep-track-of-power-mode.patch removed from -mm tree
-Date: Wed, 29 Jul 2009 13:49:08 -0700
-Message-ID: <200907292049.n6TKn8Al026409@imap1.linux-foundation.org>
+Subject: [to-be-updated] omap_hsmmc-add-debugfs-entry-host-registers.patch removed from -mm tree
+Date: Wed, 29 Jul 2009 13:48:59 -0700
+Message-ID: <200907292048.n6TKmxfE026127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146AbZG2Utv (ORCPT
+	by vger.kernel.org with ESMTP id S1754176AbZG2Utp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 16:49:51 -0400
+	Wed, 29 Jul 2009 16:49:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gma
+To: ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gma
 
 
 The patch titled
-     omap_hsmmc: keep track of power mode
+     omap_hsmmc: add debugfs entry (host registers)
 has been removed from the -mm tree.  Its filename was
-     omap_hsmmc-keep-track-of-power-mode.patch
+     omap_hsmmc-add-debugfs-entry-host-registers.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: keep track of power mode
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: omap_hsmmc: add debugfs entry (host registers)
+From: Denis Karpov <ext-denis.2.karpov@nokia.com>
 
-This patch is preparation for adding context save and restore support.
+Adds <debugfs_root>/kernel/debug/mmc<N>/regs entry, contents show
+registers' state and some driver internal state variables.
 
-Keep track of the current power mode so that the context restore function
-can avoid restoring the context for a card if the power has been switched
-off.  If the power is off, the card must be reinitialized anyway which
-will re-establish the context.
-
+Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -44,76 +41,97 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   27 +++++++++++++++++++--------
- 1 file changed, 19 insertions(+), 8 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   57 ++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-keep-track-of-power-mode drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-keep-track-of-power-mode
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-debugfs-entry-host-registers drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-debugfs-entry-host-registers
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -143,6 +143,7 @@ struct mmc_omap_host {
- 	unsigned int		dma_len;
- 	unsigned int		dma_sg_idx;
- 	unsigned char		bus_mode;
-+	unsigned char		power_mode;
- 	u32			*buffer;
- 	u32			bytesleft;
- 	int			suspended;
-@@ -863,16 +864,25 @@ static void omap_mmc_set_ios(struct mmc_
- 	unsigned long regval;
- 	unsigned long timeout;
- 	u32 con;
-+	int do_send_init_stream = 0;
+@@ -17,6 +17,8 @@
  
- 	mmc_host_enable(host->mmc);
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/dma-mapping.h>
+@@ -974,6 +976,59 @@ static struct mmc_host_ops mmc_omap_ops 
+ 	/* NYET -- enable_sdio_irq */
+ };
  
--	switch (ios->power_mode) {
--	case MMC_POWER_OFF:
--		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
--		break;
--	case MMC_POWER_UP:
--		mmc_slot(host).set_power(host->dev, host->slot_id, 1, ios->vdd);
--		break;
-+	if (ios->power_mode != host->power_mode) {
-+		switch (ios->power_mode) {
-+		case MMC_POWER_OFF:
-+			mmc_slot(host).set_power(host->dev, host->slot_id,
-+						 0, 0);
-+			break;
-+		case MMC_POWER_UP:
-+			mmc_slot(host).set_power(host->dev, host->slot_id,
-+						 1, ios->vdd);
-+			break;
-+		case MMC_POWER_ON:
-+			do_send_init_stream = 1;
-+			break;
-+		}
-+		host->power_mode = ios->power_mode;
++#ifdef CONFIG_DEBUG_FS
++
++static int mmc_regs_show(struct seq_file *s, void *data)
++{
++	struct mmc_host *mmc = s->private;
++	struct mmc_omap_host *host = mmc_priv(mmc);
++
++	seq_printf(s, "mmc%d regs:\n", mmc->index);
++
++	seq_printf(s, "SYSCONFIG:\t0x%08x\n",
++			OMAP_HSMMC_READ(host->base, SYSCONFIG));
++	seq_printf(s, "CON:\t\t0x%08x\n",
++			OMAP_HSMMC_READ(host->base, CON));
++	seq_printf(s, "HCTL:\t\t0x%08x\n",
++			OMAP_HSMMC_READ(host->base, HCTL));
++	seq_printf(s, "SYSCTL:\t\t0x%08x\n",
++			OMAP_HSMMC_READ(host->base, SYSCTL));
++	seq_printf(s, "IE:\t\t0x%08x\n",
++			OMAP_HSMMC_READ(host->base, IE));
++	seq_printf(s, "ISE:\t\t0x%08x\n",
++			OMAP_HSMMC_READ(host->base, ISE));
++	seq_printf(s, "CAPA:\t\t0x%08x\n",
++			OMAP_HSMMC_READ(host->base, CAPA));
++	return 0;
++}
++
++static int mmc_regs_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, mmc_regs_show, inode->i_private);
++}
++
++static const struct file_operations mmc_regs_fops = {
++	.open           = mmc_regs_open,
++	.read           = seq_read,
++	.llseek         = seq_lseek,
++	.release        = single_release,
++};
++
++static void omap_mmc_debugfs(struct mmc_host *mmc)
++{
++	if (mmc->debugfs_root)
++		debugfs_create_file("regs", S_IRUSR, mmc->debugfs_root,
++			mmc, &mmc_regs_fops);
++}
++
++#else
++
++static void omap_mmc_debugfs(struct mmc_host *mmc)
++{
++}
++
++#endif
++
+ static int __init omap_mmc_probe(struct platform_device *pdev)
+ {
+ 	struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
+@@ -1157,6 +1212,8 @@ static int __init omap_mmc_probe(struct 
+ 			goto err_cover_switch;
  	}
  
- 	con = OMAP_HSMMC_READ(host->base, CON);
-@@ -938,7 +948,7 @@ static void omap_mmc_set_ios(struct mmc_
- 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
- 		OMAP_HSMMC_READ(host->base, SYSCTL) | CEN);
++	omap_mmc_debugfs(mmc);
++
+ 	return 0;
  
--	if (ios->power_mode == MMC_POWER_ON)
-+	if (do_send_init_stream)
- 		send_init_stream(host);
- 
- 	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
-@@ -1116,6 +1126,7 @@ static int __init omap_mmc_probe(struct 
- 	host->slot_id	= 0;
- 	host->mapbase	= res->start;
- 	host->base	= ioremap(host->mapbase, SZ_4K);
-+	host->power_mode = -1;
- 
- 	platform_set_drvdata(pdev, host);
- 	INIT_WORK(&host->mmc_carddetect_work, mmc_omap_detect);
+ err_cover_switch:
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from ext-denis.2.karpov@nokia.com are
 
-linux-next.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+omap_hsmmc-add-debugfs-entry-host-registers.patch
+omap_hsmmc-make-use-of-new-enable-disable-interface.patch
+arm-omap-mmc-twl4030-add-context-loss-counter-support.patch
 omap_hsmmc-keep-track-of-power-mode.patch
 omap_hsmmc-context-save-restore-support.patch
 omap_hsmmc-set-open-drain-bit-correctly.patch
