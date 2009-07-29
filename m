@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-introduce-tracehook_finish_jctl-helper.patch added to -mm tree
-Date: Wed, 29 Jul 2009 15:50:20 -0700
-Message-ID: <200907292250.n6TMoKT4029268@imap1.linux-foundation.org>
+Subject: + input-touchpad-not-detected-on-asus-g1s.patch added to -mm tree
+Date: Wed, 29 Jul 2009 15:53:31 -0700
+Message-ID: <200907292253.n6TMrWPw001974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35458 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752785AbZG2Wug (ORCPT
+	by vger.kernel.org with ESMTP id S1751120AbZG2Wxk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 18:50:36 -0400
+	Wed, 29 Jul 2009 18:53:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, roland@redhat.com
+Cc: geekypenguin@gmail.com, dtor@mail.ru
 
 
 The patch titled
-     signals: introduce tracehook_finish_jctl() helper
+     input: touchpad not detected on Asus G1S
 has been added to the -mm tree.  Its filename is
-     signals-introduce-tracehook_finish_jctl-helper.patch
+     input-touchpad-not-detected-on-asus-g1s.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: introduce tracehook_finish_jctl() helper
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: input: touchpad not detected on Asus G1S
+From: "Jory A. Pratt" <geekypenguin@gmail.com>
 
-Introduce the empty inline tracehook_finish_jctl() helper called by
-do_signal_stop() after wakeup.
+The synaptic touchpad on the Asus G1S is not properly detected when
+rebooting machine or on cold boot from time to time.  Adding the Asus G1S
+to the noloop exception table resolves the issue, as it allows the AUX IRQ
+to be rasied.
 
-Currently we lack the ability to report this state change.
+# dmidecode 2.10
+SMBIOS 2.4 present.
 
-Also fix the comment, it should be placed before schedule().
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+     Manufacturer: ASUSTeK Computer Inc.
+     Product Name: G1S
+     Version: 1.0
+     Serial Number: NF1G7900340285
+     UUID: 242481DC-61E7-7EFB-2480-001D606B6A5E
+     Wake-up Type: Power Switch
+     SKU Number:
+     Family:
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Jory A. Pratt <geekypenguin@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |    9 +++++++++
- kernel/signal.c           |    6 +++---
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ drivers/input/serio/i8042-x86ia64io.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/tracehook.h~signals-introduce-tracehook_finish_jctl-helper include/linux/tracehook.h
---- a/include/linux/tracehook.h~signals-introduce-tracehook_finish_jctl-helper
-+++ a/include/linux/tracehook.h
-@@ -488,6 +488,15 @@ static inline int tracehook_notify_jctl(
- 	return notify ?: (current->ptrace & PT_PTRACED) ? why : 0;
- }
- 
-+/**
-+ * tracehook_finish_jctl - report about return from job control stop
-+ *
-+ * This is called by do_signal_stop() after wakeup.
-+ */
-+static inline void tracehook_finish_jctl(void)
-+{
-+}
-+
- #define DEATH_REAP			-1
- #define DEATH_DELAYED_GROUP_LEADER	-2
- 
-diff -puN kernel/signal.c~signals-introduce-tracehook_finish_jctl-helper kernel/signal.c
---- a/kernel/signal.c~signals-introduce-tracehook_finish_jctl-helper
-+++ a/kernel/signal.c
-@@ -1726,12 +1726,12 @@ static int do_signal_stop(int signr)
- 		read_unlock(&tasklist_lock);
- 	}
- 
-+	/* Now we don't run again until woken by SIGCONT or SIGKILL */
- 	do {
- 		schedule();
- 	} while (try_to_freeze());
--	/*
--	 * Now we don't run again until continued.
--	 */
-+
-+	tracehook_finish_jctl();
- 	current->exit_code = 0;
- 
- 	return 1;
+diff -puN drivers/input/serio/i8042-x86ia64io.h~input-touchpad-not-detected-on-asus-g1s drivers/input/serio/i8042-x86ia64io.h
+--- a/drivers/input/serio/i8042-x86ia64io.h~input-touchpad-not-detected-on-asus-g1s
++++ a/drivers/input/serio/i8042-x86ia64io.h
+@@ -78,6 +78,14 @@ static struct dmi_system_id __initdata i
+ 		},
+ 	},
+ 	{
++		.ident = "ASUS G1S",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer Inc."),
++			DMI_MATCH(DMI_BOARD_NAME, "G1S"),
++			DMI_MATCH(DMI_BOARD_VERSION, "1.0"),
++		},
++	},
++	{
+ 		/* AUX LOOP command does not raise AUX IRQ */
+ 		.ident = "ASUS P65UP5",
+ 		.matches = {
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from geekypenguin@gmail.com are
 
-origin.patch
-linux-next.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
-ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
-do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
-do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
-wait_consider_task-kill-parent-argument.patch
-do_wait-fix-sys_waitid-specific-behaviour.patch
-wait_noreap_copyout-check-for-wo_info-=-null.patch
-signals-tracehook_notify_jctl-change.patch
-signals-tracehook_notify_jctl-change-do_signal_stop-do-not-call-tracehook_notify_jctl-in-task_stopped-state.patch
-signals-introduce-tracehook_finish_jctl-helper.patch
-utrace-core.patch
-exec-fix-set_binfmt-vs-sys_delete_module-race.patch
-fork-disable-clone_parent-for-init.patch
-pidns-deny-clone_parentclone_newpid-combination.patch
+input-touchpad-not-detected-on-asus-g1s.patch
 
