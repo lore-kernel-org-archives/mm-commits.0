@@ -1,108 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-u14-34fc-fix-uffer-overflow.patch added to -mm tree
-Date: Wed, 29 Jul 2009 14:09:20 -0700
-Message-ID: <200907292109.n6TL9KKs027092@imap1.linux-foundation.org>
+Subject: [folded] cgroups-fix-pid-namespace-bug-fix.patch removed from -mm tree
+Date: Wed, 29 Jul 2009 14:51:11 -0700
+Message-ID: <200907292151.n6TLpBNS030330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752706AbZG2VJ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753253AbZG2Vv4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 17:09:57 -0400
+	Wed, 29 Jul 2009 17:51:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, ballabio_dario@emc.com
+To: lizf@cn.fujitsu.com, balbir@in.ibm.com, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/u14-34f.c: fix uffer overflow
-has been added to the -mm tree.  Its filename is
-     drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+     cgroups: fix pid namespace bug, fix
+has been removed from the -mm tree.  Its filename was
+     cgroups-fix-pid-namespace-bug-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into cgroups-fix-pid-namespace-bug.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/u14-34f.c: fix uffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cgroups: fix pid namespace bug, fix
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-This allows i == MAX_INT_PARAM, which is out of range for ints[]
+- add get_pid_ns()/put_pid_ns()
+- remove prefix "pids_"
 
-Found with Parfait, http://research.sun.com/projects/parfait/
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Dario Ballabio <ballabio_dario@emc.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Reviewed-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/u14-34f.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cgroup.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff -puN drivers/scsi/u14-34f.c~drivers-scsi-u14-34fc-fix-uffer-overflow drivers/scsi/u14-34f.c
---- a/drivers/scsi/u14-34f.c~drivers-scsi-u14-34fc-fix-uffer-overflow
-+++ a/drivers/scsi/u14-34f.c
-@@ -1070,7 +1070,7 @@ static int option_setup(char *str) {
-    char *cur = str;
-    int i = 1;
+diff -puN kernel/cgroup.c~cgroups-fix-pid-namespace-bug-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-pid-namespace-bug-fix
++++ a/kernel/cgroup.c
+@@ -2214,13 +2214,13 @@ struct cgroup_pids {
+ 	/* The cgroup those pids belong to */
+ 	struct cgroup *cgrp;
+ 	/* The namepsace those pids belong to */
+-	struct pid_namespace *pid_ns;
++	struct pid_namespace *ns;
+ 	/* Array of process ids in the cgroup */
+ 	pid_t *tasks_pids;
+ 	/* How many files are using the this tasks_pids array */
+-	int pids_use_count;
++	int use_count;
+ 	/* Length of the current tasks_pids array */
+-	int pids_length;
++	int length;
+ };
  
--   while (cur && isdigit(*cur) && i <= MAX_INT_PARAM) {
-+   while (cur && isdigit(*cur) && i < MAX_INT_PARAM) {
-       ints[i++] = simple_strtoul(cur, NULL, 0);
+ static int cmppid(const void *a, const void *b)
+@@ -2249,7 +2249,7 @@ static void *cgroup_tasks_start(struct s
  
-       if ((cur = strchr(cur, ',')) != NULL) cur++;
+ 	down_read(&cgrp->pids_mutex);
+ 	if (pid) {
+-		int end = cp->pids_length;
++		int end = cp->length;
+ 
+ 		while (index < end) {
+ 			int mid = (index + end) / 2;
+@@ -2263,7 +2263,7 @@ static void *cgroup_tasks_start(struct s
+ 		}
+ 	}
+ 	/* If we're off the end of the array, we're done */
+-	if (index >= cp->pids_length)
++	if (index >= cp->length)
+ 		return NULL;
+ 	/* Update the abstract position to be the actual pid that we found */
+ 	iter = cp->tasks_pids + index;
+@@ -2282,7 +2282,7 @@ static void *cgroup_tasks_next(struct se
+ {
+ 	struct cgroup_pids *cp = s->private;
+ 	int *p = v;
+-	int *end = cp->tasks_pids + cp->pids_length;
++	int *end = cp->tasks_pids + cp->length;
+ 
+ 	/*
+ 	 * Advance to the next pid in the array. If this goes off the
+@@ -2314,9 +2314,10 @@ static void release_cgroup_pid_array(str
+ 	struct cgroup *cgrp = cp->cgrp;
+ 
+ 	down_write(&cgrp->pids_mutex);
+-	BUG_ON(!cp->pids_use_count);
+-	if (!--cp->pids_use_count) {
++	BUG_ON(!cp->use_count);
++	if (!--cp->use_count) {
+ 		list_del(&cp->list);
++		put_pid_ns(cp->ns);
+ 		kfree(cp->tasks_pids);
+ 		kfree(cp);
+ 	}
+@@ -2353,7 +2354,7 @@ static struct file_operations cgroup_tas
+ static int cgroup_tasks_open(struct inode *unused, struct file *file)
+ {
+ 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
+-	struct pid_namespace *pid_ns = task_active_pid_ns(current);
++	struct pid_namespace *ns = current->nsproxy->pid_ns;
+ 	struct cgroup_pids *cp;
+ 	pid_t *pidarray;
+ 	int npids;
+@@ -2383,7 +2384,7 @@ static int cgroup_tasks_open(struct inod
+ 	down_write(&cgrp->pids_mutex);
+ 
+ 	list_for_each_entry(cp, &cgrp->pids_list, list) {
+-		if (pid_ns == cp->pid_ns)
++		if (ns == cp->ns)
+ 			goto found;
+ 	}
+ 
+@@ -2394,13 +2395,14 @@ static int cgroup_tasks_open(struct inod
+ 		return -ENOMEM;
+ 	}
+ 	cp->cgrp = cgrp;
+-	cp->pid_ns = pid_ns;
++	cp->ns = ns;
++	get_pid_ns(ns);
+ 	list_add(&cp->list, &cgrp->pids_list);
+ found:
+ 	kfree(cp->tasks_pids);
+ 	cp->tasks_pids = pidarray;
+-	cp->pids_length = npids;
+-	cp->pids_use_count++;
++	cp->length = npids;
++	cp->use_count++;
+ 	up_write(&cgrp->pids_mutex);
+ 
+ 	file->f_op = &cgroup_tasks_operations;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-origin.patch
+cgroups-fix-pid-namespace-bug.patch
+cgroups-fix-pid-namespace-bug-fix.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-i915-fix-read-outside-array-bounds.patch
-media-strncpy-does-not-null-terminate-string.patch
-ivtv-read-buffer-overflow.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-irda-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-cyclades-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-iprh-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-libertas-fix-read-outside-array-bounds.patch
-libertas-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-documentation-strncpy-does-not-null-terminate-string.patch
-adfs-remove-redundant-test-on-unsigned.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
 
