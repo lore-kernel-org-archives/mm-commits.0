@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + omap_hsmmc-set-open-drain-bit-correctly.patch added to -mm tree
-Date: Wed, 29 Jul 2009 13:58:18 -0700
-Message-ID: <200907292058.n6TKwIal009043@imap1.linux-foundation.org>
+Subject: + arm-omap-mmc-twl4030-add-context-loss-counter-support.patch added to -mm tree
+Date: Wed, 29 Jul 2009 13:58:12 -0700
+Message-ID: <200907292058.n6TKwDKg008833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752745AbZG2VCc (ORCPT
+	by vger.kernel.org with ESMTP id S1753234AbZG2VDD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 17:02:32 -0400
+	Wed, 29 Jul 2009 17:03:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, ian@mnementh.co.uk, j
 
 
 The patch titled
-     omap_hsmmc: set open drain bit correctly
+     ARM: OMAP: mmc-twl4030: add context loss counter support
 has been added to the -mm tree.  Its filename is
-     omap_hsmmc-set-open-drain-bit-correctly.patch
+     arm-omap-mmc-twl4030-add-context-loss-counter-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: set open drain bit correctly
+Subject: ARM: OMAP: mmc-twl4030: add context loss counter support
 From: Denis Karpov <ext-denis.2.karpov@nokia.com>
 
-The code could set the bit to 1 but not reset it to 0.
+PM dynamic OFF state results in context loss.  That is, the host
+controller has been powered off at some point, which means the registers
+have been reset.  The driver must detect when this happens, and restore
+the context.  This patch adds the means to detect context loss.
+
+Note, the PM side is not yet implemented.
 
 Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
@@ -51,26 +56,55 @@ Cc: Philip Langdale <philipl@overt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/mmc-twl4030.c     |   15 +++++++++++++++
+ arch/arm/plat-omap/include/mach/mmc.h |    3 +++
+ 2 files changed, 18 insertions(+)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-set-open-drain-bit-correctly drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-set-open-drain-bit-correctly
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -1118,9 +1118,11 @@ static void omap_mmc_set_ios(struct mmc_
- 	if (do_send_init_stream)
- 		send_init_stream(host);
+diff -puN arch/arm/mach-omap2/mmc-twl4030.c~arm-omap-mmc-twl4030-add-context-loss-counter-support arch/arm/mach-omap2/mmc-twl4030.c
+--- a/arch/arm/mach-omap2/mmc-twl4030.c~arm-omap-mmc-twl4030-add-context-loss-counter-support
++++ a/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -192,6 +192,18 @@ static int twl_mmc_resume(struct device 
+ #define twl_mmc_resume	NULL
+ #endif
  
-+	con = OMAP_HSMMC_READ(host->base, CON);
- 	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
--		OMAP_HSMMC_WRITE(host->base, CON,
--				OMAP_HSMMC_READ(host->base, CON) | OD);
-+		OMAP_HSMMC_WRITE(host->base, CON, con | OD);
-+	else
-+		OMAP_HSMMC_WRITE(host->base, CON, con & ~OD);
++#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
++
++static int twl4030_mmc_get_context_loss(struct device *dev)
++{
++	/* FIXME: PM DPS not implemented yet */
++	return 0;
++}
++
++#else
++#define twl4030_mmc_get_context_loss NULL
++#endif
++
+ static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
+ 				int vdd)
+ {
+@@ -384,6 +396,9 @@ void __init twl4030_mmc_init(struct twl4
+ 		} else
+ 			mmc->slots[0].switch_pin = -EINVAL;
  
- 	mmc_host_lazy_disable(host->mmc);
- }
++		mmc->get_context_loss_count =
++				twl4030_mmc_get_context_loss;
++
+ 		/* write protect normally uses an OMAP gpio */
+ 		if (gpio_is_valid(c->gpio_wp)) {
+ 			gpio_request(c->gpio_wp, "mmc_wp");
+diff -puN arch/arm/plat-omap/include/mach/mmc.h~arm-omap-mmc-twl4030-add-context-loss-counter-support arch/arm/plat-omap/include/mach/mmc.h
+--- a/arch/arm/plat-omap/include/mach/mmc.h~arm-omap-mmc-twl4030-add-context-loss-counter-support
++++ a/arch/arm/plat-omap/include/mach/mmc.h
+@@ -59,6 +59,9 @@ struct omap_mmc_platform_data {
+ 	int (*suspend)(struct device *dev, int slot);
+ 	int (*resume)(struct device *dev, int slot);
+ 
++	/* Return context loss count due to PM states changing */
++	int (*get_context_loss_count)(struct device *dev);
++
+ 	u64 dma_mask;
+ 
+ 	struct omap_mmc_slot_data {
 _
 
 Patches currently in -mm which might be from ext-denis.2.karpov@nokia.com are
