@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch removed from -mm tree
-Date: Wed, 29 Jul 2009 13:49:54 -0700
-Message-ID: <200907292049.n6TKnsiT027748@imap1.linux-foundation.org>
+Subject: [to-be-updated] omap_hsmmc-protect-the-card-when-the-cover-is-open.patch removed from -mm tree
+Date: Wed, 29 Jul 2009 13:50:00 -0700
+Message-ID: <200907292050.n6TKo0uu027808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751515AbZG2Uuj (ORCPT
+	by vger.kernel.org with ESMTP id S1751452AbZG2Uup (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 16:50:39 -0400
+	Wed, 29 Jul 2009 16:50:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gma
 
 
 The patch titled
-     omap_hsmmc: pass host capabilities for SD only and MMC only
+     omap_hsmmc: protect the card when the cover is open
 has been removed from the -mm tree.  Its filename was
-     omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch
+     omap_hsmmc-protect-the-card-when-the-cover-is-open.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: pass host capabilities for SD only and MMC only
+Subject: omap_hsmmc: protect the card when the cover is open
 From: Adrian Hunter <adrian.hunter@nokia.com>
 
-Some hosts can accept only certain types of cards.  For example, an eMMC
-is MMC only and a uSD slot may be SD only.  Pass host capabilities from
-the board through to the driver.
+Depending on the manufacturer, there is a small possibility that removing
+a card while it is being written to, can render the card permanently
+unusable.  To prevent that, the card is made inaccessible when the cover
+is open.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
@@ -41,83 +42,132 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/mmc-twl4030.c     |    5 ++---
- arch/arm/mach-omap2/mmc-twl4030.h     |    2 +-
- arch/arm/plat-omap/include/mach/mmc.h |    6 +++---
- drivers/mmc/host/omap_hsmmc.c         |    3 +--
- 4 files changed, 7 insertions(+), 9 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   63 ++++++++++++++++++++++++++++++--
+ 1 file changed, 61 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/mach-omap2/mmc-twl4030.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only arch/arm/mach-omap2/mmc-twl4030.c
---- a/arch/arm/mach-omap2/mmc-twl4030.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
-+++ a/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -464,12 +464,11 @@ void __init twl4030_mmc_init(struct twl4
- 		} else
- 			mmc->slots[0].gpio_wp = -EINVAL;
- 
--		if (c->nonremovable)
--			mmc->slots[0].nonremovable = 1;
--
- 		if (c->power_saving)
- 			mmc->slots[0].power_saving = 1;
- 
-+		mmc->slots[0].caps = c->caps;
-+
- 		/* NOTE:  MMC slots should have a Vcc regulator set up.
- 		 * This may be from a TWL4030-family chip, another
- 		 * controllable regulator, or a fixed supply.
-diff -puN arch/arm/mach-omap2/mmc-twl4030.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only arch/arm/mach-omap2/mmc-twl4030.h
---- a/arch/arm/mach-omap2/mmc-twl4030.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
-+++ a/arch/arm/mach-omap2/mmc-twl4030.h
-@@ -12,8 +12,8 @@ struct twl4030_hsmmc_info {
- 	bool	transceiver;	/* MMC-2 option */
- 	bool	ext_clock;	/* use external pin for input clock */
- 	bool	cover_only;	/* No card detect - just cover switch */
--	bool	nonremovable;	/* Nonremovable e.g. eMMC */
- 	bool	power_saving;	/* Try to sleep or power off when possible */
-+	unsigned long caps;	/* MMC host capabilities */
- 	int	gpio_cd;	/* or -EINVAL */
- 	int	gpio_wp;	/* or -EINVAL */
- 	char	*name;		/* or NULL for default */
-diff -puN arch/arm/plat-omap/include/mach/mmc.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only arch/arm/plat-omap/include/mach/mmc.h
---- a/arch/arm/plat-omap/include/mach/mmc.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
-+++ a/arch/arm/plat-omap/include/mach/mmc.h
-@@ -83,12 +83,12 @@ struct omap_mmc_platform_data {
- 		/* use the internal clock */
- 		unsigned internal_clock:1;
- 
--		/* nonremovable e.g. eMMC */
--		unsigned nonremovable:1;
--
- 		/* Try to sleep or power off when possible */
- 		unsigned power_saving:1;
- 
-+		/* MMC host capabilities */
-+		unsigned long caps;
-+
- 		int switch_pin;			/* gpio (card detect) */
- 		int gpio_wp;			/* gpio (write protect) */
- 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-protect-the-card-when-the-cover-is-open drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-protect-the-card-when-the-cover-is-open
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -1662,8 +1662,7 @@ static int __init omap_mmc_probe(struct 
- 	else if (mmc_slot(host).wires >= 4)
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+@@ -165,6 +165,8 @@ struct omap_hsmmc_host {
+ 	int			context_loss;
+ 	int			dpm_state;
+ 	int			vdd;
++	int			protect_card;
++	int			reqs_blocked;
  
--	if (mmc_slot(host).nonremovable)
--		mmc->caps |= MMC_CAP_NONREMOVABLE;
-+	mmc->caps |= mmc_slot(host).caps;
+ 	struct	omap_mmc_platform_data	*pdata;
+ };
+@@ -349,6 +351,9 @@ static void send_init_stream(struct omap
+ 	int reg = 0;
+ 	unsigned long timeout;
  
- 	omap_hsmmc_init(host);
++	if (host->protect_card)
++		return;
++
+ 	disable_irq(host->irq);
+ 	OMAP_HSMMC_WRITE(host->base, CON,
+ 		OMAP_HSMMC_READ(host->base, CON) | INIT_STREAM);
+@@ -778,6 +783,30 @@ err:
+ 	return ret;
+ }
  
++/* Protect the card while the cover is open */
++static void omap_hsmmc_protect_card(struct omap_hsmmc_host *host)
++{
++	if (!mmc_slot(host).get_cover_state)
++		return;
++
++	host->reqs_blocked = 0;
++	if (mmc_slot(host).get_cover_state(host->dev, host->slot_id)) {
++		if (host->protect_card) {
++			printk(KERN_INFO "%s: cover is closed, "
++					 "card is now accessible\n",
++					 mmc_hostname(host->mmc));
++			host->protect_card = 0;
++		}
++	} else {
++		if (!host->protect_card) {
++			printk(KERN_INFO "%s: cover is open, "
++					 "card is now inaccessible\n",
++					 mmc_hostname(host->mmc));
++			host->protect_card = 1;
++		}
++	}
++}
++
+ /*
+  * Work Item to notify the core about card insertion/removal
+  */
+@@ -795,8 +824,10 @@ static void omap_hsmmc_detect(struct wor
+ 
+ 	if (slot->card_detect)
+ 		carddetect = slot->card_detect(slot->card_detect_irq);
+-	else
++	else {
++		omap_hsmmc_protect_card(host);
+ 		carddetect = -ENOSYS;
++	}
+ 
+ 	if (carddetect) {
+ 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
+@@ -1032,8 +1063,32 @@ static void omap_hsmmc_request(struct mm
+ 	 * interrupts, but not if we are already in interrupt context i.e.
+ 	 * retries.
+ 	 */
+-	if (!in_interrupt())
++	if (!in_interrupt()) {
+ 		disable_irq(host->irq);
++		/*
++		 * Protect the card from I/O if there is a possibility
++		 * it can be removed.
++		 */
++		if (host->protect_card) {
++			if (host->reqs_blocked < 3) {
++				/*
++				 * Ensure the controller is left in a consistent
++				 * state by resetting the command and data state
++				 * machines.
++				 */
++				omap_hsmmc_reset_controller_fsm(host, SRD);
++				omap_hsmmc_reset_controller_fsm(host, SRC);
++				host->reqs_blocked += 1;
++			}
++			req->cmd->error = -EBADF;
++			if (req->data)
++				req->data->error = -EBADF;
++			enable_irq(host->irq);
++			mmc_request_done(mmc, req);
++			return;
++		} else if (host->reqs_blocked)
++			host->reqs_blocked = 0;
++	}
+ 	WARN_ON(host->mrq != NULL);
+ 	host->mrq = req;
+ 	err = omap_hsmmc_prepare_data(host, req);
+@@ -1722,6 +1777,8 @@ static int __init omap_hsmmc_probe(struc
+ 
+ 	mmc_host_lazy_disable(host->mmc);
+ 
++	omap_hsmmc_protect_card(host);
++
+ 	mmc_add_host(mmc);
+ 
+ 	if (mmc_slot(host).name != NULL) {
+@@ -1887,6 +1944,8 @@ static int omap_hsmmc_resume(struct plat
+ 					"Unmask interrupt failed\n");
+ 		}
+ 
++		omap_hsmmc_protect_card(host);
++
+ 		/* Notify the core to resume the host */
+ 		ret = mmc_resume_host(host->mmc);
+ 		if (ret == 0)
 _
 
 Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
 linux-next.patch
 mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch
-omap_hsmmc-code-refactoring.patch
 omap_hsmmc-protect-the-card-when-the-cover-is-open.patch
 omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch
 omap_hsmmc-set-a-large-data-timeout-for-commands-with-busy-signal.patch
