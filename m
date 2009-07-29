@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fork-disable-clone_parent-for-init.patch added to -mm tree
-Date: Wed, 29 Jul 2009 15:15:02 -0700
-Message-ID: <200907292215.n6TMF22J004378@imap1.linux-foundation.org>
+Subject: + pidns-deny-clone_parentclone_newpid-combination.patch added to -mm tree
+Date: Wed, 29 Jul 2009 15:15:04 -0700
+Message-ID: <200907292215.n6TMF41w004399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34744 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754631AbZG2WPz (ORCPT
+	by vger.kernel.org with ESMTP id S1752555AbZG2WQA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 18:15:55 -0400
+	Wed, 29 Jul 2009 18:16:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@linux.vnet.ibm.com, ebiederm@xmission.com, oleg@redhat.com, orenl@cs.columbia.edu, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
+Cc: sukadev@linux.vnet.ibm.com, oleg@redhat.com, orenl@cs.columbia.edu, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
 
 
 The patch titled
-     fork(): disable CLONE_PARENT for init
+     pidns: deny CLONE_PARENT|CLONE_NEWPID combination
 has been added to the -mm tree.  Its filename is
-     fork-disable-clone_parent-for-init.patch
+     pidns-deny-clone_parentclone_newpid-combination.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fork(): disable CLONE_PARENT for init
+Subject: pidns: deny CLONE_PARENT|CLONE_NEWPID combination
 From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 
-When global or container-init processes use CLONE_PARENT, they create a
-multi-rooted process tree.  Besides siblings of global init remain as
-zombies on exit since they are not reaped by their parent (swapper).  So
-prevent global and container-inits from creating siblings.
+CLONE_PARENT was used to implement an older threading model.  For
+consistency with the CLONE_THREAD check in copy_pid_ns(), disable
+CLONE_PARENT with CLONE_NEWPID, at least until the required semantics of
+pid namespaces are clear.
 
 Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
 Acked-by: Roland McGrath <roland@redhat.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Cc: Oren Laadan <orenl@cs.columbia.edu>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ kernel/pid_namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/fork.c~fork-disable-clone_parent-for-init kernel/fork.c
---- a/kernel/fork.c~fork-disable-clone_parent-for-init
-+++ a/kernel/fork.c
-@@ -991,6 +991,16 @@ static struct task_struct *copy_process(
- 	if ((clone_flags & CLONE_SIGHAND) && !(clone_flags & CLONE_VM))
+diff -puN kernel/pid_namespace.c~pidns-deny-clone_parentclone_newpid-combination kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-deny-clone_parentclone_newpid-combination
++++ a/kernel/pid_namespace.c
+@@ -118,7 +118,7 @@ struct pid_namespace *copy_pid_ns(unsign
+ {
+ 	if (!(flags & CLONE_NEWPID))
+ 		return get_pid_ns(old_ns);
+-	if (flags & CLONE_THREAD)
++	if (flags & (CLONE_THREAD|CLONE_PARENT))
  		return ERR_PTR(-EINVAL);
- 
-+	/*
-+	 * Siblings of global init remain as zombies on exit since they are
-+	 * not reaped by their parent (swapper). To solve this and to avoid
-+	 * multi-rooted process trees, prevent global and container-inits
-+	 * from creating siblings.
-+	 */
-+	if ((clone_flags & CLONE_PARENT) &&
-+				current->signal->flags & SIGNAL_UNKILLABLE)
-+		return ERR_PTR(-EINVAL);
-+
- 	retval = security_task_create(clone_flags);
- 	if (retval)
- 		goto fork_out;
+ 	return create_pid_namespace(old_ns);
+ }
 _
 
 Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
