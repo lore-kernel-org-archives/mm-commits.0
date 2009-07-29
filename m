@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-allow-host-claim-release-nesting.patch added to -mm tree
-Date: Wed, 29 Jul 2009 13:57:51 -0700
-Message-ID: <200907292057.n6TKvqi6008226@imap1.linux-foundation.org>
+Subject: + mmc-add-ability-to-save-power-by-powering-off-cards.patch added to -mm tree
+Date: Wed, 29 Jul 2009 13:57:56 -0700
+Message-ID: <200907292057.n6TKvvkj008428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752054AbZG2U6m (ORCPT
+	by vger.kernel.org with ESMTP id S1751817AbZG2U6l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 16:58:42 -0400
+	Wed, 29 Jul 2009 16:58:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, j
 
 
 The patch titled
-     mmc: allow host claim / release nesting
+     mmc: add ability to save power by powering off cards
 has been added to the -mm tree.  Its filename is
-     mmc-allow-host-claim-release-nesting.patch
+     mmc-add-ability-to-save-power-by-powering-off-cards.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: allow host claim / release nesting
+Subject: mmc: add ability to save power by powering off cards
 From: Adrian Hunter <adrian.hunter@nokia.com>
 
-This change allows the MMC host to be claimed in situations where the host
-may or may not have already been claimed.  Also 'mmc_try_claim_host()' is
-now exported.
+Power can be saved by powering off cards that are not in use.  This is
+similar to suspend / resume except it is under the control of the driver,
+and does not require any power management support.  It can only be used
+when the driver can monitor whether the card is removed, otherwise it is
+unsafe.  This is possible because, unlike suspend, the driver still
+receives card detect and / or cover switch interrupts.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Acked-by: Matt Fleming <matt@console-pimps.org>
@@ -52,108 +55,165 @@ Cc: Philip Langdale <philipl@overt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c  |   34 +++++++++++++++++++++++++---------
- include/linux/mmc/core.h |    1 +
- include/linux/mmc/host.h |    2 ++
- 3 files changed, 28 insertions(+), 9 deletions(-)
+ drivers/mmc/core/core.c  |   34 ++++++++++++++++++++++++++++++++++
+ drivers/mmc/core/core.h  |    2 ++
+ drivers/mmc/core/mmc.c   |   11 +++++++++++
+ drivers/mmc/core/sd.c    |   11 +++++++++++
+ include/linux/mmc/host.h |    3 +++
+ 5 files changed, 61 insertions(+)
 
-diff -puN drivers/mmc/core/core.c~mmc-allow-host-claim-release-nesting drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-allow-host-claim-release-nesting
+diff -puN drivers/mmc/core/core.c~mmc-add-ability-to-save-power-by-powering-off-cards drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-add-ability-to-save-power-by-powering-off-cards
 +++ a/drivers/mmc/core/core.c
-@@ -461,16 +461,18 @@ int __mmc_claim_host(struct mmc_host *ho
- 	while (1) {
- 		set_current_state(TASK_UNINTERRUPTIBLE);
- 		stop = abort ? atomic_read(abort) : 0;
--		if (stop || !host->claimed)
-+		if (stop || !host->claimed || host->claimer == current)
- 			break;
- 		spin_unlock_irqrestore(&host->lock, flags);
- 		schedule();
- 		spin_lock_irqsave(&host->lock, flags);
- 	}
- 	set_current_state(TASK_RUNNING);
--	if (!stop)
-+	if (!stop) {
- 		host->claimed = 1;
--	else
-+		host->claimer = current;
-+		host->claim_cnt += 1;
-+	} else
- 		wake_up(&host->wq);
- 	spin_unlock_irqrestore(&host->lock, flags);
- 	remove_wait_queue(&host->wq, &wait);
-@@ -481,29 +483,43 @@ int __mmc_claim_host(struct mmc_host *ho
- 
- EXPORT_SYMBOL(__mmc_claim_host);
- 
--static int mmc_try_claim_host(struct mmc_host *host)
-+/**
-+ *	mmc_try_claim_host - try exclusively to claim a host
-+ *	@host: mmc host to claim
-+ *
-+ *	Returns %1 if the host is claimed, %0 otherwise.
-+ */
-+int mmc_try_claim_host(struct mmc_host *host)
- {
- 	int claimed_host = 0;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&host->lock, flags);
--	if (!host->claimed) {
-+	if (!host->claimed || host->claimer == current) {
- 		host->claimed = 1;
-+		host->claimer = current;
-+		host->claim_cnt += 1;
- 		claimed_host = 1;
- 	}
- 	spin_unlock_irqrestore(&host->lock, flags);
- 	return claimed_host;
+@@ -1151,6 +1151,40 @@ void mmc_stop_host(struct mmc_host *host
+ 	mmc_power_off(host);
  }
-+EXPORT_SYMBOL(mmc_try_claim_host);
  
- static void mmc_do_release_host(struct mmc_host *host)
- {
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&host->lock, flags);
--	host->claimed = 0;
--	spin_unlock_irqrestore(&host->lock, flags);
--
--	wake_up(&host->wq);
-+	if (--host->claim_cnt) {
-+		/* Release for nested claim */
-+		spin_unlock_irqrestore(&host->lock, flags);
-+	} else {
-+		host->claimed = 0;
-+		host->claimer = NULL;
-+		spin_unlock_irqrestore(&host->lock, flags);
-+		wake_up(&host->wq);
++void mmc_power_save_host(struct mmc_host *host)
++{
++	mmc_bus_get(host);
++
++	if (!host->bus_ops || host->bus_dead || !host->bus_ops->power_restore) {
++		mmc_bus_put(host);
++		return;
 +	}
- }
- 
- void mmc_host_deeper_disable(struct work_struct *work)
-diff -puN include/linux/mmc/core.h~mmc-allow-host-claim-release-nesting include/linux/mmc/core.h
---- a/include/linux/mmc/core.h~mmc-allow-host-claim-release-nesting
-+++ a/include/linux/mmc/core.h
-@@ -139,6 +139,7 @@ extern unsigned int mmc_align_data_size(
- 
- extern int __mmc_claim_host(struct mmc_host *host, atomic_t *abort);
- extern void mmc_release_host(struct mmc_host *host);
-+extern int mmc_try_claim_host(struct mmc_host *host);
++
++	if (host->bus_ops->power_save)
++		host->bus_ops->power_save(host);
++
++	mmc_bus_put(host);
++
++	mmc_power_off(host);
++}
++EXPORT_SYMBOL(mmc_power_save_host);
++
++void mmc_power_restore_host(struct mmc_host *host)
++{
++	mmc_bus_get(host);
++
++	if (!host->bus_ops || host->bus_dead || !host->bus_ops->power_restore) {
++		mmc_bus_put(host);
++		return;
++	}
++
++	mmc_power_up(host);
++	host->bus_ops->power_restore(host);
++
++	mmc_bus_put(host);
++}
++EXPORT_SYMBOL(mmc_power_restore_host);
++
+ #ifdef CONFIG_PM
  
  /**
-  *	mmc_claim_host - exclusively claim a host
-diff -puN include/linux/mmc/host.h~mmc-allow-host-claim-release-nesting include/linux/mmc/host.h
---- a/include/linux/mmc/host.h~mmc-allow-host-claim-release-nesting
+diff -puN drivers/mmc/core/core.h~mmc-add-ability-to-save-power-by-powering-off-cards drivers/mmc/core/core.h
+--- a/drivers/mmc/core/core.h~mmc-add-ability-to-save-power-by-powering-off-cards
++++ a/drivers/mmc/core/core.h
+@@ -20,6 +20,8 @@ struct mmc_bus_ops {
+ 	void (*detect)(struct mmc_host *);
+ 	void (*suspend)(struct mmc_host *);
+ 	void (*resume)(struct mmc_host *);
++	void (*power_save)(struct mmc_host *);
++	void (*power_restore)(struct mmc_host *);
+ };
+ 
+ void mmc_attach_bus(struct mmc_host *host, const struct mmc_bus_ops *ops);
+diff -puN drivers/mmc/core/mmc.c~mmc-add-ability-to-save-power-by-powering-off-cards drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-add-ability-to-save-power-by-powering-off-cards
++++ a/drivers/mmc/core/mmc.c
+@@ -549,6 +549,14 @@ static void mmc_resume(struct mmc_host *
+ 
+ }
+ 
++static void mmc_power_restore(struct mmc_host *host)
++{
++	host->card->state &= ~MMC_STATE_HIGHSPEED;
++	mmc_claim_host(host);
++	mmc_init_card(host, host->ocr, host->card);
++	mmc_release_host(host);
++}
++
+ #ifdef CONFIG_MMC_UNSAFE_RESUME
+ 
+ static const struct mmc_bus_ops mmc_ops = {
+@@ -556,6 +564,7 @@ static const struct mmc_bus_ops mmc_ops 
+ 	.detect = mmc_detect,
+ 	.suspend = mmc_suspend,
+ 	.resume = mmc_resume,
++	.power_restore = mmc_power_restore,
+ };
+ 
+ static void mmc_attach_bus_ops(struct mmc_host *host)
+@@ -570,6 +579,7 @@ static const struct mmc_bus_ops mmc_ops 
+ 	.detect = mmc_detect,
+ 	.suspend = NULL,
+ 	.resume = NULL,
++	.power_restore = mmc_power_restore,
+ };
+ 
+ static const struct mmc_bus_ops mmc_ops_unsafe = {
+@@ -577,6 +587,7 @@ static const struct mmc_bus_ops mmc_ops_
+ 	.detect = mmc_detect,
+ 	.suspend = mmc_suspend,
+ 	.resume = mmc_resume,
++	.power_restore = mmc_power_restore,
+ };
+ 
+ static void mmc_attach_bus_ops(struct mmc_host *host)
+diff -puN drivers/mmc/core/sd.c~mmc-add-ability-to-save-power-by-powering-off-cards drivers/mmc/core/sd.c
+--- a/drivers/mmc/core/sd.c~mmc-add-ability-to-save-power-by-powering-off-cards
++++ a/drivers/mmc/core/sd.c
+@@ -603,6 +603,14 @@ static void mmc_sd_resume(struct mmc_hos
+ 
+ }
+ 
++static void mmc_sd_power_restore(struct mmc_host *host)
++{
++	host->card->state &= ~MMC_STATE_HIGHSPEED;
++	mmc_claim_host(host);
++	mmc_sd_init_card(host, host->ocr, host->card);
++	mmc_release_host(host);
++}
++
+ #ifdef CONFIG_MMC_UNSAFE_RESUME
+ 
+ static const struct mmc_bus_ops mmc_sd_ops = {
+@@ -610,6 +618,7 @@ static const struct mmc_bus_ops mmc_sd_o
+ 	.detect = mmc_sd_detect,
+ 	.suspend = mmc_sd_suspend,
+ 	.resume = mmc_sd_resume,
++	.power_restore = mmc_sd_power_restore,
+ };
+ 
+ static void mmc_sd_attach_bus_ops(struct mmc_host *host)
+@@ -624,6 +633,7 @@ static const struct mmc_bus_ops mmc_sd_o
+ 	.detect = mmc_sd_detect,
+ 	.suspend = NULL,
+ 	.resume = NULL,
++	.power_restore = mmc_sd_power_restore,
+ };
+ 
+ static const struct mmc_bus_ops mmc_sd_ops_unsafe = {
+@@ -631,6 +641,7 @@ static const struct mmc_bus_ops mmc_sd_o
+ 	.detect = mmc_sd_detect,
+ 	.suspend = mmc_sd_suspend,
+ 	.resume = mmc_sd_resume,
++	.power_restore = mmc_sd_power_restore,
+ };
+ 
+ static void mmc_sd_attach_bus_ops(struct mmc_host *host)
+diff -puN include/linux/mmc/host.h~mmc-add-ability-to-save-power-by-powering-off-cards include/linux/mmc/host.h
+--- a/include/linux/mmc/host.h~mmc-add-ability-to-save-power-by-powering-off-cards
 +++ a/include/linux/mmc/host.h
-@@ -182,6 +182,8 @@ struct mmc_host {
- 	struct mmc_card		*card;		/* device attached to this host */
+@@ -223,6 +223,9 @@ static inline void *mmc_priv(struct mmc_
+ extern int mmc_suspend_host(struct mmc_host *, pm_message_t);
+ extern int mmc_resume_host(struct mmc_host *);
  
- 	wait_queue_head_t	wq;
-+	struct task_struct	*claimer;	/* task that has host claimed */
-+	int			claim_cnt;	/* "claim" nesting count */
- 
- 	struct delayed_work	detect;
++extern void mmc_power_save_host(struct mmc_host *host);
++extern void mmc_power_restore_host(struct mmc_host *host);
++
+ extern void mmc_detect_change(struct mmc_host *, unsigned long delay);
+ extern void mmc_request_done(struct mmc_host *, struct mmc_request *);
  
 _
 
