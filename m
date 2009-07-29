@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mmc-add-mmc_cap_nonremovable-host-capability.patch removed from -mm tree
-Date: Wed, 29 Jul 2009 13:48:41 -0700
-Message-ID: <200907292048.n6TKmfQZ025628@imap1.linux-foundation.org>
+Subject: [to-be-updated] mmc-add-mmc-card-sleep-and-awake-support.patch removed from -mm tree
+Date: Wed, 29 Jul 2009 13:48:47 -0700
+Message-ID: <200907292048.n6TKmlUC025840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45589 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756151AbZG2Ut1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753074AbZG2Uta (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 16:49:27 -0400
+	Wed, 29 Jul 2009 16:49:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gma
+To: jarkko.lavinen@nokia.com, adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gma
 
 
 The patch titled
-     mmc: add MMC_CAP_NONREMOVABLE host capability
+     mmc: add mmc card sleep and awake support
 has been removed from the -mm tree.  Its filename was
-     mmc-add-mmc_cap_nonremovable-host-capability.patch
+     mmc-add-mmc-card-sleep-and-awake-support.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: add MMC_CAP_NONREMOVABLE host capability
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: mmc: add mmc card sleep and awake support
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
-eMMC's are not removable, so unsafe resume is OK always.
+Add support for the new MMC command SLEEP_AWAKE.
 
-To permit this a new host capability MMC_CAP_NONREMOVABLE has been added
-and suspend / resume updated accordingly.
-
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -42,180 +40,300 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc.c   |   41 ++++++++++++++++++++++++++++++-------
- drivers/mmc/core/sd.c    |   41 ++++++++++++++++++++++++++++++-------
- include/linux/mmc/host.h |    1 
- 3 files changed, 69 insertions(+), 14 deletions(-)
+ drivers/mmc/core/core.c    |   40 +++++++++++++++++++++++++
+ drivers/mmc/core/core.h    |    2 +
+ drivers/mmc/core/mmc.c     |   54 +++++++++++++++++++++++++++++++----
+ drivers/mmc/core/mmc_ops.c |   36 +++++++++++++++++++++++
+ drivers/mmc/core/mmc_ops.h |    1 
+ include/linux/mmc/card.h   |    2 +
+ include/linux/mmc/host.h   |    5 +++
+ include/linux/mmc/mmc.h    |    2 +
+ 8 files changed, 137 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mmc/core/mmc.c~mmc-add-mmc_cap_nonremovable-host-capability drivers/mmc/core/mmc.c
---- a/drivers/mmc/core/mmc.c~mmc-add-mmc_cap_nonremovable-host-capability
-+++ a/drivers/mmc/core/mmc.c
-@@ -507,8 +507,6 @@ static void mmc_detect(struct mmc_host *
- 	}
+diff -puN drivers/mmc/core/core.c~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-add-mmc-card-sleep-and-awake-support
++++ a/drivers/mmc/core/core.c
+@@ -1182,6 +1182,46 @@ void mmc_power_restore_host(struct mmc_h
  }
+ EXPORT_SYMBOL(mmc_power_restore_host);
  
--#ifdef CONFIG_MMC_UNSAFE_RESUME
--
- /*
-  * Suspend callback from host.
-  */
-@@ -551,20 +549,49 @@ static void mmc_resume(struct mmc_host *
- 
- }
- 
--#else
-+#ifdef CONFIG_MMC_UNSAFE_RESUME
- 
--#define mmc_suspend NULL
--#define mmc_resume NULL
-+static const struct mmc_bus_ops mmc_ops = {
-+	.remove = mmc_remove,
-+	.detect = mmc_detect,
-+	.suspend = mmc_suspend,
-+	.resume = mmc_resume,
-+};
- 
--#endif
-+static void mmc_attach_bus_ops(struct mmc_host *host)
++int mmc_card_awake(struct mmc_host *host)
 +{
-+	mmc_attach_bus(host, &mmc_ops);
++	int err = -ENOSYS;
++
++	mmc_bus_get(host);
++
++	if (host->bus_ops && !host->bus_dead && host->bus_ops->awake)
++		err = host->bus_ops->awake(host);
++
++	mmc_bus_put(host);
++
++	return err;
++}
++EXPORT_SYMBOL(mmc_card_awake);
++
++int mmc_card_sleep(struct mmc_host *host)
++{
++	int err = -ENOSYS;
++
++	mmc_bus_get(host);
++
++	if (host->bus_ops && !host->bus_dead && host->bus_ops->awake)
++		err = host->bus_ops->sleep(host);
++
++	mmc_bus_put(host);
++
++	return err;
++}
++EXPORT_SYMBOL(mmc_card_sleep);
++
++int mmc_card_can_sleep(struct mmc_host *host)
++{
++	struct mmc_card *card = host->card;
++
++	if (card && mmc_card_mmc(card) && card->ext_csd.rev >= 3)
++		return 1;
++	return 0;
++}
++EXPORT_SYMBOL(mmc_card_can_sleep);
++
+ #ifdef CONFIG_PM
+ 
+ /**
+diff -puN drivers/mmc/core/core.h~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/core.h
+--- a/drivers/mmc/core/core.h~mmc-add-mmc-card-sleep-and-awake-support
++++ a/drivers/mmc/core/core.h
+@@ -16,6 +16,8 @@
+ #define MMC_CMD_RETRIES        3
+ 
+ struct mmc_bus_ops {
++	int (*awake)(struct mmc_host *);
++	int (*sleep)(struct mmc_host *);
+ 	void (*remove)(struct mmc_host *);
+ 	void (*detect)(struct mmc_host *);
+ 	void (*suspend)(struct mmc_host *);
+diff -puN drivers/mmc/core/mmc.c~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-add-mmc-card-sleep-and-awake-support
++++ a/drivers/mmc/core/mmc.c
+@@ -160,7 +160,6 @@ static int mmc_read_ext_csd(struct mmc_c
+ {
+ 	int err;
+ 	u8 *ext_csd;
+-	unsigned int ext_csd_struct;
+ 
+ 	BUG_ON(!card);
+ 
+@@ -207,16 +206,16 @@ static int mmc_read_ext_csd(struct mmc_c
+ 		goto out;
+ 	}
+ 
+-	ext_csd_struct = ext_csd[EXT_CSD_REV];
+-	if (ext_csd_struct > 3) {
++	card->ext_csd.rev = ext_csd[EXT_CSD_REV];
++	if (card->ext_csd.rev > 3) {
+ 		printk(KERN_ERR "%s: unrecognised EXT_CSD structure "
+ 			"version %d\n", mmc_hostname(card->host),
+-			ext_csd_struct);
++			card->ext_csd.rev);
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+ 
+-	if (ext_csd_struct >= 2) {
++	if (card->ext_csd.rev >= 2) {
+ 		card->ext_csd.sectors =
+ 			ext_csd[EXT_CSD_SEC_CNT + 0] << 0 |
+ 			ext_csd[EXT_CSD_SEC_CNT + 1] << 8 |
+@@ -241,6 +240,15 @@ static int mmc_read_ext_csd(struct mmc_c
+ 		goto out;
+ 	}
+ 
++	if (card->ext_csd.rev >= 3) {
++		u8 sa_shift = ext_csd[EXT_CSD_S_A_TIMEOUT];
++
++		/* Sleep / awake timeout in 100ns units */
++		if (sa_shift > 0 && sa_shift <= 0x17)
++			card->ext_csd.sa_timeout =
++					1 << ext_csd[EXT_CSD_S_A_TIMEOUT];
++	}
++
+ out:
+ 	kfree(ext_csd);
+ 
+@@ -557,9 +565,41 @@ static void mmc_power_restore(struct mmc
+ 	mmc_release_host(host);
+ }
+ 
++static int mmc_sleep(struct mmc_host *host)
++{
++	struct mmc_card *card = host->card;
++	int err = -ENOSYS;
++
++	if (card && card->ext_csd.rev >= 3) {
++		err = mmc_card_sleepawake(host, 1);
++		if (err < 0)
++			pr_debug("%s: Error %d while putting card into sleep",
++				 mmc_hostname(host), err);
++	}
++
++	return err;
 +}
 +
-+#else
++static int mmc_awake(struct mmc_host *host)
++{
++	struct mmc_card *card = host->card;
++	int err = -ENOSYS;
++
++	if (card && card->ext_csd.rev >= 3) {
++		err = mmc_card_sleepawake(host, 0);
++		if (err < 0)
++			pr_debug("%s: Error %d while awaking sleeping card",
++				 mmc_hostname(host), err);
++	}
++
++	return err;
++}
++
+ #ifdef CONFIG_MMC_UNSAFE_RESUME
  
  static const struct mmc_bus_ops mmc_ops = {
++	.awake = mmc_awake,
++	.sleep = mmc_sleep,
  	.remove = mmc_remove,
  	.detect = mmc_detect,
-+	.suspend = NULL,
-+	.resume = NULL,
-+};
-+
-+static const struct mmc_bus_ops mmc_ops_unsafe = {
-+	.remove = mmc_remove,
-+	.detect = mmc_detect,
  	.suspend = mmc_suspend,
- 	.resume = mmc_resume,
+@@ -575,6 +615,8 @@ static void mmc_attach_bus_ops(struct mm
+ #else
+ 
+ static const struct mmc_bus_ops mmc_ops = {
++	.awake = mmc_awake,
++	.sleep = mmc_sleep,
+ 	.remove = mmc_remove,
+ 	.detect = mmc_detect,
+ 	.suspend = NULL,
+@@ -583,6 +625,8 @@ static const struct mmc_bus_ops mmc_ops 
  };
  
-+static void mmc_attach_bus_ops(struct mmc_host *host)
-+{
-+	const struct mmc_bus_ops *bus_ops;
-+
-+	if (host->caps & MMC_CAP_NONREMOVABLE)
-+		bus_ops = &mmc_ops_unsafe;
-+	else
-+		bus_ops = &mmc_ops;
-+	mmc_attach_bus(host, bus_ops);
-+}
-+
-+#endif
-+
- /*
-  * Starting point for MMC card init.
-  */
-@@ -575,7 +602,7 @@ int mmc_attach_mmc(struct mmc_host *host
- 	BUG_ON(!host);
- 	WARN_ON(!host->claimed);
- 
--	mmc_attach_bus(host, &mmc_ops);
-+	mmc_attach_bus_ops(host);
- 
- 	/*
- 	 * We need to get OCR a different way for SPI.
-diff -puN drivers/mmc/core/sd.c~mmc-add-mmc_cap_nonremovable-host-capability drivers/mmc/core/sd.c
---- a/drivers/mmc/core/sd.c~mmc-add-mmc_cap_nonremovable-host-capability
-+++ a/drivers/mmc/core/sd.c
-@@ -561,8 +561,6 @@ static void mmc_sd_detect(struct mmc_hos
- 	}
+ static const struct mmc_bus_ops mmc_ops_unsafe = {
++	.awake = mmc_awake,
++	.sleep = mmc_sleep,
+ 	.remove = mmc_remove,
+ 	.detect = mmc_detect,
+ 	.suspend = mmc_suspend,
+diff -puN drivers/mmc/core/mmc_ops.c~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/mmc_ops.c
+--- a/drivers/mmc/core/mmc_ops.c~mmc-add-mmc-card-sleep-and-awake-support
++++ a/drivers/mmc/core/mmc_ops.c
+@@ -57,6 +57,42 @@ int mmc_deselect_cards(struct mmc_host *
+ 	return _mmc_select_card(host, NULL);
  }
  
--#ifdef CONFIG_MMC_UNSAFE_RESUME
--
- /*
-  * Suspend callback from host.
-  */
-@@ -605,20 +603,49 @@ static void mmc_sd_resume(struct mmc_hos
- 
- }
- 
--#else
-+#ifdef CONFIG_MMC_UNSAFE_RESUME
- 
--#define mmc_sd_suspend NULL
--#define mmc_sd_resume NULL
-+static const struct mmc_bus_ops mmc_sd_ops = {
-+	.remove = mmc_sd_remove,
-+	.detect = mmc_sd_detect,
-+	.suspend = mmc_sd_suspend,
-+	.resume = mmc_sd_resume,
-+};
- 
--#endif
-+static void mmc_sd_attach_bus_ops(struct mmc_host *host)
++int mmc_card_sleepawake(struct mmc_host *host, int sleep)
 +{
-+	mmc_attach_bus(host, &mmc_sd_ops);
++	struct mmc_command cmd;
++	struct mmc_card *card = host->card;
++	int err;
++
++	if (sleep)
++		mmc_deselect_cards(host);
++
++	memset(&cmd, 0, sizeof(struct mmc_command));
++
++	cmd.opcode = MMC_SLEEP_AWAKE;
++	cmd.arg = card->rca << 16;
++	if (sleep)
++		cmd.arg |= 1 << 15;
++
++	cmd.flags = MMC_RSP_R1B | MMC_CMD_AC;
++	err = mmc_wait_for_cmd(host, &cmd, 0);
++	if (err)
++		return err;
++
++	/*
++	 * If the host does not wait while the card signals busy, then we will
++	 * will have to wait the sleep/awake timeout.  Note, we cannot use the
++	 * SEND_STATUS command to poll the status because that command (and most
++	 * others) is invalid while the card sleeps.
++	 */
++	if (!(host->caps & MMC_CAP_WAIT_WHILE_BUSY))
++		mmc_delay(DIV_ROUND_UP(card->ext_csd.sa_timeout, 10000));
++
++	if (!sleep)
++		err = mmc_select_card(card);
++
++	return err;
 +}
 +
-+#else
+ int mmc_go_idle(struct mmc_host *host)
+ {
+ 	int err;
+diff -puN drivers/mmc/core/mmc_ops.h~mmc-add-mmc-card-sleep-and-awake-support drivers/mmc/core/mmc_ops.h
+--- a/drivers/mmc/core/mmc_ops.h~mmc-add-mmc-card-sleep-and-awake-support
++++ a/drivers/mmc/core/mmc_ops.h
+@@ -25,6 +25,7 @@ int mmc_send_status(struct mmc_card *car
+ int mmc_send_cid(struct mmc_host *host, u32 *cid);
+ int mmc_spi_read_ocr(struct mmc_host *host, int highcap, u32 *ocrp);
+ int mmc_spi_set_crc(struct mmc_host *host, int use_crc);
++int mmc_card_sleepawake(struct mmc_host *host, int sleep);
  
- static const struct mmc_bus_ops mmc_sd_ops = {
- 	.remove = mmc_sd_remove,
- 	.detect = mmc_sd_detect,
-+	.suspend = NULL,
-+	.resume = NULL,
-+};
-+
-+static const struct mmc_bus_ops mmc_sd_ops_unsafe = {
-+	.remove = mmc_sd_remove,
-+	.detect = mmc_sd_detect,
- 	.suspend = mmc_sd_suspend,
- 	.resume = mmc_sd_resume,
+ #endif
+ 
+diff -puN include/linux/mmc/card.h~mmc-add-mmc-card-sleep-and-awake-support include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~mmc-add-mmc-card-sleep-and-awake-support
++++ a/include/linux/mmc/card.h
+@@ -40,6 +40,8 @@ struct mmc_csd {
  };
  
-+static void mmc_sd_attach_bus_ops(struct mmc_host *host)
-+{
-+	const struct mmc_bus_ops *bus_ops;
-+
-+	if (host->caps & MMC_CAP_NONREMOVABLE)
-+		bus_ops = &mmc_sd_ops_unsafe;
-+	else
-+		bus_ops = &mmc_sd_ops;
-+	mmc_attach_bus(host, bus_ops);
-+}
-+
-+#endif
-+
- /*
-  * Starting point for SD card init.
-  */
-@@ -629,7 +656,7 @@ int mmc_attach_sd(struct mmc_host *host,
- 	BUG_ON(!host);
- 	WARN_ON(!host->claimed);
- 
--	mmc_attach_bus(host, &mmc_sd_ops);
-+	mmc_sd_attach_bus_ops(host);
- 
- 	/*
- 	 * We need to get OCR a different way for SPI.
-diff -puN include/linux/mmc/host.h~mmc-add-mmc_cap_nonremovable-host-capability include/linux/mmc/host.h
---- a/include/linux/mmc/host.h~mmc-add-mmc_cap_nonremovable-host-capability
+ struct mmc_ext_csd {
++	u8			rev;
++	unsigned int		sa_timeout;		/* Units: 100ns */
+ 	unsigned int		hs_max_dtr;
+ 	unsigned int		sectors;
+ };
+diff -puN include/linux/mmc/host.h~mmc-add-mmc-card-sleep-and-awake-support include/linux/mmc/host.h
+--- a/include/linux/mmc/host.h~mmc-add-mmc-card-sleep-and-awake-support
 +++ a/include/linux/mmc/host.h
-@@ -148,6 +148,7 @@ struct mmc_host {
- #define MMC_CAP_NEEDS_POLL	(1 << 5)	/* Needs polling for card-detection */
+@@ -149,6 +149,7 @@ struct mmc_host {
  #define MMC_CAP_8_BIT_DATA	(1 << 6)	/* Can the host do 8 bit transfers */
  #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
-+#define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
+ #define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
++#define MMC_CAP_WAIT_WHILE_BUSY	(1 << 9)	/* Waits while card is busy */
  
  	/* host specific block data */
  	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
+@@ -240,6 +241,10 @@ struct regulator;
+ int mmc_regulator_get_ocrmask(struct regulator *supply);
+ int mmc_regulator_set_ocr(struct regulator *supply, unsigned short vdd_bit);
+ 
++int mmc_card_awake(struct mmc_host *host);
++int mmc_card_sleep(struct mmc_host *host);
++int mmc_card_can_sleep(struct mmc_host *host);
++
+ int mmc_host_enable(struct mmc_host *host);
+ int mmc_host_disable(struct mmc_host *host);
+ int mmc_host_lazy_disable(struct mmc_host *host);
+diff -puN include/linux/mmc/mmc.h~mmc-add-mmc-card-sleep-and-awake-support include/linux/mmc/mmc.h
+--- a/include/linux/mmc/mmc.h~mmc-add-mmc-card-sleep-and-awake-support
++++ a/include/linux/mmc/mmc.h
+@@ -31,6 +31,7 @@
+ #define MMC_ALL_SEND_CID          2   /* bcr                     R2  */
+ #define MMC_SET_RELATIVE_ADDR     3   /* ac   [31:16] RCA        R1  */
+ #define MMC_SET_DSR               4   /* bc   [31:16] RCA            */
++#define MMC_SLEEP_AWAKE		  5   /* ac   [31:16] RCA 15:flg R1b */
+ #define MMC_SWITCH                6   /* ac   [31:0] See below   R1b */
+ #define MMC_SELECT_CARD           7   /* ac   [31:16] RCA        R1  */
+ #define MMC_SEND_EXT_CSD          8   /* adtc                    R1  */
+@@ -254,6 +255,7 @@ struct _mmc_csd {
+ #define EXT_CSD_CARD_TYPE	196	/* RO */
+ #define EXT_CSD_REV		192	/* RO */
+ #define EXT_CSD_SEC_CNT		212	/* RO, 4 bytes */
++#define EXT_CSD_S_A_TIMEOUT	217
+ 
+ /*
+  * EXT_CSD field definitions
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from jarkko.lavinen@nokia.com are
 
-linux-next.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-mmc-add-mmc_cap_nonremovable-host-capability.patch
-mmc-add-ability-to-save-power-by-powering-off-cards.patch
 mmc-add-mmc-card-sleep-and-awake-support.patch
 mmc-power-off-once-at-removal.patch
 mmc-add-host-capabilities-for-sd-only-and-mmc-only.patch
