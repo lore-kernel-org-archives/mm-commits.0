@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mmc-check-status-after-mmc-switch-command.patch removed from -mm tree
-Date: Wed, 29 Jul 2009 13:48:56 -0700
-Message-ID: <200907292048.n6TKmu61026089@imap1.linux-foundation.org>
+Subject: [to-be-updated] omap_hsmmc-make-use-of-new-enable-disable-interface.patch removed from -mm tree
+Date: Wed, 29 Jul 2009 13:49:02 -0700
+Message-ID: <200907292049.n6TKn2WB026198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751484AbZG2UyG (ORCPT
+	by vger.kernel.org with ESMTP id S1751470AbZG2Uyo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 16:54:06 -0400
+	Wed, 29 Jul 2009 16:54:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gma
 
 
 The patch titled
-     mmc: check status after MMC SWITCH command
+     omap_hsmmc: make use of new enable/disable interface
 has been removed from the -mm tree.  Its filename was
-     mmc-check-status-after-mmc-switch-command.patch
+     omap_hsmmc-make-use-of-new-enable-disable-interface.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: check status after MMC SWITCH command
+Subject: omap_hsmmc: make use of new enable/disable interface
 From: Adrian Hunter <adrian.hunter@nokia.com>
 
-According to the standard, the SWITCH command should be followed by a
-SEND_STATUS command to check for errors.
+For the moment enable / disable just turns the fclk on and off.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Matt Fleming <matt@console-pimps.org>
@@ -40,115 +39,211 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc.c     |   24 ++++++++++++++++++------
- drivers/mmc/core/mmc_ops.c |   23 +++++++++++++++++++++++
- include/linux/mmc/mmc.h    |    1 +
- 3 files changed, 42 insertions(+), 6 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   68 +++++++++++++++++++++++++++-----
+ 1 file changed, 58 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mmc/core/mmc.c~mmc-check-status-after-mmc-switch-command drivers/mmc/core/mmc.c
---- a/drivers/mmc/core/mmc.c~mmc-check-status-after-mmc-switch-command
-+++ a/drivers/mmc/core/mmc.c
-@@ -416,12 +416,17 @@ static int mmc_init_card(struct mmc_host
- 		(host->caps & MMC_CAP_MMC_HIGHSPEED)) {
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 			EXT_CSD_HS_TIMING, 1);
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
- 
--		mmc_card_set_highspeed(card);
--
--		mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to highspeed failed\n",
-+			       mmc_hostname(card->host));
-+			err = 0;
-+		} else {
-+			mmc_card_set_highspeed(card);
-+			mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		}
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-make-use-of-new-enable-disable-interface drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-make-use-of-new-enable-disable-interface
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -605,7 +605,9 @@ static void mmc_omap_detect(struct work_
+ 	if (host->carddetect) {
+ 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
+ 	} else {
++		mmc_host_enable(host->mmc);
+ 		mmc_omap_reset_controller_fsm(host, SRD);
++		mmc_host_lazy_disable(host->mmc);
+ 		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
  	}
- 
- 	/*
-@@ -456,10 +461,17 @@ static int mmc_init_card(struct mmc_host
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 				 EXT_CSD_BUS_WIDTH, ext_csd_bit);
- 
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
- 
--		mmc_set_bus_width(card->host, bus_width);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to bus width %d "
-+			       "failed\n", mmc_hostname(card->host),
-+			       1 << bus_width);
-+			err = 0;
-+		} else {
-+			mmc_set_bus_width(card->host, bus_width);
-+		}
- 	}
- 
- 	if (!oldcard)
-diff -puN drivers/mmc/core/mmc_ops.c~mmc-check-status-after-mmc-switch-command drivers/mmc/core/mmc_ops.c
---- a/drivers/mmc/core/mmc_ops.c~mmc-check-status-after-mmc-switch-command
-+++ a/drivers/mmc/core/mmc_ops.c
-@@ -390,6 +390,7 @@ int mmc_switch(struct mmc_card *card, u8
- {
- 	int err;
- 	struct mmc_command cmd;
-+	u32 status;
- 
- 	BUG_ON(!card);
- 	BUG_ON(!card->host);
-@@ -407,6 +408,28 @@ int mmc_switch(struct mmc_card *card, u8
- 	if (err)
- 		return err;
- 
-+	/* Must check status to be sure of no errors */
-+	do {
-+		err = mmc_send_status(card, &status);
-+		if (err)
-+			return err;
-+		if (card->host->caps & MMC_CAP_WAIT_WHILE_BUSY)
-+			break;
-+		if (mmc_host_is_spi(card->host))
-+			break;
-+	} while (R1_CURRENT_STATE(status) == 7);
-+
-+	if (mmc_host_is_spi(card->host)) {
-+		if (status & R1_SPI_ILLEGAL_COMMAND)
-+			return -EBADMSG;
-+	} else {
-+		if (status & 0xFDFFA000)
-+			printk(KERN_WARNING "%s: unexpected status %#x after "
-+			       "switch", mmc_hostname(card->host), status);
-+		if (status & R1_SWITCH_ERROR)
-+			return -EBADMSG;
-+	}
-+
+ }
+@@ -818,6 +820,27 @@ mmc_omap_prepare_data(struct mmc_omap_ho
  	return 0;
  }
  
-diff -puN include/linux/mmc/mmc.h~mmc-check-status-after-mmc-switch-command include/linux/mmc/mmc.h
---- a/include/linux/mmc/mmc.h~mmc-check-status-after-mmc-switch-command
-+++ a/include/linux/mmc/mmc.h
-@@ -128,6 +128,7 @@
- #define R1_STATUS(x)            (x & 0xFFFFE000)
- #define R1_CURRENT_STATE(x)	((x & 0x00001E00) >> 9)	/* sx, b (4 bits) */
- #define R1_READY_FOR_DATA	(1 << 8)	/* sx, a */
-+#define R1_SWITCH_ERROR		(1 << 7)	/* sx, c */
- #define R1_APP_CMD		(1 << 5)	/* sr, c */
- 
++static int omap_mmc_enable(struct mmc_host *mmc)
++{
++	struct mmc_omap_host *host = mmc_priv(mmc);
++	int err;
++
++	err = clk_enable(host->fclk);
++	if (err)
++		return err;
++	dev_dbg(mmc_dev(host->mmc), "mmc_fclk: enabled\n");
++	return 0;
++}
++
++static int omap_mmc_disable(struct mmc_host *mmc, int lazy)
++{
++	struct mmc_omap_host *host = mmc_priv(mmc);
++
++	clk_disable(host->fclk);
++	dev_dbg(mmc_dev(host->mmc), "mmc_fclk: disabled\n");
++	return 0;
++}
++
  /*
+  * Request function. for read/write operation
+  */
+@@ -841,6 +864,8 @@ static void omap_mmc_set_ios(struct mmc_
+ 	unsigned long timeout;
+ 	u32 con;
+ 
++	mmc_host_enable(host->mmc);
++
+ 	switch (ios->power_mode) {
+ 	case MMC_POWER_OFF:
+ 		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+@@ -919,6 +944,8 @@ static void omap_mmc_set_ios(struct mmc_
+ 	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
+ 		OMAP_HSMMC_WRITE(host->base, CON,
+ 				OMAP_HSMMC_READ(host->base, CON) | OD);
++
++	mmc_host_lazy_disable(host->mmc);
+ }
+ 
+ static int omap_hsmmc_get_cd(struct mmc_host *mmc)
+@@ -969,6 +996,8 @@ static void omap_hsmmc_init(struct mmc_o
+ }
+ 
+ static struct mmc_host_ops mmc_omap_ops = {
++	.enable = omap_mmc_enable,
++	.disable = omap_mmc_disable,
+ 	.request = omap_mmc_request,
+ 	.set_ios = omap_mmc_set_ios,
+ 	.get_cd = omap_hsmmc_get_cd,
+@@ -983,7 +1012,16 @@ static int mmc_regs_show(struct seq_file
+ 	struct mmc_host *mmc = s->private;
+ 	struct mmc_omap_host *host = mmc_priv(mmc);
+ 
+-	seq_printf(s, "mmc%d regs:\n", mmc->index);
++	seq_printf(s, "mmc%d:\n"
++			" enabled:\t%d\n"
++			" nesting_cnt:\t%d\n"
++			"\nregs:\n",
++			mmc->index, mmc->enabled ? 1 : 0, mmc->nesting_cnt);
++
++	if (clk_enable(host->fclk) != 0) {
++		seq_printf(s, "can't read the regs\n");
++		goto err;
++	}
+ 
+ 	seq_printf(s, "SYSCONFIG:\t0x%08x\n",
+ 			OMAP_HSMMC_READ(host->base, SYSCONFIG));
+@@ -999,6 +1037,9 @@ static int mmc_regs_show(struct seq_file
+ 			OMAP_HSMMC_READ(host->base, ISE));
+ 	seq_printf(s, "CAPA:\t\t0x%08x\n",
+ 			OMAP_HSMMC_READ(host->base, CAPA));
++
++	clk_disable(host->fclk);
++err:
+ 	return 0;
+ }
+ 
+@@ -1099,14 +1140,16 @@ static int __init omap_mmc_probe(struct 
+ 		goto err1;
+ 	}
+ 
+-	if (clk_enable(host->fclk) != 0) {
++	mmc->caps |= MMC_CAP_DISABLE;
++	mmc_set_disable_delay(mmc, msecs_to_jiffies(100));
++	if (mmc_host_enable(host->mmc) != 0) {
+ 		clk_put(host->iclk);
+ 		clk_put(host->fclk);
+ 		goto err1;
+ 	}
+ 
+ 	if (clk_enable(host->iclk) != 0) {
+-		clk_disable(host->fclk);
++		mmc_host_disable(host->mmc);
+ 		clk_put(host->iclk);
+ 		clk_put(host->fclk);
+ 		goto err1;
+@@ -1197,6 +1240,8 @@ static int __init omap_mmc_probe(struct 
+ 	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
+ 	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
+ 
++	mmc_host_lazy_disable(host->mmc);
++
+ 	mmc_add_host(mmc);
+ 
+ 	if (host->pdata->slots[host->slot_id].name != NULL) {
+@@ -1225,7 +1270,7 @@ err_irq_cd:
+ err_irq_cd_init:
+ 	free_irq(host->irq, host);
+ err_irq:
+-	clk_disable(host->fclk);
++	mmc_host_disable(host->mmc);
+ 	clk_disable(host->iclk);
+ 	clk_put(host->fclk);
+ 	clk_put(host->iclk);
+@@ -1250,6 +1295,7 @@ static int omap_mmc_remove(struct platfo
+ 	struct resource *res;
+ 
+ 	if (host) {
++		mmc_host_enable(host->mmc);
+ 		mmc_remove_host(host->mmc);
+ 		if (host->pdata->cleanup)
+ 			host->pdata->cleanup(&pdev->dev);
+@@ -1258,7 +1304,7 @@ static int omap_mmc_remove(struct platfo
+ 			free_irq(mmc_slot(host).card_detect_irq, host);
+ 		flush_scheduled_work();
+ 
+-		clk_disable(host->fclk);
++		mmc_host_disable(host->mmc);
+ 		clk_disable(host->iclk);
+ 		clk_put(host->fclk);
+ 		clk_put(host->iclk);
+@@ -1289,6 +1335,7 @@ static int omap_mmc_suspend(struct platf
+ 		return 0;
+ 
+ 	if (host) {
++		mmc_host_enable(host->mmc);
+ 		ret = mmc_suspend_host(host->mmc, state);
+ 		if (ret == 0) {
+ 			host->suspended = 1;
+@@ -1307,10 +1354,11 @@ static int omap_mmc_suspend(struct platf
+ 
+ 			OMAP_HSMMC_WRITE(host->base, HCTL,
+ 					 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+-			clk_disable(host->fclk);
++			mmc_host_disable(host->mmc);
+ 			clk_disable(host->iclk);
+ 			clk_disable(host->dbclk);
+-		}
++		} else
++			mmc_host_disable(host->mmc);
+ 
+ 	}
+ 	return ret;
+@@ -1327,13 +1375,12 @@ static int omap_mmc_resume(struct platfo
+ 
+ 	if (host) {
+ 
+-		ret = clk_enable(host->fclk);
+-		if (ret)
++		if (mmc_host_enable(host->mmc) != 0)
+ 			goto clk_en_err;
+ 
+ 		ret = clk_enable(host->iclk);
+ 		if (ret) {
+-			clk_disable(host->fclk);
++			mmc_host_disable(host->mmc);
+ 			clk_put(host->fclk);
+ 			goto clk_en_err;
+ 		}
+@@ -1355,6 +1402,7 @@ static int omap_mmc_resume(struct platfo
+ 		ret = mmc_resume_host(host->mmc);
+ 		if (ret == 0)
+ 			host->suspended = 0;
++		mmc_host_lazy_disable(host->mmc);
+ 	}
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
 linux-next.patch
 mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-mmc-check-status-after-mmc-switch-command.patch
-omap_hsmmc-add-debugfs-entry-host-registers.patch
 omap_hsmmc-make-use-of-new-enable-disable-interface.patch
 arm-omap-mmc-twl4030-add-context-loss-counter-support.patch
 omap_hsmmc-keep-track-of-power-mode.patch
