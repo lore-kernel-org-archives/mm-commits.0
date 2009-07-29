@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch added to -mm tree
-Date: Wed, 29 Jul 2009 13:58:53 -0700
-Message-ID: <200907292058.n6TKwrVJ009985@imap1.linux-foundation.org>
+Subject: + omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch added to -mm tree
+Date: Wed, 29 Jul 2009 13:58:46 -0700
+Message-ID: <200907292058.n6TKwlrO009848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752776AbZG2U7L (ORCPT
+	by vger.kernel.org with ESMTP id S1751917AbZG2U7F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 16:59:11 -0400
+	Wed, 29 Jul 2009 16:59:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, j
 
 
 The patch titled
-     omap_hsmmc: ensure all clock enables and disables are paired
+     omap_hsmmc: pass host capabilities for SD only and MMC only
 has been added to the -mm tree.  Its filename is
-     omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch
+     omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: ensure all clock enables and disables are paired
+Subject: omap_hsmmc: pass host capabilities for SD only and MMC only
 From: Adrian Hunter <adrian.hunter@nokia.com>
+
+Some hosts can accept only certain types of cards.  For example, an eMMC
+is MMC only and a uSD slot may be SD only.  Pass host capabilities from
+the board through to the driver.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Acked-by: Matt Fleming <matt@console-pimps.org>
@@ -48,67 +52,80 @@ Cc: Philip Langdale <philipl@overt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/mmc-twl4030.c     |    5 ++---
+ arch/arm/mach-omap2/mmc-twl4030.h     |    2 +-
+ arch/arm/plat-omap/include/mach/mmc.h |    6 +++---
+ drivers/mmc/host/omap_hsmmc.c         |    7 ++++---
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -742,22 +742,24 @@ static int omap_hsmmc_switch_opcond(stru
- 	/* Disable the clocks */
- 	clk_disable(host->fclk);
- 	clk_disable(host->iclk);
--	clk_disable(host->dbclk);
-+	if (host->dbclk_enabled)
-+		clk_disable(host->dbclk);
+diff -puN arch/arm/mach-omap2/mmc-twl4030.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only arch/arm/mach-omap2/mmc-twl4030.c
+--- a/arch/arm/mach-omap2/mmc-twl4030.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
++++ a/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -464,12 +464,11 @@ void __init twl4030_mmc_init(struct twl4
+ 		} else
+ 			mmc->slots[0].gpio_wp = -EINVAL;
  
- 	/* Turn the power off */
- 	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
--	if (ret != 0)
--		goto err;
- 
- 	/* Turn the power ON with given VDD 1.8 or 3.0v */
--	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1, vdd);
-+	if (!ret)
-+		ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1,
-+					       vdd);
-+	clk_enable(host->iclk);
-+	if (host->dbclk_enabled)
-+		clk_enable(host->dbclk);
-+	clk_enable(host->fclk);
-+
- 	if (ret != 0)
- 		goto err;
- 
--	clk_enable(host->fclk);
--	clk_enable(host->iclk);
--	clk_enable(host->dbclk);
+-		if (c->nonremovable)
+-			mmc->slots[0].nonremovable = 1;
 -
- 	OMAP_HSMMC_WRITE(host->base, HCTL,
- 		OMAP_HSMMC_READ(host->base, HCTL) & SDVSCLR);
- 	reg_val = OMAP_HSMMC_READ(host->base, HCTL);
-@@ -1908,7 +1910,8 @@ static int omap_hsmmc_suspend(struct pla
- 				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
- 			mmc_host_disable(host->mmc);
- 			clk_disable(host->iclk);
--			clk_disable(host->dbclk);
-+			if (host->dbclk_enabled)
-+				clk_disable(host->dbclk);
- 		} else {
- 			host->suspended = 0;
- 			if (host->pdata->resume) {
-@@ -1939,9 +1942,8 @@ static int omap_hsmmc_resume(struct plat
- 		if (ret)
- 			goto clk_en_err;
+ 		if (c->power_saving)
+ 			mmc->slots[0].power_saving = 1;
  
--		if (clk_enable(host->dbclk) != 0)
--			dev_dbg(mmc_dev(host->mmc),
--					"Enabling debounce clk failed\n");
-+		if (host->dbclk_enabled)
-+			clk_enable(host->dbclk);
++		mmc->slots[0].caps = c->caps;
++
+ 		/* NOTE:  MMC slots should have a Vcc regulator set up.
+ 		 * This may be from a TWL4030-family chip, another
+ 		 * controllable regulator, or a fixed supply.
+diff -puN arch/arm/mach-omap2/mmc-twl4030.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only arch/arm/mach-omap2/mmc-twl4030.h
+--- a/arch/arm/mach-omap2/mmc-twl4030.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
++++ a/arch/arm/mach-omap2/mmc-twl4030.h
+@@ -12,8 +12,8 @@ struct twl4030_hsmmc_info {
+ 	bool	transceiver;	/* MMC-2 option */
+ 	bool	ext_clock;	/* use external pin for input clock */
+ 	bool	cover_only;	/* No card detect - just cover switch */
+-	bool	nonremovable;	/* Nonremovable e.g. eMMC */
+ 	bool	power_saving;	/* Try to sleep or power off when possible */
++	unsigned long caps;	/* MMC host capabilities */
+ 	int	gpio_cd;	/* or -EINVAL */
+ 	int	gpio_wp;	/* or -EINVAL */
+ 	char	*name;		/* or NULL for default */
+diff -puN arch/arm/plat-omap/include/mach/mmc.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only arch/arm/plat-omap/include/mach/mmc.h
+--- a/arch/arm/plat-omap/include/mach/mmc.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
++++ a/arch/arm/plat-omap/include/mach/mmc.h
+@@ -83,12 +83,12 @@ struct omap_mmc_platform_data {
+ 		/* use the internal clock */
+ 		unsigned internal_clock:1;
  
- 		if (mmc_host_enable(host->mmc) != 0) {
- 			clk_disable(host->iclk);
+-		/* nonremovable e.g. eMMC */
+-		unsigned nonremovable:1;
+-
+ 		/* Try to sleep or power off when possible */
+ 		unsigned power_saving:1;
+ 
++		/* MMC host capabilities */
++		unsigned long caps;
++
+ 		int switch_pin;			/* gpio (card detect) */
+ 		int gpio_wp;			/* gpio (write protect) */
+ 
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -1671,10 +1671,11 @@ static int __init omap_mmc_probe(struct 
+ 	else if (mmc_slot(host).wires >= 4)
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+ 
+-	if (mmc_slot(host).nonremovable)
+-		mmc->caps |= MMC_CAP_NONREMOVABLE;
++	mmc->caps |= mmc_slot(host).caps;
+ 
+-	mmc->caps |= MMC_CAP_SDIO | MMC_CAP_SD | MMC_CAP_MMC;
++	/* If no card caps specified then assume them all */
++	if (!(mmc->caps & (MMC_CAP_SDIO | MMC_CAP_SD | MMC_CAP_MMC)))
++		mmc->caps |= MMC_CAP_SDIO | MMC_CAP_SD | MMC_CAP_MMC;
+ 
+ 	omap_hsmmc_init(host);
+ 
 _
 
 Patches currently in -mm which might be from adrian.hunter@nokia.com are
