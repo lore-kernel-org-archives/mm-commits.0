@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-iprh-fix-buffer-overflow.patch added to -mm tree
-Date: Wed, 29 Jul 2009 14:08:12 -0700
-Message-ID: <200907292108.n6TL8CIX025212@imap1.linux-foundation.org>
+Subject: + drivers-scsi-u14-34fc-fix-uffer-overflow.patch added to -mm tree
+Date: Wed, 29 Jul 2009 14:09:20 -0700
+Message-ID: <200907292109.n6TL9KKs027092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44369 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752357AbZG2VIr (ORCPT
+	by vger.kernel.org with ESMTP id S1752706AbZG2VJ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 17:08:47 -0400
+	Wed, 29 Jul 2009 17:09:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, brking@us.ibm.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, ballabio_dario@emc.com
 
 
 The patch titled
-     drivers/scsi/ipr.h: fix buffer overflow
+     drivers/scsi/u14-34f.c: fix uffer overflow
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-iprh-fix-buffer-overflow.patch
+     drivers-scsi-u14-34fc-fix-uffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/ipr.h: fix buffer overflow
+Subject: drivers/scsi/u14-34f.c: fix uffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-ioa_cfg->ipr_cmd_label is 8 bytes, IPR_CMD_LABEL is the string "ipr_cmnd",
-ie 9 bytes including terminating null.
-
-This patch also corrects the sizes of the other strings.
+This allows i == MAX_INT_PARAM, which is out of range for ints[]
 
 Found with Parfait, http://research.sun.com/projects/parfait/
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Brian King <brking@us.ibm.com>
+Cc: Dario Ballabio <ballabio_dario@emc.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ipr.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/scsi/u14-34f.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ipr.h~drivers-scsi-iprh-fix-buffer-overflow drivers/scsi/ipr.h
---- a/drivers/scsi/ipr.h~drivers-scsi-iprh-fix-buffer-overflow
-+++ a/drivers/scsi/ipr.h
-@@ -1081,7 +1081,7 @@ enum ipr_cache_state {
+diff -puN drivers/scsi/u14-34f.c~drivers-scsi-u14-34fc-fix-uffer-overflow drivers/scsi/u14-34f.c
+--- a/drivers/scsi/u14-34f.c~drivers-scsi-u14-34fc-fix-uffer-overflow
++++ a/drivers/scsi/u14-34f.c
+@@ -1070,7 +1070,7 @@ static int option_setup(char *str) {
+    char *cur = str;
+    int i = 1;
  
- /* Per-controller data */
- struct ipr_ioa_cfg {
--	char eye_catcher[8];
-+	char eye_catcher[7];
- #define IPR_EYECATCHER			"iprcfg"
+-   while (cur && isdigit(*cur) && i <= MAX_INT_PARAM) {
++   while (cur && isdigit(*cur) && i < MAX_INT_PARAM) {
+       ints[i++] = simple_strtoul(cur, NULL, 0);
  
- 	struct list_head queue;
-@@ -1111,7 +1111,7 @@ struct ipr_ioa_cfg {
- #define IPR_NUM_TRACE_INDEX_BITS	8
- #define IPR_NUM_TRACE_ENTRIES		(1 << IPR_NUM_TRACE_INDEX_BITS)
- #define IPR_TRACE_SIZE	(sizeof(struct ipr_trace_entry) * IPR_NUM_TRACE_ENTRIES)
--	char trace_start[8];
-+	char trace_start[6];
- #define IPR_TRACE_START_LABEL			"trace"
- 	struct ipr_trace_entry *trace;
- 	u32 trace_index:IPR_NUM_TRACE_INDEX_BITS;
-@@ -1119,18 +1119,18 @@ struct ipr_ioa_cfg {
- 	/*
- 	 * Queue for free command blocks
- 	 */
--	char ipr_free_label[8];
-+	char ipr_free_label[7];
- #define IPR_FREEQ_LABEL			"free-q"
- 	struct list_head free_q;
- 
- 	/*
- 	 * Queue for command blocks outstanding to the adapter
- 	 */
--	char ipr_pending_label[8];
-+	char ipr_pending_label[7];
- #define IPR_PENDQ_LABEL			"pend-q"
- 	struct list_head pending_q;
- 
--	char cfg_table_start[8];
-+	char cfg_table_start[4];
- #define IPR_CFG_TBL_START		"cfg"
- 	struct ipr_config_table *cfg_table;
- 	dma_addr_t cfg_table_dma;
-@@ -1141,7 +1141,7 @@ struct ipr_ioa_cfg {
- 	struct list_head free_res_q;
- 	struct list_head used_res_q;
- 
--	char ipr_hcam_label[8];
-+	char ipr_hcam_label[6];
- #define IPR_HCAM_LABEL			"hcams"
- 	struct ipr_hostrcb *hostrcb[IPR_NUM_HCAMS];
- 	dma_addr_t hostrcb_dma[IPR_NUM_HCAMS];
-@@ -1198,7 +1198,7 @@ struct ipr_ioa_cfg {
- 	int (*reset) (struct ipr_cmnd *);
- 
- 	struct ata_host ata_host;
--	char ipr_cmd_label[8];
-+	char ipr_cmd_label[9];
- #define IPR_CMD_LABEL		"ipr_cmnd"
- 	struct ipr_cmnd *ipr_cmnd_list[IPR_NUM_CMD_BLKS];
- 	u32 ipr_cmnd_list_dma[IPR_NUM_CMD_BLKS];
+       if ((cur = strchr(cur, ',')) != NULL) cur++;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -142,6 +90,7 @@ ibmmca-buffer-overflow.patch
 scsi-eata-fix-buffer-overflow.patch
 drivers-scsi-gdthc-fix-buffer-overflow.patch
 drivers-scsi-iprh-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
 libertas-fix-read-outside-array-bounds.patch
 libertas-read-buffer-overflow.patch
 frv-duplicate-output_buffer-of-e03.patch
