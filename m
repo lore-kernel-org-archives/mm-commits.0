@@ -1,297 +1,425 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-fix-pid-namespace-bug.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:37:07 -0700
-Message-ID: <200907302037.n6UKb7j7010874@imap1.linux-foundation.org>
+Subject: [merged] lib-flexible-array-implementation.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 13:37:34 -0700
+Message-ID: <200907302037.n6UKbYMC011618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36951 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752075AbZG3Uh3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752014AbZG3Uhk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 16:37:29 -0400
+	Thu, 30 Jul 2009 16:37:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@in.ibm.com, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: dave@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: fix pid namespace bug
+     lib: flexible array implementation
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-pid-namespace-bug.patch
+     lib-flexible-array-implementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix pid namespace bug
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: lib: flexible array implementation
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-The bug was introduced by commit cc31edceee04a7b87f2be48f9489ebb72d264844
-("cgroups: convert tasks file to use a seq_file with shared pid array").
+Once a structure goes over PAGE_SIZE*2, we see occasional allocation
+failures.  Some people have chosen to switch over to things like vmalloc()
+that will let them keep array-like access to such a large structures. 
+But, vmalloc() has plenty of downsides.
 
-We cache a pid array for all threads that are opening the same "tasks"
-file, but the pids in the array are always from the namespace of the
-last process that opened the file, so all other threads will read pids
-from that namespace instead of their own namespaces.
+Here's an alternative.  I think it's what Andrew was suggesting here:
 
-To fix it, we maintain a list of pid arrays, which is keyed by pid_ns.
-The list will be of length 1 at most time.
+	http://lkml.org/lkml/2009/7/2/518
 
-Reported-by: Paul Menage <menage@google.com>
-Idea-by: Paul Menage <menage@google.com>
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Reviewed-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+I call it a flexible array.  It does all of its work in PAGE_SIZE bits, so
+never does an order>0 allocation.  The base level has
+PAGE_SIZE-2*sizeof(int) bytes of storage for pointers to the second level.
+ So, with a 32-bit arch, you get about 4MB (4183112 bytes) of total
+storage when the objects pack nicely into a page.  It is half that on
+64-bit because the pointers are twice the size.  There's a table detailing
+this in the code.
+
+There are kerneldocs for the functions, but here's an
+overview:
+
+flex_array_alloc() - dynamically allocate a base structure
+flex_array_free() - free the array and all of the
+		    second-level pages
+flex_array_free_parts() - free the second-level pages, but
+			  not the base (for static bases)
+flex_array_put() - copy into the array at the given index
+flex_array_get() - copy out of the array at the given index
+flex_array_prealloc() - preallocate the second-level pages
+			between the given indexes to
+			guarantee no allocs will occur at
+			put() time.
+
+We could also potentially just pass the "element_size" into each of the
+API functions instead of storing it internally.  That would get us one
+more base pointer on 32-bit.
+
+I've been testing this by running it in userspace.  The header and patch
+that I've been using are here, as well as the little script I'm using to
+generate the size table which goes in the kerneldocs.
+
+	http://sr71.net/~dave/linux/flexarray/
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   11 +---
- kernel/cgroup.c        |   96 +++++++++++++++++++++++++++++----------
- 2 files changed, 76 insertions(+), 31 deletions(-)
+ include/linux/flex_array.h |   47 ++++++
+ lib/Makefile               |    2 
+ lib/flex_array.c           |  269 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 317 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/cgroup.h~cgroups-fix-pid-namespace-bug include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-fix-pid-namespace-bug
-+++ a/include/linux/cgroup.h
-@@ -179,14 +179,11 @@ struct cgroup {
- 	 */
- 	struct list_head release_list;
- 
--	/* pids_mutex protects the fields below */
-+	/* pids_mutex protects pids_list and cached pid arrays. */
- 	struct rw_semaphore pids_mutex;
--	/* Array of process ids in the cgroup */
--	pid_t *tasks_pids;
--	/* How many files are using the current tasks_pids array */
--	int pids_use_count;
--	/* Length of the current tasks_pids array */
--	int pids_length;
+diff -puN /dev/null include/linux/flex_array.h
+--- /dev/null
++++ a/include/linux/flex_array.h
+@@ -0,0 +1,47 @@
++#ifndef _FLEX_ARRAY_H
++#define _FLEX_ARRAY_H
 +
-+	/* Linked list of struct cgroup_pids */
-+	struct list_head pids_list;
- 
- 	/* For RCU-protected deletion */
- 	struct rcu_head rcu_head;
-diff -puN kernel/cgroup.c~cgroups-fix-pid-namespace-bug kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-pid-namespace-bug
-+++ a/kernel/cgroup.c
-@@ -47,6 +47,7 @@
- #include <linux/hash.h>
- #include <linux/namei.h>
- #include <linux/smp_lock.h>
-+#include <linux/pid_namespace.h>
- 
- #include <asm/atomic.h>
- 
-@@ -960,6 +961,7 @@ static void init_cgroup_housekeeping(str
- 	INIT_LIST_HEAD(&cgrp->children);
- 	INIT_LIST_HEAD(&cgrp->css_sets);
- 	INIT_LIST_HEAD(&cgrp->release_list);
-+	INIT_LIST_HEAD(&cgrp->pids_list);
- 	init_rwsem(&cgrp->pids_mutex);
- }
- static void init_cgroup_root(struct cgroupfs_root *root)
-@@ -2201,12 +2203,30 @@ err:
- 	return ret;
- }
- 
++#include <linux/types.h>
++#include <asm/page.h>
++
++#define FLEX_ARRAY_PART_SIZE PAGE_SIZE
++#define FLEX_ARRAY_BASE_SIZE PAGE_SIZE
++
++struct flex_array_part;
++
 +/*
-+ * Cache pids for all threads in the same pid namespace that are
-+ * opening the same "tasks" file.
++ * This is meant to replace cases where an array-like
++ * structure has gotten too big to fit into kmalloc()
++ * and the developer is getting tempted to use
++ * vmalloc().
 + */
-+struct cgroup_pids {
-+	/* The node in cgrp->pids_list */
-+	struct list_head list;
-+	/* The cgroup those pids belong to */
-+	struct cgroup *cgrp;
-+	/* The namepsace those pids belong to */
-+	struct pid_namespace *ns;
-+	/* Array of process ids in the cgroup */
-+	pid_t *tasks_pids;
-+	/* How many files are using the this tasks_pids array */
-+	int use_count;
-+	/* Length of the current tasks_pids array */
-+	int length;
++
++struct flex_array {
++	union {
++		struct {
++			int element_size;
++			int total_nr_elements;
++			struct flex_array_part *parts[0];
++		};
++		/*
++		 * This little trick makes sure that
++		 * sizeof(flex_array) == PAGE_SIZE
++		 */
++		char padding[FLEX_ARRAY_BASE_SIZE];
++	};
 +};
 +
- static int cmppid(const void *a, const void *b)
- {
- 	return *(pid_t *)a - *(pid_t *)b;
- }
- 
--
- /*
-  * seq_file methods for the "tasks" file. The seq_file position is the
-  * next pid to display; the seq_file iterator is a pointer to the pid
-@@ -2221,45 +2241,47 @@ static void *cgroup_tasks_start(struct s
- 	 * after a seek to the start). Use a binary-search to find the
- 	 * next pid to display, if any
- 	 */
--	struct cgroup *cgrp = s->private;
-+	struct cgroup_pids *cp = s->private;
-+	struct cgroup *cgrp = cp->cgrp;
- 	int index = 0, pid = *pos;
- 	int *iter;
- 
- 	down_read(&cgrp->pids_mutex);
- 	if (pid) {
--		int end = cgrp->pids_length;
-+		int end = cp->length;
- 
- 		while (index < end) {
- 			int mid = (index + end) / 2;
--			if (cgrp->tasks_pids[mid] == pid) {
-+			if (cp->tasks_pids[mid] == pid) {
- 				index = mid;
- 				break;
--			} else if (cgrp->tasks_pids[mid] <= pid)
-+			} else if (cp->tasks_pids[mid] <= pid)
- 				index = mid + 1;
- 			else
- 				end = mid;
- 		}
- 	}
- 	/* If we're off the end of the array, we're done */
--	if (index >= cgrp->pids_length)
-+	if (index >= cp->length)
- 		return NULL;
- 	/* Update the abstract position to be the actual pid that we found */
--	iter = cgrp->tasks_pids + index;
-+	iter = cp->tasks_pids + index;
- 	*pos = *iter;
- 	return iter;
- }
- 
- static void cgroup_tasks_stop(struct seq_file *s, void *v)
- {
--	struct cgroup *cgrp = s->private;
-+	struct cgroup_pids *cp = s->private;
-+	struct cgroup *cgrp = cp->cgrp;
- 	up_read(&cgrp->pids_mutex);
- }
- 
- static void *cgroup_tasks_next(struct seq_file *s, void *v, loff_t *pos)
- {
--	struct cgroup *cgrp = s->private;
-+	struct cgroup_pids *cp = s->private;
- 	int *p = v;
--	int *end = cgrp->tasks_pids + cgrp->pids_length;
-+	int *end = cp->tasks_pids + cp->length;
- 
- 	/*
- 	 * Advance to the next pid in the array. If this goes off the
-@@ -2286,26 +2308,33 @@ static struct seq_operations cgroup_task
- 	.show = cgroup_tasks_show,
- };
- 
--static void release_cgroup_pid_array(struct cgroup *cgrp)
-+static void release_cgroup_pid_array(struct cgroup_pids *cp)
- {
-+	struct cgroup *cgrp = cp->cgrp;
++#define FLEX_ARRAY_INIT(size, total) { { {\
++	.element_size = (size),		\
++	.total_nr_elements = (total),	\
++} } }
 +
- 	down_write(&cgrp->pids_mutex);
--	BUG_ON(!cgrp->pids_use_count);
--	if (!--cgrp->pids_use_count) {
--		kfree(cgrp->tasks_pids);
--		cgrp->tasks_pids = NULL;
--		cgrp->pids_length = 0;
-+	BUG_ON(!cp->use_count);
-+	if (!--cp->use_count) {
-+		list_del(&cp->list);
-+		put_pid_ns(cp->ns);
-+		kfree(cp->tasks_pids);
-+		kfree(cp);
- 	}
- 	up_write(&cgrp->pids_mutex);
- }
- 
- static int cgroup_tasks_release(struct inode *inode, struct file *file)
- {
--	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
-+	struct seq_file *seq;
-+	struct cgroup_pids *cp;
- 
- 	if (!(file->f_mode & FMODE_READ))
- 		return 0;
- 
--	release_cgroup_pid_array(cgrp);
-+	seq = file->private_data;
-+	cp = seq->private;
++struct flex_array *flex_array_alloc(int element_size, int total, gfp_t flags);
++int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags);
++void flex_array_free(struct flex_array *fa);
++void flex_array_free_parts(struct flex_array *fa);
++int flex_array_put(struct flex_array *fa, int element_nr, void *src,
++		gfp_t flags);
++void *flex_array_get(struct flex_array *fa, int element_nr);
 +
-+	release_cgroup_pid_array(cp);
- 	return seq_release(inode, file);
- }
++#endif /* _FLEX_ARRAY_H */
+diff -puN lib/Makefile~lib-flexible-array-implementation lib/Makefile
+--- a/lib/Makefile~lib-flexible-array-implementation
++++ a/lib/Makefile
+@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 idr.o int_sqrt.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
+ 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
+-	 is_single_threaded.o plist.o decompress.o
++	 is_single_threaded.o plist.o decompress.o flex_array.o
  
-@@ -2324,6 +2353,8 @@ static struct file_operations cgroup_tas
- static int cgroup_tasks_open(struct inode *unused, struct file *file)
- {
- 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
-+	struct pid_namespace *ns = current->nsproxy->pid_ns;
-+	struct cgroup_pids *cp;
- 	pid_t *pidarray;
- 	int npids;
- 	int retval;
-@@ -2350,20 +2381,37 @@ static int cgroup_tasks_open(struct inod
- 	 * array if necessary
- 	 */
- 	down_write(&cgrp->pids_mutex);
--	kfree(cgrp->tasks_pids);
--	cgrp->tasks_pids = pidarray;
--	cgrp->pids_length = npids;
--	cgrp->pids_use_count++;
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
+diff -puN /dev/null lib/flex_array.c
+--- /dev/null
++++ a/lib/flex_array.c
+@@ -0,0 +1,269 @@
++/*
++ * Flexible array managed in PAGE_SIZE parts
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ *
++ * Copyright IBM Corporation, 2009
++ *
++ * Author: Dave Hansen <dave@linux.vnet.ibm.com>
++ */
 +
-+	list_for_each_entry(cp, &cgrp->pids_list, list) {
-+		if (ns == cp->ns)
-+			goto found;
++#include <linux/flex_array.h>
++#include <linux/slab.h>
++#include <linux/stddef.h>
++
++struct flex_array_part {
++	char elements[FLEX_ARRAY_PART_SIZE];
++};
++
++static inline int __elements_per_part(int element_size)
++{
++	return FLEX_ARRAY_PART_SIZE / element_size;
++}
++
++static inline int bytes_left_in_base(void)
++{
++	int element_offset = offsetof(struct flex_array, parts);
++	int bytes_left = FLEX_ARRAY_BASE_SIZE - element_offset;
++	return bytes_left;
++}
++
++static inline int nr_base_part_ptrs(void)
++{
++	return bytes_left_in_base() / sizeof(struct flex_array_part *);
++}
++
++/*
++ * If a user requests an allocation which is small
++ * enough, we may simply use the space in the
++ * flex_array->parts[] array to store the user
++ * data.
++ */
++static inline int elements_fit_in_base(struct flex_array *fa)
++{
++	int data_size = fa->element_size * fa->total_nr_elements;
++	if (data_size <= bytes_left_in_base())
++		return 1;
++	return 0;
++}
++
++/**
++ * flex_array_alloc - allocate a new flexible array
++ * @element_size:	the size of individual elements in the array
++ * @total:		total number of elements that this should hold
++ *
++ * Note: all locking must be provided by the caller.
++ *
++ * @total is used to size internal structures.  If the user ever
++ * accesses any array indexes >=@total, it will produce errors.
++ *
++ * The maximum number of elements is defined as: the number of
++ * elements that can be stored in a page times the number of
++ * page pointers that we can fit in the base structure or (using
++ * integer math):
++ *
++ * 	(PAGE_SIZE/element_size) * (PAGE_SIZE-8)/sizeof(void *)
++ *
++ * Here's a table showing example capacities.  Note that the maximum
++ * index that the get/put() functions is just nr_objects-1.   This
++ * basically means that you get 4MB of storage on 32-bit and 2MB on
++ * 64-bit.
++ *
++ *
++ * Element size | Objects | Objects |
++ * PAGE_SIZE=4k |  32-bit |  64-bit |
++ * ---------------------------------|
++ *      1 bytes | 4186112 | 2093056 |
++ *      2 bytes | 2093056 | 1046528 |
++ *      3 bytes | 1395030 |  697515 |
++ *      4 bytes | 1046528 |  523264 |
++ *     32 bytes |  130816 |   65408 |
++ *     33 bytes |  126728 |   63364 |
++ *   2048 bytes |    2044 |    1022 |
++ *   2049 bytes |    1022 |     511 |
++ *       void * | 1046528 |  261632 |
++ *
++ * Since 64-bit pointers are twice the size, we lose half the
++ * capacity in the base structure.  Also note that no effort is made
++ * to efficiently pack objects across page boundaries.
++ */
++struct flex_array *flex_array_alloc(int element_size, int total, gfp_t flags)
++{
++	struct flex_array *ret;
++	int max_size = nr_base_part_ptrs() * __elements_per_part(element_size);
++
++	/* max_size will end up 0 if element_size > PAGE_SIZE */
++	if (total > max_size)
++		return NULL;
++	ret = kzalloc(sizeof(struct flex_array), flags);
++	if (!ret)
++		return NULL;
++	ret->element_size = element_size;
++	ret->total_nr_elements = total;
++	return ret;
++}
++
++static int fa_element_to_part_nr(struct flex_array *fa, int element_nr)
++{
++	return element_nr / __elements_per_part(fa->element_size);
++}
++
++/**
++ * flex_array_free_parts - just free the second-level pages
++ * @src:	address of data to copy into the array
++ * @element_nr:	index of the position in which to insert
++ * 		the new element.
++ *
++ * This is to be used in cases where the base 'struct flex_array'
++ * has been statically allocated and should not be free.
++ */
++void flex_array_free_parts(struct flex_array *fa)
++{
++	int part_nr;
++	int max_part = nr_base_part_ptrs();
++
++	if (elements_fit_in_base(fa))
++		return;
++	for (part_nr = 0; part_nr < max_part; part_nr++)
++		kfree(fa->parts[part_nr]);
++}
++
++void flex_array_free(struct flex_array *fa)
++{
++	flex_array_free_parts(fa);
++	kfree(fa);
++}
++
++static int fa_index_inside_part(struct flex_array *fa, int element_nr)
++{
++	return element_nr % __elements_per_part(fa->element_size);
++}
++
++static int index_inside_part(struct flex_array *fa, int element_nr)
++{
++	int part_offset = fa_index_inside_part(fa, element_nr);
++	return part_offset * fa->element_size;
++}
++
++static struct flex_array_part *
++__fa_get_part(struct flex_array *fa, int part_nr, gfp_t flags)
++{
++	struct flex_array_part *part = fa->parts[part_nr];
++	if (!part) {
++		/*
++		 * This leaves the part pages uninitialized
++		 * and with potentially random data, just
++		 * as if the user had kmalloc()'d the whole.
++		 * __GFP_ZERO can be used to zero it.
++		 */
++		part = kmalloc(FLEX_ARRAY_PART_SIZE, flags);
++		if (!part)
++			return NULL;
++		fa->parts[part_nr] = part;
 +	}
++	return part;
++}
 +
-+	cp = kzalloc(sizeof(*cp), GFP_KERNEL);
-+	if (!cp) {
-+		up_write(&cgrp->pids_mutex);
-+		kfree(pidarray);
++/**
++ * flex_array_put - copy data into the array at @element_nr
++ * @src:	address of data to copy into the array
++ * @element_nr:	index of the position in which to insert
++ * 		the new element.
++ *
++ * Note that this *copies* the contents of @src into
++ * the array.  If you are trying to store an array of
++ * pointers, make sure to pass in &ptr instead of ptr.
++ *
++ * Locking must be provided by the caller.
++ */
++int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags)
++{
++	int part_nr = fa_element_to_part_nr(fa, element_nr);
++	struct flex_array_part *part;
++	void *dst;
++
++	if (element_nr >= fa->total_nr_elements)
++		return -ENOSPC;
++	if (elements_fit_in_base(fa))
++		part = (struct flex_array_part *)&fa->parts[0];
++	else
++		part = __fa_get_part(fa, part_nr, flags);
++	if (!part)
 +		return -ENOMEM;
++	dst = &part->elements[index_inside_part(fa, element_nr)];
++	memcpy(dst, src, fa->element_size);
++	return 0;
++}
++
++/**
++ * flex_array_prealloc - guarantee that array space exists
++ * @start:	index of first array element for which space is allocated
++ * @end:	index of last (inclusive) element for which space is allocated
++ *
++ * This will guarantee that no future calls to flex_array_put()
++ * will allocate memory.  It can be used if you are expecting to
++ * be holding a lock or in some atomic context while writing
++ * data into the array.
++ *
++ * Locking must be provided by the caller.
++ */
++int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags)
++{
++	int start_part;
++	int end_part;
++	int part_nr;
++	struct flex_array_part *part;
++
++	if (start >= fa->total_nr_elements || end >= fa->total_nr_elements)
++		return -ENOSPC;
++	if (elements_fit_in_base(fa))
++		return 0;
++	start_part = fa_element_to_part_nr(fa, start);
++	end_part = fa_element_to_part_nr(fa, end);
++	for (part_nr = start_part; part_nr <= end_part; part_nr++) {
++		part = __fa_get_part(fa, part_nr, flags);
++		if (!part)
++			return -ENOMEM;
 +	}
-+	cp->cgrp = cgrp;
-+	cp->ns = ns;
-+	get_pid_ns(ns);
-+	list_add(&cp->list, &cgrp->pids_list);
-+found:
-+	kfree(cp->tasks_pids);
-+	cp->tasks_pids = pidarray;
-+	cp->length = npids;
-+	cp->use_count++;
- 	up_write(&cgrp->pids_mutex);
- 
- 	file->f_op = &cgroup_tasks_operations;
- 
- 	retval = seq_open(file, &cgroup_tasks_seq_operations);
- 	if (retval) {
--		release_cgroup_pid_array(cgrp);
-+		release_cgroup_pid_array(cp);
- 		return retval;
- 	}
--	((struct seq_file *)file->private_data)->private = cgrp;
-+	((struct seq_file *)file->private_data)->private = cp;
- 	return 0;
- }
- 
++	return 0;
++}
++
++/**
++ * flex_array_get - pull data back out of the array
++ * @element_nr:	index of the element to fetch from the array
++ *
++ * Returns a pointer to the data at index @element_nr.  Note
++ * that this is a copy of the data that was passed in.  If you
++ * are using this to store pointers, you'll get back &ptr.
++ *
++ * Locking must be provided by the caller.
++ */
++void *flex_array_get(struct flex_array *fa, int element_nr)
++{
++	int part_nr = fa_element_to_part_nr(fa, element_nr);
++	struct flex_array_part *part;
++	int index;
++
++	if (element_nr >= fa->total_nr_elements)
++		return NULL;
++	if (!fa->parts[part_nr])
++		return NULL;
++	if (elements_fit_in_base(fa))
++		part = (struct flex_array_part *)&fa->parts[0];
++	else
++		part = fa->parts[part_nr];
++	index = index_inside_part(fa, element_nr);
++	return &part->elements[index_inside_part(fa, element_nr)];
++}
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
 origin.patch
 linux-next.patch
-cgroups-support-named-cgroups-hierarchies.patch
-cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
-cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
-cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
 
