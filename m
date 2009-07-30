@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-m25p80-fix-null-pointer-dereference-bug.patch added to -mm tree
-Date: Wed, 29 Jul 2009 17:04:20 -0700
-Message-ID: <200907300004.n6U04KJ5019636@imap1.linux-foundation.org>
+Subject: + memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch added to -mm tree
+Date: Thu, 30 Jul 2009 01:56:41 -0700
+Message-ID: <200907300856.n6U8ufCY006541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55894 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58456 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755557AbZG3AFv (ORCPT
+	by vger.kernel.org with ESMTP id S1751565AbZG3I5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jul 2009 20:05:51 -0400
+	Thu, 30 Jul 2009 04:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, david-b@pacbell.net, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com
 
 
 The patch titled
-     mtd: m25p80: fix null pointer dereference bug
+     memory-controller-soft-limit-reclaim-on-contention-v9-fix
 has been added to the -mm tree.  Its filename is
-     mtd-m25p80-fix-null-pointer-dereference-bug.patch
+     memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: m25p80: fix null pointer dereference bug
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: memory-controller-soft-limit-reclaim-on-contention-v9-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch fixes the following oops, observed with MTD_PARTITIONS=n:
+build fix
 
-m25p80 spi32766.0: m25p80 (1024 Kbytes)
-Unable to handle kernel paging request for data at address 0x00000008
-Faulting instruction address: 0xc03a54b0
-Oops: Kernel access of bad area, sig: 11 [#1]
-Modules linked in:
-NIP: c03a54b0 LR: c03a5494 CTR: c01e98b8
-REGS: ef82bb60 TRAP: 0300   Not tainted  (2.6.31-rc4-00167-g4733fd3)
-MSR: 00029000 <EE,ME,CE>  CR: 24022022  XER: 20000000
-DEAR: 00000008, ESR: 00000000
-TASK = ef82c000[1] 'swapper' THREAD: ef82a000
-GPR00: 00000000 ef82bc10 ef82c000 0000002e 00001eb8 ffffffff c01e9824 00000036
-GPR08: c054ed40 c0542a08 00001eb8 00004000 22022022 1001a1a0 3ff8fd00 00000000
-GPR16: 00000000 00000001 00000000 00000000 ef82bddc c0530000 efbef500 ef8356d0
-GPR24: 00000000 ef8356d0 00000000 efbf7a00 c0530ec4 ffffffed efbf5300 c0541f98
-NIP [c03a54b0] m25p_probe+0x22c/0x354
-LR [c03a5494] m25p_probe+0x210/0x354
-Call Trace:
-[ef82bc10] [c03a5494] m25p_probe+0x210/0x354 (unreliable)
-[ef82bca0] [c024e37c] spi_drv_probe+0x2c/0x3c
-[ef82bcb0] [c01f1afc] driver_probe_device+0xa4/0x178
-[ef82bcd0] [c01f06e8] bus_for_each_drv+0x6c/0xa8
-[ef82bd00] [c01f1a34] device_attach+0x84/0xa8
-...
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/m25p80.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~mtd-m25p80-fix-null-pointer-dereference-bug drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~mtd-m25p80-fix-null-pointer-dereference-bug
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -736,7 +736,7 @@ static int __devinit m25p_probe(struct s
- 			flash->partitioned = 1;
- 			return add_mtd_partitions(&flash->mtd, parts, nr_parts);
- 		}
--	} else if (data->nr_parts)
-+	} else if (data && data->nr_parts)
- 		dev_warn(&spi->dev, "ignoring %d default partitions on %s\n",
- 				data->nr_parts, data->name);
+diff -puN include/linux/memcontrol.h~memory-controller-soft-limit-reclaim-on-contention-v9-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-soft-limit-reclaim-on-contention-v9-fix
++++ a/include/linux/memcontrol.h
+@@ -281,8 +281,7 @@ static inline void mem_cgroup_update_map
  
+ static inline
+ unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
+-						gfp_t gfp_mask, int nid,
+-						int zid, int priority)
++					    gfp_t gfp_mask, int nid, int zid)
+ {
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc.patch
+lib-flexible-array-implementation.patch
 linux-next.patch
-mtd-sst25l-non-jedec-spi-flash-driver.patch
-mtd-sst25l-non-jedec-spi-flash-driver-update.patch
-mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
-mtd-m25p80-fix-null-pointer-dereference-bug.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
