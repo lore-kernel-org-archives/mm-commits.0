@@ -1,274 +1,286 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroup-avoid-permanent-sleep-at-rmdir-v7.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:37:12 -0700
-Message-ID: <200907302037.n6UKbCf0011064@imap1.linux-foundation.org>
+Subject: [merged] cgroups-fix-pid-namespace-bug.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 13:37:07 -0700
+Message-ID: <200907302037.n6UKb7j7010874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34836 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752075AbZG3UhX (ORCPT
+	by vger.kernel.org with ESMTP id S1752075AbZG3Uh3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 16:37:23 -0400
+	Thu, 30 Jul 2009 16:37:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, balbir@in.ibm.com, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup avoid permanent sleep at rmdir
+     cgroups: fix pid namespace bug
 has been removed from the -mm tree.  Its filename was
-     cgroup-avoid-permanent-sleep-at-rmdir-v7.patch
+     cgroups-fix-pid-namespace-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup avoid permanent sleep at rmdir
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: cgroups: fix pid namespace bug
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-After commit ec64f51545fffbc4cb968f0cea56341a4b07e85a ("cgroup: fix
-frequent -EBUSY at rmdir"), cgroup's rmdir (especially against memcg)
-doesn't return -EBUSY by temporary ref counts.  That commit expects all
-refs after pre_destroy() is temporary but...it wasn't.  Then, rmdir can
-wait permanently.  This patch tries to fix that and change followings.
+The bug was introduced by commit cc31edceee04a7b87f2be48f9489ebb72d264844
+("cgroups: convert tasks file to use a seq_file with shared pid array").
 
- - set CGRP_WAIT_ON_RMDIR flag before pre_destroy().
- - clear CGRP_WAIT_ON_RMDIR flag when the subsys finds racy case.
-   if there are sleeping ones, wakes them up.
- - rmdir() sleeps only when CGRP_WAIT_ON_RMDIR flag is set.
+We cache a pid array for all threads that are opening the same "tasks"
+file, but the pids in the array are always from the namespace of the
+last process that opened the file, so all other threads will read pids
+from that namespace instead of their own namespaces.
 
-Tested-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reported-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reviewed-by: Paul Menage <menage@google.com>
-Acked-by: Balbir Sigh <balbir@linux.vnet.ibm.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To fix it, we maintain a list of pid arrays, which is keyed by pid_ns.
+The list will be of length 1 at most time.
+
+Reported-by: Paul Menage <menage@google.com>
+Idea-by: Paul Menage <menage@google.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Reviewed-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   17 ++++++++++++
- kernel/cgroup.c        |   55 ++++++++++++++++++++++++++-------------
- mm/memcontrol.c        |   23 ++++++++++++++--
- 3 files changed, 75 insertions(+), 20 deletions(-)
+ include/linux/cgroup.h |   11 +---
+ kernel/cgroup.c        |   96 +++++++++++++++++++++++++++++----------
+ 2 files changed, 76 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroup-avoid-permanent-sleep-at-rmdir-v7 include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-avoid-permanent-sleep-at-rmdir-v7
+diff -puN include/linux/cgroup.h~cgroups-fix-pid-namespace-bug include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-fix-pid-namespace-bug
 +++ a/include/linux/cgroup.h
-@@ -363,6 +363,23 @@ int cgroup_task_count(const struct cgrou
- int cgroup_is_descendant(const struct cgroup *cgrp, struct task_struct *task);
+@@ -179,14 +179,11 @@ struct cgroup {
+ 	 */
+ 	struct list_head release_list;
  
- /*
-+ * When the subsys has to access css and may add permanent refcnt to css,
-+ * it should take care of racy conditions with rmdir(). Following set of
-+ * functions, is for stop/restart rmdir if necessary.
-+ * Because these will call css_get/put, "css" should be alive css.
-+ *
-+ *  cgroup_exclude_rmdir();
-+ *  ...do some jobs which may access arbitrary empty cgroup
-+ *  cgroup_release_and_wakeup_rmdir();
-+ *
-+ *  When someone removes a cgroup while cgroup_exclude_rmdir() holds it,
-+ *  it sleeps and cgroup_release_and_wakeup_rmdir() will wake him up.
-+ */
+-	/* pids_mutex protects the fields below */
++	/* pids_mutex protects pids_list and cached pid arrays. */
+ 	struct rw_semaphore pids_mutex;
+-	/* Array of process ids in the cgroup */
+-	pid_t *tasks_pids;
+-	/* How many files are using the current tasks_pids array */
+-	int pids_use_count;
+-	/* Length of the current tasks_pids array */
+-	int pids_length;
 +
-+void cgroup_exclude_rmdir(struct cgroup_subsys_state *css);
-+void cgroup_release_and_wakeup_rmdir(struct cgroup_subsys_state *css);
-+
-+/*
-  * Control Group subsystem type.
-  * See Documentation/cgroups/cgroups.txt for details
-  */
-diff -puN kernel/cgroup.c~cgroup-avoid-permanent-sleep-at-rmdir-v7 kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-avoid-permanent-sleep-at-rmdir-v7
++	/* Linked list of struct cgroup_pids */
++	struct list_head pids_list;
+ 
+ 	/* For RCU-protected deletion */
+ 	struct rcu_head rcu_head;
+diff -puN kernel/cgroup.c~cgroups-fix-pid-namespace-bug kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-pid-namespace-bug
 +++ a/kernel/cgroup.c
-@@ -735,16 +735,28 @@ static void cgroup_d_remove_dir(struct d
-  * reference to css->refcnt. In general, this refcnt is expected to goes down
-  * to zero, soon.
-  *
-- * CGRP_WAIT_ON_RMDIR flag is modified under cgroup's inode->i_mutex;
-+ * CGRP_WAIT_ON_RMDIR flag is set under cgroup's inode->i_mutex;
-  */
- DECLARE_WAIT_QUEUE_HEAD(cgroup_rmdir_waitq);
+@@ -47,6 +47,7 @@
+ #include <linux/hash.h>
+ #include <linux/namei.h>
+ #include <linux/smp_lock.h>
++#include <linux/pid_namespace.h>
  
--static void cgroup_wakeup_rmdir_waiters(const struct cgroup *cgrp)
-+static void cgroup_wakeup_rmdir_waiter(struct cgroup *cgrp)
- {
--	if (unlikely(test_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags)))
-+	if (unlikely(test_and_clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags)))
- 		wake_up_all(&cgroup_rmdir_waitq);
+ #include <asm/atomic.h>
+ 
+@@ -960,6 +961,7 @@ static void init_cgroup_housekeeping(str
+ 	INIT_LIST_HEAD(&cgrp->children);
+ 	INIT_LIST_HEAD(&cgrp->css_sets);
+ 	INIT_LIST_HEAD(&cgrp->release_list);
++	INIT_LIST_HEAD(&cgrp->pids_list);
+ 	init_rwsem(&cgrp->pids_mutex);
  }
- 
-+void cgroup_exclude_rmdir(struct cgroup_subsys_state *css)
-+{
-+	css_get(css);
-+}
-+
-+void cgroup_release_and_wakeup_rmdir(struct cgroup_subsys_state *css)
-+{
-+	cgroup_wakeup_rmdir_waiter(css->cgroup);
-+	css_put(css);
-+}
-+
-+
- static int rebind_subsystems(struct cgroupfs_root *root,
- 			      unsigned long final_bits)
- {
-@@ -1359,7 +1371,7 @@ int cgroup_attach_task(struct cgroup *cg
- 	 * wake up rmdir() waiter. the rmdir should fail since the cgroup
- 	 * is no longer empty.
- 	 */
--	cgroup_wakeup_rmdir_waiters(cgrp);
-+	cgroup_wakeup_rmdir_waiter(cgrp);
- 	return 0;
- }
- 
-@@ -2744,33 +2756,42 @@ again:
- 	mutex_unlock(&cgroup_mutex);
- 
- 	/*
-+	 * In general, subsystem has no css->refcnt after pre_destroy(). But
-+	 * in racy cases, subsystem may have to get css->refcnt after
-+	 * pre_destroy() and it makes rmdir return with -EBUSY. This sometimes
-+	 * make rmdir return -EBUSY too often. To avoid that, we use waitqueue
-+	 * for cgroup's rmdir. CGRP_WAIT_ON_RMDIR is for synchronizing rmdir
-+	 * and subsystem's reference count handling. Please see css_get/put
-+	 * and css_tryget() and cgroup_wakeup_rmdir_waiter() implementation.
-+	 */
-+	set_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
-+
-+	/*
- 	 * Call pre_destroy handlers of subsys. Notify subsystems
- 	 * that rmdir() request comes.
- 	 */
- 	ret = cgroup_call_pre_destroy(cgrp);
--	if (ret)
-+	if (ret) {
-+		clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
- 		return ret;
-+	}
- 
- 	mutex_lock(&cgroup_mutex);
- 	parent = cgrp->parent;
- 	if (atomic_read(&cgrp->count) || !list_empty(&cgrp->children)) {
-+		clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
- 		mutex_unlock(&cgroup_mutex);
- 		return -EBUSY;
- 	}
--	/*
--	 * css_put/get is provided for subsys to grab refcnt to css. In typical
--	 * case, subsystem has no reference after pre_destroy(). But, under
--	 * hierarchy management, some *temporal* refcnt can be hold.
--	 * To avoid returning -EBUSY to a user, waitqueue is used. If subsys
--	 * is really busy, it should return -EBUSY at pre_destroy(). wake_up
--	 * is called when css_put() is called and refcnt goes down to 0.
--	 */
--	set_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
- 	prepare_to_wait(&cgroup_rmdir_waitq, &wait, TASK_INTERRUPTIBLE);
--
- 	if (!cgroup_clear_css_refs(cgrp)) {
- 		mutex_unlock(&cgroup_mutex);
--		schedule();
-+		/*
-+		 * Because someone may call cgroup_wakeup_rmdir_waiter() before
-+		 * prepare_to_wait(), we need to check this flag.
-+		 */
-+		if (test_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags))
-+			schedule();
- 		finish_wait(&cgroup_rmdir_waitq, &wait);
- 		clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
- 		if (signal_pending(current))
-@@ -3342,7 +3363,7 @@ void __css_put(struct cgroup_subsys_stat
- 			set_bit(CGRP_RELEASABLE, &cgrp->flags);
- 			check_for_release(cgrp);
- 		}
--		cgroup_wakeup_rmdir_waiters(cgrp);
-+		cgroup_wakeup_rmdir_waiter(cgrp);
- 	}
- 	rcu_read_unlock();
- }
-diff -puN mm/memcontrol.c~cgroup-avoid-permanent-sleep-at-rmdir-v7 mm/memcontrol.c
---- a/mm/memcontrol.c~cgroup-avoid-permanent-sleep-at-rmdir-v7
-+++ a/mm/memcontrol.c
-@@ -1207,6 +1207,12 @@ static int mem_cgroup_move_account(struc
- 	ret = 0;
- out:
- 	unlock_page_cgroup(pc);
-+	/*
-+	 * We charges against "to" which may not have any tasks. Then, "to"
-+	 * can be under rmdir(). But in current implementation, caller of
-+	 * this function is just force_empty() and it's garanteed that
-+	 * "to" is never removed. So, we don't check rmdir status here.
-+	 */
+ static void init_cgroup_root(struct cgroupfs_root *root)
+@@ -2201,12 +2203,30 @@ err:
  	return ret;
  }
  
-@@ -1428,6 +1434,7 @@ __mem_cgroup_commit_charge_swapin(struct
- 		return;
- 	if (!ptr)
- 		return;
-+	cgroup_exclude_rmdir(&ptr->css);
- 	pc = lookup_page_cgroup(page);
- 	mem_cgroup_lru_del_before_commit_swapcache(page);
- 	__mem_cgroup_commit_charge(ptr, pc, ctype);
-@@ -1457,8 +1464,12 @@ __mem_cgroup_commit_charge_swapin(struct
- 		}
- 		rcu_read_unlock();
- 	}
--	/* add this page(page_cgroup) to the LRU we want. */
--
-+	/*
-+	 * At swapin, we may charge account against cgroup which has no tasks.
-+	 * So, rmdir()->pre_destroy() can be called while we do this charge.
-+	 * In that case, we need to call pre_destroy() again. check it here.
-+	 */
-+	cgroup_release_and_wakeup_rmdir(&ptr->css);
++/*
++ * Cache pids for all threads in the same pid namespace that are
++ * opening the same "tasks" file.
++ */
++struct cgroup_pids {
++	/* The node in cgrp->pids_list */
++	struct list_head list;
++	/* The cgroup those pids belong to */
++	struct cgroup *cgrp;
++	/* The namepsace those pids belong to */
++	struct pid_namespace *ns;
++	/* Array of process ids in the cgroup */
++	pid_t *tasks_pids;
++	/* How many files are using the this tasks_pids array */
++	int use_count;
++	/* Length of the current tasks_pids array */
++	int length;
++};
++
+ static int cmppid(const void *a, const void *b)
+ {
+ 	return *(pid_t *)a - *(pid_t *)b;
  }
  
- void mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *ptr)
-@@ -1664,7 +1675,7 @@ void mem_cgroup_end_migration(struct mem
- 
- 	if (!mem)
- 		return;
 -
-+	cgroup_exclude_rmdir(&mem->css);
- 	/* at migration success, oldpage->mapping is NULL. */
- 	if (oldpage->mapping) {
- 		target = oldpage;
-@@ -1704,6 +1715,12 @@ void mem_cgroup_end_migration(struct mem
- 	 */
- 	if (ctype == MEM_CGROUP_CHARGE_TYPE_MAPPED)
- 		mem_cgroup_uncharge_page(target);
-+	/*
-+	 * At migration, we may charge account against cgroup which has no tasks
-+	 * So, rmdir()->pre_destroy() can be called while we do this charge.
-+	 * In that case, we need to call pre_destroy() again. check it here.
-+	 */
-+	cgroup_release_and_wakeup_rmdir(&mem->css);
- }
- 
  /*
+  * seq_file methods for the "tasks" file. The seq_file position is the
+  * next pid to display; the seq_file iterator is a pointer to the pid
+@@ -2221,45 +2241,47 @@ static void *cgroup_tasks_start(struct s
+ 	 * after a seek to the start). Use a binary-search to find the
+ 	 * next pid to display, if any
+ 	 */
+-	struct cgroup *cgrp = s->private;
++	struct cgroup_pids *cp = s->private;
++	struct cgroup *cgrp = cp->cgrp;
+ 	int index = 0, pid = *pos;
+ 	int *iter;
+ 
+ 	down_read(&cgrp->pids_mutex);
+ 	if (pid) {
+-		int end = cgrp->pids_length;
++		int end = cp->length;
+ 
+ 		while (index < end) {
+ 			int mid = (index + end) / 2;
+-			if (cgrp->tasks_pids[mid] == pid) {
++			if (cp->tasks_pids[mid] == pid) {
+ 				index = mid;
+ 				break;
+-			} else if (cgrp->tasks_pids[mid] <= pid)
++			} else if (cp->tasks_pids[mid] <= pid)
+ 				index = mid + 1;
+ 			else
+ 				end = mid;
+ 		}
+ 	}
+ 	/* If we're off the end of the array, we're done */
+-	if (index >= cgrp->pids_length)
++	if (index >= cp->length)
+ 		return NULL;
+ 	/* Update the abstract position to be the actual pid that we found */
+-	iter = cgrp->tasks_pids + index;
++	iter = cp->tasks_pids + index;
+ 	*pos = *iter;
+ 	return iter;
+ }
+ 
+ static void cgroup_tasks_stop(struct seq_file *s, void *v)
+ {
+-	struct cgroup *cgrp = s->private;
++	struct cgroup_pids *cp = s->private;
++	struct cgroup *cgrp = cp->cgrp;
+ 	up_read(&cgrp->pids_mutex);
+ }
+ 
+ static void *cgroup_tasks_next(struct seq_file *s, void *v, loff_t *pos)
+ {
+-	struct cgroup *cgrp = s->private;
++	struct cgroup_pids *cp = s->private;
+ 	int *p = v;
+-	int *end = cgrp->tasks_pids + cgrp->pids_length;
++	int *end = cp->tasks_pids + cp->length;
+ 
+ 	/*
+ 	 * Advance to the next pid in the array. If this goes off the
+@@ -2286,26 +2308,33 @@ static struct seq_operations cgroup_task
+ 	.show = cgroup_tasks_show,
+ };
+ 
+-static void release_cgroup_pid_array(struct cgroup *cgrp)
++static void release_cgroup_pid_array(struct cgroup_pids *cp)
+ {
++	struct cgroup *cgrp = cp->cgrp;
++
+ 	down_write(&cgrp->pids_mutex);
+-	BUG_ON(!cgrp->pids_use_count);
+-	if (!--cgrp->pids_use_count) {
+-		kfree(cgrp->tasks_pids);
+-		cgrp->tasks_pids = NULL;
+-		cgrp->pids_length = 0;
++	BUG_ON(!cp->use_count);
++	if (!--cp->use_count) {
++		list_del(&cp->list);
++		put_pid_ns(cp->ns);
++		kfree(cp->tasks_pids);
++		kfree(cp);
+ 	}
+ 	up_write(&cgrp->pids_mutex);
+ }
+ 
+ static int cgroup_tasks_release(struct inode *inode, struct file *file)
+ {
+-	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
++	struct seq_file *seq;
++	struct cgroup_pids *cp;
+ 
+ 	if (!(file->f_mode & FMODE_READ))
+ 		return 0;
+ 
+-	release_cgroup_pid_array(cgrp);
++	seq = file->private_data;
++	cp = seq->private;
++
++	release_cgroup_pid_array(cp);
+ 	return seq_release(inode, file);
+ }
+ 
+@@ -2324,6 +2353,8 @@ static struct file_operations cgroup_tas
+ static int cgroup_tasks_open(struct inode *unused, struct file *file)
+ {
+ 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
++	struct pid_namespace *ns = current->nsproxy->pid_ns;
++	struct cgroup_pids *cp;
+ 	pid_t *pidarray;
+ 	int npids;
+ 	int retval;
+@@ -2350,20 +2381,37 @@ static int cgroup_tasks_open(struct inod
+ 	 * array if necessary
+ 	 */
+ 	down_write(&cgrp->pids_mutex);
+-	kfree(cgrp->tasks_pids);
+-	cgrp->tasks_pids = pidarray;
+-	cgrp->pids_length = npids;
+-	cgrp->pids_use_count++;
++
++	list_for_each_entry(cp, &cgrp->pids_list, list) {
++		if (ns == cp->ns)
++			goto found;
++	}
++
++	cp = kzalloc(sizeof(*cp), GFP_KERNEL);
++	if (!cp) {
++		up_write(&cgrp->pids_mutex);
++		kfree(pidarray);
++		return -ENOMEM;
++	}
++	cp->cgrp = cgrp;
++	cp->ns = ns;
++	get_pid_ns(ns);
++	list_add(&cp->list, &cgrp->pids_list);
++found:
++	kfree(cp->tasks_pids);
++	cp->tasks_pids = pidarray;
++	cp->length = npids;
++	cp->use_count++;
+ 	up_write(&cgrp->pids_mutex);
+ 
+ 	file->f_op = &cgroup_tasks_operations;
+ 
+ 	retval = seq_open(file, &cgroup_tasks_seq_operations);
+ 	if (retval) {
+-		release_cgroup_pid_array(cgrp);
++		release_cgroup_pid_array(cp);
+ 		return retval;
+ 	}
+-	((struct seq_file *)file->private_data)->private = cgrp;
++	((struct seq_file *)file->private_data)->private = cp;
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
-mm-clean-up-page_remove_rmap.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-kcore-fix-proc-kcores-statst_size.patch
+linux-next.patch
 cgroups-support-named-cgroups-hierarchies.patch
 cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
 cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
@@ -276,8 +288,6 @@ cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
 memory-controller-soft-limit-documentation-v9.patch
 memory-controller-soft-limit-interface-v9.patch
 memory-controller-soft-limit-organize-cgroups-v9.patch
