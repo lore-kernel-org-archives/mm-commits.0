@@ -1,132 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:34:50 -0700
-Message-ID: <200907302034.n6UKYo3R007198@imap1.linux-foundation.org>
+Subject: [merged] lib-export-generic-atomic64_t-functions.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 13:37:03 -0700
+Message-ID: <200907302037.n6UKb3cH010780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751951AbZG3UgU (ORCPT
+	by vger.kernel.org with ESMTP id S1752023AbZG3UhG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 16:36:20 -0400
+	Thu, 30 Jul 2009 16:37:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, kamezawa.hiroyu@jp.fujitsu.com, narayanan.g@samsung.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: rdreier@cisco.com, paulus@samba.org, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-allocator: preserve PFN ordering when __GFP_COLD is set
+     lib: export generic atomic64_t functions
 has been removed from the -mm tree.  Its filename was
-     page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set.patch
+     lib-export-generic-atomic64_t-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator: preserve PFN ordering when __GFP_COLD is set
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: lib: export generic atomic64_t functions
+From: Roland Dreier <rdreier@cisco.com>
 
-Fix a post-2.6.24 performace regression caused by
-3dfa5721f12c3d5a441448086bee156887daa961 ("page-allocator: preserve PFN
-ordering when __GFP_COLD is set").
+The generic atomic64_t implementation in lib/ did not export the functions
+it defined, which means that modules that use atomic64_t would not link on
+platforms (such as 32-bit powerpc).  For example, trying to build a kernel
+with CONFIG_NET_RDS on such a platform would fail with:
 
-Narayanan reports "The regression is around 15%.  There is no disk controller
-as our setup is based on Samsung OneNAND used as a memory mapped device on a
-OMAP2430 based board."
+    ERROR: "atomic64_read" [net/rds/rds.ko] undefined!
+    ERROR: "atomic64_set" [net/rds/rds.ko] undefined!
 
-The page allocator tries to preserve contiguous PFN ordering when returning
-pages such that repeated callers to the allocator have a strong chance of
-getting physically contiguous pages, particularly when external fragmentation
-is low.  However, of the bulk of the allocations have __GFP_COLD set as they
-are due to aio_read() for example, then the PFNs are in reverse PFN order. 
-This can cause performance degration when used with IO controllers that could
-have merged the requests.
+Fix this by exporting the atomic64_t functions to modules.  (I export the
+entire API even if it's not all currently used by in-tree modules to avoid
+having to continue fixing this in dribs and drabs)
 
-This patch attempts to preserve the contiguous ordering of PFNs for users of
-__GFP_COLD.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reported-by: Narayananu Gopalakrishnan <narayanan.g@samsung.com>
-Tested-by: Narayanan Gopalakrishnan <narayanan.g@samsung.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
+Acked-by: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ lib/atomic64.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/page_alloc.c~page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-preserve-pfn-ordering-when-__gfp_cold-is-set
-+++ a/mm/page_alloc.c
-@@ -882,7 +882,7 @@ retry_reserve:
-  */
- static int rmqueue_bulk(struct zone *zone, unsigned int order, 
- 			unsigned long count, struct list_head *list,
--			int migratetype)
-+			int migratetype, int cold)
- {
- 	int i;
- 	
-@@ -901,7 +901,10 @@ static int rmqueue_bulk(struct zone *zon
- 		 * merge IO requests if the physical pages are ordered
- 		 * properly.
- 		 */
--		list_add(&page->lru, list);
-+		if (likely(cold == 0))
-+			list_add(&page->lru, list);
-+		else
-+			list_add_tail(&page->lru, list);
- 		set_page_private(page, migratetype);
- 		list = &page->lru;
- 	}
-@@ -1119,7 +1122,8 @@ again:
- 		local_irq_save(flags);
- 		if (!pcp->count) {
- 			pcp->count = rmqueue_bulk(zone, 0,
--					pcp->batch, &pcp->list, migratetype);
-+					pcp->batch, &pcp->list,
-+					migratetype, cold);
- 			if (unlikely(!pcp->count))
- 				goto failed;
- 		}
-@@ -1138,7 +1142,8 @@ again:
- 		/* Allocate more to the pcp list if necessary */
- 		if (unlikely(&page->lru == &pcp->list)) {
- 			pcp->count += rmqueue_bulk(zone, 0,
--					pcp->batch, &pcp->list, migratetype);
-+					pcp->batch, &pcp->list,
-+					migratetype, cold);
- 			page = list_entry(pcp->list.next, struct page, lru);
- 		}
+diff -puN lib/atomic64.c~lib-export-generic-atomic64_t-functions lib/atomic64.c
+--- a/lib/atomic64.c~lib-export-generic-atomic64_t-functions
++++ a/lib/atomic64.c
+@@ -13,6 +13,7 @@
+ #include <linux/cache.h>
+ #include <linux/spinlock.h>
+ #include <linux/init.h>
++#include <linux/module.h>
+ #include <asm/atomic.h>
  
+ /*
+@@ -52,6 +53,7 @@ long long atomic64_read(const atomic64_t
+ 	spin_unlock_irqrestore(lock, flags);
+ 	return val;
+ }
++EXPORT_SYMBOL(atomic64_read);
+ 
+ void atomic64_set(atomic64_t *v, long long i)
+ {
+@@ -62,6 +64,7 @@ void atomic64_set(atomic64_t *v, long lo
+ 	v->counter = i;
+ 	spin_unlock_irqrestore(lock, flags);
+ }
++EXPORT_SYMBOL(atomic64_set);
+ 
+ void atomic64_add(long long a, atomic64_t *v)
+ {
+@@ -72,6 +75,7 @@ void atomic64_add(long long a, atomic64_
+ 	v->counter += a;
+ 	spin_unlock_irqrestore(lock, flags);
+ }
++EXPORT_SYMBOL(atomic64_add);
+ 
+ long long atomic64_add_return(long long a, atomic64_t *v)
+ {
+@@ -84,6 +88,7 @@ long long atomic64_add_return(long long 
+ 	spin_unlock_irqrestore(lock, flags);
+ 	return val;
+ }
++EXPORT_SYMBOL(atomic64_add_return);
+ 
+ void atomic64_sub(long long a, atomic64_t *v)
+ {
+@@ -94,6 +99,7 @@ void atomic64_sub(long long a, atomic64_
+ 	v->counter -= a;
+ 	spin_unlock_irqrestore(lock, flags);
+ }
++EXPORT_SYMBOL(atomic64_sub);
+ 
+ long long atomic64_sub_return(long long a, atomic64_t *v)
+ {
+@@ -106,6 +112,7 @@ long long atomic64_sub_return(long long 
+ 	spin_unlock_irqrestore(lock, flags);
+ 	return val;
+ }
++EXPORT_SYMBOL(atomic64_sub_return);
+ 
+ long long atomic64_dec_if_positive(atomic64_t *v)
+ {
+@@ -120,6 +127,7 @@ long long atomic64_dec_if_positive(atomi
+ 	spin_unlock_irqrestore(lock, flags);
+ 	return val;
+ }
++EXPORT_SYMBOL(atomic64_dec_if_positive);
+ 
+ long long atomic64_cmpxchg(atomic64_t *v, long long o, long long n)
+ {
+@@ -134,6 +142,7 @@ long long atomic64_cmpxchg(atomic64_t *v
+ 	spin_unlock_irqrestore(lock, flags);
+ 	return val;
+ }
++EXPORT_SYMBOL(atomic64_cmpxchg);
+ 
+ long long atomic64_xchg(atomic64_t *v, long long new)
+ {
+@@ -147,6 +156,7 @@ long long atomic64_xchg(atomic64_t *v, l
+ 	spin_unlock_irqrestore(lock, flags);
+ 	return val;
+ }
++EXPORT_SYMBOL(atomic64_xchg);
+ 
+ int atomic64_add_unless(atomic64_t *v, long long a, long long u)
+ {
+@@ -162,6 +172,7 @@ int atomic64_add_unless(atomic64_t *v, l
+ 	spin_unlock_irqrestore(lock, flags);
+ 	return ret;
+ }
++EXPORT_SYMBOL(atomic64_add_unless);
+ 
+ static int init_atomic64_lock(void)
+ {
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from rdreier@cisco.com are
 
 origin.patch
-memory-hotplug-update-zone-pcp-at-memory-online.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
-memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
-memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
-memory-hotplug-migrate-swap-cache-page.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-mm-clean-up-page_remove_rmap.patch
-mm-update-alloc_flags-after-oom-killer-has-been-called.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-vmscan-use-add_page_to_lru_list-helper-function.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+linux-next.patch
+ecryptfs-another-lockdep-issue.patch
+ummunotify-userspace-support-for-mmu-notifications.patch
 
