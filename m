@@ -1,135 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch added to -mm tree
-Date: Thu, 30 Jul 2009 01:56:41 -0700
-Message-ID: <200907300856.n6U8ufCY006541@imap1.linux-foundation.org>
+Subject: [failures] documentation-strncpy-does-not-null-terminate-string.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 02:27:52 -0700
+Message-ID: <200907300927.n6U9Rqbw024776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751565AbZG3I5X (ORCPT
+	by vger.kernel.org with ESMTP id S1750933AbZG3J22 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 04:57:23 -0400
+	Thu, 30 Jul 2009 05:28:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com
+To: roel.kluin@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory-controller-soft-limit-reclaim-on-contention-v9-fix
-has been added to the -mm tree.  Its filename is
-     memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+     Documentation/: strncpy does not null terminate string
+has been removed from the -mm tree.  Its filename was
+     documentation-strncpy-does-not-null-terminate-string.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-controller-soft-limit-reclaim-on-contention-v9-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Documentation/: strncpy does not null terminate string
+From: Roel Kluin <roel.kluin@gmail.com>
 
-build fix
+With `sizeof(string) - 1` strncpy() will null terminate the string.
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/accounting/getdelays.c                 |    2 +-
+ Documentation/input/joystick-api.txt                 |    2 +-
+ Documentation/networking/packet_mmap.txt             |    2 +-
+ Documentation/networking/timestamping/timestamping.c |    4 ++--
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memory-controller-soft-limit-reclaim-on-contention-v9-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memory-controller-soft-limit-reclaim-on-contention-v9-fix
-+++ a/include/linux/memcontrol.h
-@@ -281,8 +281,7 @@ static inline void mem_cgroup_update_map
+diff -puN Documentation/accounting/getdelays.c~documentation-strncpy-does-not-null-terminate-string Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~documentation-strncpy-does-not-null-terminate-string
++++ a/Documentation/accounting/getdelays.c
+@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
+ 				err(1, "Invalid rcv buf size\n");
+ 			break;
+ 		case 'm':
+-			strncpy(cpumask, optarg, sizeof(cpumask));
++			strlcpy(cpumask, optarg, sizeof(cpumask));
+ 			maskset = 1;
+ 			printf("cpumask %s maskset %d\n", cpumask, maskset);
+ 			break;
+diff -puN Documentation/input/joystick-api.txt~documentation-strncpy-does-not-null-terminate-string Documentation/input/joystick-api.txt
+--- a/Documentation/input/joystick-api.txt~documentation-strncpy-does-not-null-terminate-string
++++ a/Documentation/input/joystick-api.txt
+@@ -230,7 +230,7 @@ possible overrun should the name be too 
  
- static inline
- unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
--						gfp_t gfp_mask, int nid,
--						int zid, int priority)
-+					    gfp_t gfp_mask, int nid, int zid)
- {
- 	return 0;
- }
+ 	char name[128];
+ 	if (ioctl(fd, JSIOCGNAME(sizeof(name)), name) < 0)
+-		strncpy(name, "Unknown", sizeof(name));
++		strlcpy(name, "Unknown", sizeof(name));
+ 	printf("Name: %s\n", name);
+ 
+ 
+diff -puN Documentation/networking/packet_mmap.txt~documentation-strncpy-does-not-null-terminate-string Documentation/networking/packet_mmap.txt
+--- a/Documentation/networking/packet_mmap.txt~documentation-strncpy-does-not-null-terminate-string
++++ a/Documentation/networking/packet_mmap.txt
+@@ -148,7 +148,7 @@ As capture, each frame contains two part
+  struct ifreq s_ifr;
+  ...
+ 
+- strncpy (s_ifr.ifr_name, "eth0", sizeof(s_ifr.ifr_name));
++ strlcpy (s_ifr.ifr_name, "eth0", sizeof(s_ifr.ifr_name));
+ 
+  /* get interface index of eth0 */
+  ioctl(this->socket, SIOCGIFINDEX, &s_ifr);
+diff -puN Documentation/networking/timestamping/timestamping.c~documentation-strncpy-does-not-null-terminate-string Documentation/networking/timestamping/timestamping.c
+--- a/Documentation/networking/timestamping/timestamping.c~documentation-strncpy-does-not-null-terminate-string
++++ a/Documentation/networking/timestamping/timestamping.c
+@@ -374,12 +374,12 @@ int main(int argc, char **argv)
+ 		bail("socket");
+ 
+ 	memset(&device, 0, sizeof(device));
+-	strncpy(device.ifr_name, interface, sizeof(device.ifr_name));
++	strlcpy(device.ifr_name, interface, sizeof(device.ifr_name));
+ 	if (ioctl(sock, SIOCGIFADDR, &device) < 0)
+ 		bail("getting interface IP address");
+ 
+ 	memset(&hwtstamp, 0, sizeof(hwtstamp));
+-	strncpy(hwtstamp.ifr_name, interface, sizeof(hwtstamp.ifr_name));
++	strlcpy(hwtstamp.ifr_name, interface, sizeof(hwtstamp.ifr_name));
+ 	hwtstamp.ifr_data = (void *)&hwconfig;
+ 	memset(&hwconfig, 0, sizeof(&hwconfig));
+ 	hwconfig.tx_type =
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-lib-flexible-array-implementation.patch
+origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-vfs-optimize-touch_time-too-fix.patch
-watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
+x86-fix-buffer-overflow-in-efi_init.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+media-strncpy-does-not-null-terminate-string.patch
+ivtv-read-buffer-overflow.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+irda-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+cyclades-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-iprh-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+libertas-fix-read-outside-array-bounds.patch
+libertas-read-buffer-overflow.patch
+i915-fix-read-outside-array-bounds.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m32r-remove-redundant-tests-on-unsigned.patch
 m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+documentation-strncpy-does-not-null-terminate-string.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
