@@ -1,88 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-remove-l-linux-kernel-vgerkernelorg.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:37:50 -0700
-Message-ID: <200907302037.n6UKboo9012153@imap1.linux-foundation.org>
+Subject: [merged] maintainers-remove-ivtv-user-lists-add-cx18-url.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 13:37:44 -0700
+Message-ID: <200907302037.n6UKbivk011898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37596 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752321AbZG3UiV (ORCPT
+	by vger.kernel.org with ESMTP id S1752122AbZG3UiQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 16:38:21 -0400
+	Thu, 30 Jul 2009 16:38:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: Remove L: linux-kernel@vger.kernel.org
+     MAINTAINERS: Remove ivtv-user lists, add CX18 url
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-l-linux-kernel-vgerkernelorg.patch
+     maintainers-remove-ivtv-user-lists-add-cx18-url.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Remove L: linux-kernel@vger.kernel.org
-=46rom: Joe Perches <joe@perches.com>
-
-from sections that should not have them.
+Subject: MAINTAINERS: Remove ivtv-user lists, add CX18 url
+From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 -----
- 1 file changed, 5 deletions(-)
+ MAINTAINERS |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-l-linux-kernel-vgerkernelorg M=
-AINTAINERS
---- a/MAINTAINERS~maintainers-remove-l-linux-kernel-vgerkernelorg
+diff -puN MAINTAINERS~maintainers-remove-ivtv-user-lists-add-cx18-url MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-ivtv-user-lists-add-cx18-url
 +++ a/MAINTAINERS
-@@ -2204,7 +2204,6 @@ F:	drivers/scsi/lpfc/
- ENE CB710 FLASH CARD READER DRIVER
- P:	Micha=C5=82 Miros=C5=82aw
- M:	mirq-linux@rere.qmqm.pl
--L:	linux-kernel@vger.kernel.org
+@@ -1728,10 +1728,10 @@ M:	hverkuil@xs4all.nl
+ P:	Andy Walls
+ M:	awalls@radix.net
+ L:	ivtv-devel@ivtvdriver.org
+-L:	ivtv-users@ivtvdriver.org
+ L:	linux-media@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+ W:	http://linuxtv.org
++W:	http://www.ivtvdriver.org/index.php/Cx18
  S:	Maintained
- F:	drivers/misc/cb710/
- F:	drivers/mmc/host/cb710-mmc.*
-@@ -3480,13 +3479,11 @@ P:	Vegard Nossum
- M:	vegardno@ifi.uio.no
- P	Pekka Enberg
- M:	penberg@cs.helsinki.fi
--L:	linux-kernel@vger.kernel.org
- S:	Maintained
-=20
- KMEMLEAK
- P:	Catalin Marinas
- M:	catalin.marinas@arm.com
--L:	linux-kernel@vger.kernel.org
- S:	Maintained
- F:	Documentation/kmemleak.txt
- F:	include/linux/kmemleak.h
-@@ -4306,7 +4303,6 @@ F:	drivers/video/omap/
- OMAP MMC SUPPORT
- P:	Jarkko Lavinen
- M:	jarkko.lavinen@nokia.com
--L:	linux-kernel@vger.kernel.org
- L:	linux-omap@vger.kernel.org
- S:	Maintained
- F:	drivers/mmc/host/*omap*
-@@ -4588,7 +4584,6 @@ P:	Paul Mackerras
- M:	paulus@samba.org
- P:	Ingo Molnar
- M:	mingo@elte.hu
--L:	linux-kernel@vger.kernel.org
- S:	Supported
-=20
- PERSONALITY HANDLING
+ F:	Documentation/video4linux/cx18.txt
+ F:	drivers/media/video/cx18/
+@@ -3283,7 +3283,6 @@ IVTV VIDEO4LINUX DRIVER
+ P:	Hans Verkuil
+ M:	hverkuil@xs4all.nl
+ L:	ivtv-devel@ivtvdriver.org
+-L:	ivtv-users@ivtvdriver.org
+ L:	linux-media@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+ W:	http://www.ivtvdriver.org
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -94,8 +68,3 @@ msm_sdccc-convert-printkkern_level-to-pr_level.patch
 msm_sdccc-stylistic-cleaning.patch
 msm_sdccc-move-overly-indented-code-to-separate-function.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
