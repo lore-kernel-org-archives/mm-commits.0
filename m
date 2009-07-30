@@ -1,83 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlbfs-fix-i_blocks-accounting.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:35:15 -0700
-Message-ID: <200907302035.n6UKZFQV007760@imap1.linux-foundation.org>
+Subject: + drivers-w1-masters-omap_hdqc-fix-missing-mutex-unlock.patch added to -mm tree
+Date: Thu, 30 Jul 2009 13:43:50 -0700
+Message-ID: <200907302043.n6UKhoLJ021943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54225 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751000AbZG3UlV (ORCPT
+	by vger.kernel.org with ESMTP id S1751000AbZG3UoI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 16:41:21 -0400
+	Thu, 30 Jul 2009 16:44:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@sandeen.net, andi@firstfloor.org, sandeen@redhat.com, stable@kernel.org, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sgayda2@uiuc.edu, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     hugetlbfs: fix i_blocks accounting
-has been removed from the -mm tree.  Its filename was
-     hugetlbfs-fix-i_blocks-accounting.patch
+     drivers/w1/masters/omap_hdq.c: fix missing mutex unlock
+has been added to the -mm tree.  Its filename is
+     drivers-w1-masters-omap_hdqc-fix-missing-mutex-unlock.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlbfs: fix i_blocks accounting
-From: Eric Sandeen <sandeen@sandeen.net>
+Subject: drivers/w1/masters/omap_hdq.c: fix missing mutex unlock
+From: Stoyan Gaydarov <sgayda2@uiuc.edu>
 
-As reported in Red Hat bz #509671, i_blocks for files on hugetlbfs get
-accounting wrong when doing something like:
+This was found using a semantic patch, more info can be found at:
+http://www.emn.fr/x-info/coccinelle/
 
-   $ > foo
-   $ date  > foo
-   date: write error: Invalid argument
-   $ /usr/bin/stat foo
-     File: `foo'
-     Size: 0          Blocks: 18446744073709547520 IO Block: 2097152 regular
-...
-
-This is because hugetlb_unreserve_pages() is unconditionally removing
-blocks_per_huge_page(h) on each call rather than using the freed amount. 
-If there were 0 blocks, it goes negative, resulting in the above.
-
-This is a regression from commit a5516438959d90b071ff0a484ce4f3f523dc3152
-("hugetlb: modular state for hugetlb page size")
-
-which did:
-
--	inode->i_blocks -= BLOCKS_PER_HUGEPAGE * freed;
-+	inode->i_blocks -= blocks_per_huge_page(h);
-
-so just put back the freed multiplier, and it's all happy again.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Acked-by: Andi Kleen <andi@firstfloor.org>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Stoyan Gaydarov <sgayda2@uiuc.edu>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/w1/masters/omap_hdq.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/hugetlb.c~hugetlbfs-fix-i_blocks-accounting mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-fix-i_blocks-accounting
-+++ a/mm/hugetlb.c
-@@ -2370,7 +2370,7 @@ void hugetlb_unreserve_pages(struct inod
- 	long chg = region_truncate(&inode->i_mapping->private_list, offset);
+diff -puN drivers/w1/masters/omap_hdq.c~drivers-w1-masters-omap_hdqc-fix-missing-mutex-unlock drivers/w1/masters/omap_hdq.c
+--- a/drivers/w1/masters/omap_hdq.c~drivers-w1-masters-omap_hdqc-fix-missing-mutex-unlock
++++ a/drivers/w1/masters/omap_hdq.c
+@@ -687,6 +687,7 @@ static int omap_hdq_remove(struct platfo
  
- 	spin_lock(&inode->i_lock);
--	inode->i_blocks -= blocks_per_huge_page(h);
-+	inode->i_blocks -= (blocks_per_huge_page(h) * freed);
- 	spin_unlock(&inode->i_lock);
+ 	if (hdq_data->hdq_usecount) {
+ 		dev_dbg(&pdev->dev, "removed when use count is not zero\n");
++		mutex_unlock(&hdq_data->hdq_mutex);
+ 		return -EBUSY;
+ 	}
  
- 	hugetlb_put_quota(inode->i_mapping, (chg - freed));
 _
 
-Patches currently in -mm which might be from sandeen@sandeen.net are
+Patches currently in -mm which might be from sgayda2@uiuc.edu are
 
-origin.patch
+drivers-w1-masters-omap_hdqc-fix-missing-mutex-unlock.patch
 linux-next.patch
 
