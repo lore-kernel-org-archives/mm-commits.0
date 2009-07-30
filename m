@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch added to -mm tree
-Date: Thu, 30 Jul 2009 16:47:21 -0700
-Message-ID: <200907302347.n6UNlL9H028375@imap1.linux-foundation.org>
+Subject: + cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov.patch added to -mm tree
+Date: Thu, 30 Jul 2009 16:50:29 -0700
+Message-ID: <200907302350.n6UNoTLk001016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48820 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752477AbZG3Xrl (ORCPT
+	by vger.kernel.org with ESMTP id S1751508AbZG3XvB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 19:47:41 -0400
+	Thu, 30 Jul 2009 19:51:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, ralf@linux-mips.org
+Cc: venkatesh.pallipadi@intel.com, Christophe.Lermytte@thomson.net, davej@redhat.com, rjw@sisk.pl
 
 
 The patch titled
-     drivers/video/console/newport_con.c: fix read outside array bounds
+     cpufreq: fix NULL pointer dereference regression in conservative gov
 has been added to the -mm tree.  Its filename is
-     drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+     cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/console/newport_con.c: fix read outside array bounds
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cpufreq: fix NULL pointer dereference regression in conservative gov
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 
-It reads linetable[] before checking bounds of index, and ARRAY_SIZE is
-required because linetable[] are unsigned shorts.
+Commit ee88415caf736b89500f16e0a545614541a45005 ("[CPUFREQ] Cleanup
+locking in conservative governor") introduced this regression when it
+removed enable bit in cpu_dbs_info_s.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+That added a possibility of dbs_cpufreq_notifier getting called for a CPU
+that is not yet managed by conservative governor.  That will happen as the
+transition notifier is set as soon as one CPU switches to conservative
+governor and other CPUs can get a NULL pointer dereference without the
+enable bit check.  Add the enable bit back again.
+
+Reported-by: Lermytte Christophe <Christophe.Lermytte@thomson.net>
+Tested-by: Lermytte Christophe <Christophe.Lermytte@thomson.net>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/newport_con.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/cpufreq/cpufreq_conservative.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/video/console/newport_con.c~drivers-video-console-newport_conc-fix-read-outside-array-bounds drivers/video/console/newport_con.c
---- a/drivers/video/console/newport_con.c~drivers-video-console-newport_conc-fix-read-outside-array-bounds
-+++ a/drivers/video/console/newport_con.c
-@@ -216,7 +216,7 @@ static void newport_get_screensize(void)
- 	}
+diff -puN drivers/cpufreq/cpufreq_conservative.c~cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov drivers/cpufreq/cpufreq_conservative.c
+--- a/drivers/cpufreq/cpufreq_conservative.c~cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov
++++ a/drivers/cpufreq/cpufreq_conservative.c
+@@ -63,6 +63,7 @@ struct cpu_dbs_info_s {
+ 	unsigned int down_skip;
+ 	unsigned int requested_freq;
+ 	int cpu;
++	unsigned int enable:1;
+ 	/*
+ 	 * percpu mutex that serializes governor limit change with
+ 	 * do_dbs_timer invocation. We do not want do_dbs_timer to run
+@@ -141,6 +142,9 @@ dbs_cpufreq_notifier(struct notifier_blo
  
- 	newport_xsize = newport_ysize = 0;
--	for (i = 0; linetable[i + 1] && (i < sizeof(linetable)); i += 2) {
-+	for (i = 0; i < ARRAY_SIZE(linetable) - 1 && linetable[i + 1]; i += 2) {
- 		cols = 0;
- 		newport_vc2_set(npregs, VC2_IREG_RADDR, linetable[i]);
- 		npregs->set.dcbmode = (NPORT_DMODE_AVC2 | VC2_REGADDR_RAM |
+ 	struct cpufreq_policy *policy;
+ 
++	if (!this_dbs_info->enable)
++		return 0;
++
+ 	policy = this_dbs_info->cur_policy;
+ 
+ 	/*
+@@ -497,6 +501,7 @@ static inline void dbs_timer_init(struct
+ 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
+ 	delay -= jiffies % delay;
+ 
++	dbs_info->enable = 1;
+ 	INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
+ 	queue_delayed_work_on(dbs_info->cpu, kconservative_wq, &dbs_info->work,
+ 				delay);
+@@ -504,6 +509,7 @@ static inline void dbs_timer_init(struct
+ 
+ static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
+ {
++	dbs_info->enable = 0;
+ 	cancel_delayed_work_sync(&dbs_info->work);
+ }
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-origin.patch
 linux-next.patch
-x86-fix-buffer-overflow-in-efi_init.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-media-strncpy-does-not-null-terminate-string.patch
-ivtv-read-buffer-overflow.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-irda-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-cyclades-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-iprh-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-i915-fix-read-outside-array-bounds.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-adfs-remove-redundant-test-on-unsigned.patch
+kernel-core-add-smp_call_function_any.patch
+kernel-core-add-smp_call_function_any-update.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cpuidle-menu-governor-reduce-latency-on-exit.patch
+cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov.patch
 
