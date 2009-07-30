@@ -1,63 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] qla2xxx-fix-__little_endian-definition-warnings.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:38:34 -0700
-Message-ID: <200907302038.n6UKcYPr013316@imap1.linux-foundation.org>
+Subject: [merged] maintainers-finish-off-the-email-address-coalescing.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 13:38:20 -0700
+Message-ID: <200907302038.n6UKcKg6013002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53071 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752788AbZG3Uiv (ORCPT
+	by vger.kernel.org with ESMTP id S1752792AbZG3Uiv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 30 Jul 2009 16:38:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     qla2xxx: fix __LITTLE_ENDIAN definition warnings
+     MAINTAINERS: finish off the email address coalescing
 has been removed from the -mm tree.  Its filename was
-     qla2xxx-fix-__little_endian-definition-warnings.patch
+     maintainers-finish-off-the-email-address-coalescing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: qla2xxx: fix __LITTLE_ENDIAN definition warnings
-From: Dave Jones <davej@redhat.com>
+Subject: MAINTAINERS: finish off the email address coalescing
+From: Joe Perches <joe@perches.com>
 
-On ppc64, gcc 4.4 spews lots of..
+Add some touchups to the sample record.
 
-drivers/scsi/qla2xxx/qla_def.h:1485:7: warning: "__LITTLE_ENDIAN" is not defined
-
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_def.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_def.h~qla2xxx-fix-__little_endian-definition-warnings drivers/scsi/qla2xxx/qla_def.h
---- a/drivers/scsi/qla2xxx/qla_def.h~qla2xxx-fix-__little_endian-definition-warnings
-+++ a/drivers/scsi/qla2xxx/qla_def.h
-@@ -1482,7 +1482,7 @@ typedef union {
- 		uint8_t domain;
- 		uint8_t area;
- 		uint8_t al_pa;
--#elif __LITTLE_ENDIAN
-+#elif defined(__LITTLE_ENDIAN)
- 		uint8_t al_pa;
- 		uint8_t area;
- 		uint8_t domain;
+diff -puN MAINTAINERS~maintainers-finish-off-the-email-address-coalescing MAINTAINERS
+--- a/MAINTAINERS~maintainers-finish-off-the-email-address-coalescing
++++ a/MAINTAINERS
+@@ -73,8 +73,8 @@ Note: For the hard of thinking, this lis
+ order. If you could add yourselves to it in alphabetical order that would be
+ so much easier [Ed]
+ 
+-P: Person
+-M: Mail patches to
++P: Person (obsolete)
++M: Mail patches to: FullName <address@domain>
+ L: Mailing list that is relevant to this area
+ W: Web-page with status/info
+ T: SCM tree type and location.  Type is one of: git, hg, quilt, stgit.
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-kernel-core-add-smp_call_function_any.patch
-kernel-core-add-smp_call_function_any-update.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+mmc-msm_sdccc-driver-for-htc-dream.patch
+msm_sdccc-convert-printkkern_level-to-pr_level.patch
+msm_sdccc-stylistic-cleaning.patch
+msm_sdccc-move-overly-indented-code-to-separate-function.patch
 
