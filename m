@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-qlogic-qla3xxx-add-ron-mercer-email-address.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:38:06 -0700
-Message-ID: <200907302038.n6UKc6Bx012505@imap1.linux-foundation.org>
+Subject: [merged] maintainers-qlogic-qla2xxx-add-andrew-vasquez-email-address.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 13:38:04 -0700
+Message-ID: <200907302038.n6UKc4lO012467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37393 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752644AbZG3Uih (ORCPT
+	by vger.kernel.org with ESMTP id S1752514AbZG3Uif (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 16:38:37 -0400
+	Thu, 30 Jul 2009 16:38:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: QLOGIC QLA3XXX - Add Ron Mercer email address
+     MAINTAINERS: QLOGIC QLA2XXX - add Andrew Vasquez email address
 has been removed from the -mm tree.  Its filename was
-     maintainers-qlogic-qla3xxx-add-ron-mercer-email-address.patch
+     maintainers-qlogic-qla2xxx-add-andrew-vasquez-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: QLOGIC QLA3XXX - Add Ron Mercer email address
+Subject: MAINTAINERS: QLOGIC QLA2XXX - add Andrew Vasquez email address
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
@@ -34,16 +34,16 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-qlogic-qla3xxx-add-ron-mercer-email-address MAINTAINERS
---- a/MAINTAINERS~maintainers-qlogic-qla3xxx-add-ron-mercer-email-address
+diff -puN MAINTAINERS~maintainers-qlogic-qla2xxx-add-andrew-vasquez-email-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-qlogic-qla2xxx-add-andrew-vasquez-email-address
 +++ a/MAINTAINERS
-@@ -4797,6 +4797,7 @@ F:	drivers/scsi/qla2xxx/
+@@ -4788,6 +4788,7 @@ S:	Maintained
  
- QLOGIC QLA3XXX NETWORK DRIVER
- P:	Ron Mercer
-+M:	ron.mercer@qlogic.com
+ QLOGIC QLA2XXX FC-SCSI DRIVER
+ P:	Andrew Vasquez
++M:	andrew.vasquez@qlogic.com
  M:	linux-driver@qlogic.com
- L:	netdev@vger.kernel.org
+ L:	linux-scsi@vger.kernel.org
  S:	Supported
 _
 
