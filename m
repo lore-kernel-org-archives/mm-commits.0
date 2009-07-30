@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-adxx-convert-to-device-table-matching.patch added to -mm tree
-Date: Thu, 30 Jul 2009 16:09:26 -0700
-Message-ID: <200907302309.n6UN9Q95031674@imap1.linux-foundation.org>
+Subject: + of-remove-stmm25p40-alias.patch added to -mm tree
+Date: Thu, 30 Jul 2009 16:09:17 -0700
+Message-ID: <200907302309.n6UN9HKT031378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42755 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751765AbZG3XKy (ORCPT
+	by vger.kernel.org with ESMTP id S1753086AbZG3XLL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 19:10:54 -0400
+	Thu, 30 Jul 2009 19:11:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, khali@linux-fr.org, marc.pignat@hevs.ch
+Cc: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, khali@linux-fr.org
 
 
 The patch titled
-     hwmon: adxx: convert to device table matching
+     of: remove "stm,m25p40" alias
 has been added to the -mm tree.  Its filename is
-     hwmon-adxx-convert-to-device-table-matching.patch
+     of-remove-stmm25p40-alias.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: adxx: convert to device table matching
+Subject: of: remove "stm,m25p40" alias
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Make the code a little bit nicer, and shorter.
+The alias isn't needed any longer since the m25p80 driver converted to the
+module device table matching.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Marc Pignat <marc.pignat@hevs.ch>
 Cc: David Brownell <dbrownell@users.sourceforge.net>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Grant Likely <grant.likely@secretlab.ca>
@@ -50,157 +50,35 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/adcxx.c |  106 ++++++----------------------------------
- 1 file changed, 17 insertions(+), 89 deletions(-)
+ drivers/of/base.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/hwmon/adcxx.c~hwmon-adxx-convert-to-device-table-matching drivers/hwmon/adcxx.c
---- a/drivers/hwmon/adcxx.c~hwmon-adxx-convert-to-device-table-matching
-+++ a/drivers/hwmon/adcxx.c
-@@ -43,6 +43,7 @@
- #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
- #include <linux/mutex.h>
-+#include <linux/mod_devicetable.h>
- #include <linux/spi/spi.h>
- 
- #define DRVNAME		"adcxx"
-@@ -157,8 +158,10 @@ static struct sensor_device_attribute ad
- 
- /*----------------------------------------------------------------------*/
- 
--static int __devinit adcxx_probe(struct spi_device *spi, int channels)
-+static int __devinit adcxx_probe(struct spi_device *spi,
-+				 const struct spi_device_id *id)
- {
-+	int channels = (int)id->data;
- 	struct adcxx *adc;
- 	int status;
- 	int i;
-@@ -204,30 +207,6 @@ out_err:
- 	return status;
- }
- 
--static int __devinit adcxx1s_probe(struct spi_device *spi,
--				   const struct spi_device_id *id)
--{
--	return adcxx_probe(spi, 1);
--}
--
--static int __devinit adcxx2s_probe(struct spi_device *spi,
--				   const struct spi_device_id *id)
--{
--	return adcxx_probe(spi, 2);
--}
--
--static int __devinit adcxx4s_probe(struct spi_device *spi,
--				   const struct spi_device_id *id)
--{
--	return adcxx_probe(spi, 4);
--}
--
--static int __devinit adcxx8s_probe(struct spi_device *spi,
--				   const struct spi_device_id *id)
--{
--	return adcxx_probe(spi, 8);
--}
--
- static int __devexit adcxx_remove(struct spi_device *spi)
- {
- 	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-@@ -245,79 +224,33 @@ static int __devexit adcxx_remove(struct
- 	return 0;
- }
- 
--static struct spi_driver adcxx1s_driver = {
--	.driver = {
--		.name	= "adcxx1s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx1s_probe,
--	.remove	= __devexit_p(adcxx_remove),
--};
--
--static struct spi_driver adcxx2s_driver = {
--	.driver = {
--		.name	= "adcxx2s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx2s_probe,
--	.remove	= __devexit_p(adcxx_remove),
-+static const struct spi_device_id adcxx_ids[] = {
-+	{ "adcxx1s", (void *)1 },
-+	{ "adcxx2s", (void *)2 },
-+	{ "adcxx4s", (void *)4 },
-+	{ "adcxx8s", (void *)8 },
-+	{ },
- };
-+MODULE_DEVICE_TABLE(spi, adcxx_ids);
- 
--static struct spi_driver adcxx4s_driver = {
-+static struct spi_driver adcxx_driver = {
- 	.driver = {
--		.name	= "adcxx4s",
-+		.name	= "adcxx",
- 		.owner	= THIS_MODULE,
- 	},
--	.probe	= adcxx4s_probe,
--	.remove	= __devexit_p(adcxx_remove),
--};
--
--static struct spi_driver adcxx8s_driver = {
--	.driver = {
--		.name	= "adcxx8s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx8s_probe,
-+	.id_table = adcxx_ids,
-+	.probe	= adcxx_probe,
- 	.remove	= __devexit_p(adcxx_remove),
+diff -puN drivers/of/base.c~of-remove-stmm25p40-alias drivers/of/base.c
+--- a/drivers/of/base.c~of-remove-stmm25p40-alias
++++ a/drivers/of/base.c
+@@ -447,7 +447,6 @@ struct of_modalias_table {
+ static struct of_modalias_table of_modalias_table[] = {
+ 	{ "fsl,mcu-mpc8349emitx", "mcu-mpc8349emitx" },
+ 	{ "mmc-spi-slot", "mmc_spi" },
+-	{ "stm,m25p40", "m25p80" },
  };
  
- static int __init init_adcxx(void)
- {
--	int status;
--	status = spi_register_driver(&adcxx1s_driver);
--	if (status)
--		goto reg_1_failed;
--
--	status = spi_register_driver(&adcxx2s_driver);
--	if (status)
--		goto reg_2_failed;
--
--	status = spi_register_driver(&adcxx4s_driver);
--	if (status)
--		goto reg_4_failed;
--
--	status = spi_register_driver(&adcxx8s_driver);
--	if (status)
--		goto reg_8_failed;
--
--	return status;
--
--reg_8_failed:
--	spi_unregister_driver(&adcxx4s_driver);
--reg_4_failed:
--	spi_unregister_driver(&adcxx2s_driver);
--reg_2_failed:
--	spi_unregister_driver(&adcxx1s_driver);
--reg_1_failed:
--	return status;
-+	return spi_register_driver(&adcxx_driver);
- }
- 
- static void __exit exit_adcxx(void)
- {
--	spi_unregister_driver(&adcxx1s_driver);
--	spi_unregister_driver(&adcxx2s_driver);
--	spi_unregister_driver(&adcxx4s_driver);
--	spi_unregister_driver(&adcxx8s_driver);
-+	spi_unregister_driver(&adcxx_driver);
- }
- 
- module_init(init_adcxx);
-@@ -326,8 +259,3 @@ module_exit(exit_adcxx);
- MODULE_AUTHOR("Marc Pignat");
- MODULE_DESCRIPTION("National Semiconductor adcxx8sxxx Linux driver");
- MODULE_LICENSE("GPL");
+ /**
+_
+
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+
+origin.patch
+linux-next.patch
+mtd-sst25l-non-jedec-spi-flash-driver.patch
+mtd-sst25l-non-jedec-spi-flash-driver-update.patch
+mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
+mtd-m25p80-fix-null-pointer-dereference-bug.patch
+spi-add-support-for-device-table-matching.patch
+mtd-m25p80-convert-to-device-table-matching.patch
+of-remove-stmm25p40-alias.patch
+spi-prefix-modalias-with-spi.patch
+spi-merge-probe-and-probe_id-callbacks.patch
+hwmon-adxx-convert-to-device-table-matching.patch
+hwmon-lm70-convert-to-device-table-matching.patch
+
