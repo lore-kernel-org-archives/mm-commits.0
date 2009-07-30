@@ -1,95 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] net-dccp-suppress-warning-about-large-allocations-from-dccp.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:37:20 -0700
-Message-ID: <200907302037.n6UKbKrZ011323@imap1.linux-foundation.org>
+Subject: [merged] uio-mark-uioh-functions-__kernel__-only.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 13:37:40 -0700
+Message-ID: <200907302037.n6UKbeI7011873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53200 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751541AbZG3Uhw (ORCPT
+	by vger.kernel.org with ESMTP id S1752122AbZG3UiH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 16:37:52 -0400
+	Thu, 30 Jul 2009 16:38:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, acme@redhat.com, davem@davemloft.net, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, hch@infradead.org, sam@ravnborg.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net-dccp: suppress warning about large allocations from DCCP
+     uio: mark uio.h functions __KERNEL__ only
 has been removed from the -mm tree.  Its filename was
-     net-dccp-suppress-warning-about-large-allocations-from-dccp.patch
+     uio-mark-uioh-functions-__kernel__-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net-dccp: suppress warning about large allocations from DCCP
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: uio: mark uio.h functions __KERNEL__ only
+From: Jiri Slaby <jirislaby@gmail.com>
 
-The DCCP protocol tries to allocate some large hash tables during
-initialisation using the largest size possible.  This can be larger than
-what the page allocator can provide so it prints a warning.  However, the
-caller is able to handle the situation so this patch suppresses the
-warning.
+To avoid userspace build failures such as:
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Arnaldo Carvalho de Melo <acme@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+.../linux/uio.h:37: error: expected `=', `,', `;', `asm' or `__attribute__' before `iov_length'
+.../linux/uio.h:47: error: expected declaration specifiers or `...' before `size_t'
+
+move uio functions inside a __KERNEL__ block.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/dccp/proto.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/uio.h |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN net/dccp/proto.c~net-dccp-suppress-warning-about-large-allocations-from-dccp net/dccp/proto.c
---- a/net/dccp/proto.c~net-dccp-suppress-warning-about-large-allocations-from-dccp
-+++ a/net/dccp/proto.c
-@@ -1066,7 +1066,7 @@ static int __init dccp_init(void)
- 		       (dccp_hashinfo.ehash_size - 1))
- 			dccp_hashinfo.ehash_size--;
- 		dccp_hashinfo.ehash = (struct inet_ehash_bucket *)
--			__get_free_pages(GFP_ATOMIC, ehash_order);
-+			__get_free_pages(GFP_ATOMIC|__GFP_NOWARN, ehash_order);
- 	} while (!dccp_hashinfo.ehash && --ehash_order > 0);
+diff -puN include/linux/uio.h~uio-mark-uioh-functions-__kernel__-only include/linux/uio.h
+--- a/include/linux/uio.h~uio-mark-uioh-functions-__kernel__-only
++++ a/include/linux/uio.h
+@@ -19,15 +19,6 @@ struct iovec
+ 	__kernel_size_t iov_len; /* Must be size_t (1003.1g) */
+ };
  
- 	if (!dccp_hashinfo.ehash) {
-@@ -1091,7 +1091,7 @@ static int __init dccp_init(void)
- 		    bhash_order > 0)
- 			continue;
- 		dccp_hashinfo.bhash = (struct inet_bind_hashbucket *)
--			__get_free_pages(GFP_ATOMIC, bhash_order);
-+			__get_free_pages(GFP_ATOMIC|__GFP_NOWARN, bhash_order);
- 	} while (!dccp_hashinfo.bhash && --bhash_order >= 0);
+-#ifdef __KERNEL__
+-
+-struct kvec {
+-	void *iov_base; /* and that should *never* hold a userland pointer */
+-	size_t iov_len;
+-};
+-
+-#endif
+-
+ /*
+  *	UIO_MAXIOV shall be at least 16 1003.1g (5.4.1.1)
+  */
+@@ -35,6 +26,13 @@ struct kvec {
+ #define UIO_FASTIOV	8
+ #define UIO_MAXIOV	1024
  
- 	if (!dccp_hashinfo.bhash) {
++#ifdef __KERNEL__
++
++struct kvec {
++	void *iov_base; /* and that should *never* hold a userland pointer */
++	size_t iov_len;
++};
++
+ /*
+  * Total number of bytes covered by an iovec.
+  *
+@@ -53,5 +51,6 @@ static inline size_t iov_length(const st
+ }
+ 
+ unsigned long iov_shorten(struct iovec *iov, unsigned long nr_segs, size_t to);
++#endif
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-memory-hotplug-update-zone-pcp-at-memory-online.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
-memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
-memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
-memory-hotplug-migrate-swap-cache-page.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-mm-clean-up-page_remove_rmap.patch
-mm-update-alloc_flags-after-oom-killer-has-been-called.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-vmscan-use-add_page_to_lru_list-helper-function.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+linux-next.patch
+toshiba_acpi-return-on-a-fail-path.patch
+mtd-sst25l-fix-lock-imbalance.patch
+isdn-hisax-fix-lock-imbalance.patch
+icom-converting-space-to-tabs.patch
+cyclades-read-buffer-overflow.patch
+cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
+reiser4.patch
 
