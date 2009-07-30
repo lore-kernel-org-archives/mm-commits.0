@@ -1,86 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi-omap2_mcspi-supports-wake-events.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:35:06 -0700
-Message-ID: <200907302035.n6UKZ6Os007541@imap1.linux-foundation.org>
+Subject: [merged] rtc-mark-if-rtc-cmos-drivers-were-successfully-registered.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 13:35:10 -0700
+Message-ID: <200907302035.n6UKZAdR007753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52669 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751807AbZG3Uf1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751862AbZG3Ufl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 16:35:27 -0400
+	Thu, 30 Jul 2009 16:35:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jouni.hogander@nokia.com, dbrownell@users.sourceforge.net, tony@atomide.com, mm-commits@vger.kernel.org
+To: cascardo@holoscopio.com, alessandro.zummo@towertech.it, bjorn.helgaas@hp.com, david-b@pacbell.net, greg@kroah.com, kay.sievers@vrfy.org, mingo@elte.hu, ozan@pardus.org.tr, torvalds@li
 
 
 The patch titled
-     spi: omap2_mcspi supports wake events
+     rtc: mark if rtc-cmos drivers were successfully registered
 has been removed from the -mm tree.  Its filename was
-     spi-omap2_mcspi-supports-wake-events.patch
+     rtc-mark-if-rtc-cmos-drivers-were-successfully-registered.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: omap2_mcspi supports wake events
-From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: rtc: mark if rtc-cmos drivers were successfully registered
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-Currently mcspi wake-ups are not enabled.  This might cause cases where
-OMAP is not waking up on mcspi events.
+rtc-cmos has two drivers, one PNP and one platform.  When PNP has not
+succeeded probing, platform is registered.  However, it tries to
+unregister both drivers unconditionally, instead of only unregistering
+those that were successfully registered.  This causes runtime warnings to
+be emitted from the driver core code.
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Fix this with a boolean variable for each driver indicating whether
+registering was successful.
+
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ozan Caglayan <ozan@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap2_mcspi.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-cmos.c |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-diff -puN drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-supports-wake-events drivers/spi/omap2_mcspi.c
---- a/drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-supports-wake-events
-+++ a/drivers/spi/omap2_mcspi.c
-@@ -59,6 +59,8 @@
+diff -puN drivers/rtc/rtc-cmos.c~rtc-mark-if-rtc-cmos-drivers-were-successfully-registered drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-mark-if-rtc-cmos-drivers-were-successfully-registered
++++ a/drivers/rtc/rtc-cmos.c
+@@ -1174,23 +1174,34 @@ static struct platform_driver cmos_platf
+ 	}
+ };
  
- /* per-register bitmasks: */
- 
-+#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	(2 << 3)
-+#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	(1 << 2)
- #define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	(1 << 0)
- #define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	(1 << 1)
- 
-@@ -90,6 +92,7 @@
- 
- #define OMAP2_MCSPI_CHCTRL_EN		(1 << 0)
- 
-+#define OMAP2_MCSPI_WAKEUPENABLE_WKEN	(1 << 0)
- 
- /* We have 2 DMA channels per CS, one for RX and one for TX */
- struct omap2_mcspi_dma {
-@@ -873,8 +876,12 @@ static int __init omap2_mcspi_reset(stru
- 	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
- 
- 	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
--			/* (3 << 8) | (2 << 3) | */
--			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE);
-+			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
-+			OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
-+			OMAP2_MCSPI_SYSCONFIG_SMARTIDLE);
++#ifdef CONFIG_PNP
++static bool pnp_driver_registered;
++#endif
++static bool platform_driver_registered;
 +
-+	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
-+			OMAP2_MCSPI_WAKEUPENABLE_WKEN);
+ static int __init cmos_init(void)
+ {
+ 	int retval = 0;
  
- 	omap2_mcspi_set_master_mode(master);
+ #ifdef	CONFIG_PNP
+-	pnp_register_driver(&cmos_pnp_driver);
++	retval = pnp_register_driver(&cmos_pnp_driver);
++	if (retval == 0)
++		pnp_driver_registered = true;
+ #endif
+ 
+-	if (!cmos_rtc.dev)
++	if (!cmos_rtc.dev) {
+ 		retval = platform_driver_probe(&cmos_platform_driver,
+ 					       cmos_platform_probe);
++		if (retval == 0)
++			platform_driver_registered = true;
++	}
+ 
+ 	if (retval == 0)
+ 		return 0;
+ 
+ #ifdef	CONFIG_PNP
+-	pnp_unregister_driver(&cmos_pnp_driver);
++	if (pnp_driver_registered)
++		pnp_unregister_driver(&cmos_pnp_driver);
+ #endif
+ 	return retval;
+ }
+@@ -1199,9 +1210,11 @@ module_init(cmos_init);
+ static void __exit cmos_exit(void)
+ {
+ #ifdef	CONFIG_PNP
+-	pnp_unregister_driver(&cmos_pnp_driver);
++	if (pnp_driver_registered)
++		pnp_unregister_driver(&cmos_pnp_driver);
+ #endif
+-	platform_driver_unregister(&cmos_platform_driver);
++	if (platform_driver_registered)
++		platform_driver_unregister(&cmos_platform_driver);
+ }
+ module_exit(cmos_exit);
  
 _
 
-Patches currently in -mm which might be from jouni.hogander@nokia.com are
+Patches currently in -mm which might be from cascardo@holoscopio.com are
 
 origin.patch
-spi-omap2_mcspi-use-bitn.patch
-omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
-omapfb-dispc-enable-wake-up-capability.patch
-omapfb-suspend-resume-only-if-fb-device-is-already-initialized.patch
+linux-next.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
+leds-fix-multiple-requests-and-releases-of-irq-for-gpio-led-trigger.patch
+leds-after-setting-inverted-attribute-we-must-update-the-led.patch
 
