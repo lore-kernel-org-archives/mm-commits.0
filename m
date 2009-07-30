@@ -1,123 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 13:37:31 -0700
-Message-ID: <200907302037.n6UKbVX4011615@imap1.linux-foundation.org>
+Subject: [merged] updated-f-and-t-in-maintainers-kristoffer-ericson.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 13:38:22 -0700
+Message-ID: <200907302038.n6UKcMnb013031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752166AbZG3UiL (ORCPT
+	by vger.kernel.org with ESMTP id S1752347AbZG3UiX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 16:38:11 -0400
+	Thu, 30 Jul 2009 16:38:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, drzeus@drzeus.cx, ian@mnementh.co.uk, matt@console-pimps.org, roberto.foglietta@gmail.com, mm-commits@vger.kernel.org
+To: kristoffer.ericson@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdhci: get rid of "frequency too high" flood when using eSDHC
+     MAINTAINERS: update HP Jornada 700-series and Epson s1d13xxxfb support
 has been removed from the -mm tree.  Its filename was
-     sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc.patch
+     updated-f-and-t-in-maintainers-kristoffer-ericson.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci: get rid of "frequency too high" flood when using eSDHC
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: MAINTAINERS: update HP Jornada 700-series and Epson s1d13xxxfb support
+From: Kristoffer Ericson <kristoffer.ericson@gmail.com>
 
-Since commit 8dfd0374be84793360db7fff2e635d2cd3bbcb21 ("MMC core: limit
-minimum initialization frequency to 400kHz") MMC core checks for minimum
-frequency, and that causes following messages flood when using eSDHC
-controllers:
+Add the relevant git repositories and affected files to the maintainership
+of HP Jornada 700-series and Epson s1d13xxxfb support.
 
-  ...
-  mmc0: Minimum clock frequency too high for identification mode
-  mmc0: Minimum clock frequency too high for identification mode
-  ...
-
-The warnings are legitimate, since if we'd use 133 MHz clocks for standard
-SDHCI controllers, we'd not able to scale frequency down to 400 kHz.
-
-But eSDHC controllers have a non-standard SD clock management, so we can
-divide clock by 256 * 16, not just 256.
-
-This patch introduces get_min_clock() callback for sdhci core and
-implements it for sdhci-of driver, and thus fixes the issue.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: Ian Molton <ian@mnementh.co.uk>
-Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Kristoffer Ericson <kristoffer.ericson@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-of.c |    8 ++++++++
- drivers/mmc/host/sdhci.c    |    5 ++++-
- drivers/mmc/host/sdhci.h    |    1 +
- 3 files changed, 13 insertions(+), 1 deletion(-)
+ MAINTAINERS |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/mmc/host/sdhci-of.c~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc drivers/mmc/host/sdhci-of.c
---- a/drivers/mmc/host/sdhci-of.c~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc
-+++ a/drivers/mmc/host/sdhci-of.c
-@@ -158,6 +158,13 @@ static unsigned int esdhc_get_max_clock(
- 	return of_host->clock;
- }
+diff -puN MAINTAINERS~updated-f-and-t-in-maintainers-kristoffer-ericson MAINTAINERS
+--- a/MAINTAINERS~updated-f-and-t-in-maintainers-kristoffer-ericson
++++ a/MAINTAINERS
+@@ -624,6 +624,9 @@ ARM/HP JORNADA 7XX MACHINE SUPPORT
+ M:	Kristoffer Ericson <kristoffer.ericson@gmail.com>
+ W:	www.jlime.com
+ S:	Maintained
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kristoffer/linux-hpc.git
++F:	arch/arm/mach-sa1100/jornada720.c
++F:	arch/arm/mach-sa1100/include/mach/jornada720.h
  
-+static unsigned int esdhc_get_min_clock(struct sdhci_host *host)
-+{
-+	struct sdhci_of_host *of_host = sdhci_priv(host);
-+
-+	return of_host->clock / 256 / 16;
-+}
-+
- static unsigned int esdhc_get_timeout_clock(struct sdhci_host *host)
- {
- 	struct sdhci_of_host *of_host = sdhci_priv(host);
-@@ -184,6 +191,7 @@ static struct sdhci_of_data sdhci_esdhc 
- 		.set_clock = esdhc_set_clock,
- 		.enable_dma = esdhc_enable_dma,
- 		.get_max_clock = esdhc_get_max_clock,
-+		.get_min_clock = esdhc_get_min_clock,
- 		.get_timeout_clock = esdhc_get_timeout_clock,
- 	},
- };
-diff -puN drivers/mmc/host/sdhci.c~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc
-+++ a/drivers/mmc/host/sdhci.c
-@@ -1766,7 +1766,10 @@ int sdhci_add_host(struct sdhci_host *ho
- 	 * Set host parameters.
- 	 */
- 	mmc->ops = &sdhci_ops;
--	mmc->f_min = host->max_clk / 256;
-+	if (host->ops->get_min_clock)
-+		mmc->f_min = host->ops->get_min_clock(host);
-+	else
-+		mmc->f_min = host->max_clk / 256;
- 	mmc->f_max = host->max_clk;
- 	mmc->caps = MMC_CAP_SDIO_IRQ;
- 
-diff -puN drivers/mmc/host/sdhci.h~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~sdhci-get-rid-of-frequency-too-high-flood-when-using-esdhc
-+++ a/drivers/mmc/host/sdhci.h
-@@ -302,6 +302,7 @@ struct sdhci_ops {
- 
- 	int		(*enable_dma)(struct sdhci_host *host);
- 	unsigned int	(*get_max_clock)(struct sdhci_host *host);
-+	unsigned int	(*get_min_clock)(struct sdhci_host *host);
- 	unsigned int	(*get_timeout_clock)(struct sdhci_host *host);
- };
+ ARM/INTEL IOP32X ARM ARCHITECTURE
+ M:	Lennert Buytenhek <kernel@wantstofly.org>
+@@ -1900,6 +1903,7 @@ F:	drivers/video/epson1355fb.c
+ EPSON S1D13XXX FRAMEBUFFER DRIVER
+ M:	Kristoffer Ericson <kristoffer.ericson@gmail.com>
+ S:	Maintained
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kristoffer/linux-hpc.git
+ F:	drivers/video/s1d13xxxfb.c
+ F:	include/video/s1d13xxxfb.h
  
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from kristoffer.ericson@gmail.com are
 
 origin.patch
-linux-next.patch
-mtd-sst25l-non-jedec-spi-flash-driver.patch
-mtd-sst25l-non-jedec-spi-flash-driver-update.patch
-mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
-mtd-m25p80-fix-null-pointer-dereference-bug.patch
 
