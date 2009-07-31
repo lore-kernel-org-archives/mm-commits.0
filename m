@@ -1,239 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] imx31-fix-framebuffer-locking-regressions.patch removed from -mm tree
-Date: Fri, 31 Jul 2009 16:26:08 -0700
-Message-ID: <200907312326.n6VNQ8Rx028828@imap1.linux-foundation.org>
+Subject: + davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5.patch added to -mm tree
+Date: Fri, 31 Jul 2009 16:30:07 -0700
+Message-ID: <200907312330.n6VNU7ur002802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750865AbZGaX1M (ORCPT
+	by vger.kernel.org with ESMTP id S1750865AbZGaXap (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 19:27:12 -0400
+	Fri, 31 Jul 2009 19:30:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: g.liakhovetski@gmx.de, krzysztof.h1@poczta.fm, rmk@arm.linux.org.uk, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sudhakar.raj@ti.com, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com
 
 
 The patch titled
-     i.MX31: fix framebuffer locking regressions
-has been removed from the -mm tree.  Its filename was
-     imx31-fix-framebuffer-locking-regressions.patch
+     davinci: fb: Frame Buffer driver for TI DA8xx/OMAP-L1xx v5
+has been added to the -mm tree.  Its filename is
+     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i.MX31: fix framebuffer locking regressions
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: davinci: fb: Frame Buffer driver for TI DA8xx/OMAP-L1xx v5
+From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 
-Recent framebuffer locking patches first made affected systems unbootable,
-then the dead-lock has been fixed but as of 2.6.31-rc4 the framebuffer on
-mx3 machines doesn't work.  Fix this.
+ Following are the changes since the previous version(v4):
+ a. An if loop check while returning from lcd_disable_raster()
+    function has been removed.
+ b. "invert_pxl_clock" variable has been renamed as "invert_pxl_clk"
+    and moved from lcd_ctrl_config structure in include/video/da8xx-fb.h
+    file to da8xx_panel structure in drivers/video/da8xx-fb.c file.
+    Appropriate changes in source code as a result of moving this
+    variable has also been done.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Cc: Pavel Kiryukhin <pkiryukhin@ru.mvista.com>
+Cc: Steve Chen <schen@mvista.com>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mx3fb.c |   87 ++++++++++++++++++++++++++--------------
- 1 file changed, 57 insertions(+), 30 deletions(-)
+ drivers/video/da8xx-fb.c |   16 ++++++++++------
+ include/video/da8xx-fb.h |    3 ---
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/mx3fb.c~imx31-fix-framebuffer-locking-regressions drivers/video/mx3fb.c
---- a/drivers/video/mx3fb.c~imx31-fix-framebuffer-locking-regressions
-+++ a/drivers/video/mx3fb.c
-@@ -669,7 +669,8 @@ static uint32_t bpp_to_pixfmt(int bpp)
- }
+diff -puN drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5 drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5
++++ a/drivers/video/da8xx-fb.c
+@@ -158,6 +158,7 @@ struct da8xx_panel {
+ 	int		vbp;		/* Vertical back porch */
+ 	int		vsw;		/* Vertical Sync Pulse Width */
+ 	int		pxl_clk;	/* Pixel clock */
++	unsigned char	invert_pxl_clk;	/* Invert Pixel clock */
+ };
  
- static int mx3fb_blank(int blank, struct fb_info *fbi);
--static int mx3fb_map_video_memory(struct fb_info *fbi, unsigned int mem_len);
-+static int mx3fb_map_video_memory(struct fb_info *fbi, unsigned int mem_len,
-+				  bool lock);
- static int mx3fb_unmap_video_memory(struct fb_info *fbi);
+ static struct da8xx_panel known_lcd_panels[] = {
+@@ -173,6 +174,7 @@ static struct da8xx_panel known_lcd_pane
+ 		.vbp = 2,
+ 		.vsw = 0,
+ 		.pxl_clk = 0x10,
++		.invert_pxl_clk = 1,
+ 	},
+ 	/* Sharp LK043T1DG01 */
+ 	[1] = {
+@@ -186,6 +188,7 @@ static struct da8xx_panel known_lcd_pane
+ 		.vbp = 2,
+ 		.vsw = 10,
+ 		.pxl_clk = 0x12,
++		.invert_pxl_clk = 0,
+ 	},
+ };
  
- /**
-@@ -711,12 +712,7 @@ static void mx3fb_dma_done(void *arg)
- 	complete(&mx3_fbi->flip_cmpl);
- }
- 
--/**
-- * mx3fb_set_par() - set framebuffer parameters and change the operating mode.
-- * @fbi:	framebuffer information pointer.
-- * @return:	0 on success or negative error code on failure.
-- */
--static int mx3fb_set_par(struct fb_info *fbi)
-+static int __set_par(struct fb_info *fbi, bool lock)
- {
- 	u32 mem_len;
- 	struct ipu_di_signal_cfg sig_cfg;
-@@ -727,10 +723,6 @@ static int mx3fb_set_par(struct fb_info 
- 	struct idmac_video_param *video = &ichan->params.video;
- 	struct scatterlist *sg = mx3_fbi->sg;
- 
--	dev_dbg(mx3fb->dev, "%s [%c]\n", __func__, list_empty(&ichan->queue) ? '-' : '+');
--
--	mutex_lock(&mx3_fbi->mutex);
--
- 	/* Total cleanup */
- 	if (mx3_fbi->txd)
- 		sdc_disable_channel(mx3_fbi);
-@@ -742,10 +734,8 @@ static int mx3fb_set_par(struct fb_info 
- 		if (fbi->fix.smem_start)
- 			mx3fb_unmap_video_memory(fbi);
- 
--		if (mx3fb_map_video_memory(fbi, mem_len) < 0) {
--			mutex_unlock(&mx3_fbi->mutex);
-+		if (mx3fb_map_video_memory(fbi, mem_len, lock) < 0)
- 			return -ENOMEM;
--		}
+@@ -204,7 +207,6 @@ static int lcd_disable_raster(struct da8
+ 		if (ret == 0)
+ 			ret = -ETIMEDOUT;
  	}
- 
- 	sg_init_table(&sg[0], 1);
-@@ -791,7 +781,6 @@ static int mx3fb_set_par(struct fb_info 
- 				   fbi->var.vsync_len,
- 				   fbi->var.lower_margin +
- 				   fbi->var.vsync_len, sig_cfg) != 0) {
--			mutex_unlock(&mx3_fbi->mutex);
- 			dev_err(fbi->device,
- 				"mx3fb: Error initializing panel.\n");
- 			return -EINVAL;
-@@ -810,9 +799,30 @@ static int mx3fb_set_par(struct fb_info 
- 	if (mx3_fbi->blank == FB_BLANK_UNBLANK)
- 		sdc_enable_channel(mx3_fbi);
- 
-+	return 0;
-+}
-+
-+/**
-+ * mx3fb_set_par() - set framebuffer parameters and change the operating mode.
-+ * @fbi:	framebuffer information pointer.
-+ * @return:	0 on success or negative error code on failure.
-+ */
-+static int mx3fb_set_par(struct fb_info *fbi)
-+{
-+	struct mx3fb_info *mx3_fbi = fbi->par;
-+	struct mx3fb_data *mx3fb = mx3_fbi->mx3fb;
-+	struct idmac_channel *ichan = mx3_fbi->idmac_channel;
-+	int ret;
-+
-+	dev_dbg(mx3fb->dev, "%s [%c]\n", __func__, list_empty(&ichan->queue) ? '-' : '+');
-+
-+	mutex_lock(&mx3_fbi->mutex);
-+
-+	ret = __set_par(fbi, true);
-+
- 	mutex_unlock(&mx3_fbi->mutex);
- 
--	return 0;
-+	return ret;
- }
- 
- /**
-@@ -966,21 +976,11 @@ static int mx3fb_setcolreg(unsigned int 
+-
  	return ret;
  }
  
--/**
-- * mx3fb_blank() - blank the display.
-- */
--static int mx3fb_blank(int blank, struct fb_info *fbi)
-+static void __blank(int blank, struct fb_info *fbi)
- {
- 	struct mx3fb_info *mx3_fbi = fbi->par;
- 	struct mx3fb_data *mx3fb = mx3_fbi->mx3fb;
+@@ -339,11 +341,6 @@ static int lcd_cfg_display(const struct 
+ 	else
+ 		reg &= ~LCD_SYNC_EDGE;
  
--	dev_dbg(fbi->device, "%s, blank = %d, base %p, len %u\n", __func__,
--		blank, fbi->screen_base, fbi->fix.smem_len);
+-	if (cfg->invert_pxl_clock)
+-		reg |= LCD_INVERT_PIXEL_CLOCK;
+-	else
+-		reg &= ~LCD_INVERT_PIXEL_CLOCK;
 -
--	if (mx3_fbi->blank == blank)
--		return 0;
--
--	mutex_lock(&mx3_fbi->mutex);
- 	mx3_fbi->blank = blank;
+ 	if (cfg->invert_line_clock)
+ 		reg |= LCD_INVERT_LINE_CLOCK;
+ 	else
+@@ -482,6 +479,13 @@ static int lcd_init(struct da8xx_fb_par 
+ 	lcdc_write(LCD_CLK_DIVISOR(panel->pxl_clk) |
+ 			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
  
- 	switch (blank) {
-@@ -999,6 +999,24 @@ static int mx3fb_blank(int blank, struct
- 		sdc_set_brightness(mx3fb, mx3fb->backlight_level);
- 		break;
- 	}
-+}
++	if (panel->invert_pxl_clk)
++		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) |
++			LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
++	else
++		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) &
++			~LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
 +
-+/**
-+ * mx3fb_blank() - blank the display.
-+ */
-+static int mx3fb_blank(int blank, struct fb_info *fbi)
-+{
-+	struct mx3fb_info *mx3_fbi = fbi->par;
-+	struct mx3fb_data *mx3fb = mx3_fbi->mx3fb;
-+
-+	dev_dbg(fbi->device, "%s, blank = %d, base %p, len %u\n", __func__,
-+		blank, fbi->screen_base, fbi->fix.smem_len);
-+
-+	if (mx3_fbi->blank == blank)
-+		return 0;
-+
-+	mutex_lock(&mx3_fbi->mutex);
-+	__blank(blank, fbi);
- 	mutex_unlock(&mx3_fbi->mutex);
+ 	/* Configure the DMA burst size. */
+ 	ret = lcd_cfg_dma(cfg->dma_burst_sz);
+ 	if (ret < 0)
+diff -puN include/video/da8xx-fb.h~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5 include/video/da8xx-fb.h
+--- a/include/video/da8xx-fb.h~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5
++++ a/include/video/da8xx-fb.h
+@@ -67,9 +67,6 @@ struct lcd_ctrl_config {
+ 	/* Mono 8-bit Mode: 1=D0-D7 or 0=D0-D3 */
+ 	unsigned char mono_8bit_mode;
  
- 	return 0;
-@@ -1198,6 +1216,7 @@ static int mx3fb_resume(struct platform_
-  * mx3fb_map_video_memory() - allocates the DRAM memory for the frame buffer.
-  * @fbi:	framebuffer information pointer
-  * @mem_len:	length of mapped memory
-+ * @lock:	do not lock during initialisation
-  * @return:	Error code indicating success or failure
-  *
-  * This buffer is remapped into a non-cached, non-buffered, memory region to
-@@ -1205,7 +1224,8 @@ static int mx3fb_resume(struct platform_
-  * area is remapped, all virtual memory access to the video memory should occur
-  * at the new region.
-  */
--static int mx3fb_map_video_memory(struct fb_info *fbi, unsigned int mem_len)
-+static int mx3fb_map_video_memory(struct fb_info *fbi, unsigned int mem_len,
-+				  bool lock)
- {
- 	int retval = 0;
- 	dma_addr_t addr;
-@@ -1221,10 +1241,12 @@ static int mx3fb_map_video_memory(struct
- 		goto err0;
- 	}
- 
--	mutex_lock(&fbi->mm_lock);
-+	if (lock)
-+		mutex_lock(&fbi->mm_lock);
- 	fbi->fix.smem_start = addr;
- 	fbi->fix.smem_len = mem_len;
--	mutex_unlock(&fbi->mm_lock);
-+	if (lock)
-+		mutex_unlock(&fbi->mm_lock);
- 
- 	dev_dbg(fbi->device, "allocated fb @ p=0x%08x, v=0x%p, size=%d.\n",
- 		(uint32_t) fbi->fix.smem_start, fbi->screen_base, fbi->fix.smem_len);
-@@ -1365,6 +1387,11 @@ static int init_fb_chan(struct mx3fb_dat
- 	init_completion(&mx3fbi->flip_cmpl);
- 	disable_irq(ichan->eof_irq);
- 	dev_dbg(mx3fb->dev, "disabling irq %d\n", ichan->eof_irq);
-+	ret = __set_par(fbi, false);
-+	if (ret < 0)
-+		goto esetpar;
-+
-+	__blank(FB_BLANK_UNBLANK, fbi);
- 
- 	dev_info(dev, "registered, using mode %s\n", fb_mode);
- 
-_
-
-Patches currently in -mm which might be from g.liakhovetski@gmx.de are
-
-linux-next.patch
-imx31-eventually-fix-framebuffer-locking-regressions.patch
-imx31-fix-framebuffer-locking-regressions.patch
-mmc-make-the-configuration-memory-resource-optional.patch
-tmio_mmc-optionally-support-using-platform-clock.patch
-sh-switch-migo-r-to-use-the-tmio-mmc-driver-instead-of-spi.patch
-spi-remove-imx-spi-driver.patch
-spi-add-spi-driver-for-most-known-imx-socs.patch
-
+-	/* Invert pixel clock */
+-	unsigned char invert_pxl_clock;
