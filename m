@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + misdn-fix-read-buffer-overflow.patch added to -mm tree
-Date: Fri, 31 Jul 2009 16:22:21 -0700
-Message-ID: <200907312322.n6VNMLke022744@imap1.linux-foundation.org>
+Subject: + mtd-fix-read-buffer-overflow.patch added to -mm tree
+Date: Fri, 31 Jul 2009 16:23:17 -0700
+Message-ID: <200907312323.n6VNNHMv024174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51692 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751866AbZGaXWZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751416AbZGaXX0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 19:22:25 -0400
+	Fri, 31 Jul 2009 19:23:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, keil@b1-systems.de
+Cc: roel.kluin@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     mISDN: fix read buffer overflow
+     mtd: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     misdn-fix-read-buffer-overflow.patch
+     mtd-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: fix read buffer overflow
+Subject: mtd: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Check whether index is within bounds before testing the element.
 
+with `for (i = 0; bbt[i] && i < ebcnt; ++i)'
+we test bbt[ebcnt] in the last iteration
+
+with `for (i = 0; bbt[ebcnt - i - 1] && i < ebcnt; ++i)'
+we test bbt[-1] in the last iteration
+
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Karsten Keil <keil@b1-systems.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/mISDN/l1oip_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/tests/mtd_oobtest.c  |    2 +-
+ drivers/mtd/tests/mtd_pagetest.c |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/isdn/mISDN/l1oip_core.c~misdn-fix-read-buffer-overflow drivers/isdn/mISDN/l1oip_core.c
---- a/drivers/isdn/mISDN/l1oip_core.c~misdn-fix-read-buffer-overflow
-+++ a/drivers/isdn/mISDN/l1oip_core.c
-@@ -1480,7 +1480,7 @@ l1oip_init(void)
- 		return -ENOMEM;
+diff -puN drivers/mtd/tests/mtd_oobtest.c~mtd-fix-read-buffer-overflow drivers/mtd/tests/mtd_oobtest.c
+--- a/drivers/mtd/tests/mtd_oobtest.c~mtd-fix-read-buffer-overflow
++++ a/drivers/mtd/tests/mtd_oobtest.c
+@@ -512,7 +512,7 @@ static int __init mtd_oobtest_init(void)
+ 		goto out;
  
- 	l1oip_cnt = 0;
--	while (type[l1oip_cnt] && l1oip_cnt < MAX_CARDS) {
-+	while (l1oip_cnt < MAX_CARDS && type[l1oip_cnt]) {
- 		switch (type[l1oip_cnt] & 0xff) {
- 		case 1:
- 			pri = 0;
+ 	addr0 = 0;
+-	for (i = 0; bbt[i] && i < ebcnt; ++i)
++	for (i = 0; i < ebcnt && bbt[i]; ++i)
+ 		addr0 += mtd->erasesize;
+ 
+ 	/* Attempt to write off end of OOB */
+diff -puN drivers/mtd/tests/mtd_pagetest.c~mtd-fix-read-buffer-overflow drivers/mtd/tests/mtd_pagetest.c
+--- a/drivers/mtd/tests/mtd_pagetest.c~mtd-fix-read-buffer-overflow
++++ a/drivers/mtd/tests/mtd_pagetest.c
+@@ -116,11 +116,11 @@ static int verify_eraseblock(int ebnum)
+ 	loff_t addr = ebnum * mtd->erasesize;
+ 
+ 	addr0 = 0;
+-	for (i = 0; bbt[i] && i < ebcnt; ++i)
++	for (i = 0; i < ebcnt && bbt[i]; ++i)
+ 		addr0 += mtd->erasesize;
+ 
+ 	addrn = mtd->size;
+-	for (i = 0; bbt[ebcnt - i - 1] && i < ebcnt; ++i)
++	for (i = 0; i < ebcnt && bbt[ebcnt - i - 1]; ++i)
+ 		addrn -= mtd->erasesize;
+ 
+ 	set_random_data(writebuf, mtd->erasesize);
+@@ -219,11 +219,11 @@ static int crosstest(void)
+ 	memset(pp1, 0, pgsize * 4);
+ 
+ 	addr0 = 0;
+-	for (i = 0; bbt[i] && i < ebcnt; ++i)
++	for (i = 0; i < ebcnt && bbt[i]; ++i)
+ 		addr0 += mtd->erasesize;
+ 
+ 	addrn = mtd->size;
+-	for (i = 0; bbt[ebcnt - i - 1] && i < ebcnt; ++i)
++	for (i = 0; i < ebcnt && bbt[ebcnt - i - 1]; ++i)
+ 		addrn -= mtd->erasesize;
+ 
+ 	/* Read 2nd-to-last page to pp1 */
+@@ -317,7 +317,7 @@ static int erasecrosstest(void)
+ 
+ 	ebnum = 0;
+ 	addr0 = 0;
+-	for (i = 0; bbt[i] && i < ebcnt; ++i) {
++	for (i = 0; i < ebcnt && bbt[i]; ++i) {
+ 		addr0 += mtd->erasesize;
+ 		ebnum += 1;
+ 	}
+@@ -413,7 +413,7 @@ static int erasetest(void)
+ 
+ 	ebnum = 0;
+ 	addr0 = 0;
+-	for (i = 0; bbt[i] && i < ebcnt; ++i) {
++	for (i = 0; i < ebcnt && bbt[i]; ++i) {
+ 		addr0 += mtd->erasesize;
+ 		ebnum += 1;
+ 	}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -82,6 +138,7 @@ mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
 mips-read-buffer-overflow.patch
 slram-read-buffer-overflow.patch
 slram-read-buffer-overflow-cleanup.patch
+mtd-fix-read-buffer-overflow.patch
 irda-fix-read-buffer-overflow.patch
 misdn-fix-read-buffer-overflow.patch
 atlx-strncpy-does-not-null-terminate-string.patch
