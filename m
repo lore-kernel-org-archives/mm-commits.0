@@ -1,139 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [failures] vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch removed from -mm tree
-Date: Fri, 31 Jul 2009 15:07:30 -0700
-Message-ID: <200907312207.n6VM7UMk030127@imap1.linux-foundation.org>
+Subject: + procfs-provide-stack-information-for-threads-v011-fix.patch added to -mm tree
+Date: Fri, 31 Jul 2009 15:35:09 -0700
+Message-ID: <200907312235.n6VMZ9ef010382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751889AbZGaWI2 (ORCPT
+	by vger.kernel.org with ESMTP id S1750859AbZGaWfv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 18:08:28 -0400
+	Fri, 31 Jul 2009 18:35:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, a.p.zijlstra@chello.nl, adobriyan@gmail.com, ebiederm@xmission.com, mingo@elte.hu, randy.dunlap@oracle.com, stefani@seibold.net
 
 
 The patch titled
-     vmscan: move PGDEACTIVATE modification to shrink_active_list()
-has been removed from the -mm tree.  Its filename was
-     vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
+     procfs-provide-stack-information-for-threads-v011-fix
+has been added to the -mm tree.  Its filename is
+     procfs-provide-stack-information-for-threads-v011-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: move PGDEACTIVATE modification to shrink_active_list()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: procfs-provide-stack-information-for-threads-v011-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Pgmoved accounting in move_active_pages_to_lru() doesn't make any sense. 
-it can be calculated in irq enabled area.
+fs/proc/array.c now needs walk_page_range()
 
-This patch move #-of-deactivating-pages calculation to shrink_active_list().
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Stefani Seibold <stefani@seibold.net>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/Makefile |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list mm/vmscan.c
---- a/mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list
-+++ a/mm/vmscan.c
-@@ -1260,7 +1260,6 @@ static void move_active_pages_to_lru(str
- 				     struct list_head *list,
- 				     enum lru_list lru)
- {
--	unsigned long pgmoved = 0;
- 	struct pagevec pvec;
- 	struct page *page;
+diff -puN mm/Makefile~procfs-provide-stack-information-for-threads-v011-fix mm/Makefile
+--- a/mm/Makefile~procfs-provide-stack-information-for-threads-v011-fix
++++ a/mm/Makefile
+@@ -11,10 +11,9 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   maccess.o page_alloc.o page-writeback.o \
+ 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+-			   page_isolation.o mm_init.o $(mmu-y)
++			   page_isolation.o mm_init.o pagewalk.o $(mmu-y)
+ obj-y += init-mm.o
  
-@@ -1274,7 +1273,6 @@ static void move_active_pages_to_lru(str
- 
- 		list_move(&page->lru, &zone->lru[lru].list);
- 		mem_cgroup_add_lru_list(page, lru);
--		pgmoved++;
- 
- 		if (!pagevec_add(&pvec, page) || list_empty(list)) {
- 			spin_unlock_irq(&zone->lru_lock);
-@@ -1285,8 +1283,6 @@ static void move_active_pages_to_lru(str
- 		}
- 	}
- 	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
--	if (!is_active_lru(lru))
--		__count_vm_events(PGDEACTIVATE, pgmoved);
- }
- 
- static void shrink_active_list(unsigned long nr_pages, struct zone *zone,
-@@ -1301,6 +1297,7 @@ static void shrink_active_list(unsigned 
- 	struct page *page;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
- 	unsigned long nr_rotated = 0;
-+	unsigned long nr_deactivate = 0;
- 
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
-@@ -1355,6 +1352,7 @@ static void shrink_active_list(unsigned 
- 
- 		ClearPageActive(page);	/* we are de-activating */
- 		list_add(&page->lru, &l_inactive);
-+		nr_deactivate++;
- 	}
- 
- 	/*
-@@ -1368,6 +1366,7 @@ static void shrink_active_list(unsigned 
- 	 * get_scan_ratio.
- 	 */
- 	reclaim_stat->recent_rotated[!!file] += nr_rotated;
-+	__count_vm_events(PGDEACTIVATE, nr_deactivate);
- 
- 	move_active_pages_to_lru(zone, &l_active,
- 						LRU_ACTIVE + file * LRU_FILE);
+-obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+ obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
+ obj-$(CONFIG_HAS_DMA)	+= dmapool.o
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
 mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
-readahead-add-blk_run_backing_dev.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
 readahead-add-blk_run_backing_dev-fix.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-rename-pgmoved-variable-in-shrink_active_list.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
 vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-mm-introduce-proc-pid-oom_adj_child.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
+ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+kernel-irq-export-symbols-needed-by-gpio-add-intel-moorestown-platform-langwell-chip-gpio-driverpatch.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
 memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
