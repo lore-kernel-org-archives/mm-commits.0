@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver-fix.patch added to -mm tree
-Date: Fri, 31 Jul 2009 16:12:23 -0700
-Message-ID: <200907312312.n6VNCNOE006310@imap1.linux-foundation.org>
+Subject: + hid-fix-read-buffer-overflow.patch added to -mm tree
+Date: Fri, 31 Jul 2009 16:13:10 -0700
+Message-ID: <200907312313.n6VNDA0k007662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54242 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751246AbZGaXM4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752937AbZGaXNp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 19:12:56 -0400
+	Fri, 31 Jul 2009 19:13:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alek.du@intel.com, david-b@pacbell.net
+Cc: roel.kluin@gmail.com, jkosina@suse.cz
 
 
 The patch titled
-     gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver-fix
+     hid: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver-fix.patch
+     hid-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver-fix
-From: Alek Du <alek.du@intel.com>
+Subject: hid: fix read buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-1. remove module support.
-2. add a mask handler to irqchip.
+Check whether index is within bounds before testing the element.
 
-Signed-off-by: Alek Du <alek.du@intel.com>
-Cc: David Brownell <david-b@pacbell.net>
+declared in drivers/hid/usbhid/hid-core.c:62:
+static char *quirks_param[MAX_USBHID_BOOT_QUIRKS] = ...
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig         |    2 -
- drivers/gpio/langwell_gpio.c |   34 +++++----------------------------
- 2 files changed, 7 insertions(+), 29 deletions(-)
+ drivers/hid/usbhid/hid-quirks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver-fix drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver-fix
-+++ a/drivers/gpio/Kconfig
-@@ -174,7 +174,7 @@ config GPIO_BT8XX
- 	  If unsure, say N.
+diff -puN drivers/hid/usbhid/hid-quirks.c~hid-fix-read-buffer-overflow drivers/hid/usbhid/hid-quirks.c
+--- a/drivers/hid/usbhid/hid-quirks.c~hid-fix-read-buffer-overflow
++++ a/drivers/hid/usbhid/hid-quirks.c
+@@ -201,7 +201,7 @@ int usbhid_quirks_init(char **quirks_par
+ 	u32 quirks;
+ 	int n = 0, m;
  
- config GPIO_LANGWELL
--	tristate "Intel Moorestown Platform Langwell GPIO support"
-+	bool "Intel Moorestown Platform Langwell GPIO support"
- 	depends on PCI
- 	help
- 	  Say Y here to support Intel Moorestown platform GPIO.
-diff -puN drivers/gpio/langwell_gpio.c~gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver-fix drivers/gpio/langwell_gpio.c
---- a/drivers/gpio/langwell_gpio.c~gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver-fix
-+++ a/drivers/gpio/langwell_gpio.c
-@@ -152,8 +152,13 @@ static void lnw_irq_unmask(unsigned irq)
- 	writel(BIT(gpio % 32), gedr);
- };
+-	for (; quirks_param[n] && n < MAX_USBHID_BOOT_QUIRKS; n++) {
++	for (; n < MAX_USBHID_BOOT_QUIRKS && quirks_param[n]; n++) {
  
-+static void lnw_irq_mask(unsigned irq)
-+{
-+};
-+
- static struct irq_chip lnw_irqchip = {
- 	.name		= "LNW-GPIO",
-+	.mask		= lnw_irq_mask,
- 	.unmask		= lnw_irq_unmask,
- 	.set_type	= lnw_irq_type,
- };
-@@ -277,27 +282,10 @@ done:
- 	return retval;
- }
- 
--static void __devexit lnw_gpio_remove(struct pci_dev *pdev)
--{
--	struct lnw_gpio *lnw = (struct lnw_gpio *)pci_get_drvdata(pdev);
--
--	if (gpiochip_remove(&lnw->chip)) {
--		dev_err(&pdev->dev, "langwell gpio driver remove error\n");
--		return;
--	}
--	pci_disable_device(pdev);
--	set_irq_chained_handler(pdev->irq, NULL);
--	pci_release_regions(pdev);
--	iounmap(lnw->reg_base);
--	pci_set_drvdata(pdev, NULL);
--	kfree(lnw);
--}
--
- static struct pci_driver lnw_gpio_driver = {
- 	.name		= "langwell_gpio",
- 	.id_table	= lnw_gpio_ids,
- 	.probe		= lnw_gpio_probe,
--	.remove		= lnw_gpio_remove,
- };
- 
- static int __init lnw_gpio_init(void)
-@@ -305,14 +293,4 @@ static int __init lnw_gpio_init(void)
- 	return pci_register_driver(&lnw_gpio_driver);
- }
- 
--static void __exit lnw_gpio_exit(void)
--{
--	pci_unregister_driver(&lnw_gpio_driver);
--}
--
--MODULE_AUTHOR("Alek Du <alek.du@intel.com>");
--MODULE_DESCRIPTION("Intel Moorestown Platform Langwell chip GPIO driver");
--MODULE_LICENSE("GPL v2");
+ 		m = sscanf(quirks_param[n], "0x%hx:0x%hx:0x%x",
+ 				&idVendor, &idProduct, &quirks);
+_
+
+Patches currently in -mm which might be from roel.kluin@gmail.com are
+
+origin.patch
+linux-next.patch
+x86-fix-buffer-overflow-in-efi_init.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-fsl-booke-read-buffer-overflow.patch
+media-strncpy-does-not-null-terminate-string.patch
+ivtv-read-buffer-overflow.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+hid-fix-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+mips-read-buffer-overflow.patch
+slram-read-buffer-overflow.patch
+slram-read-buffer-overflow-cleanup.patch
+irda-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+cyclades-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-iprh-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+i915-fix-read-outside-array-bounds.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+adfs-remove-redundant-test-on-unsigned.patch
+
