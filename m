@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-fsl-booke-read-buffer-overflow.patch added to -mm tree
-Date: Fri, 31 Jul 2009 16:00:02 -0700
-Message-ID: <200907312300.n6VN027D018509@imap1.linux-foundation.org>
+Subject: + slram-read-buffer-overflow.patch added to -mm tree
+Date: Fri, 31 Jul 2009 16:06:24 -0700
+Message-ID: <200907312306.n6VN6OIM028899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58023 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752704AbZGaXAE (ORCPT
+	by vger.kernel.org with ESMTP id S1751165AbZGaXGi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 19:00:04 -0400
+	Fri, 31 Jul 2009 19:06:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com
+Cc: roel.kluin@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     powerpc/fsl-booke: read buffer overflow
+     slram: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     powerpc-fsl-booke-read-buffer-overflow.patch
+     slram-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/fsl-booke: read buffer overflow
+Subject: slram: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-cam[tlbcam_index] is checked before tlbcam_index < ARRAY_SIZE(cam)
+map[count] is checked before count < SLRAM_MAX_DEVICES_PARAMS
+
+declared on drivers/mtd/devices/slram.c:66:
+
+static char *map[SLRAM_MAX_DEVICES_PARAMS];
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/fsl_booke_mmu.c |    2 +-
+ drivers/mtd/devices/slram.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/fsl_booke_mmu.c~powerpc-fsl-booke-read-buffer-overflow arch/powerpc/mm/fsl_booke_mmu.c
---- a/arch/powerpc/mm/fsl_booke_mmu.c~powerpc-fsl-booke-read-buffer-overflow
-+++ a/arch/powerpc/mm/fsl_booke_mmu.c
-@@ -161,7 +161,7 @@ unsigned long __init mmu_mapin_ram(void)
- 	unsigned long virt = PAGE_OFFSET;
- 	phys_addr_t phys = memstart_addr;
+diff -puN drivers/mtd/devices/slram.c~slram-read-buffer-overflow drivers/mtd/devices/slram.c
+--- a/drivers/mtd/devices/slram.c~slram-read-buffer-overflow
++++ a/drivers/mtd/devices/slram.c
+@@ -341,7 +341,7 @@ static int __init init_slram(void)
+ #else
+ 	int count;
  
--	while (cam[tlbcam_index] && tlbcam_index < ARRAY_SIZE(cam)) {
-+	while (tlbcam_index < ARRAY_SIZE(cam) && cam[tlbcam_index]) {
- 		settlbcam(tlbcam_index, virt, phys, cam[tlbcam_index], PAGE_KERNEL_X, 0);
- 		virt += cam[tlbcam_index];
- 		phys += cam[tlbcam_index];
+-	for (count = 0; (map[count]) && (count < SLRAM_MAX_DEVICES_PARAMS);
++	for (count = 0; count < SLRAM_MAX_DEVICES_PARAMS && map[count];
+ 			count++) {
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -77,6 +82,7 @@ drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
 stk-webcam-read-buffer-overflow.patch
 ipath-strncpy-does-not-null-terminate-string.patch
 mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+slram-read-buffer-overflow.patch
 irda-fix-read-buffer-overflow.patch
 atlx-strncpy-does-not-null-terminate-string.patch
 ext4-remove-redundant-test-on-unsigned.patch
