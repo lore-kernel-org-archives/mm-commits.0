@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-add-support-for-device-table-matching.patch added to -mm tree
-Date: Fri, 31 Jul 2009 13:49:57 -0700
-Message-ID: <200907312049.n6VKnvcC000638@imap1.linux-foundation.org>
+Subject: + hwmon-lm70-convert-to-device-table-matching.patch added to -mm tree
+Date: Fri, 31 Jul 2009 13:50:03 -0700
+Message-ID: <200907312050.n6VKo4OZ000820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752418AbZGaUvb (ORCPT
+	by vger.kernel.org with ESMTP id S1752447AbZGaUvn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 16:51:31 -0400
+	Fri, 31 Jul 2009 16:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, khali@linux-fr.org
+Cc: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, kaiwan@designergraphix.com, khali@linux-fr.org
 
 
 The patch titled
-     spi: add support for device table matching
+     hwmon: lm70: convert to device table matching
 has been added to the -mm tree.  Its filename is
-     spi-add-support-for-device-table-matching.patch
+     hwmon-lm70-convert-to-device-table-matching.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,22 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: add support for device table matching
+Subject: hwmon: lm70: convert to device table matching
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-With this patch spi drivers can use standard spi_driver.id_table and
-MODULE_DEVICE_TABLE() mechanisms to bind against the devices.  Just like
-we do with I2C drivers.
-
-This is useful when a single driver supports several variants of devices
-but it is not possible to detect them in run-time (like non-JEDEC chips
-probing in drivers/mtd/devices/m25p80.c), and when platform_data usage is
-overkill.
-
-This patch also makes life a lot easier on OpenFirmware platforms, since
-with OF we extensively use proper device IDs in modaliases.
+Make the code a little bit nicer, and shorter.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Kaiwan N Billimoria <kaiwan@designergraphix.com>
 Cc: David Brownell <dbrownell@users.sourceforge.net>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Grant Likely <grant.likely@secretlab.ca>
@@ -59,151 +50,117 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c               |   23 +++++++++++++++++++++++
- include/linux/mod_devicetable.h |   10 ++++++++++
- include/linux/spi/spi.h         |   10 ++++++++--
- scripts/mod/file2alias.c        |   13 +++++++++++++
- 4 files changed, 54 insertions(+), 2 deletions(-)
+ drivers/hwmon/lm70.c |   55 ++++++++++++++---------------------------
+ 1 file changed, 19 insertions(+), 36 deletions(-)
 
-diff -puN drivers/spi/spi.c~spi-add-support-for-device-table-matching drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-add-support-for-device-table-matching
-+++ a/drivers/spi/spi.c
-@@ -59,9 +59,32 @@ static struct device_attribute spi_dev_a
-  * and the sysfs version makes coldplug work too.
-  */
+diff -puN drivers/hwmon/lm70.c~hwmon-lm70-convert-to-device-table-matching drivers/hwmon/lm70.c
+--- a/drivers/hwmon/lm70.c~hwmon-lm70-convert-to-device-table-matching
++++ a/drivers/hwmon/lm70.c
+@@ -32,6 +32,7 @@
+ #include <linux/sysfs.h>
+ #include <linux/hwmon.h>
+ #include <linux/mutex.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/spi/spi.h>
  
-+static const struct spi_device_id *spi_match_id(const struct spi_device_id *id,
-+						const struct spi_device *sdev)
-+{
-+	while (id->name[0]) {
-+		if (!strcmp(sdev->modalias, id->name))
-+			return id;
-+		id++;
-+	}
-+	return NULL;
-+}
-+
-+const struct spi_device_id *spi_get_device_id(const struct spi_device *sdev)
-+{
-+	const struct spi_driver *sdrv = to_spi_driver(sdev->dev.driver);
-+
-+	return spi_match_id(sdrv->id_table, sdev);
-+}
-+EXPORT_SYMBOL_GPL(spi_get_device_id);
-+
- static int spi_match_device(struct device *dev, struct device_driver *drv)
+ 
+@@ -130,11 +131,20 @@ static DEVICE_ATTR(name, S_IRUGO, lm70_s
+ 
+ /*----------------------------------------------------------------------*/
+ 
+-static int __devinit common_probe(struct spi_device *spi, int chip)
++static int __devinit lm70_probe(struct spi_device *spi)
  {
- 	const struct spi_device	*spi = to_spi_device(dev);
-+	const struct spi_driver	*sdrv = to_spi_driver(drv);
-+
-+	if (sdrv->id_table)
-+		return !!spi_match_id(sdrv->id_table, spi);
++	int chip = spi_get_device_id(spi)->driver_data;
+ 	struct lm70 *p_lm70;
+ 	int status;
  
- 	return strcmp(spi->modalias, drv->name) == 0;
++	/* signaling is SPI_MODE_0 for both LM70 and TMP121 */
++	if (spi->mode & (SPI_CPOL | SPI_CPHA))
++		return -EINVAL;
++
++	/* 3-wire link (shared SI/SO) for LM70 */
++	if (chip == LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
++		return -EINVAL;
++
+ 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
+ 
+ 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
+@@ -170,24 +180,6 @@ out_dev_reg_failed:
+ 	return status;
  }
-diff -puN include/linux/mod_devicetable.h~spi-add-support-for-device-table-matching include/linux/mod_devicetable.h
---- a/include/linux/mod_devicetable.h~spi-add-support-for-device-table-matching
-+++ a/include/linux/mod_devicetable.h
-@@ -399,6 +399,16 @@ struct i2c_device_id {
- 			__attribute__((aligned(sizeof(kernel_ulong_t))));
+ 
+-static int __devinit lm70_probe(struct spi_device *spi)
+-{
+-	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
+-	if ((spi->mode & (SPI_CPOL | SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
+-		return -EINVAL;
+-
+-	return common_probe(spi, LM70_CHIP_LM70);
+-}
+-
+-static int __devinit tmp121_probe(struct spi_device *spi)
+-{
+-	/* signaling is SPI_MODE_0 with only MISO connected */
+-	if (spi->mode & (SPI_CPOL | SPI_CPHA))
+-		return -EINVAL;
+-
+-	return common_probe(spi, LM70_CHIP_TMP121);
+-}
+-
+ static int __devexit lm70_remove(struct spi_device *spi)
+ {
+ 	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
+@@ -201,41 +193,32 @@ static int __devexit lm70_remove(struct 
+ 	return 0;
+ }
+ 
+-static struct spi_driver tmp121_driver = {
+-	.driver = {
+-		.name	= "tmp121",
+-		.owner	= THIS_MODULE,
+-	},
+-	.probe	= tmp121_probe,
+-	.remove	= __devexit_p(lm70_remove),
++
++static const struct spi_device_id lm70_ids[] = {
++	{ "lm70",   LM70_CHIP_LM70 },
++	{ "tmp121", LM70_CHIP_TMP121 },
++	{ },
+ };
++MODULE_DEVICE_TABLE(spi, lm70_ids);
+ 
+ static struct spi_driver lm70_driver = {
+ 	.driver = {
+ 		.name	= "lm70",
+ 		.owner	= THIS_MODULE,
+ 	},
++	.id_table = lm70_ids,
+ 	.probe	= lm70_probe,
+ 	.remove	= __devexit_p(lm70_remove),
  };
  
-+/* spi */
-+
-+#define SPI_NAME_SIZE	32
-+
-+struct spi_device_id {
-+	char name[SPI_NAME_SIZE];
-+	kernel_ulong_t driver_data	/* Data private to the driver */
-+			__attribute__((aligned(sizeof(kernel_ulong_t))));
-+};
-+
- /* dmi */
- enum dmi_field {
- 	DMI_NONE,
-diff -puN include/linux/spi/spi.h~spi-add-support-for-device-table-matching include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spi-add-support-for-device-table-matching
-+++ a/include/linux/spi/spi.h
-@@ -20,6 +20,7 @@
- #define __LINUX_SPI_H
- 
- #include <linux/device.h>
-+#include <linux/mod_devicetable.h>
- 
- /*
-  * INTERFACES between SPI master-side drivers and SPI infrastructure.
-@@ -86,7 +87,7 @@ struct spi_device {
- 	int			irq;
- 	void			*controller_state;
- 	void			*controller_data;
--	char			modalias[32];
-+	char			modalias[SPI_NAME_SIZE];
- 
- 	/*
- 	 * likely need more hooks for more protocol options affecting how
-@@ -145,6 +146,7 @@ struct spi_message;
- 
- /**
-  * struct spi_driver - Host side "protocol" driver
-+ * @id_table: List of SPI devices supported by this driver
-  * @probe: Binds this driver to the spi device.  Drivers can verify
-  *	that the device is actually present, and may need to configure
-  *	characteristics (such as bits_per_word) which weren't needed for
-@@ -170,6 +172,7 @@ struct spi_message;
-  * MMC, RTC, filesystem character device nodes, and hardware monitoring.
-  */
- struct spi_driver {
-+	const struct spi_device_id *id_table;
- 	int			(*probe)(struct spi_device *spi);
- 	int			(*remove)(struct spi_device *spi);
- 	void			(*shutdown)(struct spi_device *spi);
-@@ -734,7 +737,7 @@ struct spi_board_info {
- 	 * controller_data goes to spi_device.controller_data,
- 	 * irq is copied too
- 	 */
--	char		modalias[32];
-+	char		modalias[SPI_NAME_SIZE];
- 	const void	*platform_data;
- 	void		*controller_data;
- 	int		irq;
-@@ -802,4 +805,7 @@ spi_unregister_device(struct spi_device 
- 		device_unregister(&spi->dev);
+ static int __init init_lm70(void)
+ {
+-	int ret = spi_register_driver(&lm70_driver);
+-	if (ret)
+-		return ret;
+-
+-	ret = spi_register_driver(&tmp121_driver);
+-	if (ret)
+-		spi_unregister_driver(&lm70_driver);
+-
+-	return ret;
++	return spi_register_driver(&lm70_driver);
  }
  
-+extern const struct spi_device_id *
-+spi_get_device_id(const struct spi_device *sdev);
-+
- #endif /* __LINUX_SPI_H */
-diff -puN scripts/mod/file2alias.c~spi-add-support-for-device-table-matching scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~spi-add-support-for-device-table-matching
-+++ a/scripts/mod/file2alias.c
-@@ -657,6 +657,15 @@ static int do_i2c_entry(const char *file
- 	return 1;
+ static void __exit cleanup_lm70(void)
+ {
+ 	spi_unregister_driver(&lm70_driver);
+-	spi_unregister_driver(&tmp121_driver);
  }
  
-+/* Looks like: S */
-+static int do_spi_entry(const char *filename, struct spi_device_id *id,
-+			char *alias)
-+{
-+	sprintf(alias, "%s", id->name);
-+
-+	return 1;
-+}
-+
- static const struct dmifield {
- 	const char *prefix;
- 	int field;
-@@ -853,6 +862,10 @@ void handle_moddevtable(struct module *m
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct i2c_device_id), "i2c",
- 			 do_i2c_entry, mod);
-+	else if (sym_is(symname, "__mod_spi_device_table"))
-+		do_table(symval, sym->st_size,
-+			 sizeof(struct spi_device_id), "spi",
-+			 do_spi_entry, mod);
- 	else if (sym_is(symname, "__mod_dmi_device_table"))
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct dmi_system_id), "dmi",
+ module_init(init_lm70);
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com are
