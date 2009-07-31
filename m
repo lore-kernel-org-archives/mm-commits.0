@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + spi-merge-probe-and-probe_id-callbacks.patch added to -mm tree
-Date: Fri, 31 Jul 2009 13:50:07 -0700
-Message-ID: <200907312050.n6VKo7hE000927@imap1.linux-foundation.org>
+Subject: + spi-prefix-modalias-with-spi.patch added to -mm tree
+Date: Fri, 31 Jul 2009 13:50:05 -0700
+Message-ID: <200907312050.n6VKo6O8000895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56252 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752459AbZGaUv5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752491AbZGaUwI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 16:51:57 -0400
+	Fri, 31 Jul 2009 16:52:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbr
 
 
 The patch titled
-     spi: merge probe and probe_id callbacks
+     spi: prefix modalias with "spi:"
 has been added to the -mm tree.  Its filename is
-     spi-merge-probe-and-probe_id-callbacks.patch
+     spi-prefix-modalias-with-spi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: merge probe and probe_id callbacks
+Subject: spi: prefix modalias with "spi:"
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-The probe_id callback was introduced for the transition period as a
-"new-style" probe hook.  This patch makes probe() look exactly as
-probe_id(), converts drivers and removes probe_id().
+This makes it consistent with other buses (platform, i2c, vio, ...).  I'm
+not sure why we use the prefixes, but there must be a reason.
+
+This was easy enough to do it, and I did it.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: David Brownell <dbrownell@users.sourceforge.net>
@@ -54,601 +55,361 @@ Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/max7301.c                    |    3 ++-
- drivers/gpio/mcp23s08.c                   |    3 ++-
- drivers/hwmon/adcxx.c                     |   12 ++++++++----
- drivers/hwmon/lis3lv02d_spi.c             |    3 ++-
- drivers/hwmon/lm70.c                      |    6 ++++--
- drivers/hwmon/max1111.c                   |    3 ++-
- drivers/input/touchscreen/ad7877.c        |    3 ++-
- drivers/input/touchscreen/ad7879.c        |    3 ++-
- drivers/input/touchscreen/ads7846.c       |    3 ++-
- drivers/leds/leds-dac124s085.c            |    3 ++-
- drivers/mfd/ezx-pcap.c                    |    3 ++-
+ drivers/gpio/max7301.c                    |    1 +
+ drivers/gpio/mcp23s08.c                   |    1 +
+ drivers/hwmon/lis3lv02d_spi.c             |    2 +-
+ drivers/hwmon/max1111.c                   |    1 +
+ drivers/input/touchscreen/ad7877.c        |    1 +
+ drivers/input/touchscreen/ad7879.c        |    1 +
+ drivers/input/touchscreen/ads7846.c       |    1 +
+ drivers/leds/leds-dac124s085.c            |    1 +
+ drivers/mfd/ezx-pcap.c                    |    1 +
  drivers/misc/eeprom/at25.c                |    2 +-
- drivers/mmc/host/mmc_spi.c                |    3 ++-
- drivers/mtd/devices/m25p80.c              |    2 +-
- drivers/mtd/devices/mtd_dataflash.c       |    3 ++-
- drivers/net/enc28j60.c                    |    3 ++-
- drivers/net/ks8851.c                      |    3 ++-
- drivers/net/wireless/libertas/if_spi.c    |    3 ++-
- drivers/net/wireless/p54/p54spi.c         |    3 ++-
- drivers/net/wireless/wl12xx/wl1251_main.c |    3 ++-
- drivers/rtc/rtc-ds1305.c                  |    3 ++-
- drivers/rtc/rtc-ds1390.c                  |    3 ++-
- drivers/rtc/rtc-ds3234.c                  |    3 ++-
- drivers/rtc/rtc-m41t94.c                  |    3 ++-
- drivers/rtc/rtc-max6902.c                 |    3 ++-
- drivers/rtc/rtc-r9701.c                   |    3 ++-
- drivers/rtc/rtc-rs5c348.c                 |    3 ++-
- drivers/serial/max3100.c                  |    3 ++-
- drivers/spi/spi.c                         |   15 +++------------
- drivers/spi/spidev.c                      |    2 +-
- drivers/spi/tle62x0.c                     |    3 ++-
- drivers/staging/stlc45xx/stlc45xx.c       |    3 ++-
- drivers/video/backlight/corgi_lcd.c       |    3 ++-
- drivers/video/backlight/ltv350qv.c        |    3 ++-
- drivers/video/backlight/tdo24m.c          |    3 ++-
- drivers/video/backlight/tosa_lcd.c        |    3 ++-
- drivers/video/backlight/vgg2432a4.c       |    3 ++-
- include/linux/spi/spi.h                   |    6 ++----
- 38 files changed, 82 insertions(+), 56 deletions(-)
+ drivers/mmc/host/mmc_spi.c                |    1 +
+ drivers/mtd/devices/mtd_dataflash.c       |    1 +
+ drivers/net/enc28j60.c                    |    1 +
+ drivers/net/ks8851.c                      |    1 +
+ drivers/net/wireless/libertas/if_spi.c    |    1 +
+ drivers/net/wireless/p54/p54spi.c         |    1 +
+ drivers/net/wireless/wl12xx/wl1251_main.c |    1 +
+ drivers/rtc/rtc-ds1305.c                  |    1 +
+ drivers/rtc/rtc-ds1390.c                  |    1 +
+ drivers/rtc/rtc-ds3234.c                  |    1 +
+ drivers/rtc/rtc-m41t94.c                  |    1 +
+ drivers/rtc/rtc-max6902.c                 |    1 +
+ drivers/rtc/rtc-r9701.c                   |    1 +
+ drivers/rtc/rtc-rs5c348.c                 |    1 +
+ drivers/serial/max3100.c                  |    1 +
+ drivers/spi/spi.c                         |    3 ++-
+ drivers/spi/spidev.c                      |    1 +
+ drivers/spi/tle62x0.c                     |    1 +
+ drivers/staging/stlc45xx/stlc45xx.c       |    1 +
+ drivers/video/backlight/corgi_lcd.c       |    1 +
+ drivers/video/backlight/ltv350qv.c        |    1 +
+ drivers/video/backlight/tdo24m.c          |    1 +
+ drivers/video/backlight/tosa_lcd.c        |    2 +-
+ drivers/video/backlight/vgg2432a4.c       |    3 +--
+ include/linux/mod_devicetable.h           |    1 +
+ scripts/mod/file2alias.c                  |    4 ++--
+ 36 files changed, 38 insertions(+), 8 deletions(-)
 
-diff -puN drivers/gpio/max7301.c~spi-merge-probe-and-probe_id-callbacks drivers/gpio/max7301.c
---- a/drivers/gpio/max7301.c~spi-merge-probe-and-probe_id-callbacks
+diff -puN drivers/gpio/max7301.c~spi-prefix-modalias-with-spi drivers/gpio/max7301.c
+--- a/drivers/gpio/max7301.c~spi-prefix-modalias-with-spi
 +++ a/drivers/gpio/max7301.c
-@@ -210,7 +210,8 @@ static void max7301_set(struct gpio_chip
- 	mutex_unlock(&ts->lock);
- }
- 
--static int __devinit max7301_probe(struct spi_device *spi)
-+static int __devinit max7301_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	struct max7301 *ts;
- 	struct max7301_platform_data *pdata;
-diff -puN drivers/gpio/mcp23s08.c~spi-merge-probe-and-probe_id-callbacks drivers/gpio/mcp23s08.c
---- a/drivers/gpio/mcp23s08.c~spi-merge-probe-and-probe_id-callbacks
+@@ -339,3 +339,4 @@ module_exit(max7301_exit);
+ MODULE_AUTHOR("Juergen Beisert");
+ MODULE_LICENSE("GPL v2");
+ MODULE_DESCRIPTION("MAX7301 SPI based GPIO-Expander");
++MODULE_ALIAS("spi:" DRIVER_NAME);
+diff -puN drivers/gpio/mcp23s08.c~spi-prefix-modalias-with-spi drivers/gpio/mcp23s08.c
+--- a/drivers/gpio/mcp23s08.c~spi-prefix-modalias-with-spi
 +++ a/drivers/gpio/mcp23s08.c
-@@ -300,7 +300,8 @@ fail:
- 	return status;
- }
+@@ -433,3 +433,4 @@ static void __exit mcp23s08_exit(void)
+ module_exit(mcp23s08_exit);
  
--static int mcp23s08_probe(struct spi_device *spi)
-+static int mcp23s08_probe(struct spi_device *spi,
-+			  const struct spi_device_id *id)
- {
- 	struct mcp23s08_platform_data	*pdata;
- 	unsigned			addr;
-diff -puN drivers/hwmon/adcxx.c~spi-merge-probe-and-probe_id-callbacks drivers/hwmon/adcxx.c
---- a/drivers/hwmon/adcxx.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/hwmon/adcxx.c
-@@ -204,22 +204,26 @@ out_err:
- 	return status;
- }
- 
--static int __devinit adcxx1s_probe(struct spi_device *spi)
-+static int __devinit adcxx1s_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	return adcxx_probe(spi, 1);
- }
- 
--static int __devinit adcxx2s_probe(struct spi_device *spi)
-+static int __devinit adcxx2s_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	return adcxx_probe(spi, 2);
- }
- 
--static int __devinit adcxx4s_probe(struct spi_device *spi)
-+static int __devinit adcxx4s_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	return adcxx_probe(spi, 4);
- }
- 
--static int __devinit adcxx8s_probe(struct spi_device *spi)
-+static int __devinit adcxx8s_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	return adcxx_probe(spi, 8);
- }
-diff -puN drivers/hwmon/lis3lv02d_spi.c~spi-merge-probe-and-probe_id-callbacks drivers/hwmon/lis3lv02d_spi.c
---- a/drivers/hwmon/lis3lv02d_spi.c~spi-merge-probe-and-probe_id-callbacks
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:mcp23s08");
+diff -puN drivers/hwmon/lis3lv02d_spi.c~spi-prefix-modalias-with-spi drivers/hwmon/lis3lv02d_spi.c
+--- a/drivers/hwmon/lis3lv02d_spi.c~spi-prefix-modalias-with-spi
 +++ a/drivers/hwmon/lis3lv02d_spi.c
-@@ -56,7 +56,8 @@ static int lis3_spi_init(struct lis3lv02
- 
- static struct axis_conversion lis3lv02d_axis_normal = { 1, 2, 3 };
- 
--static int __devinit lis302dl_spi_probe(struct spi_device *spi)
-+static int __devinit lis302dl_spi_probe(struct spi_device *spi,
-+					const struct spi_device_id *id)
- {
- 	int ret;
- 
-diff -puN drivers/hwmon/lm70.c~spi-merge-probe-and-probe_id-callbacks drivers/hwmon/lm70.c
---- a/drivers/hwmon/lm70.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/hwmon/lm70.c
-@@ -170,7 +170,8 @@ out_dev_reg_failed:
- 	return status;
- }
- 
--static int __devinit lm70_probe(struct spi_device *spi)
-+static int __devinit lm70_probe(struct spi_device *spi,
-+				const struct spi_device_id *id)
- {
- 	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
- 	if ((spi->mode & (SPI_CPOL | SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
-@@ -179,7 +180,8 @@ static int __devinit lm70_probe(struct s
- 	return common_probe(spi, LM70_CHIP_LM70);
- }
- 
--static int __devinit tmp121_probe(struct spi_device *spi)
-+static int __devinit tmp121_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	/* signaling is SPI_MODE_0 with only MISO connected */
- 	if (spi->mode & (SPI_CPOL | SPI_CPHA))
-diff -puN drivers/hwmon/max1111.c~spi-merge-probe-and-probe_id-callbacks drivers/hwmon/max1111.c
---- a/drivers/hwmon/max1111.c~spi-merge-probe-and-probe_id-callbacks
+@@ -139,4 +139,4 @@ module_exit(lis302dl_exit);
+ MODULE_AUTHOR("Daniel Mack <daniel@caiaq.de>");
+ MODULE_DESCRIPTION("lis3lv02d SPI glue layer");
+ MODULE_LICENSE("GPL");
+-
++MODULE_ALIAS("spi:" DRV_NAME);
+diff -puN drivers/hwmon/max1111.c~spi-prefix-modalias-with-spi drivers/hwmon/max1111.c
+--- a/drivers/hwmon/max1111.c~spi-prefix-modalias-with-spi
 +++ a/drivers/hwmon/max1111.c
-@@ -154,7 +154,8 @@ static int setup_transfer(struct max1111
- 	return 0;
- }
- 
--static int __devinit max1111_probe(struct spi_device *spi)
-+static int __devinit max1111_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	struct max1111_data *data;
- 	int err;
-diff -puN drivers/input/touchscreen/ad7877.c~spi-merge-probe-and-probe_id-callbacks drivers/input/touchscreen/ad7877.c
---- a/drivers/input/touchscreen/ad7877.c~spi-merge-probe-and-probe_id-callbacks
+@@ -242,3 +242,4 @@ module_exit(max1111_exit);
+ MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>");
+ MODULE_DESCRIPTION("MAX1111 ADC Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:max1111");
+diff -puN drivers/input/touchscreen/ad7877.c~spi-prefix-modalias-with-spi drivers/input/touchscreen/ad7877.c
+--- a/drivers/input/touchscreen/ad7877.c~spi-prefix-modalias-with-spi
 +++ a/drivers/input/touchscreen/ad7877.c
-@@ -646,7 +646,8 @@ static void ad7877_setup_ts_def_msg(stru
- 	}
- }
- 
--static int __devinit ad7877_probe(struct spi_device *spi)
-+static int __devinit ad7877_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	struct ad7877			*ts;
- 	struct input_dev		*input_dev;
-diff -puN drivers/input/touchscreen/ad7879.c~spi-merge-probe-and-probe_id-callbacks drivers/input/touchscreen/ad7879.c
---- a/drivers/input/touchscreen/ad7879.c~spi-merge-probe-and-probe_id-callbacks
+@@ -842,3 +842,4 @@ module_exit(ad7877_exit);
+ MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
+ MODULE_DESCRIPTION("AD7877 touchscreen Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:ad7877");
+diff -puN drivers/input/touchscreen/ad7879.c~spi-prefix-modalias-with-spi drivers/input/touchscreen/ad7879.c
+--- a/drivers/input/touchscreen/ad7879.c~spi-prefix-modalias-with-spi
 +++ a/drivers/input/touchscreen/ad7879.c
-@@ -618,7 +618,8 @@ static void ad7879_setup_ts_def_msg(stru
- 	}
- }
- 
--static int __devinit ad7879_probe(struct spi_device *spi)
-+static int __devinit ad7879_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	struct ad7879 *ts;
- 	int error;
-diff -puN drivers/input/touchscreen/ads7846.c~spi-merge-probe-and-probe_id-callbacks drivers/input/touchscreen/ads7846.c
---- a/drivers/input/touchscreen/ads7846.c~spi-merge-probe-and-probe_id-callbacks
+@@ -779,3 +779,4 @@ module_exit(ad7879_exit);
+ MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
+ MODULE_DESCRIPTION("AD7879(-1) touchscreen Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:ad7879");
+diff -puN drivers/input/touchscreen/ads7846.c~spi-prefix-modalias-with-spi drivers/input/touchscreen/ads7846.c
+--- a/drivers/input/touchscreen/ads7846.c~spi-prefix-modalias-with-spi
 +++ a/drivers/input/touchscreen/ads7846.c
-@@ -872,7 +872,8 @@ static int __devinit setup_pendown(struc
- 	return 0;
- }
+@@ -1256,3 +1256,4 @@ module_exit(ads7846_exit);
  
--static int __devinit ads7846_probe(struct spi_device *spi)
-+static int __devinit ads7846_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	struct ads7846			*ts;
- 	struct ads7846_packet		*packet;
-diff -puN drivers/leds/leds-dac124s085.c~spi-merge-probe-and-probe_id-callbacks drivers/leds/leds-dac124s085.c
---- a/drivers/leds/leds-dac124s085.c~spi-merge-probe-and-probe_id-callbacks
+ MODULE_DESCRIPTION("ADS7846 TouchScreen Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:ads7846");
+diff -puN drivers/leds/leds-dac124s085.c~spi-prefix-modalias-with-spi drivers/leds/leds-dac124s085.c
+--- a/drivers/leds/leds-dac124s085.c~spi-prefix-modalias-with-spi
 +++ a/drivers/leds/leds-dac124s085.c
-@@ -64,7 +64,8 @@ static void dac124s085_set_brightness(st
- 	spin_unlock(&led->lock);
- }
- 
--static int dac124s085_probe(struct spi_device *spi)
-+static int dac124s085_probe(struct spi_device *spi,
-+			    const struct spi_device_id *id)
- {
- 	struct dac124s085	*dac;
- 	struct dac124s085_led	*led;
-diff -puN drivers/mfd/ezx-pcap.c~spi-merge-probe-and-probe_id-callbacks drivers/mfd/ezx-pcap.c
---- a/drivers/mfd/ezx-pcap.c~spi-merge-probe-and-probe_id-callbacks
+@@ -148,3 +148,4 @@ module_exit(dac124s085_leds_exit);
+ MODULE_AUTHOR("Guennadi Liakhovetski <lg@denx.de>");
+ MODULE_DESCRIPTION("DAC124S085 LED driver");
+ MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("spi:dac124s085");
+diff -puN drivers/mfd/ezx-pcap.c~spi-prefix-modalias-with-spi drivers/mfd/ezx-pcap.c
+--- a/drivers/mfd/ezx-pcap.c~spi-prefix-modalias-with-spi
 +++ a/drivers/mfd/ezx-pcap.c
-@@ -421,7 +421,8 @@ static int __devexit ezx_pcap_remove(str
- 	return 0;
- }
- 
--static int __devinit ezx_pcap_probe(struct spi_device *spi)
-+static int __devinit ezx_pcap_probe(struct spi_device *spi,
-+				    const struct spi_device_id *id)
- {
- 	struct pcap_platform_data *pdata = spi->dev.platform_data;
- 	struct pcap_chip *pcap;
-diff -puN drivers/misc/eeprom/at25.c~spi-merge-probe-and-probe_id-callbacks drivers/misc/eeprom/at25.c
---- a/drivers/misc/eeprom/at25.c~spi-merge-probe-and-probe_id-callbacks
+@@ -548,3 +548,4 @@ module_exit(ezx_pcap_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Daniel Ribeiro / Harald Welte");
+ MODULE_DESCRIPTION("Motorola PCAP2 ASIC Driver");
++MODULE_ALIAS("spi:ezx-pcap");
+diff -puN drivers/misc/eeprom/at25.c~spi-prefix-modalias-with-spi drivers/misc/eeprom/at25.c
+--- a/drivers/misc/eeprom/at25.c~spi-prefix-modalias-with-spi
 +++ a/drivers/misc/eeprom/at25.c
-@@ -287,7 +287,7 @@ static ssize_t at25_mem_write(struct mem
- 
- /*-------------------------------------------------------------------------*/
- 
--static int at25_probe(struct spi_device *spi)
-+static int at25_probe(struct spi_device *spi, const struct spi_device_id *id)
- {
- 	struct at25_data	*at25 = NULL;
- 	const struct spi_eeprom *chip;
-diff -puN drivers/mmc/host/mmc_spi.c~spi-merge-probe-and-probe_id-callbacks drivers/mmc/host/mmc_spi.c
---- a/drivers/mmc/host/mmc_spi.c~spi-merge-probe-and-probe_id-callbacks
+@@ -417,4 +417,4 @@ module_exit(at25_exit);
+ MODULE_DESCRIPTION("Driver for most SPI EEPROMs");
+ MODULE_AUTHOR("David Brownell");
+ MODULE_LICENSE("GPL");
+-
++MODULE_ALIAS("spi:at25");
+diff -puN drivers/mmc/host/mmc_spi.c~spi-prefix-modalias-with-spi drivers/mmc/host/mmc_spi.c
+--- a/drivers/mmc/host/mmc_spi.c~spi-prefix-modalias-with-spi
 +++ a/drivers/mmc/host/mmc_spi.c
-@@ -1306,7 +1306,8 @@ static int maybe_count_child(struct devi
- 	return 0;
- }
- 
--static int mmc_spi_probe(struct spi_device *spi)
-+static int mmc_spi_probe(struct spi_device *spi,
-+			 const struct spi_device_id *id)
- {
- 	void			*ones;
- 	struct mmc_host		*mmc;
-diff -puN drivers/mtd/devices/m25p80.c~spi-merge-probe-and-probe_id-callbacks drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -782,7 +782,7 @@ static struct spi_driver m25p80_driver =
- 		.owner	= THIS_MODULE,
- 	},
- 	.id_table	= m25p_ids,
--	.probe_id	= m25p_probe,
-+	.probe		= m25p_probe,
- 	.remove	= __devexit_p(m25p_remove),
- 
- 	/* REVISIT: many of these chips have deep power-down modes, which
-diff -puN drivers/mtd/devices/mtd_dataflash.c~spi-merge-probe-and-probe_id-callbacks drivers/mtd/devices/mtd_dataflash.c
---- a/drivers/mtd/devices/mtd_dataflash.c~spi-merge-probe-and-probe_id-callbacks
+@@ -1562,3 +1562,4 @@ MODULE_AUTHOR("Mike Lavender, David Brow
+ 		"Hans-Peter Nilsson, Jan Nikitenko");
+ MODULE_DESCRIPTION("SPI SD/MMC host driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:mmc_spi");
+diff -puN drivers/mtd/devices/mtd_dataflash.c~spi-prefix-modalias-with-spi drivers/mtd/devices/mtd_dataflash.c
+--- a/drivers/mtd/devices/mtd_dataflash.c~spi-prefix-modalias-with-spi
 +++ a/drivers/mtd/devices/mtd_dataflash.c
-@@ -847,7 +847,8 @@ static struct flash_info *__devinit jede
-  *   AT45DB0642  64Mbit  (8M)    xx111xxx (0x3c)   8192   1056     11
-  *   AT45DB1282  128Mbit (16M)   xx0100xx (0x10)  16384   1056     11
-  */
--static int __devinit dataflash_probe(struct spi_device *spi)
-+static int __devinit dataflash_probe(struct spi_device *spi,
-+				     const struct spi_device_id *id)
- {
- 	int status;
- 	struct flash_info	*info;
-diff -puN drivers/net/enc28j60.c~spi-merge-probe-and-probe_id-callbacks drivers/net/enc28j60.c
---- a/drivers/net/enc28j60.c~spi-merge-probe-and-probe_id-callbacks
+@@ -966,3 +966,4 @@ module_exit(dataflash_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Andrew Victor, David Brownell");
+ MODULE_DESCRIPTION("MTD DataFlash driver");
++MODULE_ALIAS("spi:mtd_dataflash");
+diff -puN drivers/net/enc28j60.c~spi-prefix-modalias-with-spi drivers/net/enc28j60.c
+--- a/drivers/net/enc28j60.c~spi-prefix-modalias-with-spi
 +++ a/drivers/net/enc28j60.c
-@@ -1542,7 +1542,8 @@ static const struct net_device_ops enc28
- 	.ndo_validate_addr	= eth_validate_addr,
- };
- 
--static int __devinit enc28j60_probe(struct spi_device *spi)
-+static int __devinit enc28j60_probe(struct spi_device *spi,
-+				    const struct spi_device_id *id)
- {
- 	struct net_device *dev;
- 	struct enc28j60_net *priv;
-diff -puN drivers/net/ks8851.c~spi-merge-probe-and-probe_id-callbacks drivers/net/ks8851.c
---- a/drivers/net/ks8851.c~spi-merge-probe-and-probe_id-callbacks
+@@ -1665,3 +1665,4 @@ MODULE_AUTHOR("Claudio Lanconelli <lanco
+ MODULE_LICENSE("GPL");
+ module_param_named(debug, debug.msg_enable, int, 0);
+ MODULE_PARM_DESC(debug, "Debug verbosity level (0=none, ..., ffff=all)");
++MODULE_ALIAS("spi:" DRV_NAME);
+diff -puN drivers/net/ks8851.c~spi-prefix-modalias-with-spi drivers/net/ks8851.c
+--- a/drivers/net/ks8851.c~spi-prefix-modalias-with-spi
 +++ a/drivers/net/ks8851.c
-@@ -1176,7 +1176,8 @@ static int ks8851_read_selftest(struct k
+@@ -1320,3 +1320,4 @@ MODULE_LICENSE("GPL");
  
- /* driver bus management functions */
- 
--static int __devinit ks8851_probe(struct spi_device *spi)
-+static int __devinit ks8851_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	struct net_device *ndev;
- 	struct ks8851_net *ks;
-diff -puN drivers/net/wireless/libertas/if_spi.c~spi-merge-probe-and-probe_id-callbacks drivers/net/wireless/libertas/if_spi.c
---- a/drivers/net/wireless/libertas/if_spi.c~spi-merge-probe-and-probe_id-callbacks
+ module_param_named(message, msg_enable, int, 0);
+ MODULE_PARM_DESC(message, "Message verbosity level (0=none, 31=all)");
++MODULE_ALIAS("spi:ks8851");
+diff -puN drivers/net/wireless/libertas/if_spi.c~spi-prefix-modalias-with-spi drivers/net/wireless/libertas/if_spi.c
+--- a/drivers/net/wireless/libertas/if_spi.c~spi-prefix-modalias-with-spi
 +++ a/drivers/net/wireless/libertas/if_spi.c
-@@ -1027,7 +1027,8 @@ static int if_spi_calculate_fw_names(u16
+@@ -1222,3 +1222,4 @@ MODULE_DESCRIPTION("Libertas SPI WLAN Dr
+ MODULE_AUTHOR("Andrey Yurovsky <andrey@cozybit.com>, "
+ 	      "Colin McCabe <colin@cozybit.com>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:libertas_spi");
+diff -puN drivers/net/wireless/p54/p54spi.c~spi-prefix-modalias-with-spi drivers/net/wireless/p54/p54spi.c
+--- a/drivers/net/wireless/p54/p54spi.c~spi-prefix-modalias-with-spi
++++ a/drivers/net/wireless/p54/p54spi.c
+@@ -731,3 +731,4 @@ module_exit(p54spi_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Christian Lamparter <chunkeey@web.de>");
++MODULE_ALIAS("spi:cx3110x");
+diff -puN drivers/net/wireless/wl12xx/wl1251_main.c~spi-prefix-modalias-with-spi drivers/net/wireless/wl12xx/wl1251_main.c
+--- a/drivers/net/wireless/wl12xx/wl1251_main.c~spi-prefix-modalias-with-spi
++++ a/drivers/net/wireless/wl12xx/wl1251_main.c
+@@ -1391,3 +1391,4 @@ module_exit(wl1251_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Kalle Valo <Kalle.Valo@nokia.com>, "
+ 		"Luciano Coelho <luciano.coelho@nokia.com>");
++MODULE_ALIAS("spi:wl12xx");
+diff -puN drivers/rtc/rtc-ds1305.c~spi-prefix-modalias-with-spi drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~spi-prefix-modalias-with-spi
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -841,3 +841,4 @@ module_exit(ds1305_exit);
+ 
+ MODULE_DESCRIPTION("RTC driver for DS1305 and DS1306 chips");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:rtc-ds1305");
+diff -puN drivers/rtc/rtc-ds1390.c~spi-prefix-modalias-with-spi drivers/rtc/rtc-ds1390.c
+--- a/drivers/rtc/rtc-ds1390.c~spi-prefix-modalias-with-spi
++++ a/drivers/rtc/rtc-ds1390.c
+@@ -189,3 +189,4 @@ module_exit(ds1390_exit);
+ MODULE_DESCRIPTION("Dallas/Maxim DS1390/93/94 SPI RTC driver");
+ MODULE_AUTHOR("Mark Jackson <mpfj@mimc.co.uk>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:rtc-ds1390");
+diff -puN drivers/rtc/rtc-ds3234.c~spi-prefix-modalias-with-spi drivers/rtc/rtc-ds3234.c
+--- a/drivers/rtc/rtc-ds3234.c~spi-prefix-modalias-with-spi
++++ a/drivers/rtc/rtc-ds3234.c
+@@ -188,3 +188,4 @@ module_exit(ds3234_exit);
+ MODULE_DESCRIPTION("DS3234 SPI RTC driver");
+ MODULE_AUTHOR("Dennis Aberilla <denzzzhome@yahoo.com>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:ds3234");
+diff -puN drivers/rtc/rtc-m41t94.c~spi-prefix-modalias-with-spi drivers/rtc/rtc-m41t94.c
+--- a/drivers/rtc/rtc-m41t94.c~spi-prefix-modalias-with-spi
++++ a/drivers/rtc/rtc-m41t94.c
+@@ -171,3 +171,4 @@ module_exit(m41t94_exit);
+ MODULE_AUTHOR("Kim B. Heino <Kim.Heino@bluegiga.com>");
+ MODULE_DESCRIPTION("Driver for ST M41T94 SPI RTC");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:rtc-m41t94");
+diff -puN drivers/rtc/rtc-max6902.c~spi-prefix-modalias-with-spi drivers/rtc/rtc-max6902.c
+--- a/drivers/rtc/rtc-max6902.c~spi-prefix-modalias-with-spi
++++ a/drivers/rtc/rtc-max6902.c
+@@ -175,3 +175,4 @@ module_exit(max6902_exit);
+ MODULE_DESCRIPTION ("max6902 spi RTC driver");
+ MODULE_AUTHOR ("Raphael Assenat");
+ MODULE_LICENSE ("GPL");
++MODULE_ALIAS("spi:rtc-max6902");
+diff -puN drivers/rtc/rtc-r9701.c~spi-prefix-modalias-with-spi drivers/rtc/rtc-r9701.c
+--- a/drivers/rtc/rtc-r9701.c~spi-prefix-modalias-with-spi
++++ a/drivers/rtc/rtc-r9701.c
+@@ -174,3 +174,4 @@ module_exit(r9701_exit);
+ MODULE_DESCRIPTION("r9701 spi RTC driver");
+ MODULE_AUTHOR("Magnus Damm <damm@opensource.se>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:rtc-r9701");
+diff -puN drivers/rtc/rtc-rs5c348.c~spi-prefix-modalias-with-spi drivers/rtc/rtc-rs5c348.c
+--- a/drivers/rtc/rtc-rs5c348.c~spi-prefix-modalias-with-spi
++++ a/drivers/rtc/rtc-rs5c348.c
+@@ -251,3 +251,4 @@ MODULE_AUTHOR("Atsushi Nemoto <anemo@mba
+ MODULE_DESCRIPTION("Ricoh RS5C348 RTC driver");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_VERSION);
++MODULE_ALIAS("spi:rtc-rs5c348");
+diff -puN drivers/serial/max3100.c~spi-prefix-modalias-with-spi drivers/serial/max3100.c
+--- a/drivers/serial/max3100.c~spi-prefix-modalias-with-spi
++++ a/drivers/serial/max3100.c
+@@ -925,3 +925,4 @@ module_exit(max3100_exit);
+ MODULE_DESCRIPTION("MAX3100 driver");
+ MODULE_AUTHOR("Christian Pellegrin <chripell@evolware.org>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:max3100");
+diff -puN drivers/spi/spi.c~spi-prefix-modalias-with-spi drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-prefix-modalias-with-spi
++++ a/drivers/spi/spi.c
+@@ -23,6 +23,7 @@
+ #include <linux/init.h>
+ #include <linux/cache.h>
+ #include <linux/mutex.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/spi/spi.h>
+ 
+ 
+@@ -93,7 +94,7 @@ static int spi_uevent(struct device *dev
+ {
+ 	const struct spi_device		*spi = to_spi_device(dev);
+ 
+-	add_uevent_var(env, "MODALIAS=%s", spi->modalias);
++	add_uevent_var(env, "MODALIAS=%s%s", SPI_MODULE_PREFIX, spi->modalias);
  	return 0;
  }
  
--static int __devinit if_spi_probe(struct spi_device *spi)
-+static int __devinit if_spi_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	struct if_spi_card *card;
- 	struct lbs_private *priv = NULL;
-diff -puN drivers/net/wireless/p54/p54spi.c~spi-merge-probe-and-probe_id-callbacks drivers/net/wireless/p54/p54spi.c
---- a/drivers/net/wireless/p54/p54spi.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/net/wireless/p54/p54spi.c
-@@ -592,7 +592,8 @@ static void p54spi_op_stop(struct ieee80
- 	mutex_unlock(&priv->mutex);
- }
- 
--static int __devinit p54spi_probe(struct spi_device *spi)
-+static int __devinit p54spi_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	struct p54s_priv *priv = NULL;
- 	struct ieee80211_hw *hw;
-diff -puN drivers/net/wireless/wl12xx/wl1251_main.c~spi-merge-probe-and-probe_id-callbacks drivers/net/wireless/wl12xx/wl1251_main.c
---- a/drivers/net/wireless/wl12xx/wl1251_main.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/net/wireless/wl12xx/wl1251_main.c
-@@ -1190,7 +1190,8 @@ static int wl1251_init_ieee80211(struct 
- }
- 
- #define WL1251_DEFAULT_CHANNEL 1
--static int __devinit wl1251_probe(struct spi_device *spi)
-+static int __devinit wl1251_probe(struct spi_device *spi,
-+				const struct spi_device_id *id)
- {
- 	struct wl12xx_platform_data *pdata;
- 	struct ieee80211_hw *hw;
-diff -puN drivers/rtc/rtc-ds1305.c~spi-merge-probe-and-probe_id-callbacks drivers/rtc/rtc-ds1305.c
---- a/drivers/rtc/rtc-ds1305.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/rtc/rtc-ds1305.c
-@@ -614,7 +614,8 @@ static struct bin_attribute nvram = {
-  * Interface to SPI stack
-  */
- 
--static int __devinit ds1305_probe(struct spi_device *spi)
-+static int __devinit ds1305_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	struct ds1305			*ds1305;
- 	struct rtc_device		*rtc;
-diff -puN drivers/rtc/rtc-ds1390.c~spi-merge-probe-and-probe_id-callbacks drivers/rtc/rtc-ds1390.c
---- a/drivers/rtc/rtc-ds1390.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/rtc/rtc-ds1390.c
-@@ -120,7 +120,8 @@ static const struct rtc_class_ops ds1390
- 	.set_time	= ds1390_set_time,
- };
- 
--static int __devinit ds1390_probe(struct spi_device *spi)
-+static int __devinit ds1390_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	unsigned char tmp;
- 	struct ds1390 *chip;
-diff -puN drivers/rtc/rtc-ds3234.c~spi-merge-probe-and-probe_id-callbacks drivers/rtc/rtc-ds3234.c
---- a/drivers/rtc/rtc-ds3234.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/rtc/rtc-ds3234.c
-@@ -105,7 +105,8 @@ static const struct rtc_class_ops ds3234
- 	.set_time	= ds3234_set_time,
- };
- 
--static int __devinit ds3234_probe(struct spi_device *spi)
-+static int __devinit ds3234_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	struct rtc_device *rtc;
- 	unsigned char tmp;
-diff -puN drivers/rtc/rtc-m41t94.c~spi-merge-probe-and-probe_id-callbacks drivers/rtc/rtc-m41t94.c
---- a/drivers/rtc/rtc-m41t94.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/rtc/rtc-m41t94.c
-@@ -110,7 +110,8 @@ static const struct rtc_class_ops m41t94
- 
- static struct spi_driver m41t94_driver;
- 
--static int __devinit m41t94_probe(struct spi_device *spi)
-+static int __devinit m41t94_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	struct rtc_device *rtc;
- 	int res;
-diff -puN drivers/rtc/rtc-max6902.c~spi-merge-probe-and-probe_id-callbacks drivers/rtc/rtc-max6902.c
---- a/drivers/rtc/rtc-max6902.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/rtc/rtc-max6902.c
-@@ -120,7 +120,8 @@ static const struct rtc_class_ops max690
- 	.set_time	= max6902_set_time,
- };
- 
--static int __devinit max6902_probe(struct spi_device *spi)
-+static int __devinit max6902_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	struct rtc_device *rtc;
- 	unsigned char tmp;
-diff -puN drivers/rtc/rtc-r9701.c~spi-merge-probe-and-probe_id-callbacks drivers/rtc/rtc-r9701.c
---- a/drivers/rtc/rtc-r9701.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/rtc/rtc-r9701.c
-@@ -119,7 +119,8 @@ static const struct rtc_class_ops r9701_
- 	.set_time	= r9701_set_datetime,
- };
- 
--static int __devinit r9701_probe(struct spi_device *spi)
-+static int __devinit r9701_probe(struct spi_device *spi,
-+				 const struct spi_device_id *id)
- {
- 	struct rtc_device *rtc;
- 	unsigned char tmp;
-diff -puN drivers/rtc/rtc-rs5c348.c~spi-merge-probe-and-probe_id-callbacks drivers/rtc/rtc-rs5c348.c
---- a/drivers/rtc/rtc-rs5c348.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/rtc/rtc-rs5c348.c
-@@ -147,7 +147,8 @@ static const struct rtc_class_ops rs5c34
- 
- static struct spi_driver rs5c348_driver;
- 
--static int __devinit rs5c348_probe(struct spi_device *spi)
-+static int __devinit rs5c348_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	int ret;
- 	struct rtc_device *rtc;
-diff -puN drivers/serial/max3100.c~spi-merge-probe-and-probe_id-callbacks drivers/serial/max3100.c
---- a/drivers/serial/max3100.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/serial/max3100.c
-@@ -741,7 +741,8 @@ static struct uart_driver max3100_uart_d
- };
- static int uart_driver_registered;
- 
--static int __devinit max3100_probe(struct spi_device *spi)
-+static int __devinit max3100_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	int i, retval;
- 	struct plat_max3100 *pdata;
-diff -puN drivers/spi/spi.c~spi-merge-probe-and-probe_id-callbacks drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/spi/spi.c
-@@ -137,19 +137,12 @@ struct bus_type spi_bus_type = {
- };
- EXPORT_SYMBOL_GPL(spi_bus_type);
- 
--static int spi_drv_probe_id(struct device *dev)
--{
--	const struct spi_driver		*sdrv = to_spi_driver(dev->driver);
--	struct spi_device		*sdev = to_spi_device(dev);
--
--	return sdrv->probe_id(sdev, spi_match_id(sdrv->id_table, sdev));
--}
--
- static int spi_drv_probe(struct device *dev)
- {
- 	const struct spi_driver		*sdrv = to_spi_driver(dev->driver);
-+	struct spi_device		*sdev = to_spi_device(dev);
- 
--	return sdrv->probe(to_spi_device(dev));
-+	return sdrv->probe(sdev, spi_match_id(sdrv->id_table, sdev));
- }
- 
- static int spi_drv_remove(struct device *dev)
-@@ -174,9 +167,7 @@ static void spi_drv_shutdown(struct devi
- int spi_register_driver(struct spi_driver *sdrv)
- {
- 	sdrv->driver.bus = &spi_bus_type;
--	if (sdrv->probe_id)
--		sdrv->driver.probe = spi_drv_probe_id;
--	else if (sdrv->probe)
-+	if (sdrv->probe)
- 		sdrv->driver.probe = spi_drv_probe;
- 	if (sdrv->remove)
- 		sdrv->driver.remove = spi_drv_remove;
-diff -puN drivers/spi/spidev.c~spi-merge-probe-and-probe_id-callbacks drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~spi-merge-probe-and-probe_id-callbacks
+diff -puN drivers/spi/spidev.c~spi-prefix-modalias-with-spi drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spi-prefix-modalias-with-spi
 +++ a/drivers/spi/spidev.c
-@@ -561,7 +561,7 @@ static struct class *spidev_class;
- 
- /*-------------------------------------------------------------------------*/
- 
--static int spidev_probe(struct spi_device *spi)
-+static int spidev_probe(struct spi_device *spi, const struct spi_device_id *id)
- {
- 	struct spidev_data	*spidev;
- 	int			status;
-diff -puN drivers/spi/tle62x0.c~spi-merge-probe-and-probe_id-callbacks drivers/spi/tle62x0.c
---- a/drivers/spi/tle62x0.c~spi-merge-probe-and-probe_id-callbacks
+@@ -688,3 +688,4 @@ module_exit(spidev_exit);
+ MODULE_AUTHOR("Andrea Paterniani, <a.paterniani@swapp-eng.it>");
+ MODULE_DESCRIPTION("User mode SPI device interface");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:spidev");
+diff -puN drivers/spi/tle62x0.c~spi-prefix-modalias-with-spi drivers/spi/tle62x0.c
+--- a/drivers/spi/tle62x0.c~spi-prefix-modalias-with-spi
 +++ a/drivers/spi/tle62x0.c
-@@ -238,7 +238,8 @@ static int to_gpio_num(struct device_att
- 	return -1;
- }
- 
--static int __devinit tle62x0_probe(struct spi_device *spi)
-+static int __devinit tle62x0_probe(struct spi_device *spi,
-+				   const struct spi_device_id *id)
- {
- 	struct tle62x0_state *st;
- 	struct tle62x0_pdata *pdata;
-diff -puN drivers/staging/stlc45xx/stlc45xx.c~spi-merge-probe-and-probe_id-callbacks drivers/staging/stlc45xx/stlc45xx.c
---- a/drivers/staging/stlc45xx/stlc45xx.c~spi-merge-probe-and-probe_id-callbacks
+@@ -329,3 +329,4 @@ module_exit(tle62x0_exit);
+ MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");
+ MODULE_DESCRIPTION("TLE62x0 SPI driver");
+ MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("spi:tle62x0");
+diff -puN drivers/staging/stlc45xx/stlc45xx.c~spi-prefix-modalias-with-spi drivers/staging/stlc45xx/stlc45xx.c
+--- a/drivers/staging/stlc45xx/stlc45xx.c~spi-prefix-modalias-with-spi
 +++ a/drivers/staging/stlc45xx/stlc45xx.c
-@@ -2388,7 +2388,8 @@ static struct platform_device stlc45xx_d
- 	},
- };
+@@ -2591,3 +2591,4 @@ module_exit(stlc45xx_exit);
  
--static int __devinit stlc45xx_probe(struct spi_device *spi)
-+static int __devinit stlc45xx_probe(struct spi_device *spi,
-+				    const struct spi_device_id *id)
- {
- 	struct stlc45xx *stlc;
- 	struct ieee80211_hw *hw;
-diff -puN drivers/video/backlight/corgi_lcd.c~spi-merge-probe-and-probe_id-callbacks drivers/video/backlight/corgi_lcd.c
---- a/drivers/video/backlight/corgi_lcd.c~spi-merge-probe-and-probe_id-callbacks
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Kalle Valo <kalle.valo@nokia.com>");
++MODULE_ALIAS("spi:cx3110x");
+diff -puN drivers/video/backlight/corgi_lcd.c~spi-prefix-modalias-with-spi drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~spi-prefix-modalias-with-spi
 +++ a/drivers/video/backlight/corgi_lcd.c
-@@ -530,7 +530,8 @@ err_free_backlight_on:
- 	return err;
+@@ -639,3 +639,4 @@ module_exit(corgi_lcd_exit);
+ MODULE_DESCRIPTION("LCD and backlight driver for SHARP C7x0/Cxx00");
+ MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:corgi-lcd");
+diff -puN drivers/video/backlight/ltv350qv.c~spi-prefix-modalias-with-spi drivers/video/backlight/ltv350qv.c
+--- a/drivers/video/backlight/ltv350qv.c~spi-prefix-modalias-with-spi
++++ a/drivers/video/backlight/ltv350qv.c
+@@ -328,3 +328,4 @@ module_exit(ltv350qv_exit);
+ MODULE_AUTHOR("Haavard Skinnemoen <hskinnemoen@atmel.com>");
+ MODULE_DESCRIPTION("Samsung LTV350QV LCD Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:ltv350qv");
+diff -puN drivers/video/backlight/tdo24m.c~spi-prefix-modalias-with-spi drivers/video/backlight/tdo24m.c
+--- a/drivers/video/backlight/tdo24m.c~spi-prefix-modalias-with-spi
++++ a/drivers/video/backlight/tdo24m.c
+@@ -472,3 +472,4 @@ module_exit(tdo24m_exit);
+ MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>");
+ MODULE_DESCRIPTION("Driver for Toppoly TDO24M LCD Panel");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:tdo24m");
+diff -puN drivers/video/backlight/tosa_lcd.c~spi-prefix-modalias-with-spi drivers/video/backlight/tosa_lcd.c
+--- a/drivers/video/backlight/tosa_lcd.c~spi-prefix-modalias-with-spi
++++ a/drivers/video/backlight/tosa_lcd.c
+@@ -300,4 +300,4 @@ module_exit(tosa_lcd_exit);
+ MODULE_AUTHOR("Dmitry Baryshkov");
+ MODULE_LICENSE("GPL v2");
+ MODULE_DESCRIPTION("LCD/Backlight control for Sharp SL-6000 PDA");
+-
++MODULE_ALIAS("spi:tosa-lcd");
+diff -puN drivers/video/backlight/vgg2432a4.c~spi-prefix-modalias-with-spi drivers/video/backlight/vgg2432a4.c
+--- a/drivers/video/backlight/vgg2432a4.c~spi-prefix-modalias-with-spi
++++ a/drivers/video/backlight/vgg2432a4.c
+@@ -280,5 +280,4 @@ module_exit(vgg2432a4_exit);
+ MODULE_AUTHOR("Ben Dooks <ben-linux@fluff.org>");
+ MODULE_DESCRIPTION("VGG2432A4 LCD Driver");
+ MODULE_LICENSE("GPL v2");
+-
+-
++MODULE_ALIAS("spi:VGG2432A4");
+diff -puN include/linux/mod_devicetable.h~spi-prefix-modalias-with-spi include/linux/mod_devicetable.h
+--- a/include/linux/mod_devicetable.h~spi-prefix-modalias-with-spi
++++ a/include/linux/mod_devicetable.h
+@@ -402,6 +402,7 @@ struct i2c_device_id {
+ /* spi */
+ 
+ #define SPI_NAME_SIZE	32
++#define SPI_MODULE_PREFIX "spi:"
+ 
+ struct spi_device_id {
+ 	char name[SPI_NAME_SIZE];
+diff -puN scripts/mod/file2alias.c~spi-prefix-modalias-with-spi scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~spi-prefix-modalias-with-spi
++++ a/scripts/mod/file2alias.c
+@@ -657,11 +657,11 @@ static int do_i2c_entry(const char *file
+ 	return 1;
  }
  
--static int __devinit corgi_lcd_probe(struct spi_device *spi)
-+static int __devinit corgi_lcd_probe(struct spi_device *spi,
-+				     const struct spi_device_id *id)
+-/* Looks like: S */
++/* Looks like: spi:S */
+ static int do_spi_entry(const char *filename, struct spi_device_id *id,
+ 			char *alias)
  {
- 	struct corgi_lcd_platform_data *pdata = spi->dev.platform_data;
- 	struct corgi_lcd *lcd;
-diff -puN drivers/video/backlight/ltv350qv.c~spi-merge-probe-and-probe_id-callbacks drivers/video/backlight/ltv350qv.c
---- a/drivers/video/backlight/ltv350qv.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/video/backlight/ltv350qv.c
-@@ -225,7 +225,8 @@ static struct lcd_ops ltv_ops = {
- 	.set_power	= ltv350qv_set_power,
- };
+-	sprintf(alias, "%s", id->name);
++	sprintf(alias, SPI_MODULE_PREFIX "%s", id->name);
  
--static int __devinit ltv350qv_probe(struct spi_device *spi)
-+static int __devinit ltv350qv_probe(struct spi_device *spi,
-+				    const struct spi_device_id *id)
- {
- 	struct ltv350qv *lcd;
- 	struct lcd_device *ld;
-diff -puN drivers/video/backlight/tdo24m.c~spi-merge-probe-and-probe_id-callbacks drivers/video/backlight/tdo24m.c
---- a/drivers/video/backlight/tdo24m.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/video/backlight/tdo24m.c
-@@ -327,7 +327,8 @@ static struct lcd_ops tdo24m_ops = {
- 	.set_mode	= tdo24m_set_mode,
- };
- 
--static int __devinit tdo24m_probe(struct spi_device *spi)
-+static int __devinit tdo24m_probe(struct spi_device *spi,
-+				  const struct spi_device_id *id)
- {
- 	struct tdo24m *lcd;
- 	struct spi_message *m;
-diff -puN drivers/video/backlight/tosa_lcd.c~spi-merge-probe-and-probe_id-callbacks drivers/video/backlight/tosa_lcd.c
---- a/drivers/video/backlight/tosa_lcd.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/video/backlight/tosa_lcd.c
-@@ -168,7 +168,8 @@ static struct lcd_ops tosa_lcd_ops = {
- 	.set_mode = tosa_lcd_set_mode,
- };
- 
--static int __devinit tosa_lcd_probe(struct spi_device *spi)
-+static int __devinit tosa_lcd_probe(struct spi_device *spi,
-+				    const struct spi_device_id *id)
- {
- 	int ret;
- 	struct tosa_lcd_data *data;
-diff -puN drivers/video/backlight/vgg2432a4.c~spi-merge-probe-and-probe_id-callbacks drivers/video/backlight/vgg2432a4.c
---- a/drivers/video/backlight/vgg2432a4.c~spi-merge-probe-and-probe_id-callbacks
-+++ a/drivers/video/backlight/vgg2432a4.c
-@@ -227,7 +227,8 @@ static struct ili9320_client vgg2432a4_c
- 
- /* Device probe */
- 
--static int __devinit vgg2432a4_probe(struct spi_device *spi)
-+static int __devinit vgg2432a4_probe(struct spi_device *spi,
-+				     const struct spi_device_id *id)
- {
- 	int ret;
- 
-diff -puN include/linux/spi/spi.h~spi-merge-probe-and-probe_id-callbacks include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spi-merge-probe-and-probe_id-callbacks
-+++ a/include/linux/spi/spi.h
-@@ -147,7 +147,6 @@ struct spi_message;
- /**
-  * struct spi_driver - Host side "protocol" driver
-  * @id_table: List of SPI devices supported by this driver
-- * @probe_id: Binds this driver to the spi device via id_table matching.
-  * @probe: Binds this driver to the spi device.  Drivers can verify
-  *	that the device is actually present, and may need to configure
-  *	characteristics (such as bits_per_word) which weren't needed for
-@@ -174,9 +173,8 @@ struct spi_message;
-  */
- struct spi_driver {
- 	const struct spi_device_id *id_table;
--	int			(*probe_id)(struct spi_device *spi,
--					    const struct spi_device_id *id);
--	int			(*probe)(struct spi_device *spi);
-+	int			(*probe)(struct spi_device *spi,
-+					 const struct spi_device_id *id);
- 	int			(*remove)(struct spi_device *spi);
- 	void			(*shutdown)(struct spi_device *spi);
- 	int			(*suspend)(struct spi_device *spi, pm_message_t mesg);
+ 	return 1;
+ }
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com are
