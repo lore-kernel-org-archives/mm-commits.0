@@ -1,134 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-remove-temporary-start-address-setting.patch added to -mm tree
-Date: Thu, 30 Jul 2009 17:42:31 -0700
-Message-ID: <200907310042.n6V0gVsS020607@imap1.linux-foundation.org>
+Subject: [withdrawn] vmscan-use-add_page_to_lru_list-helper-function.patch removed from -mm tree
+Date: Thu, 30 Jul 2009 19:35:08 -0700
+Message-ID: <200907310235.n6V2Z8Wc008538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37607 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751023AbZGaAnX (ORCPT
+	by vger.kernel.org with ESMTP id S1751244AbZGaCgC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 20:43:23 -0400
+	Thu, 30 Jul 2009 22:36:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
+To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: remove temporary start address setting
-has been added to the -mm tree.  Its filename is
-     viafb-remove-temporary-start-address-setting.patch
+     vmscan: Use add_page_to_lru_list() helper function
+has been removed from the -mm tree.  Its filename was
+     vmscan-use-add_page_to_lru_list-helper-function.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: remove temporary start address setting
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: vmscan: Use add_page_to_lru_list() helper function
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Currently the start address is set to an initial value every time
-viafb_setmode is called.
+add_page_to_lru_list() is equivalent to
+  - add lru list (global)
+  - add lru list (mem-cgroup)
+  - modify zone stat
 
-This is not done consistently along graphic cores and not even the whole
-address but often only parts of it.  On top of that it seems useless as
-the real/final address will be set by viafb_set_start_addr a few lines
-later.
+We can use it.
 
-Remove this superfluous initalization to shrink register initalization and
-as a start to decouple primary and secondary display.  Code cleanup, no
-notable runtime change expected.
-
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Joseph Chan <JosephChan@via.com.tw>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viamode.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ mm/vmscan.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/via/viamode.c~viafb-remove-temporary-start-address-setting drivers/video/via/viamode.c
---- a/drivers/video/via/viamode.c~viafb-remove-temporary-start-address-setting
-+++ a/drivers/video/via/viamode.c
-@@ -100,12 +100,8 @@ struct io_reg CN400_ModeXregs[] = { {VIA
- {VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
- {VIACR, CR32, 0xFF, 0x00},
- {VIACR, CR33, 0xFF, 0x00},
--{VIACR, CR34, 0xFF, 0x00},
- {VIACR, CR35, 0xFF, 0x00},
- {VIACR, CR36, 0x08, 0x00},
--{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
- {VIACR, CR69, 0xFF, 0x00},
- {VIACR, CR6A, 0xFF, 0x40},
- {VIACR, CR6B, 0xFF, 0x00},
-@@ -159,16 +155,12 @@ struct io_reg CN700_ModeXregs[] = { {VIA
- {VIASR, CR30, 0xFF, 0x04},
- {VIACR, CR32, 0xFF, 0x00},
- {VIACR, CR33, 0x7F, 0x00},
--{VIACR, CR34, 0xFF, 0x00},
- {VIACR, CR35, 0xFF, 0x00},
- {VIACR, CR36, 0xFF, 0x31},
- {VIACR, CR41, 0xFF, 0x80},
- {VIACR, CR42, 0xFF, 0x00},
- {VIACR, CR55, 0x80, 0x00},
- {VIACR, CR5D, 0x80, 0x00},	/*Horizontal Retrace Start bit[11] should be 0*/
--{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address */
--{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address */
--{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address */
- {VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2 */
- {VIACR, CR69, 0xFF, 0x00},
- {VIACR, CR6A, 0xFD, 0x40},
-@@ -233,9 +225,6 @@ struct io_reg KM400_ModeXregs[] = {
- 	{VIACR, CR55, 0x80, 0x00},
- 	{VIACR, CR5D, 0x80, 0x00},
- 	{VIACR, CR36, 0xFF, 0x01},	/* Power Mangement 3                  */
--	{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address */
--	{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address */
--	{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address */
- 	{VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2              */
- 	{VIACR, CR6A, 0x20, 0x20},	/* Extended FIFO On                   */
- 	{VIACR, CR7A, 0xFF, 0x01},	/* LCD Scaling Parameter 1            */
-@@ -285,14 +274,9 @@ struct io_reg CX700_ModeXregs[] = { {VIA
- {VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
- {VIACR, CR32, 0xFF, 0x00},
- {VIACR, CR33, 0xFF, 0x00},
--{VIACR, CR34, 0xFF, 0x00},
- {VIACR, CR35, 0xFF, 0x00},
- {VIACR, CR36, 0x08, 0x00},
- {VIACR, CR47, 0xC8, 0x00},	/* Clear VCK Plus. */
--{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CRA3, 0xFF, 0x00},	/* Secondary Display Starting Address  */
- {VIACR, CR69, 0xFF, 0x00},
- {VIACR, CR6A, 0xFF, 0x40},
- {VIACR, CR6B, 0xFF, 0x00},
-@@ -340,7 +324,6 @@ struct io_reg CLE266_ModeXregs[] = { {VI
- {VIASR, SR1A, 0xFB, 0x08},
+diff -puN mm/vmscan.c~vmscan-use-add_page_to_lru_list-helper-function mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-use-add_page_to_lru_list-helper-function
++++ a/mm/vmscan.c
+@@ -1268,12 +1268,12 @@ static void move_active_pages_to_lru(str
  
- {VIACR, CR32, 0xFF, 0x00},
--{VIACR, CR34, 0xFF, 0x00},
- {VIACR, CR35, 0xFF, 0x00},
- {VIACR, CR36, 0x08, 0x00},
- {VIACR, CR6A, 0xFF, 0x80},
+ 	while (!list_empty(list)) {
+ 		page = lru_to_page(list);
++		list_del(&page->lru);
+ 
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
+ 
+-		list_move(&page->lru, &zone->lru[lru].list);
+-		mem_cgroup_add_lru_list(page, lru);
++		add_page_to_lru_list(zone, page, lru);
+ 		pgmoved++;
+ 
+ 		if (!pagevec_add(&pvec, page) || list_empty(list)) {
+@@ -1284,7 +1284,6 @@ static void move_active_pages_to_lru(str
+ 			spin_lock_irq(&zone->lru_lock);
+ 		}
+ 	}
+-	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
+ 	if (!is_active_lru(lru))
+ 		__count_vm_events(PGDEACTIVATE, pgmoved);
+ }
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-viafb-fix-rmmod-bug.patch
-viafb-remove-duplicated-cx700-register-init.patch
-viafb-remove-temporary-start-address-setting.patch
+origin.patch
+linux-next.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-clean-up-page_remove_rmap.patch
+mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-rename-pgmoved-variable-in-shrink_active_list.patch
+mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+vmscan-use-add_page_to_lru_list-helper-function.patch
+vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
+mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+mm-introduce-proc-pid-oom_adj_child.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
