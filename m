@@ -1,129 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: + davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5.patch added to -mm tree
-Date: Fri, 31 Jul 2009 16:30:07 -0700
-Message-ID: <200907312330.n6VNU7ur002802@imap1.linux-foundation.org>
+Subject: [folded] ummunotify-userspace-support-for-mmu-notifications-cleanup.patch removed from -mm tree
+Date: Fri, 31 Jul 2009 16:31:00 -0700
+Message-ID: <200907312331.n6VNV0Bs004340@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750865AbZGaXap (ORCPT
+	by vger.kernel.org with ESMTP id S1751459AbZGaXbV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 19:30:45 -0400
+	Fri, 31 Jul 2009 19:31:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sudhakar.raj@ti.com, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com
+To: akpm@linux-foundation.org, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     davinci: fb: Frame Buffer driver for TI DA8xx/OMAP-L1xx v5
-has been added to the -mm tree.  Its filename is
-     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5.patch
+     ummunotify-userspace-support-for-mmu-notifications-cleanup
+has been removed from the -mm tree.  Its filename was
+     ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into ummunotify-userspace-support-for-mmu-notifications.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci: fb: Frame Buffer driver for TI DA8xx/OMAP-L1xx v5
-From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Subject: ummunotify-userspace-support-for-mmu-notifications-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
- Following are the changes since the previous version(v4):
- a. An if loop check while returning from lcd_disable_raster()
-    function has been removed.
- b. "invert_pxl_clock" variable has been renamed as "invert_pxl_clk"
-    and moved from lcd_ctrl_config structure in include/video/da8xx-fb.h
-    file to da8xx_panel structure in drivers/video/da8xx-fb.c file.
-    Appropriate changes in source code as a result of moving this
-    variable has also been done.
+A few easily-fixed 80-col thingies.
 
-Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
-Cc: Pavel Kiryukhin <pkiryukhin@ru.mvista.com>
-Cc: Steve Chen <schen@mvista.com>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/da8xx-fb.c |   16 ++++++++++------
- include/video/da8xx-fb.h |    3 ---
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ drivers/char/ummunotify.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5 drivers/video/da8xx-fb.c
---- a/drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5
-+++ a/drivers/video/da8xx-fb.c
-@@ -158,6 +158,7 @@ struct da8xx_panel {
- 	int		vbp;		/* Vertical back porch */
- 	int		vsw;		/* Vertical Sync Pulse Width */
- 	int		pxl_clk;	/* Pixel clock */
-+	unsigned char	invert_pxl_clk;	/* Invert Pixel clock */
- };
+diff -puN drivers/char/ummunotify.c~ummunotify-userspace-support-for-mmu-notifications-cleanup drivers/char/ummunotify.c
+--- a/drivers/char/ummunotify.c~ummunotify-userspace-support-for-mmu-notifications-cleanup
++++ a/drivers/char/ummunotify.c
+@@ -308,7 +308,7 @@ static ssize_t ummunotify_read(struct fi
  
- static struct da8xx_panel known_lcd_panels[] = {
-@@ -173,6 +174,7 @@ static struct da8xx_panel known_lcd_pane
- 		.vbp = 2,
- 		.vsw = 0,
- 		.pxl_clk = 0x10,
-+		.invert_pxl_clk = 1,
- 	},
- 	/* Sharp LK043T1DG01 */
- 	[1] = {
-@@ -186,6 +188,7 @@ static struct da8xx_panel known_lcd_pane
- 		.vbp = 2,
- 		.vsw = 10,
- 		.pxl_clk = 0x12,
-+		.invert_pxl_clk = 0,
- 	},
- };
+ 	for (n = 0; n < max; ++n) {
+ 		if (list_empty(&priv->invalid_list)) {
+-			events[n].type		      = UMMUNOTIFY_EVENT_TYPE_LAST;
++			events[n].type = UMMUNOTIFY_EVENT_TYPE_LAST;
+ 			events[n].user_cookie_counter = *priv->counter;
+ 			++n;
+ 			priv->need_empty = 0;
+@@ -320,12 +320,12 @@ static ssize_t ummunotify_read(struct fi
  
-@@ -204,7 +207,6 @@ static int lcd_disable_raster(struct da8
- 		if (ret == 0)
- 			ret = -ETIMEDOUT;
- 	}
--
+ 		events[n].type = UMMUNOTIFY_EVENT_TYPE_INVAL;
+ 		if (test_bit(UMMUNOTIFY_FLAG_HINT, &reg->flags)) {
+-			events[n].flags		= UMMUNOTIFY_EVENT_FLAG_HINT;
+-			events[n].hint_start	= max(reg->start, reg->hint_start);
+-			events[n].hint_end	= min(reg->end, reg->hint_end);
++			events[n].flags	= UMMUNOTIFY_EVENT_FLAG_HINT;
++			events[n].hint_start = max(reg->start, reg->hint_start);
++			events[n].hint_end = min(reg->end, reg->hint_end);
+ 		} else {
+-			events[n].hint_start	= reg->start;
+-			events[n].hint_end	= reg->end;
++			events[n].hint_start = reg->start;
++			events[n].hint_end = reg->end;
+ 		}
+ 		events[n].user_cookie_counter = reg->user_cookie;
+ 
+@@ -346,7 +346,8 @@ out:
  	return ret;
  }
  
-@@ -339,11 +341,6 @@ static int lcd_cfg_display(const struct 
- 	else
- 		reg &= ~LCD_SYNC_EDGE;
+-static unsigned int ummunotify_poll(struct file *filp, struct poll_table_struct *wait)
++static unsigned int ummunotify_poll(struct file *filp,
++					struct poll_table_struct *wait)
+ {
+ 	struct ummunotify_file *priv = filp->private_data;
  
--	if (cfg->invert_pxl_clock)
--		reg |= LCD_INVERT_PIXEL_CLOCK;
--	else
--		reg &= ~LCD_INVERT_PIXEL_CLOCK;
--
- 	if (cfg->invert_line_clock)
- 		reg |= LCD_INVERT_LINE_CLOCK;
- 	else
-@@ -482,6 +479,13 @@ static int lcd_init(struct da8xx_fb_par 
- 	lcdc_write(LCD_CLK_DIVISOR(panel->pxl_clk) |
- 			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
+@@ -378,7 +379,7 @@ static long ummunotify_exchange_features
+ }
  
-+	if (panel->invert_pxl_clk)
-+		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) |
-+			LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
-+	else
-+		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) &
-+			~LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
-+
- 	/* Configure the DMA burst size. */
- 	ret = lcd_cfg_dma(cfg->dma_burst_sz);
- 	if (ret < 0)
-diff -puN include/video/da8xx-fb.h~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5 include/video/da8xx-fb.h
---- a/include/video/da8xx-fb.h~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5
-+++ a/include/video/da8xx-fb.h
-@@ -67,9 +67,6 @@ struct lcd_ctrl_config {
- 	/* Mono 8-bit Mode: 1=D0-D7 or 0=D0-D3 */
- 	unsigned char mono_8bit_mode;
+ static long ummunotify_register_region(struct ummunotify_file *priv,
+-				       struct ummunotify_register_ioctl __user *arg)
++				   struct ummunotify_register_ioctl __user *arg)
+ {
+ 	struct ummunotify_register_ioctl parm;
+ 	struct ummunotify_reg *reg, *treg;
+@@ -503,8 +504,7 @@ static int ummunotify_mmap(struct file *
+ {
+ 	struct ummunotify_file *priv = filp->private_data;
  
--	/* Invert pixel clock */
--	unsigned char invert_pxl_clock;
+-	if (vma->vm_end - vma->vm_start != PAGE_SIZE ||
+-	    vma->vm_pgoff != 0)
++	if (vma->vm_end - vma->vm_start != PAGE_SIZE || vma->vm_pgoff != 0)
+ 		return -EINVAL;
+ 
+ 	vma->vm_ops		= &ummunotify_vm_ops;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+platform_device_add_data-use-kmemdup.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
+slram-read-buffer-overflow-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+include-linux-clocksourceh-coding-style-tweaks.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+ummunotify-userspace-support-for-mmu-notifications.patch
+ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+
