@@ -1,152 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch removed from -mm tree
-Date: Fri, 31 Jul 2009 13:29:49 -0700
-Message-ID: <200907312029.n6VKTnvP000302@imap1.linux-foundation.org>
+Subject: + of-remove-stmm25p40-alias.patch added to -mm tree
+Date: Fri, 31 Jul 2009 13:50:01 -0700
+Message-ID: <200907312050.n6VKo1SD000649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53872 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751152AbZGaU3x (ORCPT
+	by vger.kernel.org with ESMTP id S1752326AbZGaUvW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 16:29:53 -0400
+	Fri, 31 Jul 2009 16:51:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, robert.richter@amd.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, khali@linux-fr.org
 
 
 The patch titled
-     arch/x86/oprofile/op_model_amd.c: fix op_amd_handle_ibs() return type
-has been removed from the -mm tree.  Its filename was
-     arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
+     of: remove "stm,m25p40" alias
+has been added to the -mm tree.  Its filename is
+     of-remove-stmm25p40-alias.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/oprofile/op_model_amd.c: fix op_amd_handle_ibs() return type
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: of: remove "stm,m25p40" alias
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-arch/x86/oprofile/op_model_amd.c: In function 'op_amd_handle_ibs':
-arch/x86/oprofile/op_model_amd.c:217: warning: no return statement in function returning non-void
+The alias isn't needed any longer since the m25p80 driver converted to the
+module device table matching.
 
-Fix this by making op_amd_handle_ibs() return void.
-
-Cc: Robert Richter <robert.richter@amd.com>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/oprofile/op_model_amd.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/of/base.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type arch/x86/oprofile/op_model_amd.c
---- a/arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type
-+++ a/arch/x86/oprofile/op_model_amd.c
-@@ -124,7 +124,7 @@ static void op_amd_setup_ctrs(struct op_
+diff -puN drivers/of/base.c~of-remove-stmm25p40-alias drivers/of/base.c
+--- a/drivers/of/base.c~of-remove-stmm25p40-alias
++++ a/drivers/of/base.c
+@@ -447,7 +447,6 @@ struct of_modalias_table {
+ static struct of_modalias_table of_modalias_table[] = {
+ 	{ "fsl,mcu-mpc8349emitx", "mcu-mpc8349emitx" },
+ 	{ "mmc-spi-slot", "mmc_spi" },
+-	{ "stm,m25p40", "m25p80" },
+ };
  
- #ifdef CONFIG_OPROFILE_IBS
- 
--static inline int
-+static inline void
- op_amd_handle_ibs(struct pt_regs * const regs,
- 		  struct op_msrs const * const msrs)
- {
-@@ -132,7 +132,7 @@ op_amd_handle_ibs(struct pt_regs * const
- 	struct op_entry entry;
- 
- 	if (!has_ibs)
--		return 1;
-+		return;
- 
- 	if (ibs_config.fetch_enabled) {
- 		rdmsrl(MSR_AMD64_IBSFETCHCTL, ctl);
-@@ -178,8 +178,6 @@ op_amd_handle_ibs(struct pt_regs * const
- 			wrmsrl(MSR_AMD64_IBSOPCTL, ctl);
- 		}
- 	}
--
--	return 1;
- }
- 
- static inline void op_amd_start_ibs(void)
-@@ -213,7 +211,7 @@ static void op_amd_stop_ibs(void)
- 
- #else
- 
--static inline int op_amd_handle_ibs(struct pt_regs * const regs,
-+static inline void op_amd_handle_ibs(struct pt_regs * const regs,
- 				    struct op_msrs const * const msrs) { }
- static inline void op_amd_start_ibs(void) { }
- static inline void op_amd_stop_ibs(void) { }
+ /**
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-vfs-optimize-touch_time-too-fix.patch
-watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-kernel-irq-export-symbols-needed-by-gpio-add-intel-moorestown-platform-langwell-chip-gpio-driverpatch.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mtd-sst25l-non-jedec-spi-flash-driver.patch
+mtd-sst25l-non-jedec-spi-flash-driver-update.patch
+mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
+mtd-m25p80-fix-null-pointer-dereference-bug.patch
+spi-add-support-for-device-table-matching.patch
+mtd-m25p80-convert-to-device-table-matching.patch
+of-remove-stmm25p40-alias.patch
+hwmon-adxx-convert-to-device-table-matching.patch
+hwmon-lm70-convert-to-device-table-matching.patch
+spi-prefix-modalias-with-spi.patch
+spi-merge-probe-and-probe_id-callbacks.patch
 
