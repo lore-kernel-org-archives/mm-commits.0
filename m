@@ -1,153 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: + execve-must-clear-current-clear_child_tid.patch added to -mm tree
-Date: Fri, 31 Jul 2009 14:42:20 -0700
-Message-ID: <200907312142.n6VLgKfx021454@imap1.linux-foundation.org>
+Subject: [failures] vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch removed from -mm tree
+Date: Fri, 31 Jul 2009 15:07:30 -0700
+Message-ID: <200907312207.n6VM7UMk030127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42888 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753257AbZGaVoT (ORCPT
+	by vger.kernel.org with ESMTP id S1751889AbZGaWI2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Jul 2009 17:44:19 -0400
+	Fri, 31 Jul 2009 18:08:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: eric.dumazet@gmail.com, drepper@redhat.com, jens@mcbone.net, mingo@elte.hu, oleg@redhat.com, peterz@infradead.org, sonnyrao@us.ibm.com, stable@kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
+To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     execve: must clear current->clear_child_tid
-has been added to the -mm tree.  Its filename is
-     execve-must-clear-current-clear_child_tid.patch
+     vmscan: move PGDEACTIVATE modification to shrink_active_list()
+has been removed from the -mm tree.  Its filename was
+     vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: execve: must clear current->clear_child_tid
-From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: vmscan: move PGDEACTIVATE modification to shrink_active_list()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-While looking at Jens Rosenboom bug report
-(http://lkml.org/lkml/2009/7/27/35) about strange sys_futex call done from
-a dying "ps" program, we found following problem.
+Pgmoved accounting in move_active_pages_to_lru() doesn't make any sense. 
+it can be calculated in irq enabled area.
 
-clone() syscall has special support for TID of created threads.  This
-support includes two features.
+This patch move #-of-deactivating-pages calculation to shrink_active_list().
 
-One (CLONE_CHILD_SETTID) is to set an integer into user memory with the
-TID value.
-
-One (CLONE_CHILD_CLEARTID) is to clear this same integer once the created
-thread dies.
-
-The integer location is a user provided pointer, provided at clone()
-time.
-
-kernel keeps this pointer value into current->clear_child_tid.
-
-At execve() time, we should make sure kernel doesnt keep this user
-provided pointer, as full user memory is replaced by a new one.
-
-As glibc fork() actually uses clone() syscall with CLONE_CHILD_SETTID and
-CLONE_CHILD_CLEARTID set, chances are high that we might corrupt user
-memory in forked processes.
-
-Following sequence could happen:
-
-1) bash (or any program) starts a new process, by a fork() call that
-   glibc maps to a clone( ...  CLONE_CHILD_SETTID | CLONE_CHILD_CLEARTID
-   ...) syscall
-
-2) When new process starts, its current->clear_child_tid is set to a
-   location that has a meaning only in bash (or initial program) context
-   (&THREAD_SELF->tid)
-
-3) This new process does the execve() syscall to start a new program. 
-   current->clear_child_tid is left unchanged (a non NULL value)
-
-4) If this new program creates some threads, and initial thread exits,
-   kernel will attempt to clear the integer pointed by
-   current->clear_child_tid from mm_release() :
-
-        if (tsk->clear_child_tid
-            && !(tsk->flags & PF_SIGNALED)
-            && atomic_read(&mm->mm_users) > 1) {
-                u32 __user * tidptr = tsk->clear_child_tid;
-                tsk->clear_child_tid = NULL;
-
-                /*
-                 * We don't check the error code - if userspace has
-                 * not set up a proper pointer then tough luck.
-                 */
-<< here >>      put_user(0, tidptr);
-                sys_futex(tidptr, FUTEX_WAKE, 1, NULL, NULL, 0);
-        }
-
-5) OR : if new program is not multi-threaded, but spied by /proc/pid
-   users (ps command for example), mm_users > 1, and the exiting program
-   could corrupt 4 bytes in a persistent memory area (shm or memory mapped
-   file)
-
-If current->clear_child_tid points to a writeable portion of memory of the
-new program, kernel happily and silently corrupts 4 bytes of memory, with
-unexpected effects.
-
-Fix is straightforward and should not break any sane program.
-
-Reported-by: Jens Rosenboom <jens@mcbone.net>
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Tested-by: Jens Rosenboom <jens@mcbone.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sonny Rao <sonnyrao@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: <stable@kernel.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |    1 +
- fs/exec.c   |    1 +
- 2 files changed, 2 insertions(+)
+ mm/vmscan.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/compat.c~execve-must-clear-current-clear_child_tid fs/compat.c
---- a/fs/compat.c~execve-must-clear-current-clear_child_tid
-+++ a/fs/compat.c
-@@ -1550,6 +1550,7 @@ int compat_do_execve(char * filename,
- 	mutex_unlock(&current->cred_guard_mutex);
- 	acct_update_integrals(current);
- 	free_bprm(bprm);
-+	current->clear_child_tid = NULL;
- 	if (displaced)
- 		put_files_struct(displaced);
- 	return retval;
-diff -puN fs/exec.c~execve-must-clear-current-clear_child_tid fs/exec.c
---- a/fs/exec.c~execve-must-clear-current-clear_child_tid
-+++ a/fs/exec.c
-@@ -1343,6 +1343,7 @@ int do_execve(char * filename,
- 	mutex_unlock(&current->cred_guard_mutex);
- 	acct_update_integrals(current);
- 	free_bprm(bprm);
-+	current->clear_child_tid = NULL;
- 	if (displaced)
- 		put_files_struct(displaced);
- 	return retval;
+diff -puN mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list
++++ a/mm/vmscan.c
+@@ -1260,7 +1260,6 @@ static void move_active_pages_to_lru(str
+ 				     struct list_head *list,
+ 				     enum lru_list lru)
+ {
+-	unsigned long pgmoved = 0;
+ 	struct pagevec pvec;
+ 	struct page *page;
+ 
+@@ -1274,7 +1273,6 @@ static void move_active_pages_to_lru(str
+ 
+ 		list_move(&page->lru, &zone->lru[lru].list);
+ 		mem_cgroup_add_lru_list(page, lru);
+-		pgmoved++;
+ 
+ 		if (!pagevec_add(&pvec, page) || list_empty(list)) {
+ 			spin_unlock_irq(&zone->lru_lock);
+@@ -1285,8 +1283,6 @@ static void move_active_pages_to_lru(str
+ 		}
+ 	}
+ 	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
+-	if (!is_active_lru(lru))
+-		__count_vm_events(PGDEACTIVATE, pgmoved);
+ }
+ 
+ static void shrink_active_list(unsigned long nr_pages, struct zone *zone,
+@@ -1301,6 +1297,7 @@ static void shrink_active_list(unsigned 
+ 	struct page *page;
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+ 	unsigned long nr_rotated = 0;
++	unsigned long nr_deactivate = 0;
+ 
+ 	lru_add_drain();
+ 	spin_lock_irq(&zone->lru_lock);
+@@ -1355,6 +1352,7 @@ static void shrink_active_list(unsigned 
+ 
+ 		ClearPageActive(page);	/* we are de-activating */
+ 		list_add(&page->lru, &l_inactive);
++		nr_deactivate++;
+ 	}
+ 
+ 	/*
+@@ -1368,6 +1366,7 @@ static void shrink_active_list(unsigned 
+ 	 * get_scan_ratio.
+ 	 */
+ 	reclaim_stat->recent_rotated[!!file] += nr_rotated;
++	__count_vm_events(PGDEACTIVATE, nr_deactivate);
+ 
+ 	move_active_pages_to_lru(zone, &l_active,
+ 						LRU_ACTIVE + file * LRU_FILE);
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+origin.patch
 linux-next.patch
-execve-must-clear-current-clear_child_tid.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-clean-up-page_remove_rmap.patch
+mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-rename-pgmoved-variable-in-shrink_active_list.patch
+mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
+mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+mm-introduce-proc-pid-oom_adj_child.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
