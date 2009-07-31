@@ -1,234 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] kernel-smpc-relocate-some-code.patch removed from -mm tree
-Date: Thu, 30 Jul 2009 17:14:04 -0700
-Message-ID: <200907310014.n6V0E4c2006789@imap1.linux-foundation.org>
+Subject: + fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch added to -mm tree
+Date: Thu, 30 Jul 2009 17:17:14 -0700
+Message-ID: <200907310017.n6V0HEUZ011970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753146AbZGaAOp (ORCPT
+	by vger.kernel.org with ESMTP id S1751938AbZGaARs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 20:14:45 -0400
+	Thu, 30 Jul 2009 20:17:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mingo@elte.hu, nickpiggin@yahoo.com.au, peterz@infradead.org, rusty@rustcorp.com.au, xiaoguangrong@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: zhaolei@cn.fujitsu.com, andi@firstfloor.org, hirofumi@mail.parknet.co.jp, mingo@elte.hu, pavel@ucw.cz, tglx@linutronix.de
 
 
 The patch titled
-     kernel/smp.c: relocate some code
-has been removed from the -mm tree.  Its filename was
-     kernel-smpc-relocate-some-code.patch
+     fatfs: use common time_to_tm in fat_time_unix2fat()
+has been added to the -mm tree.  Its filename is
+     fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/smp.c: relocate some code
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fatfs: use common time_to_tm in fat_time_unix2fat()
+From: Zhaolei <zhaolei@cn.fujitsu.com>
 
-Move hotplug_cfd() to the end of the file so that we can see what changes
-the next patch (generic-ipi: fix the race between
-generic_smp_call_function_*() and hotplug_cfd()) actually makes to that
-function.
+It is not necessary to write custom code for convert calendar time to
+broken-down time.  time_to_tm() is more generic to do that.
 
-Cc: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
+Signed-off-by: Zhao Lei <zhaolei@cn.fujitsu.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |  102 ++++++++++++++++++++++++-------------------------
- 1 file changed, 51 insertions(+), 51 deletions(-)
+ fs/fat/misc.c |   57 ++++++++++++------------------------------------
+ 1 file changed, 15 insertions(+), 42 deletions(-)
 
-diff -puN kernel/smp.c~kernel-smpc-relocate-some-code kernel/smp.c
---- a/kernel/smp.c~kernel-smpc-relocate-some-code
-+++ a/kernel/smp.c
-@@ -40,57 +40,6 @@ struct call_single_queue {
+diff -puN fs/fat/misc.c~fatfs-use-common-time_to_tm-in-fat_time_unix2fat fs/fat/misc.c
+--- a/fs/fat/misc.c~fatfs-use-common-time_to_tm-in-fat_time_unix2fat
++++ a/fs/fat/misc.c
+@@ -9,6 +9,7 @@
+ #include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/buffer_head.h>
++#include <linux/time.h>
+ #include "fat.h"
  
- static DEFINE_PER_CPU(struct call_function_data, cfd_data);
- 
--static int
--hotplug_cfd(struct notifier_block *nfb, unsigned long action, void *hcpu)
--{
--	long cpu = (long)hcpu;
--	struct call_function_data *cfd = &per_cpu(cfd_data, cpu);
--
--	switch (action) {
--	case CPU_UP_PREPARE:
--	case CPU_UP_PREPARE_FROZEN:
--		if (!zalloc_cpumask_var_node(&cfd->cpumask, GFP_KERNEL,
--				cpu_to_node(cpu)))
--			return NOTIFY_BAD;
--		break;
--
--#ifdef CONFIG_HOTPLUG_CPU
--	case CPU_UP_CANCELED:
--	case CPU_UP_CANCELED_FROZEN:
--
--	case CPU_DEAD:
--	case CPU_DEAD_FROZEN:
--		free_cpumask_var(cfd->cpumask);
--		break;
--#endif
--	};
--
--	return NOTIFY_OK;
--}
--
--static struct notifier_block __cpuinitdata hotplug_cfd_notifier = {
--	.notifier_call		= hotplug_cfd,
--};
--
--static int __cpuinit init_call_single_data(void)
--{
--	void *cpu = (void *)(long)smp_processor_id();
--	int i;
--
--	for_each_possible_cpu(i) {
--		struct call_single_queue *q = &per_cpu(call_single_queue, i);
--
--		spin_lock_init(&q->lock);
--		INIT_LIST_HEAD(&q->list);
--	}
--
--	hotplug_cfd(&hotplug_cfd_notifier, CPU_UP_PREPARE, cpu);
--	register_cpu_notifier(&hotplug_cfd_notifier);
--
--	return 0;
--}
--early_initcall(init_call_single_data);
--
  /*
-  * csd_lock/csd_unlock used to serialize access to per-cpu csd resources
-  *
-@@ -489,3 +438,54 @@ void ipi_call_unlock_irq(void)
+@@ -155,10 +156,6 @@ extern struct timezone sys_tz;
+ #define SECS_PER_MIN	60
+ #define SECS_PER_HOUR	(60 * 60)
+ #define SECS_PER_DAY	(SECS_PER_HOUR * 24)
+-#define UNIX_SECS_1980	315532800L
+-#if BITS_PER_LONG == 64
+-#define UNIX_SECS_2108	4354819200L
+-#endif
+ /* days between 1.1.70 and 1.1.80 (2 leap days) */
+ #define DAYS_DELTA	(365 * 10 + 2)
+ /* 120 (2100 - 1980) isn't leap year */
+@@ -211,58 +208,35 @@ void fat_time_fat2unix(struct msdos_sb_i
+ void fat_time_unix2fat(struct msdos_sb_info *sbi, struct timespec *ts,
+ 		       __le16 *time, __le16 *date, u8 *time_cs)
  {
- 	spin_unlock_irq(&call_function.lock);
+-	time_t second = ts->tv_sec;
+-	time_t day, leap_day, month, year;
++	struct tm tm;
++	time_to_tm(ts->tv_sec, sbi->options.tz_utc ? 0 :
++		   -sys_tz.tz_minuteswest * 60, &tm);
+ 
+-	if (!sbi->options.tz_utc)
+-		second -= sys_tz.tz_minuteswest * SECS_PER_MIN;
+-
+-	/* Jan 1 GMT 00:00:00 1980. But what about another time zone? */
+-	if (second < UNIX_SECS_1980) {
++	/*  FAT can only support year between 1980 to 2107 */
++	if (tm.tm_year < 1980 - 1900) {
+ 		*time = 0;
+ 		*date = cpu_to_le16((0 << 9) | (1 << 5) | 1);
+ 		if (time_cs)
+ 			*time_cs = 0;
+ 		return;
+ 	}
+-#if BITS_PER_LONG == 64
+-	if (second >= UNIX_SECS_2108) {
++	if (tm.tm_year > 2107 - 1900) {
+ 		*time = cpu_to_le16((23 << 11) | (59 << 5) | 29);
+ 		*date = cpu_to_le16((127 << 9) | (12 << 5) | 31);
+ 		if (time_cs)
+ 			*time_cs = 199;
+ 		return;
+ 	}
+-#endif
+ 
+-	day = second / SECS_PER_DAY - DAYS_DELTA;
+-	year = day / 365;
+-	leap_day = (year + 3) / 4;
+-	if (year > YEAR_2100)		/* 2100 isn't leap year */
+-		leap_day--;
+-	if (year * 365 + leap_day > day)
+-		year--;
+-	leap_day = (year + 3) / 4;
+-	if (year > YEAR_2100)		/* 2100 isn't leap year */
+-		leap_day--;
+-	day -= year * 365 + leap_day;
+-
+-	if (IS_LEAP_YEAR(year) && day == days_in_year[3]) {
+-		month = 2;
+-	} else {
+-		if (IS_LEAP_YEAR(year) && day > days_in_year[3])
+-			day--;
+-		for (month = 1; month < 12; month++) {
+-			if (days_in_year[month + 1] > day)
+-				break;
+-		}
+-	}
+-	day -= days_in_year[month];
++	/* from 1900 -> from 1980 */
++	tm.tm_year -= 80;
++	/* 0~11 -> 1~12 */
++	tm.tm_mon++;
++	/* 0~59 -> 0~29(2sec counts) */
++	tm.tm_sec >>= 1;
+ 
+-	*time = cpu_to_le16(((second / SECS_PER_HOUR) % 24) << 11
+-			    | ((second / SECS_PER_MIN) % 60) << 5
+-			    | (second % SECS_PER_MIN) >> 1);
+-	*date = cpu_to_le16((year << 9) | (month << 5) | (day + 1));
++	*time = cpu_to_le16(tm.tm_hour << 11 | tm.tm_min << 5 | tm.tm_sec);
++	*date = cpu_to_le16(tm.tm_year << 9 | tm.tm_mon << 5 | tm.tm_mday);
+ 	if (time_cs)
+ 		*time_cs = (ts->tv_sec & 1) * 100 + ts->tv_nsec / 10000000;
  }
-+
-+static int
-+hotplug_cfd(struct notifier_block *nfb, unsigned long action, void *hcpu)
-+{
-+	long cpu = (long)hcpu;
-+	struct call_function_data *cfd = &per_cpu(cfd_data, cpu);
-+
-+	switch (action) {
-+	case CPU_UP_PREPARE:
-+	case CPU_UP_PREPARE_FROZEN:
-+		if (!zalloc_cpumask_var_node(&cfd->cpumask, GFP_KERNEL,
-+				cpu_to_node(cpu)))
-+			return NOTIFY_BAD;
-+		break;
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+	case CPU_UP_CANCELED:
-+	case CPU_UP_CANCELED_FROZEN:
-+
-+	case CPU_DEAD:
-+	case CPU_DEAD_FROZEN:
-+		free_cpumask_var(cfd->cpumask);
-+		break;
-+#endif
-+	};
-+
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block __cpuinitdata hotplug_cfd_notifier = {
-+	.notifier_call		= hotplug_cfd,
-+};
-+
-+static int __cpuinit init_call_single_data(void)
-+{
-+	void *cpu = (void *)(long)smp_processor_id();
-+	int i;
-+
-+	for_each_possible_cpu(i) {
-+		struct call_single_queue *q = &per_cpu(call_single_queue, i);
-+
-+		spin_lock_init(&q->lock);
-+		INIT_LIST_HEAD(&q->list);
-+	}
-+
-+	hotplug_cfd(&hotplug_cfd_notifier, CPU_UP_PREPARE, cpu);
-+	register_cpu_notifier(&hotplug_cfd_notifier);
-+
-+	return 0;
-+}
-+early_initcall(init_call_single_data);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
-platform_device_add_data-use-kmemdup.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management-checkpatch-fixes.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
-scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-vfs-optimize-touch_time-too-fix.patch
-watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-arch-x86-oprofile-op_model_amdc-fix-op_amd_handle_ibs-return-type.patch
-include-linux-clocksourceh-coding-style-tweaks.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ummunotify-userspace-support-for-mmu-notifications-cleanup.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-kernel-irq-export-symbols-needed-by-gpio-add-intel-moorestown-platform-langwell-chip-gpio-driverpatch.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-
+@@ -283,4 +257,3 @@ int fat_sync_bhs(struct buffer_head **bh
+ 	}
+ 	return err;
+ }
