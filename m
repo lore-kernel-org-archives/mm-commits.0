@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-parisc-lba_pcic-fix-faulty-check.patch added to -mm tree
-Date: Thu, 30 Jul 2009 17:34:28 -0700
-Message-ID: <200907310034.n6V0YSN9007449@imap1.linux-foundation.org>
+Subject: + arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch added to -mm tree
+Date: Thu, 30 Jul 2009 17:37:12 -0700
+Message-ID: <200907310037.n6V0bC6K012002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35554 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751178AbZGaAex (ORCPT
+	by vger.kernel.org with ESMTP id S1751076AbZGaAhz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 20:34:53 -0400
+	Thu, 30 Jul 2009 20:37:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sgayda2@uiuc.edu, deller@gmx.de, grundler@parisc-linux.org, kyle@mcmartin.ca
+Cc: roel.kluin@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     drivers/parisc/lba_pci.c: fix faulty check
+     arch/alpha/boot/tools/objstrip.c: wrong variable tested after open()
 has been added to the -mm tree.  Its filename is
-     drivers-parisc-lba_pcic-fix-faulty-check.patch
+     arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/parisc/lba_pci.c: fix faulty check
-From: Stoyan Gaydarov <sgayda2@uiuc.edu>
+Subject: arch/alpha/boot/tools/objstrip.c: wrong variable tested after open()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Fix a spelling error that has resulted from copy and pasting.
+The incorrect variable is tested. fd is used for another open()
+and is already tested.
 
-The location of the error was found using a semantic patch but the
-semantic patch was not trying to find these errors.  After looking things
-over it seemed logical that this change was needed.
-
-Signed-off-by: Stoyan Gaydarov <sgayda2@uiuc.edu>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Grant Grundler <grundler@parisc-linux.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/lba_pci.c |    2 +-
+ arch/alpha/boot/tools/objstrip.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/parisc/lba_pci.c~drivers-parisc-lba_pcic-fix-faulty-check drivers/parisc/lba_pci.c
---- a/drivers/parisc/lba_pci.c~drivers-parisc-lba_pcic-fix-faulty-check
-+++ a/drivers/parisc/lba_pci.c
-@@ -992,7 +992,7 @@ lba_pat_resources(struct parisc_device *
- 		return;
- 
- 	io_pdc_cell = kzalloc(sizeof(pdc_pat_cell_mod_maddr_block_t), GFP_KERNEL);
--	if (!pa_pdc_cell) {
-+	if (!io_pdc_cell) {
- 		kfree(pa_pdc_cell);
- 		return;
+diff -puN arch/alpha/boot/tools/objstrip.c~arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open arch/alpha/boot/tools/objstrip.c
+--- a/arch/alpha/boot/tools/objstrip.c~arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open
++++ a/arch/alpha/boot/tools/objstrip.c
+@@ -93,7 +93,7 @@ main (int argc, char *argv[])
+     ofd = 1;
+     if (i < argc) {
+ 	ofd = open(argv[i++], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+-	if (fd == -1) {
++	if (ofd == -1) {
+ 	    perror("open");
+ 	    exit(1);
  	}
 _
 
-Patches currently in -mm which might be from sgayda2@uiuc.edu are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-drivers-w1-masters-omap_hdqc-fix-missing-mutex-unlock.patch
+origin.patch
 linux-next.patch
-drivers-parisc-lba_pcic-fix-faulty-check.patch
+x86-fix-buffer-overflow-in-efi_init.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+media-strncpy-does-not-null-terminate-string.patch
+ivtv-read-buffer-overflow.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+irda-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+cyclades-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-iprh-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+i915-fix-read-outside-array-bounds.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
