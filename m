@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch added to -mm tree
-Date: Thu, 30 Jul 2009 17:37:12 -0700
-Message-ID: <200907310037.n6V0bC6K012002@imap1.linux-foundation.org>
+Subject: + drivers-scsi-iprh-fix-buffer-overflow.patch added to -mm tree
+Date: Thu, 30 Jul 2009 17:39:18 -0700
+Message-ID: <200907310039.n6V0dIDL015276@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56853 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751076AbZGaAhz (ORCPT
+	by vger.kernel.org with ESMTP id S1751747AbZGaAjy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jul 2009 20:37:55 -0400
+	Thu, 30 Jul 2009 20:39:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: brking@linux.vnet.ibm.com, James.Bottomley@HansenPartnership.com, brking@us.ibm.com, roel.kluin@gmail.com
 
 
 The patch titled
-     arch/alpha/boot/tools/objstrip.c: wrong variable tested after open()
+     drivers/scsi/ipr.h: fix buffer overflow
 has been added to the -mm tree.  Its filename is
-     arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+     drivers-scsi-iprh-fix-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/alpha/boot/tools/objstrip.c: wrong variable tested after open()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: drivers/scsi/ipr.h: fix buffer overflow
+From: Brian King <brking@linux.vnet.ibm.com>
 
-The incorrect variable is tested. fd is used for another open()
-and is already tested.
+ioa_cfg->ipr_cmd_label is 8 bytes, IPR_CMD_LABEL is the string "ipr_cmnd",
+ie 9 bytes including terminating null.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Found with Parfait, http://research.sun.com/projects/parfait/
+
+Signed-off-by: Brian King <brking@linux.vnet.ibm.com>
+Cc: Roel Kluin <roel.kluin@gmail.com>
+Cc: Brian King <brking@us.ibm.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/boot/tools/objstrip.c |    2 +-
+ drivers/scsi/ipr.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/boot/tools/objstrip.c~arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open arch/alpha/boot/tools/objstrip.c
---- a/arch/alpha/boot/tools/objstrip.c~arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open
-+++ a/arch/alpha/boot/tools/objstrip.c
-@@ -93,7 +93,7 @@ main (int argc, char *argv[])
-     ofd = 1;
-     if (i < argc) {
- 	ofd = open(argv[i++], O_WRONLY | O_CREAT | O_TRUNC, 0666);
--	if (fd == -1) {
-+	if (ofd == -1) {
- 	    perror("open");
- 	    exit(1);
- 	}
+diff -puN drivers/scsi/ipr.h~drivers-scsi-iprh-fix-buffer-overflow drivers/scsi/ipr.h
+--- a/drivers/scsi/ipr.h~drivers-scsi-iprh-fix-buffer-overflow
++++ a/drivers/scsi/ipr.h
+@@ -1199,7 +1199,7 @@ struct ipr_ioa_cfg {
+ 
+ 	struct ata_host ata_host;
+ 	char ipr_cmd_label[8];
+-#define IPR_CMD_LABEL		"ipr_cmnd"
++#define IPR_CMD_LABEL		"ipr_cmd"
+ 	struct ipr_cmnd *ipr_cmnd_list[IPR_NUM_CMD_BLKS];
+ 	u32 ipr_cmnd_list_dma[IPR_NUM_CMD_BLKS];
+ };
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from brking@linux.vnet.ibm.com are
 
-origin.patch
-linux-next.patch
-x86-fix-buffer-overflow-in-efi_init.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-media-strncpy-does-not-null-terminate-string.patch
-ivtv-read-buffer-overflow.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-irda-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-cyclades-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
 drivers-scsi-iprh-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-i915-fix-read-outside-array-bounds.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-adfs-remove-redundant-test-on-unsigned.patch
 
