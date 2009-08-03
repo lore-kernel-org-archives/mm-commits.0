@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch added to -mm tree
-Date: Mon, 03 Aug 2009 16:32:44 -0700
-Message-ID: <200908032332.n73NWiFl032719@imap1.linux-foundation.org>
+Subject: + drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch added to -mm tree
+Date: Mon, 03 Aug 2009 16:42:29 -0700
+Message-ID: <200908032342.n73NgTOr016561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58741 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36136 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932267AbZHCXc7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:32:59 -0400
+	by vger.kernel.org with ESMTP id S932355AbZHCXm4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:42:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, kyle@mcmartin.ca
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, James.Smart@Emulex.Com, jeykholt@cisco.com
 
 
 The patch titled
-     drivers/parisc/pdc_stable.c: fix read buffer overflow
+     drivers/scsi/lpfc/lpfc_vport.c: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
+     drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/parisc/pdc_stable.c: fix read buffer overflow
+Subject: drivers/scsi/lpfc/lpfc_vport.c: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Check whether index is within bounds before testing the element.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: James Smart <James.Smart@Emulex.Com>
+Cc: Joe Eykholt <jeykholt@cisco.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/pdc_stable.c |    2 +-
+ drivers/scsi/lpfc/lpfc_vport.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/parisc/pdc_stable.c~drivers-parisc-pdc_stablec-fix-read-buffer-overflow drivers/parisc/pdc_stable.c
---- a/drivers/parisc/pdc_stable.c~drivers-parisc-pdc_stablec-fix-read-buffer-overflow
-+++ a/drivers/parisc/pdc_stable.c
-@@ -370,7 +370,7 @@ pdcspath_layer_read(struct pdcspath_entr
- 	if (!i)	/* entry is not ready */
- 		return -ENODATA;
- 	
--	for (i = 0; devpath->layers[i] && (likely(i < 6)); i++)
-+	for (i = 0; i < 6 && devpath->layers[i]; i++)
- 		out += sprintf(out, "%u ", devpath->layers[i]);
- 
- 	out += sprintf(out, "\n");
+diff -puN drivers/scsi/lpfc/lpfc_vport.c~drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow drivers/scsi/lpfc/lpfc_vport.c
+--- a/drivers/scsi/lpfc/lpfc_vport.c~drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow
++++ a/drivers/scsi/lpfc/lpfc_vport.c
+@@ -769,7 +769,7 @@ lpfc_destroy_vport_work_array(struct lpf
+ 	int i;
+ 	if (vports == NULL)
+ 		return;
+-	for (i = 0; vports[i] != NULL && i <= phba->max_vports; i++)
++	for (i = 0; i <= phba->max_vports && vports[i] != NULL; i++)
+ 		scsi_host_put(lpfc_shost_from_vport(vports[i]));
+ 	kfree(vports);
+ }
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -92,6 +94,7 @@ scsi-eata-fix-buffer-overflow.patch
 drivers-scsi-gdthc-fix-buffer-overflow.patch
 drivers-scsi-iprh-fix-buffer-overflow.patch
 drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
 libertas-read-buffer-overflow.patch
 i915-fix-read-outside-array-bounds.patch
 frv-duplicate-output_buffer-of-e03.patch
