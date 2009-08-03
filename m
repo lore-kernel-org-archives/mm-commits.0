@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-md-introduce-missing-kfree.patch added to -mm tree
-Date: Mon, 03 Aug 2009 15:54:12 -0700
-Message-ID: <200908032254.n73MsDtK000830@imap1.linux-foundation.org>
+Subject: + drivers-rtc-introduce-missing-kfree.patch added to -mm tree
+Date: Mon, 03 Aug 2009 15:54:07 -0700
+Message-ID: <200908032254.n73Ms8od000557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60037 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755046AbZHCWyU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:54:20 -0400
+	by vger.kernel.org with ESMTP id S1755056AbZHCWy0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:54:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, neilb@suse.de
+Cc: julia@diku.dk, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     drivers/md: introduce missing kfree
+     drivers/rtc: introduce missing kfree
 has been added to the -mm tree.  Its filename is
-     drivers-md-introduce-missing-kfree.patch
+     drivers-rtc-introduce-missing-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/md: introduce missing kfree
+Subject: drivers/rtc: introduce missing kfree
 From: Julia Lawall <julia@diku.dk>
 
-Error handling code following a kmalloc should free the allocated data.
+Error handling code following a kzalloc should free the allocated data.
 
 The semantic match that finds the problem is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
@@ -79,26 +79,47 @@ print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Neil Brown <neilb@suse.de>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-exception-store.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-ep93xx.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/md/dm-exception-store.c~drivers-md-introduce-missing-kfree drivers/md/dm-exception-store.c
---- a/drivers/md/dm-exception-store.c~drivers-md-introduce-missing-kfree
-+++ a/drivers/md/dm-exception-store.c
-@@ -217,7 +217,8 @@ int dm_exception_store_create(struct dm_
- 		type = get_type("N");
- 	else {
- 		ti->error = "Persistent flag is not P or N";
--		return -EINVAL;
-+		r = -EINVAL;
-+		goto bad_type;
- 	}
+diff -puN drivers/rtc/rtc-ep93xx.c~drivers-rtc-introduce-missing-kfree drivers/rtc/rtc-ep93xx.c
+--- a/drivers/rtc/rtc-ep93xx.c~drivers-rtc-introduce-missing-kfree
++++ a/drivers/rtc/rtc-ep93xx.c
+@@ -128,12 +128,16 @@ static int __init ep93xx_rtc_probe(struc
+ 		return -ENOMEM;
  
- 	if (!type) {
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (res == NULL)
+-		return -ENXIO;
++	if (res == NULL) {
++		err = -ENXIO;
++		goto fail_free;
++	}
+ 
+ 	res = request_mem_region(res->start, resource_size(res), pdev->name);
+-	if (res == NULL)
+-		return -EBUSY;
++	if (res == NULL) {
++		err = -EBUSY;
++		goto fail_free;
++	}
+ 
+ 	ep93xx_rtc->mmio_base = ioremap(res->start, resource_size(res));
+ 	if (ep93xx_rtc->mmio_base == NULL) {
+@@ -169,6 +173,8 @@ fail:
+ 		pdev->dev.platform_data = NULL;
+ 	}
+ 	release_mem_region(res->start, resource_size(res));
++fail_free:
++	kfree(ep93xx_rtc);
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
