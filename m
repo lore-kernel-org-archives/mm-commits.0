@@ -1,142 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] execve-must-clear-current-clear_child_tid.patch removed from -mm tree
-Date: Mon, 03 Aug 2009 14:54:54 -0700
-Message-ID: <200908032154.n73Lsswo032054@imap1.linux-foundation.org>
+Subject: + media-zr364xx-fix-build-errors.patch added to -mm tree
+Date: Mon, 03 Aug 2009 14:57:13 -0700
+Message-ID: <200908032157.n73LvDNd003432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53950 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752006AbZHCV4w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 17:56:52 -0400
+	by vger.kernel.org with ESMTP id S1752414AbZHCV5Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 17:57:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.dumazet@gmail.com, drepper@redhat.com, jens@mcbone.net, mingo@elte.hu, oleg@redhat.com, peterz@infradead.org, sonnyrao@us.ibm.com, stable@kernel.org, tglx@linutronix.de, torvalds
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, mchehab@infradead.org, royale@zerezo.com
 
 
 The patch titled
-     execve: must clear current->clear_child_tid
-has been removed from the -mm tree.  Its filename was
-     execve-must-clear-current-clear_child_tid.patch
+     media/zr364xx: fix build errors
+has been added to the -mm tree.  Its filename is
+     media-zr364xx-fix-build-errors.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: execve: must clear current->clear_child_tid
-From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: media/zr364xx: fix build errors
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-While looking at Jens Rosenboom bug report
-(http://lkml.org/lkml/2009/7/27/35) about strange sys_futex call done from
-a dying "ps" program, we found following problem.
+Fix build errors in zr364xx by adding selects:
 
-clone() syscall has special support for TID of created threads.  This
-support includes two features.
+zr364xx.c:(.text+0x195ed7): undefined reference to `videobuf_streamon'
+zr364xx.c:(.text+0x196030): undefined reference to `videobuf_dqbuf'
+zr364xx.c:(.text+0x1960c4): undefined reference to `videobuf_qbuf'
+zr364xx.c:(.text+0x196123): undefined reference to `videobuf_querybuf'
+zr364xx.c:(.text+0x196182): undefined reference to `videobuf_reqbufs'
+zr364xx.c:(.text+0x196224): undefined reference to `videobuf_queue_is_busy'
+zr364xx.c:(.text+0x196390): undefined reference to `videobuf_vmalloc_free'
+zr364xx.c:(.text+0x196571): undefined reference to `videobuf_iolock'
+zr364xx.c:(.text+0x196678): undefined reference to `videobuf_mmap_mapper'
+zr364xx.c:(.text+0x196760): undefined reference to `videobuf_poll_stream'
+zr364xx.c:(.text+0x19689a): undefined reference to `videobuf_read_one'
+zr364xx.c:(.text+0x1969ec): undefined reference to `videobuf_mmap_free'
+zr364xx.c:(.text+0x197862): undefined reference to `videobuf_queue_vmalloc_init'
+zr364xx.c:(.text+0x197a28): undefined reference to `videobuf_streamoff'
+zr364xx.c:(.text+0x198203): undefined reference to `videobuf_to_vmalloc'
+zr364xx.c:(.text+0x198603): undefined reference to `videobuf_streamoff'
+drivers/built-in.o: In function `free_buffer':
+zr364xx.c:(.text+0x19930c): undefined reference to `videobuf_vmalloc_free'
+drivers/built-in.o: In function `zr364xx_open':
+zr364xx.c:(.text+0x19a7de): undefined reference to `videobuf_queue_vmalloc_init'
+drivers/built-in.o: In function `read_pipe_completion':
+zr364xx.c:(.text+0x19b17f): undefined reference to `videobuf_to_vmalloc'
 
-One (CLONE_CHILD_SETTID) is to set an integer into user memory with the
-TID value.
-
-One (CLONE_CHILD_CLEARTID) is to clear this same integer once the created
-thread dies.
-
-The integer location is a user provided pointer, provided at clone()
-time.
-
-kernel keeps this pointer value into current->clear_child_tid.
-
-At execve() time, we should make sure kernel doesnt keep this user
-provided pointer, as full user memory is replaced by a new one.
-
-As glibc fork() actually uses clone() syscall with CLONE_CHILD_SETTID and
-CLONE_CHILD_CLEARTID set, chances are high that we might corrupt user
-memory in forked processes.
-
-Following sequence could happen:
-
-1) bash (or any program) starts a new process, by a fork() call that
-   glibc maps to a clone( ...  CLONE_CHILD_SETTID | CLONE_CHILD_CLEARTID
-   ...) syscall
-
-2) When new process starts, its current->clear_child_tid is set to a
-   location that has a meaning only in bash (or initial program) context
-   (&THREAD_SELF->tid)
-
-3) This new process does the execve() syscall to start a new program. 
-   current->clear_child_tid is left unchanged (a non NULL value)
-
-4) If this new program creates some threads, and initial thread exits,
-   kernel will attempt to clear the integer pointed by
-   current->clear_child_tid from mm_release() :
-
-        if (tsk->clear_child_tid
-            && !(tsk->flags & PF_SIGNALED)
-            && atomic_read(&mm->mm_users) > 1) {
-                u32 __user * tidptr = tsk->clear_child_tid;
-                tsk->clear_child_tid = NULL;
-
-                /*
-                 * We don't check the error code - if userspace has
-                 * not set up a proper pointer then tough luck.
-                 */
-<< here >>      put_user(0, tidptr);
-                sys_futex(tidptr, FUTEX_WAKE, 1, NULL, NULL, 0);
-        }
-
-5) OR : if new program is not multi-threaded, but spied by /proc/pid
-   users (ps command for example), mm_users > 1, and the exiting program
-   could corrupt 4 bytes in a persistent memory area (shm or memory mapped
-   file)
-
-If current->clear_child_tid points to a writeable portion of memory of the
-new program, kernel happily and silently corrupts 4 bytes of memory, with
-unexpected effects.
-
-Fix is straightforward and should not break any sane program.
-
-Reported-by: Jens Rosenboom <jens@mcbone.net>
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Tested-by: Jens Rosenboom <jens@mcbone.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sonny Rao <sonnyrao@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Antoine Jacquet <royale@zerezo.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |    1 +
- fs/exec.c   |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/media/video/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/compat.c~execve-must-clear-current-clear_child_tid fs/compat.c
---- a/fs/compat.c~execve-must-clear-current-clear_child_tid
-+++ a/fs/compat.c
-@@ -1550,6 +1550,7 @@ int compat_do_execve(char * filename,
- 	mutex_unlock(&current->cred_guard_mutex);
- 	acct_update_integrals(current);
- 	free_bprm(bprm);
-+	current->clear_child_tid = NULL;
- 	if (displaced)
- 		put_files_struct(displaced);
- 	return retval;
-diff -puN fs/exec.c~execve-must-clear-current-clear_child_tid fs/exec.c
---- a/fs/exec.c~execve-must-clear-current-clear_child_tid
-+++ a/fs/exec.c
-@@ -1343,6 +1343,7 @@ int do_execve(char * filename,
- 	mutex_unlock(&current->cred_guard_mutex);
- 	acct_update_integrals(current);
- 	free_bprm(bprm);
-+	current->clear_child_tid = NULL;
- 	if (displaced)
- 		put_files_struct(displaced);
- 	return retval;
+diff -puN drivers/media/video/Kconfig~media-zr364xx-fix-build-errors drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~media-zr364xx-fix-build-errors
++++ a/drivers/media/video/Kconfig
+@@ -1000,6 +1000,8 @@ source "drivers/media/video/pwc/Kconfig"
+ config USB_ZR364XX
+ 	tristate "USB ZR364XX Camera support"
+ 	depends on VIDEO_V4L2
++	select VIDEOBUF_GEN
++	select VIDEOBUF_VMALLOC
+ 	---help---
+ 	  Say Y here if you want to connect this type of camera to your
+ 	  computer's USB port.
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-execve-must-clear-current-clear_child_tid.patch
+media-zr364xx-fix-build-errors.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+kernel-hacking-move-strip_asm_syms-from-general.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
+add-a-driver-for-the-winbond-wpcd376i-ir-functionality-select-bitreverse.patch
+lis3-add-power-management-functions-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
+doc-filesystems-remove-smount-program.patch
+doc-filesystems-more-mount-cleanups.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
