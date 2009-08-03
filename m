@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-gspca-introduce-missing-kfree.patch added to -mm tree
-Date: Mon, 03 Aug 2009 15:49:22 -0700
-Message-ID: <200908032249.n73MnMnI025289@imap1.linux-foundation.org>
+Subject: + drivers-hid-introduce-missing-kfree.patch added to -mm tree
+Date: Mon, 03 Aug 2009 15:54:10 -0700
+Message-ID: <200908032254.n73MsBpf000714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45078 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753067AbZHCWtg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:49:36 -0400
+	by vger.kernel.org with ESMTP id S1753600AbZHCWyS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:54:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, erik.andren@gmail.com, mchehab@infradead.org
+Cc: julia@diku.dk, jkosina@suse.cz
 
 
 The patch titled
-     drivers/media/video/gspca: introduce missing kfree
+     drivers/hid: introduce missing kfree
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-gspca-introduce-missing-kfree.patch
+     drivers-hid-introduce-missing-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/gspca: introduce missing kfree
+Subject: drivers/hid: introduce missing kfree
 From: Julia Lawall <julia@diku.dk>
 
-Error handling code following a kmalloc should free the allocated data.
+Error handling code following a kzalloc should free the allocated data.
 
 The semantic match that finds the problem is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
@@ -79,35 +79,31 @@ print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Erik Andren <erik.andren@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/gspca/m5602/m5602_s5k83a.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/hid/hid-debug.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/video/gspca/m5602/m5602_s5k83a.c~drivers-media-video-gspca-introduce-missing-kfree drivers/media/video/gspca/m5602/m5602_s5k83a.c
---- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c~drivers-media-video-gspca-introduce-missing-kfree
-+++ a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
-@@ -178,8 +178,10 @@ sensor_found:
+diff -puN drivers/hid/hid-debug.c~drivers-hid-introduce-missing-kfree drivers/hid/hid-debug.c
+--- a/drivers/hid/hid-debug.c~drivers-hid-introduce-missing-kfree
++++ a/drivers/hid/hid-debug.c
+@@ -928,6 +928,7 @@ static int hid_debug_events_open(struct 
  
- 	sens_priv->settings =
- 	kmalloc(sizeof(s32)*ARRAY_SIZE(s5k83a_ctrls), GFP_KERNEL);
--	if (!sens_priv->settings)
-+	if (!sens_priv->settings) {
-+		kfree(sens_priv);
- 		return -ENOMEM;
-+	}
- 
- 	sd->gspca_dev.cam.cam_mode = s5k83a_modes;
- 	sd->gspca_dev.cam.nmodes = ARRAY_SIZE(s5k83a_modes);
+ 	if (!(list->hid_debug_buf = kzalloc(sizeof(char) * HID_DEBUG_BUFSIZE, GFP_KERNEL))) {
+ 		err = -ENOMEM;
++		kfree(list);
+ 		goto out;
+ 	}
+ 	list->hdev = (struct hid_device *) inode->i_private;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
 drivers-media-dvb-use-dst_type-field-instead-of-type_flags.patch
+drivers-media-video-gspca-introduce-missing-kfree.patch
 drivers-ata-use-resource_size.patch
 drivers-mmc-correct-error-handling-code.patch
 drivers-rtc-correct-error-handling-code.patch
@@ -117,5 +113,8 @@ drivers-video-add-kmalloc-null-tests-fix.patch
 edac-fix-resource-size-calculation.patch
 fs-romfs-correct-error-handling-code.patch
 drivers-vlynq-vlynqc-fix-resource-size-off-by-1-error.patch
-drivers-media-video-gspca-introduce-missing-kfree.patch
+drivers-rtc-introduce-missing-kfree.patch
+drivers-hid-introduce-missing-kfree.patch
+drivers-md-introduce-missing-kfree.patch
+drivers-ata-introduce-missing-kfree.patch
 
