@@ -1,53 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] misdn-fix-read-buffer-overflow.patch removed from -mm tree
-Date: Mon, 03 Aug 2009 12:38:29 -0700
-Message-ID: <200908031938.n73JcTZh032346@imap1.linux-foundation.org>
+Subject: [merged] ivtv-read-buffer-overflow.patch removed from -mm tree
+Date: Mon, 03 Aug 2009 12:38:26 -0700
+Message-ID: <200908031938.n73JcQsd032341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42004 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754343AbZHCTif (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 15:38:35 -0400
+	by vger.kernel.org with ESMTP id S1754350AbZHCTik (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 15:38:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, keil@b1-systems.de, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, awalls@radix.net, hverkuil@xs4all.nl, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mISDN: fix read buffer overflow
+     ivtv: read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     misdn-fix-read-buffer-overflow.patch
+     ivtv-read-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: fix read buffer overflow
+Subject: ivtv: read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Check whether index is within bounds before testing the element.
+This mistakenly tests against sizeof(freqs) instead of the array size. 
+Due to the mask the only illegal value possible was 3.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Karsten Keil <keil@b1-systems.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/mISDN/l1oip_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/ivtv/ivtv-controls.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/isdn/mISDN/l1oip_core.c~misdn-fix-read-buffer-overflow drivers/isdn/mISDN/l1oip_core.c
---- a/drivers/isdn/mISDN/l1oip_core.c~misdn-fix-read-buffer-overflow
-+++ a/drivers/isdn/mISDN/l1oip_core.c
-@@ -1480,7 +1480,7 @@ l1oip_init(void)
- 		return -ENOMEM;
+diff -puN drivers/media/video/ivtv/ivtv-controls.c~ivtv-read-buffer-overflow drivers/media/video/ivtv/ivtv-controls.c
+--- a/drivers/media/video/ivtv/ivtv-controls.c~ivtv-read-buffer-overflow
++++ a/drivers/media/video/ivtv/ivtv-controls.c
+@@ -17,6 +17,7 @@
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
++#include <linux/kernel.h>
  
- 	l1oip_cnt = 0;
--	while (type[l1oip_cnt] && l1oip_cnt < MAX_CARDS) {
-+	while (l1oip_cnt < MAX_CARDS && type[l1oip_cnt]) {
- 		switch (type[l1oip_cnt] & 0xff) {
- 		case 1:
- 			pri = 0;
+ #include "ivtv-driver.h"
+ #include "ivtv-cards.h"
+@@ -281,7 +282,7 @@ int ivtv_s_ext_ctrls(struct file *file, 
+ 		idx = p.audio_properties & 0x03;
+ 		/* The audio clock of the digitizer must match the codec sample
+ 		   rate otherwise you get some very strange effects. */
+-		if (idx < sizeof(freqs))
++		if (idx < ARRAY_SIZE(freqs))
+ 			ivtv_call_all(itv, audio, s_clock_freq, freqs[idx]);
+ 		return err;
+ 	}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
