@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-introduce-missing-kfree.patch added to -mm tree
-Date: Mon, 03 Aug 2009 15:54:07 -0700
-Message-ID: <200908032254.n73Ms8od000557@imap1.linux-foundation.org>
+Subject: + drivers-ata-introduce-missing-kfree.patch added to -mm tree
+Date: Mon, 03 Aug 2009 15:54:14 -0700
+Message-ID: <200908032254.n73MsFK7000833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48751 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755056AbZHCWy0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:54:26 -0400
+	by vger.kernel.org with ESMTP id S1753200AbZHCW4V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:56:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, a.zummo@towertech.it, david-b@pacbell.net
+Cc: julia@diku.dk, jeff@garzik.org, tj@kernel.org
 
 
 The patch titled
-     drivers/rtc: introduce missing kfree
+     drivers/ata: introduce missing kfree
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-introduce-missing-kfree.patch
+     drivers-ata-introduce-missing-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc: introduce missing kfree
+Subject: drivers/ata: introduce missing kfree
 From: Julia Lawall <julia@diku.dk>
 
 Error handling code following a kzalloc should free the allocated data.
@@ -79,47 +79,35 @@ print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ep93xx.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/ata/pata_at91.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ep93xx.c~drivers-rtc-introduce-missing-kfree drivers/rtc/rtc-ep93xx.c
---- a/drivers/rtc/rtc-ep93xx.c~drivers-rtc-introduce-missing-kfree
-+++ a/drivers/rtc/rtc-ep93xx.c
-@@ -128,12 +128,16 @@ static int __init ep93xx_rtc_probe(struc
- 		return -ENOMEM;
+diff -puN drivers/ata/pata_at91.c~drivers-ata-introduce-missing-kfree drivers/ata/pata_at91.c
+--- a/drivers/ata/pata_at91.c~drivers-ata-introduce-missing-kfree
++++ a/drivers/ata/pata_at91.c
+@@ -261,7 +261,8 @@ static int __devinit pata_at91_probe(str
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (res == NULL)
--		return -ENXIO;
-+	if (res == NULL) {
-+		err = -ENXIO;
-+		goto fail_free;
-+	}
- 
- 	res = request_mem_region(res->start, resource_size(res), pdev->name);
--	if (res == NULL)
--		return -EBUSY;
-+	if (res == NULL) {
-+		err = -EBUSY;
-+		goto fail_free;
-+	}
- 
- 	ep93xx_rtc->mmio_base = ioremap(res->start, resource_size(res));
- 	if (ep93xx_rtc->mmio_base == NULL) {
-@@ -169,6 +173,8 @@ fail:
- 		pdev->dev.platform_data = NULL;
+ 	if (IS_ERR(info->mck)) {
+ 		dev_err(dev, "failed to get access to mck clock\n");
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto err_clk_get;
  	}
- 	release_mem_region(res->start, resource_size(res));
-+fail_free:
-+	kfree(ep93xx_rtc);
- 	return err;
- }
  
+ 	info->cs    = board->chipselect;
+@@ -308,6 +309,7 @@ err_alt_ioremap:
+ 
+ err_ide_ioremap:
+ 	clk_put(info->mck);
++err_clk_get:
+ 	kfree(info);
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
