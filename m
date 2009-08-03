@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-gadget-read-buffer-overflow.patch added to -mm tree
-Date: Mon, 03 Aug 2009 16:56:55 -0700
-Message-ID: <200908032356.n73NutPs008171@imap1.linux-foundation.org>
+Subject: + perf-fix-read-buffer-overflow.patch added to -mm tree
+Date: Mon, 03 Aug 2009 16:56:57 -0700
+Message-ID: <200908032356.n73NuvI3008277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34103 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754261AbZHCX47 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:56:59 -0400
+	by vger.kernel.org with ESMTP id S932316AbZHCX5V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:57:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, david-b@pacbell.net, greg@kroah.com
+Cc: roel.kluin@gmail.com, a.p.zijlstra@chello.nl, mingo@elte.hu
 
 
 The patch titled
-     usb gadget: Read buffer overflow
+     perf: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     usb-gadget-read-buffer-overflow.patch
+     perf-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb gadget: Read buffer overflow
+Subject: perf: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Check whether index is within bounds before testing the element.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/composite.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/perf/builtin-report.c |    2 +-
+ tools/perf/util/quote.c     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/gadget/composite.c~usb-gadget-read-buffer-overflow drivers/usb/gadget/composite.c
---- a/drivers/usb/gadget/composite.c~usb-gadget-read-buffer-overflow
-+++ a/drivers/usb/gadget/composite.c
-@@ -602,7 +602,7 @@ static int get_string(struct usb_composi
- 			}
- 		}
+diff -puN tools/perf/builtin-report.c~perf-fix-read-buffer-overflow tools/perf/builtin-report.c
+--- a/tools/perf/builtin-report.c~perf-fix-read-buffer-overflow
++++ a/tools/perf/builtin-report.c
+@@ -252,7 +252,7 @@ static int strcommon(const char *pathnam
+ {
+ 	int n = 0;
  
--		for (len = 0; s->wData[len] && len <= 126; len++)
-+		for (len = 0; len <= 126 && s->wData[len]; len++)
- 			continue;
- 		if (!len)
- 			return -EINVAL;
+-	while (pathname[n] == cwd[n] && n < cwdlen)
++	while (n < cwdlen && pathname[n] == cwd[n])
+ 		++n;
+ 
+ 	return n;
+diff -puN tools/perf/util/quote.c~perf-fix-read-buffer-overflow tools/perf/util/quote.c
+--- a/tools/perf/util/quote.c~perf-fix-read-buffer-overflow
++++ a/tools/perf/util/quote.c
+@@ -318,7 +318,7 @@ char *quote_path_relative(const char *in
+ 		strbuf_addch(out, '"');
+ 	if (prefix) {
+ 		int off = 0;
+-		while (prefix[off] && off < len && prefix[off] == in[off])
++		while (off < len && prefix[off] && prefix[off] == in[off])
+ 			if (prefix[off] == '/') {
+ 				prefix += off + 1;
+ 				in += off + 1;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
