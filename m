@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch added to -mm tree
-Date: Mon, 03 Aug 2009 16:42:29 -0700
-Message-ID: <200908032342.n73NgTOr016561@imap1.linux-foundation.org>
+Subject: + osst-fix-read-buffer-overflow.patch added to -mm tree
+Date: Mon, 03 Aug 2009 16:56:53 -0700
+Message-ID: <200908032356.n73NurMQ008095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58406 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932355AbZHCXm4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:42:56 -0400
+	by vger.kernel.org with ESMTP id S1754223AbZHCX45 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:56:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, James.Smart@Emulex.Com, jeykholt@cisco.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, osst@riede.org
 
 
 The patch titled
-     drivers/scsi/lpfc/lpfc_vport.c: fix read buffer overflow
+     osst: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+     osst-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/lpfc/lpfc_vport.c: fix read buffer overflow
+Subject: osst: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Check whether index is within bounds before testing the element.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: James Smart <James.Smart@Emulex.Com>
-Cc: Joe Eykholt <jeykholt@cisco.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Willem Riede <osst@riede.org>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_vport.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/osst.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_vport.c~drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow drivers/scsi/lpfc/lpfc_vport.c
---- a/drivers/scsi/lpfc/lpfc_vport.c~drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow
-+++ a/drivers/scsi/lpfc/lpfc_vport.c
-@@ -769,7 +769,7 @@ lpfc_destroy_vport_work_array(struct lpf
- 	int i;
- 	if (vports == NULL)
- 		return;
--	for (i = 0; vports[i] != NULL && i <= phba->max_vports; i++)
-+	for (i = 0; i <= phba->max_vports && vports[i] != NULL; i++)
- 		scsi_host_put(lpfc_shost_from_vport(vports[i]));
- 	kfree(vports);
- }
+diff -puN drivers/scsi/osst.c~osst-fix-read-buffer-overflow drivers/scsi/osst.c
+--- a/drivers/scsi/osst.c~osst-fix-read-buffer-overflow
++++ a/drivers/scsi/osst.c
+@@ -5860,7 +5860,8 @@ static int osst_probe(struct device *dev
+ 	}
+ 
+ 	/* find a free minor number */
+-	for (i=0; os_scsi_tapes[i] && i<osst_max_dev; i++);
++	for (i = 0; i < osst_max_dev && os_scsi_tapes[i]; i++)
++		;
+ 	if(i >= osst_max_dev) panic ("Scsi_devices corrupt (osst)");
+ 	dev_num = i;
+ 
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -110,4 +110,7 @@ platinumfb-misplaced-parenthesis.patch
 sisfb-read-buffer-overflow.patch
 drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
 adfs-remove-redundant-test-on-unsigned.patch
+osst-fix-read-buffer-overflow.patch
+usb-gadget-read-buffer-overflow.patch
+perf-fix-read-buffer-overflow.patch
 
