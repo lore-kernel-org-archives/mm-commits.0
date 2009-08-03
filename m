@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + compat_ioctl-hook-up-compat-handler-for-fiemap-ioctl.patch added to -mm tree
-Date: Mon, 03 Aug 2009 16:22:59 -0700
-Message-ID: <200908032322.n73NMx7P016438@imap1.linux-foundation.org>
+Subject: + usb-storage-include-prolific-technology-usb-drive-in-unusual_devs-list.patch added to -mm tree
+Date: Mon, 03 Aug 2009 16:25:17 -0700
+Message-ID: <200908032325.n73NPHtd020313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932286AbZHCXYY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:24:24 -0400
+	by vger.kernel.org with ESMTP id S932267AbZHCXZx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:25:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, arnd@arndb.de, jack@suse.cz, josef@redhat.com, linux-ext4@vger.kernel.org, lkml@rtr.ca, stable@kernel.org
+Cc: rbrito@ime.usp.br, greg@kroah.com, hancockrwd@gmail.com, phil@ipom.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     compat_ioctl: hook up compat handler for FIEMAP ioctl
+     usb-storage: include Prolific Technology USB drive in unusual_devs list
 has been added to the -mm tree.  Its filename is
-     compat_ioctl-hook-up-compat-handler-for-fiemap-ioctl.patch
+     usb-storage-include-prolific-technology-usb-drive-in-unusual_devs-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compat_ioctl: hook up compat handler for FIEMAP ioctl
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: usb-storage: include Prolific Technology USB drive in unusual_devs list
+From: Rogerio Brito <rbrito@ime.usp.br>
 
-The FIEMAP_IOC_FIEMAP mapping ioctl was missing a 32-bit compat handler,
-which means that 32-bit suerspace on 64-bit kernels cannot use this ioctl
-command.
+Add a quirk entry for the Leading Driver UD-11 usb flash drive.
 
-The structure is nicely aligned, padded, and sized, so it is just this
-simple.
+As Alan Stern told me, the device doesn't deal correctly with the
+locking media feature of the device, and this patch incorporates it.
 
-Tested w/ 32-bit ioctl tester (from Josef) on a 64-bit kernel on ext4.
+Compiled, tested, working.
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Mark Lord <lkml@rtr.ca>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Josef Bacik <josef@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: <stable@kernel.org>
+Signed-off-by: Rogerio Brito <rbrito@ime.usp.br>
+Cc: Phil Dibowitz <phil@ipom.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Robert Hancock <hancockrwd@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/storage/unusual_devs.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/compat_ioctl.c~compat_ioctl-hook-up-compat-handler-for-fiemap-ioctl fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~compat_ioctl-hook-up-compat-handler-for-fiemap-ioctl
-+++ a/fs/compat_ioctl.c
-@@ -1838,6 +1838,7 @@ COMPATIBLE_IOCTL(FIONCLEX)
- COMPATIBLE_IOCTL(FIOASYNC)
- COMPATIBLE_IOCTL(FIONBIO)
- COMPATIBLE_IOCTL(FIONREAD)  /* This is also TIOCINQ */
-+COMPATIBLE_IOCTL(FS_IOC_FIEMAP)
- /* 0x00 */
- COMPATIBLE_IOCTL(FIBMAP)
- COMPATIBLE_IOCTL(FIGETBSZ)
+diff -puN drivers/usb/storage/unusual_devs.h~usb-storage-include-prolific-technology-usb-drive-in-unusual_devs-list drivers/usb/storage/unusual_devs.h
+--- a/drivers/usb/storage/unusual_devs.h~usb-storage-include-prolific-technology-usb-drive-in-unusual_devs-list
++++ a/drivers/usb/storage/unusual_devs.h
+@@ -838,6 +838,13 @@ UNUSUAL_DEV( 0x066f, 0x8000, 0x0001, 0x0
+ 		US_SC_DEVICE, US_PR_DEVICE, NULL,
+ 		US_FL_FIX_CAPACITY ),
+ 
++/* Reported by Rogerio Brito <rbrito@ime.usp.br> */
++UNUSUAL_DEV( 0x067b, 0x2317, 0x0001, 0x001,
++		"Prolific Technology, Inc.",
++		"Mass Storage Device",
++		US_SC_DEVICE, US_PR_DEVICE, NULL,
++		US_FL_NOT_LOCKABLE ),
++
+ /* Reported by Richard -=[]=- <micro_flyer@hotmail.com> */
+ /* Change to bcdDeviceMin (0x0100 to 0x0001) reported by
+  * Thomas Bartosik <tbartdev@gmx-topmail.de> */
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from rbrito@ime.usp.br are
 
-vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch
-compat_ioctl-hook-up-compat-handler-for-fiemap-ioctl.patch
+usb-storage-include-prolific-technology-usb-drive-in-unusual_devs-list.patch
 
