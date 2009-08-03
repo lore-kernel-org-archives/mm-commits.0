@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + futex-futex_wait_requeue_pi-commentary-corrections.patch added to -mm tree
-Date: Mon, 03 Aug 2009 14:58:26 -0700
-Message-ID: <200908032158.n73LwQVk005552@imap1.linux-foundation.org>
+Subject: + signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch added to -mm tree
+Date: Mon, 03 Aug 2009 15:37:31 -0700
+Message-ID: <200908032237.n73MbWi1005650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752414AbZHCV6z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 17:58:55 -0400
+	by vger.kernel.org with ESMTP id S1752989AbZHCWif (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:38:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dvhltc@us.ibm.com, mingo@elte.hu, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de
+Cc: oleg@redhat.com, a.p.zijlstra@chello.nl, eranian@googlemail.com, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     futex: futex_wait_requeue_pi commentary corrections
+     signals: send_sigio: use do_send_sig_info() to avoid check_kill_permission()
 has been added to the -mm tree.  Its filename is
-     futex-futex_wait_requeue_pi-commentary-corrections.patch
+     signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,76 +33,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: futex: futex_wait_requeue_pi commentary corrections
-From: Darren Hart <dvhltc@us.ibm.com>
+Subject: signals: send_sigio: use do_send_sig_info() to avoid check_kill_permission()
+From: Oleg Nesterov <oleg@redhat.com>
 
-The state machine described in the comments wasn't updated with a
-follow-on fix.  Address that and cleanup the corresponding commentary in
-the function.
+group_send_sig_info()->check_kill_permission() assumes that current is the
+sender and uses current_cred().
 
-Signed-off-by: Darren Hart <dvhltc@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+This is not true in send_sigio_to_task() case.  From the security pov the
+sender is not current, but the task which did fcntl(F_SETOWN), that is why
+we have sigio_perm() which uses the right creds to check.
+
+Fortunately, send_sigio() always sends either SEND_SIG_PRIV or
+SI_FROMKERNEL() signal, so check_kill_permission() does nothing.  But
+still it would be tidier to avoid this bogus security check and save a
+couple of cycles.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: stephane eranian <eranian@googlemail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ fs/fcntl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/futex.c~futex-futex_wait_requeue_pi-commentary-corrections kernel/futex.c
---- a/kernel/futex.c~futex-futex_wait_requeue_pi-commentary-corrections
-+++ a/kernel/futex.c
-@@ -2102,11 +2102,11 @@ int handle_early_requeue_pi_wakeup(struc
-  * We call schedule in futex_wait_queue_me() when we enqueue and return there
-  * via the following:
-  * 1) wakeup on uaddr2 after an atomic lock acquisition by futex_requeue()
-- * 2) wakeup on uaddr2 after a requeue and subsequent unlock
-- * 3) signal (before or after requeue)
-- * 4) timeout (before or after requeue)
-+ * 2) wakeup on uaddr2 after a requeue
-+ * 3) signal
-+ * 4) timeout
-  *
-- * If 3, we setup a restart_block with futex_wait_requeue_pi() as the function.
-+ * If 3, cleanup and return -ERESTARTNOINTR.
-  *
-  * If 2, we may then block on trying to take the rt_mutex and return via:
-  * 5) successful lock
-@@ -2114,7 +2114,7 @@ int handle_early_requeue_pi_wakeup(struc
-  * 7) timeout
-  * 8) other lock acquisition failure
-  *
-- * If 6, we setup a restart_block with futex_lock_pi() as the function.
-+ * If 6, return -EWOULDBLOCK (restarting the syscall would do the same).
-  *
-  * If 4 or 7, we cleanup and return with -ETIMEDOUT.
-  *
-@@ -2232,14 +2232,11 @@ static int futex_wait_requeue_pi(u32 __u
- 			rt_mutex_unlock(pi_mutex);
- 	} else if (ret == -EINTR) {
- 		/*
--		 * We've already been requeued, but we have no way to
--		 * restart by calling futex_lock_pi() directly. We
--		 * could restart the syscall, but that will look at
--		 * the user space value and return right away. So we
--		 * drop back with EWOULDBLOCK to tell user space that
--		 * "val" has been changed. That's the same what the
--		 * restart of the syscall would do in
--		 * futex_wait_setup().
-+		 * We've already been requeued, but cannot restart by calling
-+		 * futex_lock_pi() directly. We could restart this syscall, but
-+		 * it would detect that the user space "val" changed and return
-+		 * -EWOULDBLOCK.  Save the overhead of the restart and return
-+		 * -EWOULDBLOCK directly.
- 		 */
- 		ret = -EWOULDBLOCK;
+diff -puN fs/fcntl.c~signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission fs/fcntl.c
+--- a/fs/fcntl.c~signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission
++++ a/fs/fcntl.c
+@@ -461,11 +461,11 @@ static void send_sigio_to_task(struct ta
+ 			else
+ 				si.si_band = band_table[reason - POLL_IN];
+ 			si.si_fd    = fd;
+-			if (!group_send_sig_info(signum, &si, p))
++			if (!do_send_sig_info(signum, &si, p, true))
+ 				break;
+ 		/* fall-through: fall back on the old plain SIGIO signal */
+ 		case 0:
+-			group_send_sig_info(SIGIO, SEND_SIG_PRIV, p);
++			do_send_sig_info(SIGIO, SEND_SIG_PRIV, p, true);
  	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from dvhltc@us.ibm.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
-futex-futex_wait_requeue_pi-commentary-corrections.patch
+execve-must-clear-current-clear_child_tid-v2.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
+ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
+do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
+do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+wait_consider_task-kill-parent-argument.patch
+do_wait-fix-sys_waitid-specific-behaviour.patch
+wait_noreap_copyout-check-for-wo_info-=-null.patch
+signals-introduce-do_send_sig_info-helper.patch
+signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch
+signals-tracehook_notify_jctl-change.patch
+signals-tracehook_notify_jctl-change-do_signal_stop-do-not-call-tracehook_notify_jctl-in-task_stopped-state.patch
+signals-introduce-tracehook_finish_jctl-helper.patch
+utrace-core.patch
+exec-fix-set_binfmt-vs-sys_delete_module-race.patch
+schedule_work-documentation-improvements.patch
+fork-disable-clone_parent-for-init.patch
+pidns-deny-clone_parentclone_newpid-combination.patch
+task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
 
