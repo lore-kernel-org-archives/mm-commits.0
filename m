@@ -1,108 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ivtv-read-buffer-overflow.patch removed from -mm tree
-Date: Mon, 03 Aug 2009 12:38:26 -0700
-Message-ID: <200908031938.n73JcQsd032341@imap1.linux-foundation.org>
+Subject: [merged] cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov.patch removed from -mm tree
+Date: Mon, 03 Aug 2009 12:38:31 -0700
+Message-ID: <200908031938.n73JcVvD032394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44760 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754350AbZHCTik (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 15:38:40 -0400
+	by vger.kernel.org with ESMTP id S1754607AbZHCTiw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 15:38:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, awalls@radix.net, hverkuil@xs4all.nl, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, Christophe.Lermytte@thomson.net, davej@redhat.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ivtv: read buffer overflow
+     cpufreq: fix NULL pointer dereference regression in conservative gov
 has been removed from the -mm tree.  Its filename was
-     ivtv-read-buffer-overflow.patch
+     cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ivtv: read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cpufreq: fix NULL pointer dereference regression in conservative gov
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 
-This mistakenly tests against sizeof(freqs) instead of the array size. 
-Due to the mask the only illegal value possible was 3.
+Commit ee88415caf736b89500f16e0a545614541a45005 ("[CPUFREQ] Cleanup
+locking in conservative governor") introduced this regression when it
+removed enable bit in cpu_dbs_info_s.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+That added a possibility of dbs_cpufreq_notifier getting called for a CPU
+that is not yet managed by conservative governor.  That will happen as the
+transition notifier is set as soon as one CPU switches to conservative
+governor and other CPUs can get a NULL pointer dereference without the
+enable bit check.  Add the enable bit back again.
+
+Reported-by: Lermytte Christophe <Christophe.Lermytte@thomson.net>
+Tested-by: Lermytte Christophe <Christophe.Lermytte@thomson.net>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/ivtv/ivtv-controls.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/cpufreq/cpufreq_conservative.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/media/video/ivtv/ivtv-controls.c~ivtv-read-buffer-overflow drivers/media/video/ivtv/ivtv-controls.c
---- a/drivers/media/video/ivtv/ivtv-controls.c~ivtv-read-buffer-overflow
-+++ a/drivers/media/video/ivtv/ivtv-controls.c
-@@ -17,6 +17,7 @@
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
-+#include <linux/kernel.h>
+diff -puN drivers/cpufreq/cpufreq_conservative.c~cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov drivers/cpufreq/cpufreq_conservative.c
+--- a/drivers/cpufreq/cpufreq_conservative.c~cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov
++++ a/drivers/cpufreq/cpufreq_conservative.c
+@@ -63,6 +63,7 @@ struct cpu_dbs_info_s {
+ 	unsigned int down_skip;
+ 	unsigned int requested_freq;
+ 	int cpu;
++	unsigned int enable:1;
+ 	/*
+ 	 * percpu mutex that serializes governor limit change with
+ 	 * do_dbs_timer invocation. We do not want do_dbs_timer to run
+@@ -141,6 +142,9 @@ dbs_cpufreq_notifier(struct notifier_blo
  
- #include "ivtv-driver.h"
- #include "ivtv-cards.h"
-@@ -281,7 +282,7 @@ int ivtv_s_ext_ctrls(struct file *file, 
- 		idx = p.audio_properties & 0x03;
- 		/* The audio clock of the digitizer must match the codec sample
- 		   rate otherwise you get some very strange effects. */
--		if (idx < sizeof(freqs))
-+		if (idx < ARRAY_SIZE(freqs))
- 			ivtv_call_all(itv, audio, s_clock_freq, freqs[idx]);
- 		return err;
- 	}
+ 	struct cpufreq_policy *policy;
+ 
++	if (!this_dbs_info->enable)
++		return 0;
++
+ 	policy = this_dbs_info->cur_policy;
+ 
+ 	/*
+@@ -497,6 +501,7 @@ static inline void dbs_timer_init(struct
+ 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
+ 	delay -= jiffies % delay;
+ 
++	dbs_info->enable = 1;
+ 	INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
+ 	queue_delayed_work_on(dbs_info->cpu, kconservative_wq, &dbs_info->work,
+ 				delay);
+@@ -504,6 +509,7 @@ static inline void dbs_timer_init(struct
+ 
+ static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
+ {
++	dbs_info->enable = 0;
+ 	cancel_delayed_work_sync(&dbs_info->work);
+ }
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
 linux-next.patch
-x86-fix-buffer-overflow-in-efi_init.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-fsl-booke-read-buffer-overflow.patch
-media-strncpy-does-not-null-terminate-string.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-hid-fix-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-mips-read-buffer-overflow.patch
-slram-read-buffer-overflow.patch
-slram-read-buffer-overflow-cleanup.patch
-mtd-fix-read-buffer-overflow.patch
-irda-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-cyclades-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-iprh-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-i915-fix-read-outside-array-bounds.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-adfs-remove-redundant-test-on-unsigned.patch
+kernel-core-add-smp_call_function_any.patch
+kernel-core-add-smp_call_function_any-update.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cpuidle-menu-governor-reduce-latency-on-exit.patch
 
