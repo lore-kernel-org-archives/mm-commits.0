@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-hid-introduce-missing-kfree.patch added to -mm tree
-Date: Mon, 03 Aug 2009 15:54:10 -0700
-Message-ID: <200908032254.n73MsBpf000714@imap1.linux-foundation.org>
+Subject: + drivers-md-introduce-missing-kfree.patch added to -mm tree
+Date: Mon, 03 Aug 2009 15:54:12 -0700
+Message-ID: <200908032254.n73MsDtK000830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53991 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753600AbZHCWyS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:54:18 -0400
+	by vger.kernel.org with ESMTP id S1755046AbZHCWyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, jkosina@suse.cz
+Cc: julia@diku.dk, neilb@suse.de
 
 
 The patch titled
-     drivers/hid: introduce missing kfree
+     drivers/md: introduce missing kfree
 has been added to the -mm tree.  Its filename is
-     drivers-hid-introduce-missing-kfree.patch
+     drivers-md-introduce-missing-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hid: introduce missing kfree
+Subject: drivers/md: introduce missing kfree
 From: Julia Lawall <julia@diku.dk>
 
-Error handling code following a kzalloc should free the allocated data.
+Error handling code following a kmalloc should free the allocated data.
 
 The semantic match that finds the problem is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
@@ -79,24 +79,26 @@ print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-debug.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/md/dm-exception-store.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/hid/hid-debug.c~drivers-hid-introduce-missing-kfree drivers/hid/hid-debug.c
---- a/drivers/hid/hid-debug.c~drivers-hid-introduce-missing-kfree
-+++ a/drivers/hid/hid-debug.c
-@@ -928,6 +928,7 @@ static int hid_debug_events_open(struct 
- 
- 	if (!(list->hid_debug_buf = kzalloc(sizeof(char) * HID_DEBUG_BUFSIZE, GFP_KERNEL))) {
- 		err = -ENOMEM;
-+		kfree(list);
- 		goto out;
+diff -puN drivers/md/dm-exception-store.c~drivers-md-introduce-missing-kfree drivers/md/dm-exception-store.c
+--- a/drivers/md/dm-exception-store.c~drivers-md-introduce-missing-kfree
++++ a/drivers/md/dm-exception-store.c
+@@ -217,7 +217,8 @@ int dm_exception_store_create(struct dm_
+ 		type = get_type("N");
+ 	else {
+ 		ti->error = "Persistent flag is not P or N";
+-		return -EINVAL;
++		r = -EINVAL;
++		goto bad_type;
  	}
- 	list->hdev = (struct hid_device *) inode->i_private;
+ 
+ 	if (!type) {
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
