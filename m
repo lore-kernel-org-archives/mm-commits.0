@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + libertas-read-buffer-overflow.patch added to -mm tree
-Date: Mon, 03 Aug 2009 16:29:30 -0700
-Message-ID: <200908032329.n73NTUig027282@imap1.linux-foundation.org>
+Subject: + drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch added to -mm tree
+Date: Mon, 03 Aug 2009 16:32:44 -0700
+Message-ID: <200908032332.n73NWiFl032719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45981 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932267AbZHCX3c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:29:32 -0400
+	by vger.kernel.org with ESMTP id S932267AbZHCXc7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 19:32:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com
+Cc: roel.kluin@gmail.com, kyle@mcmartin.ca
 
 
 The patch titled
-     libertas: fix read buffer overflow
+     drivers/parisc/pdc_stable.c: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     libertas-read-buffer-overflow.patch
+     drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libertas: fix read buffer overflow
+Subject: drivers/parisc/pdc_stable.c: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Check whether index is within bounds before testing the element.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas/11d.c |    2 +-
+ drivers/parisc/pdc_stable.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/libertas/11d.c~libertas-read-buffer-overflow drivers/net/wireless/libertas/11d.c
---- a/drivers/net/wireless/libertas/11d.c~libertas-read-buffer-overflow
-+++ a/drivers/net/wireless/libertas/11d.c
-@@ -47,7 +47,7 @@ static u8 lbs_region_2_code(u8 *region)
- {
- 	u8 i;
+diff -puN drivers/parisc/pdc_stable.c~drivers-parisc-pdc_stablec-fix-read-buffer-overflow drivers/parisc/pdc_stable.c
+--- a/drivers/parisc/pdc_stable.c~drivers-parisc-pdc_stablec-fix-read-buffer-overflow
++++ a/drivers/parisc/pdc_stable.c
+@@ -370,7 +370,7 @@ pdcspath_layer_read(struct pdcspath_entr
+ 	if (!i)	/* entry is not ready */
+ 		return -ENODATA;
+ 	
+-	for (i = 0; devpath->layers[i] && (likely(i < 6)); i++)
++	for (i = 0; i < 6 && devpath->layers[i]; i++)
+ 		out += sprintf(out, "%u ", devpath->layers[i]);
  
--	for (i = 0; region[i] && i < COUNTRY_CODE_LEN; i++)
-+	for (i = 0; i < COUNTRY_CODE_LEN && region[i]; i++)
- 		region[i] = toupper(region[i]);
- 
- 	for (i = 0; i < ARRAY_SIZE(region_code_mapping); i++) {
+ 	out += sprintf(out, "\n");
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -83,6 +84,7 @@ irda-fix-read-buffer-overflow.patch
 atlx-strncpy-does-not-null-terminate-string.patch
 ext4-remove-redundant-test-on-unsigned.patch
 ocfs2-keep-index-within-status_map.patch
+drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
 cyclades-read-buffer-overflow.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 ibmmca-buffer-overflow.patch
