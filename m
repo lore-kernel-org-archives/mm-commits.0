@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch added to -mm tree
-Date: Mon, 03 Aug 2009 15:37:31 -0700
-Message-ID: <200908032237.n73MbWi1005650@imap1.linux-foundation.org>
+Subject: + signals-introduce-do_send_sig_info-helper.patch added to -mm tree
+Date: Mon, 03 Aug 2009 15:37:28 -0700
+Message-ID: <200908032237.n73MbSaF005482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752989AbZHCWif (ORCPT
+	by vger.kernel.org with ESMTP id S1753052AbZHCWif (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 18:38:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@redhat.com, a.p.zijlstra@chello.nl, eranian@googlemail.com, mingo@elte.
 
 
 The patch titled
-     signals: send_sigio: use do_send_sig_info() to avoid check_kill_permission()
+     signals: introduce do_send_sig_info() helper
 has been added to the -mm tree.  Its filename is
-     signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch
+     signals-introduce-do_send_sig_info-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,20 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: send_sigio: use do_send_sig_info() to avoid check_kill_permission()
+Subject: signals: introduce do_send_sig_info() helper
 From: Oleg Nesterov <oleg@redhat.com>
 
-group_send_sig_info()->check_kill_permission() assumes that current is the
-sender and uses current_cred().
+Introduce do_send_sig_info() and convert group_send_sig_info(),
+send_sig_info(), do_send_specific() to use this helper.
 
-This is not true in send_sigio_to_task() case.  From the security pov the
-sender is not current, but the task which did fcntl(F_SETOWN), that is why
-we have sigio_perm() which uses the right creds to check.
+Hopefully it will have more users soon, it allows to specify
+specific/group behaviour via "bool group" argument.
 
-Fortunately, send_sigio() always sends either SEND_SIG_PRIV or
-SI_FROMKERNEL() signal, so check_kill_permission() does nothing.  But
-still it would be tidier to avoid this bogus security check and save a
-couple of cycles.
+Shaves 80 bytes from .text.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -56,26 +52,128 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fcntl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/signal.h |    2 +
+ kernel/signal.c        |   56 ++++++++++++++++++---------------------
+ 2 files changed, 29 insertions(+), 29 deletions(-)
 
-diff -puN fs/fcntl.c~signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission fs/fcntl.c
---- a/fs/fcntl.c~signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission
-+++ a/fs/fcntl.c
-@@ -461,11 +461,11 @@ static void send_sigio_to_task(struct ta
- 			else
- 				si.si_band = band_table[reason - POLL_IN];
- 			si.si_fd    = fd;
--			if (!group_send_sig_info(signum, &si, p))
-+			if (!do_send_sig_info(signum, &si, p, true))
- 				break;
- 		/* fall-through: fall back on the old plain SIGIO signal */
- 		case 0:
--			group_send_sig_info(SIGIO, SEND_SIG_PRIV, p);
-+			do_send_sig_info(SIGIO, SEND_SIG_PRIV, p, true);
- 	}
+diff -puN include/linux/signal.h~signals-introduce-do_send_sig_info-helper include/linux/signal.h
+--- a/include/linux/signal.h~signals-introduce-do_send_sig_info-helper
++++ a/include/linux/signal.h
+@@ -233,6 +233,8 @@ static inline int valid_signal(unsigned 
  }
  
+ extern int next_signal(struct sigpending *pending, sigset_t *mask);
++extern int do_send_sig_info(int sig, struct siginfo *info,
++				struct task_struct *p, bool group);
+ extern int group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p);
+ extern int __group_send_sig_info(int, struct siginfo *, struct task_struct *);
+ extern long do_rt_tgsigqueueinfo(pid_t tgid, pid_t pid, int sig,
+diff -puN kernel/signal.c~signals-introduce-do_send_sig_info-helper kernel/signal.c
+--- a/kernel/signal.c~signals-introduce-do_send_sig_info-helper
++++ a/kernel/signal.c
+@@ -971,6 +971,20 @@ specific_send_sig_info(int sig, struct s
+ 	return send_signal(sig, info, t, 0);
+ }
+ 
++int do_send_sig_info(int sig, struct siginfo *info, struct task_struct *p,
++			bool group)
++{
++	unsigned long flags;
++	int ret = -ESRCH;
++
++	if (lock_task_sighand(p, &flags)) {
++		ret = send_signal(sig, info, p, group);
++		unlock_task_sighand(p, &flags);
++	}
++
++	return ret;
++}
++
+ /*
+  * Force a signal that the process can't ignore: if necessary
+  * we unblock the signal and change any SIG_IGN to SIG_DFL.
+@@ -1068,18 +1082,10 @@ struct sighand_struct *lock_task_sighand
+  */
+ int group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p)
+ {
+-	unsigned long flags;
+-	int ret;
+-
+-	ret = check_kill_permission(sig, info, p);
++	int ret = check_kill_permission(sig, info, p);
+ 
+-	if (!ret && sig) {
+-		ret = -ESRCH;
+-		if (lock_task_sighand(p, &flags)) {
+-			ret = __group_send_sig_info(sig, info, p);
+-			unlock_task_sighand(p, &flags);
+-		}
+-	}
++	if (!ret && sig)
++		ret = do_send_sig_info(sig, info, p, true);
+ 
+ 	return ret;
+ }
+@@ -1224,15 +1230,9 @@ static int kill_something_info(int sig, 
+  * These are for backward compatibility with the rest of the kernel source.
+  */
+ 
+-/*
+- * The caller must ensure the task can't exit.
+- */
+ int
+ send_sig_info(int sig, struct siginfo *info, struct task_struct *p)
+ {
+-	int ret;
+-	unsigned long flags;
+-
+ 	/*
+ 	 * Make sure legacy kernel users don't send in bad values
+ 	 * (normal paths check this in check_kill_permission).
+@@ -1240,10 +1240,7 @@ send_sig_info(int sig, struct siginfo *i
+ 	if (!valid_signal(sig))
+ 		return -EINVAL;
+ 
+-	spin_lock_irqsave(&p->sighand->siglock, flags);
+-	ret = specific_send_sig_info(sig, info, p);
+-	spin_unlock_irqrestore(&p->sighand->siglock, flags);
+-	return ret;
++	return do_send_sig_info(sig, info, p, false);
+ }
+ 
+ #define __si_special(priv) \
+@@ -2281,7 +2278,6 @@ static int
+ do_send_specific(pid_t tgid, pid_t pid, int sig, struct siginfo *info)
+ {
+ 	struct task_struct *p;
+-	unsigned long flags;
+ 	int error = -ESRCH;
+ 
+ 	rcu_read_lock();
+@@ -2291,14 +2287,16 @@ do_send_specific(pid_t tgid, pid_t pid, 
+ 		/*
+ 		 * The null signal is a permissions and process existence
+ 		 * probe.  No signal is actually delivered.
+-		 *
+-		 * If lock_task_sighand() fails we pretend the task dies
+-		 * after receiving the signal. The window is tiny, and the
+-		 * signal is private anyway.
+ 		 */
+-		if (!error && sig && lock_task_sighand(p, &flags)) {
+-			error = specific_send_sig_info(sig, info, p);
+-			unlock_task_sighand(p, &flags);
++		if (!error && sig) {
++			error = do_send_sig_info(sig, info, p, false);
++			/*
++			 * If lock_task_sighand() failed we pretend the task
++			 * dies after receiving the signal. The window is tiny,
++			 * and the signal is private anyway.
++			 */
++			if (unlikely(error == -ESRCH))
++				error = 0;
+ 		}
+ 	}
+ 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
