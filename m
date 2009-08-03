@@ -1,96 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov.patch removed from -mm tree
-Date: Mon, 03 Aug 2009 12:38:31 -0700
-Message-ID: <200908031938.n73JcVvD032394@imap1.linux-foundation.org>
+Subject: [merged] clocksource-save-mult_orig-in-clocksource_disable.patch removed from -mm tree
+Date: Mon, 03 Aug 2009 12:38:34 -0700
+Message-ID: <200908031938.n73JcYmY032595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44760 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754607AbZHCTiw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 15:38:52 -0400
+	by vger.kernel.org with ESMTP id S1754638AbZHCTi7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 15:38:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, Christophe.Lermytte@thomson.net, davej@redhat.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: damm@igel.co.jp, johnstul@us.ibm.com, lethal@linux-sh.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpufreq: fix NULL pointer dereference regression in conservative gov
+     clocksource: save mult_orig in clocksource_disable()
 has been removed from the -mm tree.  Its filename was
-     cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov.patch
+     clocksource-save-mult_orig-in-clocksource_disable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: fix NULL pointer dereference regression in conservative gov
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: clocksource: save mult_orig in clocksource_disable()
+From: Magnus Damm <damm@igel.co.jp>
 
-Commit ee88415caf736b89500f16e0a545614541a45005 ("[CPUFREQ] Cleanup
-locking in conservative governor") introduced this regression when it
-removed enable bit in cpu_dbs_info_s.
+Save clocksource mult_orig in clocksource_disable().
 
-That added a possibility of dbs_cpufreq_notifier getting called for a CPU
-that is not yet managed by conservative governor.  That will happen as the
-transition notifier is set as soon as one CPU switches to conservative
-governor and other CPUs can get a NULL pointer dereference without the
-enable bit check.  Add the enable bit back again.
+To fix the common case where ->enable() does not setup mult, make sure
+mult_orig is saved in mult on disable.
 
-Reported-by: Lermytte Christophe <Christophe.Lermytte@thomson.net>
-Tested-by: Lermytte Christophe <Christophe.Lermytte@thomson.net>
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Also add comments to explain why we do this.
+
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Acked-by: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq_conservative.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/clocksource.h |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/cpufreq/cpufreq_conservative.c~cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov drivers/cpufreq/cpufreq_conservative.c
---- a/drivers/cpufreq/cpufreq_conservative.c~cpufreq-fix-null-pointer-dereference-regression-in-conservative-gov
-+++ a/drivers/cpufreq/cpufreq_conservative.c
-@@ -63,6 +63,7 @@ struct cpu_dbs_info_s {
- 	unsigned int down_skip;
- 	unsigned int requested_freq;
- 	int cpu;
-+	unsigned int enable:1;
- 	/*
- 	 * percpu mutex that serializes governor limit change with
- 	 * do_dbs_timer invocation. We do not want do_dbs_timer to run
-@@ -141,6 +142,9 @@ dbs_cpufreq_notifier(struct notifier_blo
+diff -puN include/linux/clocksource.h~clocksource-save-mult_orig-in-clocksource_disable include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-save-mult_orig-in-clocksource_disable
++++ a/include/linux/clocksource.h
+@@ -293,7 +293,11 @@ static inline int clocksource_enable(str
+ 	if (cs->enable)
+ 		ret = cs->enable(cs);
  
- 	struct cpufreq_policy *policy;
+-	/* save mult_orig on enable */
++	/* The frequency may have changed while the clocksource
++	 * was disabled. If so the code in ->enable() must update
++	 * the mult value to reflect the new frequency. Make sure
++	 * mult_orig follows this change.
++	 */
+ 	cs->mult_orig = cs->mult;
  
-+	if (!this_dbs_info->enable)
-+		return 0;
-+
- 	policy = this_dbs_info->cur_policy;
- 
- 	/*
-@@ -497,6 +501,7 @@ static inline void dbs_timer_init(struct
- 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
- 	delay -= jiffies % delay;
- 
-+	dbs_info->enable = 1;
- 	INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
- 	queue_delayed_work_on(dbs_info->cpu, kconservative_wq, &dbs_info->work,
- 				delay);
-@@ -504,6 +509,7 @@ static inline void dbs_timer_init(struct
- 
- static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
+ 	return ret;
+@@ -309,6 +313,12 @@ static inline int clocksource_enable(str
+  */
+ static inline void clocksource_disable(struct clocksource *cs)
  {
-+	dbs_info->enable = 0;
- 	cancel_delayed_work_sync(&dbs_info->work);
++	/* Save mult_orig in mult so clocksource_enable() can
++	 * restore the value regardless if ->enable() updates
++	 * the value of mult or not.
++	 */
++	cs->mult = cs->mult_orig;
++
+ 	if (cs->disable)
+ 		cs->disable(cs);
  }
- 
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from damm@igel.co.jp are
 
 linux-next.patch
-kernel-core-add-smp_call_function_any.patch
-kernel-core-add-smp_call_function_any-update.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cpuidle-menu-governor-reduce-latency-on-exit.patch
 
