@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-proc-kcore-should-use-vread.patch added to -mm tree
-Date: Tue, 04 Aug 2009 15:20:07 -0700
-Message-ID: <200908042220.n74MK7OO013104@imap1.linux-foundation.org>
+Subject: + serial167-fix-read-buffer-overflow-fix.patch added to -mm tree
+Date: Tue, 04 Aug 2009 15:20:28 -0700
+Message-ID: <200908042220.n74MKSkS013695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933443AbZHDWU3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:20:29 -0400
+	by vger.kernel.org with ESMTP id S933441AbZHDWUy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:20:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, nickpiggin@yahoo.com.au, scgtrp@gmail.com, xiyou.wangcong@gmail.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, roel.kluin@gmail.com
 
 
 The patch titled
-     kcore: /proc/kcore should use vread
+     serial167-fix-read-buffer-overflow-fix
 has been added to the -mm tree.  Its filename is
-     kcore-proc-kcore-should-use-vread.patch
+     serial167-fix-read-buffer-overflow-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,111 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: /proc/kcore should use vread
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: serial167-fix-read-buffer-overflow-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-/proc/kcore has its own routine to access vmallc area.  It can be replaced
-with vread().  And by this, /proc/kcore can do safe access to vmalloc
-area.
+cleanup, remove (long) casts.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Mike Smith <scgtrp@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   35 ++---------------------------------
- 1 file changed, 2 insertions(+), 33 deletions(-)
+ drivers/char/serial167.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/proc/kcore.c~kcore-proc-kcore-should-use-vread fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-proc-kcore-should-use-vread
-+++ a/fs/proc/kcore.c
-@@ -328,43 +328,12 @@ read_kcore(struct file *file, char __use
- 				return -EFAULT;
- 		} else if (is_vmalloc_addr((void *)start)) {
- 			char * elf_buf;
--			struct vm_struct *m;
--			unsigned long curstart = start;
--			unsigned long cursize = tsz;
+diff -puN drivers/char/serial167.c~serial167-fix-read-buffer-overflow-fix drivers/char/serial167.c
+--- a/drivers/char/serial167.c~serial167-fix-read-buffer-overflow-fix
++++ a/drivers/char/serial167.c
+@@ -221,8 +221,7 @@ static inline int serial_paranoia_check(
+ 		return 1;
+ 	}
  
- 			elf_buf = kzalloc(tsz, GFP_KERNEL);
- 			if (!elf_buf)
- 				return -ENOMEM;
--
--			read_lock(&vmlist_lock);
--			for (m=vmlist; m && cursize; m=m->next) {
--				unsigned long vmstart;
--				unsigned long vmsize;
--				unsigned long msize = m->size - PAGE_SIZE;
--
--				if (((unsigned long)m->addr + msize) < 
--								curstart)
--					continue;
--				if ((unsigned long)m->addr > (curstart + 
--								cursize))
--					break;
--				vmstart = (curstart < (unsigned long)m->addr ? 
--					(unsigned long)m->addr : curstart);
--				if (((unsigned long)m->addr + msize) > 
--							(curstart + cursize))
--					vmsize = curstart + cursize - vmstart;
--				else
--					vmsize = (unsigned long)m->addr + 
--							msize - vmstart;
--				curstart = vmstart + vmsize;
--				cursize -= vmsize;
--				/* don't dump ioremap'd stuff! (TA) */
--				if (m->flags & VM_IOREMAP)
--					continue;
--				memcpy(elf_buf + (vmstart - start),
--					(char *)vmstart, vmsize);
--			}
--			read_unlock(&vmlist_lock);
-+			vread(elf_buf, (char *)start, tsz);
-+			/* we have to zero-fill user buffer even if no read */
- 			if (copy_to_user(buffer, elf_buf, tsz)) {
- 				kfree(elf_buf);
- 				return -EFAULT;
+-	if ((long)info < (long)(&cy_port[0])
+-	    || (long)(&cy_port[NR_PORTS-1]) < (long)info) {
++	if (info < &cy_port[0] || info >= &cy_port[NR_PORTS]) {
+ 		printk("Warning: cyclades_port out of range for (%s) in %s\n",
+ 				name, routine);
+ 		return 1;
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+platform_device_add_data-use-kmemdup.patch
+drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
+slram-read-buffer-overflow-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+serial167-fix-read-buffer-overflow-fix.patch
+scsi-make-scsi-sg-v4-driver-enabled-by-default-and-remove-experimental-dependency-since-udev-depends-on-bsg-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
 mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
-mm-clean-up-page_remove_rmap.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
 vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-mm-introduce-proc-pid-oom_adj_child.patch
-vmalloc-unmap-vmalloc-area-after-hiding-it.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
-kcore-proc-kcore-should-use-vread.patch
-kcore-fix-proc-kcores-statst_size.patch
-cgroups-support-named-cgroups-hierarchies.patch
-cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
-cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
-cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
+ummunotify-userspace-support-for-mmu-notifications.patch
+ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
 memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
 memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
