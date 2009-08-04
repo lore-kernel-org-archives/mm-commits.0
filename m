@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-avoid-calculating-possibly-invalid-address.patch added to -mm tree
-Date: Tue, 04 Aug 2009 14:33:28 -0700
-Message-ID: <200908042133.n74LXT7Q032126@imap1.linux-foundation.org>
+Subject: + mwave-fix-read-buffer-overflow.patch added to -mm tree
+Date: Tue, 04 Aug 2009 14:34:49 -0700
+Message-ID: <200908042134.n74LYne8001904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57176 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932614AbZHDVeY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 17:34:24 -0400
+	by vger.kernel.org with ESMTP id S932601AbZHDVfZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 17:35:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, benh@kernel.crashing.org, bernd@firmix.at
+Cc: roel.kluin@gmail.com, gregkh@suse.de, kay.sievers@vrfy.org
 
 
 The patch titled
-     powerpc: avoid calculating possibly-invalid address
+     mwave: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     powerpc-avoid-calculating-possibly-invalid-address.patch
+     mwave-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: avoid calculating possibly-invalid address
+Subject: mwave: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Check whether index is within bounds prior to calculating a
-possibly-invalid address.
+Check whether index is within bounds before grabbing the element.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Bernd Petrovitsch <bernd@firmix.at>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hvsi.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/mwave/mwavedd.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/hvsi.c~powerpc-avoid-calculating-possibly-invalid-address drivers/char/hvsi.c
---- a/drivers/char/hvsi.c~powerpc-avoid-calculating-possibly-invalid-address
-+++ a/drivers/char/hvsi.c
-@@ -1230,11 +1230,12 @@ static struct tty_driver *hvsi_console_d
- 
- static int __init hvsi_console_setup(struct console *console, char *options)
- {
--	struct hvsi_struct *hp = &hvsi_ports[console->index];
-+	struct hvsi_struct *hp;
- 	int ret;
- 
- 	if (console->index < 0 || console->index >= hvsi_count)
- 		return -1;
-+	hp = &hvsi_ports[console->index];
- 
- 	/* give the FSP a chance to change the baud rate when we re-open */
- 	hvsi_close_protocol(hp);
+diff -puN drivers/char/mwave/mwavedd.c~mwave-fix-read-buffer-overflow drivers/char/mwave/mwavedd.c
+--- a/drivers/char/mwave/mwavedd.c~mwave-fix-read-buffer-overflow
++++ a/drivers/char/mwave/mwavedd.c
+@@ -281,12 +281,6 @@ static long mwave_ioctl(struct file *fil
+ 		case IOCTL_MW_REGISTER_IPC: {
+ 			unsigned int ipcnum = (unsigned int) ioarg;
+ 	
+-			PRINTK_3(TRACE_MWAVE,
+-				"mwavedd::mwave_ioctl IOCTL_MW_REGISTER_IPC"
+-				" ipcnum %x entry usIntCount %x\n",
+-				ipcnum,
+-				pDrvData->IPCs[ipcnum].usIntCount);
+-	
+ 			if (ipcnum >= ARRAY_SIZE(pDrvData->IPCs)) {
+ 				PRINTK_ERROR(KERN_ERR_MWAVE
+ 						"mwavedd::mwave_ioctl:"
+@@ -295,6 +289,12 @@ static long mwave_ioctl(struct file *fil
+ 						ipcnum);
+ 				return -EINVAL;
+ 			}
++			PRINTK_3(TRACE_MWAVE,
++				"mwavedd::mwave_ioctl IOCTL_MW_REGISTER_IPC"
++				" ipcnum %x entry usIntCount %x\n",
++				ipcnum,
++				pDrvData->IPCs[ipcnum].usIntCount);
++
+ 			lock_kernel();
+ 			pDrvData->IPCs[ipcnum].bIsHere = FALSE;
+ 			pDrvData->IPCs[ipcnum].bIsEnabled = TRUE;
+@@ -310,11 +310,6 @@ static long mwave_ioctl(struct file *fil
+ 		case IOCTL_MW_GET_IPC: {
+ 			unsigned int ipcnum = (unsigned int) ioarg;
+ 	
+-			PRINTK_3(TRACE_MWAVE,
+-				"mwavedd::mwave_ioctl IOCTL_MW_GET_IPC"
+-				" ipcnum %x, usIntCount %x\n",
+-				ipcnum,
+-				pDrvData->IPCs[ipcnum].usIntCount);
+ 			if (ipcnum >= ARRAY_SIZE(pDrvData->IPCs)) {
+ 				PRINTK_ERROR(KERN_ERR_MWAVE
+ 						"mwavedd::mwave_ioctl:"
+@@ -322,6 +317,11 @@ static long mwave_ioctl(struct file *fil
+ 						" Invalid ipcnum %x\n", ipcnum);
+ 				return -EINVAL;
+ 			}
++			PRINTK_3(TRACE_MWAVE,
++				"mwavedd::mwave_ioctl IOCTL_MW_GET_IPC"
++				" ipcnum %x, usIntCount %x\n",
++				ipcnum,
++				pDrvData->IPCs[ipcnum].usIntCount);
+ 	
+ 			lock_kernel();
+ 			if (pDrvData->IPCs[ipcnum].bIsEnabled == TRUE) {
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -121,5 +156,6 @@ smbfs-read-buffer-overflow.patch
 platinumfb-misplaced-parenthesis.patch
 sisfb-read-buffer-overflow.patch
 drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
 adfs-remove-redundant-test-on-unsigned.patch
 
