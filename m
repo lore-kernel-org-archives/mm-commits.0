@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-rename-kernel_pages_allocated.patch added to -mm tree
-Date: Tue, 04 Aug 2009 15:00:59 -0700
-Message-ID: <200908042201.n74M0xXT013207@imap1.linux-foundation.org>
+Subject: + ksm-sysfs-and-defaults.patch added to -mm tree
+Date: Tue, 04 Aug 2009 15:01:21 -0700
+Message-ID: <200908042201.n74M1MKG013932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40644 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933193AbZHDWCA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:02:00 -0400
+	by vger.kernel.org with ESMTP id S933194AbZHDWC0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:02:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
 
 
 The patch titled
-     ksm: rename kernel_pages_allocated
+     ksm: sysfs and defaults
 has been added to the -mm tree.  Its filename is
-     ksm-rename-kernel_pages_allocated.patch
+     ksm-sysfs-and-defaults.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,180 +33,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: rename kernel_pages_allocated
+Subject: ksm: sysfs and defaults
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-We're not implementing swapping of KSM pages in its first release;
-but when that follows, "kernel_pages_allocated" will be a very poor
-name for the sysfs file showing number of nodes in the stable tree:
-rename that to "pages_shared" throughout.
+At present KSM is just a waste of space if you don't have CONFIG_SYSFS=y
+to provide the /sys/kernel/mm/ksm files to tune and activate it.
 
-But we already have a "pages_shared", counting those page slots
-sharing the shared pages: first rename that to... "pages_sharing".
+Make KSM depend on SYSFS?  Could do, but it might be better to provide
+some defaults so that KSM works out-of-the-box, ready for testers to
+madvise MADV_MERGEABLE, even without SYSFS.
 
-What will become of "max_kernel_pages" when the pages shared can
-be swapped?  I guess it will just be removed, so keep that name.
+Though anyone serious is likely to want to retune the numbers to their
+taste once they have experience; and whether these settings ever reach
+2.6.32 can be discussed along the way.
+
+Save 1kB from tiny kernels by #ifdef'ing the SYSFS side of it.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Acked-by: Izik Eidus <ieidus@redhat.com>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   57 ++++++++++++++++++++++++++---------------------------
- 1 file changed, 28 insertions(+), 29 deletions(-)
+ mm/ksm.c |   26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff -puN mm/ksm.c~ksm-rename-kernel_pages_allocated mm/ksm.c
---- a/mm/ksm.c~ksm-rename-kernel_pages_allocated
+diff -puN mm/ksm.c~ksm-sysfs-and-defaults mm/ksm.c
+--- a/mm/ksm.c~ksm-sysfs-and-defaults
 +++ a/mm/ksm.c
-@@ -150,10 +150,10 @@ static struct kmem_cache *rmap_item_cach
- static struct kmem_cache *mm_slot_cache;
- 
- /* The number of nodes in the stable tree */
--static unsigned long ksm_kernel_pages_allocated;
-+static unsigned long ksm_pages_shared;
- 
- /* The number of page slots sharing those nodes */
--static unsigned long ksm_pages_shared;
-+static unsigned long ksm_pages_sharing;
+@@ -163,18 +163,18 @@ static unsigned long ksm_pages_unshared;
+ static unsigned long ksm_rmap_items;
  
  /* Limit on the number of unswappable pages used */
- static unsigned long ksm_max_kernel_pages;
-@@ -384,7 +384,7 @@ static void remove_rmap_item_from_tree(s
- 				next_item->address |= NODE_FLAG;
- 			} else {
- 				rb_erase(&rmap_item->node, &root_stable_tree);
--				ksm_kernel_pages_allocated--;
-+				ksm_pages_shared--;
- 			}
- 		} else {
- 			struct rmap_item *prev_item = rmap_item->prev;
-@@ -398,7 +398,7 @@ static void remove_rmap_item_from_tree(s
- 		}
+-static unsigned long ksm_max_kernel_pages;
++static unsigned long ksm_max_kernel_pages = 2000;
  
- 		rmap_item->next = NULL;
--		ksm_pages_shared--;
-+		ksm_pages_sharing--;
+ /* Number of pages ksmd should scan in one batch */
+-static unsigned int ksm_thread_pages_to_scan;
++static unsigned int ksm_thread_pages_to_scan = 200;
  
- 	} else if (rmap_item->address & NODE_FLAG) {
- 		unsigned char age;
-@@ -748,7 +748,7 @@ static int try_to_merge_two_pages(struct
- 	 * is the number of kernel pages that we hold.
- 	 */
- 	if (ksm_max_kernel_pages &&
--	    ksm_max_kernel_pages <= ksm_kernel_pages_allocated)
-+	    ksm_max_kernel_pages <= ksm_pages_shared)
- 		return err;
+ /* Milliseconds ksmd should sleep between batches */
+-static unsigned int ksm_thread_sleep_millisecs;
++static unsigned int ksm_thread_sleep_millisecs = 20;
  
- 	kpage = alloc_page(GFP_HIGHUSER);
-@@ -787,7 +787,7 @@ static int try_to_merge_two_pages(struct
- 		if (err)
- 			break_cow(mm1, addr1);
- 		else
--			ksm_pages_shared += 2;
-+			ksm_pages_sharing += 2;
- 	}
+ #define KSM_RUN_STOP	0
+ #define KSM_RUN_MERGE	1
+ #define KSM_RUN_UNMERGE	2
+-static unsigned int ksm_run;
++static unsigned int ksm_run = KSM_RUN_MERGE;
  
- 	put_page(kpage);
-@@ -817,7 +817,7 @@ static int try_to_merge_with_ksm_page(st
- 	up_read(&mm1->mmap_sem);
- 
- 	if (!err)
--		ksm_pages_shared++;
-+		ksm_pages_sharing++;
- 
+ static DECLARE_WAIT_QUEUE_HEAD(ksm_thread_wait);
+ static DEFINE_MUTEX(ksm_thread_mutex);
+@@ -506,6 +506,10 @@ static int unmerge_ksm_pages(struct vm_a
  	return err;
  }
-@@ -935,7 +935,7 @@ static struct rmap_item *stable_tree_ins
- 		}
+ 
++#ifdef CONFIG_SYSFS
++/*
++ * Only called through the sysfs control interface:
++ */
+ static int unmerge_and_remove_all_rmap_items(void)
+ {
+ 	struct mm_slot *mm_slot;
+@@ -563,6 +567,7 @@ error:
+ 	spin_unlock(&ksm_mmlist_lock);
+ 	return err;
+ }
++#endif /* CONFIG_SYSFS */
+ 
+ static u32 calc_checksum(struct page *page)
+ {
+@@ -1464,6 +1469,11 @@ void __ksm_exit(struct mm_struct *mm,
+ 	}
+ }
+ 
++#ifdef CONFIG_SYSFS
++/*
++ * This all compiles without CONFIG_SYSFS, but is a waste of space.
++ */
++
+ #define KSM_ATTR_RO(_name) \
+ 	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
+ #define KSM_ATTR(_name) \
+@@ -1646,6 +1656,7 @@ static struct attribute_group ksm_attr_g
+ 	.attrs = ksm_attrs,
+ 	.name = "ksm",
+ };
++#endif /* CONFIG_SYSFS */
+ 
+ static int __init ksm_init(void)
+ {
+@@ -1667,16 +1678,17 @@ static int __init ksm_init(void)
+ 		goto out_free2;
  	}
  
--	ksm_kernel_pages_allocated++;
-+	ksm_pages_shared++;
++#ifdef CONFIG_SYSFS
+ 	err = sysfs_create_group(mm_kobj, &ksm_attr_group);
+ 	if (err) {
+ 		printk(KERN_ERR "ksm: register sysfs failed\n");
+-		goto out_free3;
++		kthread_stop(ksm_thread);
++		goto out_free2;
+ 	}
++#endif /* CONFIG_SYSFS */
  
- 	rmap_item->address |= NODE_FLAG | STABLE_FLAG;
- 	rmap_item->next = NULL;
-@@ -1051,7 +1051,7 @@ static void cmp_and_merge_page(struct pa
- 	tree_rmap_item = stable_tree_search(page, page2, rmap_item);
- 	if (tree_rmap_item) {
- 		if (page == page2[0]) {			/* forked */
--			ksm_pages_shared++;
-+			ksm_pages_sharing++;
- 			err = 0;
- 		} else
- 			err = try_to_merge_with_ksm_page(rmap_item->mm,
-@@ -1114,7 +1114,7 @@ static void cmp_and_merge_page(struct pa
- 				break_cow(tree_rmap_item->mm,
- 						tree_rmap_item->address);
- 				break_cow(rmap_item->mm, rmap_item->address);
--				ksm_pages_shared -= 2;
-+				ksm_pages_sharing -= 2;
- 			}
- 		}
+ 	return 0;
  
-@@ -1430,7 +1430,7 @@ static ssize_t run_store(struct kobject 
- 	/*
- 	 * KSM_RUN_MERGE sets ksmd running, and 0 stops it running.
- 	 * KSM_RUN_UNMERGE stops it running and unmerges all rmap_items,
--	 * breaking COW to free the kernel_pages_allocated (but leaves
-+	 * breaking COW to free the unswappable pages_shared (but leaves
- 	 * mm_slots on the list for when ksmd may be set running again).
- 	 */
- 
-@@ -1449,22 +1449,6 @@ static ssize_t run_store(struct kobject 
- }
- KSM_ATTR(run);
- 
--static ssize_t pages_shared_show(struct kobject *kobj,
--				 struct kobj_attribute *attr, char *buf)
--{
--	return sprintf(buf, "%lu\n",
--			ksm_pages_shared - ksm_kernel_pages_allocated);
--}
--KSM_ATTR_RO(pages_shared);
--
--static ssize_t kernel_pages_allocated_show(struct kobject *kobj,
--					   struct kobj_attribute *attr,
--					   char *buf)
--{
--	return sprintf(buf, "%lu\n", ksm_kernel_pages_allocated);
--}
--KSM_ATTR_RO(kernel_pages_allocated);
--
- static ssize_t max_kernel_pages_store(struct kobject *kobj,
- 				      struct kobj_attribute *attr,
- 				      const char *buf, size_t count)
-@@ -1488,13 +1472,28 @@ static ssize_t max_kernel_pages_show(str
- }
- KSM_ATTR(max_kernel_pages);
- 
-+static ssize_t pages_shared_show(struct kobject *kobj,
-+				 struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%lu\n", ksm_pages_shared);
-+}
-+KSM_ATTR_RO(pages_shared);
-+
-+static ssize_t pages_sharing_show(struct kobject *kobj,
-+				  struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%lu\n",
-+			ksm_pages_sharing - ksm_pages_shared);
-+}
-+KSM_ATTR_RO(pages_sharing);
-+
- static struct attribute *ksm_attrs[] = {
- 	&sleep_millisecs_attr.attr,
- 	&pages_to_scan_attr.attr,
- 	&run_attr.attr,
--	&pages_shared_attr.attr,
--	&kernel_pages_allocated_attr.attr,
- 	&max_kernel_pages_attr.attr,
-+	&pages_shared_attr.attr,
-+	&pages_sharing_attr.attr,
- 	NULL,
- };
- 
+-out_free3:
+-	kthread_stop(ksm_thread);
+ out_free2:
+ 	mm_slots_hash_free();
+ out_free1:
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
