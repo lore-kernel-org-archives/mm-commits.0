@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hid-core-ignore-philips-ieee802154-rf-dongle.patch added to -mm tree
-Date: Tue, 04 Aug 2009 00:12:10 -0700
-Message-ID: <200908040712.n747CA14019354@imap1.linux-foundation.org>
+Subject: + documentation-update-stale-definition-of-file-nr-in-fstxt.patch added to -mm tree
+Date: Tue, 04 Aug 2009 00:43:57 -0700
+Message-ID: <200908040743.n747hv37007278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932493AbZHDHMa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 03:12:30 -0400
+	by vger.kernel.org with ESMTP id S932493AbZHDHoX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 03:44:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: glaweh@debian.org, jikos@jikos.cz
+Cc: dfeng@redhat.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     hid-core: ignore Philips IEEE802.15.4 RF Dongle
+     Documentation: update stale definition of file-nr in fs.txt
 has been added to the -mm tree.  Its filename is
-     hid-core-ignore-philips-ieee802154-rf-dongle.patch
+     documentation-update-stale-definition-of-file-nr-in-fstxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hid-core: ignore Philips IEEE802.15.4 RF Dongle
-From: Henning Glawe <glaweh@debian.org>
+Subject: Documentation: update stale definition of file-nr in fs.txt
+From: Xiaotian Feng <dfeng@redhat.com>
 
-This usb device claims to be of HID class, but is in fact a 802.15.4
-lowpan transceiver, therefore the generic HID driver cannot operate this
-device.  A separate driver for this device will be written for this using
-the new 802.15.4 stack.
+commit 760df9 merged /proc/sys/fs documentation in Documentation/sysctl/
+fs.txt and Documentation/filesystem/proc.txt, but stale file-nr definition
+is remained. This patch add back the right fs-nr definition for 2.6 kernel.
 
-Signed-off-by: Henning Glawe <glaweh@debian.org>
-Cc: Jiri Kosina <jikos@jikos.cz>
+Signed-off-by: Xiaotian Feng<dfeng@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-core.c |    1 +
- drivers/hid/hid-ids.h  |    3 +++
- 2 files changed, 4 insertions(+)
+ Documentation/sysctl/fs.txt |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN drivers/hid/hid-core.c~hid-core-ignore-philips-ieee802154-rf-dongle drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~hid-core-ignore-philips-ieee802154-rf-dongle
-+++ a/drivers/hid/hid-core.c
-@@ -1644,6 +1644,7 @@ static const struct hid_device_id hid_ig
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_PANJIT, 0x0002) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_PANJIT, 0x0003) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_PANJIT, 0x0004) },
-+	{ HID_USB_DEVICE(USB_VENDOR_ID_PHILIPS, USB_DEVICE_ID_PHILIPS_IEEE802154_DONGLE) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_POWERCOM, USB_DEVICE_ID_POWERCOM_UPS) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_SOUNDGRAPH, USB_DEVICE_ID_SOUNDGRAPH_IMON_LCD) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_SOUNDGRAPH, USB_DEVICE_ID_SOUNDGRAPH_IMON_LCD2) },
-diff -puN drivers/hid/hid-ids.h~hid-core-ignore-philips-ieee802154-rf-dongle drivers/hid/hid-ids.h
---- a/drivers/hid/hid-ids.h~hid-core-ignore-philips-ieee802154-rf-dongle
-+++ a/drivers/hid/hid-ids.h
-@@ -360,6 +360,9 @@
- #define USB_VENDOR_ID_PETALYNX		0x18b1
- #define USB_DEVICE_ID_PETALYNX_MAXTER_REMOTE	0x0037
+diff -puN Documentation/sysctl/fs.txt~documentation-update-stale-definition-of-file-nr-in-fstxt Documentation/sysctl/fs.txt
+--- a/Documentation/sysctl/fs.txt~documentation-update-stale-definition-of-file-nr-in-fstxt
++++ a/Documentation/sysctl/fs.txt
+@@ -96,13 +96,16 @@ handles that the Linux kernel will alloc
+ of error messages about running out of file handles, you might
+ want to increase this limit.
  
-+#define USB_VENDOR_ID_PHILIPS       0x0471
-+#define USB_DEVICE_ID_PHILIPS_IEEE802154_DONGLE 0x0617
-+
- #define USB_VENDOR_ID_PLAYDOTCOM	0x0b43
- #define USB_DEVICE_ID_PLAYDOTCOM_EMS_USBII	0x0003
- 
-_
-
-Patches currently in -mm which might be from glaweh@debian.org are
-
-hid-core-ignore-philips-ieee802154-rf-dongle.patch
-
+-The three values in file-nr denote the number of allocated
+-file handles, the number of unused file handles and the maximum
+-number of file handles. When the allocated file handles come
+-close to the maximum, but the number of unused file handles is
+-significantly greater than 0, you've encountered a peak in your 
+-usage of file handles and you don't need to increase the maximum.
