@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3.patch added to -mm tree
-Date: Tue, 04 Aug 2009 00:11:10 -0700
-Message-ID: <200908040711.n747BAP5017646@imap1.linux-foundation.org>
+Subject: + hid-core-ignore-philips-ieee802154-rf-dongle.patch added to -mm tree
+Date: Tue, 04 Aug 2009 00:12:10 -0700
+Message-ID: <200908040712.n747CA14019354@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33058 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932493AbZHDHL2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 03:11:28 -0400
+	by vger.kernel.org with ESMTP id S932493AbZHDHMa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 03:12:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kilroyd@googlemail.com, a.p.zijlstra@chello.nl, mingo@elte.hu
+Cc: glaweh@debian.org, jikos@jikos.cz
 
 
 The patch titled
-     spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3
+     hid-core: ignore Philips IEEE802.15.4 RF Dongle
 has been added to the -mm tree.  Its filename is
-     spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3.patch
+     hid-core-ignore-philips-ieee802154-rf-dongle.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3
-From: David Kilroy <kilroyd@googlemail.com>
+Subject: hid-core: ignore Philips IEEE802.15.4 RF Dongle
+From: Henning Glawe <glaweh@debian.org>
 
- * Correct bug in _spin_trylock_bh
+This usb device claims to be of HID class, but is in fact a 802.15.4
+lowpan transceiver, therefore the generic HID driver cannot operate this
+device.  A separate driver for this device will be written for this using
+the new 802.15.4 stack.
 
-Signed-off-by: David Kilroy <kilroyd@googlemail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Henning Glawe <glaweh@debian.org>
+Cc: Jiri Kosina <jikos@jikos.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spinlock_api_up.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hid/hid-core.c |    1 +
+ drivers/hid/hid-ids.h  |    3 +++
+ 2 files changed, 4 insertions(+)
 
-diff -puN include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3 include/linux/spinlock_api_up.h
---- a/include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3
-+++ a/include/linux/spinlock_api_up.h
-@@ -97,7 +97,7 @@ static inline int _write_trylock(rwlock_
- { __LOCK(lock); return 1; }
+diff -puN drivers/hid/hid-core.c~hid-core-ignore-philips-ieee802154-rf-dongle drivers/hid/hid-core.c
+--- a/drivers/hid/hid-core.c~hid-core-ignore-philips-ieee802154-rf-dongle
++++ a/drivers/hid/hid-core.c
+@@ -1644,6 +1644,7 @@ static const struct hid_device_id hid_ig
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_PANJIT, 0x0002) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_PANJIT, 0x0003) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_PANJIT, 0x0004) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_PHILIPS, USB_DEVICE_ID_PHILIPS_IEEE802154_DONGLE) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_POWERCOM, USB_DEVICE_ID_POWERCOM_UPS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_SOUNDGRAPH, USB_DEVICE_ID_SOUNDGRAPH_IMON_LCD) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_SOUNDGRAPH, USB_DEVICE_ID_SOUNDGRAPH_IMON_LCD2) },
+diff -puN drivers/hid/hid-ids.h~hid-core-ignore-philips-ieee802154-rf-dongle drivers/hid/hid-ids.h
+--- a/drivers/hid/hid-ids.h~hid-core-ignore-philips-ieee802154-rf-dongle
++++ a/drivers/hid/hid-ids.h
+@@ -360,6 +360,9 @@
+ #define USB_VENDOR_ID_PETALYNX		0x18b1
+ #define USB_DEVICE_ID_PETALYNX_MAXTER_REMOTE	0x0037
  
- static inline int _spin_trylock_bh(spinlock_t *lock)
--{ __LOCK(lock); return 1; }
-+{ __LOCK_BH(lock); return 1; }
++#define USB_VENDOR_ID_PHILIPS       0x0471
++#define USB_DEVICE_ID_PHILIPS_IEEE802154_DONGLE 0x0617
++
+ #define USB_VENDOR_ID_PLAYDOTCOM	0x0b43
+ #define USB_DEVICE_ID_PLAYDOTCOM_EMS_USBII	0x0003
  
- static inline void _spin_unlock(spinlock_t *lock)
- { __UNLOCK(lock); }
 _
 
-Patches currently in -mm which might be from kilroyd@googlemail.com are
+Patches currently in -mm which might be from glaweh@debian.org are
 
-linux-next.patch
-spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch
-spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3.patch
+hid-core-ignore-philips-ieee802154-rf-dongle.patch
 
