@@ -1,247 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch removed from -mm tree
-Date: Tue, 04 Aug 2009 12:54:54 -0700
-Message-ID: <200908041954.n74Jss43029301@imap1.linux-foundation.org>
+Subject: + ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch added to -mm tree
+Date: Tue, 04 Aug 2009 13:27:08 -0700
+Message-ID: <200908042027.n74KR8dx018235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55565 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753338AbZHDTy7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 15:54:59 -0400
+	by vger.kernel.org with ESMTP id S932387AbZHDU1u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 16:27:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jgunthorpe@obsidianresearch.com, jsquyres@cisco.com, rolandd@cisco.com, rostedt@goodmis.org, sam@ravnborg.org
 
 
 The patch titled
-     revert "pty: Rework the pty layer to use the normal buffering logic"
-has been removed from the -mm tree.  Its filename was
-     revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
+     ummunotify-userspace-support-for-mmu-notifications-v3 fix
+has been added to the -mm tree.  Its filename is
+     ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "pty: Rework the pty layer to use the normal buffering logic"
+Subject: ummunotify-userspace-support-for-mmu-notifications-v3 fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert 
+Documentation/ummunotify/umn-test.c:23:30: error: linux/ummunotify.h: No such file or directory
+Documentation/ummunotify/umn-test.c:33: error: expected '=', ',', ';', 'asm' or '__attribute__' before '*' token
+...
 
-: commit d945cb9cce20ac7143c2de8d88b187f62db99bdc
-: Author:     Alan Cox <alan@linux.intel.com>
-: AuthorDate: Tue Jul 7 16:39:41 2009 +0100
-: Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-: CommitDate: Wed Jul 8 09:47:59 2009 -0700
-: 
-:     pty: Rework the pty layer to use the normal buffering logic
-
-Due to http://bugzilla.kernel.org/show_bug.cgi?id=13815
-
-Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Jeff Squyres <jsquyres@cisco.com> 
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pty.c |  152 ++++++++++++++++++++++++++-----------------
- 1 file changed, 94 insertions(+), 58 deletions(-)
+ Documentation/ummunotify/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/pty.c~revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic drivers/char/pty.c
---- a/drivers/char/pty.c~revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic
-+++ a/drivers/char/pty.c
-@@ -76,88 +76,114 @@ static void pty_close(struct tty_struct 
-  */
- static void pty_unthrottle(struct tty_struct *tty)
- {
--	tty_wakeup(tty->link);
--	set_bit(TTY_THROTTLED, &tty->flags);
--}
-+	struct tty_struct *o_tty = tty->link;
+diff -puN Documentation/ummunotify/Makefile~ummunotify-userspace-support-for-mmu-notifications-v3-fix Documentation/ummunotify/Makefile
+--- a/Documentation/ummunotify/Makefile~ummunotify-userspace-support-for-mmu-notifications-v3-fix
++++ a/Documentation/ummunotify/Makefile
+@@ -4,4 +4,4 @@ hostprogs-y := umn-test
+ # Tell kbuild to always build the programs
+ always := $(hostprogs-y)
  
--/**
-- *	pty_space	-	report space left for writing
-- *	@to: tty we are writing into
-- *
-- *	The tty buffers allow 64K but we sneak a peak and clip at 8K this
-- *	allows a lot of overspill room for echo and other fun messes to
-- *	be handled properly
-- */
-+	if (!o_tty)
-+		return;
- 
--static int pty_space(struct tty_struct *to)
--{
--	int n = 8192 - to->buf.memory_used;
--	if (n < 0)
--		return 0;
--	return n;
-+	tty_wakeup(o_tty);
-+	set_bit(TTY_THROTTLED, &tty->flags);
- }
- 
--/**
-- *	pty_write		-	write to a pty
-- *	@tty: the tty we write from
-- *	@buf: kernel buffer of data
-- *	@count: bytes to write
-+/*
-+ * WSH 05/24/97: modified to
-+ *   (1) use space in tty->flip instead of a shared temp buffer
-+ *	 The flip buffers aren't being used for a pty, so there's lots
-+ *	 of space available.  The buffer is protected by a per-pty
-+ *	 semaphore that should almost never come under contention.
-+ *   (2) avoid redundant copying for cases where count >> receive_room
-+ * N.B. Calls from user space may now return an error code instead of
-+ * a count.
-+ *
-+ * FIXME: Our pty_write method is called with our ldisc lock held but
-+ * not our partners. We can't just wait on the other one blindly without
-+ * risking deadlocks. At some point when everything has settled down we need
-+ * to look into making pty_write at least able to sleep over an ldisc change.
-  *
-- *	Our "hardware" write method. Data is coming from the ldisc which
-- *	may be in a non sleeping state. We simply throw this at the other
-- *	end of the link as if we were an IRQ handler receiving stuff for
-- *	the other side of the pty/tty pair.
-+ * The return on no ldisc is a bit counter intuitive but the logic works
-+ * like this. During an ldisc change the other end will flush its buffers. We
-+ * thus return the full length which is identical to the case where we had
-+ * proper locking and happened to queue the bytes just before the flush during
-+ * the ldisc change.
-  */
--
- static int pty_write(struct tty_struct *tty, const unsigned char *buf,
- 								int count)
- {
- 	struct tty_struct *to = tty->link;
--	int c;
-+	struct tty_ldisc *ld;
-+	int c = count;
- 
--	if (tty->stopped)
-+	if (!to || tty->stopped)
- 		return 0;
-+	ld = tty_ldisc_ref(to);
- 
--	/* This isn't locked but our 8K is quite sloppy so no
--	   big deal */
--
--	c = pty_space(to);
--	if (c > count)
--		c = count;
--	if (c > 0) {
--		/* Stuff the data into the input queue of the other end */
--		c = tty_insert_flip_string(to, buf, c);
--		/* And shovel */
--		tty_flip_buffer_push(to);
--		tty_wakeup(tty);
-+	if (ld) {
-+		c = to->receive_room;
-+		if (c > count)
-+			c = count;
-+		ld->ops->receive_buf(to, buf, NULL, c);
-+		tty_ldisc_deref(ld);
- 	}
- 	return c;
- }
- 
--/**
-- *	pty_write_room	-	write space
-- *	@tty: tty we are writing from
-- *
-- *	Report how many bytes the ldisc can send into the queue for
-- *	the other device.
-- */
--
- static int pty_write_room(struct tty_struct *tty)
- {
--	return pty_space(tty->link);
-+	struct tty_struct *to = tty->link;
-+
-+	if (!to || tty->stopped)
-+		return 0;
-+
-+	return to->receive_room;
- }
- 
--/**
-- *	pty_chars_in_buffer	-	characters currently in our tx queue
-- *	@tty: our tty
-+/*
-+ *	WSH 05/24/97:  Modified for asymmetric MASTER/SLAVE behavior
-+ *	The chars_in_buffer() value is used by the ldisc select() function
-+ *	to hold off writing when chars_in_buffer > WAKEUP_CHARS (== 256).
-+ *	The pty driver chars_in_buffer() Master/Slave must behave differently:
-  *
-- *	Report how much we have in the transmit queue. As everything is
-- *	instantly at the other end this is easy to implement.
-+ *      The Master side needs to allow typed-ahead commands to accumulate
-+ *      while being canonicalized, so we report "our buffer" as empty until
-+ *	some threshold is reached, and then report the count. (Any count >
-+ *	WAKEUP_CHARS is regarded by select() as "full".)  To avoid deadlock
-+ *	the count returned must be 0 if no canonical data is available to be
-+ *	read. (The N_TTY ldisc.chars_in_buffer now knows this.)
-+ *
-+ *	The Slave side passes all characters in raw mode to the Master side's
-+ *	buffer where they can be read immediately, so in this case we can
-+ *	return the true count in the buffer.
-  */
--
- static int pty_chars_in_buffer(struct tty_struct *tty)
- {
--	return 0;
-+	struct tty_struct *to = tty->link;
-+	struct tty_ldisc *ld;
-+	int count = 0;
-+
-+	/* We should get the line discipline lock for "tty->link" */
-+	if (!to)
-+		return 0;
-+	/* We cannot take a sleeping reference here without deadlocking with
-+	   an ldisc change - but it doesn't really matter */
-+	ld = tty_ldisc_ref(to);
-+	if (ld == NULL)
-+		return 0;
-+
-+	/* The ldisc must report 0 if no characters available to be read */
-+	if (ld->ops->chars_in_buffer)
-+		count = ld->ops->chars_in_buffer(to);
-+
-+	tty_ldisc_deref(ld);
-+
-+	if (tty->driver->subtype == PTY_TYPE_SLAVE)
-+		return count;
-+
-+	/* Master side driver ... if the other side's read buffer is less than
-+	 * half full, return 0 to allow writers to proceed; otherwise return
-+	 * the count.  This leaves a comfortable margin to avoid overflow,
-+	 * and still allows half a buffer's worth of typed-ahead commands.
-+	 */
-+	return (count < N_TTY_BUF_SIZE/2) ? 0 : count;
- }
- 
- /* Set the lock flag on a pty */
-@@ -177,10 +203,20 @@ static void pty_flush_buffer(struct tty_
- {
- 	struct tty_struct *to = tty->link;
- 	unsigned long flags;
-+	struct tty_ldisc *ld;
- 
- 	if (!to)
- 		return;
--	/* tty_buffer_flush(to); FIXME */
-+	ld = tty_ldisc_ref(to);
-+
-+	/* The other end is changing discipline */
-+	if (!ld)
-+		return;
-+
-+	if (ld->ops->flush_buffer)
-+		to->ldisc->ops->flush_buffer(to);
-+	tty_ldisc_deref(ld);
-+
- 	if (to->packet) {
- 		spin_lock_irqsave(&tty->ctrl_lock, flags);
- 		tty->ctrl_status |= TIOCPKT_FLUSHWRITE;
+-HOSTCFLAGS_umn-test.o += -I$(objtree)/usr/include
++HOSTCFLAGS_umn-test.o += -I$(objtree)/include
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -249,7 +67,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
-revert-pty-rework-the-pty-layer-to-use-the-normal-buffering-logic.patch
 arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
@@ -280,6 +97,7 @@ readahead-add-blk_run_backing_dev-fix-fix-2.patch
 memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
 vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
 ummunotify-userspace-support-for-mmu-notifications.patch
+ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50.patch
 arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
