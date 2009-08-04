@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-unmap-vmalloc-area-after-hiding-it.patch added to -mm tree
-Date: Tue, 04 Aug 2009 14:30:56 -0700
-Message-ID: <200908042130.n74LUu3V027769@imap1.linux-foundation.org>
+Subject: + kcore-fix-vread-vwrite-to-be-aware-of-holes.patch added to -mm tree
+Date: Tue, 04 Aug 2009 14:30:58 -0700
+Message-ID: <200908042130.n74LUxr8027929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60400 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932614AbZHDVb1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 17:31:27 -0400
+	by vger.kernel.org with ESMTP id S932601AbZHDVbc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 17:31:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, nickpiggin@yahoo.com.au, scgtrp@gmail.com, x
 
 
 The patch titled
-     vmalloc: unmap vmalloc area after hiding it
+     kcore: fix vread/vwrite to be aware of holes
 has been added to the -mm tree.  Its filename is
-     vmalloc-unmap-vmalloc-area-after-hiding-it.patch
+     kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,281 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc: unmap vmalloc area after hiding it
+Subject: kcore: fix vread/vwrite to be aware of holes
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-vmap area should be purged after vm_struct is removed from the list
-because vread/vwrite etc...believes the range is valid while it's on
-vm_struct list.
+vread/vwrite access vmalloc area without checking there is a page or not. 
+In most case, this works well.
+
+In old ages, the caller of get_vm_ara() is only IOREMAP and there is no
+memory hole within vm_struct's [addr...addr + size - PAGE_SIZE] (
+-PAGE_SIZE is for a guard page.)
+
+After per-cpu-alloc patch, it uses get_vm_area() for reserve continuous
+virtual address but remap _later_.  There tend to be a hole in valid
+vmalloc area in vm_struct lists.  Then, skip the hole (not mapped page) is
+necessary.  This patch updates vread/vwrite() for avoiding memory hole.
+
+Routines which access vmalloc area without knowing for which addr is used
+are
+  - /proc/kcore
+  - /dev/kmem
+
+kcore checks IOREMAP, /dev/kmem doesn't.  After this patch, IOREMAP is
+checked and /dev/kmem will avoid to read/write it.  Fixes to /proc/kcore
+will be in the next patch in series.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Cc: Mike Smith <scgtrp@gmail.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |  182 ++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 159 insertions(+), 23 deletions(-)
 
-diff -puN mm/vmalloc.c~vmalloc-unmap-vmalloc-area-after-hiding-it mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-unmap-vmalloc-area-after-hiding-it
+diff -puN mm/vmalloc.c~kcore-fix-vread-vwrite-to-be-aware-of-holes mm/vmalloc.c
+--- a/mm/vmalloc.c~kcore-fix-vread-vwrite-to-be-aware-of-holes
 +++ a/mm/vmalloc.c
-@@ -1254,17 +1254,21 @@ struct vm_struct *remove_vm_area(const v
- 	if (va && va->flags & VM_VM_AREA) {
- 		struct vm_struct *vm = va->private;
- 		struct vm_struct *tmp, **p;
+@@ -25,7 +25,7 @@
+ #include <linux/rcupdate.h>
+ #include <linux/pfn.h>
+ #include <linux/kmemleak.h>
 -
--		vmap_debug_free_range(va->va_start, va->va_end);
--		free_unmap_vmap_area(va);
--		vm->size -= PAGE_SIZE;
--
-+		/*
-+		 * remove from list and disallow access to this vm_struct
-+		 * before unmap. (address range confliction is maintained by
-+		 * vmap.)
-+		 */
- 		write_lock(&vmlist_lock);
- 		for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
- 			;
- 		*p = tmp->next;
- 		write_unlock(&vmlist_lock);
++#include <linux/highmem.h>
+ #include <asm/atomic.h>
+ #include <asm/uaccess.h>
+ #include <asm/tlbflush.h>
+@@ -1627,10 +1627,109 @@ void *vmalloc_32_user(unsigned long size
+ }
+ EXPORT_SYMBOL(vmalloc_32_user);
  
-+		vmap_debug_free_range(va->va_start, va->va_end);
-+		free_unmap_vmap_area(va);
-+		vm->size -= PAGE_SIZE;
++/*
++ * small helper routine , copy contents to buf from addr.
++ * If the page is not present, fill zero.
++ */
 +
- 		return vm;
++static int aligned_vread(char *buf, char *addr, unsigned long count)
++{
++	struct page *p;
++	int copied = 0;
++
++	while (count) {
++		unsigned long offset, length;
++
++		offset = (unsigned long)addr & ~PAGE_MASK;
++		length = PAGE_SIZE - offset;
++		if (length > count)
++			length = count;
++		p = vmalloc_to_page(addr);
++		/*
++		 * To do safe access to this _mapped_ area, we need
++		 * lock. But adding lock here means that we need to add
++		 * overhead of vmalloc()/vfree() calles for this _debug_
++		 * interface, rarely used. Instead of that, we'll use
++		 * kmap() and get small overhead in this access function.
++		 */
++		if (p) {
++			/* we can expect USR1 is not used */
++			void *map = kmap_atomic(p, KM_USER1);
++			memcpy(buf, map + offset, length);
++			kunmap_atomic(map, KM_USER1);
++		} else
++			memset(buf, 0, length);
++
++		addr += length;
++		buf += length;
++		copied += length;
++		count -= length;
++	}
++	return copied;
++}
++
++static int aligned_vwrite(char *buf, char *addr, unsigned long count)
++{
++	struct page *p;
++	int copied = 0;
++
++	while (count) {
++		unsigned long offset, length;
++
++		offset = (unsigned long)addr & ~PAGE_MASK;
++		length = PAGE_SIZE - offset;
++		if (length > count)
++			length = count;
++		p = vmalloc_to_page(addr);
++		/*
++		 * To do safe access to this _mapped_ area, we need
++		 * lock. But adding lock here means that we need to add
++		 * overhead of vmalloc()/vfree() calles for this _debug_
++		 * interface, rarely used. Instead of that, we'll use
++		 * kmap() and get small overhead in this access function.
++		 */
++		if (p) {
++			/* we can expect USR1 is not used */
++			void *map = kmap_atomic(p, KM_USER1);
++			memcpy(map + offset, buf, length);
++			kunmap_atomic(map, KM_USER1);
++		}
++		addr += length;
++		buf += length;
++		copied += length;
++		count -= length;
++	}
++	return copied;
++}
++
++/**
++ *	vread() -  read vmalloc area in a safe way.
++ *	@buf:		buffer for reading data
++ *	@addr:		vm address.
++ *	@count:		number of bytes to be read.
++ *
++ *	Returns # of bytes which addr and buf should be increased.
++ *	(same to count).
++ *	If [addr...addr+count) doesn't includes any valid area, returns 0.
++ *
++ *	This function checks that addr is a valid vmalloc'ed area, and
++ *	copy data from that area to a given buffer. If the given memory range of
++ *	[addr...addr+count) includes some valid address, data is copied to
++ *	proper area of @buf. If there are memory holes, they'll be zero-filled.
++ *	IOREMAP area is treated as memory hole and no copy is done.
++ *
++ *	Note: In usual ops, vread() is never necessary because the caller should
++ *	know vmalloc() area is valid and can use memcpy(). This is for routines
++ *	which have to access vmalloc area without any informaion, as /dev/kmem.
++ *
++ *	The caller should guarantee KM_USER1 is not used.
++ */
++
+ long vread(char *buf, char *addr, unsigned long count)
+ {
+ 	struct vm_struct *tmp;
+ 	char *vaddr, *buf_start = buf;
++	unsigned long buflen = count;
+ 	unsigned long n;
+ 
+ 	/* Don't allow overflow */
+@@ -1638,7 +1737,7 @@ long vread(char *buf, char *addr, unsign
+ 		count = -(unsigned long) addr;
+ 
+ 	read_lock(&vmlist_lock);
+-	for (tmp = vmlist; tmp; tmp = tmp->next) {
++	for (tmp = vmlist; count && tmp; tmp = tmp->next) {
+ 		vaddr = (char *) tmp->addr;
+ 		if (addr >= vaddr + tmp->size - PAGE_SIZE)
+ 			continue;
+@@ -1651,32 +1750,66 @@ long vread(char *buf, char *addr, unsign
+ 			count--;
+ 		}
+ 		n = vaddr + tmp->size - PAGE_SIZE - addr;
+-		do {
+-			if (count == 0)
+-				goto finished;
+-			*buf = *addr;
+-			buf++;
+-			addr++;
+-			count--;
+-		} while (--n > 0);
++		if (n > count)
++			n = count;
++		if (!(tmp->flags & VM_IOREMAP))
++			aligned_vread(buf, addr, n);
++		else /* IOREMAP area is treated as memory hole */
++			memset(buf, 0, n);
++		buf += n;
++		addr += n;
++		count -= n;
  	}
- 	return NULL;
+ finished:
+ 	read_unlock(&vmlist_lock);
+-	return buf - buf_start;
++
++	if (buf == buf_start)
++		return 0;
++	/* zero-fill memory holes */
++	if (buf != buf_start + buflen)
++		memset(buf, 0, buflen - (buf - buf_start));
++
++	return buflen;
+ }
+ 
++/**
++ *	vwrite() -  write vmalloc area in a safe way.
++ *	@buf:		buffer for source data
++ *	@addr:		vm address.
++ *	@count:		number of bytes to be read.
++ *
++ *	Returns # of bytes which addr and buf should be incresed.
++ *	(same to count).
++ *	If [addr...addr+count) doesn't includes any valid area, returns 0.
++ *
++ *	This function checks that addr is a valid vmalloc'ed area, and
++ *	copy data from a buffer to the given addr. If specified range of
++ *	[addr...addr+count) includes some valid address, data is copied from
++ *	proper area of @buf. If there are memory holes, no copy to hole.
++ *	IOREMAP area is treated as memory hole and no copy is done.
++ *
++ *	Note: In usual ops, vwrite() is never necessary because the caller
++ *	should know vmalloc() area is valid and can use memcpy().
++ *	This is for routines which have to access vmalloc area without
++ *	any informaion, as /dev/kmem.
++ *
++ *	The caller should guarantee KM_USER1 is not used.
++ */
++
+ long vwrite(char *buf, char *addr, unsigned long count)
+ {
+ 	struct vm_struct *tmp;
+-	char *vaddr, *buf_start = buf;
+-	unsigned long n;
++	char *vaddr;
++	unsigned long n, buflen;
++	int copied = 0;
+ 
+ 	/* Don't allow overflow */
+ 	if ((unsigned long) addr + count < count)
+ 		count = -(unsigned long) addr;
++	buflen = count;
+ 
+ 	read_lock(&vmlist_lock);
+-	for (tmp = vmlist; tmp; tmp = tmp->next) {
++	for (tmp = vmlist; count && tmp; tmp = tmp->next) {
+ 		vaddr = (char *) tmp->addr;
+ 		if (addr >= vaddr + tmp->size - PAGE_SIZE)
+ 			continue;
+@@ -1688,18 +1821,21 @@ long vwrite(char *buf, char *addr, unsig
+ 			count--;
+ 		}
+ 		n = vaddr + tmp->size - PAGE_SIZE - addr;
+-		do {
+-			if (count == 0)
+-				goto finished;
+-			*addr = *buf;
+-			buf++;
+-			addr++;
+-			count--;
+-		} while (--n > 0);
++		if (n > count)
++			n = count;
++		if (!(tmp->flags & VM_IOREMAP)) {
++			aligned_vwrite(buf, addr, n);
++			copied++;
++		}
++		buf += n;
++		addr += n;
++		count -= n;
+ 	}
+ finished:
+ 	read_unlock(&vmlist_lock);
+-	return buf - buf_start;
++	if (!copied)
++		return 0;
++	return buflen;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
