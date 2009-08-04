@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mwave-fix-read-buffer-overflow.patch added to -mm tree
-Date: Tue, 04 Aug 2009 14:34:49 -0700
-Message-ID: <200908042134.n74LYne8001904@imap1.linux-foundation.org>
+Subject: + ksm-rename-kernel_pages_allocated.patch added to -mm tree
+Date: Tue, 04 Aug 2009 15:00:59 -0700
+Message-ID: <200908042201.n74M0xXT013207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932601AbZHDVfZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 17:35:25 -0400
+	by vger.kernel.org with ESMTP id S933193AbZHDWCA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:02:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, gregkh@suse.de, kay.sievers@vrfy.org
+Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
 
 
 The patch titled
-     mwave: fix read buffer overflow
+     ksm: rename kernel_pages_allocated
 has been added to the -mm tree.  Its filename is
-     mwave-fix-read-buffer-overflow.patch
+     ksm-rename-kernel_pages_allocated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,129 +33,211 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mwave: fix read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: ksm: rename kernel_pages_allocated
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Check whether index is within bounds before grabbing the element.
+We're not implementing swapping of KSM pages in its first release;
+but when that follows, "kernel_pages_allocated" will be a very poor
+name for the sysfs file showing number of nodes in the stable tree:
+rename that to "pages_shared" throughout.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+But we already have a "pages_shared", counting those page slots
+sharing the shared pages: first rename that to... "pages_sharing".
+
+What will become of "max_kernel_pages" when the pages shared can
+be swapped?  I guess it will just be removed, so keep that name.
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Izik Eidus <ieidus@redhat.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mwave/mwavedd.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/ksm.c |   57 ++++++++++++++++++++++++++---------------------------
+ 1 file changed, 28 insertions(+), 29 deletions(-)
 
-diff -puN drivers/char/mwave/mwavedd.c~mwave-fix-read-buffer-overflow drivers/char/mwave/mwavedd.c
---- a/drivers/char/mwave/mwavedd.c~mwave-fix-read-buffer-overflow
-+++ a/drivers/char/mwave/mwavedd.c
-@@ -281,12 +281,6 @@ static long mwave_ioctl(struct file *fil
- 		case IOCTL_MW_REGISTER_IPC: {
- 			unsigned int ipcnum = (unsigned int) ioarg;
- 	
--			PRINTK_3(TRACE_MWAVE,
--				"mwavedd::mwave_ioctl IOCTL_MW_REGISTER_IPC"
--				" ipcnum %x entry usIntCount %x\n",
--				ipcnum,
--				pDrvData->IPCs[ipcnum].usIntCount);
--	
- 			if (ipcnum >= ARRAY_SIZE(pDrvData->IPCs)) {
- 				PRINTK_ERROR(KERN_ERR_MWAVE
- 						"mwavedd::mwave_ioctl:"
-@@ -295,6 +289,12 @@ static long mwave_ioctl(struct file *fil
- 						ipcnum);
- 				return -EINVAL;
+diff -puN mm/ksm.c~ksm-rename-kernel_pages_allocated mm/ksm.c
+--- a/mm/ksm.c~ksm-rename-kernel_pages_allocated
++++ a/mm/ksm.c
+@@ -150,10 +150,10 @@ static struct kmem_cache *rmap_item_cach
+ static struct kmem_cache *mm_slot_cache;
+ 
+ /* The number of nodes in the stable tree */
+-static unsigned long ksm_kernel_pages_allocated;
++static unsigned long ksm_pages_shared;
+ 
+ /* The number of page slots sharing those nodes */
+-static unsigned long ksm_pages_shared;
++static unsigned long ksm_pages_sharing;
+ 
+ /* Limit on the number of unswappable pages used */
+ static unsigned long ksm_max_kernel_pages;
+@@ -384,7 +384,7 @@ static void remove_rmap_item_from_tree(s
+ 				next_item->address |= NODE_FLAG;
+ 			} else {
+ 				rb_erase(&rmap_item->node, &root_stable_tree);
+-				ksm_kernel_pages_allocated--;
++				ksm_pages_shared--;
  			}
-+			PRINTK_3(TRACE_MWAVE,
-+				"mwavedd::mwave_ioctl IOCTL_MW_REGISTER_IPC"
-+				" ipcnum %x entry usIntCount %x\n",
-+				ipcnum,
-+				pDrvData->IPCs[ipcnum].usIntCount);
+ 		} else {
+ 			struct rmap_item *prev_item = rmap_item->prev;
+@@ -398,7 +398,7 @@ static void remove_rmap_item_from_tree(s
+ 		}
+ 
+ 		rmap_item->next = NULL;
+-		ksm_pages_shared--;
++		ksm_pages_sharing--;
+ 
+ 	} else if (rmap_item->address & NODE_FLAG) {
+ 		unsigned char age;
+@@ -748,7 +748,7 @@ static int try_to_merge_two_pages(struct
+ 	 * is the number of kernel pages that we hold.
+ 	 */
+ 	if (ksm_max_kernel_pages &&
+-	    ksm_max_kernel_pages <= ksm_kernel_pages_allocated)
++	    ksm_max_kernel_pages <= ksm_pages_shared)
+ 		return err;
+ 
+ 	kpage = alloc_page(GFP_HIGHUSER);
+@@ -787,7 +787,7 @@ static int try_to_merge_two_pages(struct
+ 		if (err)
+ 			break_cow(mm1, addr1);
+ 		else
+-			ksm_pages_shared += 2;
++			ksm_pages_sharing += 2;
+ 	}
+ 
+ 	put_page(kpage);
+@@ -817,7 +817,7 @@ static int try_to_merge_with_ksm_page(st
+ 	up_read(&mm1->mmap_sem);
+ 
+ 	if (!err)
+-		ksm_pages_shared++;
++		ksm_pages_sharing++;
+ 
+ 	return err;
+ }
+@@ -935,7 +935,7 @@ static struct rmap_item *stable_tree_ins
+ 		}
+ 	}
+ 
+-	ksm_kernel_pages_allocated++;
++	ksm_pages_shared++;
+ 
+ 	rmap_item->address |= NODE_FLAG | STABLE_FLAG;
+ 	rmap_item->next = NULL;
+@@ -1051,7 +1051,7 @@ static void cmp_and_merge_page(struct pa
+ 	tree_rmap_item = stable_tree_search(page, page2, rmap_item);
+ 	if (tree_rmap_item) {
+ 		if (page == page2[0]) {			/* forked */
+-			ksm_pages_shared++;
++			ksm_pages_sharing++;
+ 			err = 0;
+ 		} else
+ 			err = try_to_merge_with_ksm_page(rmap_item->mm,
+@@ -1114,7 +1114,7 @@ static void cmp_and_merge_page(struct pa
+ 				break_cow(tree_rmap_item->mm,
+ 						tree_rmap_item->address);
+ 				break_cow(rmap_item->mm, rmap_item->address);
+-				ksm_pages_shared -= 2;
++				ksm_pages_sharing -= 2;
+ 			}
+ 		}
+ 
+@@ -1430,7 +1430,7 @@ static ssize_t run_store(struct kobject 
+ 	/*
+ 	 * KSM_RUN_MERGE sets ksmd running, and 0 stops it running.
+ 	 * KSM_RUN_UNMERGE stops it running and unmerges all rmap_items,
+-	 * breaking COW to free the kernel_pages_allocated (but leaves
++	 * breaking COW to free the unswappable pages_shared (but leaves
+ 	 * mm_slots on the list for when ksmd may be set running again).
+ 	 */
+ 
+@@ -1449,22 +1449,6 @@ static ssize_t run_store(struct kobject 
+ }
+ KSM_ATTR(run);
+ 
+-static ssize_t pages_shared_show(struct kobject *kobj,
+-				 struct kobj_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "%lu\n",
+-			ksm_pages_shared - ksm_kernel_pages_allocated);
+-}
+-KSM_ATTR_RO(pages_shared);
+-
+-static ssize_t kernel_pages_allocated_show(struct kobject *kobj,
+-					   struct kobj_attribute *attr,
+-					   char *buf)
+-{
+-	return sprintf(buf, "%lu\n", ksm_kernel_pages_allocated);
+-}
+-KSM_ATTR_RO(kernel_pages_allocated);
+-
+ static ssize_t max_kernel_pages_store(struct kobject *kobj,
+ 				      struct kobj_attribute *attr,
+ 				      const char *buf, size_t count)
+@@ -1488,13 +1472,28 @@ static ssize_t max_kernel_pages_show(str
+ }
+ KSM_ATTR(max_kernel_pages);
+ 
++static ssize_t pages_shared_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%lu\n", ksm_pages_shared);
++}
++KSM_ATTR_RO(pages_shared);
 +
- 			lock_kernel();
- 			pDrvData->IPCs[ipcnum].bIsHere = FALSE;
- 			pDrvData->IPCs[ipcnum].bIsEnabled = TRUE;
-@@ -310,11 +310,6 @@ static long mwave_ioctl(struct file *fil
- 		case IOCTL_MW_GET_IPC: {
- 			unsigned int ipcnum = (unsigned int) ioarg;
- 	
--			PRINTK_3(TRACE_MWAVE,
--				"mwavedd::mwave_ioctl IOCTL_MW_GET_IPC"
--				" ipcnum %x, usIntCount %x\n",
--				ipcnum,
--				pDrvData->IPCs[ipcnum].usIntCount);
- 			if (ipcnum >= ARRAY_SIZE(pDrvData->IPCs)) {
- 				PRINTK_ERROR(KERN_ERR_MWAVE
- 						"mwavedd::mwave_ioctl:"
-@@ -322,6 +317,11 @@ static long mwave_ioctl(struct file *fil
- 						" Invalid ipcnum %x\n", ipcnum);
- 				return -EINVAL;
- 			}
-+			PRINTK_3(TRACE_MWAVE,
-+				"mwavedd::mwave_ioctl IOCTL_MW_GET_IPC"
-+				" ipcnum %x, usIntCount %x\n",
-+				ipcnum,
-+				pDrvData->IPCs[ipcnum].usIntCount);
- 	
- 			lock_kernel();
- 			if (pDrvData->IPCs[ipcnum].bIsEnabled == TRUE) {
++static ssize_t pages_sharing_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%lu\n",
++			ksm_pages_sharing - ksm_pages_shared);
++}
++KSM_ATTR_RO(pages_sharing);
++
+ static struct attribute *ksm_attrs[] = {
+ 	&sleep_millisecs_attr.attr,
+ 	&pages_to_scan_attr.attr,
+ 	&run_attr.attr,
+-	&pages_shared_attr.attr,
+-	&kernel_pages_allocated_attr.attr,
+ 	&max_kernel_pages_attr.attr,
++	&pages_shared_attr.attr,
++	&pages_sharing_attr.attr,
+ 	NULL,
+ };
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-linux-next.patch
-x86-fix-buffer-overflow-in-efi_init.patch
-kgdb-remove-redundant-test.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-fsl-booke-read-buffer-overflow.patch
-powerpc-avoid-calculating-possibly-invalid-address.patch
-media-strncpy-does-not-null-terminate-string.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-hid-fix-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-kvm-fix-read-buffer-overflow.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-mips-read-buffer-overflow.patch
-slram-read-buffer-overflow.patch
-slram-read-buffer-overflow-cleanup.patch
-mtd-fix-read-buffer-overflow.patch
-irda-fix-read-buffer-overflow.patch
-hfc_usb-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
-cyclades-read-buffer-overflow.patch
-perf-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-iprh-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-usb-gadget-read-buffer-overflow.patch
-i915-fix-read-outside-array-bounds.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
+acpi-fix-null-bug-for-hid-uid-string.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+ksm-rename-kernel_pages_allocated.patch
+ksm-move-pages_sharing-updates.patch
+ksm-pages_unshared-and-pages_volatile.patch
+ksm-break-cow-once-unshared.patch
+ksm-keep-quiet-while-list-empty.patch
+ksm-five-little-cleanups.patch
+ksm-fix-endless-loop-on-oom.patch
+ksm-distribute-remove_mm_from_lists.patch
+ksm-fix-oom-deadlock.patch
+ksm-sysfs-and-defaults.patch
+ksm-add-some-documentation.patch
+ksm-remove-vm_mergeable_flags.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+prio_tree-debugging-patch.patch
 
