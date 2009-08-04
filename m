@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-add-optional-git-blame-checking.patch added to -mm tree
-Date: Tue, 04 Aug 2009 00:45:25 -0700
-Message-ID: <200908040745.n747jPlB009780@imap1.linux-foundation.org>
+Subject: + posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw.patch added to -mm tree
+Date: Tue, 04 Aug 2009 00:59:51 -0700
+Message-ID: <200908040759.n747xpew001365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49830 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932510AbZHDHqD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 03:46:03 -0400
+	by vger.kernel.org with ESMTP id S1754773AbZHDIBd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 04:01:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, julia@diku.dk, vegard.nossum@gmail.com
+Cc: h-shimamoto@ct.jp.nec.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     scripts/get_maintainer.pl: Add optional "git blame" checking
+     posix-timers: fix oops in clock_nanosleep() with CLOCK_MONOTONIC_RAW
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-add-optional-git-blame-checking.patch
+     posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,269 +33,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: Add optional "git blame" checking
-From: Joe Perches <joe@perches.com>
+Subject: posix-timers: fix oops in clock_nanosleep() with CLOCK_MONOTONIC_RAW
+From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 
-Julia Lawall sent me a private email suggesting that get_maintainers.pl
-should have the capability to include signatories of commits that are
-modified by a particular patch.
+Prevent calling do_nanosleep() with clockid CLOCK_MONOTONIC_RAW, it may
+cause oops, such as NULL pointer dereference.
 
-Vegard Nossum did something similar once.
-http://lkml.org/lkml/2008/5/29/449
+Userspace program is like this;
 
-Such a capability is provided with the patch below.
-It can be enabled with the "--git-blame" command line option.
+#include <time.h>
 
-The modified script looks at the commits for all lines in the patch, and
-includes the "-by:" signatories for those commits.  It uses the same
-git-min-percent, git-max-maintainers, and git-min-signatures options. 
-git-since is ignored.
+int main(void)
+{
+	struct timespec ts;
 
-It can be used independently from the --git default, so
-	./scripts/get_maintainers.pl --nogit --git-blame <patch>
-or
-	./scripts/get_maintainers.pl --nogit --git-blame -f <file>
-is acceptable.
+	ts.tv_sec = 1;
+	ts.tv_nsec = 0;
 
-If used with -f <file>, all lines/commits for the file are
-checked.
+	return clock_nanosleep(4, 0, &ts, NULL);
+}
 
-It can be slow if used with -f <file>
+and it will cause oops;
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Julia Lawall <julia@diku.dk>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000001
+IP: [<ffffffff81029eb5>] __ticket_spin_lock+0x9/0x1a
+PGD 3dc6c067 PUD 3b519067 PMD 0 
+Oops: 0002 [#1] SMP 
+last sysfs file: /sys/devices/pci0000:00/0000:00:1c.0/0000:02:00.0/irq
+CPU 0 
+Modules linked in: sco bnep l2cap bluetooth sunrpc bridge stp llc ipv6 p4_clockmod speedstep_lib freq_table dm_multipath uinput iTCO_wdt iTCO_vendor_support tg3 i2c_i801 snd_intel8x0 snd_ac97_codec ac97_bus ppdev snd_pcm parport_pc snd_timer floppy parport snd soundcore snd_page_alloc pcspkr ata_generic pata_acpi nouveau drm i2c_algo_bit i2c_core [last unloaded: freq_table]
+Pid: 20114, comm: a.out Not tainted 2.6.29.6-213.fc11.x86_64 #1 PC-MY32EXZE78SG
+RIP: 0010:[<ffffffff81029eb5>]  [<ffffffff81029eb5>] __ticket_spin_lock+0x9/0x1a
+RSP: 0018:ffff88003e08bd88  EFLAGS: 00010046
+RAX: 0000000000000100 RBX: 0000000000000001 RCX: 0000000000000001
+RDX: 000000000000c350 RSI: 0000000000000286 RDI: 0000000000000001
+RBP: ffff88003e08bd88 R08: 0000000000000001 R09: 0000003ec680eec0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000286
+R13: ffff88003e08be20 R14: 000000000000c350 R15: 000000000000c350
+FS:  00007fb6cd3996f0(0000) GS:ffffffff817b7000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000001 CR3: 000000003a5c0000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process a.out (pid: 20114, threadinfo ffff88003e08a000, task ffff8800399e1700)
+Stack:
+ ffff88003e08bd98 ffffffff81029f7f ffff88003e08bdb8 ffffffff813ac07c
+ ffff880001011178 ffff88003e08be98 ffff88003e08bde8 ffffffff8105f3a1
+ ffff88003e08bdd8 ffff88003e08be98 0000000000000001 000000003b9aca00
+Call Trace:
+ [<ffffffff81029f7f>] default_spin_lock_flags+0x9/0xe
+ [<ffffffff813ac07c>] _spin_lock_irqsave+0x32/0x3b
+ [<ffffffff8105f3a1>] lock_hrtimer_base+0x2a/0x50
+ [<ffffffff8105f527>] __hrtimer_start_range_ns+0x2f/0x238
+ [<ffffffff8105f75e>] hrtimer_start_range_ns+0x14/0x16
+ [<ffffffff813aac8b>] do_nanosleep+0x4e/0xae
+ [<ffffffff8105f813>] hrtimer_nanosleep+0xb3/0x123
+ [<ffffffff8105edea>] ? hrtimer_wakeup+0x0/0x26
+ [<ffffffff8105b4ed>] sys_clock_nanosleep+0xc9/0xdf
+ [<ffffffff8101133a>] system_call_fastpath+0x16/0x1b
+Code: 9c 02 81 44 89 c6 48 89 c7 e8 0a fb ff ff eb 0f 0f b7 f6 40 0f b6 ff 48 89 c2 e8 1c fb ff ff c9 c3 90 55 b8 00 01 00 00 48 89 e5 <f0> 66 0f c1 07 38 e0 74 06 f3 90 8a 07 eb f6 c9 c3 55 48 89 e5 
+RIP  [<ffffffff81029eb5>] __ticket_spin_lock+0x9/0x1a
+ RSP <ffff88003e08bd88>
+CR2: 0000000000000001
+
+Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |  133 ++++++++++++++++++++++++++++--------
- 1 file changed, 106 insertions(+), 27 deletions(-)
+ kernel/posix-timers.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-optional-git-blame-checking scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-optional-git-blame-checking
-+++ a/scripts/get_maintainer.pl
-@@ -13,7 +13,7 @@
- use strict;
- 
- my $P = $0;
--my $V = '0.17';
-+my $V = '0.18beta2';
- 
- use Getopt::Long qw(:config no_auto_abbrev);
- 
-@@ -29,6 +29,7 @@ my $email_git_min_signatures = 1;
- my $email_git_max_maintainers = 5;
- my $email_git_min_percent = 5;
- my $email_git_since = "1-year-ago";
-+my $email_git_blame = 0;
- my $output_multiline = 1;
- my $output_separator = ", ";
- my $scm = 0;
-@@ -68,6 +69,7 @@ if (!GetOptions(
- 		'git-max-maintainers=i' => \$email_git_max_maintainers,
- 		'git-min-percent=i' => \$email_git_min_percent,
- 		'git-since=s' => \$email_git_since,
-+		'git-blame!' => \$email_git_blame,
- 		'm!' => \$email_maintainer,
- 		'n!' => \$email_usename,
- 		'l!' => \$email_list,
-@@ -150,6 +152,7 @@ close(MAINT);
- ## use the filenames on the command line or find the filenames in the patchfiles
- 
- my @files = ();
-+my @range = ();
- 
- foreach my $file (@ARGV) {
-     ##if $file is a directory and it lacks a trailing slash, add one
-@@ -162,13 +165,19 @@ foreach my $file (@ARGV) {
- 	push(@files, $file);
-     } else {
- 	my $file_cnt = @files;
-+	my $lastfile;
- 	open(PATCH, "<$file") or die "$P: Can't open ${file}\n";
- 	while (<PATCH>) {
- 	    if (m/^\+\+\+\s+(\S+)/) {
- 		my $filename = $1;
- 		$filename =~ s@^[^/]*/@@;
- 		$filename =~ s@\n@@;
-+		$lastfile = $filename;
- 		push(@files, $filename);
-+	    } elsif (m/^\@\@ -(\d+),(\d+)/) {
-+		if ($email_git_blame) {
-+		    push(@range, "$lastfile:$1:$2");
-+		}
- 	    }
- 	}
- 	close(PATCH);
-@@ -226,6 +235,9 @@ foreach my $file (@files) {
- 	recent_git_signoffs($file);
-     }
- 
-+    if ($email && $email_git_blame) {
-+	git_assign_blame($file);
-+    }
+diff -puN kernel/posix-timers.c~posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw
++++ a/kernel/posix-timers.c
+@@ -202,6 +202,12 @@ static int no_timer_create(struct k_itim
+ 	return -EOPNOTSUPP;
  }
  
- if ($email) {
-@@ -311,6 +323,7 @@ MAINTAINER field selection options:
-     --git-max-maintainers => maximum maintainers to add (default: 5)
-     --git-min-percent => minimum percentage of commits required (default: 5)
-     --git-since => git history to use (default: 1-year-ago)
-+    --git-blame => use git blame to find modified commits for patch or file
-     --m => include maintainer(s) if any
-     --n => include name 'Full Name <addr\@domain.tld>'
-     --l => include list(s) if any
-@@ -333,13 +346,15 @@ Other options:
- 
- Notes:
-   Using "-f directory" may give unexpected results:
--
--  Used with "--git", git signators for _all_ files in and below
--     directory are examined as git recurses directories.
--     Any specified X: (exclude) pattern matches are _not_ ignored.
--  Used with "--nogit", directory is used as a pattern match,
--     no individual file within the directory or subdirectory
--     is matched.
-+      Used with "--git", git signators for _all_ files in and below
-+          directory are examined as git recurses directories.
-+          Any specified X: (exclude) pattern matches are _not_ ignored.
-+      Used with "--nogit", directory is used as a pattern match,
-+         no individual file within the directory or subdirectory
-+         is matched.
-+      Used with "--git-blame", does not iterate all files in directory
-+  Using "--git-blame" is slow and may add old committers and authors
-+      that are no longer active maintainers to the output.
- EOT
- }
- 
-@@ -449,14 +464,19 @@ sub push_email_address {
-     my ($email_address) = @_;
- 
-     my $email_name = "";
--    if ($email_address =~ m/([^<]+)<(.*\@.*)>$/) {
--	$email_name = $1;
--	$email_address = $2;
--    }
- 
-     if ($email_maintainer) {
--	if ($email_usename && $email_name) {
--	    push(@email_to, format_email($email_name, $email_address));
-+	if ($email_address =~ m/([^<]+)<(.*\@.*)>$/) {
-+	    $email_name = $1;
-+	    $email_address = $2;
-+	    if ($email_usename) {
-+		push(@email_to, format_email($email_name, $email_address));
-+	    } else {
-+		push(@email_to, $email_address);
-+	    }
-+	} elsif ($email_address =~ m/<(.+)>/) {
-+	    $email_address = $1;
-+	    push(@email_to, $email_address);
- 	} else {
- 	    push(@email_to, $email_address);
- 	}
-@@ -545,20 +565,79 @@ sub recent_git_signoffs {
- 		last;
- 	    }
- 	}
--	if ($line =~ m/(.+)<(.+)>/) {
--	    my $git_name = $1;
--	    my $git_addr = $2;
--	    if ($email_usename) {
--		push(@email_to, format_email($git_name, $git_addr));
--	    } else {
--		push(@email_to, $git_addr);
--	    }
--	} elsif ($line =~ m/<(.+)>/) {
--	    my $git_addr = $1;
--	    push(@email_to, $git_addr);
--	} else {
--	    push(@email_to, $line);
-+	push_email_address($line);
-+    }
++static int no_nsleep(const clockid_t which_clock, int flags,
++		     struct timespec *tsave, struct timespec __user *rmtp)
++{
++	return -EOPNOTSUPP;
 +}
 +
-+sub save_commits {
-+    my ($cmd, @commits) = @_;
-+    my $output;
-+    my @lines = ();
-+
-+    $output = `${cmd}`;
-+
-+    @lines = split("\n", $output);
-+    foreach my $line (@lines) {
-+	if ($line =~ m/^(\w+) /) {
-+	    push (@commits, $1);
-+	}
-+    }
-+    return @commits;
-+}
-+
-+sub git_assign_blame {
-+    my ($file) = @_;
-+
-+    my @lines = ();
-+    my @commits = ();
-+    my $cmd;
-+    my $output;
-+    my %hash;
-+    my $total_sign_offs;
-+    my $count;
-+
-+    if (@range) {
-+	foreach my $file_range_diff (@range) {
-+	    next if (!($file_range_diff =~ m/(.+):(.+):(.+)/));
-+	    my $diff_file = $1;
-+	    my $diff_start = $2;
-+	    my $diff_length = $3;
-+	    next if (!("$file" eq "$diff_file"));
-+	    $cmd = "git blame -l -L $diff_start,+$diff_length $file\n";
-+	    @commits = save_commits($cmd, @commits);
- 	}
-+    } else {
-+	if (-f $file) {
-+	    $cmd = "git blame -l $file\n";
-+	    @commits = save_commits($cmd, @commits);
-+	}
-+    }
-+
-+    $total_sign_offs = 0;
-+    @commits = uniq(@commits);
-+    foreach my $commit (@commits) {
-+	$cmd = "git log -1 ${commit}";
-+	$cmd .= " | grep -Ei \"^[-_ 	a-z]+by:.*\\\@.*\$\"";
-+	if (!$email_git_penguin_chiefs) {
-+	    $cmd .= " | grep -Ev \"${penguin_chiefs}\"";
-+	}
-+	$cmd .= " | cut -f2- -d\":\"";
-+
-+	$output = `${cmd}`;
-+	$output =~ s/^\s*//gm;
-+	@lines = split("\n", $output);
-+	$hash{$_}++ for @lines;
-+	$total_sign_offs += @lines;
-+    }
-+
-+    $count = 0;
-+    foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
-+	my $sign_offs = $hash{$line};
-+	$count++;
-+	last if ($sign_offs < $email_git_min_signatures ||
-+		 $count > $email_git_max_maintainers ||
-+		 $sign_offs * 100 / $total_sign_offs < $email_git_min_percent);
-+	push_email_address($line);
-     }
- }
+ /*
+  * Return nonzero if we know a priori this clockid_t value is bogus.
+  */
+@@ -254,6 +260,7 @@ static __init int init_posix_timers(void
+ 		.clock_get = posix_get_monotonic_raw,
+ 		.clock_set = do_posix_clock_nosettime,
+ 		.timer_create = no_timer_create,
++		.nsleep = no_nsleep,
+ 	};
  
+ 	register_posix_clock(CLOCK_REALTIME, &clock_realtime);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
 
-linux-next.patch
-maintainers-add-ipvs-include-files.patch
-scripts-get_maintainerpl-add-optional-git-blame-checking.patch
-mmc-msm_sdccc-driver-for-htc-dream.patch
-msm_sdccc-convert-printkkern_level-to-pr_level.patch
-msm_sdccc-stylistic-cleaning.patch
-msm_sdccc-move-overly-indented-code-to-separate-function.patch
+posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw.patch
+exec-fix-set_binfmt-vs-sys_delete_module-race.patch
+task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
 
