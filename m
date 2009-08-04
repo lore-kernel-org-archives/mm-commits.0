@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb-remove-redundant-test.patch added to -mm tree
-Date: Tue, 04 Aug 2009 02:07:54 -0700
-Message-ID: <200908040907.n7497saC017696@imap1.linux-foundation.org>
+Subject: + kvm-fix-read-buffer-overflow.patch added to -mm tree
+Date: Tue, 04 Aug 2009 02:08:45 -0700
+Message-ID: <200908040908.n7498jUR019069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48455 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932480AbZHDJH4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 05:07:56 -0400
+	by vger.kernel.org with ESMTP id S932527AbZHDJJC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 05:09:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, jason.wessel@windriver.com
+Cc: roel.kluin@gmail.com, avi@redhat.com
 
 
 The patch titled
-     kgdb: remove redundant test
+     kvm: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     kgdb-remove-redundant-test.patch
+     kvm-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kgdb: remove redundant test
+Subject: kvm: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The for loop starts with a breakno of 0, and ends when it's 4. so
-this test is always true.
+Check whether index is within bounds before grabbing the element.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Avi Kivity <avi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kgdb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/kvm/vmx.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/kgdb.c~kgdb-remove-redundant-test arch/x86/kernel/kgdb.c
---- a/arch/x86/kernel/kgdb.c~kgdb-remove-redundant-test
-+++ a/arch/x86/kernel/kgdb.c
-@@ -225,8 +225,7 @@ static void kgdb_correct_hw_break(void)
- 			dr7 |= ((breakinfo[breakno].len << 2) |
- 				 breakinfo[breakno].type) <<
- 			       ((breakno << 2) + 16);
--			if (breakno >= 0 && breakno <= 3)
--				set_debugreg(breakinfo[breakno].addr, breakno);
-+			set_debugreg(breakinfo[breakno].addr, breakno);
+diff -puN arch/x86/kvm/vmx.c~kvm-fix-read-buffer-overflow arch/x86/kvm/vmx.c
+--- a/arch/x86/kvm/vmx.c~kvm-fix-read-buffer-overflow
++++ a/arch/x86/kvm/vmx.c
+@@ -571,12 +571,15 @@ static void reload_tss(void)
+ static void load_transition_efer(struct vcpu_vmx *vmx)
+ {
+ 	int efer_offset = vmx->msr_offset_efer;
+-	u64 host_efer = vmx->host_msrs[efer_offset].data;
+-	u64 guest_efer = vmx->guest_msrs[efer_offset].data;
++	u64 host_efer;
++	u64 guest_efer;
+ 	u64 ignore_bits;
  
- 		} else {
- 			if ((dr7 & breakbit) && !breakinfo[breakno].enabled) {
+ 	if (efer_offset < 0)
+ 		return;
++	host_efer = vmx->host_msrs[efer_offset].data;
++	guest_efer = vmx->guest_msrs[efer_offset].data;
++
+ 	/*
+ 	 * NX is emulated; LMA and LME handled by hardware; SCE meaninless
+ 	 * outside long mode
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -78,7 +85,7 @@ drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
 stk-webcam-read-buffer-overflow.patch
 hid-fix-read-buffer-overflow.patch
 ipath-strncpy-does-not-null-terminate-string.patch
-arch-s390-kvm-sigpc-fix-read-buffer-overflow.patch
+kvm-fix-read-buffer-overflow.patch
 mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
 mips-read-buffer-overflow.patch
 slram-read-buffer-overflow.patch
@@ -92,6 +99,7 @@ ocfs2-keep-index-within-status_map.patch
 drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
 cyclades-read-buffer-overflow.patch
 perf-fix-read-buffer-overflow.patch
+arch-s390-kvm-sigpc-fix-read-buffer-overflow.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 ibmmca-buffer-overflow.patch
 scsi-eata-fix-buffer-overflow.patch
