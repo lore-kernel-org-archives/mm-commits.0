@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + serial167-fix-read-buffer-overflow.patch added to -mm tree
-Date: Tue, 04 Aug 2009 15:20:26 -0700
-Message-ID: <200908042220.n74MKQFf013686@imap1.linux-foundation.org>
+Subject: + drm-radeon-avoid-calculating-possibly-invalid-address.patch added to -mm tree
+Date: Tue, 04 Aug 2009 15:21:18 -0700
+Message-ID: <200908042221.n74MLILV015084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58206 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40600 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933448AbZHDWUx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:20:53 -0400
+	by vger.kernel.org with ESMTP id S933437AbZHDWWA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:22:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
+Cc: roel.kluin@gmail.com, airlied@linux.ie
 
 
 The patch titled
-     serial167: fix read buffer overflow
+     drm/radeon: avoid calculating possibly-invalid address
 has been added to the -mm tree.  Its filename is
-     serial167-fix-read-buffer-overflow.patch
+     drm-radeon-avoid-calculating-possibly-invalid-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial167: fix read buffer overflow
+Subject: drm/radeon: avoid calculating possibly-invalid address
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Check whether index is within bounds before grabbing the element.
-
-Also, since NR_PORTS is defined ARRAY_SIZE(cy_port), cy_port[NR_PORTS] is
-out of bounds as well.
+Check whether index is within bounds before calculating the address.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/serial167.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/radeon/r100.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/serial167.c~serial167-fix-read-buffer-overflow drivers/char/serial167.c
---- a/drivers/char/serial167.c~serial167-fix-read-buffer-overflow
-+++ a/drivers/char/serial167.c
-@@ -222,7 +222,7 @@ static inline int serial_paranoia_check(
- 	}
+diff -puN drivers/gpu/drm/radeon/r100.c~drm-radeon-avoid-calculating-possibly-invalid-address drivers/gpu/drm/radeon/r100.c
+--- a/drivers/gpu/drm/radeon/r100.c~drm-radeon-avoid-calculating-possibly-invalid-address
++++ a/drivers/gpu/drm/radeon/r100.c
+@@ -722,13 +722,14 @@ int r100_cs_packet_parse(struct radeon_c
+ 			 unsigned idx)
+ {
+ 	struct radeon_cs_chunk *ib_chunk = &p->chunks[p->chunk_ib_idx];
+-	uint32_t header = ib_chunk->kdata[idx];
++	uint32_t header;
  
- 	if ((long)info < (long)(&cy_port[0])
--	    || (long)(&cy_port[NR_PORTS]) < (long)info) {
-+	    || (long)(&cy_port[NR_PORTS-1]) < (long)info) {
- 		printk("Warning: cyclades_port out of range for (%s) in %s\n",
- 				name, routine);
- 		return 1;
-@@ -521,15 +521,13 @@ static irqreturn_t cd2401_tx_interrupt(i
- 		panic("TxInt on debug port!!!");
+ 	if (idx >= ib_chunk->length_dw) {
+ 		DRM_ERROR("Can not parse packet at %d after CS end %d !\n",
+ 			  idx, ib_chunk->length_dw);
+ 		return -EINVAL;
  	}
- #endif
--
--	info = &cy_port[channel];
--
- 	/* validate the port number (as configured and open) */
- 	if ((channel < 0) || (NR_PORTS <= channel)) {
- 		base_addr[CyIER] &= ~(CyTxMpty | CyTxRdy);
- 		base_addr[CyTEOIR] = CyNOTRANS;
- 		return IRQ_HANDLED;
- 	}
-+	info = &cy_port[channel];
- 	info->last_active = jiffies;
- 	if (info->tty == 0) {
- 		base_addr[CyIER] &= ~(CyTxMpty | CyTxRdy);
++	header = ib_chunk->kdata[idx];
+ 	pkt->idx = idx;
+ 	pkt->type = CP_PACKET_GET_TYPE(header);
+ 	pkt->count = CP_PACKET_GET_COUNT(header);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -92,6 +78,7 @@ dm-strncpy-does-not-null-terminate-string.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 powerpc-fsl-booke-read-buffer-overflow.patch
 powerpc-avoid-calculating-possibly-invalid-address.patch
+drm-radeon-avoid-calculating-possibly-invalid-address.patch
 media-strncpy-does-not-null-terminate-string.patch
 siano-read-buffer-overflow.patch
 drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
