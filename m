@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + thermal_sys-check-get_temp-return-value.patch added to -mm tree
-Date: Mon, 03 Aug 2009 17:02:52 -0700
-Message-ID: <200908040002.n7402q8Y018098@imap1.linux-foundation.org>
+Subject: + blackfin-fix-read-buffer-overflow.patch added to -mm tree
+Date: Tue, 04 Aug 2009 00:00:11 -0700
+Message-ID: <200908040700.n7470BMR031736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932070AbZHDAD6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2009 20:03:58 -0400
+	by vger.kernel.org with ESMTP id S932492AbZHDHAN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 03:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mibru@gmx.de, lenb@kernel.org, rui.zhang@intel.com
+Cc: roel.kluin@gmail.com, vapier@gentoo.org
 
 
 The patch titled
-     thermal_sys: check get_temp return value
+     blackfin: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     thermal_sys-check-get_temp-return-value.patch
+     blackfin-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thermal_sys: check get_temp return value
-From: Michael Brunner <mibru@gmx.de>
+Subject: blackfin: fix read buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-The return value of the get_temp function is not checked when doing a
-thermal zone update.  This may lead to a critical shutdown if get_temp
-fails and the content of the temp variable is incorrectly set higher than
-the critical trip point.
+Check whether index is within bounds before testing the element.
 
-This has been observed on a system with incorrect ACPI implementation
-where the corresponding methods were not serialized and therefore
-sometimes triggered ACPI errors (AE_ALREADY_EXISTS).  The following
-critical shutdowns indicated a temperature of 2097 C, which was obviously
-wrong.
-
-The patch adds a return value check that jumps over all trip point
-evaluations printing a warning if get_temp fails.  The trip points are
-evaluated again on the next polling interval with successful get_temp
-execution.
-
-Signed-off-by: Michael Brunner <mibru@gmx.de>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_sys.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/blackfin/kernel/bfin_dma_5xx.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/thermal/thermal_sys.c~thermal_sys-check-get_temp-return-value drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal_sys-check-get_temp-return-value
-+++ a/drivers/thermal/thermal_sys.c
-@@ -953,7 +953,12 @@ void thermal_zone_device_update(struct t
+diff -puN arch/blackfin/kernel/bfin_dma_5xx.c~blackfin-fix-read-buffer-overflow arch/blackfin/kernel/bfin_dma_5xx.c
+--- a/arch/blackfin/kernel/bfin_dma_5xx.c~blackfin-fix-read-buffer-overflow
++++ a/arch/blackfin/kernel/bfin_dma_5xx.c
+@@ -146,8 +146,8 @@ EXPORT_SYMBOL(request_dma);
  
- 	mutex_lock(&tz->lock);
+ int set_dma_callback(unsigned int channel, irq_handler_t callback, void *data)
+ {
+-	BUG_ON(!(dma_ch[channel].chan_status != DMA_CHANNEL_FREE
+-	       && channel < MAX_DMA_CHANNELS));
++	BUG_ON(channel >= MAX_DMA_CHANNELS ||
++			dma_ch[channel].chan_status == DMA_CHANNEL_FREE);
  
--	tz->ops->get_temp(tz, &temp);
-+	if (tz->ops->get_temp(tz, &temp)) {
-+		/* get_temp failed - retry it later */
-+		printk(KERN_WARNING PREFIX "failed to read out thermal zone "
-+		       "%d\n", tz->id);
-+		goto leave;
-+	}
+ 	if (callback != NULL) {
+ 		int ret;
+@@ -181,8 +181,8 @@ static void clear_dma_buffer(unsigned in
+ void free_dma(unsigned int channel)
+ {
+ 	pr_debug("freedma() : BEGIN \n");
+-	BUG_ON(!(dma_ch[channel].chan_status != DMA_CHANNEL_FREE
+-	       && channel < MAX_DMA_CHANNELS));
++	BUG_ON(channel >= MAX_DMA_CHANNELS ||
++			dma_ch[channel].chan_status == DMA_CHANNEL_FREE);
  
- 	for (count = 0; count < tz->trips; count++) {
- 		tz->ops->get_trip_type(tz, count, &trip_type);
-@@ -1005,6 +1010,8 @@ void thermal_zone_device_update(struct t
- 					    THERMAL_TRIPS_NONE);
- 
- 	tz->last_temperature = temp;
-+
-+      leave:
- 	if (tz->passive)
- 		thermal_zone_device_set_polling(tz, tz->passive_delay);
- 	else if (tz->polling_delay)
+ 	/* Halt the DMA */
+ 	disable_dma(channel);
 _
 
-Patches currently in -mm which might be from mibru@gmx.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-thermal_sys-check-get_temp-return-value.patch
+linux-next.patch
+x86-fix-buffer-overflow-in-efi_init.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-fsl-booke-read-buffer-overflow.patch
+media-strncpy-does-not-null-terminate-string.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+hid-fix-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+mips-read-buffer-overflow.patch
+slram-read-buffer-overflow.patch
+slram-read-buffer-overflow-cleanup.patch
+mtd-fix-read-buffer-overflow.patch
+irda-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
+cyclades-read-buffer-overflow.patch
+perf-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-iprh-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+usb-gadget-read-buffer-overflow.patch
+libertas-read-buffer-overflow.patch
+i915-fix-read-outside-array-bounds.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+adfs-remove-redundant-test-on-unsigned.patch
+blackfin-fix-read-buffer-overflow.patch
+hfc_usb-read-buffer-overflow.patch
 
