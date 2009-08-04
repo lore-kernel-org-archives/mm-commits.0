@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-fix-read-buffer-overflow.patch added to -mm tree
-Date: Tue, 04 Aug 2009 00:00:11 -0700
-Message-ID: <200908040700.n7470BMR031736@imap1.linux-foundation.org>
+Subject: + hfc_usb-fix-read-buffer-overflow.patch added to -mm tree
+Date: Tue, 04 Aug 2009 00:00:14 -0700
+Message-ID: <200908040700.n7470EwP031803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932492AbZHDHAN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 03:00:13 -0400
+	by vger.kernel.org with ESMTP id S932494AbZHDHAT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 03:00:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, vapier@gentoo.org
+Cc: roel.kluin@gmail.com, isdn@linux-pingi.de
 
 
 The patch titled
-     blackfin: fix read buffer overflow
+     hfc_usb: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     blackfin-fix-read-buffer-overflow.patch
+     hfc_usb-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin: fix read buffer overflow
+Subject: hfc_usb: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Check whether index is within bounds before testing the element.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Karsten Keil <isdn@linux-pingi.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/bfin_dma_5xx.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/isdn/hisax/hfc_usb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/blackfin/kernel/bfin_dma_5xx.c~blackfin-fix-read-buffer-overflow arch/blackfin/kernel/bfin_dma_5xx.c
---- a/arch/blackfin/kernel/bfin_dma_5xx.c~blackfin-fix-read-buffer-overflow
-+++ a/arch/blackfin/kernel/bfin_dma_5xx.c
-@@ -146,8 +146,8 @@ EXPORT_SYMBOL(request_dma);
+diff -puN drivers/isdn/hisax/hfc_usb.c~hfc_usb-fix-read-buffer-overflow drivers/isdn/hisax/hfc_usb.c
+--- a/drivers/isdn/hisax/hfc_usb.c~hfc_usb-fix-read-buffer-overflow
++++ a/drivers/isdn/hisax/hfc_usb.c
+@@ -817,8 +817,8 @@ collect_rx_frame(usb_fifo * fifo, __u8 *
+ 	}
+ 	/* we have a complete hdlc packet */
+ 	if (finish) {
+-		if ((!fifo->skbuff->data[fifo->skbuff->len - 1])
+-		    && (fifo->skbuff->len > 3)) {
++		if (fifo->skbuff->len > 3 &&
++				!fifo->skbuff->data[fifo->skbuff->len - 1]) {
  
- int set_dma_callback(unsigned int channel, irq_handler_t callback, void *data)
- {
--	BUG_ON(!(dma_ch[channel].chan_status != DMA_CHANNEL_FREE
--	       && channel < MAX_DMA_CHANNELS));
-+	BUG_ON(channel >= MAX_DMA_CHANNELS ||
-+			dma_ch[channel].chan_status == DMA_CHANNEL_FREE);
- 
- 	if (callback != NULL) {
- 		int ret;
-@@ -181,8 +181,8 @@ static void clear_dma_buffer(unsigned in
- void free_dma(unsigned int channel)
- {
- 	pr_debug("freedma() : BEGIN \n");
--	BUG_ON(!(dma_ch[channel].chan_status != DMA_CHANNEL_FREE
--	       && channel < MAX_DMA_CHANNELS));
-+	BUG_ON(channel >= MAX_DMA_CHANNELS ||
-+			dma_ch[channel].chan_status == DMA_CHANNEL_FREE);
- 
- 	/* Halt the DMA */
- 	disable_dma(channel);
+ 			if (fifon == HFCUSB_D_RX) {
+ 				DBG(HFCUSB_DBG_DCHANNEL,
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -125,5 +114,5 @@ sisfb-read-buffer-overflow.patch
 drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
 adfs-remove-redundant-test-on-unsigned.patch
 blackfin-fix-read-buffer-overflow.patch
-hfc_usb-read-buffer-overflow.patch
+hfc_usb-fix-read-buffer-overflow.patch
 
