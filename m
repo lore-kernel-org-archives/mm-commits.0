@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-break-cow-once-unshared.patch added to -mm tree
-Date: Tue, 04 Aug 2009 15:01:06 -0700
-Message-ID: <200908042201.n74M17xj013471@imap1.linux-foundation.org>
+Subject: + ksm-keep-quiet-while-list-empty.patch added to -mm tree
+Date: Tue, 04 Aug 2009 15:01:08 -0700
+Message-ID: <200908042201.n74M19bd013486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754978AbZHDWNP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:13:15 -0400
+	by vger.kernel.org with ESMTP id S1755207AbZHDWOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
 
 
 The patch titled
-     ksm: break cow once unshared
+     ksm: keep quiet while list empty
 has been added to the -mm tree.  Its filename is
-     ksm-break-cow-once-unshared.patch
+     ksm-keep-quiet-while-list-empty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: break cow once unshared
+Subject: ksm: keep quiet while list empty
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-We kept agreeing not to bother about the unswappable shared KSM pages
-which later become unshared by others: observation suggests they're not
-a significant proportion.  But they are disadvantageous, and it is easier
-to break COW to replace them by swappable pages, than offer statistics
-to show that they don't matter; then we can stop worrying about them.
+ksm_scan_thread already sleeps in wait_event_interruptible until setting
+ksm_run activates it; but if there's nothing on its list to look at, i.e.
+nobody has yet said madvise MADV_MERGEABLE, it's a shame to be clocking
+up system time and full_scans: ksmd_should_run added to check that too.
 
-Doing this in ksm_do_scan, they don't go through cmp_and_merge_page on
-this pass: give them a good chance of getting into the unstable tree
-on the next pass, or back into the stable, by computing checksum now.
+And move the mutex_lock out around it: the new counts showed that when
+ksm_run is stopped, a little work often got done afterwards, because it
+had been read before taking the mutex.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Acked-by: Izik Eidus <ieidus@redhat.com>
@@ -52,27 +51,74 @@ Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/ksm.c |   28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-diff -puN mm/ksm.c~ksm-break-cow-once-unshared mm/ksm.c
---- a/mm/ksm.c~ksm-break-cow-once-unshared
+diff -puN mm/ksm.c~ksm-keep-quiet-while-list-empty mm/ksm.c
+--- a/mm/ksm.c~ksm-keep-quiet-while-list-empty
 +++ a/mm/ksm.c
-@@ -1275,6 +1275,14 @@ static void ksm_do_scan(unsigned int sca
- 			return;
- 		if (!PageKsm(page) || !in_stable_tree(rmap_item))
- 			cmp_and_merge_page(page, rmap_item);
-+		else if (page_mapcount(page) == 1) {
-+			/*
-+			 * Replace now-unshared ksm page by ordinary page.
-+			 */
-+			break_cow(rmap_item->mm, rmap_item->address);
-+			remove_rmap_item_from_tree(rmap_item);
-+			rmap_item->oldchecksum = calc_checksum(page);
-+		}
- 		put_page(page);
+@@ -1287,21 +1287,27 @@ static void ksm_do_scan(unsigned int sca
  	}
  }
+ 
++static int ksmd_should_run(void)
++{
++	return (ksm_run & KSM_RUN_MERGE) && !list_empty(&ksm_mm_head.mm_list);
++}
++
+ static int ksm_scan_thread(void *nothing)
+ {
+ 	set_user_nice(current, 5);
+ 
+ 	while (!kthread_should_stop()) {
+-		if (ksm_run & KSM_RUN_MERGE) {
+-			mutex_lock(&ksm_thread_mutex);
++		mutex_lock(&ksm_thread_mutex);
++		if (ksmd_should_run())
+ 			ksm_do_scan(ksm_thread_pages_to_scan);
+-			mutex_unlock(&ksm_thread_mutex);
++		mutex_unlock(&ksm_thread_mutex);
++
++		if (ksmd_should_run()) {
+ 			schedule_timeout_interruptible(
+ 				msecs_to_jiffies(ksm_thread_sleep_millisecs));
+ 		} else {
+ 			wait_event_interruptible(ksm_thread_wait,
+-					(ksm_run & KSM_RUN_MERGE) ||
+-					kthread_should_stop());
++				ksmd_should_run() || kthread_should_stop());
+ 		}
+ 	}
+ 	return 0;
+@@ -1346,10 +1352,16 @@ int ksm_madvise(struct vm_area_struct *v
+ 
+ int __ksm_enter(struct mm_struct *mm)
+ {
+-	struct mm_slot *mm_slot = alloc_mm_slot();
++	struct mm_slot *mm_slot;
++	int needs_wakeup;
++
++	mm_slot = alloc_mm_slot();
+ 	if (!mm_slot)
+ 		return -ENOMEM;
+ 
++	/* Check ksm_run too?  Would need tighter locking */
++	needs_wakeup = list_empty(&ksm_mm_head.mm_list);
++
+ 	spin_lock(&ksm_mmlist_lock);
+ 	insert_to_mm_slots_hash(mm, mm_slot);
+ 	/*
+@@ -1361,6 +1373,10 @@ int __ksm_enter(struct mm_struct *mm)
+ 	spin_unlock(&ksm_mmlist_lock);
+ 
+ 	set_bit(MMF_VM_MERGEABLE, &mm->flags);
++
++	if (needs_wakeup)
++		wake_up_interruptible(&ksm_thread_wait);
++
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
