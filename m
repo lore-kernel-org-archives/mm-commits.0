@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-fix-read-buffer-overflow.patch added to -mm tree
-Date: Tue, 04 Aug 2009 02:08:45 -0700
-Message-ID: <200908040908.n7498jUR019069@imap1.linux-foundation.org>
+Subject: + vfs-mnt_want_write_file-fix-special-file-handling.patch added to -mm tree
+Date: Tue, 04 Aug 2009 12:24:25 -0700
+Message-ID: <200908041924.n74JOPNE010824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932527AbZHDJJC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 05:09:02 -0400
+	by vger.kernel.org with ESMTP id S932928AbZHDTY2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 15:24:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, avi@redhat.com
+Cc: hirofumi@mail.parknet.co.jp, dave@linux.vnet.ibm.com, nickpiggin@yahoo.com.au, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     kvm: fix read buffer overflow
+     vfs: mnt_want_write_file(): fix special file handling
 has been added to the -mm tree.  Its filename is
-     kvm-fix-read-buffer-overflow.patch
+     vfs-mnt_want_write_file-fix-special-file-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm: fix read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: vfs: mnt_want_write_file(): fix special file handling
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Check whether index is within bounds before grabbing the element.
+I suspect that mnt_want_write_file() may have wrong assumption.  I think
+mnt_want_write_file() is assuming it increments ->mnt_writers if
+(file->f_mode & FMODE_WRITE).  But, if it's special_file(), it is false?
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Avi Kivity <avi@redhat.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/vmx.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/namespace.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kvm/vmx.c~kvm-fix-read-buffer-overflow arch/x86/kvm/vmx.c
---- a/arch/x86/kvm/vmx.c~kvm-fix-read-buffer-overflow
-+++ a/arch/x86/kvm/vmx.c
-@@ -571,12 +571,15 @@ static void reload_tss(void)
- static void load_transition_efer(struct vcpu_vmx *vmx)
+diff -puN fs/namespace.c~vfs-mnt_want_write_file-fix-special-file-handling fs/namespace.c
+--- a/fs/namespace.c~vfs-mnt_want_write_file-fix-special-file-handling
++++ a/fs/namespace.c
+@@ -316,7 +316,8 @@ EXPORT_SYMBOL_GPL(mnt_clone_write);
+  */
+ int mnt_want_write_file(struct file *file)
  {
- 	int efer_offset = vmx->msr_offset_efer;
--	u64 host_efer = vmx->host_msrs[efer_offset].data;
--	u64 guest_efer = vmx->guest_msrs[efer_offset].data;
-+	u64 host_efer;
-+	u64 guest_efer;
- 	u64 ignore_bits;
- 
- 	if (efer_offset < 0)
- 		return;
-+	host_efer = vmx->host_msrs[efer_offset].data;
-+	guest_efer = vmx->guest_msrs[efer_offset].data;
-+
- 	/*
- 	 * NX is emulated; LMA and LME handled by hardware; SCE meaninless
- 	 * outside long mode
+-	if (!(file->f_mode & FMODE_WRITE))
++	struct inode *inode = file->f_dentry->d_inode;
++	if (!(file->f_mode & FMODE_WRITE) || special_file(inode->i_mode))
+ 		return mnt_want_write(file->f_path.mnt);
+ 	else
+ 		return mnt_clone_write(file->f_path.mnt);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
 linux-next.patch
-x86-fix-buffer-overflow-in-efi_init.patch
-kgdb-remove-redundant-test.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-fsl-booke-read-buffer-overflow.patch
-media-strncpy-does-not-null-terminate-string.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-hid-fix-read-buffer-overflow.patch
-ipath-strncpy-does-not-null-terminate-string.patch
-kvm-fix-read-buffer-overflow.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-mips-read-buffer-overflow.patch
-slram-read-buffer-overflow.patch
-slram-read-buffer-overflow-cleanup.patch
-mtd-fix-read-buffer-overflow.patch
-irda-fix-read-buffer-overflow.patch
-hfc_usb-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-ocfs2-keep-index-within-status_map.patch
-drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
-cyclades-read-buffer-overflow.patch
-perf-fix-read-buffer-overflow.patch
-arch-s390-kvm-sigpc-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-iprh-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-usb-gadget-read-buffer-overflow.patch
-libertas-read-buffer-overflow.patch
-i915-fix-read-outside-array-bounds.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-adfs-remove-redundant-test-on-unsigned.patch
+time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+vfs-mnt_want_write_file-fix-special-file-handling.patch
 
