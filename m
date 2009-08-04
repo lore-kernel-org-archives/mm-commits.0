@@ -1,52 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] libertas-read-buffer-overflow.patch removed from -mm tree
-Date: Tue, 04 Aug 2009 12:35:38 -0700
-Message-ID: <200908041935.n74JZcPL029626@imap1.linux-foundation.org>
+Subject: [merged] arch-s390-kvm-sigpc-fix-read-buffer-overflow.patch removed from -mm tree
+Date: Tue, 04 Aug 2009 12:35:35 -0700
+Message-ID: <200908041935.n74JZZP5029453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751889AbZHDTfk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 15:35:40 -0400
+	by vger.kernel.org with ESMTP id S1752680AbZHDTfz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 15:35:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, avi@redhat.com, borntraeger@de.ibm.com, cotte@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libertas: fix read buffer overflow
+     arch/s390/kvm/sigp.c: fix read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     libertas-read-buffer-overflow.patch
+     arch-s390-kvm-sigpc-fix-read-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libertas: fix read buffer overflow
+Subject: arch/s390/kvm/sigp.c: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Check whether index is within bounds before testing the element.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Carsten Otte <cotte@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas/11d.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/s390/kvm/sigp.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/wireless/libertas/11d.c~libertas-read-buffer-overflow drivers/net/wireless/libertas/11d.c
---- a/drivers/net/wireless/libertas/11d.c~libertas-read-buffer-overflow
-+++ a/drivers/net/wireless/libertas/11d.c
-@@ -47,7 +47,7 @@ static u8 lbs_region_2_code(u8 *region)
+diff -puN arch/s390/kvm/sigp.c~arch-s390-kvm-sigpc-fix-read-buffer-overflow arch/s390/kvm/sigp.c
+--- a/arch/s390/kvm/sigp.c~arch-s390-kvm-sigpc-fix-read-buffer-overflow
++++ a/arch/s390/kvm/sigp.c
+@@ -181,7 +181,7 @@ static int __sigp_set_prefix(struct kvm_
+ 			     unsigned long *reg)
  {
- 	u8 i;
+ 	struct kvm_s390_float_interrupt *fi = &vcpu->kvm->arch.float_int;
+-	struct kvm_s390_local_interrupt *li;
++	struct kvm_s390_local_interrupt *li = NULL;
+ 	struct kvm_s390_interrupt_info *inti;
+ 	int rc;
+ 	u8 tmp;
+@@ -201,9 +201,10 @@ static int __sigp_set_prefix(struct kvm_
+ 		return 2; /* busy */
  
--	for (i = 0; region[i] && i < COUNTRY_CODE_LEN; i++)
-+	for (i = 0; i < COUNTRY_CODE_LEN && region[i]; i++)
- 		region[i] = toupper(region[i]);
+ 	spin_lock(&fi->lock);
+-	li = fi->local_int[cpu_addr];
++	if (cpu_addr < KVM_MAX_VCPUS)
++		li = fi->local_int[cpu_addr];
  
- 	for (i = 0; i < ARRAY_SIZE(region_code_mapping); i++) {
+-	if ((cpu_addr >= KVM_MAX_VCPUS) || (li == NULL)) {
++	if (li == NULL) {
+ 		rc = 1; /* incorrect state */
+ 		*reg &= SIGP_STAT_INCORRECT_STATE;
+ 		kfree(inti);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
