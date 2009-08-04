@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drm-radeon-avoid-calculating-possibly-invalid-address.patch added to -mm tree
-Date: Tue, 04 Aug 2009 15:21:18 -0700
-Message-ID: <200908042221.n74MLILV015084@imap1.linux-foundation.org>
+Subject: + drm-ttm-avoid-calculating-possibly-invalid-address.patch added to -mm tree
+Date: Tue, 04 Aug 2009 15:39:11 -0700
+Message-ID: <200908042239.n74MdBbg012572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40600 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46839 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933437AbZHDWWA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:22:00 -0400
+	by vger.kernel.org with ESMTP id S1751668AbZHDWjP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:39:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: roel.kluin@gmail.com, airlied@linux.ie
 
 
 The patch titled
-     drm/radeon: avoid calculating possibly-invalid address
+     drm: ttm: avoid calculating possibly-invalid address
 has been added to the -mm tree.  Its filename is
-     drm-radeon-avoid-calculating-possibly-invalid-address.patch
+     drm-ttm-avoid-calculating-possibly-invalid-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm/radeon: avoid calculating possibly-invalid address
+Subject: drm: ttm: avoid calculating possibly-invalid address
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Check whether index is within bounds before calculating the address.
+Check whether index is within bounds prior to calculating a
+possibly-incorrect address.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/r100.c |    3 ++-
+ drivers/gpu/drm/ttm/ttm_bo.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/radeon/r100.c~drm-radeon-avoid-calculating-possibly-invalid-address drivers/gpu/drm/radeon/r100.c
---- a/drivers/gpu/drm/radeon/r100.c~drm-radeon-avoid-calculating-possibly-invalid-address
-+++ a/drivers/gpu/drm/radeon/r100.c
-@@ -722,13 +722,14 @@ int r100_cs_packet_parse(struct radeon_c
- 			 unsigned idx)
- {
- 	struct radeon_cs_chunk *ib_chunk = &p->chunks[p->chunk_ib_idx];
--	uint32_t header = ib_chunk->kdata[idx];
-+	uint32_t header;
+diff -puN drivers/gpu/drm/ttm/ttm_bo.c~drm-ttm-avoid-calculating-possibly-invalid-address drivers/gpu/drm/ttm/ttm_bo.c
+--- a/drivers/gpu/drm/ttm/ttm_bo.c~drm-ttm-avoid-calculating-possibly-invalid-address
++++ a/drivers/gpu/drm/ttm/ttm_bo.c
+@@ -1182,13 +1182,14 @@ static int ttm_bo_force_list_clean(struc
  
- 	if (idx >= ib_chunk->length_dw) {
- 		DRM_ERROR("Can not parse packet at %d after CS end %d !\n",
- 			  idx, ib_chunk->length_dw);
- 		return -EINVAL;
+ int ttm_bo_clean_mm(struct ttm_bo_device *bdev, unsigned mem_type)
+ {
+-	struct ttm_mem_type_manager *man = &bdev->man[mem_type];
++	struct ttm_mem_type_manager *man;
+ 	int ret = -EINVAL;
+ 
+ 	if (mem_type >= TTM_NUM_MEM_TYPES) {
+ 		printk(KERN_ERR TTM_PFX "Illegal memory type %d\n", mem_type);
+ 		return ret;
  	}
-+	header = ib_chunk->kdata[idx];
- 	pkt->idx = idx;
- 	pkt->type = CP_PACKET_GET_TYPE(header);
- 	pkt->count = CP_PACKET_GET_COUNT(header);
++	man = &bdev->man[mem_type];
+ 
+ 	if (!man->has_type) {
+ 		printk(KERN_ERR TTM_PFX "Trying to take down uninitialized "
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -79,6 +80,7 @@ powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 powerpc-fsl-booke-read-buffer-overflow.patch
 powerpc-avoid-calculating-possibly-invalid-address.patch
 drm-radeon-avoid-calculating-possibly-invalid-address.patch
+drm-ttm-avoid-calculating-possibly-invalid-address.patch
 media-strncpy-does-not-null-terminate-string.patch
 siano-read-buffer-overflow.patch
 drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
