@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 04 Aug 2009 16:38:56 -0700
-Message-ID: <200908042338.n74NcvAF015128@imap1.linux-foundation.org>
+Subject: + gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch added to -mm tree
+Date: Tue, 04 Aug 2009 16:43:47 -0700
+Message-ID: <200908042343.n74NhlCD023242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755410AbZHDXjo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 19:39:44 -0400
+	by vger.kernel.org with ESMTP id S933030AbZHDXol (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 19:44:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, ben@simtec.co.uk, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes
+     gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix
 has been added to the -mm tree.  Its filename is
-     gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+     gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,20 +33,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes
+Subject: gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-ERROR: "foo*bar" should be "foo *bar"
-#32: FILE: drivers/gpio/gpiolib.c:339:
-+	const struct gpio_chip*chip = dev_get_drvdata(dev);
-
-total: 1 errors, 0 warnings, 37 lines checked
-
-./patches/gpiolib-add-names-file-in-gpio-chip-sysfs.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
 
 Cc: Ben Dooks <ben@simtec.co.uk>
 Cc: David Brownell <dbrownell@users.sourceforge.net>
@@ -56,18 +44,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/gpio/gpiolib.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes
+diff -puN drivers/gpio/gpiolib.c~gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix
 +++ a/drivers/gpio/gpiolib.c
-@@ -336,7 +336,7 @@ static DEVICE_ATTR(ngpio, 0444, chip_ngp
- static ssize_t chip_names_show(struct device *dev,
- 			       struct device_attribute *attr, char *buf)
- {
--	const struct gpio_chip*chip = dev_get_drvdata(dev);
-+	const struct gpio_chip *chip = dev_get_drvdata(dev);
- 	char **names = chip->names;
- 	int ptr = 0;
- 	int name;
+@@ -350,7 +350,7 @@ static ssize_t chip_names_show(struct de
+ 
+ 	return ptr;
+ }
+-DEVICE_ATTR(names, 0444, chip_names_show, NULL);
++static DEVICE_ATTR(names, 0444, chip_names_show, NULL);
+ 
+ static const struct attribute *gpiochip_attrs[] = {
+ 	&dev_attr_base.attr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +111,7 @@ rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
 rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
 rtc-philips-nxp-pcf2123-driver-v03-fix.patch
 gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
 davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
 davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
 drivers-video-add-kmalloc-null-tests-fix.patch
