@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-keep-quiet-while-list-empty.patch added to -mm tree
-Date: Tue, 04 Aug 2009 15:01:08 -0700
-Message-ID: <200908042201.n74M19bd013486@imap1.linux-foundation.org>
+Subject: + ksm-move-pages_sharing-updates.patch added to -mm tree
+Date: Tue, 04 Aug 2009 15:01:01 -0700
+Message-ID: <200908042201.n74M11JG013351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755207AbZHDWOE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:14:04 -0400
+	by vger.kernel.org with ESMTP id S1755163AbZHDWOY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 18:14:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
 
 
 The patch titled
-     ksm: keep quiet while list empty
+     ksm: move pages_sharing updates
 has been added to the -mm tree.  Its filename is
-     ksm-keep-quiet-while-list-empty.patch
+     ksm-move-pages_sharing-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,132 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: keep quiet while list empty
+Subject: ksm: move pages_sharing updates
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-ksm_scan_thread already sleeps in wait_event_interruptible until setting
-ksm_run activates it; but if there's nothing on its list to look at, i.e.
-nobody has yet said madvise MADV_MERGEABLE, it's a shame to be clocking
-up system time and full_scans: ksmd_should_run added to check that too.
+The pages_shared count is incremented and decremented when adding a node
+to and removing a node from the stable tree: easy to understand.  But the
+pages_sharing count was hard to follow, being adjusted in various places:
+increment and decrement it when adding to and removing from the stable tree.
 
-And move the mutex_lock out around it: the new counts showed that when
-ksm_run is stopped, a little work often got done afterwards, because it
-had been read before taking the mutex.
+And the pages_sharing variable used to include the pages_shared, then those
+were subtracted when shown in the pages_sharing sysfs file: now keep it as
+an exclusive count of leaves hanging off the stable tree nodes, throughout.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Acked-by: Izik Eidus <ieidus@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ mm/ksm.c |   24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN mm/ksm.c~ksm-keep-quiet-while-list-empty mm/ksm.c
---- a/mm/ksm.c~ksm-keep-quiet-while-list-empty
+diff -puN mm/ksm.c~ksm-move-pages_sharing-updates mm/ksm.c
+--- a/mm/ksm.c~ksm-move-pages_sharing-updates
 +++ a/mm/ksm.c
-@@ -1287,21 +1287,27 @@ static void ksm_do_scan(unsigned int sca
+@@ -152,7 +152,7 @@ static struct kmem_cache *mm_slot_cache;
+ /* The number of nodes in the stable tree */
+ static unsigned long ksm_pages_shared;
+ 
+-/* The number of page slots sharing those nodes */
++/* The number of page slots additionally sharing those nodes */
+ static unsigned long ksm_pages_sharing;
+ 
+ /* Limit on the number of unswappable pages used */
+@@ -382,6 +382,7 @@ static void remove_rmap_item_from_tree(s
+ 						&next_item->node,
+ 						&root_stable_tree);
+ 				next_item->address |= NODE_FLAG;
++				ksm_pages_sharing--;
+ 			} else {
+ 				rb_erase(&rmap_item->node, &root_stable_tree);
+ 				ksm_pages_shared--;
+@@ -395,10 +396,10 @@ static void remove_rmap_item_from_tree(s
+ 				BUG_ON(next_item->prev != rmap_item);
+ 				next_item->prev = rmap_item->prev;
+ 			}
++			ksm_pages_sharing--;
+ 		}
+ 
+ 		rmap_item->next = NULL;
+-		ksm_pages_sharing--;
+ 
+ 	} else if (rmap_item->address & NODE_FLAG) {
+ 		unsigned char age;
+@@ -786,8 +787,6 @@ static int try_to_merge_two_pages(struct
+ 		 */
+ 		if (err)
+ 			break_cow(mm1, addr1);
+-		else
+-			ksm_pages_sharing += 2;
  	}
+ 
+ 	put_page(kpage);
+@@ -816,9 +815,6 @@ static int try_to_merge_with_ksm_page(st
+ 	err = try_to_merge_one_page(vma, page1, kpage);
+ 	up_read(&mm1->mmap_sem);
+ 
+-	if (!err)
+-		ksm_pages_sharing++;
+-
+ 	return err;
  }
  
-+static int ksmd_should_run(void)
-+{
-+	return (ksm_run & KSM_RUN_MERGE) && !list_empty(&ksm_mm_head.mm_list);
-+}
-+
- static int ksm_scan_thread(void *nothing)
- {
- 	set_user_nice(current, 5);
- 
- 	while (!kthread_should_stop()) {
--		if (ksm_run & KSM_RUN_MERGE) {
--			mutex_lock(&ksm_thread_mutex);
-+		mutex_lock(&ksm_thread_mutex);
-+		if (ksmd_should_run())
- 			ksm_do_scan(ksm_thread_pages_to_scan);
--			mutex_unlock(&ksm_thread_mutex);
-+		mutex_unlock(&ksm_thread_mutex);
-+
-+		if (ksmd_should_run()) {
- 			schedule_timeout_interruptible(
- 				msecs_to_jiffies(ksm_thread_sleep_millisecs));
- 		} else {
- 			wait_event_interruptible(ksm_thread_wait,
--					(ksm_run & KSM_RUN_MERGE) ||
--					kthread_should_stop());
-+				ksmd_should_run() || kthread_should_stop());
+@@ -935,13 +931,12 @@ static struct rmap_item *stable_tree_ins
  		}
  	}
- 	return 0;
-@@ -1346,10 +1352,16 @@ int ksm_madvise(struct vm_area_struct *v
  
- int __ksm_enter(struct mm_struct *mm)
- {
--	struct mm_slot *mm_slot = alloc_mm_slot();
-+	struct mm_slot *mm_slot;
-+	int needs_wakeup;
-+
-+	mm_slot = alloc_mm_slot();
- 	if (!mm_slot)
- 		return -ENOMEM;
+-	ksm_pages_shared++;
+-
+ 	rmap_item->address |= NODE_FLAG | STABLE_FLAG;
+ 	rmap_item->next = NULL;
+ 	rb_link_node(&rmap_item->node, parent, new);
+ 	rb_insert_color(&rmap_item->node, &root_stable_tree);
  
-+	/* Check ksm_run too?  Would need tighter locking */
-+	needs_wakeup = list_empty(&ksm_mm_head.mm_list);
-+
- 	spin_lock(&ksm_mmlist_lock);
- 	insert_to_mm_slots_hash(mm, mm_slot);
- 	/*
-@@ -1361,6 +1373,10 @@ int __ksm_enter(struct mm_struct *mm)
- 	spin_unlock(&ksm_mmlist_lock);
- 
- 	set_bit(MMF_VM_MERGEABLE, &mm->flags);
-+
-+	if (needs_wakeup)
-+		wake_up_interruptible(&ksm_thread_wait);
-+
- 	return 0;
++	ksm_pages_shared++;
+ 	return rmap_item;
  }
+ 
+@@ -1026,6 +1021,8 @@ static void stable_tree_append(struct rm
+ 
+ 	tree_rmap_item->next = rmap_item;
+ 	rmap_item->address |= STABLE_FLAG;
++
++	ksm_pages_sharing++;
+ }
+ 
+ /*
+@@ -1050,10 +1047,9 @@ static void cmp_and_merge_page(struct pa
+ 	/* We first start with searching the page inside the stable tree */
+ 	tree_rmap_item = stable_tree_search(page, page2, rmap_item);
+ 	if (tree_rmap_item) {
+-		if (page == page2[0]) {			/* forked */
+-			ksm_pages_sharing++;
++		if (page == page2[0])			/* forked */
+ 			err = 0;
+-		} else
++		else
+ 			err = try_to_merge_with_ksm_page(rmap_item->mm,
+ 							 rmap_item->address,
+ 							 page, page2[0]);
+@@ -1114,7 +1110,6 @@ static void cmp_and_merge_page(struct pa
+ 				break_cow(tree_rmap_item->mm,
+ 						tree_rmap_item->address);
+ 				break_cow(rmap_item->mm, rmap_item->address);
+-				ksm_pages_sharing -= 2;
+ 			}
+ 		}
+ 
+@@ -1482,8 +1477,7 @@ KSM_ATTR_RO(pages_shared);
+ static ssize_t pages_sharing_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lu\n",
+-			ksm_pages_sharing - ksm_pages_shared);
++	return sprintf(buf, "%lu\n", ksm_pages_sharing);
+ }
+ KSM_ATTR_RO(pages_sharing);
  
 _
 
