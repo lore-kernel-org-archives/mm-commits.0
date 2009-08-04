@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw.patch added to -mm tree
-Date: Tue, 04 Aug 2009 00:59:51 -0700
-Message-ID: <200908040759.n747xpew001365@imap1.linux-foundation.org>
+Subject: + kgdb-remove-redundant-test.patch added to -mm tree
+Date: Tue, 04 Aug 2009 02:07:54 -0700
+Message-ID: <200908040907.n7497saC017696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48455 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754773AbZHDIBd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 04:01:33 -0400
+	by vger.kernel.org with ESMTP id S932480AbZHDJH4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 05:07:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: h-shimamoto@ct.jp.nec.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
+Cc: roel.kluin@gmail.com, jason.wessel@windriver.com
 
 
 The patch titled
-     posix-timers: fix oops in clock_nanosleep() with CLOCK_MONOTONIC_RAW
+     kgdb: remove redundant test
 has been added to the -mm tree.  Its filename is
-     posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw.patch
+     kgdb-remove-redundant-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,108 +33,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix-timers: fix oops in clock_nanosleep() with CLOCK_MONOTONIC_RAW
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Subject: kgdb: remove redundant test
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Prevent calling do_nanosleep() with clockid CLOCK_MONOTONIC_RAW, it may
-cause oops, such as NULL pointer dereference.
+The for loop starts with a breakno of 0, and ends when it's 4. so
+this test is always true.
 
-Userspace program is like this;
-
-#include <time.h>
-
-int main(void)
-{
-	struct timespec ts;
-
-	ts.tv_sec = 1;
-	ts.tv_nsec = 0;
-
-	return clock_nanosleep(4, 0, &ts, NULL);
-}
-
-and it will cause oops;
-
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000001
-IP: [<ffffffff81029eb5>] __ticket_spin_lock+0x9/0x1a
-PGD 3dc6c067 PUD 3b519067 PMD 0 
-Oops: 0002 [#1] SMP 
-last sysfs file: /sys/devices/pci0000:00/0000:00:1c.0/0000:02:00.0/irq
-CPU 0 
-Modules linked in: sco bnep l2cap bluetooth sunrpc bridge stp llc ipv6 p4_clockmod speedstep_lib freq_table dm_multipath uinput iTCO_wdt iTCO_vendor_support tg3 i2c_i801 snd_intel8x0 snd_ac97_codec ac97_bus ppdev snd_pcm parport_pc snd_timer floppy parport snd soundcore snd_page_alloc pcspkr ata_generic pata_acpi nouveau drm i2c_algo_bit i2c_core [last unloaded: freq_table]
-Pid: 20114, comm: a.out Not tainted 2.6.29.6-213.fc11.x86_64 #1 PC-MY32EXZE78SG
-RIP: 0010:[<ffffffff81029eb5>]  [<ffffffff81029eb5>] __ticket_spin_lock+0x9/0x1a
-RSP: 0018:ffff88003e08bd88  EFLAGS: 00010046
-RAX: 0000000000000100 RBX: 0000000000000001 RCX: 0000000000000001
-RDX: 000000000000c350 RSI: 0000000000000286 RDI: 0000000000000001
-RBP: ffff88003e08bd88 R08: 0000000000000001 R09: 0000003ec680eec0
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000286
-R13: ffff88003e08be20 R14: 000000000000c350 R15: 000000000000c350
-FS:  00007fb6cd3996f0(0000) GS:ffffffff817b7000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000001 CR3: 000000003a5c0000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process a.out (pid: 20114, threadinfo ffff88003e08a000, task ffff8800399e1700)
-Stack:
- ffff88003e08bd98 ffffffff81029f7f ffff88003e08bdb8 ffffffff813ac07c
- ffff880001011178 ffff88003e08be98 ffff88003e08bde8 ffffffff8105f3a1
- ffff88003e08bdd8 ffff88003e08be98 0000000000000001 000000003b9aca00
-Call Trace:
- [<ffffffff81029f7f>] default_spin_lock_flags+0x9/0xe
- [<ffffffff813ac07c>] _spin_lock_irqsave+0x32/0x3b
- [<ffffffff8105f3a1>] lock_hrtimer_base+0x2a/0x50
- [<ffffffff8105f527>] __hrtimer_start_range_ns+0x2f/0x238
- [<ffffffff8105f75e>] hrtimer_start_range_ns+0x14/0x16
- [<ffffffff813aac8b>] do_nanosleep+0x4e/0xae
- [<ffffffff8105f813>] hrtimer_nanosleep+0xb3/0x123
- [<ffffffff8105edea>] ? hrtimer_wakeup+0x0/0x26
- [<ffffffff8105b4ed>] sys_clock_nanosleep+0xc9/0xdf
- [<ffffffff8101133a>] system_call_fastpath+0x16/0x1b
-Code: 9c 02 81 44 89 c6 48 89 c7 e8 0a fb ff ff eb 0f 0f b7 f6 40 0f b6 ff 48 89 c2 e8 1c fb ff ff c9 c3 90 55 b8 00 01 00 00 48 89 e5 <f0> 66 0f c1 07 38 e0 74 06 f3 90 8a 07 eb f6 c9 c3 55 48 89 e5 
-RIP  [<ffffffff81029eb5>] __ticket_spin_lock+0x9/0x1a
- RSP <ffff88003e08bd88>
-CR2: 0000000000000001
-
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/x86/kernel/kgdb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw
-+++ a/kernel/posix-timers.c
-@@ -202,6 +202,12 @@ static int no_timer_create(struct k_itim
- 	return -EOPNOTSUPP;
- }
+diff -puN arch/x86/kernel/kgdb.c~kgdb-remove-redundant-test arch/x86/kernel/kgdb.c
+--- a/arch/x86/kernel/kgdb.c~kgdb-remove-redundant-test
++++ a/arch/x86/kernel/kgdb.c
+@@ -225,8 +225,7 @@ static void kgdb_correct_hw_break(void)
+ 			dr7 |= ((breakinfo[breakno].len << 2) |
+ 				 breakinfo[breakno].type) <<
+ 			       ((breakno << 2) + 16);
+-			if (breakno >= 0 && breakno <= 3)
+-				set_debugreg(breakinfo[breakno].addr, breakno);
++			set_debugreg(breakinfo[breakno].addr, breakno);
  
-+static int no_nsleep(const clockid_t which_clock, int flags,
-+		     struct timespec *tsave, struct timespec __user *rmtp)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
- /*
-  * Return nonzero if we know a priori this clockid_t value is bogus.
-  */
-@@ -254,6 +260,7 @@ static __init int init_posix_timers(void
- 		.clock_get = posix_get_monotonic_raw,
- 		.clock_set = do_posix_clock_nosettime,
- 		.timer_create = no_timer_create,
-+		.nsleep = no_nsleep,
- 	};
- 
- 	register_posix_clock(CLOCK_REALTIME, &clock_realtime);
+ 		} else {
+ 			if ((dr7 & breakbit) && !breakinfo[breakno].enabled) {
 _
 
-Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-posix-timers-fix-oops-in-clock_nanosleep-with-clock_monotonic_raw.patch
-exec-fix-set_binfmt-vs-sys_delete_module-race.patch
-task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
+linux-next.patch
+x86-fix-buffer-overflow-in-efi_init.patch
+kgdb-remove-redundant-test.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-fsl-booke-read-buffer-overflow.patch
+media-strncpy-does-not-null-terminate-string.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+hid-fix-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+arch-s390-kvm-sigpc-fix-read-buffer-overflow.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+mips-read-buffer-overflow.patch
+slram-read-buffer-overflow.patch
+slram-read-buffer-overflow-cleanup.patch
+mtd-fix-read-buffer-overflow.patch
+irda-fix-read-buffer-overflow.patch
+hfc_usb-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
+cyclades-read-buffer-overflow.patch
+perf-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-iprh-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+usb-gadget-read-buffer-overflow.patch
+libertas-read-buffer-overflow.patch
+i915-fix-read-outside-array-bounds.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
