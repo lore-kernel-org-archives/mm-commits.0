@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-fix-vread-vwrite-to-be-aware-of-holes.patch added to -mm tree
-Date: Tue, 04 Aug 2009 14:30:58 -0700
-Message-ID: <200908042130.n74LUxr8027929@imap1.linux-foundation.org>
+Subject: + powerpc-avoid-calculating-possibly-invalid-address.patch added to -mm tree
+Date: Tue, 04 Aug 2009 14:33:28 -0700
+Message-ID: <200908042133.n74LXT7Q032126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60400 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932601AbZHDVbc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 17:31:32 -0400
+	by vger.kernel.org with ESMTP id S932614AbZHDVeY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2009 17:34:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, nickpiggin@yahoo.com.au, scgtrp@gmail.com, xiyou.wangcong@gmail.com
+Cc: roel.kluin@gmail.com, benh@kernel.crashing.org, bernd@firmix.at
 
 
 The patch titled
-     kcore: fix vread/vwrite to be aware of holes
+     powerpc: avoid calculating possibly-invalid address
 has been added to the -mm tree.  Its filename is
-     kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
+     powerpc-avoid-calculating-possibly-invalid-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,320 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: fix vread/vwrite to be aware of holes
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: powerpc: avoid calculating possibly-invalid address
+From: Roel Kluin <roel.kluin@gmail.com>
 
-vread/vwrite access vmalloc area without checking there is a page or not. 
-In most case, this works well.
+Check whether index is within bounds prior to calculating a
+possibly-invalid address.
 
-In old ages, the caller of get_vm_ara() is only IOREMAP and there is no
-memory hole within vm_struct's [addr...addr + size - PAGE_SIZE] (
--PAGE_SIZE is for a guard page.)
-
-After per-cpu-alloc patch, it uses get_vm_area() for reserve continuous
-virtual address but remap _later_.  There tend to be a hole in valid
-vmalloc area in vm_struct lists.  Then, skip the hole (not mapped page) is
-necessary.  This patch updates vread/vwrite() for avoiding memory hole.
-
-Routines which access vmalloc area without knowing for which addr is used
-are
-  - /proc/kcore
-  - /dev/kmem
-
-kcore checks IOREMAP, /dev/kmem doesn't.  After this patch, IOREMAP is
-checked and /dev/kmem will avoid to read/write it.  Fixes to /proc/kcore
-will be in the next patch in series.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Mike Smith <scgtrp@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Bernd Petrovitsch <bernd@firmix.at>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |  182 ++++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 159 insertions(+), 23 deletions(-)
+ drivers/char/hvsi.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~kcore-fix-vread-vwrite-to-be-aware-of-holes mm/vmalloc.c
---- a/mm/vmalloc.c~kcore-fix-vread-vwrite-to-be-aware-of-holes
-+++ a/mm/vmalloc.c
-@@ -25,7 +25,7 @@
- #include <linux/rcupdate.h>
- #include <linux/pfn.h>
- #include <linux/kmemleak.h>
--
-+#include <linux/highmem.h>
- #include <asm/atomic.h>
- #include <asm/uaccess.h>
- #include <asm/tlbflush.h>
-@@ -1627,10 +1627,109 @@ void *vmalloc_32_user(unsigned long size
- }
- EXPORT_SYMBOL(vmalloc_32_user);
+diff -puN drivers/char/hvsi.c~powerpc-avoid-calculating-possibly-invalid-address drivers/char/hvsi.c
+--- a/drivers/char/hvsi.c~powerpc-avoid-calculating-possibly-invalid-address
++++ a/drivers/char/hvsi.c
+@@ -1230,11 +1230,12 @@ static struct tty_driver *hvsi_console_d
  
-+/*
-+ * small helper routine , copy contents to buf from addr.
-+ * If the page is not present, fill zero.
-+ */
-+
-+static int aligned_vread(char *buf, char *addr, unsigned long count)
-+{
-+	struct page *p;
-+	int copied = 0;
-+
-+	while (count) {
-+		unsigned long offset, length;
-+
-+		offset = (unsigned long)addr & ~PAGE_MASK;
-+		length = PAGE_SIZE - offset;
-+		if (length > count)
-+			length = count;
-+		p = vmalloc_to_page(addr);
-+		/*
-+		 * To do safe access to this _mapped_ area, we need
-+		 * lock. But adding lock here means that we need to add
-+		 * overhead of vmalloc()/vfree() calles for this _debug_
-+		 * interface, rarely used. Instead of that, we'll use
-+		 * kmap() and get small overhead in this access function.
-+		 */
-+		if (p) {
-+			/* we can expect USR1 is not used */
-+			void *map = kmap_atomic(p, KM_USER1);
-+			memcpy(buf, map + offset, length);
-+			kunmap_atomic(map, KM_USER1);
-+		} else
-+			memset(buf, 0, length);
-+
-+		addr += length;
-+		buf += length;
-+		copied += length;
-+		count -= length;
-+	}
-+	return copied;
-+}
-+
-+static int aligned_vwrite(char *buf, char *addr, unsigned long count)
-+{
-+	struct page *p;
-+	int copied = 0;
-+
-+	while (count) {
-+		unsigned long offset, length;
-+
-+		offset = (unsigned long)addr & ~PAGE_MASK;
-+		length = PAGE_SIZE - offset;
-+		if (length > count)
-+			length = count;
-+		p = vmalloc_to_page(addr);
-+		/*
-+		 * To do safe access to this _mapped_ area, we need
-+		 * lock. But adding lock here means that we need to add
-+		 * overhead of vmalloc()/vfree() calles for this _debug_
-+		 * interface, rarely used. Instead of that, we'll use
-+		 * kmap() and get small overhead in this access function.
-+		 */
-+		if (p) {
-+			/* we can expect USR1 is not used */
-+			void *map = kmap_atomic(p, KM_USER1);
-+			memcpy(map + offset, buf, length);
-+			kunmap_atomic(map, KM_USER1);
-+		}
-+		addr += length;
-+		buf += length;
-+		copied += length;
-+		count -= length;
-+	}
-+	return copied;
-+}
-+
-+/**
-+ *	vread() -  read vmalloc area in a safe way.
-+ *	@buf:		buffer for reading data
-+ *	@addr:		vm address.
-+ *	@count:		number of bytes to be read.
-+ *
-+ *	Returns # of bytes which addr and buf should be increased.
-+ *	(same to count).
-+ *	If [addr...addr+count) doesn't includes any valid area, returns 0.
-+ *
-+ *	This function checks that addr is a valid vmalloc'ed area, and
-+ *	copy data from that area to a given buffer. If the given memory range of
-+ *	[addr...addr+count) includes some valid address, data is copied to
-+ *	proper area of @buf. If there are memory holes, they'll be zero-filled.
-+ *	IOREMAP area is treated as memory hole and no copy is done.
-+ *
-+ *	Note: In usual ops, vread() is never necessary because the caller should
-+ *	know vmalloc() area is valid and can use memcpy(). This is for routines
-+ *	which have to access vmalloc area without any informaion, as /dev/kmem.
-+ *
-+ *	The caller should guarantee KM_USER1 is not used.
-+ */
-+
- long vread(char *buf, char *addr, unsigned long count)
+ static int __init hvsi_console_setup(struct console *console, char *options)
  {
- 	struct vm_struct *tmp;
- 	char *vaddr, *buf_start = buf;
-+	unsigned long buflen = count;
- 	unsigned long n;
+-	struct hvsi_struct *hp = &hvsi_ports[console->index];
++	struct hvsi_struct *hp;
+ 	int ret;
  
- 	/* Don't allow overflow */
-@@ -1638,7 +1737,7 @@ long vread(char *buf, char *addr, unsign
- 		count = -(unsigned long) addr;
+ 	if (console->index < 0 || console->index >= hvsi_count)
+ 		return -1;
++	hp = &hvsi_ports[console->index];
  
- 	read_lock(&vmlist_lock);
--	for (tmp = vmlist; tmp; tmp = tmp->next) {
-+	for (tmp = vmlist; count && tmp; tmp = tmp->next) {
- 		vaddr = (char *) tmp->addr;
- 		if (addr >= vaddr + tmp->size - PAGE_SIZE)
- 			continue;
-@@ -1651,32 +1750,66 @@ long vread(char *buf, char *addr, unsign
- 			count--;
- 		}
- 		n = vaddr + tmp->size - PAGE_SIZE - addr;
--		do {
--			if (count == 0)
--				goto finished;
--			*buf = *addr;
--			buf++;
--			addr++;
--			count--;
--		} while (--n > 0);
-+		if (n > count)
-+			n = count;
-+		if (!(tmp->flags & VM_IOREMAP))
-+			aligned_vread(buf, addr, n);
-+		else /* IOREMAP area is treated as memory hole */
-+			memset(buf, 0, n);
-+		buf += n;
-+		addr += n;
-+		count -= n;
- 	}
- finished:
- 	read_unlock(&vmlist_lock);
--	return buf - buf_start;
-+
-+	if (buf == buf_start)
-+		return 0;
-+	/* zero-fill memory holes */
-+	if (buf != buf_start + buflen)
-+		memset(buf, 0, buflen - (buf - buf_start));
-+
-+	return buflen;
- }
- 
-+/**
-+ *	vwrite() -  write vmalloc area in a safe way.
-+ *	@buf:		buffer for source data
-+ *	@addr:		vm address.
-+ *	@count:		number of bytes to be read.
-+ *
-+ *	Returns # of bytes which addr and buf should be incresed.
-+ *	(same to count).
-+ *	If [addr...addr+count) doesn't includes any valid area, returns 0.
-+ *
-+ *	This function checks that addr is a valid vmalloc'ed area, and
-+ *	copy data from a buffer to the given addr. If specified range of
-+ *	[addr...addr+count) includes some valid address, data is copied from
-+ *	proper area of @buf. If there are memory holes, no copy to hole.
-+ *	IOREMAP area is treated as memory hole and no copy is done.
-+ *
-+ *	Note: In usual ops, vwrite() is never necessary because the caller
-+ *	should know vmalloc() area is valid and can use memcpy().
-+ *	This is for routines which have to access vmalloc area without
-+ *	any informaion, as /dev/kmem.
-+ *
-+ *	The caller should guarantee KM_USER1 is not used.
-+ */
-+
- long vwrite(char *buf, char *addr, unsigned long count)
- {
- 	struct vm_struct *tmp;
--	char *vaddr, *buf_start = buf;
--	unsigned long n;
-+	char *vaddr;
-+	unsigned long n, buflen;
-+	int copied = 0;
- 
- 	/* Don't allow overflow */
- 	if ((unsigned long) addr + count < count)
- 		count = -(unsigned long) addr;
-+	buflen = count;
- 
- 	read_lock(&vmlist_lock);
--	for (tmp = vmlist; tmp; tmp = tmp->next) {
-+	for (tmp = vmlist; count && tmp; tmp = tmp->next) {
- 		vaddr = (char *) tmp->addr;
- 		if (addr >= vaddr + tmp->size - PAGE_SIZE)
- 			continue;
-@@ -1688,18 +1821,21 @@ long vwrite(char *buf, char *addr, unsig
- 			count--;
- 		}
- 		n = vaddr + tmp->size - PAGE_SIZE - addr;
--		do {
--			if (count == 0)
--				goto finished;
--			*addr = *buf;
--			buf++;
--			addr++;
--			count--;
--		} while (--n > 0);
-+		if (n > count)
-+			n = count;
-+		if (!(tmp->flags & VM_IOREMAP)) {
-+			aligned_vwrite(buf, addr, n);
-+			copied++;
-+		}
-+		buf += n;
-+		addr += n;
-+		count -= n;
- 	}
- finished:
- 	read_unlock(&vmlist_lock);
--	return buf - buf_start;
-+	if (!copied)
-+		return 0;
-+	return buflen;
- }
- 
- /**
+ 	/* give the FSP a chance to change the baud rate when we re-open */
+ 	hvsi_close_protocol(hp);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
-mm-clean-up-page_remove_rmap.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-mm-introduce-proc-pid-oom_adj_child.patch
-vmalloc-unmap-vmalloc-area-after-hiding-it.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
-kcore-proc-kcore-should-use-vread.patch
-kcore-fix-proc-kcores-statst_size.patch
-cgroups-support-named-cgroups-hierarchies.patch
-cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
-cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
-cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+linux-next.patch
+x86-fix-buffer-overflow-in-efi_init.patch
+kgdb-remove-redundant-test.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-fsl-booke-read-buffer-overflow.patch
+powerpc-avoid-calculating-possibly-invalid-address.patch
+media-strncpy-does-not-null-terminate-string.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+hid-fix-read-buffer-overflow.patch
+ipath-strncpy-does-not-null-terminate-string.patch
+kvm-fix-read-buffer-overflow.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+mips-read-buffer-overflow.patch
+slram-read-buffer-overflow.patch
+slram-read-buffer-overflow-cleanup.patch
+mtd-fix-read-buffer-overflow.patch
+irda-fix-read-buffer-overflow.patch
+hfc_usb-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+ocfs2-keep-index-within-status_map.patch
+drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
+cyclades-read-buffer-overflow.patch
+perf-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-iprh-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+usb-gadget-read-buffer-overflow.patch
+i915-fix-read-outside-array-bounds.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
