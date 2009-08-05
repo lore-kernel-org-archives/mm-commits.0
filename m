@@ -1,292 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] scripts-get_maintainerpl-add-optional-git-blame-checking.patch removed from -mm tree
-Date: Wed, 05 Aug 2009 12:20:58 -0700
-Message-ID: <200908051920.n75JKwLD025309@imap1.linux-foundation.org>
+Subject: + mtd-make-onenand-genericc-more-generic.patch added to -mm tree
+Date: Wed, 05 Aug 2009 12:48:38 -0700
+Message-ID: <200908051948.n75JmcPG007027@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751236AbZHETV4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2009 15:21:56 -0400
+	by vger.kernel.org with ESMTP id S1750921AbZHETt1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2009 15:49:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, julia@diku.dk, vegard.nossum@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: damm@igel.co.jp, dwmw2@infradead.org, lethal@linux-sh.org, tony@atomide.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: Add optional "git blame" checking
-has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-add-optional-git-blame-checking.patch
+     mtd: make onenand/generic.c more generic
+has been added to the -mm tree.  Its filename is
+     mtd-make-onenand-genericc-more-generic.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: Add optional "git blame" checking
-From: Joe Perches <joe@perches.com>
+Subject: mtd: make onenand/generic.c more generic
+From: Magnus Damm <damm@igel.co.jp>
 
-Julia Lawall sent me a private email suggesting that get_maintainers.pl
-should have the capability to include signatories of commits that are
-modified by a particular patch.
+Remove the ARM dependency from the generic "onenand" platform device
+driver.  This change makes the driver useful for other architectures as
+well.  Needed for the SuperH kfr2r09 board.
 
-Vegard Nossum did something similar once.
-http://lkml.org/lkml/2008/5/29/449
+Apart from the obvious Kconfig bits, the most important change is the move
+away from ARM specific includes and platform data.  Together with this
+change the only in-tree board code gets an update, and the driver name is
+also changed gracefully break potential out of tree drivers.
 
-Such a capability is provided with the patch below.
-It can be enabled with the "--git-blame" command line option.
+The driver is also updated to allow NULL as platform data together with a
+few changes to make use of resource_size() and dev_name().
 
-The modified script looks at the commits for all lines in the patch, and
-includes the "-by:" signatories for those commits.  It uses the same
-git-min-percent, git-max-maintainers, and git-min-signatures options. 
-git-since is ignored.
-
-It can be used independently from the --git default, so
-	./scripts/get_maintainers.pl --nogit --git-blame <patch>
-or
-	./scripts/get_maintainers.pl --nogit --git-blame -f <file>
-is acceptable.
-
-If used with -f <file>, all lines/commits for the file are
-checked.
-
-It can be slow if used with -f <file>
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Julia Lawall <julia@diku.dk>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |  133 ++++++++++++++++++++++++++++--------
- 1 file changed, 106 insertions(+), 27 deletions(-)
+ arch/arm/mach-omap2/board-apollon.c |    4 ++--
+ drivers/mtd/onenand/Kconfig         |    1 -
+ drivers/mtd/onenand/generic.c       |   24 ++++++++++++++----------
+ include/linux/mtd/onenand.h         |    8 ++++++++
+ 4 files changed, 24 insertions(+), 13 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-optional-git-blame-checking scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-optional-git-blame-checking
-+++ a/scripts/get_maintainer.pl
-@@ -13,7 +13,7 @@
- use strict;
+diff -puN arch/arm/mach-omap2/board-apollon.c~mtd-make-onenand-genericc-more-generic arch/arm/mach-omap2/board-apollon.c
+--- a/arch/arm/mach-omap2/board-apollon.c~mtd-make-onenand-genericc-more-generic
++++ a/arch/arm/mach-omap2/board-apollon.c
+@@ -87,7 +87,7 @@ static struct mtd_partition apollon_part
+ 	},
+ };
  
- my $P = $0;
--my $V = '0.17';
-+my $V = '0.18beta2';
+-static struct flash_platform_data apollon_flash_data = {
++static struct onenand_platform_data apollon_flash_data = {
+ 	.parts		= apollon_partitions,
+ 	.nr_parts	= ARRAY_SIZE(apollon_partitions),
+ };
+@@ -99,7 +99,7 @@ static struct resource apollon_flash_res
+ };
  
- use Getopt::Long qw(:config no_auto_abbrev);
+ static struct platform_device apollon_onenand_device = {
+-	.name		= "onenand",
++	.name		= "onenand-flash",
+ 	.id		= -1,
+ 	.dev		= {
+ 		.platform_data	= &apollon_flash_data,
+diff -puN drivers/mtd/onenand/Kconfig~mtd-make-onenand-genericc-more-generic drivers/mtd/onenand/Kconfig
+--- a/drivers/mtd/onenand/Kconfig~mtd-make-onenand-genericc-more-generic
++++ a/drivers/mtd/onenand/Kconfig
+@@ -23,7 +23,6 @@ config MTD_ONENAND_VERIFY_WRITE
  
-@@ -29,6 +29,7 @@ my $email_git_min_signatures = 1;
- my $email_git_max_maintainers = 5;
- my $email_git_min_percent = 5;
- my $email_git_since = "1-year-ago";
-+my $email_git_blame = 0;
- my $output_multiline = 1;
- my $output_separator = ", ";
- my $scm = 0;
-@@ -68,6 +69,7 @@ if (!GetOptions(
- 		'git-max-maintainers=i' => \$email_git_max_maintainers,
- 		'git-min-percent=i' => \$email_git_min_percent,
- 		'git-since=s' => \$email_git_since,
-+		'git-blame!' => \$email_git_blame,
- 		'm!' => \$email_maintainer,
- 		'n!' => \$email_usename,
- 		'l!' => \$email_list,
-@@ -150,6 +152,7 @@ close(MAINT);
- ## use the filenames on the command line or find the filenames in the patchfiles
+ config MTD_ONENAND_GENERIC
+ 	tristate "OneNAND Flash device via platform device driver"
+-	depends on ARM
+ 	help
+ 	  Support for OneNAND flash via platform device driver.
  
- my @files = ();
-+my @range = ();
- 
- foreach my $file (@ARGV) {
-     ##if $file is a directory and it lacks a trailing slash, add one
-@@ -162,13 +165,19 @@ foreach my $file (@ARGV) {
- 	push(@files, $file);
-     } else {
- 	my $file_cnt = @files;
-+	my $lastfile;
- 	open(PATCH, "<$file") or die "$P: Can't open ${file}\n";
- 	while (<PATCH>) {
- 	    if (m/^\+\+\+\s+(\S+)/) {
- 		my $filename = $1;
- 		$filename =~ s@^[^/]*/@@;
- 		$filename =~ s@\n@@;
-+		$lastfile = $filename;
- 		push(@files, $filename);
-+	    } elsif (m/^\@\@ -(\d+),(\d+)/) {
-+		if ($email_git_blame) {
-+		    push(@range, "$lastfile:$1:$2");
-+		}
- 	    }
- 	}
- 	close(PATCH);
-@@ -226,6 +235,9 @@ foreach my $file (@files) {
- 	recent_git_signoffs($file);
-     }
- 
-+    if ($email && $email_git_blame) {
-+	git_assign_blame($file);
-+    }
- }
- 
- if ($email) {
-@@ -311,6 +323,7 @@ MAINTAINER field selection options:
-     --git-max-maintainers => maximum maintainers to add (default: 5)
-     --git-min-percent => minimum percentage of commits required (default: 5)
-     --git-since => git history to use (default: 1-year-ago)
-+    --git-blame => use git blame to find modified commits for patch or file
-     --m => include maintainer(s) if any
-     --n => include name 'Full Name <addr\@domain.tld>'
-     --l => include list(s) if any
-@@ -333,13 +346,15 @@ Other options:
- 
- Notes:
-   Using "-f directory" may give unexpected results:
+diff -puN drivers/mtd/onenand/generic.c~mtd-make-onenand-genericc-more-generic drivers/mtd/onenand/generic.c
+--- a/drivers/mtd/onenand/generic.c~mtd-make-onenand-genericc-more-generic
++++ a/drivers/mtd/onenand/generic.c
+@@ -19,12 +19,16 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/onenand.h>
+ #include <linux/mtd/partitions.h>
 -
--  Used with "--git", git signators for _all_ files in and below
--     directory are examined as git recurses directories.
--     Any specified X: (exclude) pattern matches are _not_ ignored.
--  Used with "--nogit", directory is used as a pattern match,
--     no individual file within the directory or subdirectory
--     is matched.
-+      Used with "--git", git signators for _all_ files in and below
-+          directory are examined as git recurses directories.
-+          Any specified X: (exclude) pattern matches are _not_ ignored.
-+      Used with "--nogit", directory is used as a pattern match,
-+         no individual file within the directory or subdirectory
-+         is matched.
-+      Used with "--git-blame", does not iterate all files in directory
-+  Using "--git-blame" is slow and may add old committers and authors
-+      that are no longer active maintainers to the output.
- EOT
- }
+ #include <asm/io.h>
+-#include <asm/mach/flash.h>
+-
+-#define DRIVER_NAME	"onenand"
  
-@@ -449,14 +464,19 @@ sub push_email_address {
-     my ($email_address) = @_;
++/*
++ * Note: Driver name and platform data format have been updated!
++ *
++ * This version of the driver is named "onenand-flash" and takes struct
++ * onenand_platform_data as platform data. The old ARM-specific version
++ * with the name "onenand" used to take struct flash_platform_data.
++ */
++#define DRIVER_NAME	"onenand-flash"
  
-     my $email_name = "";
--    if ($email_address =~ m/([^<]+)<(.*\@.*)>$/) {
--	$email_name = $1;
--	$email_address = $2;
--    }
+ #ifdef CONFIG_MTD_PARTITIONS
+ static const char *part_probes[] = { "cmdlinepart", NULL,  };
+@@ -39,16 +43,16 @@ struct onenand_info {
+ static int __devinit generic_onenand_probe(struct platform_device *pdev)
+ {
+ 	struct onenand_info *info;
+-	struct flash_platform_data *pdata = pdev->dev.platform_data;
++	struct onenand_platform_data *pdata = pdev->dev.platform_data;
+ 	struct resource *res = pdev->resource;
+-	unsigned long size = res->end - res->start + 1;
++	unsigned long size = resource_size(res);
+ 	int err;
  
-     if ($email_maintainer) {
--	if ($email_usename && $email_name) {
--	    push(@email_to, format_email($email_name, $email_address));
-+	if ($email_address =~ m/([^<]+)<(.*\@.*)>$/) {
-+	    $email_name = $1;
-+	    $email_address = $2;
-+	    if ($email_usename) {
-+		push(@email_to, format_email($email_name, $email_address));
-+	    } else {
-+		push(@email_to, $email_address);
-+	    }
-+	} elsif ($email_address =~ m/<(.+)>/) {
-+	    $email_address = $1;
-+	    push(@email_to, $email_address);
- 	} else {
- 	    push(@email_to, $email_address);
+ 	info = kzalloc(sizeof(struct onenand_info), GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+ 
+-	if (!request_mem_region(res->start, size, pdev->dev.driver->name)) {
++	if (!request_mem_region(res->start, size, dev_name(&pdev->dev))) {
+ 		err = -EBUSY;
+ 		goto out_free_info;
  	}
-@@ -545,20 +565,79 @@ sub recent_git_signoffs {
- 		last;
- 	    }
+@@ -59,7 +63,7 @@ static int __devinit generic_onenand_pro
+ 		goto out_release_mem_region;
  	}
--	if ($line =~ m/(.+)<(.+)>/) {
--	    my $git_name = $1;
--	    my $git_addr = $2;
--	    if ($email_usename) {
--		push(@email_to, format_email($git_name, $git_addr));
--	    } else {
--		push(@email_to, $git_addr);
--	    }
--	} elsif ($line =~ m/<(.+)>/) {
--	    my $git_addr = $1;
--	    push(@email_to, $git_addr);
--	} else {
--	    push(@email_to, $line);
-+	push_email_address($line);
-+    }
-+}
-+
-+sub save_commits {
-+    my ($cmd, @commits) = @_;
-+    my $output;
-+    my @lines = ();
-+
-+    $output = `${cmd}`;
-+
-+    @lines = split("\n", $output);
-+    foreach my $line (@lines) {
-+	if ($line =~ m/^(\w+) /) {
-+	    push (@commits, $1);
-+	}
-+    }
-+    return @commits;
-+}
-+
-+sub git_assign_blame {
-+    my ($file) = @_;
-+
-+    my @lines = ();
-+    my @commits = ();
-+    my $cmd;
-+    my $output;
-+    my %hash;
-+    my $total_sign_offs;
-+    my $count;
-+
-+    if (@range) {
-+	foreach my $file_range_diff (@range) {
-+	    next if (!($file_range_diff =~ m/(.+):(.+):(.+)/));
-+	    my $diff_file = $1;
-+	    my $diff_start = $2;
-+	    my $diff_length = $3;
-+	    next if (!("$file" eq "$diff_file"));
-+	    $cmd = "git blame -l -L $diff_start,+$diff_length $file\n";
-+	    @commits = save_commits($cmd, @commits);
- 	}
-+    } else {
-+	if (-f $file) {
-+	    $cmd = "git blame -l $file\n";
-+	    @commits = save_commits($cmd, @commits);
-+	}
-+    }
-+
-+    $total_sign_offs = 0;
-+    @commits = uniq(@commits);
-+    foreach my $commit (@commits) {
-+	$cmd = "git log -1 ${commit}";
-+	$cmd .= " | grep -Ei \"^[-_ 	a-z]+by:.*\\\@.*\$\"";
-+	if (!$email_git_penguin_chiefs) {
-+	    $cmd .= " | grep -Ev \"${penguin_chiefs}\"";
-+	}
-+	$cmd .= " | cut -f2- -d\":\"";
-+
-+	$output = `${cmd}`;
-+	$output =~ s/^\s*//gm;
-+	@lines = split("\n", $output);
-+	$hash{$_}++ for @lines;
-+	$total_sign_offs += @lines;
-+    }
-+
-+    $count = 0;
-+    foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
-+	my $sign_offs = $hash{$line};
-+	$count++;
-+	last if ($sign_offs < $email_git_min_signatures ||
-+		 $count > $email_git_max_maintainers ||
-+		 $sign_offs * 100 / $total_sign_offs < $email_git_min_percent);
-+	push_email_address($line);
-     }
- }
  
+-	info->onenand.mmcontrol = pdata->mmcontrol;
++	info->onenand.mmcontrol = pdata ? pdata->mmcontrol : 0;
+ 	info->onenand.irq = platform_get_irq(pdev, 0);
+ 
+ 	info->mtd.name = dev_name(&pdev->dev);
+@@ -75,7 +79,7 @@ static int __devinit generic_onenand_pro
+ 	err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
+ 	if (err > 0)
+ 		add_mtd_partitions(&info->mtd, info->parts, err);
+-	else if (err <= 0 && pdata->parts)
++	else if (err <= 0 && pdata && pdata->parts)
+ 		add_mtd_partitions(&info->mtd, pdata->parts, pdata->nr_parts);
+ 	else
+ #endif
+@@ -99,7 +103,7 @@ static int __devexit generic_onenand_rem
+ {
+ 	struct onenand_info *info = platform_get_drvdata(pdev);
+ 	struct resource *res = pdev->resource;
+-	unsigned long size = res->end - res->start + 1;
++	unsigned long size = resource_size(res);
+ 
+ 	platform_set_drvdata(pdev, NULL);
+ 
+diff -puN include/linux/mtd/onenand.h~mtd-make-onenand-genericc-more-generic include/linux/mtd/onenand.h
+--- a/include/linux/mtd/onenand.h~mtd-make-onenand-genericc-more-generic
++++ a/include/linux/mtd/onenand.h
+@@ -214,4 +214,12 @@ unsigned onenand_block(struct onenand_ch
+ loff_t onenand_addr(struct onenand_chip *this, int block);
+ int flexonenand_region(struct mtd_info *mtd, loff_t addr);
+ 
++struct mtd_partition;
++
++struct onenand_platform_data {
++	void		(*mmcontrol)(struct mtd_info *mtd, int sync_read);
++	struct mtd_partition *parts;
++	unsigned int	nr_parts;
++};
++
+ #endif	/* __LINUX_MTD_ONENAND_H */
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from damm@igel.co.jp are
 
 linux-next.patch
-maintainers-add-ipvs-include-files.patch
-scripts-get_maintainerpl-add-optional-git-blame-checking.patch
-scripts-get_maintainerpl-add-sections-in-pattern-match-directory-depth-order.patch
-mmc-msm_sdccc-driver-for-htc-dream.patch
-msm_sdccc-convert-printkkern_level-to-pr_level.patch
-msm_sdccc-stylistic-cleaning.patch
-msm_sdccc-move-overly-indented-code-to-separate-function.patch
+mtd-make-onenand-genericc-more-generic.patch
 
