@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-add-sections-in-pattern-match-directory-depth-order.patch added to -mm tree
-Date: Wed, 05 Aug 2009 11:04:00 -0700
-Message-ID: <200908051804.n75I40fC025327@imap1.linux-foundation.org>
+Subject: [to-be-updated] scripts-get_maintainerpl-add-sections-in-pattern-match-directory-depth-order.patch removed from -mm tree
+Date: Wed, 05 Aug 2009 12:21:02 -0700
+Message-ID: <200908051921.n75JL27J025387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750767AbZHESEk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2009 14:04:40 -0400
+	by vger.kernel.org with ESMTP id S1751272AbZHETV6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2009 15:21:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, James.Bottomley@HansenPartnership.com, zaga@fly.cc.fer.hr
+To: joe@perches.com, James.Bottomley@HansenPartnership.com, zaga@fly.cc.fer.hr, mm-commits@vger.kernel.org
 
 
 The patch titled
      scripts/get_maintainer.pl: Add sections in pattern match directory depth order
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      scripts-get_maintainerpl-add-sections-in-pattern-match-directory-depth-order.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -126,7 +116,6 @@ Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
 maintainers-add-ipvs-include-files.patch
-scripts-get_maintainerpl-add-optional-git-blame-checking.patch
 scripts-get_maintainerpl-add-sections-in-pattern-match-directory-depth-order.patch
 mmc-msm_sdccc-driver-for-htc-dream.patch
 msm_sdccc-convert-printkkern_level-to-pr_level.patch
