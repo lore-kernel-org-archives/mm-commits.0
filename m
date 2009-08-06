@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-fix-netjet-build-errors.patch added to -mm tree
-Date: Wed, 05 Aug 2009 21:14:16 -0700
-Message-ID: <200908060414.n764EGa9013732@imap1.linux-foundation.org>
+Subject: + slqb-add-declaration-for-kmem_cache_init_late.patch added to -mm tree
+Date: Wed, 05 Aug 2009 21:17:33 -0700
+Message-ID: <200908060417.n764HXS0019189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53712 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750785AbZHFEOX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 00:14:23 -0400
+	by vger.kernel.org with ESMTP id S1750761AbZHFERh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 00:17:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, isdn@linux-pingi.de
+Cc: fengguang.wu@intel.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
 
 
 The patch titled
-     isdn: fix netjet build errors
+     slqb: add declaration for kmem_cache_init_late()
 has been added to the -mm tree.  Its filename is
-     isdn-fix-netjet-build-errors.patch
+     slqb-add-declaration-for-kmem_cache_init_late.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: fix netjet build errors
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: slqb: add declaration for kmem_cache_init_late()
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Fix netjet driver link errors when ISDN_I4L is not enabled:
-
-drivers/built-in.o: In function `mode_tiger':
-netjet.c:(.text+0x325dc8): undefined reference to `isdnhdlc_rcv_init'
-netjet.c:(.text+0x325dd5): undefined reference to `isdnhdlc_out_init'
-drivers/built-in.o: In function `fill_dma':
-netjet.c:(.text+0x325fb6): undefined reference to `isdnhdlc_encode'
-drivers/built-in.o: In function `read_dma':
-netjet.c:(.text+0x32631a): undefined reference to `isdnhdlc_decode'
-drivers/built-in.o: In function `nj_irq':
-netjet.c:(.text+0x326e01): undefined reference to `isdnhdlc_encode'
-
-or move isdnhdlc.c to some other sub-dir..
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/mISDN/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/slqb_def.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/isdn/hardware/mISDN/Kconfig~isdn-fix-netjet-build-errors drivers/isdn/hardware/mISDN/Kconfig
---- a/drivers/isdn/hardware/mISDN/Kconfig~isdn-fix-netjet-build-errors
-+++ a/drivers/isdn/hardware/mISDN/Kconfig
-@@ -78,6 +78,7 @@ config MISDN_NETJET
- 	depends on PCI
- 	select MISDN_IPAC
- 	select ISDN_HDLC
-+	select ISDN_I4L # so that make will recurse into sub-dir.
- 	help
- 	  Enable support for Traverse Technologies NETJet PCI cards.
+diff -puN include/linux/slqb_def.h~slqb-add-declaration-for-kmem_cache_init_late include/linux/slqb_def.h
+--- a/include/linux/slqb_def.h~slqb-add-declaration-for-kmem_cache_init_late
++++ a/include/linux/slqb_def.h
+@@ -298,4 +298,6 @@ static __always_inline void *kmalloc_nod
+ }
+ #endif
  
++void __init kmem_cache_init_late(void);
++
+ #endif /* _LINUX_SLQB_DEF_H */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 linux-next.patch
-media-zr364xx-fix-build-errors.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-isdn-fix-netjet-build-errors.patch
-staging-udlfb-fix-printk-format-warning.patch
-xfrm4-fix-build-when-sysctls-are-disabled.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
+slqb-add-declaration-for-kmem_cache_init_late.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-ummunotify-userspace-support-for-mmu-notifications-v3-fix-fix.patch
-add-a-driver-for-the-winbond-wpcd376i-ir-functionality-select-bitreverse.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-reiser4-export-remove_from_page_cache-fix.patch
+mm-clean-up-page_remove_rmap.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
 
