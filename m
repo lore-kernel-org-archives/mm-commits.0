@@ -1,57 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded] x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:32:09 -0700
-Message-ID: <200908062232.n76MW9Y7013403@imap1.linux-foundation.org>
+Subject: [folded] drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:32:45 -0700
+Message-ID: <200908062232.n76MWjQP014309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754557AbZHFWca (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:32:30 -0400
+	by vger.kernel.org with ESMTP id S1754555AbZHFWcq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:32:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, denis@compulab.co.il, hpa@zytor.com, mike@compulab.co.il, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, luming.yu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup
+     drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+     drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch
+This patch was dropped because it was folded into drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup
+Subject: drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-clean up comment
+ERROR: space required after that ',' (ctx:VxV)
+#35: FILE: drivers/pci/intel-iommu.c:3008:
++	int drhd_total = 0,drhd_ignored = 0;
+ 	                  ^
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Denis Turischev <denis@compulab.co.il>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mike Rapoport <mike@compulab.co.il
-Cc: Thomas Gleixner <tglx@linutronix.de>
+WARNING: braces {} are not necessary for single statement blocks
+#54: FILE: drivers/pci/intel-iommu.c:3026:
++		if (drhd->ignored || drhd->include_all) {
++			continue;
++		}
+
+ERROR: space required before the open parenthesis '('
+#86: FILE: drivers/pci/intel-iommu.c:3214:
++	if(init_no_remapping_devices()) {
+
+total: 2 errors, 1 warnings, 65 lines checked
+
+./patches/drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Yu Luming <luming.yu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/reboot.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/pci/intel-iommu.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/reboot.c~x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup
-+++ a/arch/x86/kernel/reboot.c
-@@ -249,8 +249,7 @@ static struct dmi_system_id __initdata r
- 			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-Z540N"),
- 		},
- 	},
--	{	/* Handle problems with rebooting on
--				CompuLab SBC-FITPC2 board */
-+	{	/* Handle problems with rebooting CompuLab SBC-FITPC2 boards */
- 		.callback = set_bios_reboot,
- 		.ident = "CompuLab SBC-FITPC2",
- 		.matches = {
+diff -puN drivers/pci/intel-iommu.c~drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes
++++ a/drivers/pci/intel-iommu.c
+@@ -3005,7 +3005,8 @@ static void __init iommu_exit_mempool(vo
+ static int __init init_no_remapping_devices(void)
+ {
+ 	struct dmar_drhd_unit *drhd;
+-	int drhd_total = 0,drhd_ignored = 0;
++	int drhd_total = 0;
++	int drhd_ignored = 0;
+ 
+ 	for_each_drhd_unit(drhd) {
+ 		if (!drhd->include_all) {
+@@ -3023,9 +3024,8 @@ static int __init init_no_remapping_devi
+ 		int i;
+ 		if (drhd->ignored)
+ 			drhd_ignored++;
+-		if (drhd->ignored || drhd->include_all) {
++		if (drhd->ignored || drhd->include_all)
+ 			continue;
+-		}
+ 		if (dmar_map_gfx)
+ 			continue;
+ 		for (i = 0; i < drhd->devices_cnt; i++)
+@@ -3211,7 +3211,7 @@ int __init intel_iommu_init(void)
+ 	iommu_init_mempool();
+ 	dmar_init_reserved_ranges();
+ 
+-	if(init_no_remapping_devices()) {
++	if (init_no_remapping_devices()) {
+ 		printk(KERN_ERR "IOMMU: all dmar HW unit ignored\n");
+ 		put_iova_domain(&reserved_iova_list);
+ 		iommu_exit_mempool();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,9 +103,9 @@ drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch
 x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
 arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch
 platform_device_add_data-use-kmemdup.patch
+drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored.patch
 drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
