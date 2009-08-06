@@ -1,96 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kernel-core-add-smp_call_function_any-update.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:30:46 -0700
-Message-ID: <200908062230.n76MUkAs010996@imap1.linux-foundation.org>
+Subject: [folded] x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:32:09 -0700
+Message-ID: <200908062232.n76MW9Y7013403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754555AbZHFWcU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:32:20 -0400
+	by vger.kernel.org with ESMTP id S1754557AbZHFWca (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:32:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, davej@redhat.com, efault@gmx.de, jaswinder@kernel.org, len.brown@intel.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.c
+To: akpm@linux-foundation.org, denis@compulab.co.il, hpa@zytor.com, mike@compulab.co.il, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-core-add-smp_call_function_any-update
+     x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup
 has been removed from the -mm tree.  Its filename was
-     kernel-core-add-smp_call_function_any-update.patch
+     x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
 
-This patch was dropped because it was folded into kernel-core-add-smp_call_function_any.patch
+This patch was dropped because it was folded into x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-core-add-smp_call_function_any-update
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Updated header comment and implementation comment.
+clean up comment
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Denis Turischev <denis@compulab.co.il>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Dave Jones <davej@redhat.com>
+Cc: Mike Rapoport <mike@compulab.co.il
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mike Galbraith <efault@gmx.de>
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/kernel/reboot.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/smp.c~kernel-core-add-smp_call_function_any-update kernel/smp.c
---- a/kernel/smp.c~kernel-core-add-smp_call_function_any-update
-+++ a/kernel/smp.c
-@@ -322,9 +322,9 @@ EXPORT_SYMBOL(smp_call_function_single);
-  * @info: An arbitrary pointer to pass to the function.
-  * @wait: If true, wait until function has completed.
-  *
-- * Returns 0 on success, else a negative status code. Note that @wait
-- * will be implicitly turned on in case of allocation failures, since
-- * we fall back to on-stack allocation.
-+ * Returns 0 on success, else a negative status code (if no cpus were online).
-+ * Note that @wait will be implicitly turned on in case of allocation failures,
-+ * since we fall back to on-stack allocation.
-  */
- int smp_call_function_any(const struct cpumask *mask,
- 			  void (*func)(void *info), void *info, int wait)
-@@ -346,7 +346,7 @@ int smp_call_function_any(const struct c
- 			goto call;
- 	}
- 
--	/* Any online will do. */
-+	/* Any online will do: smp_call_function_single handles nr_cpu_ids. */
- 	cpu = cpumask_any_and(mask, cpu_online_mask);
- call:
- 	ret = smp_call_function_single(cpu, func, info, wait);
+diff -puN arch/x86/kernel/reboot.c~x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup arch/x86/kernel/reboot.c
+--- a/arch/x86/kernel/reboot.c~x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup
++++ a/arch/x86/kernel/reboot.c
+@@ -249,8 +249,7 @@ static struct dmi_system_id __initdata r
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-Z540N"),
+ 		},
+ 	},
+-	{	/* Handle problems with rebooting on
+-				CompuLab SBC-FITPC2 board */
++	{	/* Handle problems with rebooting CompuLab SBC-FITPC2 boards */
+ 		.callback = set_bios_reboot,
+ 		.ident = "CompuLab SBC-FITPC2",
+ 		.matches = {
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-generic-ipi-fix-hotplug_cfd.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
 drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch
-kernel-core-add-smp_call_function_any.patch
-kernel-core-add-smp_call_function_any-update.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-lguest-cleanup-for-map_switcher.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch
+platform_device_add_data-use-kmemdup.patch
+drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place-fix.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
+slram-read-buffer-overflow-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+serial167-fix-read-buffer-overflow-fix.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
 lguest-cleanup-for-map_switcher-fix.patch
-kmod-fix-race-in-usermodehelper-code.patch
-generic-ipi-make-struct-call_function_data-lockless.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+ummunotify-userspace-support-for-mmu-notifications.patch
+ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+oom-fix-oom_adjust_write-input-sanity-check-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
 generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
 kernel-smpc-relocate-some-code.patch
-generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd.patch
-generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd-fix.patch
-exec-fix-set_binfmt-vs-sys_delete_module-race.patch
-cpu_hotplug-dont-affect-current-tasks-affinity.patch
-task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
