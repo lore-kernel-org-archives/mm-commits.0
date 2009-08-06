@@ -1,63 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:34:13 -0700
-Message-ID: <200908062234.n76MYDHW016770@imap1.linux-foundation.org>
+Subject: [folded] leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:34:41 -0700
+Message-ID: <200908062234.n76MYf5v017615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60523 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754555AbZHFWe1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:34:27 -0400
+	by vger.kernel.org with ESMTP id S1751338AbZHFWev (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, monstr@monstr.eu, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cascardo@holoscopio.com, rpurdie@rpsys.net, srcvale@holoscopio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds-gpio-leds-fix-typographics-fault-checkpatch-fixes
+     leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+     leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into leds-gpio-leds-fix-typographics-fault.patch
+This patch was dropped because it was folded into leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-gpio-leds-fix-typographics-fault-checkpatch-fixes
+Subject: leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#19: FILE: drivers/leds/leds-gpio.c:83:
-+^I^Iprintk(KERN_INFO "Skipping unavailable LED gpio %d (%s)\n", $
+WARNING: suspect code indent for conditional statements (8, 15)
+#20: FILE: drivers/leds/ledtrig-gpio.c:47:
++	if (!gpio_data->gpio)
+ 	       return;
 
-total: 1 errors, 0 warnings, 8 lines checked
+total: 0 errors, 1 warnings, 36 lines checked
 
-./patches/leds-gpio-leds-fix-typographics-fault.patch has style problems, please review.  If any of these errors
+./patches/leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Michal Simek <monstr@monstr.eu>
 Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Samuel R. C. Vale <srcvale@holoscopio.com>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-gpio.c |    2 +-
+ drivers/leds/ledtrig-gpio.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-gpio.c~leds-gpio-leds-fix-typographics-fault-checkpatch-fixes drivers/leds/leds-gpio.c
---- a/drivers/leds/leds-gpio.c~leds-gpio-leds-fix-typographics-fault-checkpatch-fixes
-+++ a/drivers/leds/leds-gpio.c
-@@ -80,7 +80,7 @@ static int __devinit create_gpio_led(con
+diff -puN drivers/leds/ledtrig-gpio.c~leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes drivers/leds/ledtrig-gpio.c
+--- a/drivers/leds/ledtrig-gpio.c~leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes
++++ a/drivers/leds/ledtrig-gpio.c
+@@ -45,7 +45,7 @@ static void gpio_trig_work(struct work_s
+ 	int tmp;
  
- 	/* skip leds that aren't available */
- 	if (!gpio_is_valid(template->gpio)) {
--		printk(KERN_INFO "Skipping unavailable LED gpio %d (%s)\n", 
-+		printk(KERN_INFO "Skipping unavailable LED gpio %d (%s)\n",
- 				template->gpio, template->name);
- 		return 0;
- 	}
+ 	if (!gpio_data->gpio)
+-	       return;
++		return;
+ 
+ 	tmp = gpio_get_value(gpio_data->gpio);
+ 	if (gpio_data->inverted)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +82,7 @@ input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interf
 input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 checkincludespl-add-option-to-remove-duplicates-in-place.patch
 leds-gpio-leds-fix-typographics-fault.patch
-leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
 leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
 slram-read-buffer-overflow-cleanup.patch
 proc-connector-add-event-for-process-becoming-session-leader.patch
