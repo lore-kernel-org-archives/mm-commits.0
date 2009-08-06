@@ -1,136 +1,355 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:50:55 -0700
-Message-ID: <200908062250.n76MotPk012418@imap1.linux-foundation.org>
+Subject: [to-be-updated] watchdog-add-sbc-fitpc2-watchdog-driver.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:55:03 -0700
+Message-ID: <200908062255.n76Mt33U019425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34898 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751355AbZHFWxB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:53:01 -0400
+	by vger.kernel.org with ESMTP id S1753360AbZHFWzO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:55:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, penberg@cs.helsinki.fi, vegard.nossum@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: denis@compulab.co.il, mike@compulab.co.il, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix
+     watchdog: add SBC-FITPC2 watchdog driver
 has been removed from the -mm tree.  Its filename was
-     fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+     watchdog-add-sbc-fitpc2-watchdog-driver.patch
 
-This patch was dropped because it was folded into fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: watchdog: add SBC-FITPC2 watchdog driver
+From: Denis Turischev <denis@compulab.co.il>
 
-copy_mount_string wants to be static.
+Add support for watchdog found on SBC-FITPC2 board.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Signed-off-by: Denis Turischev <denis@compulab.co.il>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/Kconfig          |   22 ++
+ drivers/watchdog/Makefile         |    1 
+ drivers/watchdog/sbc_fitpc2_wdt.c |  259 ++++++++++++++++++++++++++++
+ 3 files changed, 282 insertions(+)
 
-diff -puN fs/namespace.c~fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix fs/namespace.c
---- a/fs/namespace.c~fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix
-+++ a/fs/namespace.c
-@@ -1870,7 +1870,7 @@ int copy_mount_options(const void __user
- 	return 0;
- }
+diff -puN drivers/watchdog/Kconfig~watchdog-add-sbc-fitpc2-watchdog-driver drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~watchdog-add-sbc-fitpc2-watchdog-driver
++++ a/drivers/watchdog/Kconfig
+@@ -721,6 +721,28 @@ config SBC_EPX_C3_WATCHDOG
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called sbc_epx_c3.
  
--int copy_mount_string(const void __user *data, char **where)
-+static int copy_mount_string(const void __user *data, char **where)
- {
- 	char *tmp;
++config SBC_FITPC2_WATCHDOG
++	tristate "Compulab SBC-FITPC2 watchdog"
++	depends on X86
++	---help---
++	  This is the driver for the built-in watchdog timer on the fit-PC2
++	  Single-board computer made by Compulab.
++
++	  It`s possible to enable watchdog timer either from BIOS (F2) or from booted Linux.
++	  When "Watchdog Timer Value" enabled one can set 31-255 s operational range.
++
++	  Entering BIOS setup temporary disables watchdog operation regardless to current state,
++	  so system will not be restarted while user in BIOS setup.
++
++	  Once watchdog was enabled the system will be restarted every
++	  "Watchdog Timer Value" period, so to prevent it user can restart or
++	  disable the watchdog.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called sbc_fitpc2_wdt.
++
++	  Most people will say N.
++
+ # M32R Architecture
  
+ # M68K Architecture
+diff -puN drivers/watchdog/Makefile~watchdog-add-sbc-fitpc2-watchdog-driver drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~watchdog-add-sbc-fitpc2-watchdog-driver
++++ a/drivers/watchdog/Makefile
+@@ -93,6 +93,7 @@ obj-$(CONFIG_W83877F_WDT) += w83877f_wdt
+ obj-$(CONFIG_W83977F_WDT) += w83977f_wdt.o
+ obj-$(CONFIG_MACHZ_WDT) += machzwd.o
+ obj-$(CONFIG_SBC_EPX_C3_WATCHDOG) += sbc_epx_c3.o
++obj-$(CONFIG_SBC_FITPC2_WATCHDOG) += sbc_fitpc2_wdt.o
+ 
+ # M32R Architecture
+ 
+diff -puN /dev/null drivers/watchdog/sbc_fitpc2_wdt.c
+--- /dev/null
++++ a/drivers/watchdog/sbc_fitpc2_wdt.c
+@@ -0,0 +1,259 @@
++/*
++ * Watchdog driver for SBC-FITPC2 board
++ *
++ * Author: Denis Turischev <denis@compulab.co.il>
++ *
++ * Adapted from the IXP2000 watchdog driver by Deepak Saxena.
++ *
++ * This file is licensed under  the terms of the GNU General Public
++ * License version 2. This program is licensed "as is" without any
++ * warranty of any kind, whether express or implied.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME " WATCHDOG: " fmt
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/miscdevice.h>
++#include <linux/watchdog.h>
++#include <linux/ioport.h>
++#include <linux/delay.h>
++#include <linux/notifier.h>
++#include <linux/fs.h>
++#include <linux/reboot.h>
++#include <linux/init.h>
++#include <linux/moduleparam.h>
++#include <linux/dmi.h>
++
++#include <linux/io.h>
++#include <linux/uaccess.h>
++#include <asm/system.h>
++
++static int nowayout = WATCHDOG_NOWAYOUT;
++static unsigned int margin = 60;	/* (secs) Default is 1 minute */
++static unsigned long wdt_status;
++static spinlock_t wdt_lock;
++
++#define	WDT_IN_USE		0
++#define	WDT_OK_TO_CLOSE		1
++
++#define COMMAND_PORT		0x4c
++#define DATA_PORT		0x48
++
++#define IFACE_ON_COMMAND	1
++#define REBOOT_COMMAND		2
++
++#define WATCHDOG_NAME 		"SBC-FITPC2 Watchdog"
++
++static void wdt_send_data(unsigned char command, unsigned char data)
++{
++	outb(command, COMMAND_PORT);
++	mdelay(100);
++	outb(data, DATA_PORT);
++	mdelay(200);
++}
++
++static void wdt_enable(void)
++{
++	spin_lock(&wdt_lock);
++	wdt_send_data(IFACE_ON_COMMAND, 1);
++	wdt_send_data(REBOOT_COMMAND, margin);
++	spin_unlock(&wdt_lock);
++}
++
++static void wdt_disable(void)
++{
++	spin_lock(&wdt_lock);
++	wdt_send_data(IFACE_ON_COMMAND, 0);
++	wdt_send_data(REBOOT_COMMAND, 0);
++	spin_unlock(&wdt_lock);
++}
++
++static int fitpc2_wdt_open(struct inode *inode, struct file *file)
++{
++	if (test_and_set_bit(WDT_IN_USE, &wdt_status))
++		return -EBUSY;
++
++	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
++
++	wdt_enable();
++
++	return nonseekable_open(inode, file);
++}
++
++static ssize_t
++fitpc2_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
++{
++	size_t i;
++
++	if (!len)
++		return 0;
++
++	if (nowayout) {
++		len = 0;
++		goto out;
++	}
++
++	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
++
++	for (i = 0; i != len; i++) {
++		char c;
++
++		if (get_user(c, data + i))
++			return -EFAULT;
++
++		if (c == 'V')
++			set_bit(WDT_OK_TO_CLOSE, &wdt_status);
++	}
++
++out:
++	wdt_enable();
++
++	return len;
++}
++
++
++static struct watchdog_info ident = {
++	.options	= WDIOF_MAGICCLOSE | WDIOF_SETTIMEOUT |
++				WDIOF_KEEPALIVEPING,
++	.identity	= WATCHDOG_NAME,
++};
++
++
++static long
++fitpc2_wdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	int ret = -ENOTTY;
++	int time;
++
++	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		ret = copy_to_user((struct watchdog_info *)arg, &ident,
++				   sizeof(ident)) ? -EFAULT : 0;
++		break;
++
++	case WDIOC_GETSTATUS:
++		ret = put_user(0, (int *)arg);
++		break;
++
++	case WDIOC_GETBOOTSTATUS:
++		ret = put_user(0, (int *)arg);
++		break;
++
++	case WDIOC_KEEPALIVE:
++		wdt_enable();
++		ret = 0;
++		break;
++
++	case WDIOC_SETTIMEOUT:
++		ret = get_user(time, (int *)arg);
++		if (ret)
++			break;
++
++		if (time < 31 || time > 255) {
++			ret = -EINVAL;
++			break;
++		}
++
++		margin = time;
++		wdt_enable();
++		/* Fall through */
++
++	case WDIOC_GETTIMEOUT:
++		ret = put_user(margin, (int *)arg);
++		break;
++	}
++
++	return ret;
++}
++
++static int fitpc2_wdt_release(struct inode *inode, struct file *file)
++{
++	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status)) {
++		wdt_disable();
++		pr_info("Device disabled\n");
++	} else {
++		pr_warning("Device closed unexpectedly -"
++			" timer will not stop\n");
++	}
++
++	clear_bit(WDT_IN_USE, &wdt_status);
++	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
++
++	return 0;
++}
++
++
++static const struct file_operations fitpc2_wdt_fops = {
++	.owner		= THIS_MODULE,
++	.llseek		= no_llseek,
++	.write		= fitpc2_wdt_write,
++	.unlocked_ioctl	= fitpc2_wdt_ioctl,
++	.open		= fitpc2_wdt_open,
++	.release	= fitpc2_wdt_release,
++};
++
++static struct miscdevice fitpc2_wdt_miscdev = {
++	.minor		= WATCHDOG_MINOR,
++	.name		= "watchdog",
++	.fops		= &fitpc2_wdt_fops,
++};
++
++static int __init fitpc2_wdt_init(void)
++{
++	int err;
++
++	if (strcmp("SBC-FITPC2", dmi_get_system_info(DMI_BOARD_NAME))) {
++		pr_info("board name is: %s. Should be SBC-FITPC2\n",
++			dmi_get_system_info(DMI_BOARD_NAME));
++		return -ENODEV;
++	}
++
++	if (!request_region(COMMAND_PORT, 1, WATCHDOG_NAME)) {
++		pr_err("I/O address 0x%04x already in use\n", COMMAND_PORT);
++		return -EIO;
++	}
++
++	if (!request_region(DATA_PORT, 1, WATCHDOG_NAME)) {
++		pr_err("I/O address 0x%04x already in use\n", DATA_PORT);
++		err = -EIO;
++		goto err_data_port;
++	}
++
++	if (margin < 31 || margin > 255) {
++		pr_err("margin must be in range 31 - 255"
++		       " seconds, you tried to set %d\n", margin);
++		err = -EINVAL;
++		goto err_margin;
++	}
++
++	return misc_register(&fitpc2_wdt_miscdev);
++
++err_margin:
++	release_region(DATA_PORT, 1);
++err_data_port:
++	release_region(COMMAND_PORT, 1);
++
++	return err;
++}
++
++static void __exit fitpc2_wdt_exit(void)
++{
++	misc_deregister(&fitpc2_wdt_miscdev);
++}
++
++module_init(fitpc2_wdt_init);
++module_exit(fitpc2_wdt_exit);
++
++MODULE_AUTHOR("Denis Turischev <denis@compulab.co.il>");
++MODULE_DESCRIPTION("SBC-FITPC2 Watchdog");
++
++module_param(margin, int, 0);
++MODULE_PARM_DESC(margin, "Watchdog margin in seconds (default 60s)");
++
++module_param(nowayout, int, 0);
++MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started");
++
++MODULE_LICENSE("GPL");
++MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from denis@compulab.co.il are
 
-origin.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch
 x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch
-arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch
-platform_device_add_data-use-kmemdup.patch
-drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
-vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver.patch
 watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
-lguest-cleanup-for-map_switcher-fix.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ummunotify-userspace-support-for-mmu-notifications.patch
-ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-oom-fix-oom_adjust_write-input-sanity-check-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
