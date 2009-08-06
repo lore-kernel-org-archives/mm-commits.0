@@ -1,54 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:55:06 -0700
-Message-ID: <200908062255.n76Mt6i7019432@imap1.linux-foundation.org>
+Subject: [folded] vfs-optimize-touch_time-too-fix.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:54:32 -0700
+Message-ID: <200908062254.n76MsXL4018585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752978AbZHFWzN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:55:13 -0400
+	by vger.kernel.org with ESMTP id S1756258AbZHFWzQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:55:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, denis@compulab.co.il, mike@compulab.co.il, wim@iguana.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, haveblue@us.ibm.com, hch@infradead.org, vaurora@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog-add-sbc-fitpc2-watchdog-driver-fix
+     vfs-optimize-touch_time-too-fix
 has been removed from the -mm tree.  Its filename was
-     watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
+     vfs-optimize-touch_time-too-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into vfs-optimize-touch_time-too.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog-add-sbc-fitpc2-watchdog-driver-fix
+Subject: vfs-optimize-touch_time-too-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Initialise wdt_lock.
+fix typo in comment
 
-Cc: Denis Turischev <denis@compulab.co.il>
-Cc: Mike Rapoport <mike@compulab.co.il>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Valerie Aurora <vaurora@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/sbc_fitpc2_wdt.c |    2 +-
+ fs/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/sbc_fitpc2_wdt.c~watchdog-add-sbc-fitpc2-watchdog-driver-fix drivers/watchdog/sbc_fitpc2_wdt.c
---- a/drivers/watchdog/sbc_fitpc2_wdt.c~watchdog-add-sbc-fitpc2-watchdog-driver-fix
-+++ a/drivers/watchdog/sbc_fitpc2_wdt.c
-@@ -32,7 +32,7 @@
- static int nowayout = WATCHDOG_NOWAYOUT;
- static unsigned int margin = 60;	/* (secs) Default is 1 minute */
- static unsigned long wdt_status;
--static spinlock_t wdt_lock;
-+static DEFINE_SPINLOCK(wdt_lock);
+diff -puN fs/inode.c~vfs-optimize-touch_time-too-fix fs/inode.c
+--- a/fs/inode.c~vfs-optimize-touch_time-too-fix
++++ a/fs/inode.c
+@@ -1450,7 +1450,7 @@ void file_update_time(struct file *file)
+ 	struct timespec now;
+ 	enum { S_MTIME = 1, S_CTIME = 2, S_VERSION = 4 } sync_it = 0;
  
- #define	WDT_IN_USE		0
- #define	WDT_OK_TO_CLOSE		1
+-	/* First try to exhause all avenues to not sync */
++	/* First try to exhaust all avenues to not sync */
+ 	if (IS_NOCMTIME(inode))
+ 		return;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +84,7 @@ raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
 vfs-optimize-touch_time-too.patch
+vfs-optimize-touch_time-too-fix.patch
 watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
 lguest-cleanup-for-map_switcher-fix.patch
 revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
