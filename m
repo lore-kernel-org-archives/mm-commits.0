@@ -1,24 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 16:26:32 -0700
-Message-ID: <200908062326.n76NQWFv008051@imap1.linux-foundation.org>
+Subject: + genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch added to -mm tree
+Date: Thu, 06 Aug 2009 16:31:29 -0700
+Message-ID: <200908062331.n76NVUG5016313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754688AbZHFX2F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 19:28:05 -0400
+	by vger.kernel.org with ESMTP id S1754848AbZHFXcs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 19:32:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, khilman@deeprootsystems.com, rjw@sisk.pl, rmk@arm.linux.org.uk, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tglx@linutronix.de, khilman@deeprootsystems.com, rjw@sisk.pl, rmk@arm.linux.org.uk, stable@kernel.org
 
 
 The patch titled
      genirq: do not disable IRQ_WAKEUP marked irqs on suspend
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -37,9 +47,39 @@ The wakeup interrupts are marked in the status with the IRQ_WAKEUP bit.
 Skip the disablement for those interrupts which have the IRQ_WAKEUP bit
 set.
 
+rmk didst say:
+
+  This sounds like a regression fix to me - if IRQs are disabled on the
+  controllers, it means we have systems which can only ever be suspended. 
+  The only way to wake them back up would be to hard-reset them.
+
+  IOW, the regression turns suspend into a hang.
+
+rmk didst further say:
+
+  ARM systems can only be woken up by unmasked interrupts.  If the
+  current kernel masks all interrupts, suspending ARM systems is a _one_
+  way ticket to a full reboot.
+
+With all interrupts masked, there is NO WAY to wake up ARM interrupts.
+
+  So I'm afraid my comment here without any further suggestion that the
+  problem has been fixed in some other way is that this patch _is_
+  required _if_ the kernel is still masking all interrupts on suspend.
+
+  Now, given that ARM systems were able to be resumed up until the
+  offending commit was added to the kernel, it _is_ a regression, and I
+  think under Linus' rules, a fix is not a fix if it causes regressions
+  for some people.  So IMHO it needs to be backed out and another approach
+  taken, _if_ the problem is still present.
+
+  Unfortunately, I've no time to verify if the problem is present at the
+  moment.  I'm sure someone else in the ARM community can do the necessary
+  testing though.  Eg, anyone with a PXA platform will do.
+
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Acked-by: Russell King <rmk@arm.linux.org.uk>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
