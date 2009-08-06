@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-cleanup-for-map_switcher-fix.patch added to -mm tree
-Date: Wed, 05 Aug 2009 23:42:59 -0700
-Message-ID: <200908060642.n766gx8J003833@imap1.linux-foundation.org>
+Subject: + drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch added to -mm tree
+Date: Thu, 06 Aug 2009 00:01:35 -0700
+Message-ID: <200908060701.n7671ZYO002508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57263 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750821AbZHFGnJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 02:43:09 -0400
+	by vger.kernel.org with ESMTP id S1751858AbZHFHCL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 03:02:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au, xiaoguangrong@cn.fujitsu.com
+Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     lguest-cleanup-for-map_switcher-fix
+     drivers/lguest/page_tables.c: rsuty cnat tpye
 has been added to the -mm tree.  Its filename is
-     lguest-cleanup-for-map_switcher-fix.patch
+     drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lguest-cleanup-for-map_switcher-fix
+Subject: drivers/lguest/page_tables.c: rsuty cnat tpye
 From: Andrew Morton <akpm@linux-foundation.org>
 
-eh?
-
 Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/core.c |    2 +-
+ drivers/lguest/page_tables.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/lguest/core.c~lguest-cleanup-for-map_switcher-fix drivers/lguest/core.c
---- a/drivers/lguest/core.c~lguest-cleanup-for-map_switcher-fix
-+++ a/drivers/lguest/core.c
-@@ -68,7 +68,7 @@ static __init int map_switcher(void)
- 	 */
- 	for (i = 0; i < TOTAL_SWITCHER_PAGES; i++) {
- 		switcher_page[i] = alloc_page(GFP_KERNEL|__GFP_ZERO);
--		if (!switcher_page[i])
-+		if (!switcher_page[i]) {
- 			err = -ENOMEM;
- 			goto free_some_pages;
- 		}
+diff -puN drivers/lguest/page_tables.c~drivers-lguest-page_tablesc-rsuty-cnat-tpye drivers/lguest/page_tables.c
+--- a/drivers/lguest/page_tables.c~drivers-lguest-page_tablesc-rsuty-cnat-tpye
++++ a/drivers/lguest/page_tables.c
+@@ -984,7 +984,7 @@ static unsigned long setup_pagetables(st
+ 	for (i = j = 0; i < mapped_pages && j < PTRS_PER_PMD;
+ 	     i += PTRS_PER_PTE, j++) {
+ 		pmd = pfn_pmd(((unsigned long)&linear[i] - mem_base)/PAGE_SIZE,
+-			      __pgrot(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER));
++			      __pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER));
+ 
+ 		if (copy_to_user(&pmds[j], &pmd, sizeof(pmd)) != 0)
+ 			return -EFAULT;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,4 +136,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch
 
