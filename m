@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch added to -mm tree
-Date: Wed, 05 Aug 2009 22:15:38 -0700
-Message-ID: <200908060515.n765FcVo019246@imap1.linux-foundation.org>
+Subject: + lguest-cleanup-for-map_switcher-fix.patch added to -mm tree
+Date: Wed, 05 Aug 2009 23:42:59 -0700
+Message-ID: <200908060642.n766gx8J003833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751595AbZHFFQY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 01:16:24 -0400
+	by vger.kernel.org with ESMTP id S1750821AbZHFGnJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 02:43:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, robert.richter@amd.com
+Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au, xiaoguangrong@cn.fujitsu.com
 
 
 The patch titled
-     arch/x86/kernel/cpu/amd.c: amd_fixup_dcm() is unused if CONFIG_X86_HT=n
+     lguest-cleanup-for-map_switcher-fix
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch
+     lguest-cleanup-for-map_switcher-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/cpu/amd.c: amd_fixup_dcm() is unused if CONFIG_X86_HT=n
+Subject: lguest-cleanup-for-map_switcher-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/cpu/amd.c:262: warning: 'amd_fixup_dcm' defined but not used
+eh?
 
-Cc: Robert Richter <robert.richter@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/amd.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/lguest/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/amd.c~arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n arch/x86/kernel/cpu/amd.c
---- a/arch/x86/kernel/cpu/amd.c~arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n
-+++ a/arch/x86/kernel/cpu/amd.c
-@@ -252,6 +252,7 @@ static int __cpuinit nearby_node(int api
- }
- #endif
- 
-+#ifdef CONFIG_X86_HT
- /*
-  * Fixup core topology information for AMD multi-node processors.
-  * Assumption 1: Number of cores in each internal node is the same.
-@@ -308,7 +309,6 @@ static void __cpuinit amd_fixup_dcm(stru
-  */
- static void __cpuinit amd_detect_cmp(struct cpuinfo_x86 *c)
- {
--#ifdef CONFIG_X86_HT
- 	unsigned bits;
- 	int cpu = smp_processor_id();
- 
-@@ -322,8 +322,12 @@ static void __cpuinit amd_detect_cmp(str
- 	/* fixup topology information on multi-node processors */
- 	if ((c->x86 == 0x10) && (c->x86_model == 9))
- 		amd_fixup_dcm(c);
--#endif
- }
-+#else
-+static inline void amd_detect_cmp(struct cpuinfo_x86 *c)
-+{
-+}
-+#endif
- 
- static void __cpuinit srat_detect_node(struct cpuinfo_x86 *c)
- {
+diff -puN drivers/lguest/core.c~lguest-cleanup-for-map_switcher-fix drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-cleanup-for-map_switcher-fix
++++ a/drivers/lguest/core.c
+@@ -68,7 +68,7 @@ static __init int map_switcher(void)
+ 	 */
+ 	for (i = 0; i < TOTAL_SWITCHER_PAGES; i++) {
+ 		switcher_page[i] = alloc_page(GFP_KERNEL|__GFP_ZERO);
+-		if (!switcher_page[i])
++		if (!switcher_page[i]) {
+ 			err = -ENOMEM;
+ 			goto free_some_pages;
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +90,7 @@ libfs-make-simple_read_from_buffer-conventional.patch
 fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
 vfs-optimize-touch_time-too-fix.patch
 watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
+lguest-cleanup-for-map_switcher-fix.patch
 mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
 revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
 mm-make-swap-token-dummies-static-inlines-fix.patch
