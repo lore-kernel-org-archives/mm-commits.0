@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drm-ttm-avoid-calculating-possibly-invalid-address.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 13:31:24 -0700
-Message-ID: <200908062031.n76KVO9o004590@imap1.linux-foundation.org>
+Subject: [merged] drm-radeon-avoid-calculating-possibly-invalid-address.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 13:31:22 -0700
+Message-ID: <200908062031.n76KVMP7004538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753263AbZHFUcV (ORCPT
+	by vger.kernel.org with ESMTP id S1756171AbZHFUcV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 16:32:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,48 +14,47 @@ To: roel.kluin@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: ttm: avoid calculating possibly-invalid address
+     drm/radeon: avoid calculating possibly-invalid address
 has been removed from the -mm tree.  Its filename was
-     drm-ttm-avoid-calculating-possibly-invalid-address.patch
+     drm-radeon-avoid-calculating-possibly-invalid-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: ttm: avoid calculating possibly-invalid address
+Subject: drm/radeon: avoid calculating possibly-invalid address
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Check whether index is within bounds prior to calculating a
-possibly-incorrect address.
+Check whether index is within bounds before calculating the address.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/ttm/ttm_bo.c |    3 ++-
+ drivers/gpu/drm/radeon/r100.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/ttm/ttm_bo.c~drm-ttm-avoid-calculating-possibly-invalid-address drivers/gpu/drm/ttm/ttm_bo.c
---- a/drivers/gpu/drm/ttm/ttm_bo.c~drm-ttm-avoid-calculating-possibly-invalid-address
-+++ a/drivers/gpu/drm/ttm/ttm_bo.c
-@@ -1182,13 +1182,14 @@ static int ttm_bo_force_list_clean(struc
- 
- int ttm_bo_clean_mm(struct ttm_bo_device *bdev, unsigned mem_type)
+diff -puN drivers/gpu/drm/radeon/r100.c~drm-radeon-avoid-calculating-possibly-invalid-address drivers/gpu/drm/radeon/r100.c
+--- a/drivers/gpu/drm/radeon/r100.c~drm-radeon-avoid-calculating-possibly-invalid-address
++++ a/drivers/gpu/drm/radeon/r100.c
+@@ -722,13 +722,14 @@ int r100_cs_packet_parse(struct radeon_c
+ 			 unsigned idx)
  {
--	struct ttm_mem_type_manager *man = &bdev->man[mem_type];
-+	struct ttm_mem_type_manager *man;
- 	int ret = -EINVAL;
+ 	struct radeon_cs_chunk *ib_chunk = &p->chunks[p->chunk_ib_idx];
+-	uint32_t header = ib_chunk->kdata[idx];
++	uint32_t header;
  
- 	if (mem_type >= TTM_NUM_MEM_TYPES) {
- 		printk(KERN_ERR TTM_PFX "Illegal memory type %d\n", mem_type);
- 		return ret;
+ 	if (idx >= ib_chunk->length_dw) {
+ 		DRM_ERROR("Can not parse packet at %d after CS end %d !\n",
+ 			  idx, ib_chunk->length_dw);
+ 		return -EINVAL;
  	}
-+	man = &bdev->man[mem_type];
- 
- 	if (!man->has_type) {
- 		printk(KERN_ERR TTM_PFX "Trying to take down uninitialized "
++	header = ib_chunk->kdata[idx];
+ 	pkt->idx = idx;
+ 	pkt->type = CP_PACKET_GET_TYPE(header);
+ 	pkt->count = CP_PACKET_GET_COUNT(header);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
