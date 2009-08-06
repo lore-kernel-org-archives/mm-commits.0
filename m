@@ -1,123 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:03:45 -0700
-Message-ID: <200908062203.n76M3j4P030400@imap1.linux-foundation.org>
+Subject: [folded] arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:31:08 -0700
+Message-ID: <200908062231.n76MV85I011630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45738 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752219AbZHFWE1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:04:27 -0400
+	by vger.kernel.org with ESMTP id S1754555AbZHFWbf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:31:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, menage@google.com
+To: akpm@linux-foundation.org, arjan@linux.intel.com, johnstul@us.ibm.com, mingo@elte.hu, shaohua.li@intel.com, tglx@linutronix.de, wei.chong.tan@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix
+     arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
+     arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
+This patch was dropped because it was folded into arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix
+Subject: arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-cleanups & tweaks
+WARNING: line over 80 characters
+#39: FILE: arch/x86/kernel/tsc.c:293:
++		 * how much inb(0x42) MSB is bigger then val when it return from SMI.
 
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
+WARNING: line over 80 characters
+#44: FILE: arch/x86/kernel/tsc.c:298:
++		 * this may skew the average delta variable of quick_pit_calibrate().
+
+total: 0 errors, 2 warnings, 29 lines checked
+
+./patches/arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Li, Shaohua" <shaohua.li@intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Wei Chong Tan <wei.chong.tan@intel.com>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |   11 ++++-------
- mm/mempolicy.c           |    5 +++--
- 2 files changed, 7 insertions(+), 9 deletions(-)
+ arch/x86/kernel/tsc.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/nodemask.h~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix
-+++ a/include/linux/nodemask.h
-@@ -84,11 +84,10 @@
-  *    way we do the other calls.
-  *
-  * NODEMASK_SCRATCH
-- * For doing above logical AND, OR, XOR, Remap, etc...the caller tend to be
-- * necessary to use temporal nodemask_t on stack. But if NODES_SHIFT is large,
-- * size of nodemask_t can be very big and not suitable for allocating in stack.
-- * NODEMASK_SCRATCH is a helper for such situaions. See below and CPUMASK_ALLOC
-- * also.
-+ * When doing above logical AND, OR, XOR, Remap operations the callers tend to
-+ * need temporary nodemask_t's on the stack. But if NODES_SHIFT is large,
-+ * nodemask_t's consume too much stack space.  NODEMASK_SCRATCH is a helper
-+ * for such situations. See below and CPUMASK_ALLOC also.
-  */
- 
- #include <linux/kernel.h>
-@@ -492,8 +491,6 @@ static inline int num_node_state(enum no
- #define NODEMASK_FREE(m)
- #endif
- 
--#define NODEMASK_POINTER(v, m) nodemask_t *v = &(m->v)
--
- /* A example struture for using NODEMASK_ALLOC, used in mempolicy. */
- struct nodemask_scratch {
- 	nodemask_t	mask1;
-diff -puN mm/mempolicy.c~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix mm/mempolicy.c
---- a/mm/mempolicy.c~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix
-+++ a/mm/mempolicy.c
-@@ -1915,7 +1915,6 @@ restart:
- void mpol_shared_policy_init(struct shared_policy *sp, struct mempolicy *mpol)
- {
- 	int ret;
--	NODEMASK_SCRATCH(scratch);
- 
- 	sp->root = RB_ROOT;		/* empty tree == default mempolicy */
- 	spin_lock_init(&sp->lock);
-@@ -1923,6 +1922,8 @@ void mpol_shared_policy_init(struct shar
- 	if (mpol) {
- 		struct vm_area_struct pvma;
- 		struct mempolicy *new;
-+		NODEMASK_SCRATCH(scratch);
-+
- 		if (!scratch)
- 			return;
- 		/* contextualize the tmpfs mount point mempolicy */
-@@ -1948,8 +1949,8 @@ void mpol_shared_policy_init(struct shar
- 		pvma.vm_end = TASK_SIZE;	/* policy covers entire file */
- 		mpol_set_shared_policy(sp, &pvma, new); /* adds ref */
- 		mpol_put(new);			/* drop initial ref */
-+		NODEMASK_SCRATCH_FREE(scratch);
+diff -puN arch/x86/kernel/tsc.c~arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes arch/x86/kernel/tsc.c
+--- a/arch/x86/kernel/tsc.c~arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes
++++ a/arch/x86/kernel/tsc.c
+@@ -285,17 +285,17 @@ static inline int pit_expect_msb(unsigne
+ 		inb(0x42);
+ 		if (inb(0x42) != val)
+ 			break;
+-		/* What if an SMI kicks in here when
+-		 * count is just slightly over 5 and SMI run long enough
+-		 * so that PIT MSB value is way bigger then val?
+-		 * Then tscp will have an unreasonably large value,
+-		 * since the code has no notion of
+-		 * how much inb(0x42) MSB is bigger then val when it return from SMI.
+-		 * In addition, since the 2 get_cycles() are near,
+-		 * deltap may get a sane value.
+-		 * If this happen on the final few readings
+-		 * just before (d1+d2 < delta >> 11),
+-		 * this may skew the average delta variable of quick_pit_calibrate().
++		/*
++		 * What if an SMI kicks in here when count is just slightly over
++		 * 5 and the SMI run long enough so that PIT MSB value is way
++		 * bigger then val?
++		 * Then tscp will have an unreasonably large value, since the
++		 * code has no notion of how much inb(0x42) MSB is bigger than
++		 * val when it return from SMI.
++		 * In addition, since the 2 get_cycles() are near, deltap may
++		 * get a sane value.  If this happens on the final few readings
++		 * just before (d1+d2 < delta >> 11), this may skew the average
++		 * delta variable of quick_pit_calibrate().
+ 		 */
+ 		tsc = get_cycles();
  	}
--	NODEMASK_SCRATCH_FREE(scratch);
- }
- 
- int mpol_set_shared_policy(struct shared_policy *info,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
 drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch
 arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
 x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
 arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch
