@@ -1,56 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [folded] slram-read-buffer-overflow-cleanup.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:37:00 -0700
-Message-ID: <200908062237.n76Mb1uJ021579@imap1.linux-foundation.org>
+Subject: [folded] 3x59x-fix-pci-resource-management-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:40:03 -0700
+Message-ID: <200908062240.n76Me33B026593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751085AbZHFWhh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:37:37 -0400
+	by vger.kernel.org with ESMTP id S1751338AbZHFWl2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:41:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, klassert@mathematik.tu-chemnitz.de, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slram-read-buffer-overflow-cleanup
+     3x59x-fix-pci-resource-management-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     slram-read-buffer-overflow-cleanup.patch
+     3x59x-fix-pci-resource-management-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into slram-read-buffer-overflow.patch
+This patch was dropped because it was folded into 3x59x-fix-pci-resource-management.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slram-read-buffer-overflow-cleanup
+Subject: 3x59x-fix-pci-resource-management-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-can't help myself.
+WARNING: space prohibited between function name and open parenthesis '('
+#56: FILE: drivers/net/3c59x.c:991:
++		pci_disable_device (pdev);
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Roel Kluin <roel.kluin@gmail.com>
+WARNING: line over 80 characters
+#85: FILE: drivers/net/3c59x.c:1164:
++					   sizeof(struct boom_rx_desc) * RX_RING_SIZE +
+
+WARNING: line over 80 characters
+#86: FILE: drivers/net/3c59x.c:1165:
++					   sizeof(struct boom_tx_desc) * TX_RING_SIZE,
+
+WARNING: space prohibited between function name and open parenthesis '('
+#153: FILE: drivers/net/3c59x.c:3188:
++	pci_disable_device (pdev);
+
+total: 0 errors, 4 warnings, 124 lines checked
+
+./patches/3x59x-fix-pci-resource-management.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/slram.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/3c59x.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mtd/devices/slram.c~slram-read-buffer-overflow-cleanup drivers/mtd/devices/slram.c
---- a/drivers/mtd/devices/slram.c~slram-read-buffer-overflow-cleanup
-+++ a/drivers/mtd/devices/slram.c
-@@ -341,9 +341,8 @@ static int __init init_slram(void)
- #else
- 	int count;
+diff -puN drivers/net/3c59x.c~3x59x-fix-pci-resource-management-checkpatch-fixes drivers/net/3c59x.c
+--- a/drivers/net/3c59x.c~3x59x-fix-pci-resource-management-checkpatch-fixes
++++ a/drivers/net/3c59x.c
+@@ -988,7 +988,7 @@ static int __devinit vortex_init_one(str
+ 			   ent->driver_data, unit);
+ 	if (rc < 0) {
+ 		pci_release_regions(pdev);
+-		pci_disable_device (pdev);
++		pci_disable_device(pdev);
+ 		return rc;
+ 	}
  
--	for (count = 0; count < SLRAM_MAX_DEVICES_PARAMS && map[count];
--			count++) {
--	}
-+	for (count = 0; count < SLRAM_MAX_DEVICES_PARAMS && map[count]; count++)
-+		;
+@@ -1161,9 +1161,9 @@ static int __devinit vortex_probe1(struc
  
- 	if ((count % 3 != 0) || (count == 0)) {
- 		E("slram: not enough parameters.\n");
+ 	/* Makes sure rings are at least 16 byte aligned. */
+ 	vp->rx_ring = pci_alloc_consistent(pdev,
+-					   sizeof(struct boom_rx_desc) * RX_RING_SIZE +
+-					   sizeof(struct boom_tx_desc) * TX_RING_SIZE,
+-					   &vp->rx_ring_dma);
++				sizeof(struct boom_rx_desc) * RX_RING_SIZE +
++				sizeof(struct boom_tx_desc) * TX_RING_SIZE,
++				&vp->rx_ring_dma);
+ 	retval = -ENOMEM;
+ 	if (!vp->rx_ring)
+ 		goto free_device;
+@@ -3185,7 +3185,7 @@ static void __devexit vortex_remove_one(
+ 			    vp->rx_ring_dma);
+ 
+ 	pci_release_regions(pdev);
+-	pci_disable_device (pdev);
++	pci_disable_device(pdev);
+ 	free_netdev(dev);
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,8 +116,8 @@ checkincludespl-add-option-to-remove-duplicates-in-place.patch
 leds-gpio-leds-fix-typographics-fault.patch
 leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
 slram-read-buffer-overflow.patch
-slram-read-buffer-overflow-cleanup.patch
 proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management.patch
 3x59x-fix-pci-resource-management-checkpatch-fixes.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
 serial167-fix-read-buffer-overflow-fix.patch
