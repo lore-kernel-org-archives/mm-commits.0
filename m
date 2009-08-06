@@ -1,52 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded] checkincludespl-add-option-to-remove-duplicates-in-place-fix.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:33:19 -0700
-Message-ID: <200908062233.n76MXJLf015340@imap1.linux-foundation.org>
+Subject: [folded] leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:34:13 -0700
+Message-ID: <200908062234.n76MYDHW016770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45216 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756361AbZHFWdh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:33:37 -0400
+	by vger.kernel.org with ESMTP id S1754555AbZHFWe1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:34:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lrodriguez@Atheros.comlrodriguez@Atheros.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, monstr@monstr.eu, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkincludespl-add-option-to-remove-duplicates-in-place-fix
+     leds-gpio-leds-fix-typographics-fault-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     checkincludespl-add-option-to-remove-duplicates-in-place-fix.patch
+     leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into checkincludespl-add-option-to-remove-duplicates-in-place.patch
+This patch was dropped because it was folded into leds-gpio-leds-fix-typographics-fault.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkincludespl-add-option-to-remove-duplicates-in-place-fix
+Subject: leds-gpio-leds-fix-typographics-fault-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Luis R. Rodriguez" <lrodriguez@Atheros.com>
-Cc: Luis R. Rodriguez <lrodriguez@atheros.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+ERROR: trailing whitespace
+#19: FILE: drivers/leds/leds-gpio.c:83:
++^I^Iprintk(KERN_INFO "Skipping unavailable LED gpio %d (%s)\n", $
+
+total: 1 errors, 0 warnings, 8 lines checked
+
+./patches/leds-gpio-leds-fix-typographics-fault.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkincludes.pl |    2 +-
+ drivers/leds/leds-gpio.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkincludes.pl~checkincludespl-add-option-to-remove-duplicates-in-place-fix scripts/checkincludes.pl
---- a/scripts/checkincludes.pl~checkincludespl-add-option-to-remove-duplicates-in-place-fix
-+++ a/scripts/checkincludes.pl
-@@ -7,7 +7,7 @@
- sub usage {
- 	print "Usage: checkincludes.pl [-r]\n";
- 	print "By default we just warn of duplicates\n";
--	print "To remove files in place use -r\n";
-+	print "To remove duplicated includes in place use -r\n";
- 	exit 1;
- }
+diff -puN drivers/leds/leds-gpio.c~leds-gpio-leds-fix-typographics-fault-checkpatch-fixes drivers/leds/leds-gpio.c
+--- a/drivers/leds/leds-gpio.c~leds-gpio-leds-fix-typographics-fault-checkpatch-fixes
++++ a/drivers/leds/leds-gpio.c
+@@ -80,7 +80,7 @@ static int __devinit create_gpio_led(con
  
+ 	/* skip leds that aren't available */
+ 	if (!gpio_is_valid(template->gpio)) {
+-		printk(KERN_INFO "Skipping unavailable LED gpio %d (%s)\n", 
++		printk(KERN_INFO "Skipping unavailable LED gpio %d (%s)\n",
+ 				template->gpio, template->name);
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +79,7 @@ timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 checkincludespl-add-option-to-remove-duplicates-in-place.patch
-checkincludespl-add-option-to-remove-duplicates-in-place-fix.patch
+leds-gpio-leds-fix-typographics-fault.patch
 leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
 leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
 slram-read-buffer-overflow-cleanup.patch
