@@ -1,104 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix-2.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:03:52 -0700
-Message-ID: <200908062203.n76M3qMC030512@imap1.linux-foundation.org>
+Subject: [folded] mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:03:45 -0700
+Message-ID: <200908062203.n76M3j4P030400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42565 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752144AbZHFWEA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:04:00 -0400
+	by vger.kernel.org with ESMTP id S1752219AbZHFWE1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:04:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, cl@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, menage@google.com
 
 
 The patch titled
-     mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix-2
+     mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix
 has been removed from the -mm tree.  Its filename was
-     mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix-2.patch
+     mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
 
 This patch was dropped because it was folded into mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix-2
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-up_write() can be called without down_write() in error path.
-fix it.
+cleanups & tweaks
 
-Reported-by: Christoph Lameter <cl@linux-foundation.org>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/nodemask.h |   11 ++++-------
+ mm/mempolicy.c           |    5 +++--
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix-2 mm/mempolicy.c
---- a/mm/mempolicy.c~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix-2
+diff -puN include/linux/nodemask.h~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix include/linux/nodemask.h
+--- a/include/linux/nodemask.h~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix
++++ a/include/linux/nodemask.h
+@@ -84,11 +84,10 @@
+  *    way we do the other calls.
+  *
+  * NODEMASK_SCRATCH
+- * For doing above logical AND, OR, XOR, Remap, etc...the caller tend to be
+- * necessary to use temporal nodemask_t on stack. But if NODES_SHIFT is large,
+- * size of nodemask_t can be very big and not suitable for allocating in stack.
+- * NODEMASK_SCRATCH is a helper for such situaions. See below and CPUMASK_ALLOC
+- * also.
++ * When doing above logical AND, OR, XOR, Remap operations the callers tend to
++ * need temporary nodemask_t's on the stack. But if NODES_SHIFT is large,
++ * nodemask_t's consume too much stack space.  NODEMASK_SCRATCH is a helper
++ * for such situations. See below and CPUMASK_ALLOC also.
+  */
+ 
+ #include <linux/kernel.h>
+@@ -492,8 +491,6 @@ static inline int num_node_state(enum no
+ #define NODEMASK_FREE(m)
+ #endif
+ 
+-#define NODEMASK_POINTER(v, m) nodemask_t *v = &(m->v)
+-
+ /* A example struture for using NODEMASK_ALLOC, used in mempolicy. */
+ struct nodemask_scratch {
+ 	nodemask_t	mask1;
+diff -puN mm/mempolicy.c~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix
 +++ a/mm/mempolicy.c
-@@ -1033,12 +1033,13 @@ static long do_mbind(unsigned long start
- 			task_lock(current);
- 			err = mpol_set_nodemask(new, nmask, scratch);
- 			task_unlock(current);
-+			if (err)
-+				up_write(&mm->mmap_sem);
- 		} else
- 			err = -ENOMEM;
- 		NODEMASK_SCRATCH_FREE(scratch);
+@@ -1915,7 +1915,6 @@ restart:
+ void mpol_shared_policy_init(struct shared_policy *sp, struct mempolicy *mpol)
+ {
+ 	int ret;
+-	NODEMASK_SCRATCH(scratch);
+ 
+ 	sp->root = RB_ROOT;		/* empty tree == default mempolicy */
+ 	spin_lock_init(&sp->lock);
+@@ -1923,6 +1922,8 @@ void mpol_shared_policy_init(struct shar
+ 	if (mpol) {
+ 		struct vm_area_struct pvma;
+ 		struct mempolicy *new;
++		NODEMASK_SCRATCH(scratch);
++
+ 		if (!scratch)
+ 			return;
+ 		/* contextualize the tmpfs mount point mempolicy */
+@@ -1948,8 +1949,8 @@ void mpol_shared_policy_init(struct shar
+ 		pvma.vm_end = TASK_SIZE;	/* policy covers entire file */
+ 		mpol_set_shared_policy(sp, &pvma, new); /* adds ref */
+ 		mpol_put(new);			/* drop initial ref */
++		NODEMASK_SCRATCH_FREE(scratch);
  	}
- 	if (err) {
--		up_write(&mm->mmap_sem);
- 		mpol_put(new);
- 		return err;
- 	}
+-	NODEMASK_SCRATCH_FREE(scratch);
+ }
+ 
+ int mpol_set_shared_policy(struct shared_policy *info,
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
-mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware-fix.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
+drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb-checkpatch-fixes.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board-cleanup.patch
+arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch
+platform_device_add_data-use-kmemdup.patch
+drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place-fix.patch
+leds-gpio-leds-fix-typographics-fault-checkpatch-fixes.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio-checkpatch-fixes.patch
+slram-read-buffer-overflow-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+serial167-fix-read-buffer-overflow-fix.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
+lguest-cleanup-for-map_switcher-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
 vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-vmalloc-unmap-vmalloc-area-after-hiding-it.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes-update.patch
-kcore-proc-kcore-should-use-vread.patch
-oom-move-oom_adj-to-signal_struct.patch
-oom-make-oom_score-to-per-process-value.patch
-oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
-oom-fix-oom_adjust_write-input-sanity-check.patch
+ummunotify-userspace-support-for-mmu-notifications.patch
+ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
 oom-fix-oom_adjust_write-input-sanity-check-fix.patch
-kcore-fix-proc-kcores-statst_size.patch
-cgroups-support-named-cgroups-hierarchies.patch
-cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
-cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
-cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
 memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
 memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
