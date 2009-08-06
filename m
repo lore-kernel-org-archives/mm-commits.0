@@ -1,56 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vfs-optimize-touch_time-too-fix.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:54:32 -0700
-Message-ID: <200908062254.n76MsXL4018585@imap1.linux-foundation.org>
+Subject: [folded] lguest-cleanup-for-map_switcher-fix.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:55:27 -0700
+Message-ID: <200908062255.n76MtRhb020057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756258AbZHFWzQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:55:16 -0400
+	by vger.kernel.org with ESMTP id S1756265AbZHFWzg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, haveblue@us.ibm.com, hch@infradead.org, vaurora@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rusty@rustcorp.com.au, xiaoguangrong@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs-optimize-touch_time-too-fix
+     lguest-cleanup-for-map_switcher-fix
 has been removed from the -mm tree.  Its filename was
-     vfs-optimize-touch_time-too-fix.patch
+     lguest-cleanup-for-map_switcher-fix.patch
 
-This patch was dropped because it was folded into vfs-optimize-touch_time-too.patch
+This patch was dropped because it was folded into lguest-cleanup-for-map_switcher.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-optimize-touch_time-too-fix
+Subject: lguest-cleanup-for-map_switcher-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix typo in comment
+eh?
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Valerie Aurora <vaurora@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    2 +-
+ drivers/lguest/core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/inode.c~vfs-optimize-touch_time-too-fix fs/inode.c
---- a/fs/inode.c~vfs-optimize-touch_time-too-fix
-+++ a/fs/inode.c
-@@ -1450,7 +1450,7 @@ void file_update_time(struct file *file)
- 	struct timespec now;
- 	enum { S_MTIME = 1, S_CTIME = 2, S_VERSION = 4 } sync_it = 0;
- 
--	/* First try to exhause all avenues to not sync */
-+	/* First try to exhaust all avenues to not sync */
- 	if (IS_NOCMTIME(inode))
- 		return;
- 
+diff -puN drivers/lguest/core.c~lguest-cleanup-for-map_switcher-fix drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-cleanup-for-map_switcher-fix
++++ a/drivers/lguest/core.c
+@@ -68,7 +68,7 @@ static __init int map_switcher(void)
+ 	 */
+ 	for (i = 0; i < TOTAL_SWITCHER_PAGES; i++) {
+ 		switcher_page[i] = alloc_page(GFP_KERNEL|__GFP_ZERO);
+-		if (!switcher_page[i])
++		if (!switcher_page[i]) {
+ 			err = -ENOMEM;
+ 			goto free_some_pages;
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,8 +81,7 @@ raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
 vfs-optimize-touch_time-too.patch
-vfs-optimize-touch_time-too-fix.patch
-watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
+lguest-cleanup-for-map_switcher.patch
 lguest-cleanup-for-map_switcher-fix.patch
 revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
 mm-make-swap-token-dummies-static-inlines-fix.patch
