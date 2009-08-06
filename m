@@ -1,55 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] serial167-fix-read-buffer-overflow-fix.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:45:14 -0700
-Message-ID: <200908062245.n76MjE2W002846@imap1.linux-foundation.org>
+Subject: [folded] fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:50:55 -0700
+Message-ID: <200908062250.n76MotPk012418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752015AbZHFWpv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:45:51 -0400
+	by vger.kernel.org with ESMTP id S1751355AbZHFWxB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:53:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, penberg@cs.helsinki.fi, vegard.nossum@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial167-fix-read-buffer-overflow-fix
+     fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix
 has been removed from the -mm tree.  Its filename was
-     serial167-fix-read-buffer-overflow-fix.patch
+     fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
 
-This patch was dropped because it was folded into serial167-fix-read-buffer-overflow.patch
+This patch was dropped because it was folded into fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial167-fix-read-buffer-overflow-fix
+Subject: fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-cleanup, remove (long) casts.
+copy_mount_string wants to be static.
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Roel Kluin <roel.kluin@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/serial167.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/serial167.c~serial167-fix-read-buffer-overflow-fix drivers/char/serial167.c
---- a/drivers/char/serial167.c~serial167-fix-read-buffer-overflow-fix
-+++ a/drivers/char/serial167.c
-@@ -221,8 +221,7 @@ static inline int serial_paranoia_check(
- 		return 1;
- 	}
+diff -puN fs/namespace.c~fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix fs/namespace.c
+--- a/fs/namespace.c~fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix
++++ a/fs/namespace.c
+@@ -1870,7 +1870,7 @@ int copy_mount_options(const void __user
+ 	return 0;
+ }
  
--	if ((long)info < (long)(&cy_port[0])
--	    || (long)(&cy_port[NR_PORTS-1]) < (long)info) {
-+	if (info < &cy_port[0] || info >= &cy_port[NR_PORTS]) {
- 		printk("Warning: cyclades_port out of range for (%s) in %s\n",
- 				name, routine);
- 		return 1;
+-int copy_mount_string(const void __user *data, char **where)
++static int copy_mount_string(const void __user *data, char **where)
+ {
+ 	char *tmp;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,10 +78,10 @@ proc-connector-add-event-for-process-becoming-session-leader.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 serial167-fix-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow-fix.patch
 drivers-usb-gadget-s3c2410_udcc-fix.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
 fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
 vfs-optimize-touch_time-too-fix.patch
 watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
