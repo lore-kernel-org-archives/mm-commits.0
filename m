@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + staging-udlfb-fix-printk-format-warning.patch added to -mm tree
-Date: Wed, 05 Aug 2009 17:30:10 -0700
-Message-ID: <200908060030.n760UAQx026467@imap1.linux-foundation.org>
+Subject: + xfrm4-fix-build-when-sysctls-are-disabled.patch added to -mm tree
+Date: Wed, 05 Aug 2009 17:31:06 -0700
+Message-ID: <200908060031.n760V6iu028127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751806AbZHFAaP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2009 20:30:15 -0400
+	by vger.kernel.org with ESMTP id S1752400AbZHFAbK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2009 20:31:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, greg@kroah.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     staging/udlfb: fix printk format warning
+     xfrm4: fix build when SYSCTLs are disabled
 has been added to the -mm tree.  Its filename is
-     staging-udlfb-fix-printk-format-warning.patch
+     xfrm4-fix-build-when-sysctls-are-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: staging/udlfb: fix printk format warning
+Subject: xfrm4: fix build when SYSCTLs are disabled
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix printk format warning: use %td for ptrdiff:
-
-drivers/staging/udlfb/udlfb.h:209: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
+Fix build errors when SYSCTLs are not enabled:
+(.init.text+0x5154): undefined reference to `net_ipv4_ctl_path'
+(.init.text+0x5176): undefined reference to `register_net_sysctl_table'
+xfrm4_policy.c:(.exit.text+0x573): undefined reference to `unregister_net_sysctl_table
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/udlfb/udlfb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv4/xfrm4_policy.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/staging/udlfb/udlfb.h~staging-udlfb-fix-printk-format-warning drivers/staging/udlfb/udlfb.h
---- a/drivers/staging/udlfb/udlfb.h~staging-udlfb-fix-printk-format-warning
-+++ a/drivers/staging/udlfb/udlfb.h
-@@ -205,7 +205,7 @@ static int dlfb_set_video_mode(struct dl
+diff -puN net/ipv4/xfrm4_policy.c~xfrm4-fix-build-when-sysctls-are-disabled net/ipv4/xfrm4_policy.c
+--- a/net/ipv4/xfrm4_policy.c~xfrm4-fix-build-when-sysctls-are-disabled
++++ a/net/ipv4/xfrm4_policy.c
+@@ -264,6 +264,7 @@ static struct xfrm_policy_afinfo xfrm4_p
+ 	.fill_dst =		xfrm4_fill_dst,
+ };
  
- 			/* send */
- 			ret = dlfb_bulk_msg(dev_info, bufptr - dev_info->buf);
--			printk("ret bulk 2: %d %d\n", ret,
-+			printk("ret bulk 2: %d %td\n", ret,
- 			       bufptr - dev_info->buf);
++#ifdef CONFIG_SYSCTL
+ static struct ctl_table xfrm4_policy_table[] = {
+ 	{
+ 		.ctl_name       = CTL_UNNUMBERED,
+@@ -277,6 +278,7 @@ static struct ctl_table xfrm4_policy_tab
+ };
  
- 			/* flush */
+ static struct ctl_table_header *sysctl_hdr;
++#endif
+ 
+ static void __init xfrm4_policy_init(void)
+ {
+@@ -285,8 +287,10 @@ static void __init xfrm4_policy_init(voi
+ 
+ static void __exit xfrm4_policy_fini(void)
+ {
++#ifdef CONFIG_SYSCTL
+ 	if (sysctl_hdr)
+ 		unregister_net_sysctl_table(sysctl_hdr);
++#endif
+ 	xfrm_policy_unregister_afinfo(&xfrm4_policy_afinfo);
+ }
+ 
+@@ -305,7 +309,9 @@ void __init xfrm4_init(int rt_max_size)
+ 	 * and start cleaning when were 1/2 full
+ 	 */
+ 	xfrm4_dst_ops.gc_thresh = rt_max_size/2;
++#ifdef CONFIG_SYSCTL
+ 	sysctl_hdr = register_net_sysctl_table(&init_net, net_ipv4_ctl_path,
+ 						xfrm4_policy_table);
++#endif
+ }
+ 
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -69,6 +97,7 @@ media-zr364xx-fix-build-errors.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 kernel-hacking-move-strip_asm_syms-from-general.patch
 staging-udlfb-fix-printk-format-warning.patch
+xfrm4-fix-build-when-sysctls-are-disabled.patch
 mm-make-swap-token-dummies-static-inlines-fix-2.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
 page_alloc-fix-kernel-doc-warning.patch
