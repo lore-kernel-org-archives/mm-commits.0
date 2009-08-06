@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mips-read-buffer-overflow.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 13:31:26 -0700
-Message-ID: <200908062031.n76KVQfK004718@imap1.linux-foundation.org>
+Subject: [merged] drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 13:31:32 -0700
+Message-ID: <200908062031.n76KVWXn004829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35700 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756185AbZHFUcI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 16:32:08 -0400
+	by vger.kernel.org with ESMTP id S1753343AbZHFUcN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 16:32:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, kyle@mcmartin.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: fix read buffer overflow
+     drivers/parisc/pdc_stable.c: fix read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     mips-read-buffer-overflow.patch
+     drivers-parisc-pdc_stablec-fix-read-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: fix read buffer overflow
+Subject: drivers/parisc/pdc_stable.c: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Check whether index is within bounds before testing the element.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/jazz/jazzdma.c |    2 +-
+ drivers/parisc/pdc_stable.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/jazz/jazzdma.c~mips-read-buffer-overflow arch/mips/jazz/jazzdma.c
---- a/arch/mips/jazz/jazzdma.c~mips-read-buffer-overflow
-+++ a/arch/mips/jazz/jazzdma.c
-@@ -190,7 +190,7 @@ int vdma_free(unsigned long laddr)
- 		return -1;
- 	}
+diff -puN drivers/parisc/pdc_stable.c~drivers-parisc-pdc_stablec-fix-read-buffer-overflow drivers/parisc/pdc_stable.c
+--- a/drivers/parisc/pdc_stable.c~drivers-parisc-pdc_stablec-fix-read-buffer-overflow
++++ a/drivers/parisc/pdc_stable.c
+@@ -370,7 +370,7 @@ pdcspath_layer_read(struct pdcspath_entr
+ 	if (!i)	/* entry is not ready */
+ 		return -ENODATA;
+ 	
+-	for (i = 0; devpath->layers[i] && (likely(i < 6)); i++)
++	for (i = 0; i < 6 && devpath->layers[i]; i++)
+ 		out += sprintf(out, "%u ", devpath->layers[i]);
  
--	while (pgtbl[i].owner == laddr && i < VDMA_PGTBL_ENTRIES) {
-+	while (i < VDMA_PGTBL_ENTRIES && pgtbl[i].owner == laddr) {
- 		pgtbl[i].owner = VDMA_PAGE_EMPTY;
- 		i++;
- 	}
+ 	out += sprintf(out, "\n");
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
