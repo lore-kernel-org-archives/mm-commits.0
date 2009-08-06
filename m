@@ -1,134 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch added to -mm tree
-Date: Thu, 06 Aug 2009 16:31:29 -0700
-Message-ID: <200908062331.n76NVUG5016313@imap1.linux-foundation.org>
+Subject: [to-be-updated] acpi-fix-null-bug-for-hid-uid-string.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 16:36:02 -0700
+Message-ID: <200908062336.n76Na2Xk024004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60936 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754848AbZHFXcs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 19:32:48 -0400
+	by vger.kernel.org with ESMTP id S1754017AbZHFXhI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 19:37:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, khilman@deeprootsystems.com, rjw@sisk.pl, rmk@arm.linux.org.uk, stable@kernel.org
+To: ming.m.lin@intel.com, Valdis.Kletnieks@vt.edu, hugh.dickins@tiscali.co.uk, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     genirq: do not disable IRQ_WAKEUP marked irqs on suspend
-has been added to the -mm tree.  Its filename is
-     genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
+     acpi: fix NULL bug for HID/UID string
+has been removed from the -mm tree.  Its filename was
+     acpi-fix-null-bug-for-hid-uid-string.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genirq: do not disable IRQ_WAKEUP marked irqs on suspend
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: acpi: fix NULL bug for HID/UID string
+From: Lin Ming <ming.m.lin@intel.com>
 
-commit 0a0c5168df (PM: Introduce functions for suspending and resuming
-device interrupts) iterates through all interrupts and disables them on
-the hardware level.  Some architectures have functionality implemented to
-mark an interrupt source as wakeup source for suspend, but the new power
-management code disables them unconditionally which breaks the resume on
-interrupt functionality.
+acpi_device->pnp.hardware_id and unique_id are now allocated pointer. 
+If it's NULL, return "\0" for acpi_device_hid and acpi_device_uid. 
+Also, free hardware_id and unique_id when acpi_device is going to be
+freed.
 
-The wakeup interrupts are marked in the status with the IRQ_WAKEUP bit. 
-Skip the disablement for those interrupts which have the IRQ_WAKEUP bit
-set.
-
-rmk didst say:
-
-  This sounds like a regression fix to me - if IRQs are disabled on the
-  controllers, it means we have systems which can only ever be suspended. 
-  The only way to wake them back up would be to hard-reset them.
-
-  IOW, the regression turns suspend into a hang.
-
-rmk didst further say:
-
-  ARM systems can only be woken up by unmasked interrupts.  If the
-  current kernel masks all interrupts, suspending ARM systems is a _one_
-  way ticket to a full reboot.
-
-With all interrupts masked, there is NO WAY to wake up ARM interrupts.
-
-  So I'm afraid my comment here without any further suggestion that the
-  problem has been fixed in some other way is that this patch _is_
-  required _if_ the kernel is still masking all interrupts on suspend.
-
-  Now, given that ARM systems were able to be resumed up until the
-  offending commit was added to the kernel, it _is_ a regression, and I
-  think under Linus' rules, a fix is not a fix if it causes regressions
-  for some people.  So IMHO it needs to be backed out and another approach
-  taken, _if_ the problem is still present.
-
-  Unfortunately, I've no time to verify if the problem is present at the
-  moment.  I'm sure someone else in the ARM community can do the necessary
-  testing though.  Eg, anyone with a PXA platform will do.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Acked-by: Russell King <rmk@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: <stable@kernel.org>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/pm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/scan.c     |    4 ++++
+ include/acpi/acpi_bus.h |    4 ++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN kernel/irq/pm.c~genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend kernel/irq/pm.c
---- a/kernel/irq/pm.c~genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend
-+++ a/kernel/irq/pm.c
-@@ -29,7 +29,8 @@ void suspend_device_irqs(void)
- 		unsigned long flags;
+diff -puN drivers/acpi/scan.c~acpi-fix-null-bug-for-hid-uid-string drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-fix-null-bug-for-hid-uid-string
++++ a/drivers/acpi/scan.c
+@@ -309,6 +309,8 @@ static void acpi_device_release(struct d
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
  
- 		spin_lock_irqsave(&desc->lock, flags);
--		__disable_irq(desc, irq, true);
-+		if (!(desc->status & IRQ_WAKEUP))
-+			__disable_irq(desc, irq, true);
- 		spin_unlock_irqrestore(&desc->lock, flags);
+ 	kfree(acpi_dev->pnp.cid_list);
++	kfree(acpi_dev->pnp.hardware_id);
++	kfree(acpi_dev->pnp.unique_id);
+ 	kfree(acpi_dev);
+ }
+ 
+@@ -1359,6 +1361,8 @@ end:
+ 		*child = device;
+ 	else {
+ 		kfree(device->pnp.cid_list);
++		kfree(device->pnp.hardware_id);
++		kfree(device->pnp.unique_id);
+ 		kfree(device);
  	}
+ 
+diff -puN include/acpi/acpi_bus.h~acpi-fix-null-bug-for-hid-uid-string include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi-fix-null-bug-for-hid-uid-string
++++ a/include/acpi/acpi_bus.h
+@@ -186,8 +186,8 @@ struct acpi_device_pnp {
+ 
+ #define acpi_device_bid(d)	((d)->pnp.bus_id)
+ #define acpi_device_adr(d)	((d)->pnp.bus_address)
+-#define acpi_device_hid(d)	((d)->pnp.hardware_id)
+-#define acpi_device_uid(d)	((d)->pnp.unique_id)
++#define acpi_device_hid(d)	((d)->pnp.hardware_id ? (d)->pnp.hardware_id : "\0")
++#define acpi_device_uid(d)	((d)->pnp.unique_id ? (d)->pnp.unique_id : "\0")
+ #define acpi_device_name(d)	((d)->pnp.device_name)
+ #define acpi_device_class(d)	((d)->pnp.device_class)
  
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from ming.m.lin@intel.com are
 
 origin.patch
-execve-must-clear-current-clear_child_tid-v2.patch
-lib-decompress_-only-include-linux-slabh-if-static-is-not-defined.patch
 linux-next.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-kernel-core-add-smp_call_function_any.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch
-ia32-use-generic-sys_pipe.patch
-preempt_active-add-default-defines.patch
-posix_cpu_timers_exit_group-do-not-use-thread_group_cputimer.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-mtd-nand-add-page-parameter-to-all-read_page-read_page_raw-apis.patch
-mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch
-mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips.patch
-genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
-fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
-linux-futexh-place-kernel-types-behind-__kernel__.patch
-futex-futex_wait_requeue_pi-commentary-corrections.patch
-include-linux-unaligned-lbe_byteshifth-fix-usage-for-compressed-kernels.patch
-lzo-add-support-for-lzo-compressed-kernels.patch
-lzo-arm-add-support-for-lzo-compressed-kernels.patch
-lzo-x86-add-support-for-lzo-compressed-kernels.patch
-lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
+acpi-fix-null-bug-for-hid-uid-string.patch
 
