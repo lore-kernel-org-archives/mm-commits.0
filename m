@@ -1,104 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mtd-sst25l-non-jedec-spi-flash-driver-update.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:35:07 -0700
-Message-ID: <200908062235.n76MZ7R0018345@imap1.linux-foundation.org>
+Subject: [folded] slram-read-buffer-overflow-cleanup.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:37:00 -0700
+Message-ID: <200908062237.n76Mb1uJ021579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750984AbZHFWfp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:35:45 -0400
+	by vger.kernel.org with ESMTP id S1751085AbZHFWhh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:37:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ryan@bluewatersys.com, andre@bluewatersys.com, avorontsov@ru.mvista.com, dwmw2@infradead.org, hartleys@visionengravers.com, linus.walleij@stericsson.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwmw2@infradead.org, roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd-sst25l-non-jedec-spi-flash-driver-update
+     slram-read-buffer-overflow-cleanup
 has been removed from the -mm tree.  Its filename was
-     mtd-sst25l-non-jedec-spi-flash-driver-update.patch
+     slram-read-buffer-overflow-cleanup.patch
 
-This patch was dropped because it was folded into mtd-sst25l-non-jedec-spi-flash-driver.patch
+This patch was dropped because it was folded into slram-read-buffer-overflow.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd-sst25l-non-jedec-spi-flash-driver-update
-From: Ryan Mallon <ryan@bluewatersys.com>
+Subject: slram-read-buffer-overflow-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The updated patch below uses sector erases instead to allow for smaller
-partition sizes.
+can't help myself.
 
-Signed-off-by: Andre Renaud <andre@bluewatersys.com>
-Signed-off-by: Ryan Mallon <ryan@bluewatersys.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/sst25l.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/mtd/devices/slram.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mtd/devices/sst25l.c~mtd-sst25l-non-jedec-spi-flash-driver-update drivers/mtd/devices/sst25l.c
---- a/drivers/mtd/devices/sst25l.c~mtd-sst25l-non-jedec-spi-flash-driver-update
-+++ a/drivers/mtd/devices/sst25l.c
-@@ -37,7 +37,7 @@
- #define SST25L_CMD_READ		0x03	/* High speed read */
+diff -puN drivers/mtd/devices/slram.c~slram-read-buffer-overflow-cleanup drivers/mtd/devices/slram.c
+--- a/drivers/mtd/devices/slram.c~slram-read-buffer-overflow-cleanup
++++ a/drivers/mtd/devices/slram.c
+@@ -341,9 +341,8 @@ static int __init init_slram(void)
+ #else
+ 	int count;
  
- #define SST25L_CMD_EWSR		0x50	/* Enable write status register */
--#define SST25L_CMD_BLOCK_ERASE	0x52	/* Erase sector */
-+#define SST25L_CMD_SECTOR_ERASE	0x20	/* Erase sector */
- #define SST25L_CMD_READ_ID	0x90	/* Read device ID */
- #define SST25L_CMD_AAI_PROGRAM	0xaf	/* Auto address increment */
+-	for (count = 0; count < SLRAM_MAX_DEVICES_PARAMS && map[count];
+-			count++) {
+-	}
++	for (count = 0; count < SLRAM_MAX_DEVICES_PARAMS && map[count]; count++)
++		;
  
-@@ -65,8 +65,8 @@ struct flash_info {
- #define to_sst25l_flash(x) container_of(x, struct sst25l_flash, mtd)
- 
- static struct flash_info __initdata sst25l_flash_info[] = {
--	{"sst25lf020a", 0xbf43, 256, 1024, 32 * 1024},
--	{"sst25lf040a",	0xbf44,	256, 2048, 32 * 1024},
-+	{"sst25lf020a", 0xbf43, 256, 1024, 4096},
-+	{"sst25lf040a",	0xbf44,	256, 2048, 4096},
- };
- 
- static int sst25l_status(struct sst25l_flash *flash, int *status)
-@@ -134,7 +134,7 @@ static int sst25l_wait_till_ready(struct
- 	return -ETIMEDOUT;
- }
- 
--static int sst25l_erase_block(struct sst25l_flash *flash, u32 offset)
-+static int sst25l_erase_sector(struct sst25l_flash *flash, u32 offset)
- {
- 	u8 command[4];
- 	int err;
-@@ -143,7 +143,7 @@ static int sst25l_erase_block(struct sst
- 	if (err)
- 		return err;
- 
--	command[0] = SST25L_CMD_BLOCK_ERASE;
-+	command[0] = SST25L_CMD_SECTOR_ERASE;
- 	command[1] = offset >> 16;
- 	command[2] = offset >> 8;
- 	command[3] = offset;
-@@ -184,7 +184,7 @@ static int sst25l_erase(struct mtd_info 
- 		return err;
- 
- 	while (addr < end) {
--		err = sst25l_erase_block(flash, addr);
-+		err = sst25l_erase_sector(flash, addr);
- 		if (err) {
- 			mutex_unlock(&flash->lock);
- 			instr->state = MTD_ERASE_FAILED;
+ 	if ((count % 3 != 0) || (count == 0)) {
+ 		E("slram: not enough parameters.\n");
 _
 
-Patches currently in -mm which might be from ryan@bluewatersys.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-make-set_mempolicympol_interleav-n_high_memory-aware.patch
 linux-next.patch
-mtd-sst25l-non-jedec-spi-flash-driver.patch
-mtd-sst25l-non-jedec-spi-flash-driver-update.patch
-mtd-sst25l-non-jedec-spi-flash-driver-fix.patch
-ep93xx-video-driver-platform-support.patch
-ep93xx-video-driver.patch
-ep93xx-video-driver-documentation.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
+drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+arch-x86-kernel-tscc-smi-workaround-for-pit_expect_msb.patch
+x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch
+arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch
+platform_device_add_data-use-kmemdup.patch
+drivers-pci-intel-iommuc-return-early-if-all-dmar-hw-unit-ignored.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+leds-gpio-leds-fix-typographics-fault.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
+slram-read-buffer-overflow.patch
+slram-read-buffer-overflow-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+3x59x-fix-pci-resource-management-checkpatch-fixes.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+serial167-fix-read-buffer-overflow-fix.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls-fix.patch
+vfs-optimize-touch_time-too-fix.patch
+watchdog-add-sbc-fitpc2-watchdog-driver-fix.patch
+lguest-cleanup-for-map_switcher-fix.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+ummunotify-userspace-support-for-mmu-notifications.patch
+ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+oom-fix-oom_adjust_write-input-sanity-check-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
