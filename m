@@ -1,74 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 15:42:46 -0700
-Message-ID: <200908062242.n76MgkAB031189@imap1.linux-foundation.org>
+Subject: [folded] serial167-fix-read-buffer-overflow-fix.patch removed from -mm tree
+Date: Thu, 06 Aug 2009 15:45:14 -0700
+Message-ID: <200908062245.n76MjE2W002846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58071 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33140 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752015AbZHFWn2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:43:28 -0400
+	by vger.kernel.org with ESMTP id S1752015AbZHFWpv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 18:45:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hidave.darkstar@gmail.com, jkosina@suse.cz, lamarque@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix
+     serial167-fix-read-buffer-overflow-fix
 has been removed from the -mm tree.  Its filename was
-     bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+     serial167-fix-read-buffer-overflow-fix.patch
 
-This patch was dropped because it was folded into bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+This patch was dropped because it was folded into serial167-fix-read-buffer-overflow.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix
+Subject: serial167-fix-read-buffer-overflow-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Use ARRAY_SIZE()-based search.
+cleanup, remove (long) casts.
 
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Lamarque V. Souza <lamarque@gmail.com>
-Cc: Lamarque Vieira Souza <lamarque@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hidp/core.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/char/serial167.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix net/bluetooth/hidp/core.c
---- a/net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix
-+++ a/net/bluetooth/hidp/core.c
-@@ -92,20 +92,18 @@ static const struct quirk_id hidp_quirks
- 		.product = 0x0058,
- 		.quirks = 1 << HIDP_QUIRK_USE_INPUT_SESSION
- 	},
--
--	{ /* end: all zeroes */ }
- };
+diff -puN drivers/char/serial167.c~serial167-fix-read-buffer-overflow-fix drivers/char/serial167.c
+--- a/drivers/char/serial167.c~serial167-fix-read-buffer-overflow-fix
++++ a/drivers/char/serial167.c
+@@ -221,8 +221,7 @@ static inline int serial_paranoia_check(
+ 		return 1;
+ 	}
  
- static int quirk_test_bit(__u16 vendor, __u16 product, int quirk)
- {
--	const struct quirk_id *q = &hidp_quirks[0];
-+	int i;
- 
--	while (q->vendor != vendor && q->product != product &&
--	       q->vendor && q->product)
--		q++;
-+	for (i = 0; i < ARRAY_SIZE(hidp_quirks); i++) {
-+		const struct quirk_id *q = hidp_quirks + i;
- 
--	if (q->vendor == vendor && q->product == product)
--		return test_bit(quirk, &q->quirks);
-+		if (q->vendor == vendor && q->product == product)
-+			return test_bit(quirk, &q->quirks);
-+	}
- 
- 	return 0;
- }
+-	if ((long)info < (long)(&cy_port[0])
+-	    || (long)(&cy_port[NR_PORTS-1]) < (long)info) {
++	if (info < &cy_port[0] || info >= &cy_port[NR_PORTS]) {
+ 		printk("Warning: cyclades_port out of range for (%s) in %s\n",
+ 				name, routine);
+ 		return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,7 +77,7 @@ slram-read-buffer-overflow.patch
 proc-connector-add-event-for-process-becoming-session-leader.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse-fix.patch
+serial167-fix-read-buffer-overflow.patch
 serial167-fix-read-buffer-overflow-fix.patch
 drivers-usb-gadget-s3c2410_udcc-fix.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
