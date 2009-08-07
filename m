@@ -1,67 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch removed from -mm tree
-Date: Thu, 06 Aug 2009 16:39:12 -0700
-Message-ID: <200908062339.n76NdCBO029355@imap1.linux-foundation.org>
+Subject: + pc-fs-char_devc-remove-useless-loop-fix.patch added to -mm tree
+Date: Thu, 06 Aug 2009 18:38:04 -0700
+Message-ID: <200908070138.n771c4P0001758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755967AbZHFXjc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 19:39:32 -0400
+	by vger.kernel.org with ESMTP id S1752166AbZHGBib (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 21:38:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: denis@compulab.co.il, hpa@zytor.com, mike@compulab.co.il, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hidave.darkstar@gmail.com, renzo@cs.unibo.it, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     x86: add reboot fixup for CompuLab SBC-fitPC2 board
-has been removed from the -mm tree.  Its filename was
-     x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch
+     pc-fs-char_devc-remove-useless-loop-fix
+has been added to the -mm tree.  Its filename is
+     pc-fs-char_devc-remove-useless-loop-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: add reboot fixup for CompuLab SBC-fitPC2 board
-From: Denis Turischev <denis@compulab.co.il>
+Subject: pc-fs-char_devc-remove-useless-loop-fix
+From: Dave Young <hidave.darkstar@gmail.com>
 
-The sbc-fitpc2 board hangs on reboot without this patch.  We saw fixups
-for Dell and others that set BIOS reboot and that worked for us as well.
+Fix build warning about the unused variable in char_dev.c:267
 
-[akpm@linux-foundation.org: clean up comment]
-Signed-off-by: Denis Turischev <denis@compulab.co.il>
-Signed-off-by: Mike Rapoport <mike@compulab.co.il
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Remove the unused char *s.
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Renzo Davoli <renzo@cs.unibo.it>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/reboot.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/char_dev.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/kernel/reboot.c~x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board
-+++ a/arch/x86/kernel/reboot.c
-@@ -257,6 +257,14 @@ static struct dmi_system_id __initdata r
- 			DMI_MATCH(DMI_PRODUCT_NAME, "SBC-FITPC2"),
- 		},
- 	},
-+	{	/* Handle problems with rebooting CompuLab SBC-FITPC2 boards */
-+		.callback = set_bios_reboot,
-+		.ident = "CompuLab SBC-FITPC2",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "CompuLab"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "SBC-FITPC2"),
-+		},
-+	},
- 	{ }
- };
+diff -puN fs/char_dev.c~pc-fs-char_devc-remove-useless-loop-fix fs/char_dev.c
+--- a/fs/char_dev.c~pc-fs-char_devc-remove-useless-loop-fix
++++ a/fs/char_dev.c
+@@ -264,7 +264,6 @@ int register_chrdev(unsigned int major, 
+ {
+ 	struct char_device_struct *cd;
+ 	struct cdev *cdev;
+-	char *s;
+ 	int err = -ENOMEM;
  
+ 	cd = __register_chrdev_region(major, 0, 256, name);
 _
 
-Patches currently in -mm which might be from denis@compulab.co.il are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-x86-add-reboot-fixup-for-compulab-sbc-fitpc2-board.patch
+origin.patch
+fbcon-dont-use-vc_resize-on-initialization.patch
+linux-next.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+pc-fs-char_devc-remove-useless-loop-fix.patch
 
