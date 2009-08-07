@@ -1,75 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch removed from -mm tree
-Date: Fri, 07 Aug 2009 12:42:35 -0700
-Message-ID: <200908071942.n77JgZic011018@imap1.linux-foundation.org>
+Subject: [merged] drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch removed from -mm tree
+Date: Fri, 07 Aug 2009 12:57:39 -0700
+Message-ID: <200908071957.n77JvdcN003972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754927AbZHGTmr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2009 15:42:47 -0400
+	by vger.kernel.org with ESMTP id S933442AbZHGT6S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2009 15:58:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, robert.richter@amd.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/cpu/amd.c: amd_fixup_dcm() is unused if CONFIG_X86_HT=n
+     drivers/lguest/page_tables.c: rsuty cnat tpye
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch
+     drivers-lguest-page_tablesc-rsuty-cnat-tpye.patch
 
-This patch was dropped because a more stupid patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/cpu/amd.c: amd_fixup_dcm() is unused if CONFIG_X86_HT=n
+Subject: drivers/lguest/page_tables.c: rsuty cnat tpye
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/cpu/amd.c:262: warning: 'amd_fixup_dcm' defined but not used
-
-Cc: Robert Richter <robert.richter@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/amd.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/lguest/page_tables.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/amd.c~arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n arch/x86/kernel/cpu/amd.c
---- a/arch/x86/kernel/cpu/amd.c~arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n
-+++ a/arch/x86/kernel/cpu/amd.c
-@@ -252,6 +252,7 @@ static int __cpuinit nearby_node(int api
- }
- #endif
+diff -puN drivers/lguest/page_tables.c~drivers-lguest-page_tablesc-rsuty-cnat-tpye drivers/lguest/page_tables.c
+--- a/drivers/lguest/page_tables.c~drivers-lguest-page_tablesc-rsuty-cnat-tpye
++++ a/drivers/lguest/page_tables.c
+@@ -984,7 +984,7 @@ static unsigned long setup_pagetables(st
+ 	for (i = j = 0; i < mapped_pages && j < PTRS_PER_PMD;
+ 	     i += PTRS_PER_PTE, j++) {
+ 		pmd = pfn_pmd(((unsigned long)&linear[i] - mem_base)/PAGE_SIZE,
+-			      __pgrot(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER));
++			      __pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER));
  
-+#ifdef CONFIG_X86_HT
- /*
-  * Fixup core topology information for AMD multi-node processors.
-  * Assumption 1: Number of cores in each internal node is the same.
-@@ -308,7 +309,6 @@ static void __cpuinit amd_fixup_dcm(stru
-  */
- static void __cpuinit amd_detect_cmp(struct cpuinfo_x86 *c)
- {
--#ifdef CONFIG_X86_HT
- 	unsigned bits;
- 	int cpu = smp_processor_id();
- 
-@@ -322,8 +322,12 @@ static void __cpuinit amd_detect_cmp(str
- 	/* fixup topology information on multi-node processors */
- 	if ((c->x86 == 0x10) && (c->x86_model == 9))
- 		amd_fixup_dcm(c);
--#endif
- }
-+#else
-+static inline void amd_detect_cmp(struct cpuinfo_x86 *c)
-+{
-+}
-+#endif
- 
- static void __cpuinit srat_detect_node(struct cpuinfo_x86 *c)
- {
+ 		if (copy_to_user(&pmds[j], &pmd, sizeof(pmd)) != 0)
+ 			return -EFAULT;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +56,6 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-arch-x86-kernel-cpu-amdc-amd_fixup_dcm-is-unused-if-config_x86_ht=n.patch
 platform_device_add_data-use-kmemdup.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
@@ -99,7 +73,6 @@ raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
 vfs-optimize-touch_time-too.patch
-lguest-cleanup-for-map_switcher.patch
 revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
 mm-make-swap-token-dummies-static-inlines-fix.patch
 readahead-add-blk_run_backing_dev-fix.patch
