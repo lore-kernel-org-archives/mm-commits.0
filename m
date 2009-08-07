@@ -1,92 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] optionc-support-qualcomm-icon-210.patch removed from -mm tree
-Date: Fri, 07 Aug 2009 13:59:00 -0700
-Message-ID: <200908072059.n77Kx1Qx010806@imap1.linux-foundation.org>
+Subject: + mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips-update.patch added to -mm tree
+Date: Fri, 07 Aug 2009 14:00:45 -0700
+Message-ID: <200908072100.n77L0j9a013856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34364 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755039AbZHGU7B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2009 16:59:01 -0400
+	by vger.kernel.org with ESMTP id S1754927AbZHGVBz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2009 17:01:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: nsnehaprabha@ti.com, dbrownell@users.sourceforge.net, dwmw2@infradead.org, s-paulraj@ti.com, tglx@linutronix.de, troy.kisky@boundarydevices.com
 
 
 The patch titled
-     option.c: support QUALCOMM iCON 210
-has been removed from the -mm tree.  Its filename was
-     optionc-support-qualcomm-icon-210.patch
+     mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips-update
+has been added to the -mm tree.  Its filename is
+     mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips-update.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: option.c: support QUALCOMM iCON 210
-=46rom: Hanno B=F6ck
+Subject: mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips-update
+From: Sneha Narnakaje <nsnehaprabha@ti.com>
 
-Support the QUALCOMM HSDPA-Stick iCON 210.
+This patch adds 4-bit ECC support for large page NAND chips using the new
+ECC mode NAND_ECC_HW_OOB_FIRST.  The platform data from board-dm355-evm
+has been adjusted to use this mode.
 
-Cc: Greg KH <greg@kroah.com>
+The patches have been verified on DM355 device with 2K Micron devices
+using mtd-tests and JFFS2.  Error correction upto 4-bits has also been
+verified using nandwrite/nanddump utilities.
+
+This patch series applies to linux-mtd next (mmotm) GIT tree.
+
+This version (v4) addresses the review comment to leave 2 bytes at offset
+0 for NAND manufacturer badblock markers.
+
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Sneha Narnakaje <nsnehaprabha@ti.com>
+Signed-off-by: Sandeep Paulraj <s-paulraj@ti.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Troy Kisky <troy.kisky@boundarydevices.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/mtd/nand/davinci_nand.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~optionc-support-qualcomm-icon-210=
- drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~optionc-support-qualcomm-icon-210
-+++ a/drivers/usb/serial/option.c
-@@ -288,6 +288,9 @@ static int  option_resume(struct usb_ser
-=20
- #define QUALCOMM_VENDOR_ID			0x05C6
-=20
-+#define QUALCOMM_ICON_VENDOR_ID			0x1E0E
-+#define QUALCOMM_ICON_PRODUCT_210		0x9000
-+
- #define MAXON_VENDOR_ID				0x16d8
-=20
- #define TELIT_VENDOR_ID				0x1bc7
-@@ -495,6 +498,7 @@ static struct usb_device_id option_ids[]
- 	{ USB_DEVICE(KYOCERA_VENDOR_ID, KYOCERA_PRODUCT_KPC680) },
- 	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6000)}, /* ZTE AC8700 */
- 	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6613)}, /* Onda H600/ZTE MF330 */
-+	{ USB_DEVICE(QUALCOMM_ICON_VENDOR_ID, QUALCOMM_ICON_PRODUCT_210)}, /*=
- Qualcomm iCON 210 */
- 	{ USB_DEVICE(MAXON_VENDOR_ID, 0x6280) }, /* BP3-USB & BP3-EXT HSDPA *=
-/
- 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_UC864E) },
- 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MF622, 0xf=
-f, 0xff, 0xff) }, /* ZTE WCDMA products */
+diff -puN drivers/mtd/nand/davinci_nand.c~mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips-update drivers/mtd/nand/davinci_nand.c
+--- a/drivers/mtd/nand/davinci_nand.c~mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips-update
++++ a/drivers/mtd/nand/davinci_nand.c
+@@ -522,8 +522,8 @@ static struct nand_ecclayout hwecc4_2048
+ 		54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+ 		},
+ 	.oobfree = {
+-		/* 1 byte at offset 0 holds manufacturer badblock marker */
+-		{.offset = 1, .length = 23, },
++		/* 2 bytes at offset 0 hold manufacturer badblock markers */
++		{.offset = 2, .length = 22, },
+ 		/* 5 bytes at offset 8 hold BBT markers */
+ 		/* 8 bytes at offset 16 hold JFFS2 clean markers */
+ 	},
 _
 
-Patches currently in -mm which might be from greg@kroah.com are
+Patches currently in -mm which might be from nsnehaprabha@ti.com are
 
-linux-next.patch
-vt6655-s-void-void.patch
-staging-rt2860-remove-dependency-on-wireless_ext-version.patch
-staging-udlfb-fix-printk-format-warning.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-optionc-support-qualcomm-icon-210.patch
-usb-gadget-read-buffer-overflow.patch
-ark3116-add-irda-support-for-gembird-uir-22.patch
-n_tty-honor-opost-flag-for-echoes.patch
-n_tty-move-echoctl-check-and-clean-up-logic.patch
-gigaset-really-fix-chars_in_buffer.patch
-usb-storage-include-prolific-technology-usb-drive-in-unusual_devs-list.=
-patch
-make-sure-nobodys-leaking-resources.patch
-workaround-for-a-pci-restoring-bug.patch
+mtd-nand-add-page-parameter-to-all-read_page-read_page_raw-apis.patch
+mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch
+mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips.patch
+mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips-update.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
