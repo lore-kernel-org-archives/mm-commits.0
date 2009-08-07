@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pc-fs-char_devc-remove-useless-loop-fix.patch added to -mm tree
-Date: Thu, 06 Aug 2009 18:38:04 -0700
-Message-ID: <200908070138.n771c4P0001758@imap1.linux-foundation.org>
+Subject: + mtd-make-onenand-genericc-more-generic-fix.patch added to -mm tree
+Date: Thu, 06 Aug 2009 23:07:44 -0700
+Message-ID: <200908070607.n7767i6s000316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55484 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752166AbZHGBib (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2009 21:38:31 -0400
+	by vger.kernel.org with ESMTP id S1753962AbZHGGId (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2009 02:08:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, renzo@cs.unibo.it, viro@zeniv.linux.org.uk
+Cc: lethal@linux-sh.org, damm@igel.co.jp, dwmw2@infradead.org, kmpark@infradead.org, randy.dunlap@oracle.com, tony@atomide.com
 
 
 The patch titled
-     pc-fs-char_devc-remove-useless-loop-fix
+     mtd: onenand: select MTD_PARTITIONS
 has been added to the -mm tree.  Its filename is
-     pc-fs-char_devc-remove-useless-loop-fix.patch
+     mtd-make-onenand-genericc-more-generic-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pc-fs-char_devc-remove-useless-loop-fix
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: mtd: onenand: select MTD_PARTITIONS
+From: Paul Mundt <lethal@linux-sh.org>
 
-Fix build warning about the unused variable in char_dev.c:267
+All of the onenand drivers depend on mtd partition support being compiled
+in, so just select it.  Fixes up build breakage:
 
-Remove the unused char *s.
+drivers/built-in.o: In function `generic_onenand_remove':
+generic.c:(.devexit.text+0x80): undefined reference to `del_mtd_partitions'
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Renzo Davoli <renzo@cs.unibo.it>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kyungmin Park <kmpark@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/char_dev.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/mtd/onenand/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/char_dev.c~pc-fs-char_devc-remove-useless-loop-fix fs/char_dev.c
---- a/fs/char_dev.c~pc-fs-char_devc-remove-useless-loop-fix
-+++ a/fs/char_dev.c
-@@ -264,7 +264,6 @@ int register_chrdev(unsigned int major, 
- {
- 	struct char_device_struct *cd;
- 	struct cdev *cdev;
--	char *s;
- 	int err = -ENOMEM;
+diff -puN drivers/mtd/onenand/Kconfig~mtd-make-onenand-genericc-more-generic-fix drivers/mtd/onenand/Kconfig
+--- a/drivers/mtd/onenand/Kconfig~mtd-make-onenand-genericc-more-generic-fix
++++ a/drivers/mtd/onenand/Kconfig
+@@ -5,6 +5,7 @@
+ menuconfig MTD_ONENAND
+ 	tristate "OneNAND Device Support"
+ 	depends on MTD
++	select MTD_PARTITIONS
+ 	help
+ 	  This enables support for accessing all type of OneNAND flash
+ 	  devices. For further information see
+@@ -65,7 +66,6 @@ config MTD_ONENAND_2X_PROGRAM
  
- 	cd = __register_chrdev_region(major, 0, 256, name);
+ config MTD_ONENAND_SIM
+ 	tristate "OneNAND simulator support"
+-	depends on MTD_PARTITIONS
+ 	help
+ 	  The simulator may simulate various OneNAND flash chips for the
+ 	  OneNAND MTD layer.
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-origin.patch
-fbcon-dont-use-vc_resize-on-initialization.patch
 linux-next.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-pc-fs-char_devc-remove-useless-loop-fix.patch
+mtd-make-onenand-genericc-more-generic.patch
+mtd-make-onenand-genericc-more-generic-fix.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers.patch
+mmc-make-the-configuration-memory-resource-optional.patch
+tmio_mmc-optionally-support-using-platform-clock.patch
+sh-switch-migo-r-to-use-the-tmio-mmc-driver-instead-of-spi.patch
+fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
+flat-use-is_err_value-helper-macro.patch
 
